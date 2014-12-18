@@ -887,9 +887,9 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
   }
   Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
+  GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
     if (ic_data.IsUsedAt(i)) {
-      GrowableArray<intptr_t> class_ids;
       ic_data.GetCheckAt(i, &class_ids, &target);
       ASSERT(class_ids.length() == 2);
       if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
@@ -2150,7 +2150,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
           return false;
         }
         operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
@@ -2161,7 +2161,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                      ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
           return false;
         }
         // Check for smi/mint << smi or smi/mint >> smi.
@@ -3163,7 +3163,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     Definition* count = call->ArgumentAt(1);
     Definition* int32_mask = call->ArgumentAt(2);
     if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-      if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+      if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
         return false;
       }
       // We cannot overflow. The input value must be a Smi
@@ -3203,7 +3203,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         HasOnlyOneSmi(ICData::Handle(I,
                                      ic_data.AsUnaryClassChecksForArgNr(1)))) {
       if (!FlowGraphCompiler::SupportsUnboxedMints() ||
-          ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+          ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
         return false;
       }
       ShiftMintOpInstr* left_shift =
@@ -4298,7 +4298,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       TryReplaceWithBinaryOp(instr, op_kind)) {
     return;
   }
-  if (Token::IsPrefixOperator(op_kind) &&
+  if (Token::IsUnaryOperator(op_kind) &&
       TryReplaceWithUnaryOp(instr, op_kind)) {
     return;
   }
@@ -5003,7 +5003,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
   // Using kind kEffect will not assign a fresh ssa temporary index.
   flow_graph()->InsertBefore(last, current, last->env(), FlowGraph::kEffect);
-  current->deopt_id_ = last->GetDeoptId();
+  current->CopyDeoptIdFrom(*last);
 }
 
 
@@ -7303,6 +7303,20 @@ void DeadStoreElimination::Optimize(FlowGraph* graph) {
 }
 
 
+// Returns true iff this definition is used in a non-phi instruction.
+static bool HasRealUse(Definition* def) {
+  // Environment uses are real (non-phi) uses.
+  if (def->env_use_list() != NULL) return true;
+
+  for (Value::Iterator it(def->input_use_list());
+       !it.Done();
+       it.Advance()) {
+    if (!it.Current()->instruction()->IsPhi()) return true;
+  }
+  return false;
+}
+
+
 void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
   GrowableArray<PhiInstr*> live_phis;
   for (BlockIterator b = flow_graph->postorder_iterator();
@@ -7314,7 +7328,7 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
         PhiInstr* phi = it.Current();
         // Phis that have uses and phis inside try blocks are
         // marked as live.
-        if (phi->HasUses() || join->InsideTryBlock()) {
+        if (HasRealUse(phi) || join->InsideTryBlock()) {
           live_phis.Add(phi);
           phi->mark_alive();
         } else {
@@ -9247,7 +9261,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
           // InheritDeoptTarget gave the new branch's comparison the same
           // deopt id that it gave the new branch.  The id should be the
           // deopt id of the original comparison.
-          new_branch->comparison()->SetDeoptId(comparison->GetDeoptId());
+          new_branch->comparison()->SetDeoptId(*comparison);
           // The phi can be used in the branch's environment.  Rename such
           // uses.
           for (Environment::DeepIterator it(new_branch->env());

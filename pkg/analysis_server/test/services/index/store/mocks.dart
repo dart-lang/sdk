@@ -6,7 +6,6 @@ library test.services.index.store.mocks;
 
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:typed_mock/typed_mock.dart';
 
 
@@ -16,12 +15,6 @@ class MockContextCodec extends TypedMock implements ContextCodec {
 
 
 class MockElementCodec extends TypedMock implements ElementCodec {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class MockInstrumentedAnalysisContextImpl extends TypedMock implements
-    InstrumentedAnalysisContextImpl {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

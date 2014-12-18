@@ -162,8 +162,8 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
             value = null;
           }
         } else {
-          DartType constantType = value.value.computeType(compiler);
-          if (!constantSystem.isSubtype(compiler,
+          DartType constantType = value.value.getType(compiler.coreTypes);
+          if (!constantSystem.isSubtype(compiler.types,
                                         constantType, elementType)) {
             if (isConst) {
               compiler.reportFatalError(
@@ -485,10 +485,12 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
             message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
       }
       if (Elements.isStaticOrTopLevelFunction(element)) {
+        FunctionElementX function = element;
+        function.computeType(compiler);
         return new AstConstant(
             context, send, new FunctionConstantExpression(
-                new FunctionConstantValue(element),
-                element));
+                new FunctionConstantValue(function),
+                function));
       } else if (Elements.isStaticOrTopLevelField(element)) {
         ConstantExpression result;
         if (element.isConst) {
@@ -601,7 +603,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (condition == null) {
       return null;
     } else if (!condition.value.isBool) {
-      DartType conditionType = condition.value.computeType(compiler);
+      DartType conditionType = condition.value.getType(compiler.coreTypes);
       if (isEvaluatingConstant) {
         compiler.reportFatalError(
             node.condition, MessageKind.NOT_ASSIGNABLE,
@@ -732,7 +734,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
 
       if (!firstArgument.isString) {
-        DartType type = defaultValue.computeType(compiler);
+        DartType type = defaultValue.getType(compiler.coreTypes);
         compiler.reportFatalError(
             send.arguments.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
@@ -741,7 +743,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
       if (constructor == compiler.intEnvironment &&
           !(defaultValue.isNull || defaultValue.isInt)) {
-        DartType type = defaultValue.computeType(compiler);
+        DartType type = defaultValue.getType(compiler.coreTypes);
         compiler.reportFatalError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.intClass.rawType});
@@ -750,7 +752,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
       if (constructor == compiler.boolEnvironment &&
           !(defaultValue.isNull || defaultValue.isBool)) {
-        DartType type = defaultValue.computeType(compiler);
+        DartType type = defaultValue.getType(compiler.coreTypes);
         compiler.reportFatalError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.boolClass.rawType});
@@ -759,7 +761,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
       if (constructor == compiler.stringEnvironment &&
           !(defaultValue.isNull || defaultValue.isString)) {
-        DartType type = defaultValue.computeType(compiler);
+        DartType type = defaultValue.getType(compiler.coreTypes);
         compiler.reportFatalError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
@@ -907,8 +909,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
                             AstConstant constant) {
     if (compiler.enableTypeAssertions) {
       DartType elementType = element.type.substByContext(constructedType);
-      DartType constantType = constant.value.computeType(compiler);
-      if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+      DartType constantType = constant.value.getType(compiler.coreTypes);
+      if (!constantSystem.isSubtype(compiler.types,
+                                    constantType, elementType)) {
         compiler.withCurrentElement(constant.element, () {
           compiler.reportFatalError(
               constant.node, MessageKind.NOT_ASSIGNABLE,

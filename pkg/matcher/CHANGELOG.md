@@ -1,3 +1,11 @@
+## 0.11.3+1
+
+* Fix the `prints` matcher test on dart2js.
+
+## 0.11.3
+
+* Add a `prints` matcher that matches output a callback emits via `print`.
+
 ## 0.11.2
 
 * Add an `isNotEmpty` matcher.

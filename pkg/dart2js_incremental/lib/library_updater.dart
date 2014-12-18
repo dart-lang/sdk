@@ -76,9 +76,15 @@ import 'package:compiler/src/elements/modelx.dart' show
 import 'package:compiler/src/universe/universe.dart' show
     Selector;
 
+import 'package:compiler/src/constants/values.dart' show
+    ConstantValue;
+
 import 'diff.dart' show
     Difference,
     computeDifference;
+
+import 'dart2js_incremental.dart' show
+    IncrementalCompiler;
 
 typedef void Logger(message);
 
@@ -100,8 +106,46 @@ class FailedUpdate {
   }
 }
 
-// TODO(ahe): Generalize this class. For now only works for Compiler.mainApp,
-// and only if that library has exactly one compilation unit.
+abstract class _IncrementalCompilerContext {
+  IncrementalCompiler incrementalCompiler;
+
+  Set<ClassElementX> _emittedClasses;
+
+  Set<ClassElementX> _directlyInstantiatedClasses;
+
+  Set<ConstantValue> _compiledConstants;
+}
+
+class IncrementalCompilerContext extends _IncrementalCompilerContext {
+  final Set<Uri> _uriWithUpdates = new Set<Uri>();
+
+  void set incrementalCompiler(IncrementalCompiler value) {
+    if (super.incrementalCompiler != null) {
+      throw new StateError("Can't set [incrementalCompiler] more than once.");
+    }
+    super.incrementalCompiler = value;
+  }
+
+  void registerUriWithUpdates(Iterable<Uri> uris) {
+    _uriWithUpdates.addAll(uris);
+  }
+
+  void _captureState(Compiler compiler) {
+    _emittedClasses = new Set.from(compiler.backend.emitter.neededClasses);
+
+    _directlyInstantiatedClasses =
+        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
+
+    List<ConstantValue> constants =
+        compiler.backend.emitter.outputConstantLists[
+            compiler.deferredLoadTask.mainOutputUnit];
+    if (constants == null) constants = <ConstantValue>[];
+    _compiledConstants = new Set<ConstantValue>.identity()..addAll(constants);
+  }
+
+  bool _uriHasUpdate(Uri uri) => _uriWithUpdates.contains(uri);
+}
+
 class LibraryUpdater extends JsFeatures {
   final Compiler compiler;
 
@@ -110,10 +154,6 @@ class LibraryUpdater extends JsFeatures {
   final Logger logTime;
 
   final Logger logVerbose;
-
-  // TODO(ahe): Get rid of this field. It assumes that only one library has
-  // changed.
-  final Uri uri;
 
   final List<Update> updates = <Update>[];
 
@@ -126,18 +166,37 @@ class LibraryUpdater extends JsFeatures {
   final Set<ClassElementX> _classesWithSchemaChanges =
       new Set<ClassElementX>();
 
-  final Set<ClassElementX> _existingClasses = new Set();
+  final IncrementalCompilerContext _context;
+
+  bool _hasComputedNeeds = false;
+
+  bool _hasCapturedCompilerState = false;
 
   LibraryUpdater(
       this.compiler,
       this.inputProvider,
-      this.uri,
       this.logTime,
-      this.logVerbose) {
-    if (compiler != null) {
-      _existingClasses.addAll(emitter.neededClasses);
-    }
+      this.logVerbose,
+      this._context) {
+    // TODO(ahe): Would like to remove this from the constructor. However, the
+    // state must be captured before calling [reuseCompiler].
+    // Proper solution might be: [reuseCompiler] should not clear the sets that
+    // are captured in [IncrementalCompilerContext._captureState].
+    _ensureCompilerStateCaptured();
   }
+
+  /// Returns the classes emitted by [compiler].
+  Set<ClassElementX> get _emittedClasses => _context._emittedClasses;
+
+  /// Returns the directly instantantiated classes seen by [compiler] (this
+  /// includes interfaces and may be different from [_emittedClasses] that only
+  /// includes interfaces used in type tests).
+  Set<ClassElementX> get _directlyInstantiatedClasses {
+    return _context._directlyInstantiatedClasses;
+  }
+
+  /// Returns the constants emitted by [compiler].
+  Set<ConstantValue> get _compiledConstants => _context._compiledConstants;
 
   /// When [true], updates must be applied (using [applyUpdates]) before the
   /// [compiler]'s state correctly reflects the updated program.
@@ -147,16 +206,38 @@ class LibraryUpdater extends JsFeatures {
 
   /// Used as tear-off passed to [LibraryLoaderTask.resetAsync].
   Future<bool> reuseLibrary(LibraryElement library) {
+    _ensureCompilerStateCaptured();
     assert(compiler != null);
-    if (library.isPlatformLibrary || library.isPackageLibrary) {
-      logTime('Reusing $library.');
+    if (library.isPlatformLibrary) {
+      logTime('Reusing $library (assumed read-only).');
       return new Future.value(true);
-    } else if (library != compiler.mainApp) {
-      return new Future.value(false);
     }
-    return inputProvider(uri).then((bytes) {
-      return canReuseLibrary(library, bytes);
-    });
+    for (CompilationUnitElementX unit in library.compilationUnits) {
+      Uri uri = unit.script.resourceUri;
+      if (_context._uriHasUpdate(uri)) {
+        if (!library.compilationUnits.tail.isEmpty) {
+          // TODO(ahe): Remove this restriction.
+          cannotReuse(library, "Multiple compilation units not supported.");
+          return new Future.value(true);
+        }
+        return inputProvider(uri).then((bytes) {
+          return canReuseLibrary(library, bytes);
+        });
+      }
+    }
+
+    logTime("Reusing $library, source didn't change.");
+    // Source code of [library] wasn't changed.
+    return new Future.value(true);
+  }
+
+  void _ensureCompilerStateCaptured() {
+    // TODO(ahe): [compiler] shouldn't be null, remove the following line.
+    if (compiler == null) return;
+
+    if (_hasCapturedCompilerState) return;
+    _context._captureState(compiler);
+    _hasCapturedCompilerState = true;
   }
 
   /// Returns true if [library] can be reused.
@@ -164,19 +245,11 @@ class LibraryUpdater extends JsFeatures {
   /// This methods also computes the [updates] (patches) needed to have
   /// [library] reflect the modifications in [bytes].
   bool canReuseLibrary(LibraryElement library, bytes) {
-    logTime('Attempting to reuse mainApp.');
+    logTime('Attempting to reuse ${library}.');
     String newSource = bytes is String ? bytes : UTF8.decode(bytes);
     logTime('Decoded UTF8');
 
-    // TODO(ahe): Can't use compiler.mainApp in general.
-    if (false && newSource == compiler.mainApp.compilationUnit.script.text) {
-      // TODO(ahe): Need to update the compilationUnit's source code when
-      // doing incremental analysis for this to work.
-      logTime("Source didn't change");
-      return true;
-    }
-
-    logTime("Source did change");
+    Uri uri = library.entryCompilationUnit.script.resourceUri;
     Script sourceScript = new Script(
         uri, uri, new StringSourceFile('$uri', newSource));
     var dartPrivacyIsBroken = compiler.libraryLoader;
@@ -301,17 +374,10 @@ class LibraryUpdater extends JsFeatures {
 
   void addField(FieldElementX element, ScopeContainerElement container) {
     invalidateScopesAffectedBy(element, container);
-    if (!element.isInstanceMember) {
-      cannotReuse(element, "Not an instance field.");
-    } else {
-      addInstanceField(element, container);
+    if (element.isInstanceMember) {
+      _classesWithSchemaChanges.add(container);
     }
-  }
-
-  void addInstanceField(FieldElementX element, ClassElementX cls) {
-    _classesWithSchemaChanges.add(cls);
-
-    updates.add(new AddedFieldUpdate(compiler, element, cls));
+    updates.add(new AddedFieldUpdate(compiler, element, container));
   }
 
   bool canReuseRemovedElement(
@@ -603,20 +669,24 @@ class LibraryUpdater extends JsFeatures {
 
     List<jsAst.Statement> updates = <jsAst.Statement>[];
 
-    // TODO(ahe): allInstantiatedClasses seem to include interfaces that aren't
-    // needed.
     Set<ClassElementX> newClasses = new Set.from(
-        compiler.codegenWorld.allInstantiatedClasses.where(
-            emitter.computeClassFilter()));
-    newClasses.removeAll(_existingClasses);
+        compiler.codegenWorld.directlyInstantiatedClasses);
+    newClasses.removeAll(_directlyInstantiatedClasses);
 
-    // TODO(ahe): When more than one updated is computed, we need to make sure
-    // that existing classes aren't overwritten. No test except the one test
-    // that tests more than one update is affected by this problem, and only
-    // because main is closurized because we always enable tear-off. Is that
-    // really necessary? Also, add a test which tests directly that what
-    // happens when tear-off is introduced in second update.
-    emitter.neededClasses.addAll(newClasses);
+    if (!newClasses.isEmpty) {
+      // Ask the emitter to compute "needs" (only) if new classes were
+      // instantiated.
+      _ensureAllNeededEntitiesComputed();
+      newClasses = new Set.from(emitter.neededClasses);
+      newClasses.removeAll(_emittedClasses);
+    } else {
+      // Make sure that the set of emitted classes is preserved for subsequent
+      // updates.
+      // TODO(ahe): This is a bit convoluted, find a better approach.
+      emitter.neededClasses
+          ..clear()
+          ..addAll(_emittedClasses);
+    }
 
     List<jsAst.Statement> inherits = <jsAst.Statement>[];
 
@@ -633,8 +703,7 @@ class LibraryUpdater extends JsFeatures {
         jsAst.Node superAccess = emitter.classAccess(superclass);
         inherits.add(
             js.statement(
-                r'self.$dart_unsafe_eval.inheritFrom(#, #)',
-                [classAccess, superAccess]));
+                r'#.inheritFrom(#, #)', [helper, classAccess, superAccess]));
       }
     }
 
@@ -651,29 +720,48 @@ class LibraryUpdater extends JsFeatures {
       jsAst.Node classAccess = emitter.classAccess(cls);
       updates.add(
           js.statement(
-              r'# = self.$dart_unsafe_eval.schemaChange(#, #, #)',
-              [classAccess, invokeDefineClass(cls), classAccess, superAccess]));
+              r'# = #.schemaChange(#, #, #)',
+              [classAccess, helper,
+               invokeDefineClass(cls), classAccess, superAccess]));
     }
 
     for (RemovalUpdate update in removals) {
       update.writeUpdateJsOn(updates);
     }
     for (Element element in enqueuer.codegen.newlyEnqueuedElements) {
-      if (!element.isField) {
-        updates.add(computeMemberUpdateJs(element));
+      if (element.isField) {
+        updates.addAll(computeFieldUpdateJs(element));
       } else {
-        if (backend.constants.lazyStatics.contains(element)) {
-          throw new StateError("$element requires lazy initializer.");
+        updates.add(computeMethodUpdateJs(element));
+      }
+    }
+
+    Set<ConstantValue> newConstants = new Set<ConstantValue>.identity()..addAll(
+        compiler.backend.constants.compiledConstants);
+    newConstants.removeAll(_compiledConstants);
+
+    if (!newConstants.isEmpty) {
+      _ensureAllNeededEntitiesComputed();
+      List<ConstantValue> constants =
+          emitter.outputConstantLists[compiler.deferredLoadTask.mainOutputUnit];
+      if (constants != null) {
+        for (ConstantValue constant in constants) {
+          if (!_compiledConstants.contains(constant)) {
+            jsAst.Statement constantInitializer =
+                emitter.oldEmitter.buildConstantInitializer(constant)
+                .toStatement();
+            updates.add(constantInitializer);
+          }
         }
       }
     }
 
     updates.add(js.statement(r'''
-if (self.$dart_unsafe_eval.pendingStubs) {
-  self.$dart_unsafe_eval.pendingStubs.map(function(e) { return e(); });
-  self.$dart_unsafe_eval.pendingStubs = void 0;
+if (#helper.pendingStubs) {
+  #helper.pendingStubs.map(function(e) { return e(); });
+  #helper.pendingStubs = void 0;
 }
-'''));
+''', {'helper': helper}));
 
     if (updates.length == 1) {
       return prettyPrintJs(updates.single);
@@ -689,13 +777,15 @@ if (self.$dart_unsafe_eval.pendingStubs) {
         r'''
 (new Function(
     "$collectedClasses", "$desc",
-    self.$dart_unsafe_eval.defineClass(#, #) +"\n;return " + #))({#: #})''',
-        [js.string(name), js.stringArray(computeFields(cls)),
-         js.string(name),
-         js.string(name), descriptor]);
+    #helper.defineClass(#name, #computeFields) +"\n;return " + #name))(
+        {#name: #descriptor})''',
+        {'helper': helper,
+         'name': js.string(name),
+         'computeFields': js.stringArray(computeFields(cls)),
+         'descriptor': descriptor});
   }
 
-  jsAst.Node computeMemberUpdateJs(Element element) {
+  jsAst.Node computeMethodUpdateJs(Element element) {
     MemberInfo info = containerBuilder.analyzeMemberMethod(element);
     if (info == null) {
       compiler.internalError(element, '${element.runtimeType}');
@@ -703,7 +793,7 @@ if (self.$dart_unsafe_eval.pendingStubs) {
     ClassBuilder builder = new ClassBuilder(element, namer);
     containerBuilder.addMemberMethodFromInfo(info, builder);
     jsAst.Node partialDescriptor =
-        builder.toObjectInitializer(omitClassDescriptor: true);
+        builder.toObjectInitializer(emitClassDescriptor: false);
 
     String name = info.name;
     jsAst.Node function = info.code;
@@ -723,9 +813,36 @@ if (self.$dart_unsafe_eval.pendingStubs) {
         emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
 
     return js.statement(
-        r'self.$dart_unsafe_eval.addMethod(#, #, #, #, #)',
-        [partialDescriptor, js.string(name), holder,
+        r'#.addMethod(#, #, #, #, #)',
+        [helper, partialDescriptor, js.string(name), holder,
          new jsAst.LiteralBool(isStatic), globalFunctionsAccess]);
+  }
+
+  List<jsAst.Statement> computeFieldUpdateJs(FieldElementX element) {
+    if (element.isInstanceMember) {
+      // Any initializers are inlined in factory methods, and the field is
+      // declared by adding its class to [_classesWithSchemaChanges].
+      return const <jsAst.Statement>[];
+    }
+    // A static (or top-level) field.
+    if (backend.constants.lazyStatics.contains(element)) {
+      jsAst.Expression init =
+          emitter.oldEmitter.buildLazilyInitializedStaticField(
+              element, namer.currentIsolate);
+      if (init == null) {
+        throw new StateError("Initializer optimized away for $element");
+      }
+      return <jsAst.Statement>[init.toStatement()];
+    } else {
+      // TODO(ahe): When a field is referenced it is enqueued. If the field has
+      // no initializer, it will not have any associated code, so it will
+      // appear as if it was newly enqueued.
+      if (element.initializer == null) {
+        return const <jsAst.Statement>[];
+      } else {
+        throw new StateError("Don't know how to compile $element");
+      }
+    }
   }
 
   String prettyPrintJs(jsAst.Node node) {
@@ -743,6 +860,12 @@ if (self.$dart_unsafe_eval.pendingStubs) {
 
   List<String> computeFields(ClassElement cls) {
     return new EmitterHelper(compiler).computeFields(cls);
+  }
+
+  void _ensureAllNeededEntitiesComputed() {
+    if (_hasComputedNeeds) return;
+    emitter.computeAllNeededEntities();
+    _hasComputedNeeds = true;
   }
 }
 
@@ -1062,7 +1185,12 @@ class AddedFieldUpdate extends Update with JsFeatures {
   PartialFieldList get after => element.declarationSite;
 
   FieldElementX apply() {
-    FieldElementX copy = element.copyWithEnclosing(container);
+    Element enclosing = container;
+    if (enclosing.isLibrary) {
+      // TODO(ahe): Reuse compilation unit of element instead?
+      enclosing = enclosing.compilationUnit;
+    }
+    FieldElementX copy = element.copyWithEnclosing(enclosing);
     NO_WARN(container).addMember(copy, compiler);
     return copy;
   }
@@ -1191,6 +1319,8 @@ abstract class JsFeatures {
   ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
 
   EnqueueTask get enqueuer => compiler.enqueuer;
+
+  jsAst.Expression get helper => namer.accessIncrementalHelper;
 }
 
 class EmitterHelper extends JsFeatures {
@@ -1203,7 +1333,7 @@ class EmitterHelper extends JsFeatures {
   List<String> computeFields(ClassElement cls) {
     // TODO(ahe): Rewrite for new emitter.
     ClassBuilder builder = new ClassBuilder(cls, namer);
-    classEmitter.emitFields(cls, builder, "");
+    classEmitter.emitFields(cls, builder);
     return builder.fields;
   }
 }

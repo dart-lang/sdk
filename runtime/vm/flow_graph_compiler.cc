@@ -688,57 +688,11 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   //    corresponding spill slot locations.
   for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
     Location loc = it.CurrentLocation();
-    if (loc.IsRegister()) {
-      intptr_t index = cpu_reg_slots[loc.reg()];
-      ASSERT(index >= 0);
-      it.SetCurrentLocation(Location::StackSlot(index));
-    } else if (loc.IsFpuRegister()) {
-      intptr_t index = fpu_reg_slots[loc.fpu_reg()];
-      ASSERT(index >= 0);
-      Value* value = it.CurrentValue();
-      switch (value->definition()->representation()) {
-        case kUnboxedDouble:
-          it.SetCurrentLocation(Location::DoubleStackSlot(index));
-          break;
-        case kUnboxedFloat32x4:
-        case kUnboxedInt32x4:
-        case kUnboxedFloat64x2:
-          it.SetCurrentLocation(Location::QuadStackSlot(index));
-          break;
-        default:
-          UNREACHABLE();
-      }
-    } else if (loc.IsPairLocation()) {
-      intptr_t representation =
-          it.CurrentValue()->definition()->representation();
-      ASSERT(representation == kUnboxedMint);
-      PairLocation* value_pair = loc.AsPairLocation();
-      intptr_t index_lo;
-      intptr_t index_hi;
-      if (value_pair->At(0).IsRegister()) {
-        index_lo = cpu_reg_slots[value_pair->At(0).reg()];
-      } else {
-        ASSERT(value_pair->At(0).IsStackSlot());
-        index_lo = value_pair->At(0).stack_index();
-      }
-      if (value_pair->At(1).IsRegister()) {
-        index_hi = cpu_reg_slots[value_pair->At(1).reg()];
-      } else {
-        ASSERT(value_pair->At(1).IsStackSlot());
-        index_hi = value_pair->At(1).stack_index();
-      }
-      it.SetCurrentLocation(Location::Pair(Location::StackSlot(index_lo),
-                                           Location::StackSlot(index_hi)));
-    } else if (loc.IsInvalid()) {
-      Definition* def =
-          it.CurrentValue()->definition();
-      ASSERT(def != NULL);
-      if (def->IsMaterializeObject()) {
-        def->AsMaterializeObject()->RemapRegisters(fpu_reg_slots,
-                                                   cpu_reg_slots);
-      }
-    }
+    Value* value = it.CurrentValue();
+    it.SetCurrentLocation(loc.RemapForSlowPath(
+        value->definition(), cpu_reg_slots, fpu_reg_slots));
   }
+
   return env;
 }
 

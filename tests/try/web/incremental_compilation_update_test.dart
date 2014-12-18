@@ -44,66 +44,76 @@ import 'program_result.dart';
 
 const int TIMEOUT = 100;
 
-const List<List<ProgramResult>> tests = const <List<ProgramResult>>[
+const List<EncodedResult> tests = const <EncodedResult>[
     // Basic hello-world test.
-    const <ProgramResult>[
-        const ProgramResult(
-            "main() { print('Hello, World!'); }",
-            const <String> ['Hello, World!']),
-        const ProgramResult(
-            "main() { print('Hello, Brave New World!'); }",
-            const <String> ['Hello, Brave New World!']),
-    ],
+    const EncodedResult(
+        const [
+            "main() { print('Hello, ",
+            const ["", "Brave New "],
+            "World!'); }",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['Hello, World!']),
+            const ProgramExpectation(
+                const <String>['Hello, Brave New World!']),
+        ]),
 
     // Test that the test framework handles more than one update.
-    const <ProgramResult>[
-        const ProgramResult(
-            "main() { print('Hello darkness, my old friend'); }",
-            const <String> ['Hello darkness, my old friend']),
-        const ProgramResult(
-            "main() { print('I\\'ve come to talk with you again'); }",
-            const <String> ['I\'ve come to talk with you again']),
-        const ProgramResult(
-            "main() { print('Because a vision softly creeping'); }",
-            const <String> ['Because a vision softly creeping']),
-    ],
+    const EncodedResult(
+        const [
+            "main() { print('",
+            const [
+                "Hello darkness, my old friend",
+                "I\\'ve come to talk with you again",
+                "Because a vision softly creeping",
+            ],
+            "'); }",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['Hello darkness, my old friend']),
+            const ProgramExpectation(
+                const <String>['I\'ve come to talk with you again']),
+            const ProgramExpectation(
+                const <String>['Because a vision softly creeping']),
+        ]),
 
     // Test that that isolate support works.
-    const <ProgramResult>[
-        const ProgramResult(
-            "main(arguments) { print('Hello, Isolated World!'); }",
-            const <String> ['Hello, Isolated World!']),
-        const ProgramResult(
-            "main(arguments) { print(arguments); }",
-            const <String> ['[]']),
-    ],
+    const EncodedResult(
+        const [
+            "main(arguments) { print(",
+            const [
+                "'Hello, Isolated World!'",
+                "arguments"
+            ],
+            "); }",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['Hello, Isolated World!']),
+            const ProgramExpectation(
+                const <String>['[]']),
+        ]),
 
-    // Test that a stored closure changes behavior when updated.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that a stored closure changes behavior when updated.
+
 var closure;
 
 foo(a, [b = 'b']) {
+""",
+            const [
+                r"""
   print('$a $b');
-}
-
-main() {
-  if (closure == null) {
-    print('[closure] is null.');
-    closure = foo;
-  }
-  closure('a');
-  closure('a', 'c');
-}
 """,
-            const <String> ['[closure] is null.', 'a b', 'a c']),
-        const ProgramResult(
-            r"""
-var closure;
-
-foo(a, [b = 'b']) {
+                r"""
   print('$b $a');
+""",
+            ],
+            r"""
 }
 
 main() {
@@ -114,45 +124,62 @@ main() {
   closure('a');
   closure('a', 'c');
 }
-""",
-            const <String> ['b a', 'c a']),
-    ],
+"""],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['[closure] is null.', 'a b', 'a c']),
+            const ProgramExpectation(
+                const <String>['b a', 'c a']),
+        ]),
 
-    // Test modifying a static method works.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             """
+// Test modifying a static method works.
+
 class C {
   static m() {
-    print('v1');
+""",
+            const [
+                r"""
+  print('v1');
+""",
+                r"""
+  print('v2');
+""",
+            ],
+            """
   }
 }
 main() {
   C.m();
 }
 """,
-            const <String> ['v1']),
-        const ProgramResult(
-            """
-class C {
-  static m() {
-    print('v2');
-  }
-}
-main() {
-  C.m();
-}
-""",
-            const <String> ['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test modifying an instance method works.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             """
+// Test modifying an instance method works.
+
 class C {
   m() {
-    print('v1');
+""",
+            const [
+                r"""
+  print('v1');
+""",
+                r"""
+  print('v2');
+""",
+            ],
+            """
   }
 }
 var instance;
@@ -164,33 +191,32 @@ main() {
   instance.m();
 }
 """,
-            const <String> ['instance is null', 'v1']),
-        const ProgramResult(
-            """
-class C {
-  m() {
-    print('v2');
-  }
-}
-var instance;
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-  instance.m();
-}
-""",
-            const <String> ['v2']),
-    ],
 
-    // Test that a stored instance tearoff changes behavior when updated.
-    const <ProgramResult>[
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
             """
+// Test that a stored instance tearoff changes behavior when updated.
+
 class C {
   m() {
-    print('v1');
+""",
+            const [
+                r"""
+  print('v1');
+""",
+                r"""
+  print('v2');
+""",
+            ],
+                """
   }
 }
 var closure;
@@ -202,34 +228,32 @@ main() {
   closure();
 }
 """,
-            const <String> ['closure is null', 'v1']),
-        const ProgramResult(
-            """
-class C {
-  m() {
-    print('v2');
-  }
-}
-var closure;
-main() {
-  if (closure == null) {
-    print('closure is null');
-    closure = new C().m;
-  }
-  closure();
-}
-""",
-            const <String> ['v2']),
-    ],
 
-    // Test that deleting an instance method works.
-    const <ProgramResult>[
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['closure is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
             """
+// Test that deleting an instance method works.
+
 class C {
+""",
+            const [
+                """
   m() {
     print('v1');
   }
+""",
+                """
+""",
+            ],
+            """
 }
 var instance;
 main() {
@@ -244,41 +268,37 @@ main() {
   }
 }
 """,
-            const <String> ['instance is null', 'v1']),
-        const ProgramResult(
-            """
-class C {
-}
-var instance;
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-  try {
-    instance.m();
-  } catch (e) {
-    print('threw');
-  }
-}
-""",
-            const <String> ['threw']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['threw']),
+        ]),
 
-    // Test that deleting an instance method works, even when accessed through
-    // super.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             """
+// Test that deleting an instance method works, even when accessed through
+// super.
+
 class A {
   m() {
     print('v2');
   }
 }
 class B extends A {
+""",
+            const [
+                """
   m() {
     print('v1');
   }
+""",
+                """
+""",
+            ],
+            """
 }
 class C extends B {
   m() {
@@ -294,60 +314,30 @@ main() {
   instance.m();
 }
 """,
-            const <String> ['instance is null', 'v1']),
-        const ProgramResult(
-            """
-class A {
-  m() {
-    print('v2');
-  }
-}
-class B extends A {
-}
-class C extends B {
-  m() {
-    super.m();
-  }
-}
-var instance;
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-  instance.m();
-}
-""",
-            const <String> ['v2']),
-    ],
 
-    // Test that deleting a top-level method works.
-    const <ProgramResult>[
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
             """
+// Test that deleting a top-level method works.
+
+""",
+            const [
+                """
 toplevel() {
   print('v1');
 }
-class C {
-  m() {
-    try {
-      toplevel();
-    } catch (e) {
-      print('threw');
-    }
-  }
-}
-var instance;
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-  instance.m();
-}
 """,
-            const <String> ['instance is null', 'v1']),
-        const ProgramResult(
+                """
+""",
+            ],
             """
 class C {
   m() {
@@ -367,17 +357,31 @@ main() {
   instance.m();
 }
 """,
-            const <String> ['threw']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['threw']),
+        ]),
 
-    // Test that deleting a static method works.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             """
+// Test that deleting a static method works.
+
 class B {
+""",
+            const [
+                """
   static staticMethod() {
     print('v1');
   }
+""",
+                """
+""",
+            ],
+                """
 }
 class C {
   m() {
@@ -404,43 +408,19 @@ main() {
   instance.m();
 }
 """,
-            const <String> ['instance is null', 'v1']),
-        const ProgramResult(
-            """
-class B {
-}
-class C {
-  m() {
-    try {
-      B.staticMethod();
-    } catch (e) {
-      print('threw');
-    }
-    try {
-      // Ensure that noSuchMethod support is compiled. This test is not about
-      // adding new classes.
-      B.missingMethod();
-      print('bad');
-    } catch (e) {
-    }
-  }
-}
-var instance;
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-  instance.m();
-}
-""",
-            const <String> ['threw']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['threw']),
+        ]),
 
-    // Test that a newly instantiated class is handled.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             """
+// Test that a newly instantiated class is handled.
+
 class A {
   m() {
     print('Called A.m');
@@ -458,64 +438,61 @@ main() {
   if (instance == null) {
     print('instance is null');
     instance = new A();
-  }
-  instance.m();
-}
 """,
-            const <String>['instance is null', 'Called A.m']),
-        const ProgramResult(
-            """
-class A {
-  m() {
-    print('Called A.m');
-  }
-}
-
-class B {
-  m() {
-    print('Called B.m');
-  }
-}
-
-var instance;
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new A();
+            const [
+                """
+""",
+                """
   } else {
     instance = new B();
+""",
+            ],
+            """
   }
   instance.m();
 }
 """,
-            const <String>['Called B.m']),
-    ],
 
-    // Test that source maps don't throw exceptions.
-    const <ProgramResult>[
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'Called A.m']),
+            const ProgramExpectation(
+                const <String>['Called B.m']),
+        ]),
+
+    const EncodedResult(
+        const [
             """
+// Test that source maps don't throw exceptions.
+
 main() {
   print('a');
-}
 """,
-            const <String>['a']),
-
-        const ProgramResult(
-            """
-main() {
-  print('a');
+            const [
+                """
+""",
+                """
   print('b');
   print('c');
+""",
+            ],
+            """
 }
 """,
-            const <String>['a', 'b', 'c']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['a']),
+            const ProgramExpectation(
+                const <String>['a', 'b', 'c']),
+        ]),
 
-    // Test that a newly instantiated class is handled.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that a newly instantiated class is handled.
+
 class A {
   get name => 'A.m';
 
@@ -533,43 +510,33 @@ main() {
   if (instance == null) {
     print('instance is null');
     instance = new A();
-  }
-  instance.m();
-}
 """,
-            const <String>['instance is null', 'Called A.m']),
-        const ProgramResult(
-            r"""
-class A {
-  get name => 'A.m';
-
-  m() {
-    print('Called $name');
-  }
-}
-
-class B extends A {
-  get name => 'B.m';
-}
-
-var instance;
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new A();
+            const [
+                r"""
+""",
+                r"""
   } else {
     instance = new B();
+""",
+            ],
+            r"""
   }
   instance.m();
 }
 """,
-            const <String>['Called B.m']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'Called A.m']),
+            const ProgramExpectation(
+                const <String>['Called B.m']),
+        ]),
 
-    // Test that fields of a newly instantiated class are handled.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that fields of a newly instantiated class are handled.
+
 class A {
   var x;
   A(this.x);
@@ -583,51 +550,41 @@ foo() {
   }
 }
 main() {
-  foo();
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
-            r"""
-class A {
-  var x;
-  A(this.x);
-}
-var instance;
-foo() {
-  if (instance != null) {
-    print(instance.x);
-  } else {
-    print('v1');
-  }
-}
-main() {
+            const [
+                r"""
+""",
+                r"""
   instance = new A('v2');
+""",
+            ],
+            r"""
   foo();
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that top-level functions can be added.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
-main() {
-  try {
-    foo();
-  } catch(e) {
-    print('threw');
-  }
-}
+// Test that top-level functions can be added.
+
 """,
-            const <String>['threw']),
-        const ProgramResult(
-            r"""
+            const [
+                "",
+                r"""
 foo() {
   print('v2');
 }
-
+""",
+            ],
+            r"""
 main() {
   try {
     foo();
@@ -636,31 +593,30 @@ main() {
   }
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['threw']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that static methods can be added.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
-class C {
-}
+// Test that static methods can be added.
 
-main() {
-  try {
-    C.foo();
-  } catch(e) {
-    print('threw');
-  }
-}
+class C {
 """,
-            const <String>['threw']),
-        const ProgramResult(
-            r"""
-class C {
+            const [
+                "",
+                r"""
   static foo() {
     print('v2');
   }
+""",
+            ],
+            r"""
 }
 
 main() {
@@ -671,38 +627,31 @@ main() {
   }
 }
 """,
-            const <String>['v2']),
-    ],
 
-    // Test that instance methods can be added.
-    const <ProgramResult>[
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['threw']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
             r"""
+// Test that instance methods can be added.
+
 class C {
-}
-
-var instance;
-
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-
-  try {
-    instance.foo();
-  } catch(e) {
-    print('threw');
-  }
-}
 """,
-            const <String>['instance is null', 'threw']),
-        const ProgramResult(
-            r"""
-class C {
+            const [
+                "",
+                r"""
   foo() {
     print('v2');
   }
+""",
+            ],
+            r"""
 }
 
 var instance;
@@ -720,55 +669,63 @@ main() {
   }
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'threw']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that top-level functions can have signature changed.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that top-level functions can have signature changed.
+
+""",
+            const [
+                r"""
 foo() {
   print('v1');
-}
-
-main() {
-  foo();
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
-            r"""
+                r"""
 void foo() {
   print('v2');
+""",
+            ],
+            r"""
 }
 
 main() {
   foo();
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that static methods can have signature changed.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that static methods can have signature changed.
+
 class C {
+""",
+            const [
+                r"""
   static foo() {
     print('v1');
-  }
-}
-
-main() {
-  C.foo();
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
-            r"""
-class C {
+                r"""
   static void foo() {
     print('v2');
+""",
+            ],
+            r"""
   }
 }
 
@@ -776,16 +733,32 @@ main() {
   C.foo();
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that instance methods can have signature changed.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that instance methods can have signature changed.
+
 class C {
+""",
+            const [
+                r"""
   foo() {
     print('v1');
+""",
+                r"""
+  void foo() {
+    print('v2');
+""",
+            ],
+            r"""
   }
 }
 
@@ -800,71 +773,65 @@ main() {
   instance.foo();
 }
 """,
-            const <String>['instance is null', 'v1']),
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
             r"""
+// Test that adding a class is supported.
+
+""",
+            const [
+                "",
+                r"""
 class C {
   void foo() {
     print('v2');
   }
 }
-
-var instance;
-
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-
-  instance.foo();
-}
 """,
-            const <String>['v2']),
-    ],
-
-    // Test that adding a class is supported.
-    const <ProgramResult>[
-        const ProgramResult(
+            ],
             r"""
 main() {
+""",
+            const [
+                r"""
   print('v1');
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
-            r"""
-class C {
-  void foo() {
-    print('v2');
-  }
-}
-
-main() {
+                r"""
   new C().foo();
+""",
+            ],
+            r"""
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that removing a class is supported, using constructor.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that removing a class is supported, using constructor.
+
+""",
+            const [
+                r"""
 class C {
 }
-
-main() {
-  try {
-    new C();
-    print('v1');
-  } catch (e) {
-    print('v2');
-  }
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
+                ""
+            ],
             r"""
 main() {
   try {
@@ -875,29 +842,30 @@ main() {
   }
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that removing a class is supported, using a static method.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that removing a class is supported, using a static method.
+
+""",
+            const [
+                r"""
 class C {
   static m() {
     print('v1');
   }
 }
-
-main() {
-  try {
-    C.m();
-  } catch (e) {
-    print('v2');
-  }
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
+                "",
+            ],
             r"""
 main() {
   try {
@@ -907,13 +875,19 @@ main() {
   }
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that changing the supertype of a class.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that changing the supertype of a class.
+
 class A {
   m() {
     print('v2');
@@ -924,36 +898,16 @@ class B extends A {
     print('v1');
   }
 }
+""",
+            const [
+                r"""
 class C extends B {
-  m() {
-    super.m();
-  }
-}
-
-var instance;
-
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
-  instance.m();
-}
 """,
-            const <String>['instance is null', 'v1']),
-        const ProgramResult(
-            r"""
-class A {
-  m() {
-    print('v2');
-  }
-}
-class B extends A {
-  m() {
-    print('v1');
-  }
-}
+                r"""
 class C extends A {
+""",
+            ],
+            r"""
   m() {
     super.m();
   }
@@ -969,14 +923,28 @@ main() {
   instance.m();
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test adding a field to a class works.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test adding a field to a class works.
+
 class A {
+""",
+            const [
+                "",
+                r"""
+  var x;
+""",
+            ],
+            r"""
 }
 
 var instance;
@@ -998,41 +966,28 @@ main() {
   }
 }
 """,
-            const <String>['instance is null', 'setter threw', 'getter threw']),
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'setter threw', 'getter threw']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
             r"""
+// Test removing a field from a class works.
+
 class A {
-  var x;
-}
-
-var instance;
-
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new A();
-  }
-  try {
-    instance.x = 'v2';
-  } catch(e) {
-    print('setter threw');
-  }
-  try {
-    print(instance.x);
-  } catch (e) {
-    print('getter threw');
-  }
-}
 """,
-            const <String>['v2']),
-    ],
-
-    // Test removing a field from a class works.
-    const <ProgramResult>[
-        const ProgramResult(
-            r"""
-class A {
+            const [
+                r"""
   var x;
+""",
+                "",
+            ],
+            r"""
 }
 
 var instance;
@@ -1054,38 +1009,19 @@ main() {
   }
 }
 """,
-            const <String>['instance is null', 'v1']),
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['setter threw', 'getter threw']),
+        ]),
+
+    const EncodedResult(
+        const [
             r"""
-class A {
-}
+// Test that named arguments can be called.
 
-var instance;
-
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new A();
-  }
-  try {
-    instance.x = 'v1';
-  } catch(e) {
-    print('setter threw');
-  }
-  try {
-    print(instance.x);
-  } catch (e) {
-    print('getter threw');
-  }
-}
-""",
-            const <String>['setter threw', 'getter threw']),
-    ],
-
-    // Test that named arguments can be called.
-    const <ProgramResult>[
-        const ProgramResult(
-            r"""
 class C {
   foo({a, named: 'v1', x}) {
     print(named);
@@ -1099,35 +1035,31 @@ main() {
     print('instance is null');
     instance = new C();
   }
+""",
+            const [
+                r"""
   instance.foo();
-}
 """,
-            const <String>['instance is null', 'v1']),
-        const ProgramResult(
-            r"""
-class C {
-  foo({a, named: 'v1', x}) {
-    print(named);
-  }
-}
-
-var instance;
-
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
+                r"""
   instance.foo(named: 'v2');
+""",
+            ],
+            r"""
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test than named arguments can be called.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test than named arguments can be called.
+
 class C {
   foo({a, named: 'v2', x}) {
     print(named);
@@ -1141,35 +1073,31 @@ main() {
     print('instance is null');
     instance = new C();
   }
+""",
+            const [
+                r"""
   instance.foo(named: 'v1');
-}
 """,
-            const <String>['instance is null', 'v1']),
-        const ProgramResult(
-            r"""
-class C {
-  foo({a, named: 'v2', x}) {
-    print(named);
-  }
-}
-
-var instance;
-
-main() {
-  if (instance == null) {
-    print('instance is null');
-    instance = new C();
-  }
+                r"""
   instance.foo();
+""",
+            ],
+            r"""
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['instance is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that an instance tear-off with named parameters can be called.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that an instance tear-off with named parameters can be called.
+
 class C {
   foo({a, named: 'v1', x}) {
     print(named);
@@ -1183,57 +1111,41 @@ main() {
     print('closure is null');
     closure = new C().foo;
   }
+""",
+            const [
+                r"""
   closure();
-}
 """,
-            const <String>['closure is null', 'v1']),
-        const ProgramResult(
-            r"""
-class C {
-  foo({a, named: 'v1', x}) {
-    print(named);
-  }
-}
-
-var closure;
-
-main() {
-  if (closure == null) {
-    print('closure is null');
-    closure = new C().foo;
-  }
+                r"""
   closure(named: 'v2');
+""",
+            ],
+            r"""
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['closure is null', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-/*
-    // Test that a lazy static is supported.
-    // TODO(ahe): This test doesn't pass yet.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that a lazy static is supported.
+
 var normal;
 
+""",
+            const [
+                r"""
 foo() {
   print(normal);
 }
-
-main() {
-  if (normal == null) {
-    normal = 'v1';
-  } else {
-    normal = '';
-  }
-  foo();
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
-            r"""
-var normal;
-
+                r"""
 var lazy = bar();
 
 foo() {
@@ -1245,6 +1157,9 @@ bar() {
   return 'lazy';
 }
 
+""",
+            ],
+            r"""
 main() {
   if (normal == null) {
     normal = 'v1';
@@ -1254,15 +1169,18 @@ main() {
   foo();
 }
 """,
-            const <String>['v2', 'lazy']),
-    ],
-*/
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2', 'lazy']),
+        ]),
 
-    // Test that superclasses of directly instantiated classes are also
-    // emitted.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that superclasses of directly instantiated classes are also emitted.
 class A {
 }
 
@@ -1270,46 +1188,467 @@ class B extends A {
 }
 
 main() {
-  print('v1');
-}
 """,
-            const <String>['v1']),
-        const ProgramResult(
-            r"""
-class A {
-}
-
-class B extends A {
-}
-
-main() {
+            const [
+                r"""
+  print('v1');
+""",
+                r"""
   new B();
   print('v2');
+""",
+            ],
+            r"""
 }
 """,
-            const <String>['v2']),
-    ],
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
 
-    // Test that interceptor classes are handled correctly.
-    const <ProgramResult>[
-        const ProgramResult(
+    const EncodedResult(
+        const [
             r"""
+// Test that interceptor classes are handled correctly.
+
 main() {
-  // TODO(ahe): Remove next line when new constants are handled correctly.
-  [].map(null);
+""",
+            const [
+                r"""
   print('v1');
+""",
+                r"""
+  ['v2'].forEach(print);
+""",
+            ],
+            r"""
 }
 """,
-            const <String>['v1']),
-        const ProgramResult(
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test that newly instantiated superclasses are handled correctly when there
+// is more than one change.
+
+class A {
+  foo() {
+    print('Called foo');
+  }
+
+  bar() {
+    print('Called bar');
+  }
+}
+
+class B extends A {
+}
+
+main() {
+""",
+            const [
+                r"""
+  new B().foo();
+""",
+                r"""
+  new B().foo();
+""",
+            r"""
+  new A().bar();
+""",
+            ],
+            r"""
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['Called foo']),
+            const ProgramExpectation(
+                const <String>['Called foo']),
+            const ProgramExpectation(
+                const <String>['Called bar']),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test that newly instantiated subclasses are handled correctly when there is
+// more than one change.
+
+class A {
+  foo() {
+    print('Called foo');
+  }
+
+  bar() {
+    print('Called bar');
+  }
+}
+
+class B extends A {
+}
+
+main() {
+""",
+            const [
+                r"""
+  new A().foo();
+""",
+                r"""
+  new A().foo();
+""",
+            r"""
+  new B().bar();
+""",
+            ],
+            r"""
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['Called foo']),
+            const ProgramExpectation(
+                const <String>['Called foo']),
+            const ProgramExpectation(
+                const <String>['Called bar']),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test that constants are handled correctly.
+
+class C {
+  final String value;
+  const C(this.value);
+}
+
+main() {
+""",
+            const [
+                r"""
+  print(const C('v1').value);
+""",
+                r"""
+  print(const C('v2').value);
+""",
+            ],
+            r"""
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['v1']),
+            const ProgramExpectation(
+                const <String>['v2']),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test that an instance field can be added to a compound declaration.
+
+class C {
+""",
+            const [
+                r"""
+  int x;
+""",
+                r"""
+  int x, y;
+""",
+            ],
+                r"""
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+  } else {
+    instance.y = 'v2';
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+  try {
+    print(instance.y);
+  } catch (e) {
+    print('[instance.y] threw');
+  }
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>[
+                    '[instance] is null', 'v1', '[instance.y] threw']),
+            const ProgramExpectation(
+                const <String>['v1', 'v2'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test that an instance field can be removed from a compound declaration.
+
+class C {
+""",
+            const [
+                r"""
+  int x, y;
+""",
+                r"""
+  int x;
+""",
+            ],
+                r"""
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+    instance.y = 'v2';
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+  try {
+    print(instance.y);
+  } catch (e) {
+    print('[instance.y] threw');
+  }
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['[instance] is null', 'v1', 'v2']),
+            const ProgramExpectation(
+                const <String>['v1', '[instance.y] threw'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test that a static field can be made an instance field.
+
+class C {
+""",
+
+            const [
+                r"""
+  static int x;
+""",
+                r"""
+  int x;
+""",
+            ],
+                r"""
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    C.x = 'v1';
+  } else {
+    instance.x = 'v2';
+  }
+  try {
+    print(C.x);
+  } catch (e) {
+    print('[C.x] threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['[instance] is null', 'v1', '[instance.x] threw']),
+            const ProgramExpectation(
+                const <String>['[C.x] threw', 'v2'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test that instance field can be made static.
+
+class C {
+""",
+            const [
+                r"""
+  int x;
+""",
+                r"""
+  static int x;
+""",
+            ],
+            r"""
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+  } else {
+    C.x = 'v2';
+  }
+  try {
+    print(C.x);
+  } catch (e) {
+    print('[C.x] threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['[instance] is null', '[C.x] threw', 'v1']),
+            const ProgramExpectation(
+                const <String>['v2', '[instance.x] threw'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test compound constants.
+
+class A {
+  final value;
+  const A(this.value);
+
+  toString() => 'A($value)';
+}
+
+class B {
+  final value;
+  const B(this.value);
+
+  toString() => 'B($value)';
+}
+
+main() {
+""",
+            const [
+                r"""
+  print(const A('v1'));
+  print(const B('v1'));
+""",
+                r"""
+  print(const B(const A('v2')));
+  print(const A(const B('v2')));
+""",
+            ],
+            r"""
+}
+""",
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['A(v1)', 'B(v1)']),
+            const ProgramExpectation(
+                const <String>['B(A(v2))', 'A(B(v2))']),
+        ]),
+
+    const EncodedResult(
+        const [
+            r"""
+// Test constants of new classes.
+
+class A {
+  final value;
+  const A(this.value);
+
+  toString() => 'A($value)';
+}
+""",
+            const [
+                "",
+                r"""
+class B {
+  final value;
+  const B(this.value);
+
+  toString() => 'B($value)';
+}
+
+""",
+            ],
             r"""
 main() {
-  // TODO(ahe): Use forEach(print) when closures are computed correctly.
-  ['v2'].forEach((e) { print(e); });
+""",
+
+            const [
+                r"""
+  print(const A('v1'));
+""",
+                r"""
+  print(const A('v2'));
+  print(const B('v2'));
+  print(const B(const A('v2')));
+  print(const A(const B('v2')));
+""",
+            ],
+            r"""
 }
 """,
-            const <String>['v2']),
-    ],
+
+        ],
+        const <ProgramExpectation>[
+            const ProgramExpectation(
+                const <String>['A(v1)']),
+            const ProgramExpectation(
+                const <String>['A(v2)', 'B(v2)', 'B(A(v2))', 'A(B(v2))']),
+        ]),
 ];
 
 void main() {
@@ -1317,22 +1656,42 @@ void main() {
 
   document.head.append(lineNumberStyle());
 
+  summary = new SpanElement();
+  document.body.append(new HeadingElement.h1()
+      ..appendText("Incremental compiler tests")
+      ..append(summary));
+
   String query = window.location.search;
   int skip = 0;
   if (query != null && query.length > 1) {
     query = query.substring(1);
-    String skipParam = Uri.splitQueryString(window.location.search)['skip'];
-    if (skipParam != null) {
-      skip = int.parse(skipParam);
+    String skipParameter = Uri.splitQueryString(window.location.search)['skip'];
+    if (skipParameter != null) {
+      skip = int.parse(skipParameter);
     }
+    String verboseParameter =
+        Uri.splitQueryString(window.location.search)['verbose'];
+    verboseStatus = verboseParameter != null;
   }
+  testCount += skip;
 
-  return asyncTest(() => Future.forEach(tests.skip(skip), compileAndRun));
+  return asyncTest(() => Future.forEach(tests.skip(skip), compileAndRun)
+      .then(updateSummary));
 }
+
+SpanElement summary;
 
 int testCount = 1;
 
-Future compileAndRun(List<ProgramResult> programs) {
+bool verboseStatus = false;
+
+void updateSummary(_) {
+  summary.text = " (${testCount - 1}/${tests.length})";
+}
+
+Future compileAndRun(EncodedResult encodedResult) {
+  updateSummary(null);
+  List<ProgramResult> programs = encodedResult.decode();
   var status = new DivElement();
   document.body.append(status);
 
@@ -1374,7 +1733,24 @@ Future compileAndRun(List<ProgramResult> programs) {
           inputProvider.cachedSources[uri] = new Future.value(program.code);
           Future future = test.incrementalCompiler.compileUpdates(
               {test.scriptUri: uri}, logVerbose: logger, logTime: logger);
+          future = future.catchError((error, trace) {
+            String statusMessage;
+            Future result;
+            if (program.compileUpdatesShouldThrow) {
+              statusMessage = "Expected error in compileUpdates.";
+              result = null;
+            } else {
+              statusMessage = "Unexpected error in compileUpdates.";
+              result = new Future.error(error, trace);
+            }
+            status.append(new HeadingElement.h3()..appendText(statusMessage));
+            return result;
+          });
           return future.then((String update) {
+            if (program.compileUpdatesShouldThrow) {
+              Expect.isNull(update);
+              return null;
+            }
             print({'update': update});
             iframe.contentWindow.postMessage(['apply-update', update], '*');
 
@@ -1394,7 +1770,7 @@ Future compileAndRun(List<ProgramResult> programs) {
 
     // Remove the iframe and status to work around a bug in test.dart
     // (https://code.google.com/p/dart/issues/detail?id=21691).
-    status.remove();
+    if (!verboseStatus) status.remove();
     iframe.remove();
   });
 }
@@ -1463,10 +1839,9 @@ DivElement numberedLines(String code) {
   return result;
 }
 
-
 StyleElement lineNumberStyle() {
   StyleElement style = new StyleElement()..appendText('''
-h2 {
+h2, h3 {
   color: black;
 }
 

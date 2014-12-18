@@ -526,6 +526,7 @@ class Assembler : public ValueObject {
 
   void orl(Register dst, Register src);
   void orl(Register dst, const Immediate& imm);
+  void orl(const Address& dst, Register src);
 
   void xorl(Register dst, Register src);
 
@@ -828,6 +829,13 @@ class Assembler : public ValueObject {
   void SmiUntag(Register reg) {
     sarq(reg, Immediate(kSmiTagSize));
   }
+
+  void ComputeRange(Register result, Register value, Label* miss);
+  void UpdateRangeFeedback(Register value,
+                           intptr_t index,
+                           Register ic_data,
+                           Register scratch,
+                           Label* miss);
 
   int PreferredLoopAlignment() { return 16; }
   void Align(int alignment, intptr_t offset);

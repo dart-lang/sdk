@@ -327,6 +327,7 @@ class GetHandler {
    */
   void _returnCompletionInfo(HttpRequest request) {
     var refresh = request.requestedUri.queryParameters['refresh'];
+    var maxCount = request.requestedUri.queryParameters['maxCount'];
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
     response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
@@ -342,12 +343,14 @@ class GetHandler {
     }
     response.write('</head>');
     response.write('<body>');
-    _writeCompletionInfo(response);
-    response.write('<form>');
-    response.write(
-        '<input type="button" onClick="history.go(0)" value="Refresh">');
-    response.write('</form>');
-    response.write('<p>Append "?refresh=5" to refresh every 5 seconds</p>');
+    _writeCompletionInfo(response, maxCount);
+    response.write('<p>&nbsp</p>');
+    response.write('<p>Try ');
+    response.write('<a href="?refresh=5">?refresh=5</a>');
+    response.write(' to refresh every 5 seconds</p>');
+    response.write('<p>and ');
+    response.write('<a href="?maxCount=50">?maxCount=50</a>');
+    response.write(' to keep the last 50 performance measurements</p>');
     response.write('</body>');
     response.write('</html>');
     response.close();
@@ -491,7 +494,7 @@ class GetHandler {
   /**
    * Append code completion information.
    */
-  void _writeCompletionInfo(HttpResponse response) {
+  void _writeCompletionInfo(HttpResponse response, maxCount) {
     response.write('<h1>Code Completion</h1>');
     AnalysisServer analysisServer = _server.analysisServer;
     if (analysisServer == null) {
@@ -505,19 +508,52 @@ class GetHandler {
       response.write('<p>No code completion</p>');
       return;
     }
+    if (maxCount is String) {
+      int count = int.parse(maxCount, onError: (_) => 0);
+      handler.performanceListMaxLength = count;
+    }
     CompletionPerformance performance = handler.performance;
     if (performance == null) {
       response.write('<p>No performance stats yet</p>');
       return;
     }
-    response.write('<h2>Performance</h2>');
     response.write('<table>');
     _writeRow(response, ['Elapsed', '', 'Operation'], header: true);
     performance.operations.forEach((OperationPerformance op) {
       String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
       _writeRow(response, [elapsed, '&nbsp;&nbsp;', op.name]);
     });
+    if (handler.priorityChangedPerformance == null) {
+      response.write('<p>No priorityChanged caching</p>');
+    } else {
+      int len = handler.priorityChangedPerformance.operations.length;
+      if (len > 0) {
+        var op = handler.priorityChangedPerformance.operations[len - 1];
+        if (op != null) {
+          _writeRow(response, ['&nbsp;', '&nbsp;', '&nbsp;']);
+          String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
+          _writeRow(response, [elapsed, '&nbsp;&nbsp;', op.name]);
+        }
+      }
+    }
     response.write('</table>');
+    if (handler.performanceList.length > 0) {
+      response.write('<table>');
+      _writeRow(response, ['Milliseconds', '', '# Notifications', '', '# Suggestions', '', 'Snippet'], header: true);
+      handler.performanceList.forEach((CompletionPerformance performance) {
+        _writeRow(
+            response,
+            [
+                performance.elapsedInMilliseconds,
+                '&nbsp;&nbsp;',
+                performance.notificationCount,
+                '&nbsp;&nbsp;',
+                performance.suggestionCount,
+                '&nbsp;&nbsp;',
+                performance.snippet]);
+      });
+      response.write('</table>');
+    }
   }
 
   /**

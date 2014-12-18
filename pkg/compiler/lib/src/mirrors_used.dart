@@ -265,7 +265,8 @@ class MirrorUsageAnalyzer {
     List<MirrorUsage> result = <MirrorUsage>[];
     for (MetadataAnnotation metadata in tag.metadata) {
       metadata.ensureResolved(compiler);
-      Element element = metadata.constant.value.computeType(compiler).element;
+      Element element =
+          metadata.constant.value.getType(compiler.coreTypes).element;
       if (element == compiler.mirrorsUsedClass) {
         result.add(buildUsage(metadata.constant.value));
       }
@@ -438,7 +439,7 @@ class MirrorUsageBuilder {
 
   /// Find the first non-implementation interface of constant.
   DartType apiTypeOf(ConstantValue constant) {
-    DartType type = constant.computeType(compiler);
+    DartType type = constant.getType(compiler.coreTypes);
     LibraryElement library = type.element.library;
     if (type.isInterfaceType && library.isInternalLibrary) {
       InterfaceType interface = type;

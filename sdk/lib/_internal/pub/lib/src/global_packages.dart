@@ -694,7 +694,7 @@ $invocation "\$@"
 # The VM exits with code 255 if the snapshot version is out-of-date.
 # If it is, we need to delete it and run "pub global" manually.
 exit_code=\$?
-if [[ \$exit_code != 255 ]]; then
+if [ \$exit_code != 255 ]; then
   exit \$exit_code
 fi
 

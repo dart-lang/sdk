@@ -544,6 +544,7 @@ class Assembler : public ValueObject {
   void orl(Register dst, const Immediate& imm);
   void orl(Register dst, Register src);
   void orl(Register dst, const Address& address);
+  void orl(const Address& address, Register dst);
 
   void xorl(Register dst, const Immediate& imm);
   void xorl(Register dst, Register src);
@@ -725,6 +726,20 @@ class Assembler : public ValueObject {
                             intptr_t class_id,
                             Register scratch,
                             Label* is_smi);
+
+  void ComputeRange(Register result,
+                    Register value,
+                    Register lo_temp,
+                    Register hi_temp,
+                    Label* miss);
+
+  void UpdateRangeFeedback(Register value,
+                           intptr_t index,
+                           Register ic_data,
+                           Register scratch1,
+                           Register scratch2,
+                           Register scratch3,
+                           Label* miss);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,

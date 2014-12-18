@@ -425,7 +425,7 @@ class DeferredLoadTask extends CompilerTask {
         ConstantExpression constant =
             backend.constants.getConstantForMetadata(metadata);
         if (constant != null) {
-          _mapDependencies(constant.value.computeType(compiler).element,
+          _mapDependencies(constant.value.getType(compiler.coreTypes).element,
               deferredImport);
         }
       }
@@ -434,7 +434,7 @@ class DeferredLoadTask extends CompilerTask {
           ConstantExpression constant =
               backend.constants.getConstantForMetadata(metadata);
           if (constant != null) {
-            _mapDependencies(constant.value.computeType(compiler).element,
+            _mapDependencies(constant.value.getType(compiler.coreTypes).element,
                 deferredImport);
           }
         }
@@ -469,7 +469,7 @@ class DeferredLoadTask extends CompilerTask {
         for (MetadataAnnotation metadata in metadatas) {
           metadata.ensureResolved(compiler);
           Element element =
-              metadata.constant.value.computeType(compiler).element;
+              metadata.constant.value.getType(compiler.coreTypes).element;
           if (element == deferredLibraryClass) {
             ConstructedConstantValue constant = metadata.constant.value;
             StringConstantValue s = constant.fields[0];
@@ -657,7 +657,7 @@ class DeferredLoadTask extends CompilerTask {
             for (MetadataAnnotation metadata in metadataList) {
               metadata.ensureResolved(compiler);
               Element element =
-                  metadata.constant.value.computeType(compiler).element;
+                  metadata.constant.value.getType(compiler.coreTypes).element;
               if (element == deferredLibraryClass) {
                  compiler.reportFatalError(
                      import, MessageKind.DEFERRED_OLD_SYNTAX);

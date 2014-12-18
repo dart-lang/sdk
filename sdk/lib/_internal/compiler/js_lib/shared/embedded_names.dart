@@ -36,3 +36,5 @@ const CLASS_ID_EXTRACTOR = 'classIdExtractor';
 const CLASS_FIELDS_EXTRACTOR = 'classFieldsExtractor';
 const INSTANCE_FROM_CLASS_ID = "instanceFromClassId";
 const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";
+const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
+const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";

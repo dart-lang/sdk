@@ -83,10 +83,10 @@ getMangledTypeName(TypeImpl type) => type._typeName;
 /**
  * Sets the runtime type information on [target]. [typeInfo] is a type
  * representation of type 4 or 5, that is, either a JavaScript array or
- * [:null:].
+ * `null`.
  */
 Object setRuntimeTypeInfo(Object target, var typeInfo) {
-  assert(isNull(typeInfo) || isJsArray(typeInfo));
+  assert(typeInfo == null || isJsArray(typeInfo));
   // We have to check for null because factories may return null.
   if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, typeInfo);
   return target;
@@ -117,13 +117,13 @@ getRuntimeTypeArguments(target, substitutionName) {
 @NoThrows() @NoSideEffects() @NoInline()
 getRuntimeTypeArgument(Object target, String substitutionName, int index) {
   var arguments = getRuntimeTypeArguments(target, substitutionName);
-  return isNull(arguments) ? null : getIndex(arguments, index);
+  return arguments == null ? null : getIndex(arguments, index);
 }
 
 @NoThrows() @NoSideEffects() @NoInline()
 getTypeArgumentByIndex(Object target, int index) {
   var rti = getRuntimeTypeInfo(target);
-  return isNull(rti) ? null : getIndex(rti, index);
+  return rti == null ? null : getIndex(rti, index);
 }
 
 void copyTypeArguments(Object source, Object target) {
@@ -160,7 +160,7 @@ String getConstructorName(var type) => JS('String', r'#.builtin$cls', type);
  * Returns a human-readable representation of the type representation [type].
  */
 String runtimeTypeToString(var type, {String onTypeVariable(int i)}) {
-  if (isNull(type)) {
+  if (type == null) {
     return 'dynamic';
   } else if (isJsArray(type)) {
     // A list representing a type with arguments.
@@ -187,7 +187,7 @@ String runtimeTypeToString(var type, {String onTypeVariable(int i)}) {
  */
 String joinArguments(var types, int startIndex,
                      {String onTypeVariable(int i)}) {
-  if (isNull(types)) return '';
+  if (types == null) return '';
   assert(isJsArray(types));
   bool firstArgument = true;
   bool allDynamic = true;
@@ -231,9 +231,9 @@ Type getRuntimeType(var object) {
  * possible values for [substitution].
  */
 substitute(var substitution, var arguments) {
-  assert(isNull(substitution) ||
+  assert(substitution == null ||
          isJsFunction(substitution));
-  assert(isNull(arguments) || isJsArray(arguments));
+  assert(arguments == null || isJsArray(arguments));
   if (isJsFunction(substitution)) {
     substitution = invoke(substitution, arguments);
     if (isJsArray(substitution)) {
@@ -267,8 +267,8 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
   // TODO(9586): Move type info for static functions onto an interceptor.
   var interceptor = getInterceptor(object);
   var isSubclass = getField(interceptor, isField);
-  // When we read the field and it is not there, [isSubclass] will be [:null:].
-  if (isNull(isSubclass)) return false;
+  // When we read the field and it is not there, [isSubclass] will be `null`.
+  if (isSubclass == null) return false;
   // Should the asField function be passed the receiver?
   var substitution = getField(interceptor, asField);
   return checkArguments(substitution, arguments, checks);
@@ -332,17 +332,17 @@ bool checkArguments(var substitution, var arguments, var checks) {
 /**
  * Checks whether the types of [s] are all subtypes of the types of [t].
  *
- * [s] and [t] are either [:null:] or JavaScript arrays of type representations,
- * A [:null:] argument is interpreted as the arguments of a raw type, that is a
- * list of [:dynamic:]. If [s] and [t] are JavaScript arrays they must be of the
+ * [s] and [t] are either `null` or JavaScript arrays of type representations,
+ * A `null` argument is interpreted as the arguments of a raw type, that is a
+ * list of `dynamic`. If [s] and [t] are JavaScript arrays they must be of the
  * same length.
  *
  * See the comment in the beginning of this file for a description of type
  * representations.
  */
 bool areSubtypes(var s, var t) {
-  // [:null:] means a raw type.
-  if (isNull(s) || isNull(t)) return true;
+  // `null` means a raw type.
+  if (s == null || t == null) return true;
 
   assert(isJsArray(s));
   assert(isJsArray(t));
@@ -367,12 +367,12 @@ computeSignature(var signature, var context, var contextName) {
 }
 
 /**
- * Returns [:true:] if the runtime type representation [type] is a supertype of
- * [:Null:].
+ * Returns `true` if the runtime type representation [type] is a supertype of
+ * [Null].
  */
 bool isSupertypeOfNull(var type) {
   // `null` means `dynamic`.
-  return isNull(type) || getConstructorName(type) == JS_OBJECT_CLASS_NAME()
+  return type == null || getConstructorName(type) == JS_OBJECT_CLASS_NAME()
                       || getConstructorName(type) == JS_NULL_CLASS_NAME();
 }
 
@@ -384,25 +384,30 @@ bool isSupertypeOfNull(var type) {
  * representations.
  */
 bool checkSubtypeOfRuntimeType(o, t) {
-  if (isNull(o)) return isSupertypeOfNull(t);
-  if (isNull(t)) return true;
+  if (o == null) return isSupertypeOfNull(t);
+  if (t == null) return true;
   // Get the runtime type information from the object here, because we may
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
   o = getInterceptor(o);
-  // We can use the object as its own type representation because we install
-  // the subtype flags and the substitution on the prototype, so they are
-  // properties of the object in JS.
-  var type;
-  if (isNotNull(rti)) {
-    // If the type has type variables (that is, [:rti != null:]), make a copy of
+  var type = JS('', '#.constructor', o);
+  if (rti != null) {
+    // If the type has type variables (that is, `rti != null`), make a copy of
     // the type arguments and insert [o] in the first position to create a
     // compound type representation.
-    type = JS('JSExtendableArray', '#.slice()', rti);
-    JS('', '#.splice(0, 0, #)', type, o);
-  } else {
-    // Use the object as representation of the raw type.
-    type = o;
+    rti = JS('JSExtendableArray', '#.slice()', rti);  // Make a copy.
+    JS('', '#.splice(0, 0, #)', rti, type);  // Insert type at position 0.
+    type = rti;
+  } else if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
+    // Functions are treated specially and have their type information stored
+    // directly in the instance.
+    var signatureName =
+        '${JS_OPERATOR_IS_PREFIX()}_${getField(t, JS_FUNCTION_TYPE_TAG())}';
+    if (hasField(o, signatureName)) return true;
+    var targetSignatureFunction = getField(o, '${JS_SIGNATURE_NAME()}');
+    if (targetSignatureFunction == null) return false;
+    type = invokeOn(targetSignatureFunction, o, null);
+    return isFunctionSubtype(type, t);
   }
   return isSubtype(type, t);
 }
@@ -424,7 +429,7 @@ Object assertSubtypeOfRuntimeType(Object object, var type) {
 
 /**
  * Extracts the type arguments from a type representation. The result is a
- * JavaScript array or [:null:].
+ * JavaScript array or `null`.
  */
 getArguments(var type) {
   return isJsArray(type) ? JS('var', r'#.slice(1)', type) : null;
@@ -436,28 +441,23 @@ getArguments(var type) {
  *
  * See the comment in the beginning of this file for a description of type
  * representations.
+ *
+ * The arguments [s] and [t] must be types, usually represented by the
+ * constructor of the class, or an array (for generic types).
  */
 bool isSubtype(var s, var t) {
   // Subtyping is reflexive.
   if (isIdentical(s, t)) return true;
   // If either type is dynamic, [s] is a subtype of [t].
-  if (isNull(s) || isNull(t)) return true;
+  if (s == null || t == null) return true;
   if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
-    if (hasNoField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
-      var signatureName =
-          '${JS_OPERATOR_IS_PREFIX()}_${getField(t, JS_FUNCTION_TYPE_TAG())}';
-      if (hasField(s, signatureName)) return true;
-      var targetSignatureFunction = getField(s, '${JS_SIGNATURE_NAME()}');
-      if (isNull(targetSignatureFunction)) return false;
-      s = invokeOn(targetSignatureFunction, s, null);
-    }
     return isFunctionSubtype(s, t);
   }
   // Check function types against the Function class.
-  if (getConstructorName(t) == JS_FUNCTION_CLASS_NAME() &&
-      hasField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
-    return true;
+  if (hasField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
+    return getConstructorName(t) == JS_FUNCTION_CLASS_NAME();
   }
+
   // Get the object describing the class and check for the subtyping flag
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
@@ -468,15 +468,16 @@ bool isSubtype(var s, var t) {
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
     var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
-    if (hasNoField(typeOfS, test)) return false;
+    var typeOfSPrototype = JS('', '#.prototype', typeOfS);
+    if (hasNoField(typeOfSPrototype, test)) return false;
     var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
-    substitution = getField(typeOfS, field);
+    substitution = getField(typeOfSPrototype, field);
   }
   // The class of [s] is a subclass of the class of [t].  If [s] has no type
   // arguments and no substitution, it is used as raw type.  If [t] has no
   // type arguments, it used as a raw type.  In both cases, [s] is a subtype
   // of [t].
-  if ((!isJsArray(s) && isNull(substitution)) || !isJsArray(t)) {
+  if ((!isJsArray(s) && substitution == null) || !isJsArray(t)) {
     return true;
   }
   // Recursively check the type arguments.
@@ -488,15 +489,15 @@ bool isAssignable(var s, var t) {
 }
 
 /**
- * If [allowShorter] is [:true:], [t] is allowed to be shorter than [s].
+ * If [allowShorter] is `true`, [t] is allowed to be shorter than [s].
  */
 bool areAssignable(List s, List t, bool allowShorter) {
   // Both lists are empty and thus equal.
-  if (isNull(t) && isNull(s)) return true;
+  if (t ==null && s == null) return true;
   // [t] is empty (and [s] is not) => only OK if [allowShorter].
-  if (isNull(t)) return allowShorter;
+  if (t == null) return allowShorter;
   // [s] is empty (and [t] is not) => [s] is not longer or equal to [t].
-  if (isNull(s)) return false;
+  if (s == null) return false;
 
   assert(isJsArray(s));
   assert(isJsArray(t));
@@ -518,8 +519,8 @@ bool areAssignable(List s, List t, bool allowShorter) {
 }
 
 bool areAssignableMaps(var s, var t) {
-  if (isNull(t)) return true;
-  if (isNull(s)) return false;
+  if (t == null) return true;
+  if (s == null) return false;
 
   assert(isJsObject(s));
   assert(isJsObject(t));
@@ -561,15 +562,13 @@ bool isFunctionSubtype(var s, var t) {
   var tOptionalParameterTypes =
       getField(t, '${JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()}');
 
-  int sParametersLen =
-      isNotNull(sParameterTypes) ? getLength(sParameterTypes) : 0;
-  int tParametersLen =
-      isNotNull(tParameterTypes) ? getLength(tParameterTypes) : 0;
+  int sParametersLen = sParameterTypes != null ? getLength(sParameterTypes) : 0;
+  int tParametersLen = tParameterTypes != null ? getLength(tParameterTypes) : 0;
 
-  int sOptionalParametersLen = isNotNull(sOptionalParameterTypes)
-      ? getLength(sOptionalParameterTypes) : 0;
-  int tOptionalParametersLen = isNotNull(tOptionalParameterTypes)
-      ? getLength(tOptionalParameterTypes) : 0;
+  int sOptionalParametersLen =
+      sOptionalParameterTypes != null ? getLength(sOptionalParameterTypes) : 0;
+  int tOptionalParametersLen =
+      tOptionalParameterTypes != null ? getLength(tOptionalParameterTypes) : 0;
 
   if (sParametersLen > tParametersLen) {
     // Too many required parameters in [s].
@@ -627,17 +626,17 @@ bool isFunctionSubtype(var s, var t) {
 
 /**
  * Calls the JavaScript [function] with the [arguments] with the global scope
- * as the [:this:] context.
+ * as the `this` context.
  */
 invoke(var function, var arguments) => invokeOn(function, null, arguments);
 
 /**
  * Calls the JavaScript [function] with the [arguments] with [receiver] as the
- * [:this:] context.
+ * `this` context.
  */
 Object invokeOn(function, receiver, arguments) {
   assert(isJsFunction(function));
-  assert(isNull(arguments) || isJsArray(arguments));
+  assert(arguments == null || isJsArray(arguments));
   return JS('var', r'#.apply(#, #)', function, receiver, arguments);
 }
 
@@ -668,36 +667,22 @@ hasField(var object, var name) => JS('bool', r'# in #', name, object);
 
 hasNoField(var object, var name) => !hasField(object, name);
 
-/// Returns [:true:] if [o] is a JavaScript function.
+/// Returns `true` if [o] is a JavaScript function.
 bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);
 
-/// Returns [:true:] if [o] is a JavaScript object.
+/// Returns `true` if [o] is a JavaScript object.
 bool isJsObject(var o) => JS('bool', r"typeof # == 'object'", o);
 
 /**
- * Returns [:true:] if [o] is equal to [:null:], that is either [:null:] or
- * [:undefined:]. We use this helper to avoid generating code under the invalid
- * assumption that [o] is a Dart value.
- */
-bool isNull(var o) => JS('bool', '# == null', o);
-
-/**
- * Returns [:true:] if [o] is not equal to [:null:], that is neither [:null:]
- * nor [:undefined:].  We use this helper to avoid generating code under the
- * invalid assumption that [o] is a Dart value.
- */
-bool isNotNull(var o) => JS('bool', '# != null', o);
-
-/**
- * Returns [:true:] if the JavaScript values [s] and [t] are identical. We use
- * this helper to avoid generating code under the invalid assumption that [s]
- * and [t] are Dart values.
+ * Returns `true` if the JavaScript values [s] and [t] are identical. We use
+ * this helper instead of [identical] because `identical` needs to merge
+ * `null` and `undefined` (which we can avoid).
  */
 bool isIdentical(var s, var t) => JS('bool', '# === #', s, t);
 
 /**
- * Returns [:true:] if the JavaScript values [s] and [t] are not identical. We
- * use this helper to avoid generating code under the invalid assumption that
- * [s] and [t] are Dart values.
+ * Returns `true` if the JavaScript values [s] and [t] are not identical. We use
+ * this helper instead of [identical] because `identical` needs to merge
+ * `null` and `undefined` (which we can avoid).
  */
 bool isNotIdentical(var s, var t) => JS('bool', '# !== #', s, t);

@@ -2357,13 +2357,14 @@ static bool HandleAddress(Isolate* isolate, JSONStream* js) {
     PrintError(js, "Must specify address: address/" Px ".", kExampleAddr);
     return true;
   }
+  bool ref = js->HasOption("ref") && js->OptionIs("ref", "true");
   Object& object = Object::Handle(isolate);
   {
     NoGCScope no_gc;
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }
-  object.PrintJSON(js, false);
+  object.PrintJSON(js, ref);
   return true;
 }
 

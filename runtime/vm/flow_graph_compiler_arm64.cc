@@ -1357,10 +1357,11 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
-                                                    const Object& obj,
-                                                    bool needs_number_check,
-                                                    intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
+    Register reg,
+    const Object& obj,
+    bool needs_number_check,
+    intptr_t token_pos) {
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
     ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
@@ -1378,19 +1379,20 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+    // Stub returns result in flags (result of a cmp, we need Z computed).
     __ Drop(1);  // Discard constant.
     __ Pop(reg);  // Restore 'reg'.
-    return;
+  } else {
+    __ CompareObject(reg, obj, PP);
   }
-
-  __ CompareObject(reg, obj, PP);
+  return EQ;
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
-                                                  Register right,
-                                                  bool needs_number_check,
-                                                  intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                       Register right,
+                                                       bool needs_number_check,
+                                                       intptr_t token_pos) {
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
     __ Push(left);
@@ -1414,12 +1416,13 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ LoadImmediate(R5, kInvalidObjectPointer, kNoPP);
     }
 #endif
-    // Stub returns result in flags (result of a cmpl, we need ZF computed).
+    // Stub returns result in flags (result of a cmp, we need Z computed).
     __ Pop(right);
     __ Pop(left);
   } else {
     __ CompareRegisters(left, right);
   }
+  return EQ;
 }
 
 
@@ -1428,6 +1431,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 #if defined(DEBUG)
   locs->CheckWritableInputs();
+  ClobberDeadTempRegisters(locs);
 #endif
 
   // TODO(vegorov): consider saving only caller save (volatile) registers.
@@ -1457,6 +1461,9 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+#if defined(DEBUG)
+  ClobberDeadTempRegisters(locs);
+#endif
   // General purpose registers have the highest register number at the
   // lowest address.
   for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
@@ -1477,6 +1484,21 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     }
   }
 }
+
+
+#if defined(DEBUG)
+void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
+  // Clobber temporaries that have not been manually preserved.
+  for (intptr_t i = 0; i < locs->temp_count(); ++i) {
+    Location tmp = locs->temp(i);
+    // TODO(zerny): clobber non-live temporary FPU registers.
+    if (tmp.IsRegister() &&
+        !locs->live_registers()->ContainsRegister(tmp.reg())) {
+      __ movz(tmp.reg(), Immediate(0xf7), 0);
+    }
+  }
+}
+#endif
 
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,

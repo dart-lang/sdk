@@ -62,6 +62,17 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
               }
             });
           }
+        } else if (stmt is FunctionDeclarationStatement) {
+          FunctionDeclaration declaration = stmt.functionDeclaration;
+          if (declaration != null && declaration.offset < offset) {
+            SimpleIdentifier id = declaration.name;
+            if (id != null) {
+              String name = id.name;
+              if (name != null && name.length > 0) {
+                declaredFunction(declaration);
+              }
+            }
+          }
         }
       }
     });

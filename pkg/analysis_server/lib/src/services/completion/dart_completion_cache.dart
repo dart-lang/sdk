@@ -66,6 +66,11 @@ class DartCompletionCache extends CompletionCache {
    */
   Map<String, ClassElement> importedClassMap;
 
+  /**
+   * The [ClassElement] for Object.
+   */
+  ClassElement _objectClassElement;
+
   DartCompletionCache(AnalysisContext context, Source source)
       : super(context, source);
 
@@ -132,6 +137,7 @@ class DartCompletionCache extends CompletionCache {
       }
       addSuggestion(elem, CompletionRelevance.DEFAULT);
     });
+    _objectClassElement = importedClassMap['Object'];
 
     /*
      * Don't wait for search of lower relevance results to complete.
@@ -156,6 +162,20 @@ class DartCompletionCache extends CompletionCache {
       });
       return true;
     });
+  }
+
+  /**
+   * Return the [ClassElement] for Object.
+   */
+  ClassElement get objectClassElement {
+    if (_objectClassElement == null) {
+      Source coreUri = context.sourceFactory.forUri('dart:core');
+      LibraryElement coreLib = context.getLibraryElement(coreUri);
+      Namespace coreNamespace =
+          new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
+      _objectClassElement = coreNamespace.definedNames['Object'];
+    }
+    return _objectClassElement;
   }
 
   /**

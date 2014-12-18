@@ -2,18 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.optimizers;
+part of dart2js.cps_ir.optimizers;
 
 /**
- * [[ShrinkingReducer]] applies shrinking reductions to CPS terms as described
+ * [ShrinkingReducer] applies shrinking reductions to CPS terms as described
  * in 'Compiling with Continuations, Continued' by Andrew Kennedy.
  */
-class ShrinkingReducer extends Pass {
+class ShrinkingReducer extends PassMixin {
   _RedexVisitor _redexVisitor;
   Set<_ReductionTask> _worklist;
 
   static final _DeletedNode _DELETED = new _DeletedNode();
 
+  /// Applies shrinking reductions to root, mutating root in the process.
+  @override
   void rewriteExecutableDefinition(ExecutableDefinition root) {
     _worklist = new Set<_ReductionTask>();
     _redexVisitor = new _RedexVisitor(_worklist);
@@ -30,18 +32,6 @@ class ShrinkingReducer extends Pass {
       _worklist.remove(task);
       _processTask(task);
     }
-  }
-
-  /// Applies shrinking reductions to root, mutating root in the process.
-  void rewriteFieldDefinition(FieldDefinition root) {
-    if (!root.hasInitializer) return;
-    rewriteExecutableDefinition(root);
-  }
-
-  /// Applies shrinking reductions to root, mutating root in the process.
-  void rewriteFunctionDefinition(FunctionDefinition root) {
-    if (root.isAbstract) return;
-    rewriteExecutableDefinition(root);
   }
 
   /// Removes the given node from the CPS graph, replacing it with its body
@@ -304,16 +294,31 @@ class _RemovalRedexVisitor extends _RedexVisitor {
 /// Traverses the CPS term and sets node.parent for each visited node.
 class ParentVisitor extends RecursiveVisitor {
 
-  processFieldDefinition(FieldDefinition node) {
-    node.body.parent = node;
-  }
-
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
     node.parameters.forEach((Definition p) => p.parent = node);
   }
 
+  processRunnableBody(RunnableBody node) {
+    node.body.parent = node;
+  }
+
+  processConstructorDefinition(ConstructorDefinition node) {
+    node.body.parent = node;
+    node.parameters.forEach((Definition p) => p.parent = node);
+    node.initializers.forEach((Initializer i) => i.parent = node);
+  }
+
   // Expressions.
+
+  processFieldInitializer(FieldInitializer node) {
+    node.body.body.parent = node;
+  }
+
+  processSuperInitializer(SuperInitializer node) {
+    node.arguments.forEach(
+        (RunnableBody argument) => argument.body.parent = node);
+  }
 
   processLetPrim(LetPrim node) {
     node.primitive.parent = node;
@@ -410,6 +415,10 @@ class ParentVisitor extends RecursiveVisitor {
   processIdentical(Identical node) {
     node.left.parent = node;
     node.right.parent = node;
+  }
+
+  processInterceptor(Interceptor node) {
+    node.input.parent = node;
   }
 }
 

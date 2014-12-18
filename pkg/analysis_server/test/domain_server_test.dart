@@ -29,7 +29,7 @@ main() {
         null,
         new AnalysisServerOptions(),
         new MockSdk(),
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     handler = new ServerDomainHandler(server);
   });
 

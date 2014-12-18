@@ -4,6 +4,7 @@
 
 library dart2js.ir_nodes_sexpr;
 
+import '../constants/values.dart';
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
 
@@ -15,16 +16,22 @@ typedef String Decorator(Node node, String s);
 class SExpressionStringifier extends Visitor<String> with Indentation {
   final _Namer namer = new _Namer();
 
-  String newValueName(Node node) => namer.defineValueName(node);
-  String newContinuationName(Node node) => namer.defineContinuationName(node);
-  final Decorator decorator;
+  String newValueName(Primitive node) => namer.nameValue(node);
+  String newContinuationName(Continuation node) => namer.nameContinuation(node);
+  Decorator decorator;
 
-  SExpressionStringifier([this.decorator]);
+  SExpressionStringifier([this.decorator]) {
+    if (this.decorator == null) {
+      this.decorator = (Node node, String s) => s;
+    }
+  }
 
-  String access(Reference<Definition> r) => namer.getName(r.definition);
+  String access(Reference<Definition> r) {
+    return decorator(r.definition, namer.getName(r.definition));
+  }
 
   String visitParameter(Parameter node) {
-    return namer.useElementName(node);
+    return namer.nameParameter(node);
   }
 
   String visitClosureVariable(ClosureVariable node) {
@@ -35,26 +42,25 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   /// calls must go through this method.
   String visit(Node node) {
     String s = super.visit(node);
-    return (decorator == null) ? s : decorator(node, s);
+    return decorator(node, s);
   }
 
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
-    namer.useReturnName(node.returnContinuation);
-    String closureVariables = node.closureVariables.isEmpty
-        ? ''
-        : '{${node.closureVariables.map(namer.defineClosureName).join(' ')}} ';
+    namer.setReturnContinuation(node.body.returnContinuation);
+    String closureVariables =
+        node.closureVariables.map(namer.nameClosureVariable).join(' ');
     String parameters = node.parameters.map(visit).join(' ');
-    String body = indentBlock(() => visit(node.body));
-    return '$indentation(FunctionDefinition $name $closureVariables'
-           '($parameters return)\n$body)';
+    String body = indentBlock(() => visit(node.body.body));
+    return '$indentation(FunctionDefinition $name ($parameters) return'
+        ' ($closureVariables)\n$body)';
   }
 
   String visitFieldDefinition(FieldDefinition node) {
     String name = node.element.name;
     if (node.hasInitializer) {
-      namer.useReturnName(node.returnContinuation);
-      String body = indentBlock(() => visit(node.body));
+      namer.setReturnContinuation(node.body.returnContinuation);
+      String body = indentBlock(() => visit(node.body.body));
       return '$indentation(FieldDefinition $name (return)\n'
              '$body)';
     } else {
@@ -75,7 +81,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     // should recurse to [visit].  Currently we can't do that, because the
     // unstringifier_test produces [LetConts] with dummy arguments on them.
     String parameters = node.continuation.parameters
-        .map((p) => ' ${newValueName(p)}')
+        .map((p) => ' ${decorator(p, newValueName(p))}')
         .join('');
     String contBody = indentBlock(() => visit(node.continuation.body));
     String body = visit(node.body);
@@ -154,7 +160,9 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitConstant(Constant node) {
-    return '(Constant ${node.expression.value.toStructuredString()})';
+    String value =
+        node.expression.value.accept(new ConstantStringifier(), null);
+    return '(Constant $value)';
   }
 
   String visitThis(This node) {
@@ -223,6 +231,74 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     String right = access(node.right);
     return '(Identical $left $right)';
   }
+
+  String visitInterceptor(Interceptor node) {
+    return '(Interceptor ${node.input})';
+  }
+}
+
+class ConstantStringifier extends ConstantValueVisitor<String, Null> {
+  // Some of these methods are unimplemented because we haven't had a need
+  // to print such constants.  When printing is implemented, the corresponding
+  // parsing support should be added to SExpressionUnstringifier.parseConstant
+  // in the dart2js tests (currently in the file
+  // tests/compiler/dart2js/backend_dart/sexpr_unstringifier.dart).
+
+  String _failWith(ConstantValue constant) {
+    throw 'Stringification not supported for ${constant.toStructuredString()}';
+  }
+
+  String visitFunction(FunctionConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitNull(NullConstantValue constant, _) {
+    return '(Null)';
+  }
+
+  String visitInt(IntConstantValue constant, _) {
+    return '(Int ${constant.unparse()})';
+  }
+
+  String visitDouble(DoubleConstantValue constant, _) {
+    return '(Double ${constant.unparse()})';
+  }
+
+  String visitBool(BoolConstantValue constant, _) {
+    return '(Bool ${constant.unparse()})';
+  }
+
+  String visitString(StringConstantValue constant, _) {
+    return '(String ${constant.unparse()})';
+  }
+
+  String visitList(ListConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitMap(MapConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitConstructed(ConstructedConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitType(TypeConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitInterceptor(InterceptorConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitDummy(DummyConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitDeferred(DeferredConstantValue constant, _) {
+    return _failWith(constant);
+  }
 }
 
 class _Namer {
@@ -230,29 +306,29 @@ class _Namer {
   int _valueCounter = 0;
   int _continuationCounter = 0;
 
-  String useElementName(Parameter parameter) {
+  String nameParameter(Parameter parameter) {
     assert(!_names.containsKey(parameter));
     return _names[parameter] = parameter.hint.name;
   }
 
-  String defineClosureName(ClosureVariable variable) {
+  String nameClosureVariable(ClosureVariable variable) {
     assert(!_names.containsKey(variable));
     return _names[variable] = variable.hint.name;
   }
 
-  String defineContinuationName(Node node) {
+  String nameContinuation(Continuation node) {
     assert(!_names.containsKey(node));
     return _names[node] = 'k${_continuationCounter++}';
   }
 
-  String defineValueName(Node node) {
+  String nameValue(Primitive node) {
     assert(!_names.containsKey(node));
     return _names[node] = 'v${_valueCounter++}';
   }
 
-  String useReturnName(Continuation node) {
+  void setReturnContinuation(Continuation node) {
     assert(!_names.containsKey(node) || _names[node] == 'return');
-    return _names[node] = 'return';
+    _names[node] = 'return';
   }
 
   String getName(Node node) {

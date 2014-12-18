@@ -6,7 +6,6 @@ library dart2js.ir_builder;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' show PrimitiveConstantValue;
-import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
@@ -580,17 +579,35 @@ class IrBuilder {
     _current = null;
   }
 
+  ir.SuperInitializer makeSuperInitializer(ConstructorElement target,
+                                           List<ir.RunnableBody> arguments,
+                                           Selector selector) {
+    return new ir.SuperInitializer(target, arguments, selector);
+  }
+
+  ir.FieldInitializer makeFieldInitializer(FieldElement element,
+                                           ir.RunnableBody body) {
+    return new ir.FieldInitializer(element, body);
+  }
+
   /// Create a [ir.FieldDefinition] for the current [Element] using [_root] as
   /// the body using [initializer] as the initial value.
   ir.FieldDefinition makeFieldDefinition(ir.Primitive initializer) {
     if (initializer == null) {
       return new ir.FieldDefinition.withoutInitializer(state.currentElement);
     } else {
-      buildReturn(initializer);
-      return new ir.FieldDefinition(state.currentElement,
-                                    state.returnContinuation,
-                                    _root);
+      ir.RunnableBody body = makeRunnableBody(initializer);
+      return new ir.FieldDefinition(state.currentElement, body);
     }
+  }
+
+  ir.RunnableBody makeRunnableBody([ir.Primitive value]) {
+    if (value == null) {
+      _ensureReturn();
+    } else {
+      buildReturn(value);
+    }
+    return new ir.RunnableBody(_root, state.returnContinuation);
   }
 
   /// Create a [ir.FunctionDefinition] for [element] using [_root] as the body.
@@ -609,11 +626,30 @@ class IrBuilder {
       return new ir.FunctionDefinition.abstract(
                 element, state.functionParameters, defaults);
     } else {
-      _ensureReturn();
+      ir.RunnableBody body = makeRunnableBody();
       return new ir.FunctionDefinition(
-          element, state.returnContinuation, state.functionParameters, _root,
+          element, state.functionParameters, body,
           state.localConstants, defaults, closure.getClosureList(element));
     }
+  }
+
+  ir.ConstructorDefinition makeConstructorDefinition(
+      List<ConstantExpression> defaults, List<ir.Initializer> initializers) {
+    FunctionElement element = state.currentElement;
+    if (element.isExternal) {
+      assert(invariant(element, _root == null,
+          message: "Non-empty body for external constructor $element: $_root"));
+      assert(invariant(element, state.localConstants.isEmpty,
+          message: "Local constants for external constructor $element: "
+                   "${state.localConstants}"));
+      return new ir.ConstructorDefinition.abstract(
+                element, state.functionParameters, defaults);
+    }
+    ir.RunnableBody body = makeRunnableBody();
+    return new ir.ConstructorDefinition(
+        element, state.functionParameters, body, initializers,
+        state.localConstants, defaults,
+        closure.getClosureList(element));
   }
 
   /// Create a super invocation where the method name and the argument structure
@@ -695,6 +731,7 @@ class IrBuilder {
   /// defined by [selector].
   ir.Primitive buildStaticGet(Element element, Selector selector) {
     assert(selector.isGetter);
+    // TODO(karlklose,sigurdm): build different nodes for getters.
     return _buildInvokeStatic(element, selector, const <ir.Primitive>[]);
   }
 
@@ -704,6 +741,7 @@ class IrBuilder {
                               Selector selector,
                               ir.Primitive value) {
     assert(selector.isSetter);
+    // TODO(karlklose,sigurdm): build different nodes for setters.
     _buildInvokeStatic(element, selector, <ir.Primitive>[value]);
     return value;
   }

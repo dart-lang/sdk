@@ -28,7 +28,7 @@ var testScript = [
   Resume(),  // Next breakpoint expected in main, when bar() returns.
   MatchFrame(0, "main"),
   // Only two breakpoint resolved events expected.
-  ExpectEvent("breakpointResolved", {"breakpointId": 1}),
   ExpectEvent("breakpointResolved", {"breakpointId": 2}),
+  ExpectEvent("breakpointResolved", {"breakpointId": 3}),
   Resume(),
 ];

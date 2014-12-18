@@ -477,13 +477,17 @@ void main() {
         'a|lib/test.html': '''<html><body>
             <template is="auto-binding-dart">
               <div on-foo="{{something}}"></div>
+              <template>
+                <div>foo</div>
+              </template>
+              <div on-foo="{{something}}"></div>
             </template>
             '''.replaceAll('            ', ''),
       }, []);
 
     _testLinter('on-foo is only supported in polymer elements', {
         'a|lib/test.html': '''<html><body>
-            <div on-foo="something"></div>
+            <div on-foo="{{something}}"></div>
             '''.replaceAll('            ', ''),
       }, [
         'warning: ${EVENT_HANDLERS_ONLY_WITHIN_POLYMER.snippet} '

@@ -561,7 +561,7 @@ class Assembler : public ValueObject {
 
   void lui(Register rt, const Immediate& imm) {
     ASSERT(Utils::IsUint(kImmBits, imm.value()));
-    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(LUI, R0, rt, imm_value);
   }
 
@@ -673,7 +673,7 @@ class Assembler : public ValueObject {
 
   void ori(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsUint(kImmBits, imm.value()));
-    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ORI, rs, rt, imm_value);
   }
 
@@ -704,13 +704,16 @@ class Assembler : public ValueObject {
 
   void slti(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsInt(kImmBits, imm.value()));
-    int16_t imm_value = static_cast<int16_t>(imm.value());
+    const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(SLTI, rs, rt, imm_value);
   }
 
+  // Although imm argument is int32_t, it is interpreted as an uint32_t.
+  // For example, -1 stands for 0xffffffffUL: it is encoded as 0xffff in the
+  // instruction imm field and is then sign extended back to 0xffffffffUL.
   void sltiu(Register rt, Register rs, const Immediate& imm) {
-    ASSERT(Utils::IsUint(kImmBits, imm.value()));
-    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    ASSERT(Utils::IsInt(kImmBits, imm.value()));
+    const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(SLTIU, rs, rt, imm_value);
   }
 
@@ -1082,7 +1085,7 @@ class Assembler : public ValueObject {
   void BranchUnsignedLess(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
     ASSERT(imm.value() != 0);
-    if (Utils::IsUint(kImmBits, imm.value())) {
+    if (Utils::IsInt(kImmBits, imm.value())) {
       sltiu(CMPRES2, rd, imm);
       bne(CMPRES2, ZR, l);
     } else {
@@ -1178,6 +1181,11 @@ class Assembler : public ValueObject {
     }
   }
 
+  void StoreFieldToOffset(Register reg, Register base, int32_t offset) {
+    StoreToOffset(reg, base, offset - kHeapObjectTag);
+  }
+
+
   void StoreDToOffset(DRegister reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     FRegister lo = static_cast<FRegister>(reg * 2);
@@ -1222,6 +1230,16 @@ class Assembler : public ValueObject {
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+
+  void ComputeRange(Register result,
+                    Register value,
+                    Label* miss);
+
+  void UpdateRangeFeedback(Register value,
+                           intptr_t index,
+                           Register ic_data,
+                           Register scratch,
+                           Label* miss);
 
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.

@@ -4,7 +4,7 @@
 
 library dart._js_names;
 
-import 'shared/embedded_names.dart' show
+import 'dart:_js_embedded_names' show
     MANGLED_GLOBAL_NAMES,
     MANGLED_NAMES;
 

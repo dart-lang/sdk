@@ -19,7 +19,8 @@ final CHANNELS = ['dev', 'stable'];
 
 final SDK_FILES = ['sdk/dartsdk-macos-x64-release.zip',
                    'sdk/dartsdk-macos-ia32-release.zip' ];
-final DARTIUM_FILES = ['dartium/dartium-macos-ia32-release.zip' ];
+final DARTIUM_FILES = ['dartium/dartium-macos-ia32-release.zip',
+                       'dartium/content_shell-macos-ia32-release.zip'];
 final FILES = []..addAll(SDK_FILES)..addAll(DARTIUM_FILES);
 
 
@@ -106,6 +107,7 @@ String DartiumFile(Map revisions,
                    String stableVersion) {
   final urlBase = 'https://storage.googleapis.com/dart-archive/channels';
   final dartiumFile = 'dartium/dartium-macos-ia32-release.zip';
+  final contentShellFile = 'dartium/content_shell-macos-ia32-release.zip';
 
   return '''
 require 'formula'
@@ -121,18 +123,35 @@ class Dartium < Formula
     version '$devVersion'
     url '$urlBase/dev/release/${revisions['dev']}/$dartiumFile'
     sha256 '${hashes['dev'][dartiumFile]}'
+
+    resource 'content_shell' do
+      url '$urlBase/dev/release/${revisions['dev']}/$contentShellFile'
+      version '$devVersion'
+      sha256 '${hashes['dev'][contentShellFile]}'
+    end
+  end
+
+  resource 'content_shell' do
+    url '$urlBase/stable/release/${revisions['stable']}/$contentShellFile'
+    version '$stableVersion'
+    sha256 '${hashes['stable'][contentShellFile]}'
   end
 
   def shim_script target
     <<-EOS.undent
       #!/bin/bash
-      open "#{prefix}/#{target}" "\$@"
+      "#{prefix}/#{target}" "\$@"
     EOS
   end
 
   def install
+    dartium_binary = 'Chromium.app/Contents/MacOS/Chromium'
     prefix.install Dir['*']
-    (bin+"dartium").write shim_script "Chromium.app"
+    (bin+"dartium").write shim_script dartium_binary
+
+    content_shell_binary = 'Content Shell.app/Contents/MacOS/Content Shell'
+    prefix.install resource('content_shell')
+    (bin+"content_shell").write shim_script content_shell_binary
   end
 
   def caveats; <<-EOS.undent

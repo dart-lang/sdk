@@ -7,10 +7,10 @@ library services.completion.computer.dart.invocation;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 import '../../protocol_server.dart' show CompletionSuggestionKind;
 
@@ -23,10 +23,14 @@ class InvocationComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    builder = request.node.accept(new _InvocationAstVisitor(request));
-    if (builder != null) {
-      return builder.computeFast(request.node);
+    OpType optype = request.optype;
+    if (optype.includeInvocationSuggestions) {
+      builder = request.node.accept(new _InvocationAstVisitor(request));
+      if (builder != null) {
+        return builder.computeFast(request.node);
+      }
     }
+
     return true;
   }
 
@@ -80,12 +84,15 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
   _InvocationAstVisitor(this.request);
 
   @override
+  visitConstructorName(ConstructorName node) {
+    // some PrefixedIdentifier nodes are transformed into
+    // ConstructorName nodes during the resolution process.
+    return new _PrefixedIdentifierSuggestionBuilder(request);
+  }
+
+  @override
   SuggestionBuilder visitMethodInvocation(MethodInvocation node) {
-    Token period = node.period;
-    if (period == null || period.offset < request.offset) {
-      return new _ExpressionSuggestionBuilder(request);
-    }
-    return null;
+    return new _ExpressionSuggestionBuilder(request);
   }
 
   @override
@@ -97,23 +104,12 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
   SuggestionBuilder visitPrefixedIdentifier(PrefixedIdentifier node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
-    Token period = node.period;
-    if (request.offset > period.offset) {
-      SimpleIdentifier prefix = node.prefix;
-      if (prefix != null) {
-        return new _PrefixedIdentifierSuggestionBuilder(request);
-      }
-    }
-    return null;
+    return new _PrefixedIdentifierSuggestionBuilder(request);
   }
 
   @override
   SuggestionBuilder visitPropertyAccess(PropertyAccess node) {
-    Token operator = node.operator;
-    if (operator != null && operator.offset < request.offset) {
-      return new _ExpressionSuggestionBuilder(request);
-    }
-    return null;
+    return new _ExpressionSuggestionBuilder(request);
   }
 
   @override

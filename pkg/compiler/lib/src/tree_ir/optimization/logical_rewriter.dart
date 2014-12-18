@@ -65,6 +65,28 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     root.body = visitStatement(root.body);
   }
 
+  void rewriteConstructorDefinition(ConstructorDefinition root) {
+    if (root.isAbstract) return;
+    List<Initializer> initializers = root.initializers;
+    for (int i = 0; i < initializers.length; ++i) {
+      initializers[i] = visitExpression(initializers[i]);
+    }
+    root.body = visitStatement(root.body);
+  }
+
+  Expression visitFieldInitializer(FieldInitializer node) {
+    node.body = visitStatement(node.body);
+    return node;
+  }
+
+  visitSuperInitializer(SuperInitializer node) {
+    List<Statement> arguments = node.arguments;
+    for (int i = 0; i < arguments.length; ++i) {
+      arguments[i] = visitStatement(arguments[i]);
+    }
+    return node;
+  }
+
   Statement visitLabeledStatement(LabeledStatement node) {
     Statement savedFallthrough = fallthrough;
     fallthrough = node.next;

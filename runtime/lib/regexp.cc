@@ -14,7 +14,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
-DEFINE_FLAG(bool, use_jscre, true, "Use the JSCRE regular expression engine");
+DEFINE_FLAG(bool, use_jscre, false, "Use the JSCRE regular expression engine");
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {

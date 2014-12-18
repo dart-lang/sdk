@@ -35,6 +35,8 @@ import '../types/types.dart'
          TypeMask,
          TypesInferrer,
          ValueTypeMask;
+import '../types/constants.dart'
+    show computeTypeMask;
 import '../universe/universe.dart'
     show Selector,
          SideEffects,
@@ -807,7 +809,7 @@ class TypeGraphInferrerEngine
                 // Although we might find a better type, we have to keep
                 // the old type around to ensure that we get a complete view
                 // of the type graph and do not drop any flow edges.
-                TypeMask refinedType = value.computeMask(compiler);
+                TypeMask refinedType = computeTypeMask(compiler, value);
                 assert(TypeMask.assertIsNormalized(refinedType, classWorld));
                 type = new NarrowTypeInformation(type, refinedType);
                 types.allocatedTypes.add(type);

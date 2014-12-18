@@ -8,6 +8,7 @@
 #include "vm/cpu.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
 #include "vm/handles.h"
@@ -253,7 +254,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     isolate->class_table()->Print();
   }
 
-
+  isolate->debugger()->NotifyIsolateCreated();
   Service::SendIsolateStartupMessage();
   // Create tag table.
   isolate->set_tag_table(

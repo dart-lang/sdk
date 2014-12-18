@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:analyzer/file_system/file_system.dart' show Folder;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -151,10 +152,13 @@ class AnalyzerImpl {
             new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
         PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
             PhysicalResourceProvider.INSTANCE.getResource('.'));
-        resolvers.add(
-            new PackageMapUriResolver(
-                PhysicalResourceProvider.INSTANCE,
-                packageMapInfo.packageMap));
+        Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
+        if (packageMap != null) {
+          resolvers.add(
+              new PackageMapUriResolver(
+                  PhysicalResourceProvider.INSTANCE,
+                  packageMap));
+        }
       }
     }
     sourceFactory = new SourceFactory(resolvers);

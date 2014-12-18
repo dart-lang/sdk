@@ -36,7 +36,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     BlockCollector builder = new BlockCollector(names);
     builder.visit(node);
 
-    printNode(builder.entry);
+    for (Block block in builder.entries) {
+      printNode(block);
+    }
     for (Block block in builder.cont2block.values) {
       printNode(block);
     }
@@ -50,6 +52,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
+    if (node.isAbstract) return;
+    visitExecutableDefinition(node);
+  }
+
+  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
+    if (node.isAbstract) return;
     visitExecutableDefinition(node);
   }
 
@@ -249,6 +257,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "Identical($left, $right)";
   }
 
+  visitInterceptor(cps_ir.Interceptor node) {
+    return "Interceptor(${node.input})";
+  }
+
   visitThis(cps_ir.This node) {
     return "This";
   }
@@ -266,11 +278,14 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'GetClosureVariable $variable';
   }
 
-
+  visitRunnableBody(cps_ir.RunnableBody node) {}
+  visitFieldInitializer(cps_ir.FieldInitializer node) {}
+  visitSuperInitializer(cps_ir.SuperInitializer node) {}
   visitCondition(cps_ir.Condition c) {}
   visitExpression(cps_ir.Expression e) {}
   visitPrimitive(cps_ir.Primitive p) {}
   visitDefinition(cps_ir.Definition d) {}
+  visitInitializer(cps_ir.Initializer i) {}
   visitNode(cps_ir.Node n) {}
 }
 
@@ -328,9 +343,9 @@ class Block {
 }
 
 class BlockCollector extends cps_ir.Visitor {
-  Block entry;
   final Map<cps_ir.Continuation, Block> cont2block =
       <cps_ir.Continuation, Block>{};
+  final Set<Block> entries = new Set<Block>();
   Block current_block;
 
   Names names;
@@ -345,8 +360,21 @@ class BlockCollector extends cps_ir.Visitor {
     return block;
   }
 
+  visitRunnableBody(cps_ir.RunnableBody node) {
+    current_block = new Block(names.name(node), [], node.body);
+    entries.add(current_block);
+    visit(node.body);
+  }
+
+  visitFieldInitializer(cps_ir.FieldInitializer node) {
+    visit(node.body);
+  }
+
+  visitSuperInitializer(cps_ir.SuperInitializer node) {
+    node.arguments.forEach(visit);
+  }
+
   visitExecutableDefinition(cps_ir.ExecutableDefinition node) {
-    entry = current_block = new Block(names.name(node), [], node.body);
     visit(node.body);
   }
 
@@ -357,6 +385,10 @@ class BlockCollector extends cps_ir.Visitor {
   }
 
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
+    visitExecutableDefinition(node);
+  }
+
+  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
     visitExecutableDefinition(node);
   }
 

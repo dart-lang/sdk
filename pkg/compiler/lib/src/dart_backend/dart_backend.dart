@@ -32,6 +32,7 @@ import '../scanner/scannerlib.dart' show StringToken,
                                          CLOSE_PAREN_INFO,
                                          SEMICOLON_INFO,
                                          IDENTIFIER_INFO;
+import '../js_backend/codegen/glue.dart';
 
 part 'backend.dart';
 part 'renamer.dart';

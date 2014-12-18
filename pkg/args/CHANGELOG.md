@@ -1,3 +1,14 @@
+## 0.12.2+1
+
+* Fix the built-in `help` command for `CommandRunner`.
+
+## 0.12.2
+
+* Add `CommandRunner` and `Command` classes which make it easy to build a
+  command-based command-line application.
+
+* Add an `ArgResults.arguments` field, which contains the original argument list.
+
 ## 0.12.1
 
 * Replace `ArgParser.getUsage()` with `ArgParser.usage`, a getter.

@@ -62,8 +62,21 @@ class Glue {
     return _namer.invocationName(selector);
   }
 
-  bool isIntercepted(Selector selector) {
+  FunctionElement get getInterceptorMethod => _backend.getInterceptorMethod;
+
+  void registerUseInterceptorInCodegen() {
+    _backend.registerUseInterceptor(_compiler.enqueuer.codegen);
+  }
+
+  bool isInterceptedSelector(Selector selector) {
     return _backend.isInterceptedSelector(selector);
   }
 
+  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
+    return _backend.getInterceptedClassesOn(selector.name);
+  }
+
+  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+    _backend.registerSpecializedGetInterceptor(classes);
+  }
 }

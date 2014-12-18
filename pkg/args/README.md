@@ -197,6 +197,65 @@ Here, both the top-level parser and the `"commit"` command can accept a `"-a"`
 `"-a"` appears after `"commit"`, it is applied to that command. If it appears to
 the left of `"commit"`, it is given to the top-level parser.
 
+## Dispatching Commands
+
+If you're writing a command-based application, you can use the [CommandRunner][]
+and [Command][] classes to help structure it. [CommandRunner][] has built-in
+support for dispatching to [Command][]s based on command-line arguments, as well
+as handling `--help` flags and invalid arguments. For example:
+
+    var runner = new CommandRunner("git", "Distributed version control.");
+    runner.addCommand(new CommitCommand());
+    runner.addCommand(new StashCommand());
+    runner.run(['commit', '-a']); // Calls [CommitCommand.run()]
+
+Custom commands are defined by extending the [Command][] class. For example:
+
+    class CommitCommand extends Command {
+      // The [name] and [description] properties must be defined by every
+      // subclass.
+      final name = "commit";
+      final description = "Record changes to the repository.";
+
+      CommitCommand() {
+        // [argParser] is automatically created by the parent class.
+        argParser.addFlag('all', abbr: 'a');
+      }
+
+      // [run] may also return a Future.
+      void run() {
+        // [options] is set before [run()] is called and contains the options
+        // passed to this command.
+        print(options['all']);
+      }
+    }
+
+Commands can also have subcommands, which are added with [addSubcommand][]. A
+command with subcommands can't run its own code, so [run][] doesn't need to be
+implemented. For example:
+
+    class StashCommand extends Command {
+      final String name = "stash";
+      final String description = "Stash changes in the working directory.";
+
+      StashCommand() {
+        addSubcommand(new StashSaveCommand());
+        addSubcommand(new StashListCommand());
+      }
+    }
+
+[CommandRunner][] automatically adds a `help` command that displays usage
+information for commands, as well as support for the `--help` flag for all
+commands. If it encounters an error parsing the arguments or processing a
+command, it throws a [UsageError][]; your `main()` method should catch these and
+print them appropriately. For example:
+
+    runner.run(arguments).catchError((error) {
+      if (error is! UsageError) throw error;
+      print(error);
+      exit(64); // Exit code 64 indicates a usage error.
+    });
+
 ## Displaying usage
 
 You can automatically generate nice help text, suitable for use as the output of
@@ -240,11 +299,16 @@ The resulting string looks something like this:
 
 [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
 [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
-[ArgParser]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgParser
-[ArgResults]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgResults
-[addOption]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgParser#id_addOption
-[addFlag]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgParser#id_addFlag
-[parse]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgParser#id_parse
-[rest]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgResults#id_rest
-[addCommand]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgParser#id_addCommand
-[getUsage]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/args/args.ArgParser#id_getUsage
+[ArgParser]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgParser
+[ArgResults]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgResults
+[CommandRunner]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.CommandRunner
+[Command]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.Command
+[UsageError]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.UsageError
+[addOption]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgParser@id_addOption
+[addFlag]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgParser@id_addFlag
+[parse]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgParser@id_parse
+[rest]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgResults@id_rest
+[addCommand]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgParser@id_addCommand
+[getUsage]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.ArgParser@id_getUsage
+[addSubcommand]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.Command@id_addSubcommand
+[run]: http://www.dartdocs.org/documentation/args/latest/index.html#args/args.Command@id_run

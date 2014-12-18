@@ -279,16 +279,6 @@ class NativeEmitter {
   }
 
   ClassBuilder generateNativeClass(ClassElement classElement) {
-    ClassBuilder builder;
-    if (compiler.hasIncrementalSupport) {
-      builder = cachedBuilders[classElement];
-      if (builder != null) return builder;
-      builder = new ClassBuilder(classElement, backend.namer);
-      cachedBuilders[classElement] = builder;
-    } else {
-      builder = new ClassBuilder(classElement, backend.namer);
-    }
-
     // TODO(sra): Issue #13731- this is commented out as part of custom element
     // constructor work.
     //assert(!classElement.hasBackendMembers);
@@ -304,10 +294,21 @@ class NativeEmitter {
 
     String superName = backend.namer.getNameOfClass(superclass);
 
+    ClassBuilder builder;
+    if (compiler.hasIncrementalSupport) {
+      builder = cachedBuilders[classElement];
+      if (builder != null) return builder;
+      builder = new ClassBuilder(classElement, backend.namer);
+      cachedBuilders[classElement] = builder;
+    } else {
+      builder = new ClassBuilder(classElement, backend.namer);
+    }
+    builder.superName = superName;
+
     emitterTask.oldEmitter.classEmitter.emitClassConstructor(
         classElement, builder);
     bool hasFields = emitterTask.oldEmitter.classEmitter.emitFields(
-        classElement, builder, superName, classIsNative: true);
+        classElement, builder, classIsNative: true);
     int propertyCount = builder.properties.length;
     emitterTask.oldEmitter.classEmitter.emitClassGettersSetters(
         classElement, builder);

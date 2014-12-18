@@ -39,6 +39,22 @@ const uint8_t Token::precedence_[] = {
 
 bool Token::IsBinaryOperator(Token::Kind token) {
   switch (token) {
+    case Token::kOR:
+    case Token::kAND:
+      return true;
+    default:
+      return IsBinaryArithmeticOperator(token);
+  }
+}
+
+
+bool Token::IsUnaryOperator(Token::Kind token) {
+  return (token == kNOT) || IsUnaryArithmeticOperator(token);
+}
+
+
+bool Token::IsBinaryArithmeticOperator(Token::Kind token) {
+  switch (token) {
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
@@ -48,8 +64,6 @@ bool Token::IsBinaryOperator(Token::Kind token) {
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
-    case Token::kOR:
-    case Token::kAND:
     case Token::kSHL:
     case Token::kSHR:
       return true;
@@ -59,8 +73,9 @@ bool Token::IsBinaryOperator(Token::Kind token) {
 }
 
 
-bool Token::IsPrefixOperator(Token::Kind token) {
-  return (token == kNOT) || (token == kBIT_NOT) || (token == kNEGATE);
+bool Token::IsUnaryArithmeticOperator(Token::Kind token) {
+  return (token == kBIT_NOT) || (token == kNEGATE);
 }
+
 
 }  // namespace dart

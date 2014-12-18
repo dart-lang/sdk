@@ -633,6 +633,9 @@ class Assembler : public ValueObject {
   void orr(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(ORR, rd, rn, o, kDoubleWord);
   }
+  void orrw(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(ORR, rd, rn, o, kWord);
+  }
   void orn(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(ORN, rd, rn, o, kDoubleWord);
   }
@@ -1337,6 +1340,18 @@ class Assembler : public ValueObject {
   void LoadClass(Register result, Register object, Register pp);
   void CompareClassId(Register object, intptr_t class_id, Register pp);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+
+  void ComputeRange(Register result,
+                    Register value,
+                    Register scratch,
+                    Label* miss);
+
+  void UpdateRangeFeedback(Register value,
+                           intptr_t idx,
+                           Register ic_data,
+                           Register scratch1,
+                           Register scratch2,
+                           Label* miss);
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();

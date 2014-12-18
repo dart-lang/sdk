@@ -1,5 +1,9 @@
+#### 0.15.3+1
+  * Fix logic for detecting when the compiler is linting within an
+    `auto-binding-dart` template element. This removes some false positive
+    warnings.
+    
 #### 0.15.3
-
   * Narrow the constraint on observe to ensure that new features are reflected
     in polymer's version.
 

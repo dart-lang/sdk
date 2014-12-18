@@ -855,7 +855,7 @@ class PremarkingVisitor : public ObjectVisitor {
   void VisitObject(RawObject* obj) {
     // RawInstruction objects are premarked on allocation.
     if (!obj->IsMarked()) {
-      obj->SetMarkBit();
+      obj->SetMarkBitUnsynchronized();
     }
   }
 };
@@ -11434,12 +11434,15 @@ void ICData::SetDeoptReasons(uint32_t reasons) const {
 
 
 bool ICData::HasDeoptReason(DeoptReasonId reason) const {
+  ASSERT(reason <= kLastRecordedDeoptReason);
   return (DeoptReasons() & (1 << reason)) != 0;
 }
 
 
 void ICData::AddDeoptReason(DeoptReasonId reason) const {
-  SetDeoptReasons(DeoptReasons() | (1 << reason));
+  if (reason <= kLastRecordedDeoptReason) {
+    SetDeoptReasons(DeoptReasons() | (1 << reason));
+  }
 }
 
 
@@ -11940,6 +11943,96 @@ RawICData* ICData::New(const Function& owner,
 
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
+}
+
+
+static Token::Kind RecognizeArithmeticOp(const String& name) {
+  ASSERT(name.IsSymbol());
+  if (name.raw() == Symbols::Plus().raw()) {
+    return Token::kADD;
+  } else if (name.raw() == Symbols::Minus().raw()) {
+    return Token::kSUB;
+  } else if (name.raw() == Symbols::Star().raw()) {
+    return Token::kMUL;
+  } else if (name.raw() == Symbols::Slash().raw()) {
+    return Token::kDIV;
+  } else if (name.raw() == Symbols::TruncDivOperator().raw()) {
+    return Token::kTRUNCDIV;
+  } else if (name.raw() == Symbols::Percent().raw()) {
+    return Token::kMOD;
+  } else if (name.raw() == Symbols::BitOr().raw()) {
+    return Token::kBIT_OR;
+  } else if (name.raw() == Symbols::Ampersand().raw()) {
+    return Token::kBIT_AND;
+  } else if (name.raw() == Symbols::Caret().raw()) {
+    return Token::kBIT_XOR;
+  } else if (name.raw() == Symbols::LeftShiftOperator().raw()) {
+    return Token::kSHL;
+  } else if (name.raw() == Symbols::RightShiftOperator().raw()) {
+    return Token::kSHR;
+  } else if (name.raw() == Symbols::Tilde().raw()) {
+    return Token::kBIT_NOT;
+  } else if (name.raw() == Symbols::UnaryMinus().raw()) {
+    return Token::kNEGATE;
+  }
+  return Token::kILLEGAL;
+}
+
+
+bool ICData::HasRangeFeedback() const {
+  const String& target = String::Handle(target_name());
+  const Token::Kind token_kind = RecognizeArithmeticOp(target);
+  if (!Token::IsBinaryArithmeticOperator(token_kind) &&
+      !Token::IsUnaryArithmeticOperator(token_kind)) {
+    return false;
+  }
+
+  bool initialized = false;
+  Function& t = Function::Handle();
+  const intptr_t len = NumberOfChecks();
+  GrowableArray<intptr_t> class_ids;
+  for (intptr_t i = 0; i < len; i++) {
+    if (IsUsedAt(i)) {
+      initialized = true;
+      GetCheckAt(i, &class_ids, &t);
+      for (intptr_t j = 0; j < class_ids.length(); j++) {
+        const intptr_t cid = class_ids[j];
+        if ((cid != kSmiCid) && (cid != kMintCid)) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return initialized;
+}
+
+
+ICData::RangeFeedback ICData::DecodeRangeFeedbackAt(intptr_t idx) const {
+  ASSERT((0 <= idx) && (idx < 3));
+  const uint32_t raw_feedback =
+      RangeFeedbackBits::decode(raw_ptr()->state_bits_);
+  const uint32_t feedback =
+      (raw_feedback >> (idx * kBitsPerRangeFeedback)) & kRangeFeedbackMask;
+  if ((feedback & kInt64RangeBit) != 0) {
+    return kInt64Range;
+  }
+
+  if ((feedback & kUint32RangeBit) != 0) {
+    if ((feedback & kSignedRangeBit) == 0) {
+      return kUint32Range;
+    }
+
+    // Check if Smi is large enough to accomodate Int33: a mixture of Uint32
+    // and negative Int32 values.
+    return (kSmiBits < 33) ? kInt64Range : kSmiRange;
+  }
+
+  if ((feedback & kInt32RangeBit) != 0) {
+    return kInt32Range;
+  }
+
+  return kSmiRange;
 }
 
 
@@ -18326,9 +18419,10 @@ RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
 
 RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
-  ASSERT(Isolate::Current() == Dart::vm_isolate() ||
-         Isolate::Current()->object_store()->one_byte_string_class() !=
-         Class::null());
+  ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
+         ((Isolate::Current()->object_store() != NULL) &&
+          (Isolate::Current()->object_store()->one_byte_string_class() !=
+           Class::null())));
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);

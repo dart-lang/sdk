@@ -4,13 +4,14 @@
 
 library dart._js_mirrors;
 
-import 'shared/runtime_data.dart' as encoding;
-import 'shared/embedded_names.dart' show
+import 'dart:_js_embedded_names' show
     ALL_CLASSES,
     LAZIES,
     LIBRARIES,
     STATICS,
-    TYPE_INFORMATION;
+    TYPE_INFORMATION,
+    TYPEDEF_PREDICATE_PROPERTY_NAME,
+    TYPEDEF_TYPE_PROPERTY_NAME;
 
 import 'dart:collection' show
     UnmodifiableListView,
@@ -634,6 +635,19 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   if (descriptor == null) {
     // This is a native class, or an intercepted class.
     // TODO(ahe): Preserve descriptor for such classes.
+  } else if (JS('bool', '# in #',
+                TYPEDEF_PREDICATE_PROPERTY_NAME, descriptor)) {
+    // Typedefs are represented as normal classes with two special properties:
+    //   TYPEDEF_PREDICATE_PROPERTY_NAME and TYPEDEF_TYPE_PROPERTY_NAME.
+    // For example:
+    //  MyTypedef: {
+    //     "^": "Object;",
+    //     $typedefType: 58,
+    //     $$isTypedef: true
+    //  }
+    //  The typedefType is the index into the metadata table.
+    int index = JS('int', '#[#]', descriptor, TYPEDEF_TYPE_PROPERTY_NAME);
+    mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
   } else {
     fields = JS('', '#[#]', descriptor,
         JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY'));
@@ -648,10 +662,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     }
   }
 
-  if (encoding.isTypedefDescriptor(fields)) {
-    int index = encoding.getTypeFromTypedef(fields);
-    mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
-  } else {
+  if (mirror == null) {
     var superclassName = fields.split(';')[0];
     var mixins = superclassName.split('+');
     if (mixins.length > 1 && mangledGlobalNames[mangledName] == null) {

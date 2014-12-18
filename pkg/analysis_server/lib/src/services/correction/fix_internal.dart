@@ -612,6 +612,7 @@ class FixProcessor {
       }
       staticModifier = _inStaticContext();
     }
+    utils.targetClassElement = targetClassElement;
     // prepare location
     ClassDeclaration targetClassNode = targetClassElement.node;
     _FieldLocation targetLocation = _prepareNewFieldLocation(targetClassNode);
@@ -1259,6 +1260,7 @@ class FixProcessor {
         node.getAncestor((node) => node is CompilationUnitMember);
     insertOffset = enclosingMember.end;
     sourcePrefix = "${eol}${eol}";
+    utils.targetClassElement = null;
     // build method source
     SourceBuilder sb = new SourceBuilder(file, insertOffset);
     {
@@ -1327,6 +1329,8 @@ class FixProcessor {
         targetElement = unitElement;
         ClassMember enclosingMember =
             node.getAncestor((node) => node is ClassMember);
+        ClassDeclaration enclosingClass = enclosingMember.parent;
+        utils.targetClassElement = enclosingClass.element;
         staticModifier = _inStaticContext();
         prefix = utils.getNodePrefix(enclosingMember);
         insertOffset = enclosingMember.end;

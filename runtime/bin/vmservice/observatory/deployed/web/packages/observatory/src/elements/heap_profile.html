@@ -43,6 +43,12 @@
     #classtable tr:hover > td {
       background-color: #F4C7C3;
     }
+    .nav-option {
+      color: white;
+      float: right;
+      margin: 3px;
+      padding: 8px;
+    }
   </style>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
@@ -51,6 +57,9 @@
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <div class="nav-option">
+      <input type="checkbox" checked="{{ autoRefresh }}">Auto-refresh on GC
+    </div>
     <nav-control></nav-control>
   </nav-bar>
   <div class="content">

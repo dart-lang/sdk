@@ -33,7 +33,7 @@ main() {
     });
     return analysisFinished.then((_) {
       // The overridden contents (badText) are missing quotation marks.
-      expect(currentAnalysisErrors[pathname], isNot(isEmpty));
+      expect(currentAnalysisErrors[pathname], isNotEmpty);
     }).then((_) {
       // Prepare a set of edits which add the missing quotation marks, in the
       // order in which they appear in the file.  If these edits are applied in

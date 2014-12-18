@@ -4,7 +4,7 @@
 
 library _interceptors;
 
-import 'shared/embedded_names.dart' show
+import 'dart:_js_embedded_names' show
     DISPATCH_PROPERTY_NAME;
 
 import 'dart:collection';

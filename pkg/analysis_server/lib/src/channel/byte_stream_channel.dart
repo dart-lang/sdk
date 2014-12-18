@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /**
  * Instances of the class [ByteStreamClientChannel] implement a
@@ -87,6 +88,11 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   final IOSink _output;
 
   /**
+   * The instrumentation service that is to be used by this analysis server.
+   */
+  final InstrumentationService instrumentationService;
+
+  /**
    * Completer that will be signalled when the input stream is closed.
    */
   final Completer _closed = new Completer();
@@ -107,7 +113,8 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
    */
   bool _closeRequested = false;
 
-  ByteStreamServerChannel(this.input, this._output);
+  ByteStreamServerChannel(this.input, this._output,
+      this.instrumentationService);
 
   /**
    * Future that will be completed when the input stream is closed.
@@ -155,6 +162,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     String jsonEncoding = JSON.encode(notification.toJson());
     ServerCommunicationChannel.ToJson.stop();
     _outputLine(jsonEncoding);
+    instrumentationService.logNotification(jsonEncoding);
   }
 
   @override
@@ -168,6 +176,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     String jsonEncoding = JSON.encode(response.toJson());
     ServerCommunicationChannel.ToJson.stop();
     _outputLine(jsonEncoding);
+    instrumentationService.logResponse(jsonEncoding);
   }
 
   /**
@@ -225,6 +234,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
+    instrumentationService.logRequest(data);
     // Parse the string as a JSON descriptor and process the resulting
     // structure as a request.
     ServerCommunicationChannel.FromJson.start();

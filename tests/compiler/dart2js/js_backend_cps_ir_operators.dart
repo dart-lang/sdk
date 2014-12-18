@@ -11,7 +11,7 @@ import 'js_backend_cps_ir_test.dart';
 const List<TestEntry> tests = const [
   const TestEntry("main() { return true ? 42 : 'foo'; }"),
   const TestEntry("""
-foo() => foo;
+foo() => foo();
 main() {
   print(foo() ? "hello world" : "bad bad");
 }""",

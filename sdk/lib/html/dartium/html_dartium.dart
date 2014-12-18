@@ -11089,19 +11089,12 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 
 }
 
-// TODO(jacobr): this is an inefficient implementation but it is hard to see
-// a better option given that we cannot quite force NodeList to be an
-// ElementList as there are valid cases where a NodeList JavaScript object
-// contains Node objects that are not Elements.
-class _FrozenElementList<T extends Element> extends ListBase<T>
-    implements ElementList<T>, NodeListWrapper {
+// Wrapper over an immutable NodeList to make it implement ElementList<Element>.
+class _FrozenElementList extends ListBase
+    implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
-  // The subset of _nodeList that are Elements.
-  List<Element> _elementList;
 
-  _FrozenElementList._wrap(this._nodeList) {
-    _elementList = _nodeList.where((e) => e is Element).toList();
-  }
+  _FrozenElementList._wrap(this._nodeList);
 
   int get length => _nodeList.length;
 
@@ -11129,22 +11122,22 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
 
   Element get single => _nodeList.single;
 
-  CssClassSet get classes => new _MultiElementCssClassSet(_elementList);
+  CssClassSet get classes => new _MultiElementCssClassSet(this);
 
   CssStyleDeclarationBase get style =>
-      new _CssStyleDeclarationSet(_elementList);
+      new _CssStyleDeclarationSet(this);
 
   void set classes(Iterable<String> value) {
-    _elementList.forEach((e) => e.classes = value);
+    _nodeList.forEach((e) => e.classes = value);
   }
 
-  CssRect get contentEdge => new _ContentCssListRect(_elementList);
+  CssRect get contentEdge => new _ContentCssListRect(this);
 
-  CssRect get paddingEdge => _elementList.first.paddingEdge;
+  CssRect get paddingEdge => this.first.paddingEdge;
 
-  CssRect get borderEdge => _elementList.first.borderEdge;
+  CssRect get borderEdge => this.first.borderEdge;
 
-  CssRect get marginEdge => _elementList.first.marginEdge;
+  CssRect get marginEdge => this.first.marginEdge;
 
   List<Node> get rawList => _nodeList;
 
@@ -31426,10 +31419,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

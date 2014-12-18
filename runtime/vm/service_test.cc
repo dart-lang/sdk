@@ -2155,12 +2155,17 @@ TEST_CASE(Service_Address) {
   for (int offset = 0; offset < kObjectAlignment; ++offset) {
     uword addr = start_addr + offset;
     char buf[1024];
+    bool ref = offset % 2 == 0;
     OS::SNPrint(buf, sizeof(buf),
-                "[0, port, ['address', '%" Px "'], [], []]", addr);
+                ref ? "[0, port, ['address', '%" Px "'], ['ref'], ['true']]" :
+                      "[0, port, ['address', '%" Px "', ], [], []]",
+                addr);
     service_msg = Eval(lib, buf);
     Service::HandleIsolateMessage(isolate, service_msg);
     handler.HandleNextMessage();
-    EXPECT_SUBSTRING("\"type\":\"String\"", handler.msg());
+    EXPECT_SUBSTRING(ref ? "\"type\":\"@String\"" :
+                           "\"type\":\"String\"",
+                     handler.msg());
     EXPECT_SUBSTRING("foobar", handler.msg());
   }
   // Expect null when no object is found.

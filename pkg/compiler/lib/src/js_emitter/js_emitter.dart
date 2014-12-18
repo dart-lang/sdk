@@ -71,7 +71,8 @@ import '../util/characters.dart' show
     $z;
 
 import '../util/util.dart' show
-    NO_LOCATION_SPANNABLE;
+    NO_LOCATION_SPANNABLE,
+    Setlet;
 
 import '../util/uri_extras.dart' show
     relativize;
@@ -82,7 +83,6 @@ import '../util/util.dart' show
 import '../deferred_load.dart' show
     OutputUnit;
 
-import 'package:_internal/compiler/js_lib/shared/runtime_data.dart' as encoding;
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
 
@@ -92,6 +92,7 @@ part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
 part 'interceptor_stub_generator.dart';
+part 'type_test_generator.dart';
 part 'type_test_registry.dart';
 
 part 'old_emitter/class_builder.dart';

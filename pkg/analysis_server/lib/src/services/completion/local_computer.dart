@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -22,10 +23,16 @@ class LocalComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
+    OpType optype = request.optype;
+    if (optype.includeTopLevelSuggestions) {
+      _LocalVisitor localVisitor = new _LocalVisitor(request, request.offset);
+      localVisitor.typesOnly = optype.includeOnlyTypeNameSuggestions;
+      localVisitor.excludeVoidReturn = !optype.includeVoidReturnSuggestions;
 
-    // Collect suggestions from the specific child [AstNode] that contains
-    // the completion offset and all of its parents recursively.
-    request.node.accept(new _LocalVisitor(request, request.offset));
+      // Collect suggestions from the specific child [AstNode] that contains
+      // the completion offset and all of its parents recursively.
+      request.node.accept(localVisitor);
+    }
 
     // If the unit is not a part and does not reference any parts
     // then work is complete
@@ -245,82 +252,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           varList.type,
           false,
           isDeprecated);
-    }
-  }
-
-  @override
-  bool visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.target;
-    // This computer handles the expression
-    // while InvocationComputer handles the cascade selector
-    if (target != null && offset <= target.end) {
-      return visitNode(node);
-    } else {
-      return finished;
-    }
-  }
-
-  @override
-  visitCombinator(Combinator node) {
-    // Handled by CombinatorComputer
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    // InvocationComputer adds suggestions for method selector
-    Token period = node.period;
-    if (period != null && period.offset < request.offset) {
-      ArgumentList argumentList = node.argumentList;
-      if (argumentList == null || request.offset <= argumentList.offset) {
-        return;
-      }
-    }
-    visitNode(node);
-  }
-
-  @override
-  bool visitNamespaceDirective(NamespaceDirective node) {
-    // No suggestions
-    return finished;
-  }
-
-  @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // InvocationComputer adds suggestions for prefixed elements
-    // but this computer adds suggestions for the prefix itself
-    SimpleIdentifier prefix = node.prefix;
-    if (prefix == null || request.offset <= prefix.end) {
-      visitNode(node);
-    }
-  }
-
-  @override
-  visitPropertyAccess(PropertyAccess node) {
-    // InvocationComputer adds suggestions for property access selector
-  }
-
-  @override
-  bool visitStringLiteral(StringLiteral node) {
-    // ignore
-    return finished;
-  }
-
-  @override
-  visitTypeName(TypeName node) {
-    // If suggesting completions within a TypeName node
-    // then limit suggestions to only types
-    typesOnly = true;
-    return visitNode(node);
-  }
-
-  @override
-  bool visitVariableDeclaration(VariableDeclaration node) {
-    // Do not add suggestions if editing the name in a var declaration
-    SimpleIdentifier name = node.name;
-    if (name == null || name.offset < offset || offset > name.end) {
-      return visitNode(node);
-    } else {
-      return finished;
     }
   }
 

@@ -166,6 +166,25 @@ main() {
     assertNoAssistAt('item in', AssistKind.ADD_TYPE_ANNOTATION);
   }
 
+  void test_addTypeAnnotation_declaredIdentifier_generic_OK() {
+    _indexTestUnit('''
+class A<T> {
+  main(List<List<T>> items) {
+    for (var item in items) {
+    }
+  }
+}
+''');
+    assertHasAssistAt('item in', AssistKind.ADD_TYPE_ANNOTATION, '''
+class A<T> {
+  main(List<List<T>> items) {
+    for (List<T> item in items) {
+    }
+  }
+}
+''');
+  }
+
   void test_addTypeAnnotation_declaredIdentifier_OK() {
     _indexTestUnit('''
 main(List<String> items) {
@@ -221,6 +240,40 @@ main(List<String> items) {
     assertHasAssistAt('item in', AssistKind.ADD_TYPE_ANNOTATION, '''
 main(List<String> items) {
   for (final String item in items) {
+  }
+}
+''');
+  }
+
+  void test_addTypeAnnotation_local_generic_OK_literal() {
+    _indexTestUnit('''
+class A {
+  main(List<int> items) {
+    var v = items;
+  }
+}
+''');
+    assertHasAssistAt('v =', AssistKind.ADD_TYPE_ANNOTATION, '''
+class A {
+  main(List<int> items) {
+    List<int> v = items;
+  }
+}
+''');
+  }
+
+  void test_addTypeAnnotation_local_generic_OK_local() {
+    _indexTestUnit('''
+class A<T> {
+  main(List<T> items) {
+    var v = items;
+  }
+}
+''');
+    assertHasAssistAt('v =', AssistKind.ADD_TYPE_ANNOTATION, '''
+class A<T> {
+  main(List<T> items) {
+    List<T> v = items;
   }
 }
 ''');
@@ -1008,10 +1061,10 @@ main(A a) {
 
   void test_exchangeBinaryExpressionArguments_OK_compare() {
     Map<String, String> operatorMap = {
-      '<': '>=',
-      '<=': '>',
-      '>': '<=',
-      '>=': '<'
+      '<': '>',
+      '<=': '>=',
+      '>': '<',
+      '>=': '<='
     };
     operatorMap.forEach((initialOperator, resultOperator) {
       _indexTestUnit('''
@@ -2220,35 +2273,6 @@ main() {
 ''');
   }
 
-  void test_splitAndCondition_OK_thenBlock_elseBlock() {
-    _indexTestUnit('''
-main() {
-  if (true && false) {
-    print(0);
-  } else {
-    print(1);
-    if (2 == 2) {
-      print(2);
-    }
-  }
-}
-''');
-    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
-main() {
-  if (true) {
-    if (false) {
-      print(0);
-    } else {
-      print(1);
-      if (2 == 2) {
-        print(2);
-      }
-    }
-  }
-}
-''');
-  }
-
   void test_splitAndCondition_OK_thenStatement() {
     _indexTestUnit('''
 main() {
@@ -2261,26 +2285,6 @@ main() {
   if (true)
     if (false)
       print(0);
-}
-''');
-  }
-
-  void test_splitAndCondition_OK_thenStatement_elseStatement() {
-    _indexTestUnit('''
-main() {
-  if (true && false)
-    print(0);
-  else
-    print(1);
-}
-''');
-    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
-main() {
-  if (true)
-    if (false)
-      print(0);
-    else
-      print(1);
 }
 ''');
   }
@@ -2301,6 +2305,19 @@ main() {
       length = 5;
       assertNoAssistAt('&& 2 == 2', AssistKind.SPLIT_AND_CONDITION);
     }
+  }
+
+  void test_splitAndCondition_wrong_hasElse() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(1);
+  } else {
+    print(2);
+  }
+}
+''');
+    assertNoAssistAt('&& 2', AssistKind.SPLIT_AND_CONDITION);
   }
 
   void test_splitAndCondition_wrong_notAnd() {

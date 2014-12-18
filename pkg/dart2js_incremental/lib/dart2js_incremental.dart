@@ -29,6 +29,7 @@ import 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
 
 import 'library_updater.dart' show
+    IncrementalCompilerContext,
     LibraryUpdater,
     Logger;
 
@@ -51,6 +52,7 @@ class IncrementalCompiler {
   final CompilerOutputProvider outputProvider;
   final Map<String, dynamic> environment;
   final List<String> _updates = <String>[];
+  final IncrementalCompilerContext _context = new IncrementalCompilerContext();
 
   Compiler _compiler;
 
@@ -73,6 +75,7 @@ class IncrementalCompiler {
     if (diagnosticHandler == null) {
       throw new ArgumentError('diagnosticHandler is null.');
     }
+    _context.incrementalCompiler = this;
   }
 
   LibraryElement get mainApp => _compiler.mainApp;
@@ -120,9 +123,10 @@ class IncrementalCompiler {
     LibraryUpdater updater = new LibraryUpdater(
         _compiler,
         mappingInputProvider,
-        _compiler.mainApp.canonicalUri,
         logTime,
-        logVerbose);
+        logVerbose,
+        _context);
+    _context.registerUriWithUpdates(updatedFiles.keys);
     Future<Compiler> future = _reuseCompiler(updater.reuseLibrary);
     return future.then((Compiler compiler) {
       _compiler = compiler;

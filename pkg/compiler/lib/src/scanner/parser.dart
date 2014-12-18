@@ -1570,8 +1570,8 @@ class Parser {
   }
 
   Token peekIdentifierAfterOptionalType(Token token) {
-    Token peek = peekIdentifierAfterType(token);
-    if (peek != null) {
+    Token peek = peekAfterIfType(token);
+    if (peek != null && peek.isIdentifier()) {
       // We are looking at "type identifier".
       return peek;
     } else if (token.isIdentifier()) {

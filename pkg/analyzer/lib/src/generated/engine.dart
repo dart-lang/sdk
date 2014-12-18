@@ -11,8 +11,10 @@ import "dart:math" as math;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 
+import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
 import 'constant.dart';
 import 'element.dart';
@@ -22,7 +24,6 @@ import 'html.dart' as ht;
 import 'incremental_resolver.dart' show IncrementalResolver,
     PoorMansIncrementalResolver;
 import 'incremental_scanner.dart';
-import 'instrumentation.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'parser.dart' show Parser, IncrementalParser;
@@ -32,6 +33,21 @@ import 'sdk.dart' show DartSdk;
 import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_general.dart';
+
+/**
+ * Type of callback functions used by PendingFuture.  Functions of this type
+ * should perform a computation based on the data in [sourceEntry] and return
+ * it.  If the computation can't be performed yet because more analysis is
+ * needed, null should be returned.
+ *
+ * The function may also throw an exception, in which case the corresponding
+ * future will be completed with failure.
+ *
+ * Since this function is called while the state of analysis is being updated,
+ * it should be free of side effects so that it doesn't cause reentrant
+ * changes to the analysis state.
+ */
+typedef T PendingFutureComputer<T>(SourceEntry sourceEntry);
 
 /**
  * Instances of the class `AnalysisCache` implement an LRU cache of information related to
@@ -533,6 +549,20 @@ abstract class AnalysisContext {
   LineInfo computeLineInfo(Source source);
 
   /**
+   * Return a future which will be completed with the fully resolved AST for a
+   * single compilation unit within the given library, once that AST is up to
+   * date.
+   *
+   * If the resolved AST can't be computed for some reason, the future will be
+   * completed with an error.  One possible error is AnalysisNotScheduledError,
+   * which means that the resolved AST can't be computed because the given
+   * source file is not scheduled to be analyzed within the context of the
+   * given library.
+   */
+  CancelableFuture<CompilationUnit>
+      computeResolvedCompilationUnitAsync(Source source, Source librarySource);
+
+  /**
    * Notifies the context that the client is going to stop using this context.
    */
   void dispose();
@@ -951,6 +981,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> _priorityOrder = Source.EMPTY_ARRAY;
 
   /**
+   * A map from all sources for which there are futures pending to a list of
+   * the corresponding PendingFuture objects.  These sources will be analyzed
+   * in the same way as priority sources, except with higher priority.
+   *
+   * TODO(paulberry): since the size of this map is not constrained (as it is
+   * for _priorityOrder), we run the risk of creating an analysis loop if
+   * re-caching one AST structure causes the AST structure for another source
+   * with pending futures to be flushed.  However, this is unlikely to happen
+   * in practice since sources are removed from this hash set as soon as their
+   * futures have completed.
+   */
+  HashMap<Source, List<PendingFuture>> _pendingFutureSources =
+      new HashMap<Source, List<PendingFuture>>();
+
+  /**
    * An array containing sources whose AST structure is needed in order to resolve the next library
    * to be resolved.
    */
@@ -1137,26 +1182,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return sources;
   }
 
-  Element findElementById(int id) {
-    _ElementByIdFinder finder = new _ElementByIdFinder(id);
-    try {
-      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-      while (iterator.moveNext()) {
-        SourceEntry sourceEntry = iterator.value;
-        if (sourceEntry.kind == SourceKind.LIBRARY) {
-          DartEntry dartEntry = sourceEntry;
-          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
-          if (library != null) {
-            library.accept(finder);
-          }
-        }
-      }
-    } on _ElementByIdFinderException catch (e) {
-      return finder.result;
-    }
-    return null;
-  }
-
   @override
   List<Source> get librarySources => _getSources(SourceKind.LIBRARY);
 
@@ -1178,6 +1203,50 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           new IncrementalAnalysisTask(this, _incrementalAnalysisCache);
       _incrementalAnalysisCache = null;
       return task;
+    }
+    //
+    // Look for a source that needs to be analyzed because it has futures
+    // pending.
+    //
+    if (_pendingFutureSources.isNotEmpty) {
+      List<Source> sourcesToRemove = <Source>[];
+      AnalysisTask task;
+      for (Source source in _pendingFutureSources.keys) {
+        SourceEntry sourceEntry = _cache.get(source);
+        List<PendingFuture> pendingFutures = _pendingFutureSources[source];
+        for (int i = 0; i < pendingFutures.length; ) {
+          if (pendingFutures[i].evaluate(sourceEntry)) {
+            pendingFutures.removeAt(i);
+          } else {
+            i++;
+          }
+        }
+        if (pendingFutures.isEmpty) {
+          sourcesToRemove.add(source);
+          continue;
+        }
+        AnalysisContextImpl_TaskData taskData =
+            _getNextAnalysisTaskForSource(source, sourceEntry, true, hintsEnabled);
+        task = taskData.task;
+        if (task != null) {
+          break;
+        } else if (taskData.isBlocked) {
+          hasBlockedTask = true;
+        } else {
+          // There is no more work to do for this task, so forcibly complete
+          // all its pending futures.
+          for (PendingFuture pendingFuture in pendingFutures) {
+            pendingFuture.forciblyComplete();
+          }
+          sourcesToRemove.add(source);
+        }
+      }
+      for (Source source in sourcesToRemove) {
+        _pendingFutureSources.remove(source);
+      }
+      if (task != null) {
+        return task;
+      }
     }
     //
     // Look for a priority source that needs to be analyzed.
@@ -1257,6 +1326,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   Stream<SourcesChangedEvent> get onSourcesChanged =>
       _onSourcesChangedController.stream;
+
+  /**
+   * Make _pendingFutureSources available to unit tests.
+   */
+  HashMap<Source, List<PendingFuture>> get pendingFutureSources_forTesting =>
+      _pendingFutureSources;
 
   @override
   List<Source> get prioritySources => _priorityOrder;
@@ -1663,6 +1738,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return unit;
   }
 
+  @override
+  CancelableFuture<CompilationUnit>
+      computeResolvedCompilationUnitAsync(Source unitSource, Source librarySource) {
+    return new _AnalysisFutureHelper<CompilationUnit>(
+        this).computeAsync(unitSource, (SourceEntry sourceEntry) {
+      if (sourceEntry is DartEntry) {
+        if (sourceEntry.getStateInLibrary(
+            DartEntry.RESOLVED_UNIT,
+            librarySource) ==
+            CacheState.ERROR) {
+          throw sourceEntry.exception;
+        }
+        return sourceEntry.getValueInLibrary(
+            DartEntry.RESOLVED_UNIT,
+            librarySource);
+      }
+      throw new AnalysisNotScheduledError();
+    });
+  }
+
   /**
    * Create an analysis cache based on the given source factory.
    *
@@ -1686,6 +1781,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void dispose() {
     _disposed = true;
+    for (List<PendingFuture> pendingFutures in _pendingFutureSources.values) {
+      for (PendingFuture pendingFuture in pendingFutures) {
+        pendingFuture.forciblyComplete();
+      }
+    }
+    _pendingFutureSources.clear();
   }
 
   @override
@@ -1697,6 +1798,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return true;
     }
     return source.exists();
+  }
+
+  Element findElementById(int id) {
+    _ElementByIdFinder finder = new _ElementByIdFinder(id);
+    try {
+      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+      while (iterator.moveNext()) {
+        SourceEntry sourceEntry = iterator.value;
+        if (sourceEntry.kind == SourceKind.LIBRARY) {
+          DartEntry dartEntry = sourceEntry;
+          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
+          if (library != null) {
+            library.accept(finder);
+          }
+        }
+      }
+    } on _ElementByIdFinderException catch (e) {
+      return finder.result;
+    }
+    return null;
   }
 
   @override
@@ -2772,6 +2893,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       state = htmlEntry.getState(descriptor);
     }
     return htmlEntry;
+  }
+
+  /**
+   * Remove the given [pendingFuture] from [_pendingFutureSources], since the
+   * client has indicated its computation is not needed anymore.
+   */
+  void _cancelFuture(PendingFuture pendingFuture) {
+    List<PendingFuture> pendingFutures =
+        _pendingFutureSources[pendingFuture.source];
+    if (pendingFutures != null) {
+      pendingFutures.remove(pendingFuture);
+      if (pendingFutures.isEmpty) {
+        _pendingFutureSources.remove(pendingFuture.source);
+      }
+    }
   }
 
   /**
@@ -5033,25 +5169,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 }
 
-class _ElementByIdFinder extends GeneralizingElementVisitor {
-  final int _id;
-  Element result;
-
-  _ElementByIdFinder(this._id);
-
-  @override
-  visitElement(Element element) {
-    if (element.id == _id) {
-      result = element;
-      throw new _ElementByIdFinderException();
-    }
-    super.visitElement(element);
-  }
-}
-
-class _ElementByIdFinderException {
-}
-
 /**
  * An `AnalysisTaskResultRecorder` is used by an analysis context to record the
  * results of a task.
@@ -6023,8 +6140,8 @@ class AnalysisDelta {
 }
 
 /**
- * The unique instance of the class `AnalysisEngine` serves as the entry point for the
- * functionality provided by the analysis engine.
+ * The unique instance of the class `AnalysisEngine` serves as the entry point
+ * for the functionality provided by the analysis engine.
  */
 class AnalysisEngine {
   /**
@@ -6060,6 +6177,12 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
+   * The instrumentation service that is to be used by this analysis engine.
+   */
+  InstrumentationService _instrumentationService =
+      InstrumentationService.NULL_SERVICE;
+
+  /**
    * The partition manager being used to manage the shared partitions.
    */
   final PartitionManager partitionManager = new PartitionManager();
@@ -6074,6 +6197,24 @@ class AnalysisEngine {
    * when `enabledUnionTypes` is `false`.
    */
   bool strictUnionTypes = false;
+
+  /**
+   * Return the instrumentation service that is to be used by this analysis
+   * engine.
+   */
+  InstrumentationService get instrumentationService => _instrumentationService;
+
+  /**
+   * Set the instrumentation service that is to be used by this analysis engine
+   * to the given [service].
+   */
+  void set instrumentationService(InstrumentationService service) {
+    if (service == null) {
+      _instrumentationService = InstrumentationService.NULL_SERVICE;
+    } else {
+      _instrumentationService = service;
+    }
+  }
 
   /**
    * Return the logger that should receive information about errors within the analysis engine.
@@ -6107,14 +6248,7 @@ class AnalysisEngine {
    * @return the analysis context that was created
    */
   AnalysisContext createAnalysisContext() {
-    //
-    // If instrumentation is ignoring data, return an uninstrumented analysis
-    // context.
-    //
-    if (Instrumentation.isNullLogger) {
-      return new AnalysisContextImpl();
-    }
-    return new InstrumentedAnalysisContextImpl.con1(new AnalysisContextImpl());
+    return new AnalysisContextImpl();
   }
 
   /**
@@ -6302,6 +6436,16 @@ abstract class AnalysisListener {
    * @param unit the result of resolving the source in the given context
    */
   void resolvedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
+}
+
+/**
+ * Futures returned by [AnalysisContext] for pending analysis results will
+ * complete with this error if it is determined that analysis results will
+ * never become available (e.g. because the requested source is not subject to
+ * analysis, or because the requested source is a part file which is not a part
+ * of any known library).
+ */
+class AnalysisNotScheduledError implements Exception {
 }
 
 /**
@@ -9488,7 +9632,6 @@ class DartEntry extends SourceEntry {
   }
 }
 
-
 /**
  * Instances of the class `DataDescriptor` are immutable constants representing data that can
  * be stored in the cache.
@@ -9548,6 +9691,7 @@ class DefaultRetentionPolicy implements CacheRetentionPolicy {
     return RetentionPriority.LOW;
   }
 }
+
 
 /**
  * Recursively visits [HtmlUnit] and every embedded [Expression].
@@ -10579,849 +10723,6 @@ class IncrementalAnalysisTask extends AnalysisTask {
 }
 
 /**
- * Instances of the class `InstrumentedAnalysisContextImpl` implement an
- * [AnalysisContext] by recording instrumentation data and delegating to
- * another analysis context to do the non-instrumentation work.
- */
-class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
-  /**
-   * The unique identifier used to identify this analysis context in the instrumentation data.
-   */
-  String _contextId = UUID.randomUUID().toString();
-
-  /**
-   * The analysis context to which all of the non-instrumentation work is delegated.
-   */
-  InternalAnalysisContext _basis;
-
-  /**
-   * Create a new [InstrumentedAnalysisContextImpl] which wraps a new
-   * [AnalysisContextImpl] as the basis context.
-   */
-  InstrumentedAnalysisContextImpl() : this.con1(new AnalysisContextImpl());
-
-  /**
-   * Create a new [InstrumentedAnalysisContextImpl] with a specified basis context, aka the
-   * context to wrap and instrument.
-   *
-   * @param context some [InstrumentedAnalysisContext] to wrap and instrument
-   */
-  InstrumentedAnalysisContextImpl.con1(InternalAnalysisContext context) {
-    _basis = context;
-  }
-
-  @override
-  AnalysisOptions get analysisOptions {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getAnalysisOptions");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.analysisOptions;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  void set analysisOptions(AnalysisOptions options) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-setAnalysisOptions");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.analysisOptions = options;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  void set analysisPriorityOrder(List<Source> sources) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-setAnalysisPriorityOrder");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.analysisPriorityOrder = sources;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  /**
-   * @return the underlying [AnalysisContext].
-   */
-  AnalysisContext get basis => _basis;
-
-  @override
-  DeclaredVariables get declaredVariables => _basis.declaredVariables;
-
-  @override
-  List<Source> get htmlSources {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getHtmlSources");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.htmlSources;
-      if (ret != null) {
-        instrumentation.metric2("Source-count", ret.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  bool get isDisposed {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-isDisposed");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.isDisposed;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> get launchableClientLibrarySources {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLaunchableClientLibrarySources");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.launchableClientLibrarySources;
-      if (ret != null) {
-        instrumentation.metric2("Source-count", ret.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> get launchableServerLibrarySources {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLaunchableServerLibrarySources");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.launchableServerLibrarySources;
-      if (ret != null) {
-        instrumentation.metric2("Source-count", ret.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> get librarySources {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLibrarySources");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.librarySources;
-      if (ret != null) {
-        instrumentation.metric2("Source-count", ret.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  Stream<SourcesChangedEvent> get onSourcesChanged => _basis.onSourcesChanged;
-
-  @override
-  List<Source> get prioritySources {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getPrioritySources");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.prioritySources;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> get refactoringUnsafeSources {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getRefactoringUnsafeSources");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.refactoringUnsafeSources;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  SourceFactory get sourceFactory {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getSourceFactory");
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.sourceFactory;
-    } finally {
-      instrumentation.log2(2);
-      //Log if over 1ms
-    }
-  }
-
-  @override
-  void set sourceFactory(SourceFactory factory) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-setSourceFactory");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.sourceFactory = factory;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  AnalysisContextStatistics get statistics => _basis.statistics;
-
-  @override
-  TypeProvider get typeProvider => _basis.typeProvider;
-
-  @override
-  void addListener(AnalysisListener listener) {
-    _basis.addListener(listener);
-  }
-
-  @override
-  void addSourceInfo(Source source, SourceEntry info) {
-    _basis.addSourceInfo(source, info);
-  }
-
-  @override
-  void applyAnalysisDelta(AnalysisDelta delta) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-updateAnalysis");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.applyAnalysisDelta(delta);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  void applyChanges(ChangeSet changeSet) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-applyChanges");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.applyChanges(changeSet);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  String computeDocumentationComment(Element element) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-computeDocumentationComment");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.computeDocumentationComment(element);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<AnalysisError> computeErrors(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-computeErrors");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<AnalysisError> errors = _basis.computeErrors(source);
-      instrumentation.metric2("Errors-count", errors.length);
-      return errors;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> computeExportedLibraries(Source source) =>
-      _basis.computeExportedLibraries(source);
-
-  @override
-  HtmlElement computeHtmlElement(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-computeHtmlElement");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.computeHtmlElement(source);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> computeImportedLibraries(Source source) =>
-      _basis.computeImportedLibraries(source);
-
-  @override
-  SourceKind computeKindOf(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-computeKindOf");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.computeKindOf(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  LibraryElement computeLibraryElement(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-computeLibraryElement");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.computeLibraryElement(source);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  LineInfo computeLineInfo(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-computeLineInfo");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.computeLineInfo(source);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  CompilationUnit computeResolvableCompilationUnit(Source source) =>
-      _basis.computeResolvableCompilationUnit(source);
-
-  @override
-  void dispose() {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-dispose");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.dispose();
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  bool exists(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-exists");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.exists(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getAngularApplication");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getAngularApplicationWithHtml(htmlSource);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  CompilationUnitElement getCompilationUnitElement(Source unitSource,
-      Source librarySource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getCompilationUnitElement");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getCompilationUnitElement(unitSource, librarySource);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  TimestampedData<String> getContents(Source source) =>
-      _basis.getContents(source);
-
-  @override
-  InternalAnalysisContext getContextFor(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getContextFor");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getContextFor(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  Element getElement(ElementLocation location) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getElement");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getElement(location);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  AnalysisErrorInfo getErrors(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getErrors");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      AnalysisErrorInfo ret = _basis.getErrors(source);
-      if (ret != null) {
-        instrumentation.metric2("Errors-count", ret.errors.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  HtmlElement getHtmlElement(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getHtmlElement");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getHtmlElement(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> getHtmlFilesReferencing(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getHtmlFilesReferencing");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.getHtmlFilesReferencing(source);
-      if (ret != null) {
-        instrumentation.metric2("Source-count", ret.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  SourceKind getKindOf(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getKindOf");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getKindOf(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> getLibrariesContaining(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLibrariesContaining");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.getLibrariesContaining(source);
-      if (ret != null) {
-        instrumentation.metric2("Source-count", ret.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log2(2);
-      //Log if 1ms
-    }
-  }
-
-  @override
-  List<Source> getLibrariesDependingOn(Source librarySource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLibrariesDependingOn");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.getLibrariesDependingOn(librarySource);
-      if (ret != null) {
-        instrumentation.metric2("Source-count", ret.length);
-      }
-      return ret;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  List<Source> getLibrariesReferencedFromHtml(Source htmlSource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLibrariesReferencedFromHtml");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getLibrariesReferencedFromHtml(htmlSource);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  LibraryElement getLibraryElement(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLibraryElement");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getLibraryElement(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  LineInfo getLineInfo(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getLineInfo");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getLineInfo(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  int getModificationStamp(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getModificationStamp");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getModificationStamp(source);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  Namespace getPublicNamespace(LibraryElement library) =>
-      _basis.getPublicNamespace(library);
-
-  @override
-  CompilationUnit getResolvedCompilationUnit(Source unitSource,
-      LibraryElement library) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getResolvedCompilationUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getResolvedCompilationUnit(unitSource, library);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  CompilationUnit getResolvedCompilationUnit2(Source unitSource,
-      Source librarySource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getResolvedCompilationUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getResolvedCompilationUnit2(unitSource, librarySource);
-    } finally {
-      instrumentation.log2(2);
-      //Log if over 1ms
-    }
-  }
-
-  @override
-  ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-getResolvedHtmlUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.getResolvedHtmlUnit(htmlSource);
-    } finally {
-      instrumentation.log2(2);
-      //Log if over 1ms
-    }
-  }
-
-  @override
-  bool isClientLibrary(Source librarySource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-isClientLibrary");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.isClientLibrary(librarySource);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  bool isServerLibrary(Source librarySource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-isServerLibrary");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.isServerLibrary(librarySource);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  CompilationUnit parseCompilationUnit(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-parseCompilationUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.parseCompilationUnit(source);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  ht.HtmlUnit parseHtmlUnit(Source source) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-parseHtmlUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.parseHtmlUnit(source);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  AnalysisResult performAnalysisTask() {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-performAnalysisTask");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      AnalysisResult result = _basis.performAnalysisTask();
-      if (result.changeNotices != null) {
-        instrumentation.metric2(
-            "ChangeNotice-count",
-            result.changeNotices.length);
-      }
-      return result;
-    } finally {
-      instrumentation.log2(15);
-      //Log if >= 15ms
-    }
-  }
-
-  @override
-  void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
-    _basis.recordLibraryElements(elementMap);
-  }
-
-  @override
-  void removeListener(AnalysisListener listener) {
-    _basis.removeListener(listener);
-  }
-
-  @override
-  CompilationUnit resolveCompilationUnit(Source unitSource,
-      LibraryElement library) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-resolveCompilationUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.resolveCompilationUnit(unitSource, library);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  CompilationUnit resolveCompilationUnit2(Source unitSource,
-      Source librarySource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-resolveCompilationUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.resolveCompilationUnit2(unitSource, librarySource);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-resolveHtmlUnit");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      return _basis.resolveHtmlUnit(htmlSource);
-    } on AnalysisException catch (e, stackTrace) {
-      _recordAnalysisException(
-          instrumentation,
-          new CaughtException(e, stackTrace));
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  void setChangedContents(Source source, String contents, int offset,
-      int oldLength, int newLength) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-setChangedContents");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.setChangedContents(source, contents, offset, oldLength, newLength);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  void setContents(Source source, String contents) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("Analysis-setContents");
-    _checkThread(instrumentation);
-    try {
-      instrumentation.metric3("contextId", _contextId);
-      _basis.setContents(source, contents);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @override
-  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
-      DataDescriptor rowDesc, CacheState state)) {
-    _basis.visitCacheItems(callback);
-  }
-
-  /**
-   * If the current thread is the UI thread, then note this in the specified instrumentation and
-   * append this information to the log.
-   *
-   * @param instrumentation the instrumentation, not `null`
-   */
-  static void _checkThread(InstrumentationBuilder instrumentation) {
-  }
-
-  /**
-   * Record an exception that was thrown during analysis.
-   *
-   * @param instrumentation the instrumentation builder being used to record the exception
-   * @param exception the exception being reported
-   */
-  static void _recordAnalysisException(InstrumentationBuilder instrumentation,
-      CaughtException exception) {
-    instrumentation.record(exception);
-  }
-}
-
-/**
  * The interface `InternalAnalysisContext` defines additional behavior for an analysis context
  * that is required by internal users of the context.
  */
@@ -12358,6 +11659,87 @@ class PartitionManager {
       _sdkPartitions[sdk] = partition;
     }
     return partition;
+  }
+}
+
+/**
+ * Representation of a pending computation which is based on the results of
+ * analysis that may or may not have been completed.
+ */
+class PendingFuture<T> {
+  /**
+   * The context in which this computation runs.
+   */
+  final AnalysisContextImpl _context;
+
+  /**
+   * The source used by this computation to compute its value.
+   */
+  final Source source;
+
+  /**
+   * The function which implements the computation.
+   */
+  final PendingFutureComputer<T> _computeValue;
+
+  /**
+   * The completer that should be completed once the computation has succeeded.
+   */
+  CancelableCompleter<T> _completer;
+
+  PendingFuture(this._context, this.source, this._computeValue) {
+    _completer = new CancelableCompleter<T>(_onCancel);
+  }
+
+  /**
+   * Retrieve the future which will be completed when this object is
+   * successfully evaluated.
+   */
+  CancelableFuture<T> get future => _completer.future;
+
+  /**
+   * Execute [_computeValue], passing it the given [sourceEntry], and complete
+   * the pending future if it's appropriate to do so.  If the pending future is
+   * completed by this call, true is returned; otherwise false is returned.
+   *
+   * Once this function has returned true, it should not be called again.
+   *
+   * Other than completing the future, this method is free of side effects.
+   * Note that any code the client has attached to the future will be executed
+   * in a microtask, so there is no danger of side effects occurring due to
+   * client callbacks.
+   */
+  bool evaluate(SourceEntry sourceEntry) {
+    assert(!_completer.isCompleted);
+    try {
+      T result = _computeValue(sourceEntry);
+      if (result == null) {
+        return false;
+      } else {
+        _completer.complete(result);
+        return true;
+      }
+    } catch (exception, stackTrace) {
+      _completer.completeError(exception, stackTrace);
+      return true;
+    }
+  }
+
+  /**
+   * No further analysis updates are expected which affect this future, so
+   * complete it with an AnalysisNotScheduledError in order to avoid
+   * deadlocking the client.
+   */
+  void forciblyComplete() {
+    try {
+      throw new AnalysisNotScheduledError();
+    } catch (exception, stackTrace) {
+      _completer.completeError(exception, stackTrace);
+    }
+  }
+
+  void _onCancel() {
+    _context._cancelFuture(this);
   }
 }
 
@@ -14483,20 +13865,21 @@ abstract class SourceEntry {
    * discover the underlying cause of a long-standing bug.
    */
   void _validateStateChange(DataDescriptor descriptor, CacheState newState) {
-    if (descriptor != CONTENT) {
-      return;
-    }
-    CachedResult result = resultMap[CONTENT];
-    if (result != null && result.state == CacheState.ERROR) {
-      String message =
-          "contentState changing from ${result.state} to $newState";
-      InstrumentationBuilder builder =
-          Instrumentation.builder2("SourceEntry-validateStateChange");
-      builder.data3("message", message);
-      //builder.data("source", source.getFullName());
-      builder.record(new CaughtException(new AnalysisException(message), null));
-      builder.log();
-    }
+    // TODO(brianwilkerson) Decide whether we still want to capture this data.
+//    if (descriptor != CONTENT) {
+//      return;
+//    }
+//    CachedResult result = resultMap[CONTENT];
+//    if (result != null && result.state == CacheState.ERROR) {
+//      String message =
+//          "contentState changing from ${result.state} to $newState";
+//      InstrumentationBuilder builder =
+//          Instrumentation.builder2("SourceEntry-validateStateChange");
+//      builder.data3("message", message);
+//      //builder.data("source", source.getFullName());
+//      builder.record(new CaughtException(new AnalysisException(message), null));
+//      builder.log();
+//    }
   }
 
   /**
@@ -14950,6 +14333,53 @@ class WorkManager_WorkIterator {
   }
 }
 
+/**
+ * Helper class used to create futures for AnalysisContextImpl.  Using a helper
+ * class allows us to preserve the generic parameter T.
+ */
+class _AnalysisFutureHelper<T> {
+  final AnalysisContextImpl _context;
+
+  _AnalysisFutureHelper(this._context);
+
+  /**
+   * Return a future that will be completed with the result of calling
+   * [computeValue].  If [computeValue] returns non-null, the future will be
+   * completed immediately with the resulting value.  If it returns null, then
+   * it will be re-executed in the future, after the next time the cached
+   * information for [source] has changed.  If [computeValue] throws an
+   * exception, the future will fail with that exception.
+   *
+   * If the [computeValue] still returns null after there is no further
+   * analysis to be done for [source], then the future will be completed with
+   * the error AnalysisNotScheduledError.
+   *
+   * Since [computeValue] will be called while the state of analysis is being
+   * updated, it should be free of side effects so that it doesn't cause
+   * reentrant changes to the analysis state.
+   */
+  CancelableFuture<T> computeAsync(Source source, T
+      computeValue(SourceEntry sourceEntry)) {
+    if (_context.isDisposed) {
+      // No further analysis is expected, so return a future that completes
+      // immediately with AnalysisNotScheduledError.
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    SourceEntry sourceEntry = _context.getReadableSourceEntryOrNull(source);
+    if (sourceEntry == null) {
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    PendingFuture pendingFuture =
+        new PendingFuture<T>(_context, source, computeValue);
+    if (!pendingFuture.evaluate(sourceEntry)) {
+      _context._pendingFutureSources.putIfAbsent(
+          source,
+          () => <PendingFuture>[]).add(pendingFuture);
+    }
+    return pendingFuture.future;
+  }
+}
+
 class _AngularHtmlUnitResolver_visitModelDirectives extends
     ht.RecursiveXmlVisitor<Object> {
   final AngularHtmlUnitResolver resolver;
@@ -14965,6 +14395,25 @@ class _AngularHtmlUnitResolver_visitModelDirectives extends
     }
     return super.visitXmlTagNode(node);
   }
+}
+
+class _ElementByIdFinder extends GeneralizingElementVisitor {
+  final int _id;
+  Element result;
+
+  _ElementByIdFinder(this._id);
+
+  @override
+  visitElement(Element element) {
+    if (element.id == _id) {
+      result = element;
+      throw new _ElementByIdFinderException();
+    }
+    super.visitElement(element);
+  }
+}
+
+class _ElementByIdFinderException {
 }
 
 class _PolymerHtmlUnitBuilder_findTagDartElement extends

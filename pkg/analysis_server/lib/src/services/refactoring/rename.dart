@@ -57,14 +57,7 @@ bool isDefinedInLibrary(Element element, AnalysisContext context, Source source)
  * Checks if the given [Element] is in the given [AnalysisContext].
  */
 bool isInContext(Element element, AnalysisContext context) {
-  AnalysisContext elementContext = element.context;
-  if (elementContext == context) {
-    return true;
-  }
-  if (context is InstrumentedAnalysisContextImpl) {
-    return elementContext == context.basis;
-  }
-  return false;
+  return element.context == context;
 }
 
 

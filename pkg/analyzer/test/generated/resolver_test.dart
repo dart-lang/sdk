@@ -7041,6 +7041,19 @@ class B<E> {
     verify([source]);
   }
 
+  void test_unnecessaryCast_conditionalExpression() {
+    Source source = addSource(r'''
+abstract class I {}
+class A implements I {}
+class B implements I {}
+I m(A a, B b) {
+  return a == null ? b as I : a as I;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unnecessaryCast_dynamic_type() {
     Source source = addSource(r'''
 m(v) {
@@ -8655,6 +8668,21 @@ main() {}''');
     LibraryElement library = resolve(source);
     expect(library, isNotNull);
     expect(library.entryPoint, isNull);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_enum_externalLibrary() {
+    resetWithEnum();
+    addNamedSource("/my_lib.dart", r'''
+library my_lib;
+enum EEE {A, B, C}''');
+    Source source = addSource(r'''
+import 'my_lib.dart';
+main() {
+  EEE e = null;
+}''');
+    resolve(source);
     assertNoErrors(source);
     verify([source]);
   }

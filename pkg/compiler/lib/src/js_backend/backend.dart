@@ -764,7 +764,7 @@ class JavaScriptBackend extends Backend {
 
   void registerCompileTimeConstantInternal(ConstantValue constant,
                                            Registry registry) {
-    DartType type = constant.computeType(compiler);
+    DartType type = constant.getType(compiler.coreTypes);
     registerInstantiatedConstantType(type, registry);
 
     if (constant.isFunction) {
@@ -1951,7 +1951,7 @@ class JavaScriptBackend extends Backend {
       metadata.ensureResolved(compiler);
       ConstantValue value = metadata.constant.value;
       if (value == null) continue;
-      DartType type = value.computeType(compiler);
+      DartType type = value.getType(compiler.coreTypes);
       if (metaTargetsUsed.contains(type.element)) return true;
     }
     return false;

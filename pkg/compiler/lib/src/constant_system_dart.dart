@@ -402,7 +402,7 @@ class DartConstantSystem extends ConstantSystem {
   bool isBool(ConstantValue constant) => constant.isBool;
   bool isNull(ConstantValue constant) => constant.isNull;
 
-  bool isSubtype(Compiler compiler, DartType s, DartType t) {
-    return compiler.types.isSubtype(s, t);
+  bool isSubtype(DartTypes types, DartType s, DartType t) {
+    return types.isSubtype(s, t);
   }
 }

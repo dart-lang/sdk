@@ -14,12 +14,14 @@ import 'options_test.dart' as options;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
 import 'task/test_all.dart' as task;
+import 'cancelable_future_test.dart' as cancelable_future_test;
 
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
   group('analysis engine', () {
+    cancelable_future_test.main();
     enum_test.main();
     error.main();
     file_system.main();

@@ -54,7 +54,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
    * Records fatal error with given message and [Location].
    */
   void invalidSelection(String message, [Location context]) {
-    _status.addFatalError(message, context);
+    if (!_status.hasFatalError) {
+      _status.addFatalError(message, context);
+    }
     reset();
   }
 

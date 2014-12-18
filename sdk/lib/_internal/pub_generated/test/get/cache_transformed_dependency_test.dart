@@ -404,6 +404,54 @@ main() {
         "lib/foo.dart: true, lib/does/not/exist.dart: false");
     endPubServe();
   });
+
+  // Regression test for issue 21810.
+  integration(
+      "decaches when the dependency is updated to something " "untransformed",
+      () {
+    servePackages((builder) {
+      builder.serveRepoPackage('barback');
+
+      builder.serve("foo", "1.2.3", deps: {
+        'barback': 'any'
+      }, pubspec: {
+        'transformers': ['foo']
+      },
+          contents: [
+              d.dir(
+                  "lib",
+                  [
+                      d.file("transformer.dart", replaceTransformer("Hello", "Goodbye")),
+                      d.file("foo.dart", "final message = 'Hello!';")])]);
+
+      builder.serve("foo", "1.2.4", deps: {
+        'barback': 'any'
+      },
+          contents: [d.dir("lib", [d.file("foo.dart", "final message = 'Hello!';")])]);
+    });
+
+    d.appDir({
+      "foo": "1.2.3"
+    }).create();
+
+    pubGet(output: contains("Precompiled foo."));
+
+    d.dir(
+        appPath,
+        [
+            d.dir(
+                ".pub/deps/debug/foo/lib",
+                [d.file("foo.dart", "final message = 'Goodbye!';")])]).validate();
+
+    // Upgrade to the new version of foo.
+    d.appDir({
+      "foo": "1.2.4"
+    }).create();
+
+    pubGet(output: isNot(contains("Precompiled foo.")));
+
+    d.dir(appPath, [d.nothing(".pub/deps/debug/foo")]).validate();
+  });
 }
 
 String replaceTransformer(String input, String output) {

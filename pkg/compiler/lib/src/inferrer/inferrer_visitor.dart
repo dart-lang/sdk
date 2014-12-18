@@ -11,6 +11,7 @@ import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
 import '../types/types.dart' show TypeMask;
+import '../types/constants.dart' show computeTypeMask;
 import 'dart:collection' show IterableMixin;
 
 /**
@@ -750,7 +751,7 @@ abstract class InferrerVisitor
     // The JavaScript backend may turn this literal into an integer at
     // runtime.
     return types.getConcreteTypeFor(
-        constantSystem.createDouble(node.value).computeMask(compiler));
+        computeTypeMask(compiler, constantSystem.createDouble(node.value)));
   }
 
   T visitLiteralInt(LiteralInt node) {
@@ -758,7 +759,7 @@ abstract class InferrerVisitor
     // The JavaScript backend may turn this literal into a double at
     // runtime.
     return types.getConcreteTypeFor(
-        constantSystem.createInt(node.value).computeMask(compiler));
+        computeTypeMask(compiler, constantSystem.createInt(node.value)));
   }
 
   T visitLiteralList(LiteralList node) {

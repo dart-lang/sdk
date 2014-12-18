@@ -4,7 +4,7 @@
 
 library _js_helper;
 
-import 'shared/embedded_names.dart' show
+import 'dart:_js_embedded_names' show
     ALL_CLASSES,
     GET_ISOLATE_TAG,
     INTERCEPTED_NAMES,
@@ -1034,57 +1034,20 @@ class Primitives {
   static applyFunction(Function function,
                        List positionalArguments,
                        Map<String, dynamic> namedArguments) {
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      // TODO(ahe): The following code can be shared with
-      // JsInstanceMirror.invoke.
-      var interceptor = getInterceptor(function);
-      var jsFunction = JS('', '#["call*"]', interceptor);
+    // Dispatch on presence of named arguments to improve tree-shaking.
+    //
+    // This dispatch is as simple as possible to help the compiler detect the
+    // common case of `null` namedArguments, either via inlining or
+    // specialization.
+    return namedArguments == null
+        ? applyFunctionWithPositionalArguments(
+            function, positionalArguments)
+        : applyFunctionWithNamedArguments(
+            function, positionalArguments, namedArguments);
+  }
 
-      if (jsFunction == null) {
-        return functionNoSuchMethod(
-            function, positionalArguments, namedArguments);
-      }
-      ReflectionInfo info = new ReflectionInfo(jsFunction);
-      if (info == null || !info.areOptionalParametersNamed) {
-        return functionNoSuchMethod(
-            function, positionalArguments, namedArguments);
-      }
-
-      if (positionalArguments != null) {
-        positionalArguments = new List.from(positionalArguments);
-      } else {
-        positionalArguments = [];
-      }
-      // Check the number of positional arguments is valid.
-      if (info.requiredParameterCount != positionalArguments.length) {
-        return functionNoSuchMethod(
-            function, positionalArguments, namedArguments);
-      }
-      var defaultArguments = new Map();
-      for (int i = 0; i < info.optionalParameterCount; i++) {
-        int index = i + info.requiredParameterCount;
-        var parameterName = info.parameterNameInOrder(index);
-        var value = info.defaultValueInOrder(index);
-        var defaultValue = getMetadata(value);
-        defaultArguments[parameterName] = defaultValue;
-      }
-      bool bad = false;
-      namedArguments.forEach((String parameter, value) {
-        if (defaultArguments.containsKey(parameter)) {
-          defaultArguments[parameter] = value;
-        } else {
-          // Extraneous named argument.
-          bad = true;
-        }
-      });
-      if (bad) {
-        return functionNoSuchMethod(
-            function, positionalArguments, namedArguments);
-      }
-      positionalArguments.addAll(defaultArguments.values);
-      return JS('', '#.apply(#, #)', jsFunction, function, positionalArguments);
-    }
-
+  static applyFunctionWithPositionalArguments(Function function,
+                                              List positionalArguments) {
     int argumentCount = 0;
     List arguments;
 
@@ -1106,13 +1069,69 @@ class Primitives {
       // TODO(ahe): This might occur for optional arguments if there is no call
       // selector with that many arguments.
 
-      return
-          functionNoSuchMethod(function, positionalArguments, namedArguments);
+      return functionNoSuchMethod(function, positionalArguments, null);
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
     // [function].
     return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+  }
+
+  static applyFunctionWithNamedArguments(Function function,
+                                         List positionalArguments,
+                                         Map<String, dynamic> namedArguments) {
+    if (namedArguments.isEmpty) {
+      return applyFunctionWithPositionalArguments(
+          function, positionalArguments);
+    }
+    // TODO(ahe): The following code can be shared with
+    // JsInstanceMirror.invoke.
+    var interceptor = getInterceptor(function);
+    var jsFunction = JS('', '#["call*"]', interceptor);
+
+    if (jsFunction == null) {
+      return functionNoSuchMethod(
+          function, positionalArguments, namedArguments);
+    }
+    ReflectionInfo info = new ReflectionInfo(jsFunction);
+    if (info == null || !info.areOptionalParametersNamed) {
+      return functionNoSuchMethod(
+          function, positionalArguments, namedArguments);
+    }
+
+    if (positionalArguments != null) {
+      positionalArguments = new List.from(positionalArguments);
+    } else {
+      positionalArguments = [];
+    }
+    // Check the number of positional arguments is valid.
+    if (info.requiredParameterCount != positionalArguments.length) {
+      return functionNoSuchMethod(
+          function, positionalArguments, namedArguments);
+    }
+    var defaultArguments = new Map();
+    for (int i = 0; i < info.optionalParameterCount; i++) {
+      int index = i + info.requiredParameterCount;
+      var parameterName = info.parameterNameInOrder(index);
+      var value = info.defaultValueInOrder(index);
+      var defaultValue = getMetadata(value);
+      defaultArguments[parameterName] = defaultValue;
+    }
+    bool bad = false;
+    namedArguments.forEach((String parameter, value) {
+      if (defaultArguments.containsKey(parameter)) {
+        defaultArguments[parameter] = value;
+      } else {
+        // Extraneous named argument.
+        bad = true;
+      }
+    });
+    if (bad) {
+      return functionNoSuchMethod(
+          function, positionalArguments, namedArguments);
+    }
+    positionalArguments.addAll(defaultArguments.values);
+    return JS('', '#.apply(#, #)', jsFunction, function, positionalArguments);
   }
 
   static _mangledNameMatchesType(String mangledName, TypeImpl type) {
@@ -3293,15 +3312,17 @@ Future<Null> loadDeferredLibrary(String loadId) {
   // The indices into `uris` and `hashes` that we want to load.
   List<int> indices = new List.generate(uris.length, (i) => i);
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
-  return Future.wait(indices
-      // Filter away indices for hunks that have already been loaded.
+  // Filter away indices for hunks that have already been loaded.
+  List<int> indicesToLoad = indices
       .where((int i) => !JS('bool','#(#)', isHunkLoaded, hashes[i]))
-      // Load the rest.
+      .toList();
+  // Load the needed hunks.
+  return Future.wait(indicesToLoad
       .map((int i) => _loadHunk(uris[i]))).then((_) {
-    // Now all hunks have been loaded, we call all their initializers
-    for (String hash in hashes) {
+    // Now all hunks have been loaded, we run the needed initializers.
+    for (int i in indicesToLoad) {
       var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
-      JS('void', '#(#)', initializer, hash);
+      JS('void', '#(#)', initializer, hashes[i]);
     }
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {

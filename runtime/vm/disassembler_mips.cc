@@ -718,7 +718,7 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       break;
     }
     case SLTIU: {
-      Format(instr, "sltu 'rt, 'rs, 'immu");
+      Format(instr, "sltiu 'rt, 'rs, 'imms");
       break;
     }
     case SH: {

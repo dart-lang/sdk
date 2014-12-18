@@ -362,8 +362,11 @@ class Isolate : public BaseIsolate {
     return resume_request;
   }
 
-  // Verify that the sender has the capability to pause this isolate.
-  bool VerifyPauseCapability(const Capability& capability) const;
+  // Verify that the sender has the capability to pause or terminate the
+  // isolate.
+  bool VerifyPauseCapability(const Object& capability) const;
+  bool VerifyTerminateCapability(const Object& capability) const;
+
   // Returns true if the capability was added or removed from this isolate's
   // list of pause events.
   bool AddResumeCapability(const Capability& capability);

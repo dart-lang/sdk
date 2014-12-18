@@ -86,11 +86,13 @@ final Matcher isServerErrorParams = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "analysis": optional AnalysisStatus
+ *   "pub": optional PubStatus
  * }
  */
 final Matcher isServerStatusParams = new LazyMatcher(() => new MatchesJsonObject(
   "server.status params", null, optionalFields: {
-    "analysis": isAnalysisStatus
+    "analysis": isAnalysisStatus,
+    "pub": isPubStatus
   }));
 
 /**
@@ -1592,6 +1594,18 @@ final Matcher isPosition = new LazyMatcher(() => new MatchesJsonObject(
   "Position", {
     "file": isFilePath,
     "offset": isInt
+  }));
+
+/**
+ * PubStatus
+ *
+ * {
+ *   "isListingPackageDirs": bool
+ * }
+ */
+final Matcher isPubStatus = new LazyMatcher(() => new MatchesJsonObject(
+  "PubStatus", {
+    "isListingPackageDirs": isBool
   }));
 
 /**

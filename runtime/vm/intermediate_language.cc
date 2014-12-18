@@ -31,6 +31,9 @@ DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DEFINE_FLAG(bool, two_args_smi_icd, true,
     "Generate special IC stubs for two args Smi operations");
+DEFINE_FLAG(bool, ic_range_profiling, true,
+    "Generate special IC stubs collecting range information "
+    "for binary and unary arithmetic operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -739,18 +742,24 @@ void Instruction::UnuseAllInputs() {
 }
 
 
-void Instruction::InheritDeoptTargetAfter(Isolate* isolate,
-                                          Instruction* other) {
-  ASSERT(other->env() != NULL);
-  deopt_id_ = Isolate::ToDeoptAfter(other->deopt_id_);
-  other->env()->DeepCopyTo(isolate, this);
+void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
+                                          Definition* call,
+                                          Definition* result) {
+  ASSERT(call->env() != NULL);
+  deopt_id_ = Isolate::ToDeoptAfter(call->deopt_id_);
+  call->env()->DeepCopyAfterTo(flow_graph->isolate(),
+                               this,
+                               call->ArgumentCount(),
+                               flow_graph->constant_dead(),
+                               result != NULL ? result
+                                              : flow_graph->constant_dead());
   env()->set_deopt_id(deopt_id_);
 }
 
 
 void Instruction::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(other->env() != NULL);
-  deopt_id_ = other->deopt_id_;
+  CopyDeoptIdFrom(*other);
   other->env()->DeepCopyTo(isolate, this);
   env()->set_deopt_id(deopt_id_);
 }
@@ -759,7 +768,7 @@ void Instruction::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
 void BranchInstr::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(env() == NULL);
   Instruction::InheritDeoptTarget(isolate, other);
-  comparison()->SetDeoptId(GetDeoptId());
+  comparison()->SetDeoptId(*this);
 }
 
 
@@ -813,7 +822,7 @@ void Definition::ReplaceWith(Definition* other,
   // Take other's environment from this definition.
   ASSERT(other->env() == NULL);
   other->SetEnvironment(env());
-  env_ = NULL;
+  ClearEnv();
   // Replace all uses of this definition with other.
   ReplaceUsesWith(other);
   // Reuse this instruction's SSA name for other.
@@ -947,7 +956,7 @@ bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
       ASSERT(instr->previous() == this);
 
       GotoInstr* goto_join = new GotoInstr(AsJoinEntry());
-      goto_join->deopt_id_ = parent->deopt_id_;
+      goto_join->CopyDeoptIdFrom(*parent);
       graph_entry->normal_entry()->LinkTo(goto_join);
       return true;
     }
@@ -1202,6 +1211,8 @@ bool UnboxInt32Instr::CanDeoptimize() const {
     return !is_truncating() &&
         !RangeUtils::Fits(value()->definition()->range(),
                           RangeBoundary::kRangeBoundaryInt32);
+  } else if (is_truncating() && value()->definition()->IsBoxInteger()) {
+    return false;
   } else if ((kSmiBits < 32) && value()->Type()->IsInt()) {
     // Note: we don't support truncation of Bigint values.
     return !RangeUtils::Fits(value()->definition()->range(),
@@ -2057,7 +2068,13 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
               GetDeoptId() : Isolate::kNoDeoptId);
-      if ((representation() == kUnboxedInt32) && !CanDeoptimize()) {
+      // TODO(vegorov): marking resulting converter as truncating when
+      // unboxing can't deoptimize is a workaround for the missing
+      // deoptimization environment when we insert converter after
+      // EliminateEnvironments and there is a mismatch between predicates
+      // UnboxIntConverterInstr::CanDeoptimize and UnboxInt32::CanDeoptimize.
+      if ((representation() == kUnboxedInt32) &&
+          (is_truncating() || !CanDeoptimize())) {
         converter->mark_truncating();
       }
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
@@ -2687,42 +2704,16 @@ void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 // This function should be kept in sync with
 // FlowGraphCompiler::SlowPathEnvironmentFor().
-void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
-                                            intptr_t* cpu_reg_slots) {
+void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
+                                            intptr_t* fpu_reg_slots) {
   if (registers_remapped_) {
     return;
   }
   registers_remapped_ = true;
 
   for (intptr_t i = 0; i < InputCount(); i++) {
-    Location loc = LocationAt(i);
-    if (loc.IsRegister()) {
-      intptr_t index = cpu_reg_slots[loc.reg()];
-      ASSERT(index >= 0);
-      locations_[i] = Location::StackSlot(index);
-    } else if (loc.IsFpuRegister()) {
-      intptr_t index = fpu_reg_slots[loc.fpu_reg()];
-      ASSERT(index >= 0);
-      Value* value = InputAt(i);
-      switch (value->definition()->representation()) {
-        case kUnboxedDouble:
-          locations_[i] = Location::DoubleStackSlot(index);
-          break;
-        case kUnboxedFloat32x4:
-        case kUnboxedInt32x4:
-        case kUnboxedFloat64x2:
-          locations_[i] = Location::QuadStackSlot(index);
-          break;
-        default:
-          UNREACHABLE();
-      }
-    } else if (loc.IsPairLocation()) {
-      UNREACHABLE();
-    } else if (loc.IsInvalid() &&
-               InputAt(i)->definition()->IsMaterializeObject()) {
-      InputAt(i)->definition()->AsMaterializeObject()->RemapRegisters(
-          fpu_reg_slots, cpu_reg_slots);
-    }
+    locations_[i] = LocationAt(i).RemapForSlowPath(
+        InputAt(i)->definition(), cpu_reg_slots, fpu_reg_slots);
   }
 }
 
@@ -2880,6 +2871,19 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ExternalLabel target_label(label_address);
       compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
                                  deopt_id(), token_pos(), locs());
+    } else if (FLAG_ic_range_profiling &&
+               (Token::IsBinaryArithmeticOperator(token_kind()) ||
+                Token::IsUnaryArithmeticOperator(token_kind()))) {
+      ASSERT(Token::IsUnaryArithmeticOperator(token_kind()) ==
+                 (ArgumentCount() == 1));
+      ASSERT(Token::IsBinaryArithmeticOperator(token_kind()) ==
+                 (ArgumentCount() == 2));
+      StubCode* stub_code = isolate->stub_code();
+      ExternalLabel target_label((ArgumentCount() == 1) ?
+          stub_code->UnaryRangeCollectingInlineCacheEntryPoint() :
+          stub_code->BinaryRangeCollectingInlineCacheEntryPoint());
+      compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
+                                 deopt_id(), token_pos(), locs());
     } else {
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
@@ -3019,6 +3023,29 @@ void Environment::DeepCopyTo(Isolate* isolate, Instruction* instr) const {
   }
 
   Environment* copy = DeepCopy(isolate);
+  instr->SetEnvironment(copy);
+  for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
+    Value* value = it.CurrentValue();
+    value->definition()->AddEnvUse(value);
+  }
+}
+
+
+void Environment::DeepCopyAfterTo(Isolate* isolate,
+                                  Instruction* instr,
+                                  intptr_t argc,
+                                  Definition* dead,
+                                  Definition* result) const {
+  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+    it.CurrentValue()->RemoveFromUseList();
+  }
+
+  Environment* copy = DeepCopy(isolate, values_.length() - argc);
+  for (intptr_t i = 0; i < argc; i++) {
+    copy->values_.Add(new(isolate) Value(dead));
+  }
+  copy->values_.Add(new(isolate) Value(result));
+
   instr->SetEnvironment(copy);
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();

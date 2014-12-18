@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $csp ]
+deferred_mixin_test: RuntimeError # Issue 21863
+
 [ $compiler == dart2js || $compiler == dart2dart ]
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
@@ -140,13 +143,9 @@ generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
-deferred_constant_list_test: RuntimeError # Issue 21293
-
 enum_const_test: RuntimeError # Issue 21817
 
 # Compilation errors.
-const_var_test: CompileTimeError # Issue 12793
-map_literal3_test: CompileTimeError # Issue 12793
 method_override5_test: RuntimeError # Issue 12809
 external_test/10: CompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
@@ -168,6 +167,10 @@ expect_test: RuntimeError, OK # Issue 13080
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
+# Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
+call_through_getter_test: Fail, OK
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
@@ -182,6 +185,11 @@ stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
+
+[ $compiler == dart2dart && $builder_tag == new_backend && $minified == true ]
+# This test fails in minified, because the type-argument is
+# renamed, but the symbol naming it it is not.
+type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart && $builder_tag == new_backend && $minified == false ]
 # This test happens not to fail in minified, because the type-argument is
@@ -221,8 +229,6 @@ not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
 const_evaluation_test/01: Fail # Issue 12762
-const_var_test: CompileTimeError # Issue 12794
-map_literal3_test: Fail # Issue 12794
 built_in_identifier_test/01: Fail # Issue 13022
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810

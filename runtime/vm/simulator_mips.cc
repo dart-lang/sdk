@@ -2183,10 +2183,11 @@ void Simulator::InstructionDecode(Instr* instr) {
       break;
     }
     case SLTIU: {
-      // Format(instr, "slti 'rt, 'rs, 'immu");
+      // Format(instr, "sltiu 'rt, 'rs, 'imms");
       uint32_t rs_val = get_register(instr->RsField());
-      uint32_t imm_val = instr->UImmField();
-      set_register(instr->RtField(), rs_val < imm_val ? 1 : 0);
+      int32_t imm_val = instr->SImmField();  // Sign extend to 32-bit.
+      uint32_t immu_val = static_cast<uint32_t>(imm_val);  // Treat as unsigned.
+      set_register(instr->RtField(), rs_val < immu_val ? 1 : 0);
       break;
     }
     case SDC1: {

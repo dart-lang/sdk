@@ -4854,6 +4854,12 @@ class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements
  */
 abstract class FieldElement implements ClassMemberElement,
     PropertyInducingElement {
+  /**
+   * Return {@code true} if this element is an enum constant.
+   * 
+   * @return {@code true} if this an enum constant
+   */
+  bool get isEnumConstant;
 }
 
 /**
@@ -4902,6 +4908,10 @@ class FieldElementImpl extends PropertyInducingElementImpl implements
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+
+  @override
+  bool get isEnumConstant =>
+      enclosingElement != null ? enclosingElement.isEnum : false;
 }
 
 /**
@@ -5074,6 +5084,9 @@ class FieldMember extends VariableMember implements FieldElement {
     }
     return false;
   }
+
+  @override
+  bool get isEnumConstant => baseElement.isEnumConstant;
 }
 
 /**

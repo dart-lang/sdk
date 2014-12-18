@@ -119,7 +119,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     expect(_subscribedToServerStatus, isTrue);
     subscription = onServerStatus.listen((ServerStatusParams params) {
-      if (!params.analysis.isAnalyzing) {
+      if (params.analysis != null && !params.analysis.isAnalyzing) {
         completer.complete(params);
         subscription.cancel();
       }

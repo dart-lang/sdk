@@ -606,6 +606,9 @@ class FieldElementHandle extends PropertyInducingElementHandle implements
 
   @override
   ElementKind get kind => ElementKind.FIELD;
+
+  @override
+  bool get isEnumConstant => actualElement.isEnumConstant;
 }
 
 /**

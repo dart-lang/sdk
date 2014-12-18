@@ -34,16 +34,27 @@ class ClassBuilder {
     fields.add(field);
   }
 
+  static String functionTypeEncodingDescription =
+      'For simple function types the function type is stored in the metadata '
+      'and the index is encoded into the superclass field.';
+
+  static String fieldEncodingDescription =
+      'Fields are encoded as a comma separated list. If there is a superclass '
+      '(and possibly a function type encoding) the fields are separated from '
+      'the superclass by a semicolon.';
+
   jsAst.ObjectInitializer toObjectInitializer(
-      {bool omitClassDescriptor: false}) {
+      {bool emitClassDescriptor: true}) {
     StringBuffer buffer = new StringBuffer();
     if (superName != null) {
-      buffer.write('$superName');
+      buffer.write(superName);
       if (functionType != null) {
+        // See [functionTypeEncodingDescription] above.
         buffer.write(':$functionType');
       }
       buffer.write(';');
     }
+    // See [fieldEncodingDescription] above.
     buffer.writeAll(fields, ',');
     var classData = js.string('$buffer');
     if (fieldMetadata != null) {
@@ -54,13 +65,12 @@ class ClassBuilder {
           new jsAst.ArrayInitializer([classData]..addAll(fieldMetadata));
     }
     List<jsAst.Property> fieldsAndProperties;
-    if (!omitClassDescriptor) {
+    if (emitClassDescriptor) {
       fieldsAndProperties = <jsAst.Property>[];
       fieldsAndProperties.add(
           new jsAst.Property(
               js.string(namer.classDescriptorProperty), classData));
-      fieldsAndProperties
-          ..addAll(properties);
+      fieldsAndProperties.addAll(properties);
     } else {
       fieldsAndProperties = properties;
     }

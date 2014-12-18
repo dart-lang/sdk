@@ -61,6 +61,10 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
 HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   VirtualMemory* memory =
       VerifiedMemory::Reserve(size_in_words << kWordSizeLog2);
+  if (memory == NULL) {
+    FATAL1("Out of memory while allocating %" Pd " words.\n",
+           size_in_words);
+  }
   return Initialize(memory, type);
 }
 
@@ -1001,8 +1005,8 @@ int PageSpaceGarbageCollectionHistory::GarbageCollectionTimeFraction() {
     return 0;
   } else {
     ASSERT(total_time >= gc_time);
-    int result= static_cast<int>((static_cast<double>(gc_time) /
-                             static_cast<double>(total_time)) * 100);
+    int result = static_cast<int>((static_cast<double>(gc_time) /
+                                   static_cast<double>(total_time)) * 100);
     return result;
   }
 }

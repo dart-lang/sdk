@@ -89,7 +89,7 @@ void _clone() {
     if (processResult.exitCode == 0) {
       /// Move the generated json/yaml docs directory to the dartdoc-viewer
       /// directory, to run as a webpage.
-      var processResult = Process.runSync(gen.pubScript, ['upgrade'],
+      var processResult = Process.runSync(gen.pubScript, ['get'],
           runInShell: true, workingDirectory: _viewerCodePath);
       print('process output: ${processResult.stdout}');
       print('process stderr: ${processResult.stderr}');

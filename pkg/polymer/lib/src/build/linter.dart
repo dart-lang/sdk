@@ -195,12 +195,13 @@ class _LinterVisitor extends TreeVisitor {
       case 'script': _validateScriptElement(node); break;
       case 'template':
         var isTag = node.attributes['is'];
+        var oldInAutoBindingElement = _inAutoBindingElement;
         if (isTag != null && AUTO_BINDING_ELEMENTS.contains(isTag)) {
           _inAutoBindingElement = true;
         }
         _validateNormalElement(node);
         super.visitElement(node);
-        _inAutoBindingElement = false;
+        _inAutoBindingElement = oldInAutoBindingElement;
         break;
       default:
         _validateNormalElement(node);

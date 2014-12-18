@@ -158,7 +158,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       ASSERT(raw_key->IsWatched());
     } else {
       ASSERT(!raw_key->IsWatched());
-      raw_key->SetWatchedBit();
+      raw_key->SetWatchedBitUnsynchronized();
     }
     delay_set_.insert(std::make_pair(raw_key, raw_weak));
   }
@@ -187,9 +187,11 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
     // Mark the object and push it on the marking stack.
     ASSERT(!raw_obj->IsMarked());
-    raw_obj->SetMarkBit();
-    raw_obj->ClearRememberedBit();
-    if (raw_obj->IsWatched()) {
+    const bool is_watched = raw_obj->IsWatched();
+    raw_obj->SetMarkBitUnsynchronized();
+    raw_obj->ClearRememberedBitUnsynchronized();
+    raw_obj->ClearWatchedBitUnsynchronized();
+    if (is_watched) {
       std::pair<DelaySet::iterator, DelaySet::iterator> ret;
       // Visit all elements with a key equal to raw_obj.
       ret = delay_set_.equal_range(raw_obj);
@@ -201,7 +203,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
            it != temp_copy.end(); ++it) {
         it->second->VisitPointers(this);
       }
-      raw_obj->ClearWatchedBit();
     }
     marking_stack_->Push(raw_obj);
   }
@@ -223,7 +224,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       if ((visiting_old_object_ != NULL) &&
           !visiting_old_object_->IsRemembered()) {
         ASSERT(p != NULL);
-        visiting_old_object_->SetRememberedBit();
+        visiting_old_object_->SetRememberedBitUnsynchronized();
         isolate()->store_buffer()->AddObjectGC(visiting_old_object_);
       }
       return;

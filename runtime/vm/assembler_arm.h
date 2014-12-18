@@ -711,6 +711,18 @@ class Assembler : public ValueObject {
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
+  void ComputeRange(Register result,
+                    Register value,
+                    Register scratch,
+                    Label* miss);
+
+  void UpdateRangeFeedback(Register value,
+                           intptr_t idx,
+                           Register ic_data,
+                           Register scratch1,
+                           Register scratch2,
+                           Label* miss);
+
   void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond = AL);
   void LoadFromOffset(OperandSize type,
                       Register reg,

@@ -958,7 +958,7 @@ class Scheduler {
                               last->env(),
                               instr->IsDefinition() ? FlowGraph::kValue
                                                     : FlowGraph::kEffect);
-    instr->deopt_id_ = last->GetDeoptId();
+    instr->CopyDeoptIdFrom(*last);
     instr->env()->set_deopt_id(instr->deopt_id_);
 
     map_.Insert(instr);
@@ -2423,8 +2423,7 @@ void Range::And(const Range* left_range,
     return;
   }
 
-  *result_min = RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64);
-  *result_max = RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64);
+  BitwiseOp(left_range, right_range, result_min, result_max);
 }
 
 
@@ -2435,10 +2434,10 @@ static int BitSize(const Range* range) {
 }
 
 
-void Range::Xor(const Range* left_range,
-                const Range* right_range,
-                RangeBoundary* result_min,
-                RangeBoundary* result_max) {
+void Range::BitwiseOp(const Range* left_range,
+                      const Range* right_range,
+                      RangeBoundary* result_min,
+                      RangeBoundary* result_max) {
   const int bitsize =
       Utils::Maximum(BitSize(left_range), BitSize(right_range));
 
@@ -2627,12 +2626,9 @@ void Range::BinaryOp(const Token::Kind op,
       break;
 
     case Token::kBIT_XOR:
-      Range::Xor(left_range, right_range, &min, &max);
-      break;
-
     case Token::kBIT_OR:
-      *result = Range::Full(RangeBoundary::kRangeBoundaryInt64);
-      return;
+      Range::BitwiseOp(left_range, right_range, &min, &max);
+      break;
 
     default:
       *result = Range(RangeBoundary::NegativeInfinity(),

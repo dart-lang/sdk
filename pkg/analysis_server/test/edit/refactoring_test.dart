@@ -437,6 +437,28 @@ int res(num bbb, int aaa) => aaa + bbb;
     });
   }
 
+  test_init_fatalError_invalidStatement() {
+    addTestFile('''
+main(bool b) {
+// start
+  if (b) {
+    print(1);
+// end
+    print(2);
+  }
+}
+''');
+    _setOffsetLengthForStartEnd();
+    return waitForTasksFinished().then((_) {
+      return _sendExtractRequest();
+    }).then((Response response) {
+      var result = new EditGetRefactoringResult.fromResponse(response);
+      assertResultProblemsFatal(result.initialProblems);
+      // ...there is no any feedback
+      expect(result.feedback, isNull);
+    });
+  }
+
   test_names() {
     addTestFile('''
 class TreeItem {}

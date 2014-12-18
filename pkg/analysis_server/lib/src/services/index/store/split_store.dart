@@ -534,7 +534,6 @@ class SplitIndexStore implements IndexStore {
   @override
   bool aboutToIndexDart(AnalysisContext context,
       CompilationUnitElement unitElement) {
-    context = _unwrapContext(context);
     // may be already disposed in other thread
     if (context.isDisposed) {
       return false;
@@ -604,7 +603,6 @@ class SplitIndexStore implements IndexStore {
 
   @override
   bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
-    context = _unwrapContext(context);
     // may be already disposed in other thread
     if (context.isDisposed) {
       return false;
@@ -701,7 +699,6 @@ class SplitIndexStore implements IndexStore {
 
   @override
   void removeContext(AnalysisContext context) {
-    context = _unwrapContext(context);
     if (context == null) {
       return;
     }
@@ -717,7 +714,6 @@ class SplitIndexStore implements IndexStore {
 
   @override
   void removeSource(AnalysisContext context, Source source) {
-    context = _unwrapContext(context);
     if (context == null) {
       return;
     }
@@ -746,7 +742,6 @@ class SplitIndexStore implements IndexStore {
 
   @override
   void removeSources(AnalysisContext context, SourceContainer container) {
-    context = _unwrapContext(context);
     if (context == null) {
       return;
     }
@@ -886,19 +881,6 @@ class SplitIndexStore implements IndexStore {
         nodeRelations.remove(nodeNameId);
       }
     }
-  }
-
-  /**
-   * When logging is on, [AnalysisEngine] actually creates
-   * [InstrumentedAnalysisContextImpl], which wraps [AnalysisContextImpl] used to create
-   * actual [Element]s. So, in index we have to unwrap [InstrumentedAnalysisContextImpl]
-   * when perform any operation.
-   */
-  AnalysisContext _unwrapContext(AnalysisContext context) {
-    if (context is InstrumentedAnalysisContextImpl) {
-      context = (context as InstrumentedAnalysisContextImpl).basis;
-    }
-    return context;
   }
 }
 

@@ -66,7 +66,9 @@ class IrBuilderTask extends CompilerTask {
       assert(invariant(element, !element.isNative));
 
       // TODO(kmillikin,sigurdm): Support constructors.
-      if (element is ConstructorElement) return false;
+      if (element is ConstructorElement && !element.isGenerativeConstructor) {
+        return false;
+      }
 
     } else if (element is! FieldElement) {
       compiler.internalError(element, "Unexpected elementtype $element");
@@ -187,9 +189,91 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       defaults.add(getConstantForVariable(element));
     });
 
-    visit(node.body);
+    List<ir.Initializer> initializers;
+    if (element.isGenerativeConstructor) {
+      initializers = buildConstructorInitializers(node, element);
+      visit(node.body);
+      return irBuilder.makeConstructorDefinition(defaults, initializers);
+    } else {
+      visit(node.body);
+      return irBuilder.makeFunctionDefinition(defaults);
+    }
+  }
 
-    return irBuilder.makeFunctionDefinition(defaults);
+  List<ir.Initializer> buildConstructorInitializers(
+      ast.FunctionExpression function, ConstructorElement element) {
+    List<ir.Initializer> result = <ir.Initializer>[];
+    FunctionSignature signature = element.functionSignature;
+
+    void tryAddInitializingFormal(ParameterElement parameterElement) {
+      if (parameterElement.isInitializingFormal) {
+        InitializingFormalElement initializingFormal = parameterElement;
+        withBuilder(new IrBuilder.delimited(irBuilder), () {
+          ir.Primitive value = irBuilder.buildLocalGet(parameterElement);
+          result.add(irBuilder.makeFieldInitializer(
+              initializingFormal.fieldElement,
+              irBuilder.makeRunnableBody(value)));
+        });
+      }
+    }
+
+    // TODO(sigurdm): Preserve initializing formals as initializing formals.
+    signature.orderedForEachParameter(tryAddInitializingFormal);
+
+    if (function.initializers == null) return result;
+    bool explicitSuperInitializer = false;
+    for(ast.Node initializer in function.initializers) {
+      if (initializer is ast.SendSet) {
+        // Field initializer.
+        FieldElement field = elements[initializer];
+        withBuilder(new IrBuilder.delimited(irBuilder), () {
+          ir.Primitive value = visit(initializer.arguments.head);
+          ir.RunnableBody body = irBuilder.makeRunnableBody(value);
+          result.add(irBuilder.makeFieldInitializer(field, body));
+        });
+      } else if (initializer is ast.Send) {
+        // Super or this initializer.
+        if (ast.Initializers.isConstructorRedirect(initializer)) {
+          giveup(initializer, "constructor redirect (this) initializer");
+        }
+        ConstructorElement constructor = elements[initializer].implementation;
+        Selector selector = elements.getSelector(initializer);
+        List<ir.RunnableBody> arguments =
+            initializer.arguments.mapToList((ast.Node argument) {
+          return withBuilder(new IrBuilder.delimited(irBuilder), () {
+            ir.Primitive value = visit(argument);
+            return irBuilder.makeRunnableBody(value);
+          });
+        });
+        result.add(irBuilder.makeSuperInitializer(constructor,
+                                                  arguments,
+                                                  selector));
+        explicitSuperInitializer = true;
+      } else {
+        compiler.internalError(initializer,
+                               "Unexpected initializer type $initializer");
+      }
+
+    }
+    if (!explicitSuperInitializer) {
+      // No super initializer found. Try to find the default constructor if
+      // the class is not Object.
+      ClassElement enclosingClass = element.enclosingClass;
+      if (!enclosingClass.isObject) {
+        ClassElement superClass = enclosingClass.superclass;
+        Selector selector =
+            new Selector.callDefaultConstructor(enclosingClass.library);
+        FunctionElement target = superClass.lookupConstructor(selector);
+        if (target == null) {
+          compiler.internalError(superClass,
+              "No default constructor available.");
+        }
+        result.add(irBuilder.makeSuperInitializer(target,
+                                                  <ir.RunnableBody>[],
+                                                  selector));
+      }
+    }
+    return result;
   }
 
   ir.FunctionDefinition buildFunction(FunctionElement element) {
@@ -897,6 +981,7 @@ class DetectClosureVariables extends ast.Visitor {
   DetectClosureVariables(this.elements);
 
   FunctionElement currentFunction;
+  bool insideInitializer = false;
   Set<Local> usedFromClosure = new Set<Local>();
   Set<FunctionElement> recursiveFunctions = new Set<FunctionElement>();
 
@@ -912,12 +997,35 @@ class DetectClosureVariables extends ast.Visitor {
     node.visitChildren(this);
   }
 
-  visitSend(ast.Send node) {
+  void handleSend(ast.Send node) {
     Element element = elements[node];
     if (Elements.isLocal(element) &&
         !element.isConst &&
         element.enclosingElement != currentFunction) {
       LocalElement local = element;
+      markAsClosureVariable(local);
+    }
+  }
+
+  visitSend(ast.Send node) {
+    handleSend(node);
+    node.visitChildren(this);
+  }
+
+  visitSendSet(ast.SendSet node) {
+    handleSend(node);
+    Element element = elements[node];
+    // Initializers in an initializer-list can communicate via parameters.
+    // If a parameter is stored in an initializer list we box it.
+    if (insideInitializer &&
+        Elements.isLocal(element) &&
+        element.isParameter) {
+      LocalElement local = element;
+      // TODO(sigurdm): Fix this.
+      // Though these variables do not outlive the activation of the function,
+      // they still need to be boxed.  As a simplification, we treat them as if
+      // they are captured by a closure (i.e., they do outlive the activation of
+      // the function).
       markAsClosureVariable(local);
     }
     node.visitChildren(this);
@@ -926,6 +1034,11 @@ class DetectClosureVariables extends ast.Visitor {
   visitFunctionExpression(ast.FunctionExpression node) {
     FunctionElement oldFunction = currentFunction;
     currentFunction = elements[node];
+    if (node.initializers != null) {
+      insideInitializer = true;
+      visit(node.initializers);
+      insideInitializer = false;
+    }
     visit(node.body);
     currentFunction = oldFunction;
   }

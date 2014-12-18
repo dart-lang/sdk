@@ -8,6 +8,7 @@ import '../dart2jslib.dart' as dart2js;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import '../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
 import 'tree_ir_nodes.dart';
 
 /**
@@ -43,7 +44,7 @@ import 'tree_ir_nodes.dart';
  * still all named.
  */
 class Builder extends cps_ir.Visitor<Node> {
-  final dart2js.Compiler compiler;
+  final dart2js.InternalErrorFunction internalError;
 
   /// Maps variable/parameter elements to the Tree variables that represent it.
   final Map<Element, List<Variable>> element2variables =
@@ -62,11 +63,11 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Builder parent;
 
-  Builder(this.compiler);
+  Builder(this.internalError, [this.parent]);
 
-  Builder.inner(Builder parent)
-      : this.parent = parent,
-        compiler = parent.compiler;
+  Builder createInnerBuilder() {
+    return new Builder(internalError, this);
+  }
 
   /// Variable used in [buildPhiAssignments] as a temporary when swapping
   /// variables.
@@ -101,8 +102,8 @@ class Builder extends cps_ir.Visitor<Node> {
   Expression getVariableReference(cps_ir.Reference reference) {
     Variable variable = getVariable(reference.definition);
     if (variable == null) {
-      compiler.internalError(
-          compiler.currentElement,
+      internalError(
+          CURRENT_ELEMENT_SPANNABLE,
           "Reference to ${reference.definition} has no register");
     }
     ++variable.readCount;
@@ -112,17 +113,23 @@ class Builder extends cps_ir.Visitor<Node> {
   ExecutableDefinition build(cps_ir.ExecutableDefinition node) {
     if (node is cps_ir.FieldDefinition) {
       return buildField(node);
-    } else if (node is cps_ir.FunctionDefinition) {
+    } else if (node is cps_ir.ConstructorDefinition) {
+      return buildConstructor(node);
+    } else {
+      assert(dart2js.invariant(
+          CURRENT_ELEMENT_SPANNABLE,
+          node is cps_ir.FunctionDefinition,
+          message: 'expected FunctionDefinition or FieldDefinition, '
+            ' found $node'));
       return buildFunction(node);
     }
-    assert(false);
   }
 
   FieldDefinition buildField(cps_ir.FieldDefinition node) {
     Statement body;
     if (node.hasInitializer) {
       currentElement = node.element;
-      returnContinuation = node.returnContinuation;
+      returnContinuation = node.body.returnContinuation;
 
       phiTempVar = new Variable(node.element, null);
 
@@ -148,10 +155,10 @@ class Builder extends cps_ir.Visitor<Node> {
       ++parameter.writeCount; // Being a parameter counts as a write.
       parameters.add(parameter);
     }
-    returnContinuation = node.returnContinuation;
 
     Statement body;
     if (!node.isAbstract) {
+      returnContinuation = node.body.returnContinuation;
       phiTempVar = new Variable(node.element, null);
       body = visit(node.body);
     }
@@ -160,9 +167,34 @@ class Builder extends cps_ir.Visitor<Node> {
         body, node.localConstants, node.defaultParameterValues);
   }
 
+  ConstructorDefinition buildConstructor(cps_ir.ConstructorDefinition node) {
+    currentElement = node.element;
+    List<Variable> parameters = <Variable>[];
+    for (cps_ir.Definition p in node.parameters) {
+      Variable parameter = getFunctionParameter(p);
+      assert(parameter != null);
+      ++parameter.writeCount; // Being a parameter counts as a write.
+      parameters.add(parameter);
+    }
+    List<Initializer> initializers;
+    Statement body;
+    if (!node.isAbstract) {
+      initializers = node.initializers.map(visit).toList();
+      returnContinuation = node.body.returnContinuation;
+
+      phiTempVar = new Variable(node.element, null);
+      body = visit(node.body);
+    }
+
+    return new ConstructorDefinition(node.element, parameters,
+        body, initializers, node.localConstants, node.defaultParameterValues);
+  }
+
+
   List<Expression> translateArguments(List<cps_ir.Reference> args) {
     return new List<Expression>.generate(args.length,
-         (int index) => getVariableReference(args[index]));
+         (int index) => getVariableReference(args[index]),
+         growable: false);
   }
 
   List<Variable> translatePhiArguments(List<cps_ir.Reference> args) {
@@ -269,7 +301,27 @@ class Builder extends cps_ir.Visitor<Node> {
     return first;
   }
 
-  visitNode(cps_ir.Node node) => throw "Unhandled node: $node";
+  visitNode(cps_ir.Node node) {
+    if (node is cps_ir.JsSpecificNode) {
+      throw "Cannot handle JS specific IR nodes in this visitor";
+    } else {
+      throw "Unhandled node: $node";
+    }
+  }
+
+  Initializer visitFieldInitializer(cps_ir.FieldInitializer node) {
+    returnContinuation = node.body.returnContinuation;
+    return new FieldInitializer(node.element, visit(node.body.body));
+  }
+
+  Initializer visitSuperInitializer(cps_ir.SuperInitializer node) {
+    List<Statement> arguments =
+        node.arguments.map((cps_ir.RunnableBody argument) {
+      returnContinuation = argument.returnContinuation;
+      return visit(argument.body);
+    }).toList();
+    return new SuperInitializer(node.target, node.selector, arguments);
+  }
 
   Statement visitLetPrim(cps_ir.LetPrim node) {
     Variable variable = getVariable(node.primitive);
@@ -287,6 +339,10 @@ class Builder extends cps_ir.Visitor<Node> {
     } else {
       return new Assign(variable, definition, visit(node.body));
     }
+  }
+
+  Statement visitRunnableBody(cps_ir.RunnableBody node) {
+    return visit(node.body);
   }
 
   Statement visitLetCont(cps_ir.LetCont node) {
@@ -316,9 +372,9 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
-    Expression receiver = getVariableReference(node.receiver);
-    List<Expression> arguments = translateArguments(node.arguments);
-    Expression invoke = new InvokeMethod(receiver, node.selector, arguments);
+    Expression invoke = new InvokeMethod(getVariableReference(node.receiver),
+                                         node.selector,
+                                         translateArguments(node.arguments));
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -461,7 +517,7 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   FunctionDefinition makeSubFunction(cps_ir.FunctionDefinition function) {
-    return new Builder.inner(this).buildFunction(function);
+    return createInnerBuilder().buildFunction(function);
   }
 
   Node visitCreateFunction(cps_ir.CreateFunction node) {
@@ -480,31 +536,19 @@ class Builder extends cps_ir.Visitor<Node> {
   Expression visitParameter(cps_ir.Parameter node) {
     // Continuation parameters are not visited (continuations themselves are
     // not visited yet).
-    compiler.internalError(compiler.currentElement, 'Unexpected IR node.');
+    internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
     return null;
   }
 
   Expression visitContinuation(cps_ir.Continuation node) {
     // Until continuations with multiple uses are supported, they are not
     // visited.
-    compiler.internalError(compiler.currentElement, 'Unexpected IR node.');
+    internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node.');
     return null;
   }
 
   Expression visitIsTrue(cps_ir.IsTrue node) {
     return getVariableReference(node.value);
-  }
-
-  dart2js.Selector get identicalSelector {
-    return new dart2js.Selector.call('identical', null, 2);
-  }
-
-  Expression visitIdentical(cps_ir.Identical node) {
-    return new InvokeStatic(
-        compiler.identicalFunction,
-        identicalSelector,
-        <Expression>[getVariableReference(node.left),
-                     getVariableReference(node.right)]);
   }
 }
 

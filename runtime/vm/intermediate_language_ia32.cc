@@ -1184,26 +1184,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movzxw(result, element_address);
       __ SmiTag(result);
       break;
-    case kTypedDataInt32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                              ICData::kDeoptInt32Load);
-        __ movl(result, element_address);
-        // Verify that the signed value in 'result' can fit inside a Smi.
-        __ cmpl(result, Immediate(0xC0000000));
-        __ j(NEGATIVE, deopt);
-        __ SmiTag(result);
-      }
-      break;
-    case kTypedDataUint32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                              ICData::kDeoptUint32Load);
-        __ movl(result, element_address);
-        // Verify that the unsigned value in 'result' can fit inside a Smi.
-        __ testl(result, Immediate(0xC0000000));
-        __ j(NOT_ZERO, deopt);
-        __ SmiTag(result);
-      }
-      break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
       __ movl(result, element_address);
@@ -3809,6 +3789,9 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       // If the value cannot fit in a smi then allocate a mint box for it.
       Register temp = locs()->temp(0).reg();
+      // Temp register needs to be manually preserved on allocation slow-path.
+      locs()->live_registers()->Add(locs()->temp(0), kUnboxedInt32);
+
       ASSERT(temp != result);
       __ MoveRegister(temp, result);
       __ SmiTag(result);
@@ -6061,7 +6044,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   if (locs()->in(1).IsConstant()) {
     // Code for a constant shift amount.
@@ -6300,7 +6283,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == out);
 
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
 
   if (locs()->in(1).IsConstant()) {
     // Shifter is constant.
@@ -6605,23 +6588,27 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location left = locs()->in(0);
   Location right = locs()->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
+  Condition true_condition;
   if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+    true_condition = compiler->EmitEqualityRegConstCompare(right.reg(),
+                                                           left.constant(),
+                                                           needs_number_check(),
+                                                           token_pos());
   } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+    true_condition = compiler->EmitEqualityRegConstCompare(left.reg(),
+                                                           right.constant(),
+                                                           needs_number_check(),
+                                                           token_pos());
   } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                        right.reg(),
-                                        needs_number_check(),
-                                        token_pos());
+    true_condition = compiler->EmitEqualityRegRegCompare(left.reg(),
+                                                         right.reg(),
+                                                         needs_number_check(),
+                                                         token_pos());
   }
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
+  if (kind() != Token::kEQ_STRICT) {
+    ASSERT(kind() == Token::kNE_STRICT);
+    true_condition = NegateCondition(true_condition);
+  }
   return true_condition;
 }
 

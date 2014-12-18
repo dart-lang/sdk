@@ -40,7 +40,7 @@ testVeryBigNumber() {
 
   fmt = new NumberFormat.decimalPattern();
   str = fmt.format(1.3456E20);
-  expect(veryBigNumberCompare('134,559,999,999,999,000,000', str), isTrue);
+  expect(veryBigNumberCompare('134,560,000,000,000,000,000', str), isTrue);
 
   fmt = new NumberFormat.percentPattern();
   str = fmt.format(1.3456E20);

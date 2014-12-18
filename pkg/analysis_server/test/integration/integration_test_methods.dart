@@ -141,6 +141,11 @@ abstract class IntegrationTestMixin {
    *
    *   The current status of analysis, including whether analysis is being
    *   performed and if so what is being analyzed.
+   *
+   * pub ( optional PubStatus )
+   *
+   *   The current status of pub execution, indicating whether we are currently
+   *   running pub.
    */
   Stream<ServerStatusParams> onServerStatus;
 

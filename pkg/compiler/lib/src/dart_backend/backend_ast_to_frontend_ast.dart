@@ -12,7 +12,7 @@ import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
 import 'backend_ast_nodes.dart';
-import 'backend_ast_emitter.dart' show createTypeAnnotation;
+import 'backend_ast_emitter.dart' show TypeGenerator;
 
 /// Translates the backend AST to Dart frontend AST.
 tree.Node emit(dart2js.TreeElementMapping treeElements,
@@ -138,6 +138,7 @@ class TreePrinter {
   final Token extendsToken = makeIdToken('extends');
   final Token withToken = makeIdToken('with');
   final Token implementsToken = makeIdToken('implements');
+  final Token typedefToken = makeIdToken('typedef');
 
   static tree.Identifier makeIdentifier(String name) {
     return new tree.Identifier(
@@ -342,6 +343,31 @@ class TreePrinter {
         setElement(result, element, exp);
       }
       precedence = EXPRESSION;
+    } else if (exp is FieldInitializer) {
+      precedence = EXPRESSION;
+      tree.Node receiver = makeIdentifier('this');
+      tree.Node selector = makeIdentifier(exp.element.name);
+      tree.Operator op = new tree.Operator(assignmentToken("="));
+      // We pass CALLEE to ensure we write eg.:
+      // class B { var x; B() : x = (() {return a;}) {}}
+      // Not the invalid:
+      // class B { var x; B() : x = () {return a;} {}}
+      result = new tree.SendSet(receiver, selector, op,
+                                singleton(makeExp(exp.body, CALLEE)));
+      setElement(result, exp.element, exp);
+    } else if (exp is SuperInitializer) {
+      precedence = EXPRESSION;
+      tree.Node receiver = makeIdentifier('super');
+      tree.NodeList arguments =
+          argList(exp.arguments.map(makeArgument).toList());
+      if (exp.target.name == "") {
+        result = new tree.Send(null, receiver, arguments);
+      } else {
+        result = new tree.Send(receiver,
+                               makeIdentifier(exp.target.name),
+                               arguments);
+      }
+      setElement(result, exp.target, exp);
     } else if (exp is BinaryOperator) {
       precedence = BINARY_PRECEDENCE[exp.operator];
       int deltaLeft = isAssociativeBinaryOperator(precedence) ? 0 : 1;
@@ -422,6 +448,25 @@ class TreePrinter {
           ? null
           : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
       result = new tree.Send(receiver, makeIdentifier(exp.fieldName));
+    } else if (exp is ConstructorDefinition) {
+      precedence = EXPRESSION;
+      tree.NodeList parameters = makeParameters(exp.parameters);
+      tree.NodeList initializers =
+          exp.initializers == null || exp.initializers.isEmpty
+          ? null
+          : makeList(",", exp.initializers.map(makeExpression).toList());
+      tree.Node body = exp.isConst || exp.body == null
+          ? new tree.EmptyStatement(semicolon)
+          : makeFunctionBody(exp.body);
+      result = new tree.FunctionExpression(constructorName(exp),
+          parameters,
+          body,
+          null,  // return type
+          makeFunctionModifiers(exp),
+          initializers,
+          null,  // get/set
+          null); // async modifier
+      setElement(result, exp.element, exp);
     } else if (exp is FunctionExpression) {
       precedence = PRIMARY;
       if (beginStmt && exp.name != null) {
@@ -1008,7 +1053,8 @@ class TreePrinter {
     if (exp.element == null) return makeEmptyModifiers();
     return makeModifiers(isExternal: exp.element.isExternal,
                          isStatic: exp.element.isStatic,
-                         isFactory: exp.element.isFactoryConstructor);
+                         isFactory: exp.element.isFactoryConstructor,
+                         isConst: exp.element.isConst);
   }
 
   tree.Node makeNodeForClassElement(elements.ClassElement cls) {
@@ -1017,6 +1063,24 @@ class TreePrinter {
     } else {
       return makeClassNode(cls);
     }
+  }
+
+  tree.Typedef makeTypedef(elements.TypedefElement typdef) {
+    types.FunctionType functionType = typdef.alias;
+    final tree.TypeAnnotation returnType =
+        makeType(TypeGenerator.createType(functionType.returnType));
+
+    final tree.Identifier name = makeIdentifier(typdef.name);
+    final tree.NodeList typeParameters =
+        makeTypeParameters(typdef.typeVariables);
+    final tree.NodeList formals =
+        makeParameters(TypeGenerator.createParametersFromType(functionType));
+
+    final Token typedefKeyword = typedefToken;
+    final Token endToken = semicolon;
+
+    return new tree.Typedef(returnType, name, typeParameters, formals,
+          typedefKeyword, endToken);
   }
 
   /// Create a [tree.NodeList] containing the type variable declarations in
@@ -1031,7 +1095,8 @@ class TreePrinter {
         treeElements[id] = typeVariable.element;
         tree.Node bound;
         if (!typeVariable.element.bound.isObject) {
-          bound = makeType(createTypeAnnotation(typeVariable.element.bound));
+          bound =
+              makeType(TypeGenerator.createType(typeVariable.element.bound));
         }
         tree.TypeVariable node = new tree.TypeVariable(id, bound);
         treeElements.setType(node, typeVariable);
@@ -1060,8 +1125,8 @@ class TreePrinter {
          link = link.tail) {
       types.DartType interface = link.head;
       if (!mixinTypes.contains(interface)) {
-        typeAnnotations =
-            typeAnnotations.prepend(makeType(createTypeAnnotation(interface)));
+        typeAnnotations = typeAnnotations.prepend(
+            makeType(TypeGenerator.createType(interface)));
       }
     }
     if (typeAnnotations.isEmpty) {
@@ -1091,7 +1156,7 @@ class TreePrinter {
 
     void addMixin(types.DartType mixinType) {
       mixinTypes.add(mixinType);
-      mixins = mixins.prepend(makeType(createTypeAnnotation(mixinType)));
+      mixins = mixins.prepend(makeType(TypeGenerator.createType(mixinType)));
     }
 
     addMixin(cls.mixinType);
@@ -1104,7 +1169,7 @@ class TreePrinter {
       supertype = mixinApplication.supertype;
     }
     superclass =
-        makeType(createTypeAnnotation(cls.asInstanceOf(supertype.element)));
+        makeType(TypeGenerator.createType(cls.asInstanceOf(supertype.element)));
     tree.Node supernode = new tree.MixinApplication(
         superclass, new tree.NodeList(null, mixins, null, ','));
 
@@ -1131,7 +1196,7 @@ class TreePrinter {
 
     void addMixin(types.DartType mixinType) {
       mixinTypes.add(mixinType);
-      mixins = mixins.prepend(makeType(createTypeAnnotation(mixinType)));
+      mixins = mixins.prepend(makeType(TypeGenerator.createType(mixinType)));
     }
 
     if (supertype != null) {
@@ -1142,12 +1207,12 @@ class TreePrinter {
           addMixin(cls.asInstanceOf(mixinApplication.mixin));
           supertype = mixinApplication.supertype;
         }
-        tree.Node superclass =
-            makeType(createTypeAnnotation(cls.asInstanceOf(supertype.element)));
+        tree.Node superclass = makeType(
+            TypeGenerator.createType(cls.asInstanceOf(supertype.element)));
         supernode = new tree.MixinApplication(
             superclass, new tree.NodeList(null, mixins, null, ','));
       } else if (!supertype.isObject) {
-        supernode = makeType(createTypeAnnotation(supertype));
+        supernode = makeType(TypeGenerator.createType(supertype));
       }
     }
     tree.NodeList interfaces = makeInterfaces(
@@ -1159,6 +1224,16 @@ class TreePrinter {
         interfaces, openBrace, extendsKeyword,
         null, // No body.
         closeBrace);
+  }
+
+  tree.Node constructorName(ConstructorDefinition exp) {
+    String name = exp.name;
+    tree.Identifier className = makeIdentifier(exp.element.enclosingClass.name);
+    tree.Node result = name == ""
+        ? className
+        : new tree.Send(className, makeIdentifier(name));
+    setElement(result, exp.element, exp);
+    return result;
   }
 
   tree.Node functionName(FunctionExpression exp) {

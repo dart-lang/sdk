@@ -36,7 +36,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel1 = new MockServerChannel();
     MockServerChannel channel2 = new MockServerChannel();
     server.createAnalysisServer(channel1);
@@ -64,7 +64,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
@@ -81,7 +81,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
@@ -95,7 +95,7 @@ class SocketServerTest {
       expect(response.error.code, equals(RequestErrorCode.SERVER_ERROR));
       expect(response.error.message, equals('mock request exception'));
       expect(response.error.stackTrace, isNotNull);
-      expect(response.error.stackTrace, isNot(isEmpty));
+      expect(response.error.stackTrace, isNotEmpty);
       channel.expectMsgCount(responseCount: 1, notificationCount: 1);
     });
   }
@@ -104,7 +104,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     _MockRequestHandler handler = new _MockRequestHandler(true);

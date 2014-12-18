@@ -12,8 +12,8 @@ import 'dart:_js_helper' show Creates, Returns;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 
-import 'metadata.dart';
-export 'metadata.dart';
+import 'dart:_metadata';
+export 'dart:_metadata';
 
 part 'css_class_set.dart';
 part 'conversions.dart';

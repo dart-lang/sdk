@@ -28,6 +28,8 @@ main() {
   Expect.stringEquals('null', Error.safeToString(null));
   Expect.stringEquals('true', Error.safeToString(true));
   Expect.stringEquals('false', Error.safeToString(false));
-  Expect.stringEquals("Instance of 'Object'",
+  // The class name may be minified.
+  String className = "$Object";
+  Expect.stringEquals("Instance of '$className'",
                       Error.safeToString(new Object()));
 }

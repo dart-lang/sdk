@@ -1939,6 +1939,15 @@ class A {
     _resolve(_editString('+', '*'), _isFunctionBody);
   }
 
+  void test_constructor_fieldFormalParameter() {
+    _resolveUnit(r'''
+class A {
+  int xy;
+  A(this.x);
+}''');
+    _resolve(_editString('this.x', 'this.xy'), _isDeclaration);
+  }
+
   void test_constructor_fieldInitializer_add() {
     _resolveUnit(r'''
 class A {
@@ -2145,6 +2154,14 @@ int main(int a, int b) {
 }
 ''');
     _resolve(_editString('int res = a * b;', ''), _isBlock);
+  }
+
+  void test_topLevelFunction_parameter_inFunctionTyped_rename() {
+    _resolveUnit(r'''
+test(f(int a, int b)) {
+}
+''');
+    _resolve(_editString('test(f(int a', 'test(f2(int a2'), _isDeclaration);
   }
 
   void test_topLevelFunction_parameter_rename() {
@@ -4036,6 +4053,8 @@ class _SameResolutionValidator implements AstVisitor {
 
   void _verifyElement(Element a, Element b) {
     if (a != b) {
+      print(a.location);
+      print(b.location);
       fail('Expected: $b\n  Actual: $a');
     }
     if (a == null && b == null) {

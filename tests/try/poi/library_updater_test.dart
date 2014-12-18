@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test of LibraryUpdater.
+// Test of LibraryUpdater (one compilation unit per library).
 library trydart.library_updater_test;
 
 import 'dart:convert' show
     UTF8;
 
 import 'package:dart2js_incremental/library_updater.dart' show
+    IncrementalCompilerContext,
     LibraryUpdater,
     Update;
 
@@ -34,8 +35,10 @@ class LibraryUpdaterTestCase extends CompilerTestCase {
         super(before);
 
   Future run() => loadMainApp().then((LibraryElement library) {
+    var context = new IncrementalCompilerContext();
     LibraryUpdater updater =
-        new LibraryUpdater(this.compiler, null, scriptUri, nolog, nolog);
+        new LibraryUpdater(this.compiler, null, nolog, nolog, context);
+    context.registerUriWithUpdates([scriptUri]);
     bool actualCanReuse =
         updater.canReuseLibrary(library, UTF8.encode(newSource));
     Expect.equals(expectedCanReuse, actualCanReuse);

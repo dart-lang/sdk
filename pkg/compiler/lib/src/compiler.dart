@@ -629,6 +629,7 @@ abstract class Compiler implements DiagnosticListener {
   World world;
   String assembledCode;
   Types types;
+  _CompilerCoreTypes _coreTypes;
 
   final CacheStrategy cacheStrategy;
 
@@ -770,23 +771,26 @@ abstract class Compiler implements DiagnosticListener {
   /// Initialized when dart:typed_data is loaded.
   LibraryElement typedDataLibrary;
 
-  ClassElement objectClass;
-  ClassElement boolClass;
-  ClassElement numClass;
-  ClassElement intClass;
-  ClassElement doubleClass;
-  ClassElement stringClass;
-  ClassElement functionClass;
-  ClassElement nullClass;
-  ClassElement listClass;
-  ClassElement typeClass;
-  ClassElement mapClass;
-  ClassElement symbolClass;
-  ClassElement stackTraceClass;
+  ClassElement get objectClass => _coreTypes.objectClass;
+  ClassElement get boolClass => _coreTypes.boolClass;
+  ClassElement get numClass => _coreTypes.numClass;
+  ClassElement get intClass => _coreTypes.intClass;
+  ClassElement get doubleClass => _coreTypes.doubleClass;
+  ClassElement get stringClass => _coreTypes.stringClass;
+  ClassElement get functionClass => _coreTypes.functionClass;
+  ClassElement get nullClass => _coreTypes.nullClass;
+  ClassElement get listClass => _coreTypes.listClass;
+  ClassElement get typeClass => _coreTypes.typeClass;
+  ClassElement get mapClass => _coreTypes.mapClass;
+  ClassElement get symbolClass => _coreTypes.symbolClass;
+  ClassElement get stackTraceClass => _coreTypes.stackTraceClass;
+  ClassElement get futureClass => _coreTypes.futureClass;
+  ClassElement get iterableClass => _coreTypes.iterableClass;
+  ClassElement get streamClass => _coreTypes.streamClass;
+
+  CoreTypes get coreTypes => _coreTypes;
+
   ClassElement typedDataClass;
-  ClassElement futureClass;
-  ClassElement iterableClass;
-  ClassElement streamClass;
 
   /// The constant for the [proxy] variable defined in dart:core.
   ConstantValue proxyConstant;
@@ -1008,6 +1012,9 @@ abstract class Compiler implements DiagnosticListener {
       disableInlining = true;
     }
     world = new World(this);
+    // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
+    // make its field final.
+    _coreTypes = new _CompilerCoreTypes(this);
     types = new Types(this);
     tracer = new Tracer(this, this.outputProvider);
 
@@ -1223,8 +1230,8 @@ abstract class Compiler implements DiagnosticListener {
       mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
     } else if (uri == DART_ASYNC) {
       deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
-      futureClass = findRequiredElement(library, 'Future');
-      streamClass = findRequiredElement(library, 'Stream');
+      _coreTypes.futureClass = findRequiredElement(library, 'Future');
+      _coreTypes.streamClass = findRequiredElement(library, 'Stream');
     } else if (uri == DART_NATIVE_TYPED_DATA) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
     } else if (uri == js_backend.JavaScriptBackend.DART_JS_HELPER) {
@@ -1367,20 +1374,20 @@ abstract class Compiler implements DiagnosticListener {
       }
       return result;
     }
-    objectClass = lookupCoreClass('Object');
-    boolClass = lookupCoreClass('bool');
-    numClass = lookupCoreClass('num');
-    intClass = lookupCoreClass('int');
-    doubleClass = lookupCoreClass('double');
-    stringClass = lookupCoreClass('String');
-    functionClass = lookupCoreClass('Function');
-    listClass = lookupCoreClass('List');
-    typeClass = lookupCoreClass('Type');
-    mapClass = lookupCoreClass('Map');
-    nullClass = lookupCoreClass('Null');
-    stackTraceClass = lookupCoreClass('StackTrace');
-    iterableClass = lookupCoreClass('Iterable');
-    symbolClass = lookupCoreClass('Symbol');
+    _coreTypes.objectClass = lookupCoreClass('Object');
+    _coreTypes.boolClass = lookupCoreClass('bool');
+    _coreTypes.numClass = lookupCoreClass('num');
+    _coreTypes.intClass = lookupCoreClass('int');
+    _coreTypes.doubleClass = lookupCoreClass('double');
+    _coreTypes.stringClass = lookupCoreClass('String');
+    _coreTypes.functionClass = lookupCoreClass('Function');
+    _coreTypes.listClass = lookupCoreClass('List');
+    _coreTypes.typeClass = lookupCoreClass('Type');
+    _coreTypes.mapClass = lookupCoreClass('Map');
+    _coreTypes.nullClass = lookupCoreClass('Null');
+    _coreTypes.stackTraceClass = lookupCoreClass('StackTrace');
+    _coreTypes.iterableClass = lookupCoreClass('Iterable');
+    _coreTypes.symbolClass = lookupCoreClass('Symbol');
     if (!missingCoreClasses.isEmpty) {
       internalError(coreLibrary,
           'dart:core library does not contain required classes: '
@@ -2347,3 +2354,64 @@ class AnyLocation implements CodeLocation {
 
   String relativize(Uri baseUri) => '$baseUri';
 }
+
+class _CompilerCoreTypes implements CoreTypes {
+  final Compiler compiler;
+
+  ClassElementX objectClass;
+  ClassElementX boolClass;
+  ClassElementX numClass;
+  ClassElementX intClass;
+  ClassElementX doubleClass;
+  ClassElementX stringClass;
+  ClassElementX functionClass;
+  ClassElementX nullClass;
+  ClassElementX listClass;
+  ClassElementX typeClass;
+  ClassElementX mapClass;
+  ClassElementX symbolClass;
+  ClassElementX stackTraceClass;
+  ClassElementX futureClass;
+  ClassElementX iterableClass;
+  ClassElementX streamClass;
+
+  _CompilerCoreTypes(this.compiler);
+
+  @override
+  InterfaceType get objectType => objectClass.computeType(compiler);
+
+  @override
+  InterfaceType get boolType => boolClass.computeType(compiler);
+
+  @override
+  InterfaceType get doubleType => doubleClass.computeType(compiler);
+
+  @override
+  InterfaceType get functionType =>  functionClass.computeType(compiler);
+
+  @override
+  InterfaceType get intType => intClass.computeType(compiler);
+
+  @override
+  InterfaceType listType([DartType elementType = const DynamicType()]) {
+    return listClass.computeType(compiler).createInstantiation([elementType]);
+  }
+
+  @override
+  InterfaceType mapType([DartType keyType = const DynamicType(),
+                         DartType valueType = const DynamicType()]) {
+    return mapClass.computeType(compiler)
+        .createInstantiation([keyType, valueType]);
+  }
+
+  @override
+  InterfaceType get nullType => nullClass.computeType(compiler);
+
+  @override
+  InterfaceType get numType => numClass.computeType(compiler);
+
+  @override
+  InterfaceType get stringType =>  stringClass.computeType(compiler);
+}
+
+typedef void InternalErrorFunction(Spannable location, String message);

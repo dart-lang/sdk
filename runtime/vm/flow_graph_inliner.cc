@@ -1653,7 +1653,10 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     ReturnInstr* fallback_return =
         new ReturnInstr(call_->instance_call()->token_pos(),
                         new Value(fallback_call));
-    fallback_return->InheritDeoptTargetAfter(isolate(), call_);
+    fallback_return->InheritDeoptTargetAfter(
+        owner_->caller_graph(),
+        call_,
+        fallback_call);
     AppendInstruction(AppendInstruction(cursor, fallback_call),
                       fallback_return);
     exit_collector_->AddExit(fallback_return);

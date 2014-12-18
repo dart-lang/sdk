@@ -571,14 +571,6 @@ class _SplitIndexStoreTest {
     expect(store.aboutToIndexDart(contextA, unitElementA), isFalse);
   }
 
-  void test_aboutToIndexDart_disposedContext_wrapped() {
-    when(contextA.isDisposed).thenReturn(true);
-    InstrumentedAnalysisContextImpl instrumentedContext =
-        new MockInstrumentedAnalysisContextImpl();
-    when(instrumentedContext.basis).thenReturn(contextA);
-    expect(store.aboutToIndexDart(instrumentedContext, unitElementA), isFalse);
-  }
-
   Future test_aboutToIndexDart_library_first() {
     when(
         libraryElement.parts).thenReturn(

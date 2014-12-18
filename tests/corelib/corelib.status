@@ -17,6 +17,9 @@ string_from_environment3_test: Skip
 string_from_environment_default_value: Skip
 string_from_environment_test: Skip
 
+[ $compiler == dart2dart && $builder_tag == new_backend ]
+regexp/pcre_test: Crash # Issue 19953
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
@@ -217,8 +220,8 @@ num_parse_test/01: RuntimeError  # Issue 15316
 [ $system == windows && $arch == x64 ]
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
-[ $runtime != d8 ]
-# The regexp tests are not verified to work on non d8 platforms yet.
+[ $runtime != d8 && $runtime != vm ]
+# The regexp tests are not verified to work on non d8/vm platforms yet.
 regexp/*: Skip
 
 [ $runtime == vm ]

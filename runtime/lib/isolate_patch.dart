@@ -323,6 +323,7 @@ patch class Isolate {
   static const _PAUSE = 1;
   static const _RESUME = 2;
   static const _PING = 3;
+  static const _KILL = 4;
 
 
   static SendPort _spawnFunction(SendPort readyPort, Function topLevelFunction,
@@ -338,7 +339,7 @@ patch class Isolate {
 
   /* patch */ void _pause(Capability resumeCapability) {
     var msg = new List(4)
-        ..[0] = 0  // Make room for OOM message type.
+        ..[0] = 0  // Make room for OOB message type.
         ..[1] = _PAUSE
         ..[2] = pauseCapability
         ..[3] = resumeCapability;
@@ -347,7 +348,7 @@ patch class Isolate {
 
   /* patch */ void resume(Capability resumeCapability) {
     var msg = new List(4)
-        ..[0] = 0  // Make room for OOM message type.
+        ..[0] = 0  // Make room for OOB message type.
         ..[1] = _RESUME
         ..[2] = pauseCapability
         ..[3] = resumeCapability;
@@ -367,7 +368,12 @@ patch class Isolate {
   }
 
   /* patch */ void kill([int priority = BEFORE_NEXT_EVENT]) {
-    throw new UnsupportedError("kill");
+    var msg = new List(4)
+        ..[0] = 0  // Make room for OOB message type.
+        ..[1] = _KILL
+        ..[2] = terminateCapability
+        ..[3] = priority;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {

@@ -379,7 +379,7 @@ class NativeAnnotationHandler implements EagerAnnotationHandler {
                 Element element,
                 MetadataAnnotation annotation,
                 ConstantValue constant) {
-    if (constant.computeType(compiler).element !=
+    if (constant.getType(compiler.coreTypes).element !=
             compiler.nativeAnnotationClass) {
       compiler.internalError(annotation, 'Invalid @Native(...) annotation.');
     }

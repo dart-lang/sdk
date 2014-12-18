@@ -28,6 +28,7 @@ import '../source_file.dart';
 import '../source_map_builder.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
+import '../types/constants.dart' show computeTypeMask;
 import '../universe/universe.dart';
 import '../util/util.dart';
 import '../js_backend/codegen/task.dart';

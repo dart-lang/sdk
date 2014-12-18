@@ -1096,18 +1096,18 @@ void DbgMsgQueue::MessageLoop() {
   while (true) {
     // Handle all available vm service messages, up to a resume
     // request.
-    while (Dart_HasServiceMessages()) {
+    bool resume = false;
+    while (!resume && Dart_HasServiceMessages()) {
       // Release the message queue lock before handling service
       // messages.  This allows notifications to come in while we are
       // processing long requests and avoids deadlock with the PortMap
       // lock in the vm.
       msg_queue_lock_.Exit();
-      bool resume = Dart_HandleServiceMessages();
+      resume = Dart_HandleServiceMessages();
       msg_queue_lock_.Enter();
-      if (resume) {
-        // Resume requested through the vm service.
-        break;
-      }
+    }
+    if (resume) {
+      break;
     }
 
     // Handle all available debug messages, up to a resume request.

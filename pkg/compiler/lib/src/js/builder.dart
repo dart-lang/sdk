@@ -327,6 +327,8 @@ class JsBuilder {
 
   LiteralNumber number(num value) => new LiteralNumber('$value');
 
+  LiteralBool boolean(bool value) => new LiteralBool(value);
+
   ArrayInitializer numArray(Iterable<int> list) =>
       new ArrayInitializer(list.map(number).toList());
 

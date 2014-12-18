@@ -619,7 +619,7 @@ class Instruction : public ZoneAllocated {
 
   intptr_t deopt_id() const {
     ASSERT(CanDeoptimize() || CanBecomeDeoptimizationTarget());
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   const ICData* GetICData(
@@ -717,10 +717,12 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
-  virtual LocationSummary* locs() {
+  LocationSummary* locs() {
     ASSERT(locs_ != NULL);
     return locs_;
   }
+
+  bool HasLocs() const { return locs_ != NULL; }
 
   virtual LocationSummary* MakeLocationSummary(Isolate* isolate,
                                                bool is_optimizing) const = 0;
@@ -840,30 +842,34 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return false;
   }
 
-  void InheritDeoptTargetAfter(Isolate* isolate, Instruction* other);
+  void InheritDeoptTargetAfter(FlowGraph* flow_graph,
+                               Definition* call,
+                               Definition* result);
 
   virtual bool MayThrow() const = 0;
 
   bool IsDominatedBy(Instruction* dom);
 
+  void ClearEnv() { env_ = NULL; }
+
  protected:
+  // GetDeoptId and/or CopyDeoptIdFrom.
+  friend class CallSiteInliner;
+  friend class LICM;
+  friend class ComparisonInstr;
+  friend class Scheduler;
+  friend class BlockEntryInstr;
+
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
     return deopt_id_;
   }
 
+  void CopyDeoptIdFrom(const Instruction& instr) {
+    deopt_id_ = instr.deopt_id_;
+  }
+
  private:
-  friend class FlowGraphPrinter;
-  friend class Definition;  // Needed for InsertBefore, InsertAfter.
-  friend class CallSiteInliner;
-
-  // deopt_id_ write access.
-  friend class ComparisonInstr;
-  friend class LICM;
-  friend class Scheduler;
-  friend class BlockEntryInstr;
-  friend class BranchSimplifier;
-
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
   enum {
@@ -2238,8 +2244,8 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels) = 0;
 
-  void SetDeoptId(intptr_t deopt_id) {
-    deopt_id_ = deopt_id;
+  void SetDeoptId(const Instruction& instr) {
+    CopyDeoptIdFrom(instr);
   }
 
   // Operation class id is computed from collected ICData.
@@ -2707,7 +2713,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
            Token::IsRelationalOperator(token_kind) ||
-           Token::IsPrefixOperator(token_kind) ||
+           Token::IsUnaryOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
            Token::IsTypeTestOperator(token_kind) ||
            Token::IsTypeCastOperator(token_kind) ||
@@ -3708,6 +3714,15 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
   DECLARE_INSTRUCTION(LoadCodeUnits)
   virtual CompileType ComputeType() const;
 
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (idx == 0) {
+      // The string may be tagged or untagged (for external strings).
+      return kNoRepresentation;
+    }
+    ASSERT(idx == 1);
+    return kTagged;
+  }
+
   bool IsExternal() const {
     return array()->definition()->representation() == kUntagged;
   }
@@ -4131,8 +4146,8 @@ class MaterializeObjectInstr : public Definition {
 
   virtual bool MayThrow() const { return false; }
 
-  void RemapRegisters(intptr_t* fpu_reg_slots,
-                      intptr_t* cpu_reg_slots);
+  void RemapRegisters(intptr_t* cpu_reg_slots,
+                      intptr_t* fpu_reg_slots);
 
   bool was_visited_for_liveness() const { return visited_for_liveness_; }
   void mark_visited_for_liveness() {
@@ -7909,6 +7924,12 @@ class Environment : public ZoneAllocated {
 
   void DeepCopyTo(Isolate* isolate, Instruction* instr) const;
   void DeepCopyToOuter(Isolate* isolate, Instruction* instr) const;
+
+  void DeepCopyAfterTo(Isolate* isolate,
+                       Instruction* instr,
+                       intptr_t argc,
+                       Definition* dead,
+                       Definition* result) const;
 
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;

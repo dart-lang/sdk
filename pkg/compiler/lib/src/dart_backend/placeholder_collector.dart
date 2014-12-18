@@ -619,12 +619,14 @@ class PlaceholderCollector extends Visitor {
         id != null && Keyword.keywords[id.source] != null;
 
     Element element = treeElements[node];
-    // May get null here in case of A(int this.f());
+    // May get null;
     if (element != null) {
       tryMakePrivateIdentifier(node.name, element);
 
       // Rename only local functions.
-      if (topmostEnclosingFunction == null) {
+      if (topmostEnclosingFunction == null &&
+          element is! LocalParameterElement &&
+          element is! InitializingFormalElement) {
         topmostEnclosingFunction = element;
       }
       if (!identical(element, currentElement)) {

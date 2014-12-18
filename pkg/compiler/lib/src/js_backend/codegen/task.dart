@@ -16,6 +16,8 @@ import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_builder.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../tree/tree.dart' as ast;
+import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
+    ForwardingTypeMask;
 import '../../scanner/scannerlib.dart' as scanner;
 import '../../elements/elements.dart';
 import '../../closure.dart';
@@ -28,12 +30,16 @@ import '../../tracer.dart';
 import '../../js_backend/codegen/codegen.dart';
 import '../../ssa/ssa.dart' as ssa;
 import '../../tree_ir/optimization/optimization.dart';
+import '../../cps_ir/cps_ir_nodes_sexpr.dart';
+import 'js_tree_builder.dart';
 
 class CspFunctionCompiler implements FunctionCompiler {
   final IrBuilderTask irBuilderTask;
   final ConstantSystem constantSystem;
   final Compiler compiler;
   final Glue glue;
+
+  TypeSystem types;
 
   // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
@@ -55,6 +61,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   /// features not implemented it will fall back to the ssa pipeline (for
   /// platform code) or will cancel compilation (for user code).
   js.Fun compile(CodegenWorkItem work) {
+    types = new TypeMaskSystem(compiler);
     AstElement element = work.element;
     return compiler.withCurrentElement(element, () {
       try {
@@ -103,16 +110,49 @@ class CspFunctionCompiler implements FunctionCompiler {
     if (cpsNode == null) {
       giveUp('unable to build cps definition of $element');
     }
-    const UnsugarVisitor().rewrite(cpsNode);
+    new UnsugarVisitor(glue).rewrite(cpsNode);
     return cpsNode;
+  }
+
+  static const Pattern PRINT_TYPED_IR_FILTER = null;
+
+  String formatTypeMask(TypeMask type) {
+    if (type is UnionTypeMask) {
+      return '[${type.disjointMasks.map(formatTypeMask).join(', ')}]';
+    } else if (type is FlatTypeMask) {
+      if (type.isEmpty) {
+        return "null";
+      }
+      String suffix = (type.isExact ? "" : "+") + (type.isNullable ? "?" : "!");
+      return '${type.base.name}$suffix';
+    } else if (type is ForwardingTypeMask) {
+      return formatTypeMask(type.forwardTo);
+    }
+    throw 'unsupported: $type';
   }
 
   cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
     // Transformations on the CPS IR.
     traceGraph("IR Builder", cpsNode);
-    new ConstantPropagator(compiler, constantSystem)
-        .rewrite(cpsNode);
+
+    TypePropagator typePropagator = new TypePropagator<TypeMask>(
+        compiler.types,
+        constantSystem,
+        new TypeMaskSystem(compiler),
+        compiler.internalError);
+    typePropagator.rewrite(cpsNode);
     traceGraph("Sparse constant propagation", cpsNode);
+
+    if (PRINT_TYPED_IR_FILTER != null &&
+        PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
+      String printType(cps.Node node, String s) {
+        var type = typePropagator.getType(node);
+        return type == null ? s : "$s:${formatTypeMask(type.type)}";
+      }
+      DEBUG_MODE = true;
+      print(new SExpressionStringifier(printType).visit(cpsNode));
+    }
+
     new RedundantPhiEliminator().rewrite(cpsNode);
     traceGraph("Redundant phi elimination", cpsNode);
     new ShrinkingReducer().rewrite(cpsNode);
@@ -126,7 +166,8 @@ class CspFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new tree_builder.Builder(compiler);
+    tree_builder.Builder builder = new JsTreeBuilder(
+        compiler.internalError, compiler.identicalFunction, glue);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
@@ -194,5 +235,4 @@ class CspFunctionCompiler implements FunctionCompiler {
   SourceFile sourceFileOfElement(Element element) {
     return element.implementation.compilationUnit.script.file;
   }
-
 }

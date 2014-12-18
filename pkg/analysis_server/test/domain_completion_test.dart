@@ -51,7 +51,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
         index,
         new AnalysisServerOptions(),
         new MockSdk(),
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
   }
 
   void sendRequest(String path) {
@@ -85,7 +85,8 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     expect(completionDomain.manager, isNull);
     sendRequest(testFile);
     expect(completionDomain.manager, isNotNull);
-    CompletionManager expectedManager = completionDomain.manager;
+    MockCompletionManager expectedManager = completionDomain.manager;
+    expect(expectedManager.disposeCallCount, 0);
     expect(completionDomain.mockContext.mockStream.listenCount, 1);
     expect(completionDomain.mockContext.mockStream.cancelCount, 0);
     return pumpEventQueue().then((_) {
@@ -94,6 +95,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
       sendRequest(testFile2);
       expect(completionDomain.manager, isNotNull);
       expect(completionDomain.manager, isNot(expectedManager));
+      expect(expectedManager.disposeCallCount, 1);
       expectedManager = completionDomain.manager;
       expect(completionDomain.mockContext.mockStream.listenCount, 2);
       expect(completionDomain.mockContext.mockStream.cancelCount, 1);
@@ -401,6 +403,16 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_local_named_constructor() {
+    addTestFile('class A {A.c(); x() {new A.^}}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'c');
+      assertNoResult('A');
+    });
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}}');
     return getSuggestions().then((_) {
@@ -422,7 +434,8 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 3));
       expect(replacementLength, equals(4));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      // Suggestions based upon imported elements are partially filtered
+      //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'test');
       assertNoResult('HtmlElement');
     });
@@ -439,12 +452,13 @@ class MockCompletionManager implements CompletionManager {
   final SearchEngine searchEngine;
   StreamController<CompletionResult> controller;
   int computeCallCount = 0;
+  int disposeCallCount = 0;
 
   MockCompletionManager(this.context, this.source, this.searchEngine);
 
   @override
-  void computeCache() {
-    // ignored
+  Future<bool> computeCache() {
+    return new Future.value(true);
   }
 
   @override
@@ -452,6 +466,11 @@ class MockCompletionManager implements CompletionManager {
     ++computeCallCount;
     CompletionResult result = new CompletionResult(0, 0, [], true);
     controller.add(result);
+  }
+
+  @override
+  void dispose() {
+    ++disposeCallCount;
   }
 
   @override
@@ -520,7 +539,7 @@ class Test_AnalysisServer extends AnalysisServer {
   Test_AnalysisServer(ServerCommunicationChannel channel,
       ResourceProvider resourceProvider, PackageMapProvider packageMapProvider,
       Index index, AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk,
-      InstrumentationServer instrumentationServer)
+      InstrumentationService instrumentationService)
       : super(
           channel,
           resourceProvider,
@@ -528,7 +547,7 @@ class Test_AnalysisServer extends AnalysisServer {
           index,
           analysisServerOptions,
           defaultSdk,
-          instrumentationServer);
+          instrumentationService);
 
   AnalysisContext getAnalysisContext(String path) {
     return mockContext;

@@ -5777,7 +5777,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   if (locs()->in(1).IsConstant()) {
     // Code for a constant shift amount.
@@ -5946,7 +5946,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == out);
 
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
 
   if (locs()->in(1).IsConstant()) {
     // Shifter is constant.
@@ -6245,24 +6245,27 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location left = locs()->in(0);
   Location right = locs()->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
+  Condition true_condition;
   if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+    true_condition = compiler->EmitEqualityRegConstCompare(right.reg(),
+                                                           left.constant(),
+                                                           needs_number_check(),
+                                                           token_pos());
   } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+    true_condition = compiler->EmitEqualityRegConstCompare(left.reg(),
+                                                           right.constant(),
+                                                           needs_number_check(),
+                                                           token_pos());
   } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                        right.reg(),
-                                        needs_number_check(),
-                                        token_pos());
+    true_condition = compiler->EmitEqualityRegRegCompare(left.reg(),
+                                                         right.reg(),
+                                                         needs_number_check(),
+                                                         token_pos());
   }
-
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
+  if (kind() != Token::kEQ_STRICT) {
+    ASSERT(kind() == Token::kNE_STRICT);
+    true_condition = NegateCondition(true_condition);
+  }
   return true_condition;
 }
 

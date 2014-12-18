@@ -233,9 +233,7 @@ main() {
   new A.named(1, 2.0);
 }
 ''');
-    _assertLinkedGroup(
-        change.linkedEditGroups[0],
-        ['named(int ', 'named(1']);
+    _assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
   }
 
   void test_createConstructorSuperExplicit() {
@@ -523,6 +521,53 @@ class A {
 
   main() {
     test;
+  }
+}
+''');
+  }
+
+  void test_createField_setter_generic_BAD() {
+    _indexTestUnit('''
+class A {
+}
+class B<T> {
+  List<T> items;
+  main(A a) {
+    a.test = items;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  List test;
+}
+class B<T> {
+  List<T> items;
+  main(A a) {
+    a.test = items;
+  }
+}
+''');
+  }
+
+  void test_createField_setter_generic_OK_local() {
+    _indexTestUnit('''
+class A<T> {
+  List<T> items;
+
+  main(A a) {
+    test = items;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A<T> {
+  List<T> items;
+
+  List<T> test;
+
+  main(A a) {
+    test = items;
   }
 }
 ''');
@@ -1829,6 +1874,50 @@ int myUndefinedFunction(int i, double d, String s) {
 ''');
   }
 
+  void test_undefinedFunction_create_generic_BAD() {
+    _indexTestUnit('''
+class A<T> {
+  Map<int, T> items;
+  main() {
+    process(items);
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+class A<T> {
+  Map<int, T> items;
+  main() {
+    process(items);
+  }
+}
+
+void process(Map items) {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_generic_OK() {
+    _indexTestUnit('''
+class A {
+  List<int> items;
+  main() {
+    process(items);
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+class A {
+  List<int> items;
+  main() {
+    process(items);
+  }
+}
+
+void process(List<int> items) {
+}
+''');
+  }
+
   void test_undefinedFunction_create_returnType_bool_expressions() {
     assert_undefinedFunction_create_returnType_bool("!test();");
     assert_undefinedFunction_create_returnType_bool("b && test();");
@@ -1986,6 +2075,86 @@ main() {
 myFunction() {}
 main() {
   myFunction();
+}
+''');
+  }
+
+  void test_undefinedMethod_create_generic_BAD() {
+    _indexTestUnit('''
+class A<T> {
+  B b;
+  Map<int, T> items;
+  main() {
+    b.process(items);
+  }
+}
+
+class B {
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A<T> {
+  B b;
+  Map<int, T> items;
+  main() {
+    b.process(items);
+  }
+}
+
+class B {
+  void process(Map items) {
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_create_generic_OK_literal() {
+    _indexTestUnit('''
+class A {
+  B b;
+  List<int> items;
+  main() {
+    b.process(items);
+  }
+}
+
+class B {
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  B b;
+  List<int> items;
+  main() {
+    b.process(items);
+  }
+}
+
+class B {
+  void process(List<int> items) {
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_create_generic_OK_local() {
+    _indexTestUnit('''
+class A<T> {
+  List<T> items;
+  main() {
+    process(items);
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A<T> {
+  List<T> items;
+  main() {
+    process(items);
+  }
+
+  void process(List<T> items) {
+  }
 }
 ''');
   }

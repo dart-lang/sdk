@@ -5,17 +5,12 @@
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Issue 12508
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 12508
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError # Issue 12508
 
-LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
@@ -47,7 +42,6 @@ LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 12508
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 

@@ -348,6 +348,7 @@ class ServerErrorParams implements HasToJson {
  *
  * {
  *   "analysis": optional AnalysisStatus
+ *   "pub": optional PubStatus
  * }
  */
 class ServerStatusParams implements HasToJson {
@@ -357,7 +358,13 @@ class ServerStatusParams implements HasToJson {
    */
   AnalysisStatus analysis;
 
-  ServerStatusParams({this.analysis});
+  /**
+   * The current status of pub execution, indicating whether we are currently
+   * running pub.
+   */
+  PubStatus pub;
+
+  ServerStatusParams({this.analysis, this.pub});
 
   factory ServerStatusParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -368,7 +375,11 @@ class ServerStatusParams implements HasToJson {
       if (json.containsKey("analysis")) {
         analysis = new AnalysisStatus.fromJson(jsonDecoder, jsonPath + ".analysis", json["analysis"]);
       }
-      return new ServerStatusParams(analysis: analysis);
+      PubStatus pub;
+      if (json.containsKey("pub")) {
+        pub = new PubStatus.fromJson(jsonDecoder, jsonPath + ".pub", json["pub"]);
+      }
+      return new ServerStatusParams(analysis: analysis, pub: pub);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.status params");
     }
@@ -384,6 +395,9 @@ class ServerStatusParams implements HasToJson {
     if (analysis != null) {
       result["analysis"] = analysis.toJson();
     }
+    if (pub != null) {
+      result["pub"] = pub.toJson();
+    }
     return result;
   }
 
@@ -397,7 +411,8 @@ class ServerStatusParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ServerStatusParams) {
-      return analysis == other.analysis;
+      return analysis == other.analysis &&
+          pub == other.pub;
     }
     return false;
   }
@@ -406,6 +421,7 @@ class ServerStatusParams implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, analysis.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, pub.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -8150,6 +8166,64 @@ class Position implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
     hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * PubStatus
+ *
+ * {
+ *   "isListingPackageDirs": bool
+ * }
+ */
+class PubStatus implements HasToJson {
+  /**
+   * True if the server is currently running pub to produce a list of package
+   * directories.
+   */
+  bool isListingPackageDirs;
+
+  PubStatus(this.isListingPackageDirs);
+
+  factory PubStatus.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      bool isListingPackageDirs;
+      if (json.containsKey("isListingPackageDirs")) {
+        isListingPackageDirs = jsonDecoder._decodeBool(jsonPath + ".isListingPackageDirs", json["isListingPackageDirs"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "isListingPackageDirs");
+      }
+      return new PubStatus(isListingPackageDirs);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "PubStatus");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["isListingPackageDirs"] = isListingPackageDirs;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is PubStatus) {
+      return isListingPackageDirs == other.isListingPackageDirs;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, isListingPackageDirs.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

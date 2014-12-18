@@ -50,6 +50,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   MockCompletionComputer computer2;
   CompletionSuggestion suggestion1;
   CompletionSuggestion suggestion2;
+  bool _continuePerformingAnalysis = true;
 
   void resolveLibrary() {
     context.resolveCompilationUnit(
@@ -81,6 +82,12 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         2,
         false,
         false);
+    new Future(_performAnalysis);
+  }
+
+  @override
+  void tearDown() {
+    _continuePerformingAnalysis = false;
   }
 
   test_compute_fastAndFull() {
@@ -147,6 +154,14 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     return pumpEventQueue().then((_) {
       expect(done, isTrue);
     });
+  }
+
+  void _performAnalysis() {
+    if (!_continuePerformingAnalysis) {
+      return;
+    }
+    context.performAnalysisTask();
+    new Future(_performAnalysis);
   }
 }
 

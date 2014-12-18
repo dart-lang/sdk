@@ -13,7 +13,6 @@ import 'dart:collection';
 import 'ast.dart';
 import 'engine.dart' show AnalysisEngine, AnalysisOptionsImpl;
 import 'error.dart';
-import 'instrumentation.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'scanner.dart';
@@ -2682,7 +2681,8 @@ class Parser {
         // class that was parsed.
         _parseClassDeclaration(commentAndMetadata, null);
         return null;
-      } else if (_matchesKeyword(Keyword.ABSTRACT) && _tokenMatchesKeyword(_peek(), Keyword.CLASS)) {
+      } else if (_matchesKeyword(Keyword.ABSTRACT) &&
+          _tokenMatchesKeyword(_peek(), Keyword.CLASS)) {
         _reportErrorForToken(ParserErrorCode.CLASS_IN_CLASS, _peek());
         // TODO(brianwilkerson) We don't currently have any way to capture the
         // class that was parsed.
@@ -2940,15 +2940,8 @@ class Parser {
    * @return the compilation unit that was parsed
    */
   CompilationUnit parseCompilationUnit(Token token) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.Parser.parseCompilationUnit");
-    try {
-      _currentToken = token;
-      return parseCompilationUnit2();
-    } finally {
-      instrumentation.log2(2);
-      //Record if >= 2ms
-    }
+    _currentToken = token;
+    return parseCompilationUnit2();
   }
 
   /**
@@ -3144,15 +3137,8 @@ class Parser {
    * @return the compilation unit that was parsed
    */
   CompilationUnit parseDirectives(Token token) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.Parser.parseDirectives");
-    try {
-      _currentToken = token;
-      return _parseDirectives();
-    } finally {
-      instrumentation.log2(2);
-      //Record if >= 2ms
-    }
+    _currentToken = token;
+    return _parseDirectives();
   }
 
   /**
@@ -3163,15 +3149,8 @@ class Parser {
    *         recognizable expression
    */
   Expression parseExpression(Token token) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.Parser.parseExpression");
-    try {
-      _currentToken = token;
-      return parseExpression2();
-    } finally {
-      instrumentation.log2(2);
-      //Record if >= 2ms
-    }
+    _currentToken = token;
+    return parseExpression2();
   }
 
   /**
@@ -3725,15 +3704,8 @@ class Parser {
    *         recognizable statement
    */
   Statement parseStatement(Token token) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.Parser.parseStatement");
-    try {
-      _currentToken = token;
-      return parseStatement2();
-    } finally {
-      instrumentation.log2(2);
-      //Record if >= 2ms
-    }
+    _currentToken = token;
+    return parseStatement2();
   }
 
   /**
@@ -3766,15 +3738,8 @@ class Parser {
    *         recognizable sequence of statements
    */
   List<Statement> parseStatements(Token token) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.Parser.parseStatements");
-    try {
-      _currentToken = token;
-      return _parseStatementList();
-    } finally {
-      instrumentation.log2(2);
-      //Record if >= 2ms
-    }
+    _currentToken = token;
+    return _parseStatementList();
   }
 
   /**
@@ -4799,7 +4764,9 @@ class Parser {
    */
   Expression _parseAssignableExpression(bool primaryAllowed) {
     if (_matchesKeyword(Keyword.SUPER)) {
-      return _parseAssignableSelector(new SuperExpression(getAndAdvance()), false);
+      return _parseAssignableSelector(
+          new SuperExpression(getAndAdvance()),
+          false);
     }
     //
     // A primary expression can start with an identifier. We resolve the
@@ -6392,7 +6359,9 @@ class Parser {
       Expression initialization = null;
       if (!_matches(TokenType.SEMICOLON)) {
         CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-        if (_matchesIdentifier() && (_tokenMatchesKeyword(_peek(), Keyword.IN) || _tokenMatches(_peek(), TokenType.COLON))) {
+        if (_matchesIdentifier() &&
+            (_tokenMatchesKeyword(_peek(), Keyword.IN) ||
+                _tokenMatches(_peek(), TokenType.COLON))) {
           List<VariableDeclaration> variables = new List<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
           variables.add(
@@ -7905,7 +7874,9 @@ class Parser {
     if (_matchesKeyword(Keyword.THIS)) {
       return new ThisExpression(getAndAdvance());
     } else if (_matchesKeyword(Keyword.SUPER)) {
-      return _parseAssignableSelector(new SuperExpression(getAndAdvance()), false);
+      return _parseAssignableSelector(
+          new SuperExpression(getAndAdvance()),
+          false);
     } else if (_matchesKeyword(Keyword.NULL)) {
       return new NullLiteral(getAndAdvance());
     } else if (_matchesKeyword(Keyword.FALSE)) {
@@ -8624,7 +8595,9 @@ class Parser {
           // --> "prefixOperator 'super' assignableSelector selector*"
           return new PrefixExpression(operator, _parseUnaryExpression());
         }
-        return new PrefixExpression(operator, new SuperExpression(getAndAdvance()));
+        return new PrefixExpression(
+            operator,
+            new SuperExpression(getAndAdvance()));
       }
       return new PrefixExpression(operator, _parseUnaryExpression());
     } else if (_currentToken.type.isIncrementOperator) {

@@ -1192,7 +1192,15 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     isolate->heap()->CollectGarbage(Heap::kNew);
   }
   if ((interrupt_bits & Isolate::kMessageInterrupt) != 0) {
-    isolate->message_handler()->HandleOOBMessages();
+    bool ok = isolate->message_handler()->HandleOOBMessages();
+    if (!ok) {
+      // False result from HandleOOBMessages signals that the isolate should
+      // be terminating.
+      const String& msg = String::Handle(String::New("isolate terminated"));
+      const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
+      Exceptions::PropagateError(error);
+      UNREACHABLE();
+    }
   }
   if ((interrupt_bits & Isolate::kApiInterrupt) != 0) {
     // Signal isolate interrupt event.

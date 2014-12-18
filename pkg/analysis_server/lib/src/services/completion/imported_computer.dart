@@ -11,10 +11,10 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * A computer for calculating imported class and top level variable
@@ -28,8 +28,12 @@ class ImportedComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    builder = request.node.accept(new _ImportedAstVisitor(request));
-    if (builder != null) {
+    OpType optype = request.optype;
+    if (optype.includeTopLevelSuggestions) {
+      builder = new _ImportedSuggestionBuilder(
+          request,
+          typesOnly: optype.includeOnlyTypeNameSuggestions,
+          excludeVoidReturn: !optype.includeVoidReturnSuggestions);
       builder.shouldWaitForLowPrioritySuggestions =
           shouldWaitForLowPrioritySuggestions;
       return builder.computeFast(request.node);
@@ -43,171 +47,6 @@ class ImportedComputer extends DartCompletionComputer {
       return builder.computeFull(request.node);
     }
     return new Future.value(false);
-  }
-}
-
-/**
- * [_ImportedAstVisitor] determines whether an import suggestions are needed
- * and instantiates the builder to create those suggestions.
- */
-class _ImportedAstVisitor extends
-    GeneralizingAstVisitor<_ImportedSuggestionBuilder> {
-  final DartCompletionRequest request;
-
-  _ImportedAstVisitor(this.request);
-
-  @override
-  _ImportedSuggestionBuilder visitArgumentList(ArgumentList node) {
-    return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitBlock(Block node) {
-    return new _ImportedSuggestionBuilder(request);
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitCascadeExpression(CascadeExpression node) {
-    // Make suggestions for the target, but not for the selector
-    // InvocationComputer makes selector suggestions
-    Expression target = node.target;
-    if (target != null && request.offset <= target.end) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitClassDeclaration(ClassDeclaration node) {
-    // Make suggestions in the body of the class declaration
-    Token leftBracket = node.leftBracket;
-    if (leftBracket != null && request.offset >= leftBracket.end) {
-      return new _ImportedSuggestionBuilder(request);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitExpression(Expression node) {
-    return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitExpressionStatement(ExpressionStatement node) {
-    Expression expression = node.expression;
-    // A pre-variable declaration (e.g. C ^) is parsed as an expression
-    // statement. Do not make suggestions for the variable name.
-    if (expression is SimpleIdentifier && request.offset <= expression.end) {
-      return new _ImportedSuggestionBuilder(request);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitFormalParameterList(FormalParameterList node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && request.offset > leftParen.offset) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || request.offset <= rightParen.offset) {
-        return new _ImportedSuggestionBuilder(request);
-      }
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitForStatement(ForStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && request.offset >= leftParen.end) {
-      return new _ImportedSuggestionBuilder(request);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitIfStatement(IfStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && request.offset >= leftParen.end) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || request.offset <= rightParen.offset) {
-        return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-      }
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitInterpolationExpression(InterpolationExpression node) {
-    Expression expression = node.expression;
-    if (expression is SimpleIdentifier) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitMethodInvocation(MethodInvocation node) {
-    Token period = node.period;
-    if (period == null || request.offset <= period.offset) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitNode(AstNode node) {
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // Make suggestions for the prefix, but not for the selector
-    // InvocationComputer makes selector suggestions
-    Token period = node.period;
-    if (period != null && request.offset <= period.offset) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitPropertyAccess(PropertyAccess node) {
-    // Make suggestions for the target, but not for the property name
-    // InvocationComputer makes property name suggestions
-    var operator = node.operator;
-    if (operator != null && request.offset < operator.offset) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitSimpleIdentifier(SimpleIdentifier node) {
-    return node.parent.accept(this);
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitStringLiteral(StringLiteral node) {
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitTypeName(TypeName node) {
-    return new _ImportedSuggestionBuilder(request, typesOnly: true);
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitVariableDeclaration(VariableDeclaration node) {
-    Token equals = node.equals;
-    // Make suggestions for the RHS of a variable declaration
-    if (equals != null && request.offset >= equals.end) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
   }
 }
 
@@ -320,15 +159,41 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
     }
   }
 
+  /**
+   * Add top level suggestions from the cache.
+   * To reduce the number of suggestions sent to the client,
+   * filter the suggestions based upon the first character typed.
+   * If no characters are available to use for filtering,
+   * then exclude all low priority suggestions.
+   */
   void _addTopLevelSuggestions() {
+    String filterText = request.filterText;
+    if (filterText.length > 1) {
+      filterText = filterText.substring(0, 1);
+    }
+
+    //TODO (danrubel) Revisit this filtering once paged API has been added
+    addFilteredSuggestions(List<CompletionSuggestion> unfiltered) {
+      unfiltered.forEach((CompletionSuggestion suggestion) {
+        if (filterText.length > 0) {
+          if (suggestion.completion.startsWith(filterText)) {
+            request.suggestions.add(suggestion);
+          }
+        } else {
+          if (suggestion.relevance != CompletionRelevance.LOW) {
+            request.suggestions.add(suggestion);
+          }
+        }
+      });
+    }
+
     DartCompletionCache cache = request.cache;
-    request.suggestions
-        ..addAll(cache.importedTypeSuggestions)
-        ..addAll(cache.libraryPrefixSuggestions);
+    addFilteredSuggestions(cache.importedTypeSuggestions);
+    addFilteredSuggestions(cache.libraryPrefixSuggestions);
     if (!typesOnly) {
-      request.suggestions.addAll(cache.otherImportedSuggestions);
+      addFilteredSuggestions(cache.otherImportedSuggestions);
       if (!excludeVoidReturn) {
-        request.suggestions.addAll(cache.importedVoidReturnSuggestions);
+        addFilteredSuggestions(cache.importedVoidReturnSuggestions);
       }
     }
   }

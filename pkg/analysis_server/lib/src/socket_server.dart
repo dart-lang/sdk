@@ -40,7 +40,7 @@ Index _createIndex() {
 class SocketServer {
   final AnalysisServerOptions analysisServerOptions;
   final DirectoryBasedDartSdk defaultSdk;
-  final InstrumentationServer instrumentationServer;
+  final InstrumentationService instrumentationService;
 
   /**
    * The analysis server that was created when a client established a
@@ -49,7 +49,7 @@ class SocketServer {
   AnalysisServer analysisServer;
 
   SocketServer(this.analysisServerOptions, this.defaultSdk,
-      this.instrumentationServer);
+      this.instrumentationService);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -75,7 +75,7 @@ class SocketServer {
         _createIndex(),
         analysisServerOptions,
         defaultSdk,
-        instrumentationServer,
+        instrumentationService,
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
   }

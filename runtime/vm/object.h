@@ -3547,16 +3547,19 @@ class ICData : public Object {
     return raw_ptr()->deopt_id_;
   }
 
+  // Note: only deopts with reasons before Unknown in this list are recorded in
+  // the ICData. All other reasons are used purely for informational messages
+  // printed during deoptimization itself.
   #define DEOPT_REASONS(V)                                                     \
+    V(BinarySmiOp)                                                             \
+    V(BinaryMintOp)                                                            \
+    V(DoubleToSmi)                                                             \
     V(Unknown)                                                                 \
     V(InstanceGetter)                                                          \
     V(PolymorphicInstanceCallTestFail)                                         \
     V(InstanceCallNoICData)                                                    \
     V(IntegerToDouble)                                                         \
-    V(BinarySmiOp)                                                             \
-    V(BinaryMintOp)                                                            \
     V(UnaryMintOp)                                                             \
-    V(ShiftMintOp)                                                             \
     V(BinaryDoubleOp)                                                          \
     V(InstanceSetter)                                                          \
     V(Equality)                                                                \
@@ -3569,7 +3572,6 @@ class ICData : public Object {
     V(CheckSmi)                                                                \
     V(CheckArrayBound)                                                         \
     V(AtCall)                                                                  \
-    V(DoubleToSmi)                                                             \
     V(Int32Load)                                                               \
     V(Uint32Load)                                                              \
     V(GuardField)                                                              \
@@ -3581,6 +3583,8 @@ class ICData : public Object {
   DEOPT_REASONS(DEFINE_ENUM_LIST)
   #undef DEFINE_ENUM_LIST
   };
+
+  static const intptr_t kLastRecordedDeoptReason = kDeoptUnknown - 1;
 
   enum DeoptFlags {
     // Deoptimization is caused by an optimistically hoisted instruction.
@@ -3715,6 +3719,78 @@ class ICData : public Object {
   void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                              GrowableArray<intptr_t>* second) const;
 
+  // Range feedback tracking functionality.
+
+  // For arithmetic operations we store range information for inputs and the
+  // result. The goal is to discover:
+  //
+  //    - on 32-bit platforms:
+  //         - when Mint operation is actually a int32/uint32 operation;
+  //         - when Smi operation produces non-smi results;
+  //
+  //    - on 64-bit platforms:
+  //         - when Smi operation is actually int32/uint32 operation;
+  //         - when Mint operation produces non-smi results;
+  //
+  enum RangeFeedback {
+    kSmiRange,
+    kInt32Range,
+    kUint32Range,
+    kInt64Range
+  };
+
+  // We use 4 bits per operand/result feedback. Our lattice allows us to
+  // express the following states:
+  //
+  //   - usmi   0000 [used only on 32bit platforms]
+  //   - smi    0001
+  //   - uint31 0010
+  //   - int32  0011
+  //   - uint32 0100
+  //   - int33  x1x1
+  //   - int64  1xxx
+  //
+  // DecodeRangeFeedbackAt() helper maps these states into the RangeFeedback
+  // enumeration.
+  enum RangeFeedbackLatticeBits {
+    kSignedRangeBit = 1 << 0,
+    kInt32RangeBit = 1 << 1,
+    kUint32RangeBit = 1 << 2,
+    kInt64RangeBit = 1 << 3,
+    kBitsPerRangeFeedback = 4,
+    kRangeFeedbackMask = (1 << kBitsPerRangeFeedback) - 1,
+    kRangeFeedbackSlots = 3
+  };
+
+  static bool IsValidRangeFeedbackIndex(intptr_t index) {
+    return (0 <= index) && (index < kRangeFeedbackSlots);
+  }
+
+  static intptr_t RangeFeedbackShift(intptr_t index) {
+    return (index * kBitsPerRangeFeedback) + kRangeFeedbackPos;
+  }
+
+  static const char* RangeFeedbackToString(RangeFeedback feedback) {
+    switch (feedback) {
+      case kSmiRange:
+        return "smi";
+      case kInt32Range:
+        return "int32";
+      case kUint32Range:
+        return "uint32";
+      case kInt64Range:
+        return "int64";
+      default:
+        UNREACHABLE();
+        return "?";
+    }
+  }
+
+  // It is only meaningful to interptret range feedback stored in the ICData
+  // when all checks are Mint or Smi.
+  bool HasRangeFeedback() const;
+  RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
+
  private:
   RawArray* ic_data() const {
     return raw_ptr()->ic_data_;
@@ -3732,8 +3808,10 @@ class ICData : public Object {
     kNumArgsTestedPos = 0,
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
-    kDeoptReasonSize = kDeoptNumReasons,
+    kDeoptReasonSize = kLastRecordedDeoptReason + 1,
     kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
+    kRangeFeedbackPos = kIssuedJSWarningBit + 1,
+    kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots
   };
 
   class NumArgsTestedBits : public BitField<uint32_t,
@@ -3741,6 +3819,8 @@ class ICData : public Object {
   class DeoptReasonBits : public BitField<uint32_t,
       ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
   class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
+  class RangeFeedbackBits : public BitField<uint32_t,
+      ICData::kRangeFeedbackPos, ICData::kRangeFeedbackSize> {};  // NOLINT
 
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.

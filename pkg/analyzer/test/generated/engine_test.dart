@@ -10,6 +10,7 @@ library engine.engine_test;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -52,7 +53,6 @@ main() {
   runReflectiveTests(GetContentTaskTest);
   runReflectiveTests(HtmlEntryTest);
   runReflectiveTests(IncrementalAnalysisCacheTest);
-  runReflectiveTests(InstrumentedAnalysisContextImplTest);
   runReflectiveTests(IncrementalAnalysisTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ParseHtmlTaskTest);
@@ -667,6 +667,137 @@ main() {}''');
         _context.computeResolvableCompilationUnit(source);
     expect(resolvedUnit, isNotNull);
     expect(resolvedUnit, same(parsedUnit));
+  }
+
+  Future test_computeResolvedCompilationUnitAsync() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    bool completed = false;
+    _context.computeResolvedCompilationUnitAsync(
+        source,
+        source).then((CompilationUnit unit) {
+      expect(unit, isNotNull);
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isFalse);
+      _performPendingAnalysisTasks();
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_afterDispose() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    // Dispose of the context.
+    _context.dispose();
+    // Any attempt to start an asynchronous computation should return a future
+    // which completes with error.
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have completed with error');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_cancel() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have been canceled');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<FutureCanceledError>());
+      completed = true;
+    });
+    expect(completed, isFalse);
+    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
+    future.cancel();
+    expect(_context.pendingFutureSources_forTesting, isEmpty);
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+      expect(_context.pendingFutureSources_forTesting, isEmpty);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_dispose() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have completed with error');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    expect(completed, isFalse);
+    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
+    // Disposing of the context should cause all pending futures to complete
+    // with AnalysisNotScheduled, so that no clients are left hanging.
+    _context.dispose();
+    expect(_context.pendingFutureSources_forTesting, isEmpty);
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+      expect(_context.pendingFutureSources_forTesting, isEmpty);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_unrelatedLibrary() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source librarySource = _addSource("/lib.dart", "library lib;");
+    Source partSource = _addSource("/part.dart", "part of foo;");
+    bool completed = false;
+    _context.computeResolvedCompilationUnitAsync(
+        partSource,
+        librarySource).then((_) {
+      fail('Expected resolution to fail');
+    }, onError: (e) {
+      expect(e, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isFalse);
+      _performPendingAnalysisTasks();
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(completed, isTrue);
+    });
   }
 
   void test_dispose() {
@@ -2050,6 +2181,14 @@ library test2;''');
 
   List<Source> _getPriorityOrder(AnalysisContextImpl context2) {
     return context2.test_priorityOrder;
+  }
+
+  void _performPendingAnalysisTasks([int maxTasks = 20]) {
+    for (int i = 0; _context.performAnalysisTask().hasMoreWork; i++) {
+      if (i > maxTasks) {
+        fail('Analysis did not terminate.');
+      }
+    }
   }
 
   void _removeSource(Source source) {
@@ -3893,6 +4032,7 @@ class GenerateDartErrorsTaskTestTV_perform_validateDirectives extends
   }
 }
 
+
 @ReflectiveTestCase()
 class GenerateDartHintsTaskTest extends EngineTestCase {
   void test_accept() {
@@ -3954,7 +4094,6 @@ class GenerateDartHintsTaskTestTV_accept extends TestTaskVisitor<bool> {
   @override
   bool visitGenerateDartHintsTask(GenerateDartHintsTask task) => true;
 }
-
 
 class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
   Source librarySource;
@@ -4828,7 +4967,6 @@ class IncrementalAnalysisCacheTest {
 }
 
 
-
 @ReflectiveTestCase()
 class IncrementalAnalysisTaskTest extends EngineTestCase {
   void test_accept() {
@@ -4894,6 +5032,7 @@ class IncrementalAnalysisTaskTestTV_accept extends TestTaskVisitor<bool> {
 }
 
 
+
 class IncrementalAnalysisTaskTestTV_assertTask extends
     TestTaskVisitor<CompilationUnit> {
   IncrementalAnalysisTask task;
@@ -4902,517 +5041,6 @@ class IncrementalAnalysisTaskTestTV_assertTask extends
   CompilationUnit
       visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask) =>
       task.compilationUnit;
-}
-
-
-@ReflectiveTestCase()
-class InstrumentedAnalysisContextImplTest extends EngineTestCase {
-  void test_addSourceInfo() {
-    TestAnalysisContext_test_addSourceInfo innerContext =
-        new TestAnalysisContext_test_addSourceInfo();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.addSourceInfo(null, null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_applyChanges() {
-    TestAnalysisContext_test_applyChanges innerContext =
-        new TestAnalysisContext_test_applyChanges();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.applyChanges(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeDocumentationComment() {
-    TestAnalysisContext_test_computeDocumentationComment innerContext =
-        new TestAnalysisContext_test_computeDocumentationComment();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeDocumentationComment(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeErrors() {
-    TestAnalysisContext_test_computeErrors innerContext =
-        new TestAnalysisContext_test_computeErrors();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeErrors(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeExportedLibraries() {
-    TestAnalysisContext_test_computeExportedLibraries innerContext =
-        new TestAnalysisContext_test_computeExportedLibraries();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeExportedLibraries(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeHtmlElement() {
-    TestAnalysisContext_test_computeHtmlElement innerContext =
-        new TestAnalysisContext_test_computeHtmlElement();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeHtmlElement(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeImportedLibraries() {
-    TestAnalysisContext_test_computeImportedLibraries innerContext =
-        new TestAnalysisContext_test_computeImportedLibraries();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeImportedLibraries(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeKindOf() {
-    TestAnalysisContext_test_computeKindOf innerContext =
-        new TestAnalysisContext_test_computeKindOf();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeKindOf(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeLibraryElement() {
-    TestAnalysisContext_test_computeLibraryElement innerContext =
-        new TestAnalysisContext_test_computeLibraryElement();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeLibraryElement(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeLineInfo() {
-    TestAnalysisContext_test_computeLineInfo innerContext =
-        new TestAnalysisContext_test_computeLineInfo();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeLineInfo(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_computeResolvableCompilationUnit() {
-    TestAnalysisContext_test_computeResolvableCompilationUnit innerContext =
-        new TestAnalysisContext_test_computeResolvableCompilationUnit();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.computeResolvableCompilationUnit(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_creation() {
-    expect(new InstrumentedAnalysisContextImpl(), isNotNull);
-  }
-
-  void test_dispose() {
-    TestAnalysisContext_test_dispose innerContext =
-        new TestAnalysisContext_test_dispose();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.dispose();
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_exists() {
-    TestAnalysisContext_test_exists innerContext =
-        new TestAnalysisContext_test_exists();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.exists(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getAnalysisOptions() {
-    TestAnalysisContext_test_getAnalysisOptions innerContext =
-        new TestAnalysisContext_test_getAnalysisOptions();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.analysisOptions;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getAngularApplicationWithHtml() {
-    TestAnalysisContext_test_getAngularApplicationWithHtml innerContext =
-        new TestAnalysisContext_test_getAngularApplicationWithHtml();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getAngularApplicationWithHtml(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getCompilationUnitElement() {
-    TestAnalysisContext_test_getCompilationUnitElement innerContext =
-        new TestAnalysisContext_test_getCompilationUnitElement();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getCompilationUnitElement(null, null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getContents() {
-    TestAnalysisContext_test_getContents innerContext =
-        new TestAnalysisContext_test_getContents();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getContents(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-//  void test_getContentsToReceiver() {
-//    TestAnalysisContext_test_getContentsToReceiver innerContext = new TestAnalysisContext_test_getContentsToReceiver();
-//    InstrumentedAnalysisContextImpl context
-//        = new InstrumentedAnalysisContextImpl.con1(innerContext);
-//    context.getContentsToReceiver(null, null);
-//    expect(innerContext.invoked, isTrue);
-//  }
-
-  void test_getElement() {
-    TestAnalysisContext_test_getElement innerContext =
-        new TestAnalysisContext_test_getElement();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getElement(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getErrors() {
-    TestAnalysisContext_test_getErrors innerContext =
-        new TestAnalysisContext_test_getErrors();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getErrors(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getHtmlElement() {
-    TestAnalysisContext_test_getHtmlElement innerContext =
-        new TestAnalysisContext_test_getHtmlElement();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getHtmlElement(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getHtmlFilesReferencing() {
-    TestAnalysisContext_test_getHtmlFilesReferencing innerContext =
-        new TestAnalysisContext_test_getHtmlFilesReferencing();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getHtmlFilesReferencing(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getHtmlSources() {
-    TestAnalysisContext_test_getHtmlSources innerContext =
-        new TestAnalysisContext_test_getHtmlSources();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.htmlSources;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getKindOf() {
-    TestAnalysisContext_test_getKindOf innerContext =
-        new TestAnalysisContext_test_getKindOf();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getKindOf(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLaunchableClientLibrarySources() {
-    TestAnalysisContext_test_getLaunchableClientLibrarySources innerContext =
-        new TestAnalysisContext_test_getLaunchableClientLibrarySources();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.launchableClientLibrarySources;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLaunchableServerLibrarySources() {
-    TestAnalysisContext_test_getLaunchableServerLibrarySources innerContext =
-        new TestAnalysisContext_test_getLaunchableServerLibrarySources();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.launchableServerLibrarySources;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLibrariesContaining() {
-    TestAnalysisContext_test_getLibrariesContaining innerContext =
-        new TestAnalysisContext_test_getLibrariesContaining();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getLibrariesContaining(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLibrariesDependingOn() {
-    TestAnalysisContext_test_getLibrariesDependingOn innerContext =
-        new TestAnalysisContext_test_getLibrariesDependingOn();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getLibrariesDependingOn(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLibrariesReferencedFromHtml() {
-    TestAnalysisContext_test_getLibrariesReferencedFromHtml innerContext =
-        new TestAnalysisContext_test_getLibrariesReferencedFromHtml();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getLibrariesReferencedFromHtml(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLibraryElement() {
-    TestAnalysisContext_test_getLibraryElement innerContext =
-        new TestAnalysisContext_test_getLibraryElement();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getLibraryElement(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLibrarySources() {
-    TestAnalysisContext_test_getLibrarySources innerContext =
-        new TestAnalysisContext_test_getLibrarySources();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.librarySources;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getLineInfo() {
-    TestAnalysisContext_test_getLineInfo innerContext =
-        new TestAnalysisContext_test_getLineInfo();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getLineInfo(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getModificationStamp() {
-    TestAnalysisContext_test_getModificationStamp innerContext =
-        new TestAnalysisContext_test_getModificationStamp();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getModificationStamp(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getPublicNamespace() {
-    TestAnalysisContext_test_getPublicNamespace innerContext =
-        new TestAnalysisContext_test_getPublicNamespace();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getPublicNamespace(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getRefactoringUnsafeSources() {
-    TestAnalysisContext_test_getRefactoringUnsafeSources innerContext =
-        new TestAnalysisContext_test_getRefactoringUnsafeSources();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.refactoringUnsafeSources;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getResolvedCompilationUnit_element() {
-    TestAnalysisContext_test_getResolvedCompilationUnit_element innerContext =
-        new TestAnalysisContext_test_getResolvedCompilationUnit_element();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getResolvedCompilationUnit(null, null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getResolvedCompilationUnit_source() {
-    TestAnalysisContext_test_getResolvedCompilationUnit_source innerContext =
-        new TestAnalysisContext_test_getResolvedCompilationUnit_source();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getResolvedCompilationUnit2(null, null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getResolvedHtmlUnit() {
-    TestAnalysisContext_test_getResolvedHtmlUnit innerContext =
-        new TestAnalysisContext_test_getResolvedHtmlUnit();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.getResolvedHtmlUnit(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getSourceFactory() {
-    TestAnalysisContext_test_getSourceFactory innerContext =
-        new TestAnalysisContext_test_getSourceFactory();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.sourceFactory;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getStatistics() {
-    TestAnalysisContext_test_getStatistics innerContext =
-        new TestAnalysisContext_test_getStatistics();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.statistics;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_getTypeProvider() {
-    TestAnalysisContext_test_getTypeProvider innerContext =
-        new TestAnalysisContext_test_getTypeProvider();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.typeProvider;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_isClientLibrary() {
-    TestAnalysisContext_test_isClientLibrary innerContext =
-        new TestAnalysisContext_test_isClientLibrary();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.isClientLibrary(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_isDisposed() {
-    TestAnalysisContext_test_isDisposed innerContext =
-        new TestAnalysisContext_test_isDisposed();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.isDisposed;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_isServerLibrary() {
-    TestAnalysisContext_test_isServerLibrary innerContext =
-        new TestAnalysisContext_test_isServerLibrary();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.isServerLibrary(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_parseCompilationUnit() {
-    TestAnalysisContext_test_parseCompilationUnit innerContext =
-        new TestAnalysisContext_test_parseCompilationUnit();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.parseCompilationUnit(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_parseHtmlUnit() {
-    TestAnalysisContext_test_parseHtmlUnit innerContext =
-        new TestAnalysisContext_test_parseHtmlUnit();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.parseHtmlUnit(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_performAnalysisTask() {
-    TestAnalysisContext_test_performAnalysisTask innerContext =
-        new TestAnalysisContext_test_performAnalysisTask();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.performAnalysisTask();
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_recordLibraryElements() {
-    TestAnalysisContext_test_recordLibraryElements innerContext =
-        new TestAnalysisContext_test_recordLibraryElements();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.recordLibraryElements(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_resolveCompilationUnit() {
-    TestAnalysisContext_test_resolveCompilationUnit innerContext =
-        new TestAnalysisContext_test_resolveCompilationUnit();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.resolveCompilationUnit2(null, null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_resolveCompilationUnit_element() {
-    TestAnalysisContext_test_resolveCompilationUnit_element innerContext =
-        new TestAnalysisContext_test_resolveCompilationUnit_element();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.resolveCompilationUnit(null, null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_resolveHtmlUnit() {
-    TestAnalysisContext_test_resolveHtmlUnit innerContext =
-        new TestAnalysisContext_test_resolveHtmlUnit();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.resolveHtmlUnit(null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_setAnalysisOptions() {
-    TestAnalysisContext_test_setAnalysisOptions innerContext =
-        new TestAnalysisContext_test_setAnalysisOptions();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.analysisOptions = null;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_setAnalysisPriorityOrder() {
-    TestAnalysisContext_test_setAnalysisPriorityOrder innerContext =
-        new TestAnalysisContext_test_setAnalysisPriorityOrder();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.analysisPriorityOrder = null;
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_setChangedContents() {
-    TestAnalysisContext_test_setChangedContents innerContext =
-        new TestAnalysisContext_test_setChangedContents();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.setChangedContents(null, null, 0, 0, 0);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_setContents() {
-    TestAnalysisContext_test_setContents innerContext =
-        new TestAnalysisContext_test_setContents();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.setContents(null, null);
-    expect(innerContext.invoked, isTrue);
-  }
-
-  void test_setSourceFactory() {
-    TestAnalysisContext_test_setSourceFactory innerContext =
-        new TestAnalysisContext_test_setSourceFactory();
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(innerContext);
-    context.sourceFactory = null;
-    expect(innerContext.invoked, isTrue);
-  }
 }
 
 
@@ -6445,6 +6073,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  Future<CompilationUnit> computeResolvedCompilationUnitAsync(Source source,
+      Source librarySource) {
+    fail("Unexpected invocation of getResolvedCompilationUnitFuture");
+    return null;
+  }
+  @override
   void dispose() {
     fail("Unexpected invocation of dispose");
   }
@@ -6610,6 +6244,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
+
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {

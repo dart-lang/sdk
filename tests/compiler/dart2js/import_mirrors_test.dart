@@ -7,6 +7,7 @@
 
 library dart2js.test.import;
 
+import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart2jslib.dart' show MessageKind;
@@ -252,11 +253,96 @@ import 'dart:mirrors';
        "main.dart => first.dart => package:package2/third.dart => dart:mirrors"]
 };
 
+const DIRECT_EXPORT = const {
+  '/main.dart': '''
+export 'dart:mirrors';
 
-test(Map sourceFiles,
-    {expectedPaths,
-     bool verbose: false,
-     bool enableExperimentalMirrors: false}) {
+main() {}
+''',
+
+  'paths':
+      "main.dart => dart:mirrors",
+};
+
+const INDIRECT_EXPORT1 = const {
+  '/main.dart': '''
+import 'first.dart';
+
+main() {}
+''',
+  '/first.dart': '''
+export 'dart:mirrors';
+''',
+
+  'paths':
+      "first.dart => dart:mirrors",
+  'verbosePaths':
+      "main.dart => first.dart => dart:mirrors",
+};
+
+const INDIRECT_EXPORT2 = const {
+  '/main.dart': '''
+import 'first.dart';
+
+main() {}
+''',
+  '/first.dart': '''
+import 'second.dart';
+''',
+  '/second.dart': '''
+export 'dart:mirrors';
+''',
+
+  'paths':
+      "second.dart => dart:mirrors",
+  'verbosePaths':
+      "main.dart => first.dart => second.dart => dart:mirrors",
+};
+
+const INDIRECT_PACKAGE_EXPORT1 = const {
+  '/main.dart': '''
+import 'first.dart';
+
+main() {}
+''',
+  '/first.dart': '''
+import 'package:package-name/second.dart';
+''',
+  '/pkg/package-name/second.dart': '''
+export 'dart:mirrors';
+''',
+
+  'paths':
+      "first.dart => package:package-name => dart:mirrors",
+  'verbosePaths':
+      "main.dart => first.dart => package:package-name/second.dart "
+      "=> dart:mirrors",
+};
+
+const INDIRECT_PACKAGE_EXPORT2 = const {
+  '/main.dart': '''
+import 'first.dart';
+
+main() {}
+''',
+  '/first.dart': '''
+export 'package:package-name/second.dart';
+''',
+  '/pkg/package-name/second.dart': '''
+import 'dart:mirrors';
+''',
+
+  'paths':
+      "first.dart => package:package-name => dart:mirrors",
+  'verbosePaths':
+      "main.dart => first.dart => package:package-name/second.dart "
+      "=> dart:mirrors",
+};
+
+Future test(Map sourceFiles,
+            {expectedPaths,
+             bool verbose: false,
+             bool enableExperimentalMirrors: false}) {
   if (expectedPaths is! List) {
     expectedPaths = [expectedPaths];
   }
@@ -271,7 +357,7 @@ test(Map sourceFiles,
   var compiler = compilerFor(sourceFiles, diagnosticHandler: collector,
                              packageRoot: Uri.parse('memory:/pkg/'),
                              options: options);
-  asyncTest(() => compiler.run(Uri.parse('memory:/main.dart')).then((_) {
+  return compiler.run(Uri.parse('memory:/main.dart')).then((_) {
     Expect.equals(0, collector.errors.length, 'Errors: ${collector.errors}');
     if (enableExperimentalMirrors) {
       Expect.equals(0, collector.warnings.length,
@@ -285,32 +371,43 @@ test(Map sourceFiles,
                   MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)}).toString(),
           collector.warnings.first.message);
     }
-  }));
+  });
 }
 
-checkPaths(Map sourceData) {
+Future checkPaths(Map sourceData) {
   Map sourceFiles = sourceData;
   var expectedPaths = sourceData['paths'];
   var expectedVerbosePaths = sourceData['verbosePaths'];
   if (expectedVerbosePaths == null) {
     expectedVerbosePaths = expectedPaths;
   }
-  test(sourceFiles, expectedPaths: expectedPaths);
-  test(sourceFiles, expectedPaths: expectedVerbosePaths, verbose: true);
-  test(sourceFiles, enableExperimentalMirrors: true);
+  return test(sourceFiles, expectedPaths: expectedPaths).then((_) {
+    return test(
+        sourceFiles, expectedPaths: expectedVerbosePaths, verbose: true);
+  }).then((_) {
+    return test(sourceFiles, enableExperimentalMirrors: true);
+  });
 }
 
 void main() {
-  checkPaths(DIRECT_IMPORT);
-  checkPaths(INDIRECT_IMPORT1);
-  checkPaths(INDIRECT_IMPORT2);
-  checkPaths(INDIRECT_PACKAGE_IMPORT1);
-  checkPaths(INDIRECT_PACKAGE_IMPORT2);
-  checkPaths(INDIRECT_PACKAGE_IMPORT3);
-  checkPaths(INDIRECT_PACKAGE_IMPORT4);
-  checkPaths(DUAL_DIRECT_IMPORT);
-  checkPaths(DUAL_INDIRECT_IMPORT1);
-  checkPaths(DUAL_INDIRECT_IMPORT2);
-  checkPaths(DUAL_INDIRECT_IMPORT3);
-  checkPaths(DUAL_INDIRECT_PACKAGE_IMPORT1);
+  asyncTest(() => Future.forEach([
+      DIRECT_IMPORT,
+      INDIRECT_IMPORT1,
+      INDIRECT_IMPORT2,
+      INDIRECT_PACKAGE_IMPORT1,
+      INDIRECT_PACKAGE_IMPORT2,
+      INDIRECT_PACKAGE_IMPORT3,
+      INDIRECT_PACKAGE_IMPORT4,
+      DUAL_DIRECT_IMPORT,
+      DUAL_INDIRECT_IMPORT1,
+      DUAL_INDIRECT_IMPORT2,
+      DUAL_INDIRECT_IMPORT3,
+      DUAL_INDIRECT_PACKAGE_IMPORT1,
+      DIRECT_EXPORT,
+      INDIRECT_EXPORT1,
+      INDIRECT_EXPORT2,
+      INDIRECT_PACKAGE_EXPORT1,
+      INDIRECT_PACKAGE_EXPORT2],
+      (map) => checkPaths(map)
+  ));
 }

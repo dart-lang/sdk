@@ -116,11 +116,25 @@ main() {
   if (1) {
     print('bad');
   } else {
-    print('ok');
+    print('good');
   }
 }""","""
 function() {
-  P.print("bad");
+  P.print("good");
+  return null;
+}"""),
+  const TestEntry("""
+foo() => 2;
+main() {
+  if (foo()) {
+    print('bad');
+  } else {
+    print('good');
+  }
+}""","""
+function() {
+  V.foo();
+  P.print("good");
   return null;
 }"""),
 ];

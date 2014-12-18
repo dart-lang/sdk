@@ -183,17 +183,28 @@ class Entrypoint {
           changed);
     }).map((package) => package.name).toSet();
 
+    if (dirExists(depsDir)) {
+      // Delete any cached dependencies that are going to be recached.
+      for (var package in dependenciesToPrecompile) {
+        deleteEntry(path.join(depsDir, package));
+      }
+
+      // Also delete any cached dependencies that should no longer be cached.
+      for (var subdir in listDir(depsDir)) {
+        var package = graph.packages[path.basename(subdir)];
+        if (package == null || package.pubspec.transformers.isEmpty ||
+            graph.isPackageMutable(package.name)) {
+          deleteEntry(subdir);
+        }
+      }
+    }
+
     if (dependenciesToPrecompile.isEmpty) return;
 
     await log.progress("Precompiling dependencies", () async {
       var packagesToLoad =
           unionAll(dependenciesToPrecompile.map(graph.transitiveDependencies))
           .map((package) => package.name).toSet();
-
-      // TODO(nweiz): Use for/in here when
-      // https://github.com/dart-lang/async_await/issues/68 is fixed.
-      dependenciesToPrecompile.forEach((package) =>
-          deleteEntry(path.join(depsDir, package)));
 
       var environment = await AssetEnvironment.create(this, BarbackMode.DEBUG,
           packages: packagesToLoad, useDart2JS: false);

@@ -513,6 +513,8 @@ class Assign extends Statement {
 class Return extends Statement {
   /// Should not be null. Use [Constant] with [NullConstantValue] for void
   /// returns.
+  /// Even in constructors this holds true. Take special care when translating
+  /// back to dart, where `return null;` in a constructor is an error.
   Expression value;
 
   Statement get next => null;
@@ -605,6 +607,49 @@ class FunctionDefinition extends Node implements ExecutableDefinition {
   applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
 }
 
+abstract class Initializer implements Expression {}
+
+class FieldInitializer extends Initializer {
+  final FieldElement element;
+  Statement body;
+  bool processed = false;
+
+  FieldInitializer(this.element, this.body);
+
+  accept(ExpressionVisitor visitor) => visitor.visitFieldInitializer(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitFieldInitializer(this, arg);
+  }
+}
+
+class SuperInitializer extends Initializer {
+  final ConstructorElement target;
+  final Selector selector;
+  final List<Statement> arguments;
+  bool processed = false;
+
+  SuperInitializer(this.target, this.selector, this.arguments);
+  accept(ExpressionVisitor visitor) => visitor.visitSuperInitializer(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitSuperInitializer(this, arg);
+  }
+}
+
+class ConstructorDefinition extends FunctionDefinition {
+  final List<Initializer> initializers;
+
+  ConstructorDefinition(ConstructorElement element,
+                        List<Variable> parameters,
+                        Statement body,
+                        this.initializers,
+                        List<ConstDeclaration> localConstants,
+                        List<ConstantExpression> defaultParameterValues)
+      : super(element, parameters, body, localConstants,
+              defaultParameterValues);
+
+  applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression e) => e.accept(this);
   E visitVariable(Variable node);
@@ -623,6 +668,8 @@ abstract class ExpressionVisitor<E> {
   E visitLiteralMap(LiteralMap node);
   E visitTypeOperator(TypeOperator node);
   E visitFunctionExpression(FunctionExpression node);
+  E visitFieldInitializer(FieldInitializer node);
+  E visitSuperInitializer(SuperInitializer node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -643,6 +690,8 @@ abstract class ExpressionVisitor1<E, A> {
   E visitLiteralMap(LiteralMap node, A arg);
   E visitTypeOperator(TypeOperator node, A arg);
   E visitFunctionExpression(FunctionExpression node, A arg);
+  E visitFieldInitializer(FieldInitializer node, A arg);
+  E visitSuperInitializer(SuperInitializer node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -796,5 +845,13 @@ class RecursiveVisitor extends Visitor {
   visitExpressionStatement(ExpressionStatement node) {
     visitExpression(node.expression);
     visitStatement(node.next);
+  }
+
+  visitFieldInitializer(FieldInitializer node) {
+    visitStatement(node.body);
+  }
+
+  visitSuperInitializer(SuperInitializer node) {
+    node.arguments.forEach(visitStatement);
   }
 }

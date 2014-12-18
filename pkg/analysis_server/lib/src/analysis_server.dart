@@ -114,9 +114,9 @@ class AnalysisServer {
   final DartSdk defaultSdk;
 
   /**
-   * The instrumentation server that is to be used by this analysis server.
+   * The instrumentation service that is to be used by this analysis server.
    */
-  final InstrumentationServer instrumentationServer;
+  final InstrumentationService instrumentationService;
 
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
@@ -191,13 +191,12 @@ class AnalysisServer {
   AnalysisServer(this.channel, this.resourceProvider,
       PackageMapProvider packageMapProvider, this.index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
-      this.instrumentationServer, {this.rethrowExceptions: true}) {
+      this.instrumentationService, {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
-    contextDirectoryManager.defaultOptions.incremental =
-        analysisServerOptions.enableIncrementalResolution;
+    contextDirectoryManager.defaultOptions.incremental = true;
     contextDirectoryManager.defaultOptions.incrementalApi =
         analysisServerOptions.enableIncrementalResolutionApi;
     AnalysisEngine.instance.logger = new AnalysisLogger();
@@ -298,7 +297,7 @@ class AnalysisServer {
   AnalysisContext getAnalysisContextForSource(Source source) {
     for (AnalysisContext context in folderMap.values) {
       SourceKind kind = context.getKindOf(source);
-      if (kind != null) {
+      if (kind != SourceKind.UNKNOWN) {
         return context;
       }
     }
@@ -820,8 +819,12 @@ class AnalysisServer {
       index.clear();
       index.stop();
     }
-    // Defer closing the channel so that the shutdown response can be sent.
-    new Future(channel.close);
+    // Defer closing the channel and shutting down the instrumentation server so
+    // that the shutdown response can be sent and logged.
+    new Future(() {
+      instrumentationService.shutdown();
+      channel.close();
+    });
   }
 
   /**
@@ -932,7 +935,6 @@ class AnalysisServer {
 
 
 class AnalysisServerOptions {
-  bool enableIncrementalResolution = false;
   bool enableIncrementalResolutionApi = false;
 }
 
@@ -1020,6 +1022,16 @@ class ServerContextManager extends ContextManager {
   }
 
   @override
+  void beginComputePackageMap() {
+    _computingPackageMap(true);
+  }
+
+  @override
+  void endComputePackageMap() {
+    _computingPackageMap(false);
+  }
+
+  @override
   void removeContext(Folder folder) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     if (analysisServer.index != null) {
@@ -1030,6 +1042,7 @@ class ServerContextManager extends ContextManager {
     analysisServer.sendContextAnalysisDoneNotifications(
         context,
         AnalysisDoneReason.CONTEXT_REMOVED);
+    context.dispose();
   }
 
   @override
@@ -1040,6 +1053,14 @@ class ServerContextManager extends ContextManager {
     _onContextsChangedController.add(
         new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+  }
+
+  void _computingPackageMap(bool computing) {
+    if (analysisServer.serverServices.contains(ServerService.STATUS)) {
+      PubStatus pubStatus = new PubStatus(computing);
+      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
+      analysisServer.sendNotification(params.toNotification());
+    }
   }
 
   /**

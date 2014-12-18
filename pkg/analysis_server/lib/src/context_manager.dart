@@ -97,6 +97,20 @@ abstract class ContextManager {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
 
   /**
+   * We are about to start computing the package map.
+   */
+  void beginComputePackageMap() {
+    // Do nothing.
+  }
+
+  /**
+   * We have finished computing the package map.
+   */
+  void endComputePackageMap() {
+    // Do nothing.
+  }
+
+  /**
    * Returns `true` if the given absolute [path] is in one of the current
    * root folders and is not excluded.
    */
@@ -306,8 +320,10 @@ abstract class ContextManager {
       packageUriResolver =
           new PackageUriResolver([new JavaFile(info.packageRoot)]);
     } else {
+      beginComputePackageMap();
       PackageMapInfo packageMapInfo =
           _packageMapProvider.computePackageMap(folder);
+      endComputePackageMap();
       info.packageMapDependencies = packageMapInfo.dependencies;
       packageUriResolver =
           new PackageMapUriResolver(resourceProvider, packageMapInfo.packageMap);
