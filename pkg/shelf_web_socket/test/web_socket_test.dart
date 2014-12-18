@@ -105,6 +105,20 @@ void main() {
     });
   });
 
+  // Regression test for issue 21894.
+  test("allows a Connection header with multiple values", () {
+    return shelf_io.serve(webSocketHandler((webSocket) {
+      webSocket.close();
+    }), "localhost", 0).then((server) {
+      var url = 'http://localhost:${server.port}/';
+
+      var headers = _handshakeHeaders;
+      headers['Connection'] = 'Other-Token, Upgrade';
+      expect(http.get(url, headers: headers).whenComplete(server.close),
+          hasStatus(101));
+    });
+  });
+
   group("HTTP errors", () {
     var server;
     var url;

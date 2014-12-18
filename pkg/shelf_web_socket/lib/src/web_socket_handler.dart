@@ -28,7 +28,9 @@ class WebSocketHandler {
 
     var connection = request.headers['Connection'];
     if (connection == null) return _notFound();
-    if (connection.toLowerCase() != 'upgrade') return _notFound();
+    var tokens = connection.toLowerCase().split(',')
+        .map((token) => token.trim());
+    if (!tokens.contains('upgrade')) return _notFound();
 
     var upgrade = request.headers['Upgrade'];
     if (upgrade == null) return _notFound();
