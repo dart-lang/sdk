@@ -7,7 +7,7 @@
 \usepackage{lmodern}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.6}}
+{\large Version 1.9}}
 %\author{The Dart Team}
 
 % For information about Location Markers (and in particular the
@@ -1115,16 +1115,14 @@ We wish to warn if one declares a concrete class with abstract members. However,
 \begin{dartCode}
  class Base \{
     int get one =$>$ 1;
-  \}
+ \}
 
-  abstract class Mix \{
+ abstract class Mix \{
     int get one;
     int get two =$>$ one + one;
-  \}
+ \}
 
-  class C extends Base with Mix \{
-  \}
-\}
+ class C extends Base with Mix \{ \}
 \end{dartCode}
 
 \rationale{At run time, the concrete method \cd{one} declared in \cd{Base} will be executed, and no problem should arise. Therefore no warning should be issued and so we suppress warnings if a corresponding concrete member exists in the hierarchy. }
@@ -1805,7 +1803,7 @@ If two members override each other, it is a static warning if the overriding mem
 \item Superinterface members are not inherited by a class, but are inherited by its implicit interface. Interfaces have their own inheritance rules (\ref{interfaceInheritanceAndOverriding}).
 \item A member is abstract if it has no body and is not labeled \EXTERNAL{} (\ref{abstractInstanceMembers}, \ref{externalFunctions}).
 \item A class is abstract iff it is explicitly labeled \ABSTRACT{}.% or if it declares (not just inherits) an abstract member (\ref{classes}).
-\item It is a static warning a concrete class has an abstract member (declared or inherited).
+\item It is a static warning if a concrete class has an abstract member (declared or inherited).
 \item It is a static warning and a dynamic error to call a non-factory constructor of an abstract class  (\ref{new}). 
 \item If a class defines an instance member named $m$, and any of its superinterfaces have a  member named $m$, the interface of the class overrides $m$.
 \item  An interface inherits all  members of its superinterfaces that are not overridden and not members of multiple superinterfaces.
@@ -6388,7 +6386,8 @@ Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart syste
 \LMLabel{scripts}
 
 \LMHash{}
-A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level function \code{main}. 
+A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level member named  \code{main}. It is a static warning if the static type of \code{main} is not assignable to a function type or is a function type with more than two required parameters.
+
 A script $S$ may be executed as follows:
 
 \LMHash{}
@@ -6399,7 +6398,11 @@ First, $S$ is compiled as a library as specified above. Then, the top-level func
 \end{enumerate}
 
 \LMHash{}
-It is a run time error if $S$ does not declare or import a top-level function \code{main}. It is a static warning if \code{main} has more than two required parameters.
+It is a run time error if $S$ does not declare or export either:
+\begin{itemize}
+\item  A top-level function named  \code{main}, or 
+\item A top-level getter named  \code{main} that returns a function.
+\end{itemize}
 
 \commentary {
 Note that if \code{main} requires more than two arguments, a run time error will occur. 
