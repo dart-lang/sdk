@@ -85,6 +85,12 @@ function() {
   P.print(P.Set_Set$from([1, 2, 3]));
   return null;
 }"""),
+  // Call synthetic constructor.
+  const TestEntry("""
+class C {}
+main() {
+  print(new C());
+}"""),
   // Method invocation
   const TestEntry("""
 main() {

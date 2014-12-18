@@ -14,6 +14,7 @@ import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../universe/universe.dart' show SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
+import '../elements/modelx.dart' show SynthesizedConstructorElementX;
 
 part 'cps_ir_builder_visitor.dart';
 
