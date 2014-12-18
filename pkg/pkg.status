@@ -131,12 +131,10 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 
 [ $ie ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
-polymer_expressions/test/syntax_test: Fail, Timeout, Pass # Issue 19138
 observe/test/list_path_observer_test: RuntimeError, Pass # Issue 20849
 
 [ $runtime == ie10 ]
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
-polymer_expressions/*: Pass, RuntimeError # Issue 19265
 template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 
@@ -271,9 +269,6 @@ unittest/test/testcases_immutable_test: RuntimeError # 13921
 # Skip tests on the VM if the package depends on dart:html
 template_binding: Skip
 mutation_observer: Skip
-polymer_expressions/test/syntax_test: Skip
-polymer_expressions/test/globals_test: Skip
-polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 http/test/html/*: Skip
 
