@@ -87,8 +87,12 @@ class RestrictedRules extends TypeRules {
   }
 
   bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2) {
-    final params1 = f1.parameters;
-    final params2 = f2.parameters;
+    final r1s = f1.normalParameterTypes;
+    final o1s = f1.optionalParameterTypes;
+    final n1s = f1.namedParameterTypes;
+    final r2s = f2.normalParameterTypes;
+    final o2s = f2.optionalParameterTypes;
+    final n2s = f2.namedParameterTypes;
     final ret1 = f1.returnType;
     final ret2 = f2.returnType;
 
@@ -96,28 +100,44 @@ class RestrictedRules extends TypeRules {
     // either D is void or B <: D
     if (!ret2.isVoid && !isSubTypeOf(ret1, ret2)) return false;
 
-    if (params1.length < params2.length) return false;
+    // Reject if one has named and the other has optional
+    if (n1s.length > 0 && o2s.length > 0) return false;
+    if (n2s.length > 0 && o1s.length > 0) return false;
 
-    for (int i = 0; i < params2.length; ++i) {
-      ParameterElement p1 = params1[i];
-      ParameterElement p2 = params2[i];
-
-      // Contravariant parameter types.
-      if (!isSubTypeOf(p2.type, p1.type)) return false;
-
-      // If the base param is optional, the sub param must be optional:
-      // - either neither are named or
-      // - both are named with the same name
-      // If the base param is required, the sub may be optional, but not named.
-      if (p2.parameterKind != ParameterKind.REQUIRED) {
-        if (p1.parameterKind == ParameterKind.REQUIRED) return false;
-        if (p2.parameterKind == ParameterKind.NAMED &&
-            (p1.parameterKind != ParameterKind.NAMED || p1.name != p2.name)) {
-          return false;
-        }
-      } else {
-        if (p1.parameterKind == ParameterKind.NAMED) return false;
+    // f2 has named parameters
+    if (n2s.length > 0) {
+      // Check that every named parameter in f2 has a match in f1
+      for (String k2 in n2s.keys) {
+        if (!n1s.containsKey(k2)) return false;
+        if (!isSubTypeOf(n2s[k2], n1s[k2])) return false;
       }
+    }
+    // If we get here, we either have no named parameters,
+    // or else the named parameters match and we have no optional
+    // parameters
+
+    // If f1 has more required parameters, reject
+    if (r1s.length > r2s.length) return false;
+
+    // If f2 has more required + optional parameters, reject
+    if (r2s.length + o2s.length > r1s.length + o1s.length) return false;
+
+    // The parameter lists must look like the following at this point
+    // where rrr is a region of required, and ooo is a region of optionals.
+    // f1: rrr ooo ooo ooo
+    // f2: rrr rrr ooo
+    int rr = r1s.length; // required in both
+    int or = r2s.length - r1s.length; // optional in f1, required in f2
+    int oo = o2s.length; // optional in both
+
+    for (int i = 0; i < rr; ++i) {
+      if (!isSubTypeOf(r2s[i], r1s[i])) return false;
+    }
+    for (int i = 0, j = rr; i < or; ++i, ++j) {
+      if (!isSubTypeOf(r2s[j], o1s[i])) return false;
+    }
+    for (int i = or, j = 0; i < oo; ++i, ++j) {
+      if (!isSubTypeOf(o2s[j], o1s[i])) return false;
     }
     return true;
   }

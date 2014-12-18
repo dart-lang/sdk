@@ -562,6 +562,138 @@ main() {
     });
   });
 
+  test('Function typing and subtyping: named and optional parameters', () {
+    testChecker({
+      '/main.dart': '''
+
+      class A {}
+
+      typedef A FR(A x);
+      typedef A FO([A x]);
+      typedef A FN({A x});
+      typedef A FRR(A x, A y);
+      typedef A FRO(A x, [A y]);
+      typedef A FRN(A x, {A n});
+      typedef A FOO([A x, A y]);
+      typedef A FNN({A x, A y});
+      typedef A FNNN({A z, A y, A x});
+
+      void main() {
+         FR r;
+         FO o;
+         FN n;
+         FRR rr;
+         FRO ro;
+         FRN rn;
+         FOO oo;
+         FNN nn;
+         FNNN nnn;
+
+         r = r;
+         r = o;
+         r = /*severe:StaticTypeError*/n;
+         r = /*severe:StaticTypeError*/rr;
+         r = ro;
+         r = rn;
+         r = oo;
+         r = /*severe:StaticTypeError*/nn;
+         r = /*severe:StaticTypeError*/nnn;
+
+         // This is a valid wrapping, but changes the runtime type
+         o = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
+         o = o;
+         o = /*severe:StaticTypeError*/n;
+         o = /*severe:StaticTypeError*/rr;
+         o = /*severe:StaticTypeError*/ro;
+         o = /*severe:StaticTypeError*/rn;
+         o = oo;
+         o = /*severe:StaticTypeError*/nn
+         o = /*severe:StaticTypeError*/nnn;
+
+         n = /*severe:StaticTypeError*/r;
+         n = /*severe:StaticTypeError*/o;
+         n = n;
+         n = /*severe:StaticTypeError*/rr;
+         n = /*severe:StaticTypeError*/ro;
+         n = /*severe:StaticTypeError*/rn;
+         n = /*severe:StaticTypeError*/oo;
+         n = nn;
+         n = nnn;
+
+         rr = /*severe:StaticTypeError*/r;
+         rr = /*severe:StaticTypeError*/o;
+         rr = /*severe:StaticTypeError*/n;
+         rr = rr;
+         rr = ro;
+         rr = /*severe:StaticTypeError*/rn;
+         rr = oo;
+         rr = /*severe:StaticTypeError*/nn;
+         rr = /*severe:StaticTypeError*/nnn;
+
+         // This is a valid wrapping, but changes the runtime type
+         ro = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
+         ro = /*severe:StaticTypeError*/o;
+         ro = /*severe:StaticTypeError*/n;
+         // This is a valid wrapping, but changes the runtime type
+         ro = /*warning:ClosureWrap should be severe:StaticTypeError*/rr;
+         ro = ro;
+         ro = /*severe:StaticTypeError*/rn;
+         ro = oo;
+         ro = /*severe:StaticTypeError*/nn;
+         ro = /*severe:StaticTypeError*/nnn;
+
+         // This is a valid wrapping, but changes the runtime type
+         rn = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
+         rn = /*severe:StaticTypeError*/o;
+         rn = /*severe:StaticTypeError*/n;
+         rn = /*severe:StaticTypeError*/rr;
+         rn = /*severe:StaticTypeError*/ro;
+         rn = rn;
+         rn = /*severe:StaticTypeError*/oo;
+         rn = /*severe:StaticTypeError*/nn;
+         rn = /*severe:StaticTypeError*/nnn;
+
+         // This is a valid wrapping, but changes the runtime type
+         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
+         // This is a valid wrapping, but changes the runtime type
+         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/o;
+         oo = /*severe:StaticTypeError*/n;
+         // This is a valid wrapping, but changes the runtime type
+         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/rr;
+         // This is a valid wrapping, but changes the runtime type
+         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/ro;
+         oo = /*severe:StaticTypeError*/rn;
+         oo = oo;
+         oo = /*severe:StaticTypeError*/nn;
+         oo = /*severe:StaticTypeError*/nnn;
+
+         nn = /*severe:StaticTypeError*/r;
+         nn = /*severe:StaticTypeError*/o;
+         // This is a valid wrapping, but changes the runtime type
+         nn = /*warning:ClosureWrap should be severe:StaticTypeError*/n;
+         nn = /*severe:StaticTypeError*/rr;
+         nn = /*severe:StaticTypeError*/ro;
+         nn = /*severe:StaticTypeError*/rn;
+         nn = /*severe:StaticTypeError*/oo;
+         nn = nn;
+         nn = nnn;
+
+         nnn = /*severe:StaticTypeError*/r;
+         nnn = /*severe:StaticTypeError*/o;
+         // This is a valid wrapping, but changes the runtime type
+         nnn = /*warning:ClosureWrap should be severe:StaticTypeError*/n;
+         nnn = /*severe:StaticTypeError*/rr;
+         nnn = /*severe:StaticTypeError*/ro;
+         nnn = /*severe:StaticTypeError*/rn;
+         nnn = /*severe:StaticTypeError*/oo;
+         // This is a valid wrapping, but changes the runtime type
+         nnn = /*warning:ClosureWrap should be severe:StaticTypeError*/nn;
+         nnn = nnn;
+      }
+   '''
+    });
+  });
+
   test('redirecting constructor', () {
     testChecker({
       '/main.dart': '''
