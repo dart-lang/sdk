@@ -13,13 +13,10 @@
 
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
-polymer/example/scoped_style/*: Skip
 
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
-polymer/test/build/script_compactor_test: Pass, Slow
-polymer/test/import_test: Skip # 17873
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
@@ -30,45 +27,7 @@ intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
 mutation_observer: Skip # Issue 21149
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931. Issue 19196.
-polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
-polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
-polymer/test/bind_test: Pass, RuntimeError # Issue 18931
-polymer/test/computed_properties_test: Pass, RuntimeError # Issue 18931
-polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
-polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_binding_release_handler_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_controller_test: Pass, RuntimeError # Issue 21012
-polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_path_declarative_test: Pass, RuntimeError, Timeout # Issue 18931
-polymer/test/events_test: Pass, RuntimeError # Issue 18931
-polymer/test/force_ready_test: Pass, RuntimeError # Issue 18931
-polymer/test/inject_bound_html_test: Pass, RuntimeError # Issue 18931
-polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
-polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
-polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
-polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
-polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
-polymer/test/web_components_less_test: Pass, RuntimeError # Issue 18931
-polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
-polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
-polymer/test/property_change_test: Pass, Timeout # Issue 18931
-polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
-polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
-polymer/test/register_test: Pass, RuntimeError # Issue 18931
-polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
-polymer/test/template_attr_template_test: Pass, RuntimeError # Issue 18931
-polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
-polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 18931
 web_components/test/interop_test: Pass, RuntimeError # Issue 18931
-
-[ $compiler == none && ($runtime == dartium) && $mode == debug ]
-polymer/test/instance_attrs_test: Skip # Issue 19496
-
-[ $compiler == none && $runtime == dartium && $system == windows ]
-polymer/test/property_observe_test: Skip # Sometimes times out. Issue 19326
-polymer/test/bind_properties_test: Skip # Sometimes times out. Issue 19326
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
@@ -82,7 +41,6 @@ analyzer/test/generated/element_test: Skip  # Times out
 analyzer/test/generated/parser_test: Skip  # Times out
 code_transformers/test/resolver_test: Skip  # Times out
 docgen/test/*: Skip # Slow
-polymer/test/build/all_phases_test: Skip # Slow
 smoke/test/codegen/end_to_end_test: Skip  # Times out
 smoke/test/codegen/recorder_test: Skip  # Times out
 template_binding/test/template_binding_test: Skip  # Times out
@@ -94,8 +52,6 @@ scheduled_test/test/scheduled_server_test: Pass, Fail, Slow # 13524
 barback/test/too_many_open_files_test: Skip # 14220
 code_transformers/test/resolver_test: Skip # Issue 17908
 docgen/test/*: Skip # Too slow
-polymer/test/build/all_phases_test: Skip # Slow
-polymer/test/build/script_compactor_test: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 analysis_server/*: Skip # Timeout in some tests.
 
@@ -125,14 +81,11 @@ analysis_server/test/edit/assists_test: Pass, Slow
 analysis_server/test/integration: Skip
 
 observe/test/unique_message_test: Skip # Intended only as a vm test.
-polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
 code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
-[ $checked && $runtime == drt ]
-polymer/test/event_handlers_test: Pass, RuntimeError # Issue 19190
 
 [ $compiler == dart2js && $runtime == drt ]
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
@@ -189,47 +142,6 @@ unittest/test/nested_groups_setup_teardown_test: RuntimeError # http://dartbug.c
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
-polymer/example: Skip # Uses dart:html
-polymer/e2e_test: Skip # Uses dart:html
-polymer/test/auto_binding_test: Skip # uses dart:html
-polymer/test/attr_deserialize_test: Skip # uses dart:html
-polymer/test/attr_mustache_test: Skip #uses dart:html
-polymer/test/bind_test: Skip # uses dart:html
-polymer/test/bind_mdv_test: Skip # uses dart:html
-polymer/test/bind_properties_test: Skip # uses dart:html
-polymer/test/build/log_injector_test: Skip # uses dart:html
-polymer/test/computed_properties_test: Skip # uses dart:html
-polymer/test/custom_event_test: Skip # uses dart:html
-polymer/test/entered_view_test: Skip # uses dart:html
-polymer/test/event_binding_release_handler_test: Skip #uses dart:html
-polymer/test/event_controller_test: Skip #uses dart:html
-polymer/test/event_handlers_test: Skip #uses dart:html
-polymer/test/event_path_declarative_test: Skip #uses dart:html
-polymer/test/event_path_test: Skip #uses dart:html
-polymer/test/events_test: Skip #uses dart:html
-polymer/test/force_ready_test: Skip # uses dart:html
-polymer/test/import_test: Skip # uses dart:html
-polymer/test/inject_bound_html_test: Skip # uses dart:html
-polymer/test/instance_attrs_test: Skip #uses dart:html
-polymer/test/js_custom_event_test: Skip #uses dart:html
-polymer/test/js_interop_test: Skip #uses dart:html
-polymer/test/layout_test: Skip #uses dart:html
-polymer/test/mirror_loader_test: Skip # uses dart:html
-polymer/test/nested_binding_test: Skip # uses dart:html
-polymer/test/noscript_test: Skip #uses dart:html
-polymer/test/web_components_less_test: Skip #uses dart:html
-polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
-polymer/test/prop_attr_reflection_test: Skip #uses dart:html
-polymer/test/property_change_test: Skip # uses dart:html
-polymer/test/property_observe_test: Skip #uses dart:html
-polymer/test/publish_attributes_test: Skip #uses dart:html
-polymer/test/publish_inherited_properties_test: Skip #uses dart:html
-polymer/test/register_test: Skip #uses dart:html
-polymer/test/take_attributes_test: Skip #uses dart:html
-polymer/test/template_attr_template_test: Skip #uses dart:html
-polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
-polymer/test/two_way_bind_test: Skip #uses dart:html
-polymer/test/unbind_test: Skip # uses dart:html
 third_party/angular_tests/browser_test: Skip # uses dart:html
 web_components/test/*: Skip # uses dart:html
 
@@ -246,16 +158,12 @@ intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
 [ $ie ]
-polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 polymer_expressions/test/syntax_test: Fail, Timeout, Pass # Issue 19138
 observe/test/list_path_observer_test: RuntimeError, Pass # Issue 20849
-polymer/test/template_attr_template_test: RuntimeError # Issue 20897
 
 [ $runtime == ie10 ]
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
-polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
-polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
 polymer_expressions/*: Pass, RuntimeError # Issue 19265
 template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
@@ -274,15 +182,6 @@ scheduled_test/test/scheduled_test/wrap_future_test: Skip # Issue 21007
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
-[ $runtime == safari ]
-polymer/test/*: Skip # Issue 21434
-polymer/test/js_interop_test: Pass, RuntimeError # Issue 20075
-
-[ $runtime == safari || $ie ]
-polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 20075
-
-[ $runtime == ff ]
-polymer/test/layout_test: RuntimeError # Issue 21787
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -300,8 +199,6 @@ analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 # them in the analyzer.
 mock/test/mock_regexp_negative_test: Skip
 mock/test/mock_stepwise_negative_test: Skip
-polymer/e2e_test/canonicalization: Skip
-polymer/e2e_test/experimental_boot: Skip
 
 compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
 
@@ -309,10 +206,6 @@ compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
 # This test uses third_party/pkg/perf_api/lib/perf_api.dart, which
 # contains illegal constant constructors.
 third_party/angular_tests/browser_test: CompileTimeError
-
-[ $compiler == dart2js && $runtime == none]
-polymer/e2e_test/canonicalization: Skip
-polymer/e2e_test/experimental_boot: Skip
 
 [ $compiler == dart2js && $csp ]
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
@@ -329,16 +222,6 @@ stack_trace/test/vm_test: Fail, OK # VM-specific traces
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
-polymer/example/component: Fail # Issue 13198
-polymer/e2e_test/canonicalization/test/dev1_test: Fail, OK # tests development only behavior
-polymer/e2e_test/canonicalization/test/dev2_test: Fail, OK # tests development only behavior
-polymer/e2e_test/canonicalization/test/dev3_test: Fail, OK # tests development only behavior
-polymer/e2e_test/canonicalization/test/dir/dev1_test: Fail, OK # tests development only behavior
-polymer/e2e_test/canonicalization/test/dir/dev2_test: Fail, OK # tests development only behavior
-polymer/e2e_test/bad_import1: RuntimeError # Issue 17596
-polymer/e2e_test/bad_import2: RuntimeError # Issue 17596
-polymer/e2e_test/bad_import3: Fail, OK # tests broken import
-polymer/test/mirror_loader_test: Skip # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
@@ -371,16 +254,6 @@ intl/test/message_extraction/embedded_plural_text_before_test: Fail, OK # Uses d
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: Skip # Intended only as a vm test.
 path/test/io_test: Fail, OK # Uses dart:io.
-polymer/test/build/all_phases_test: Fail, OK # Uses dart:io.
-polymer/test/build/polyfill_injector_test: Fail, OK # Uses dart:io.
-polymer/test/build/static_clean_test: Fail, OK # Uses dart:io.
-polymer/test/build/build_log_combiner_test: Fail, OK # Uses dart:io.
-polymer/test/build/script_compactor_test: Fail, OK # Uses dart:io.
-polymer/test/build/utils_test: Fail, OK # Uses dart:io.
-polymer/test/build/index_page_builder_test: Fail, OK # Uses dart:io.
-polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
-polymer/test/build/linter_test: Fail, OK # Uses dart:io.
-polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
@@ -396,8 +269,6 @@ watcher/test/*: Fail, OK # Uses dart:io.
 third_party/html5lib/test/parser_test: Skip
 third_party/html5lib/test/tokenizer_test: Skip
 third_party/html5lib/test/selectors/*: Skip
-
-polymer/test/unbind_test: Pass, Fail # Issue 15259
 
 [ $minified == false ]
 # The minified unittest tests test that the minified names of Dart types are
@@ -416,12 +287,6 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
-polymer/e2e_test/canonicalization/test/deploy1_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/dir/dev2_test: RuntimeError # Issue 17596
-polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
 scheduled_test/test/descriptor/*: RuntimeError # 13921
 scheduled_test/test/scheduled_future_matchers_test: RuntimeError # 13921
 scheduled_test/test/scheduled_process_test: RuntimeError # 13921

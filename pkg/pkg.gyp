@@ -18,8 +18,6 @@
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
-                '"polymer/e2e_test/"])',
-            '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../runtime/bin/vmservice"])',
             '../sdk/lib/_internal',
             '../site/try',
