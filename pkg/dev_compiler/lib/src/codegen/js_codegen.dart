@@ -738,8 +738,37 @@ var $name = (function (_super) {
   }
 
   @override
-  void visitStringLiteral(StringLiteral node) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    // TODO(jmesserly): does this work for other quote styles?
     out.write('"${node.stringValue}"');
+  }
+
+  @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    _visitNodeList(node.strings, separator: ' + ');
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    _visitNodeList(node.elements, separator: ' + ');
+  }
+
+  @override
+  void visitInterpolationString(InterpolationString node) {
+    out.write('"${node.value}"');
+  }
+
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    // TODO(jmesserly): skip parens if not needed.
+    out.write('(');
+    node.expression.accept(this);
+    // Assuming we implement toString() on our objects, we can avoid calling it
+    // in most cases. The potential is builtin types which may differ.
+    // For example, Dart's concrete List type does not have the same toString
+    // as Array.prototype.toString().
+    // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-addition-operator-plus-runtime-semantics-evaluation
+    out.write(')');
   }
 
   @override

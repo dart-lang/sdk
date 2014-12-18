@@ -32,7 +32,7 @@ var sunflower;
       var r = dart.math.sqrt(i) * SCALE_FACTOR;
       sunflower.drawSeed(centerX + r * dart.math.cos(theta), centerY - r * dart.math.sin(theta));
     }
-    notes.textContent = "null";
+    notes.textContent = "" + (seeds) + " seeds";
   }
   sunflower.draw = draw;
 
