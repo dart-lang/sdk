@@ -34,8 +34,6 @@ analyzer/test/generated/element_test: Skip  # Times out
 analyzer/test/generated/parser_test: Skip  # Times out
 code_transformers/test/resolver_test: Skip  # Times out
 docgen/test/*: Skip # Slow
-smoke/test/codegen/end_to_end_test: Skip  # Times out
-smoke/test/codegen/recorder_test: Skip  # Times out
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
 barback/test/package_graph/repetition_test: Skip  # Times out
 
@@ -207,8 +205,6 @@ intl/test/message_extraction/embedded_plural_text_before_test: Fail, OK # Uses d
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: Skip # Intended only as a vm test.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
-smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
-smoke/test/codegen/recorder_test: Skip # Uses dart:io.
 stub_core_library/test/*: Fail, OK # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 third_party/angular_tests/vm_test: Skip # Uses dart:io
