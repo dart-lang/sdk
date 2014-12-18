@@ -71,7 +71,6 @@ analysis_server/test/edit/assists_test: Pass, Slow
 # subprocess.
 analysis_server/test/integration: Skip
 
-observe/test/unique_message_test: Skip # Intended only as a vm test.
 code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
 
 [ $compiler == dart2js && $checked ]
@@ -130,7 +129,6 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 
 [ $ie ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
-observe/test/list_path_observer_test: RuntimeError, Pass # Issue 20849
 
 [ $runtime == ie10 ]
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
