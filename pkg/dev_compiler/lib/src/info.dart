@@ -300,5 +300,6 @@ final List<Type> infoTypes = () {
     }
   }
   allTypes.removeAll(baseTypes);
-  return new List<Type>.from(allTypes.map((mirror) => mirror.reflectedType));
+  return new List<Type>.from(allTypes.map((mirror) => mirror.reflectedType))
+    ..sort((t1, t2) => '$t1'.compareTo('$t2'));
 }();
