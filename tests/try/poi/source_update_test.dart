@@ -5,11 +5,16 @@
 /// Test [source_update.dart].
 library trydart.source_update_test;
 
+import 'dart:convert' show
+    JSON;
+
 import 'package:expect/expect.dart' show
     Expect;
 
 import 'source_update.dart' show
-    expandUpdates;
+    expandUpdates,
+    splitFiles,
+    splitLines;
 
 main() {
   Expect.listEquals(
@@ -27,4 +32,40 @@ main() {
   Expect.throws(() {
     expandUpdates(["head ", ["v1", "v2"], " tail ", ["v1", "v2", "v3"]]);
   });
+
+  Expect.stringEquals(
+      JSON.encode({
+          "file1.dart": """
+First line of file 1.
+Second line of file 1.
+Third line of file 1.
+""",
+          "empty.dart":"",
+          "file2.dart":"""
+First line of file 2.
+Second line of file 2.
+Third line of file 2.
+"""}),
+
+      JSON.encode(splitFiles(r"""
+==> file1.dart <==
+First line of file 1.
+Second line of file 1.
+Third line of file 1.
+==> empty.dart <==
+==> file2.dart <==
+First line of file 2.
+Second line of file 2.
+Third line of file 2.
+""")));
+
+  Expect.stringEquals("{}", JSON.encode(splitFiles("")));
+
+  Expect.stringEquals("[]", JSON.encode(splitLines("")));
+
+  Expect.stringEquals('["1"]', JSON.encode(splitLines("1")));
+
+  Expect.stringEquals('["\\n"]', JSON.encode(splitLines("\n")));
+
+  Expect.stringEquals('["\\n","1"]', JSON.encode(splitLines("\n1")));
 }

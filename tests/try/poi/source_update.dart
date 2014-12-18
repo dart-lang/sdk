@@ -39,3 +39,76 @@ List<String> expandUpdates(List updates) {
 
   return result.map((e) => '$e').toList();
 }
+
+/// Returns [files] split into mulitple named files. The keys in the returned
+/// map are filenames, the values are the files' content.
+///
+/// Names are indicated by a line on the form "==> filename <==". Spaces are
+/// significant. For example, given this input:
+///
+///     ==> file1.dart <==
+///     First line of file 1.
+///     Second line of file 1.
+///     Third line of file 1.
+///     ==> empty.dart <==
+///     ==> file2.dart <==
+///     First line of file 2.
+///     Second line of file 2.
+///     Third line of file 2.
+///
+/// This function would return:
+///
+///     {
+///       "file1.dart": """
+///     First line of file 1.
+///     Second line of file 1.
+///     Third line of file 1.
+///     """,
+///
+///       "empty.dart":"",
+///
+///       "file2.dart":"""
+///     First line of file 2.
+///     Second line of file 2.
+///     Third line of file 2.
+///     """
+///     }
+Map<String, String> splitFiles(String files) {
+  Map<String, String> result = <String, String>{};
+  String currentName;
+  List<String> content;
+  void finishFile() {
+    if (currentName != null) {
+      if (result.containsKey(currentName)) {
+        throw new ArgumentError("Duplicated filename $currentName in $files");
+      }
+      result[currentName] = content.join('');
+    }
+    content = null;
+  }
+  void processDirective(String line) {
+    finishFile();
+    if (line.length < 8 || !line.endsWith(" <==\n")) {
+      throw new ArgumentError(
+          "Malformed line: expected '==> ... <==', but got: '$line'");
+    }
+    currentName = line.substring(4, line.length - 5);
+    content = <String>[];
+  }
+  for (String line in splitLines(files)) {
+    if (line.startsWith("==>")) {
+      processDirective(line);
+    } else {
+      content.add(line);
+    }
+  }
+  finishFile();
+  return result;
+}
+
+/// Split [text] into lines preserving trailing newlines (unlike
+/// String.split("\n"). Also, if [text] is empty, return an empty list (unlike
+/// String.split("\n")).
+List<String> splitLines(String text) {
+  return text.split(new RegExp('^', multiLine: true));
+}
