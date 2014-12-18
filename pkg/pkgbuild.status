@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 samples/third_party/dromaeo: Pass, Slow
-samples/third_party/todomvc_performance: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
@@ -13,13 +12,15 @@ pkg/browser: PubGetError
 pkg/intl: PubGetError # Issue 19782
 pkg/third_party/html5lib: PubGetError # angular needs to be updated
 samples/third_party/angular_todo: Fail # angular needs to be updated
+samples/third_party/todomvc_performance: Skip # dependencies are not in the repo
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
 third_party/pkg/async_await: Skip # Uses expect package.
+samples/third_party/todomvc_performance: Pass, Slow
 
 [ $builder_tag == russian ]
 samples/third_party/angular_todo: Fail # Issue 16356
 
-[ $system == windows ]
+[ $use_public_packages && $system == windows ]
 samples/third_party/todomvc_performance: Fail # Issue 18086
