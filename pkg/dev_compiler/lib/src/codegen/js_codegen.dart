@@ -62,14 +62,6 @@ var $libName;
     node.expression.accept(this);
   }
 
-  // These conversions do not require JS code. We store primitives using their
-  // JS equivalent values, rather than in boxed form, and int and double are
-  // both stored as JS numbers (which is essentially a double).
-  @override void visitBox(Box node) => node.expression.accept(this);
-  @override void visitUnbox(Unbox node) => node.expression.accept(this);
-  @override void visitNumericConversion(NumericConversion node) =>
-      node.expression.accept(this);
-
   @override
   void visitAsExpression(AsExpression node) {
     out.write('/* Unimplemented: as ${node.type.name.name}. */');
@@ -641,7 +633,7 @@ var $name = (function (_super) {
     var expr = node.operand;
 
     var dispatchType = rules.getStaticType(expr);
-    if (rules.isPrimitive(dispatchType)) {
+    if (unaryOperationIsPrimitive(dispatchType)) {
       // TODO(vsm): When do Dart ops not map to JS?
       out.write('$op');
       expr.accept(this);

@@ -115,53 +115,6 @@ abstract class Conversion extends Expression implements StaticInfo {
   int get precedence => 15;
 }
 
-class Box extends Conversion {
-  Box(TypeRules rules, Expression expression) : super(rules, expression);
-
-  DartType _getConvertedType() {
-    assert(rules.isBoxable(baseType));
-    return rules.boxedType(baseType);
-  }
-
-  bool get safe => true;
-
-  String get message => '$expression ($baseType) must be boxed';
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitBox(this);
-    } else {
-      return expression.accept(visitor);
-    }
-  }
-}
-
-class Unbox extends Conversion {
-  DartType _unboxedType;
-
-  Unbox(TypeRules rules, Expression expression, this._unboxedType)
-      : super(rules, expression) {
-    assert(rules.isBoxable(_unboxedType));
-  }
-
-  DartType _getConvertedType() => _unboxedType;
-
-  // TODO(vsm): Could be safe for num->double and once we represent boxed int
-  // and boxed double.
-  bool get safe => false;
-
-  String get message =>
-      '$expression ($baseType) must be unboxed to type $convertedType';
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitUnbox(this);
-    } else {
-      return expression.accept(visitor);
-    }
-  }
-}
-
 class DownCast extends Conversion {
   DartType _newType;
 
@@ -208,30 +161,6 @@ class ClosureWrap extends Conversion {
   accept(AstVisitor visitor) {
     if (visitor is ConversionVisitor) {
       return visitor.visitClosureWrap(this);
-    } else {
-      return expression.accept(visitor);
-    }
-  }
-}
-
-class NumericConversion extends Conversion {
-  // int to double only?
-
-  NumericConversion(TypeRules rules, Expression expression)
-      : super(rules, expression) {
-    assert(baseType == rules.provider.intType);
-  }
-
-  bool get safe => true;
-
-  DartType _getConvertedType() => rules.provider.doubleType;
-
-  String get message =>
-      '$expression ($baseType) should be converted to type $convertedType';
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitNumericConversion(this);
     } else {
       return expression.accept(visitor);
     }
@@ -353,12 +282,8 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
   R visitConversion(Conversion node) => visitNode(node);
 
   // Methods for conversion subtypes:
-
-  R visitBox(Box node) => visitConversion(node);
-  R visitUnbox(Unbox node) => visitConversion(node);
   R visitDownCast(DownCast node) => visitConversion(node);
   R visitClosureWrap(ClosureWrap node) => visitConversion(node);
-  R visitNumericConversion(NumericConversion node) => visitConversion(node);
   R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);
 }
 
