@@ -362,6 +362,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     final semanticNode = _getSemanticNode(node);
     assert(semanticNode.dynamicInvoke == null);
     semanticNode.dynamicInvoke = info;
+    semanticNode.messages.add(info);
     logCheckerMessage(info);
   }
 

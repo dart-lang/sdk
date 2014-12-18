@@ -54,8 +54,9 @@ class SemanticNode {
   /// If this operation is dynamically dispatched, this will be set.
   DynamicInvoke dynamicInvoke;
 
-  /// Any other error or warning messages about this node.
-  /// These messages are not used when generating code.
+  /// All error or warning messages about this node, including [dynamicInvoke].
+  /// Except for [dynamicInvoke] all other messages here are not used when
+  /// generating code.
   final messages = <StaticInfo>[];
 
   SemanticNode(this.node);
