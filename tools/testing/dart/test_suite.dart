@@ -276,12 +276,13 @@ abstract class TestSuite {
 
     // Update Summary report
     if (configuration['report']) {
-      SummaryReport.add(expectations);
       if (testCase.expectCompileError &&
           TestUtils.isBrowserRuntime(configuration['runtime']) &&
           new CompilerConfiguration(configuration).hasCompiler) {
         SummaryReport.addCompileErrorSkipTest();
         return;
+      } else {
+        SummaryReport.add(expectations);
       }
     }
 
