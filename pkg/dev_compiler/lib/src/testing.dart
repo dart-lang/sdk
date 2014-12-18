@@ -74,7 +74,6 @@ CheckerResults testChecker(Map<String, String> testFiles,
     lib.nodeInfo.forEach((key, value) {
       var actual = [];
       actual.addAll(value.messages);
-      if (value.dynamicInvoke != null) actual.add(value.dynamicInvoke);
       var expected = expectedErrors[key];
       var expectedTotal = expected == null ? 0 : expected.length;
       if (actual.length != expectedTotal) {
