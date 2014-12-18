@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:unittest/unittest.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'mock_sdk.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer2dart/src/identifier_semantics.dart';
+import 'package:unittest/unittest.dart';
+
+import 'mock_sdk.dart';
 
 main() {
   test('Call function defined at top level', () {
@@ -565,6 +566,142 @@ f() {
     helper.checkDynamic('h().x()', 'h()', 'x', isInvoke: true);
   });
 
+  test('Call class defined at top level', () {
+    Helper helper = new Helper('''
+class A {}
+
+f() {
+  A();
+}
+''');
+    helper.checkTypeReference(
+        'A()',
+        'A',
+        AccessKind.TOPLEVEL_TYPE,
+        isInvoke: true);
+  });
+
+  test('Call class defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+f() {
+  l.A();
+}
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+class A {}
+''');
+    helper.checkTypeReference(
+        'l.A()',
+        'A',
+        AccessKind.TOPLEVEL_TYPE,
+        isInvoke: true);
+  });
+
+  test('Call dynamic type undefined at toplevel', () {
+    Helper helper = new Helper('''
+f() {
+  dynamic();
+}
+''');
+    // Since it is legal to define a toplevel function or a class member called
+    // dynamic, "dynamic()" must be treated as a dynamic access to a function
+    // called "dynamic".
+    helper.checkDynamic('dynamic()', null, 'dynamic', isInvoke: true);
+  });
+
+  test('Call function typedef defined at top level', () {
+    Helper helper = new Helper('''
+typedef F();
+
+f() {
+  F();
+}
+''');
+    helper.checkTypeReference(
+        'F()',
+        'F',
+        AccessKind.TOPLEVEL_TYPE,
+        isInvoke: true);
+  });
+
+  test('Call function typedef defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+f() {
+  l.F();
+}
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+typedef F();
+''');
+    helper.checkTypeReference(
+        'l.F()',
+        'F',
+        AccessKind.TOPLEVEL_TYPE,
+        isInvoke: true);
+  });
+
+  test('Call mixin application defined at top level', () {
+    Helper helper = new Helper('''
+class A {}
+class B {}
+class C = A with B;
+
+f() {
+  C();
+}
+''');
+    helper.checkTypeReference(
+        'C()',
+        'C',
+        AccessKind.TOPLEVEL_TYPE,
+        isInvoke: true);
+  });
+
+  test('Call mixin application defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+f() {
+  l.C();
+}
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+class A {}
+class B {}
+class C = A with B;
+''');
+    helper.checkTypeReference(
+        'l.C()',
+        'C',
+        AccessKind.TOPLEVEL_TYPE,
+        isInvoke: true);
+  });
+
+  test('Call type parameter of enclosing class', () {
+    Helper helper = new Helper('''
+class A<T, U> {
+  f() {
+    U();
+  }
+}
+''');
+    helper.checkTypeReference(
+        'U()',
+        'U',
+        AccessKind.TYPE_PARAMETER,
+        isInvoke: true);
+  });
+
   test('Get function defined at top level', () {
     Helper helper = new Helper('''
 g() {}
@@ -1097,7 +1234,7 @@ f() {
 class A {}
 var t = A;
 ''');
-    helper.checkTypeReference('A', 'A', AccessKind.TOPLEVEL_TYPE);
+    helper.checkTypeReference('A', 'A', AccessKind.TOPLEVEL_TYPE, isRead: true);
   });
 
   test('Get class defined at top level via prefix', () {
@@ -1109,16 +1246,24 @@ var t = l.A;
     helper.addFile('/lib.dart', '''
 library lib;
 
-class A;
+class A {}
 ''');
-    helper.checkTypeReference('l.A', 'A', AccessKind.TOPLEVEL_TYPE);
+    helper.checkTypeReference(
+        'l.A',
+        'A',
+        AccessKind.TOPLEVEL_TYPE,
+        isRead: true);
   });
 
   test('Get dynamic type', () {
     Helper helper = new Helper('''
 var t = dynamic;
 ''');
-    helper.checkTypeReference('dynamic', 'dynamic', AccessKind.TOPLEVEL_TYPE);
+    helper.checkTypeReference(
+        'dynamic',
+        'dynamic',
+        AccessKind.TOPLEVEL_TYPE,
+        isRead: true);
   });
 
   test('Get function typedef defined at top level', () {
@@ -1126,7 +1271,7 @@ var t = dynamic;
 typedef F();
 var t = F;
 ''');
-    helper.checkTypeReference('F', 'F', AccessKind.TOPLEVEL_TYPE);
+    helper.checkTypeReference('F', 'F', AccessKind.TOPLEVEL_TYPE, isRead: true);
   });
 
   test('Get function typedef defined at top level via prefix', () {
@@ -1140,7 +1285,11 @@ library lib;
 
 typedef F();
 ''');
-    helper.checkTypeReference('l.F', 'F', AccessKind.TOPLEVEL_TYPE);
+    helper.checkTypeReference(
+        'l.F',
+        'F',
+        AccessKind.TOPLEVEL_TYPE,
+        isRead: true);
   });
 
   test('Get mixin application defined at top level', () {
@@ -1150,7 +1299,7 @@ class B {}
 class C = A with B;
 var t = C;
 ''');
-    helper.checkTypeReference('C', 'C', AccessKind.TOPLEVEL_TYPE);
+    helper.checkTypeReference('C', 'C', AccessKind.TOPLEVEL_TYPE, isRead: true);
   });
 
   test('Get mixin application defined at top level via prefix', () {
@@ -1162,11 +1311,15 @@ var t = l.C;
     helper.addFile('/lib.dart', '''
 library lib;
 
-class A;
-class B;
+class A {}
+class B {}
 class C = A with B;
 ''');
-    helper.checkTypeReference('l.C', 'C', AccessKind.TOPLEVEL_TYPE);
+    helper.checkTypeReference(
+        'l.C',
+        'C',
+        AccessKind.TOPLEVEL_TYPE,
+        isRead: true);
   });
 
   test('Get type parameter of enclosing class', () {
@@ -1177,7 +1330,11 @@ class A<T, U> {
   }
 }
 ''');
-    helper.checkTypeReference('U', 'U', AccessKind.TYPE_PARAMETER);
+    helper.checkTypeReference(
+        'U',
+        'U',
+        AccessKind.TYPE_PARAMETER,
+        isRead: true);
   });
 
   test('Set variable defined at top level', () {
@@ -1231,8 +1388,9 @@ class A {
     helper.checkStaticField('x', 'A', 'x', isWrite: true);
   });
 
-  test('Set field defined statically in class from inside class in foreach' +
-      ' loop', () {
+  test(
+      'Set field defined statically in class from inside class in foreach' + ' loop',
+      () {
     Helper helper = new Helper('''
 class A {
   static var x;
@@ -1291,8 +1449,9 @@ class A {
     helper.checkDynamic('x', null, 'x', isWrite: true);
   });
 
-  test('Set field defined dynamically in class from inside class in foreach' +
-      ' loop', () {
+  test(
+      'Set field defined dynamically in class from inside class in foreach' + ' loop',
+      () {
     Helper helper = new Helper('''
 class A {
   var x;
@@ -1426,8 +1585,10 @@ class A {
     helper.checkStaticProperty('x', 'A', 'x', true, isWrite: true);
   });
 
-  test('Set accessor defined statically in class from inside class in' +
-      ' foreach loop', () {
+  test(
+      'Set accessor defined statically in class from inside class in' +
+          ' foreach loop',
+      () {
     Helper helper = new Helper('''
 class A {
   static set x(value) {}
@@ -1486,8 +1647,10 @@ class A {
     helper.checkDynamic('x', null, 'x', isWrite: true);
   });
 
-  test('Set accessor defined dynamically in class from inside class in' +
-      ' foreach loop', () {
+  test(
+      'Set accessor defined dynamically in class from inside class in' +
+          ' foreach loop',
+      () {
     Helper helper = new Helper('''
 class A {
   set x(value) {}
@@ -1628,8 +1791,10 @@ class A {
     helper.checkDynamic('x', null, 'x', isWrite: true);
   });
 
-  test('Set accessor undefined dynamically in class from inside class in' +
-      ' foreach loop', () {
+  test(
+      'Set accessor undefined dynamically in class from inside class in' +
+          ' foreach loop',
+      () {
     Helper helper = new Helper('''
 class A {
   f() {
@@ -2081,6 +2246,8 @@ f() {
   });
 }
 
+typedef void AccessHandler(Expression node, AccessSemantics semantics);
+
 class Helper {
   final MemoryResourceProvider provider = new MemoryResourceProvider();
   Source rootSource;
@@ -2103,116 +2270,12 @@ class Helper {
     context.applyChanges(changeSet);
   }
 
-  void addFile(String path, String contents) {
-    provider.newFile(path, contents);
-  }
-
   LibraryElement get libraryElement {
     return context.computeLibraryElement(rootSource);
   }
 
-  /**
-   * Verify that the node represented by [expectedSource] is classified as
-   * a static field element reference.
-   */
-  void checkStaticField(String expectedSource, String expectedClass,
-      String expectedName, {bool isRead: false, bool isWrite: false, bool isInvoke:
-      false}) {
-    TestVisitor visitor = new TestVisitor();
-    int count = 0;
-    visitor.onAccess = (Expression node, AccessSemantics semantics) {
-      count++;
-      expect(node.toSource(), equals(expectedSource));
-      expect(semantics.kind, equals(AccessKind.STATIC_FIELD));
-      expect(semantics.identifier.name, equals(expectedName));
-      expect(semantics.element.displayName, equals(expectedName));
-      if (expectedClass == null) {
-        expect(semantics.classElement, isNull);
-      } else {
-        expect(semantics.classElement, isNotNull);
-        expect(semantics.classElement.displayName, equals(expectedClass));
-      }
-      expect(semantics.target, isNull);
-      expect(semantics.isRead, equals(isRead));
-      expect(semantics.isWrite, equals(isWrite));
-      expect(semantics.isInvoke, equals(isInvoke));
-    };
-    libraryElement.unit.accept(visitor);
-    expect(count, equals(1));
-  }
-
-  /**
-   * Verify that the node represented by [expectedSource] is classified as
-   * a static property access.
-   */
-  void checkStaticProperty(String expectedSource, String expectedClass,
-      String expectedName, bool defined, {bool isRead: false, bool isWrite: false,
-      bool isInvoke: false}) {
-    TestVisitor visitor = new TestVisitor();
-    int count = 0;
-    visitor.onAccess = (Expression node, AccessSemantics semantics) {
-      count++;
-      expect(node.toSource(), equals(expectedSource));
-      expect(semantics.kind, equals(AccessKind.STATIC_PROPERTY));
-      expect(semantics.identifier.name, equals(expectedName));
-      if (expectedClass == null) {
-        expect(semantics.classElement, isNull);
-      } else {
-        expect(semantics.classElement, isNotNull);
-        expect(semantics.classElement.displayName, equals(expectedClass));
-      }
-      if (defined) {
-        expect(semantics.element.displayName, equals(expectedName));
-      } else {
-        expect(semantics.element, isNull);
-      }
-      expect(semantics.target, isNull);
-      expect(semantics.isRead, equals(isRead));
-      expect(semantics.isWrite, equals(isWrite));
-      expect(semantics.isInvoke, equals(isInvoke));
-    };
-    libraryElement.unit.accept(visitor);
-    expect(count, equals(1));
-  }
-
-  /**
-   * Verify that the node represented by [expectedSource] is classified as
-   * a static method.
-   */
-  void checkStaticMethod(String expectedSource, String expectedClass,
-      String expectedName, bool defined, {bool isRead: false, bool isWrite: false,
-      bool isInvoke: false}) {
-    TestVisitor visitor = new TestVisitor();
-    int count = 0;
-    visitor.onAccess = (AstNode node, AccessSemantics semantics) {
-      count++;
-      expect(node.toSource(), equals(expectedSource));
-      expect(semantics.kind, equals(AccessKind.STATIC_METHOD));
-      expect(semantics.identifier.name, equals(expectedName));
-      if (expectedClass == null) {
-        expect(semantics.classElement, isNull);
-        if (defined) {
-          expect(semantics.element, new isInstanceOf<FunctionElement>());
-        }
-      } else {
-        expect(semantics.classElement, isNotNull);
-        expect(semantics.classElement.displayName, equals(expectedClass));
-        if (defined) {
-          expect(semantics.element, new isInstanceOf<MethodElement>());
-        }
-      }
-      if (defined) {
-        expect(semantics.element.displayName, equals(expectedName));
-      } else {
-        expect(semantics.element, isNull);
-      }
-      expect(semantics.target, isNull);
-      expect(semantics.isRead, equals(isRead));
-      expect(semantics.isWrite, equals(isWrite));
-      expect(semantics.isInvoke, equals(isInvoke));
-    };
-    libraryElement.unit.accept(visitor);
-    expect(count, equals(1));
+  void addFile(String path, String contents) {
+    provider.newFile(path, contents);
   }
 
   /**
@@ -2315,11 +2378,115 @@ class Helper {
   }
 
   /**
+   * Verify that the node represented by [expectedSource] is classified as
+   * a static field element reference.
+   */
+  void checkStaticField(String expectedSource, String expectedClass,
+      String expectedName, {bool isRead: false, bool isWrite: false, bool isInvoke:
+      false}) {
+    TestVisitor visitor = new TestVisitor();
+    int count = 0;
+    visitor.onAccess = (Expression node, AccessSemantics semantics) {
+      count++;
+      expect(node.toSource(), equals(expectedSource));
+      expect(semantics.kind, equals(AccessKind.STATIC_FIELD));
+      expect(semantics.identifier.name, equals(expectedName));
+      expect(semantics.element.displayName, equals(expectedName));
+      if (expectedClass == null) {
+        expect(semantics.classElement, isNull);
+      } else {
+        expect(semantics.classElement, isNotNull);
+        expect(semantics.classElement.displayName, equals(expectedClass));
+      }
+      expect(semantics.target, isNull);
+      expect(semantics.isRead, equals(isRead));
+      expect(semantics.isWrite, equals(isWrite));
+      expect(semantics.isInvoke, equals(isInvoke));
+    };
+    libraryElement.unit.accept(visitor);
+    expect(count, equals(1));
+  }
+
+  /**
+   * Verify that the node represented by [expectedSource] is classified as
+   * a static method.
+   */
+  void checkStaticMethod(String expectedSource, String expectedClass,
+      String expectedName, bool defined, {bool isRead: false, bool isWrite: false,
+      bool isInvoke: false}) {
+    TestVisitor visitor = new TestVisitor();
+    int count = 0;
+    visitor.onAccess = (AstNode node, AccessSemantics semantics) {
+      count++;
+      expect(node.toSource(), equals(expectedSource));
+      expect(semantics.kind, equals(AccessKind.STATIC_METHOD));
+      expect(semantics.identifier.name, equals(expectedName));
+      if (expectedClass == null) {
+        expect(semantics.classElement, isNull);
+        if (defined) {
+          expect(semantics.element, new isInstanceOf<FunctionElement>());
+        }
+      } else {
+        expect(semantics.classElement, isNotNull);
+        expect(semantics.classElement.displayName, equals(expectedClass));
+        if (defined) {
+          expect(semantics.element, new isInstanceOf<MethodElement>());
+        }
+      }
+      if (defined) {
+        expect(semantics.element.displayName, equals(expectedName));
+      } else {
+        expect(semantics.element, isNull);
+      }
+      expect(semantics.target, isNull);
+      expect(semantics.isRead, equals(isRead));
+      expect(semantics.isWrite, equals(isWrite));
+      expect(semantics.isInvoke, equals(isInvoke));
+    };
+    libraryElement.unit.accept(visitor);
+    expect(count, equals(1));
+  }
+
+  /**
+   * Verify that the node represented by [expectedSource] is classified as
+   * a static property access.
+   */
+  void checkStaticProperty(String expectedSource, String expectedClass,
+      String expectedName, bool defined, {bool isRead: false, bool isWrite: false,
+      bool isInvoke: false}) {
+    TestVisitor visitor = new TestVisitor();
+    int count = 0;
+    visitor.onAccess = (Expression node, AccessSemantics semantics) {
+      count++;
+      expect(node.toSource(), equals(expectedSource));
+      expect(semantics.kind, equals(AccessKind.STATIC_PROPERTY));
+      expect(semantics.identifier.name, equals(expectedName));
+      if (expectedClass == null) {
+        expect(semantics.classElement, isNull);
+      } else {
+        expect(semantics.classElement, isNotNull);
+        expect(semantics.classElement.displayName, equals(expectedClass));
+      }
+      if (defined) {
+        expect(semantics.element.displayName, equals(expectedName));
+      } else {
+        expect(semantics.element, isNull);
+      }
+      expect(semantics.target, isNull);
+      expect(semantics.isRead, equals(isRead));
+      expect(semantics.isWrite, equals(isWrite));
+      expect(semantics.isInvoke, equals(isInvoke));
+    };
+    libraryElement.unit.accept(visitor);
+    expect(count, equals(1));
+  }
+
+  /**
    * Verify that the node represented by [expectedSource] is classified as a
    * reference to a toplevel class or a type parameter.
    */
-  void checkTypeReference(
-      String expectedSource, String expectedName, AccessKind expectedKind) {
+  void checkTypeReference(String expectedSource, String expectedName,
+      AccessKind expectedKind, {bool isRead: false, bool isInvoke: false}) {
     TestVisitor visitor = new TestVisitor();
     int count = 0;
     visitor.onAccess = (AstNode node, AccessSemantics semantics) {
@@ -2329,16 +2496,14 @@ class Helper {
       expect(semantics.element.name, equals(expectedName));
       expect(semantics.classElement, isNull);
       expect(semantics.target, isNull);
-      expect(semantics.isRead, isTrue);
+      expect(semantics.isRead, equals(isRead));
       expect(semantics.isWrite, isFalse);
-      expect(semantics.isInvoke, isFalse);
+      expect(semantics.isInvoke, equals(isInvoke));
     };
     libraryElement.unit.accept(visitor);
     expect(count, equals(1));
   }
 }
-
-typedef void AccessHandler(Expression node, AccessSemantics semantics);
 
 /**
  * Visitor class used to run the tests.

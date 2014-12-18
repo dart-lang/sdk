@@ -10,6 +10,10 @@ library analyzer2dart.identifierSemantics;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
 
+// TODO(johnniwinther,paulberry): This should be a constant.
+final AccessSemanticsVisitor ACCESS_SEMANTICS_VISITOR =
+    new AccessSemanticsVisitor();
+
 /**
  * Enum representing the different kinds of destinations which a property
  * access or method or function invocation might refer to.
@@ -62,20 +66,18 @@ class AccessKind {
    * The destination of the access is a toplevel class, function typedef, mixin
    * application, or the built-in type "dynamic".
    */
-  static const AccessKind TOPLEVEL_TYPE =
-      const AccessKind._('TOPLEVEL_TYPE');
+  static const AccessKind TOPLEVEL_TYPE = const AccessKind._('TOPLEVEL_TYPE');
 
   /**
    * The destination of the access is a type parameter of the enclosing class.
    */
-  static const AccessKind TYPE_PARAMETER =
-      const AccessKind._('TYPE_PARAMETER');
+  static const AccessKind TYPE_PARAMETER = const AccessKind._('TYPE_PARAMETER');
 
   final String name;
 
-  String toString() => name;
-
   const AccessKind._(this.name);
+
+  String toString() => name;
 }
 
 /**
@@ -168,16 +170,16 @@ class AccessSemantics {
       : kind = AccessKind.STATIC_PROPERTY,
         target = null;
 
-  AccessSemantics.toplevelType(this.identifier, this.element)
+  AccessSemantics.toplevelType(this.identifier, this.element, {this.isInvoke:
+      false})
       : kind = AccessKind.TOPLEVEL_TYPE,
         classElement = null,
-        isInvoke = false,
         target = null;
 
-  AccessSemantics.typeParameter(this.identifier, this.element)
+  AccessSemantics.typeParameter(this.identifier, this.element, {this.isInvoke:
+      false})
       : kind = AccessKind.TYPE_PARAMETER,
         classElement = null,
-        isInvoke = false,
         target = null;
 
   /**
@@ -225,10 +227,6 @@ class AccessSemantics {
     return sb.toString();
   }
 }
-
-// TODO(johnniwinther,paulberry): This should be a constant.
-final AccessSemanticsVisitor ACCESS_SEMANTICS_VISITOR =
-    new AccessSemanticsVisitor();
 
 // TODO(johnniwinther,paulberry): This should extend a non-recursive visitor.
 class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
@@ -299,6 +297,18 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
             node.methodName,
             staticElement,
             isInvoke: true);
+      } else if (staticElement is TypeParameterElement) {
+        return new AccessSemantics.typeParameter(
+            node.methodName,
+            staticElement,
+            isInvoke: true);
+      } else if (staticElement is ClassElement ||
+          staticElement is FunctionTypeAliasElement ||
+          staticElement is DynamicElementImpl) {
+        return new AccessSemantics.toplevelType(
+            node.methodName,
+            staticElement,
+            isInvoke: true);
       }
     } else if (target is Identifier) {
       Element targetStaticElement = target.staticElement;
@@ -322,6 +332,17 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
                 null,
                 isInvoke: true);
           }
+        } else if (staticElement is TypeParameterElement) {
+          return new AccessSemantics.typeParameter(
+              node.methodName,
+              staticElement,
+              isInvoke: true);
+        } else if (staticElement is ClassElement ||
+            staticElement is FunctionTypeAliasElement) {
+          return new AccessSemantics.toplevelType(
+              node.methodName,
+              staticElement,
+              isInvoke: true);
         } else {
           return new AccessSemantics.staticMethod(
               node.methodName,
@@ -362,44 +383,6 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
   @override
   AccessSemantics visitPrefixedIdentifier(PrefixedIdentifier node) {
     return _classifyPrefixed(node.prefix, node.identifier);
-  }
-
-  /**
-   * Helper function for classifying an expression of type
-   * Identifier.SimpleIdentifier.
-   */
-  AccessSemantics _classifyPrefixed(Identifier lhs, SimpleIdentifier rhs) {
-    Element lhsElement = lhs.staticElement;
-    Element rhsElement = rhs.staticElement;
-    if (lhsElement is PrefixElement) {
-      if (rhsElement is PropertyAccessorElement) {
-        if (rhsElement.isSynthetic) {
-          return new AccessSemantics.staticField(rhs, rhsElement.variable, null);
-        } else {
-          return new AccessSemantics.staticProperty(rhs, rhsElement, null);
-        }
-      } else if (rhsElement is FunctionElement) {
-        return new AccessSemantics.staticMethod(rhs, rhsElement, null);
-      } else if (rhsElement is ClassElement ||
-          rhsElement is FunctionTypeAliasElement) {
-        return new AccessSemantics.toplevelType(rhs, rhsElement);
-      } else {
-        return new AccessSemantics.dynamic(rhs, null);
-      }
-    } else if (lhsElement is ClassElement) {
-      if (rhsElement is PropertyAccessorElement && rhsElement.isSynthetic) {
-        return new AccessSemantics.staticField(
-            rhs,
-            rhsElement.variable,
-            lhsElement);
-      } else if (rhsElement is MethodElement) {
-        return new AccessSemantics.staticMethod(rhs, rhsElement, lhsElement);
-      } else {
-        return new AccessSemantics.staticProperty(rhs, rhsElement, lhsElement);
-      }
-    } else {
-      return new AccessSemantics.dynamic(rhs, lhs);
-    }
   }
 
   /**
@@ -488,5 +471,46 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
       return new AccessSemantics.toplevelType(node, staticElement);
     }
     return new AccessSemantics.dynamic(node, null);
+  }
+
+  /**
+   * Helper function for classifying an expression of type
+   * Identifier.SimpleIdentifier.
+   */
+  AccessSemantics _classifyPrefixed(Identifier lhs, SimpleIdentifier rhs) {
+    Element lhsElement = lhs.staticElement;
+    Element rhsElement = rhs.staticElement;
+    if (lhsElement is PrefixElement) {
+      if (rhsElement is PropertyAccessorElement) {
+        if (rhsElement.isSynthetic) {
+          return new AccessSemantics.staticField(
+              rhs,
+              rhsElement.variable,
+              null);
+        } else {
+          return new AccessSemantics.staticProperty(rhs, rhsElement, null);
+        }
+      } else if (rhsElement is FunctionElement) {
+        return new AccessSemantics.staticMethod(rhs, rhsElement, null);
+      } else if (rhsElement is ClassElement ||
+          rhsElement is FunctionTypeAliasElement) {
+        return new AccessSemantics.toplevelType(rhs, rhsElement);
+      } else {
+        return new AccessSemantics.dynamic(rhs, null);
+      }
+    } else if (lhsElement is ClassElement) {
+      if (rhsElement is PropertyAccessorElement && rhsElement.isSynthetic) {
+        return new AccessSemantics.staticField(
+            rhs,
+            rhsElement.variable,
+            lhsElement);
+      } else if (rhsElement is MethodElement) {
+        return new AccessSemantics.staticMethod(rhs, rhsElement, lhsElement);
+      } else {
+        return new AccessSemantics.staticProperty(rhs, rhsElement, lhsElement);
+      }
+    } else {
+      return new AccessSemantics.dynamic(rhs, lhs);
+    }
   }
 }
