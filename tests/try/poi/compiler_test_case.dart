@@ -31,7 +31,7 @@ const String CONSTANT_CLASS = 'class Constant { const Constant(); }';
 
 const String SCHEME = 'org.trydart.compiler-test-case';
 
-Uri customUri(String path) => Uri.parse('$SCHEME://$path');
+Uri customUri(String path) => Uri.parse('$SCHEME:/$path');
 
 Future runTests(List<CompilerTestCase> tests) {
   asyncTest(() => Future.forEach(tests, runTest));

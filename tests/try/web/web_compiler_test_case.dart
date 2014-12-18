@@ -28,11 +28,11 @@ const String WEB_SCHEME = 'org.trydart.web';
 class WebCompilerTestCase extends CompilerTestCase {
   final IncrementalCompiler incrementalCompiler;
 
-  WebCompilerTestCase.init(String source, Uri uri)
+  WebCompilerTestCase.init(/* Map or String */ source, Uri uri)
       : this.incrementalCompiler = makeCompiler(source, uri),
-        super.init(source, uri, null);
+        super.init(null, uri, null);
 
-  WebCompilerTestCase(String source, [String path])
+  WebCompilerTestCase(/* Map or String */ source, [String path])
       : this.init(source, customUri(path == null ? 'main.dart' : path));
 
   Future run() {
@@ -43,11 +43,25 @@ class WebCompilerTestCase extends CompilerTestCase {
     });
   }
 
-  static IncrementalCompiler makeCompiler(String source, Uri mainUri) {
+  static IncrementalCompiler makeCompiler(
+      /* Map or String */ source,
+      Uri mainUri) {
     Uri libraryRoot = new Uri(scheme: WEB_SCHEME, path: '/sdk/');
     Uri packageRoot = new Uri(scheme: WEB_SCHEME, path: '/packages/');
+
+    Map<Uri, String> sources = <Uri, String>{};
+    if (source is String) {
+      sources[mainUri] = source;
+    } else if (source is Map) {
+      source.forEach((String name, String code) {
+        sources[mainUri.resolve(name)] = code;
+      });
+    } else {
+      throw new ArgumentError("[source] should be a String or a Map");
+    }
+
     WebInputProvider inputProvider =
-        new WebInputProvider(source, mainUri, libraryRoot, packageRoot);
+        new WebInputProvider(sources, libraryRoot, packageRoot);
 
     void diagnosticHandler(
         Uri uri, int begin, int end, String message, Diagnostic kind) {
@@ -71,9 +85,7 @@ class WebCompilerTestCase extends CompilerTestCase {
 /// Includes one in-memory compilation unit [source] which is returned when
 /// [mainUri] is requested.
 class WebInputProvider {
-  final String source;
-
-  final Uri mainUri;
+  final Map<Uri, String> sources;
 
   final Uri libraryRoot;
 
@@ -83,12 +95,11 @@ class WebInputProvider {
 
   static final Map<String, Future> cachedRequests = new Map<String, Future>();
 
-  WebInputProvider(
-      this.source, this.mainUri, this.libraryRoot, this.packageRoot);
+  WebInputProvider(this.sources, this.libraryRoot, this.packageRoot);
 
   Future call(Uri uri) {
     return cachedSources.putIfAbsent(uri, () {
-      if (uri == mainUri) return new Future.value(source);
+      if (sources.containsKey(uri)) return new Future.value(sources[uri]);
       if (uri.scheme == WEB_SCHEME) {
         return cachedHttpRequest('/root_dart${uri.path}');
       } else {

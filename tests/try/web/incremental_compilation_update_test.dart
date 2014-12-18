@@ -1649,6 +1649,31 @@ main() {
             const ProgramExpectation(
                 const <String>['A(v2)', 'B(v2)', 'B(A(v2))', 'A(B(v2))']),
         ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart <==
+library test.main;
+
+part 'part.dart';
+==> part.dart.patch <==
+part of test.main;
+
+main() {
+<<<<<<<
+  print('Hello, World!');
+=======
+  print('Hello, Brave New World!');
+>>>>>>>
+}
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, Brave New World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
 ];
 
 void main() {
@@ -1825,23 +1850,30 @@ void logger(x) {
   }
 }
 
-DivElement numberedLines(String code) {
-  DivElement result = new DivElement();
-  result.classes.add("output");
-
-  for (String text in splitLines(code)) {
-    PreElement line = new PreElement()
-        ..appendText(text.trimRight())
-        ..classes.add("line");
-    result.append(line);
+DivElement numberedLines(code) {
+  if (code is! Map) {
+    code = {'main.dart': code};
   }
+  DivElement result = new DivElement();
+  code.forEach((String fileName, String code) {
+    result.append(new HeadingElement.h4()..appendText(fileName));
+    DivElement lines = new DivElement();
+    result.append(lines);
+    lines.classes.add("output");
 
+    for (String text in splitLines(code)) {
+      PreElement line = new PreElement()
+          ..appendText(text.trimRight())
+          ..classes.add("line");
+      lines.append(line);
+    }
+  });
   return result;
 }
 
 StyleElement lineNumberStyle() {
   StyleElement style = new StyleElement()..appendText('''
-h2, h3 {
+h2, h3, h4 {
   color: black;
 }
 
