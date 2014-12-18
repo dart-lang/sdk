@@ -36,7 +36,6 @@ code_transformers/test/resolver_test: Skip  # Times out
 docgen/test/*: Skip # Slow
 smoke/test/codegen/end_to_end_test: Skip  # Times out
 smoke/test/codegen/recorder_test: Skip  # Times out
-template_binding/test/template_binding_test: Skip  # Times out
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
 barback/test/package_graph/repetition_test: Skip  # Times out
 
@@ -135,7 +134,6 @@ observe/test/list_path_observer_test: RuntimeError, Pass # Issue 20849
 
 [ $runtime == ie10 ]
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
-template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 
 [ $runtime == safarimobilesim ]
@@ -267,7 +265,6 @@ unittest/test/testcases_immutable_test: RuntimeError # 13921
 
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
-template_binding: Skip
 mutation_observer: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 http/test/html/*: Skip
