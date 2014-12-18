@@ -54,7 +54,7 @@ fi
 # Use the Dart binary in the built SDK so pub can find the version file next
 # to it.
 DART="$BUILD_DIR/dart-sdk/bin/dart"
-PACKAGES_DIR="$BUILD_DIR/pub_packages/"
+PACKAGES_DIR="$BUILD_DIR/packages/"
 
 # Run the async/await compiled pub.
 PUB="$SDK_DIR/lib/_internal/pub_generated/bin/pub.dart"

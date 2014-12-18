@@ -9,7 +9,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        '../../pkg/pkg.gyp:pub_packages',
+        '../../pkg/pkg.gyp:pkg_packages',
         '../../pkg/pkg_files.gyp:pkg_files_stamp',
         '../../utils/compiler/compiler.gyp:dart2js_files_stamp',
         'pub_files_stamp'
@@ -23,14 +23,14 @@
             '<(SHARED_INTERMEDIATE_DIR)/pub_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
-            '<(SHARED_INTERMEDIATE_DIR)/pub_packages.stamp',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--package-root=<(PRODUCT_DIR)/pub_packages/',
+            '--package-root=<(PRODUCT_DIR)/packages/',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '../../sdk/lib/_internal/pub_generated/bin/pub.dart',
           ]
