@@ -4139,10 +4139,8 @@ class SsaBuilder extends ResolvedVisitor {
       return readTypeVariable(member.enclosingClass,
                               type.element);
     } else {
-      // TODO(ngeoffray): Match the VM behavior and throw an
-      // exception at runtime.
       compiler.internalError(type.element,
-          'Unimplemented unresolved type variable.');
+          'Unexpected type variable in static context.');
       return null;
     }
   }
