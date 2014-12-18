@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:compiler/src/universe/universe.dart';
 
 import 'closed_world.dart';
@@ -173,8 +174,8 @@ class TreeShaker {
   final LocalReachabilityComputer _localComputer =
       new LocalReachabilityComputer();
 
-  TreeShaker(FunctionElement mainFunction)
-      : _world = new ClosedWorld(mainFunction);
+  TreeShaker(TypeProvider typeProvider, FunctionElement mainFunction)
+      : _world = new ClosedWorld(typeProvider, mainFunction);
 
   void _addElement(Element element) {
     if (_alreadyEnqueued.add(element)) {

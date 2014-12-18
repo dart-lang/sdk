@@ -7,13 +7,16 @@ library analyzer2dart.dart_backend;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/dart_types.dart';
 
 import 'driver.dart';
 import 'converted_world.dart';
 
 void compileToDart(Driver driver, ConvertedWorld convertedWorld) {
-  DartOutputter outputter =
-      new DartOutputter(new Listener(), driver.outputProvider);
+  DiagnosticListener listener = new Listener();
+  DartOutputter outputter = new DartOutputter(listener, driver.outputProvider);
+  ElementAstCreationContext context = new _ElementAstCreationContext(
+      listener, convertedWorld.dartTypes);
   outputter.assembleProgram(
     libraries: convertedWorld.libraries,
     instantiatedClasses: convertedWorld.instantiatedClasses,
@@ -21,22 +24,44 @@ void compileToDart(Driver driver, ConvertedWorld convertedWorld) {
     mainFunction: convertedWorld.mainFunction,
     computeElementAst: (Element element) {
       return DartBackend.createElementAst(
-          null, // No compiler.
-          null, // No tracer.
-          DART_CONSTANT_SYSTEM,
+          context,
           element,
           convertedWorld.getIr(element));
     },
     shouldOutput: (_) => true,
     isSafeToRemoveTypeDeclarations: (_) => false);
+}
 
+class _ElementAstCreationContext implements ElementAstCreationContext {
+  final Listener listener;
+
+  @override
+  final DartTypes dartTypes;
+
+  _ElementAstCreationContext(this.listener, this.dartTypes);
+
+  @override
+  ConstantSystem get constantSystem => DART_CONSTANT_SYSTEM;
+
+  @override
+  InternalErrorFunction get internalError => listener.internalError;
+
+  @override
+  void traceCompilation(String name) {
+    // Do nothing.
+  }
+
+  @override
+  void traceGraph(String title, irObject) {
+    // Do nothing.
+  }
 }
 
 class Listener implements DiagnosticListener {
 
   @override
   void internalError(Spannable spannable, message) {
-    // TODO: implement internalError
+    throw new UnimplementedError(message);
   }
 
   @override
@@ -80,7 +105,7 @@ class Listener implements DiagnosticListener {
   }
 
   @override
-  SourceSpan spanFromSpannable(Spannable node) {
+  spanFromSpannable(Spannable node) {
     // TODO: implement spanFromSpannable
   }
 

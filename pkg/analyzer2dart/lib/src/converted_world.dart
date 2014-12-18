@@ -7,6 +7,7 @@ library analyzer2dart.convertedWorld;
 import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:compiler/src/dart_types.dart' as dart2js;
 import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
@@ -23,7 +24,7 @@ abstract class ConvertedWorld {
   Iterable<dart2js.ClassElement> get instantiatedClasses;
   dart2js.FunctionElement get mainFunction;
   ir.Node getIr(dart2js.Element element);
-
+  dart2js.DartTypes get dartTypes;
 }
 
 class _ConvertedWorldImpl implements ConvertedWorld {
@@ -42,6 +43,8 @@ class _ConvertedWorldImpl implements ConvertedWorld {
   Iterable<dart2js.ClassElement> get instantiatedClasses => [];
 
   ir.Node getIr(dart2js.Element element) => executableElements[element];
+
+  final dart2js.DartTypes dartTypes = new _DartTypes();
 }
 
 ConvertedWorld convertWorld(ClosedWorld closedWorld) {
@@ -73,4 +76,15 @@ ConvertedWorld convertWorld(ClosedWorld closedWorld) {
   closedWorld.fields.forEach(convert);
 
   return convertedWorld;
+}
+
+// TODO(johnniwinther): Implement [coreTypes] using [TypeProvider].
+class _DartTypes implements dart2js.DartTypes {
+  @override
+  get coreTypes => throw new UnsupportedError("coreTypes");
+
+  @override
+  bool isSubtype(dart2js.DartType t, dart2js.DartType s) {
+    throw new UnsupportedError("isSubtype");
+  }
 }

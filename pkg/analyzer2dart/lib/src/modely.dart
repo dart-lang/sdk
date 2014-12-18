@@ -350,6 +350,9 @@ abstract class FunctionElementMixin
   bool get isExternal => false;
 
   @override
+  bool get isConst => false;
+
+  @override
   get abstractField => unsupported('abstractField');
 
   @override

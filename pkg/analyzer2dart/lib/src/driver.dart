@@ -39,7 +39,9 @@ class Driver {
    * Compute the closed world that is reachable from an entry point.
    */
   ClosedWorld computeWorld(FunctionElement entryPointElement) {
-    TreeShaker treeShaker = new TreeShaker(entryPointElement);
+    InternalAnalysisContext analysisContext = context;
+    TreeShaker treeShaker =
+        new TreeShaker(analysisContext.typeProvider, entryPointElement);
     return treeShaker.shake();
   }
 

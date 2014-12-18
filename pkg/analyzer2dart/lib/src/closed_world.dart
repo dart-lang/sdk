@@ -8,12 +8,16 @@ import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 
 /**
  * Container for the elements and AST nodes which have been determined by
  * tree shaking to be reachable by the program being compiled.
  */
 class ClosedWorld {
+  /// The core types of this world.
+  final TypeProvider typeProvider;
+
   /// Returns the main function of this closed world compilation.
   final FunctionElement mainFunction;
 
@@ -49,5 +53,5 @@ class ClosedWorld {
   Map<ClassElement, ClassDeclaration> instantiatedClasses =
       new HashMap<ClassElement, ClassDeclaration>();
 
-  ClosedWorld(this.mainFunction);
+  ClosedWorld(this.typeProvider, this.mainFunction);
 }
