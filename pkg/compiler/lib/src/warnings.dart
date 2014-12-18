@@ -2178,6 +2178,66 @@ import 'dart-ext:main';
 main() {}
 """]);
 
+  static const MessageKind LIBRARY_TAG_MUST_BE_FIRST = const MessageKind(
+      "The library declaration should come before other declarations.",
+      howToFix: "Try moving the declaration to the top of the file.",
+      examples: const [
+"""
+import 'dart:core';
+library foo;
+main() {}
+""",
+      ]);
+
+  static const MessageKind ONLY_ONE_LIBRARY_TAG = const MessageKind(
+      "There can only be one library declaration.",
+      howToFix: "Try removing all other library declarations.",
+      examples: const [
+"""
+library foo;
+library bar;
+main() {}
+""",
+"""
+library foo;
+import 'dart:core';
+library bar;
+main() {}
+""",
+      ]);
+
+  static const MessageKind IMPORT_BEFORE_PARTS = const MessageKind(
+      "Import declarations should come before parts.",
+      howToFix: "Try moving this import further up in the file.",
+      examples: const [
+          const <String, String>{
+            'main.dart': """
+library test.main;
+part 'part.dart';
+import 'dart:core';
+main() {}
+""",
+            'part.dart': """
+part of test.main;
+""",
+      }]);
+
+  static const MessageKind EXPORT_BEFORE_PARTS = const MessageKind(
+      "Export declarations should come before parts.",
+      howToFix: "Try moving this export further up in the file.",
+      examples: const [
+          const <String, String>{
+            'main.dart': """
+library test.main;
+part 'part.dart';
+export 'dart:core';
+main() {}
+""",
+            'part.dart': """
+part of test.main;
+""",
+      }]);
+
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
   //////////////////////////////////////////////////////////////////////////////
