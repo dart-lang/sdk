@@ -694,6 +694,352 @@ main() {
     });
   });
 
+  test('Generic subtyping: invariance', () {
+    testChecker({
+      '/main.dart': '''
+
+      class A {}
+      class B extends A {}
+      class C implements A {}
+
+      class L<T> {}
+      class M<T> extends L<T> {}
+      class N extends M<A> {}
+
+      void main() {
+        L<A> lOfAs;
+        L<B> lOfBs;
+        L<C> lOfCs;
+
+        M<A> mOfAs;
+        M<B> mOfBs;
+        M<C> mOfCs;
+
+        N ns;
+
+        // L<T> <: L<S> iff S = dynamic or S=T
+        lOfAs = lOfAs;
+        lOfAs = /*severe:StaticTypeError*/lOfBs;
+        lOfAs = /*severe:StaticTypeError*/lOfCs;
+
+        // M<S> <: L<S>
+        lOfAs = mOfAs;
+        lOfAs = /*severe:StaticTypeError*/mOfBs;
+        lOfAs = /*severe:StaticTypeError*/mOfCs;
+
+        // N <: L<A>
+        lOfAs = ns;
+
+        // L<T> <: L<S> iff S = dynamic or  S=T
+        lOfBs = /*severe:StaticTypeError*/lOfAs;
+        lOfBs = lOfBs;
+        lOfBs = /*severe:StaticTypeError*/lOfCs;
+
+        // M<S> <: L<S>
+        lOfBs = /*severe:StaticTypeError*/mOfAs;
+        lOfBs = mOfBs;
+        lOfBs = /*severe:StaticTypeError*/mOfCs;
+
+        // N </: L<B>
+        lOfBs = /*severe:StaticTypeError*/ns;
+
+        // L<T> <: L<S> iff S = dynamic or  S=T
+        lOfCs = /*severe:StaticTypeError*/lOfAs;
+        lOfCs = /*severe:StaticTypeError*/lOfBs;
+        lOfCs = lOfCs;
+
+        // M<S> <: L<S>
+        lOfCs = /*severe:StaticTypeError*/mOfAs;
+        lOfCs = /*severe:StaticTypeError*/mOfBs;
+        lOfCs = mOfCs;
+
+        // N </: L<C>
+        lOfCs = /*severe:StaticTypeError*/ns;
+
+        // M<T> <: L<S> iff S = dynamic or S=T
+        mOfAs = /*info:DownCast*/lOfAs;
+        mOfAs = /*severe:StaticTypeError*/lOfBs;
+        mOfAs = /*severe:StaticTypeError*/lOfCs;
+
+        // M<S> <: M<S> iff S = dynamic or S=T
+        mOfAs = mOfAs;
+        mOfAs = /*severe:StaticTypeError*/mOfBs;
+        mOfAs = /*severe:StaticTypeError*/mOfCs;
+
+        // N <: M<A>
+        mOfAs = ns;
+
+        // M<T> <: L<S> iff S = dynamic or S=T
+        mOfBs = /*severe:StaticTypeError*/lOfAs;
+        mOfBs = /*info:DownCast*/lOfBs;
+        mOfBs = /*severe:StaticTypeError*/lOfCs;
+
+        // M<S> <: M<S> iff S = dynamic or S=T
+        mOfBs = /*severe:StaticTypeError*/mOfAs;
+        mOfBs = mOfBs;
+        mOfBs = /*severe:StaticTypeError*/mOfCs;
+
+        // N </: M<B>
+        mOfBs = /*severe:StaticTypeError*/ns;
+
+        // M<T> <: L<S> iff S = dynamic or S=T
+        mOfCs = /*severe:StaticTypeError*/lOfAs;
+        mOfCs = /*severe:StaticTypeError*/lOfBs;
+        mOfCs = /*info:DownCast*/lOfCs;
+
+        // M<S> <: M<S> iff S = dynamic or S=T
+        mOfCs = /*severe:StaticTypeError*/mOfAs;
+        mOfCs = /*severe:StaticTypeError*/mOfBs;
+        mOfCs = mOfCs;
+
+        // N </: L<C>
+        mOfCs = /*severe:StaticTypeError*/ns;
+
+        // Concrete subclass subtyping
+        ns = /*info:DownCast*/lOfAs;
+        ns = /*severe:StaticTypeError*/lOfBs;
+        ns = /*severe:StaticTypeError*/lOfCs;
+        ns = /*info:DownCast*/mOfAs;
+        ns = /*severe:StaticTypeError*/mOfBs;
+        ns = /*severe:StaticTypeError*/mOfCs;
+        ns = ns;
+      }
+   '''
+    });
+  });
+
+  test('Generic subtyping: covariant raw types', () {
+    testChecker({
+      '/main.dart': '''
+
+      class A {}
+      class B extends A {}
+      class C implements A {}
+
+      class L<T> {}
+      class M<T> extends L<T> {}
+      class N extends M<A> {}
+
+      void main() {
+        L lRaw;
+        L<dynamic> lOfDynamics;
+        L<A> lOfAs;
+        L<B> lOfBs;
+        L<C> lOfCs;
+
+        M mRaw;
+        M<dynamic> mOfDynamics;
+        M<A> mOfAs;
+        M<B> mOfBs;
+        M<C> mOfCs;
+
+        N ns;
+
+        // Raw type subtyping
+        lRaw = lRaw;
+        lRaw = lOfDynamics;
+        lRaw = lOfAs;
+        lRaw = lOfBs;
+        lRaw = lOfCs;
+        lRaw = mRaw;
+        lRaw = mOfDynamics;
+        lRaw = mOfAs;
+        lRaw = mOfBs;
+        lRaw = mOfCs;
+        lRaw = ns;
+
+        // L<dynamic> == L
+        lOfDynamics = lRaw;
+        lOfDynamics = lOfDynamics;
+        lOfDynamics = lOfAs;
+        lOfDynamics = lOfBs;
+        lOfDynamics = lOfCs;
+        lOfDynamics = mRaw;
+        lOfDynamics = mOfDynamics;
+        lOfDynamics = mOfAs;
+        lOfDynamics = mOfBs;
+        lOfDynamics = mOfCs;
+        lOfDynamics = ns;
+
+        // L<T> <: L<S> iff S = dynamic or S=T
+        lOfAs = /*info:DownCast*/lRaw;
+        lOfAs = /*info:DownCast*/lOfDynamics;
+
+        // M<dynamic> </:/> L<A>
+        lOfAs = /*severe:StaticTypeError*/mRaw;
+        lOfAs = /*severe:StaticTypeError*/mOfDynamics;
+
+        // L<T> <: L<S> iff S = dynamic or S=T
+        lOfBs = /*info:DownCast*/lRaw;
+        lOfBs = /*info:DownCast*/lOfDynamics;
+
+        // M<dynamic> </:/> L<B>
+        lOfBs = /*severe:StaticTypeError*/mRaw;
+        lOfBs = /*severe:StaticTypeError*/mOfDynamics;
+
+        // L<T> <: L<S> iff S = dynamic or S=T
+        lOfCs = /*info:DownCast*/lRaw;
+        lOfCs = /*info:DownCast*/lOfDynamics;
+
+        // M<dynamic> </:/> L<C>
+        lOfCs = /*severe:StaticTypeError*/mRaw;
+        lOfCs = /*severe:StaticTypeError*/mOfDynamics;
+
+        // Raw type subtyping
+        mRaw = /*info:DownCast*/lRaw;
+        mRaw = /*info:DownCast*/lOfDynamics;
+        mRaw = /*severe:StaticTypeError*/lOfAs;
+        mRaw = /*severe:StaticTypeError*/lOfBs;
+        mRaw = /*severe:StaticTypeError*/lOfCs;
+        mRaw = mRaw;
+        mRaw = mOfDynamics;
+        mRaw = mOfAs;
+        mRaw = mOfBs;
+        mRaw = mOfCs;
+        mRaw = ns;
+
+        // M<dynamic> == M
+        mOfDynamics = /*info:DownCast*/lRaw;
+        mOfDynamics = /*info:DownCast*/lOfDynamics;
+        mOfDynamics = /*severe:StaticTypeError*/lOfAs;
+        mOfDynamics = /*severe:StaticTypeError*/lOfBs;
+        mOfDynamics = /*severe:StaticTypeError*/lOfCs;
+        mOfDynamics = mRaw;
+        mOfDynamics = mOfDynamics;
+        mOfDynamics = mOfAs;
+        mOfDynamics = mOfBs;
+        mOfDynamics = mOfCs;
+        mOfDynamics = ns;
+
+        // M<T> <: L<S> iff S = dynamic or S=T
+        mOfAs = /*info:DownCast*/lRaw;
+        mOfAs = /*info:DownCast*/lOfDynamics;
+
+        // M<dynamic> </:/> M<A>
+        mOfAs = /*info:DownCast*/mRaw;
+        mOfAs = /*info:DownCast*/mOfDynamics;
+
+        // M<T> <: L<S> iff S = dynamic or S=T
+        mOfBs = /*info:DownCast*/lRaw;
+        mOfBs = /*info:DownCast*/lOfDynamics;
+
+        // M<dynamic> </:/> M<B>
+        mOfBs = /*info:DownCast*/mRaw;
+        mOfBs = /*info:DownCast*/mOfDynamics;
+
+        // M<T> <: L<S> iff S = dynamic or S=T
+        mOfCs = /*info:DownCast*/lRaw;
+        mOfCs = /*info:DownCast*/lOfDynamics;
+
+        // M<dynamic> </:/> M<C>
+        mOfCs = /*info:DownCast*/mRaw;
+        mOfCs = /*info:DownCast*/mOfDynamics;
+
+        // Concrete subclass subtyping
+        ns = /*info:DownCast*/lRaw;
+        ns = /*info:DownCast*/lOfDynamics;
+        ns = /*info:DownCast*/mRaw;
+        ns = /*info:DownCast*/mOfDynamics;
+      }
+   '''
+    });
+  });
+
+  test('Generic subtyping: covariant raw types with multiple parameters', () {
+    testChecker({
+      '/main.dart': '''
+
+      class A {}
+
+      class L<S, T> {}
+      class M<S, T> extends L<S, T> {}
+
+      void main() {
+        L lRaw;
+        /*pass should be severe:StaticTypeError*/L<dynamic> lOfD_;
+        /*pass should be severe:StaticTypeError*/L<A> lOfA_;
+        L<dynamic, A> lOfDA;
+        L<A, dynamic> lOfAD;
+        L<dynamic, dynamic> lOfDD;
+        L<A, A> lOfAA;
+
+        // This is the currently implemented lattice.
+        // We may wish to change this to a flat lattice with
+        // L<dynamic, dynamic> as the top element
+        //
+        //    L<dynamic, dynamic>
+        //      /           \
+        //  L<dynamic, A>  L<A, dynamic>
+        //      \           /
+        //         L<A, A>
+
+        // L == L<dynamic, dynamic>
+        lRaw = lRaw;
+        lRaw = lOfD_;
+        lRaw = lOfA_;
+        lRaw = lOfDA;
+        lRaw = lOfAD;
+        lRaw = lOfDD;
+        lRaw = lOfAA;
+
+        // L<dynamic> == L<dynamic, dynamic>
+        lOfD_ = lRaw;
+        lOfD_ = lOfD_;
+        lOfD_ = lOfA_;
+        lOfD_ = lOfDA;
+        lOfD_ = lOfAD;
+        lOfD_ = lOfDD;
+        lOfD_ = lOfAA;
+
+        // L<dynamic, dynamic>
+        lOfDD = lRaw;
+        lOfDD = lOfD_;
+        lOfDD = lOfA_;
+        lOfDD = lOfDA;
+        lOfDD = lOfAD;
+        lOfDD = lOfDD;
+        lOfDD = lOfAA;
+
+        // L<dynamic, A>
+        lOfDA = /*info:DownCast*/lRaw;
+        lOfDA = /*info:DownCast*/lOfD_;
+        lOfDA = /*info:DownCast*/lOfA_;
+        lOfDA = lOfDA;
+        lOfDA = /*severe:StaticTypeError*/lOfAD;
+        lOfDA = /*info:DownCast*/lOfDD;
+        lOfDA = lOfAA;
+
+        // L<A, dynamic>
+        lOfAD = /*info:DownCast*/lRaw;
+        lOfAD = /*info:DownCast*/lOfD_;
+        lOfAD = /*info:DownCast*/lOfA_;
+        lOfAD = /*severe:StaticTypeError*/lOfDA;
+        lOfAD = lOfAD;
+        lOfAD = /*info:DownCast*/lOfDD;
+        lOfAD = lOfAA;
+
+        // L<A> == L<dynamic, dynamic>
+        lOfA_ = lRaw;
+        lOfA_ = lOfD_;
+        lOfA_ = lOfA_;
+        lOfA_ = lOfDA;
+        lOfA_ = lOfAD;
+        lOfA_ = lOfDD;
+        lOfA_ = lOfAA;
+
+        // L<A, A>
+        lOfAA = /*info:DownCast*/lRaw;
+        lOfAA = /*info:DownCast*/lOfD_;
+        lOfAA = /*info:DownCast*/lOfA_;
+        lOfAA = /*info:DownCast*/lOfDA;
+        lOfAA = /*info:DownCast*/lOfAD;
+        lOfAA = /*info:DownCast*/lOfDD;
+        lOfAA = lOfAA;
+      }
+   '''
+    });
+  });
+
   test('redirecting constructor', () {
     testChecker({
       '/main.dart': '''
