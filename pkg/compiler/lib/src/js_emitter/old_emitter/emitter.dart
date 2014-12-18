@@ -501,9 +501,11 @@ class OldEmitter implements Emitter {
 
         var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-        if (typeof dart_precompiled == "function") {
+        if (#inCspMode) {
           constructors = dart_precompiled(collectedClasses);
-        } else {
+        }
+
+        if (#notInCspMode) {
           var combinedConstructorFunction =
              "function \$reflectable(fn){fn.$reflectableField=1;return fn};\\n"+
              "var \$desc;\\n";
@@ -542,17 +544,17 @@ class OldEmitter implements Emitter {
                 })(functionSignature);
           }
 
-          if (typeof dart_precompiled != "function") {
+          if (#notInCspMode) {
             combinedConstructorFunction += defineClass(cls, fields);
             constructorsList.push(cls);
           }
           if (supr) pendingClasses[cls] = supr;
         }
 
-        if (typeof dart_precompiled != "function") {
+        if (#notInCspMode) {
           combinedConstructorFunction +=
-             "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]";
-           var constructors =
+            "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]";
+          var constructors =
             new Function("\$collectedClasses", combinedConstructorFunction)
             (collectedClasses);
           combinedConstructorFunction = null;
@@ -586,7 +588,9 @@ class OldEmitter implements Emitter {
               'metadata': metadataAccess,
               'isTreeShakingDisabled': backend.isTreeShakingDisabled,
               'finishClassFunction': buildFinishClass(),
-              'trivialNsmHandlers': nsmEmitter.buildTrivialNsmHandlers()});
+              'trivialNsmHandlers': nsmEmitter.buildTrivialNsmHandlers(),
+              'inCspMode': compiler.useContentSecurityPolicy,
+              'notInCspMode': !compiler.useContentSecurityPolicy});
   }
 
   jsAst.Node optional(bool condition, jsAst.Node node) {

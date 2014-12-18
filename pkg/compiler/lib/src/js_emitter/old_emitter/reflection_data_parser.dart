@@ -227,8 +227,6 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
 
   jsAst.Statement init = js.statement('''{
   var functionCounter = 0;
-  var tearOffGetter = (typeof dart_precompiled == "function")
-      ? tearOffGetterCsp : tearOffGetterNoCsp;
   if (!#) # = [];  // embedded libraries.
   if (!#) # = map();  // embedded mangledNames.
   if (!#) # = map();  // embedded mangledGlobalNames.
@@ -333,44 +331,47 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
     tearOffGlobalObject = '($tearOffAccessText())';
   }
 
-  // This template is uncached because it is constructed from code fragments
-  // that can change from compilation to compilation.  Some of these could be
-  // avoided, except for the string literals that contain the compiled access
-  // path to 'closureFromTearOff'.
-  jsAst.Statement tearOffGetterNoCsp = js.uncachedStatementTemplate('''
-    function tearOffGetterNoCsp(funcs, reflectionInfo, name, isIntercepted) {
-      return isIntercepted
-          ? new Function("funcs", "reflectionInfo", "name",
-                         "$tearOffGlobalObjectName", "c",
-              "return function tearOff_" + name + (functionCounter++)+ "(x) {" +
-                "if (c === null) c = $tearOffAccessText(" +
-                    "this, funcs, reflectionInfo, false, [x], name);" +
-                "return new c(this, funcs[0], x, name);" +
-              "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
-          : new Function("funcs", "reflectionInfo", "name",
-                         "$tearOffGlobalObjectName", "c",
-              "return function tearOff_" + name + (functionCounter++)+ "() {" +
-                "if (c === null) c = $tearOffAccessText(" +
-                    "this, funcs, reflectionInfo, false, [], name);" +
-                "return new c(this, funcs[0], null, name);" +
-              "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
-    }''').instantiate([]);
-
-  jsAst.Statement tearOffGetterCsp = js.statement('''
-    function tearOffGetterCsp(funcs, reflectionInfo, name, isIntercepted) {
-      var cache = null;
-      return isIntercepted
-          ? function(x) {
-              if (cache === null) cache = #(
-                  this, funcs, reflectionInfo, false, [x], name);
-              return new cache(this, funcs[0], x, name);
-            }
-          : function() {
-              if (cache === null) cache = #(
-                  this, funcs, reflectionInfo, false, [], name);
-              return new cache(this, funcs[0], null, name);
-            };
-    }''', [tearOffAccessExpression, tearOffAccessExpression]);
+  jsAst.Statement tearOffGetter;
+  if (!compiler.useContentSecurityPolicy) {
+    // This template is uncached because it is constructed from code fragments
+    // that can change from compilation to compilation.  Some of these could be
+    // avoided, except for the string literals that contain the compiled access
+    // path to 'closureFromTearOff'.
+    tearOffGetter = js.uncachedStatementTemplate('''
+        function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+          return isIntercepted
+              ? new Function("funcs", "reflectionInfo", "name",
+                             "$tearOffGlobalObjectName", "c",
+                  "return function tearOff_" + name + (functionCounter++)+ "(x) {" +
+                    "if (c === null) c = $tearOffAccessText(" +
+                        "this, funcs, reflectionInfo, false, [x], name);" +
+                    "return new c(this, funcs[0], x, name);" +
+                  "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
+              : new Function("funcs", "reflectionInfo", "name",
+                             "$tearOffGlobalObjectName", "c",
+                  "return function tearOff_" + name + (functionCounter++)+ "() {" +
+                    "if (c === null) c = $tearOffAccessText(" +
+                        "this, funcs, reflectionInfo, false, [], name);" +
+                    "return new c(this, funcs[0], null, name);" +
+                  "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
+        }''').instantiate([]);
+  } else {
+    tearOffGetter = js.statement('''
+        function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+          var cache = null;
+          return isIntercepted
+              ? function(x) {
+                  if (cache === null) cache = #(
+                      this, funcs, reflectionInfo, false, [x], name);
+                  return new cache(this, funcs[0], x, name);
+                }
+              : function() {
+                  if (cache === null) cache = #(
+                      this, funcs, reflectionInfo, false, [], name);
+                  return new cache(this, funcs[0], null, name);
+                };
+        }''', [tearOffAccessExpression, tearOffAccessExpression]);
+  }
 
   jsAst.Statement tearOff = js.statement('''
     function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
@@ -384,9 +385,8 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
           : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
     }''', tearOffAccessExpression);
 
-  return <jsAst.Statement>[tearOffGetterNoCsp, tearOffGetterCsp, tearOff];
+  return <jsAst.Statement>[tearOffGetter, tearOff];
 }
-
 
 String readString(String array, String index) {
   return readChecked(
