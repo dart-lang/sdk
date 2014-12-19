@@ -62,6 +62,76 @@ class SemanticNode {
   SemanticNode(this.node);
 }
 
+// The abstract type of coercions mapping one type to another.
+// This class also exposes static builder functions which
+// check for errors and reduce redundant coercions to the identity.
+abstract class Coercion {
+  Coercion();
+  static Coercion cast(DartType fromT, DartType toT) => new Cast(fromT, toT);
+  static Coercion identity(DartType type) => new Identity(type);
+  static Coercion error() => new CoercionError();
+  static Coercion wrapper(DartType fromType,
+                          List<Coercion> normalParameters,
+                          List<Coercion> optionalParameters,
+                          Map<String, Coercion> namedParameters,
+                          Coercion ret) {
+    { // If any sub coercion is error, return error
+      bool isError(Coercion c) => c is CoercionError;
+      if (ret is CoercionError) return error();
+      if (namedParameters.values.any(isError)) return error();
+      if (normalParameters.any(isError)) return error();
+      if (optionalParameters.any(isError)) return error();
+    }
+    { // If all sub coercions are the identity, return identity
+      bool folder(bool id, Coercion c) => id && (c is Identity);
+      bool id = (ret is CoercionError);
+      id = namedParameters.values.fold(id, folder);
+      id = normalParameters.fold(id, folder);
+      id = optionalParameters.fold(id, folder);
+      if (id) return identity(fromType);
+    }
+    return new Wrapper(normalParameters, optionalParameters, namedParameters,
+                       ret);
+  }
+}
+
+// Coercion which casts one type to another
+class Cast extends Coercion {
+  final DartType fromType;
+  final DartType toType;
+  Cast(this.fromType, this.toType) : super();
+}
+
+// The identity coercion
+class Identity extends Coercion {
+  final DartType fromType;
+  Identity(this.fromType) : super();
+}
+
+// A closure wrapper coercion.
+// The parameter coercions are the coercions which should
+// be applied to coerce the wrapper parameters to the
+// appropriate type for the wrapped closure.
+// The return coercion is appropriate to coerce the return
+// value of the wrapped function to the type expected by the
+// context.
+class Wrapper extends Coercion {
+  final Map<String, Coercion> namedParameters;
+  final List<Coercion> normalParameters;
+  final List<Coercion> optionalParameters;
+  final Coercion ret;
+  Wrapper(this.normalParameters, this.optionalParameters, this.namedParameters,
+          this.ret)
+    : super();
+}
+
+// The error coercion.  This coercion signals that a coercion
+// could not be generated.  The code generator should not see
+// these.
+class CoercionError extends Coercion {
+  CoercionError() : super();
+}
+
 abstract class StaticInfo {
   /// AST Node this info is attached to.
   // TODO(jmesserly): this is somewhat redundant with SemanticNode.
@@ -116,22 +186,24 @@ abstract class Conversion extends Expression implements StaticInfo {
 }
 
 class DownCast extends Conversion {
-  DartType _newType;
+  Cast _cast;
 
-  DownCast(TypeRules rules, Expression expression, this._newType)
+  DownCast(TypeRules rules, Expression expression, this._cast)
       : super(rules, expression) {
-    assert(_newType != baseType &&
-        (baseType.isDynamic || rules.isSubTypeOf(_newType, baseType)));
+    assert(_cast.toType != baseType &&
+           _cast.fromType == baseType &&
+           (baseType.isDynamic || rules.isSubTypeOf(_cast.toType, baseType)));
   }
 
-  DartType _getConvertedType() => _newType;
+  DartType _getConvertedType() => _cast.toType;
 
   String get message => '$expression ($baseType) will need runtime check '
       'to cast to type $convertedType';
 
   // Differentiate between Function down cast and non-Function down cast?  The
   // former seems less likely to actually succeed.
-  Level get level => (_newType is FunctionType) ? Level.WARNING : super.level;
+  Level get level =>
+    (_cast.toType is FunctionType) ? Level.WARNING : super.level;
 
   accept(AstVisitor visitor) {
     if (visitor is ConversionVisitor) {
@@ -144,8 +216,10 @@ class DownCast extends Conversion {
 
 class ClosureWrap extends Conversion {
   FunctionType _wrappedType;
+  Wrapper _wrapper;
 
-  ClosureWrap(TypeRules rules, Expression expression, this._wrappedType)
+  ClosureWrap(TypeRules rules, Expression expression,
+              this._wrapper, this._wrappedType)
       : super(rules, expression) {
     assert(baseType is FunctionType);
     assert(!rules.isSubTypeOf(baseType, _wrappedType));

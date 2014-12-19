@@ -234,13 +234,13 @@ main() {
           Left f;
           f = /*warning:ClosureWrap*/top;
           f = left;
-          f = /*severe:StaticTypeError*/right;
+          f = /*warning:ClosureWrap*/right; // Should we reject this?
           f = bot;
         }
         {
           Right f;
           f = /*warning:ClosureWrap*/top;
-          f = /*severe:StaticTypeError*/left;
+          f = /*warning:ClosureWrap*/left; // Should we reject this?
           f = right;
           f = bot;
         }
@@ -291,13 +291,13 @@ main() {
           Left f;
           f = /*warning:ClosureWrap*/top;
           f = left;
-          f = /*severe:StaticTypeError*/right;
+          f = /*warning:ClosureWrap*/right; // Should we reject this?
           f = bot;
         }
         {
           Right f;
           f = /*warning:ClosureWrap*/top;
-          f = /*severe:StaticTypeError*/left;
+          f = /*warning:ClosureWrap*/left; // Should we reject this?
           f = right;
           f = bot;
         }
@@ -330,8 +330,6 @@ main() {
       A bot(dynamic x) => /*info:DownCast*/x;
 
       void main() {
-        // TODO(leafp) Should we consider allowing more unchecked casts
-        // when dynamic is involved?
         {
           Top f;
           f = top;
@@ -343,13 +341,13 @@ main() {
           Left f;
           f = /*warning:ClosureWrap*/top;
           f = left;
-          f = /*severe:StaticTypeError*/right;
+          f = /*warning:ClosureWrap*/right;
           f = bot;
         }
         {
           Right f;
           f = /*warning:ClosureWrap*/top;
-          f = /*severe:StaticTypeError*/left;
+          f = /*warning:ClosureWrap*/left;
           f = right;
           f = bot;
         }
@@ -391,13 +389,13 @@ main() {
           Function2<B, B> f;
           f = /*warning:ClosureWrap*/top;
           f = left;
-          f = /*severe:StaticTypeError*/right;
+          f = /*warning:ClosureWrap*/right; // Should we reject this?
           f = bot;
         }
         {
           Function2<A, A> f;
           f = /*warning:ClosureWrap*/top;
-          f = /*severe:StaticTypeError*/left;
+          f = /*warning:ClosureWrap*/left; // Should we reject this?
           f = right;
           f = bot;
         }
@@ -436,11 +434,11 @@ main() {
 
           left = /*warning:ClosureWrap*/top;
           left = left;
-          left = /*severe:StaticTypeError*/right;
+          left = /*warning:ClosureWrap*/right; // Should we reject this?
           left = bot;
 
           right = /*warning:ClosureWrap*/top;
-          right = /*severe:StaticTypeError*/left;
+          right = /*warning:ClosureWrap*/left; // Should we reject this?
           right = right;
           right = bot;
 
@@ -497,13 +495,13 @@ main() {
           Function2<AToB, AToB> f; // Left
           f = /*warning:ClosureWrap*/top;
           f = left;
-          f = /*severe:StaticTypeError*/right;
+          f = /*warning:ClosureWrap*/right; // Should we reject this?
           f = bot;
         }
         {
           Function2<BToA, BToA> f; // Right
           f = /*warning:ClosureWrap*/top;
-          f = /*severe:StaticTypeError*/left; 
+          f = /*warning:ClosureWrap*/left; // Should we reject this?
           f = right;
           f = bot;
         }
@@ -597,8 +595,7 @@ main() {
          r = /*severe:StaticTypeError*/nn;
          r = /*severe:StaticTypeError*/nnn;
 
-         // This is a valid wrapping, but changes the runtime type
-         o = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
+         o = /*severe:StaticTypeError*/r;
          o = o;
          o = /*severe:StaticTypeError*/n;
          o = /*severe:StaticTypeError*/rr;
@@ -628,20 +625,17 @@ main() {
          rr = /*severe:StaticTypeError*/nn;
          rr = /*severe:StaticTypeError*/nnn;
 
-         // This is a valid wrapping, but changes the runtime type
-         ro = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
+         ro = /*severe:StaticTypeError*/r;
          ro = /*severe:StaticTypeError*/o;
          ro = /*severe:StaticTypeError*/n;
-         // This is a valid wrapping, but changes the runtime type
-         ro = /*warning:ClosureWrap should be severe:StaticTypeError*/rr;
+         ro = /*severe:StaticTypeError*/rr;
          ro = ro;
          ro = /*severe:StaticTypeError*/rn;
          ro = oo;
          ro = /*severe:StaticTypeError*/nn;
          ro = /*severe:StaticTypeError*/nnn;
 
-         // This is a valid wrapping, but changes the runtime type
-         rn = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
+         rn = /*severe:StaticTypeError*/r;
          rn = /*severe:StaticTypeError*/o;
          rn = /*severe:StaticTypeError*/n;
          rn = /*severe:StaticTypeError*/rr;
@@ -651,15 +645,11 @@ main() {
          rn = /*severe:StaticTypeError*/nn;
          rn = /*severe:StaticTypeError*/nnn;
 
-         // This is a valid wrapping, but changes the runtime type
-         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/r;
-         // This is a valid wrapping, but changes the runtime type
-         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/o;
+         oo = /*severe:StaticTypeError*/r;
+         oo = /*severe:StaticTypeError*/o;
          oo = /*severe:StaticTypeError*/n;
-         // This is a valid wrapping, but changes the runtime type
-         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/rr;
-         // This is a valid wrapping, but changes the runtime type
-         oo = /*warning:ClosureWrap should be severe:StaticTypeError*/ro;
+         oo = /*severe:StaticTypeError*/rr;
+         oo = /*severe:StaticTypeError*/ro;
          oo = /*severe:StaticTypeError*/rn;
          oo = oo;
          oo = /*severe:StaticTypeError*/nn;
@@ -667,8 +657,7 @@ main() {
 
          nn = /*severe:StaticTypeError*/r;
          nn = /*severe:StaticTypeError*/o;
-         // This is a valid wrapping, but changes the runtime type
-         nn = /*warning:ClosureWrap should be severe:StaticTypeError*/n;
+         nn = /*severe:StaticTypeError*/n;
          nn = /*severe:StaticTypeError*/rr;
          nn = /*severe:StaticTypeError*/ro;
          nn = /*severe:StaticTypeError*/rn;
@@ -678,14 +667,12 @@ main() {
 
          nnn = /*severe:StaticTypeError*/r;
          nnn = /*severe:StaticTypeError*/o;
-         // This is a valid wrapping, but changes the runtime type
-         nnn = /*warning:ClosureWrap should be severe:StaticTypeError*/n;
+         nnn = /*severe:StaticTypeError*/n;
          nnn = /*severe:StaticTypeError*/rr;
          nnn = /*severe:StaticTypeError*/ro;
          nnn = /*severe:StaticTypeError*/rn;
          nnn = /*severe:StaticTypeError*/oo;
-         // This is a valid wrapping, but changes the runtime type
-         nnn = /*warning:ClosureWrap should be severe:StaticTypeError*/nn;
+         nnn = /*severe:StaticTypeError*/nn;
          nnn = nnn;
       }
    '''
