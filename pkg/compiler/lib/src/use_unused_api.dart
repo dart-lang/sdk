@@ -63,6 +63,7 @@ void main(List<String> arguments) {
   useCompiler(null);
   useTypes();
   useCodeEmitterTask(null);
+  useScript(null);
 }
 
 useApi() {
@@ -269,4 +270,8 @@ useTypes() {
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
   codeEmitterTask.oldEmitter.clearCspPrecompiledNodes();
+}
+
+useScript(dart2jslib.Script script) {
+  script.copyWithFile(null);
 }
