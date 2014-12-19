@@ -69,14 +69,14 @@ class InstrumentationService {
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
 
   /**
-   * Log that the given [exception] was thrown, with the given [stackTrace].
+   * Log that the given non-priority [exception] was thrown, with the given
+   * [stackTrace].
    */
   void logException(dynamic exception, StackTrace stackTrace) {
     if (_instrumentationServer != null) {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
-      _instrumentationServer.logWithPriority(
-          '$_timestamp:$TAG_EXCEPTION:$message:$trace');
+      _instrumentationServer.log('$_timestamp:$TAG_EXCEPTION:$message:$trace');
     }
   }
 
@@ -85,6 +85,19 @@ class InstrumentationService {
    */
   void logNotification(String notification) {
     _log(TAG_NOTIFICATION, notification);
+  }
+
+  /**
+   * Log that the given priority [exception] was thrown, with the given
+   * [stackTrace].
+   */
+  void logPriorityException(dynamic exception, StackTrace stackTrace) {
+    if (_instrumentationServer != null) {
+      String message = _toString(exception);
+      String trace = _toString(stackTrace);
+      _instrumentationServer.logWithPriority(
+          '$_timestamp:$TAG_EXCEPTION:$message:$trace');
+    }
   }
 
   /**

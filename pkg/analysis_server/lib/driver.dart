@@ -252,7 +252,7 @@ class Driver {
     Function errorFunction =
         (Zone self, ZoneDelegate parent, Zone zone, dynamic exception,
             StackTrace stackTrace) {
-      service.logException(exception, stackTrace);
+      service.logPriorityException(exception, stackTrace);
       socketServer.analysisServer.reportException(exception, stackTrace);
       throw exception;
     };

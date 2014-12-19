@@ -294,9 +294,10 @@ class _RefactoringManager {
         });
       });
     }).catchError((exception, stackTrace) {
-      _reset();
+      server.instrumentationService.logException(exception, stackTrace);
       server.sendResponse(
           new Response.serverError(request, exception, stackTrace));
+      _reset();
     });
   }
 
