@@ -45,6 +45,7 @@ class InstrumentationService {
   static final InstrumentationService NULL_SERVICE =
       new InstrumentationService(null);
 
+  static const String TAG_EXCEPTION = 'Ex';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
@@ -65,7 +66,19 @@ class InstrumentationService {
   /**
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
-  String get _timestamp => new DateTime.now().millisecond.toString();
+  String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
+
+  /**
+   * Log that the given [exception] was thrown, with the given [stackTrace].
+   */
+  void logException(dynamic exception, StackTrace stackTrace) {
+    if (_instrumentationServer != null) {
+      String message = _toString(exception);
+      String trace = _toString(stackTrace);
+      _instrumentationServer.logWithPriority(
+          '$_timestamp:$TAG_EXCEPTION:$message:$trace');
+    }
+  }
 
   /**
    * Log that a notification has been sent to the client.
@@ -107,5 +120,15 @@ class InstrumentationService {
     if (_instrumentationServer != null) {
       _instrumentationServer.log('$_timestamp:$tag:$message');
     }
+  }
+
+  /**
+   * Convert the given [object] to a string.
+   */
+  String _toString(Object object) {
+    if (object == null) {
+      return 'null';
+    }
+    return object.toString();
   }
 }

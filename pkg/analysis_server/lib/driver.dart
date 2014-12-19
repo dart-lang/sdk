@@ -229,7 +229,7 @@ class Driver {
       httpServer.serveHttp(port);
     }
 
-    _captureExceptions(() {
+    _captureExceptions(service, () {
       stdioServer.serveStdio().then((_) {
         if (serve_http) {
           httpServer.close();
@@ -242,24 +242,30 @@ class Driver {
   }
 
   /**
-   * Execute the given [callback], capturing any unhandled exceptions and
-   * reporting them to the client. If a [print] function is provided, then also
+   * Execute the given [callback] within a zone that will capture any unhandled
+   * exceptions and both report them to the client and send them to the given
+   * instrumentation [service]. If a [print] function is provided, then also
    * capture any data printed by the callback and redirect it to the function.
    */
-  dynamic _captureExceptions(dynamic callback(), {void print(String line)}) {
-    ZoneSpecification zoneSpecification = new ZoneSpecification(
-        handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone,
-            dynamic exception, StackTrace stackTrace) {
+  dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
+      {void print(String line)}) {
+    Function errorFunction =
+        (Zone self, ZoneDelegate parent, Zone zone, dynamic exception,
+            StackTrace stackTrace) {
+      service.logException(exception, stackTrace);
       socketServer.analysisServer.reportException(exception, stackTrace);
       throw exception;
-    },
-        print: print == null ?
-            null :
-            (Zone self, ZoneDelegate parent, Zone zone, String line) {
+    };
+    Function printFunction = print == null ?
+        null :
+        (Zone self, ZoneDelegate parent, Zone zone, String line) {
       // Note: we don't pass the line on to stdout, because that is reserved
       // for communication to the client.
       print(line);
-    });
+    };
+    ZoneSpecification zoneSpecification = new ZoneSpecification(
+        handleUncaughtError: errorFunction,
+        print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
