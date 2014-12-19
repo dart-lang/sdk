@@ -35,10 +35,8 @@ analyzer/test/generated/parser_test: Skip  # Times out
 code_transformers/test/resolver_test: Skip  # Times out
 docgen/test/*: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
-barback/test/package_graph/repetition_test: Skip  # Times out
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
-barback/test/too_many_open_files_test: Skip # 14220
 code_transformers/test/resolver_test: Skip # Issue 17908
 docgen/test/*: Skip # Too slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
@@ -74,7 +72,6 @@ code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
-
 [ $compiler == dart2js && $runtime == drt ]
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 
@@ -103,8 +100,6 @@ analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 16473
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
-unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728
-unittest/test/nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
@@ -136,7 +131,6 @@ typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here e
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
-
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
@@ -164,15 +158,7 @@ third_party/angular_tests/browser_test: CompileTimeError
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
 mutation_observer: Skip
 
-[ $compiler == dart2js && $minified ]
-# The unminified unittest tests test that the real names of Dart types are
-# printed. Minified versions of these tests exist that test the behavior when
-# minified.
-matcher/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-
 [ $compiler == dart2js && $browser ]
-stack_trace/test/vm_test: Fail, OK # VM-specific traces
-stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
@@ -184,14 +170,11 @@ analysis_server/test/*: Skip # Uses dart:io.
 analysis_server/tool/spec/check_all_test: Skip # Uses dart:io.
 analyzer2dart/*: Skip # Uses dart:io.
 analyzer/test/*: Skip # Uses dart:io.
-barback/test/*: Fail, OK # Uses dart:io.
 code_transformers/test/assets_test: Skip # Uses dart:io
 code_transformers/test/entry_point_test: Skip # Uses dart:io
 code_transformers/test/resolver_test: Skip # Uses dart:io
 code_transformers/test/unique_message_test: Skip # Uses dart:io
 code_transformers/test/remove_sourcemap_comment_test: Skip # Uses dart:io.
-http/test/io/*: Fail, OK # Uses dart:io.
-http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
@@ -216,58 +199,18 @@ third_party/html5lib/test/parser_test: Skip
 third_party/html5lib/test/tokenizer_test: Skip
 third_party/html5lib/test/selectors/*: Skip
 
-[ $minified == false ]
-# The minified unittest tests test that the minified names of Dart types are
-# printed. Unminified versions of these tests exist that test the behavior when
-# not minified.
-matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-
 [ $arch == simarm64 ]
 # Timeout. These are not unit tests. They do not run efficiently on our
 # simulator.
 *: Skip
 
-[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
-# Skip serialization test that explicitly has no library declaration in the
-# test on Dartium, which requires all tests to have a library.
-unittest/test/async_exception_test: RuntimeError # 13921
-unittest/test/async_exception_with_future_test: RuntimeError # 13921
-unittest/test/async_setup_teardown_test: RuntimeError # 13921
-unittest/test/completion_test: RuntimeError # 13921
-unittest/test/correct_callback_test: RuntimeError # 13921
-unittest/test/exception_test: RuntimeError # 13921
-unittest/test/excess_callback_test: RuntimeError # 13921
-unittest/test/expect_async_args_test: RuntimeError # 13921
-unittest/test/expect_async_test: RuntimeError # 13921
-unittest/test/group_name_test: RuntimeError # 13921
-unittest/test/invalid_ops_test: RuntimeError # 13921
-unittest/test/late_exception_test: RuntimeError # 13921
-unittest/test/middle_exception_test: RuntimeError # 13921
-unittest/test/nested_groups_setup_teardown_test: RuntimeError # 13921
-unittest/test/protect_async_test: RuntimeError # 13921
-unittest/test/returning_future_test: RuntimeError # 13921
-unittest/test/returning_future_using_runasync_test: RuntimeError # 13921
-unittest/test/runtests_without_tests_test: RuntimeError # 13921
-unittest/test/setup_and_teardown_test: RuntimeError # 13921
-unittest/test/setup_test: RuntimeError # 13921
-unittest/test/single_correct_test: RuntimeError # 13921
-unittest/test/single_failing_test: RuntimeError # 13921
-unittest/test/skipped_soloed_nested_test: RuntimeError # 13921
-unittest/test/teardown_test: RuntimeError # 13921
-unittest/test/testcases_immutable_test: RuntimeError # 13921
-
-
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
 mutation_observer: Skip
 third_party/html5lib/test/browser/browser_test: Skip
-http/test/html/*: Skip
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
-
-[ $compiler == none && $browser ]
-unittest/test/missing_tick_test: RuntimeError # Expected to fail, due to timeout.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
@@ -285,6 +228,3 @@ third_party/angular_tests/browser_test/change_detection/dirty_checking_change_de
 
 [ $use_repository_packages ]
 analyzer/test/*: PubGetError
-
-[ $runtime == drt ]
-http/test/html/client_test: Skip # Issue 18566
