@@ -929,6 +929,7 @@ class RawCode : public RawObject {
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
+  RawArray* inlined_intervals_;
   RawArray* comments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);

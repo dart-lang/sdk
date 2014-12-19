@@ -474,10 +474,11 @@ static bool HasAnnotation(const Function& function, const char* annotation) {
 
 class CallSiteInliner : public ValueObject {
  public:
-  explicit CallSiteInliner(FlowGraph* flow_graph)
-      : caller_graph_(flow_graph),
+  explicit CallSiteInliner(FlowGraphInliner* inliner)
+      : inliner_(inliner),
+        caller_graph_(inliner->flow_graph()),
         inlined_(false),
-        initial_size_(flow_graph->InstructionCount()),
+        initial_size_(inliner->flow_graph()->InstructionCount()),
         inlined_size_(0),
         inlined_recursive_call_(false),
         inlining_depth_(1),
@@ -811,7 +812,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Inline dispatcher methods regardless of the current depth.
-      intptr_t depth =
+      const intptr_t depth =
           (function.IsInvokeFieldDispatcher() ||
            function.IsNoSuchMethodDispatcher()) ? 0 : inlining_depth_;
       collected_call_sites_->FindCallSites(callee_graph, depth, &inlined_info_);
@@ -843,6 +844,8 @@ class CallSiteInliner : public ValueObject {
       // caller's list of deferred prefixes.
       caller_graph()->AddToDeferredPrefixes(callee_graph->deferred_prefixes());
 
+      FlowGraphInliner::SetInliningId(*callee_graph,
+          inliner_->NextInlineId(callee_graph->parsed_function()->function()));
       // We allocate a ZoneHandle for the unoptimized code so that it cannot be
       // disconnected from its function during the rest of compilation.
       Code::ZoneHandle(unoptimized_code.raw());
@@ -1230,6 +1233,7 @@ class CallSiteInliner : public ValueObject {
     return argument_names_count == match_count;
   }
 
+  FlowGraphInliner* inliner_;
   FlowGraph* caller_graph_;
   bool inlined_;
   const intptr_t initial_size_;
@@ -1730,6 +1734,24 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
 }
 
 
+// TODO(srdjan): This is only needed when disassembling and/or profiling.
+void FlowGraphInliner::SetInliningId(const FlowGraph& flow_graph,
+                                     intptr_t inlining_id) {
+  for (BlockIterator block_it = flow_graph.postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current());
+         !it.Done();
+         it.Advance()) {
+      Instruction* current = it.Current();
+      // Do not overwrite owner function.
+      ASSERT(!current->has_inlining_id());
+      current->set_inlining_id(inlining_id);
+    }
+  }
+}
+
+
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
   const char* kAlwaysInlineAnnotation = "AlwaysInline";
   if (FLAG_enable_inlining_annotations &&
@@ -1771,7 +1793,7 @@ void FlowGraphInliner::Inline() {
     printer.PrintBlocks();
   }
 
-  CallSiteInliner inliner(flow_graph_);
+  CallSiteInliner inliner(this);
   inliner.InlineCalls();
   if (FLAG_print_inlining_tree) {
     inliner.PrintInlinedInfo(top);
@@ -1790,5 +1812,13 @@ void FlowGraphInliner::Inline() {
     }
   }
 }
+
+
+intptr_t FlowGraphInliner::NextInlineId(const Function& function) {
+  const intptr_t id = inline_id_to_function_->length();
+  inline_id_to_function_->Add(&function);
+  return id;
+}
+
 
 }  // namespace dart

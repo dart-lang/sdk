@@ -86,19 +86,19 @@ class Disassembler : public AllStatic {
   static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter,
-                          const Code::Comments& comments);
+                          const Code& code);
 
   static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter) {
-    Disassemble(start, end, formatter, Code::Comments::New(0));
+    Disassemble(start, end, formatter, Code::Handle());
   }
 
   static void Disassemble(uword start,
                           uword end,
-                          const Code::Comments& comments) {
+                          const Code& code) {
     DisassembleToStdout stdout_formatter;
-    Disassemble(start, end, &stdout_formatter, comments);
+    Disassemble(start, end, &stdout_formatter, code);
   }
 
   static void Disassemble(uword start, uword end) {

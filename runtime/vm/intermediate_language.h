@@ -611,6 +611,7 @@ class Instruction : public ZoneAllocated {
         next_(NULL),
         env_(NULL),
         locs_(NULL),
+        inlining_id_(-1),
         place_id_(kNoPlaceId) { }
 
   virtual ~Instruction() { }
@@ -815,6 +816,13 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   void set_place_id(intptr_t place_id) { place_id_ = place_id; }
   bool HasPlaceId() const { return place_id_ != kNoPlaceId; }
 
+  intptr_t inlining_id() const { return inlining_id_; }
+  void set_inlining_id(intptr_t value) {
+    ASSERT(value >= 0);
+    inlining_id_ = value;
+  }
+  bool has_inlining_id() const { return inlining_id_ >= 0; }
+
   // Returns a hash code for use with hash maps.
   virtual intptr_t Hashcode() const;
 
@@ -882,6 +890,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   Instruction* next_;
   Environment* env_;
   LocationSummary* locs_;
+  intptr_t inlining_id_;
   intptr_t place_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);

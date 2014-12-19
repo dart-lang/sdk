@@ -12257,10 +12257,9 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.EntryPoint();
   if (formatter == NULL) {
-    Disassembler::Disassemble(start, start + instr.size(), comments());
+    Disassembler::Disassemble(start, start + instr.size(), *this);
   } else {
-    Disassembler::Disassemble(start, start + instr.size(), formatter,
-                              comments());
+    Disassembler::Disassemble(start, start + instr.size(), formatter, *this);
   }
   if (fix_patch) {
     // Redo the patch.
@@ -12278,6 +12277,12 @@ const Code::Comments& Code::comments() const  {
 void Code::set_comments(const Code::Comments& comments) const {
   ASSERT(comments.comments_.IsOld());
   StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
+}
+
+
+void Code::set_inlined_intervals(const Array& value) const {
+  ASSERT(value.IsOld());
+  StorePointer(&raw_ptr()->inlined_intervals_, value.raw());
 }
 
 
@@ -12628,6 +12633,44 @@ RawStackmap* Code::GetStackmap(
   // If the code has stackmaps, it must have them for all safepoints.
   UNREACHABLE();
   return Stackmap::null();
+}
+
+
+void Code::GetInlinedFunctionsAt(
+    intptr_t offset, GrowableArray<Function*>* fs) const {
+  fs->Clear();
+  const Array& intervals = Array::Handle(inlined_intervals());
+  Smi& start = Smi::Handle();
+  Smi& end = Smi::Handle();
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
+    start ^= intervals.At(i + Code::kInlIntStart);
+    if (!start.IsNull()) {
+      end ^= intervals.At(i + Code::kInlIntEnd);
+      if ((start.Value() <= offset) && (offset < end.Value())) {
+        function ^= intervals.At(i + Code::kInlIntFunction);
+        fs->Add(&Function::ZoneHandle(function.raw()));
+      }
+    }
+  }
+}
+
+
+void Code::DumpInlinedIntervals() const {
+  OS::Print("Inlined intervals:\n");
+  const Array& intervals = Array::Handle(inlined_intervals());
+  Smi& start = Smi::Handle();
+  Smi& end = Smi::Handle();
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
+    start ^= intervals.At(i + Code::kInlIntStart);
+    if (!start.IsNull()) {
+      end ^= intervals.At(i + Code::kInlIntEnd);
+      function ^= intervals.At(i + Code::kInlIntFunction);
+      OS::Print("%" Pd " .. %" Pd " %s\n",
+          start.Value(), end.Value(), function.ToQualifiedCString());
+    }
+  }
 }
 
 
