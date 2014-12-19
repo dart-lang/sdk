@@ -14,6 +14,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -5309,6 +5310,13 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   if (::Dart_IsError(state)) {
     return state;
   }
+
+  // Now that the newly loaded classes are finalized, notify the debugger
+  // that new code has been loaded. If there are latent breakpoints in
+  // the new code, the debugger convert them to unresolved source breakpoints.
+  // The code that completes the futures (invoked below) may call into the
+  // newly loaded code and trigger one of these breakpoints.
+  isolate->debugger()->NotifyDoneLoading();
 
   if (complete_futures) {
     const Library& corelib = Library::Handle(isolate, Library::CoreLibrary());

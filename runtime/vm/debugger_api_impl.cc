@@ -374,7 +374,7 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
     return Api::NewError("%s: breakpoint with id %" Pd " does not exist",
                            CURRENT_FUNC, bp_id);
   }
-  return Api::NewHandle(isolate, bpt->SourceUrl());
+  return Api::NewHandle(isolate, bpt->url());
 }
 
 
@@ -646,7 +646,7 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
     return Api::NewError("%s: type in 'type_in' is not an instantiated type",
                          CURRENT_FUNC);
   }
-  const Class& cls= Class::Handle(type.type_class());
+  const Class& cls = Class::Handle(type.type_class());
   if (cls.NumTypeParameters() == 0) {
     // The super type has no type parameters or it is already instantiated
     // just return it.

@@ -54,12 +54,14 @@ class RemoteObjectCache : public ZoneAllocated {
 };
 
 
+// Create an unresolved breakpoint in given token range and script.
 SourceBreakpoint::SourceBreakpoint(intptr_t id,
                                    const Script& script,
                                    intptr_t token_pos,
                                    intptr_t end_token_pos)
     : id_(id),
       script_(script.raw()),
+      url_(script.url()),
       token_pos_(token_pos),
       end_token_pos_(end_token_pos),
       is_resolved_(false),
@@ -73,6 +75,24 @@ SourceBreakpoint::SourceBreakpoint(intptr_t id,
   ASSERT(token_pos_ >= 0);
 }
 
+// Create a latent breakpoint at given url and line number.
+SourceBreakpoint::SourceBreakpoint(intptr_t id,
+                                   const String& url,
+                                   intptr_t line_number)
+    : id_(id),
+      script_(Script::null()),
+      url_(url.raw()),
+      token_pos_(-1),
+      end_token_pos_(-1),
+      is_resolved_(false),
+      is_enabled_(false),
+      is_one_shot_(false),
+      next_(NULL),
+      function_(Function::null()),
+      line_number_(line_number) {
+  ASSERT(id >= 0);
+  ASSERT(line_number_ >= 0);
+}
 
 void SourceBreakpoint::Enable() {
   is_enabled_ = true;
@@ -87,6 +107,7 @@ void SourceBreakpoint::Disable() {
 
 
 void SourceBreakpoint::SetResolved(const Function& func, intptr_t token_pos) {
+  ASSERT(!IsLatent());
   ASSERT(func.script() == script_);
   ASSERT((func.token_pos() <= token_pos) &&
          (token_pos <= func.end_token_pos()));
@@ -104,25 +125,28 @@ void SourceBreakpoint::SetResolved(const Function& func, intptr_t token_pos) {
 void SourceBreakpoint::GetCodeLocation(Library* lib,
                                        Script* script,
                                        intptr_t* pos) {
-  *script = this->script();
-  *pos = token_pos_;
-  if (IsResolved()) {
-    const Function& func = Function::Handle(function_);
-    ASSERT(!func.IsNull());
-    const Class& cls = Class::Handle(func.origin());
-    *lib = cls.library();
-  } else {
+  if (IsLatent()) {
     *lib = Library::null();
+    *script = Script::null();
+    *pos = -1;
+  } else {
+    *script = this->script();
+    *pos = token_pos_;
+    if (IsResolved()) {
+      const Function& func = Function::Handle(function_);
+      ASSERT(!func.IsNull());
+      const Class& cls = Class::Handle(func.origin());
+      *lib = cls.library();
+    } else {
+      *lib = Library::null();
+    }
   }
 }
 
 
-RawString* SourceBreakpoint::SourceUrl() {
-  return Script::Handle(script()).url();
-}
-
-
 intptr_t SourceBreakpoint::LineNumber() {
+  // Latent breakpoints must have a requested line number >= 0.
+  ASSERT(!IsLatent() || line_number_ >= 0);
   // Compute line number lazily since it causes scanning of the script.
   if (line_number_ < 0) {
     const Script& script = Script::Handle(this->script());
@@ -134,6 +158,7 @@ intptr_t SourceBreakpoint::LineNumber() {
 
 void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&script_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&url_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
 }
 
@@ -997,6 +1022,7 @@ Debugger::Debugger()
       isolate_id_(ILLEGAL_ISOLATE_ID),
       initialized_(false),
       next_id_(1),
+      latent_breakpoints_(NULL),
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
@@ -1012,6 +1038,7 @@ Debugger::Debugger()
 Debugger::~Debugger() {
   isolate_id_ = ILLEGAL_ISOLATE_ID;
   ASSERT(!IsPaused());
+  ASSERT(latent_breakpoints_ == NULL);
   ASSERT(src_breakpoints_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
@@ -1023,6 +1050,11 @@ void Debugger::Shutdown() {
   while (src_breakpoints_ != NULL) {
     SourceBreakpoint* bpt = src_breakpoints_;
     src_breakpoints_ = src_breakpoints_->next();
+    delete bpt;
+  }
+  while (latent_breakpoints_ != NULL) {
+    SourceBreakpoint* bpt = latent_breakpoints_;
+    latent_breakpoints_ = latent_breakpoints_->next();
     delete bpt;
   }
   while (code_breakpoints_ != NULL) {
@@ -1514,8 +1546,8 @@ void Debugger::FindCompiledFunctions(const Script& script,
       cls = class_table.At(i);
       // If the class is not finalized, e.g. if it hasn't been parsed
       // yet entirely, we can ignore it. If it contains a function with
-      // a latent breakpoint, we will detect it if and when the function
-      // gets compiled.
+      // an unresolved breakpoint, we will detect it if and when the
+      // function gets compiled.
       if (!cls.is_finalized()) {
         continue;
       }
@@ -1783,11 +1815,15 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     }
   }
   if (scripts.Length() == 0) {
+    // No script found with given url. Create a latent breakpoint which
+    // will be set if the url is loaded later.
+    SourceBreakpoint* latent_bpt = GetLatentBreakpoint(script_url, line_number);
     if (FLAG_verbose_debug) {
-      OS::Print("Failed to find script with url '%s'\n",
-                script_url.ToCString());
+      OS::Print("Set latent breakpoint in url '%s' at line %" Pd "\n",
+                script_url.ToCString(),
+                line_number);
     }
-    return NULL;
+    return latent_bpt;
   }
   if (scripts.Length() > 1) {
     if (FLAG_verbose_debug) {
@@ -2029,6 +2065,11 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   SourceBreakpoint* bpt = src_breakpoints_;
+  while (bpt != NULL) {
+    bpt->VisitObjectPointers(visitor);
+    bpt = bpt->next();
+  }
+  bpt = latent_breakpoints_;
   while (bpt != NULL) {
     bpt->VisitObjectPointers(visitor);
     bpt = bpt->next();
@@ -2314,15 +2355,17 @@ void Debugger::NotifyCompilation(const Function& func) {
           continue;
         }
         intptr_t requested_pos = bpt->token_pos();
+        intptr_t requested_end_pos = bpt->end_token_pos();
         bpt->SetResolved(func, bp_pos);
         if (FLAG_verbose_debug) {
           OS::Print("Resolved BP %" Pd " to pos %" Pd ", line %" Pd ", "
-                    "function '%s' (requested pos %" Pd ")\n",
+                    "function '%s' (requested range %" Pd "-%" Pd ")\n",
                     bpt->id(),
                     bpt->token_pos(),
                     bpt->LineNumber(),
                     func.ToFullyQualifiedCString(),
-                    requested_pos);
+                    requested_pos,
+                    requested_end_pos);
         }
         SignalBpResolved(bpt);
       }
@@ -2335,6 +2378,94 @@ void Debugger::NotifyCompilation(const Function& func) {
                   String::Handle(func.name()).ToCString());
       }
       MakeCodeBreakpointAt(func, bpt);
+    }
+  }
+}
+
+
+void Debugger::NotifyDoneLoading() {
+  if (latent_breakpoints_ == NULL) {
+    // Common, fast path.
+    return;
+  }
+  Library& lib = Library::Handle(isolate_);
+  Script& script = Script::Handle(isolate_);
+  String& url = String::Handle(isolate_);
+  SourceBreakpoint* bpt = latent_breakpoints_;
+  SourceBreakpoint* prev_bpt = NULL;
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+  while (bpt != NULL) {
+    url = bpt->url();
+    for (intptr_t i = 0; i < libs.Length(); i++) {
+      lib ^= libs.At(i);
+      script = lib.LookupScript(url);
+      if (!script.IsNull()) {
+        // Found a script with matching url for this latent breakpoint.
+        // Unlink the latent breakpoint from the list.
+        SourceBreakpoint* matched_bpt = bpt;
+        bpt = bpt->next();
+        if (prev_bpt == NULL) {
+          latent_breakpoints_ = bpt;
+        } else {
+          prev_bpt->set_next(bpt);
+        }
+        // Now find the token range at the requested line and make a
+        // new unresolved source breakpoint.
+        intptr_t line_number = matched_bpt->LineNumber();
+        ASSERT(line_number >= 0);
+        intptr_t first_token_pos, last_token_pos;
+        script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
+        if ((first_token_pos < 0) ||
+            (last_token_pos < 0)) {
+          // Script does not contain the given line number or there are no
+          // tokens on the line. Drop the breakpoint silently.
+          if (FLAG_verbose_debug) {
+            OS::Print("No code found at line %" Pd ": "
+                      "dropping latent breakpoint %" Pd " in '%s'\n",
+                      line_number,
+                      matched_bpt->id(),
+                      url.ToCString());
+          }
+          delete matched_bpt;
+        } else {
+          // We don't expect to already have a breakpoint for this location.
+          // If there is one, assert in debug build but silently drop
+          // the latent breakpoint in release build.
+          SourceBreakpoint* existing_bpt =
+              GetSourceBreakpoint(script, first_token_pos);
+          ASSERT(existing_bpt == NULL);
+          if (existing_bpt == NULL) {
+            // Create and register a new source breakpoint for the
+            // latent breakpoint.
+            SourceBreakpoint* unresolved_bpt =
+                new SourceBreakpoint(matched_bpt->id(),
+                                     script,
+                                     first_token_pos,
+                                     last_token_pos);
+            RegisterSourceBreakpoint(unresolved_bpt);
+            unresolved_bpt->Enable();
+            if (FLAG_verbose_debug) {
+              OS::Print("Converted latent breakpoint "
+                        "%" Pd " in '%s' at line %" Pd "\n",
+                        matched_bpt->id(),
+                        url.ToCString(),
+                        line_number);
+            }
+          }
+          delete matched_bpt;
+          // Break out of the iteration over loaded libraries. If the
+          // same url has been loaded into more than one library, we
+          // only set a breakpoint in the first one.
+          // TODO(hausner): There is one possible pitfall here.
+          // If the user sets a latent breakpoint using a partial url that
+          // ends up matching more than one script, the breakpoint might
+          // get set in the wrong script.
+          // It would be better if we could warn the user if multiple
+          // scripts are matching.
+          break;
+        }
+      }
     }
   }
 }
@@ -2467,6 +2598,25 @@ SourceBreakpoint* Debugger::GetBreakpointById(intptr_t id) {
     bpt = bpt->next();
   }
   return NULL;
+}
+
+
+SourceBreakpoint* Debugger::GetLatentBreakpoint(const String& url,
+                                                intptr_t line) {
+  SourceBreakpoint* bpt = latent_breakpoints_;
+  String& bpt_url = String::Handle(isolate_);
+  while (bpt != NULL) {
+    bpt_url = bpt->url();
+    if (bpt_url.Equals(url) && (bpt->LineNumber() == line)) {
+      return bpt;
+    }
+    bpt = bpt->next();
+  }
+  // No breakpint for this url and line requested. Allocate new one.
+  bpt = new SourceBreakpoint(nextId(), url, line);
+  bpt->set_next(latent_breakpoints_);
+  latent_breakpoints_ = bpt;
+  return bpt;
 }
 
 

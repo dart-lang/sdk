@@ -397,7 +397,8 @@ StepOut() => new RunCommand.stepOut();
 
 class SetBreakpointCommand extends Command {
   int line;
-  SetBreakpointCommand(int this.line) {
+  String url;
+  SetBreakpointCommand(this.line, this.url) {
     template = {"id": 0,
                 "command": "setBreakpoint",
                 "params": { "isolateId": 0,
@@ -407,18 +408,21 @@ class SetBreakpointCommand extends Command {
 
   void send(Debugger debugger) {
     assert(debugger.scriptUrl != null);
-    template["params"]["url"] = debugger.scriptUrl;
+    if (url == null) {
+      url = debugger.scriptUrl;
+    }
+    template["params"]["url"] = url;
     template["params"]["line"] = line;
     debugger.sendMessage(template);
   }
 
   void matchResponse(Debugger debugger) {
     super.matchResponse(debugger);
-    print("Set breakpoint at line $line");
+    print("Set breakpoint at line $line in $url");
   }
 }
 
-SetBreakpoint(int line) => new SetBreakpointCommand(line);
+SetBreakpoint(int line, {String url}) => new SetBreakpointCommand(line, url);
 
 class Event {
   String name;
