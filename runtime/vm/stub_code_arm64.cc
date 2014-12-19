@@ -1279,6 +1279,7 @@ static void EmitFastSmiOp(Assembler* assembler,
                           intptr_t num_args,
                           Label* not_smi_or_overflow,
                           bool should_update_result_range) {
+  __ Comment("Fast Smi op");
   if (FLAG_throw_on_javascript_int_overflow) {
     // The overflow check is more complex than implemented below.
     return;
@@ -1378,7 +1379,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  // Check single stepping.
+  __ Comment("Check single stepping");
   Label stepping, done_stepping;
   __ LoadIsolate(R6, kNoPP);
   __ LoadFromOffset(
@@ -1387,6 +1388,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
 
+  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
   if (range_collection_mode == kCollectRanges) {
     ASSERT((num_args == 1) || (num_args == 2));
@@ -1407,6 +1409,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
   __ Bind(&not_smi_or_overflow);
 
+  __ Comment("Extract ICData initial values and receiver cid");
   // Load arguments descriptor into R4.
   __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset(), kNoPP);
   // Loop that checks if there is an IC data match.
@@ -1432,6 +1435,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(R1, Address(R6));  // First class id (smi) to check.
   __ b(&test);
 
+  __ Comment("ICData loop");
   __ Bind(&loop);
   for (int i = 0; i < num_args; i++) {
     if (i > 0) {
@@ -1467,7 +1471,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ CompareImmediate(R1, Smi::RawValue(kIllegalCid), kNoPP);  // Done?
   __ b(&loop, NE);
 
-  // IC miss.
+  __ Comment("IC miss");
   // Compute address of arguments.
   // R7: argument_count - 1 (untagged).
   // R7 <- SP + (R7 << 3)
@@ -1502,6 +1506,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ b(&call_target_function);
 
   __ Bind(&found);
+  __ Comment("Update caller's counter");
   // R6: pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
@@ -1514,6 +1519,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ csel(R1, R2, R1, VS);  // Overflow.
   __ StoreToOffset(R1, R6, count_offset, kNoPP);
 
+  __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
   __ LoadFieldFromOffset(R2, R0, Function::instructions_offset(), kNoPP);

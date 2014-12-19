@@ -1351,6 +1351,7 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Token::Kind kind,
                           intptr_t num_args,
                           Label* not_smi_or_overflow) {
+  __ Comment("Fast Smi op");
   ASSERT(num_args == 2);
   __ lw(T0, Address(SP, 0 * kWordSize));  // Left.
   __ lw(T1, Address(SP, 1 * kWordSize));  // Right.
@@ -1442,13 +1443,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
 
-  // Check single stepping.
+  __ Comment("Check single stepping");
   Label stepping, done_stepping;
   __ LoadIsolate(T0);
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
+  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
   if (range_collection_mode == kCollectRanges) {
     ASSERT((num_args == 1) || (num_args == 2));
@@ -1465,6 +1467,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
   __ Bind(&not_smi_or_overflow);
 
+  __ Comment("Extract ICData initial values and receiver cid");
   // Load argument descriptor into S4.
   __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
   // Preserve return address, since RA is needed for subroutine call.
@@ -1492,6 +1495,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ b(&test);
   __ delay_slot()->lw(T4, Address(T0));  // First class id (smi) to check.
 
+  __ Comment("ICData loop");
   __ Bind(&loop);
   for (int i = 0; i < num_args; i++) {
     if (i > 0) {
@@ -1533,7 +1537,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&test);
   __ BranchNotEqual(T4, Immediate(Smi::RawValue(kIllegalCid)), &loop);  // Done?
 
-  // IC miss.
+  __ Comment("IC miss");
   // Restore return address.
   __ mov(RA, T2);
 
@@ -1577,6 +1581,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ b(&call_target_function);
 
   __ Bind(&found);
+  __ Comment("Update caller's counter");
   // T0: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
@@ -1590,6 +1595,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ movz(T4, T7, CMPRES1);
   __ sw(T4, Address(T0, count_offset));
 
+  __ Comment("Call target");
   __ Bind(&call_target_function);
   // T0 <- T3: Target function.
   __ mov(T0, T3);

@@ -1249,6 +1249,7 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Token::Kind kind,
                           intptr_t num_args,
                           Label* not_smi_or_overflow) {
+  __ Comment("Fast Smi op");
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R1, Address(SP, 1 * kWordSize));
   __ orr(TMP, R0, Operand(R1));
@@ -1334,7 +1335,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
 
-  // Check single stepping.
+  __ Comment("Check single stepping");
   Label stepping, done_stepping;
   __ LoadIsolate(R6);
   __ ldrb(R6, Address(R6, Isolate::single_step_offset()));
@@ -1342,6 +1343,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
 
+  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
   if (range_collection_mode == kCollectRanges) {
     ASSERT((num_args == 1) || (num_args == 2));
@@ -1358,6 +1360,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
   __ Bind(&not_smi_or_overflow);
 
+  __ Comment("Extract ICData initial values and receiver cid");
   // Load arguments descriptor into R4.
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
@@ -1379,6 +1382,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(R1, Address(R6, 0));  // First class id (smi) to check.
   __ b(&test);
 
+  __ Comment("ICData loop");
   __ Bind(&loop);
   for (int i = 0; i < num_args; i++) {
     if (i > 0) {
@@ -1413,7 +1417,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ CompareImmediate(R1, Smi::RawValue(kIllegalCid));  // Done?
   __ b(&loop, NE);
 
-  // IC miss.
+  __ Comment("IC miss");
   // Compute address of arguments.
   // R7: argument_count - 1 (smi).
   __ add(R7, SP, Operand(R7, LSL, 1));  // R7 is Smi.
@@ -1448,12 +1452,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ LoadFromOffset(kWord, R0, R6, target_offset);
 
-  // Update counter.
+  __ Comment("Update caller's counter");
   __ LoadFromOffset(kWord, R1, R6, count_offset);
   __ adds(R1, R1, Operand(Smi::RawValue(1)));
   __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
   __ StoreIntoSmiField(Address(R6, count_offset), R1);
 
+  __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
   __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));

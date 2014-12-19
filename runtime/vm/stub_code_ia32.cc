@@ -1190,6 +1190,7 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Token::Kind kind,
                           intptr_t num_args,
                           Label* not_smi_or_overflow) {
+  __ Comment("Fast Smi op");
   ASSERT(num_args == 2);
   __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Right
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left
@@ -1288,7 +1289,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  // Check single stepping.
+  __ Comment("Check single stepping");
   Label stepping, done_stepping;
   uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
       Isolate::single_step_offset();
@@ -1296,6 +1297,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
 
+  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
   if (range_collection_mode == kCollectRanges) {
     ASSERT((num_args == 1) || (num_args == 2));
@@ -1313,11 +1315,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
   __ Bind(&not_smi_or_overflow);
 
+  __ Comment("Extract ICData initial values and receiver cid");
   // ECX: IC data object (preserved).
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found;
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
@@ -1332,8 +1334,10 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // EAX: receiver's class ID (smi).
   __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
+  Label loop, update, test, found;
   __ jmp(&test);
 
+  __ Comment("ICData loop");
   __ Bind(&loop);
   for (int i = 0; i < num_args; i++) {
     if (i > 0) {
@@ -1370,7 +1374,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
-  // IC miss.
+  __ Comment("IC miss");
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Compute address of arguments (first read number of arguments from
@@ -1402,11 +1406,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ jmp(&call_target_function);
 
   __ Bind(&found);
+
   // EBX: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
 
-  // Update counter.
+  __ Comment("Update caller's counter");
   __ movl(EAX, Address(EBX, count_offset));
   __ addl(EAX, Immediate(Smi::RawValue(1)));
   __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
@@ -1415,6 +1420,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ movl(EAX, Address(EBX, target_offset));
   __ Bind(&call_target_function);
+  __ Comment("Call target");
   // EAX: Target function.
   __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
