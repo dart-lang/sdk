@@ -625,6 +625,14 @@ class AnalysisServer {
   }
 
   /**
+   * Report to the client that the given [exception] was caught with the
+   * associated [stackTrace].
+   */
+  void reportException(dynamic exception, StackTrace stackTrace) {
+    _sendServerErrorNotification(exception, stackTrace);
+  }
+
+  /**
    * Schedules execution of the given [ServerOperation].
    */
   void scheduleOperation(ServerOperation operation) {

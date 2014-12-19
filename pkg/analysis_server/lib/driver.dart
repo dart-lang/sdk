@@ -229,7 +229,7 @@ class Driver {
       httpServer.serveHttp(port);
     }
 
-    if (results[INTERNAL_PRINT_TO_CONSOLE]) {
+    _captureExceptions(() {
       stdioServer.serveStdio().then((_) {
         if (serve_http) {
           httpServer.close();
@@ -237,29 +237,28 @@ class Driver {
         service.shutdown();
         exit(0);
       });
-    } else {
-      _capturePrints(() {
-        stdioServer.serveStdio().then((_) {
-          if (serve_http) {
-            httpServer.close();
-          }
-          service.shutdown();
-          exit(0);
-        });
-      }, httpServer.recordPrint);
-    }
+    },
+        print: results[INTERNAL_PRINT_TO_CONSOLE] ? null : httpServer.recordPrint);
   }
 
   /**
-   * Execute [callback], capturing any data it prints out and redirecting it to
-   * the function [printHandler].
+   * Execute the given [callback], capturing any unhandled exceptions and
+   * reporting them to the client. If a [print] function is provided, then also
+   * capture any data printed by the callback and redirect it to the function.
    */
-  dynamic _capturePrints(dynamic callback(), void printHandler(String line)) {
+  dynamic _captureExceptions(dynamic callback(), {void print(String line)}) {
     ZoneSpecification zoneSpecification = new ZoneSpecification(
-        print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-      printHandler(line);
+        handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone,
+            dynamic exception, StackTrace stackTrace) {
+      socketServer.analysisServer.reportException(exception, stackTrace);
+      throw exception;
+    },
+        print: print == null ?
+            null :
+            (Zone self, ZoneDelegate parent, Zone zone, String line) {
       // Note: we don't pass the line on to stdout, because that is reserved
       // for communication to the client.
+      print(line);
     });
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
