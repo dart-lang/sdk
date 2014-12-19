@@ -26,6 +26,13 @@ import 'package:analyzer/src/generated/source.dart';
 
 
 /**
+ * This flag is used in tests to check behavior when an exception happens
+ * inside a refactoring.
+ */
+bool test_simulateRefactoringException = false;
+
+
+/**
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]
  * that handles requests in the edit domain.
  */
@@ -286,6 +293,10 @@ class _RefactoringManager {
           return _sendResultResponse();
         });
       });
+    }).catchError((exception, stackTrace) {
+      _reset();
+      server.sendResponse(
+          new Response.serverError(request, exception, stackTrace));
     });
   }
 
@@ -307,6 +318,10 @@ class _RefactoringManager {
     this.file = file;
     this.offset = offset;
     this.length = length;
+    // simulate an exception
+    if (test_simulateRefactoringException) {
+      throw 'A simulated refactoring exception.';
+    }
     // create a new Refactoring instance
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
       List<Element> elements = server.getElementsAtOffset(file, offset);

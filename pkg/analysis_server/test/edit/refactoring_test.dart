@@ -264,6 +264,11 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     return sendExtractRequest(offset, length, name, extractAll);
   }
 
+  void tearDown() {
+    test_simulateRefactoringException = false;
+    super.tearDown();
+  }
+
   test_extractAll() {
     addTestFile('''
 main() {
@@ -354,6 +359,20 @@ main() {
       ExtractLocalVariableFeedback feedback = result.feedback;
       expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
       expect(feedback.lengths, [5, 6]);
+    });
+  }
+
+  test_serverError() {
+    test_simulateRefactoringException = true;
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendStringRequest('1 + 2', 'res', true).then((response) {
+        expect(response.error, isNotNull);
+      });
     });
   }
 }
