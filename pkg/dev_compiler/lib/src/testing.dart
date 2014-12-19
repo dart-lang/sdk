@@ -13,6 +13,7 @@ import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources, dartSdkDirec
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:ddc/src/utils.dart';
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/report.dart';
 import 'package:ddc/src/checker/checker.dart';
 
 /// Run the checker on a program with files contents as indicated in
@@ -40,7 +41,7 @@ import 'package:ddc/src/checker/checker.dart';
 ///     });
 ///
 CheckerResults testChecker(Map<String, String> testFiles,
-    {bool mockSdk: true}) {
+    {bool mockSdk: true, CheckerReporter reporter}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
@@ -53,8 +54,9 @@ CheckerResults testChecker(Map<String, String> testFiles,
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
-  sourcesCache.clear();
-  var results = checkProgram(mainFile, resolver);
+  var checkExpectations = reporter == null;
+  if (reporter == null) reporter = new TestReporter();
+  var results = checkProgram(mainFile, resolver, reporter);
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
@@ -67,20 +69,19 @@ CheckerResults testChecker(Map<String, String> testFiles,
     }
   }
 
-  var total = expectedErrors.values.fold(0, (p, l) => p + l.length);
+  if (!checkExpectations) return results;
 
+  var total = expectedErrors.values.fold(0, (p, l) => p + l.length);
   // Check that all errors we emit are included in the expected map.
   for (var lib in results.libraries) {
-    lib.nodeInfo.forEach((key, value) {
-      var actual = [];
-      actual.addAll(value.messages);
-      var expected = expectedErrors[key];
+    (reporter as TestReporter).infoMap[lib].forEach((node, actual) {
+      var expected = expectedErrors[node];
       var expectedTotal = expected == null ? 0 : expected.length;
       if (actual.length != expectedTotal) {
         expect(actual.length, expectedTotal,
             reason: 'The checker found ${actual.length} errors on the '
-            'expression `$key`, but we expected $expectedTotal. These are the '
-            'errors the checker found:\n\n ${_unexpectedErrors(key, actual)}');
+            'expression `$node`, but we expected $expectedTotal. These are the '
+            'errors the checker found:\n\n ${_unexpectedErrors(node, actual)}');
       }
 
       for (int i = 0; i < expected.length; i++) {
@@ -91,7 +92,7 @@ CheckerResults testChecker(Map<String, String> testFiles,
             reason: 'expected different error type at:\n\n'
             '${_messageWithSpan(actual[i])}');
       }
-      expectedErrors.remove(key);
+      expectedErrors.remove(node);
     });
   }
 
@@ -108,6 +109,22 @@ CheckerResults testChecker(Map<String, String> testFiles,
   }
 
   return results;
+}
+
+class TestReporter extends SummaryReporter {
+  Map<LibraryInfo, Map<AstNode, List<StaticInfo>>> infoMap = {};
+  LibraryInfo _current;
+
+  void enterLibrary(LibraryInfo info) {
+    super.enterLibrary(info);
+    infoMap[info] = {};
+    _current = info;
+  }
+
+  void log(StaticInfo info) {
+    super.log(info);
+    infoMap[_current].putIfAbsent(info.node, () => []).add(info);
+  }
 }
 
 /// Create an error explanation for errors that were not expected, but that the

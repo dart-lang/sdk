@@ -21,8 +21,7 @@ main(arguments) {
 
   setUp(() {
     compilerMessages.clear();
-    loggerSub =
-        setupLogger(Level.CONFIG, compilerMessages.writeln, useColors: false);
+    loggerSub = setupLogger(Level.CONFIG, compilerMessages.writeln);
   });
 
   tearDown(() {

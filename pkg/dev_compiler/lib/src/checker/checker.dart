@@ -7,18 +7,20 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/report.dart' show CheckerReporter;
 import 'package:ddc/src/utils.dart';
 import 'resolver.dart';
 import 'rules.dart';
 
 /// Runs the program checker using the restricted type rules on [fileUri].
 CheckerResults checkProgram(Uri fileUri, TypeResolver resolver,
-    {bool checkSdk: false, bool useColors: true}) {
+    CheckerReporter reporter, {bool checkSdk: false, bool useColors: true}) {
 
   // Invoke the checker on the entry point.
   TypeProvider provider = resolver.context.typeProvider;
-  var rules = new RestrictedRules(provider);
-  final visitor = new ProgramChecker(resolver, rules, fileUri, checkSdk);
+  var rules = new RestrictedRules(provider, reporter);
+  final visitor = new ProgramChecker(
+      resolver, rules, fileUri, checkSdk, reporter);
   visitor.check();
   return new CheckerResults(visitor.libraries, rules, visitor.failure);
 }
@@ -28,12 +30,14 @@ class ProgramChecker extends RecursiveAstVisitor {
   final TypeRules _rules;
   final Uri _root;
   final bool _checkSdk;
+  final CheckerReporter _reporter;
   final List<LibraryInfo> libraries = <LibraryInfo>[];
 
   LibraryInfo _current;
   bool failure = false;
 
-  ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk);
+  ProgramChecker(
+      this._resolver, this._rules, this._root, this._checkSdk, this._reporter);
 
   void check() {
     var startLibrary = _resolver.context
@@ -41,13 +45,17 @@ class ProgramChecker extends RecursiveAstVisitor {
     for (var lib in reachableLibraries(startLibrary)) {
       if (!_checkSdk && lib.isInSdk) continue;
       _current = new LibraryInfo(lib);
+      _reporter.enterLibrary(_current);
       libraries.add(_current);
       _rules.currentLibraryInfo = _current;
       for (var unit in lib.units) {
+        _reporter.enterSource(unit.source);
         // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
-        failure = _resolver.logErrors(unit.source) || failure;
+        failure = _resolver.logErrors(unit.source, _reporter) || failure;
         unit.node.visitChildren(this);
+        _reporter.leaveSource();
       }
+      _reporter.leaveLibrary();
     }
   }
 
@@ -361,15 +369,12 @@ class ProgramChecker extends RecursiveAstVisitor {
     final semanticNode = _getSemanticNode(node);
     assert(semanticNode.dynamicInvoke == null);
     semanticNode.dynamicInvoke = info;
-    semanticNode.messages.add(info);
-    logCheckerMessage(info);
+    _reporter.log(info);
   }
 
   void _recordMessage(StaticInfo info) {
     if (info == null) return;
-
     if (info.level >= logger.Level.SEVERE) failure = true;
-    _getSemanticNode(info.node).messages.add(info);
-    logCheckerMessage(info);
+    _reporter.log(info);
   }
 }

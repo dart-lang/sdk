@@ -12,7 +12,7 @@ import 'package:ddc/src/report.dart';
 main() {
   useCompactVMConfiguration();
   test('toJson/parse', () {
-    var results = testChecker({
+    var files = {
       '/main.dart': '''
           import 'package:foo/bar.dart';
 
@@ -26,9 +26,12 @@ main() {
             int y = /*info:DownCast*/x;
           }
       ''',
-    });
+    };
+    testChecker(files);
+    var reporter = new SummaryReporter();
+    testChecker(files, reporter: reporter);
 
-    var summary1 = checkerResultsToSummary(results);
+    var summary1 = reporter.result;
     expect(summary1.loose['main'].messages.length, 1);
     expect(summary1.packages['foo'].libraries['bar'].messages.length, 1);
 

@@ -6,7 +6,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 import 'package:ddc/src/info.dart';
-import 'package:ddc/src/utils.dart' show logCheckerMessage;
+import 'package:ddc/src/report.dart' show CheckerReporter;
 
 abstract class TypeRules {
   final TypeProvider provider;
@@ -56,8 +56,9 @@ class DartRules extends TypeRules {
 }
 
 class RestrictedRules extends TypeRules {
+  final CheckerReporter _reporter;
 
-  RestrictedRules(TypeProvider provider) : super(provider);
+  RestrictedRules(TypeProvider provider, this._reporter) : super(provider);
 
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
@@ -65,9 +66,7 @@ class RestrictedRules extends TypeRules {
 
     var node = currentLibraryInfo.nodeInfo
         .putIfAbsent(expr, () => new SemanticNode(expr));
-    var info = new MissingTypeError(expr);
-    node.messages.add(info);
-    logCheckerMessage(info);
+    _reporter.log(new MissingTypeError(expr));
     return provider.dynamicType;
   }
 

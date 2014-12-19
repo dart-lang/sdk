@@ -61,7 +61,7 @@ void main(List<String> argv) {
   Level level = Level.LEVELS.firstWhere((Level l) => l.name == levelName,
       orElse: () => Level.SEVERE);
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
-  if (!args['dump-info']) setupLogger(level, print, useColors: useColors);
+  if (!args['dump-info']) setupLogger(level, print);
 
   var typeResolver = new TypeResolver(shouldMockSdk ?
       TypeResolver.sdkResolverFromMock(mockSdkSources) :

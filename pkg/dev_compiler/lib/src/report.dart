@@ -5,9 +5,124 @@ import 'dart:math' show max;
 
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:logging/logging.dart';
 
 import 'info.dart';
 import 'utils.dart';
+
+// Interface used to report error messages from the checker.
+abstract class CheckerReporter {
+  /// Called when starting to process a library.
+  void enterLibrary(LibraryInfo info);
+  void leaveLibrary();
+
+  /// Called when starting to process a source. All subsequent log entries must
+  /// belong to this source until the next call to enterSource.
+  void enterSource(Source source);
+  void leaveSource();
+
+  void log(StaticInfo info);
+
+  // TODO(sigmund): merge this and [log]
+  void logAnalyzerError(String message, Level level, int begin, int end);
+}
+
+final _checkerLogger = new Logger('ddc.checker');
+
+/// Simple reporter that logs checker messages as they are seen.
+class LogReporter implements CheckerReporter {
+  final bool useColors;
+  SourceFile _file;
+  Source _current;
+
+  LogReporter([this.useColors = false]);
+
+  void enterLibrary(LibraryInfo info) {}
+  void leaveLibrary() {}
+
+  void enterSource(Source source){
+    _file = new SourceFile(source.contents.data, url: source.uri);
+    _current = source;
+  }
+
+  void leaveSource() {
+    _file = null;
+    _current = null;
+  }
+
+  void log(StaticInfo info) {
+    assert((info.node as dynamic).root.element.source == _current);
+    final span = _spanForNode(_file, info.node);
+    final color = useColors ? colorOf(info.level.name) : null;
+    _checkerLogger.log(info.level, span.message(info.message, color: color));
+  }
+
+  void logAnalyzerError(String message, Level level, int begin, int end) {
+    var span = _file.span(begin, end);
+    final color = useColors ? colorOf(level.name) : null;
+    _checkerLogger.log(level, span.message('[from analyzer]: ${message}',
+          color: color));
+  }
+}
+
+/// A reporter that gathers all the information in a [GlobalSummary].
+class SummaryReporter implements CheckerReporter {
+  GlobalSummary result = new GlobalSummary();
+  LibrarySummary _currentLibrary;
+  SourceFile _file;
+
+  void enterLibrary(LibraryInfo lib) {
+    var libSummary = _currentLibrary = new LibrarySummary(lib.name);
+
+    var uri = lib.library.source.uri;
+    if (uri.scheme == 'package') {
+      var pname = path.split(uri.path)[0];
+      result.packages.putIfAbsent(pname, () => new PackageSummary(pname));
+      if (result.packages[pname].libraries[lib.name] != null) {
+        print('ERROR: duplicate ${lib.name}');
+      }
+      result.packages[pname].libraries[lib.name] = libSummary;
+    } else if (uri.scheme == 'dart') {
+      if (result.system[lib.name] != null) {
+        print('ERROR: duplicate ${lib.name}');
+      }
+      result.system[lib.name] = libSummary;
+    } else {
+      if (result.loose[lib.name] != null) {
+        print('ERROR: duplicate ${lib.name}');
+      }
+      result.loose[lib.name] = libSummary;
+    }
+  }
+
+  void leaveLibrary() {
+    _currentLibrary = null;
+  }
+
+  void enterSource(Source source) {
+    _file = new SourceFile(source.contents.data, url: source.uri);
+    _currentLibrary.lines += _file.lines;
+  }
+
+  void leaveSource() {
+    _file = null;
+  }
+
+  void log(StaticInfo info) {
+    assert (_file != null);
+    var span = _spanForNode(_file, info.node);
+    _currentLibrary.messages.add(new MessageSummary('${info.runtimeType}',
+        info.level.name.toLowerCase(), span));
+  }
+
+  void logAnalyzerError(String message, Level level, int begin, int end) {
+    var span = _file.span(begin, end);
+    _currentLibrary.messages.add(
+        new MessageSummary('AnalyzerError', level.name.toLowerCase(), span));
+  }
+}
 
 /// Summary information computed by the DDC checker.
 abstract class Summary {
@@ -78,22 +193,30 @@ class PackageSummary implements Summary {
 
 /// A summary at the level of a library.
 class LibrarySummary implements Summary {
+  /// Name of the library.
   final String name;
+
+  /// All messages collected for the library.
   final List<MessageSummary> messages;
 
-  LibrarySummary(this.name, this.messages);
+  /// Total lines of code (including all parts of the library).
+  int lines;
+
+  LibrarySummary(this.name, [List<MessageSummary> messages, this.lines = 0])
+      : messages = messages == null ? <MessageSummary>[] : messages;
 
   Map toJsonMap() => {
     'library_name': name,
     'messages': messages.map((m) => m.toJsonMap()).toList(),
+    'lines': lines,
   };
 
   void accept(SummaryVisitor visitor) => visitor.visitLibrary(this);
 
   static LibrarySummary parse(Map json) =>
-      new LibrarySummary(json['library_name'], json['messages']
-          .map(MessageSummary.parse)
-          .toList());
+      new LibrarySummary(json['library_name'],
+          json['messages'] .map(MessageSummary.parse).toList(),
+          json['lines']);
 }
 
 /// A single message produced by the checker.
@@ -163,114 +286,157 @@ class RecursiveSummaryVisitor implements SummaryVisitor {
   void visitMessage(MessageSummary message) {}
 }
 
-/// Converts results from the checker into a [Summary].
-GlobalSummary checkerResultsToSummary(CheckerResults results) {
-  var res = new GlobalSummary();
-  for (var lib in results.libraries) {
-    var libSummary = new LibrarySummary(
-        lib.name, lib.nodeInfo.values.expand(_convertInfos).toList());
-
-    var uri = lib.library.source.uri;
-    if (uri.scheme == 'package') {
-      var pname = path.split(uri.path)[0];
-      res.packages.putIfAbsent(pname, () => new PackageSummary(pname));
-      if (res.packages[pname].libraries[lib.name] != null) {
-        print('ERROR: duplicate ${lib.name}');
-      }
-      res.packages[pname].libraries[lib.name] = libSummary;
-    } else if (uri.scheme == 'dart') {
-      if (res.system[lib.name] != null) print('ERROR: duplicate ${lib.name}');
-      res.system[lib.name] = libSummary;
-    } else {
-      if (res.loose[lib.name] != null) print('ERROR: duplicate ${lib.name}');
-      res.loose[lib.name] = libSummary;
-    }
-  }
-  return res;
-}
-
-// Internal helper to convert a [SemanticNode] to a list of [MessageSummary]s.
-List<MessageSummary> _convertInfos(SemanticNode semanticNode) {
-  var res = <MessageSummary>[];
-  var span = spanForNode(semanticNode.node);
-  for (var info in semanticNode.messages) {
-    res.add(new MessageSummary('${info.runtimeType}', info.level.name
-        .toLowerCase(), span));
-  }
-  return res;
-}
-
 /// Produces a string representation of the summary.
 String summaryToString(GlobalSummary summary) {
   var counter = new _Counter();
   summary.accept(counter);
 
-  var typeMap = {};
-  for (var type in infoTypes) {
-    var id = '$type'.replaceAll(new RegExp('[a-z]'), '');
-    while (typeMap[id] != null) id = "$id'";
-    typeMap[id] = type;
-  }
+  var table = new _Table();
+  // Declare columns and add header
+  table.declareColumn('package');
+  table.declareColumn('AnalyzerError', abbreviate: true);
+  infoTypes.forEach((type) => table.declareColumn('$type', abbreviate: true));
+  table.declareColumn('LinesOfCode', abbreviate: true);
+  table.addHeader();
 
-  var header = ['package']..addAll(typeMap.keys);
-  var rows = [header];
-  int nameColumnWidth = 10;
-  int numberColumnWidth = 5;
-  appendName(row, name) {
-    row.add(name);
-    nameColumnWidth = max(nameColumnWidth, name.length);
-  }
-  appendCount(row, count) {
-    if (count == null) count = 0;
-    row.add(count);
-    if (count > 9999) {
-      numberColumnWidth = max(numberColumnWidth, '$count'.length);
-    }
-  }
-
+  // Add entries for each package
+  appendCount(count) => table.addEntry(count == null ? 0 : count);
   for (var package in counter.errorCount.keys) {
-    var row = [];
-    appendName(row, package);
-    for (var type in infoTypes) {
-      appendCount(row, counter.errorCount[package]['$type']);
-    }
-    rows.add(row);
+    appendCount(package);
+    appendCount(counter.errorCount[package]['AnalyzerError']);
+    infoTypes.forEach((e) => appendCount(counter.errorCount[package]['$e']));
+    appendCount(counter.linesOfCode[package]);
   }
 
-  var totals = ['total'];
-  for (var type in infoTypes) {
-    appendCount(totals, counter.totals['$type']);
-  }
-  rows.add(totals);
+  // Add totals, percents and a new header for quick reference
+  table.addEmptyRow();
+  table.addHeader();
+  table.addEntry('total');
+  appendCount(counter.totals['AnalyzerError']);
+  infoTypes.forEach((type) => appendCount(counter.totals['$type']));
+  appendCount(counter.totalLinesOfCode);
 
-  var sb = new StringBuffer();
-  sb.write('\n');
-  for (var row in rows) {
-    var first = true;
-    for (var column in row) {
-      if (first) {
-        sb.write('$column'.padRight(nameColumnWidth));
-        first = false;
-      } else {
-        sb.write(' $column'.padLeft(numberColumnWidth));
-      }
+  appendPercent(count, total) {
+    if (count == null) count = 0;
+    var value = (count * 100 / total).toStringAsFixed(2);
+    table.addEntry(value);
+  }
+
+  var totalLOC = counter.totalLinesOfCode;
+  table.addEntry('%');
+  appendPercent(counter.totals['AnalyzerError'], totalLOC);
+  infoTypes.forEach((type) => appendPercent(counter.totals['$type'], totalLOC));
+  appendCount(100);
+
+  return table.toString();
+}
+
+/// Helper class to combine all the information in table form.
+class _Table {
+  int _totalColumns = 0;
+  int get totalColumns => _totalColumns;
+
+  /// Abbreviations, used to make headers shorter.
+  Map<String, String> abbreviations = {};
+
+  /// Width of each column.
+  List<int> widths = <int>[];
+
+  /// The header for each column (`header.length == totalColumns`).
+  List header = [];
+
+  /// Each row on the table. Note that all rows have the same size
+  /// (`rows[*].length == totalColumns`).
+  List<List> rows = [];
+
+  /// Whether we started adding entries. Indicates that no more columns can be
+  /// added.
+  bool _sealed = false;
+
+  /// Current row being built by [addEntry].
+  List _currentRow;
+
+  /// Add a column with the given [name].
+  void declareColumn(String name, {bool abbreviate}) {
+    assert (!_sealed);
+    var headerName = name;
+    if (abbreviate) {
+      // abbreviate the header by using only the capital initials.
+      headerName = name.replaceAll(new RegExp('[a-z]'), '');
+      while (abbreviations[headerName] != null) headerName = "$headerName'";
+      abbreviations[headerName] = name;
     }
+    widths.add(max(5, headerName.length + 1));
+    header.add(headerName);
+    _totalColumns++;
+  }
+
+  /// Add an entry in the table, creating a new row each time [totalColumns]
+  /// entries are added.
+  void addEntry(entry) {
+    if (_currentRow == null) {
+      _sealed = true;
+      _currentRow = [];
+    }
+    int pos = _currentRow.length;
+    assert(pos < _totalColumns);
+
+    widths[pos] = max(widths[pos], '$entry'.length + 1);
+    _currentRow.add('$entry');
+
+    if (pos + 1 == _totalColumns) {
+      rows.add(_currentRow);
+      _currentRow = [];
+    }
+  }
+
+  /// Add an empty row to divide sections of the table.
+  void addEmptyRow() {
+    var emptyRow = [];
+    for (int i = 0; i < _totalColumns; i++) {
+      emptyRow.add('-' * widths[i]);
+    }
+    rows.add(emptyRow);
+  }
+
+  /// Enter the header titles. OK to do so more than once in long tables.
+  void addHeader() {
+    rows.add(header);
+  }
+
+  /// Generates a string representation of the table to print on a terminal.
+  // TODO(sigmund): add also a .csv format
+  String toString() {
+    var sb = new StringBuffer();
     sb.write('\n');
+    for (var row in rows) {
+      for (int i = 0; i < _totalColumns; i++) {
+        var entry = row[i];
+        // Align first column to the left, everything else to the right.
+        sb.write(i == 0 ? entry.padRight(widths[i])
+            : entry.padLeft(widths[i] + 1));
+      }
+      sb.write('\n');
+    }
+    sb.write('\nWhere:\n');
+    for (var id in abbreviations.keys) {
+      sb.write('  $id:'.padRight(7));
+      sb.write(' ${abbreviations[id]}\n');
+    }
+    return sb.toString();
   }
-  sb.write('\nWhere:\n');
-  for (var id in typeMap.keys) {
-    sb.write('  $id:'.padRight(7));
-    sb.write(' ${typeMap[id]}\n');
-  }
-  return sb.toString();
 }
 
 /// An example visitor that counts the number of errors per package and total.
 class _Counter extends RecursiveSummaryVisitor {
-  String currentPackage;
+  String _currentPackage;
+  String get currentPackage =>
+      _currentPackage != null ? _currentPackage : "*other*";
   var sb = new StringBuffer();
   Map<String, Map<String, int>> errorCount = <String, Map<String, int>>{};
+  Map<String, int> linesOfCode = <String, int>{};
   Map<String, int> totals = <String, int>{};
+  int totalLinesOfCode = 0;
 
   void visitGlobal(GlobalSummary global) {
     if (!global.system.isEmpty) {
@@ -293,24 +459,31 @@ class _Counter extends RecursiveSummaryVisitor {
   }
 
   void visitPackage(PackageSummary package) {
-    currentPackage = package.name;
+    _currentPackage = package.name;
     super.visitPackage(package);
-    currentPackage = null;
+    _currentPackage = null;
   }
 
   void visitLibrary(LibrarySummary lib) {
     super.visitLibrary(lib);
+    linesOfCode.putIfAbsent(currentPackage, () => 0);
+    linesOfCode[currentPackage] += lib.lines;
+    totalLinesOfCode += lib.lines;
   }
 
   visitMessage(MessageSummary message) {
-    addTo(currentPackage != null ? currentPackage : '*other*', message.kind);
-  }
-
-  addTo(String package, String kind) {
-    errorCount.putIfAbsent(package, () => <String, int>{});
-    errorCount[package].putIfAbsent(kind, () => 0);
-    errorCount[package][kind]++;
+    var kind = message.kind;
+    errorCount.putIfAbsent(currentPackage, () => <String, int>{});
+    errorCount[currentPackage].putIfAbsent(kind, () => 0);
+    errorCount[currentPackage][kind]++;
     totals.putIfAbsent(kind, () => 0);
     totals[kind]++;
   }
+}
+
+/// Returns a [SourceSpan] in [file] for the offsets of [node].
+SourceSpan _spanForNode(SourceFile file, AstNode node) {
+  final begin = node is AnnotatedNode ?
+      node.firstTokenAfterCommentAndMetadata.offset : node.offset;
+  return file.span(begin, node.end);
 }

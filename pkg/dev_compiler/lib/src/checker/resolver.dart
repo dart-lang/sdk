@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/utils.dart';
+import 'package:ddc/src/report.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 
@@ -52,19 +53,17 @@ class TypeResolver {
 
   /// Log any errors encountered when resolving [source] and return whether any
   /// errors were found.
-  bool logErrors(Source source) {
+  bool logErrors(Source source, CheckerReporter reporter) {
     List<AnalysisError> errors = context.getErrors(source).errors;
     bool failure = false;
     if (errors.isNotEmpty) {
       for (var error in errors) {
-        var offset = error.offset;
-        var span = spanFor(error.source, offset, offset + error.length);
         var severity = error.errorCode.errorSeverity;
         var isError = severity == ErrorSeverity.ERROR;
         if (isError) failure = true;
         var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-        _log.log(level, span.message('[from analyzer]: ${error.message}',
-            color: colorOf(severity.name)));
+        reporter.logAnalyzerError(error.message,
+            level, error.offset, error.offset + error.length);
       }
     }
     return failure;

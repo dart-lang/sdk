@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:ddc/src/checker/checker.dart';
 import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+import 'package:ddc/src/report.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
@@ -15,28 +16,31 @@ main() {
 
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
-  _uri(testfile) => new Uri.file('$testDir/$testfile.dart');
+  _check(testfile) {
+    checkProgram(
+        new Uri.file('$testDir/$testfile.dart'), mockSdk, new LogReporter());
+  }
 
   test('checker runs correctly (end-to-end)', () {
-    checkProgram(_uri('samples/funwithtypes'), mockSdk);
+    _check('samples/funwithtypes');
   });
 
   test('checker accepts files with imports', () {
-    checkProgram(_uri('samples/import_test'), mockSdk);
+    _check('samples/import_test');
   });
 
   test('checker tests function types', () {
     // TODO(vsm): Check for correct down casts.
-    checkProgram(_uri('samples/function_type_test'), mockSdk);
+    _check('samples/function_type_test');
   });
 
   test('checker tests runtime checks', () {
     // TODO(sigmund,vsm): Check output for invalid checks.
-    checkProgram(_uri('samples/runtimetypechecktest'), mockSdk);
+    _check('samples/runtimetypechecktest');
   });
 
   test('checker tests return values', () {
     // TODO(vsm): Check for conversions.
-    checkProgram(_uri('samples/return_test'), mockSdk);
+    _check('samples/return_test');
   });
 }
