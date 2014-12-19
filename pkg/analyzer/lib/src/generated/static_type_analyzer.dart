@@ -1171,7 +1171,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     if (propagatedType != null &&
         propagatedType.isMoreSpecificThan(staticType)) {
+      // TODO(scheglov) "isMoreSpecificThan" returns "true" when
+      // "propagatedType" is the same as "staticType".
+      // Not sure if it is useful to record.
       _recordPropagatedType(node, propagatedType);
+    } else {
+      node.propagatedType = null;
     }
     return null;
   }
@@ -1660,6 +1665,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   void _recordPropagatedType(Expression expression, DartType type) {
     if (type != null && !type.isDynamic && !type.isBottom) {
       expression.propagatedType = type;
+    } else {
+      expression.propagatedType = null;
     }
   }
 

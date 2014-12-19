@@ -25,12 +25,40 @@ import 'resolver_test.dart';
 import 'test_support.dart';
 
 
+
 main() {
   groupSep = ' | ';
   runReflectiveTests(DeclarationMatcherTest);
   runReflectiveTests(IncrementalResolverTest);
   runReflectiveTests(PoorMansIncrementalResolutionTest);
   runReflectiveTests(ResolutionContextBuilderTest);
+}
+
+
+void _assertEqualError(AnalysisError incrError, AnalysisError fullError) {
+  expect(incrError.errorCode, same(fullError.errorCode));
+  expect(incrError.source, fullError.source);
+  expect(incrError.offset, fullError.offset);
+  expect(incrError.length, fullError.length);
+  expect(incrError.message, fullError.message);
+}
+
+
+void _assertEqualErrors(List<AnalysisError> incrErrors,
+    List<AnalysisError> fullErrors) {
+  expect(incrErrors, hasLength(fullErrors.length));
+  if (incrErrors.isNotEmpty) {
+    incrErrors.sort((a, b) => a.offset - b.offset);
+  }
+  if (fullErrors.isNotEmpty) {
+    fullErrors.sort((a, b) => a.offset - b.offset);
+  }
+  int length = incrErrors.length;
+  for (int i = 0; i < length; i++) {
+    AnalysisError incrError = incrErrors[i];
+    AnalysisError fullError = fullErrors[i];
+    _assertEqualError(incrError, fullError);
+  }
 }
 
 
@@ -815,7 +843,6 @@ class A {
   }
 
   void test_false_method_parameters_type_edit() {
-    // TODO
     _assertDoesNotMatchOK(r'''
 class A {
   m(int p) {
@@ -1899,6 +1926,7 @@ class IncrementalResolverTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     test_resolveApiChanges = true;
+    log.logger = log.NULL_LOGGER;
   }
 
   void test_api_method_edit_returnType() {
@@ -1910,7 +1938,8 @@ class A {
 }
 main() {
   A a = new A();
-  var v = a.m();
+  int v = a.m();
+  print(v);
 }
 ''');
     _resolve(_editString('int m', 'String m'), _isDeclaration);
@@ -2240,22 +2269,32 @@ class B {
       _shiftTokens(unit.beginToken, offset, delta);
     }
     // do incremental resolution
+    int updateOffset = edit.offset;
+    int updateEndOld = updateOffset + edit.length;
+    int updateOldNew = updateOffset + edit.replacement.length;
     IncrementalResolver resolver = new IncrementalResolver(
-        typeProvider,
         unit.element,
-        edit.offset,
-        edit.length,
-        edit.replacement.length);
+        updateOffset,
+        updateEndOld,
+        updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
+    List<AnalysisError> newErrors = analysisContext.getErrors(source).errors;
     // resolve "newCode" from scratch
     CompilationUnit fullNewUnit;
     {
       source = addSource(newCode);
+      _runTasks();
       LibraryElement library = resolve(source);
       fullNewUnit = resolveCompilationUnit(source, library);
     }
     _SameResolutionValidator.assertSameResolution(unit, fullNewUnit);
+    // errors
+    List<AnalysisError> newFullErrors =
+        analysisContext.getErrors(source).errors;
+    _assertEqualErrors(newErrors, newFullErrors);
+    // prepare for the next cycle
+    code = newCode;
   }
 
   void _resolveUnit(String code) {
@@ -2263,6 +2302,14 @@ class B {
     source = addSource(code);
     library = resolve(source);
     unit = resolveCompilationUnit(source, library);
+    _runTasks();
+  }
+
+  void _runTasks() {
+    AnalysisResult result = analysisContext.performAnalysisTask();
+    while (result.changeNotices != null) {
+      result = analysisContext.performAnalysisTask();
+    }
   }
 
   static AstNode _findNodeAt(CompilationUnit oldUnit, int offset,
@@ -2315,6 +2362,23 @@ class PoorMansIncrementalResolutionTest extends ResolverTestCase {
   LibraryElement oldLibrary;
   CompilationUnit oldUnit;
   CompilationUnitElement oldUnitElement;
+
+  void fail_updateErrors_removeExisting_duplicateMethodDeclaration() {
+    // TODO(scheglov) We fail to remove the second "foo" declaration.
+    // So, we still have the same duplicate declaration problem.
+    _resolveUnit(r'''
+class A {
+  void foo() {}
+  void foo() {}
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  void foo() {}
+  void foo2() {}
+}
+''');
+  }
 
   void setUp() {
     super.setUp();
@@ -2689,7 +2753,7 @@ a() {
 b() {
   foo(42);
 }
-foo(String p) {};
+foo(String p) {}
 ''');
     _updateAndValidate(r'''
 a() {
@@ -2698,7 +2762,7 @@ a() {
 b() {
   foo(42);
 }
-foo(String p) {};
+foo(String p) {}
 ''');
   }
 
@@ -2833,6 +2897,23 @@ foo() {}
 ''');
   }
 
+  void test_updateErrors_addNew_resolve2() {
+    _resolveUnit(r'''
+// this comment is important to reproduce the problem
+main() {
+  int vvv = 42;
+  print(vvv);
+}
+''');
+    _updateAndValidate(r'''
+// this comment is important to reproduce the problem
+main() {
+  int vvv = 42;
+  print(vvv2);
+}
+''');
+  }
+
   void test_updateErrors_addNew_scan() {
     _resolveUnit(r'''
 main() {
@@ -2930,6 +3011,7 @@ f3() {
   void _resetWithIncremental(bool enable) {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.incremental = enable;
+    analysisOptions.incrementalApi = enable;
 //    log.logger = log.PRINT_LOGGER;
     log.logger = log.NULL_LOGGER;
     analysisContext2.analysisOptions = analysisOptions;
@@ -2989,32 +3071,6 @@ f3() {
     }
   }
 
-  static void _assertEqualError(AnalysisError incrError,
-      AnalysisError fullError) {
-    expect(incrError.errorCode, same(fullError.errorCode));
-    expect(incrError.source, fullError.source);
-    expect(incrError.offset, fullError.offset);
-    expect(incrError.length, fullError.length);
-    expect(incrError.message, fullError.message);
-  }
-
-  static void _assertEqualErrors(List<AnalysisError> incrErrors,
-      List<AnalysisError> fullErrors) {
-    expect(incrErrors, hasLength(fullErrors.length));
-    if (incrErrors.isNotEmpty) {
-      incrErrors.sort((a, b) => a.offset - b.offset);
-    }
-    if (fullErrors.isNotEmpty) {
-      fullErrors.sort((a, b) => a.offset - b.offset);
-    }
-    int length = incrErrors.length;
-    for (int i = 0; i < length; i++) {
-      AnalysisError incrError = incrErrors[i];
-      AnalysisError fullError = fullErrors[i];
-      _assertEqualError(incrError, fullError);
-    }
-  }
-
   static void _assertEqualToken(Token incrToken, Token fullToken) {
     expect(incrToken.type, fullToken.type);
     expect(incrToken.offset, fullToken.offset);
@@ -3027,8 +3083,6 @@ f3() {
     Token incrToken = incrUnit.beginToken;
     Token fullToken = fullUnit.beginToken;
     while (incrToken.type != TokenType.EOF && fullToken.type != TokenType.EOF) {
-//      print('$incrToken @ ${incrToken.offset}');
-//      print('$fullToken @ ${fullToken.offset}');
       _assertEqualToken(incrToken, fullToken);
       // comments
       {

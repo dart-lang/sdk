@@ -631,6 +631,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     if (propagatedElement != null) {
+      propagatedElement.addUser(_resolver.enclosingFunction);
       List<ParameterElement> parameters =
           _computeCorrespondingParameters(argumentList, propagatedElement);
       if (parameters != null) {

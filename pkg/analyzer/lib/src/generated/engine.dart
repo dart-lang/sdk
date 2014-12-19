@@ -5098,7 +5098,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
         typeProvider,
         unitSource,
-        librarySource,
         dartEntry,
         analysisOptions.incrementalApi);
     bool success = resolver.resolve(oldUnit, newCode);
@@ -10710,7 +10709,6 @@ class IncrementalAnalysisTask extends AnalysisTask {
         LibraryElement library = element.library;
         if (library != null) {
           IncrementalResolver resolver = new IncrementalResolver(
-              typeProvider,
               element,
               cache.offset,
               cache.oldLength,
