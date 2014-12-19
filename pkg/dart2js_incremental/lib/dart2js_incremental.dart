@@ -155,3 +155,11 @@ function dartMainRunner(main, args) {
     return printer.outBuffer.getText();
   }
 }
+
+class IncrementalCompilationFailed {
+  final String reason;
+
+  const IncrementalCompilationFailed(this.reason);
+
+  String toString() => "Can't incrementally compile program.\n\n$reason";
+}

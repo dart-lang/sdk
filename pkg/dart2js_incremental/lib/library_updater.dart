@@ -27,19 +27,29 @@ import 'package:compiler/src/elements/elements.dart' show
 
 import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,
+    Listener,
+    NodeListener,
+    Parser,
     PartialClassElement,
     PartialElement,
     PartialFieldList,
     PartialFunctionElement,
+    Scanner,
     Token;
 
 import 'package:compiler/src/source_file.dart' show
+    CachingUtf8BytesSourceFile,
+    SourceFile,
     StringSourceFile;
 
 import 'package:compiler/src/tree/tree.dart' show
     ClassNode,
     FunctionExpression,
-    NodeList;
+    LibraryTag,
+    NodeList,
+    Part,
+    StringNode,
+    unparse;
 
 import 'package:compiler/src/js/js.dart' show
     js;
@@ -84,6 +94,7 @@ import 'diff.dart' show
     computeDifference;
 
 import 'dart2js_incremental.dart' show
+    IncrementalCompilationFailed,
     IncrementalCompiler;
 
 typedef void Logger(message);
@@ -168,6 +179,8 @@ class LibraryUpdater extends JsFeatures {
 
   final IncrementalCompilerContext _context;
 
+  final Map<Uri, Future> _sources = <Uri, Future>{};
+
   bool _hasComputedNeeds = false;
 
   bool _hasCapturedCompilerState = false;
@@ -212,23 +225,80 @@ class LibraryUpdater extends JsFeatures {
       logTime('Reusing $library (assumed read-only).');
       return new Future.value(true);
     }
-    for (CompilationUnitElementX unit in library.compilationUnits) {
-      Uri uri = unit.script.resourceUri;
-      if (_context._uriHasUpdate(uri)) {
-        if (!library.compilationUnits.tail.isEmpty) {
-          // TODO(ahe): Remove this restriction.
-          cannotReuse(library, "Multiple compilation units not supported.");
-          return new Future.value(true);
-        }
-        return inputProvider(uri).then((bytes) {
-          return canReuseLibrary(library, bytes);
-        });
+    return _haveTagsChanged(library).then((bool haveTagsChanged) {
+      if (haveTagsChanged) {
+        cannotReuse(
+            library,
+            "Changes to library, import, export, or part declarations not"
+            " supported.");
+        return true;
       }
+      for (CompilationUnitElementX unit in library.compilationUnits) {
+        Uri uri = unit.script.resourceUri;
+        if (_context._uriHasUpdate(uri)) {
+          if (!library.compilationUnits.tail.isEmpty) {
+            // TODO(ahe): Remove this restriction.
+            cannotReuse(
+                library,
+                "Multiple compilation units not supported"
+                " (${library.compilationUnits}).");
+            return true;
+          }
+          return _readUri(uri).then((bytes) {
+            return canReuseLibrary(library, bytes);
+          });
+        }
+      }
+
+      logTime("Reusing $library, source didn't change.");
+      // Source code of [library] wasn't changed.
+      return true;
+    });
+  }
+
+  Future<bool> _haveTagsChanged(LibraryElement library) {
+    Uri uri = library.entryCompilationUnit.script.resourceUri;
+    if (!_context._uriHasUpdate(uri)) {
+      // The entry compilation unit hasn't been updated. So the tags aren't
+      // changed.
+      return new Future<bool>.value(false);
     }
 
-    logTime("Reusing $library, source didn't change.");
-    // Source code of [library] wasn't changed.
-    return new Future.value(true);
+    return _readUri(uri).then((bytes) {
+      String filename = '$uri';
+      SourceFile sourceFile = bytes is String
+          ? new StringSourceFile(filename, bytes)
+          : new CachingUtf8BytesSourceFile(filename, bytes);
+      Token token = new Scanner(sourceFile).tokenize();
+      // Using two parsers to only create the nodes we want ([LibraryTag]).
+      Parser parser = new Parser(new Listener());
+      NodeListener listener = new NodeListener(
+          compiler, library.entryCompilationUnit);
+      Parser nodeParser = new Parser(listener);
+      Iterator<LibraryTag> tags = library.tags.iterator;
+      while (token.kind != EOF_TOKEN) {
+        token = parser.parseMetadataStar(token);
+        if (parser.optional('library', token) ||
+            parser.optional('import', token) ||
+            parser.optional('export', token) ||
+            parser.optional('part', token)) {
+          if (!tags.moveNext()) return true;
+          token = nodeParser.parseTopLevelDeclaration(token);
+          LibraryTag tag = listener.popNode();
+          assert(listener.nodes.isEmpty);
+          if (unparse(tags.current) != unparse(tag)) {
+            return true;
+          }
+        } else {
+          break;
+        }
+      }
+      return tags.moveNext();
+    });
+  }
+
+  Future _readUri(Uri uri) {
+    return _sources.putIfAbsent(uri, () => inputProvider(uri));
   }
 
   void _ensureCompilerStateCaptured() {
@@ -583,8 +653,7 @@ class LibraryUpdater extends JsFeatures {
       update.captureState();
     }
     if (!_failedUpdates.isEmpty) {
-      throw new StateError(
-          "Can't compute update.\n\n${_failedUpdates.join('\n\n')}");
+      throw new IncrementalCompilationFailed(_failedUpdates.join('\n\n'));
     }
     for (ElementX element in _elementsToInvalidate) {
       compiler.forgetElement(element);

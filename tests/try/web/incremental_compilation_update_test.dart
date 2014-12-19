@@ -40,6 +40,9 @@ import 'package:compiler/src/elements/elements.dart' show
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler;
 
+import 'package:dart2js_incremental/dart2js_incremental.dart' show
+    IncrementalCompilationFailed;
+
 import 'program_result.dart';
 
 const int TIMEOUT = 100;
@@ -1754,14 +1757,23 @@ Future compileAndRun(EncodedResult encodedResult) {
 
           WebInputProvider inputProvider =
               test.incrementalCompiler.inputProvider;
-          Uri uri = test.scriptUri.resolve('?v${version++}');
-          inputProvider.cachedSources[uri] = new Future.value(program.code);
+          Uri base = test.scriptUri;
+          Map<String, String> code = program.code is String
+              ? { 'main.dart': program.code }
+              : program.code;
+          Map<Uri, Uri> uriMap = <Uri, Uri>{};
+          for (String name in code.keys) {
+            Uri uri = base.resolve('$name?v${version++}');
+            inputProvider.cachedSources[uri] = new Future.value(code[name]);
+            uriMap[base.resolve(name)] = uri;
+          }
           Future future = test.incrementalCompiler.compileUpdates(
-              {test.scriptUri: uri}, logVerbose: logger, logTime: logger);
+              uriMap, logVerbose: logger, logTime: logger);
           future = future.catchError((error, trace) {
             String statusMessage;
             Future result;
-            if (program.compileUpdatesShouldThrow) {
+            if (program.compileUpdatesShouldThrow &&
+                error is IncrementalCompilationFailed) {
               statusMessage = "Expected error in compileUpdates.";
               result = null;
             } else {
