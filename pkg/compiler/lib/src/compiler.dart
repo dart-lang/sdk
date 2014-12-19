@@ -1426,7 +1426,7 @@ abstract class Compiler implements DiagnosticListener {
     // suitably maintained static reference to the current compiler.
     StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
-    TypedSelector.canonicalizedValues.clear();
+    world.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {

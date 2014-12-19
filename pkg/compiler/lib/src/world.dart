@@ -111,6 +111,9 @@ class World implements ClassWorld {
   ClassElement get doubleClass => compiler.doubleClass;
   ClassElement get stringClass => compiler.stringClass;
 
+  Map<Selector, Map<ti.TypeMask, TypedSelector>> canonicalizedValues =
+     new Map<Selector, Map<ti.TypeMask, TypedSelector>>();
+
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
     return
       invariant(cls, cls.isDeclaration,
