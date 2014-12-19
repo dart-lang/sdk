@@ -267,6 +267,17 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 5) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0) {
+  const Array& result = Array::Handle(Array::New(3));
+  result.SetAt(0, SendPort::Handle(SendPort::New(isolate->main_port())));
+  result.SetAt(1, Capability::Handle(
+                      Capability::New(isolate->pause_capability())));
+  result.SetAt(2, Capability::Handle(
+                      Capability::New(isolate->terminate_capability())));
+  return result.raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, msg, arguments->NativeArgAt(1));

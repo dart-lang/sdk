@@ -256,6 +256,10 @@ void _startIsolate(SendPort parentPort,
 }
 
 patch class Isolate {
+  static final _currentIsolate = _getCurrentIsolate();
+
+  /* patch */ static Isolate get current => _currentIsolate;
+
   /* patch */ static Future<Isolate> spawn(
       void entryPoint(message), var message, { bool paused: false }) {
     // `paused` isn't handled yet.
@@ -392,4 +396,14 @@ patch class Isolate {
   /* patch */ void removeErrorListener(SendPort port) {
     throw new UnsupportedError("removeErrorListener");
   }
+
+  static Isolate _getCurrentIsolate() {
+    List portAndCapabilities = _getPortAndCapabilitiesOfCurrentIsolate();
+    return new Isolate(portAndCapabilities[0],
+                       pauseCapability: portAndCapabilities[1],
+                       terminateCapability: portAndCapabilities[2]);
+  }
+
+  static List _getPortAndCapabilitiesOfCurrentIsolate()
+      native "Isolate_getPortAndCapabilitiesOfCurrentIsolate";
 }

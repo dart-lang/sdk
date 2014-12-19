@@ -14,6 +14,13 @@ import 'dart:_isolate_helper' show CapabilityImpl,
 
 @patch
 class Isolate {
+  static final _currentIsolateCache = IsolateNatives.currentIsolate;
+
+  // `current` must be a getter, not just a final field,
+  // to match the external declaration.
+  @patch
+  static Isolate get current => _currentIsolateCache;
+
   @patch
   static Future<Isolate> spawn(void entryPoint(message), var message,
                                      { bool paused: false }) {

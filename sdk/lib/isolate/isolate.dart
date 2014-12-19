@@ -120,6 +120,15 @@ class Isolate {
                              this.terminateCapability});
 
   /**
+   * Return the current [Isolate].
+   *
+   * The isolate gives access to the capabilities needed to inspect,
+   * pause or kill the isolate, and allows granting these capabilities
+   * to others.
+   */
+  external static Isolate get current;
+
+  /**
    * Creates and spawns an isolate that shares the same code as the current
    * isolate.
    *
