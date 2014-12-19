@@ -235,23 +235,21 @@ f(){int x;int y=!1;}''', <String>["1+x"]);
 
     buildTests('testCommentSnippets048', '''
 import 'dart:convert' as json;f() {var x=new js!1}''',
-        <String>["1+json"],
-        failingTests: '1');
+        <String>["1+json"]);
 
     buildTests('testCommentSnippets049', '''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
-class JsonParserX{}
+class JsonDecoderX{}
 f1() {var x=new !2j!1s!3}''',
         <String>[
             "1+json",
             "1+jxx",
             "2+json",
             "2+jxx",
-            "2-JsonParser",
+            "2-JsonDecoder",
             "3+json",
-            "3-jxx"],
-        failingTests: '123');
+            "3-jxx"]);
 
     buildTests('testCommentSnippets050', '''
 class xdr {
@@ -855,28 +853,23 @@ main(A a) {
 
     buildTests('testCompletion_combinator_ended', '''
 import 'dart:math' show !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_export', '''
 export 'dart:math' show !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_hide', '''
 import 'dart:math' hide !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_notEnded', '''
 import 'dart:math' show !1"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_usePrefix', '''
 import 'dart:math' show s!1"''',
-        <String>["1+sin", "1+sqrt", "1-cos", "1-String"],
-        failingTests: '1');
+        <String>["1+sin", "1+sqrt", "1-cos", "1-String"]);
 
     buildTests('testCompletion_constructor_field', '''
 class X { X(this.field); int f!1ield;}''',
@@ -1564,7 +1557,7 @@ main() {
 import 'dart:math' as math show PI;
 main() {
   math.!1
-}''', <String>["1+PI", "1-LN10"]);
+}''', <String>["1+PI", "1-LN10"], failingTests: '1');
 
     sources.clear();
     sources["/lib.dart"] = '''
@@ -1629,7 +1622,7 @@ throw new Seria!1lizationException();}''',
         'test002',
         '''t2() {var q=[0],z=q.!1length;q.!2clear();}''',
         <String>["1+length", "1+isEmpty", "2+clear"],
-        failingTests: '12');
+        failingTests: '1');
 
     // TODO Include corelib analysis
     buildTests(
@@ -1643,18 +1636,17 @@ throw new Seria!1lizationException();}''',
     buildTests('test004', '''
             library foo;
             import 'dart:convert' as json;
-            class JsonParserX{}
+            class JsonDecoderX{}
             f1() {var x=new json.!1}
-            f2() {var x=new json.JsonPa!2}
-            f3() {var x=new json.JsonParser!3}''',
+            f2() {var x=new json.JsonDe!2}
+            f3() {var x=new json.JsonDecoder!3}''',
         <String>[
-            "1+JsonParser",
-            "1-JsonParserX",
-            "2+JsonParser",
-            "2-JsonParserX",
-            "3+JsonParser",
-            "3-JsonParserX"],
-        failingTests: '123');
+            "1+JsonDecoder",
+            "1-JsonDecoderX",
+            "2+JsonDecoder",
+            "2-JsonDecoderX",
+            "3+JsonDecoder",
+            "3-JsonDecoderX"]);
 
     // TODO Enable after type propagation is implemented. Not yet.
     // TODO Include corelib analysis

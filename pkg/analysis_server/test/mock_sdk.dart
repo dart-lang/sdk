@@ -33,12 +33,14 @@ abstract class Comparable<T> {
   int compareTo(T other);
 }
 
-class String implements Comparable<String> {
+abstract class String implements Comparable<String> {
   external factory String.fromCharCodes(Iterable<int> charCodes,
                                         [int start = 0, int end]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
+  String toUpperCase();
+  List<int> get codeUnits;
 }
 
 class bool extends Object {}
@@ -52,10 +54,15 @@ abstract class num implements Comparable<num> {
   num operator *(num other);
   num operator /(num other);
   int toInt();
+  num abs();
+  int round();
 }
 abstract class int extends num {
   bool get isEven => false;
   int operator -();
+  external static int parse(String source,
+                            { int radix,
+                              int onError(String source) });
 }
 class double extends num {}
 class DateTime extends Object {}
@@ -74,6 +81,7 @@ class Iterator<E> {
 
 abstract class Iterable<E> {
   Iterator<E> get iterator;
+  bool get isEmpty;
 }
 
 abstract class List<E> implements Iterable<E> {
@@ -81,9 +89,12 @@ abstract class List<E> implements Iterable<E> {
   E operator [](int index);
   void operator []=(int index, E value);
   Iterator<E> get iterator => null;
+  void clear();
 }
 
-class Map<K, V> extends Object {}
+abstract class Map<K, V> extends Object {
+  Iterable<K> get keys;
+}
 
 external bool identical(Object a, Object b);
 
@@ -101,6 +112,24 @@ class Future<T> {
 }
 
 class Stream<T> {}
+abstract class StreamTransformer<S, T> {}
+''');
+
+  static const _MockSdkLibrary LIB_COLLECTION =
+      const _MockSdkLibrary('dart:collection', '/lib/collection/collection.dart', '''
+library dart.collection;
+
+abstract class HashMap<K, V> implements Map<K, V> {}
+''');
+
+  static const _MockSdkLibrary LIB_CONVERT =
+      const _MockSdkLibrary('dart:convert', '/lib/convert/convert.dart', '''
+library dart.convert;
+
+import 'dart:async';
+
+abstract class Converter<S, T> implements StreamTransformer {}
+class JsonDecoder extends Converter<String, Object> {}
 ''');
 
   static const _MockSdkLibrary LIB_MATH =
@@ -108,8 +137,12 @@ class Stream<T> {}
 library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
+const double LN10 =  2.302585092994046;
 num min(num a, num b) => 0;
 num max(num a, num b) => 0;
+external double cos(num x);
+external double sin(num x);
+external double sqrt(num x);
 class Random {}
 ''');
 
@@ -122,6 +155,8 @@ class HtmlElement {}
   static const List<SdkLibrary> LIBRARIES = const [
       LIB_CORE,
       LIB_ASYNC,
+      LIB_COLLECTION,
+      LIB_CONVERT,
       LIB_MATH,
       LIB_HTML,];
 
@@ -220,6 +255,8 @@ class HtmlElement {}
       "dart:core": "/lib/core/core.dart",
       "dart:html": "/lib/html/dartium/html_dartium.dart",
       "dart:async": "/lib/async/async.dart",
+      "dart:collection": "/lib/collection/collection.dart",
+      "dart:convert": "/lib/convert/convert.dart",
       "dart:math": "/lib/math/math.dart"
     };
 
