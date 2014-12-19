@@ -32,14 +32,12 @@ analysis_server/test/integration/analysis/update_content_test: Skip # Times out
 analysis_server/tool/spec/check_all_test: Skip # Times out
 analyzer/test/generated/element_test: Skip  # Times out
 analyzer/test/generated/parser_test: Skip  # Times out
-code_transformers/test/resolver_test: Skip  # Times out
 docgen/test/*: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
 barback/test/package_graph/repetition_test: Skip  # Times out
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 barback/test/too_many_open_files_test: Skip # 14220
-code_transformers/test/resolver_test: Skip # Issue 17908
 docgen/test/*: Skip # Too slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 analysis_server/*: Skip # Timeout in some tests.
@@ -68,8 +66,6 @@ analysis_server/test/edit/assists_test: Pass, Slow
 # dart2js, since the code under test always runs in the Dart vm as a
 # subprocess.
 analysis_server/test/integration: Skip
-
-code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
@@ -185,11 +181,6 @@ analysis_server/tool/spec/check_all_test: Skip # Uses dart:io.
 analyzer2dart/*: Skip # Uses dart:io.
 analyzer/test/*: Skip # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
-code_transformers/test/assets_test: Skip # Uses dart:io
-code_transformers/test/entry_point_test: Skip # Uses dart:io
-code_transformers/test/resolver_test: Skip # Uses dart:io
-code_transformers/test/unique_message_test: Skip # Uses dart:io
-code_transformers/test/remove_sourcemap_comment_test: Skip # Uses dart:io.
 http/test/io/*: Fail, OK # Uses dart:io.
 http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
