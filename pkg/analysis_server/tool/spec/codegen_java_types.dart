@@ -50,6 +50,7 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
           bool generateGetters = true;
           bool generateSetters = false;
           if (isRefactoringOption ||
+              typeNameInSpec == 'Outline' ||
               typeNameInSpec == 'RefactoringMethodParameter') {
             generateSetters = true;
           }
@@ -561,11 +562,6 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
   outline.setChildren(childrenList);
   return outline;
-}''');
-        });
-        publicMethod('setChildren', () {
-          writeln('''public void setChildren(List<Outline> children) {
-  this.children = children;
 }''');
         });
         publicMethod('getParent', () {
