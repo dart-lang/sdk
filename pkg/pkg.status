@@ -19,9 +19,6 @@ intl/test/date_time_format_local_even_test: Skip # Times out flakily. Issue 1954
 intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
 mutation_observer: Skip # Issue 21149
 
-[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-web_components/test/interop_test: Pass, RuntimeError # Issue 18931
-
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
 analysis_server/test/completion_test: Skip  # Times out
@@ -74,9 +71,6 @@ crypto/test/base64_test: Slow, Pass
 [ $compiler == dart2js && $runtime == drt ]
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 
-[ $compiler == dart2js && $csp && $runtime == drt ]
-web_components/test/interop_test: Fail # Issue 19329
-
 [ $runtime == d8 ]
 analysis_server/test/analysis_notification_overrides_test: Pass, Slow # Issue 19756
 analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 19756
@@ -107,7 +101,6 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 third_party/angular_tests/browser_test: Skip # uses dart:html
-web_components/test/*: Skip # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
