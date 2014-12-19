@@ -112,18 +112,16 @@ class EncodedResult {
             "(${updateCount} patches, ${expectations.length} expectations).");
       }
       List<ProgramResult> result = new List<ProgramResult>(updateCount);
-      int i = 0;
-      for (String name in fileMap.keys) {
+      for (int i = 0; i < updateCount; i++) {
         ProgramExpectation expectation = decodeExpectation(expectations[i]);
         result[i] = new ProgramResult(
             <String, String>{},
             expectation.messages,
             compileUpdatesShouldThrow: expectation.compileUpdatesShouldThrow);
-        i++;
       }
       for (String name in fileMap.keys) {
-        for (int j = 0; j < updateCount; j++) {
-          result[j].code[name] = fileMap[name][j];
+        for (int i = 0; i < updateCount; i++) {
+          result[i].code[name] = fileMap[name][i];
         }
       }
       return result;

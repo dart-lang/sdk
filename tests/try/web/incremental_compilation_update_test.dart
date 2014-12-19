@@ -1656,6 +1656,7 @@ main() {
     const EncodedResult(
         r"""
 ==> main.dart <==
+// Test that a change in a part is handled.
 library test.main;
 
 part 'part.dart';
@@ -1675,6 +1676,143 @@ main() {
         const [
             'Hello, World!',
             'Hello, Brave New World!',
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that a change in library name is handled.
+<<<<<<<
+library test.main1;
+=======
+library test.main2;
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that adding an import is handled.
+<<<<<<<
+=======
+import 'dart:core';
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that adding an export is handled.
+<<<<<<<
+=======
+export 'dart:core';
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that adding a part is handled.
+library test.main;
+
+<<<<<<<
+=======
+part 'part.dart';
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+
+
+==> part.dart <==
+part of test.main
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart <==
+// Test that changes in multiple libraries is handled.
+import 'library1.dart' as lib1;
+import 'library2.dart' as lib2;
+
+main() {
+  lib1.method();
+  lib2.method();
+}
+
+
+==> library1.dart.patch <==
+library test.library1;
+
+method() {
+<<<<<<<
+  print('lib1.v1');
+=======
+  print('lib1.v2');
+=======
+  print('lib1.v3');
+>>>>>>>
+}
+
+
+==> library2.dart.patch <==
+library test.library2;
+
+method() {
+<<<<<<<
+  print('lib2.v1');
+=======
+  print('lib2.v2');
+=======
+  print('lib2.v3');
+>>>>>>>
+}
+""",
+        const [
+            const <String>['lib1.v1', 'lib2.v1'],
+            const <String>['lib1.v2', 'lib2.v2'],
+            const <String>['lib1.v3', 'lib2.v3'],
         ]),
 ];
 
