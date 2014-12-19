@@ -911,6 +911,26 @@ main() {
 ''');
   }
 
+  test_stringLiteralPart() {
+    indexTestUnit(r'''
+main() {
+  int x = 1;
+  int y = 2;
+  print('$x+$y=${x+y}');
+}
+''');
+    _createRefactoringForString(r'$x+$y');
+    // apply refactoring
+    return _assertSuccessfulRefactoring(r'''
+main() {
+  int x = 1;
+  int y = 2;
+  var res = '$x+$y';
+  print('${res}=${x+y}');
+}
+''');
+  }
+
   Future _assertInitialConditions_fatal_selection() {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
