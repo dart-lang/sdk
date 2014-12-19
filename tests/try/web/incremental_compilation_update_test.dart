@@ -1659,6 +1659,8 @@ main() {
 library test.main;
 
 part 'part.dart';
+
+
 ==> part.dart.patch <==
 part of test.main;
 
@@ -1672,10 +1674,7 @@ main() {
 """,
         const [
             'Hello, World!',
-            const ProgramExpectation(
-                const <String>['Hello, Brave New World!'],
-                // TODO(ahe): Shouldn't throw.
-                compileUpdatesShouldThrow: true),
+            'Hello, Brave New World!',
         ]),
 ];
 
@@ -1769,9 +1768,11 @@ Future compileAndRun(EncodedResult encodedResult) {
           }
           Future future = test.incrementalCompiler.compileUpdates(
               uriMap, logVerbose: logger, logTime: logger);
+          bool compileUpdatesThrew = false;
           future = future.catchError((error, trace) {
             String statusMessage;
             Future result;
+            compileUpdatesThrew = true;
             if (program.compileUpdatesShouldThrow &&
                 error is IncrementalCompilationFailed) {
               statusMessage = "Expected error in compileUpdates.";
@@ -1785,7 +1786,10 @@ Future compileAndRun(EncodedResult encodedResult) {
           });
           return future.then((String update) {
             if (program.compileUpdatesShouldThrow) {
-              Expect.isNull(update);
+              Expect.isTrue(
+                  compileUpdatesThrew,
+                  "Expected an exception in compileUpdates");
+              Expect.isNull( update, "Expected update == null");
               return null;
             }
             print({'update': update});
@@ -1794,6 +1798,9 @@ Future compileAndRun(EncodedResult encodedResult) {
             return listener.expect(
                 program.messagesWith('iframe-dart-updated-main-done'))
                 .then((_) {
+                  // TODO(ahe): Enable SerializeScopeTestCase for multiple
+                  // parts.
+                  if (program.code is! String) return null;
                   return new SerializeScopeTestCase(
                       program.code, test.incrementalCompiler.mainApp,
                       test.incrementalCompiler.compiler).run();

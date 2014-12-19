@@ -19,6 +19,7 @@ import 'package:compiler/src/dart2jslib.dart' show
 
 import 'package:compiler/src/elements/elements.dart' show
     ClassElement,
+    CompilationUnitElement,
     Element,
     FunctionElement,
     LibraryElement,
@@ -88,6 +89,9 @@ import 'package:compiler/src/universe/universe.dart' show
 
 import 'package:compiler/src/constants/values.dart' show
     ConstantValue;
+
+import 'package:compiler/src/library_loader.dart' show
+    TagState;
 
 import 'diff.dart' show
     Difference,
@@ -181,6 +185,14 @@ class LibraryUpdater extends JsFeatures {
 
   final Map<Uri, Future> _sources = <Uri, Future>{};
 
+  /// Cached tokens of entry compilation units.
+  final Map<LibraryElementX, Token> _entryUnitTokens =
+      <LibraryElementX, Token>{};
+
+  /// Cached source files for entry compilation units.
+  final Map<LibraryElementX, SourceFile> _entrySourceFiles =
+      <LibraryElementX, SourceFile>{};
+
   bool _hasComputedNeeds = false;
 
   bool _hasCapturedCompilerState = false;
@@ -233,43 +245,62 @@ class LibraryUpdater extends JsFeatures {
             " supported.");
         return true;
       }
+
+      bool isChanged = false;
+      List<Future<Script>> futureScripts = <Future<Script>>[];
+
       for (CompilationUnitElementX unit in library.compilationUnits) {
         Uri uri = unit.script.resourceUri;
         if (_context._uriHasUpdate(uri)) {
-          if (!library.compilationUnits.tail.isEmpty) {
-            // TODO(ahe): Remove this restriction.
-            cannotReuse(
-                library,
-                "Multiple compilation units not supported"
-                " (${library.compilationUnits}).");
-            return true;
-          }
-          return _readUri(uri).then((bytes) {
-            return canReuseLibrary(library, bytes);
-          });
+          isChanged = true;
+          futureScripts.add(_updatedScript(unit.script, library));
+        } else {
+          futureScripts.add(new Future.value(unit.script));
         }
       }
 
-      logTime("Reusing $library, source didn't change.");
-      // Source code of [library] wasn't changed.
-      return true;
+      if (!isChanged) {
+        logTime("Reusing $library, source didn't change.");
+        return true;
+      }
+
+      return Future.wait(futureScripts).then(
+          (List<Script> scripts) => canReuseLibrary(library, scripts));
+    }).whenComplete(() => _cleanUp(library));
+  }
+
+  void _cleanUp(LibraryElementX library) {
+    _entryUnitTokens.remove(library);
+    _entrySourceFiles.remove(library);
+  }
+
+  Future<Script> _updatedScript(Script before, LibraryElementX library) {
+    if (before == library.entryCompilationUnit.script &&
+        _entrySourceFiles.containsKey(library)) {
+      return new Future.value(before.copyWithFile(_entrySourceFiles[library]));
+    }
+
+    return _readUri(before.resourceUri).then((bytes) {
+      String filename = before.file.filename;
+      SourceFile sourceFile = bytes is String
+          ? new StringSourceFile(filename, bytes)
+          : new CachingUtf8BytesSourceFile(filename, bytes);
+      return before.copyWithFile(sourceFile);
     });
   }
 
   Future<bool> _haveTagsChanged(LibraryElement library) {
-    Uri uri = library.entryCompilationUnit.script.resourceUri;
-    if (!_context._uriHasUpdate(uri)) {
+    Script before = library.entryCompilationUnit.script;
+    if (!_context._uriHasUpdate(before.resourceUri)) {
       // The entry compilation unit hasn't been updated. So the tags aren't
       // changed.
       return new Future<bool>.value(false);
     }
 
-    return _readUri(uri).then((bytes) {
-      String filename = '$uri';
-      SourceFile sourceFile = bytes is String
-          ? new StringSourceFile(filename, bytes)
-          : new CachingUtf8BytesSourceFile(filename, bytes);
-      Token token = new Scanner(sourceFile).tokenize();
+    return _updatedScript(before, library).then((Script script) {
+      _entrySourceFiles[library] = script.file;
+      Token token = new Scanner(_entrySourceFiles[library]).tokenize();
+      _entryUnitTokens[library] = token;
       // Using two parsers to only create the nodes we want ([LibraryTag]).
       Parser parser = new Parser(new Listener());
       NodeListener listener = new NodeListener(
@@ -313,18 +344,59 @@ class LibraryUpdater extends JsFeatures {
   /// Returns true if [library] can be reused.
   ///
   /// This methods also computes the [updates] (patches) needed to have
-  /// [library] reflect the modifications in [bytes].
-  bool canReuseLibrary(LibraryElement library, bytes) {
+  /// [library] reflect the modifications in [scripts].
+  bool canReuseLibrary(LibraryElement library, List<Script> scripts) {
     logTime('Attempting to reuse ${library}.');
-    String newSource = bytes is String ? bytes : UTF8.decode(bytes);
-    logTime('Decoded UTF8');
 
-    Uri uri = library.entryCompilationUnit.script.resourceUri;
-    Script sourceScript = new Script(
-        uri, uri, new StringSourceFile('$uri', newSource));
-    var dartPrivacyIsBroken = compiler.libraryLoader;
-    LibraryElement newLibrary = dartPrivacyIsBroken.createLibrarySync(
-        null, sourceScript, uri);
+    Uri entryUri = library.entryCompilationUnit.script.resourceUri;
+    Script entryScript =
+        scripts.singleWhere((Script script) => script.resourceUri == entryUri);
+    LibraryElement newLibrary =
+        new LibraryElementX(entryScript, library.canonicalUri);
+    if (_entryUnitTokens.containsKey(library)) {
+      compiler.dietParser.dietParse(
+          newLibrary.entryCompilationUnit, _entryUnitTokens[library]);
+    } else {
+      compiler.scanner.scanLibrary(newLibrary);
+    }
+
+    TagState tagState = new TagState();
+    for (LibraryTag tag in newLibrary.tags) {
+      if (tag.isImport) {
+        tagState.checkTag(TagState.IMPORT_OR_EXPORT, tag, compiler);
+      } else if (tag.isExport) {
+        tagState.checkTag(TagState.IMPORT_OR_EXPORT, tag, compiler);
+      } else if (tag.isLibraryName) {
+        tagState.checkTag(TagState.LIBRARY, tag, compiler);
+        if (newLibrary.libraryTag == null) {
+          // Use the first if there are multiple (which is reported as an
+          // error in [TagState.checkTag]).
+          newLibrary.libraryTag = tag;
+        }
+      } else if (tag.isPart) {
+        tagState.checkTag(TagState.PART, tag, compiler);
+      }
+    }
+
+    // TODO(ahe): Process tags using TagState, not
+    // LibraryLoaderTask.processLibraryTags.
+    Link<CompilationUnitElement> units = library.compilationUnits;
+    for (Script script in scripts) {
+      CompilationUnitElementX unit = units.head;
+      units = units.tail;
+      if (script != entryScript) {
+        // TODO(ahe): Copied from library_loader.
+        CompilationUnitElement newUnit =
+            new CompilationUnitElementX(script, newLibrary);
+        compiler.withCurrentElement(newUnit, () {
+          compiler.scanner.scan(newUnit);
+          if (unit.partTag == null) {
+            compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
+          }
+        });
+      }
+    }
+
     logTime('New library synthesized.');
     return canReuseScopeContainerElement(library, newLibrary);
   }
