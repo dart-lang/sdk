@@ -3410,7 +3410,8 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // a safe point for the debugger to stop, add an explicit stub
   // call.
   if (node->value()->IsLiteralNode() ||
-      node->value()->IsLoadLocalNode()) {
+      node->value()->IsLoadLocalNode() ||
+      node->value()->IsClosureNode()) {
     AddInstruction(new(I) DebugStepCheckInstr(
         node->token_pos(), RawPcDescriptors::kRuntimeCall));
   }
@@ -4193,6 +4194,12 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
 
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
+  if (node->exception()->IsLiteralNode() ||
+      node->exception()->IsLoadLocalNode() ||
+      node->exception()->IsClosureNode()) {
+    AddInstruction(new(I) DebugStepCheckInstr(
+        node->token_pos(), RawPcDescriptors::kRuntimeCall));
+  }
   ValueGraphVisitor for_exception(owner());
   node->exception()->Visit(&for_exception);
   Append(for_exception);
