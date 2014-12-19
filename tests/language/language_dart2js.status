@@ -194,13 +194,7 @@ type_variable_conflict2_test/04: Fail # Issue 19725
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
-type_variable_conflict2_test/02: MissingCompileTimeError # Issue 19725
-type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
-type_variable_conflict2_test/08: MissingCompileTimeError # Issue 16180
-type_variable_conflict2_test/10: MissingCompileTimeError # Issue 16180
 regress_13494_test: Fail # Issue 13494
-reify_typevar_static_test/00: MissingCompileTimeError # Issue 21566
-reify_typevar_static_test/01: MissingCompileTimeError # Issue 21566
 enum_const_test: Crash # Issue 21681
 
 built_in_identifier_prefix_test: Fail # Issue 6972
