@@ -327,7 +327,6 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   visitAsExpression(AsExpression node) {
-    _checkRuntimeTypeCheck(node, node.type);
     node.visitChildren(this);
   }
 

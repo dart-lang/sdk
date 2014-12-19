@@ -470,22 +470,20 @@ main() {
       AToB left(AToB f) => f;
       BToA right(BToA f) => f;
       AToB _bot(BToA f) => /*warning:ClosureWrap*/f;
-      AToB bot(BToA f) => /*severe:InvalidRuntimeCheckError*/f as AToB;
+      AToB bot(BToA f) => f as AToB;
 
       Function2<B, A> top(AToB f) => f;
       Function2<A, B> left(AToB f) => f;
       Function2<B, A> right(BToA f) => f;
       Function2<A, B> _bot(BToA f) => /*warning:ClosureWrap*/f;
-      Function2<A, B> bot(BToA f) =>
-        /*severe:InvalidRuntimeCheckError*/f as Function2<A, B>;
+      Function2<A, B> bot(BToA f) => f as Function2<A, B>;
 
 
       BToA top(Function2<A, B> f) => f;
       AToB left(Function2<A, B> f) => f;
       BToA right(Function2<B, A> f) => f;
       AToB _bot(Function2<B, A> f) => /*warning:ClosureWrap*/f;
-      AToB bot(Function2<B, A> f) =>
-        /*severe:InvalidRuntimeCheckError*/f as AToB;
+      AToB bot(Function2<B, A> f) => f as AToB;
 
       void main() {
         {
