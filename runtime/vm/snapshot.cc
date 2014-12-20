@@ -1055,7 +1055,8 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
       class_table_(isolate_->class_table()),
       forward_list_(kMaxPredefinedObjectIds),
       exception_type_(Exceptions::kNone),
-      exception_msg_(NULL) {
+      exception_msg_(NULL),
+      unmarked_objects_(false) {
 }
 
 
@@ -1610,15 +1611,33 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 void SnapshotWriter::CheckIfSerializable(RawClass* cls) {
   if (Class::IsSignatureClass(cls)) {
     // We do not allow closure objects in an isolate message.
-    SetWriteException(Exceptions::kArgument,
-                      "Illegal argument in isolate message"
-                      " : (object is a closure)");
+    Isolate* isolate = Isolate::Current();
+    HANDLESCOPE(isolate);
+    const char* format = "Illegal argument in isolate message"
+                         " : (object is a closure - %s %s)";
+    UnmarkAll();  // Unmark objects now as we are about to print stuff.
+    const Class& clazz = Class::Handle(isolate, cls);
+    const Function& func = Function::Handle(isolate,
+                                            clazz.signature_function());
+    ASSERT(!func.IsNull());
+    intptr_t len = OS::SNPrint(NULL, 0, format,
+                               clazz.ToCString(), func.ToCString()) + 1;
+    char* chars = isolate->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, clazz.ToCString(), func.ToCString());
+    SetWriteException(Exceptions::kArgument, chars);
   }
   if (cls->ptr()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
-    SetWriteException(Exceptions::kArgument,
-                      "Illegal argument in isolate message"
-                      " : (object extends NativeWrapper)");
+    Isolate* isolate = Isolate::Current();
+    HANDLESCOPE(Isolate::Current());
+    const char* format = "Illegal argument in isolate message"
+                         " : (object extends NativeWrapper - %s)";
+    UnmarkAll();  // Unmark objects now as we are about to print stuff.
+    const Class& clazz = Class::Handle(isolate, cls);
+    intptr_t len = OS::SNPrint(NULL, 0, format, clazz.ToCString()) + 1;
+    char* chars = isolate->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, clazz.ToCString());
+    SetWriteException(Exceptions::kArgument, chars);
   }
 }
 

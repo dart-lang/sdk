@@ -596,7 +596,10 @@ class SnapshotWriter : public BaseWriter {
 
  protected:
   void UnmarkAll() {
-    forward_list_.UnmarkAll();
+    if (!unmarked_objects_) {
+      forward_list_.UnmarkAll();
+      unmarked_objects_ = true;
+    }
   }
 
   bool CheckAndWritePredefinedObject(RawObject* raw);
@@ -632,6 +635,7 @@ class SnapshotWriter : public BaseWriter {
   ForwardList forward_list_;
   Exceptions::ExceptionType exception_type_;  // Exception type.
   const char* exception_msg_;  // Message associated with exception.
+  bool unmarked_objects_;  // True if marked objects have been unmarked.
 
   friend class RawArray;
   friend class RawClass;

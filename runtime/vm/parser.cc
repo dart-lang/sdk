@@ -1139,6 +1139,7 @@ RawObject* Parser::ParseFunctionFromSource(const Class& owning_class,
     return error.raw();
   }
   UNREACHABLE();
+  return Object::null();
 }
 
 
