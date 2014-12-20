@@ -285,9 +285,7 @@ class DartCompletionCache extends CompletionCache {
   String _computeImportKey(CompilationUnit unit) {
     StringBuffer sb = new StringBuffer();
     unit.directives.forEach((Directive directive) {
-      if (directive is ImportDirective) {
-        sb.write(directive.toSource());
-      }
+      sb.write(directive.toSource());
     });
     return sb.toString();
   }

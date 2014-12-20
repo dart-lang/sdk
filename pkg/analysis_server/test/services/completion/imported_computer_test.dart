@@ -142,6 +142,24 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
+  test_partFile_TypeName() {
+    return super.test_partFile_TypeName().then((_) {
+      expect(
+          request.cache.importKey,
+          'part of libA;');
+    });
+  }
+
+  @override
+  test_partFile_TypeName2() {
+    return super.test_partFile_TypeName2().then((_) {
+      expect(
+          request.cache.importKey,
+          'library libA;import "/testB.dart";part "/testA.dart";');
+    });
+  }
+
+  @override
   test_Block_inherited_imported() {
     return super.test_Block_inherited_imported().then((_) {
       assertCached('E');
