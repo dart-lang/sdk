@@ -51,6 +51,9 @@ class AdjacentStrings extends StringLiteral {
   Token get beginToken => _strings.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()..addAll(_strings);
+
+  @override
   Token get endToken => _strings.endToken;
 
   /**
@@ -176,6 +179,18 @@ abstract class AnnotatedNode extends AstNode {
         ..sort(AstNode.LEXICAL_ORDER);
   }
 
+  ChildEntities get _childEntities {
+    ChildEntities result = new ChildEntities();
+    if (_commentIsBeforeAnnotations()) {
+      result
+          ..add(_comment)
+          ..addAll(_metadata);
+    } else {
+      result.addAll(sortedCommentAndAnnotations);
+    }
+    return result;
+  }
+
   @override
   void visitChildren(AstVisitor visitor) {
     if (_commentIsBeforeAnnotations()) {
@@ -294,6 +309,14 @@ class Annotation extends AstNode {
 
   @override
   Token get beginToken => atSign;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(atSign)
+      ..add(_name)
+      ..add(period)
+      ..add(_constructorName)
+      ..add(_arguments);
 
   /**
    * Return the name of the constructor being invoked, or `null` if this annotation is not the
@@ -447,6 +470,15 @@ class ArgumentList extends AstNode {
   Token get beginToken => leftParenthesis;
 
   /**
+   * TODO(paulberry): Add commas.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(leftParenthesis)
+      ..addAll(_arguments)
+      ..add(rightParenthesis);
+
+  /**
    * Set the parameter elements corresponding to each of the arguments in this list to the given
    * array of parameters. The array of parameters must be the same length as the number of
    * arguments, but can contain `null` entries if a given argument does not correspond to a
@@ -585,6 +617,12 @@ class AsExpression extends Expression {
   Token get beginToken => _expression.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_expression)
+      ..add(asOperator)
+      ..add(_type);
+
+  @override
   Token get endToken => _type.endToken;
 
   /**
@@ -682,6 +720,17 @@ class AssertStatement extends Statement {
 
   @override
   Token get beginToken => keyword;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(leftParenthesis)
+      ..add(_condition)
+      ..add(rightParenthesis)
+      ..add(semicolon);
 
   /**
    * Return the condition that is being asserted to be `true`.
@@ -795,6 +844,12 @@ class AssignmentExpression extends Expression {
     }
     return element;
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_leftHandSide)
+      ..add(operator)
+      ..add(_rightHandSide);
 
   @override
   Token get endToken => _rightHandSide.endToken;
@@ -2953,6 +3008,13 @@ abstract class AstNode {
   Token get beginToken;
 
   /**
+   * Iterate through all the entities (either AST nodes or tokens) which make
+   * up the contents of this node, including doc comments but excluding other
+   * comments.
+   */
+  Iterable get childEntities;
+
+  /**
    * Return the offset of the character immediately following the last character of this node's
    * source range. This is equivalent to `node.getOffset() + node.getLength()`. For a
    * compilation unit this will be equal to the length of the unit's source. For synthetic nodes
@@ -3403,6 +3465,11 @@ class AwaitExpression extends Expression {
   }
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(awaitKeyword)
+      ..add(_expression);
+
+  @override
   Token get endToken => _expression.endToken;
 
   /**
@@ -3502,6 +3569,12 @@ class BinaryExpression extends Expression {
     }
     return element;
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_leftOperand)
+      ..add(operator)
+      ..add(_rightOperand);
 
   @override
   Token get endToken => _rightOperand.endToken;
@@ -3632,6 +3705,12 @@ class Block extends Statement {
   Token get beginToken => leftBracket;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(leftBracket)
+      ..addAll(_statements)
+      ..add(rightBracket);
+
+  @override
   Token get endToken => rightBracket;
 
   /**
@@ -3707,6 +3786,12 @@ class BlockFunctionBody extends FunctionBody {
   }
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(star)
+      ..add(_block);
+
+  @override
   Token get endToken => _block.endToken;
 
   @override
@@ -3762,6 +3847,12 @@ class BooleanLiteral extends Literal {
 
   @override
   Token get beginToken => literal;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(literal);
 
   @override
   Token get endToken => literal;
@@ -3879,6 +3970,15 @@ class BreakStatement extends Statement {
   @override
   Token get beginToken => keyword;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(_label)
+      ..add(semicolon);
+
   @override
   Token get endToken => semicolon;
 
@@ -3956,6 +4056,11 @@ class CascadeExpression extends Expression {
    * @return the cascade sections sharing the common target
    */
   NodeList<Expression> get cascadeSections => _cascadeSections;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_target)
+      ..addAll(_cascadeSections);
 
   @override
   Token get endToken => _cascadeSections.endToken;
@@ -4097,6 +4202,18 @@ class CatchClause extends AstNode {
   }
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(onKeyword)
+      ..add(_exceptionType)
+      ..add(catchKeyword)
+      ..add(leftParenthesis)
+      ..add(_exceptionParameter)
+      ..add(comma)
+      ..add(_stackTraceParameter)
+      ..add(rightParenthesis)
+      ..add(_body);
+
+  @override
   Token get endToken => _body.endToken;
 
   /**
@@ -4160,6 +4277,35 @@ class CatchClause extends AstNode {
     safelyVisitChild(_exceptionParameter, visitor);
     safelyVisitChild(_stackTraceParameter, visitor);
     safelyVisitChild(_body, visitor);
+  }
+}
+
+/**
+ * Helper class to allow iteration of child entities of an AST node.
+ */
+class ChildEntities extends Object with IterableMixin implements Iterable {
+  List _entities = [];
+
+  @override
+  Iterator get iterator => _entities.iterator;
+
+  /**
+   * Add an AST node or token as the next child entity, if it is not null.
+   */
+  void add(entity) {
+    if (entity != null) {
+      assert(entity is Token || entity is AstNode);
+      _entities.add(entity);
+    }
+  }
+
+  /**
+   * Add the given items as the next child entities, if [items] is not null.
+   */
+  void addAll(Iterable items) {
+    if (items != null) {
+      _entities.addAll(items);
+    }
   }
 }
 
@@ -4261,6 +4407,20 @@ class ClassDeclaration extends CompilationUnitMember {
     _implementsClause = becomeParentOf(implementsClause);
     _members = new NodeList<ClassMember>(this, members);
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(abstractKeyword)
+      ..add(classKeyword)
+      ..add(_name)
+      ..add(_typeParameters)
+      ..add(_extendsClause)
+      ..add(_withClause)
+      ..add(_implementsClause)
+      ..add(_nativeClause)
+      ..add(leftBracket)
+      ..addAll(members)
+      ..add(rightBracket);
 
   @override
   ClassElement get element =>
@@ -4563,6 +4723,18 @@ class ClassTypeAlias extends TypeAlias {
   }
 
   @override
+  Iterable get childEntities => super._childEntities
+      ..add(keyword)
+      ..add(_name)
+      ..add(_typeParameters)
+      ..add(equals)
+      ..add(abstractKeyword)
+      ..add(_superclass)
+      ..add(_withClause)
+      ..add(_implementsClause)
+      ..add(semicolon);
+
+  @override
   ClassElement get element =>
       _name != null ? (_name.staticElement as ClassElement) : null;
 
@@ -4748,6 +4920,9 @@ class Comment extends AstNode {
   Token get beginToken => tokens[0];
 
   @override
+  Iterable get childEntities => new ChildEntities()..addAll(tokens);
+
+  @override
   Token get endToken => tokens[tokens.length - 1];
 
   /**
@@ -4857,6 +5032,11 @@ class CommentReference extends AstNode {
 
   @override
   Token get beginToken => _identifier.beginToken;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(newKeyword)
+      ..add(_identifier);
 
   @override
   Token get endToken => _identifier.endToken;
@@ -4998,6 +5178,19 @@ class CompilationUnit extends AstNode {
     _scriptTag = becomeParentOf(scriptTag);
     _directives = new NodeList<Directive>(this, directives);
     _declarations = new NodeList<CompilationUnitMember>(this, declarations);
+  }
+
+  @override
+  Iterable get childEntities {
+    ChildEntities result = new ChildEntities()..add(_scriptTag);
+    if (_directivesAreBeforeDeclarations()) {
+      result
+          ..addAll(_directives)
+          ..addAll(_declarations);
+    } else {
+      result.addAll(sortedDirectivesAndDeclarations);
+    }
+    return result;
   }
 
   /**
@@ -5167,6 +5360,17 @@ class ConditionalExpression extends Expression {
 
   @override
   Token get beginToken => _condition.beginToken;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_condition)
+      ..add(question)
+      ..add(_thenExpression)
+      ..add(colon)
+      ..add(_elseExpression);
 
   /**
    * Return the condition used to determine which of the expressions is executed next.
@@ -5748,6 +5952,20 @@ class ConstructorDeclaration extends ClassMember {
   }
 
   @override
+  Iterable get childEntities => super._childEntities
+      ..add(externalKeyword)
+      ..add(constKeyword)
+      ..add(factoryKeyword)
+      ..add(_returnType)
+      ..add(period)
+      ..add(_name)
+      ..add(_parameters)
+      ..add(separator)
+      ..addAll(initializers)
+      ..add(_redirectedConstructor)
+      ..add(_body);
+
+  @override
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
@@ -5920,6 +6138,14 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   }
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(period)
+      ..add(_fieldName)
+      ..add(equals)
+      ..add(_expression);
+
+  @override
   Token get endToken => _expression.endToken;
 
   /**
@@ -6027,6 +6253,12 @@ class ConstructorName extends AstNode {
   Token get beginToken => _type.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_type)
+      ..add(period)
+      ..add(_name);
+
+  @override
   Token get endToken {
     if (_name != null) {
       return _name.endToken;
@@ -6125,6 +6357,15 @@ class ContinueStatement extends Statement {
   @override
   Token get beginToken => keyword;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(_label)
+      ..add(semicolon);
+
   @override
   Token get endToken => semicolon;
 
@@ -6218,6 +6459,15 @@ class DeclaredIdentifier extends Declaration {
     _type = becomeParentOf(type);
     _identifier = becomeParentOf(identifier);
   }
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(keyword)
+      ..add(_type)
+      ..add(_identifier);
 
   @override
   LocalVariableElement get element {
@@ -6354,6 +6604,15 @@ class DefaultFormalParameter extends FormalParameter {
 
   @override
   Token get beginToken => _parameter.beginToken;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_parameter)
+      ..add(separator)
+      ..add(_defaultValue);
 
   /**
    * Return the expression computing the default value for the parameter, or `null` if there
@@ -6560,6 +6819,16 @@ class DoStatement extends Statement {
     _body = becomeParentOf(statement);
   }
 
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(doKeyword)
+      ..add(_body)
+      ..add(whileKeyword)
+      ..add(leftParenthesis)
+      ..add(_condition)
+      ..add(rightParenthesis)
+      ..add(semicolon);
+
   /**
    * Return the condition that determines when the loop will terminate.
    *
@@ -6622,6 +6891,12 @@ class DoubleLiteral extends Literal {
 
   @override
   Token get beginToken => literal;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(literal);
 
   @override
   Token get endToken => literal;
@@ -6820,6 +7095,12 @@ class EmptyFunctionBody extends FunctionBody {
   @override
   Token get beginToken => semicolon;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(semicolon);
+
   @override
   Token get endToken => semicolon;
 
@@ -6856,6 +7137,12 @@ class EmptyStatement extends Statement {
   @override
   Token get beginToken => semicolon;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(semicolon);
+
   @override
   Token get endToken => semicolon;
 
@@ -6890,6 +7177,12 @@ class EnumConstantDeclaration extends Declaration {
       : super(comment, metadata) {
     _name = becomeParentOf(name);
   }
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => super._childEntities..add(_name);
 
   @override
   FieldElement get element =>
@@ -6981,6 +7274,17 @@ class EnumDeclaration extends CompilationUnitMember {
   }
 
   /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(keyword)
+      ..add(_name)
+      ..add(leftBracket)
+      ..addAll(_constants)
+      ..add(rightBracket);
+
+  /**
    * Return the enumeration constants being declared.
    *
    * @return the enumeration constants being declared
@@ -7056,6 +7360,12 @@ class ExportDirective extends NamespaceDirective {
   ExportDirective(Comment comment, List<Annotation> metadata, Token keyword,
       StringLiteral libraryUri, List<Combinator> combinators, Token semicolon)
       : super(comment, metadata, keyword, libraryUri, combinators, semicolon);
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(_uri)
+      ..addAll(combinators)
+      ..add(semicolon);
 
   @override
   ExportElement get element => super.element as ExportElement;
@@ -7283,6 +7593,13 @@ class ExpressionFunctionBody extends FunctionBody {
   Token get beginToken => functionDefinition;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(functionDefinition)
+      ..add(_expression)
+      ..add(semicolon);
+
+  @override
   Token get endToken {
     if (semicolon != null) {
       return semicolon;
@@ -7355,6 +7672,11 @@ class ExpressionStatement extends Statement {
   Token get beginToken => _expression.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_expression)
+      ..add(semicolon);
+
+  @override
   Token get endToken {
     if (semicolon != null) {
       return semicolon;
@@ -7424,6 +7746,11 @@ class ExtendsClause extends AstNode {
   Token get beginToken => keyword;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(_superclass);
+
+  @override
   Token get endToken => _superclass.endToken;
 
   /**
@@ -7490,6 +7817,12 @@ class FieldDeclaration extends ClassMember {
       : super(comment, metadata) {
     _fieldList = becomeParentOf(fieldList);
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(staticKeyword)
+      ..add(_fieldList)
+      ..add(semicolon);
 
   @override
   Element get element => null;
@@ -7605,6 +7938,15 @@ class FieldFormalParameter extends NormalFormalParameter {
     }
     return thisToken;
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(keyword)
+      ..add(_type)
+      ..add(thisToken)
+      ..add(period)
+      ..add(identifier)
+      ..add(_parameters);
 
   @override
   Token get endToken => identifier.endToken;
@@ -7776,6 +8118,18 @@ class ForEachStatement extends Statement {
   void set body(Statement body) {
     _body = becomeParentOf(body);
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(awaitKeyword)
+      ..add(forKeyword)
+      ..add(leftParenthesis)
+      ..add(_loopVariable)
+      ..add(_identifier)
+      ..add(inKeyword)
+      ..add(_iterable)
+      ..add(rightParenthesis)
+      ..add(_body);
 
   @override
   Token get endToken => _body.endToken;
@@ -7980,6 +8334,23 @@ class FormalParameterList extends AstNode {
   Token get beginToken => leftParenthesis;
 
   @override
+  Iterable get childEntities {
+    // TODO(paulberry): include commas.
+    ChildEntities result = new ChildEntities()..add(leftParenthesis);
+    bool leftDelimiterNeeded = leftDelimiter != null;
+    for (FormalParameter parameter in _parameters) {
+      if (leftDelimiterNeeded && leftDelimiter.offset < parameter.offset) {
+        result.add(leftDelimiter);
+        leftDelimiterNeeded = false;
+      }
+      result.add(parameter);
+    }
+    return result
+        ..add(rightDelimiter)
+        ..add(rightParenthesis);
+  }
+
+  @override
   Token get endToken => rightParenthesis;
 
   /**
@@ -8127,6 +8498,19 @@ class ForStatement extends Statement {
   void set body(Statement body) {
     _body = becomeParentOf(body);
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(forKeyword)
+      ..add(leftParenthesis)
+      ..add(_variableList)
+      ..add(_initialization)
+      ..add(leftSeparator)
+      ..add(_condition)
+      ..add(rightSeparator)
+      ..addAll(_updaters)
+      ..add(rightParenthesis)
+      ..add(_body);
 
   /**
    * Return the condition used to determine when to terminate the loop, or `null` if there is
@@ -8310,6 +8694,14 @@ class FunctionDeclaration extends CompilationUnitMember {
   }
 
   @override
+  Iterable get childEntities => super._childEntities
+      ..add(externalKeyword)
+      ..add(_returnType)
+      ..add(propertyKeyword)
+      ..add(_name)
+      ..add(_functionExpression);
+
+  @override
   ExecutableElement get element =>
       _name != null ? (_name.staticElement as ExecutableElement) : null;
 
@@ -8431,6 +8823,9 @@ class FunctionDeclarationStatement extends Statement {
   Token get beginToken => _functionDeclaration.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()..add(_functionDeclaration);
+
+  @override
   Token get endToken => _functionDeclaration.endToken;
 
   /**
@@ -8521,6 +8916,11 @@ class FunctionExpression extends Expression {
   void set body(FunctionBody functionBody) {
     _body = becomeParentOf(functionBody);
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_parameters)
+      ..add(_body);
 
   @override
   Token get endToken {
@@ -8644,6 +9044,14 @@ class FunctionExpressionInvocation extends Expression {
     return element;
   }
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_function)
+      ..add(_argumentList);
+
   @override
   Token get endToken => _argumentList.endToken;
 
@@ -8731,6 +9139,15 @@ class FunctionTypeAlias extends TypeAlias {
     _typeParameters = becomeParentOf(typeParameters);
     _parameters = becomeParentOf(parameters);
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(keyword)
+      ..add(_returnType)
+      ..add(_name)
+      ..add(_typeParameters)
+      ..add(_parameters)
+      ..add(semicolon);
 
   @override
   FunctionTypeAliasElement get element =>
@@ -8860,6 +9277,15 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
     }
     return identifier.beginToken;
   }
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(_returnType)
+      ..add(identifier)
+      ..add(parameters);
 
   @override
   Token get endToken => _parameters.endToken;
@@ -9373,6 +9799,11 @@ class HideCombinator extends Combinator {
   }
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..addAll(_hiddenNames);
+
+  @override
   Token get endToken => _hiddenNames.endToken;
 
   /**
@@ -9520,6 +9951,16 @@ class IfStatement extends Statement {
   @override
   Token get beginToken => ifKeyword;
 
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(ifKeyword)
+      ..add(leftParenthesis)
+      ..add(_condition)
+      ..add(rightParenthesis)
+      ..add(_thenStatement)
+      ..add(elseKeyword)
+      ..add(_elseStatement);
+
   /**
    * Return the condition used to determine which of the statements is executed next.
    *
@@ -9623,6 +10064,14 @@ class ImplementsClause extends AstNode {
 
   @override
   Token get beginToken => keyword;
+
+  /**
+   * TODO(paulberry): add commas.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..addAll(interfaces);
 
   @override
   Token get endToken => _interfaces.endToken;
@@ -9782,6 +10231,15 @@ class ImportDirective extends NamespaceDirective {
       : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
     _prefix = becomeParentOf(prefix);
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(_uri)
+      ..add(deferredToken)
+      ..add(asToken)
+      ..add(_prefix)
+      ..addAll(combinators)
+      ..add(semicolon);
 
   @override
   ImportElement get element => super.element as ImportElement;
@@ -11021,6 +11479,17 @@ class IndexExpression extends Expression {
     return element;
   }
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_target)
+      ..add(period)
+      ..add(leftBracket)
+      ..add(_index)
+      ..add(rightBracket);
+
   @override
   Token get endToken => rightBracket;
 
@@ -11259,6 +11728,12 @@ class InstanceCreationExpression extends Expression {
   @override
   Token get beginToken => keyword;
 
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(_constructorName)
+      ..add(_argumentList);
+
   /**
    * Return the name of the constructor to be invoked.
    *
@@ -11337,6 +11812,12 @@ class IntegerLiteral extends Literal {
   @override
   Token get beginToken => literal;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(literal);
+
   @override
   Token get endToken => literal;
 
@@ -11405,6 +11886,12 @@ class InterpolationExpression extends InterpolationElement {
   Token get beginToken => leftBracket;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(leftBracket)
+      ..add(_expression)
+      ..add(rightBracket);
+
+  @override
   Token get endToken {
     if (rightBracket != null) {
       return rightBracket;
@@ -11470,6 +11957,12 @@ class InterpolationString extends InterpolationElement {
 
   @override
   Token get beginToken => contents;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(contents);
 
   /**
    * Return the offset of the after-last contents character.
@@ -11578,6 +12071,13 @@ class IsExpression extends Expression {
   Token get beginToken => _expression.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_expression)
+      ..add(isOperator)
+      ..add(notOperator)
+      ..add(_type);
+
+  @override
   Token get endToken => _type.endToken;
 
   /**
@@ -11658,6 +12158,14 @@ class Label extends AstNode {
   @override
   Token get beginToken => _label.beginToken;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_label)
+      ..add(colon);
+
   @override
   Token get endToken => colon;
 
@@ -11724,6 +12232,14 @@ class LabeledStatement extends Statement {
     }
     return _statement.beginToken;
   }
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..addAll(_labels)
+      ..add(_statement);
 
   @override
   Token get endToken => _statement.endToken;
@@ -11804,6 +12320,12 @@ class LibraryDirective extends Directive {
   }
 
   @override
+  Iterable get childEntities => super._childEntities
+      ..add(libraryToken)
+      ..add(_name)
+      ..add(semicolon);
+
+  @override
   Token get endToken => semicolon;
 
   @override
@@ -11866,6 +12388,12 @@ class LibraryIdentifier extends Identifier {
 
   @override
   Element get bestElement => staticElement;
+
+  /**
+   * TODO(paulberry): add "." tokens.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..addAll(_components);
 
   /**
    * Return the components of the identifier.
@@ -11963,6 +12491,15 @@ class ListLiteral extends TypedLiteral {
   }
 
   /**
+   * TODO(paulberry): add commas.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(leftBracket)
+      ..addAll(_elements)
+      ..add(rightBracket);
+
+  /**
    * Return the expressions used to compute the elements of the list.
    *
    * @return the expressions used to compute the elements of the list
@@ -12054,6 +12591,16 @@ class MapLiteral extends TypedLiteral {
     return leftBracket;
   }
 
+  /**
+   * TODO(paulberry): untested.
+   * TODO(paulberry): add commas.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(leftBracket)
+      ..addAll(entries)
+      ..add(rightBracket);
+
   @override
   Token get endToken => rightBracket;
 
@@ -12113,6 +12660,15 @@ class MapLiteralEntry extends AstNode {
 
   @override
   Token get beginToken => _key.beginToken;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_key)
+      ..add(separator)
+      ..add(_value);
 
   @override
   Token get endToken => _value.endToken;
@@ -12262,6 +12818,17 @@ class MethodDeclaration extends ClassMember {
   void set body(FunctionBody functionBody) {
     _body = becomeParentOf(functionBody);
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(externalKeyword)
+      ..add(modifierKeyword)
+      ..add(_returnType)
+      ..add(propertyKeyword)
+      ..add(operatorKeyword)
+      ..add(_name)
+      ..add(_parameters)
+      ..add(_body);
 
   /**
    * Return the element associated with this method, or `null` if the AST structure has not
@@ -12473,6 +13040,13 @@ class MethodInvocation extends Expression {
   }
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_target)
+      ..add(period)
+      ..add(_methodName)
+      ..add(_argumentList);
+
+  @override
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -12590,6 +13164,11 @@ class NamedExpression extends Expression {
 
   @override
   Token get beginToken => _name.beginToken;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_name)
+      ..add(_expression);
 
   /**
    * Return the element representing the parameter being named by this expression, or `null`
@@ -12746,6 +13325,14 @@ class NativeClause extends AstNode {
   @override
   Token get beginToken => keyword;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(_name);
+
   @override
   Token get endToken => _name.endToken;
 
@@ -12814,6 +13401,15 @@ class NativeFunctionBody extends FunctionBody {
 
   @override
   Token get beginToken => nativeToken;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(nativeToken)
+      ..add(_stringLiteral)
+      ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -14353,6 +14949,18 @@ abstract class NormalFormalParameter extends FormalParameter {
         ..sort(AstNode.LEXICAL_ORDER);
   }
 
+  ChildEntities get _childEntities {
+    ChildEntities result = new ChildEntities();
+    if (_commentIsBeforeAnnotations()) {
+      result
+          ..add(_comment)
+          ..addAll(_metadata);
+    } else {
+      result.addAll(sortedCommentAndAnnotations);
+    }
+    return result;
+  }
+
   @override
   void visitChildren(AstVisitor visitor) {
     //
@@ -14407,6 +15015,12 @@ class NullLiteral extends Literal {
   @override
   Token get beginToken => literal;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(literal);
+
   @override
   Token get endToken => literal;
 
@@ -14457,6 +15071,12 @@ class ParenthesizedExpression extends Expression {
 
   @override
   Token get beginToken => leftParenthesis;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(leftParenthesis)
+      ..add(_expression)
+      ..add(rightParenthesis);
 
   @override
   Token get endToken => rightParenthesis;
@@ -14521,6 +15141,15 @@ class PartDirective extends UriBasedDirective {
       StringLiteral partUri, this.semicolon)
       : super(comment, metadata, partUri);
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(partToken)
+      ..add(_uri)
+      ..add(semicolon);
+
   @override
   Token get endToken => semicolon;
 
@@ -14581,6 +15210,13 @@ class PartOfDirective extends Directive {
       : super(comment, metadata) {
     _libraryName = becomeParentOf(libraryName);
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(partToken)
+      ..add(ofToken)
+      ..add(_libraryName)
+      ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -14678,6 +15314,14 @@ class PostfixExpression extends Expression {
     }
     return element;
   }
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_operand)
+      ..add(operator);
 
   @override
   Token get endToken => operator;
@@ -14801,6 +15445,12 @@ class PrefixedIdentifier extends Identifier {
     }
     return _identifier.bestElement;
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_prefix)
+      ..add(period)
+      ..add(_identifier);
 
   @override
   Token get endToken => _identifier.endToken;
@@ -14955,6 +15605,11 @@ class PrefixExpression extends Expression {
   }
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(operator)
+      ..add(_operand);
+
+  @override
   Token get endToken => _operand.endToken;
 
   /**
@@ -15075,6 +15730,12 @@ class PropertyAccess extends Expression {
     }
     return operator;
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_target)
+      ..add(operator)
+      ..add(_propertyName);
 
   @override
   Token get endToken => _propertyName.endToken;
@@ -15883,6 +16544,13 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   @override
   Token get beginToken => keyword;
 
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(period)
+      ..add(_constructorName)
+      ..add(_argumentList);
+
   /**
    * Return the name of the constructor that is being invoked, or `null` if the unnamed
    * constructor is being invoked.
@@ -15938,6 +16606,12 @@ class RethrowExpression extends Expression {
   @override
   Token get beginToken => keyword;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(keyword);
+
   @override
   Token get endToken => keyword;
 
@@ -15991,6 +16665,12 @@ class ReturnStatement extends Statement {
 
   @override
   Token get beginToken => keyword;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(_expression)
+      ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -16231,6 +16911,12 @@ class ScriptTag extends AstNode {
   @override
   Token get beginToken => scriptTag;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(scriptTag);
+
   @override
   Token get endToken => scriptTag;
 
@@ -16268,6 +16954,14 @@ class ShowCombinator extends Combinator {
       : super(keyword) {
     _shownNames = new NodeList<SimpleIdentifier>(this, shownNames);
   }
+
+  /**
+   * TODO(paulberry): add commas.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..addAll(_shownNames);
 
   @override
   Token get endToken => _shownNames.endToken;
@@ -16669,6 +17363,15 @@ class SimpleFormalParameter extends NormalFormalParameter {
     return identifier.beginToken;
   }
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(keyword)
+      ..add(_type)
+      ..add(identifier);
+
   @override
   Token get endToken => identifier.endToken;
 
@@ -16763,6 +17466,12 @@ class SimpleIdentifier extends Identifier {
     }
     return _propagatedElement;
   }
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(token);
 
   @override
   Token get endToken => token;
@@ -17102,6 +17811,9 @@ class SimpleStringLiteral extends SingleStringLiteral {
   Token get beginToken => literal;
 
   @override
+  Iterable get childEntities => new ChildEntities()..add(literal);
+
+  @override
   int get contentsEnd {
     return contentsOffset + value.length;
   }
@@ -17284,6 +17996,9 @@ class StringInterpolation extends SingleStringLiteral {
   Token get beginToken => _elements.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()..addAll(_elements);
+
+  @override
   int get contentsEnd {
     InterpolationString element = _elements.last;
     return element.contentsEnd;
@@ -17333,7 +18048,6 @@ class StringInterpolation extends SingleStringLiteral {
   void appendStringValue(StringBuffer buffer) {
     throw new IllegalArgumentException();
   }
-
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -17446,6 +18160,13 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   @override
   Token get beginToken => keyword;
 
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(period)
+      ..add(_constructorName)
+      ..add(_argumentList);
+
   /**
    * Return the name of the constructor that is being invoked, or `null` if the unnamed
    * constructor is being invoked.
@@ -17500,6 +18221,12 @@ class SuperExpression extends Expression {
   @override
   Token get beginToken => keyword;
 
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(keyword);
+
   @override
   Token get endToken => keyword;
 
@@ -17543,6 +18270,14 @@ class SwitchCase extends SwitchMember {
       : super(labels, keyword, colon, statements) {
     _expression = becomeParentOf(expression);
   }
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..addAll(labels)
+      ..add(keyword)
+      ..add(_expression)
+      ..add(colon)
+      ..addAll(statements);
 
   /**
    * Return the expression controlling whether the statements will be executed.
@@ -17591,6 +18326,16 @@ class SwitchDefault extends SwitchMember {
   SwitchDefault(List<Label> labels, Token keyword, Token colon,
       List<Statement> statements)
       : super(labels, keyword, colon, statements);
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..addAll(labels)
+      ..add(keyword)
+      ..add(colon)
+      ..addAll(statements);
 
   @override
   accept(AstVisitor visitor) => visitor.visitSwitchDefault(this);
@@ -17744,6 +18489,16 @@ class SwitchStatement extends Statement {
   Token get beginToken => keyword;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(leftParenthesis)
+      ..add(_expression)
+      ..add(rightParenthesis)
+      ..add(leftBracket)
+      ..addAll(_members)
+      ..add(rightBracket);
+
+  @override
   Token get endToken => rightBracket;
 
   /**
@@ -17810,6 +18565,15 @@ class SymbolLiteral extends Literal {
   @override
   Token get beginToken => poundSign;
 
+  /**
+   * TODO(paulberry): untested.
+   * TODO(paulberry): add "." tokens.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(poundSign)
+      ..addAll(components);
+
   @override
   Token get endToken => components[components.length - 1];
 
@@ -17845,6 +18609,12 @@ class ThisExpression extends Expression {
 
   @override
   Token get beginToken => keyword;
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()..add(keyword);
 
   @override
   Token get endToken => keyword;
@@ -17892,6 +18662,11 @@ class ThrowExpression extends Expression {
 
   @override
   Token get beginToken => keyword;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(_expression);
 
   @override
   Token get endToken {
@@ -17963,6 +18738,11 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
       : super(comment, metadata) {
     _variableList = becomeParentOf(variableList);
   }
+
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(_variableList)
+      ..add(semicolon);
 
   @override
   Element get element => null;
@@ -19214,6 +19994,14 @@ class TryStatement extends Statement {
   NodeList<CatchClause> get catchClauses => _catchClauses;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(tryKeyword)
+      ..add(_body)
+      ..addAll(_catchClauses)
+      ..add(finallyKeyword)
+      ..add(_finallyBlock);
+
+  @override
   Token get endToken {
     if (_finallyBlock != null) {
       return _finallyBlock.endToken;
@@ -19341,6 +20129,15 @@ class TypeArgumentList extends AstNode {
   @override
   Token get beginToken => leftBracket;
 
+  /**
+   * TODO(paulberry): Add commas.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(leftBracket)
+      ..addAll(_arguments)
+      ..add(rightBracket);
+
   @override
   Token get endToken => rightBracket;
 
@@ -19403,6 +20200,10 @@ abstract class TypedLiteral extends Literal {
     _typeArguments = becomeParentOf(typeArguments);
   }
 
+  ChildEntities get _childEntities => new ChildEntities()
+      ..add(constKeyword)
+      ..add(_typeArguments);
+
   @override
   void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_typeArguments, visitor);
@@ -19448,6 +20249,11 @@ class TypeName extends AstNode {
 
   @override
   Token get beginToken => _name.beginToken;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_name)
+      ..add(_typeArguments);
 
   @override
   Token get endToken {
@@ -19579,6 +20385,12 @@ class TypeParameter extends Declaration {
   }
 
   @override
+  Iterable get childEntities => super._childEntities
+      ..add(_name)
+      ..add(keyword)
+      ..add(_bound);
+
+  @override
   TypeParameterElement get element =>
       _name != null ? (_name.staticElement as TypeParameterElement) : null;
 
@@ -19658,6 +20470,12 @@ class TypeParameterList extends AstNode {
 
   @override
   Token get beginToken => leftBracket;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(leftBracket)
+      ..addAll(_typeParameters)
+      ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket;
@@ -20200,6 +21018,12 @@ class VariableDeclaration extends Declaration {
     _initializer = becomeParentOf(initializer);
   }
 
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(_name)
+      ..add(equals)
+      ..add(_initializer);
+
   /**
    * This overridden implementation of getDocumentationComment() looks in the grandparent node for
    * dartdoc comments if no documentation is specifically available on the node.
@@ -20347,6 +21171,15 @@ class VariableDeclarationList extends AnnotatedNode {
     _variables = new NodeList<VariableDeclaration>(this, variables);
   }
 
+  /**
+   * TODO(paulberry): include commas.
+   */
+  @override
+  Iterable get childEntities => super._childEntities
+      ..add(keyword)
+      ..add(_type)
+      ..addAll(_variables);
+
   @override
   Token get endToken => _variables.endToken;
 
@@ -20447,6 +21280,11 @@ class VariableDeclarationStatement extends Statement {
   Token get beginToken => _variableList.beginToken;
 
   @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(_variableList)
+      ..add(semicolon);
+
+  @override
   Token get endToken => semicolon;
 
   /**
@@ -20542,6 +21380,14 @@ class WhileStatement extends Statement {
     _body = becomeParentOf(statement);
   }
 
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(keyword)
+      ..add(leftParenthesis)
+      ..add(_condition)
+      ..add(rightParenthesis)
+      ..add(_body);
+
   /**
    * Return the expression used to determine whether to execute the body of the loop.
    *
@@ -20603,6 +21449,14 @@ class WithClause extends AstNode {
 
   @override
   Token get beginToken => withKeyword;
+
+  /**
+   * TODO(paulberry): add commas.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(withKeyword)
+      ..addAll(_mixinTypes);
 
   @override
   Token get endToken => _mixinTypes.endToken;
@@ -20677,6 +21531,16 @@ class YieldStatement extends Statement {
     }
     return _expression.beginToken;
   }
+
+  /**
+   * TODO(paulberry): untested.
+   */
+  @override
+  Iterable get childEntities => new ChildEntities()
+      ..add(yieldKeyword)
+      ..add(star)
+      ..add(_expression)
+      ..add(semicolon);
 
   @override
   Token get endToken {

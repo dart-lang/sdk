@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_computer.dart';
 import 'package:analysis_server/src/services/completion/combinator_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
@@ -97,6 +98,7 @@ class DartCompletionManager extends CompletionManager {
       request.unit = unit;
       request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
       request.node.accept(new _ReplacementOffsetBuilder(request));
+      request.target = new CompletionTarget.forOffset(unit, request.offset);
       List<DartCompletionComputer> todo = new List.from(computers);
       todo.removeWhere((DartCompletionComputer c) {
         return request.performance.logElapseTime(
@@ -129,6 +131,9 @@ class DartCompletionManager extends CompletionManager {
       request.performance.logElapseTime('computeFull', () {
         request.unit = unit;
         request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
+        // TODO(paulberry): Do we need to invoke _ReplacementOffsetBuilder
+        // again?
+        request.target = new CompletionTarget.forOffset(unit, request.offset);
         int count = todo.length;
         todo.forEach((DartCompletionComputer c) {
           String name = c.runtimeType.toString();
@@ -245,6 +250,15 @@ class DartCompletionRequest extends CompletionRequest {
   AstNode node;
 
   /**
+   * The completion target.  This determines what part of the parse tree
+   * will receive the newly inserted text.
+   *
+   * TODO(paulberry) gradually transition code over to using this rather than
+   * [node].
+   */
+  CompletionTarget target;
+
+  /**
    * Information about the types of suggestions that should be included.
    */
   OpType _optype;
@@ -285,11 +299,11 @@ class DartCompletionRequest extends CompletionRequest {
 
   /**
    * Information about the types of suggestions that should be included.
-   * This will return `null` if the [node] has not been set.
+   * The [target] must be set first.
    */
   OpType get optype {
-    if (_optype == null && node != null) {
-      _optype = new OpType.forCompletion(node, offset);
+    if (_optype == null) {
+      _optype = new OpType.forCompletion(target, offset);
     }
     return _optype;
   }

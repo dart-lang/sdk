@@ -4,6 +4,7 @@
 
 library test.services.completion.computer.dart.optype;
 
+import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -37,8 +38,9 @@ class OpTypeTest {
     CompilationUnit unit = resolved ?
         context.resolveCompilationUnit2(source, source) :
         context.parseCompilationUnit(source);
-    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
-    visitor = new OpType.forCompletion(node, offset);
+    CompletionTarget completionTarget =
+        new CompletionTarget.forOffset(unit, offset);
+    visitor = new OpType.forCompletion(completionTarget, offset);
   }
 
   void assertOpType({bool invocation: false, bool returnValue: false,
@@ -215,7 +217,7 @@ class OpTypeTest {
   test_CascadeExpression_target() {
     // SimpleIdentifier  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a^..b}');
-    assertOpType(returnValue: true, typeNames: true);
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_CatchClause_typed() {
@@ -495,7 +497,7 @@ class OpTypeTest {
   test_MethodDeclaration2() {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('class Bar {const F^ara();}');
-    assertOpType();
+    assertOpType(typeNames: true);
   }
 
   test_MethodInvocation_no_semicolon() {
@@ -523,7 +525,7 @@ class OpTypeTest {
   test_PrefixedIdentifier_prefix() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('class X {foo(){A^.bar}}');
-    assertOpType(typeNames: true, returnValue: true);
+    assertOpType(typeNames: true, returnValue: true, voidReturn: true);
   }
 
   test_PropertyAccess_expression() {
@@ -599,13 +601,13 @@ class OpTypeTest {
   test_TypeParameter() {
     // SimpleIdentifier  TypeParameter  TypeParameterList
     addTestSource('class tezetst <String, ^List> {}');
-    assertOpType(typeNames: true);
+    assertOpType();
   }
 
   test_TypeParameterList_empty() {
     // SimpleIdentifier  TypeParameter  TypeParameterList
     addTestSource('class tezetst <^> {}');
-    assertOpType(typeNames: true);
+    assertOpType();
   }
 
   test_VariableDeclaration_name() {

@@ -4,8 +4,8 @@
 
 library services.completion.computer.dart.optype;
 
+import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation
@@ -38,11 +38,12 @@ class OpType {
 
   /**
    * Determine the suggestions that should be made based upon the given
-   * [AstNode] and offset.
+   * [CompletionTarget] and [offset].
    */
-  factory OpType.forCompletion(AstNode node, int offset) {
+  factory OpType.forCompletion(CompletionTarget target, int offset) {
     OpType optype = new OpType._();
-    node.accept(new _OpTypeAstVisitor(optype, offset));
+    target.containingNode.accept(
+        new _OpTypeAstVisitor(optype, target.entity, offset));
     return optype;
   }
 
@@ -70,6 +71,12 @@ class OpType {
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   /**
+   * The entity (AstNode or Token) which will be replaced or displaced by the
+   * added text.
+   */
+  final Object entity;
+
+  /**
    * The offset within the source at which the completion is requested.
    */
   final int offset;
@@ -79,26 +86,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
    */
   final OpType optype;
 
-  _OpTypeAstVisitor(this.optype, this.offset);
-
-  bool isAfterSemicolon(Token semicolon) =>
-      semicolon != null && !semicolon.isSynthetic && semicolon.offset < offset;
+  _OpTypeAstVisitor(this.optype, this.entity, this.offset);
 
   @override
   void visitAnnotation(Annotation node) {
-    Token atSign = node.atSign;
-    if (atSign == null || offset <= atSign.offset) {
-      optype.includeReturnValueSuggestions = true;
+    if (identical(entity, node.name)) {
       optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
-    } else {
-      Token period = node.period;
-      if (period == null || offset <= period.offset) {
-        optype.includeTypeNameSuggestions = true;
-        optype.includeReturnValueSuggestions = true;
-      } else {
-        optype.includeInvocationSuggestions = true;
-      }
+      optype.includeReturnValueSuggestions = true;
+    } else if (identical(entity, node.constructorName)) {
+      optype.includeInvocationSuggestions = true;
     }
   }
 
@@ -106,6 +102,40 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitArgumentList(ArgumentList node) {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    if (identical(entity, node.type)) {
+      optype.includeTypeNameSuggestions = true;
+      // TODO (danrubel) Possible future improvement:
+      // on the RHS of an "is" or "as" expression, don't suggest types that are
+      // guaranteed to pass or guaranteed to fail the cast.
+      // See dartbug.com/18860
+    }
+  }
+
+  void visitAssignmentExpression(AssignmentExpression node) {
+    if (identical(entity, node.rightHandSide)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    if (identical(entity, node.rightOperand)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override
@@ -117,11 +147,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.target;
-    if (target != null && offset <= target.end) {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-    } else {
+    if (node.cascadeSections.contains(entity)) {
       optype.includeInvocationSuggestions = true;
     }
   }
@@ -129,17 +155,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
-    Token leftBracket = node.leftBracket;
-    if (leftBracket != null && offset >= leftBracket.end) {
+    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
       optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitClassMember(ClassMember node) {
-    if (offset <= node.offset || node.end <= offset) {
-      optype.includeTypeNameSuggestions = true;
-    }
   }
 
   @override
@@ -149,12 +171,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     optype.includeVoidReturnSuggestions = true;
   }
 
+  void visitCompilationUnit(CompilationUnit node) {
+    optype.includeTypeNameSuggestions = true;
+  }
+
   @override
   visitConstructorName(ConstructorName node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
-    Token period = node.period;
-    if (period != null && offset > period.offset) {
+    if (identical(entity, node.name)) {
       TypeName type = node.type;
       if (type != null) {
         SimpleIdentifier prefix = type.name;
@@ -167,13 +192,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitDoStatement(DoStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && leftParen.end <= offset) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || offset <= rightParen.offset) {
-        optype.includeReturnValueSuggestions = true;
-        optype.includeTypeNameSuggestions = true;
-      }
+    if (identical(entity, node.condition)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -186,14 +207,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitExpression(Expression node) {
-    optype.includeReturnValueSuggestions = true;
-    optype.includeTypeNameSuggestions = true;
+    // This should never be called; we should always dispatch to the visitor
+    // for a particular kind of expression.
+    assert(false);
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    Token functionDefinition = node.functionDefinition;
-    if (functionDefinition != null && functionDefinition.end <= offset) {
+    if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -201,128 +222,115 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
-    Expression expression = node.expression;
-    // A pre-variable declaration (e.g. C ^) is parsed as an expression
-    // statement. Do not make suggestions for the variable name.
-    if (expression is SimpleIdentifier && offset <= expression.end) {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
-    } else {
-      Token semicolon = node.semicolon;
-      if (semicolon != null && semicolon.end <= offset) {
-        optype.includeReturnValueSuggestions = true;
-        optype.includeTypeNameSuggestions = true;
-        optype.includeVoidReturnSuggestions = true;
-      }
-    }
   }
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    Token keyword = node.keyword;
-    if (keyword != null && keyword.end < offset) {
+    if (identical(entity, node.superclass)) {
       optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitForEachStatement(ForEachStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && leftParen.end <= offset) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || offset <= rightParen.offset) {
-        optype.includeReturnValueSuggestions = true;
-        optype.includeTypeNameSuggestions = true;
-      }
+    if (identical(entity, node.iterable)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && offset > leftParen.offset) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || offset <= rightParen.offset) {
-        optype.includeReturnValueSuggestions = true;
-        optype.includeTypeNameSuggestions = true;
-      }
-    }
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && offset >= leftParen.end) {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
-      // TODO (danrubel) void return suggestions only belong after
-      // the 2nd semicolon.  Return value suggestions only belong after the
-      // e1st or second semicolon.
-    }
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVoidReturnSuggestions = true;
+    // TODO (danrubel) void return suggestions only belong after
+    // the 2nd semicolon.  Return value suggestions only belong after the
+    // e1st or second semicolon.
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    Token keyword = node.keyword;
-    if (keyword != null && keyword.end <= offset) {
-      SimpleIdentifier id = node.name;
-      if (id != null) {
-        TypeName returnType = node.returnType;
-        if (offset <= (returnType != null ? returnType.end : id.end)) {
-          optype.includeTypeNameSuggestions = true;
-        }
-      }
+    if (identical(entity, node.returnType) ||
+        identical(entity, node.name) && node.returnType == null) {
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitIfStatement(IfStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && offset >= leftParen.end) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || offset <= rightParen.offset) {
-        optype.includeReturnValueSuggestions = true;
-        optype.includeTypeNameSuggestions = true;
-      }
+    if (identical(entity, node.condition)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.thenStatement) ||
+        identical(entity, node.elseStatement)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     }
   }
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    Token keyword = node.keyword;
-    if (keyword != null && keyword.end < offset) {
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (identical(entity, node.constructorName)) {
       optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    Expression expression = node.expression;
-    if (expression is SimpleIdentifier) {
+    if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    if (identical(entity, node.type)) {
+      optype.includeTypeNameSuggestions = true;
+      // TODO (danrubel) Possible future improvement:
+      // on the RHS of an "is" or "as" expression, don't suggest types that are
+      // guaranteed to pass or guaranteed to fail the cast.
+      // See dartbug.com/18860
+    }
+  }
+
+  void visitLibraryIdentifier(LibraryIdentifier node) {
+    // No suggestions.
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    SimpleIdentifier id = node.name;
-    if (id != null && offset < id.offset) {
-      optype.includeTypeNameSuggestions = true;
-    }
-    visitClassMember(node);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    Token period = node.period;
-    if (period == null || offset <= period.offset) {
+    if (identical(entity, node.period) && offset > node.period.offset) {
+      // The cursor is between the two dots of a ".." token, so we need to
+      // generate the completions we would generate after a "." token.
+      optype.includeInvocationSuggestions = true;
+    } else if (identical(entity, node.methodName)) {
+      optype.includeInvocationSuggestions = true;
+    }
+  }
+
+  @override
+  void visitNamedExpression(NamedExpression node) {
+    if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
-    } else {
-      optype.includeInvocationSuggestions = true;
     }
   }
 
@@ -337,32 +345,42 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     optype.includeTypeNameSuggestions = true;
   }
 
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    Token period = node.period;
-    if (period == null || offset <= period.offset) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
-    } else {
+    }
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (identical(entity, node.identifier)) {
       optype.includeInvocationSuggestions = true;
     }
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    var operator = node.operator;
-    if (operator != null && offset < operator.offset) {
+  void visitPrefixExpression(PrefixExpression node) {
+    if (identical(entity, node.operand)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
-    } else {
+    }
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    if (identical(entity, node.operator) && offset > node.operator.offset) {
+      // The cursor is between the two dots of a ".." token, so we need to
+      // generate the completions we would generate after a "." token.
+      optype.includeInvocationSuggestions = true;
+    } else if (identical(entity, node.propertyName)) {
       optype.includeInvocationSuggestions = true;
     }
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    Token keyword = node.keyword;
-    if (keyword != null && keyword.end < offset) {
+    if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -370,7 +388,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    node.parent.accept(this);
+    // This should never happen; the containingNode will always be some node
+    // higher up in the parse tree, and the SimpleIdentifier will be the
+    // entity.
+    assert(false);
   }
 
   @override
@@ -380,8 +401,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    Token keyword = node.keyword;
-    if (keyword == null || keyword.end < offset) {
+    if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
@@ -390,41 +410,20 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && leftParen.end <= offset) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || offset <= rightParen.offset) {
-        optype.includeReturnValueSuggestions = true;
-        optype.includeTypeNameSuggestions = true;
-      }
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitTypeName(TypeName node) {
-    // If suggesting completions within a TypeName node
-    // then limit suggestions to only types in specific situations
-    AstNode p = node.parent;
-    if (p is IsExpression || p is ConstructorName || p is AsExpression) {
-      optype.includeTypeNameSuggestions = true;
-      // TODO (danrubel) Possible future improvement:
-      // on the RHS of an "is" or "as" expression, don't suggest types that are
-      // guaranteed to pass or guaranteed to fail the cast.
-      // See dartbug.com/18860
-    } else if (p is VariableDeclarationList) {
-      // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
-      // the user may be either (1) entering a type for the assignment
-      // or (2) starting a new statement.
-      // Consider suggesting only types
-      // if only spaces separates the 1st and 2nd identifiers.
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
-    } else {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
-    }
+    // The entity won't be the first child entity (node.name), since
+    // CompletionTarget would have chosen an edge higher in the parse tree.  So
+    // it must be node.typeArguments, meaning that the cursor is between the
+    // type name and the "<" that starts the type arguments.  In this case,
+    // we have no completions to offer.
+    assert(identical(entity, node.typeArguments));
   }
 
   @override
@@ -434,9 +433,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    Token equals = node.equals;
     // Make suggestions for the RHS of a variable declaration
-    if (equals != null && offset >= equals.end) {
+    if (identical(entity, node.initializer)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -444,22 +442,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    if (isAfterSemicolon(node.semicolon)) {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
-    }
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && leftParen.end <= offset) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || offset <= rightParen.offset) {
-        optype.includeReturnValueSuggestions = true;
-        optype.includeTypeNameSuggestions = true;
-      }
+    if (identical(entity, node.condition)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 }
