@@ -294,15 +294,15 @@ static void VerifyStackTrace(Dart_StackTrace trace,
 }
 
 
-// TODO(hausner): Convert this one remaining use of the legacy
-// breakpoint handler once Dart_SetBreakpointHandler goes away.
 void TestBreakpointHandler(Dart_IsolateId isolate_id,
-                           Dart_Breakpoint bpt,
-                           Dart_StackTrace trace) {
+                           intptr_t bp_id,
+                           const Dart_CodeLocation& location) {
   const char* expected_trace[] = {"A.foo", "main"};
   const intptr_t expected_trace_length = 2;
   breakpoint_hit = true;
   breakpoint_hit_counter++;
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   EXPECT_VALID(res);
@@ -336,7 +336,7 @@ TEST_CASE(Debug_Breakpoint) {
       "}                      \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&TestBreakpointHandler);
+  Dart_SetPausedEventHandler(&TestBreakpointHandler);
   SetBreakpointAtEntry("A", "foo");
 
   breakpoint_hit = false;
@@ -985,11 +985,12 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
 
 
 void TestBreakpointHandlerWithVerify(Dart_IsolateId isolate_id,
-                                     Dart_Breakpoint bpt,
-                                     Dart_StackTrace trace) {
+                                     intptr_t bp_id,
+                                     const Dart_CodeLocation& location) {
   breakpoint_hit = true;
   breakpoint_hit_counter++;
-
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   Dart_ActivationFrame frame;
   Dart_Handle res = Dart_GetActivationFrame(trace, 0, &frame);
   EXPECT_VALID(res);
@@ -1049,7 +1050,7 @@ TEST_CASE(Debug_BreakpointStubPatching) {
                                               &NoopNativeResolver,
                                               NULL);
   EXPECT_VALID(result);
-  Dart_SetBreakpointHandler(&TestBreakpointHandlerWithVerify);
+  Dart_SetPausedEventHandler(&TestBreakpointHandlerWithVerify);
 
   Dart_Handle script_url = NewString(TestCase::url());
 

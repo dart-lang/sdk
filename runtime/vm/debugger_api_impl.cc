@@ -106,8 +106,6 @@ static Dart_BreakpointResolvedHandler* bp_resolved_handler = NULL;
 static Dart_ExceptionThrownHandler* exc_thrown_handler = NULL;
 static Dart_IsolateEventHandler* isolate_event_handler = NULL;
 
-static Dart_BreakpointHandler* legacy_bp_handler = NULL;
-
 
 static void DebuggerEventHandler(DebuggerEvent* event) {
   Isolate* isolate = Isolate::Current();
@@ -116,11 +114,7 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
   Dart_EnterScope();
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();
   if (event->type() == DebuggerEvent::kBreakpointReached) {
-    if (legacy_bp_handler != NULL) {
-      Dart_StackTrace stack_trace =
-          reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
-      (*legacy_bp_handler)(isolate_id, NULL, stack_trace);
-    } else if (paused_event_handler != NULL) {
+    if (paused_event_handler != NULL) {
       Dart_CodeLocation location;
       ActivationFrame* top_frame = event->top_frame();
       location.script_url = Api::NewHandle(isolate, top_frame->SourceUrl());
@@ -172,12 +166,6 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
     UNIMPLEMENTED();
   }
   Dart_ExitScope();
-}
-
-
-DART_EXPORT void Dart_SetBreakpointHandler(Dart_BreakpointHandler bp_handler) {
-  legacy_bp_handler = bp_handler;
-  Debugger::SetEventHandler(DebuggerEventHandler);
 }
 
 
