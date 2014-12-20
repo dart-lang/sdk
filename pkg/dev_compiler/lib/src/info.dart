@@ -30,10 +30,6 @@ class LibraryInfo {
   /// Corresponding analyzer element.
   final LibraryElement library;
 
-  /// Information on each node that belongs to this library (includes nodes in
-  /// the declaring unit and in parts).
-  Map<AstNode, SemanticNode> nodeInfo = <AstNode, SemanticNode>{};
-
   LibraryInfo(this.library) {
     name = library.name;
     if (name != null && library.name != '') return;
@@ -43,18 +39,6 @@ class LibraryInfo {
     if (tail.endsWith('.dart')) tail = tail.substring(0, tail.length - 5);
     name = tail;
   }
-}
-
-/// Semantic information about a node.
-// TODO(jmesserly): this structure is very incomplete.
-class SemanticNode {
-  /// The syntax tree node this info is attached to.
-  final AstNode node;
-
-  /// If this operation is dynamically dispatched, this will be set.
-  DynamicInvoke dynamicInvoke;
-
-  SemanticNode(this.node);
 }
 
 // The abstract type of coercions mapping one type to another.

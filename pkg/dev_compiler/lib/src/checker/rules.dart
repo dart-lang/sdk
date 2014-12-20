@@ -29,6 +29,23 @@ abstract class TypeRules {
   DartType getStaticType(Expression expr) => expr.staticType;
 
   DartType elementType(Element e);
+
+  /// Returns `true` if the expression is a dynamic property access or prefixed
+  /// identifier.
+  bool isDynamicGet(Expression expr) {
+    var t = getStaticType(expr);
+    // TODO(jmesserly): we should not allow all property gets on `Function`
+    return t.isDynamic || t.isDartCoreFunction;
+  }
+
+  /// Returns `true` if the expression is a dynamic function call or method
+  /// invocation.
+  bool isDynamicCall(Expression call) {
+    var t = getStaticType(call);
+    // TODO(jmesserly): fix handling of types with `call` methods. These are not
+    // FunctionType, but they also aren't dynamic calls.
+    return t.isDynamic || t.isDartCoreFunction || t is! FunctionType;
+  }
 }
 
 class DartRules extends TypeRules {
@@ -63,9 +80,6 @@ class RestrictedRules extends TypeRules {
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
     if (type != null) return type;
-
-    var node = currentLibraryInfo.nodeInfo
-        .putIfAbsent(expr, () => new SemanticNode(expr));
     _reporter.log(new MissingTypeError(expr));
     return provider.dynamicType;
   }

@@ -19,8 +19,8 @@ CheckerResults checkProgram(Uri fileUri, TypeResolver resolver,
   // Invoke the checker on the entry point.
   TypeProvider provider = resolver.context.typeProvider;
   var rules = new RestrictedRules(provider, reporter);
-  final visitor = new ProgramChecker(
-      resolver, rules, fileUri, checkSdk, reporter);
+  final visitor =
+      new ProgramChecker(resolver, rules, fileUri, checkSdk, reporter);
   visitor.check();
   return new CheckerResults(visitor.libraries, rules, visitor.failure);
 }
@@ -209,14 +209,12 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   void checkFunctionApplication(
       Expression node, Expression f, ArgumentList list) {
-    DartType type = _rules.getStaticType(f);
-    if (type.isDynamic || type.isDartCoreFunction || type is! FunctionType) {
+    if (_rules.isDynamicCall(f)) {
       // TODO(vsm): For a function object, we should still be able to derive a
       // function type from it.
       _recordDynamicInvoke(node);
     } else {
-      assert(type is FunctionType);
-      checkArgumentList(list, type);
+      checkArgumentList(list, _rules.getStaticType(f));
     }
   }
 
@@ -286,10 +284,7 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   visitPropertyAccess(PropertyAccess node) {
-    final target = node.realTarget;
-    DartType receiverType = _rules.getStaticType(target);
-    assert(receiverType != null);
-    if (receiverType.isDynamic || receiverType.isDartCoreFunction) {
+    if (_rules.isDynamicGet(node.realTarget)) {
       _recordDynamicInvoke(node);
     }
     node.visitChildren(this);
@@ -299,12 +294,8 @@ class ProgramChecker extends RecursiveAstVisitor {
     final target = node.prefix;
     // Check if the prefix is a library - PrefixElement denotes a library
     // access.
-    if (target.staticElement is! PrefixElement) {
-      DartType receiverType = _rules.getStaticType(target);
-      assert(receiverType != null);
-      if (receiverType.isDynamic || receiverType.isDartCoreFunction) {
-        _recordDynamicInvoke(node);
-      }
+    if (target.staticElement is! PrefixElement && _rules.isDynamicGet(target)) {
+      _recordDynamicInvoke(node);
     }
     node.visitChildren(this);
   }
@@ -354,22 +345,8 @@ class ProgramChecker extends RecursiveAstVisitor {
     return expr;
   }
 
-  SemanticNode _getSemanticNode(AstNode astNode) {
-    if (astNode == null) return null;
-
-    final semanticNode = _current.nodeInfo[astNode];
-    if (semanticNode == null) {
-      return _current.nodeInfo[astNode] = new SemanticNode(astNode);
-    }
-    return semanticNode;
-  }
-
   void _recordDynamicInvoke(AstNode node) {
-    final info = new DynamicInvoke(_rules, node);
-    final semanticNode = _getSemanticNode(node);
-    assert(semanticNode.dynamicInvoke == null);
-    semanticNode.dynamicInvoke = info;
-    _reporter.log(info);
+    _reporter.log(new DynamicInvoke(_rules, node));
   }
 
   void _recordMessage(StaticInfo info) {

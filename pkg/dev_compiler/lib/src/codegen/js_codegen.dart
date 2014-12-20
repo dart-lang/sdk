@@ -425,7 +425,7 @@ var $name = (function (_super) {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (_isDynamic(node)) {
+    if (rules.isDynamicCall(node.methodName)) {
       _unimplemented(node);
       return;
     }
@@ -693,7 +693,7 @@ var $name = (function (_super) {
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   void _visitGet(Expression target, SimpleIdentifier name) {
-    if (_isDynamic(target.parent)) {
+    if (rules.isDynamicGet(target)) {
       out.write('dart_runtime.dload(');
       target.accept(this);
       out.write(', "');
@@ -811,13 +811,6 @@ var $name = (function (_super) {
       }
     }
     id.accept(this);
-  }
-
-  // TODO(jmesserly): is there a cleaner way to track this dynamic bit?
-  // Ideally we could just look at the resolved information on the AstNode.
-  bool _isDynamic(AstNode node) {
-    final info = libraryInfo.nodeInfo[node];
-    return info != null && info.dynamicInvoke != null;
   }
 
   /// Safely visit the given node, with an optional prefix or suffix.
