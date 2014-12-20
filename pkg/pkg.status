@@ -14,9 +14,6 @@
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
-intl/test/date_time_format_http_request_test: Skip # Times out flakily. Issue 19544
-intl/test/date_time_format_local_even_test: Skip # Times out flakily. Issue 19544
-intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
 mutation_observer: Skip # Issue 21149
 
 [ $runtime == vm && $mode == debug]
@@ -100,18 +97,6 @@ third_party/angular_tests/browser_test: Skip # uses dart:html
 [$compiler == dart2dart]
 *: Skip
 
-[ $compiler == dart2js || $compiler == dart2dart ]
-source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers that
-                                # overflow in JS (numbers slightly larger than
-                                # 32 bits where we do bitwise operations).
-
-[ $runtime == opera && $compiler == dart2js ]
-intl/test/find_default_locale_browser_test: Fail
-intl/test/date_time_format_http_request_test: Skip # Timeout.
-
-[ $ie ]
-intl/test/date_time_format_http_request_test: Fail # Issue 8983
-
 [ $runtime == ie10 ]
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
@@ -122,12 +107,9 @@ typed_data/test/typed_buffers_test: RuntimeError
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
-intl/test/find_default_locale_browser_test: Skip
-intl/test/date_time_format_http_request_test: Skip
 third_party/angular_tests/vm_test: Fail # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && $system == windows ]
-intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
@@ -151,28 +133,14 @@ mutation_observer: Skip
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
-[ $compiler == dart2js && $runtime == chromeOnAndroid ]
-intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
-
 [ $browser ]
 analysis_server/test/*: Skip # Uses dart:io.
 analysis_server/tool/spec/check_all_test: Skip # Uses dart:io.
 analyzer2dart/*: Skip # Uses dart:io.
 analyzer/test/*: Skip # Uses dart:io.
 http_server/test/*: Fail, OK # Uses dart:io.
-intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
-intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
-intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/examples_parsing_test: Fail, OK # Users dart:io
-intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
-intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
-intl/test/message_extraction/embedded_plural_text_after_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/embedded_plural_text_before_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: Skip # Intended only as a vm test.
-shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 stub_core_library/test/*: Fail, OK # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 third_party/angular_tests/vm_test: Skip # Uses dart:io

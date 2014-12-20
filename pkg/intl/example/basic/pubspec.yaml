@@ -1,4 +1,0 @@
-name: IntlExample
-description: An example using internationalization facilities
-dependencies:
-  intl: any

@@ -9,10 +9,10 @@ pkg/docgen: Pass, Slow
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/browser: PubGetError
-pkg/intl: PubGetError # Issue 19782
-pkg/third_party/html5lib: PubGetError # angular needs to be updated
 samples/third_party/angular_todo: Fail # angular needs to be updated
 samples/third_party/todomvc_performance: Skip # dependencies are not in the repo
+third_party/pkg/intl: PubGetError # Issue 19782
+third_party/pkg/html5lib: PubGetError # angular needs to be updated
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow

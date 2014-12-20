@@ -47,13 +47,13 @@
           # These packages are uploaded to Try Dart and can be used in code
           # there.
           '../../pkg/analyzer/lib',
-          '../../pkg/args/lib',
           '../../pkg/collection/lib',
           '../../pkg/crypto/lib',
-          '../../pkg/intl/lib',
-          '../../pkg/logging/lib',
+          '../../third_party/pkg/args/lib',
           '../../third_party/pkg/http/lib',
           '../../third_party/pkg/http_parser/lib',
+          '../../third_party/pkg/intl/lib',
+          '../../third_party/pkg/logging/lib',
           '../../third_party/pkg/matcher/lib',
           '../../third_party/pkg/path/lib',
           '../../third_party/pkg/stack_trace/lib',
