@@ -81,14 +81,20 @@ class DartCompletionCache extends CompletionCache {
   String get importKey => _importKey;
 
   /**
-   * Compute suggestions based upon the imports in the given compilation unit.
-   * On return, the cache will be populated except for lower priority
-   * suggestions added as a result of a global search. Callers may wait
-   * on the returned future if they want to ensure those lower priority
-   * suggestions are part of the cached suggestions.
+   * Given a resolved compilation unit, compute suggestions based upon the
+   * imports and other dart files (e.g. "part" files) in the library containing
+   * the given compilation unit. The returned future completes when the cache
+   * is populated.
+   *
+   * If [shouldWaitForLowPrioritySuggestions] is `true` then the returned
+   * future will complete when the cache is fully populated. If `false`,
+   * the returned future will complete sooner, but the cache will not include
+   * the lower priority suggestions added as a result of a global search.
+   * In this case, those lower priority suggestions will be added later
+   * when the index has been updated and the global search completes.
    */
   Future<bool> computeImportInfo(CompilationUnit unit,
-      SearchEngine searchEngine) {
+      SearchEngine searchEngine, bool shouldWaitForLowPrioritySuggestions) {
     importedTypeSuggestions = <CompletionSuggestion>[];
     libraryPrefixSuggestions = <CompletionSuggestion>[];
     otherImportedSuggestions = <CompletionSuggestion>[];
@@ -96,34 +102,76 @@ class DartCompletionCache extends CompletionCache {
     importedClassMap = new Map<String, ClassElement>();
     _importedCompletions = new HashSet<String>();
 
+    // Assert that the compilation unit is resolved
+    // and represents the expected source
+    assert(unit.element.source == source);
+
     // Exclude elements from local library
     // because they are provided by LocalComputer
     Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
     excludedLibs.add(unit.element.enclosingElement);
 
+    // Determine the compilation unit defining the library containing
+    // this compilation unit
+    List<Source> libraries = context.getLibrariesContaining(source);
+    Source libSource = null;
+    Future<CompilationUnit> futureLibUnit;
+    if (libraries != null && libraries.length > 0) {
+      libSource = libraries[0];
+      if (libSource == source) {
+        // If the sources are the same then we already have the library unit
+        futureLibUnit = new Future.value(unit);
+      } else {
+        // If the sources are different, then get the library unit
+        // to traverse the library directives and cache the imported elements
+        futureLibUnit =
+            context.computeResolvedCompilationUnitAsync(libSource, libSource);
+      }
+    } else {
+      futureLibUnit = new Future.value(null);
+    }
+
     // Include explicitly imported elements
-    unit.directives.forEach((Directive directive) {
-      if (directive is ImportDirective) {
-        ImportElement importElem = directive.element;
-        if (importElem != null && importElem.importedLibrary != null) {
-          if (directive.prefix == null) {
-            Namespace importNamespace =
-                new NamespaceBuilder().createImportNamespaceForDirective(importElem);
-            // Include top level elements
-            importNamespace.definedNames.forEach((String name, Element elem) {
-              if (elem is ClassElement) {
-                importedClassMap[name] = elem;
+    Future futureImportsCached = futureLibUnit.then((CompilationUnit libUnit) {
+      if (libUnit != null) {
+        libUnit.directives.forEach((Directive directive) {
+          if (directive is ImportDirective) {
+            ImportElement importElem = directive.element;
+            if (importElem != null && importElem.importedLibrary != null) {
+              if (directive.prefix == null) {
+                Namespace importNamespace =
+                    new NamespaceBuilder().createImportNamespaceForDirective(importElem);
+                // Include top level elements
+                importNamespace.definedNames.forEach(
+                    (String name, Element elem) {
+                  if (elem is ClassElement) {
+                    importedClassMap[name] = elem;
+                  }
+                  addSuggestion(elem, CompletionRelevance.DEFAULT);
+                });
+              } else {
+                // Exclude elements from prefixed imports
+                // because they are provided by InvocationComputer
+                excludedLibs.add(importElem.importedLibrary);
+                _addLibraryPrefixSuggestion(importElem);
               }
-              addSuggestion(elem, CompletionRelevance.DEFAULT);
-            });
-          } else {
-            // Exclude elements from prefixed imports
-            // because they are provided by InvocationComputer
-            excludedLibs.add(importElem.importedLibrary);
-            _addLibraryPrefixSuggestion(importElem);
+            }
+          } else if (directive is PartDirective) {
+            CompilationUnitElement partElem = directive.element;
+            if (partElem != null && partElem.source != source) {
+              partElem.accept(new _NonLocalElementCacheVisitor(this));
+            }
           }
+        });
+        if (libSource != source) {
+          libUnit.element.accept(new _NonLocalElementCacheVisitor(this));
         }
       }
+      // Don't wait for search of lower relevance results to complete.
+      // Set key indicating results are ready, and lower relevance results
+      // will be added to the cache when the search completes.
+      _importKey = _computeImportKey(unit);
+      return true;
     });
 
     // Include implicitly imported dart:core elements
@@ -139,29 +187,28 @@ class DartCompletionCache extends CompletionCache {
     });
     _objectClassElement = importedClassMap['Object'];
 
-    /*
-     * Don't wait for search of lower relevance results to complete.
-     * Set key indicating results are ready, and lower relevance results
-     * will be added to the cache when the search completes.
-     */
-    _importKey = _computeImportKey(unit);
-
     // Add non-imported elements as low relevance
-    Future<List<SearchMatch>> future =
-        searchEngine.searchTopLevelDeclarations('');
-    return future.then((List<SearchMatch> matches) {
-      matches.forEach((SearchMatch match) {
-        if (match.kind == MatchKind.DECLARATION) {
-          Element element = match.element;
-          if (element.isPublic &&
-              !excludedLibs.contains(element.library) &&
-              !_importedCompletions.contains(element.displayName)) {
-            addSuggestion(element, CompletionRelevance.LOW);
+    // after the imported element suggestions have been added
+    Future<bool> futureAllCached = futureImportsCached.then((_) {
+      return searchEngine.searchTopLevelDeclarations(
+          '').then((List<SearchMatch> matches) {
+        matches.forEach((SearchMatch match) {
+          if (match.kind == MatchKind.DECLARATION) {
+            Element element = match.element;
+            if (element.isPublic &&
+                !excludedLibs.contains(element.library) &&
+                !_importedCompletions.contains(element.displayName)) {
+              addSuggestion(element, CompletionRelevance.LOW);
+            }
           }
-        }
+        });
+        return true;
       });
-      return true;
     });
+
+    return shouldWaitForLowPrioritySuggestions ?
+        futureAllCached :
+        futureImportsCached;
   }
 
   /**
@@ -243,5 +290,46 @@ class DartCompletionCache extends CompletionCache {
       }
     });
     return sb.toString();
+  }
+}
+
+/**
+ * A visitor for building suggestions based upon the elements defined by
+ * a source file contained in the same library but not the same as
+ * the source in which the completions are being requested.
+ */
+class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
+  final DartCompletionCache cache;
+
+  _NonLocalElementCacheVisitor(this.cache);
+
+  @override
+  void visitClassElement(ClassElement element) {
+    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
+  }
+
+  @override
+  void visitCompilationUnitElement(CompilationUnitElement element) {
+    element.visitChildren(this);
+  }
+
+  @override
+  void visitElement(Element element) {
+    // ignored
+  }
+
+  @override
+  void visitFunctionElement(FunctionElement element) {
+    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
+  }
+
+  @override
+  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
+  }
+
+  @override
+  void visitTopLevelVariableElement(TopLevelVariableElement element) {
+    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
   }
 }

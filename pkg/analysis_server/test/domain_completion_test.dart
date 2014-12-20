@@ -363,6 +363,46 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_partFile() {
+    addFile('/project/bin/testA.dart', '''
+      library libA;
+      part "$testFile";
+      import 'dart:html';
+      class A { }
+    ''');
+    addTestFile('''
+      part of libA;
+      main() {^}''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertNoResult('test');
+    });
+  }
+
+  test_partFile2() {
+    addFile('/testA.dart', '''
+      part of libA;
+      class A { }''');
+    addTestFile('''
+      library libA;
+      part "/testA.dart";
+      import 'dart:html';
+      main() {^}
+    ''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertNoResult('test');
+    });
+  }
+
   test_imports_prefixed() {
     addTestFile('''
       import 'dart:html' as foo;
@@ -380,6 +420,15 @@ class CompletionTest extends AbstractAnalysisTest {
 
   test_invocation() {
     addTestFile('class A {b() {}} main() {A a; a.^}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+    });
+  }
+
+  test_invocation_withTrailingStmt() {
+    addTestFile('class A {b() {}} main() {A a; a.^ int x = 7;}');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));

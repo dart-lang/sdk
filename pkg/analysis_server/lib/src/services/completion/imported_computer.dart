@@ -93,9 +93,12 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
 
     Future future = null;
     if (!cache.isImportInfoCached(request.unit)) {
-      future = cache.computeImportInfo(request.unit, request.searchEngine);
+      future = cache.computeImportInfo(
+          request.unit,
+          request.searchEngine,
+          shouldWaitForLowPrioritySuggestions);
     }
-    if (future != null && shouldWaitForLowPrioritySuggestions) {
+    if (future != null) {
       return future.then(addSuggestions);
     }
     return addSuggestions(true);

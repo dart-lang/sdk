@@ -79,7 +79,7 @@ class DartCompletionManager extends CompletionManager {
   Future<bool> computeCache() {
     return waitForAnalysis().then((CompilationUnit unit) {
       if (unit != null && !cache.isImportInfoCached(unit)) {
-        return cache.computeImportInfo(unit, searchEngine);
+        return cache.computeImportInfo(unit, searchEngine, true);
       } else {
         return new Future.value(false);
       }
@@ -189,9 +189,16 @@ class DartCompletionManager extends CompletionManager {
    * compilation unit is never going to be resolved.
    */
   Future<CompilationUnit> waitForAnalysis() {
+    List<Source> libraries = context.getLibrariesContaining(source);
+    assert(libraries != null);
+    if (libraries.length == 0) {
+      return new Future.value(null);
+    }
+    Source libSource = libraries[0];
+    assert(libSource != null);
     return context.computeResolvedCompilationUnitAsync(
         source,
-        source).catchError((_) {
+        libSource).catchError((_) {
       // This source file is not scheduled for analysis, so a resolved
       // compilation unit is never going to get computed.
       return null;
