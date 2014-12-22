@@ -133,7 +133,7 @@ void drawSeed(num x, num y) {
 }
 
 const String MATH_PNG =
-    "https://dart.googlecode.com/svn/trunk/dart/samples/sunflower/web/math.png";
+    "https://raw.githubusercontent.com/dart-lang/sample-sunflower/f808fcf68e523ea69631d2e61fd26be3296a1a8f/web/math.png";
 const String BODY = """
     <h1>drfibonacci\'s Sunflower Spectacular</h1>
 

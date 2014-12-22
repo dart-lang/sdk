@@ -12,7 +12,7 @@ import 'source_map_validator_helper.dart';
 void main() {
   asyncTest(() => createTempDir().then((Directory tmpDir) {
     Directory sunflowerDir = new Directory.fromUri(
-        Platform.script.resolve('../../../samples/sunflower'));
+        Platform.script.resolve('../../../third_party/sunflower'));
 
     print("Copying '${sunflowerDir.path}' to '${tmpDir.path}'.");
     copyDirectory(sunflowerDir, tmpDir);
