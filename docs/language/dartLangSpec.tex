@@ -4289,7 +4289,7 @@ Evaluation of an equality expression $ee$ of the form \code{$e_1$ == $e_2$} proc
 \begin{itemize}
 \item The expression $e_1$ is evaluated to an object $o_1$.
 \item The expression $e_2$ is evaluated to an object $o_2$.
-\item If either $o_1$ or $o_2$ is \NULL{}, then $ee$ evaluates to \code{identical($o_1$, $o_2$)}.  Otherwise,
+\item If either $o_1$ or $o_2$ is \NULL{}, then $ee$ evaluates to \TRUE{} if both $o_1$ and $o_2$ are \NULL{} and to \FALSE{} otherwise.  Otherwise,
 \item $ee$ is equivalent to the method invocation \code{$o_1$.==($o_2$)}.
 \end{itemize}
 
@@ -4298,7 +4298,7 @@ Evaluation of an equality expression $ee$ of the form \code{$e_1$ == $e_2$} proc
 Evaluation of an equality expression $ee$ of the form \code{\SUPER{} == $e$} proceeds as follows:
 \begin{itemize}
 \item The expression $e$ is evaluated to an object $o$.
-\item If either \THIS{} or $o$ is \NULL{}, then $ee$ evaluates to \code{identical(\THIS{}, $o$)}. Otherwise,
+\item If either \THIS{} or $o$ is \NULL{}, then $ee$ evaluates to evaluates to \TRUE{} if both \THIS{} and $o$ are \NULL{} and to \FALSE{} otherwise. Otherwise,
 \item $ee$ is equivalent to the method invocation \code{\SUPER{}.==($o$)}.
 \end{itemize}
 
