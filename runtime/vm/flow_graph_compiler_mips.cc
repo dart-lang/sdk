@@ -1395,6 +1395,8 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     bool needs_number_check,
     intptr_t token_pos) {
   __ TraceSimMsg("EqualityRegConstCompare");
+  ASSERT(!needs_number_check ||
+         (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
     ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
@@ -1415,14 +1417,15 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
                            token_pos);
     }
     __ TraceSimMsg("EqualityRegConstCompare return");
-    // Stub returns result in CMPRES1 (if it is 0, then reg and obj are
-    // equal) and always sets CMPRES2 to 0.
+    // Stub returns result in CMPRES1 (if it is 0, then reg and obj are equal).
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
+    return Condition(CMPRES1, ZR, EQ);
   } else {
-    __ CompareObject(CMPRES1, CMPRES2, reg, obj);
+    int16_t imm = 0;
+    const Register obj_reg = __ LoadConditionOperand(CMPRES1, obj, &imm);
+    return Condition(reg, obj_reg, EQ, imm);
   }
-  return EQ;
 }
 
 
@@ -1458,15 +1461,14 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 #endif
     __ TraceSimMsg("EqualityRegRegCompare return");
     // Stub returns result in CMPRES1 (if it is 0, then left and right are
-    // equal) and always sets CMPRES2 to 0.
+    // equal).
     __ lw(right, Address(SP, 0 * kWordSize));
     __ lw(left, Address(SP, 1 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
+    return Condition(CMPRES1, ZR, EQ);
   } else {
-    __ slt(CMPRES1, left, right);
-    __ slt(CMPRES2, right, left);
+    return Condition(left, right, EQ);
   }
-  return EQ;
 }
 
 

@@ -138,6 +138,99 @@ class Label : public ValueObject {
 };
 
 
+// There is no dedicated status register on MIPS, but Condition values are used
+// and passed around by the intermediate language, so we need a Condition type.
+// We delay code generation of a comparison that would result in a traditional
+// condition code in the status register by keeping both register operands and
+// the relational operator between them as the Condition.
+class Condition : public ValueObject {
+ public:
+  enum Bits {
+    kLeftPos = 0,
+    kLeftSize = 6,
+    kRightPos = kLeftPos + kLeftSize,
+    kRightSize = 6,
+    kRelOpPos = kRightPos + kRightSize,
+    kRelOpSize = 4,
+    kImmPos = kRelOpPos + kRelOpSize,
+    kImmSize = 16,
+  };
+
+  class LeftBits : public BitField<Register, kLeftPos, kLeftSize> {};
+  class RightBits : public BitField<Register, kRightPos, kRightSize> {};
+  class RelOpBits : public BitField<RelationOperator, kRelOpPos, kRelOpSize> {};
+  class ImmBits : public BitField<uint16_t, kImmPos, kImmSize> {};
+
+  Register left() const { return LeftBits::decode(bits_); }
+  Register right() const { return RightBits::decode(bits_); }
+  RelationOperator rel_op() const { return RelOpBits::decode(bits_); }
+  int16_t imm() const { return static_cast<int16_t>(ImmBits::decode(bits_)); }
+
+  static bool IsValidImm(int32_t value) {
+    // We want both value and value + 1 to fit in an int16_t.
+    return (-0x08000 <= value) && (value < 0x7fff);
+  }
+
+  void set_rel_op(RelationOperator value) {
+    ASSERT(IsValidRelOp(value));
+    bits_ = RelOpBits::update(value, bits_);
+  }
+
+  // Uninitialized condition.
+  Condition() : ValueObject(), bits_(0) { }
+
+  // Copy constructor.
+  Condition(const Condition& other) : ValueObject(), bits_(other.bits_) { }
+
+  // Copy assignment operator.
+  Condition& operator=(const Condition& other) {
+    bits_ = other.bits_;
+    return *this;
+  }
+
+  Condition(Register left,
+            Register right,
+            RelationOperator rel_op,
+            int16_t imm = 0) {
+    // At most one constant, ZR or immediate.
+    ASSERT(!(((left == ZR) || (left == IMM)) &&
+             ((right == ZR) || (right == IMM))));
+    // Non-zero immediate value is only allowed for IMM.
+    ASSERT((imm != 0) == ((left == IMM) || (right == IMM)));
+    set_left(left);
+    set_right(right);
+    set_rel_op(rel_op);
+    set_imm(imm);
+  }
+
+ private:
+  static bool IsValidRelOp(RelationOperator value) {
+    return (AL <= value) && (value <= ULE);
+  }
+
+  static bool IsValidRegister(Register value) {
+    return (ZR <= value) && (value <= IMM) && (value != AT);
+  }
+
+  void set_left(Register value) {
+    ASSERT(IsValidRegister(value));
+    bits_ = LeftBits::update(value, bits_);
+  }
+
+  void set_right(Register value) {
+    ASSERT(IsValidRegister(value));
+    bits_ = RightBits::update(value, bits_);
+  }
+
+  void set_imm(int16_t value) {
+    ASSERT(IsValidImm(value));
+    bits_ = ImmBits::update(static_cast<uint16_t>(value), bits_);
+  }
+
+  uword bits_;
+};
+
+
 class Assembler : public ValueObject {
  public:
   explicit Assembler(bool use_far_branches = false)
@@ -934,6 +1027,201 @@ class Assembler : public ValueObject {
     }
   }
 
+  void OrImmediate(Register rd, Register rs, int32_t imm) {
+    ASSERT(!in_delay_slot_);
+    if (imm == 0) {
+      mov(rd, rs);
+      return;
+    }
+
+    if (Utils::IsUint(kImmBits, imm)) {
+      ori(rd, rs, Immediate(imm));
+    } else {
+      LoadImmediate(TMP, imm);
+      or_(rd, rs, TMP);
+    }
+  }
+
+  void XorImmediate(Register rd, Register rs, int32_t imm) {
+    ASSERT(!in_delay_slot_);
+    if (imm == 0) {
+      mov(rd, rs);
+      return;
+    }
+
+    if (Utils::IsUint(kImmBits, imm)) {
+      xori(rd, rs, Immediate(imm));
+    } else {
+      LoadImmediate(TMP, imm);
+      xor_(rd, rs, TMP);
+    }
+  }
+
+  Register LoadConditionOperand(Register rd,
+                                const Object& operand,
+                                int16_t* imm) {
+    if (operand.IsSmi()) {
+      const int32_t val = reinterpret_cast<int32_t>(operand.raw());
+      if (val == 0) {
+        return ZR;
+      } else if (Condition::IsValidImm(val)) {
+        ASSERT(*imm == 0);
+        *imm = val;
+        return IMM;
+      }
+    }
+    LoadObject(rd, operand);
+    return rd;
+  }
+
+  // Branch to label if condition is true.
+  void BranchOnCondition(Condition cond, Label* l) {
+    ASSERT(!in_delay_slot_);
+    Register left = cond.left();
+    Register right = cond.right();
+    RelationOperator rel_op = cond.rel_op();
+    switch (rel_op) {
+      case NV: return;
+      case AL: b(l); return;
+      case EQ:  // fall through.
+      case NE: {
+        if (left == IMM) {
+          addiu(AT, ZR, Immediate(cond.imm()));
+          left = AT;
+        } else if (right == IMM) {
+          addiu(AT, ZR, Immediate(cond.imm()));
+          right = AT;
+        }
+        if (rel_op == EQ) {
+          beq(left, right, l);
+        } else {
+          bne(left, right, l);
+        }
+        break;
+      }
+      case GT: {
+        if (left == ZR) {
+          bltz(right, l);
+        } else if (right == ZR) {
+          bgtz(left, l);
+        } else if (left == IMM) {
+          slti(AT, right, Immediate(cond.imm()));
+          bne(AT, ZR, l);
+        } else if (right == IMM) {
+          slti(AT, left, Immediate(cond.imm() + 1));
+          beq(AT, ZR, l);
+        } else {
+          slt(AT, right, left);
+          bne(AT, ZR, l);
+        }
+        break;
+      }
+      case GE: {
+        if (left == ZR) {
+          blez(right, l);
+        } else if (right == ZR) {
+          bgez(left, l);
+        } else if (left == IMM) {
+          slti(AT, right, Immediate(cond.imm() + 1));
+          bne(AT, ZR, l);
+        } else if (right == IMM) {
+          slti(AT, left, Immediate(cond.imm()));
+          beq(AT, ZR, l);
+        } else {
+          slt(AT, left, right);
+          beq(AT, ZR, l);
+        }
+        break;
+      }
+      case LT: {
+        if (left == ZR) {
+          bgtz(right, l);
+        } else if (right == ZR) {
+          bltz(left, l);
+        } else if (left == IMM) {
+          slti(AT, right, Immediate(cond.imm() + 1));
+          beq(AT, ZR, l);
+        } else if (right == IMM) {
+          slti(AT, left, Immediate(cond.imm()));
+          bne(AT, ZR, l);
+        } else {
+          slt(AT, left, right);
+          bne(AT, ZR, l);
+        }
+        break;
+      }
+      case LE: {
+        if (left == ZR) {
+          bgez(right, l);
+        } else if (right == ZR) {
+          blez(left, l);
+        } else if (left == IMM) {
+          slti(AT, right, Immediate(cond.imm()));
+          beq(AT, ZR, l);
+        } else if (right == IMM) {
+          slti(AT, left, Immediate(cond.imm() + 1));
+          bne(AT, ZR, l);
+        } else {
+          slt(AT, right, left);
+          beq(AT, ZR, l);
+        }
+        break;
+      }
+      case UGT: {
+        ASSERT((left != IMM) && (right != IMM));  // No unsigned constants used.
+        if (left == ZR) {
+          // NV: Never branch. Fall through.
+        } else if (right == ZR) {
+          bne(left, ZR, l);
+        } else {
+          sltu(AT, right, left);
+          bne(AT, ZR, l);
+        }
+        break;
+      }
+      case UGE: {
+        ASSERT((left != IMM) && (right != IMM));  // No unsigned constants used.
+        if (left == ZR) {
+          beq(right, ZR, l);
+        } else if (right == ZR) {
+          // AL: Always branch to l.
+          beq(ZR, ZR, l);
+        } else {
+          sltu(AT, left, right);
+          beq(AT, ZR, l);
+        }
+        break;
+      }
+      case ULT: {
+        ASSERT((left != IMM) && (right != IMM));  // No unsigned constants used.
+        if (left == ZR) {
+          bne(right, ZR, l);
+        } else if (right == ZR) {
+          // NV: Never branch. Fall through.
+        } else {
+          sltu(AT, left, right);
+          bne(AT, ZR, l);
+        }
+        break;
+      }
+      case ULE: {
+        ASSERT((left != IMM) && (right != IMM));  // No unsigned constants used.
+        if (left == ZR) {
+          // AL: Always branch to l.
+          beq(ZR, ZR, l);
+        } else if (right == ZR) {
+          beq(left, ZR, l);
+        } else {
+          sltu(AT, right, left);
+          beq(AT, ZR, l);
+        }
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+
   void BranchEqual(Register rd, Register rn, Label* l) {
     beq(rd, rn, l);
   }
@@ -989,9 +1277,14 @@ class Assembler : public ValueObject {
     if (imm.value() == 0) {
       bgtz(rd, l);
     } else {
-      ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, imm.value());
-      BranchSignedGreater(rd, CMPRES2, l);
+      if (Utils::IsInt(kImmBits, imm.value() + 1)) {
+        slti(CMPRES2, rd, Immediate(imm.value() + 1));
+        beq(CMPRES2, ZR, l);
+      } else {
+        ASSERT(rd != CMPRES2);
+        LoadImmediate(CMPRES2, imm.value());
+        BranchSignedGreater(rd, CMPRES2, l);
+      }
     }
   }
 
@@ -1006,9 +1299,14 @@ class Assembler : public ValueObject {
     if (imm.value() == 0) {
       BranchNotEqual(rd, Immediate(0), l);
     } else {
-      ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, imm.value());
-      BranchUnsignedGreater(rd, CMPRES2, l);
+      if ((imm.value() != -1) && Utils::IsInt(kImmBits, imm.value() + 1)) {
+        sltiu(CMPRES2, rd, Immediate(imm.value() + 1));
+        beq(CMPRES2, ZR, l);
+      } else {
+        ASSERT(rd != CMPRES2);
+        LoadImmediate(CMPRES2, imm.value());
+        BranchUnsignedGreater(rd, CMPRES2, l);
+      }
     }
   }
 
@@ -1045,7 +1343,7 @@ class Assembler : public ValueObject {
     if (imm.value() == 0) {
       b(l);
     } else {
-      if (Utils::IsUint(kImmBits, imm.value())) {
+      if (Utils::IsInt(kImmBits, imm.value())) {
         sltiu(CMPRES2, rd, imm);
         beq(CMPRES2, ZR, l);
       } else {
@@ -1084,14 +1382,17 @@ class Assembler : public ValueObject {
 
   void BranchUnsignedLess(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    ASSERT(imm.value() != 0);
-    if (Utils::IsInt(kImmBits, imm.value())) {
-      sltiu(CMPRES2, rd, imm);
-      bne(CMPRES2, ZR, l);
+    if (imm.value() == 0) {
+      // Never branch. Fall through.
     } else {
-      ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, imm.value());
-      BranchUnsignedGreater(CMPRES2, rd, l);
+      if (Utils::IsInt(kImmBits, imm.value())) {
+        sltiu(CMPRES2, rd, imm);
+        bne(CMPRES2, ZR, l);
+      } else {
+        ASSERT(rd != CMPRES2);
+        LoadImmediate(CMPRES2, imm.value());
+        BranchUnsignedGreater(CMPRES2, rd, l);
+      }
     }
   }
 
@@ -1105,9 +1406,14 @@ class Assembler : public ValueObject {
     if (imm.value() == 0) {
       blez(rd, l);
     } else {
-      ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, imm.value());
-      BranchSignedGreaterEqual(CMPRES2, rd, l);
+      if (Utils::IsInt(kImmBits, imm.value() + 1)) {
+        slti(CMPRES2, rd, Immediate(imm.value() + 1));
+        bne(CMPRES2, ZR, l);
+      } else {
+        ASSERT(rd != CMPRES2);
+        LoadImmediate(CMPRES2, imm.value());
+        BranchSignedGreaterEqual(CMPRES2, rd, l);
+      }
     }
   }
 
@@ -1118,9 +1424,18 @@ class Assembler : public ValueObject {
 
   void BranchUnsignedLessEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    ASSERT(rd != CMPRES2);
-    LoadImmediate(CMPRES2, imm.value());
-    BranchUnsignedGreaterEqual(CMPRES2, rd, l);
+    if (imm.value() == 0) {
+      beq(rd, ZR, l);
+    } else {
+      if ((imm.value() != -1) && Utils::IsInt(kImmBits, imm.value() + 1)) {
+        sltiu(CMPRES2, rd, Immediate(imm.value() + 1));
+        bne(CMPRES2, ZR, l);
+      } else {
+        ASSERT(rd != CMPRES2);
+        LoadImmediate(CMPRES2, imm.value());
+        BranchUnsignedGreaterEqual(CMPRES2, rd, l);
+      }
+    }
   }
 
   void Push(Register rt) {
@@ -1217,12 +1532,6 @@ class Assembler : public ValueObject {
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
-
-  // Compares rn with the object. Returns results in rd1 and rd2.
-  // rd1 is 1 if rn < object. rd2 is 1 if object < rn. Since both cannot be
-  // 1, rd1 == rd2 (== 0) iff rn == object.
-  void CompareObject(Register rd1, Register rd2,
-                     Register rn, const Object& object);
 
   void LoadIsolate(Register result);
 

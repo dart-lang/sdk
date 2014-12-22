@@ -190,7 +190,8 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
       ASSERT(STRING_STARTS_WITH(format, "code"));
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                 remaining_size_in_buffer(),
-                                "%d", instr->BreakCodeField());
+                                "0x%x",
+                                 instr->BreakCodeField());
       return 4;
     }
     case 'h': {

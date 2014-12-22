@@ -15,7 +15,7 @@
 namespace dart {
 
 #if defined(USING_SIMULATOR)
-DECLARE_FLAG(bool, trace_sim);
+DECLARE_FLAG(int, trace_sim_after);
 #endif
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
@@ -500,18 +500,6 @@ void Assembler::PushObject(const Object& object) {
   ASSERT(!in_delay_slot_);
   LoadObject(TMP, object);
   Push(TMP);
-}
-
-
-void Assembler::CompareObject(Register rd1, Register rd2,
-                              Register rn, const Object& object) {
-  ASSERT(!in_delay_slot_);
-  ASSERT(rn != TMP);
-  ASSERT(rd1 != TMP);
-  ASSERT(rd1 != rd2);
-  LoadObject(TMP, object);
-  slt(rd1, rn, TMP);
-  slt(rd2, TMP, rn);
 }
 
 
@@ -1265,7 +1253,7 @@ void Assembler::TraceSimMsg(const char* message) {
   // Don't bother adding in the messages unless tracing is enabled, and we are
   // running in the simulator.
 #if defined(USING_SIMULATOR)
-  if (FLAG_trace_sim) {
+  if (FLAG_trace_sim_after != -1) {
     Label msg;
     b(&msg);
     Emit(reinterpret_cast<int32_t>(message));

@@ -685,12 +685,12 @@ static void Get64SmiOrMint(Assembler* assembler,
 }
 
 
-static void CompareIntegers(Assembler* assembler, Condition true_condition) {
+static void CompareIntegers(Assembler* assembler, RelationOperator rel_op) {
   Label try_mint_smi, is_true, is_false, drop_two_fall_through, fall_through;
   TestBothArgumentsSmis(assembler, &try_mint_smi);
   // T0 contains the right argument. T1 contains left argument
 
-  switch (true_condition) {
+  switch (rel_op) {
     case LT: __ BranchSignedLess(T1, T0, &is_true); break;
     case LE: __ BranchSignedLessEqual(T1, T0, &is_true); break;
     case GT: __ BranchSignedGreater(T1, T0, &is_true); break;
@@ -718,15 +718,14 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   // T4: right low.
 
   // 64-bit comparison
-  // Condition hi_true_cond, hi_false_cond, lo_false_cond;
-  switch (true_condition) {
+  switch (rel_op) {
     case LT:
     case LE: {
       // Compare left hi, right high.
       __ BranchSignedGreater(T3, T5, &is_false);
       __ BranchSignedLess(T3, T5, &is_true);
       // Compare left lo, right lo.
-      if (true_condition == LT) {
+      if (rel_op == LT) {
         __ BranchUnsignedGreaterEqual(T2, T4, &is_false);
       } else {
         __ BranchUnsignedGreater(T2, T4, &is_false);
@@ -739,7 +738,7 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
       __ BranchSignedLess(T3, T5, &is_false);
       __ BranchSignedGreater(T3, T5, &is_true);
       // Compare left lo, right lo.
-      if (true_condition == GT) {
+      if (rel_op == GT) {
         __ BranchUnsignedLessEqual(T2, T4, &is_false);
       } else {
         __ BranchUnsignedLess(T2, T4, &is_false);
@@ -763,7 +762,7 @@ void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
-  Integer_greaterThanFromInt(assembler);
+  CompareIntegers(assembler, LT);
 }
 
 
@@ -1344,7 +1343,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
 // type. Return true or false object in the register V0. Any NaN argument
 // returns false. Any non-double arg1 causes control flow to fall through to the
 // slow case (compiled method body).
-static void CompareDoubles(Assembler* assembler, Condition true_condition) {
+static void CompareDoubles(Assembler* assembler, RelationOperator rel_op) {
   Label is_smi, double_op, no_NaN, fall_through;
   __ Comment("CompareDoubles Intrinsic");
 
@@ -1362,7 +1361,7 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ Ret();
   __ Bind(&no_NaN);
 
-  switch (true_condition) {
+  switch (rel_op) {
     case EQ: __ ceqd(D0, D1); break;
     case LT: __ coltd(D0, D1); break;
     case LE: __ coled(D0, D1); break;

@@ -2195,8 +2195,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ Bind(&reference_compare);
   __ subu(CMPRES1, left, right);
   __ Bind(&done);
-  // A branch or test after this comparison will check CMPRES1 == CMPRES2.
-  __ mov(CMPRES2, ZR);
+  // A branch or test after this comparison will check CMPRES1 == ZR.
 }
 
 

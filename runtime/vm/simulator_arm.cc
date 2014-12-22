@@ -24,8 +24,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_sim, false, "Trace simulator execution.");
-DEFINE_FLAG(int, stop_sim_at, 0,
+DEFINE_FLAG(int, trace_sim_after, -1,
+            "Trace simulator execution after instruction count reached.");
+DEFINE_FLAG(int, stop_sim_at, -1,
             "Instruction address or instruction count to stop simulator at.");
 
 
@@ -593,8 +594,13 @@ void SimulatorDebugger::Debug() {
           OS::Print("Not at debugger stop.\n");
         }
       } else if (strcmp(cmd, "trace") == 0) {
-        FLAG_trace_sim = !FLAG_trace_sim;
-        OS::Print("execution tracing %s\n", FLAG_trace_sim ? "on" : "off");
+        if (FLAG_trace_sim_after == -1) {
+          FLAG_trace_sim_after = sim_->get_icount();
+          OS::Print("execution tracing on\n");
+        } else {
+          FLAG_trace_sim_after = -1;
+          OS::Print("execution tracing off\n");
+        }
       } else if (strcmp(cmd, "bt") == 0) {
         PrintBacktrace();
       } else {
@@ -1169,6 +1175,14 @@ uword Simulator::StackTop() const {
 }
 
 
+bool Simulator::IsTracingExecution() const {
+  // Integer flag values are signed, so we must cast to unsigned.
+  // The default of -1 hence becomes the maximum unsigned value.
+  return (static_cast<uintptr_t>(icount_) >
+          static_cast<uintptr_t>(FLAG_trace_sim_after));
+}
+
+
 // Unsupported instructions use Format to print an error and stop execution.
 void Simulator::Format(Instr* instr, const char* format) {
   OS::Print("Simulator found unsupported instruction:\n 0x%p: %s\n",
@@ -1496,7 +1510,7 @@ void Simulator::SupervisorCall(Instr* instr) {
         int32_t saved_lr = get_register(LR);
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
         uword external = redirection->external_function();
-        if (FLAG_trace_sim) {
+        if (IsTracingExecution()) {
           OS::Print("Call to host function at 0x%" Pd "\n", external);
         }
 
@@ -3566,7 +3580,8 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
 // Executes the current instruction.
 void Simulator::InstructionDecode(Instr* instr) {
   pc_modified_ = false;
-  if (FLAG_trace_sim) {
+  if (IsTracingExecution()) {
+    OS::Print("%u ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);

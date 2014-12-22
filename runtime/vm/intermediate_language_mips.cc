@@ -115,24 +115,23 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQ: return NE;
-    case NE: return EQ;
-    case LT: return GE;
-    case LE: return GT;
-    case GT: return LE;
-    case GE: return LT;
+  switch (condition.rel_op()) {
+    case AL: condition.set_rel_op(NV); break;
+    case NV: condition.set_rel_op(AL); break;
+    case EQ: condition.set_rel_op(NE); break;
+    case NE: condition.set_rel_op(EQ); break;
+    case LT: condition.set_rel_op(GE); break;
+    case LE: condition.set_rel_op(GT); break;
+    case GT: condition.set_rel_op(LE); break;
+    case GE: condition.set_rel_op(LT); break;
+    case ULT: condition.set_rel_op(UGE); break;
+    case ULE: condition.set_rel_op(UGT); break;
+    case UGT: condition.set_rel_op(ULE); break;
+    case UGE: condition.set_rel_op(ULT); break;
     default:
       UNREACHABLE();
-      return EQ;
   }
-}
-
-
-// Detect pattern when one value is zero and another is a power of 2.
-static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
-  return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
-         (Utils::IsPowerOfTwo(v2) && (v1 == 0));
+  return condition;
 }
 
 
@@ -146,75 +145,108 @@ LocationSummary* IfThenElseInstr::MakeLocationSummary(Isolate* isolate,
 void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
 
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
-
-  // Clear out register.
-  __ mov(result, ZR);
-
-  // Emit comparison code. This must not overwrite the result register.
-  BranchLabels labels = { NULL, NULL, NULL };
-  Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
-
-  const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
-
   intptr_t true_value = if_true_;
   intptr_t false_value = if_false_;
-
-  if (is_power_of_two_kind) {
-    if (true_value == 0) {
-      // We need to have zero in result on true_condition.
-      true_condition = NegateCondition(true_condition);
-    }
-  } else {
-    if (true_value == 0) {
-      // Swap values so that false_value is zero.
-      intptr_t temp = true_value;
-      true_value = false_value;
-      false_value = temp;
-    } else {
-      true_condition = NegateCondition(true_condition);
-    }
+  bool swapped = false;
+  if (true_value == 0) {
+    // Swap values so that false_value is zero.
+    intptr_t temp = true_value;
+    true_value = false_value;
+    false_value = temp;
+    swapped = true;
   }
 
-  switch (true_condition) {
+  // Initialize result with the true value.
+  __ LoadImmediate(result, Smi::RawValue(true_value));
+
+  // Emit comparison code. This must not overwrite the result register.
+  BranchLabels labels = { NULL, NULL, NULL };  // Emit branch-free code.
+  Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
+  if (swapped) {
+    true_condition = NegateCondition(true_condition);
+  }
+
+  // Evaluate condition and provide result in CMPRES1.
+  Register left = true_condition.left();
+  Register right = true_condition.right();
+  bool zero_is_false = true;  // Zero in CMPRES1 indicates a false condition.
+  switch (true_condition.rel_op()) {
+    case AL: return;  // Result holds true_value.
+    case NV: __ LoadImmediate(result, false_value); return;
     case EQ:
-      __ xor_(result, CMPRES1, CMPRES2);
-      __ xori(result, result, Immediate(1));
+      zero_is_false = false;
+      // fall through.
+    case NE: {
+      if (left == IMM) {
+        __ XorImmediate(CMPRES1, right, true_condition.imm());
+      } else if (right == IMM) {
+        __ XorImmediate(CMPRES1, left, true_condition.imm());
+      } else {
+        __ xor_(CMPRES1, left, right);
+      }
       break;
-    case NE:
-      __ xor_(result, CMPRES1, CMPRES2);
-      break;
-    case GT:
-      __ mov(result, CMPRES2);
-      break;
+    }
     case GE:
-      __ xori(result, CMPRES1, Immediate(1));
+      zero_is_false = false;
+      // fall through.
+    case LT: {
+      if (left == IMM) {
+        __ slti(CMPRES1, right, Immediate(true_condition.imm() + 1));
+        zero_is_false = !zero_is_false;
+      } else if (right == IMM) {
+        __ slti(CMPRES1, left, Immediate(true_condition.imm()));
+      } else {
+        __ slt(CMPRES1, left, right);
+      }
       break;
-    case LT:
-      __ mov(result, CMPRES1);
-      break;
+    }
     case LE:
-      __ xori(result, CMPRES2, Immediate(1));
+      zero_is_false = false;
+      // fall through.
+    case GT: {
+      if (left == IMM) {
+        __ slti(CMPRES1, right, Immediate(true_condition.imm()));
+      } else if (right == IMM) {
+        __ slti(CMPRES1, left, Immediate(true_condition.imm() + 1));
+        zero_is_false = !zero_is_false;
+      } else {
+        __ slt(CMPRES1, right, left);
+      }
       break;
+    }
+    case UGE:
+      zero_is_false = false;
+      // fall through.
+    case ULT: {
+      ASSERT((left != IMM) && (right != IMM));  // No unsigned constants used.
+      __ sltu(CMPRES1, left, right);
+      break;
+    }
+    case ULE:
+      zero_is_false = false;
+      // fall through.
+    case UGT: {
+      ASSERT((left != IMM) && (right != IMM));  // No unsigned constants used.
+      __ sltu(CMPRES1, right, left);
+      break;
+    }
     default:
       UNREACHABLE();
-      break;
   }
 
-  if (is_power_of_two_kind) {
-    const intptr_t shift =
-        Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
-    __ sll(result, result, shift + kSmiTagSize);
+  // CMPRES1 is the evaluated condition, zero or non-zero, as specified by the
+  // flag zero_is_false.
+  Register false_value_reg;
+  if (false_value == 0) {
+    false_value_reg = ZR;
   } else {
-    __ AddImmediate(result, result, -1);
-    const int32_t val =
-        Smi::RawValue(true_value) - Smi::RawValue(false_value);
-    __ AndImmediate(result, result, val);
-    if (false_value != 0) {
-      __ AddImmediate(result, result, Smi::RawValue(false_value));
-    }
+    __ LoadImmediate(CMPRES2, Smi::RawValue(false_value));
+    false_value_reg = CMPRES2;
+  }
+  if (zero_is_false) {
+    __ movz(result, false_value_reg, CMPRES1);
+  } else {
+    __ movn(result, false_value_reg, CMPRES1);
   }
 }
 
@@ -492,7 +524,7 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
 }
 
 
-static Condition TokenKindToSmiCondition(Token::Kind kind) {
+static RelationOperator TokenKindToIntRelOp(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQ;
     case Token::kNE: return NE;
@@ -502,55 +534,38 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
     case Token::kGTE: return GE;
     default:
       UNREACHABLE();
-      return VS;
+      return NV;
   }
 }
 
 
-// Branches on condition c assuming comparison results in CMPRES1 and CMPRES2.
-static void EmitBranchAfterCompare(
-    FlowGraphCompiler* compiler, Condition condition, Label* is_true) {
-  switch (condition) {
-    case EQ: __ beq(CMPRES1, CMPRES2, is_true); break;
-    case NE: __ bne(CMPRES1, CMPRES2, is_true); break;
-    case GT: __ bne(CMPRES2, ZR, is_true); break;
-    case GE: __ beq(CMPRES1, ZR, is_true); break;
-    case LT: __ bne(CMPRES1, ZR, is_true); break;
-    case LE: __ beq(CMPRES2, ZR, is_true); break;
+static RelationOperator TokenKindToUintRelOp(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQ;
+    case Token::kNE: return NE;
+    case Token::kLT: return ULT;
+    case Token::kGT: return UGT;
+    case Token::kLTE: return ULE;
+    case Token::kGTE: return UGE;
     default:
       UNREACHABLE();
-      break;
+      return NV;
   }
 }
 
 
-static Condition FlipCondition(Condition condition) {
-  switch (condition) {
-    case EQ: return EQ;
-    case NE: return NE;
-    case LT: return GT;
-    case LE: return GE;
-    case GT: return LT;
-    case GE: return LE;
-    default:
-      UNREACHABLE();
-      return EQ;
-  }
-}
-
-
-// The comparison result is in CMPRES1/CMPRES2.
+// The comparison code to emit is specified by true_condition.
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
   __ TraceSimMsg("ControlInstruction::EmitBranchOnCondition");
   if (labels.fall_through == labels.false_label) {
     // If the next block is the false successor, fall through to it.
-    EmitBranchAfterCompare(compiler, true_condition, labels.true_label);
+    __ BranchOnCondition(true_condition, labels.true_label);
   } else {
     // If the next block is not the false successor, branch to it.
     Condition false_condition = NegateCondition(true_condition);
-    EmitBranchAfterCompare(compiler, false_condition, labels.false_label);
+    __ BranchOnCondition(false_condition, labels.false_label);
     // Fall through or jump to the true successor.
     if (labels.fall_through != labels.true_label) {
       __ b(labels.true_label);
@@ -564,43 +579,25 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                      Token::Kind kind) {
   __ TraceSimMsg("EmitSmiComparisonOp");
   __ Comment("EmitSmiComparisonOp");
-  Location left = locs.in(0);
-  Location right = locs.in(1);
+  const Location left = locs.in(0);
+  const Location right = locs.in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
+  ASSERT(left.IsRegister() || left.IsConstant());
+  ASSERT(right.IsRegister() || right.IsConstant());
 
-  Condition true_condition = TokenKindToSmiCondition(kind);
-
-  if (left.IsConstant()) {
-    __ CompareObject(CMPRES1, CMPRES2, right.reg(), left.constant());
-    true_condition = FlipCondition(true_condition);
-  } else if (right.IsConstant()) {
-    __ CompareObject(CMPRES1, CMPRES2, left.reg(), right.constant());
-  } else {
-    __ slt(CMPRES1, left.reg(), right.reg());
-    __ slt(CMPRES2, right.reg(), left.reg());
-  }
-  return true_condition;
-}
-
-
-static Condition TokenKindToMintCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ: return EQ;
-    case Token::kNE: return NE;
-    case Token::kLT: return LT;
-    case Token::kGT: return GT;
-    case Token::kLTE: return LE;
-    case Token::kGTE: return GE;
-    default:
-      UNREACHABLE();
-      return VS;
-  }
+  int16_t imm = 0;
+  const Register left_reg = left.IsRegister() ?
+      left.reg() : __ LoadConditionOperand(CMPRES1, left.constant(), &imm);
+  const Register right_reg = right.IsRegister() ?
+      right.reg() : __ LoadConditionOperand(CMPRES2, right.constant(), &imm);
+  return Condition(left_reg, right_reg, TokenKindToIntRelOp(kind), imm);
 }
 
 
 static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
                                            const LocationSummary& locs,
-                                           Token::Kind kind) {
+                                           Token::Kind kind,
+                                           BranchLabels labels) {
   __ TraceSimMsg("EmitUnboxedMintEqualityOp");
   __ Comment("EmitUnboxedMintEqualityOp");
   ASSERT(Token::IsEqualityOperator(kind));
@@ -611,17 +608,28 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
   Register right_lo = right_pair->At(0).reg();
   Register right_hi = right_pair->At(1).reg();
 
-  __ xor_(CMPRES1, left_lo, right_lo);
-  __ xor_(CMPRES2, left_hi, right_hi);
-  __ or_(CMPRES1, CMPRES1, CMPRES2);
-  __ mov(CMPRES2, ZR);
-  return TokenKindToMintCondition(kind);
+  if (labels.false_label == NULL) {
+    // Generate branch-free code.
+    __ xor_(CMPRES1, left_lo, right_lo);
+    __ xor_(AT, left_hi, right_hi);
+    __ or_(CMPRES1, CMPRES1, AT);
+    return Condition(CMPRES1, ZR, TokenKindToUintRelOp(kind));
+  } else {
+    if (kind == Token::kEQ) {
+      __ bne(left_hi, right_hi, labels.false_label);
+    } else {
+      ASSERT(kind == Token::kNE);
+      __ bne(left_hi, right_hi, labels.true_label);
+    }
+    return Condition(left_lo, right_lo, TokenKindToUintRelOp(kind));
+  }
 }
 
 
 static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              const LocationSummary& locs,
-                                             Token::Kind kind) {
+                                             Token::Kind kind,
+                                             BranchLabels labels) {
   __ TraceSimMsg("EmitUnboxedMintComparisonOp");
   __ Comment("EmitUnboxedMintComparisonOp");
   PairLocation* left_pair = locs.in(0).AsPairLocation();
@@ -631,32 +639,42 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
   Register right_lo = right_pair->At(0).reg();
   Register right_hi = right_pair->At(1).reg();
 
-  Label done;
-  // Compare upper halves first.
-  __ slt(CMPRES1, left_hi, right_hi);
-  __ slt(CMPRES2, right_hi, left_hi);
-  // If higher words aren't equal, skip comparing lower words.
-  __ bne(CMPRES1, CMPRES2, &done);
+  if (labels.false_label == NULL) {
+    // Generate branch-free code (except for skipping the lower words compare).
+    // Result in CMPRES1, CMPRES2, so that CMPRES1 op CMPRES2 === left op right.
+    Label done;
+    // Compare upper halves first.
+    __ slt(CMPRES1, right_hi, left_hi);
+    __ slt(CMPRES2, left_hi, right_hi);
+    // If higher words aren't equal, skip comparing lower words.
+    __ bne(CMPRES1, CMPRES2, &done);
 
-  __ sltu(CMPRES1, left_lo, right_lo);
-  __ sltu(CMPRES2, right_lo, left_lo);
-  __ Bind(&done);
-
-  return TokenKindToMintCondition(kind);
-}
-
-
-static Condition TokenKindToDoubleCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ: return EQ;
-    case Token::kNE: return NE;
-    case Token::kLT: return LT;
-    case Token::kGT: return GT;
-    case Token::kLTE: return LE;
-    case Token::kGTE: return GE;
-    default:
-      UNREACHABLE();
-      return VS;
+    __ sltu(CMPRES1, right_lo, left_lo);
+    __ sltu(CMPRES2, left_lo, right_lo);
+    __ Bind(&done);
+    return Condition(CMPRES1, CMPRES2, TokenKindToUintRelOp(kind));
+  } else {
+    switch (kind) {
+      case Token::kLT:
+      case Token::kLTE: {
+        __ slt(AT, left_hi, right_hi);
+        __ bne(AT, ZR, labels.true_label);
+        __ delay_slot()->slt(AT, right_hi, left_hi);
+        __ bne(AT, ZR, labels.false_label);
+        break;
+      }
+      case Token::kGT:
+      case Token::kGTE: {
+        __ slt(AT, left_hi, right_hi);
+        __ bne(AT, ZR, labels.false_label);
+        __ delay_slot()->slt(AT, right_hi, left_hi);
+        __ bne(AT, ZR, labels.true_label);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+    return Condition(left_lo, right_lo, TokenKindToUintRelOp(kind));
   }
 }
 
@@ -670,19 +688,18 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
   __ Comment("DoubleComparisonOp(left=%d, right=%d)", left, right);
 
-  Condition true_condition = TokenKindToDoubleCondition(kind);
   __ cund(left, right);
-  Label* nan_label = (true_condition == NE)
+  Label* nan_label = (kind == Token::kNE)
       ? labels.true_label : labels.false_label;
   __ bc1t(nan_label);
 
-  switch (true_condition) {
-    case EQ: __ ceqd(left, right); break;
-    case NE: __ ceqd(left, right); break;
-    case LT: __ coltd(left, right); break;
-    case LE: __ coled(left, right); break;
-    case GT: __ coltd(right, left); break;
-    case GE: __ coled(right, left); break;
+  switch (kind) {
+    case Token::kEQ: __ ceqd(left, right); break;
+    case Token::kNE: __ ceqd(left, right); break;
+    case Token::kLT: __ coltd(left, right); break;
+    case Token::kLTE: __ coled(left, right); break;
+    case Token::kGT: __ coltd(right, left); break;
+    case Token::kGTE: __ coled(right, left); break;
     default: {
       // We should only be passing the above conditions to this function.
       UNREACHABLE();
@@ -690,17 +707,34 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
     }
   }
 
-  // Ordering is expected to be described by CMPRES1, CMPRES2.
-  __ LoadImmediate(TMP, 1);
-  if (true_condition == NE) {
-    __ movf(CMPRES1, ZR);
-    __ movt(CMPRES1, TMP);
+  if (labels.false_label == NULL) {
+    // Generate branch-free code and return result in condition.
+    __ LoadImmediate(CMPRES1, 1);
+    if (kind == Token::kNE) {
+      __ movf(CMPRES1, ZR);
+    } else {
+      __ movt(CMPRES1, ZR);
+    }
+    return Condition(CMPRES1, ZR, EQ);
   } else {
-    __ movf(CMPRES1, TMP);
-    __ movt(CMPRES1, ZR);
+    if (labels.fall_through == labels.false_label) {
+      if (kind == Token::kNE) {
+        __ bc1f(labels.true_label);
+      } else {
+        __ bc1t(labels.true_label);
+      }
+      // Since we already branched on true, return the never true condition.
+      return Condition(CMPRES1, CMPRES2, NV);
+    } else {
+      if (kind == Token::kNE) {
+        __ bc1t(labels.false_label);
+      } else {
+        __ bc1f(labels.false_label);
+      }
+      // Since we already branched on false, return the always true condition.
+      return Condition(CMPRES1, CMPRES2, AL);
+    }
   }
-  __ mov(CMPRES2, ZR);
-  return EQ;
 }
 
 
@@ -709,7 +743,7 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, *locs(), kind());
   } else if (operation_cid() == kMintCid) {
-    return EmitUnboxedMintEqualityOp(compiler, *locs(), kind());
+    return EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
@@ -775,9 +809,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   } else {
     __ and_(CMPRES1, left, right.reg());
   }
-  __ mov(CMPRES2, ZR);
-  Condition true_condition = (kind() == Token::kNE) ? NE : EQ;
-  return true_condition;
+  return Condition(CMPRES1, ZR, (kind() == Token::kNE) ? NE : EQ);
 }
 
 
@@ -841,9 +873,8 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   } else {
     __ b(deopt);
   }
-  // Dummy result as the last instruction is a jump, any conditional
-  // branch using the result will therefore be skipped.
-  return EQ;
+  // Dummy result as the last instruction is a jump or fall through.
+  return Condition(CMPRES1, ZR, AL);
 }
 
 
@@ -910,7 +941,7 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, *locs(), kind());
   } else if (operation_cid() == kMintCid) {
-    return EmitUnboxedMintComparisonOp(compiler, *locs(), kind());
+    return EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
@@ -1045,12 +1076,11 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(cid_ == kOneByteStringCid);
   Register str = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  Label done, is_one;
+  ASSERT(str != result);
+  Label done;
   __ lw(result, FieldAddress(str, String::length_offset()));
-  __ BranchEqual(result, Immediate(Smi::RawValue(1)), &is_one);
-  __ LoadImmediate(result, Smi::RawValue(-1));
-  __ b(&done);
-  __ Bind(&is_one);
+  __ BranchNotEqual(result, Immediate(Smi::RawValue(1)), &done);
+  __ delay_slot()->addiu(result, ZR, Immediate(Smi::RawValue(-1)));
   __ lbu(result, FieldAddress(str, OneByteString::data_offset()));
   __ SmiTag(result);
   __ Bind(&done);
@@ -2975,32 +3005,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kBIT_AND: {
         // No overflow check.
-        if (Utils::IsUint(kImmBits, imm)) {
-          __ andi(result, left, Immediate(imm));
-        } else {
-          __ LoadImmediate(TMP, imm);
-          __ and_(result, left, TMP);
-        }
+        __ AndImmediate(result, left, imm);
         break;
       }
       case Token::kBIT_OR: {
         // No overflow check.
-        if (Utils::IsUint(kImmBits, imm)) {
-          __ ori(result, left, Immediate(imm));
-        } else {
-          __ LoadImmediate(TMP, imm);
-          __ or_(result, left, TMP);
-        }
+        __ OrImmediate(result, left, imm);
         break;
       }
       case Token::kBIT_XOR: {
         // No overflow check.
-        if (Utils::IsUint(kImmBits, imm)) {
-          __ xori(result, left, Immediate(imm));
-        } else {
-          __ LoadImmediate(TMP, imm);
-          __ xor_(result, left, TMP);
-        }
+        __ XorImmediate(result, left, imm);
         break;
       }
       case Token::kSHR: {

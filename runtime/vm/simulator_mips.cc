@@ -23,8 +23,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_sim, false, "Trace simulator execution.");
-DEFINE_FLAG(int, stop_sim_at, 0,
+DEFINE_FLAG(int, trace_sim_after, -1,
+            "Trace simulator execution after instruction count reached.");
+DEFINE_FLAG(int, stop_sim_at, -1,
             "Instruction address or instruction count to stop simulator at.");
 
 
@@ -592,8 +593,13 @@ void SimulatorDebugger::Debug() {
           OS::Print("Not at debugger stop.\n");
         }
       } else if (strcmp(cmd, "trace") == 0) {
-        FLAG_trace_sim = !FLAG_trace_sim;
-        OS::Print("execution tracing %s\n", FLAG_trace_sim ? "on" : "off");
+        if (FLAG_trace_sim_after == -1) {
+          FLAG_trace_sim_after = sim_->get_icount();
+          OS::Print("execution tracing on\n");
+        } else {
+          FLAG_trace_sim_after = -1;
+          OS::Print("execution tracing off\n");
+        }
       } else if (strcmp(cmd, "bt") == 0) {
         PrintBacktrace();
       } else {
@@ -988,6 +994,14 @@ uword Simulator::StackTop() const {
 }
 
 
+bool Simulator::IsTracingExecution() const {
+  // Integer flag values are signed, so we must cast to unsigned.
+  // The default of -1 hence becomes the maximum unsigned value.
+  return (static_cast<uintptr_t>(icount_) >
+          static_cast<uintptr_t>(FLAG_trace_sim_after));
+}
+
+
 void Simulator::Format(Instr* instr, const char* format) {
   OS::PrintErr("Simulator - unknown instruction: %s\n", format);
   UNIMPLEMENTED();
@@ -1202,11 +1216,8 @@ void Simulator::DoBreak(Instr *instr) {
   } else if (instr->BreakCodeField() == Instr::kSimulatorMessageCode) {
     const char* message = *reinterpret_cast<const char**>(
         reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-    if (FLAG_trace_sim) {
+    if (IsTracingExecution()) {
       OS::Print("Message: %s\n", message);
-    } else {
-      OS::PrintErr("Bad break code: 0x%x\n", instr->InstructionBits());
-      UnimplementedInstruction(instr);
     }
   } else if (instr->BreakCodeField() == Instr::kSimulatorRedirectCode) {
     SimulatorSetjmpBuffer buffer(this);
@@ -1215,7 +1226,7 @@ void Simulator::DoBreak(Instr *instr) {
       int32_t saved_ra = get_register(RA);
       Redirection* redirection = Redirection::FromBreakInstruction(instr);
       uword external = redirection->external_function();
-      if (FLAG_trace_sim) {
+      if (IsTracingExecution()) {
         OS::Print("Call to host function at 0x%" Pd "\n", external);
       }
 
@@ -1966,7 +1977,8 @@ void Simulator::DecodeCop1(Instr* instr) {
 
 
 void Simulator::InstructionDecode(Instr* instr) {
-  if (FLAG_trace_sim) {
+  if (IsTracingExecution()) {
+    OS::Print("%u ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);
@@ -2265,7 +2277,7 @@ void Simulator::ExecuteDelaySlot() {
   delay_slot_ = true;
   icount_++;
   Instr* instr = Instr::At(pc_ + Instr::kInstrSize);
-  if (FLAG_stop_sim_at != 0) {
+  if (FLAG_stop_sim_at != -1) {
     if (static_cast<int>(icount_) == FLAG_stop_sim_at) {
       SimulatorDebugger dbg(this);
       dbg.Stop(instr, "Instruction count reached");
@@ -2280,7 +2292,7 @@ void Simulator::ExecuteDelaySlot() {
 
 
 void Simulator::Execute() {
-  if (FLAG_stop_sim_at == 0) {
+  if (FLAG_stop_sim_at == -1) {
     // Fast version of the dispatch loop without checking whether the simulator
     // should be stopping at a particular executed instruction.
     while (pc_ != kEndSimulatingPC) {
