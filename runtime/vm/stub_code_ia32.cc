@@ -1177,6 +1177,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = ECX;
   Register func_reg = temp_reg;
   ASSERT(ic_reg != func_reg);
+  __ Comment("Increment function counter");
   __ movl(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
 }

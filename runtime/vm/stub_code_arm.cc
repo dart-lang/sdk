@@ -1234,6 +1234,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register ic_reg = R5;
   Register func_reg = temp_reg;
   ASSERT(temp_reg == R6);
+  __ Comment("Increment function counter");
   __ ldr(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
   __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
   __ add(R7, R7, Operand(1));

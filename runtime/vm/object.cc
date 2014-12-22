@@ -12640,6 +12640,10 @@ void Code::GetInlinedFunctionsAt(
     intptr_t offset, GrowableArray<Function*>* fs) const {
   fs->Clear();
   const Array& intervals = Array::Handle(inlined_intervals());
+  if (intervals.IsNull()) {
+    // E.g., for code stubs.
+    return;
+  }
   Smi& start = Smi::Handle();
   Smi& end = Smi::Handle();
   Function& function = Function::Handle();
