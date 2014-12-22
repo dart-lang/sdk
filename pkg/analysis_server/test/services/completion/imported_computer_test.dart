@@ -14,6 +14,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
+import 'package:analyzer/src/generated/element.dart';
 
 main() {
   groupSep = ' | ';
@@ -113,6 +114,10 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   test_ArgumentList() {
     return super.test_ArgumentList().then((_) {
       expect(request.cache.importKey, "import '/libA.dart';");
+      ClassElement objClassElem1 = request.cache.importedClassMap['Object'];
+      expect(objClassElem1, isNotNull);
+      ClassElement objClassElem2 = request.cache.objectClassElement;
+      expect(objClassElem1, same(objClassElem2));
     });
   }
 

@@ -81,6 +81,18 @@ class DartCompletionCache extends CompletionCache {
   String get importKey => _importKey;
 
   /**
+   * Return the [ClassElement] for Object.
+   */
+  ClassElement get objectClassElement {
+    if (_objectClassElement == null) {
+      Source coreUri = context.sourceFactory.forUri('dart:core');
+      LibraryElement coreLib = context.getLibraryElement(coreUri);
+      _objectClassElement = coreLib.getType('Object');
+    }
+    return _objectClassElement;
+  }
+
+  /**
    * Given a resolved compilation unit, compute suggestions based upon the
    * imports and other dart files (e.g. "part" files) in the library containing
    * the given compilation unit. The returned future completes when the cache
@@ -114,59 +126,16 @@ class DartCompletionCache extends CompletionCache {
     // Determine the compilation unit defining the library containing
     // this compilation unit
     List<Source> libraries = context.getLibrariesContaining(source);
-    Source libSource = null;
-    Future<CompilationUnit> futureLibUnit;
-    if (libraries != null && libraries.length > 0) {
-      libSource = libraries[0];
-      if (libSource == source) {
-        // If the sources are the same then we already have the library unit
-        futureLibUnit = new Future.value(unit);
-      } else {
-        // If the sources are different, then get the library unit
-        // to traverse the library directives and cache the imported elements
-        futureLibUnit =
-            context.computeResolvedCompilationUnitAsync(libSource, libSource);
-      }
-    } else {
-      futureLibUnit = new Future.value(null);
-    }
+    assert(libraries != null);
+    Source libSource = libraries.length > 0 ? libraries[0] : null;
+    Future<CompilationUnit> futureLibUnit = _computeLibUnit(libSource, unit);
 
-    // Include explicitly imported elements
+    // Include implicitly imported dart:core elements
+    _addDartCoreSuggestions();
+
+    // Include explicitly imported and part elements
     Future futureImportsCached = futureLibUnit.then((CompilationUnit libUnit) {
-      if (libUnit != null) {
-        libUnit.directives.forEach((Directive directive) {
-          if (directive is ImportDirective) {
-            ImportElement importElem = directive.element;
-            if (importElem != null && importElem.importedLibrary != null) {
-              if (directive.prefix == null) {
-                Namespace importNamespace =
-                    new NamespaceBuilder().createImportNamespaceForDirective(importElem);
-                // Include top level elements
-                importNamespace.definedNames.forEach(
-                    (String name, Element elem) {
-                  if (elem is ClassElement) {
-                    importedClassMap[name] = elem;
-                  }
-                  addSuggestion(elem, CompletionRelevance.DEFAULT);
-                });
-              } else {
-                // Exclude elements from prefixed imports
-                // because they are provided by InvocationComputer
-                excludedLibs.add(importElem.importedLibrary);
-                _addLibraryPrefixSuggestion(importElem);
-              }
-            }
-          } else if (directive is PartDirective) {
-            CompilationUnitElement partElem = directive.element;
-            if (partElem != null && partElem.source != source) {
-              partElem.accept(new _NonLocalElementCacheVisitor(this));
-            }
-          }
-        });
-        if (libSource != source) {
-          libUnit.element.accept(new _NonLocalElementCacheVisitor(this));
-        }
-      }
+      _addImportedElemSuggestions(libSource, libUnit, excludedLibs);
       // Don't wait for search of lower relevance results to complete.
       // Set key indicating results are ready, and lower relevance results
       // will be added to the cache when the search completes.
@@ -174,34 +143,12 @@ class DartCompletionCache extends CompletionCache {
       return true;
     });
 
-    // Include implicitly imported dart:core elements
-    Source coreUri = context.sourceFactory.forUri('dart:core');
-    LibraryElement coreLib = context.getLibraryElement(coreUri);
-    Namespace coreNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
-    coreNamespace.definedNames.forEach((String name, Element elem) {
-      if (elem is ClassElement) {
-        importedClassMap[name] = elem;
-      }
-      addSuggestion(elem, CompletionRelevance.DEFAULT);
-    });
-    _objectClassElement = importedClassMap['Object'];
-
     // Add non-imported elements as low relevance
     // after the imported element suggestions have been added
     Future<bool> futureAllCached = futureImportsCached.then((_) {
       return searchEngine.searchTopLevelDeclarations(
           '').then((List<SearchMatch> matches) {
-        matches.forEach((SearchMatch match) {
-          if (match.kind == MatchKind.DECLARATION) {
-            Element element = match.element;
-            if (element.isPublic &&
-                !excludedLibs.contains(element.library) &&
-                !_importedCompletions.contains(element.displayName)) {
-              addSuggestion(element, CompletionRelevance.LOW);
-            }
-          }
-        });
+        _addNonImportedElementSuggestions(matches, excludedLibs);
         return true;
       });
     });
@@ -212,25 +159,69 @@ class DartCompletionCache extends CompletionCache {
   }
 
   /**
-   * Return the [ClassElement] for Object.
-   */
-  ClassElement get objectClassElement {
-    if (_objectClassElement == null) {
-      Source coreUri = context.sourceFactory.forUri('dart:core');
-      LibraryElement coreLib = context.getLibraryElement(coreUri);
-      Namespace coreNamespace =
-          new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
-      _objectClassElement = coreNamespace.definedNames['Object'];
-    }
-    return _objectClassElement;
-  }
-
-  /**
    * Return `true` if the import information is cached for the given
    * compilation unit.
    */
   bool isImportInfoCached(CompilationUnit unit) =>
       _importKey != null && _importKey == _computeImportKey(unit);
+
+  /**
+   * Add suggestions for implicitly imported elements in dart:core.
+   */
+  void _addDartCoreSuggestions() {
+    Source coreUri = context.sourceFactory.forUri('dart:core');
+    LibraryElement coreLib = context.getLibraryElement(coreUri);
+    Namespace coreNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
+    coreNamespace.definedNames.forEach((String name, Element elem) {
+      if (elem is ClassElement) {
+        importedClassMap[name] = elem;
+      }
+      _addSuggestion(elem, CompletionRelevance.DEFAULT);
+    });
+  }
+
+  /**
+   * Add suggestions for explicitly imported and part elements in the given
+   * library. Add libraries that should not have their elements suggested
+   * even as low priority to [excludedLibs].
+   */
+  void _addImportedElemSuggestions(Source libSource, CompilationUnit libUnit,
+      Set<LibraryElement> excludedLibs) {
+    if (libUnit != null) {
+      libUnit.directives.forEach((Directive directive) {
+        if (directive is ImportDirective) {
+          ImportElement importElem = directive.element;
+          if (importElem != null && importElem.importedLibrary != null) {
+            if (directive.prefix == null) {
+              Namespace importNamespace =
+                  new NamespaceBuilder().createImportNamespaceForDirective(importElem);
+              // Include top level elements
+              importNamespace.definedNames.forEach((String name, Element elem) {
+                if (elem is ClassElement) {
+                  importedClassMap[name] = elem;
+                }
+                _addSuggestion(elem, CompletionRelevance.DEFAULT);
+              });
+            } else {
+              // Exclude elements from prefixed imports
+              // because they are provided by InvocationComputer
+              _addLibraryPrefixSuggestion(importElem);
+              excludedLibs.add(importElem.importedLibrary);
+            }
+          }
+        } else if (directive is PartDirective) {
+          CompilationUnitElement partElem = directive.element;
+          if (partElem != null && partElem.source != source) {
+            partElem.accept(new _NonLocalElementCacheVisitor(this));
+          }
+        }
+      });
+      if (libSource != source) {
+        libUnit.element.accept(new _NonLocalElementCacheVisitor(this));
+      }
+    }
+  }
 
   void _addLibraryPrefixSuggestion(ImportElement importElem) {
     CompletionSuggestion suggestion = null;
@@ -253,7 +244,28 @@ class DartCompletionCache extends CompletionCache {
     }
   }
 
-  void addSuggestion(Element element, CompletionRelevance relevance) {
+  /**
+   * Add suggestions for all top level elements in the context
+   * excluding those elemnents for which suggestions have already been added.
+   */
+  void _addNonImportedElementSuggestions(List<SearchMatch> matches,
+      Set<LibraryElement> excludedLibs) {
+    matches.forEach((SearchMatch match) {
+      if (match.kind == MatchKind.DECLARATION) {
+        Element element = match.element;
+        if (element.isPublic &&
+            !excludedLibs.contains(element.library) &&
+            !_importedCompletions.contains(element.displayName)) {
+          _addSuggestion(element, CompletionRelevance.LOW);
+        }
+      }
+    });
+  }
+
+  /**
+   * Add a suggestion for the given element.
+   */
+  void _addSuggestion(Element element, CompletionRelevance relevance) {
 
     if (element is ExecutableElement) {
       if (element.isOperator) {
@@ -289,6 +301,23 @@ class DartCompletionCache extends CompletionCache {
     });
     return sb.toString();
   }
+
+  /**
+   * Compute the library unit for the given library source,
+   * where the [unit] is the resolved compilation unit associated with [source].
+   */
+  Future<CompilationUnit> _computeLibUnit(Source libSource,
+      CompilationUnit unit) {
+    // If the sources are the same then we already have the library unit
+    if (libSource == source) {
+      return new Future.value(unit);
+    }
+    // If [source] is a part, then compute the library unit
+    if (libSource != null) {
+      return context.computeResolvedCompilationUnitAsync(libSource, libSource);
+    }
+    return new Future.value(null);
+  }
 }
 
 /**
@@ -303,7 +332,7 @@ class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
 
   @override
   void visitClassElement(ClassElement element) {
-    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
   }
 
   @override
@@ -318,16 +347,16 @@ class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
 
   @override
   void visitFunctionElement(FunctionElement element) {
-    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
   }
 
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
   }
 
   @override
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    cache.addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
   }
 }
