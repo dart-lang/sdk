@@ -15,6 +15,7 @@
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 mutation_observer: Skip # Issue 21149
+unittest/*: Skip # Issue 21949
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
