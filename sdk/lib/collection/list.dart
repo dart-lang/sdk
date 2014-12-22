@@ -120,7 +120,7 @@ abstract class ListMixin<E> implements List<E> {
     return false;
   }
 
-  dynamic firstWhere(bool test(E element), { Object orElse() }) {
+  E firstWhere(bool test(E element), { E orElse() }) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -133,7 +133,7 @@ abstract class ListMixin<E> implements List<E> {
     throw IterableElementError.noElement();
   }
 
-  dynamic lastWhere(bool test(E element), { Object orElse() }) {
+  E lastWhere(bool test(E element), { E orElse() }) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = this[i];

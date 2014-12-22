@@ -81,10 +81,10 @@ abstract class CssClassSetImpl implements CssClassSet {
    * This is the Dart equivalent of jQuery's
    * [hasClass](http://api.jquery.com/hasClass/).
    */
-  bool contains(String value) => readClasses().contains(value);
+  bool contains(Object value) => readClasses().contains(value);
 
   /** Lookup from the Set interface. Not interesting for a String set. */
-  String lookup(String value) => contains(value) ? value : null;
+  String lookup(Object value) => contains(value) ? value : null;
 
   /**
    * Add the class [value] to element.
@@ -184,9 +184,9 @@ abstract class CssClassSetImpl implements CssClassSet {
   Iterable<String> skip(int n) => readClasses().skip(n);
   Iterable<String> skipWhile(bool test(String value)) =>
       readClasses().skipWhile(test);
-  dynamic firstWhere(bool test(String value), { Object orElse() }) =>
+  String firstWhere(bool test(String value), { String orElse() }) =>
       readClasses().firstWhere(test, orElse: orElse);
-  dynamic lastWhere(bool test(String value), { Object orElse()}) =>
+  String lastWhere(bool test(String value), { String orElse()}) =>
       readClasses().lastWhere(test, orElse: orElse);
   String singleWhere(bool test(String value)) =>
       readClasses().singleWhere(test);

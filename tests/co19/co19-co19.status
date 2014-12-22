@@ -87,3 +87,4 @@ LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Fail # co19 issue 718
 [ $compiler != dartanalyzer && $compiler != dart2analyzer && $checked ]
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
+LibTest/collection/LinkedList/lastWhere_A02_t01: RuntimeError # co19 issue 737
