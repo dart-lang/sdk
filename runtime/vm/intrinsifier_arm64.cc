@@ -810,11 +810,15 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   // R2 = used, R3 = digits
   __ ldp(R2, R3, Address(SP, 3 * kWordSize, Address::PairOffset));
+  __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
+  __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * kWordSize, Address::PairOffset));
+  __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
+  __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -823,24 +827,21 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // R6 = &r_digits[0]
   __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R7 = &digits[a_used >> 1], a_used is Smi.
-  __ add(R7, R3, Operand(R4, LSL, 1));
+  // R7 = &digits[a_used rounded up to even number].
+  __ add(R7, R3, Operand(R4, LSL, 3));
 
-  // R8 = &digits[used >> 1], used is Smi.
-  __ add(R8, R3, Operand(R2, LSL, 1));
+  // R8 = &digits[a_used rounded up to even number].
+  __ add(R8, R3, Operand(R2, LSL, 3));
 
   __ adds(R0, R0, Operand(0));  // carry flag = 0
   Label add_loop;
   __ Bind(&add_loop);
-  // Loop a_used times, a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-  __ ldr(R1, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-  __ adcsw(R0, R0, R1);
+  // Loop (a_used+1)/2 times, a_used > 0.
+  __ ldr(R0, Address(R3, 2*Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R1, Address(R5, 2*Bigint::kBytesPerDigit, Address::PostIndex));
+  __ adcs(R0, R0, R1);
   __ sub(R9, R3, Operand(R7));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  __ str(R0, Address(R6, 2*Bigint::kBytesPerDigit, Address::PostIndex));
   __ cbnz(&add_loop, R9);  // Does not affect carry flag.
 
   Label last_carry;
@@ -849,18 +850,16 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   Label carry_loop;
   __ Bind(&carry_loop);
-  // Loop used - a_used times, used - a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-  __ adcsw(R0, R0, ZR);
+  // Loop (used+1)/2 - (a_used+1)/2 times, used - a_used > 0.
+  __ ldr(R0, Address(R3, 2*Bigint::kBytesPerDigit, Address::PostIndex));
+  __ adcs(R0, R0, ZR);
   __ sub(R9, R3, Operand(R8));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  __ str(R0, Address(R6, 2*Bigint::kBytesPerDigit, Address::PostIndex));
   __ cbnz(&carry_loop, R9);
 
   __ Bind(&last_carry);
   __ adc(R0, ZR, ZR);
-  __ str(R0, Address(R6, 0), kUnsignedWord);
+  __ str(R0, Address(R6, 0));
 
   // Returning Object::null() is not required, since this method is private.
   __ ret();
@@ -874,11 +873,15 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
   // R2 = used, R3 = digits
   __ ldp(R2, R3, Address(SP, 3 * kWordSize, Address::PairOffset));
+  __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
+  __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * kWordSize, Address::PairOffset));
+  __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
+  __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -887,24 +890,21 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   // R6 = &r_digits[0]
   __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R7 = &digits[a_used >> 1], a_used is Smi.
-  __ add(R7, R3, Operand(R4, LSL, 1));
+  // R7 = &digits[a_used rounded up to even number].
+  __ add(R7, R3, Operand(R4, LSL, 3));
 
-  // R8 = &digits[used >> 1], used is Smi.
-  __ add(R8, R3, Operand(R2, LSL, 1));
+  // R8 = &digits[a_used rounded up to even number].
+  __ add(R8, R3, Operand(R2, LSL, 3));
 
   __ subs(R0, R0, Operand(0));  // carry flag = 1
   Label sub_loop;
   __ Bind(&sub_loop);
-  // Loop a_used times, a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-  __ ldr(R1, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-  __ sbcsw(R0, R0, R1);
+  // Loop (a_used+1)/2 times, a_used > 0.
+  __ ldr(R0, Address(R3, 2*Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R1, Address(R5, 2*Bigint::kBytesPerDigit, Address::PostIndex));
+  __ sbcs(R0, R0, R1);
   __ sub(R9, R3, Operand(R7));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  __ str(R0, Address(R6, 2*Bigint::kBytesPerDigit, Address::PostIndex));
   __ cbnz(&sub_loop, R9);  // Does not affect carry flag.
 
   Label done;
@@ -913,13 +913,11 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
   Label carry_loop;
   __ Bind(&carry_loop);
-  // Loop used - a_used times, used - a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-  __ sbcsw(R0, R0, ZR);
+  // Loop (used+1)/2 - (a_used+1)/2 times, used - a_used > 0.
+  __ ldr(R0, Address(R3, 2*Bigint::kBytesPerDigit, Address::PostIndex));
+  __ sbcs(R0, R0, ZR);
   __ sub(R9, R3, Operand(R8));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  __ str(R0, Address(R6, 2*Bigint::kBytesPerDigit, Address::PostIndex));
   __ cbnz(&carry_loop, R9);
 
   __ Bind(&done);
