@@ -5,14 +5,16 @@
 # This file contains headers shared between the vm and bin components.
 {
   'sources': [
+    'address_sanitizer.h',
     'assert.h',
     'c99_support_win.h',
+    'floating_point.h',
+    'floating_point_win.h',
     'globals.h',
     'hashmap.h',
     'inttypes_support_win.h',
     'json.h',
-    'floating_point.h',
-    'floating_point_win.h',
+    'memory_sanitizer.h',
     'utils.h',
   ],
 }

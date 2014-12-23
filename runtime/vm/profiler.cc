@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 
 #include "vm/allocation.h"
@@ -1934,7 +1935,10 @@ class ProfilerNativeStackWalker : public ValueObject {
 
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != NULL);
-    return reinterpret_cast<uword*>(*(fp + kSavedCallerFpSlotFromFp));
+    uword* caller_fp_ptr = fp + kSavedCallerFpSlotFromFp;
+    // This may actually be uninitialized, by design (see class comment above).
+    MSAN_UNPOISON(caller_fp_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*caller_fp_ptr);
   }
 
   bool ValidFramePointer(uword* fp) const {
