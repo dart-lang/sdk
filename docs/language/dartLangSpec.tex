@@ -3450,7 +3450,7 @@ Given an instance creation expression of the form \CONST{} $q(a_1, \ldots , a_n)
 \LMLabel{spawningAnIsolate}
 
 \LMHash{}
-Spawning an isolate is accomplished via what is syntactically an ordinary library call, invoking one of the functions \code{spawnUri()} or \code{spawnFunction()}defined in the \code{dart:isolate} library. However, such calls  have the  semantic effect of creating a new isolate with its own memory and thread of control.
+Spawning an isolate is accomplished via what is syntactically an ordinary library call, invoking one of the functions \code{spawnUri()} or \code{spawn()} defined in the \code{dart:isolate} library. However, such calls  have the  semantic effect of creating a new isolate with its own memory and thread of control.
 
 \LMHash{}
 An isolate's memory is finite, as is the space available to its thread's call stack. It is possible for a running isolate to exhaust its memory or stack, resulting in a run-time error that cannot be effectively caught, which will force the isolate to be suspended.
