@@ -1978,7 +1978,7 @@ void Simulator::DecodeCop1(Instr* instr) {
 
 void Simulator::InstructionDecode(Instr* instr) {
   if (IsTracingExecution()) {
-    OS::Print("%u ", icount_);
+    OS::Print("%" Pd " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);

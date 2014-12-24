@@ -3581,7 +3581,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
 void Simulator::InstructionDecode(Instr* instr) {
   pc_modified_ = false;
   if (IsTracingExecution()) {
-    OS::Print("%u ", icount_);
+    OS::Print("%" Pd " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);
@@ -3665,7 +3665,7 @@ void Simulator::Execute() {
     while (program_counter != kEndSimulatingPC) {
       Instr* instr = reinterpret_cast<Instr*>(program_counter);
       icount_++;
-      if (static_cast<intptr_t>(icount_) == FLAG_stop_sim_at) {
+      if (icount_ == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction count reached");
       } else if (reinterpret_cast<intptr_t>(instr) == FLAG_stop_sim_at) {
