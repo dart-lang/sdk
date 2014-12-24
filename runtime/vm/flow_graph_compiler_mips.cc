@@ -1520,9 +1520,6 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-#if defined(DEBUG)
-  ClobberDeadTempRegisters(locs);
-#endif
   // General purpose registers have the highest register number at the
   // lowest address.
   __ TraceSimMsg("RestoreLiveRegisters");

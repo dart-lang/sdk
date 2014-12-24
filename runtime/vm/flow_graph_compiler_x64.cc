@@ -1505,9 +1505,6 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-#if defined(DEBUG)
-  ClobberDeadTempRegisters(locs);
-#endif
   __ PopRegisters(locs->live_registers()->cpu_registers(),
                   locs->live_registers()->fpu_registers());
 }
