@@ -172,17 +172,20 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
     var comment = token.precedingComments;
     // Use error marker found in an immediately preceding comment,
     // and attach it to the outermost expression that starts at that token.
-    if (comment != null &&
-        comment.end == token.offset &&
-        _realParent(node).beginToken != token) {
-      var commentText = '$comment';
-      expect(commentText.startsWith('/*'), isTrue);
-      expect(commentText.startsWith('/**'), isFalse);
-      expect(commentText.endsWith('*/'), isTrue);
-      expect(commentText.endsWith('**/'), isFalse);
-      var errors = commentText.substring(2, commentText.length - 2).split(',');
-      var expectations = errors.map(_ErrorExpectation.parse);
-      expectedErrors[node] = expectations.where((x) => x != null).toList();
+    if (comment != null) {
+      while (comment.next != null) { comment = comment.next; }
+      if (comment.end == token.offset &&
+          _realParent(node).beginToken != token) {
+        var commentText = '$comment';
+        var start = commentText.lastIndexOf('/*');
+        var end = commentText.lastIndexOf('*/');
+        if (start != -1 && end != -1) {
+          expect(start, lessThan(end));
+          var errors = commentText.substring(start + 2, end).split(',');
+          var expectations = errors.map(_ErrorExpectation.parse);
+          expectedErrors[node] = expectations.where((x) => x != null).toList();
+        }
+      }
     }
     return super.visitNode(node);
   }
@@ -230,6 +233,8 @@ class _ErrorExpectation {
     // eventually we could do more automated reporting here.
     return _parse(tokens[0]);
   }
+
+  String toString() => '$level $type';
 }
 
 /// Uri resolver that can load test files from memory.
@@ -278,7 +283,11 @@ class _TestSource implements Source {
 
   Uri resolveRelativeUri(Uri relativeUri) => uri.resolveUri(relativeUri);
 
-  SourceSpan spanFor(AstNode node) => _file.span(node.offset, node.end);
+  SourceSpan spanFor(AstNode node) {
+    final begin = node is AnnotatedNode ?
+        node.firstTokenAfterCommentAndMetadata.offset : node.offset;
+    return _file.span(begin, node.end);
+  }
 
   String toString() => '[$runtimeType: $uri]';
 }

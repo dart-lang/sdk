@@ -274,8 +274,12 @@ class InvalidRuntimeCheckError extends StaticError {
 abstract class InvalidOverride extends StaticError {
   final ExecutableElement element;
   final InterfaceType base;
+  final DartType subType;
+  final DartType baseType;
 
-  InvalidOverride(AstNode node, this.element, this.base) : super(node);
+  InvalidOverride(
+      AstNode node, this.element, this.base, this.subType, this.baseType)
+      : super(node);
 
   ClassDeclaration get parent =>
       element.enclosingElement.node as ClassDeclaration;
@@ -284,30 +288,29 @@ abstract class InvalidOverride extends StaticError {
 // Invalid override due to incompatible type.  I.e., the overridden signature
 // is not compatible with the original.
 class InvalidMethodOverride extends InvalidOverride {
-  final FunctionType methodType;
-  final FunctionType baseType;
-
   InvalidMethodOverride(AstNode node, ExecutableElement element,
-      InterfaceType base, this.methodType, this.baseType)
-      : super(node, element, base);
+      InterfaceType base, FunctionType subType, FunctionType baseType)
+      : super(node, element, base, subType, baseType);
 
   String get message {
     return 'Invalid override for ${element.name} in ${parent.name} '
-        'over $base: $methodType does not subtype $baseType';
+        'over $base: $subType does not subtype $baseType';
   }
 }
 
-// TODO(vsm): Do we still need this?
-// Under certain rules, we disallow overriding a field with a
-// field/getter/setter.
-class InvalidFieldOverride extends InvalidOverride {
-  InvalidFieldOverride(
-      AstNode node, ExecutableElement element, InterfaceType base)
-      : super(node, element, base);
+// TODO(sigmund): delete, if we fix this, this should be part of the type
+// inference, not something we detect in the checker.
+// TODO(sigmund): split and track field, getter, setter, method separately
+class InferableOverride extends InvalidOverride {
+  InferableOverride(AstNode node, ExecutableElement element,
+      InterfaceType base, DartType subType, DartType baseType)
+      : super(node, element, base, subType, baseType);
+
+  Level get level => Level.WARNING;
 
   String get message {
-    return 'Invalid field override for ${element.name} in '
-        '${parent.name} over $base';
+    return 'Invalid but inferrable override for ${element.name} in '
+        '${parent.name} over $base: $subType does not subtype $baseType';
   }
 }
 

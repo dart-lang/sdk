@@ -1046,4 +1046,162 @@ main() {
        '''
     });
   });
+
+  test('field/field override', () {
+    testChecker({
+      '/main.dart': '''
+          class A {}
+          class B extends A {}
+          class C extends B {}
+
+          class Base {
+            B f1;
+            B f2;
+            B f3;
+            B f4;
+          }
+
+          class Child extends Base {
+            /*severe:InvalidMethodOverride*/A f1; // invalid for getter
+            /*severe:InvalidMethodOverride*/C f2; // invalid for setter
+            /*warning:InferableOverride*/var f3;
+            /*severe:InvalidMethodOverride*/dynamic f4;
+          }
+       '''
+    });
+  });
+
+  test('getter/getter override', () {
+    testChecker({
+      '/main.dart': '''
+          class A {}
+          class B extends A {}
+          class C extends B {}
+
+          abstract class Base {
+            B get f1;
+            B get f2;
+            B get f3;
+            B get f4;
+          }
+
+          class Child extends Base {
+            /*severe:InvalidMethodOverride*/A get f1 => null;
+            C get f2 => null;
+            /*warning:InferableOverride*/get f3 => null;
+            /*severe:InvalidMethodOverride*/dynamic get f4 => null;
+          }
+       '''
+    });
+  });
+
+  test('field/getter override', () {
+    testChecker({
+      '/main.dart': '''
+          class A {}
+          class B extends A {}
+          class C extends B {}
+
+          abstract class Base {
+            B f1;
+            B f2;
+            B f3;
+            B f4;
+          }
+
+          class Child extends Base {
+            /*severe:InvalidMethodOverride*/A get f1 => null;
+            C get f2 => null;
+            /*warning:InferableOverride*/get f3 => null;
+            /*severe:InvalidMethodOverride*/dynamic get f4 => null;
+          }
+       '''
+    });
+  });
+
+  test('setter/setter override', () {
+    testChecker({
+      '/main.dart': '''
+          class A {}
+          class B extends A {}
+          class C extends B {}
+
+          abstract class Base {
+            void set f1(B value);
+            void set f2(B value);
+            void set f3(B value);
+            void set f4(B value);
+            void set f5(B value);
+          }
+
+          class Child extends Base {
+            void set f1(A value) {}
+            /*severe:InvalidMethodOverride*/void set f2(C value) {}
+            void set f3(value) {}
+            void set f4(dynamic value) {}
+            /*pass should be warning:InferableOverride*/set f5(B value) {}
+          }
+       '''
+    });
+  });
+
+  test('field/setter override', () {
+    testChecker({
+      '/main.dart': '''
+          class A {}
+          class B extends A {}
+          class C extends B {}
+
+          class Base {
+            B f1;
+            B f2;
+            B f3;
+            B f4;
+            B f5;
+          }
+
+          class Child extends Base {
+            B get f1 => null;
+            B get f2 => null;
+            B get f3 => null;
+            B get f4 => null;
+            B get f5 => null;
+
+            void set f1(A value) {}
+            /*severe:InvalidMethodOverride*/void set f2(C value) {}
+            void set f3(value) {}
+            void set f4(dynamic value) {}
+            /*pass should be warning:InferableOverride*/set f5(B value) {}
+          }
+       '''
+    });
+  });
+
+  test('method override', () {
+    testChecker({
+      '/main.dart': '''
+          class A {}
+          class B extends A {}
+          class C extends B {}
+
+          class Base {
+            B m1(B a);
+            B m2(B a);
+            B m3(B a);
+            B m4(B a);
+            B m5(B a);
+            B m6(B a);
+          }
+
+          class Child extends Base {
+            /*severe:InvalidMethodOverride*/A m1(A value) {}
+            /*severe:InvalidMethodOverride*/C m2(C value) {}
+            /*severe:InvalidMethodOverride*/A m3(C value) {}
+            C m4(A value) {}
+            /*warning:InferableOverride*/m5(value) {}
+            /*severe:InvalidMethodOverride*/dynamic m6(dynamic value) {}
+          }
+       '''
+    });
+  });
 }

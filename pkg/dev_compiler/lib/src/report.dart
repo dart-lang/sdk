@@ -357,7 +357,7 @@ class _Table {
   List _currentRow;
 
   /// Add a column with the given [name].
-  void declareColumn(String name, {bool abbreviate}) {
+  void declareColumn(String name, {bool abbreviate: false}) {
     assert (!_sealed);
     var headerName = name;
     if (abbreviate) {

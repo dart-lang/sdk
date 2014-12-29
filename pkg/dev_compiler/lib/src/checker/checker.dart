@@ -70,9 +70,9 @@ class ProgramChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  // Check that member declarations soundly override any overridden declarations.
+  // Check that member declarations soundly override any parent declarations.
   InvalidOverride findInvalidOverride(AstNode node, ExecutableElement element,
-      InterfaceType type, [bool allowFieldOverride = null]) {
+      InterfaceType type) {
     // FIXME: This can be done a lot more efficiently.
     assert(!element.isStatic);
 
@@ -88,7 +88,6 @@ class ProgramChecker extends RecursiveAstVisitor {
     if (isGetter) {
       assert(!isSetter);
       // Look for getter or field.
-      // FIXME: Verify that this handles fields.
       baseMethod = type.getGetter(memberName);
     } else if (isSetter) {
       baseMethod = type.getSetter(memberName);
@@ -110,39 +109,48 @@ class ProgramChecker extends RecursiveAstVisitor {
       // TODO(vsm): Test for generic
       FunctionType baseType = _rules.elementType(baseMethod);
       if (!_rules.isAssignable(subType, baseType)) {
+        // See whether non-assignable cases fit one of our common patterns:
+        //
+        // Common pattern 1: Inferable return type (on getters and methods)
+        //   class A {
+        //     int get foo => ...;
+        //     String toString() { ... }
+        //   }
+        //   class B extends A {
+        //     get foo => e; // no type specified.
+        //     toString() { ... } // no return type specified.
+        //   }
+        if (isGetter && element.isSynthetic) {
+          if ((node as FieldDeclaration).fields.type == null) {
+            return new InferableOverride(node, element, type,
+                subType.returnType, baseType.returnType);
+          }
+        } else if (node is MethodDeclaration &&
+            (node as MethodDeclaration).returnType == null &&
+            _rules.isFunctionSubTypeOf(subType, baseType, ignoreReturn: true)) {
+          // node is a MethodDeclaration whenever getters and setters are
+          // declared explicitly. Setters declared from a field will have the
+          // correct return type, so we don't need to check that separately.
+          return new InferableOverride(node, element, type,
+              subType.returnType, baseType.returnType);
+        }
         return new InvalidMethodOverride(
             node, element, type, subType, baseType);
-      }
-
-      // Test that we're not overriding a field.
-      if (allowFieldOverride == false) {
-        for (FieldElement field in type.element.fields) {
-          if (field.name == memberName) {
-            // TODO(vsm): Is this the right test?
-            bool syn = field.isSynthetic;
-            if (!syn) {
-              return new InvalidFieldOverride(node, element, type);
-            }
-          }
-        }
       }
     }
 
     if (type.isObject) return null;
 
-    allowFieldOverride =
-        allowFieldOverride == null ? false : allowFieldOverride;
-    InvalidOverride base =
-        findInvalidOverride(node, element, type.superclass, allowFieldOverride);
+    InvalidOverride base = findInvalidOverride(node, element, type.superclass);
     if (base != null) return base;
 
     for (final parent in type.interfaces) {
-      base = findInvalidOverride(node, element, parent, true);
+      base = findInvalidOverride(node, element, parent);
       if (base != null) return base;
     }
 
     for (final parent in type.mixins) {
-      base = findInvalidOverride(node, element, parent, true);
+      base = findInvalidOverride(node, element, parent);
       if (base != null) return base;
     }
 
