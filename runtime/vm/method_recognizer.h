@@ -160,10 +160,10 @@ namespace dart {
   V(_Bigint, _set_digits, Bigint_setDigits, 1865626071)                        \
   V(_Bigint, _absAdd, Bigint_absAdd, 97148049)                                 \
   V(_Bigint, _absSub, Bigint_absSub, 159012285)                                \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 101252203)                                \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1684445648)                               \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 649845040)            \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, 1551846228)                       \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 1625285265)                               \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 56442243)                                 \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 1844507489)           \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 1004817085)                       \
   V(_Double, >, Double_greaterThan, 1538121903)                                \
   V(_Double, >=, Double_greaterEqualThan, 1058495718)                          \
   V(_Double, <, Double_lessThan, 62910596)                                     \
@@ -388,10 +388,10 @@ namespace dart {
 #define INLINE_BLACK_LIST(V)                                                   \
   V(_Bigint, _absAdd, Bigint_absAdd, 97148049)                                 \
   V(_Bigint, _absSub, Bigint_absSub, 159012285)                                \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 101252203)                                \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1684445648)                               \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 649845040)            \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, 1551846228)                       \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 1625285265)                               \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 56442243)                                 \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 1844507489)           \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 1004817085)                       \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \

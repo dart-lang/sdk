@@ -1037,12 +1037,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulAdd(Uint32List x_digits, int xi,
-  //                     Uint32List m_digits, int i,
-  //                     Uint32List a_digits, int j, int n) {
+  // static int _mulAdd(Uint32List x_digits, int xi,
+  //                    Uint32List m_digits, int i,
+  //                    Uint32List a_digits, int j, int n) {
   //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
   //   if (x == 0 || n == 0) {
-  //     return;
+  //     return 1;
   //   }
   //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
   //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
@@ -1060,6 +1060,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   //     *ajp++ = low32(t);
   //     c = high32(t);  // c == 0 or 1.
   //   }
+  //   return 1;
   // }
 
   Label done;
@@ -1147,18 +1148,18 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ delay_slot()->addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
 
   __ Bind(&done);
-  // Returning Object::null() is not required, since this method is private.
+  __ addiu(V0, ZR, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ Ret();
 }
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _sqrAdd(Uint32List x_digits, int i,
-  //                     Uint32List a_digits, int used) {
+  // static int _sqrAdd(Uint32List x_digits, int i,
+  //                    Uint32List a_digits, int used) {
   //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
   //   uint32_t x = *xip++;
-  //   if (x == 0) return;
+  //   if (x == 0) return 1;
   //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
   //   uint32_t aj = *ajp;
   //   uint64_t t = x*x + aj;
@@ -1176,6 +1177,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
   //   *ajp++ = low32(t);
   //   *ajp = high32(t);
+  //   return 1;
   // }
 
   // T4 = xip = &x_digits[i >> 1]
@@ -1279,7 +1281,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ sw(T7, Address(T5, Bigint::kBytesPerDigit));
 
   __ Bind(&x_zero);
-  // Returning Object::null() is not required, since this method is private.
+  __ addiu(V0, ZR, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ Ret();
 }
 
@@ -1291,18 +1293,20 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  // static int _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 2.
   //   uint32_t d = digits[i >> 1];  // i is Smi.
   //   uint64_t t = rho*d;
-  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 4.
+  //   return 1;
   // }
 
   // T4 = args
   __ lw(T4, Address(SP, 2 * kWordSize));  // args
 
-  // T3 = rho = args[0]
-  __ lw(T3, FieldAddress(T4, TypedData::data_offset()));
+  // T3 = rho = args[2]
+  __ lw(T3,
+        FieldAddress(T4, TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
   // T2 = d = digits[i >> 1]
   __ lw(T0, Address(SP, 0 * kWordSize));  // T0 = i as Smi.
@@ -1314,12 +1318,12 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // HI:LO = t = rho*d
   __ multu(T2, T3);
 
-  // args[1] = t mod DIGIT_BASE = low32(t)
+  // args[4] = t mod DIGIT_BASE = low32(t)
   __ mflo(T0);
   __ sw(T0,
-        FieldAddress(T4, TypedData::data_offset() + Bigint::kBytesPerDigit));
+        FieldAddress(T4, TypedData::data_offset() + 4*Bigint::kBytesPerDigit));
 
-  // Returning Object::null() is not required, since this method is private.
+  __ addiu(V0, ZR, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ Ret();
 }
 

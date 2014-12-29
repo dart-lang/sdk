@@ -1028,12 +1028,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulAdd(Uint32List x_digits, int xi,
-  //                     Uint32List m_digits, int i,
-  //                     Uint32List a_digits, int j, int n) {
+  // static int _mulAdd(Uint32List x_digits, int xi,
+  //                    Uint32List m_digits, int i,
+  //                    Uint32List a_digits, int j, int n) {
   //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
   //   if (x == 0 || n == 0) {
-  //     return;
+  //     return 1;
   //   }
   //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
   //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
@@ -1051,6 +1051,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   //     *ajp++ = low32(t);
   //     c = high32(t);  // c == 0 or 1.
   //   }
+  //   return 1;
   // }
 
   Label no_op;
@@ -1140,18 +1141,18 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ popl(CTX);
 
   __ Bind(&no_op);
-  // Returning Object::null() is not required, since this method is private.
+  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ ret();
 }
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _sqrAdd(Uint32List x_digits, int i,
-  //                     Uint32List a_digits, int used) {
+  // static int _sqrAdd(Uint32List x_digits, int i,
+  //                    Uint32List a_digits, int used) {
   //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
   //   uint32_t x = *xip++;
-  //   if (x == 0) return;
+  //   if (x == 0) return 1;
   //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
   //   uint32_t aj = *ajp;
   //   uint64_t t = x*x + aj;
@@ -1169,6 +1170,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
   //   *ajp++ = low32(t);
   //   *ajp = high32(t);
+  //   return 1;
   // }
 
   // EDI = xip = &x_digits[i >> 1]
@@ -1272,15 +1274,15 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ Drop(3);
   __ popl(CTX);
   __ Bind(&x_zero);
-  // Returning Object::null() is not required, since this method is private.
+  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ ret();
 }
 
 
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   // Pseudo code:
-  // static void _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t yt = args[_YT];  // _YT == 0.
+  // static int _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t yt = args[_YT];  // _YT == 1.
   //   uint32_t* dp = &digits[i >> 1];  // i is Smi.
   //   uint32_t dh = dp[0];  // dh == digits[i >> 1].
   //   uint32_t qd;
@@ -1290,14 +1292,16 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   //     dl = dp[-1];  // dl == digits[(i - 1) >> 1].
   //     qd = dh:dl / yt;  // No overflow possible, because dh < yt.
   //   }
-  //   args[_QD] = qd;  // _QD == 1;
+  //   args[_QD] = qd;  // _QD == 2.
+  //   return 1;
   // }
 
   // EDI = args
   __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
 
-  // ECX = yt = args[0]
-  __ movl(ECX, FieldAddress(EDI, TypedData::data_offset()));
+  // ECX = yt = args[1]
+  __ movl(ECX,
+          FieldAddress(EDI, TypedData::data_offset() + Bigint::kBytesPerDigit));
 
   // EBX = dp = &digits[i >> 1]
   __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
@@ -1322,29 +1326,33 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   __ divl(ECX);
 
   __ Bind(&return_qd);
-  // args[1] = qd
-  __ movl(FieldAddress(EDI, TypedData::data_offset() + Bigint::kBytesPerDigit),
+  // args[2] = qd
+  __ movl(FieldAddress(EDI,
+                       TypedData::data_offset() + 2*Bigint::kBytesPerDigit),
           EAX);
 
-  // Returning Object::null() is not required, since this method is private.
+  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ ret();
 }
 
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  // static int _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 2.
   //   uint32_t d = digits[i >> 1];  // i is Smi.
   //   uint64_t t = rho*d;
-  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 4.
+  //   return 1;
   // }
 
   // EDI = args
   __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
 
-  // ECX = rho = args[0]
-  __ movl(ECX, FieldAddress(EDI, TypedData::data_offset()));
+  // ECX = rho = args[2]
+  __ movl(ECX,
+          FieldAddress(EDI,
+                       TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
   // EAX = digits[i >> 1]
   __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
@@ -1354,11 +1362,12 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // EDX:EAX = t = rho*d
   __ mull(ECX);
 
-  // args[1] = t mod DIGIT_BASE = low32(t)
-  __ movl(FieldAddress(EDI, TypedData::data_offset() + Bigint::kBytesPerDigit),
+  // args[4] = t mod DIGIT_BASE = low32(t)
+  __ movl(FieldAddress(EDI,
+                       TypedData::data_offset() + 4*Bigint::kBytesPerDigit),
           EAX);
 
-  // Returning Object::null() is not required, since this method is private.
+  __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ ret();
 }
 

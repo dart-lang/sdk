@@ -6754,7 +6754,6 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
-      // sed -i .bak -f /tmp/newkeys runtime/vm/intermediate_language.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
       OS::Print("s/%d/%d/\n", fp, SourceFingerprint());
     } else {
