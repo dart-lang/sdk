@@ -11,6 +11,7 @@
 #include "vm/cha.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
+#include "vm/constant_propagator.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
