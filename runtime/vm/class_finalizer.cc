@@ -1388,6 +1388,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                             cls,
                             field.token_pos()));
           getter.set_result_type(type);
+          getter.set_is_debuggable(false);
           cls.AddFunction(getter);
           field.set_value(Instance::Handle(I, Object::sentinel().raw()));
         }
@@ -2070,6 +2071,7 @@ void ClassFinalizer::CreateForwardingConstructors(
       clone.SetNumOptionalParameters(func.NumOptionalParameters(),
                                      func.HasOptionalPositionalParameters());
       clone.set_result_type(dynamic_type);
+      clone.set_is_debuggable(false);
 
       const intptr_t num_parameters = func.NumParameters();
       // The cloned ctor shares the parameter names array with the

@@ -1164,6 +1164,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     func.SetNumOptionalParameters(0, true);
     // Manually generated AST, do not recompile.
     func.SetIsOptimizable(false);
+    func.set_is_debuggable(false);
 
     // We compile the function here, even though InvokeFunction() below
     // would compile func automatically. We are checking fewer invariants

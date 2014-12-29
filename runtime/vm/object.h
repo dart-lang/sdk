@@ -2174,6 +2174,7 @@ class Function : public Object {
   V(Const, is_const)                                                           \
   V(Abstract, is_abstract)                                                     \
   V(Visible, is_visible)                                                       \
+  V(Debuggable, is_debuggable)                                                 \
   V(Optimizable, is_optimizable)                                               \
   V(Inlinable, is_inlinable)                                                   \
   V(Intrinsic, is_intrinsic)                                                   \

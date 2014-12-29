@@ -5128,6 +5128,7 @@ static void CreateSpecializedFunction(Isolate* isolate,
 
   fn.set_regexp(regexp);
   fn.set_regexp_cid(specialization_cid);
+  fn.set_is_debuggable(false);
 
   // The function is compiled lazily during the first call.
 }

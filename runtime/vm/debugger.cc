@@ -111,6 +111,7 @@ void SourceBreakpoint::SetResolved(const Function& func, intptr_t token_pos) {
   ASSERT(func.script() == script_);
   ASSERT((func.token_pos() <= token_pos) &&
          (token_pos <= func.end_token_pos()));
+  ASSERT(func.is_debuggable());
   function_ = func.raw();
   token_pos_ = token_pos;
   end_token_pos_ = token_pos;
@@ -1565,12 +1566,12 @@ void Debugger::FindCompiledFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            if (function.HasCode() && !function.IsAsyncFunction()) {
+            if (function.HasCode() && function.is_debuggable()) {
               function_list->Add(function);
             }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              if (function.HasCode() && !function.IsAsyncFunction()) {
+              if (function.HasCode() && function.is_debuggable()) {
                 function_list->Add(function);
               }
             }
@@ -1586,12 +1587,12 @@ void Debugger::FindCompiledFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            if (function.HasCode() && !function.IsAsyncFunction()) {
+            if (function.HasCode() && function.is_debuggable()) {
               function_list->Add(function);
             }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              if (function.HasCode() && !function.IsAsyncFunction()) {
+              if (function.HasCode() && function.is_debuggable()) {
                 function_list->Add(function);
               }
             }
@@ -1600,22 +1601,6 @@ void Debugger::FindCompiledFunctions(const Script& script,
       }
     }
   }
-}
-
-
-static bool IsDebuggableFunctionKind(const Function& func) {
-  RawFunction::Kind kind = func.kind();
-  if ((kind == RawFunction::kImplicitGetter) ||
-      (kind == RawFunction::kImplicitSetter) ||
-      (kind == RawFunction::kImplicitStaticFinalGetter) ||
-      (kind == RawFunction::kMethodExtractor) ||
-      (kind == RawFunction::kNoSuchMethodDispatcher) ||
-      (kind == RawFunction::kInvokeFieldDispatcher) ||
-      (kind == RawFunction::kIrregexpFunction) ||
-      func.IsImplicitConstructor()) {
-    return false;
-  }
-  return true;
 }
 
 
@@ -1661,7 +1646,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
-          if (IsDebuggableFunctionKind(function) &&
+          if (function.is_debuggable() &&
               FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
@@ -1674,7 +1659,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_closures; pos++) {
           function ^= closures.At(pos);
           ASSERT(!function.IsNull());
-          if (IsDebuggableFunctionKind(function) &&
+          if (function.is_debuggable() &&
               FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
@@ -1792,6 +1777,9 @@ RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
 SourceBreakpoint* Debugger::SetBreakpointAtEntry(
       const Function& target_function) {
   ASSERT(!target_function.IsNull());
+  if (!target_function.is_debuggable()) {
+    return NULL;
+  }
   const Script& script = Script::Handle(target_function.script());
   return SetBreakpoint(script,
                        target_function.token_pos(),
@@ -2134,7 +2122,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
 
 // static
 bool Debugger::IsDebuggable(const Function& func) {
-  if (!IsDebuggableFunctionKind(func)) {
+  if (!func.is_debuggable()) {
     return false;
   }
   if (Service::IsRunning()) {
@@ -2298,7 +2286,8 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
   Function& best_fit = Function::Handle(isolate_);
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
-    if ((function.token_pos() < closure.token_pos()) &&
+    if (closure.is_debuggable() &&
+        (function.token_pos() < closure.token_pos()) &&
         (closure.end_token_pos() < function.end_token_pos()) &&
         (closure.token_pos() <= token_pos) &&
         (token_pos <= closure.end_token_pos()) &&
@@ -2313,6 +2302,12 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
 void Debugger::NotifyCompilation(const Function& func) {
   if (src_breakpoints_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
+    return;
+  }
+  if (!func.is_debuggable()) {
+    // Nothing to do if the function is not debuggable. If there is
+    // a pending breakpoint in an inner function (that is debuggable),
+    // we'll resolve the breakpoint when the inner function is compiled.
     return;
   }
   // Iterate over all source breakpoints to check whether breakpoints

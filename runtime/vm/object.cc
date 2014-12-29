@@ -2669,6 +2669,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
     invocation.SetParameterNameAt(i, String::Handle(desc.NameAt(index)));
   }
   invocation.set_result_type(Type::Handle(Type::DynamicType()));
+  invocation.set_is_debuggable(false);
   invocation.set_is_visible(false);  // Not visible in stack trace.
   invocation.set_saved_args_desc(args_desc);
 
@@ -6197,6 +6198,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_external(is_external);
   result.set_is_native(is_native);
   result.set_is_visible(true);  // Will be computed later.
+  result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
   result.set_is_async_closure(false);
@@ -6222,7 +6224,6 @@ RawFunction* Function::New(const String& name,
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
   }
-
   return result.raw();
 }
 
@@ -6297,6 +6298,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     owner,
                     0));
   ASSERT(!script.IsNull());
+  result.set_is_debuggable(false);
   result.set_eval_script(script);
   return result.raw();
 }
