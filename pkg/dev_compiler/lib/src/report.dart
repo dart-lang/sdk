@@ -42,7 +42,7 @@ class LogReporter implements CheckerReporter {
   void enterLibrary(LibraryInfo info) {}
   void leaveLibrary() {}
 
-  void enterSource(Source source){
+  void enterSource(Source source) {
     _file = new SourceFile(source.contents.data, url: source.uri);
     _current = source;
   }
@@ -62,8 +62,8 @@ class LogReporter implements CheckerReporter {
   void logAnalyzerError(String message, Level level, int begin, int end) {
     var span = _file.span(begin, end);
     final color = useColors ? colorOf(level.name) : null;
-    _checkerLogger.log(level, span.message('[from analyzer]: ${message}',
-          color: color));
+    _checkerLogger.log(
+        level, span.message('[from analyzer]: ${message}', color: color));
   }
 }
 
@@ -111,10 +111,10 @@ class SummaryReporter implements CheckerReporter {
   }
 
   void log(StaticInfo info) {
-    assert (_file != null);
+    assert(_file != null);
     var span = _spanForNode(_file, info.node);
-    _currentLibrary.messages.add(new MessageSummary('${info.runtimeType}',
-        info.level.name.toLowerCase(), span));
+    _currentLibrary.messages.add(new MessageSummary(
+        '${info.runtimeType}', info.level.name.toLowerCase(), span));
   }
 
   void logAnalyzerError(String message, Level level, int begin, int end) {
@@ -213,10 +213,9 @@ class LibrarySummary implements Summary {
 
   void accept(SummaryVisitor visitor) => visitor.visitLibrary(this);
 
-  static LibrarySummary parse(Map json) =>
-      new LibrarySummary(json['library_name'],
-          json['messages'] .map(MessageSummary.parse).toList(),
-          json['lines']);
+  static LibrarySummary parse(Map json) => new LibrarySummary(
+      json['library_name'], json['messages'].map(MessageSummary.parse).toList(),
+      json['lines']);
 }
 
 /// A single message produced by the checker.
@@ -358,7 +357,7 @@ class _Table {
 
   /// Add a column with the given [name].
   void declareColumn(String name, {bool abbreviate: false}) {
-    assert (!_sealed);
+    assert(!_sealed);
     var headerName = name;
     if (abbreviate) {
       // abbreviate the header by using only the capital initials.
@@ -413,8 +412,8 @@ class _Table {
       for (int i = 0; i < _totalColumns; i++) {
         var entry = row[i];
         // Align first column to the left, everything else to the right.
-        sb.write(i == 0 ? entry.padRight(widths[i])
-            : entry.padLeft(widths[i] + 1));
+        sb.write(
+            i == 0 ? entry.padRight(widths[i]) : entry.padLeft(widths[i] + 1));
       }
       sb.write('\n');
     }

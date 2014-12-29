@@ -19,8 +19,8 @@ CheckerResults checkProgram(Uri fileUri, TypeResolver resolver,
   // Invoke the checker on the entry point.
   TypeProvider provider = resolver.context.typeProvider;
   var rules = new RestrictedRules(provider, reporter);
-  final visitor =
-      new ProgramChecker(resolver, rules, fileUri, checkSdk, reporter);
+  final visitor = new ProgramChecker(
+      resolver, rules, fileUri, checkSdk, reporter);
   visitor.check();
   return new CheckerResults(visitor.libraries, rules, visitor.failure);
 }
@@ -40,8 +40,8 @@ class ProgramChecker extends RecursiveAstVisitor {
       this._resolver, this._rules, this._root, this._checkSdk, this._reporter);
 
   void check() {
-    var startLibrary = _resolver.context
-        .computeLibraryElement(_resolver.findSource(_root));
+    var startLibrary =
+        _resolver.context.computeLibraryElement(_resolver.findSource(_root));
     for (var lib in reachableLibraries(startLibrary)) {
       if (!_checkSdk && lib.isInSdk) continue;
       _current = new LibraryInfo(lib);
@@ -71,8 +71,8 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   // Check that member declarations soundly override any parent declarations.
-  InvalidOverride findInvalidOverride(AstNode node, ExecutableElement element,
-      InterfaceType type) {
+  InvalidOverride findInvalidOverride(
+      AstNode node, ExecutableElement element, InterfaceType type) {
     // FIXME: This can be done a lot more efficiently.
     assert(!element.isStatic);
 
@@ -122,8 +122,8 @@ class ProgramChecker extends RecursiveAstVisitor {
         //   }
         if (isGetter && element.isSynthetic) {
           if ((node as FieldDeclaration).fields.type == null) {
-            return new InferableOverride(node, element, type,
-                subType.returnType, baseType.returnType);
+            return new InferableOverride(
+                node, element, type, subType.returnType, baseType.returnType);
           }
         } else if (node is MethodDeclaration &&
             (node as MethodDeclaration).returnType == null &&
@@ -131,8 +131,8 @@ class ProgramChecker extends RecursiveAstVisitor {
           // node is a MethodDeclaration whenever getters and setters are
           // declared explicitly. Setters declared from a field will have the
           // correct return type, so we don't need to check that separately.
-          return new InferableOverride(node, element, type,
-              subType.returnType, baseType.returnType);
+          return new InferableOverride(
+              node, element, type, subType.returnType, baseType.returnType);
         }
         return new InvalidMethodOverride(
             node, element, type, subType, baseType);

@@ -11,7 +11,8 @@ main() {
 
   test('conversion and dynamic invoke', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
       class A {
         String x = "hello world";
       }
@@ -31,7 +32,8 @@ main() {
 
   test('Unbound variable', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
       void main() {
          dynamic y = /*pass should be severe:StaticTypeError*/unboundVariable;
       }
@@ -41,7 +43,8 @@ main() {
 
   test('Unbound type name', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
       void main() {
          /*pass should be severe:StaticTypeError*/AToB y;
       }
@@ -51,7 +54,8 @@ main() {
 
   test('Ground type subtyping: dynamic is top', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -77,7 +81,8 @@ main() {
 
   test('Ground type subtyping: dynamic downcasts', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -103,7 +108,8 @@ main() {
 
   test('Ground type subtyping: assigning a class', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -130,7 +136,8 @@ main() {
 
   test('Ground type subtyping: assigning a subclass', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -160,7 +167,8 @@ main() {
 
   test('Ground type subtyping: interfaces', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -203,7 +211,8 @@ main() {
 
   test('Function typing and subtyping: int and object', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       typedef Object Top(int x);      // Top of the lattice
       typedef int Left(int x);        // Left branch
@@ -258,7 +267,8 @@ main() {
 
   test('Function typing and subtyping: classes', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -315,7 +325,8 @@ main() {
 
   test('Function typing and subtyping: dynamic', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
 
@@ -365,7 +376,8 @@ main() {
 
   test('Function typing and subtyping: function literal variance', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -413,7 +425,8 @@ main() {
 
   test('Function typing and subtyping: function variable variance', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -454,7 +467,8 @@ main() {
 
   test('Function typing and subtyping: higher order function literals', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -519,7 +533,8 @@ main() {
 
   test('Function typing and subtyping: higher order function variables', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -560,7 +575,8 @@ main() {
 
   test('Function typing and subtyping: named and optional parameters', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
 
@@ -681,7 +697,8 @@ main() {
 
   test('Generic subtyping: invariance', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -795,7 +812,8 @@ main() {
 
   test('Generic subtyping: covariant raw types', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
       class B extends A {}
@@ -932,7 +950,8 @@ main() {
 
   test('Generic subtyping: covariant raw types with multiple parameters', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
 
       class A {}
 
@@ -1027,7 +1046,8 @@ main() {
 
   test('redirecting constructor', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A {
             A(A x) {}
             A.two() : this(/*severe:StaticTypeError*/3);
@@ -1038,7 +1058,8 @@ main() {
 
   test('super constructor', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A { A(A x) {} }
           class B extends A {
             B() : super(/*severe:StaticTypeError*/3);
@@ -1049,7 +1070,8 @@ main() {
 
   test('field/field override', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1073,7 +1095,8 @@ main() {
 
   test('getter/getter override', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1097,7 +1120,8 @@ main() {
 
   test('field/getter override', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1121,7 +1145,8 @@ main() {
 
   test('setter/setter override', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1147,7 +1172,8 @@ main() {
 
   test('field/setter override', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1179,7 +1205,8 @@ main() {
 
   test('method override', () {
     testChecker({
-      '/main.dart': '''
+      '/main.dart':
+          '''
           class A {}
           class B extends A {}
           class C extends B {}

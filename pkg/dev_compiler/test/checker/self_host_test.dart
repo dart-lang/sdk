@@ -12,8 +12,8 @@ import 'package:unittest/unittest.dart';
 
 main() {
   useCompactVMConfiguration();
-  var realSdk = new TypeResolver(TypeResolver
-      .sdkResolverFromDir(dartSdkDirectory));
+  var realSdk = new TypeResolver(
+      TypeResolver.sdkResolverFromDir(dartSdkDirectory));
 
   var testDir = path.absolute(path.dirname(Platform.script.path));
 

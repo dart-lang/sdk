@@ -13,16 +13,15 @@ import 'package:analyzer/src/generated/source.dart';
 /// Attempts to provide the current Dart SDK directory.  Returns null if the SDK
 /// cannot be found.
 final String dartSdkDirectory = () {
-  bool isSdkDir(String dirname) =>
-      new File(path.join(dirname, 'lib', '_internal', 'libraries.dart'))
-      .existsSync();
+  bool isSdkDir(String dirname) => new File(
+      path.join(dirname, 'lib', '_internal', 'libraries.dart')).existsSync();
 
   String executable = Platform.executable;
   if (path.split(executable).length == 1) {
     // TODO(sigmund,blois): make this cross-platform.
     // HACK: A single part, hope it's on the path.
-    executable = Process
-        .runSync('which', ['dart'], stdoutEncoding: convert.UTF8).stdout.trim();
+    executable = Process.runSync('which', ['dart'],
+        stdoutEncoding: convert.UTF8).stdout.trim();
     // In case Dart is symlinked (e.g. homebrew on Mac) follow symbolic links.
     var link = new Link(executable);
     if (link.existsSync()) {
@@ -136,14 +135,14 @@ class _MockSdkSource implements Source {
 }
 
 /// Sample mock SDK sources.
-final Map<String, String> mockSdkSources =
-    {
+final Map<String, String> mockSdkSources = {
   // The list of types below is derived from:
   //   * types we use via our smoke queries, including HtmlElement and
   //     types from `_typeHandlers` (deserialize.dart)
   //   * types that are used internally by the resolver (see
   //   _initializeFrom in resolver.dart).
-  'dart:core': '''
+  'dart:core':
+      '''
         library dart.core;
 
         void print(Object o) {}
@@ -179,7 +178,8 @@ final Map<String, String> mockSdkSources =
         class List<V> extends Object {}
         class Map<K, V> extends Object {}
         ''',
-  'dart:html': '''
+  'dart:html':
+      '''
         library dart.html;
         class HtmlElement {}
         ''',

@@ -9,7 +9,8 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart' show Logger, Level;
 
 import 'package:ddc/devc.dart';
-import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory, mockSdkSources;
+import 'package:ddc/src/checker/dart_sdk.dart'
+    show dartSdkDirectory, mockSdkSources;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
@@ -17,14 +18,14 @@ final ArgParser argParser = new ArgParser()
       'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-  ..addFlag(
-      'dart-gen', abbr: 'd', help: 'Generate dart output', defaultsTo: false)
-  ..addFlag(
-      'dart-gen-fmt', help: 'Generate readable dart output', defaultsTo: true)
-  ..addFlag(
-      'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
-  ..addFlag('dump-info', abbr: 'i', help: 'Dump summary information',
-      defaultsTo: false)
+  ..addFlag('dart-gen',
+      abbr: 'd', help: 'Generate dart output', defaultsTo: false)
+  ..addFlag('dart-gen-fmt',
+      help: 'Generate readable dart output', defaultsTo: true)
+  ..addFlag('mock-sdk',
+      abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
+  ..addFlag('dump-info',
+      abbr: 'i', help: 'Dump summary information', defaultsTo: false)
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
   ..addFlag('help', abbr: 'h', help: 'Display this message');
 
@@ -68,9 +69,12 @@ void main(List<String> argv) {
       TypeResolver.sdkResolverFromDir(dartSdkPath));
 
   var filename = args.rest[0];
-  compile(filename, typeResolver, checkSdk: args['sdk-check'],
-      formatOutput: args['dart-gen-fmt'], outputDart: args['dart-gen'],
-      dumpInfo: args['dump-info'], outputDir: args['out'],
+  compile(filename, typeResolver,
+      checkSdk: args['sdk-check'],
+      formatOutput: args['dart-gen-fmt'],
+      outputDart: args['dart-gen'],
+      dumpInfo: args['dump-info'],
+      outputDir: args['out'],
       useColors: useColors).then((success) {
     exit(success ? 0 : 1);
   });

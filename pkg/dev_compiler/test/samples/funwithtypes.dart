@@ -54,11 +54,11 @@ void nsm1(B f()) {
 
 // If we assume that s is an S1, can we assume that s.field is an A? No.
 void doubleForInt0(S1 s) {
-  // Dynamic dispatch required.
-  // With global subclass info we can possibly know when we need to emit careful code
-  // here, but we certainly can't just generate a simple unconditional primitive operation
-  // (even ignoring nulls)
-  s.field.x + 1;
+      // Dynamic dispatch required.
+      // With global subclass info we can possibly know when we need to emit careful code
+      // here, but we certainly can't just generate a simple unconditional primitive operation
+      // (even ignoring nulls)
+      s.field.x + 1;
   if (s.field.x is double) {
     print("Oops, got double for int");
   }
@@ -67,11 +67,11 @@ void doubleForInt0(S1 s) {
 // Can we assume that f returns an int (or a subtype of an int)? No.
 // Can we assume that f returns an int (or subtype or a supertype of an int)? No.
 void doubleForInt1(int f()) {
-  // Dynamic dispatch required.
-  // Here, even with global subclass info we're still stuck - we can't really
-  // ever trust the return types on closures.  Note that int and double aren't
-  // even assignment compatible in this case.
-  f() + 1;
+      // Dynamic dispatch required.
+      // Here, even with global subclass info we're still stuck - we can't really
+      // ever trust the return types on closures.  Note that int and double aren't
+      // even assignment compatible in this case.
+      f() + 1;
   if (f() is double) {
     print("Oops, got double for int (extra badness)");
   }

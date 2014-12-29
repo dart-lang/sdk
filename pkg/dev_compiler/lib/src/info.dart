@@ -49,19 +49,19 @@ abstract class Coercion {
   static Coercion cast(DartType fromT, DartType toT) => new Cast(fromT, toT);
   static Coercion identity(DartType type) => new Identity(type);
   static Coercion error() => new CoercionError();
-  static Coercion wrapper(DartType fromType,
-                          List<Coercion> normalParameters,
-                          List<Coercion> optionalParameters,
-                          Map<String, Coercion> namedParameters,
-                          Coercion ret) {
-    { // If any sub coercion is error, return error
+  static Coercion wrapper(DartType fromType, List<Coercion> normalParameters,
+      List<Coercion> optionalParameters, Map<String, Coercion> namedParameters,
+      Coercion ret) {
+    {
+      // If any sub coercion is error, return error
       bool isError(Coercion c) => c is CoercionError;
       if (ret is CoercionError) return error();
       if (namedParameters.values.any(isError)) return error();
       if (normalParameters.any(isError)) return error();
       if (optionalParameters.any(isError)) return error();
     }
-    { // If all sub coercions are the identity, return identity
+    {
+      // If all sub coercions are the identity, return identity
       bool folder(bool id, Coercion c) => id && (c is Identity);
       bool id = (ret is CoercionError);
       id = namedParameters.values.fold(id, folder);
@@ -69,8 +69,8 @@ abstract class Coercion {
       id = optionalParameters.fold(id, folder);
       if (id) return identity(fromType);
     }
-    return new Wrapper(normalParameters, optionalParameters, namedParameters,
-                       ret);
+    return new Wrapper(
+        normalParameters, optionalParameters, namedParameters, ret);
   }
 }
 
@@ -100,8 +100,7 @@ class Wrapper extends Coercion {
   final List<Coercion> optionalParameters;
   final Coercion ret;
   Wrapper(this.normalParameters, this.optionalParameters, this.namedParameters,
-          this.ret)
-    : super();
+      this.ret) : super();
 }
 
 // The error coercion.  This coercion signals that a coercion
@@ -170,8 +169,8 @@ class DownCast extends Conversion {
   DownCast(TypeRules rules, Expression expression, this._cast)
       : super(rules, expression) {
     assert(_cast.toType != baseType &&
-           _cast.fromType == baseType &&
-           (baseType.isDynamic || rules.isSubTypeOf(_cast.toType, baseType)));
+        _cast.fromType == baseType &&
+        (baseType.isDynamic || rules.isSubTypeOf(_cast.toType, baseType)));
   }
 
   DartType _getConvertedType() => _cast.toType;
@@ -182,7 +181,7 @@ class DownCast extends Conversion {
   // Differentiate between Function down cast and non-Function down cast?  The
   // former seems less likely to actually succeed.
   Level get level =>
-    (_cast.toType is FunctionType) ? Level.WARNING : super.level;
+      (_cast.toType is FunctionType) ? Level.WARNING : super.level;
 
   accept(AstVisitor visitor) {
     if (visitor is ConversionVisitor) {
@@ -197,8 +196,8 @@ class ClosureWrap extends Conversion {
   FunctionType _wrappedType;
   Wrapper _wrapper;
 
-  ClosureWrap(TypeRules rules, Expression expression,
-              this._wrapper, this._wrappedType)
+  ClosureWrap(
+      TypeRules rules, Expression expression, this._wrapper, this._wrappedType)
       : super(rules, expression) {
     assert(baseType is FunctionType);
     assert(!rules.isSubTypeOf(baseType, _wrappedType));
@@ -302,8 +301,8 @@ class InvalidMethodOverride extends InvalidOverride {
 // inference, not something we detect in the checker.
 // TODO(sigmund): split and track field, getter, setter, method separately
 class InferableOverride extends InvalidOverride {
-  InferableOverride(AstNode node, ExecutableElement element,
-      InterfaceType base, DartType subType, DartType baseType)
+  InferableOverride(AstNode node, ExecutableElement element, InterfaceType base,
+      DartType subType, DartType baseType)
       : super(node, element, base, subType, baseType);
 
   Level get level => Level.WARNING;

@@ -9,7 +9,8 @@ import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources, dartSdkDirectory;
+import 'package:ddc/src/checker/dart_sdk.dart'
+    show mockSdkSources, dartSdkDirectory;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:ddc/src/utils.dart';
 import 'package:ddc/src/info.dart';
@@ -40,8 +41,8 @@ import 'package:ddc/src/checker/checker.dart';
 ///       '''
 ///     });
 ///
-CheckerResults testChecker(Map<String, String> testFiles,
-    {bool mockSdk: true, CheckerReporter reporter}) {
+CheckerResults testChecker(Map<String, String> testFiles, {bool mockSdk: true,
+    CheckerReporter reporter}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
@@ -61,8 +62,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
   var visitor = new _ErrorMarkerVisitor(expectedErrors);
-  var initialLibrary = resolver.context
-      .getLibraryElement(testUriResolver.files[mainFile]);
+  var initialLibrary =
+      resolver.context.getLibraryElement(testUriResolver.files[mainFile]);
   for (var lib in reachableLibraries(initialLibrary)) {
     for (var unit in lib.units) {
       unit.unit.accept(visitor);
@@ -173,7 +174,9 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
     // Use error marker found in an immediately preceding comment,
     // and attach it to the outermost expression that starts at that token.
     if (comment != null) {
-      while (comment.next != null) { comment = comment.next; }
+      while (comment.next != null) {
+        comment = comment.next;
+      }
       if (comment.end == token.offset &&
           _realParent(node).beginToken != token) {
         var commentText = '$comment';
@@ -210,12 +213,12 @@ class _ErrorExpectation {
     var name = tokens[0].toUpperCase();
     var typeName = tokens[1].toLowerCase();
 
-    var level = Level.LEVELS
-        .firstWhere((l) => l.name == name, orElse: () => null);
+    var level =
+        Level.LEVELS.firstWhere((l) => l.name == name, orElse: () => null);
     expect(level, isNotNull,
         reason: 'invalid level in error descriptor: `${tokens[0]}`');
-    var type = infoTypes
-        .firstWhere((t) => '$t'.toLowerCase() == typeName, orElse: () => null);
+    var type = infoTypes.firstWhere((t) => '$t'.toLowerCase() == typeName,
+        orElse: () => null);
     expect(type, isNotNull,
         reason: 'invalid type in error descriptor: ${tokens[1]}');
     return new _ErrorExpectation(level, type);

@@ -41,8 +41,8 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  var sdkResolver = new TypeResolver(TypeResolver
-      .sdkResolverFromDir(dartSdkDirectory));
+  var sdkResolver = new TypeResolver(
+      TypeResolver.sdkResolverFromDir(dartSdkDirectory));
 
   // Validate that old output is gone before running.
   // TODO(jmesserly): it'd be nice to do all cleanup here, including removing
@@ -55,12 +55,11 @@ main(arguments) {
   for (var filePath in paths) {
     var filename = path.basenameWithoutExtension(filePath);
 
-    test('ddc $filename.dart',
-        () {
+    test('ddc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      return compile(filePath, sdkResolver, outputDir: actualDir,
-          useColors: false).then((success) {
+      return compile(filePath, sdkResolver,
+          outputDir: actualDir, useColors: false).then((success) {
 
         // Write compiler messages to disk.
         new File(path.join(actualDir, '$filename.txt')).writeAsStringSync(

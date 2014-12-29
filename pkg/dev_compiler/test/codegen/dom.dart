@@ -76,8 +76,7 @@ abstract class CanvasRenderingContext2D
   // colors and styles (see also the CanvasDrawingStyles interface)
   Object strokeStyle; // (default black)
   Object fillStyle; // (default black)
-  CanvasGradient createLinearGradient(
-      num x0, num y0, num x1, num y1);
+  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1);
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1);
   CanvasPattern createPattern(Element image, [String repetition]);
@@ -107,14 +106,12 @@ abstract class CanvasRenderingContext2D
   TextMetrics measureText(String text);
 
   // drawing images
-  void drawImage(
-      Element image, num dx_or_sx, num dy_or_sy, [num dw_or_sw,
+  void drawImage(Element image, num dx_or_sx, num dy_or_sy, [num dw_or_sw,
       num dh_or_sh, num dx, num dy, num dw, num dh]);
   @overload void _drawImage_0(Element image, num dx, num dy);
-  @overload void _drawImage_1(
-      Element image, num dx, num dy, num dw, num dh);
-  @overload void _drawImage_2(Element image, num sx, num sy, num sw,
-      num sh, num dx, num dy, num dw, num dh);
+  @overload void _drawImage_1(Element image, num dx, num dy, num dw, num dh);
+  @overload void _drawImage_2(Element image, num sx, num sy, num sw, num sh,
+      num dx, num dy, num dw, num dh);
 
   // hit regions
   void addHitRegion({String id: '', Element control});
@@ -163,12 +160,11 @@ abstract class CanvasPathMethods {
   void moveTo(num x, num y);
   void lineTo(num x, num y);
   void quadraticCurveTo(num cpx, num cpy, num x, num y);
-  void bezierCurveTo(
-      num cp1x, num cp1y, num cp2x, num cp2y, num x, num y);
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y);
   void arcTo(num x1, num y1, num x2, num y2, num radius);
   void rect(num x, num y, num w, num h);
-  void arc(num x, num y, num radius, num startAngle,
-      num endAngle, [bool anticlockwise]);
+  void arc(num x, num y, num radius, num startAngle, num endAngle,
+      [bool anticlockwise]);
 }
 
 @JsType()

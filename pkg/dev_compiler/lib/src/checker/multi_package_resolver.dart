@@ -16,8 +16,8 @@ import 'package:analyzer/src/generated/source_io.dart';
 class MultiPackageResolver implements UriResolver {
   static List<String> searchPaths =
       // TODO(sigmund): make this a normal flag instead.
-      const String.fromEnvironment('package_paths', defaultValue: '')
-          .split(',');
+      const String.fromEnvironment('package_paths', defaultValue: '').split(
+          ',');
 
   @override
   Source resolveAbsolute(Uri uri) {

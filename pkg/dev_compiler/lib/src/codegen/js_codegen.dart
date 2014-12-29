@@ -5,7 +5,8 @@ import 'dart:async' show Future;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart' show StringToken, Token, TokenType;
+import 'package:analyzer/src/generated/scanner.dart'
+    show StringToken, Token, TokenType;
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/checker/rules.dart';
@@ -114,17 +115,16 @@ var _initializer = (function ($params) {
 
   Iterable<String> getFieldFormalParameters(ConstructorDeclaration ctor) =>
       ctor.parameters.parameters
-          .where((p) => p is FieldFormalParameter)
-          .map((FieldFormalParameter p) => p.identifier.name);
+      .where((p) => p is FieldFormalParameter)
+      .map((FieldFormalParameter p) => p.identifier.name);
 
   void generateConstructor(ConstructorDeclaration ctor, String name,
       List<String> initializedFields, bool needsInitializer) {
     var fieldParameters = ctor == null ? [] : getFieldFormalParameters(ctor);
 
-    var initializers = ctor == null ?
-        {} : new Map.fromIterable(ctor.initializers
-            .where((i) => i is ConstructorFieldInitializer), key: (i) =>
-            i.fieldName.name);
+    var initializers = ctor == null ? {} : new Map.fromIterable(
+        ctor.initializers.where((i) => i is ConstructorFieldInitializer),
+        key: (i) => i.fieldName.name);
 
     out.write("function $name(");
     if (ctor != null) ctor.parameters.accept(this);
@@ -153,8 +153,8 @@ var _initializer = (function ($params) {
     }
 
     if (ctor != null) {
-      var superCall = ctor.initializers.firstWhere((i) =>
-          i is SuperConstructorInvocation, orElse: () => null);
+      var superCall = ctor.initializers.firstWhere(
+          (i) => i is SuperConstructorInvocation, orElse: () => null);
       if (superCall != null) {
         var superName = superCall.constructorName;
         var args = superCall.argumentList.arguments.map((a) => a.toString());
@@ -190,8 +190,8 @@ var constructor = function $name() {
 
   void generateNamedConstructors(ClassDeclaration node,
       List<String> initializedFields, bool needsInitializer) {
-    var ctors = node.members
-        .where((m) => m is ConstructorDeclaration && m.name != null);
+    var ctors = node.members.where(
+        (m) => m is ConstructorDeclaration && m.name != null);
     for (var ctor in ctors) {
       var name = ctor.name.name;
       out.write("constructor.$name = ");
@@ -237,8 +237,8 @@ constructor.$name.prototype = constructor.prototype;
 // Class $name
 var $name = (function (_super) {
 """, 2);
-    var needsInitializer = node.members
-        .where((m) => m is FieldDeclaration).isNotEmpty;
+    var needsInitializer =
+        node.members.where((m) => m is FieldDeclaration).isNotEmpty;
     var initializedFields = getConstructorInitializedFields(node).toList();
     if (needsInitializer) {
       generateInitializer(node, initializedFields);
@@ -248,9 +248,8 @@ var $name = (function (_super) {
 
     generateProperties(node);
 
-    node.members
-        .where((m) => m is MethodDeclaration)
-        .forEach((m) => m.accept(this));
+    node.members.where((m) => m is MethodDeclaration).forEach(
+        (m) => m.accept(this));
 
     out.write("""
   return constructor;
@@ -295,12 +294,12 @@ var $name = (function (_super) {
           !member.isAbstract &&
           !member.isStatic) {
         if (member.isGetter) {
-          var property = properties
-              .putIfAbsent(member.name.name, () => new _Property());
+          var property =
+              properties.putIfAbsent(member.name.name, () => new _Property());
           property.getter = member;
         } else if (member.isSetter) {
-          var property = properties
-              .putIfAbsent(member.name.name, () => new _Property());
+          var property =
+              properties.putIfAbsent(member.name.name, () => new _Property());
           property.setter = member;
         }
       }
@@ -591,7 +590,6 @@ var $name = (function (_super) {
     return typeIsPrimitiveInJS(t);
   }
 
-
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
@@ -794,8 +792,8 @@ var $name = (function (_super) {
 
   String getLibraryId(LibraryElement element) {
     var libraryName = element.name;
-    return _builtins
-        .containsKey(libraryName) ? _builtins[libraryName] : libraryName;
+    return _builtins.containsKey(libraryName) ? _builtins[libraryName] :
+        libraryName;
   }
 
   void writeQualifiedName(Expression target, SimpleIdentifier id) {

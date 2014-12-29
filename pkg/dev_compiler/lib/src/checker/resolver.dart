@@ -22,8 +22,8 @@ import 'multi_package_resolver.dart';
 
 final _log = new logger.Logger('ddc.src.resolver');
 // TODO(sigmund): make into a proper flag
-const _useMultipackage = const bool.fromEnvironment(
-    'use_multi_package', defaultValue: false);
+const _useMultipackage = const bool.fromEnvironment('use_multi_package',
+    defaultValue: false);
 
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {
@@ -35,9 +35,8 @@ class TypeResolver {
     var resolvers = [sdkResolver];
     if (otherResolvers == null) {
       resolvers.add(new FileUriResolver());
-      resolvers.add(_useMultipackage
-          ? new MultiPackageResolver()
-          : new PackageUriResolver([new JavaFile('packages/')]));
+      resolvers.add(_useMultipackage ? new MultiPackageResolver() :
+          new PackageUriResolver([new JavaFile('packages/')]));
     } else {
       resolvers.addAll(otherResolvers);
     }
@@ -62,8 +61,8 @@ class TypeResolver {
         var isError = severity == ErrorSeverity.ERROR;
         if (isError) failure = true;
         var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-        reporter.logAnalyzerError(error.message,
-            level, error.offset, error.offset + error.length);
+        reporter.logAnalyzerError(
+            error.message, level, error.offset, error.offset + error.length);
       }
     }
     return failure;
@@ -99,9 +98,9 @@ InternalAnalysisContext _initContext() {
 /// and statements, and how types are computed on expressions.
 class RestrictedResolverVisitor extends ResolverVisitor {
   RestrictedResolverVisitor(
-      Library library, Source source, TypeProvider typeProvider)
-      : super.con1(library, source, typeProvider,
-          typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
+      Library library, Source source, TypeProvider typeProvider) : super.con1(
+              library, source, typeProvider,
+              typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
 
   static ResolverVisitor constructor(
       Library library, Source source, TypeProvider typeProvider) =>
@@ -119,7 +118,8 @@ class RestrictedResolverVisitor extends ResolverVisitor {
 class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
   final DartType _bottomType;
   RestrictedStaticTypeAnalyzer(ResolverVisitor r)
-      : _bottomType = r.typeProvider.bottomType, super(r);
+      : _bottomType = r.typeProvider.bottomType,
+        super(r);
 
   @override // to infer type from initializers
   Object visitVariableDeclaration(VariableDeclaration node) {

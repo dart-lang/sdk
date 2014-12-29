@@ -102,8 +102,8 @@ class RestrictedRules extends TypeRules {
   /// Check that f1 is a subtype of f2. [ignoreReturn] is used in the DDC
   /// checker to determine whether f1 would be a subtype of f2 if the return
   /// type of f1 is set to match f2's return type.
-  bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2,
-      {bool ignoreReturn: false}) {
+  bool isFunctionSubTypeOf(
+      FunctionType f1, FunctionType f2, {bool ignoreReturn: false}) {
     final r1s = f1.normalParameterTypes;
     final o1s = f1.optionalParameterTypes;
     final n1s = f1.namedParameterTypes;
@@ -198,7 +198,6 @@ class RestrictedRules extends TypeRules {
   }
 
   bool isSubTypeOf(DartType t1, DartType t2) {
-
     if (t1 == t2) return true;
 
     // Null can be assigned to anything else.
@@ -378,7 +377,7 @@ class RestrictedRules extends TypeRules {
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
     if (c is Cast) return new DownCast(this, expr, c);
     if (c is Wrapper) return new ClosureWrap(this, expr, c, toT);
-    assert (c is Identity);
+    assert(c is Identity);
     return null;
   }
 
