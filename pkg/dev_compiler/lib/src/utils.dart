@@ -4,13 +4,7 @@ library ddc.src.utils;
 import 'dart:async' show Future;
 import 'dart:io';
 
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:logging/logging.dart' as logger;
-import 'package:source_span/source_span.dart';
-
-import 'info.dart' show StaticInfo;
 
 /// Returns all libraries transitively imported or exported from [start].
 List<LibraryElement> reachableLibraries(LibraryElement start) {

@@ -1,7 +1,5 @@
-/// Tests for type inference.
-library ddc.test.inferred_type_test;
-
-import 'dart:convert';
+/// Tests for summary reporting.
+library ddc.test.report_test;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
