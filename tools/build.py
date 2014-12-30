@@ -202,11 +202,11 @@ def GetAndroidToolchainDir(host_os, target_arch):
   CheckDirExists(android_ndk_root, 'Android NDK')
 
   # Set up the directory of the Android NDK cross-compiler toolchain.
-  toolchain_arch = 'arm-linux-androideabi-4.6'
+  toolchain_arch = 'arm-linux-androideabi-4.9'
   if target_arch == 'arm64':
     toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
-    toolchain_arch = 'x86-4.6'
+    toolchain_arch = 'x86-4.9'
   toolchain_dir = 'linux-x86_64'
   android_toolchain = os.path.join(android_ndk_root,
       'toolchains', toolchain_arch,
