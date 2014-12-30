@@ -197,18 +197,13 @@ typedef _MainFunctionArgsMessage(args, message);
  */
 void _startMainIsolate(Function entryPoint,
                        List<String> args) {
-  RawReceivePort port = new RawReceivePort();
-  port.handler = (_) {
-    port.close();
-    _startIsolate(null,   // no parent port
-                  entryPoint,
-                  args,
-                  null,   // no message
-                  true,   // isSpawnUri
-                  null,   // no control port
-                  null);  // no capabilities
-  };
-  port.sendPort.send(null);
+  _startIsolate(null,   // no parent port
+                entryPoint,
+                args,
+                null,   // no message
+                true,   // isSpawnUri
+                null,   // no control port
+                null);  // no capabilities
 }
 
 /**
@@ -222,9 +217,11 @@ void _startIsolate(SendPort parentPort,
                    bool isSpawnUri,
                    RawReceivePort controlPort,
                    List capabilities) {
+  // The control port (aka the main isolate port) does not handle any messages.
   if (controlPort != null) {
     controlPort.handler = (_) {};  // Nobody home on the control port.
   }
+
   if (parentPort != null) {
     // Build a message to our parent isolate providing access to the
     // current isolate's control port and capabilities.
@@ -241,18 +238,27 @@ void _startIsolate(SendPort parentPort,
   }
   assert(capabilities == null);
 
-  if (isSpawnUri) {
-    if (entryPoint is _MainFunctionArgsMessage) {
-      entryPoint(args, message);
-    } else if (entryPoint is _MainFunctionArgs) {
-      entryPoint(args);
+  // Delay all user code handling to the next run of the message loop. This
+  // allows us to intercept certain conditions in the event dispatch, such as
+  // starting in paused state.
+  RawReceivePort port = new RawReceivePort();
+  port.handler = (_) {
+    port.close();
+
+    if (isSpawnUri) {
+      if (entryPoint is _MainFunctionArgsMessage) {
+        entryPoint(args, message);
+      } else if (entryPoint is _MainFunctionArgs) {
+        entryPoint(args);
+      } else {
+        entryPoint();
+      }
     } else {
-      entryPoint();
+      entryPoint(message);
     }
-  } else {
-    entryPoint(message);
-  }
-  _runPendingImmediateCallback();
+  };
+  // Make sure the message handler is triggered.
+  port.sendPort.send(null);
 }
 
 patch class Isolate {
@@ -267,7 +273,7 @@ patch class Isolate {
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
-      _spawnFunction(readyPort.sendPort, entryPoint, message);
+      _spawnFunction(readyPort.sendPort, entryPoint, message, paused);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         readyPort.close();
@@ -298,8 +304,8 @@ patch class Isolate {
       readyPort = new RawReceivePort();
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();
-      _spawnUri(
-          readyPort.sendPort, uri.toString(), args, message, packageRootString);
+      _spawnUri(readyPort.sendPort, uri.toString(), args, message,
+                paused, packageRootString);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         readyPort.close();
@@ -331,12 +337,12 @@ patch class Isolate {
 
 
   static SendPort _spawnFunction(SendPort readyPort, Function topLevelFunction,
-                                 var message)
+                                 var message, bool paused)
       native "Isolate_spawnFunction";
 
   static SendPort _spawnUri(SendPort readyPort, String uri,
                             List<String> args, var message,
-                            String packageRoot)
+                            bool paused, String packageRoot)
       native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";
