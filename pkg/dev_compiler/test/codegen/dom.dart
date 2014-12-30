@@ -106,8 +106,8 @@ abstract class CanvasRenderingContext2D
   TextMetrics measureText(String text);
 
   // drawing images
-  void drawImage(Element image, num dx_or_sx, num dy_or_sy, [num dw_or_sw,
-      num dh_or_sh, num dx, num dy, num dw, num dh]);
+  void drawImage(Element image, num dx_or_sx, num dy_or_sy,
+      [num dw_or_sw, num dh_or_sh, num dx, num dy, num dw, num dh]);
   @overload void _drawImage_0(Element image, num dx, num dy);
   @overload void _drawImage_1(Element image, num dx, num dy, num dw, num dh);
   @overload void _drawImage_2(Element image, num sx, num sy, num sw, num sh,
@@ -124,8 +124,8 @@ abstract class CanvasRenderingContext2D
   @overload ImageData _createImageData_1(ImageData imagedata);
 
   ImageData getImageData(num sx, num sy, num sw, num sh);
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX,
-      num dirtyY, num dirtyWidth, num dirtyHeight]);
+  void putImageData(ImageData imagedata, num dx, num dy,
+      [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
   @overload void _putImageData_0(ImageData imagedata, num dx, num dy,
       num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight);
   @overload void _putImageData_1(ImageData imagedata, num dx, num dy);

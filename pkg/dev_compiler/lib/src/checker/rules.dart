@@ -102,8 +102,8 @@ class RestrictedRules extends TypeRules {
   /// Check that f1 is a subtype of f2. [ignoreReturn] is used in the DDC
   /// checker to determine whether f1 would be a subtype of f2 if the return
   /// type of f1 is set to match f2's return type.
-  bool isFunctionSubTypeOf(
-      FunctionType f1, FunctionType f2, {bool ignoreReturn: false}) {
+  bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2,
+      {bool ignoreReturn: false}) {
     final r1s = f1.normalParameterTypes;
     final o1s = f1.optionalParameterTypes;
     final n1s = f1.namedParameterTypes;

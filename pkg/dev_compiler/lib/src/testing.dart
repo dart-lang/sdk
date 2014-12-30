@@ -41,8 +41,8 @@ import 'package:ddc/src/checker/checker.dart';
 ///       '''
 ///     });
 ///
-CheckerResults testChecker(Map<String, String> testFiles, {bool mockSdk: true,
-    CheckerReporter reporter}) {
+CheckerResults testChecker(Map<String, String> testFiles,
+    {bool mockSdk: true, CheckerReporter reporter}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 

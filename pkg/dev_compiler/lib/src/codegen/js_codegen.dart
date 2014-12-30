@@ -821,8 +821,8 @@ var $name = (function (_super) {
   }
 
   /// Print a list of nodes, with an optional prefix, suffix, and separator.
-  void _visitNodeList(NodeList<AstNode> nodes, {String prefix: '',
-      String suffix: '', String separator: ''}) {
+  void _visitNodeList(NodeList<AstNode> nodes,
+      {String prefix: '', String suffix: '', String separator: ''}) {
     if (nodes == null) return;
 
     int size = nodes.length;

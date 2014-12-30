@@ -13,8 +13,9 @@ import 'resolver.dart';
 import 'rules.dart';
 
 /// Runs the program checker using the restricted type rules on [fileUri].
-CheckerResults checkProgram(Uri fileUri, TypeResolver resolver,
-    CheckerReporter reporter, {bool checkSdk: false, bool useColors: true}) {
+CheckerResults checkProgram(
+    Uri fileUri, TypeResolver resolver, CheckerReporter reporter,
+    {bool checkSdk: false, bool useColors: true}) {
 
   // Invoke the checker on the entry point.
   TypeProvider provider = resolver.context.typeProvider;
