@@ -25,11 +25,9 @@ import 'package:analyzer/src/generated/scanner.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 
 
-/**
- * This flag is used in tests to check behavior when an exception happens
- * inside a refactoring.
- */
-bool test_simulateRefactoringException = false;
+bool test_simulateRefactoringException_change = false;
+bool test_simulateRefactoringException_final = false;
+bool test_simulateRefactoringException_init = false;
 
 
 /**
@@ -259,41 +257,51 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(request);
-    _init(params.kind, params.file, params.offset, params.length).then((_) {
-      if (initStatus.hasFatalError) {
-        feedback = null;
-        return _sendResultResponse();
-      }
-      // set options
-      if (_requiresOptions) {
-        if (params.options == null) {
-          optionsStatus = new RefactoringStatus();
+    runZoned(() {
+      _init(params.kind, params.file, params.offset, params.length).then((_) {
+        if (initStatus.hasFatalError) {
+          feedback = null;
           return _sendResultResponse();
         }
-        optionsStatus = _setOptions(params);
-        if (_hasFatalError) {
+        // set options
+        if (_requiresOptions) {
+          if (params.options == null) {
+            optionsStatus = new RefactoringStatus();
+            return _sendResultResponse();
+          }
+          optionsStatus = _setOptions(params);
+          if (_hasFatalError) {
+            return _sendResultResponse();
+          }
+        }
+        // done if just validation
+        if (params.validateOnly) {
+          finalStatus = new RefactoringStatus();
           return _sendResultResponse();
         }
-      }
-      // done if just validation
-      if (params.validateOnly) {
-        finalStatus = new RefactoringStatus();
-        return _sendResultResponse();
-      }
-      // validation and create change
-      refactoring.checkFinalConditions().then((_finalStatus) {
-        finalStatus = _finalStatus;
-        if (_hasFatalError) {
-          return _sendResultResponse();
+        // simulate an exception
+        if (test_simulateRefactoringException_final) {
+          throw 'A simulated refactoring exception - final.';
         }
-        // create change
-        return refactoring.createChange().then((change) {
-          result.change = change;
-          result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
-          return _sendResultResponse();
+        // validation and create change
+        return refactoring.checkFinalConditions().then((_finalStatus) {
+          finalStatus = _finalStatus;
+          if (_hasFatalError) {
+            return _sendResultResponse();
+          }
+          // simulate an exception
+          if (test_simulateRefactoringException_change) {
+            throw 'A simulated refactoring exception - change.';
+          }
+          // create change
+          return refactoring.createChange().then((change) {
+            result.change = change;
+            result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
+            return _sendResultResponse();
+          });
         });
       });
-    }).catchError((exception, stackTrace) {
+    }, onError: (exception, stackTrace) {
       server.instrumentationService.logException(exception, stackTrace);
       server.sendResponse(
           new Response.serverError(request, exception, stackTrace));
@@ -320,8 +328,8 @@ class _RefactoringManager {
     this.offset = offset;
     this.length = length;
     // simulate an exception
-    if (test_simulateRefactoringException) {
-      throw 'A simulated refactoring exception.';
+    if (test_simulateRefactoringException_init) {
+      throw 'A simulated refactoring exception - init.';
     }
     // create a new Refactoring instance
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
