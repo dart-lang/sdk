@@ -23,6 +23,7 @@ import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
 import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
+import 'io/code_output.dart' as io;
 import 'js/js.dart' as js;
 import 'js_emitter/js_emitter.dart' as js_emitter;
 import 'source_file_provider.dart' as source_file_provider;
@@ -190,8 +191,9 @@ useSsa(ssa.HInstruction instruction) {
   new ssa.HStatementSequenceInformation(null);
 }
 
-useCodeBuffer(dart2jslib.CodeBuffer buffer) {
+useCodeBuffer(io.CodeBuffer buffer) {
   buffer.writeln();
+  new io.LineColumnCodeOutput(null);
 }
 
 usedByTests() {

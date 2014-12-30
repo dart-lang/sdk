@@ -7,11 +7,20 @@ library source_file;
 import 'dart:math';
 import 'dart:convert' show UTF8;
 
+/// Interface for providing line/column information.
+abstract class LineColumnProvider {
+  /// Returns the line number (0-based) for [offset].
+  int getLine(int offset);
+
+  /// Returns the column number (0-based) for [offset] at the given [line].
+  int getColumn(int line, int offset);
+}
+
 /**
  * Represents a file of source code. The content can be either a [String] or
  * a UTF-8 encoded [List<int>] of bytes.
  */
-abstract class SourceFile {
+abstract class SourceFile implements LineColumnProvider {
 
   /** The name of the file. */
   String get filename;

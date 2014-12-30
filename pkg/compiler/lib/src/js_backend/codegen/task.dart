@@ -22,7 +22,7 @@ import '../../scanner/scannerlib.dart' as scanner;
 import '../../elements/elements.dart';
 import '../../closure.dart';
 import '../../js/js.dart' as js;
-import '../../source_map_builder.dart';
+import '../../io/source_map_builder.dart';
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../dart_backend/backend_ast_emitter.dart' as backend_ast_emitter;
 import '../../cps_ir/optimizers.dart';

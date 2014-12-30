@@ -470,13 +470,13 @@ class NativeEmitter {
           [ defPropFunction,
             new jsAst.ObjectInitializer(objectProperties)]);
 
-      if (emitterTask.compiler.enableMinification) targetBuffer.add(';');
-      targetBuffer.add(jsAst.prettyPrint(
+      if (emitterTask.compiler.enableMinification) targetBuffer.write(';');
+      targetBuffer.write(jsAst.prettyPrint(
           new jsAst.ExpressionStatement(init), compiler));
-      targetBuffer.add('\n');
+      targetBuffer.write('\n');
     }
 
-    targetBuffer.add(nativeBuffer);
-    targetBuffer.add('\n');
+    targetBuffer.write(nativeBuffer);
+    targetBuffer.write('\n');
   }
 }

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source_map_builder;
+library dart2js.source_map_builder;
 
-import 'util/util.dart';
-import 'scanner/scannerlib.dart' show Token;
-import 'source_file.dart';
-import 'util/uri_extras.dart' show relativize;
+import '../util/util.dart';
+import '../scanner/scannerlib.dart' show Token;
+import '../source_file.dart';
+import '../util/uri_extras.dart' show relativize;
 
 class SourceMapBuilder {
   static const int VLQ_BASE_SHIFT = 5;

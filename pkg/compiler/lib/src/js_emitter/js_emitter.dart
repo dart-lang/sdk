@@ -18,7 +18,7 @@ import '../closure.dart' show
 import '../dart_types.dart' show
     TypedefType;
 
-import '../dart2jslib.dart' show
+import '../io/code_output.dart' show
     CodeBuffer;
 
 import '../elements/elements.dart' show
@@ -58,7 +58,7 @@ import '../source_file.dart' show
     SourceFile,
     StringSourceFile;
 
-import '../source_map_builder.dart' show
+import '../io/source_map_builder.dart' show
     SourceMapBuilder;
 
 import '../util/characters.dart' show

@@ -542,7 +542,7 @@ class Blob extends Expression {
   // TODO(ahe): This class is an aid to convert everything to ASTs, remove when
   // not needed anymore.
 
-  final leg.CodeBuffer buffer;
+  final CodeBuffer buffer;
 
   Blob(this.buffer);
 

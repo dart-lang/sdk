@@ -1156,7 +1156,7 @@ class OldEmitter implements Emitter {
       buffer.write('$N');
     }
     if (compiler.hasIncrementalSupport && isMainBuffer) {
-      mainBuffer.add(cachedEmittedConstantsBuffer);
+      mainBuffer.write(cachedEmittedConstantsBuffer);
     }
   }
 
@@ -1378,8 +1378,8 @@ class OldEmitter implements Emitter {
         return properties;
       }''', [debugCode]);
 
-    mainBuffer.add(jsAst.prettyPrint(convertToFastObject, compiler));
-    mainBuffer.add(N);
+    mainBuffer.write(jsAst.prettyPrint(convertToFastObject, compiler));
+    mainBuffer.write(N);
   }
 
   void writeLibraryDescriptors(CodeBuffer buffer, LibraryElement library) {
@@ -1598,7 +1598,7 @@ class OldEmitter implements Emitter {
     bool isProgramSplit = compiler.deferredLoadTask.isProgramSplit;
     OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
 
-    mainBuffer.add(buildGeneratedBy());
+    mainBuffer.write(buildGeneratedBy());
     addComment(HOOKS_API_USAGE, mainBuffer);
 
     if (isProgramSplit) {
@@ -1606,16 +1606,16 @@ class OldEmitter implements Emitter {
       /// variable. The deferred hunks will add their initialization to this.
       /// The semicolon is important in minified mode, without it the
       /// following parenthesis looks like a call to the object literal.
-      mainBuffer..add(
+      mainBuffer..write(
           'self.${deferredInitializers} = self.${deferredInitializers} || '
           'Object.create(null);$n');
     }
 
     // Using a named function here produces easier to read stack traces in
     // Chrome/V8.
-    mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
+    mainBuffer.write('(function(${namer.currentIsolate})$_{\n');
     if (compiler.hasIncrementalSupport) {
-      mainBuffer.add(jsAst.prettyPrint(js.statement(
+      mainBuffer.write(jsAst.prettyPrint(js.statement(
           """
 {
   #helper = #helper || Object.create(null);
@@ -1635,9 +1635,9 @@ class OldEmitter implements Emitter {
     if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
       /// initializer of deferred files.
-      mainBuffer.add('var ${globalsHolder}$_=${_}Object.create(null)$N');
+      mainBuffer.write('var ${globalsHolder}$_=${_}Object.create(null)$N');
     }
-    mainBuffer.add('function dart()$_{$n'
+    mainBuffer.write('function dart()$_{$n'
         '${_}${_}this.x$_=${_}0$N'
         '${_}${_}delete this.x$N'
         '}$n');
@@ -1649,20 +1649,20 @@ class OldEmitter implements Emitter {
       // [emitConvertToFastObjectFunction]).
       mainBuffer.write('var ${globalObject}$_=${_}');
       if(isProgramSplit) {
-        mainBuffer.add('${globalsHolder}.$globalObject$_=${_}');
+        mainBuffer.write('${globalsHolder}.$globalObject$_=${_}');
       }
       mainBuffer.write('new dart$N');
     }
 
-    mainBuffer.add('function ${namer.isolateName}()$_{}\n');
+    mainBuffer.write('function ${namer.isolateName}()$_{}\n');
     if (isProgramSplit) {
       mainBuffer
         .write('${globalsHolder}.${namer.isolateName}$_=$_'
                '${namer.isolateName}$N'
                '${globalsHolder}.$initName$_=${_}$initName$N');
     }
-    mainBuffer.add('init()$N$n');
-    mainBuffer.add('$isolateProperties$_=$_$isolatePropertiesName$N');
+    mainBuffer.write('init()$N$n');
+    mainBuffer.write('$isolateProperties$_=$_$isolatePropertiesName$N');
 
     emitStaticFunctions(task.outputStaticLists[mainOutputUnit]);
 
@@ -1674,7 +1674,7 @@ class OldEmitter implements Emitter {
           typedefsNeededForReflection.isEmpty)) {
       // Shorten the code by using "$$" as temporary.
       classesCollector = r"$$";
-      mainBuffer.add('var $classesCollector$_=${_}Object.create(null)$N$n');
+      mainBuffer.write('var $classesCollector$_=${_}Object.create(null)$N$n');
     }
 
     List<ClassElement> classes = task.outputClassLists[mainOutputUnit];
@@ -1712,7 +1712,7 @@ class OldEmitter implements Emitter {
                   compiler))
           ..write(')')
           ..write('([$n')
-          ..add(libraryBuffer)
+          ..write(libraryBuffer)
           ..write('])$N');
 
       emitFinishClassesInvocationIfNecessary(mainBuffer);
@@ -1741,25 +1741,25 @@ class OldEmitter implements Emitter {
     emitLazilyInitializedStaticFields(mainBuffer);
 
     mainBuffer.writeln();
-    mainBuffer.add(nativeBuffer);
+    mainBuffer.write(nativeBuffer);
 
     metadataEmitter.emitMetadata(mainBuffer);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the
     // initialStatics.
-    mainBuffer.add('${namer.currentIsolate}$_=${_}null$N');
+    mainBuffer.write('${namer.currentIsolate}$_=${_}null$N');
 
     emitFinishIsolateConstructorInvocation(mainBuffer);
-    mainBuffer.add(
+    mainBuffer.write(
         '${namer.currentIsolate}$_=${_}new ${namer.isolateName}()$N');
 
     emitConvertToFastObjectFunction();
     for (String globalObject in Namer.reservedGlobalObjectNames) {
-      mainBuffer.add('$globalObject = convertToFastObject($globalObject)$N');
+      mainBuffer.write('$globalObject = convertToFastObject($globalObject)$N');
     }
     if (DEBUG_FAST_OBJECTS) {
-      mainBuffer.add(r'''
+      mainBuffer.write(r'''
           // The following only works on V8 when run with option
           // "--allow-natives-syntax".  We use'new Function' because the
           // miniparser does not understand V8 native syntax.
@@ -1778,17 +1778,17 @@ class OldEmitter implements Emitter {
             print("Size of isolate properties object: "
                    + String(Object.getOwnPropertyNames($).length)
                    + ", fast properties " + HasFastProperties($));
-           print("Size of constant object: "
+            print("Size of constant object: "
                    + String(Object.getOwnPropertyNames(C).length)
                    + ", fast properties " + HasFastProperties(C));
-           var names = Object.getOwnPropertyNames($);
-           for (var i = 0; i < names.length; i++) {
-             print("$." + names[i]);
-           }
-         }
+            var names = Object.getOwnPropertyNames($);
+            for (var i = 0; i < names.length; i++) {
+              print("$." + names[i]);
+            }
+          }
 ''');
       for (String object in Namer.userGlobalObjects) {
-      mainBuffer.add('''
+      mainBuffer.write('''
         if (typeof print === "function") {
            print("Size of $object: "
                  + String(Object.getOwnPropertyNames($object).length)
@@ -1802,7 +1802,7 @@ class OldEmitter implements Emitter {
         buildCspPrecompiledFunctionFor(mainOutputUnit);
     emitInitFunction(mainBuffer);
     emitMain(mainBuffer);
-    mainBuffer.add('})()\n');
+    mainBuffer.write('})()\n');
 
     if (compiler.useContentSecurityPolicy) {
       mainBuffer.write(
@@ -1817,7 +1817,7 @@ class OldEmitter implements Emitter {
     if (generateSourceMap) {
       outputSourceMap(assembledCode, mainBuffer, '',
           compiler.sourceMapUri, compiler.outputUri);
-      mainBuffer.add(
+      mainBuffer.write(
           generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri));
       assembledCode = mainBuffer.getText();
     }
@@ -2209,8 +2209,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // variable.
       String hash = hashOfString(outputBuffer.getText());
 
-      outputBuffer.add('${deferredInitializers}["$hash"]$_=$_'
-                       '${deferredInitializers}.current$N');
+      outputBuffer.write('${deferredInitializers}["$hash"]$_=$_'
+                         '${deferredInitializers}.current$N');
 
       String partPrefix = deferredPartFileName(outputUnit, addExtension: false);
       if (generateSourceMap) {
@@ -2236,7 +2236,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
         outputSourceMap(outputBuffer.getText(), outputBuffer, partName,
             mapUri, partUri);
-        outputBuffer.add(generateSourceMapTag(mapUri, partUri));
+        outputBuffer.write(generateSourceMapTag(mapUri, partUri));
       }
 
       outputBuffers[outputUnit] = outputBuffer;
