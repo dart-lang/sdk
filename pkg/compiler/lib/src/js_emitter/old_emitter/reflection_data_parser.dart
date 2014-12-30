@@ -23,12 +23,9 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
 
   String metadataField = '"${namer.metadataField}"';
   String reflectableField = namer.reflectableField;
-
-  // TODO(ahe): Move this string constants to namer.
-  String reflectionInfoField = r'$reflectionInfo';
-  String reflectionNameField = r'$reflectionName';
-  String metadataIndexField = r'$metadataIndex';
-
+  String reflectionInfoField = namer.reflectionInfoField;
+  String reflectionNameField = namer.reflectionNameField;
+  String metadataIndexField = namer.metadataIndexField;
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
@@ -188,20 +185,20 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       descriptor[name].\$getter = f;
       f.\$getterStub = true;
       // Used to create an isolate using spawnFunction.
-      if (isStatic) #[name] = f;  // embedded globalFunctions.
+      if (isStatic) #globalFunctions[name] = f;
       originalDescriptor[getterStubName] = descriptor[getterStubName] = f;
       funcs.push(f);
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
-      if (isIntercepted) #[getterStubName] = true; // embedded interceptedNames.
+      if (isIntercepted) #interceptedNames[getterStubName] = true;
     }
     if (isReflectable) {
       for (var i = 0; i < funcs.length; i++) {
         funcs[i].$reflectableField = 1;
         funcs[i].$reflectionInfoField = array;
       }
-      var mangledNames = isStatic ? # : #;  // embedded mangledGlobalNames, mangledNames
+      var mangledNames = isStatic ? #mangledGlobalNames : #mangledNames;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
       // The function is either a getter, a setter, or a method.
       // If it is a method, it might also have a tear-off closure.
@@ -220,8 +217,10 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
     }
   }
-''', [globalFunctionsAccess, interceptedNamesAccess,
-      mangledGlobalNamesAccess, mangledNamesAccess]);
+''', {'globalFunctions' : globalFunctionsAccess,
+      'interceptedNames': interceptedNamesAccess,
+      'mangledGlobalNames': mangledGlobalNamesAccess,
+      'mangledNames': mangledNamesAccess});
 
   List<jsAst.Statement> tearOffCode = buildTearOffCode(backend);
 
@@ -378,12 +377,12 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
       var cache;
       return isStatic
           ? function() {
-              if (cache === void 0) cache = #(
+              if (cache === void 0) cache = #tearOff(
                   this, funcs, reflectionInfo, true, [], name).prototype;
               return cache;
             }
           : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
-    }''', tearOffAccessExpression);
+    }''',  {'tearOff': tearOffAccessExpression});
 
   return <jsAst.Statement>[tearOffGetter, tearOff];
 }

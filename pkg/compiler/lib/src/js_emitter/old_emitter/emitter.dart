@@ -457,15 +457,15 @@ class OldEmitter implements Emitter {
 
     return js('''
         (function(){
-         # = Object.create(null);  // embedded allClasses.
-         # = Object.create(null);  // embedded interceptorsByTag.
-         # = Object.create(null);  // embedded leafTags.
-         # = Object.create(null);  // embedded finishedClasses
+         #allClasses = Object.create(null);
+         #interceptorsByTag = Object.create(null);
+         #leafTags = Object.create(null);
+         #finishedClasses = Object.create(null);
         })()
-      ''', [allClassesAccess,
-            interceptorsByTagAccess,
-            leafTagsAccess,
-            finishedClassesAccess]);
+      ''', {'allClasses': allClassesAccess,
+            'interceptorsByTag': interceptorsByTagAccess,
+            'leafTags': leafTagsAccess,
+            'finishedClasses': finishedClassesAccess});
   }
 
   jsAst.Fun get finishClassesFunction {
@@ -591,10 +591,6 @@ class OldEmitter implements Emitter {
               'trivialNsmHandlers': nsmEmitter.buildTrivialNsmHandlers(),
               'inCspMode': compiler.useContentSecurityPolicy,
               'notInCspMode': !compiler.useContentSecurityPolicy});
-  }
-
-  jsAst.Node optional(bool condition, jsAst.Node node) {
-    return condition ? node : new jsAst.EmptyStatement();
   }
 
   jsAst.Statement buildFinishClass() {
@@ -786,8 +782,8 @@ class OldEmitter implements Emitter {
 
     return js('''
       function (prototype, staticName, fieldName, getterName, lazyValue) {
-        if (!#) # = Object.create(null);
-        #[fieldName] = getterName;
+        if (!#lazies) #lazies = Object.create(null);
+        #lazies[fieldName] = getterName;
 
         var sentinelUndefined = {};
         var sentinelInProgress = {};
@@ -809,7 +805,7 @@ class OldEmitter implements Emitter {
               }
             } else {
               if (result === sentinelInProgress)
-                #(staticName);
+                #cyclicThrow(staticName);
             }
 
             return result;
@@ -818,9 +814,7 @@ class OldEmitter implements Emitter {
           }
         }
       }
-    ''', [laziesAccess, laziesAccess,
-          laziesAccess,
-          cyclicThrow]);
+    ''', {'lazies': laziesAccess, 'cyclicThrow': cyclicThrow});
   }
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
@@ -1225,8 +1219,8 @@ class OldEmitter implements Emitter {
           return Object.keys(convertToFastObject(o))[0];
         }
 
-        # = function(name) {  // embedded getIsolateTag
-          return intern("___dart_" + name + #);  // embedded isolateTag
+        #getIsolateTag = function(name) {
+          return intern("___dart_" + name + #isolateTag);
         };
 
         // To ensure that different programs loaded into the same context (page)
@@ -1241,14 +1235,13 @@ class OldEmitter implements Emitter {
           var property = intern(rootProperty + "_" + i + "_");
           if (!(property in usedProperties)) {
             usedProperties[property] = 1;
-            # = property;  // embedded isolateTag
+            #isolateTag = property;
             break;
           }
         }
       }()
-    ''', [getIsolateTagAccess,
-          isolateTagAccess,
-          isolateTagAccess]);
+    ''',
+    {'getIsolateTag': getIsolateTagAccess, 'isolateTag': isolateTagAccess});
   }
 
   jsAst.Expression generateDispatchPropertyNameInitialization() {
@@ -1326,16 +1319,15 @@ class OldEmitter implements Emitter {
     scripts[i].addEventListener("load", onLoad, false);
   }
 })(function(currentScript) {
-  # = currentScript;  // embedded currentScript.
+  #currentScript = currentScript;
 
   if (typeof dartMainRunner === "function") {
-    dartMainRunner(#, []);  // mainCallClosure.
+    dartMainRunner(#mainCallClosure, []);
   } else {
-    #([]);  // mainCallClosure.
+    #mainCallClosure([]);
   }
-})$N''', [currentScriptAccess,
-          mainCallClosure,
-          mainCallClosure]);
+})''', {'currentScript': currentScriptAccess,
+        'mainCallClosure': mainCallClosure});
 
     buffer.write(';');
     buffer.write(jsAst.prettyPrint(invokeMain,
@@ -1683,10 +1675,6 @@ class OldEmitter implements Emitter {
       // Shorten the code by using "$$" as temporary.
       classesCollector = r"$$";
       mainBuffer.add('var $classesCollector$_=${_}Object.create(null)$N$n');
-    }
-
-    if (!nativeClasses.isEmpty) {
-      addComment('Native classes', mainBuffer);
     }
 
     List<ClassElement> classes = task.outputClassLists[mainOutputUnit];
