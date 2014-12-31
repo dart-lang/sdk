@@ -1211,9 +1211,9 @@ class PoorMansIncrementalResolver {
           _updateDelta = newUnit.length - oldUnit.length;
           // A Dart documentation comment change.
           if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
-            _resolveComment(oldUnit, newUnit, firstPair);
-            logger.log('Success.');
-            return true;
+            bool success = _resolveComment(oldUnit, newUnit, firstPair);
+            logger.log('Documentation comment resolved: $success');
+            return success;
           }
           // A pure whitespace change.
           if (firstPair.kind == _TokenDifferenceKind.OFFSET) {
@@ -1332,11 +1332,21 @@ class PoorMansIncrementalResolver {
     }
   }
 
-  void _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
+  /**
+   * Attempts to resolve a documentation comment change.
+   * Returns `true` if success.
+   */
+  bool _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
       _TokenPair firstPair) {
     Token oldToken = firstPair.oldToken;
-    CommentToken precedingComments = oldToken.precedingComments;
-    int offset = precedingComments.offset;
+    Token newToken = firstPair.newToken;
+    CommentToken oldComments = oldToken.precedingComments;
+    CommentToken newComments = newToken.precedingComments;
+    if (oldComments == null || newComments == null) {
+      return false;
+    }
+    // find nodes
+    int offset = oldComments.offset;
     logger.log('offset: $offset');
     Comment oldComment = _findNodeCovering(oldUnit, offset, offset);
     Comment newComment = _findNodeCovering(newUnit, offset, offset);
@@ -1358,6 +1368,8 @@ class PoorMansIncrementalResolver {
     _updateEntry();
     // resolve references in the comment
     incrementalResolver._resolveReferences(newComment);
+    // OK
+    return true;
   }
 
   Token _scan(String code) {
