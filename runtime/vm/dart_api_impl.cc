@@ -1452,6 +1452,9 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   iso->ScheduleInterrupts(Isolate::kApiInterrupt);
+  // Can't use Dart_Post() since there isn't a current isolate.
+  const Dart_CObject api_null = { Dart_CObject_kNull , { 0 } };
+  Dart_PostCObject(iso->main_port(), &api_null);
 }
 
 
