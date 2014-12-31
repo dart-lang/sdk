@@ -5091,10 +5091,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (librarySources.length != 1) {
       return false;
     }
-    // do resolution
+    // prepare the existing unit
     Source librarySource = librarySources[0];
     CompilationUnit oldUnit =
         getResolvedCompilationUnit2(unitSource, librarySource);
+    if (oldUnit == null) {
+      return false;
+    }
+    // do resolution
     PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
         typeProvider,
         unitSource,
@@ -5107,7 +5111,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // prepare notice
     ChangeNoticeImpl notice = _getNotice(unitSource);
     notice.compilationUnit = oldUnit;
-    // TODO(scheglov) apply updated errors
+    // apply updated errors
     {
       LineInfo lineInfo = getLineInfo(unitSource);
       notice.setErrors(dartEntry.allErrors, lineInfo);

@@ -1186,7 +1186,6 @@ class PoorMansIncrementalResolver {
    */
   bool resolve(CompilationUnit oldUnit, String newCode) {
     logger.enter('diff/resolve $_unitSource');
-    logger.log(oldUnit != null ? 'has oldUnit' : 'oldUnit is null');
     try {
       _unitElement = oldUnit.element;
       CompilationUnit newUnit = _parseUnit(newCode);
