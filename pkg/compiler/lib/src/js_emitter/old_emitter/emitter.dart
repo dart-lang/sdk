@@ -21,7 +21,7 @@ class OldEmitter implements Emitter {
   final Map<Element, ClassBuilder> cachedClassBuilders;
   final Set<Element> cachedElements;
 
-  bool needsClassSupport = false;
+  bool needsDefineClass = false;
   bool needsMixinSupport = false;
   bool needsLazyInitializer = false;
   final Namer namer;
@@ -147,6 +147,14 @@ class OldEmitter implements Emitter {
 
   String get name => 'CodeEmitter';
 
+  String get currentGenerateAccessorName
+      => '${namer.currentIsolate}.\$generateAccessor';
+  String get generateAccessorHolder
+      => '$isolatePropertiesName.\$generateAccessor';
+  String get finishClassesProperty
+      => r'$finishClasses';
+  String get finishClassesName
+      => '${namer.isolateName}.$finishClassesProperty';
   String get finishIsolateConstructorName
       => '${namer.isolateName}.\$finishIsolateConstructor';
   String get isolatePropertiesName
@@ -211,10 +219,6 @@ class OldEmitter implements Emitter {
 
   jsAst.PropertyAccess typedefAccess(Element element) {
        return globalPropertyAccess(element);
-  }
-
-  List<jsAst.Statement> buildTrivialNsmHandlers(){
-    return nsmEmitter.buildTrivialNsmHandlers();
   }
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
@@ -342,9 +346,10 @@ class OldEmitter implements Emitter {
         }''', { 'hasIsolateSupport': hasIsolateSupport });
 
     // Declare a function called "generateAccessor".  This is used in
-    // defineClassFunction.
+    // defineClassFunction (it's a local declaration in init()).
     List result = <jsAst.Node>[
         generateAccessorFunction,
+        js('$generateAccessorHolder = generateAccessor'),
         new jsAst.FunctionDeclaration(
             new jsAst.VariableDeclaration('defineClass'), defineClass) ];
 
@@ -438,6 +443,156 @@ class OldEmitter implements Emitter {
     return js(r'var inheritFrom = #', [result]);
   }
 
+  /// Code that needs to be run before first invocation of
+  /// [finishClassesFunction], but should only be run once.
+  jsAst.Expression get initFinishClasses {
+    jsAst.Expression allClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+    jsAst.Expression interceptorsByTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
+    jsAst.Expression leafTagsAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
+    jsAst.Expression finishedClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
+
+    return js('''
+        (function(){
+         #allClasses = Object.create(null);
+         #interceptorsByTag = Object.create(null);
+         #leafTags = Object.create(null);
+         #finishedClasses = Object.create(null);
+        })()
+      ''', {'allClasses': allClassesAccess,
+            'interceptorsByTag': interceptorsByTagAccess,
+            'leafTags': leafTagsAccess,
+            'finishedClasses': finishedClassesAccess});
+  }
+
+  jsAst.Fun get finishClassesFunction {
+    // Class descriptions are collected in a JS object.
+    // 'finishClasses' takes all collected descriptions and sets up
+    // the prototype.
+    // Once set up, the constructors prototype field satisfy:
+    //  - it contains all (local) members.
+    //  - its internal prototype (__proto__) points to the superclass'
+    //    prototype field.
+    //  - the prototype's constructor field points to the JavaScript
+    //    constructor.
+    // For engines where we have access to the '__proto__' we can manipulate
+    // the object literal directly. For other engines we have to create a new
+    // object and copy over the members.
+
+    String reflectableField = namer.reflectableField;
+    jsAst.Expression allClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+    jsAst.Expression metadataAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+    String signaturePropertyName = namer.operatorSignature;
+
+    return js('''
+      function(collectedClasses, isolateProperties, existingIsolateProperties) {
+        var pendingClasses = Object.create(null);
+        var allClasses = #allClasses;
+        var constructors;
+
+        if (#debugFastObjects)
+          print("Number of classes: " +
+              Object.getOwnPropertyNames(\$\$).length);
+
+        var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+        if (#inCspMode) {
+          constructors = dart_precompiled(collectedClasses);
+        }
+
+        if (#notInCspMode) {
+          var combinedConstructorFunction =
+             "function \$reflectable(fn){fn.$reflectableField=1;return fn};\\n"+
+             "var \$desc;\\n";
+          var constructorsList = [];
+        }
+
+        for (var cls in collectedClasses) {
+          var desc = collectedClasses[cls];
+          if (desc instanceof Array) desc = desc[1];
+
+          /* The 'fields' are either a constructor function or a
+           * string encoding fields, constructor and superclass. Gets the
+           * superclass and fields in the format
+           *   'Super;field1,field2'
+           * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
+           */
+          var classData = desc["${namer.classDescriptorProperty}"],
+              supr, fields = classData;
+          if (#hasRetainedMetadata)
+            if (typeof classData == "object" &&
+                classData instanceof Array) {
+              classData = fields = classData[0];
+            }
+          // ${ClassBuilder.fieldEncodingDescription}.
+          var s = fields.split(";");
+          fields = s[1] == "" ? [] : s[1].split(",");
+          supr = s[0];
+          // ${ClassBuilder.functionTypeEncodingDescription}.
+          split = supr.split(":");
+          if (split.length == 2) {
+            supr = split[0];
+            var functionSignature = split[1];
+            if (functionSignature)
+              desc.$signaturePropertyName = (function(s) {
+                  return function(){ return #metadata[s]; };
+                })(functionSignature);
+          }
+
+          if (#notInCspMode) {
+            combinedConstructorFunction += defineClass(cls, fields);
+            constructorsList.push(cls);
+          }
+          if (supr) pendingClasses[cls] = supr;
+        }
+
+        if (#notInCspMode) {
+          combinedConstructorFunction +=
+            "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]";
+          var constructors =
+            new Function("\$collectedClasses", combinedConstructorFunction)
+            (collectedClasses);
+          combinedConstructorFunction = null;
+        }
+
+        for (var i = 0; i < constructors.length; i++) {
+          var constructor = constructors[i];
+          var cls = constructor.name;
+          var desc = collectedClasses[cls];
+          var globalObject = isolateProperties;
+          if (desc instanceof Array) {
+            globalObject = desc[0] || isolateProperties;
+            desc = desc[1];
+          }
+          if (#isTreeShakingDisabled)
+            constructor["${namer.metadataField}"] = desc;
+          allClasses[cls] = constructor;
+          globalObject[cls] = constructor;
+        }
+
+        constructors = null;
+
+        #finishClassFunction;
+
+        #trivialNsmHandlers;
+
+        for (var cls in pendingClasses) finishClass(cls);
+      }''', { 'allClasses': allClassesAccess,
+              'debugFastObjects': DEBUG_FAST_OBJECTS,
+              'hasRetainedMetadata': backend.hasRetainedMetadata,
+              'metadata': metadataAccess,
+              'isTreeShakingDisabled': backend.isTreeShakingDisabled,
+              'finishClassFunction': buildFinishClass(),
+              'trivialNsmHandlers': nsmEmitter.buildTrivialNsmHandlers(),
+              'inCspMode': compiler.useContentSecurityPolicy,
+              'notInCspMode': !compiler.useContentSecurityPolicy});
+  }
+
   jsAst.Statement buildFinishClass() {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
 
@@ -457,7 +612,7 @@ class OldEmitter implements Emitter {
         if (finishedClasses[cls]) return;
         finishedClasses[cls] = true;
 
-        var superclass = processedClasses.pending[cls];
+        var superclass = pendingClasses[cls];
 
         if (#needsMixinSupport) {
           if (superclass && superclass.indexOf("+") > 0) {
@@ -554,6 +709,132 @@ class OldEmitter implements Emitter {
            'interceptorsByTagAccess': interceptorsByTagAccess,
            'leafTagsAccess': leafTagsAccess,
            'allowNativesSubclassing': true});
+  }
+
+  jsAst.Fun get finishIsolateConstructorFunction {
+    // We replace the old Isolate function with a new one that initializes
+    // all its fields with the initial (and often final) value of all globals.
+    //
+    // We also copy over old values like the prototype, and the
+    // isolateProperties themselves.
+    return js(
+        """
+      function (oldIsolate) {
+        var isolateProperties = oldIsolate.#isolatePropertiesName;
+        function Isolate() {
+          var hasOwnProperty = Object.prototype.hasOwnProperty;
+          for (var staticName in isolateProperties)
+            if (hasOwnProperty.call(isolateProperties, staticName))
+              this[staticName] = isolateProperties[staticName];
+
+          // Reset lazy initializers to null.
+          // When forcing the object to fast mode (below) v8 will consider
+          // functions as part the object's map. Since we will change them
+          // (after the first call to the getter), we would have a map
+          // transition.
+          var lazies = init.lazies;
+          for (var lazyInit in lazies) {
+             this[lazies[lazyInit]] = null;
+          }
+
+          // Use the newly created object as prototype. In Chrome,
+          // this creates a hidden class for the object and makes
+          // sure it is fast to access.
+          function ForceEfficientMap() {}
+          ForceEfficientMap.prototype = this;
+          new ForceEfficientMap();
+
+          // Now, after being a fast map we can set the lazies again.
+          for (var lazyInit in lazies) {
+            var lazyInitName = lazies[lazyInit];
+            this[lazyInitName] = isolateProperties[lazyInitName];
+          }
+        }
+        Isolate.prototype = oldIsolate.prototype;
+        Isolate.prototype.constructor = Isolate;
+        Isolate.#isolatePropertiesName = isolateProperties;
+        if (#needsDefineClass)
+          Isolate.#finishClassesProperty = oldIsolate.#finishClassesProperty;
+        if (#outputContainsConstantList)
+          Isolate.#makeConstListProperty = oldIsolate.#makeConstListProperty;
+        if (#hasIncrementalSupport)
+          Isolate.#lazyInitializerProperty =
+              oldIsolate.#lazyInitializerProperty;
+         return Isolate;
+      }
+""",
+        { 'isolatePropertiesName': namer.isolatePropertiesName,
+          'needsDefineClass': needsDefineClass,
+          'finishClassesProperty': finishClassesProperty,
+          'outputContainsConstantList': task.outputContainsConstantList,
+          'makeConstListProperty': makeConstListProperty,
+          'hasIncrementalSupport': compiler.hasIncrementalSupport,
+          'lazyInitializerProperty': lazyInitializerProperty,
+        });
+  }
+
+  jsAst.Fun get lazyInitializerFunction {
+    String isolate = namer.currentIsolate;
+    jsAst.Expression cyclicThrow =
+        staticFunctionAccess(backend.getCyclicThrowHelper());
+    jsAst.Expression laziesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
+
+    return js('''
+      function (prototype, staticName, fieldName, getterName, lazyValue) {
+        if (!#lazies) #lazies = Object.create(null);
+        #lazies[fieldName] = getterName;
+
+        var sentinelUndefined = {};
+        var sentinelInProgress = {};
+        prototype[fieldName] = sentinelUndefined;
+
+        prototype[getterName] = function () {
+          var result = $isolate[fieldName];
+          try {
+            if (result === sentinelUndefined) {
+              $isolate[fieldName] = sentinelInProgress;
+
+              try {
+                result = $isolate[fieldName] = lazyValue();
+              } finally {
+                // Use try-finally, not try-catch/throw as it destroys the
+                // stack trace.
+                if (result === sentinelUndefined)
+                  $isolate[fieldName] = null;
+              }
+            } else {
+              if (result === sentinelInProgress)
+                #cyclicThrow(staticName);
+            }
+
+            return result;
+          } finally {
+            $isolate[getterName] = function() { return this[fieldName]; };
+          }
+        }
+      }
+    ''', {'lazies': laziesAccess, 'cyclicThrow': cyclicThrow});
+  }
+
+  List buildDefineClassAndFinishClassFunctionsIfNecessary() {
+    if (!needsDefineClass) return [];
+    return defineClassFunction
+        ..add(buildInheritFrom())
+        ..add(js('$finishClassesName = #', finishClassesFunction))
+        ..add(initFinishClasses);
+  }
+
+  List buildLazyInitializerFunctionIfNecessary() {
+    if (!needsLazyInitializer) return [];
+
+    return [js('# = #', [js(lazyInitializerName), lazyInitializerFunction])];
+  }
+
+  List buildFinishIsolateConstructor() {
+    return [
+      js('$finishIsolateConstructorName = #', finishIsolateConstructorFunction)
+    ];
   }
 
   void emitFinishIsolateConstructorInvocation(CodeBuffer buffer) {
@@ -728,6 +1009,17 @@ class OldEmitter implements Emitter {
             classElement, properties, additionalProperties[classElement]);
       }
     });
+  }
+
+  void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
+    if (needsDefineClass) {
+      buffer.write('$finishClassesName($classesCollector,'
+                   '$_$isolateProperties,'
+                   '${_}null)$N');
+
+      // Reset the map.
+      buffer.write("$classesCollector$_=${_}null$N$n");
+    }
   }
 
   void emitStaticFunctions(List<Element> staticFunctions) {
@@ -1045,128 +1337,14 @@ class OldEmitter implements Emitter {
   }
 
   void emitInitFunction(CodeBuffer buffer) {
-    String isolate = namer.currentIsolate;
-    jsAst.Expression allClassesAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
-    jsAst.Expression interceptorsByTagAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
-    jsAst.Expression leafTagsAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
-    jsAst.Expression finishedClassesAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
-    jsAst.Expression cyclicThrow =
-        staticFunctionAccess(backend.getCyclicThrowHelper());
-    jsAst.Expression laziesAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
-
     jsAst.FunctionDeclaration decl = js.statement('''
       function init() {
         $isolateProperties = Object.create(null);
-        (function(){
-         #allClasses = Object.create(null);
-         #interceptorsByTag = Object.create(null);
-         #leafTags = Object.create(null);
-         #finishedClasses = Object.create(null);
-        })();
-
-        if (#needsLazyInitializer) {
-          $lazyInitializerName = function (prototype, staticName, fieldName,
-                                           getterName, lazyValue) {
-            if (!#lazies) #lazies = Object.create(null);
-            #lazies[fieldName] = getterName;
-  
-            var sentinelUndefined = {};
-            var sentinelInProgress = {};
-            prototype[fieldName] = sentinelUndefined;
-  
-            prototype[getterName] = function () {
-              var result = $isolate[fieldName];
-              try {
-                if (result === sentinelUndefined) {
-                  $isolate[fieldName] = sentinelInProgress;
-  
-                  try {
-                    result = $isolate[fieldName] = lazyValue();
-                  } finally {
-                    // Use try-finally, not try-catch/throw as it destroys the
-                    // stack trace.
-                    if (result === sentinelUndefined)
-                      $isolate[fieldName] = null;
-                  }
-                } else {
-                  if (result === sentinelInProgress)
-                    #cyclicThrow(staticName);
-                }
-  
-                return result;
-              } finally {
-                $isolate[getterName] = function() { return this[fieldName]; };
-              }
-            }
-          }
-        }
-
-        // We replace the old Isolate function with a new one that initializes
-        // all its fields with the initial (and often final) value of all
-        // globals.
-        //
-        // We also copy over old values like the prototype, and the
-        // isolateProperties themselves.
-        $finishIsolateConstructorName = function (oldIsolate) {
-          var isolateProperties = oldIsolate.#isolatePropertiesName;
-          function Isolate() {
-            var hasOwnProperty = Object.prototype.hasOwnProperty;
-            for (var staticName in isolateProperties)
-              if (hasOwnProperty.call(isolateProperties, staticName))
-                this[staticName] = isolateProperties[staticName];
-
-            // Reset lazy initializers to null.
-            // When forcing the object to fast mode (below) v8 will consider
-            // functions as part the object's map. Since we will change them
-            // (after the first call to the getter), we would have a map
-            // transition.
-            var lazies = init.lazies;
-            for (var lazyInit in lazies) {
-               this[lazies[lazyInit]] = null;
-            }
-
-            // Use the newly created object as prototype. In Chrome,
-            // this creates a hidden class for the object and makes
-            // sure it is fast to access.
-            function ForceEfficientMap() {}
-            ForceEfficientMap.prototype = this;
-            new ForceEfficientMap();
-
-            // Now, after being a fast map we can set the lazies again.
-            for (var lazyInit in lazies) {
-              var lazyInitName = lazies[lazyInit];
-              this[lazyInitName] = isolateProperties[lazyInitName];
-            }
-          }
-          Isolate.prototype = oldIsolate.prototype;
-          Isolate.prototype.constructor = Isolate;
-          Isolate.#isolatePropertiesName = isolateProperties;
-          if (#outputContainsConstantList) {
-            Isolate.#makeConstListProperty = oldIsolate.#makeConstListProperty;
-          }
-          if (#hasIncrementalSupport) {
-            Isolate.#lazyInitializerProperty =
-                oldIsolate.#lazyInitializerProperty;
-          }
-          return Isolate;
-      }
-        
-      }''', {'allClasses': allClassesAccess,
-            'interceptorsByTag': interceptorsByTagAccess,
-            'leafTags': leafTagsAccess,
-            'finishedClasses': finishedClassesAccess,
-            'needsLazyInitializer': needsLazyInitializer,
-            'lazies': laziesAccess, 'cyclicThrow': cyclicThrow,
-            'isolatePropertiesName': namer.isolatePropertiesName,
-            'outputContainsConstantList': task.outputContainsConstantList,
-            'makeConstListProperty': makeConstListProperty,
-            'hasIncrementalSupport': compiler.hasIncrementalSupport,
-            'lazyInitializerProperty': lazyInitializerProperty,});
+        #; #; #;
+      }''', [
+          buildDefineClassAndFinishClassFunctionsIfNecessary(),
+          buildLazyInitializerFunctionIfNecessary(),
+          buildFinishIsolateConstructor()]);
 
     buffer.write(jsAst.prettyPrint(decl,
                  compiler, monitor: compiler.dumpInfoTask).getText());
@@ -1488,6 +1666,17 @@ class OldEmitter implements Emitter {
 
     emitStaticFunctions(task.outputStaticLists[mainOutputUnit]);
 
+    // Only output the classesCollector if we actually have any classes.
+    if (needsDefineClass ||
+        !(nativeClasses.isEmpty &&
+          compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty &&
+          outputClassLists.values.every((classList) => classList.isEmpty) &&
+          typedefsNeededForReflection.isEmpty)) {
+      // Shorten the code by using "$$" as temporary.
+      classesCollector = r"$$";
+      mainBuffer.write('var $classesCollector$_=${_}Object.create(null)$N$n');
+    }
+
     List<ClassElement> classes = task.outputClassLists[mainOutputUnit];
     if (classes != null) {
       for (ClassElement element in classes) {
@@ -1519,12 +1708,14 @@ class OldEmitter implements Emitter {
           ..write('(')
           ..write(
               jsAst.prettyPrint(
-                  getReflectionDataParser(this, backend),
+                  getReflectionDataParser(classesCollector, backend),
                   compiler))
           ..write(')')
           ..write('([$n')
           ..write(libraryBuffer)
           ..write('])$N');
+
+      emitFinishClassesInvocationIfNecessary(mainBuffer);
     }
 
     interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
@@ -1817,6 +2008,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;
 
+    classesCollector = r"$$";
+
     // Emit deferred units first, so we have their hashes.
     // Map from OutputUnit to a hash of its content. The hash uniquely
     // identifies the code of the output-unit. It does not include
@@ -1965,15 +2158,23 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // to Isolate.$finishIsolateConstructor.
          outputBuffer
            ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName$N')
+           // The classesCollector object ($$).
+           ..write('$classesCollector$_=${_}Object.create(null);$n')
            ..write('(')
            ..write(
                jsAst.prettyPrint(
-                   getReflectionDataParser(this, backend),
+                   getReflectionDataParser(classesCollector, backend),
                    compiler, monitor: compiler.dumpInfoTask))
            ..write(')')
            ..write('([$n')
            ..addBuffer(libraryDescriptorBuffer)
            ..write('])$N');
+
+        if (outputClassLists.containsKey(outputUnit)) {
+          outputBuffer.write(
+              '$finishClassesName($classesCollector,$_${namer.currentIsolate},'
+              '$_$isolatePropertiesName)$N');
+        }
 
       }
 
@@ -1983,9 +2184,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // the isolate-properties and for storing the current isolate. During
       // the setup (the code above this lines) we must set the variable to
       // the isolate-properties.
-      // After we have done the setup it must point to the current Isolate.
-      // Otherwise all methods/functions accessing isolate variables will
-      // access the wrong object.
+      // After we have done the setup (finishing with `finishClasses`) it must
+      // point to the current Isolate. Otherwise all methods/functions
+      // accessing isolate variables will access the wrong object.
       outputBuffer.write("${namer.currentIsolate}$_=${_}arguments[1]$N");
 
       emitCompileTimeConstants(outputBuffer, outputUnit);

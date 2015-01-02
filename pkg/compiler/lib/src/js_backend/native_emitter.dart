@@ -241,7 +241,7 @@ class NativeEmitter {
             backend.namer.getNameOfClass(classElement),
             classElement, builders[classElement],
             emitterTask.oldEmitter.getElementDescriptor(classElement));
-        emitterTask.oldEmitter.needsClassSupport = true;
+        emitterTask.oldEmitter.needsDefineClass = true;
       }
     }
   }
