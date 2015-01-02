@@ -880,6 +880,23 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
 }
 
 
+uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
+                                                 GrowthPolicy growth_policy) {
+  uword result = TryAllocateDataBumpLocked(size, growth_policy);
+  if (collections() != 0) {
+    FATAL1("%" Pd " GCs before TryAllocateSmiInitializedLocked", collections());
+  }
+#if defined(DEBUG)
+  RawObject** begin = reinterpret_cast<RawObject**>(result);
+  RawObject** end = reinterpret_cast<RawObject**>(result + size);
+  for (RawObject** current = begin; current < end; ++current) {
+    ASSERT(!(*current)->IsHeapObject());
+  }
+#endif
+  return result;
+}
+
+
 PageSpaceController::PageSpaceController(Heap* heap,
                                          int heap_growth_ratio,
                                          int heap_growth_max,

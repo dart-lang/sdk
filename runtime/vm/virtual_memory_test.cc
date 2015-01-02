@@ -8,6 +8,16 @@
 
 namespace dart {
 
+bool IsZero(char* begin, char* end) {
+  for (char* current = begin; current < end; ++current) {
+    if (*current != 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
   VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
@@ -27,7 +37,9 @@ UNIT_TEST_CASE(AllocateVirtualMemory) {
   EXPECT(!vm->Contains(static_cast<uword>(-1)));
 
   vm->Commit(false);
+
   char* buf = reinterpret_cast<char*>(vm->address());
+  EXPECT(IsZero(buf, buf + vm->size()));
   buf[0] = 'a';
   buf[1] = 'c';
   buf[2] = '/';
@@ -86,6 +98,7 @@ UNIT_TEST_CASE(VirtualMemoryCommitPartial) {
   const intptr_t kCommitSize = 1 * MB;
   vm->Commit(commit_start, kCommitSize, false);
   char* buf = reinterpret_cast<char*>(commit_start);
+  EXPECT(IsZero(buf, buf + kCommitSize));
   buf[0] = 'f';
   buf[1] = 'o';
   buf[2] = 'o';

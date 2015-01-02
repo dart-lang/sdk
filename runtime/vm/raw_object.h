@@ -494,6 +494,9 @@ class RawObject {
 
   template<typename type>
   void StorePointer(type const* addr, type value) {
+#if defined(DEBUG)
+    ValidateOverwrittenPointer(*addr);
+#endif  // DEBUG
     // Ensure that this object contains the addr.
     ASSERT(Contains(reinterpret_cast<uword>(addr)));
     VerifiedMemory::Write(const_cast<type*>(addr), value);
@@ -509,10 +512,24 @@ class RawObject {
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
+#if defined(DEBUG)
+    ValidateOverwrittenSmi(*addr);
+#endif  // DEBUG
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
     VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
   }
+
+  void InitializeSmi(RawSmi* const* addr, RawSmi* value) {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
+    VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
+  }
+
+#if defined(DEBUG)
+  static void ValidateOverwrittenPointer(RawObject* raw);
+  static void ValidateOverwrittenSmi(RawSmi* raw);
+#endif  // DEBUG
 
   friend class Api;
   friend class Array;

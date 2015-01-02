@@ -825,8 +825,12 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
+  // Allocate memory where all words look like smis. This is currently
+  // only needed for DEBUG-mode validation in StorePointer/StoreSmi, but will
+  // be essential with the upcoming deletion barrier.
   uword address =
-      old_space()->TryAllocateDataBumpLocked(size, PageSpace::kForceGrowth);
+      old_space()->TryAllocateSmiInitializedLocked(size,
+                                                   PageSpace::kForceGrowth);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
@@ -836,18 +840,6 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
         object_store()->preallocated_unhandled_exception());
     Isolate::Current()->long_jump_base()->Jump(1, error);
   }
-#if defined(DEBUG)
-  // Zap the uninitialized memory area.
-  uword current = address;
-  uword end = address + size;
-  while (current < end) {
-    *reinterpret_cast<intptr_t*>(current) = kZapUninitializedWord;
-    current += kWordSize;
-  }
-#endif  // defined(DBEUG)
-  // Make sure to initialize the last word, as this can be left untouched in
-  // case the object deserialized has an alignment tail.
-  *reinterpret_cast<RawObject**>(address + size - kWordSize) = Object::null();
   VerifiedMemory::Accept(address, size);
 
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);

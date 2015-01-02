@@ -963,7 +963,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
+      raw->InitializeSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());

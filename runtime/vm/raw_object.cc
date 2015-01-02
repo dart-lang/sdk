@@ -14,6 +14,9 @@
 
 namespace dart {
 
+#if defined(DEBUG)
+DEFINE_FLAG(bool, validate_overwrite, true, "Verify overwritten fields.");
+#endif  // DEBUG
 
 const intptr_t RawPcDescriptors::kFullRecSize =
     sizeof(RawPcDescriptors::PcDescriptorRec);
@@ -35,6 +38,10 @@ void RawObject::Validate(Isolate* isolate) const {
   if (!IsHeapObject()) {
     return;
   }
+  // Slightly more readable than a segfault.
+  if (this == reinterpret_cast<RawObject*>(kHeapObjectTag)) {
+    FATAL("RAW_NULL encountered");
+  }
   // Validate that the tags_ field is sensible.
   uword tags = ptr()->tags_;
   intptr_t reserved = ReservedBits::decode(tags);
@@ -44,6 +51,11 @@ void RawObject::Validate(Isolate* isolate) const {
   intptr_t class_id = ClassIdTag::decode(tags);
   if (!isolate->class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
+  }
+  if ((class_id == kNullCid) &&
+      (isolate->class_table()->At(class_id) == NULL)) {
+    // Null class not yet initialized; skip.
+    return;
   }
   intptr_t size = SizeTag::decode(tags);
   if (size != 0 && size != SizeFromClass()) {
@@ -198,6 +210,22 @@ intptr_t RawObject::SizeFromClass() const {
          (SizeTag::decode(tags) == 0));
   return instance_size;
 }
+
+
+#if defined(DEBUG)
+void RawObject::ValidateOverwrittenPointer(RawObject* raw) {
+  if (FLAG_validate_overwrite) {
+    raw->Validate(Isolate::Current());
+  }
+}
+
+
+void RawObject::ValidateOverwrittenSmi(RawSmi* raw) {
+  if (FLAG_validate_overwrite && raw->IsHeapObject() && raw != Object::null()) {
+    FATAL1("Expected smi/null, found: %" Px "\n", reinterpret_cast<uword>(raw));
+  }
+}
+#endif  // DEBUG
 
 
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
