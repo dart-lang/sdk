@@ -98,8 +98,8 @@ InternalAnalysisContext _initContext() {
 class RestrictedResolverVisitor extends ResolverVisitor {
   RestrictedResolverVisitor(
       Library library, Source source, TypeProvider typeProvider) : super.con1(
-              library, source, typeProvider,
-              typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
+          library, source, typeProvider,
+          typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
 
   static ResolverVisitor constructor(
       Library library, Source source, TypeProvider typeProvider) =>

@@ -11,16 +11,14 @@ main() {
   useCompactVMConfiguration();
   test('toJson/parse', () {
     var files = {
-      '/main.dart':
-          '''
+      '/main.dart': '''
           import 'package:foo/bar.dart';
 
           test1() {
             x = /*severe:StaticTypeError*/"hi";
           }
       ''',
-      'package:foo/bar.dart':
-          '''
+      'package:foo/bar.dart': '''
           num x;
           test2() {
             int y = /*info:DownCast*/x;

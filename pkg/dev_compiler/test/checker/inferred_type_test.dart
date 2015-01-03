@@ -11,8 +11,7 @@ main() {
   test('infer type on var', () {
     // Error also expected when declared type is `int`.
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       test1() {
         int x = 3;
         x = /*severe:StaticTypeError*/"hi";
@@ -22,8 +21,7 @@ main() {
 
     // If inferred type is `int`, error is also reported
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       test2() {
         var x = 3;
         x = /*severe:StaticTypeError*/"hi";
@@ -34,8 +32,7 @@ main() {
 
   test('do not infer type on dynamic', () {
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       test() {
         dynamic x = 3;
         x = "hi";
@@ -46,8 +43,7 @@ main() {
 
   test('do not infer type when initializer is null', () {
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       test() {
         var x = null;
         x = "hi";
@@ -59,8 +55,7 @@ main() {
 
   test('propagate inference to field in class', () {
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -76,8 +71,7 @@ main() {
 
     // Same code with dynamic yields warnings
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -94,8 +88,7 @@ main() {
 
   test('propagate inference transitively ', () {
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -111,8 +104,7 @@ main() {
     });
 
     testChecker({
-      '/main.dart':
-          '''
+      '/main.dart': '''
       class A {
         int x = 42;
       }

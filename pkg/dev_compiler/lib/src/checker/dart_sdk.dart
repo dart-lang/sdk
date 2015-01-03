@@ -141,8 +141,7 @@ final Map<String, String> mockSdkSources = {
   //     types from `_typeHandlers` (deserialize.dart)
   //   * types that are used internally by the resolver (see
   //   _initializeFrom in resolver.dart).
-  'dart:core':
-      '''
+  'dart:core': '''
         library dart.core;
 
         void print(Object o) {}
@@ -178,8 +177,7 @@ final Map<String, String> mockSdkSources = {
         class List<V> extends Object {}
         class Map<K, V> extends Object {}
         ''',
-  'dart:html':
-      '''
+  'dart:html': '''
         library dart.html;
         class HtmlElement {}
         ''',

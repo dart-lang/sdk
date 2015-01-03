@@ -176,8 +176,7 @@ var _initializer = (function ($params) {
     var ctor = ctors.firstWhere((m) => m.name == null, orElse: () => null);
 
     if (ctor == null && ctors.isNotEmpty) {
-      out.write(
-          """
+      out.write("""
 var constructor = function $name() {
   throw "no default constructor";
 }\n""");
