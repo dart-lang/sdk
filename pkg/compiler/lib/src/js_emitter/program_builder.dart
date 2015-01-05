@@ -20,7 +20,9 @@ import '../closure.dart' show ClosureFieldElement;
 import 'js_emitter.dart' as emitterTask show
     CodeEmitterTask,
     Emitter,
-    InterceptorStubGenerator;
+    InterceptorStubGenerator,
+    TypeTestGenerator,
+    TypeTestProperties;
 
 import '../universe/universe.dart' show Universe;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
@@ -267,6 +269,25 @@ class ProgramBuilder {
     if (!element.isMixinApplication) {
       implementation.forEachMember(visitMember, includeBackendMembers: true);
     }
+
+    emitterTask.TypeTestGenerator generator =
+        new emitterTask.TypeTestGenerator(_compiler, _task, namer);
+    emitterTask.TypeTestProperties typeTests =
+        generator.generateIsTests(element);
+
+    // At this point a mixin application must not have any methods or fields.
+    // Type-tests might be added to mixin applications, too.
+    assert(!element.isMixinApplication || methods.isEmpty);
+    assert(!element.isMixinApplication || fields.isEmpty);
+
+    // TODO(floitsch): we should not add the code here, but have a list of
+    // is/as classes in the Class object.
+    // The individual emitters should then call the type test generator to
+    // generate the code.
+    typeTests.properties.forEach((String name, js.Node code) {
+      methods.add(_buildMethodWithName(name, code));
+    });
+
     String name = namer.getNameOfClass(element);
     String holderName = namer.globalObjectFor(element);
     Holder holder = _registry.registerHolder(holderName);
@@ -276,9 +297,7 @@ class ProgramBuilder {
 
     Class result;
     if (element.isMixinApplication) {
-      assert(methods.isEmpty);
-      assert(fields.isEmpty);
-      result = new MixinApplication(name, holder,
+      result = new MixinApplication(name, holder, methods, fields,
                                     isDirectlyInstantiated: isInstantiated,
                                     onlyForRti: onlyForRti);
     } else {
@@ -292,6 +311,10 @@ class ProgramBuilder {
 
   Method _buildMethod(FunctionElement element, js.Expression code) {
     String name = namer.getNameOfInstanceMember(element);
+    return new Method(name, code);
+  }
+
+  Method _buildMethodWithName(String name, js.Expression code) {
     return new Method(name, code);
   }
 

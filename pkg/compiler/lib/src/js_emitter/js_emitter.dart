@@ -24,6 +24,7 @@ import '../io/code_output.dart' show
 import '../elements/elements.dart' show
     ConstructorBodyElement,
     ElementKind,
+    FieldElement,
     ParameterElement,
     TypeVariableElement;
 

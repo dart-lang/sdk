@@ -3826,8 +3826,7 @@ class SsaBuilder extends ResolvedVisitor {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     push(new HForeign(js.js.expressionTemplateYielding(
-                          backend.emitter.classAccess(
-                              compiler.objectClass)),
+                          backend.emitter.typeAccess(compiler.objectClass)),
                       backend.dynamicType,
                       <HInstruction>[]));
   }

@@ -1681,8 +1681,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           assert(invariant(node, compiler.hasIncrementalSupport));
           methodName = backend.namer.getNameOfInstanceMember(superMethod);
         }
-        push(js.js('#.prototype.#.call(#)',
-                   [backend.emitter.classAccess(superClass),
+        push(js.js('#.#.call(#)',
+                   [backend.emitter.prototypeAccess(superClass,
+                                                    hasBeenInstantiated: true),
                     methodName, visitArguments(node.inputs, start: 0)]),
              node);
       } else {
@@ -1786,7 +1787,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitForeignNew(HForeignNew node) {
     js.Expression jsClassReference =
-        backend.emitter.classAccess(node.element);
+        backend.emitter.constructorAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     push(new js.New(jsClassReference, arguments), node);
     registerForeignTypes(node);
@@ -2633,7 +2634,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     ClassElement cls = node.dartType.element;
-    var arguments = [backend.emitter.classAccess(cls)];
+    var arguments = [backend.emitter.typeAccess(cls)];
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer(typeArguments));
     }

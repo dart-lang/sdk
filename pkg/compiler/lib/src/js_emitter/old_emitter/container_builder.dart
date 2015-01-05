@@ -125,8 +125,10 @@ class ContainerBuilder extends CodeEmitterHelper {
         // Instead we need to call the statically resolved target.
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
         body = js.statement(
-            'return #.prototype.#.call(this, #);',
-            [backend.emitter.classAccess(superClass), methodName,
+            'return #.#.call(this, #);',
+            [backend.emitter.prototypeAccess(superClass,
+                                             hasBeenInstantiated: true),
+             methodName,
              argumentsBuffer]);
       } else {
         body = js.statement(

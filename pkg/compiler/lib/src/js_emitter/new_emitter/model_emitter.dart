@@ -329,29 +329,26 @@ class ModelEmitter {
     return [getters, setters].expand((x) => x);
   }
 
-  js.Expression emitClass(Class cls) {
-    if (cls.isMixinApplication) return emitMixinApplication(cls);
-
-    List elements = [js.string(cls.superclassName),
-                     js.number(cls.superclassHolderIndex),
-                     _generateConstructor(cls)];
-    Iterable<Method> methods = cls.methods;
-    Iterable<Method> gettersSetters = _generateGettersSetters(cls);
-    Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
-    elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
-    return unparse(compiler, new js.ArrayInitializer(elements));
-  }
-
   // This string should be referenced wherever JavaScript code makes assumptions
   // on the mixin format.
   static final String mixinFormatDescription =
       "Mixins have no constructor, but a reference to their mixin class.";
 
-  js.Expression emitMixinApplication(MixinApplication cls) {
+  js.Expression emitClass(Class cls) {
     List elements = [js.string(cls.superclassName),
-                     js.number(cls.superclassHolderIndex),
-                     js.string(cls.mixinClass.name),
-                     js.number(cls.mixinClass.holder.index)];
+                     js.number(cls.superclassHolderIndex)];
+
+    if (cls.isMixinApplication) {
+      MixinApplication mixin = cls;
+      elements.add(js.string(mixin.mixinClass.name));
+      elements.add(js.number(mixin.mixinClass.holder.index));
+    } else {
+      elements.add(_generateConstructor(cls));
+    }
+    Iterable<Method> methods = cls.methods;
+    Iterable<Method> gettersSetters = _generateGettersSetters(cls);
+    Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
+    elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
     return unparse(compiler, new js.ArrayInitializer(elements));
   }
 
@@ -438,39 +435,45 @@ class ModelEmitter {
   }
 
   function setupClass(name, holder, descriptor) {
-    var resolve = function() {
+    var ensureResolved = function() {
       var constructor = compileConstructor(name, descriptor);
       holder[name] = constructor;
+      constructor.ensureResolved = function() { return this; };
       return constructor;
     };
 
     var patch = function() {
-      var constructor = resolve();
+      var constructor = ensureResolved();
       var object = new constructor();
       constructor.apply(object, arguments);
       return object;
     };
 
-    // We store the resolve function on the patch function to make it possible
-    // to resolve superclass references without constructing instances. The
-    // resolve property also serves as a marker that indicates whether or not
-    // a class has been resolved yet.
-    patch.resolve = resolve;
+    // We store the ensureResolved function on the patch function to make it
+    // possible to resolve superclass references without constructing instances.
+    patch.ensureResolved = ensureResolved;
     holder[name] = patch;
   }
 
   function compileConstructor(name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
+    var constructor;
     // $mixinFormatDescription.
     if (typeof descriptor[2] !== 'function') {
-      return compileMixinConstructor(name, prototype, descriptor);
+      constructor = compileMixinConstructor(name, prototype, descriptor);
+      for (var i = 4; i < descriptor.length; i += 2) {
+        prototype[descriptor[i]] = descriptor[i + 1];
+      }
+    } else {
+      constructor = descriptor[2];
+      for (var i = 3; i < descriptor.length; i += 2) {
+        prototype[descriptor[i]] = descriptor[i + 1];
+      }
     }
-    var constructor = descriptor[2];
-    for (var i = 3; i < descriptor.length; i += 2) {
-      prototype[descriptor[i]] = descriptor[i + 1];
-    }
+    constructor.builtin\$cls = name;  // Needed for RTI.
     constructor.prototype = prototype;
+    prototype.constructor = constructor;
     return constructor;
   }
 
@@ -478,8 +481,7 @@ class ModelEmitter {
     // $mixinFormatDescription.
     var mixinName = descriptor[2];
     var mixinHolderIndex = descriptor[3];
-    var mixin = holders[mixinHolderIndex][mixinName];
-    if (mixin.resolve) mixin = mixin.resolve();
+    var mixin = holders[mixinHolderIndex][mixinName].ensureResolved();
     var mixinPrototype = mixin.prototype;
 
     // Fill the prototype with the mixin's properties.
@@ -491,7 +493,6 @@ class ModelEmitter {
     // Since this is a mixin application the constructor will actually never
     // be invoked. We only use its prototype for the application's subclasses. 
     var constructor = function() {};
-    constructor.prototype = prototype;
     return constructor;
   }
 
@@ -501,8 +502,7 @@ class ModelEmitter {
 
     // Look up the superclass constructor function in the right holder.
     var holderIndex = descriptor[1];
-    var superclass = holders[holderIndex][superclassName];
-    if (superclass.resolve) superclass = superclass.resolve();
+    var superclass = holders[holderIndex][superclassName].ensureResolved();
 
     // Create a new prototype object chained to the superclass prototype.
     var intermediate = function() { };

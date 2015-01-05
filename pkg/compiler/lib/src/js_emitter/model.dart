@@ -165,9 +165,11 @@ class MixinApplication extends Class {
   Class _mixinClass;
 
   MixinApplication(String name, Holder holder,
+                   List<Method> methods,
+                   List<InstanceField> fields,
                    {bool onlyForRti,
                     bool isDirectlyInstantiated})
-      : super(name, holder, const <Method>[], const <InstanceField>[],
+      : super(name, holder, methods, fields,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated);
 

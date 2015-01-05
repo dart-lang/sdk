@@ -137,6 +137,7 @@ class OldEmitter implements Emitter {
     buffer.write(jsAst.prettyPrint(js.comment(comment), compiler));
   }
 
+  @override
   jsAst.Expression constantReference(ConstantValue value) {
     return constantEmitter.reference(value);
   }
@@ -170,6 +171,7 @@ class OldEmitter implements Emitter {
   /// All the global state can be passed around with this variable.
   String get globalsHolder => namer.getMappedGlobalName("globalsHolder");
 
+  @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
     return js(generateEmbeddedGlobalAccessString(global));
   }
@@ -179,16 +181,6 @@ class OldEmitter implements Emitter {
     return '$initName.$global';
   }
 
-  jsAst.Expression isolateLazyInitializerAccess(Element element) {
-     return jsAst.js('#.#', [namer.globalObjectFor(element),
-                             namer.getLazyInitializerName(element)]);
-   }
-
-  jsAst.Expression isolateStaticClosureAccess(Element element) {
-     return jsAst.js('#.#()',
-         [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
-   }
-
   jsAst.PropertyAccess globalPropertyAccess(Element element) {
     String name = namer.getNameX(element);
     jsAst.PropertyAccess pa = new jsAst.PropertyAccess.field(
@@ -197,20 +189,47 @@ class OldEmitter implements Emitter {
     return pa;
   }
 
-  jsAst.PropertyAccess staticFieldAccess(Element element) {
-      return globalPropertyAccess(element);
+  @override
+  jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
+     return jsAst.js('#.#', [namer.globalObjectFor(element),
+                             namer.getLazyInitializerName(element)]);
+   }
+
+  @override
+  jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
+     return jsAst.js('#.#()',
+         [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+   }
+
+  @override
+  jsAst.PropertyAccess staticFieldAccess(FieldElement element) {
+    return globalPropertyAccess(element);
   }
 
-  jsAst.PropertyAccess staticFunctionAccess(Element element) {
-      return globalPropertyAccess(element);
+  @override
+  jsAst.PropertyAccess staticFunctionAccess(FunctionElement element) {
+    return globalPropertyAccess(element);
   }
 
-  jsAst.PropertyAccess classAccess(Element element) {
-        return globalPropertyAccess(element);
+  @override
+  jsAst.PropertyAccess constructorAccess(ClassElement element) {
+    return globalPropertyAccess(element);
   }
 
-  jsAst.PropertyAccess typedefAccess(Element element) {
-       return globalPropertyAccess(element);
+  @override
+  jsAst.PropertyAccess prototypeAccess(ClassElement element,
+                                       bool hasBeenInstantiated) {
+    return jsAst.js('#.prototype', constructorAccess(element));
+  }
+
+  @override
+  jsAst.PropertyAccess interceptorClassAccess(ClassElement element) {
+    return globalPropertyAccess(element);
+  }
+
+  @override
+  jsAst.PropertyAccess typeAccess(Element element) {
+    return globalPropertyAccess(element);
   }
 
   List<jsAst.Statement> buildTrivialNsmHandlers(){
