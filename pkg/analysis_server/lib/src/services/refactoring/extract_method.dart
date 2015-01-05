@@ -503,8 +503,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     List<SourceEdit> replaceEdits = <SourceEdit>[];
     unit.accept(new _GetSourcePatternVisitor(range, pattern, replaceEdits));
     replaceEdits = replaceEdits.reversed.toList();
-    pattern.patternSource =
-        SourceEdit.applySequence(originalSource, replaceEdits);
+    String source = SourceEdit.applySequence(originalSource, replaceEdits);
+    pattern.normalizedSource = _getNormalizedSource(source);
     return pattern;
   }
 
@@ -545,8 +545,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     _occurrences.clear();
     // prepare selection
     _SourcePattern selectionPattern = _getSourcePattern(selectionRange);
-    String selectionSource =
-        _getNormalizedSource(selectionPattern.patternSource);
     Map<String, String> patternToSelectionName =
         _inverseMap(selectionPattern.originalToPatternNames);
     // prepare an enclosing parent - class or unit
@@ -555,7 +553,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     enclosingMemberParent.accept(
         new _InitializeOccurrencesVisitor(
             this,
-            selectionSource,
+            selectionPattern,
             patternToSelectionName));
   }
 
@@ -841,6 +839,7 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
         String originalName = variableElement.displayName;
         String patternName = pattern.originalToPatternNames[originalName];
         if (patternName == null) {
+          pattern.parameterTypes.add(variableElement.type);
           patternName = '__refVar${pattern.originalToPatternNames.length}';
           pattern.originalToPatternNames[originalName] = patternName;
         }
@@ -868,12 +867,12 @@ class _HasMethodInvocationVisitor extends RecursiveAstVisitor {
 
 class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   final ExtractMethodRefactoringImpl ref;
-  final String selectionSource;
+  final _SourcePattern selectionPattern;
   final Map<String, String> patternToSelectionName;
 
   bool forceStatic = false;
 
-  _InitializeOccurrencesVisitor(this.ref, this.selectionSource,
+  _InitializeOccurrencesVisitor(this.ref, this.selectionPattern,
       this.patternToSelectionName);
 
   @override
@@ -931,11 +930,10 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
     if (!ref._isExtractable(nodeRange)) {
       return false;
     }
-    // prepare normalized node source
+    // prepare node source
     _SourcePattern nodePattern = ref._getSourcePattern(nodeRange);
-    String nodeSource = _getNormalizedSource(nodePattern.patternSource);
     // if matches normalized node source, then add as occurrence
-    if (nodeSource == selectionSource) {
+    if (selectionPattern.isCompatible(nodePattern)) {
       _Occurrence occurrence =
           new _Occurrence(nodeRange, ref.selectionRange.intersects(nodeRange));
       ref._occurrences.add(occurrence);
@@ -1137,6 +1135,22 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
  * pattern to the original variable names.
  */
 class _SourcePattern {
-  String patternSource;
+  final List<DartType> parameterTypes = <DartType>[];
+  String normalizedSource;
   Map<String, String> originalToPatternNames = {};
+
+  bool isCompatible(_SourcePattern other) {
+    if (other.normalizedSource != normalizedSource) {
+      return false;
+    }
+    if (other.parameterTypes.length != parameterTypes.length) {
+      return false;
+    }
+    for (int i = 0; i < parameterTypes.length; i++) {
+      if (other.parameterTypes[i] != parameterTypes[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
