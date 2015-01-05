@@ -10,6 +10,21 @@ class _Platform {
   external static String _operatingSystem();
   external static _localHostname();
   external static _executable();
+  /**
+   * Retrieve the entries of the process environment.
+   *
+   * The result is an [Iterable] of strings, where each string represents
+   * an environment entry.
+   *
+   * Environment entries should be strings containing
+   * a non-empty name and a value separated by a '=' character.
+   * The name does not contain a '=' character,
+   * so the name is everything up to the first '=' character.
+   * Values are everything after the first '=' charcacter.
+   * A value may contain further '=' characters, and it may be empty.
+   *
+   * Returns an [OSError] if retrieving the environment fails.
+   */
   external static _environment();
   external static List<String> _executableArguments();
   external static String _packageRoot();
@@ -58,24 +73,11 @@ class _Platform {
         var isWindows = operatingSystem == 'windows';
         var result = isWindows ? new _CaseInsensitiveStringMap() : new Map();
         for (var str in env) {
-          // When running on Windows through cmd.exe there are
-          // entries which starts with '='. In CMD scripting,
-          // variables are "dynamic" environment variables which change
-          // automatically. The values of the ones starting with "=" are
-          // reified in the environment string of a new program (but, e.g.,
-          // __CD__ isn't).
-          //
-          // One example are the use of the environment to communicate the
-          // current working directory for each drive and the exit code for the
-          // last command. E.g. the entry '=A:=A:\subdir' records the current
-          // working directory on the 'A' drive.
-          //
-          // On Mac OS an entry of just '=' has been seen.
-          //
-          // Entries starting with '=' are ignored.
-          //
-          // Entries with no '=' should not happen. If it should happen,
-          // the entry is ignored.
+          // The Strings returned by [_environment()] are expected to be
+          // valid environment entries, but exceptions have been seen
+          // (e.g., an entry of just '=' has been seen on OS/X).
+          // Invalid entries (lines without a '=' or with an empty name)
+          // are discarded.
           var equalsIndex = str.indexOf('=');
           if (equalsIndex > 0) {
             result[str.substring(0, equalsIndex)] =
