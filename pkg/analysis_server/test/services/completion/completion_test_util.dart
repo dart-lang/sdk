@@ -1090,6 +1090,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testG.dart" as g;
       int T5;
       var _T6;
+      String get T7 => 'hello';
       Z D2() {int x;}
       class X {
         a() {
@@ -1142,6 +1143,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalTopLevelVar('T5', 'int');
       assertSuggestLocalTopLevelVar('_T6', null);
       assertNotSuggested('==');
+      assertSuggestLocalGetter('T7', 'String');
       // TODO (danrubel) suggest HtmlElement as low relevance
       assertNotSuggested('HtmlElement');
     });

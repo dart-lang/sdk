@@ -134,10 +134,19 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     CompletionSuggestion suggestion =
         _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
     if (suggestion != null) {
+      FormalParameterList param = declaration.functionExpression.parameters;
+      protocol.ElementKind kind;
+      if (declaration.isGetter) {
+        kind = protocol.ElementKind.GETTER;
+      } else if (declaration.isSetter) {
+        kind = protocol.ElementKind.SETTER;
+      } else {
+        kind = protocol.ElementKind.FUNCTION;
+      }
       suggestion.element = _createElement(
-          protocol.ElementKind.FUNCTION,
+          kind,
           declaration.name,
-          declaration.functionExpression.parameters.toSource(),
+          param != null ? param.toSource() : null,
           declaration.returnType,
           false,
           isDeprecated);
