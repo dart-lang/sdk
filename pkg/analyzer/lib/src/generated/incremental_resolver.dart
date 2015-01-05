@@ -393,6 +393,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       element = _findElement(_enclosingClass.fields, name);
     }
     // verify
+    PropertyInducingElement newElement = node.name.staticElement;
     _assertNotNull(element);
     _processElement(element);
     _assertEquals(node.isConst, element.isConst);
@@ -405,6 +406,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         element.type);
     // matches, restore the existing element
     node.name.staticElement = element;
+    if (element is VariableElementImpl) {
+      (element as VariableElementImpl).initializer = newElement.initializer;
+    }
   }
 
   @override
@@ -911,7 +915,8 @@ class IncrementalResolver {
           node is ConstructorDeclaration ||
           node is FunctionDeclaration ||
           node is FunctionTypeAlias ||
-          node is MethodDeclaration;
+          node is MethodDeclaration ||
+          node is TopLevelVariableDeclaration;
 
   void _fillResolutionQueue(DeclarationMatcher matcher) {
     HashSet<Element> removedElements = matcher._removedElements;

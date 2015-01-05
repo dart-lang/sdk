@@ -2582,6 +2582,23 @@ main() {
 ''');
   }
 
+  void test_endOfLineComment_localFunction_inTopLevelVariable() {
+    _resolveUnit(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some comment
+});
+''');
+    _updateAndValidate(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some  comment
+});
+''');
+  }
+
   void test_endOfLineComment_remove() {
     _resolveUnit(r'''
 main() {
