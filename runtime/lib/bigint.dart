@@ -1038,15 +1038,20 @@ class _Bigint extends _IntegerImplementation implements int {
     y._neg = false;
     r._neg = false;
     var y_used = y._used;
+    assert((y_used & 1) == 0);
     var y_digits = y._digits;
     Uint32List args = new Uint32List(4);
     args[_YT_LO] = y_digits[y_used - 2];
     args[_YT] = y_digits[y_used - 1];
+    var r_digits = r._digits;
     var i = r._used;
+    if ((i & 1) == 1) {
+      // For 64-bit processing, make sure r has an even number of digits.
+      r_digits[i++] = 0;
+    }
     var j = i - y_used;
     _Bigint t = (q == null) ? new _Bigint() : q;
     y._dlShiftTo(j, t);
-    var r_digits = r._digits;
     if (r._compareTo(t) >= 0) {
       r_digits[r._used++] = 1;
       r_digits[r._used] = 0;  // Set leading zero for 64-bit processing.
@@ -1058,8 +1063,9 @@ class _Bigint extends _IntegerImplementation implements int {
       y_digits[y._used++] = 0;
     }
     y_digits[y._used] = 0;  // Set leading zero for 64-bit processing.
-    while (--j >= 0) {
+    while (j > 0) {
       var d0 = _estQuotientDigit(args, r_digits, --i);
+      j -= d0;
       var d1 = _mulAdd(args, _QD, y_digits, 0, r_digits, j, y_used);
       // _estQuotientDigit and _mulAdd must agree on the number of digits to
       // process.
@@ -1073,17 +1079,26 @@ class _Bigint extends _IntegerImplementation implements int {
           }
         }
       } else {
-        // TODO(regis): Is this necessary, since intrinsified estimation is more
-        // accurate?
-        if ((r_digits[i] < args[_QD_HI]) ||
-            ((r_digits[i] == args[_QD_HI]) && (r_digits[i-1] < args[_QD]))) {
+        assert(d0 == 2);
+        assert(r_digits[i] <= args[_QD_HI]);
+        if ((r_digits[i] < args[_QD_HI]) || (r_digits[i-1] < args[_QD])) {
           y._dlShiftTo(j, t);
           r._subTo(t, r);
-          assert(args[_QD] > 0);
-          while (r_digits[i] < --args[_QD]) {
+          if (args[_QD] == 0) {
+            --args[_QD_HI];
+          }
+          --args[_QD];
+          assert(r_digits[i] <= args[_QD_HI]);
+          while ((r_digits[i] < args[_QD_HI]) || (r_digits[i-1] < args[_QD])) {
             r._subTo(t, r);
+            if (args[_QD] == 0) {
+              --args[_QD_HI];
+            }
+            --args[_QD];
+            assert(r_digits[i] <= args[_QD_HI]);
           }
         }
+        --i;
       }
     }
     if (q != null) {
@@ -1455,13 +1470,19 @@ class _Montgomery implements _Reduction {
     _m = m._toBigint();
     _mused2 = 2*_m._used;
     _args = new Uint32List(6);
+    // Determine if we can process digit pairs by calling an intrinsic.
+    _digits_per_step = _mulMod(_args, _args, 0);
     _args[_X] = _m._digits[0];
-    _args[_X_HI] = _m._digits[1];
-    _digits_per_step = _invDigit(_args);
+    if (_digits_per_step == 1) {
+      _invDigit(_args);
+    } else {
+      assert(_digits_per_step == 2);
+      _args[_X_HI] = _m._digits[1];
+      _invDigitPair(_args);
+    }
   }
 
-  // Return -1/this % DIGIT_BASE, useful for Montgomery reduction.
-  //
+  // Calculates -1/x % DIGIT_BASE, x is 32-bit digit.
   //         xy == 1 (mod m)
   //         xy =  1+km
   //   xy(2-xy) = (1+km)(1-km)
@@ -1470,16 +1491,9 @@ class _Montgomery implements _Reduction {
   // if y is 1/x mod m, then y(2-xy) is 1/x mod m^2
   // Should reduce x and y(2-xy) by m^2 at each step to keep size bounded.
   //
-  // TODO(regis): Intrinsify this method and provide a 64-bit inverse digit pair
-  // on 64-bit platforms.
-  //
   // Operation:
   //   args[_RHO] = 1/args[_X] mod DIGIT_BASE.
-  //   return 1.
-  // Note: intrinsics on 64-bit platform process a digit pair:
-  //   args[_RHO.._RHO_HI] = 1/args[_X.._X_HI] mod DIGIT_BASE^2.
-  //   return 2.
-  static int _invDigit(Uint32List args) {
+  static void _invDigit(Uint32List args) {
     var x = args[_X];
     var y = x & 3;    // y == 1/x mod 2^2
     y = (y*(2 - (x & 0xf)*y)) & 0xf;  // y == 1/x mod 2^4
@@ -1489,10 +1503,29 @@ class _Montgomery implements _Reduction {
     // Assumes 16 < DIGIT_BITS <= 32 and assumes ability to handle 48-bit ints.
     y = (y*(2 - x*y % _Bigint.DIGIT_BASE)) % _Bigint.DIGIT_BASE;
     // y == 1/x mod DIGIT_BASE
-    // We really want the negative inverse, and - DIGIT_BASE < y < DIGIT_BASE.
-    args[_RHO] = (y > 0) ? _Bigint.DIGIT_BASE - y : -y;
-    return 1;
+    y = -y;  // We really want the negative inverse.
+    args[_RHO] = y & _Bigint.DIGIT_MASK;
   }
+
+
+  // Calculates -1/x % DIGIT_BASE^2, x is a pair of 32-bit digits.
+  // Operation:
+  //   args[_RHO.._RHO_HI] = 1/args[_X.._X_HI] mod DIGIT_BASE^2.
+  static void _invDigitPair(Uint32List args) {
+    var xl = args[_X];  // Lower 32-bit digit of x.
+    var y = xl & 3;    // y == 1/x mod 2^2
+    y = (y*(2 - (xl & 0xf)*y)) & 0xf;  // y == 1/x mod 2^4
+    y = (y*(2 - (xl & 0xff)*y)) & 0xff;  // y == 1/x mod 2^8
+    y = (y*(2 - (((xl & 0xffff)*y) & 0xffff))) & 0xffff;  // y == 1/x mod 2^16
+    y = (y*(2 - ((xl*y) & 0xffffffff))) & 0xffffffff;  // y == 1/x mod 2^32
+    var x = (args[_X_HI] << _Bigint.DIGIT_BITS) | xl;
+    y = (y*(2 - ((x*y) & 0xffffffffffffffff))) & 0xffffffffffffffff;
+    // y == 1/x mod DIGIT_BASE^2
+    y = -y;  // We really want the negative inverse.
+    args[_RHO] = y & _Bigint.DIGIT_MASK;
+    args[_RHO_HI] = (y >> _Bigint.DIGIT_BITS) & _Bigint.DIGIT_MASK;
+  }
+
 
   // Operation:
   //   args[_MU] = args[_RHO]*digits[i] mod DIGIT_BASE.

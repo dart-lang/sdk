@@ -932,40 +932,42 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // static int _mulAdd(Uint32List x_digits, int xi,
   //                    Uint32List m_digits, int i,
   //                    Uint32List a_digits, int j, int n) {
-  //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
+  //   uint64_t x = x_digits[xi >> 1 .. (xi >> 1) + 1];  // xi is Smi and even.
   //   if (x == 0 || n == 0) {
-  //     return 1;
+  //     return 2;
   //   }
-  //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
-  //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
-  //   uint32_t c = 0;
-  //   SmiUntag(n);
+  //   uint64_t* mip = &m_digits[i >> 1];  // i is Smi and even.
+  //   uint64_t* ajp = &a_digits[j >> 1];  // j is Smi and even.
+  //   uint64_t c = 0;
+  //   SmiUntag(n);  // n is Smi and even.
+  //   n = (n + 1)/2;  // Number of pairs to process.
   //   do {
-  //     uint32_t mi = *mip++;
-  //     uint32_t aj = *ajp;
-  //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
-  //     *ajp++ = low32(t);
-  //     c = high32(t);
+  //     uint64_t mi = *mip++;
+  //     uint64_t aj = *ajp;
+  //     uint128_t t = x*mi + aj + c;  // 64-bit * 64-bit -> 128-bit.
+  //     *ajp++ = low64(t);
+  //     c = high64(t);
   //   } while (--n > 0);
   //   while (c != 0) {
-  //     uint64_t t = *ajp + c;
-  //     *ajp++ = low32(t);
-  //     c = high32(t);  // c == 0 or 1.
+  //     uint128_t t = *ajp + c;
+  //     *ajp++ = low64(t);
+  //     c = high64(t);  // c == 0 or 1.
   //   }
-  //   return 1;
+  //   return 2;
   // }
 
   Label done;
   // RBX = x, done if x == 0
   __ movq(RCX, Address(RSP, 7 * kWordSize));  // x_digits
   __ movq(RAX, Address(RSP, 6 * kWordSize));  // xi is Smi
-  __ movl(RBX, FieldAddress(RCX, RAX, TIMES_2, TypedData::data_offset()));
-  __ testl(RBX, RBX);
+  __ movq(RBX, FieldAddress(RCX, RAX, TIMES_2, TypedData::data_offset()));
+  __ testq(RBX, RBX);
   __ j(ZERO, &done, Assembler::kNearJump);
 
-  // R8 = SmiUntag(n), no_op if n == 0
+  // R8 = (SmiUntag(n) + 1)/2, no_op if n == 0
   __ movq(R8, Address(RSP, 1 * kWordSize));
-  __ SmiUntag(R8);
+  __ addq(R8, Immediate(2));
+  __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ j(ZERO, &done, Assembler::kNearJump);
 
   // RDI = mip = &m_digits[i >> 1]
@@ -990,45 +992,45 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // t:   RDX:RAX (not live at loop entry)
   // n:   R8
 
-  // uint32_t mi = *mip++
-  __ movl(RAX, Address(RDI, 0));
-  __ addq(RDI, Immediate(Bigint::kBytesPerDigit));
+  // uint64_t mi = *mip++
+  __ movq(RAX, Address(RDI, 0));
+  __ addq(RDI, Immediate(2*Bigint::kBytesPerDigit));
 
-  // uint64_t t = x*mi
-  __ mull(RBX);  // t = RDX:RAX = RAX * RBX, 32-bit * 32-bit -> 64-bit
-  __ addl(RAX, RCX);  // t += c
-  __ adcl(RDX, Immediate(0));
+  // uint128_t t = x*mi
+  __ mulq(RBX);  // t = RDX:RAX = RAX * RBX, 64-bit * 64-bit -> 64-bit
+  __ addq(RAX, RCX);  // t += c
+  __ adcq(RDX, Immediate(0));
 
-  // uint32_t aj = *ajp; t += aj
-  __ addl(RAX, Address(RSI, 0));
-  __ adcl(RDX, Immediate(0));
+  // uint64_t aj = *ajp; t += aj
+  __ addq(RAX, Address(RSI, 0));
+  __ adcq(RDX, Immediate(0));
 
-  // *ajp++ = low32(t)
-  __ movl(Address(RSI, 0), RAX);
-  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
+  // *ajp++ = low64(t)
+  __ movq(Address(RSI, 0), RAX);
+  __ addq(RSI, Immediate(2*Bigint::kBytesPerDigit));
 
-  // c = high32(t)
-  __ movl(RCX, RDX);
+  // c = high64(t)
+  __ movq(RCX, RDX);
 
   // while (--n > 0)
   __ decq(R8);  // --n
   __ j(NOT_ZERO, &muladd_loop, Assembler::kNearJump);
 
-  __ testl(RCX, RCX);
+  __ testq(RCX, RCX);
   __ j(ZERO, &done, Assembler::kNearJump);
 
   // *ajp += c
-  __ addl(Address(RSI, 0), RCX);
+  __ addq(Address(RSI, 0), RCX);
   __ j(NOT_CARRY, &done, Assembler::kNearJump);
 
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
-  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
-  __ incl(Address(RSI, 0));  // c == 0 or 1
+  __ addq(RSI, Immediate(2*Bigint::kBytesPerDigit));
+  __ incq(Address(RSI, 0));  // c == 0 or 1
   __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  __ movq(RAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movq(RAX, Immediate(Smi::RawValue(2)));  // Two digits processed.
   __ ret();
 }
 
@@ -1037,27 +1039,27 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // Pseudo code:
   // static int _sqrAdd(Uint32List x_digits, int i,
   //                    Uint32List a_digits, int used) {
-  //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
-  //   uint32_t x = *xip++;
-  //   if (x == 0) return 1;
-  //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
-  //   uint32_t aj = *ajp;
-  //   uint64_t t = x*x + aj;
-  //   *ajp++ = low32(t);
-  //   uint64_t c = high32(t);
-  //   int n = ((used - i) >> 1) - 1;  // used and i are Smi.
+  //   uint64_t* xip = &x_digits[i >> 1];  // i is Smi and even.
+  //   uint64_t x = *xip++;
+  //   if (x == 0) return 2;
+  //   uint64_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
+  //   uint64_t aj = *ajp;
+  //   uint128_t t = x*x + aj;
+  //   *ajp++ = low64(t);
+  //   uint128_t c = high64(t);
+  //   int n = ((used - i + 2) >> 2) - 1;  // used and i are Smi. n: num pairs.
   //   while (--n >= 0) {
-  //     uint32_t xi = *xip++;
-  //     uint32_t aj = *ajp;
-  //     uint96_t t = 2*x*xi + aj + c;  // 2-bit * 32-bit * 32-bit -> 65-bit.
-  //     *ajp++ = low32(t);
-  //     c = high64(t);  // 33-bit.
+  //     uint64_t xi = *xip++;
+  //     uint64_t aj = *ajp;
+  //     uint192_t t = 2*x*xi + aj + c;  // 2-bit * 64-bit * 64-bit -> 129-bit.
+  //     *ajp++ = low64(t);
+  //     c = high128(t);  // 65-bit.
   //   }
-  //   uint32_t aj = *ajp;
-  //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
-  //   *ajp++ = low32(t);
-  //   *ajp = high32(t);
-  //   return 1;
+  //   uint64_t aj = *ajp;
+  //   uint128_t t = aj + c;  // 64-bit + 65-bit -> 66-bit.
+  //   *ajp++ = low64(t);
+  //   *ajp = high64(t);
+  //   return 2;
   // }
 
   // RDI = xip = &x_digits[i >> 1]
@@ -1067,34 +1069,35 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // RBX = x = *xip++, return if x == 0
   Label x_zero;
-  __ movl(RBX, Address(RDI, 0));
-  __ cmpl(RBX, Immediate(0));
-  __ j(EQUAL, &x_zero, Assembler::kNearJump);
-  __ addq(RDI, Immediate(Bigint::kBytesPerDigit));
+  __ movq(RBX, Address(RDI, 0));
+  __ cmpq(RBX, Immediate(0));
+  __ j(EQUAL, &x_zero);
+  __ addq(RDI, Immediate(2*Bigint::kBytesPerDigit));
 
   // RSI = ajp = &a_digits[i]
   __ movq(RSI, Address(RSP, 2 * kWordSize));  // a_digits
   __ leaq(RSI, FieldAddress(RSI, RAX, TIMES_4, TypedData::data_offset()));
 
   // RDX:RAX = t = x*x + *ajp
-  __ movl(RAX, RBX);
-  __ mull(RBX);
-  __ addl(RAX, Address(RSI, 0));
-  __ adcl(RDX, Immediate(0));
+  __ movq(RAX, RBX);
+  __ mulq(RBX);
+  __ addq(RAX, Address(RSI, 0));
+  __ adcq(RDX, Immediate(0));
 
-  // *ajp++ = low32(t)
-  __ movl(Address(RSI, 0), RAX);
-  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
+  // *ajp++ = low64(t)
+  __ movq(Address(RSI, 0), RAX);
+  __ addq(RSI, Immediate(2*Bigint::kBytesPerDigit));
 
-  // int n = used - i - 1
+  // int n = (used - i + 1)/2 - 1
   __ movq(R8, Address(RSP, 1 * kWordSize));  // used is Smi
   __ subq(R8, Address(RSP, 3 * kWordSize));  // i is Smi
-  __ SmiUntag(R8);
-  __ decq(R8);
+  __ addq(R8, Immediate(2));
+  __ sarq(R8, Immediate(2));
+  __ decq(R8);  // R8 = number of digit pairs to process.
 
-  // uint64_t c = high32(t)
-  __ xorl(R13, R13);  // R13 = high32(c) == 0
-  __ movl(R12, RDX);  // R12 = low32(c) == high32(t)
+  // uint128_t c = high64(t)
+  __ xorq(R13, R13);  // R13 = high64(c) == 0
+  __ movq(R12, RDX);  // R12 = low64(c) == high64(t)
 
   Label loop, done;
   __ Bind(&loop);
@@ -1109,45 +1112,45 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ decq(R8);  // --n
   __ j(NEGATIVE, &done, Assembler::kNearJump);
 
-  // uint32_t xi = *xip++
-  __ movl(RAX, Address(RDI, 0));
-  __ addq(RDI, Immediate(Bigint::kBytesPerDigit));
+  // uint64_t xi = *xip++
+  __ movq(RAX, Address(RDI, 0));
+  __ addq(RDI, Immediate(2*Bigint::kBytesPerDigit));
 
-  // uint96_t t = RCX:RDX:RAX = 2*x*xi + aj + c
-  __ mull(RBX);  // RDX:RAX = RAX * RBX
-  __ xorl(RCX, RCX);  // RCX = 0
-  __ shldl(RCX, RDX, Immediate(1));
-  __ shldl(RDX, RAX, Immediate(1));
-  __ shll(RAX, Immediate(1));  // RCX:RDX:RAX <<= 1
-  __ addl(RAX, Address(RSI, 0));  // t += aj
-  __ adcl(RDX, Immediate(0));
-  __ adcl(RCX, Immediate(0));
-  __ addl(RAX, R12);  // t += low32(c)
-  __ adcl(RDX, R13);  // t += high32(c) << 32
-  __ adcl(RCX, Immediate(0));
+  // uint192_t t = RCX:RDX:RAX = 2*x*xi + aj + c
+  __ mulq(RBX);  // RDX:RAX = RAX * RBX
+  __ xorq(RCX, RCX);  // RCX = 0
+  __ shldq(RCX, RDX, Immediate(1));
+  __ shldq(RDX, RAX, Immediate(1));
+  __ shlq(RAX, Immediate(1));  // RCX:RDX:RAX <<= 1
+  __ addq(RAX, Address(RSI, 0));  // t += aj
+  __ adcq(RDX, Immediate(0));
+  __ adcq(RCX, Immediate(0));
+  __ addq(RAX, R12);  // t += low64(c)
+  __ adcq(RDX, R13);  // t += high64(c) << 64
+  __ adcq(RCX, Immediate(0));
 
-  // *ajp++ = low32(t)
-  __ movl(Address(RSI, 0), RAX);
-  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
+  // *ajp++ = low64(t)
+  __ movq(Address(RSI, 0), RAX);
+  __ addq(RSI, Immediate(2*Bigint::kBytesPerDigit));
 
-  // c = high64(t)
-  __ movl(R12, RDX);
-  __ movl(R13, RCX);
+  // c = high128(t)
+  __ movq(R12, RDX);
+  __ movq(R13, RCX);
 
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // uint64_t t = aj + c
-  __ addl(R12, Address(RSI, 0));  // t = c, t += *ajp
-  __ adcl(R13, Immediate(0));
+  // uint128_t t = aj + c
+  __ addq(R12, Address(RSI, 0));  // t = c, t += *ajp
+  __ adcq(R13, Immediate(0));
 
-  // *ajp++ = low32(t)
-  // *ajp = high32(t)
-  __ movl(Address(RSI, 0), R12);
-  __ movl(Address(RSI, Bigint::kBytesPerDigit), R13);
+  // *ajp++ = low64(t)
+  // *ajp = high64(t)
+  __ movq(Address(RSI, 0), R12);
+  __ movq(Address(RSI, 2*Bigint::kBytesPerDigit), R13);
 
   __ Bind(&x_zero);
-  __ movq(RAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movq(RAX, Immediate(Smi::RawValue(2)));  // Two digits processed.
   __ ret();
 }
 
@@ -1155,56 +1158,56 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   // Pseudo code:
   // static int _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t yt = args[_YT];  // _YT == 1.
-  //   uint32_t* dp = &digits[i >> 1];  // i is Smi.
-  //   uint32_t dh = dp[0];  // dh == digits[i >> 1].
-  //   uint32_t qd;
+  //   uint64_t yt = args[_YT_LO .. _YT];  // _YT_LO == 0, _YT == 1.
+  //   uint64_t* dp = &digits[(i >> 1) - 1];  // i is Smi.
+  //   uint64_t dh = dp[0];  // dh == digits[(i >> 1) - 1 .. i >> 1].
+  //   uint64_t qd;
   //   if (dh == yt) {
-  //     qd = DIGIT_MASK;
+  //     qd = (DIGIT_MASK << 32) | DIGIT_MASK;
   //   } else {
-  //     dl = dp[-1];  // dl == digits[(i - 1) >> 1].
+  //     dl = dp[-1];  // dl == digits[(i >> 1) - 3 .. (i >> 1) - 2].
   //     qd = dh:dl / yt;  // No overflow possible, because dh < yt.
   //   }
-  //   args[_QD] = qd;  // _QD == 2.
-  //   return 1;
+  //   args[_QD .. _QD_HI] = qd;  // _QD == 2, _QD_HI == 3.
+  //   return 2;
   // }
 
   // RDI = args
   __ movq(RDI, Address(RSP, 3 * kWordSize));  // args
 
-  // RCX = yt = args[1]
-  __ movl(RCX,
-          FieldAddress(RDI, TypedData::data_offset() + Bigint::kBytesPerDigit));
+  // RCX = yt = args[0..1]
+  __ movq(RCX, FieldAddress(RDI, TypedData::data_offset()));
 
-  // RBX = dp = &digits[i >> 1]
+  // RBX = dp = &digits[(i >> 1) - 1]
   __ movq(RBX, Address(RSP, 2 * kWordSize));  // digits
-  __ movq(RAX, Address(RSP, 1 * kWordSize));  // i is Smi
-  __ leaq(RBX, FieldAddress(RBX, RAX, TIMES_2, TypedData::data_offset()));
+  __ movq(RAX, Address(RSP, 1 * kWordSize));  // i is Smi and odd.
+  __ leaq(RBX, FieldAddress(RBX, RAX, TIMES_2,
+                            TypedData::data_offset() - Bigint::kBytesPerDigit));
 
   // RDX = dh = dp[0]
-  __ movl(RDX, Address(RBX, 0));
+  __ movq(RDX, Address(RBX, 0));
 
-  // RAX = qd = DIGIT_MASK = -1
-  __ movl(RAX, Immediate(-1));
+  // RAX = qd = (DIGIT_MASK << 32) | DIGIT_MASK = -1
+  __ movq(RAX, Immediate(-1));
 
   // Return qd if dh == yt
   Label return_qd;
-  __ cmpl(RDX, RCX);
+  __ cmpq(RDX, RCX);
   __ j(EQUAL, &return_qd, Assembler::kNearJump);
 
   // RAX = dl = dp[-1]
-  __ movl(RAX, Address(RBX, -Bigint::kBytesPerDigit));
+  __ movq(RAX, Address(RBX, -2*Bigint::kBytesPerDigit));
 
   // RAX = qd = dh:dl / yt = RDX:RAX / RCX
-  __ divl(RCX);
+  __ divq(RCX);
 
   __ Bind(&return_qd);
-  // args[2] = qd
-  __ movl(FieldAddress(RDI,
+  // args[2..3] = qd
+  __ movq(FieldAddress(RDI,
                        TypedData::data_offset() + 2*Bigint::kBytesPerDigit),
           RAX);
 
-  __ movq(RAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movq(RAX, Immediate(Smi::RawValue(2)));  // Two digits processed.
   __ ret();
 }
 
@@ -1212,35 +1215,35 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // Pseudo code:
   // static int _mulMod(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t rho = args[_RHO];  // _RHO == 2.
-  //   uint32_t d = digits[i >> 1];  // i is Smi.
-  //   uint64_t t = rho*d;
-  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 4.
-  //   return 1;
+  //   uint64_t rho = args[_RHO .. _RHO_HI];  // _RHO == 2, _RHO_HI == 3.
+  //   uint64_t d = digits[i >> 1 .. (i >> 1) + 1];  // i is Smi and even.
+  //   uint128_t t = rho*d;
+  //   args[_MU .. _MU_HI] = t mod DIGIT_BASE^2;  // _MU == 4, _MU_HI == 5.
+  //   return 2;
   // }
 
   // RDI = args
   __ movq(RDI, Address(RSP, 3 * kWordSize));  // args
 
-  // RCX = rho = args[2]
-  __ movl(RCX,
+  // RCX = rho = args[2 .. 3]
+  __ movq(RCX,
           FieldAddress(RDI,
                        TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
-  // RAX = digits[i >> 1]
+  // RAX = digits[i >> 1 .. (i >> 1) + 1]
   __ movq(RBX, Address(RSP, 2 * kWordSize));  // digits
   __ movq(RAX, Address(RSP, 1 * kWordSize));  // i is Smi
-  __ movl(RAX, FieldAddress(RBX, RAX, TIMES_2, TypedData::data_offset()));
+  __ movq(RAX, FieldAddress(RBX, RAX, TIMES_2, TypedData::data_offset()));
 
   // RDX:RAX = t = rho*d
-  __ mull(RCX);
+  __ mulq(RCX);
 
-  // args[4] = t mod DIGIT_BASE = low32(t)
-  __ movl(FieldAddress(RDI,
+  // args[4 .. 5] = t mod DIGIT_BASE^2 = low64(t)
+  __ movq(FieldAddress(RDI,
                        TypedData::data_offset() + 4*Bigint::kBytesPerDigit),
           RAX);
 
-  __ movq(RAX, Immediate(Smi::RawValue(1)));  // One digit processed.
+  __ movq(RAX, Immediate(Smi::RawValue(2)));  // Two digits processed.
   __ ret();
 }
 

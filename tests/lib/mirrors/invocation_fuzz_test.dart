@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This test reflectively enumerates all the methods in the system and tries to
-// invoke them will various basic values (nulls, ints, etc). This may result in
+// invoke them with various basic values (nulls, ints, etc). This may result in
 // Dart exceptions or hangs, but should never result in crashes or JavaScript
 // exceptions.
 
@@ -14,6 +14,9 @@ import 'dart:async';
 
 // Methods to be skipped, by qualified name.
 var blacklist = [
+  // TODO(regis): investigate.
+  'dart.core._Montgomery._invDigitPair',
+
   // Don't recurse on this test.
   'test.invoke_natives',
 
