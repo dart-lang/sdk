@@ -1258,9 +1258,9 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
     }
 
     updates.add(
-        js.statement('delete #.prototype.#', [prototypeAccess, getterName]));
+        js.statement('delete #.#', [prototypeAccess, getterName]));
     updates.add(
-        js.statement('delete #.prototype.#', [prototypeAccess, setterName]));
+        js.statement('delete #.#', [prototypeAccess, setterName]));
   }
 }
 
