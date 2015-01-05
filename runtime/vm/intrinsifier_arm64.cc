@@ -931,27 +931,28 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // static int _mulAdd(Uint32List x_digits, int xi,
   //                    Uint32List m_digits, int i,
   //                    Uint32List a_digits, int j, int n) {
-  //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
+  //   uint64_t x = x_digits[xi >> 1 .. (xi >> 1) + 1];  // xi is Smi and even.
   //   if (x == 0 || n == 0) {
-  //     return 1;
+  //     return 2;
   //   }
-  //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
-  //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
-  //   uint32_t c = 0;
-  //   SmiUntag(n);
+  //   uint64_t* mip = &m_digits[i >> 1];  // i is Smi and even.
+  //   uint64_t* ajp = &a_digits[j >> 1];  // j is Smi and even.
+  //   uint64_t c = 0;
+  //   SmiUntag(n);  // n is Smi and even.
+  //   n = (n + 1)/2;  // Number of pairs to process.
   //   do {
-  //     uint32_t mi = *mip++;
-  //     uint32_t aj = *ajp;
-  //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
-  //     *ajp++ = low32(t);
-  //     c = high32(t);
+  //     uint64_t mi = *mip++;
+  //     uint64_t aj = *ajp;
+  //     uint128_t t = x*mi + aj + c;  // 64-bit * 64-bit -> 128-bit.
+  //     *ajp++ = low64(t);
+  //     c = high64(t);
   //   } while (--n > 0);
   //   while (c != 0) {
-  //     uint64_t t = *ajp + c;
-  //     *ajp++ = low32(t);
-  //     c = high32(t);  // c == 0 or 1.
+  //     uint128_t t = *ajp + c;
+  //     *ajp++ = low64(t);
+  //     c = high64(t);  // c == 0 or 1.
   //   }
-  //   return 1;
+  //   return 2;
   // }
 
   Label done;
@@ -959,13 +960,14 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // R0 = xi as Smi, R1 = x_digits.
   __ ldp(R0, R1, Address(SP, 5 * kWordSize, Address::PairOffset));
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ ldr(R3, FieldAddress(R1, TypedData::data_offset()), kUnsignedWord);
+  __ ldr(R3, FieldAddress(R1, TypedData::data_offset()));
   __ tst(R3, Operand(R3));
   __ b(&done, EQ);
 
-  // R6 = SmiUntag(n), no_op if n == 0
+  // R6 = (SmiUntag(n) + 1)/2, no_op if n == 0
   __ ldr(R6, Address(SP, 0 * kWordSize));
-  __ adds(R6, ZR, Operand(R6, ASR, kSmiTagSize));  // SmiUntag(R6) and set cc.
+  __ add(R6, R6, Operand(2));
+  __ adds(R6, ZR, Operand(R6, ASR, 2));  // SmiUntag(R6) and set cc.
   __ b(&done, EQ);
 
   // R4 = mip = &m_digits[i >> 1]
@@ -990,24 +992,24 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // ajp: R5
   // c:   R1
   // n:   R6
+  // t:   R7:R8 (not live at loop entry)
 
-  // uint32_t mi = *mip++
-  __ ldr(R2, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  // uint64_t mi = *mip++
+  __ ldr(R2, Address(R4, 2*Bigint::kBytesPerDigit, Address::PostIndex));
 
-  // uint32_t aj = *ajp
-  __ ldr(R0, Address(R5, 0), kUnsignedWord);
+  // uint64_t aj = *ajp
+  __ ldr(R0, Address(R5, 0));
 
-  // uint64_t t = x*mi + aj + c
-  __ umaddl(R0, R2, R3, R0);  // X0 = W2*W3 + X0.
-  __ add(R0, R0, Operand(R1));  // R0 += c.
+  // uint128_t t = x*mi + aj + c
+  __ mul(R7, R2, R3);  // R7 = low64(R2*R3).
+  __ umulh(R8, R2, R3);  // R8 = high64(R2*R3), t = R8:R7 = x*mi.
+  __ adds(R7, R7, Operand(R0));
+  __ adc(R8, R8, ZR);  // t += aj.
+  __ adds(R0, R7, Operand(R1));  // t += c, R0 = low64(t).
+  __ adc(R1, R8, ZR);  // c = R1 = high64(t).
 
-  // *ajp++ = low32(t) = R0
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-
-  // c = R1 = high32(t) = R0 >> 32.
-  __ LsrImmediate(R1, R0, 32);
+  // *ajp++ = low64(t) = R0
+  __ str(R0, Address(R5, 2*Bigint::kBytesPerDigit, Address::PostIndex));
 
   // while (--n > 0)
   __ subs(R6, R6, Operand(1));  // --n
@@ -1017,22 +1019,20 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ b(&done, EQ);
 
   // *ajp++ += c
-  __ ldr(R0, Address(R5, 0), kUnsignedWord);
-  __ addsw(R0, R0, Operand(R1));
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  __ ldr(R0, Address(R5, 0));
+  __ adds(R0, R0, Operand(R1));
+  __ str(R0, Address(R5, 2*Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&done, CC);
 
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
-  __ ldr(R0, Address(R5, 0), kUnsignedWord);
-  __ addsw(R0, R0, Operand(1));
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  __ ldr(R0, Address(R5, 0));
+  __ adds(R0, R0, Operand(1));
+  __ str(R0, Address(R5, 2*Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&propagate_carry_loop, CS);
 
   __ Bind(&done);
-  __ LoadImmediate(R0, Smi::RawValue(1), kNoPP);  // One digit processed.
+  __ LoadImmediate(R0, Smi::RawValue(2), kNoPP);  // Two digits processed.
   __ ret();
 }
 
@@ -1041,27 +1041,27 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // Pseudo code:
   // static int _sqrAdd(Uint32List x_digits, int i,
   //                    Uint32List a_digits, int used) {
-  //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
-  //   uint32_t x = *xip++;
-  //   if (x == 0) return 1;
-  //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
-  //   uint32_t aj = *ajp;
-  //   uint64_t t = x*x + aj;
-  //   *ajp++ = low32(t);
-  //   uint64_t c = high32(t);
-  //   int n = ((used - i) >> 1) - 1;  // used and i are Smi.
+  //   uint64_t* xip = &x_digits[i >> 1];  // i is Smi and even.
+  //   uint64_t x = *xip++;
+  //   if (x == 0) return 2;
+  //   uint64_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
+  //   uint64_t aj = *ajp;
+  //   uint128_t t = x*x + aj;
+  //   *ajp++ = low64(t);
+  //   uint128_t c = high64(t);
+  //   int n = ((used - i + 2) >> 2) - 1;  // used and i are Smi. n: num pairs.
   //   while (--n >= 0) {
-  //     uint32_t xi = *xip++;
-  //     uint32_t aj = *ajp;
-  //     uint96_t t = 2*x*xi + aj + c;  // 2-bit * 32-bit * 32-bit -> 65-bit.
-  //     *ajp++ = low32(t);
-  //     c = high64(t);  // 33-bit.
+  //     uint64_t xi = *xip++;
+  //     uint64_t aj = *ajp;
+  //     uint192_t t = 2*x*xi + aj + c;  // 2-bit * 64-bit * 64-bit -> 129-bit.
+  //     *ajp++ = low64(t);
+  //     c = high128(t);  // 65-bit.
   //   }
-  //   uint32_t aj = *ajp;
-  //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
-  //   *ajp++ = low32(t);
-  //   *ajp = high32(t);
-  //   return 1;
+  //   uint64_t aj = *ajp;
+  //   uint128_t t = aj + c;  // 64-bit + 65-bit -> 66-bit.
+  //   *ajp++ = low64(t);
+  //   *ajp = high64(t);
+  //   return 2;
   // }
 
   // R4 = xip = &x_digits[i >> 1]
@@ -1072,8 +1072,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // R3 = x = *xip++, return if x == 0
   Label x_zero;
-  __ ldr(R3, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  __ ldr(R3, Address(R4, 2*Bigint::kBytesPerDigit, Address::PostIndex));
   __ tst(R3, Operand(R3));
   __ b(&x_zero, EQ);
 
@@ -1082,22 +1081,23 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ add(R1, R1, Operand(R2, LSL, 2));  // j == 2*i, i is Smi.
   __ add(R5, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // X0 = t = x*x + *ajp
-  __ ldr(R0, Address(R5, 0), kUnsignedWord);
-  __ umaddl(R0, R3, R3, R0);  // X0 = W3*W3 + X0.
+  // R6:R1 = t = x*x + *ajp
+  __ ldr(R0, Address(R5, 0));
+  __ mul(R1, R3, R3);  // R1 = low64(R3*R3).
+  __ umulh(R6, R3, R3);  // R6 = high64(R3*R3).
+  __ adds(R1, R1, Operand(R0));  // R6:R1 += *ajp.
+  __ adc(R6, R6, ZR);  // R6 = low64(c) = high64(t).
+  __ mov(R7, ZR);  // R7 = high64(c) = 0.
 
-  // *ajp++ = low32(t) = R0
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  // *ajp++ = low64(t) = R1
+  __ str(R1, Address(R5, 2*Bigint::kBytesPerDigit, Address::PostIndex));
 
-  // c = R6 = high32(t) = R0 >> 32.
-  __ LsrImmediate(R6, R0, 32);
-
-  // int n = used - i - 1
+  // int n = (used - i + 1)/2 - 1
   __ ldr(R0, Address(SP, 0 * kWordSize));  // used is Smi
   __ sub(R8, R0, Operand(R2));
+  __ add(R8, R8, Operand(2));
   __ movn(R0, Immediate(1), 0);  // R0 = ~1 = -2.
-  __ adds(R8, R0, Operand(R8, ASR, kSmiTagSize));  // while (--n >= 0)
+  __ adds(R8, R0, Operand(R8, ASR, 2));  // while (--n >= 0)
 
   Label loop, done;
   __ b(&done, MI);
@@ -1106,89 +1106,111 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // x:   R3
   // xip: R4
   // ajp: R5
-  // c:   R6
-  // t:   R1:R0 (not live at loop entry)
+  // c:   R7:R6
+  // t:   R2:R1:R0 (not live at loop entry)
   // n:   R8
 
-  // uint32_t xi = *xip++
-  __ ldr(R2, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
+  // uint64_t xi = *xip++
+  __ ldr(R2, Address(R4, 2*Bigint::kBytesPerDigit, Address::PostIndex));
 
-  // uint32_t aj = *ajp
-  __ ldr(R1, Address(R5, 0), kUnsignedWord);
-
-  // uint96_t t = R1:R0 = 2*x*xi + aj + c
-  __ umaddl(R0, R2, R3, ZR);  // X0 = W2*W3 + 0 = x*xi.
-  __ add(R1, R0, Operand(R1));  // R1 = x*xi + aj.
-  __ adds(R0, R0, Operand(R1));
-  __ adc(R1, ZR, ZR);  // R1:R0 = 2*R0 + R1 = 2*x*xi + aj.
+  // uint192_t t = R2:R1:R0 = 2*x*xi + aj + c
+  __ mul(R0, R2, R3);  // R0 = low64(R2*R3) = low64(x*xi).
+  __ umulh(R1, R2, R3);  // R1 = high64(R2*R3) = high64(x*xi).
+  __ adds(R0, R0, Operand(R0));
+  __ adcs(R1, R1, R1);
+  __ adc(R2, ZR, ZR);  // R2:R1:R0 = R1:R0 + R1:R0 = 2*x*xi.
   __ adds(R0, R0, Operand(R6));
-  __ adc(R1, R1, ZR);  // R1:R0 = R1:R0 + R6 = 2*x*xi + aj + c.
+  __ adcs(R1, R1, R7);
+  __ adc(R2, R2, ZR);  // R2:R1:R0 += c.
+  __ ldr(R7, Address(R5, 0));  // R7 = aj = *ajp.
+  __ adds(R0, R0, Operand(R7));
+  __ adcs(R6, R1, ZR);
+  __ adc(R7, R2, ZR);  // R7:R6:R0 = 2*x*xi + aj + c.
 
-  // *ajp++ = low32(t) = R0
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex),
-         kUnsignedWord);
-
-  // R6 = c = t >> 32.
-  __ LslImmediate(R6, R1, 32);
-  __ orr(R6, R6, Operand(R0, LSR, 32));
+  // *ajp++ = low64(t) = R0
+  __ str(R0, Address(R5, 2*Bigint::kBytesPerDigit, Address::PostIndex));
 
   // while (--n >= 0)
   __ subs(R8, R8, Operand(1));  // --n
   __ b(&loop, PL);
 
   __ Bind(&done);
-  // uint32_t aj = *ajp
-  __ ldr(R0, Address(R5, 0), kUnsignedWord);
+  // uint64_t aj = *ajp
+  __ ldr(R0, Address(R5, 0));
 
-  // uint64_t t = aj + c
-  __ add(R6, R6, Operand(R0));
+  // uint128_t t = aj + c
+  __ adds(R6, R6, Operand(R0));
+  __ adc(R7, R7, ZR);
 
-  // R7 = R6 >> 32.
-  __ LsrImmediate(R7, R6, 32);
-
-  // *ajp = low32(t) = low32(R6)
-  // *(ajp + 1) = high32(t) = low32(R7)
-  __ stp(R6, R7, Address(R5, 0, Address::PairOffset), kUnsignedWord);
+  // *ajp = low64(t) = R6
+  // *(ajp + 1) = high64(t) = R7
+  __ stp(R6, R7, Address(R5, 0, Address::PairOffset));
 
   __ Bind(&x_zero);
-  __ LoadImmediate(R0, Smi::RawValue(1), kNoPP);  // One digit processed.
+  __ LoadImmediate(R0, Smi::RawValue(2), kNoPP);  // Two digits processed.
   __ ret();
 }
 
 
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
+  // There is no 128-bit by 64-bit division instruction on arm64, so we use two
+  // 64-bit by 32-bit divisions and two 64-bit by 64-bit multiplications to
+  // adjust the two 32-bit digits of the estimated quotient.
+  //
   // Pseudo code:
   // static int _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t yt = args[_YT];  // _YT == 1.
-  //   uint32_t* dp = &digits[i >> 1];  // i is Smi.
-  //   uint32_t dh = dp[0];  // dh == digits[i >> 1].
-  //   uint32_t qd;
+  //   uint64_t yt = args[_YT_LO .. _YT];  // _YT_LO == 0, _YT == 1.
+  //   uint64_t* dp = &digits[(i >> 1) - 1];  // i is Smi.
+  //   uint64_t dh = dp[0];  // dh == digits[(i >> 1) - 1 .. i >> 1].
+  //   uint64_t qd;
   //   if (dh == yt) {
-  //     qd = DIGIT_MASK;
+  //     qd = (DIGIT_MASK << 32) | DIGIT_MASK;
   //   } else {
-  //     dl = dp[-1];  // dl == digits[(i - 1) >> 1].
-  //     qd = dh:dl / yt;  // No overflow possible, because dh < yt.
+  //     dl = dp[-1];  // dl == digits[(i >> 1) - 3 .. (i >> 1) - 2].
+  //     // We cannot calculate qd = dh:dl / yt, so ...
+  //     uint64_t yth = yt >> 32;
+  //     uint64_t qh = dh / yth;
+  //     uint128_t ph:pl = yt*qh;
+  //     uint64_t tl = (dh << 32)|(dl >> 32);
+  //     uint64_t th = dh >> 32;
+  //     while ((ph > th) || ((ph == th) && (pl > tl))) {
+  //       if (pl < yt) --ph;
+  //       pl -= yt;
+  //       --qh;
+  //     }
+  //     qd = qh << 32;
+  //     tl = (pl << 32);
+  //     th = (ph << 32)|(pl >> 32);
+  //     if (tl > dl) ++th;
+  //     dl -= tl;
+  //     dh -= th;
+  //     uint64_t ql = ((dh << 32)|(dl >> 32)) / yth;
+  //     ph:pl = yt*ql;
+  //     while ((ph > dh) || ((ph == dh) && (pl > dl))) {
+  //       if (pl < yt) --ph;
+  //       pl -= yt;
+  //       --ql;
+  //     }
+  //     qd |= ql;
   //   }
-  //   args[_QD] = qd;  // _QD == 2.
-  //   return 1;
+  //   args[_QD .. _QD_HI] = qd;  // _QD == 2, _QD_HI == 3.
+  //   return 2;
   // }
 
   // R4 = args
   __ ldr(R4, Address(SP, 2 * kWordSize));  // args
 
-  // R3 = yt = args[1]
-  __ ldr(R3, FieldAddress(R4,
-                          TypedData::data_offset() + Bigint::kBytesPerDigit),
-         kUnsignedWord);
+  // R3 = yt = args[0..1]
+  __ ldr(R3, FieldAddress(R4, TypedData::data_offset()));
 
-  // R2 = dh = digits[i >> 1]
+  // R2 = dh = digits[(i >> 1) - 1 .. i >> 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * kWordSize, Address::PairOffset));
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ ldr(R2, FieldAddress(R1, TypedData::data_offset()), kUnsignedWord);
+  __ ldr(R2,
+         FieldAddress(R1, TypedData::data_offset() - Bigint::kBytesPerDigit));
 
-  // R0 = qd = DIGIT_MASK = -1
+  // R0 = qd = (DIGIT_MASK << 32) | DIGIT_MASK = -1
   __ movn(R0, Immediate(0), 0);
 
   // Return qd if dh == yt
@@ -1196,24 +1218,110 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   __ cmp(R2, Operand(R3));
   __ b(&return_qd, EQ);
 
-  // R1 = dl = digits[(i - 1) >> 1]
+  // R1 = dl = digits[(i >> 1) - 3 .. (i >> 1) - 2]
   __ ldr(R1,
-         FieldAddress(R1, TypedData::data_offset() - Bigint::kBytesPerDigit),
-         kUnsignedWord);
+         FieldAddress(R1, TypedData::data_offset() - 3*Bigint::kBytesPerDigit));
 
-  // R1 = dh:dl
-  __ orr(R1, R1, Operand(R2, LSL, 32));
+  // R5 = yth = yt >> 32
+  __ orr(R5, ZR, Operand(R3, LSR, 32));
 
-  // R0 = qd = dh:dl / yt = R1 / R3
-  __ udiv(R0, R1, R3);
+  // R6 = qh = dh / yth
+  __ udiv(R6, R2, R5);
+
+  // R8:R7 = ph:pl = yt*qh
+  __ mul(R7, R3, R6);
+  __ umulh(R8, R3, R6);
+
+  // R9 = tl = (dh << 32)|(dl >> 32)
+  __ orr(R9, ZR, Operand(R2, LSL, 32));
+  __ orr(R9, R9, Operand(R1, LSR, 32));
+
+  // R10 = th = dh >> 32
+  __ orr(R10, ZR, Operand(R2, LSR, 32));
+
+  // while ((ph > th) || ((ph == th) && (pl > tl)))
+  Label qh_adj_loop, qh_adj, qh_ok;
+  __ Bind(&qh_adj_loop);
+  __ cmp(R8, Operand(R10));
+  __ b(&qh_adj, HI);
+  __ b(&qh_ok, NE);
+  __ cmp(R7, Operand(R9));
+  __ b(&qh_ok, LS);
+
+  __ Bind(&qh_adj);
+  // if (pl < yt) --ph
+  __ sub(TMP, R8, Operand(1));  // TMP = ph - 1
+  __ cmp(R7, Operand(R3));
+  __ csel(R8, TMP, R8, CC);  // R8 = R7 < R3 ? TMP : R8
+
+  // pl -= yt
+  __ sub(R7, R7, Operand(R3));
+
+  // --qh
+  __ sub(R6, R6, Operand(1));
+
+  __ Bind(&qh_ok);
+  // R0 = qd = qh << 32
+  __ orr(R0, ZR, Operand(R6, LSL, 32));
+
+  // tl = (pl << 32)
+  __ orr(R9, ZR, Operand(R7, LSL, 32));
+
+  // th = (ph << 32)|(pl >> 32);
+  __ orr(R10, ZR, Operand(R8, LSL, 32));
+  __ orr(R10, R10, Operand(R7, LSR, 32));
+
+  // if (tl > dl) ++th
+  __ add(TMP, R10, Operand(1));  // TMP = th + 1
+  __ cmp(R9, Operand(R1));
+  __ csel(R10, TMP, R10, HI);  // R10 = R9 > R1 ? TMP : R10
+
+  // dl -= tl
+  __ sub(R1, R1, Operand(R9));
+
+  // dh -= th
+  __ sub(R2, R2, Operand(R10));
+
+  // R6 = ql = ((dh << 32)|(dl >> 32)) / yth
+  __ orr(R6, ZR, Operand(R2, LSL, 32));
+  __ orr(R6, R6, Operand(R1, LSR, 32));
+  __ udiv(R6, R6, R5);
+
+  // R8:R7 = ph:pl = yt*ql
+  __ mul(R7, R3, R6);
+  __ umulh(R8, R3, R6);
+
+  // while ((ph > dh) || ((ph == dh) && (pl > dl))) {
+  Label ql_adj_loop, ql_adj, ql_ok;
+  __ Bind(&ql_adj_loop);
+  __ cmp(R8, Operand(R2));
+  __ b(&ql_adj, HI);
+  __ b(&ql_ok, NE);
+  __ cmp(R7, Operand(R1));
+  __ b(&ql_ok, LS);
+
+  __ Bind(&ql_adj);
+  // if (pl < yt) --ph
+  __ sub(TMP, R8, Operand(1));  // TMP = ph - 1
+  __ cmp(R7, Operand(R3));
+  __ csel(R8, TMP, R8, CC);  // R8 = R7 < R3 ? TMP : R8
+
+  // pl -= yt
+  __ sub(R7, R7, Operand(R3));
+
+  // --ql
+  __ sub(R6, R6, Operand(1));
+
+  __ Bind(&ql_ok);
+  // qd |= ql;
+  __ orr(R0, R0, Operand(R6));
 
   __ Bind(&return_qd);
-  // args[2] = qd
+  // args[2..3] = qd
   __ str(R0,
-         FieldAddress(R4, TypedData::data_offset() + 2*Bigint::kBytesPerDigit),
-         kUnsignedWord);
+         FieldAddress(R4, TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
-  __ LoadImmediate(R0, Smi::RawValue(1), kNoPP);  // One digit processed.
+  __ LoadImmediate(R0, Smi::RawValue(2), kNoPP);  // Two digits processed.
   __ ret();
 }
 
@@ -1221,37 +1329,34 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // Pseudo code:
   // static int _mulMod(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t rho = args[_RHO];  // _RHO == 2.
-  //   uint32_t d = digits[i >> 1];  // i is Smi.
-  //   uint64_t t = rho*d;
-  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 4.
-  //   args[_MU_HI] = 0;  // _MU_HI == 3.
-  //   return 1;
+  //   uint64_t rho = args[_RHO .. _RHO_HI];  // _RHO == 2, _RHO_HI == 3.
+  //   uint64_t d = digits[i >> 1 .. (i >> 1) + 1];  // i is Smi and even.
+  //   uint128_t t = rho*d;
+  //   args[_MU .. _MU_HI] = t mod DIGIT_BASE^2;  // _MU == 4, _MU_HI == 5.
+  //   return 2;
   // }
 
   // R4 = args
   __ ldr(R4, Address(SP, 2 * kWordSize));  // args
 
-  // R3 = rho = args[2]
+  // R3 = rho = args[2..3]
   __ ldr(R3,
-         FieldAddress(R4, TypedData::data_offset() + 2*Bigint::kBytesPerDigit),
-         kUnsignedWord);
+         FieldAddress(R4, TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
-  // R2 = digits[i >> 1]
+  // R2 = digits[i >> 1 .. (i >> 1) + 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * kWordSize, Address::PairOffset));
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ ldr(R2, FieldAddress(R1, TypedData::data_offset()), kUnsignedWord);
+  __ ldr(R2, FieldAddress(R1, TypedData::data_offset()));
 
-  // X0 = t = rho*d
-  __ umaddl(R0, R2, R3, ZR);  // X0 = W2*W3 + 0.
+  // R0 = rho*d mod DIGIT_BASE
+  __ mul(R0, R2, R3);  // R0 = low64(R2*R3).
 
-  // args[4] = t mod DIGIT_BASE = low32(t)
+  // args[4 .. 5] = R0
   __ str(R0,
-         FieldAddress(R4, TypedData::data_offset() + 4*Bigint::kBytesPerDigit),
-         kUnsignedWord);
+         FieldAddress(R4, TypedData::data_offset() + 4*Bigint::kBytesPerDigit));
 
-  __ LoadImmediate(R0, Smi::RawValue(1), kNoPP);  // One digit processed.
+  __ LoadImmediate(R0, Smi::RawValue(2), kNoPP);  // Two digits processed.
   __ ret();
 }
 

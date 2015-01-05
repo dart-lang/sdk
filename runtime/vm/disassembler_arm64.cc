@@ -1061,7 +1061,7 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
       (instr->Bit(15) == 0)) {
     if (instr->RaField() == R31) {
-      Format(instr, "mul'sf, 'rd, 'rn, 'rm");
+      Format(instr, "mul'sf 'rd, 'rn, 'rm");
     } else {
       Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
     }
@@ -1071,6 +1071,9 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
              (instr->Bit(15) == 0)) {
     Format(instr, "smulh 'rd, 'rn, 'rm");
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 6) &&
+             (instr->Bit(15) == 0)) {
+    Format(instr, "umulh 'rd, 'rn, 'rm");
   } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
              (instr->Bit(15) == 0)) {
     Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
