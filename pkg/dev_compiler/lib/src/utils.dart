@@ -4,10 +4,16 @@ library ddc.src.utils;
 import 'dart:async' show Future;
 import 'dart:io';
 
+import 'package:analyzer/src/generated/ast.dart'
+    show ImportDirective, ExportDirective;
+import 'package:analyzer/src/generated/engine.dart'
+    show ParseDartTask, AnalysisContext;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/analyzer.dart' show parseDirectives;
 
 /// Returns all libraries transitively imported or exported from [start].
-List<LibraryElement> reachableLibraries(LibraryElement start) {
+Iterable<LibraryElement> reachableLibraries(LibraryElement start) {
   var results = <LibraryElement>[];
   var seen = new Set();
   void find(LibraryElement lib) {
@@ -19,6 +25,32 @@ List<LibraryElement> reachableLibraries(LibraryElement start) {
   }
   find(start);
   return results;
+}
+
+/// Returns all sources transitively imported or exported from [start] in
+/// post-visit order. Internally this uses digest parsing to read only
+/// directives from each source, that way library resolution can be done
+/// bottom-up and improve performance of the analyzer internal cache.
+Iterable<Source> reachableSources(Source start, AnalysisContext context) {
+  var results = <Source>[];
+  var seen = new Set();
+  void find(Source source) {
+    if (seen.contains(source)) return;
+    seen.add(source);
+    _importsAndExportsOf(source, context).forEach(find);
+    results.add(source);
+  }
+  find(start);
+  return results;
+}
+
+/// Returns sources that are imported or exported in [source] (parts are
+/// excluded).
+Iterable<Source> _importsAndExportsOf(Source source, AnalysisContext context) {
+  var unit = parseDirectives(source.contents.data, name: source.fullName);
+  return unit.directives
+      .where((d) => d is ImportDirective || d is ExportDirective)
+      .map((d) => ParseDartTask.resolveDirective(context, source, d, null));
 }
 
 /// Returns an ANSII color escape sequence corresponding to [levelName]. Colors

@@ -41,9 +41,9 @@ class ProgramChecker extends RecursiveAstVisitor {
       this._resolver, this._rules, this._root, this._checkSdk, this._reporter);
 
   void check() {
-    var startLibrary =
-        _resolver.context.computeLibraryElement(_resolver.findSource(_root));
-    for (var lib in reachableLibraries(startLibrary)) {
+    var rootSource = _resolver.findSource(_root);
+    for (var source in reachableSources(rootSource, _resolver.context)) {
+      var lib = _resolver.context.computeLibraryElement(source);
       if (!_checkSdk && lib.isInSdk) continue;
       _current = new LibraryInfo(lib);
       _reporter.enterLibrary(_current);
