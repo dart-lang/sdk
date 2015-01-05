@@ -1375,6 +1375,12 @@ main(p) {
         expected);
   }
 
+  void test_invalidSelection() {
+    _indexTestUnit('');
+    List<Assist> assists = computeAssists(searchEngine, testUnit, -1, 0);
+    expect(assists, isEmpty);
+  }
+
   void test_invertIfStatement_blocks() {
     _indexTestUnit('''
 main() {
