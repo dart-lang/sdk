@@ -45,6 +45,7 @@ class InstrumentationService {
   static final InstrumentationService NULL_SERVICE =
       new InstrumentationService(null);
 
+  static const String TAG_ERROR = 'Err';
   static const String TAG_EXCEPTION = 'Ex';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_REQUEST = 'Req';
@@ -67,6 +68,13 @@ class InstrumentationService {
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
+
+  /**
+   * Log the fact that an error, described by the given [message], has occurred.
+   */
+  void logError(String message) {
+    _log(TAG_ERROR, message);
+  }
 
   /**
    * Log that the given non-priority [exception] was thrown, with the given

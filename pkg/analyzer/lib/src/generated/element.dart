@@ -2641,7 +2641,19 @@ class ConstructorElementImpl extends ExecutableElementImpl implements
 
   @override
   void appendTo(StringBuffer buffer) {
-    buffer.write(enclosingElement.displayName);
+    if (enclosingElement == null) {
+      String message;
+      String name = displayName;
+      if (name != null && !name.isEmpty) {
+        message = 'Found constructor element named $name with no enclosing element';
+      } else {
+        message = 'Found unnamed constructor element with no enclosing element';
+      }
+      AnalysisEngine.instance.instrumentationService.logError(message);
+      buffer.write('<unknown class>');
+    } else {
+      buffer.write(enclosingElement.displayName);
+    }
     String name = displayName;
     if (name != null && !name.isEmpty) {
       buffer.write(".");
@@ -4856,7 +4868,7 @@ abstract class FieldElement implements ClassMemberElement,
     PropertyInducingElement {
   /**
    * Return {@code true} if this element is an enum constant.
-   * 
+   *
    * @return {@code true} if this an enum constant
    */
   bool get isEnumConstant;
