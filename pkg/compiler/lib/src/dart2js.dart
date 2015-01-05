@@ -100,7 +100,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 
 FormattingDiagnosticHandler diagnosticHandler;
 
-Future<api.CompilationResult> compile(List<String> argv) {
+Future compile(List<String> argv) {
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
@@ -422,9 +422,9 @@ Future<api.CompilationResult> compile(List<String> argv) {
       new RandomAccessFileOutputProvider(
           out, sourceMapOut, onInfo: diagnosticHandler.info, onFailure: fail);
 
-  api.CompilationResult compilationDone(api.CompilationResult result) {
-    if (analyzeOnly) return result;
-    if (!result.isSuccess) {
+  compilationDone(String code) {
+    if (analyzeOnly) return;
+    if (code == null) {
       fail('Compilation failed.');
     }
     writeString(Uri.parse('$out.deps'),
@@ -446,7 +446,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
       String output = relativize(currentDirectory, out, Platform.isWindows);
       print('Dart file ($input) compiled to $outputLanguage: $output');
     }
-    return result;
   }
 
   return compileFunc(uri, libraryRoot, packageRoot,
@@ -480,7 +479,7 @@ void fail(String message) {
   exitFunc(1);
 }
 
-Future<api.CompilationResult> compilerMain(List<String> arguments) {
+Future compilerMain(List<String> arguments) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
   arguments = <String>['--library-root=${Platform.script.toFilePath()}$root']
       ..addAll(arguments);
@@ -643,8 +642,8 @@ void main(List<String> arguments) {
 var exitFunc = exit;
 var compileFunc = api.compile;
 
-Future<api.CompilationResult> internalMain(List<String> arguments) {
-  Future onError(exception, trace) {
+Future internalMain(List<String> arguments) {
+  onError(exception, trace) {
     try {
       print('The compiler crashed: $exception');
     } catch (ignored) {
@@ -658,13 +657,13 @@ Future<api.CompilationResult> internalMain(List<String> arguments) {
     } finally {
       exitFunc(253); // 253 is recognized as a crash by our test scripts.
     }
-    return new Future.error(exception, trace);
   }
 
   try {
     return compilerMain(arguments).catchError(onError);
   } catch (exception, trace) {
-    return onError(exception, trace);
+    onError(exception, trace);
+    return new Future.value();
   }
 }
 

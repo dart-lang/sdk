@@ -75,8 +75,7 @@ class MockCompiler extends Compiler {
        bool trustTypeAnnotations: false,
        bool enableEnums: false,
        int this.expectedWarnings,
-       int this.expectedErrors,
-       api.CompilerOutputProvider outputProvider})
+       int this.expectedErrors})
       : sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
@@ -89,8 +88,7 @@ class MockCompiler extends Compiler {
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true,
-              enableEnums: enableEnums,
-              outputProvider: outputProvider) {
+              enableEnums: enableEnums) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);

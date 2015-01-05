@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'memory_compiler.dart' show compilerFor, OutputCollector;
+import 'memory_compiler.dart' show compilerFor;
 import 'package:compiler/src/apiimpl.dart' show
     Compiler;
 import 'package:compiler/src/tree/tree.dart' show
@@ -20,15 +20,12 @@ main() {
   testWithoutMirrorHelperLibrary(minify: false);
 }
 
-Future<Compiler> runCompiler({OutputCollector outputCollector,
-                              bool useMirrorHelperLibrary: false,
-                              bool minify: false}) {
+Future<Compiler> runCompiler({useMirrorHelperLibrary: false, minify: false}) {
   List<String> options = ['--output-type=dart'];
   if (minify) {
     options.add('--minify');
   }
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES, outputProvider: outputCollector, options: options);
+  Compiler compiler = compilerFor(MEMORY_SOURCE_FILES, options: options);
   DartBackend backend = compiler.backend;
   backend.useMirrorHelperLibrary = useMirrorHelperLibrary;
   return
@@ -36,12 +33,8 @@ Future<Compiler> runCompiler({OutputCollector outputCollector,
 }
 
 void testWithMirrorHelperLibrary({bool minify}) {
-  OutputCollector outputCollector = new OutputCollector();
-  asyncTest(() =>
-    runCompiler(outputCollector: outputCollector,
-                useMirrorHelperLibrary: true,
-                minify: minify)
-      .then((Compiler compiler) {
+  asyncTest(() => runCompiler(useMirrorHelperLibrary: true, minify: minify).
+      then((Compiler compiler) {
     DartBackend backend = compiler.backend;
     MirrorRenamerImpl mirrorRenamer = backend.mirrorRenamer;
     Map<Node, String> renames = backend.placeholderRenamer.renames;
@@ -62,7 +55,7 @@ void testWithMirrorHelperLibrary({bool minify}) {
       }
     }
 
-    String output = outputCollector.getOutput('', 'dart');
+    String output = compiler.assembledCode;
     String getNameMatch = MirrorRenamerImpl.MIRROR_HELPER_GET_NAME_FUNCTION;
     Iterable i = getNameMatch.allMatches(output);
     print(output);

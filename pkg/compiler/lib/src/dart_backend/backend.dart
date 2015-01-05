@@ -193,7 +193,7 @@ class DartBackend extends Backend {
         || mirrorRenamer.isMirrorHelperLibrary(element.library);
   }
 
-  int assembleProgram() {
+  void assembleProgram() {
     ElementAstCreationContext context =
         new _ElementAstCreationContext(compiler, constantSystem);
 
@@ -222,7 +222,7 @@ class DartBackend extends Backend {
       collector.collect();
     }
 
-    int totalSize = outputter.assembleProgram(
+    String assembledCode = outputter.assembleProgram(
         libraries: compiler.libraryLoader.libraries,
         instantiatedClasses: compiler.resolverWorld.directlyInstantiatedClasses,
         resolvedElements: compiler.enqueuer.resolution.resolvedElements,
@@ -235,15 +235,16 @@ class DartBackend extends Backend {
         mirrorRenamer: mirrorRenamer,
         mainFunction: compiler.mainFunction,
         outputUri: compiler.outputUri);
+    compiler.assembledCode = assembledCode;
+
+    int totalSize = assembledCode.length;
 
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.
     logResultBundleSizeInfo(
         outputter.libraryInfo.userLibraries,
         outputter.elementInfo.topLevelElements,
-        totalSize);
-
-    return totalSize;
+        assembledCode.length);
   }
 
   void logResultBundleSizeInfo(Iterable<LibraryElement> userLibraries,

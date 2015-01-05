@@ -152,15 +152,14 @@ Future testExitCode(String marker, String type, int expectedExitCode) {
     }
   }
   return new Future(() {
-    Future<api.CompilationResult> compile(
-        Uri script,
-        Uri libraryRoot,
-        Uri packageRoot,
-        api.CompilerInputProvider inputProvider,
-        api.DiagnosticHandler handler,
-        [List<String> options = const [],
-         api.CompilerOutputProvider outputProvider,
-         Map<String, dynamic> environment = const {}]) {
+    Future<String> compile(Uri script,
+                           Uri libraryRoot,
+                           Uri packageRoot,
+                           api.CompilerInputProvider inputProvider,
+                           api.DiagnosticHandler handler,
+                           [List<String> options = const [],
+                            api.CompilerOutputProvider outputProvider,
+                            Map<String, dynamic> environment = const {}]) {
       libraryRoot = Platform.script.resolve('../../../sdk/');
       outputProvider = NullSink.outputProvider;
       // Use this to silence the test when debugging:
@@ -175,8 +174,19 @@ Future testExitCode(String marker, String type, int expectedExitCode) {
                                            marker,
                                            type,
                                            onTest);
-      return compiler.run(script).then((bool success) {
-        return new api.CompilationResult(compiler, isSuccess: success);
+      return compiler.run(script).then((_) {
+        String code = compiler.assembledCode;
+        if (code != null && outputProvider != null) {
+          String outputType = 'js';
+          if (options.contains('--output-type=dart')) {
+            outputType = 'dart';
+          }
+          outputProvider('', outputType)
+              ..add(code)
+              ..close();
+          code = ''; // Non-null signals success.
+        }
+        return code;
       });
     }
 
@@ -204,9 +214,7 @@ Future testExitCode(String marker, String type, int expectedExitCode) {
 
     Future result = entry.internalMain(
         ["tests/compiler/dart2js/exit_code_helper.dart"]);
-    return result.catchError((e, s) {
-      // Capture crashes.
-    }).whenComplete(checkResult);
+    return result.whenComplete(checkResult);
   });
 }
 

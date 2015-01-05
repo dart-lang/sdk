@@ -38,7 +38,7 @@ class ModelEmitter {
         constantEmitter =
             new ConstantEmitter(compiler, namer, makeConstantListTemplate);
 
-  int emitProgram(Program program) {
+  void emitProgram(Program program) {
     List<Output> outputs = program.outputs;
     MainOutput mainUnit = outputs.first;
     js.Statement mainAst = emitMainUnit(program);
@@ -47,17 +47,15 @@ class ModelEmitter {
         ..add(buildGeneratedBy(compiler))
         ..add(mainCode)
         ..close();
-    int totalSize = mainCode.length;
+    compiler.assembledCode = mainCode;
 
     outputs.skip(1).forEach((DeferredOutput deferredUnit) {
       js.Expression ast = emitDeferredUnit(deferredUnit, mainUnit.holders);
       String code = js.prettyPrint(ast, compiler).getText();
-      totalSize += code.length;
       compiler.outputProvider(deferredUnit.outputFileName, deferredExtension)
           ..add(code)
           ..close();
     });
-    return totalSize;
   }
 
   js.LiteralString unparse(Compiler compiler, js.Expression value) {

@@ -55,9 +55,7 @@ class DartOutputter {
   ///
   /// The [sortElements] function is used to sort [instantiatedClasses] and
   /// [resolvedElements] in the generated output.
-  ///
-  /// Returns the total size of the generated code.
-  int assembleProgram({
+  String assembleProgram({
       MirrorRenamer mirrorRenamer: const MirrorRenamer(),
       Iterable<LibraryElement> libraries,
       Iterable<Element> instantiatedClasses,
@@ -122,15 +120,12 @@ class DartOutputter {
         forceStripTypes: forceStripTypes,
         isSafeToRemoveTypeDeclarations: isSafeToRemoveTypeDeclarations);
 
+    String assembledCode;
     if (outputAst) {
-      String code = astOutput(listener, elementInfo);
-      outputProvider("", "dart")
-                 ..add(code)
-                 ..close();
-      return code.length;
+      assembledCode = astOutput(listener, elementInfo);
     } else {
       output = new MainOutputGenerator();
-      return output.generateCode(
+      assembledCode = output.generateCode(
           libraryInfo,
           elementInfo,
           collector,
@@ -143,6 +138,7 @@ class DartOutputter {
           forceStripTypes: forceStripTypes,
           enableMinification: enableMinification);
     }
+    return assembledCode;
   }
 
   static PlaceholderCollector collectPlaceholders(
@@ -435,8 +431,7 @@ class MainOutputGenerator {
        new Map<ClassNode, List<Node>>();
   final List<Node> topLevelNodes = <Node>[];
 
-  /// Generates the code and returns the total size.
-  int generateCode(
+  String generateCode(
       LibraryInfo libraryInfo,
       ElementInfo elementInfo,
       PlaceholderCollector collector,
@@ -544,6 +539,7 @@ class MainOutputGenerator {
     }
 
     int totalSize = 0;
+    String assembledCode;
     if (multiFile) {
       for(LibraryElement outputLibrary in libraryInfo.userLibraries) {
         // TODO(sigurdm): Make the unparser output directly into the buffer
@@ -554,15 +550,17 @@ class MainOutputGenerator {
              ..add(code)
              ..close();
       }
+      // TODO(sigurdm): We should get rid of compiler.assembledCode.
+      assembledCode = unparsers[mainFunction.library].result;
     } else {
-      String code = mainUnparser.result;
+      assembledCode = mainUnparser.result;
       outputProvider("", "dart")
-           ..add(code)
+           ..add(assembledCode)
            ..close();
 
-      totalSize = code.length;
+      totalSize = assembledCode.length;
     }
 
-    return totalSize;
+    return assembledCode;
   }
 }

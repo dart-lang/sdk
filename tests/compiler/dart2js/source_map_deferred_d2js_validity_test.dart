@@ -8,11 +8,13 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/compiler.dart';
 
 import 'source_map_validator_helper.dart';
+import 'compiler_alt.dart' as alt;
 
 void main() {
+  entry.compileFunc = alt.compile;
+
   asyncTest(() => createTempDir().then((Directory tmpDir) {
     String file =
         'tests/compiler/dart2js/source_map_deferred_validator_test_file.dart';
@@ -21,8 +23,8 @@ void main() {
         [file,
          '-o${tmpDir.path}/out.js',
          '--library-root=sdk']);
-      return result.then((CompilationResult result) {
-        Compiler compiler = result.compiler;
+      return result.then((_) {
+        Compiler compiler = alt.compiler;
         Uri mainUri = new Uri.file('${tmpDir.path}/out.js',
                                    windows: Platform.isWindows);
         Uri deferredUri = new Uri.file('${tmpDir.path}/out.js_1.part.js',

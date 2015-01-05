@@ -65,21 +65,6 @@ typedef EventSink<String> CompilerOutputProvider(String name,
 typedef void DiagnosticHandler(Uri uri, int begin, int end,
                                String message, Diagnostic kind);
 
-/// Information resulting from the compilation.
-class CompilationResult {
-  /// `true` if the compilation succeeded, that is, compilation didn't fail due
-  /// to compile-time errors and/or internal errors.
-  final bool isSuccess;
-
-  /// The compiler object used for the compilation.
-  ///
-  /// Note: The type of [compiler] is implementation dependent and may vary.
-  /// Use only for debugging and testing.
-  final compiler;
-
-  CompilationResult(this.compiler, {this.isSuccess: true});
-}
-
 /**
  * Returns a future that completes to a non-null String when [script]
  * has been successfully compiled.
@@ -95,15 +80,14 @@ class CompilationResult {
  * as the compiler may create multiple files to support lazy loading
  * of libraries.
  */
-Future<CompilationResult> compile(
-    Uri script,
-    Uri libraryRoot,
-    Uri packageRoot,
-    CompilerInputProvider inputProvider,
-    DiagnosticHandler handler,
-    [List<String> options = const [],
-     CompilerOutputProvider outputProvider,
-     Map<String, dynamic> environment = const {}]) {
+Future<String> compile(Uri script,
+                       Uri libraryRoot,
+                       Uri packageRoot,
+                       CompilerInputProvider inputProvider,
+                       DiagnosticHandler handler,
+                       [List<String> options = const [],
+                        CompilerOutputProvider outputProvider,
+                        Map<String, dynamic> environment = const {}]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -119,8 +103,13 @@ Future<CompilationResult> compile(
                                    packageRoot,
                                    options,
                                    environment);
-  return compiler.run(script).then((bool success) {
-    return new CompilationResult(compiler, isSuccess: success);
+  // TODO(ahe): Use the value of the future (which signals success or failure).
+  return compiler.run(script).then((_) {
+    String code = compiler.assembledCode;
+    if (code != null && outputProvider != null) {
+      code = ''; // Non-null signals success.
+    }
+    return code;
   });
 }
 

@@ -10,17 +10,15 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
 import 'memory_compiler.dart' show
-    compilerFor, OutputCollector;
+    compilerFor;
 
 Future<String> compileSources(sources, {bool minify, bool preserveUri}) {
   var options = [];
   if (minify) options.add("--minify");
   if (preserveUri) options.add("--preserve-uris");
-  OutputCollector outputCollector = new OutputCollector();
-  var compiler = compilerFor(
-      sources, options: options, outputProvider: outputCollector);
+  var compiler = compilerFor(sources, options: options);
   return compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
-    return outputCollector.getOutput('', 'js');
+    return compiler.assembledCode;
   });
 }
 

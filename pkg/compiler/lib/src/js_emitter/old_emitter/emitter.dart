@@ -1653,6 +1653,7 @@ class OldEmitter implements Emitter {
     compiler.outputProvider('', 'js')
         ..add(assembledCode)
         ..close();
+    compiler.assembledCode = assembledCode;
   }
 
   /// Used by incremental compilation to patch up the prototype of
@@ -1831,7 +1832,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return nativeBuffer;
   }
 
-  int emitProgram(Program program) {
+  void emitProgram(Program program) {
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;
 
@@ -1848,9 +1849,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         !backend.htmlLibraryIsLoaded) {
       compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
-
-    // Return the total program size.
-    return outputBuffers.values.fold(0, (a, b) => a + b.length);
   }
 
   String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
