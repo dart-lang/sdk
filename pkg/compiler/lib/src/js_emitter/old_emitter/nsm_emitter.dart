@@ -286,7 +286,7 @@ class NsmEmitter extends CodeEmitterHelper {
     var type = 0;
     if (useDiffEncoding) {
       statements.add(js.statement('''{
-          var objectClassObject = collectedClasses[#objectClass],
+          var objectClassObject = processedClasses.collected[#objectClass],
               shortNames = #diffEncoding.split(","),
               nameNumber = 0,
               diffEncodedString = shortNames[0],
@@ -331,7 +331,7 @@ class NsmEmitter extends CodeEmitterHelper {
       Iterable<String> longs = trivialNsmHandlers.map((selector) =>
              selector.invocationMirrorMemberName);
       statements.add(js.statement(
-          'var objectClassObject = collectedClasses[#objectClass],'
+          'var objectClassObject = processedClasses.collected[#objectClass],'
           '    shortNames = #diffEncoding.split(",")',
           {'objectClass': js.string(namer.getNameOfClass(objectClass)),
            'diffEncoding': js.string('$diffEncoding')}));

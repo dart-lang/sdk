@@ -69,7 +69,7 @@ Future<Compiler> reuseCompiler(
     // Much like a scout, an incremental compiler is always prepared. For
     // mixins, classes, and lazy statics, at least.
     backend.emitter.oldEmitter
-        ..needsDefineClass = true
+        ..needsClassSupport = true
         ..needsMixinSupport = true
         ..needsLazyInitializer = true;
 
