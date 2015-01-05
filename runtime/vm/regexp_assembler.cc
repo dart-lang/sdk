@@ -62,7 +62,7 @@ void PrintUtf16(uint16_t c) {
  * [start_inclusive, end_exclusive] for capture group i are stored at positions
  * matches_param_[i * 2] and matches_param_[i * 2 + 1], respectively. Match
  * indices of -1 denote non-matched groups. Note that we store these indices
- * as a negative offset from the end of the string in position_registers_
+ * as a negative offset from the end of the string in registers_array_
  * during processing, and convert them to standard indexes when copying them
  * to matches_param_ on successful match.
  */
@@ -95,9 +95,12 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       string_param_(NULL),
       string_param_length_(NULL),
       start_index_param_(NULL),
-      position_registers_count_((capture_count + 1) * 2),
+      registers_count_(0),
+      saved_registers_count_((capture_count + 1) * 2),
       stack_array_(GrowableObjectArray::ZoneHandle(
-          isolate, GrowableObjectArray::New(16, Heap::kOld))) {
+          isolate, GrowableObjectArray::New(16, Heap::kOld))),
+      // The registers array is allocated at a fixed size after assembly.
+      registers_array_(TypedData::ZoneHandle(isolate, TypedData::null())) {
   switch (specialization_cid) {
     case kOneByteStringCid:
     case kExternalOneByteStringCid: mode_ = ASCII; break;
@@ -149,6 +152,7 @@ void IRRegExpMacroAssembler::InitializeLocals() {
 
   // Create local variables and parameters.
   stack_ = Local(Symbols::stack());
+  registers_ = Local(Symbols::position_registers());
   current_character_ = Local(Symbols::current_character());
   current_position_ = Local(Symbols::current_position());
   string_param_length_ = Local(Symbols::string_param_length());
@@ -163,23 +167,12 @@ void IRRegExpMacroAssembler::InitializeLocals() {
 
   string_param_ = Parameter(Symbols::string_param(), 0);
   start_index_param_ = Parameter(Symbols::start_index_param(), 1);
-
-  // Reserve space for all captured group positions. Note that more might
-  // be created on the fly for internal use.
-  for (intptr_t i = 0; i < position_registers_count_; i++) {
-    position_register(i);
-  }
 }
 
 
 void IRRegExpMacroAssembler::GenerateEntryBlock() {
   set_current_instruction(entry_block_->normal_entry());
   TAG();
-
-  // Generate a local list variable which we will use as a backtracking stack.
-
-  StoreLocal(stack_, Bind(new(I) ConstantInstr(stack_array_)));
-  Do(InstanceCall(InstanceCallDescriptor(Symbols::clear()), PushLocal(stack_)));
 
   // Store string.length.
   PushArgumentInstr* string_push = PushLocal(string_param_);
@@ -191,15 +184,22 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
               String::ZoneHandle(Field::GetterSymbol(Symbols::Length()))),
           string_push)));
 
-  // Initialize all capture registers.
-  ClearRegisters(0, position_registers_count_ - 1);
-
   // Store (start_index - string.length) as the current position (since it's a
   // negative offset from the end of the string).
   PushArgumentInstr* start_index_push = PushLocal(start_index_param_);
   PushArgumentInstr* length_push = PushLocal(string_param_length_);
 
   StoreLocal(current_position_, Bind(Sub(start_index_push, length_push)));
+
+  // Generate a local list variable to represent "registers" and
+  // initialize capture registers (others remain garbage).
+  StoreLocal(registers_, Bind(new(I) ConstantInstr(registers_array_)));
+  ClearRegisters(0, saved_registers_count_ - 1);
+
+  // Generate a local list variable to represent the backtracking stack.
+  StoreLocal(stack_, Bind(new(I) ConstantInstr(stack_array_)));
+  PushArgumentInstr* stack_push = PushLocal(stack_);
+  Do(InstanceCall(InstanceCallDescriptor(Symbols::clear()), stack_push));
 
   // Jump to the start block.
   current_instruction_->Goto(start_block_);
@@ -240,30 +240,20 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   set_current_instruction(success_block_);
   TAG();
 
-  Definition* type_args_null_def = new(I) ConstantInstr(
-        TypeArguments::ZoneHandle(I, TypeArguments::null()));
-  PushArgumentInstr* type_arg_push = PushArgument(Bind(type_args_null_def));
-  PushArgumentInstr* length_push =
-      PushArgument(Bind(Uint64Constant(position_registers_count_)));
-
-  const Library& lib = Library::Handle(Library::CoreLibrary());
-  const Class& list_class = Class::Handle(
-        lib.LookupCoreClass(Symbols::List()));
-  const Function& list_ctor =
-      Function::ZoneHandle(I, list_class.LookupFactory(Symbols::ListFactory()));
-
-  // TODO(zerny): Use CreateArrayInstr and StoreIndexed instead.
-  StoreLocal(result_, Bind(StaticCall(list_ctor, type_arg_push, length_push)));
+  Value* type = Bind(new(I) ConstantInstr(
+      TypeArguments::ZoneHandle(I, TypeArguments::null())));
+  Value* length = Bind(Uint64Constant(saved_registers_count_));
+  Value* array = Bind(new(I) CreateArrayInstr(kNoSourcePos, type, length));
+  StoreLocal(result_, array);
 
   // Store captured offsets in the `matches` parameter.
-  // TODO(zerny): Eliminate position_register locals and access `matches`
-  // directly.
-  for (intptr_t i = 0; i < position_registers_count_; i++) {
+  for (intptr_t i = 0; i < saved_registers_count_; i++) {
     PushArgumentInstr* matches_push = PushLocal(result_);
     PushArgumentInstr* index_push = PushArgument(Bind(Uint64Constant(i)));
 
     // Convert negative offsets from the end of the string to string indices.
-    PushArgumentInstr* offset_push = PushLocal(position_register(i));
+    // TODO(zerny): use positive offsets from the get-go.
+    PushArgumentInstr* offset_push = PushArgument(LoadRegister(i));
     PushArgumentInstr* len_push = PushLocal(string_param_length_);
     PushArgumentInstr* value_push =
         PushArgument(Bind(Add(offset_push, len_push)));
@@ -288,6 +278,13 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
 
   // Return false on failure.
   AppendInstruction(new(I) ReturnInstr(kNoSourcePos, Bind(LoadLocal(result_))));
+}
+
+
+void IRRegExpMacroAssembler::FinalizeRegistersArray() {
+  ASSERT(registers_count_ >= saved_registers_count_);
+  registers_array_ =
+      TypedData::New(kTypedDataInt32ArrayCid, registers_count_, Heap::kOld);
 }
 
 
@@ -436,7 +433,7 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
 
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(
-    ComparisonKind kind, Definition* lhs, Definition* rhs) {
+    ComparisonKind kind, PushArgumentInstr* lhs, PushArgumentInstr* rhs) {
   Token::Kind strict_comparison = Token::kEQ_STRICT;
   Token::Kind intermediate_operator = Token::kILLEGAL;
   switch (kind) {
@@ -465,18 +462,22 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(
 
   ASSERT(intermediate_operator != Token::kILLEGAL);
 
-  PushArgumentInstr* lhs_push = PushArgument(Bind(lhs));
-  PushArgumentInstr* rhs_push = PushArgument(Bind(rhs));
-
   Value* lhs_value =
       Bind(InstanceCall(
              InstanceCallDescriptor::FromToken(intermediate_operator),
-             lhs_push,
-             rhs_push));
+             lhs,
+             rhs));
   Value* rhs_value = Bind(BoolConstant(true));
 
   return new(I) StrictCompareInstr(
       kNoSourcePos, strict_comparison, lhs_value, rhs_value, true);
+}
+
+ComparisonInstr* IRRegExpMacroAssembler::Comparison(
+    ComparisonKind kind, Definition* lhs, Definition* rhs) {
+  PushArgumentInstr* lhs_push = PushArgument(Bind(lhs));
+  PushArgumentInstr* rhs_push = PushArgument(Bind(rhs));
+  return Comparison(kind, lhs_push, rhs_push);
 }
 
 
@@ -735,12 +736,15 @@ void IRRegExpMacroAssembler::AdvanceCurrentPosition(intptr_t by) {
 void IRRegExpMacroAssembler::AdvanceRegister(intptr_t reg, intptr_t by) {
   TAG();
   ASSERT(reg >= 0);
-  ASSERT(reg < position_registers_.length());
+  ASSERT(reg < registers_count_);
 
   if (by != 0) {
-    PushArgumentInstr* reg_push = PushLocal(position_register(reg));
+    PushArgumentInstr* registers_push = PushLocal(registers_);
+    PushArgumentInstr* index_push = PushRegisterIndex(reg);
+    PushArgumentInstr* reg_push = PushArgument(LoadRegister(reg));
     PushArgumentInstr* by_push = PushArgument(Bind(Int64Constant(by)));
-    StoreLocal(position_register(reg), Bind(Add(reg_push, by_push)));
+    PushArgumentInstr* value_push = PushArgument(Bind(Add(reg_push, by_push)));
+    StoreRegister(registers_push, index_push, value_push);
   }
 }
 
@@ -777,13 +781,37 @@ intptr_t IRRegExpMacroAssembler::GetNextLocalIndex() {
 }
 
 
-LocalVariable* IRRegExpMacroAssembler::position_register(intptr_t index) {
-  // Create position registers as needed.
-  for (intptr_t i = position_registers_.length(); i < index + 1; i++) {
-    position_registers_.Add(Local(Symbols::position_registers()));
-  }
+Value* IRRegExpMacroAssembler::LoadRegister(intptr_t index) {
+  PushArgumentInstr* registers_push = PushLocal(registers_);
+  PushArgumentInstr* index_push = PushRegisterIndex(index);
+  return Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
+                           registers_push,
+                           index_push));
+}
 
-  return position_registers_[index];
+void IRRegExpMacroAssembler::StoreRegister(intptr_t index, intptr_t value) {
+  PushArgumentInstr* registers_push = PushLocal(registers_);
+  PushArgumentInstr* index_push = PushRegisterIndex(index);
+  PushArgumentInstr* value_push = PushArgument(Bind(Uint64Constant(value)));
+  StoreRegister(registers_push, index_push, value_push);
+}
+
+
+void IRRegExpMacroAssembler::StoreRegister(PushArgumentInstr* registers,
+                                           PushArgumentInstr* index,
+                                           PushArgumentInstr* value) {
+  TAG();
+  Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
+                  registers,
+                  index,
+                  value));
+}
+
+PushArgumentInstr* IRRegExpMacroAssembler::PushRegisterIndex(intptr_t index) {
+  if (registers_count_ <= index) {
+    registers_count_ = index + 1;
+  }
+  return PushArgument(Bind(Uint64Constant(index)));
 }
 
 
@@ -890,12 +918,12 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     intptr_t start_reg,
     BlockLabel* on_no_match) {
   TAG();
-  ASSERT(start_reg + 1 <= position_registers_.length());
+  ASSERT(start_reg + 1 <= registers_count_);
 
   BlockLabel fallthrough;
 
-  PushArgumentInstr* end_push = PushLocal(position_register(start_reg + 1));
-  PushArgumentInstr* start_push = PushLocal(position_register(start_reg));
+  PushArgumentInstr* end_push = PushArgument(LoadRegister(start_reg + 1));
+  PushArgumentInstr* start_push = PushArgument(LoadRegister(start_reg));
   StoreLocal(capture_length_, Bind(Sub(end_push, start_push)));
 
   // The length of a capture should not be negative. This can only happen
@@ -931,7 +959,7 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
   len_push = PushLocal(string_param_length_);
   StoreLocal(match_start_index_, Bind(Add(pos_push, len_push)));
 
-  pos_push = PushLocal(position_register(start_reg));
+  pos_push = PushArgument(LoadRegister(start_reg));
   len_push = PushLocal(string_param_length_);
   StoreLocal(capture_start_index_, Bind(Add(pos_push, len_push)));
 
@@ -1057,14 +1085,14 @@ void IRRegExpMacroAssembler::CheckNotBackReference(
     intptr_t start_reg,
     BlockLabel* on_no_match) {
   TAG();
-  ASSERT(start_reg + 1 <= position_registers_.length());
+  ASSERT(start_reg + 1 <= registers_count_);
 
   BlockLabel fallthrough;
   BlockLabel success;
 
   // Find length of back-referenced capture.
-  PushArgumentInstr* end_push = PushLocal(position_register(start_reg + 1));
-  PushArgumentInstr* start_push = PushLocal(position_register(start_reg));
+  PushArgumentInstr* end_push = PushArgument(LoadRegister(start_reg + 1));
+  PushArgumentInstr* start_push = PushArgument(LoadRegister(start_reg));
   StoreLocal(capture_length_, Bind(Sub(end_push, start_push)));
 
   // Fail on partial or illegal capture (start of capture after end of capture).
@@ -1095,7 +1123,7 @@ void IRRegExpMacroAssembler::CheckNotBackReference(
   len_push = PushLocal(string_param_length_);
   StoreLocal(match_start_index_, Bind(Add(pos_push, len_push)));
 
-  pos_push = PushLocal(position_register(start_reg));
+  pos_push = PushArgument(LoadRegister(start_reg));
   len_push = PushLocal(string_param_length_);
   StoreLocal(capture_start_index_, Bind(Add(pos_push, len_push)));
 
@@ -1448,10 +1476,9 @@ void IRRegExpMacroAssembler::IfRegisterGE(intptr_t reg,
                                           intptr_t comparand,
                                           BlockLabel* if_ge) {
   TAG();
-  BranchOrBacktrack(Comparison(kGTE,
-                               LoadLocal(position_register(reg)),
-                               Int64Constant(comparand)),
-                    if_ge);
+  PushArgumentInstr* reg_push = PushArgument(LoadRegister(reg));
+  PushArgumentInstr* pos = PushArgument(Bind(Int64Constant(comparand)));
+  BranchOrBacktrack(Comparison(kGTE, reg_push, pos), if_ge);
 }
 
 
@@ -1459,20 +1486,18 @@ void IRRegExpMacroAssembler::IfRegisterLT(intptr_t reg,
                                           intptr_t comparand,
                                           BlockLabel* if_lt) {
   TAG();
-  BranchOrBacktrack(Comparison(kLT,
-                               LoadLocal(position_register(reg)),
-                               Int64Constant(comparand)),
-                    if_lt);
+  PushArgumentInstr* reg_push = PushArgument(LoadRegister(reg));
+  PushArgumentInstr* pos = PushArgument(Bind(Int64Constant(comparand)));
+  BranchOrBacktrack(Comparison(kLT, reg_push, pos), if_lt);
 }
 
 
 void IRRegExpMacroAssembler::IfRegisterEqPos(intptr_t reg,
                                              BlockLabel* if_eq) {
   TAG();
-  BranchOrBacktrack(Comparison(kEQ,
-                               LoadLocal(position_register(reg)),
-                               LoadLocal(current_position_)),
-                    if_eq);
+  PushArgumentInstr* reg_push = PushArgument(LoadRegister(reg));
+  PushArgumentInstr* pos = PushArgument(Bind(LoadLocal(current_position_)));
+  BranchOrBacktrack(Comparison(kEQ, reg_push, pos), if_eq);
 }
 
 
@@ -1502,10 +1527,13 @@ void IRRegExpMacroAssembler::PopCurrentPosition() {
 }
 
 
-void IRRegExpMacroAssembler::PopRegister(intptr_t register_index) {
+void IRRegExpMacroAssembler::PopRegister(intptr_t reg) {
   TAG();
-  ASSERT(register_index < position_registers_.length());
-  StoreLocal(position_register(register_index), PopStack());
+  ASSERT(reg < registers_count_);
+  PushArgumentInstr* registers_push = PushLocal(registers_);
+  PushArgumentInstr* index_push = PushRegisterIndex(reg);
+  PushArgumentInstr* pop_push = PushArgument(PopStack());
+  StoreRegister(registers_push, index_push, pop_push);
 }
 
 
@@ -1548,24 +1576,28 @@ void IRRegExpMacroAssembler::PushCurrentPosition() {
 }
 
 
-void IRRegExpMacroAssembler::PushRegister(intptr_t register_index) {
+void IRRegExpMacroAssembler::PushRegister(intptr_t reg) {
   TAG();
-  PushStack(LoadLocal(position_register(register_index)));
+  PushArgumentInstr* stack_push = PushLocal(stack_);
+  PushArgumentInstr* value_push = PushArgument(LoadRegister(reg));
+  Do(InstanceCall(InstanceCallDescriptor(Symbols::add()),
+                  stack_push,
+                  value_push));
 }
 
 
 void IRRegExpMacroAssembler::ReadCurrentPositionFromRegister(intptr_t reg) {
   TAG();
-  StoreLocal(current_position_, Bind(LoadLocal(position_register(reg))));
+  StoreLocal(current_position_, LoadRegister(reg));
 }
 
 // Resets the size of the stack to the value stored in reg.
 void IRRegExpMacroAssembler::ReadStackPointerFromRegister(intptr_t reg) {
   TAG();
-  ASSERT(reg < position_registers_.length());
+  ASSERT(reg < registers_count_);
 
   PushArgumentInstr* stack_push = PushLocal(stack_);
-  PushArgumentInstr* length_push = PushLocal(position_register(reg));
+  PushArgumentInstr* length_push = PushArgument(LoadRegister(reg));
 
   Do(InstanceCall(
       InstanceCallDescriptor(
@@ -1596,11 +1628,11 @@ void IRRegExpMacroAssembler::SetCurrentPositionFromEnd(intptr_t by)  {
 }
 
 
-void IRRegExpMacroAssembler::SetRegister(intptr_t register_index, intptr_t to) {
+void IRRegExpMacroAssembler::SetRegister(intptr_t reg, intptr_t to) {
   TAG();
   // Reserved for positions!
-  ASSERT(register_index >= position_registers_count_);
-  StoreLocal(position_register(register_index), Bind(Int64Constant(to)));
+  ASSERT(reg >= saved_registers_count_);
+  StoreRegister(reg, to);
 }
 
 
@@ -1615,13 +1647,14 @@ void IRRegExpMacroAssembler::WriteCurrentPositionToRegister(
     intptr_t reg, intptr_t cp_offset) {
   TAG();
 
+  PushArgumentInstr* registers_push = PushLocal(registers_);
+  PushArgumentInstr* index_push = PushRegisterIndex(reg);
   PushArgumentInstr* pos_push = PushLocal(current_position_);
-  PushArgumentInstr* off_push =
-      PushArgument(Bind(Int64Constant(cp_offset)));
-
+  PushArgumentInstr* off_push = PushArgument(Bind(Int64Constant(cp_offset)));
+  PushArgumentInstr* neg_off_push = PushArgument(Bind(Add(pos_push, off_push)));
   // Push the negative offset; these are converted to positive string positions
   // within the success block.
-  StoreLocal(position_register(reg), Bind(Add(pos_push, off_push)));
+  StoreRegister(registers_push, index_push, neg_off_push);
 }
 
 
@@ -1630,17 +1663,19 @@ void IRRegExpMacroAssembler::ClearRegisters(
   TAG();
 
   ASSERT(reg_from <= reg_to);
-  ASSERT(reg_to < position_registers_.length());
 
   // In order to clear registers to a final result value of -1, set them to
   // (-1 - string length), the offset of -1 from the end of the string.
 
   for (intptr_t reg = reg_from; reg <= reg_to; reg++) {
+    PushArgumentInstr* registers_push = PushLocal(registers_);
+    PushArgumentInstr* index_push = PushRegisterIndex(reg);
     PushArgumentInstr* minus_one_push =
         PushArgument(Bind(Int64Constant(-1)));
     PushArgumentInstr* length_push = PushLocal(string_param_length_);
-
-    StoreLocal(position_register(reg), Bind(Sub(minus_one_push, length_push)));
+    PushArgumentInstr* value_push =
+        PushArgument(Bind(Sub(minus_one_push, length_push)));
+    StoreRegister(registers_push, index_push, value_push);
   }
 }
 
@@ -1648,14 +1683,14 @@ void IRRegExpMacroAssembler::ClearRegisters(
 void IRRegExpMacroAssembler::WriteStackPointerToRegister(intptr_t reg) {
   TAG();
 
+  PushArgumentInstr* registers_push = PushLocal(registers_);
+  PushArgumentInstr* index_push = PushRegisterIndex(reg);
   PushArgumentInstr* stack_push = PushLocal(stack_);
-  Value* length_value =
-      Bind(InstanceCall(InstanceCallDescriptor(
-                          String::ZoneHandle(
-                            I, Field::GetterSymbol(Symbols::Length()))),
-                        stack_push));
-
-  StoreLocal(position_register(reg), length_value);
+  PushArgumentInstr* length_push =
+      PushArgument(Bind(InstanceCall(InstanceCallDescriptor(
+          String::ZoneHandle(I, Field::GetterSymbol(Symbols::Length()))),
+                                     stack_push)));
+  StoreRegister(registers_push, index_push, length_push);
 }
 
 
