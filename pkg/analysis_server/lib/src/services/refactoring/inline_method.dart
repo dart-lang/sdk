@@ -343,6 +343,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
     if (element is! ExecutableElement) {
       return fatalStatus;
     }
+    if (element.isSynthetic) {
+      return fatalStatus;
+    }
     _methodElement = element as ExecutableElement;
     _isAccessor = element is PropertyAccessorElement;
     _methodUnit = element.unit;
