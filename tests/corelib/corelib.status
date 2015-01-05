@@ -226,3 +226,6 @@ regexp/*: Skip
 
 [ $runtime == vm ]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
+
+[ $mode == debug && $arch == mips ]
+regexp/pcre_test: Skip # Timeout. Issue 21995
