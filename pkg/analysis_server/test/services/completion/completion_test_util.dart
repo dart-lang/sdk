@@ -383,7 +383,10 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(element.name, equals(name));
     // TODO (danrubel) assert setter param
     //expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
+    // TODO (danrubel) it would be better if this was always null
+    if (element.returnType != null) {
+      expect(element.returnType, 'dynamic');
+    }
     return cs;
   }
 
@@ -758,6 +761,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestLocalSetter(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestSetter(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestLocalTopLevelVar(String name,
       String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -1091,8 +1103,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       int T5;
       var _T6;
       String get T7 => 'hello';
+      set T8(int value) { }
       Z D2() {int x;}
       class X {
+        int get clog => 8;
+        set blog(value) { }
         a() {
           var f;
           localF(int arg1) { }
@@ -1144,6 +1159,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalTopLevelVar('_T6', null);
       assertNotSuggested('==');
       assertSuggestLocalGetter('T7', 'String');
+      assertSuggestLocalSetter('T8');
+      assertSuggestLocalGetter('clog', 'int');
+      assertSuggestLocalSetter('blog');
       // TODO (danrubel) suggest HtmlElement as low relevance
       assertNotSuggested('HtmlElement');
     });
@@ -2095,10 +2113,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       int T1;
       F1() { }
       class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart','''
+    addSource('/testA.dart', '''
       part of libA;
       class B { }''');
-    addTestSource( '''
+    addTestSource('''
       library libA;
       import "/testB.dart";
       part "/testA.dart";

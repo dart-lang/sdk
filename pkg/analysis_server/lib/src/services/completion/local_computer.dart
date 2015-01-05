@@ -199,17 +199,18 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
     protocol.ElementKind kind;
     String parameters;
+    TypeName returnType = declaration.returnType;
     if (declaration.isGetter) {
       kind = protocol.ElementKind.GETTER;
-      parameters = '()';
+      parameters = null;
     } else if (declaration.isSetter) {
       if (excludeVoidReturn) {
         return;
       }
       kind = protocol.ElementKind.SETTER;
-      parameters = '(${declaration.returnType.toSource()} value)';
+      returnType = null;
     } else {
-      if (excludeVoidReturn && _isVoid(declaration.returnType)) {
+      if (excludeVoidReturn && _isVoid(returnType)) {
         return;
       }
       kind = protocol.ElementKind.METHOD;
@@ -218,7 +219,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
-        declaration.returnType,
+        returnType,
         declaration.parent,
         isDeprecated);
     if (suggestion != null) {
@@ -226,7 +227,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           kind,
           declaration.name,
           parameters,
-          declaration.returnType,
+          returnType,
           declaration.isAbstract,
           isDeprecated);
     }
