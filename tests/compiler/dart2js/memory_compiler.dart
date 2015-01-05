@@ -20,6 +20,8 @@ import 'package:compiler/src/mirrors/analyze.dart';
 import 'package:compiler/src/library_loader.dart'
     show LoadedLibraries;
 
+export 'output_collector.dart';
+
 class DiagnosticMessage {
   final Uri uri;
   final int begin;
@@ -59,41 +61,6 @@ class DiagnosticCollector {
 
   Iterable<DiagnosticMessage> get infos {
     return filterMessagesByKind(Diagnostic.INFO);
-  }
-}
-
-class BufferedEventSink implements EventSink<String> {
-  StringBuffer sb = new StringBuffer();
-  String text;
-
-  void add(String event) {
-    sb.write(event);
-  }
-
-  void addError(errorEvent, [StackTrace stackTrace]) {
-    // Do not support this.
-  }
-
-  void close() {
-    text = sb.toString();
-    sb = null;
-  }
-}
-
-class OutputCollector {
-  Map<String, Map<String, BufferedEventSink>> outputMap = {};
-
-  EventSink<String> call(String name, String extension) {
-    Map<String, BufferedEventSink> sinkMap =
-        outputMap.putIfAbsent(extension, () => {});
-    return sinkMap.putIfAbsent(name, () => new BufferedEventSink());
-  }
-
-  String getOutput(String name, String extension) {
-    Map<String, BufferedEventSink> sinkMap = outputMap[extension];
-    if (sinkMap == null) return null;
-    BufferedEventSink sink = sinkMap[name];
-    return sink != null ? sink.text : null;
   }
 }
 
@@ -241,7 +208,7 @@ class MemoryLoadedLibraries implements LoadedLibraries {
   bool containsLibrary(Uri uri) => copiedLibraries.containsKey(uri);
 
   @override
-  void forEachImportChain(f) {}
+  void forEachImportChain(f, {callback}) {}
 
   @override
   void forEachLibrary(f) {}

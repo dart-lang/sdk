@@ -98,7 +98,6 @@ Future<Compiler> reuseCompiler(
         ..enqueuer.codegen.queueIsClosed = false
         ..enqueuer.codegen.hasEnqueuedReflectiveElements = false
         ..enqueuer.codegen.hasEnqueuedReflectiveStaticFields = false
-        ..assembledCode = null
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
 

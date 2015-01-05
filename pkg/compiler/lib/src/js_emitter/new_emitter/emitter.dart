@@ -26,8 +26,8 @@ class Emitter implements emitterTask.Emitter {
         _emitter = new ModelEmitter(compiler, namer);
 
   @override
-  void emitProgram(Program program) {
-    _emitter.emitProgram(program);
+  int emitProgram(Program program) {
+    return _emitter.emitProgram(program);
   }
 
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
