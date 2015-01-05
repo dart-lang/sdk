@@ -115,7 +115,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       suggestion.element = _createElement(
           protocol.ElementKind.GETTER,
           varDecl.name,
-          '()',
+          null,
           fieldDecl.fields.type,
           false,
           isDeprecated);

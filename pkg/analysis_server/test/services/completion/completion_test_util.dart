@@ -1997,11 +1997,13 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
+        expect(getterF.element.parameters, isNull);
       }
       CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
       if (getterG != null) {
         expect(getterG.element.isDeprecated, isFalse);
         expect(getterG.element.isPrivate, isTrue);
+        expect(getterF.element.parameters, isNull);
       }
       assertSuggestImportedClass('bool');
     });
