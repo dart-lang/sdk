@@ -832,7 +832,7 @@ class LibraryUpdater extends JsFeatures {
     List<jsAst.Statement> inherits = <jsAst.Statement>[];
 
     for (ClassElementX cls in newClasses) {
-      jsAst.Node classAccess = emitter.classAccess(cls);
+      jsAst.Node classAccess = emitter.constructorAccess(cls);
       String name = namer.getNameOfClass(cls);
 
       updates.add(
@@ -841,7 +841,7 @@ class LibraryUpdater extends JsFeatures {
 
       ClassElement superclass = cls.superclass;
       if (superclass != null) {
-        jsAst.Node superAccess = emitter.classAccess(superclass);
+        jsAst.Node superAccess = emitter.constructorAccess(superclass);
         inherits.add(
             js.statement(
                 r'#.inheritFrom(#, #)', [helper, classAccess, superAccess]));
@@ -857,8 +857,8 @@ class LibraryUpdater extends JsFeatures {
       ClassElement superclass = cls.superclass;
       jsAst.Node superAccess =
           superclass == null ? js('null')
-              : emitter.classAccess(superclass);
-      jsAst.Node classAccess = emitter.classAccess(cls);
+              : emitter.constructorAccess(superclass);
+      jsAst.Node classAccess = emitter.constructorAccess(cls);
       updates.add(
           js.statement(
               r'# = #.schemaChange(#, #, #)',
@@ -945,7 +945,7 @@ if (#helper.pendingStubs) {
     jsAst.Node holder;
 
     if (element.isInstanceMember) {
-      holder = js('#.prototype', emitter.classAccess(element.enclosingClass));
+      holder = emitter.prototypeAccess(element.enclosingClass);
     } else {
       holder = js('#', namer.globalObjectFor(element));
     }
@@ -1127,7 +1127,7 @@ class RemovedFunctionUpdate extends RemovalUpdate
     wasStateCaptured = true;
 
     if (element.isInstanceMember) {
-      elementAccess = emitter.classAccess(element.enclosingClass);
+      elementAccess = emitter.constructorAccess(element.enclosingClass);
       name = namer.getNameOfMember(element);
     } else {
       elementAccess = emitter.staticFunctionAccess(element);
@@ -1175,7 +1175,7 @@ class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
   void captureState() {
     if (wasStateCaptured) throw "captureState was called twice.";
     wasStateCaptured = true;
-    accessToStatics.add(emitter.classAccess(element));
+    accessToStatics.add(emitter.constructorAccess(element));
 
     element.forEachLocalMember((ElementX member) {
       if (!member.isInstanceMember) {
@@ -1219,7 +1219,7 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
 
   bool wasStateCaptured = false;
 
-  jsAst.Node elementAccess;
+  jsAst.Node prototypeAccess;
 
   String getterName;
 
@@ -1236,7 +1236,7 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
     if (wasStateCaptured) throw "captureState was called twice.";
     wasStateCaptured = true;
 
-    elementAccess = emitter.classAccess(element.enclosingClass);
+    prototypeAccess = emitter.prototypeAccess(element.enclosingClass);
     getterName = namer.getterName(element);
     setterName = namer.setterName(element);
   }
@@ -1258,9 +1258,9 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
     }
 
     updates.add(
-        js.statement('delete #.prototype.#', [elementAccess, getterName]));
+        js.statement('delete #.prototype.#', [prototypeAccess, getterName]));
     updates.add(
-        js.statement('delete #.prototype.#', [elementAccess, setterName]));
+        js.statement('delete #.prototype.#', [prototypeAccess, setterName]));
   }
 }
 
