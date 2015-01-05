@@ -367,7 +367,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
     var allClasses = #allClasses;
 
     if (#inCspMode) {
-      constructors = dart_precompiled(processedClasses.collected);
+      var constructors = dart_precompiled(processedClasses.collected);
     }
 
     if (#notInCspMode) {
