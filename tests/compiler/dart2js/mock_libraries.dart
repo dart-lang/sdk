@@ -354,7 +354,7 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
 
 const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
     const <String, String>{
-  'startRootIsolate': 'var startRootIsolate;',
+  'startRootIsolate': 'void startRootIsolate(entry, args) {}',
   '_currentIsolate': 'var _currentIsolate;',
   '_callInIsolate': 'var _callInIsolate;',
   '_WorkerBase': 'class _WorkerBase {}',
