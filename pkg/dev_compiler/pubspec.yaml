@@ -19,7 +19,7 @@ dev_dependencies:
 dependency_overrides:
   analyzer:
     git:
-      url: http://github.com/dart-lang/analyzer-for-ddc.git
+      url: git@github.com:dart-lang/analyzer-for-ddc.git
       ref: master
 executables:
   # Similar to "analyzer.dart" and its command line "dartanalyzer", we use
