@@ -1102,6 +1102,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
+    this._options.incrementalValidation = options.incrementalValidation;
     this._options.preserveComments = options.preserveComments;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
@@ -6542,6 +6543,12 @@ abstract class AnalysisOptions {
   bool get incrementalApi;
 
   /**
+   * A flag indicating whether validation should be performed after incremental
+   * analysis.
+   */
+  bool get incrementalValidation;
+
+  /**
    * Return `true` if analysis is to parse comments.
    *
    * @return `true` if analysis is to parse comments
@@ -6638,6 +6645,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool incrementalApi = false;
 
   /**
+   * A flag indicating whether validation should be performed after incremental
+   * analysis.
+   */
+  bool incrementalValidation = false;
+
+  /**
    * A flag indicating whether analysis is to parse comments.
    */
   bool preserveComments = true;
@@ -6666,6 +6679,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     hint = options.hint;
     incremental = options.incremental;
     incrementalApi = options.incrementalApi;
+    incrementalValidation = options.incrementalValidation;
     preserveComments = options.preserveComments;
   }
 

@@ -75,6 +75,13 @@ class Driver {
   static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
 
   /**
+   * The name of the option used to enable validation of incremental resolution
+   * results.
+   */
+  static const String INCREMENTAL_RESOLUTION_VALIDATION =
+      "incremental-resolution-validation";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -145,7 +152,12 @@ class Driver {
         negatable: false);
     parser.addOption(
         INCREMENTAL_RESOLUTION_LOG,
-        help: "the description of the incremental resolotion log");
+        help: "the description of the incremental resolution log");
+    parser.addFlag(
+        INCREMENTAL_RESOLUTION_VALIDATION,
+        help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
     parser.addFlag(
         INTERNAL_PRINT_TO_CONSOLE,
         help: "enable sending `print` output to the console",
@@ -204,6 +216,8 @@ class Driver {
     AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
     analysisServerOptions.enableIncrementalResolutionApi =
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
+    analysisServerOptions.enableIncrementalResolutionValidation =
+        results[INCREMENTAL_RESOLUTION_VALIDATION];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
