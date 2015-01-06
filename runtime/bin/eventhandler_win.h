@@ -332,7 +332,7 @@ class StdHandle : public FileHandle {
   void RunWriteLoop();
 
  private:
-  DWORD thread_wrote_;
+  intptr_t thread_wrote_;
   bool write_thread_exists_;
   bool write_thread_running_;
   Monitor* write_monitor_;
