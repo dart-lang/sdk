@@ -944,23 +944,14 @@ class OldEmitter implements Emitter {
       mainCallClosure = backend.emitter.staticFunctionAccess(main);
     }
 
-    NativeGenerator nativeGenerator =
-        new NativeGenerator(generateEmbeddedGlobalAccess);
-    if (backend.needToInitializeIsolateAffinityTag) {
-      buffer.write(
-          jsAst.prettyPrint(
-              nativeGenerator.generateIsolateAffinityTagInitialization(),
-              compiler, monitor: compiler.dumpInfoTask));
-      buffer.write(N);
-    }
-    if (backend.needToInitializeDispatchProperty) {
-      assert(backend.needToInitializeIsolateAffinityTag);
-      buffer.write(
-          jsAst.prettyPrint(
-              nativeGenerator.generateDispatchPropertyNameInitialization(),
-              compiler, monitor: compiler.dumpInfoTask));
-      buffer.write(N);
-    }
+    bool initializeAffinityTag = backend.needToInitializeIsolateAffinityTag;
+    jsAst.Statement nativeBoilerPlate =
+        NativeGenerator.generateIsolateAffinityTagInitialization(
+        generateEmbeddedGlobalAccess,
+        initializeIsolateAffinityTag: initializeAffinityTag,
+        initializeDispatchProperty: backend.needToInitializeDispatchProperty);
+    buffer.write(jsAst.prettyPrint(nativeBoilerPlate,
+                                   compiler, monitor: compiler.dumpInfoTask));
 
     jsAst.Expression currentScriptAccess =
         generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);

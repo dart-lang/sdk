@@ -5,20 +5,28 @@
 part of dart2js.js_emitter;
 
 class NativeGenerator {
-  final Function generateEmbeddedGlobalAccess;
 
-  NativeGenerator(this.generateEmbeddedGlobalAccess);
+  /// Generates the code for isolate affinity tags.
+  ///
+  /// Independently Dart programs on the same page must not interfer and
+  /// this code sets up the variables needed to guarantee that behavior.
+  static jsAst.Statement generateIsolateAffinityTagInitialization(
+      jsAst.Expression generateEmbeddedGlobalAccess(String global),
+      {bool initializeIsolateAffinityTag,
+       bool initializeDispatchProperty}) {
+    assert(initializeIsolateAffinityTag != null);
+    assert(initializeDispatchProperty != null);
+    assert(!initializeDispatchProperty || initializeIsolateAffinityTag);
 
-  /**
-   * Emits code that sets the `isolateTag embedded global to a unique string.
-   */
-  jsAst.Expression generateIsolateAffinityTagInitialization() {
     jsAst.Expression getIsolateTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
     jsAst.Expression isolateTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.ISOLATE_TAG);
+    jsAst.Expression dispatchPropertyNameAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.DISPATCH_PROPERTY_NAME);
 
-    return js('''
+    return js.statement('''
+    if (#initializeIsolateAffinityTag)
       !function() {
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
@@ -48,22 +56,19 @@ class NativeGenerator {
             break;
           }
         }
-      }()
+        if (#initializeDispatchProperty) {
+          #dispatchPropertyName = #getIsolateTag("dispatch_record");
+        }
+      }();
     ''',
-    {'getIsolateTag': getIsolateTagAccess, 'isolateTag': isolateTagAccess});
+    {'initializeIsolateAffinityTag': initializeIsolateAffinityTag,
+     'initializeDispatchProperty': initializeDispatchProperty,
+     'getIsolateTag': getIsolateTagAccess,
+     'isolateTag': isolateTagAccess,
+     'dispatchPropertyName': dispatchPropertyNameAccess});
   }
 
-  jsAst.Expression generateDispatchPropertyNameInitialization() {
-    jsAst.Expression dispatchPropertyNameAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.DISPATCH_PROPERTY_NAME);
-    jsAst.Expression getIsolateTagAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
-    return js('# = #("dispatch_record")',
-        [dispatchPropertyNameAccess,
-         getIsolateTagAccess]);
-  }
-
-  String generateIsolateTagRoot() {
+  static String generateIsolateTagRoot() {
     // TODO(sra): MD5 of contributing source code or URIs?
     return 'ZxYxX';
   }
