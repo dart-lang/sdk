@@ -135,7 +135,7 @@ class InstrumentationService {
   }
 
   /**
-   * Write an escaped version of the given [string] to the given [buffer].
+   * Write an escaped version of the given [field] to the given [buffer].
    */
   void _escape(StringBuffer buffer, String field) {
     int index = field.indexOf(':');
@@ -144,7 +144,7 @@ class InstrumentationService {
       return;
     }
     int start = 0;
-    while (index > 0) {
+    while (index >= 0) {
       buffer.write(field.substring(start, index));
       buffer.write('::');
       start = index + 1;

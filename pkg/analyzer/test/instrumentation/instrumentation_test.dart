@@ -6,6 +6,7 @@ library test.instrumentation;
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
+
 import '../reflective_tests.dart';
 
 main() {
@@ -16,11 +17,26 @@ main() {
 
 @ReflectiveTestCase()
 class InstrumentationServiceTest extends ReflectiveTestCase {
-  void assertNormal(TestInstrumentationServer server, String tag, String message) {
+  void assertNormal(TestInstrumentationServer server, String tag,
+      String message) {
     String sent = server.normalChannel.toString();
     if (!sent.endsWith(':$tag:$message\n')) {
       fail('Expected "...:$tag:$message", found "$sent"');
     }
+  }
+
+  void test_logError_withColon() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    service.logError('Error:message');
+    assertNormal(server, InstrumentationService.TAG_ERROR, 'Error::message');
+  }
+
+  void test_logError_withLeadingColon() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    service.logError(':a:bb');
+    assertNormal(server, InstrumentationService.TAG_ERROR, '::a::bb');
   }
 
   void test_logError_withoutColon() {
@@ -29,13 +45,6 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
     String message = 'Error message';
     service.logError(message);
     assertNormal(server, InstrumentationService.TAG_ERROR, message);
-  }
-
-  void test_logError_withColon() {
-    TestInstrumentationServer server = new TestInstrumentationServer();
-    InstrumentationService service = new InstrumentationService(server);
-    service.logError('Error:message');
-    assertNormal(server, InstrumentationService.TAG_ERROR, 'Error::message');
   }
 
   void test_logException_noTrace() {
