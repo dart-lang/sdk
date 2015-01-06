@@ -600,6 +600,38 @@ final Matcher isSearchResultsParams = new LazyMatcher(() => new MatchesJsonObjec
   }));
 
 /**
+ * edit.format params
+ *
+ * {
+ *   "file": FilePath
+ *   "selectionOffset": int
+ *   "selectionLength": int
+ * }
+ */
+final Matcher isEditFormatParams = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.format params", {
+    "file": isFilePath,
+    "selectionOffset": isInt,
+    "selectionLength": isInt
+  }));
+
+/**
+ * edit.format result
+ *
+ * {
+ *   "edits": List<SourceEdit>
+ *   "selectionOffset": int
+ *   "selectionLength": int
+ * }
+ */
+final Matcher isEditFormatResult = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.format result", {
+    "edits": isListOf(isSourceEdit),
+    "selectionOffset": isInt,
+    "selectionLength": isInt
+  }));
+
+/**
  * edit.getAssists params
  *
  * {

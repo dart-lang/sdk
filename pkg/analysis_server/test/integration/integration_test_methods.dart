@@ -1012,6 +1012,51 @@ abstract class IntegrationTestMixin {
   StreamController<SearchResultsParams> _onSearchResults;
 
   /**
+   * Format the contents of a single file. The currently selected region of
+   * text is passed in so that the selection can be preserved across the
+   * formatting operation. The updated selection will be as close to matching
+   * the original as possible, but whitespace at the beginning or end of the
+   * selected region will be ignored.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file containing the code to be formatted.
+   *
+   * selectionOffset ( int )
+   *
+   *   The offset of the current selection in the file.
+   *
+   * selectionLength ( int )
+   *
+   *   The length of the current selection in the file.
+   *
+   * Returns
+   *
+   * edits ( List<SourceEdit> )
+   *
+   *   The edit(s) to be applied in order to format the code. The list will be
+   *   empty if the code was already formatted (there are no changes).
+   *
+   * selectionOffset ( int )
+   *
+   *   The offset of the selection after formatting the code.
+   *
+   * selectionLength ( int )
+   *
+   *   The length of the selection after formatting the code.
+   */
+  Future<EditFormatResult> sendEditFormat(String file, int selectionOffset, int selectionLength) {
+    var params = new EditFormatParams(file, selectionOffset, selectionLength).toJson();
+    return server.send("edit.format", params)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditFormatResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
    * Return the set of assists that are available at the given location. An
    * assist is distinguished from a refactoring primarily by the fact that it
    * affects a single file and does not require user input in order to be

@@ -1216,6 +1216,67 @@
         The edit domain contains commands related to edits that can be
         applied to the code.
       </p>
+      <request method="format">
+        <p>
+          Format the contents of a single file. The currently selected region of
+          text is passed in so that the selection can be preserved across the
+          formatting operation. The updated selection will be as close to
+          matching the original as possible, but whitespace at the beginning or
+          end of the selected region will be ignored.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file containing the code to be formatted.
+            </p>
+          </field>
+          <field name="selectionOffset">
+            <ref>int</ref>
+            <p>
+              The offset of the current selection in the file.
+            </p>
+          </field>
+          <field name="selectionLength">
+            <ref>int</ref>
+            <p>
+              The length of the current selection in the file.
+            </p>
+          </field>
+          <!--
+          <field name="selectionOnly" optional="true">
+            <ref>bool</ref>
+            <p>
+              True if the code to be formatted should be limited to the selected
+              text (or the smallest portion of text that encloses the selected
+              text that can be formatted).
+            </p>
+          </field>
+          -->
+        </params>
+        <result>
+          <field name="edits">
+            <list><ref>SourceEdit</ref></list>
+            <p>
+              The edit(s) to be applied in order to format the code. The list
+              will be empty if the code was already formatted (there are no
+              changes).
+            </p>
+          </field>
+          <field name="selectionOffset">
+            <ref>int</ref>
+            <p>
+              The offset of the selection after formatting the code.
+            </p>
+          </field>
+          <field name="selectionLength">
+            <ref>int</ref>
+            <p>
+              The length of the selection after formatting the code.
+            </p>
+          </field>
+        </result>
+      </request>
       <request method="getAssists">
         <p>
           Return the set of assists that are available at the given

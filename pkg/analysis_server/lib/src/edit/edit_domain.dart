@@ -55,6 +55,23 @@ class EditDomainHandler implements RequestHandler {
     refactoringManager = new _RefactoringManager(server, searchEngine);
   }
 
+  Response format(Request request) {
+    throw new RequestFailure(
+        new Response.unsupportedFeature(
+            request.id,
+            'The edit.format request is not yet supported'));
+
+//    EditFormatParams params = new EditFormatParams.fromRequest(request);
+//    String file = params.file;
+//    int initialOffset = params.selectionOffset;
+//    int initialLength = params.selectionLength;
+//
+//    List<SourceEdit> edits = <SourceEdit>[];
+//    int finalOffset = initialOffset;
+//    int finalLength = initialLength;
+//    return new EditFormatResult(edits, finalOffset, finalLength).toResponse(request.id);
+  }
+
   Response getAssists(Request request) {
     var params = new EditGetAssistsParams.fromRequest(request);
     List<SourceChange> changes = <SourceChange>[];
@@ -138,7 +155,9 @@ class EditDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EDIT_GET_ASSISTS) {
+      if (requestName == EDIT_FORMAT) {
+        return format(request);
+      } else if (requestName == EDIT_GET_ASSISTS) {
         return getAssists(request);
       } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
         return getAvailableRefactorings(request);

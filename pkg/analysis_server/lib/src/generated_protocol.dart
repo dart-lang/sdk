@@ -3333,6 +3333,199 @@ class SearchResultsParams implements HasToJson {
 }
 
 /**
+ * edit.format params
+ *
+ * {
+ *   "file": FilePath
+ *   "selectionOffset": int
+ *   "selectionLength": int
+ * }
+ */
+class EditFormatParams implements HasToJson {
+  /**
+   * The file containing the code to be formatted.
+   */
+  String file;
+
+  /**
+   * The offset of the current selection in the file.
+   */
+  int selectionOffset;
+
+  /**
+   * The length of the current selection in the file.
+   */
+  int selectionLength;
+
+  EditFormatParams(this.file, this.selectionOffset, this.selectionLength);
+
+  factory EditFormatParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      int selectionOffset;
+      if (json.containsKey("selectionOffset")) {
+        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
+      }
+      int selectionLength;
+      if (json.containsKey("selectionLength")) {
+        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "selectionLength");
+      }
+      return new EditFormatParams(file, selectionOffset, selectionLength);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.format params");
+    }
+  }
+
+  factory EditFormatParams.fromRequest(Request request) {
+    return new EditFormatParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["selectionOffset"] = selectionOffset;
+    result["selectionLength"] = selectionLength;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "edit.format", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditFormatParams) {
+      return file == other.file &&
+          selectionOffset == other.selectionOffset &&
+          selectionLength == other.selectionLength;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.format result
+ *
+ * {
+ *   "edits": List<SourceEdit>
+ *   "selectionOffset": int
+ *   "selectionLength": int
+ * }
+ */
+class EditFormatResult implements HasToJson {
+  /**
+   * The edit(s) to be applied in order to format the code. The list will be
+   * empty if the code was already formatted (there are no changes).
+   */
+  List<SourceEdit> edits;
+
+  /**
+   * The offset of the selection after formatting the code.
+   */
+  int selectionOffset;
+
+  /**
+   * The length of the selection after formatting the code.
+   */
+  int selectionLength;
+
+  EditFormatResult(this.edits, this.selectionOffset, this.selectionLength);
+
+  factory EditFormatResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<SourceEdit> edits;
+      if (json.containsKey("edits")) {
+        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "edits");
+      }
+      int selectionOffset;
+      if (json.containsKey("selectionOffset")) {
+        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
+      }
+      int selectionLength;
+      if (json.containsKey("selectionLength")) {
+        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "selectionLength");
+      }
+      return new EditFormatResult(edits, selectionOffset, selectionLength);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.format result");
+    }
+  }
+
+  factory EditFormatResult.fromResponse(Response response) {
+    return new EditFormatResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
+    result["selectionOffset"] = selectionOffset;
+    result["selectionLength"] = selectionLength;
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditFormatResult) {
+      return _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
+          selectionOffset == other.selectionOffset &&
+          selectionLength == other.selectionLength;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * edit.getAssists params
  *
  * {
