@@ -903,10 +903,10 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
 
 abstract class Super implements Comparable {}
 abstract class Interface implements Comparable {}
-class Sub extends Super implements Interface, Comparable<Sub> {
+class Sub extends Super implements Interface, Comparable {
   int compareTo(Sub other) => 0;
   int get hashCode => 0;
-  bool operator==(Object other) => other is Sub;
+  bool operator==(other) => other is Sub;
 }
 
 expectMap(Map expect, Map actual) {
