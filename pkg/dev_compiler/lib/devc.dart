@@ -2,6 +2,8 @@
 library ddc.devc;
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:logging/logging.dart' show Level, Logger, LogRecord;
 import 'package:path/path.dart' as path;
@@ -21,9 +23,12 @@ StreamSubscription setupLogger(Level level, printFn) {
   });
 }
 
+/// Compiles [inputFile] writing output as specified by the arguments.
+/// [dumpInfoFile] will only be used if [dumpInfo] is true.
 Future<bool> compile(String inputFile, TypeResolver resolver,
     {bool checkSdk: false, bool formatOutput: false, bool outputDart: false,
-    String outputDir, bool dumpInfo: false, bool useColors: true}) {
+    String outputDir, bool dumpInfo: false, String dumpInfoFile,
+    bool useColors: true}) {
 
   // Run checker
   var reporter = dumpInfo ? new SummaryReporter() : new LogReporter(useColors);
@@ -32,13 +37,20 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
       checkSdk: checkSdk, useColors: useColors);
 
   // TODO(sigmund): return right after?
-  if (dumpInfo) print(summaryToString(reporter.result));
+  if (dumpInfo) {
+    print(summaryToString(reporter.result));
+    if (dumpInfoFile != null) {
+      new File(dumpInfoFile).writeAsStringSync(
+          JSON.encode(reporter.result.toJsonMap()));
+    }
+  }
 
   if (results.failure) return new Future.value(false);
 
   // Generate code.
   if (outputDir != null) {
-    var cg = outputDart ? new DartGenerator(
+    var cg = outputDart ?
+        new DartGenerator(
             outputDir, uri, results.libraries, results.rules, formatOutput) :
         new JSGenerator(outputDir, uri, results.libraries, results.rules);
     return cg.generate().then((_) => true);

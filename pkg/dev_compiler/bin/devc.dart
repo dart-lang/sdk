@@ -26,6 +26,10 @@ final ArgParser argParser = new ArgParser()
       abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
   ..addFlag('dump-info',
       abbr: 'i', help: 'Dump summary information', defaultsTo: false)
+  ..addOption('dump-info-file',
+      abbr: 'f',
+      help: 'Dump info json file (requires dump-info)',
+      defaultsTo: null)
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
   ..addFlag('help', abbr: 'h', help: 'Display this message');
 
@@ -68,12 +72,13 @@ void main(List<String> argv) {
       TypeResolver.sdkResolverFromMock(mockSdkSources) :
       TypeResolver.sdkResolverFromDir(dartSdkPath));
 
-  var filename = args.rest[0];
+  var filename = args.rest.first;
   compile(filename, typeResolver,
       checkSdk: args['sdk-check'],
       formatOutput: args['dart-gen-fmt'],
       outputDart: args['dart-gen'],
       dumpInfo: args['dump-info'],
+      dumpInfoFile: args['dump-info-file'],
       outputDir: args['out'],
       useColors: useColors).then((success) {
     exit(success ? 0 : 1);

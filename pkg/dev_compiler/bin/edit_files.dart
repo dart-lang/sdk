@@ -1,0 +1,123 @@
+#!/usr/bin/env dart
+
+/// Command line tool to write checker errors as inline comments in the source
+/// code of the program. This tool requires the info.json file created by
+/// running devc.dart passing the arguments
+/// --dump-info --dump-info-file info.json
+
+library ddc.bin.edit_files;
+
+import 'dart:io';
+import 'dart:convert';
+
+import 'package:args/args.dart';
+import 'package:ddc/src/report.dart';
+import 'package:path/path.dart' as path;
+import 'package:source_maps/refactor.dart';
+import 'package:source_span/source_span.dart';
+
+import 'package:ddc/src/checker/dart_sdk.dart'
+    show dartSdkDirectory, mockSdkSources;
+import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+
+final ArgParser argParser = new ArgParser()
+  ..addOption('level', help: 'Minimum error level', defaultsTo: "info")
+  ..addOption('checkout-files-executable',
+      help: 'Executable to check out files from source control (e.g. svn)',
+      defaultsTo: null)
+  ..addOption('checkout-files-arg',
+      help: 'Arg to check out files from source control (e.g. checkout)',
+      defaultsTo: null)
+  ..addOption('exclude-pattern',
+      help: 'regular expression of file names to exclude',
+      defaultsTo: null)
+  ..addFlag('help', abbr: 'h', help: 'Display this message');
+
+void _showUsageAndExit() {
+  print('usage: edit_files [<options>] <summary.json>\n');
+  print('<summary.json> GlobalSummary serialized as json.\n');
+  print('<options> include:\n');
+  print(argParser.usage);
+  exit(1);
+}
+
+class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
+  var _files = new Map<String, TextEditTransaction>();
+  TypeResolver typeResolver;
+  String level;
+  String checkoutFilesExecutable;
+  String checkoutFilesArg;
+  RegExp excludePattern;
+
+  EditFileSummaryVisitor(this.typeResolver, this.level,
+      this.checkoutFilesExecutable, this.checkoutFilesArg,
+      this.excludePattern);
+
+  TextEditTransaction getEdits(String name) => _files.putIfAbsent(name, () {
+    var fileContents = new File(name).readAsStringSync();
+    return new TextEditTransaction(fileContents, new SourceFile(fileContents));
+  });
+
+  @override
+  void visitMessage(MessageSummary message) {
+    var uri = message.span.sourceUrl;
+    // Ignore dart: libraries.
+    if (uri.scheme == 'dart') return;
+    if (level != null) {
+      // Filter out messages with lower severity.
+      switch (message.level) {
+        case "info":
+          if (level != "info") return;
+          break;
+        case "warning":
+          if (level == "severe") return;
+          break;
+      }
+    }
+    var fullName = typeResolver.findSource(uri).fullName;
+    // Skip excluded files.
+    if (excludePattern != null && excludePattern.hasMatch(fullName)) return;
+    var edits = getEdits(fullName);
+    edits.edit(message.span.start.offset, message.span.start.offset,
+        " /* ${message.level}: ${message.kind} */ ");
+  }
+
+  void build() {
+    if (checkoutFilesExecutable != null) {
+      Process.runSync(
+          checkoutFilesExecutable, [checkoutFilesArg]..addAll(_files.keys));
+    }
+    _files.forEach((name, transacation) {
+      var nestedPrinter = transacation.commit()..build(name);
+      new File(name).writeAsStringSync(nestedPrinter.text, flush: true);
+    });
+  }
+}
+
+void main(List<String> argv) {
+  ArgResults args = argParser.parse(argv);
+  if (args['help']) _showUsageAndExit();
+
+  if (args.rest.isEmpty) {
+    print('Expected filename.');
+    _showUsageAndExit();
+  }
+
+  var filename = args.rest.first;
+  var typeResolver = new TypeResolver(
+      TypeResolver.sdkResolverFromDir(dartSdkDirectory));
+
+  Map json = JSON.decode(new File(filename).readAsStringSync());
+  var summary = GlobalSummary.parse(json);
+  var excludePattern = (args['exclude-pattern'] != null) ?
+      new RegExp(args['exclude-pattern']) : null;
+
+  var visitor = new EditFileSummaryVisitor(
+      typeResolver,
+      args['level'],
+      args['checkout-files-executable'],
+      args['checkout-files-arg'],
+      excludePattern);
+  summary.accept(visitor);
+  visitor.build();
+}
