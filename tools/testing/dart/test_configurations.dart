@@ -28,7 +28,7 @@ import "vm_test_config.dart";
 final TEST_SUITE_DIRECTORIES = [
     new Path('pkg'),
     new Path('runtime/tests/vm'),
-    new Path('runtime/bin/vmservice'),
+    new Path('runtime/observatory'),
     new Path('samples'),
     new Path('samples-dev'),
     new Path('tests/benchmark_smoke'),
