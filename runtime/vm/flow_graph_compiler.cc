@@ -34,6 +34,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
@@ -1535,6 +1536,8 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   intptr_t threshold;
   if (is_optimizing()) {
     threshold = FLAG_reoptimization_counter_threshold;
+  } else if (parsed_function_.function().IsIrregexpFunction()) {
+    threshold = FLAG_regexp_optimization_counter_threshold;
   } else {
     const intptr_t basic_blocks = flow_graph().preorder().length();
     ASSERT(basic_blocks > 0);
