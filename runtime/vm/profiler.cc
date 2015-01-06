@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/address_sanitizer.h"
 #include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 
@@ -1679,8 +1680,11 @@ static void SetPCMarkerIfSafe(Sample* sample) {
       return;
     }
 #endif
-    const uword pc_marker = *(fp + kPcMarkerSlotFromFp);
-    sample->set_pc_marker(pc_marker);
+    uword* pc_marker_ptr = fp + kPcMarkerSlotFromFp;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(pc_marker_ptr, kWordSize);
+    ASAN_UNPOISON(pc_marker_ptr, kWordSize);
+    sample->set_pc_marker(*pc_marker_ptr);
   }
 }
 
@@ -1930,7 +1934,11 @@ class ProfilerNativeStackWalker : public ValueObject {
  private:
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != NULL);
-    return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
+    uword* caller_pc_ptr = fp + kSavedCallerPcSlotFromFp;
+    // This may actually be uninitialized, by design (see class comment above).
+    MSAN_UNPOISON(caller_pc_ptr, kWordSize);
+    ASAN_UNPOISON(caller_pc_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*caller_pc_ptr);
   }
 
   uword* CallerFP(uword* fp) const {
@@ -1938,6 +1946,7 @@ class ProfilerNativeStackWalker : public ValueObject {
     uword* caller_fp_ptr = fp + kSavedCallerFpSlotFromFp;
     // This may actually be uninitialized, by design (see class comment above).
     MSAN_UNPOISON(caller_fp_ptr, kWordSize);
+    ASAN_UNPOISON(caller_fp_ptr, kWordSize);
     return reinterpret_cast<uword*>(*caller_fp_ptr);
   }
 
@@ -2014,8 +2023,8 @@ void Profiler::RecordSampleInterruptCallback(
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  isolate->GetProfilerStackBounds(&stack_lower, &stack_upper);
-  if ((stack_lower == 0) || (stack_upper == 0)) {
+  if (!isolate->GetProfilerStackBounds(&stack_lower, &stack_upper) ||
+      (stack_lower == 0) || (stack_upper == 0)) {
     // Could not get stack boundary.
     return;
   }
