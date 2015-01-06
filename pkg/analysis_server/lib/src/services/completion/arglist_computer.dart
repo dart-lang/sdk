@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * A computer for calculating `completion.getSuggestions` request results
- * for the import combinators show and hide.
+ * when the cursor position is inside the arguments to a method call.
  */
 class ArgListComputer extends DartCompletionComputer {
   _ArgListSuggestionBuilder builder;
