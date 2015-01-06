@@ -177,7 +177,8 @@ class ProgramBuilder {
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = false;
     bool isLazy = false;
-    return new StaticField(name, _registry.registerHolder(r'$'), code,
+    return new StaticField(element,
+                           name, _registry.registerHolder(r'$'), code,
                            isFinal, isLazy);
   }
 
@@ -206,7 +207,8 @@ class ProgramBuilder {
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = element.isFinal;
     bool isLazy = true;
-    return new StaticField(name, _registry.registerHolder(r'$'), code,
+    return new StaticField(element,
+                           name, _registry.registerHolder(r'$'), code,
                            isFinal, isLazy);
   }
 
@@ -242,7 +244,7 @@ class ProgramBuilder {
         .map(_buildClass)
         .toList(growable: false);
 
-    return new Library(uri, statics, classes);
+    return new Library(library, uri, statics, classes);
   }
 
   Class _buildClass(ClassElement element) {
@@ -285,7 +287,7 @@ class ProgramBuilder {
     // The individual emitters should then call the type test generator to
     // generate the code.
     typeTests.properties.forEach((String name, js.Node code) {
-      methods.add(_buildMethodWithName(name, code));
+      methods.add(_buildStubMethod(name, code));
     });
 
     String name = namer.getNameOfClass(element);
@@ -297,11 +299,13 @@ class ProgramBuilder {
 
     Class result;
     if (element.isMixinApplication) {
-      result = new MixinApplication(name, holder, methods, fields,
+      result = new MixinApplication(element,
+                                    name, holder, methods, fields,
                                     isDirectlyInstantiated: isInstantiated,
                                     onlyForRti: onlyForRti);
     } else {
-      result = new Class(name, holder, methods, fields,
+      result = new Class(element,
+                         name, holder, methods, fields,
                          isDirectlyInstantiated: isInstantiated,
                          onlyForRti: onlyForRti);
     }
@@ -311,11 +315,11 @@ class ProgramBuilder {
 
   Method _buildMethod(FunctionElement element, js.Expression code) {
     String name = namer.getNameOfInstanceMember(element);
-    return new Method(name, code);
+    return new Method(element, name, code);
   }
 
-  Method _buildMethodWithName(String name, js.Expression code) {
-    return new Method(name, code);
+  Method _buildStubMethod(String name, js.Expression code) {
+    return new StubMethod(name, code);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -345,7 +349,7 @@ class ProgramBuilder {
     return names.map((String name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
-      return new StaticMethod(name, holder, code);
+      return new StaticStubMethod(name, holder, code);
     });
   }
 
@@ -402,7 +406,7 @@ class ProgramBuilder {
       }
     }
 
-    return new InstanceField(name, getterFlags, setterFlags);
+    return new InstanceField(field, name, getterFlags, setterFlags);
   }
 
   Iterable<StaticMethod> _generateOneShotInterceptors() {
@@ -415,7 +419,7 @@ class ProgramBuilder {
     List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
     return names.map((String name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
-      return new StaticMethod(name, holder, code);
+      return new StaticStubMethod(name, holder, code);
     });
   }
 
@@ -423,7 +427,8 @@ class ProgramBuilder {
     String name = namer.getNameOfMember(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
-    return new StaticMethod(name, _registry.registerHolder(holder), code);
+    return new StaticMethod(element,
+                            name, _registry.registerHolder(holder), code);
   }
 
   StaticMethod _buildStaticMethodTearOff(FunctionElement element) {
@@ -431,7 +436,8 @@ class ProgramBuilder {
     String holder = namer.globalObjectFor(element);
     // TODO(kasperl): This clearly doesn't work yet.
     js.Expression code = js.string("<<unimplemented>>");
-    return new StaticMethod(name, _registry.registerHolder(holder), code);
+    return new StaticMethod(element,
+                            name, _registry.registerHolder(holder), code);
   }
 
   void _registerConstants(OutputUnit outputUnit,
