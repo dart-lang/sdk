@@ -901,7 +901,7 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
   Iterable<K> get keys => _keys.skip(0);
 }
 
-class Super implements Comparable {}
+abstract class Super implements Comparable {}
 abstract class Interface implements Comparable {}
 class Sub extends Super implements Interface, Comparable<Sub> {
   int compareTo(Sub other) => 0;
