@@ -140,7 +140,7 @@ class ModelEmitter {
         [new js.ExpressionStatement(
             new js.VariableDeclarationList(
                 [new js.VariableInitialization(
-                    new js.VariableDeclaration(r"init", allowRename: false),
+                    new js.VariableDeclaration("init", allowRename: false),
                     globalsObject)]))];
     return new js.Block(statements);
   }
