@@ -2625,6 +2625,39 @@ bb() {}
 ''', expectedSuccess: false);
   }
 
+  void test_fieldClassField_propagatedType() {
+    _resolveUnit(r'''
+class A {
+  static const A b = const B();
+  const A();
+}
+
+class B extends A {
+  const B();
+}
+
+main() {
+  print(12);
+  A.b;
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  static const A b = const B();
+  const A();
+}
+
+class B extends A {
+  const B();
+}
+
+main() {
+  print(123);
+  A.b;
+}
+''');
+  }
+
   void test_inBody_expression() {
     _resolveUnit(r'''
 class A {

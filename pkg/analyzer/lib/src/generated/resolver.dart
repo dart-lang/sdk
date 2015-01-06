@@ -11433,14 +11433,18 @@ class ResolverVisitor extends ScopedVisitor {
         allowPrecisionLoss ||
         !currentType.isMoreSpecificThan(potentialType) ||
         potentialType.isMoreSpecificThan(currentType)) {
-      if (element is PropertyInducingElement) {
-        PropertyInducingElement variable = element;
-        if (!variable.isConst && !variable.isFinal) {
-          return;
-        }
-        (variable as PropertyInducingElementImpl).propagatedType =
-            potentialType;
-      }
+      // TODO(scheglov) type propagation for instance/top-level fields
+      // was disabled because it depends on the order or visiting.
+      // If both field and its client are in the same unit, and we visit
+      // the client before the field, then propagated type is not set yet.
+//      if (element is PropertyInducingElement) {
+//        PropertyInducingElement variable = element;
+//        if (!variable.isConst && !variable.isFinal) {
+//          return;
+//        }
+//        (variable as PropertyInducingElementImpl).propagatedType =
+//            potentialType;
+//      }
       _overrideManager.setType(element, potentialType);
     }
   }
