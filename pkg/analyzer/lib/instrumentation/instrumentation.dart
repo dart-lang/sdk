@@ -84,7 +84,7 @@ class InstrumentationService {
     if (_instrumentationServer != null) {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
-      _instrumentationServer.log('$_timestamp:$TAG_EXCEPTION:$message:$trace');
+      _instrumentationServer.log(_join([TAG_EXCEPTION, message, trace]));
     }
   }
 
@@ -104,7 +104,7 @@ class InstrumentationService {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
       _instrumentationServer.logWithPriority(
-          '$_timestamp:$TAG_EXCEPTION:$message:$trace');
+          _join([TAG_EXCEPTION, message, trace]));
     }
   }
 
@@ -135,11 +135,44 @@ class InstrumentationService {
   }
 
   /**
+   * Write an escaped version of the given [string] to the given [buffer].
+   */
+  void _escape(StringBuffer buffer, String field) {
+    int index = field.indexOf(':');
+    if (index < 0) {
+      buffer.write(field);
+      return;
+    }
+    int start = 0;
+    while (index > 0) {
+      buffer.write(field.substring(start, index));
+      buffer.write('::');
+      start = index + 1;
+      index = field.indexOf(':', start);
+    }
+    buffer.write(field.substring(start));
+  }
+
+  /**
+   * Return the result of joining the values of the given fields, escaping the
+   * separator character by doubling it.
+   */
+  String _join(List<String> fields) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(_timestamp);
+    for (String field in fields) {
+      buffer.write(':');
+      _escape(buffer, field);
+    }
+    return buffer.toString();
+  }
+
+  /**
    * Log the given message with the given tag.
    */
   void _log(String tag, String message) {
     if (_instrumentationServer != null) {
-      _instrumentationServer.log('$_timestamp:$tag:$message');
+      _instrumentationServer.log(_join([tag, message]));
     }
   }
 
