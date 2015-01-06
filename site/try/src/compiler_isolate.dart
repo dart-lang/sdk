@@ -14,7 +14,7 @@ import 'compilation.dart' show PRIVATE_SCHEME;
 import 'package:compiler/compiler.dart' as compiler;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
-    reuseCompiler;
+    reuseCompiler, OutputProvider;
 
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler;
@@ -110,9 +110,11 @@ compile(source, SendPort replyTo) {
     }
   }
   Stopwatch compilationTimer = new Stopwatch()..start();
+  OutputProvider outputProvider = new OutputProvider();
   reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: inputProvider,
+      outputProvider: outputProvider,
       options: options,
       cachedCompiler: cachedCompiler,
       libraryRoot: sdkLocation,
@@ -127,7 +129,7 @@ compile(source, SendPort replyTo) {
             .lookupLibrary(Uri.parse('dart:html')) != null) {
       notifyDartHtml(replyTo);
     }
-    String js = cachedCompiler.assembledCode;
+    String js = outputProvider['.js'];
     if (js == null) {
       if (!options.contains('--analyze-only')) replyTo.send('failed');
     } else {

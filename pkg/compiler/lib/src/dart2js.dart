@@ -100,7 +100,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 
 FormattingDiagnosticHandler diagnosticHandler;
 
-Future compile(List<String> argv) {
+Future<api.CompilationResult> compile(List<String> argv) {
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
@@ -422,9 +422,9 @@ Future compile(List<String> argv) {
       new RandomAccessFileOutputProvider(
           out, sourceMapOut, onInfo: diagnosticHandler.info, onFailure: fail);
 
-  compilationDone(String code) {
-    if (analyzeOnly) return;
-    if (code == null) {
+  api.CompilationResult compilationDone(api.CompilationResult result) {
+    if (analyzeOnly) return result;
+    if (!result.isSuccess) {
       fail('Compilation failed.');
     }
     writeString(Uri.parse('$out.deps'),
@@ -446,6 +446,7 @@ Future compile(List<String> argv) {
       String output = relativize(currentDirectory, out, Platform.isWindows);
       print('Dart file ($input) compiled to $outputLanguage: $output');
     }
+    return result;
   }
 
   return compileFunc(uri, libraryRoot, packageRoot,
@@ -479,7 +480,7 @@ void fail(String message) {
   exitFunc(1);
 }
 
-Future compilerMain(List<String> arguments) {
+Future<api.CompilationResult> compilerMain(List<String> arguments) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
   arguments = <String>['--library-root=${Platform.script.toFilePath()}$root']
       ..addAll(arguments);
@@ -642,8 +643,8 @@ void main(List<String> arguments) {
 var exitFunc = exit;
 var compileFunc = api.compile;
 
-Future internalMain(List<String> arguments) {
-  onError(exception, trace) {
+Future<api.CompilationResult> internalMain(List<String> arguments) {
+  Future onError(exception, trace) {
     try {
       print('The compiler crashed: $exception');
     } catch (ignored) {
@@ -657,13 +658,13 @@ Future internalMain(List<String> arguments) {
     } finally {
       exitFunc(253); // 253 is recognized as a crash by our test scripts.
     }
+    return new Future.error(exception, trace);
   }
 
   try {
     return compilerMain(arguments).catchError(onError);
   } catch (exception, trace) {
-    onError(exception, trace);
-    return new Future.value();
+    return onError(exception, trace);
   }
 }
 

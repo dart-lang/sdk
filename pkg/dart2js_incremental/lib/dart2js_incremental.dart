@@ -5,6 +5,7 @@
 library dart2js_incremental;
 
 import 'dart:async' show
+    EventSink,
     Future;
 
 import 'dart:profiler' show
@@ -71,6 +72,9 @@ class IncrementalCompiler {
     }
     if (inputProvider == null) {
       throw new ArgumentError('inputProvider is null.');
+    }
+    if (outputProvider == null) {
+      throw new ArgumentError('outputProvider is null.');
     }
     if (diagnosticHandler == null) {
       throw new ArgumentError('diagnosticHandler is null.');

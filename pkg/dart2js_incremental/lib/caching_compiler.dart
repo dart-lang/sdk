@@ -98,7 +98,6 @@ Future<Compiler> reuseCompiler(
         ..enqueuer.codegen.queueIsClosed = false
         ..enqueuer.codegen.hasEnqueuedReflectiveElements = false
         ..enqueuer.codegen.hasEnqueuedReflectiveStaticFields = false
-        ..assembledCode = null
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
 
@@ -172,4 +171,42 @@ Future<Compiler> reuseCompiler(
       return compiler;
     });
   }
+}
+
+/// Helper class to collect sources.
+class StringEventSink implements EventSink<String> {
+  List<String> data = <String>[];
+
+  final Function onClose;
+
+  StringEventSink(this.onClose);
+
+  void add(String event) {
+    if (data == null) throw 'StringEventSink is closed.';
+    data.add(event);
+  }
+
+  void addError(errorEvent, [StackTrace stackTrace]) {
+    throw 'addError($errorEvent, $stackTrace)';
+  }
+
+  void close() {
+    if (data != null) {
+      onClose(data.join());
+      data = null;
+    }
+  }
+}
+
+/// Output provider which collect output in [output].
+class OutputProvider {
+  final Map<String, String> output = new Map<String, String>();
+
+  EventSink<String> call(String name, String extension) {
+    return new StringEventSink((String data) {
+      output['$name.$extension'] = data;
+    });
+  }
+
+  String operator[] (String key) => output[key];
 }

@@ -7,6 +7,8 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
+import 'package:compiler/compiler.dart' as api;
+
 import 'package:compiler/src/elements/elements.dart'
        as lego;
 export 'package:compiler/src/elements/elements.dart';
@@ -25,8 +27,6 @@ export 'package:compiler/src/dart2jslib.dart'
             SourceSpan,
             World;
 
-import 'package:compiler/src/ssa/ssa.dart' as ssa;
-
 import 'package:compiler/src/types/types.dart'
        as types;
 export 'package:compiler/src/types/types.dart'
@@ -35,8 +35,6 @@ export 'package:compiler/src/types/types.dart'
 import 'package:compiler/src/util/util.dart';
 export 'package:compiler/src/util/util.dart';
 
-import 'package:compiler/src/source_file.dart';
-
 import 'package:compiler/src/dart2jslib.dart'
        show Compiler;
 
@@ -44,6 +42,9 @@ export 'package:compiler/src/tree/tree.dart';
 
 import 'mock_compiler.dart';
 export 'mock_compiler.dart';
+
+import 'output_collector.dart';
+export 'output_collector.dart';
 
 Future<String> compile(String code,
                        {String entry: 'main',
@@ -94,7 +95,8 @@ MockCompiler compilerFor(String code, Uri uri,
                           bool minify: false,
                           bool trustTypeAnnotations: false,
                           int expectedErrors,
-                          int expectedWarnings}) {
+                          int expectedWarnings,
+                          api.CompilerOutputProvider outputProvider}) {
   MockCompiler compiler = new MockCompiler.internal(
       analyzeAll: analyzeAll,
       analyzeOnly: analyzeOnly,
@@ -103,28 +105,31 @@ MockCompiler compilerFor(String code, Uri uri,
       enableMinification: minify,
       trustTypeAnnotations: trustTypeAnnotations,
       expectedErrors: expectedErrors,
-      expectedWarnings: expectedWarnings);
+      expectedWarnings: expectedWarnings,
+      outputProvider: outputProvider);
   compiler.registerSource(uri, code);
   return compiler;
 }
 
 Future<String> compileAll(String code,
                           {Map<String, String> coreSource,
-                          bool disableInlining: true,
-                          bool trustTypeAnnotations: false,
-                          bool minify: false,
-                          int expectedErrors,
-                          int expectedWarnings}) {
+                           bool disableInlining: true,
+                           bool trustTypeAnnotations: false,
+                           bool minify: false,
+                           int expectedErrors,
+                           int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
+  OutputCollector outputCollector = new OutputCollector();
   MockCompiler compiler = compilerFor(
       code, uri, coreSource: coreSource, disableInlining: disableInlining,
       minify: minify, expectedErrors: expectedErrors,
       trustTypeAnnotations: trustTypeAnnotations,
-      expectedWarnings: expectedWarnings);
+      expectedWarnings: expectedWarnings,
+      outputProvider: outputCollector);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
                    'Unexpected compilation error(s): ${compiler.errors}');
-    return compiler.assembledCode;
+    return outputCollector.getOutput('', 'js');
   });
 }
 
@@ -182,22 +187,21 @@ types.TypeMask findTypeMask(compiler, String name,
   }
   Expect.isNotNull(element, 'Could not locate $name');
   switch (how) {
-    case 'exact': return new types.TypeMask.exact(element);
-    case 'nonNullExact': return new types.TypeMask.nonNullExact(element);
-    case 'subclass': {
+    case 'exact':
+      return new types.TypeMask.exact(element, compiler.world);
+    case 'nonNullExact':
+      return new types.TypeMask.nonNullExact(element, compiler.world);
+    case 'subclass':
       return new types.TypeMask.subclass(element, compiler.world);
-    }
-    case 'nonNullSubclass': {
+    case 'nonNullSubclass':
       return new types.TypeMask.nonNullSubclass(element, compiler.world);
-    }
-    case 'subtype': {
+    case 'subtype':
       return new types.TypeMask.subtype(element, compiler.world);
-    }
-    case 'nonNullSubtype': {
+    case 'nonNullSubtype':
       return new types.TypeMask.nonNullSubtype(element, compiler.world);
-    }
   }
   Expect.fail('Unknown TypeMask constructor $how');
+  return null;
 }
 
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";

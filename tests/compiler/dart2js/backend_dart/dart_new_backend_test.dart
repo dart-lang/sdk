@@ -20,9 +20,11 @@ main() {
 """;
 
 Future<String> compile(String code) {
+  OutputCollector outputCollector = new OutputCollector();
   MockCompiler compiler = new MockCompiler.internal(
       emitJavaScript: false,
-      enableMinification: false);
+      enableMinification: false,
+      outputProvider: outputCollector);
   return compiler.init().then((_) {
     compiler.parseScript(code);
     Element element = compiler.mainApp.find('main');
@@ -38,7 +40,7 @@ Future<String> compile(String code) {
     compiler.phase = Compiler.PHASE_COMPILING;
     DartBackend backend = compiler.backend;
     backend.assembleProgram();
-    String generated = compiler.assembledCode;
+    String generated = outputCollector.getOutput('', 'dart');
     return generated;
   });
 }

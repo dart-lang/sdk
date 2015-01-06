@@ -390,8 +390,8 @@ class CodeEmitterTask extends CompilerTask {
     computeNeededLibraries();
   }
 
-  void assembleProgram() {
-    measure(() {
+  int assembleProgram() {
+    return measure(() {
       emitter.invalidateCaches();
 
       computeAllNeededEntities();
@@ -400,13 +400,14 @@ class CodeEmitterTask extends CompilerTask {
       if (USE_NEW_EMITTER) {
         program = new ProgramBuilder(compiler, namer, this).buildProgram();
       }
-      emitter.emitProgram(program);
+      return emitter.emitProgram(program);
     });
   }
 }
 
 abstract class Emitter {
-  void emitProgram(Program program);
+  /// Emits [program] and returns the size of the generated output.
+  int emitProgram(Program program);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
@@ -441,7 +442,6 @@ abstract class Emitter {
 
   /// Returns the JS expression representing the type [e].
   jsAst.Expression typeAccess(Element e);
-
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);

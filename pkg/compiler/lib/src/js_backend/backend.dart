@@ -1259,8 +1259,8 @@ class JavaScriptBackend extends Backend {
     return jsAst.prettyPrint(generatedCode[element], compiler).getText();
   }
 
-  void assembleProgram() {
-    emitter.assembleProgram();
+  int assembleProgram() {
+    int programSize = emitter.assembleProgram();
     int totalMethodCount = generatedCode.length;
     if (totalMethodCount != preMirrorsMethodCount) {
       int mirrorCount = totalMethodCount - preMirrorsMethodCount;
@@ -1287,6 +1287,7 @@ class JavaScriptBackend extends Backend {
         }
       }
     }
+    return programSize;
   }
 
   Element getDartClass(Element element) {

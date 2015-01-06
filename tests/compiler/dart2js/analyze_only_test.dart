@@ -15,6 +15,8 @@ import 'package:compiler/compiler.dart';
 import 'package:compiler/src/dart2jslib.dart' show
     MessageKind;
 
+import 'output_collector.dart';
+
 runCompiler(String main, List<String> options,
             onValue(String code, List errors, List warnings)) {
   List errors = new List();
@@ -39,13 +41,14 @@ runCompiler(String main, List<String> options,
   print('main source:\n$main');
   print('options: $options\n');
   asyncStart();
-  Future<String> result =
+  OutputCollector outputCollector = new OutputCollector();
+  Future<CompilationResult> result =
       compile(new Uri(scheme: 'main'),
               new Uri(scheme: 'lib', path: '/'),
               new Uri(scheme: 'package', path: '/'),
-              localProvider, localHandler, options);
-  result.then((String code) {
-    onValue(code, errors, warnings);
+              localProvider, localHandler, options, outputCollector);
+  result.then((_) {
+    onValue(outputCollector.getOutput('', 'js'), errors, warnings);
   }, onError: (e) {
     throw 'Compilation failed: ${Error.safeToString(e)}';
   }).then(asyncSuccess).catchError((error, stack) {

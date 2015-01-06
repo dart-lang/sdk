@@ -52,13 +52,13 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   asyncStart();
-  Future<String> result =
+  Future<CompilationResult> result =
       compile(new Uri(scheme: 'main'),
               new Uri(scheme: 'lib', path: '/'),
               new Uri(scheme: 'package', path: '/'),
               provider, handler);
-  result.then((String code) {
-    if (code == null) {
+  result.then((CompilationResult result) {
+    if (!result.isSuccess) {
       throw 'Compilation failed';
     }
   }, onError: (e, s) {
