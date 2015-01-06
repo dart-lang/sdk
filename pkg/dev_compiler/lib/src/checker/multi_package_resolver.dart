@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:path/path.dart' show join;
 
 /// A package resolver that supports a non-standard package layout, where
 /// packages with dotted names are expanded to a hierarchy of directories, and
@@ -34,7 +35,7 @@ class MultiPackageResolver implements UriResolver {
   /// the first location where `prefix + path` exists.
   String _resolve(String path) {
     for (var prefix in searchPaths) {
-      var resolvedPath = '$prefix$path';
+      var resolvedPath = join(prefix, path);
       if (new File(resolvedPath).existsSync()) return resolvedPath;
     }
     return null;
