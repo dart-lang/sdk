@@ -1,0 +1,41 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="nav_bar.html">
+
+<polymer-element name="heap-map" extends="observatory-element">
+<template>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .hover {
+      position: fixed;
+      z-index: 999;
+      height: 16px;
+      width: 100%;
+      background: #ffffff;
+    }
+    .spacer {
+      height: 16px;
+      background-color: red;
+    }
+  </style>
+  <nav-bar pad="{{ false }}">
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
+    <nav-menu link="{{ fragmentation.isolate.relativeLink('heapmap') }}" anchor="heap map" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-control></nav-control>
+  </nav-bar>
+  <div class="hover">
+    <p style="text-align:center">{{ status }}</p>
+  </div>
+  <div class="spacer">
+    <!-- Make sure no data is covered by hover bar initially -->
+  </div>
+  <div class="flex-row">
+    <canvas id="fragmentation" width="1px" height="1px"></canvas>
+  </div>
+</template>
+</polymer-element>
+
+<script type="application/dart" src="heap_map.dart"></script>

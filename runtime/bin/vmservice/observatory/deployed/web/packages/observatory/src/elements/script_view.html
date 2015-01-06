@@ -1,0 +1,36 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="script_inset.html">
+
+<polymer-element name="script-view" extends="observatory-element">
+<template>
+  <link rel="stylesheet" href="css/shared.css">
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <isolate-nav-menu isolate="{{ script.isolate }}">
+    </isolate-nav-menu>
+    <nav-menu link="{{ script.owningLibrary.link }}" anchor="{{ script.owningLibrary.name }}"></nav-menu>
+    <nav-menu link="{{ script.link }}" anchor="{{ script.name }}" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-control></nav-control>
+  </nav-bar>
+
+  <template if="{{ args['pos'] == null }}">
+    <script-inset id="scriptInset" script="{{ script }}">
+      <h1>script {{ script.name }}</h1>
+    </script-inset>
+  </template>
+
+  <template if="{{ args['pos'] != null }}">
+    <script-inset id="scriptInset" script="{{ script }}"
+                  currentPos="{{ args['pos'] | parseInt }}">
+      <h1>script {{ script.name }}</h1>
+    </script-inset>
+  </template>
+
+</template>
+</polymer-element>
+
+<script type="application/dart" src="script_view.dart"></script>

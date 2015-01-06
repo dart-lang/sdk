@@ -1,0 +1,192 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="code_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="sliding_checkbox.html">
+
+<polymer-element name="isolate-profile" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
+      <nav-menu link="{{ profile.isolate.relativeLink('profile') }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+    <style>
+      .table {
+        border-collapse: collapse!important;
+        width: 100%;
+        margin-bottom: 20px
+      }
+      .table thead > tr > th,
+      .table tbody > tr > th,
+      .table tfoot > tr > th,
+      .table thead > tr > td,
+      .table tbody > tr > td,
+      .table tfoot > tr > td {
+        padding: 8px;
+        vertical-align: top;
+      }
+      .table thead > tr > th {
+        vertical-align: bottom;
+        text-align: left;
+        border-bottom:2px solid #ddd;
+      }
+
+      tr:hover > td {
+        background-color: #FFF3E3;
+      }
+      .rowColor0 {
+        background-color: #FFE9CC;
+      }
+      .rowColor1 {
+        background-color: #FFDEB2;
+      }
+      .rowColor2 {
+        background-color: #FFD399;
+      }
+      .rowColor3 {
+        background-color: #FFC87F;
+      }
+      .rowColor4 {
+        background-color: #FFBD66;
+      }
+      .rowColor5 {
+        background-color: #FFB24C;
+      }
+      .rowColor6 {
+        background-color: #FFA733;
+      }
+      .rowColor7 {
+        background-color: #FF9C19;
+      }
+      .rowColor8 {
+        background-color: #FF9100;
+      }
+
+      .tooltip {
+        display: block;
+        position: absolute;
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+      }
+
+      tr:hover .tooltip {
+        display: block;
+        position: absolute;
+        top: 100%;
+        right: 100%;
+        visibility: visible;
+        z-index: 999;
+        width: 400px;
+        color: #ffffff;
+        background-color: #0489c3;
+        border-top-right-radius: 8px;
+        border-top-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+        opacity: 1;
+      }
+
+      .white {
+        color: #ffffff;
+      }
+
+    </style>
+    <div class="content">
+      <h1>Sampled CPU profile</h1>
+      <div class="memberList">
+        <div class="memberItem">
+         <div class="memberName">Timestamp</div>
+         <div class="memberValue">{{ refreshTime }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Time span</div>
+         <div class="memberValue">{{ timeSpan }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample count</div>
+         <div class="memberValue">{{ sampleCount }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample rate</div>
+         <div class="memberValue">{{ sampleRate }} Hz</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Sample depth</div>
+         <div class="memberValue">{{ sampleDepth }} stack frames</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Display cutoff</div>
+         <div class="memberValue">{{ displayCutoff }}</div>
+        </div>
+        <div class="memberItem">
+         <div class="memberName">Tags</div>
+         <div class="memberValue">
+          <select value="{{tagSelector}}">
+            <option value="uv">User &gt; VM</option>
+            <option value="u">User</option>
+            <option value="vu">VM &gt; User</option>
+            <option value="v">VM</option>
+            <option value="hide">None</option>
+          </select>
+         </div>
+        </div>
+      </div>
+      <hr>
+      <table id="tableTree" class="table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Self</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr template repeat="{{row in tree.rows }}" style="{{}}">
+            <td on-click="{{toggleExpanded}}"
+                class="{{ coloring(row) }}"
+                style="{{ padding(row) }}">
+              <span id="expand" style="{{ row.expanderStyle }}">{{ row.expander }}</span>
+              <div style="position: relative;display: inline">
+                {{row.columns[0]}}
+              </div>
+              <code-ref ref="{{ row.code }}"></code-ref>
+            </td>
+            <td class="{{ coloring(row) }}" style="position: relative">
+              {{row.columns[1]}}
+              <div class="tooltip">
+                <div class="memberList">
+                  <div class="memberItem">
+                   <div class="memberName white">Kind</div>
+                   <div class="memberValue white">{{ row.tipKind }}</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Percent of Parent</div>
+                   <div class="memberValue white">{{ row.tipParent }}</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Sample Count</div>
+                   <div class="memberValue white">{{ row.tipTicks }} ({{ row.tipExclusive }})</div>
+                  </div>
+                  <div class="memberItem">
+                   <div class="memberName white">Approximate Execution Time</div>
+                   <div class="memberValue white">{{ row.tipTime }}</div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="isolate_profile.dart"></script>

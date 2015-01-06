@@ -13,8 +13,6 @@
     'snapshot_in_cc_file': 'snapshot_in.cc',
     'snapshot_bin_file': '<(gen_source_dir)/snapshot_gen.bin',
     'resources_cc_file': '<(gen_source_dir)/resources_gen.cc',
-    'bootstrap_resources_cc_file':
-        '<(gen_source_dir)/bootstrap_resources_gen.cc',
     'snapshot_cc_file': '<(gen_source_dir)/snapshot_gen.cc',
   },
   'targets': [
@@ -360,9 +358,6 @@
       'target_name': 'generate_resources_cc_file',
       'type': 'none',
       'toolsets':['host'],
-      'dependencies': [
-        'build_observatory#host',
-      ],
       'includes': [
         'resources_sources.gypi',
       ],
@@ -372,8 +367,8 @@
           'inputs': [
             '../tools/create_resources.py',
             # The following two files are used to trigger a rebuild.
-            '<(PRODUCT_DIR)/observatory/deployed/web/index.html',
-            '<(PRODUCT_DIR)/observatory/deployed/web/index.html_bootstrap.dart.js',
+            'vmservice/observatory/deployed/web/index.html',
+            'vmservice/observatory/deployed/web/index.html_bootstrap.dart.js',
             '<@(_sources)',
           ],
           'outputs': [
@@ -387,42 +382,10 @@
             '--inner_namespace', 'bin',
             '--table_name', 'service_bin',
             '--root_prefix', 'bin/',
-            '--client_root', '<(PRODUCT_DIR)/observatory/deployed/web/',
+            '--client_root', 'bin/vmservice/observatory/deployed/',
             '<@(_sources)'
           ],
           'message': 'Generating ''<(resources_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_bootstrap_resources_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        'resources_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_resources_cc',
-          'inputs': [
-            '../tools/create_resources.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(bootstrap_resources_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_resources.py',
-            '--output', '<(bootstrap_resources_cc_file)',
-            '--outer_namespace', 'dart',
-            '--inner_namespace', 'bin',
-            '--table_name', 'service_bin',
-            '--root_prefix', 'bin/',
-            '<@(_sources)'
-          ],
-          'message':
-              'Generating ''<(bootstrap_resources_cc_file)'' file.'
         },
       ]
     },
@@ -434,7 +397,6 @@
         'libdart',
         'libdart_builtin',
         'libdart_io',
-        'build_observatory#host',
         'generate_snapshot_file#host',
         'generate_resources_cc_file#host',
       ],
@@ -452,61 +414,6 @@
         'vmservice_impl.h',
         '<(snapshot_cc_file)',
         '<(resources_cc_file)',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
-          },
-          # Generate an import library on Windows, by exporting a function.
-          # Extensions use this import library to link to the API in dart.exe.
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
-            },
-          },
-        }],
-      ],
-      'configurations': {
-        'Dart_Linux_Base': {
-          # Have the linker add all symbols to the dynamic symbol table
-          # so that extensions can look them up dynamically in the binary.
-          'ldflags': [
-            '-rdynamic',
-          ],
-        },
-      },
-    },
-    {
-      # dart binary built for the host. It does not use a snapshot
-      # and does not include Observatory.
-      'target_name': 'dart_bootstrap',
-      'type': 'executable',
-      'toolsets':['host'],
-      'dependencies': [
-        'libdart_withcore',
-        'libdart_builtin',
-        'libdart_io',
-        'generate_bootstrap_resources_cc_file#host',
-      ],
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        'main.cc',
-        'builtin.cc',
-        'builtin_natives.cc',
-        'builtin.h',
-        'io_natives.h',
-        'vmservice.h',
-        'vmservice_impl.cc',
-        'vmservice_impl.h',
-        # Include generated source files.
-        '<(builtin_cc_file)',
-        '<(io_cc_file)',
-        '<(io_patch_cc_file)',
-        '<(bootstrap_resources_cc_file)',
-        'snapshot_empty.cc',
       ],
       'conditions': [
         ['OS=="win"', {

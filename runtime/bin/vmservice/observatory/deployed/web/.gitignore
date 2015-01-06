@@ -1,0 +1,4 @@
+*.precompiled.js
+*.scriptUrls
+main.*
+!packages/

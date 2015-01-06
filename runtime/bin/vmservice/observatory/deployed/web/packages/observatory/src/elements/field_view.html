@@ -1,0 +1,96 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="library_ref.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="script_ref.html">
+<link rel="import" href="observatory_element.html">
+
+<polymer-element name="field-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
+      <template if="{{ field.owner.type == 'Class' }}">
+        <!-- TODO(turnidge): Add library nav menu here. -->
+        <class-nav-menu cls="{{ field.owner }}"></class-nav-menu>
+      </template>
+      <template if="{{ field.owner.type == 'Library' }}">
+        <library-nav-menu library="{{ field.owner }}"></library-nav-menu>
+      </template>
+      <nav-menu link="{{ field.link }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+
+    <div class="content">
+      <h1>
+        <template if="{{ field.isStatic }}">static</template>
+        <template if="{{ field.isFinal }}">final</template>
+        <template if="{{ field.isConst }}">const</template>
+        <template if="{{ (field.declaredType.name == 'dynamic' &&
+                         !field.isFinal && !field.isConst) }}">
+          var
+        </template>
+        <template if="{{ (field.declaredType.name != 'dynamic') }}">
+          {{ field.declaredType.name }}
+        </template>
+        {{ field.name }}
+      </h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">owner</div>
+          <div class="memberValue">
+            <template if="{{ field.owner.type == 'Class' }}">
+              <class-ref ref="{{ field.owner }}"></class-ref>
+            </template>
+            <template if="{{ field.owner.type != 'Class' }}">
+              <library-ref ref="{{ field.owner }}"></library-ref>
+            </template>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">script</div>
+          <div class="memberValue">
+            <script-ref ref="{{ field.script }}"></script-ref>
+          </div>
+        </div>
+        <template if="{{ !field.isStatic }}">
+          <div class="memberItem"
+               title="The types observed for this field at runtime.  Fields that are observed to have a single type at runtime or to never be null may allow for additional optimization.">
+            <div class="memberName">observed types</div>
+            <div class="memberValue">
+              <template if="{{ field.guardClass == 'dynamic' }}">
+                various
+              </template>
+              <template if="{{ field.guardClass == 'unknown' }}">
+                none
+              </template>
+              <template if="{{ field.guardClass != 'unknown' &&
+                            field.guardClass != 'dynamic' }}">
+                <class-ref ref="{{ field.guardClass }}"></class-ref>
+                <template if="{{ field.guardNullable }}">
+                  &mdash; null observed
+                </template>
+                <template if="{{ !field.guardNullable }}">
+                  &mdash; null not observed
+                </template>
+              </template>
+            </div>
+          </div>
+        </template>
+        <template if="{{ field.value != null }}">
+          <div class="memberItem">
+            <div class="memberName">static value</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ field.value }}"></any-service-ref>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="field_view.dart"></script>

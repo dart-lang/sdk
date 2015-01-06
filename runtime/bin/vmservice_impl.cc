@@ -31,6 +31,7 @@ namespace bin {
 
 #define kLibrarySourceNamePrefix "/vmservice"
 static const char* kVMServiceIOLibraryScriptResourceName = "vmservice_io.dart";
+#define kClientResourceNamePrefix "/vmservice/observatory/deployed/web"
 
 struct ResourcesEntry {
   const char* path_;
@@ -245,15 +246,17 @@ Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
 
 
 Dart_Handle VmService::LoadResource(Dart_Handle library,
-                                    const char* resource_name) {
+                                    const char* resource_name,
+                                    const char* prefix) {
+  intptr_t prefix_len = strlen(prefix);
   // Prepare for invoke call.
-  Dart_Handle name = Dart_NewStringFromCString(resource_name);
+  Dart_Handle name = Dart_NewStringFromCString(resource_name+prefix_len);
   RETURN_ERROR_HANDLE(name);
   const char* data_buffer = NULL;
   int data_buffer_length = Resources::ResourceLookup(resource_name,
                                                      &data_buffer);
   if (data_buffer_length == Resources::kNoSuchInstance) {
-    printf("Could not find %s %s\n", resource_name, resource_name);
+    printf("Could not find %s %s\n", resource_name, resource_name+prefix_len);
   }
   ASSERT(data_buffer_length != Resources::kNoSuchInstance);
   Dart_Handle data_list = Dart_NewTypedData(Dart_TypedData_kUint8,
@@ -284,13 +287,11 @@ Dart_Handle VmService::LoadResource(Dart_Handle library,
 
 Dart_Handle VmService::LoadResources(Dart_Handle library) {
   Dart_Handle result = Dart_Null();
-  intptr_t prefixLen = strlen(kLibrarySourceNamePrefix);
+  intptr_t prefixLen = strlen(kClientResourceNamePrefix);
   for (intptr_t i = 0; Resources::Path(i) != NULL; i++) {
     const char* path = Resources::Path(i);
-    // If it doesn't begin with kLibrarySourceNamePrefix it is a frontend
-    // resource.
-    if (strncmp(path, kLibrarySourceNamePrefix, prefixLen) != 0) {
-      result = LoadResource(library, path);
+    if (!strncmp(path, kClientResourceNamePrefix, prefixLen)) {
+      result = LoadResource(library, path, kClientResourceNamePrefix);
       if (Dart_IsError(result)) {
         break;
       }

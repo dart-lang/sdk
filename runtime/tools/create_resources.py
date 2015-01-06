@@ -13,7 +13,7 @@ from optparse import OptionParser
 import re
 from datetime import date
 
-def makeResources(root_dir, client_dir, input_files, table_name):
+def makeResources(root_dir, input_files, table_name):
   result = ''
   resources = []
 
@@ -21,8 +21,6 @@ def makeResources(root_dir, client_dir, input_files, table_name):
   for resource_file in input_files:
     if root_dir and resource_file.startswith(root_dir):
       resource_file_name = resource_file[ len(root_dir) : ]
-    elif client_dir and resource_file.startswith(client_dir):
-      resource_file_name = resource_file[ len(client_dir) : ]
     else:
       resource_file_name = resource_file
     resource_url = '/%s' % resource_file_name
@@ -56,7 +54,7 @@ def makeResources(root_dir, client_dir, input_files, table_name):
   return result
 
 
-def makeFile(output_file, root_dir, client_dir, input_files, outer_namespace,
+def makeFile(output_file, root_dir, input_files, outer_namespace,
              inner_namespace, table_name):
   cc_text = '''
 // Copyright (c) %d, the Dart project authors.  Please see the AUTHORS file
@@ -75,7 +73,7 @@ struct ResourcesEntry {
 };
 
 '''
-  cc_text += makeResources(root_dir, client_dir, input_files, table_name)
+  cc_text += makeResources(root_dir, input_files, table_name)
   cc_text += '\n'
   if inner_namespace != None:
     cc_text += '}  // namespace %s\n' % inner_namespace
@@ -137,8 +135,8 @@ def main(args):
     for arg in args:
       files.append(arg)
 
-    if not makeFile(options.output, options.root_prefix, options.client_root,
-                    files, options.outer_namespace, options.inner_namespace,
+    if not makeFile(options.output, options.root_prefix, files,
+                    options.outer_namespace, options.inner_namespace,
                     options.table_name):
       return -1
 

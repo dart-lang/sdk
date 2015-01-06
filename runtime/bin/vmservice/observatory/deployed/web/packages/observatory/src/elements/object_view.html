@@ -1,0 +1,32 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="error_view.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="inbound_reference.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="object_common.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="eval_link.html">
+
+<polymer-element name="object-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ object.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="object" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+
+    <div class="content">
+      <object-common object="{{ object }}"></object-common>
+    </div>
+
+    <hr>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="object_view.dart"></script>

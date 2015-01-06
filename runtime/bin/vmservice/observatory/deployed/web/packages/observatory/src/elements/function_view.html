@@ -1,0 +1,124 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="code_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="library_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="script_inset.html">
+<link rel="import" href="script_ref.html">
+
+<polymer-element name="function-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
+      <template if="{{ function.owningClass != null }}">
+        <!-- TODO(turnidge): Add library nav menu here. -->
+        <class-nav-menu cls="{{ function.owningClass }}"></class-nav-menu>
+      </template>
+      <template if="{{ function.owningLibrary != null }}">
+        <library-nav-menu library="{{ function.owningLibrary }}"></library-nav-menu>
+      </template>
+      <nav-menu link="{{ function.link }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+
+    <div class="content">
+      <h1>function {{ function.qualifiedName }}</h1>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">kind</div>
+          <div class="memberValue">
+            <template if="{{ function.isStatic }}">static</template>
+            <template if="{{ function.isConst }}">const</template>
+            {{ function.kind.toString() }}
+          </div>
+        </div>
+        <template if="{{ function.parent != null }}">
+          <div class="memberItem">
+            <div class="memberName">parent function</div>
+            <div class="memberValue">
+              <function-ref ref="{{ function.parent }}"></function-ref>
+            </div>
+          </div>
+        </template>
+        <div class="memberItem">
+          <div class="memberName">owner</div>
+          <div class="memberValue">
+            <template if="{{ function.owningClass != null }}">
+              <class-ref ref="{{ function.owningClass }}"></class-ref>
+            </template>
+            <template if="{{ function.owningLibrary != null }}">
+              <library-ref ref="{{ function.owningLibrary }}"></library-ref>
+            </template>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">script</div>
+          <div class="memberValue">
+            <script-ref ref="{{ function.script }}"
+                        pos="{{ function.tokenPos }}">
+            </script-ref>
+          </div>
+        </div>
+
+        <div class="memberItem">&nbsp;</div>
+
+        <template if="{{ function.code != null }}">
+          <div class="memberItem">
+            <div class="memberName">optimized code</div>
+            <div class="memberValue">
+              <code-ref ref="{{ function.code }}"></code-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ function.unoptimizedCode != null }}">
+          <div class="memberItem">
+            <div class="memberName">unoptimized code</div>
+            <div class="memberValue">
+              <code-ref ref="{{ function.unoptimizedCode }}"></code-ref>
+            </div>
+              <div class="memberValue">
+                <span title="This count is used to determine when a function will be optimized.  It is a combination of call counts and other factors.">
+                  (usage count: {{ function.usageCounter }})
+                </span>
+             </div>
+           </div>
+         </template>
+         <div class="memberItem">
+           <div class="memberName">deoptimizations</div>
+           <div class="memberValue">{{ function.deoptimizations }}</div>
+         </div>
+         <div class="memberItem">
+           <div class="memberName">optimizable</div>
+           <div class="memberValue">{{ function.isOptimizable }}</div>
+         </div>
+         <div class="memberItem">
+           <div class="memberName">inlinable</div>
+           <div class="memberValue">{{ function.isInlinable }}</div>
+         </div>
+         <template if="{{ function.name != function.vmName }}">
+           <div class="memberItem">
+             <div class="memberName">vm name</div>
+             <div class="memberValue">{{ function.vmName }}</div>
+           </div>
+         </template>
+       </div>
+    </div>
+
+    <hr>
+    <script-inset script="{{ function.script }}"
+                  startPos="{{ function.tokenPos }}"
+                  endPos="{{ function.endTokenPos }}">
+    </script-inset>
+
+    <br>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="function_view.dart"></script>

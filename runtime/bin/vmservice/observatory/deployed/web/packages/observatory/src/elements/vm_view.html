@@ -1,0 +1,71 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="curly_block.html">
+<link rel="import" href="eval_box.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="isolate_summary.html">
+<link rel="import" href="library_ref.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="script_ref.html">
+
+<polymer-element name="vm-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+
+    <div class="content">
+      <h1>VM</h1>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">version</div>
+          <div class="memberValue">{{ vm.version }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">uptime</div>
+          <div class="memberValue">{{ vm.uptime | formatTime }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">type checks enabled</div>
+          <div class="memberValue">{{ vm.typeChecksEnabled }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">asserts enabled</div>
+          <div class="memberValue">{{ vm.assertsEnabled }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">pid</div>
+          <div class="memberValue">{{ vm.pid }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">refreshed at</div>
+          <div class="memberValue">{{ vm.lastUpdate }}</div>
+        </div>
+        <br>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/flags') }}">flags</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br>
+    <hr>
+
+    <ul class="list-group">
+      <template repeat="{{ isolate in vm.isolates }}">
+      	<li class="list-group-item">
+          <isolate-summary isolate="{{ isolate }}"></isolate-summary>
+        </li>
+        <hr>
+      </template>
+    </ul>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="vm_view.dart"></script>

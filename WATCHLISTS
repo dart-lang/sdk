@@ -14,7 +14,7 @@
       'filepath': 'tools/',
     },
     'observatory': {
-      'filepath': 'runtime/observatory/',
+      'filepath': 'runtime/bin/vmservice/',
     },
   },
 

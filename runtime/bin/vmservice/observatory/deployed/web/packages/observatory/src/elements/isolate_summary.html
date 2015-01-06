@@ -1,0 +1,205 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="action_link.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="isolate_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="script_inset.html">
+<link rel="import" href="script_ref.html">
+<polymer-element name="isolate-summary" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <div class="flex-row">
+      <div class="flex-item-10-percent">
+        <img src="img/isolate_icon.png">
+      </div>
+      <div class="flex-item-10-percent">
+        <isolate-ref ref="{{ isolate }}"></isolate-ref>
+      </div>
+      <div class="flex-item-30-percent">
+        <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
+      </div>
+      <div class="flex-item-40-percent">
+        <isolate-location isolate="{{ isolate }}"></isolate-location>
+      </div>
+      <div class="flex-item-10-percent">
+      </div>
+    </div>
+
+    <div class="flex-row">
+      <div class="flex-item-20-percent"></div>
+      <div class="flex-item-60-percent">
+        <hr>
+      </div>
+      <div class="flex-item-20-percent"></div>
+    </div>
+
+    <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-run-state" extends="observatory-element">
+  <template>
+    <template if="{{ isolate.pauseEvent != null }}">
+      <strong>paused</strong>
+      <action-link callback="{{ resume }}" label="resume"></action-link>
+
+      <action-link callback="{{ stepInto }}" label="step"></action-link>
+      <action-link callback="{{ stepOver }}" label="step&nbsp;over"></action-link>
+      <action-link callback="{{ stepOut }}" label="step&nbsp;out"></action-link>
+    </template>
+
+    <template if="{{ isolate.running }}">
+      <strong>running</strong>
+      <action-link callback="{{ pause }}" label="pause"></action-link>
+    </template>
+
+    <template if="{{ isolate.idle }}">
+      <strong>idle</strong>
+      <action-link callback="{{ pause }}" label="pause"></action-link>
+    </template>
+
+    <template if="{{ isolate.loading }}">
+      <strong>loading...</strong>
+    </template>
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-location" extends="observatory-element">
+  <template>
+    <template if="{{ isolate.pauseEvent != null }}">
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateCreated' }}">
+        at isolate start
+      </template>
+
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateShutdown' }}">
+        at isolate exit
+      </template>
+
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateInterrupted' ||
+                       isolate.pauseEvent.eventType == 'BreakpointReached' ||
+                       isolate.pauseEvent.eventType == 'ExceptionThrown' }}">
+        <template if="{{ isolate.pauseEvent.breakpoint != null }}">
+          by breakpoint
+        </template>
+        <template if="{{ isolate.pauseEvent.eventType == 'ExceptionThrown' }}">
+          by exception
+        </template>
+        at
+        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        </function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </template>
+    </template>
+
+    <template if="{{ isolate.running }}">
+      at
+      <function-ref ref="{{ isolate.topFrame['function'] }}">
+      </function-ref>
+      (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                   pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+    </template>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-shared-summary" extends="observatory-element">
+  <template>
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
+    <link rel="stylesheet" href="css/shared.css">
+    <template if="{{ isolate.error != null }}">
+      <div class="content-centered">
+        <pre class="errorBox">{{ isolate.error.message }}</pre>
+        <br>
+      </div>
+    </template>
+    <div class="flex-row">
+      <div class="flex-item-10-percent">
+      </div>
+      <div class="flex-item-40-percent">
+        <isolate-counter-chart counters="{{ isolate.counters }}"></isolate-counter-chart>
+      </div>
+      <div class="flex-item-40-percent">
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">new heap</div>
+            <div class="memberValue">
+              {{ isolate.newSpace.used | formatSize }}
+              of
+              {{ isolate.newSpace.capacity | formatSize }}
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">old heap</div>
+            <div class="memberValue">
+              {{ isolate.oldSpace.used | formatSize }}
+              of
+              {{ isolate.oldSpace.capacity | formatSize }}
+            </div>
+          </div>
+        </div>
+        <br>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/debugger' + isolate.link) }}">debugger</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('metrics')) }}">metrics</a>
+          </div>
+        </div>
+        <!-- Temporarily disabled until UI for dart:io is acceptable.
+        <template if="{{ isolate.ioEnabled }}">
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('io')) }}">dart:io</a>
+            </div>
+          </div>
+        </template>
+        -->
+      </div>
+      <div class="flex-item-10-percent">
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-counter-chart" extends="observatory-element">
+  <template>
+    <div id="counterPieChart" style="height: 200px"></div>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="isolate_summary.dart"></script>

@@ -18,7 +18,7 @@
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
-                '"../runtime"])',
+                '"../runtime/bin/vmservice"])',
             '../sdk/lib/_internal',
             '../site/try',
           ],
