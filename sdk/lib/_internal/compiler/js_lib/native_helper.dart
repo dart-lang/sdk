@@ -111,7 +111,8 @@ get interceptorsByTag => JS_EMBEDDED_GLOBAL('=Object', INTERCEPTORS_BY_TAG);
 get leafTags => JS_EMBEDDED_GLOBAL('=Object', LEAF_TAGS);
 
 String findDispatchTagForInterceptorClass(interceptorClassConstructor) {
-  return JS('', r'#.$nativeSuperclassTag', interceptorClassConstructor);
+  return JS('', r'#.#',
+            interceptorClassConstructor, NATIVE_SUPERCLASS_TAG_NAME);
 }
 
 /**

@@ -555,7 +555,7 @@ class OldEmitter implements Emitter {
                   var subclasses = nativeSpec[2].split("|");
                   for (var i = 0; i < subclasses.length; i++) {
                     var subclass = allClasses[subclasses[i]];
-                    subclass.\$nativeSuperclassTag = tags[0];
+                    subclass.#nativeSuperclassTagName = tags[0];
                   }
                 }
                 for (i = 0; i < tags.length; i++) {
@@ -570,6 +570,7 @@ class OldEmitter implements Emitter {
     }''', {'finishedClassesAccess': finishedClassesAccess,
            'needsMixinSupport': needsMixinSupport,
            'hasNativeClasses': nativeClasses.isNotEmpty,
+           'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
            'interceptorsByTagAccess': interceptorsByTagAccess,
            'leafTagsAccess': leafTagsAccess,
            'allowNativesSubclassing': true});
