@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $csp ]
+[ $compiler == dart2js && $csp && $browser ]
 deferred_mixin_test: RuntimeError # Issue 21863
 
 [ $compiler == dart2js || $compiler == dart2dart ]

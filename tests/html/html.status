@@ -24,7 +24,7 @@ datalistelement_test: Skip # Issue 20540
 [ $compiler == dart2js ]
 input_element_test/attributes: Fail # Issue 21555
 
-[ $compiler == dart2js && $csp ]
+[ $compiler == dart2js && $csp && $browser ]
 custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298
 
