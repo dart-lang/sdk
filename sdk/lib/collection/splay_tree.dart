@@ -269,12 +269,15 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
         _validKey = (isValidKey != null) ? isValidKey : ((v) => v is K);
 
   /**
-   * Creates a [SplayTreeMap] that contains all key value pairs of [other].
+   * Creates a [SplayTreeMap] that contains all key/value pairs of [other].
    */
-  factory SplayTreeMap.from(Map<K, V> other,
-                            [ int compare(K key1, K key2),
-                              bool isValidKey(potentialKey)]) =>
-      new SplayTreeMap(compare, isValidKey)..addAll(other);
+  factory SplayTreeMap.from(Map other,
+                            [int compare(K key1, K key2),
+                             bool isValidKey(potentialKey)]) {
+    SplayTreeMap<K, V> result = new SplayTreeMap<K, V>();
+    other.forEach((k, v) { result[k] = v; });
+    return result;
+  }
 
   /**
    * Creates a [SplayTreeMap] where the keys and values are computed from the
@@ -286,12 +289,14 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * The keys of the key/value pairs do not need to be unique. The last
    * occurrence of a key will simply overwrite any previous value.
    *
-   * If no values are specified for [key] and [value] the default is the
-   * identity function.
+   * If no functions are specified for [key] and [value] the default is to
+   * use the iterable value itself.
    */
   factory SplayTreeMap.fromIterable(Iterable iterable,
-      {K key(element), V value(element), int compare(K key1, K key2),
-       bool isValidKey(potentialKey) }) {
+                                    {K key(element),
+                                     V value(element),
+                                     int compare(K key1, K key2),
+                                     bool isValidKey(potentialKey) }) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
     Maps._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
@@ -687,6 +692,23 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
   SplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)])
       : _comparator = (compare == null) ? Comparable.compare : compare,
         _validKey = (isValidKey != null) ? isValidKey : ((v) => v is E);
+
+  /**
+   * Creates a [SplayTreeSet] that contains all [elements].
+   *
+   * The set works as if created by `new SplayTreeSet<E>(compare, isValidKey)`.
+   *
+   * All the [elements] should be valid as arguments to the [compare] function.
+   */
+  factory SplayTreeSet.from(Iterable elements,
+                            [int compare(E key1, E key2),
+                             bool isValidKey(potentialKey)]) {
+    SplayTreeSet<E> result = new SplayTreeSet<E>(compare, isValidKey);
+    for (final E element in elements) {
+      result.add(element);
+    }
+    return result;
+  }
 
   int _compare(E e1, E e2) => _comparator(e1, e2);
 

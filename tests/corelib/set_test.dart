@@ -408,6 +408,43 @@ void testIdentity(Set create()) {
   Expect.isTrue(set2.contains(e2));
 }
 
+void testIntSetFrom(setFrom) {
+  List<num> numList = [2, 3, 5, 7, 11, 13];
+
+  Set<int> set1 = setFrom(numList);
+  Expect.listEquals(numList, set1.toList()..sort());
+
+  Set<num> numSet = numList.toSet();
+  Set<int> set2 = setFrom(numSet);
+  Expect.listEquals(numList, set2.toList()..sort());
+
+  Iterable<num> numIter = numList.where((x) => true);
+  Set<int> set3 = setFrom(numIter);
+  Expect.listEquals(numList, set3.toList()..sort());
+
+  Set<int> set4 = setFrom(new Iterable.generate(0));
+  Expect.isTrue(set4.isEmpty);
+}
+
+void testCESetFrom(setFrom) {
+  List<Object> ceList = [new CE(2), new CE(3), new CE(5),
+                         new CE(7), new CE(11), new CE(13)];
+
+  Set<CE> set1 = setFrom(ceList);
+  Expect.listEquals(ceList, set1.toList()..sort());
+
+  Set<ce> ceSet = ceList.toSet();
+  Set<CE> set2 = setFrom(ceSet);
+  Expect.listEquals(ceList, set2.toList()..sort());
+
+  Iterable<ce> ceIter = ceList.where((x) => true);
+  Set<CE> set3 = setFrom(ceIter);
+  Expect.listEquals(ceList, set3.toList()..sort());
+
+  Set<CE> set4 = setFrom(new Iterable.generate(0));
+  Expect.isTrue(set4.isEmpty);
+}
+
 main() {
   testMain(() => new HashSet());
   testMain(() => new LinkedHashSet());
@@ -457,4 +494,18 @@ main() {
                         isValidKey: validKey));
   testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
       new SplayTreeSet(comparator, validKey));
+
+  testIntSetFrom((x) => new Set<int>.from(x));
+  testIntSetFrom((x) => new HashSet<int>.from(x));
+  testIntSetFrom((x) => new LinkedHashSet<int>.from(x));
+  testIntSetFrom((x) => new SplayTreeSet<int>.from(x));
+
+  testCESetFrom((x) => new Set<CE>.from(x));
+  testCESetFrom((x) => new HashSet<CE>.from(x));
+  testCESetFrom((x) => new LinkedHashSet<CE>.from(x));
+  testCESetFrom((x) => new SplayTreeSet<CE>.from(x));
+
+  testCESetFrom((x) => new SplayTreeSet<CE>.from(x,
+                                                 customCompare(20), validKey));
+  testCESetFrom((x) => new SplayTreeSet<CE>.from(x, identityCompare));
 }

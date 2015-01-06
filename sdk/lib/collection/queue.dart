@@ -25,10 +25,12 @@ abstract class Queue<E> implements Iterable<E>, EfficientLength {
   factory Queue() = ListQueue<E>;
 
   /**
-   * Creates a queue with the elements of [other]. The order in
-   * the queue will be the order provided by the iterator of [other].
+   * Creates a queue containing all [elements].
+   *
+   * The element order in the queue is as if the elements were added using
+   * [addLast] in the order provided by [elements.iterator].
    */
-  factory Queue.from(Iterable<E> other) = ListQueue<E>.from;
+  factory Queue.from(Iterable elements) = ListQueue<E>.from;
 
   /**
    * Removes and returns the first element of this queue.
@@ -195,9 +197,15 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
     _sentinel = new _DoubleLinkedQueueEntrySentinel<E>();
   }
 
-  factory DoubleLinkedQueue.from(Iterable<E> other) {
+  /**
+   * Creates a double-linked queue containing all [elements].
+   *
+   * The element order in the queue is as if the elements were added using
+   * [addLast] in the order provided by [elements.iterator].
+   */
+  factory DoubleLinkedQueue.from(Iterable elements) {
     Queue<E> list = new DoubleLinkedQueue();
-    for (final e in other) {
+    for (final E e in elements) {
       list.addLast(e);
     }
     return list;
@@ -378,19 +386,32 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
   }
 
   /**
-   * Create a queue initially containing the elements of [source].
+   * Create a `ListQueue` containing all [elements].
+   *
+   * The elements are added to the queue, as by [addLast], in the order given by
+   * `elements.iterator`.
+   *
+   * All `elements` should be assignable to [E].
    */
-  factory ListQueue.from(Iterable<E> source) {
-    if (source is List) {
-      int length = source.length;
+  factory ListQueue.from(Iterable elements) {
+    if (elements is List) {
+      int length = elements.length;
       ListQueue<E> queue = new ListQueue(length + 1);
       assert(queue._table.length > length);
-      List sourceList = source;
+      List sourceList = elements;
       queue._table.setRange(0, length, sourceList, 0);
       queue._tail = length;
       return queue;
     } else {
-      return new ListQueue<E>()..addAll(source);
+      int capacity = _INITIAL_CAPACITY;
+      if (elements is EfficientLength) {
+        capacity = elements.length;
+      }
+      ListQueue<E> result = new ListQueue<E>(capacity);
+      for (final E element in elements) {
+        result.addLast(element);
+      }
+      return result;
     }
   }
 

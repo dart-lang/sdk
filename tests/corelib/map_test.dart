@@ -123,6 +123,8 @@ void main() {
   testUnmodifiableMap(const {1 : 37});
   testUnmodifiableMap(new UnmodifiableMapView({1 : 37}));
   testUnmodifiableMap(new UnmodifiableMapBaseMap([1, 37]));
+
+  testFrom();
 }
 
 
@@ -897,4 +899,53 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
   }
 
   Iterable<K> get keys => _keys.skip(0);
+}
+
+class Super implements Comparable {}
+abstract class Interface implements Comparable {}
+class Sub extends Super implements Interface, Comparable<Sub> {
+  int compareTo(Sub other) => 0;
+  int get hashCode => 0;
+  bool operator==(Object other) => other is Sub;
+}
+
+expectMap(Map expect, Map actual) {
+  Expect.equals(expect.length, actual.length, "length");
+  for (var key in expect.keys) {
+    Expect.isTrue(actual.containsKey(key), "containsKey $key");
+    Expect.equals(expect[key], actual[key]);
+  }
+}
+
+void testFrom() {
+  // Check contents.
+  for (var map in [{}, {1: 1}, {1: 2, 3: 4, 5: 6, 7: 8}]) {
+    expectMap(map, new Map.from(map));
+    expectMap(map, new HashMap.from(map));
+    expectMap(map, new LinkedHashMap.from(map));
+    expectMap(map, new SplayTreeMap.from(map));
+  }
+  // Test type combinations allowed.
+  Map<int,int> intMap = <int, int>{1: 2, 3: 4};
+  Map<num,num> numMap = <num, num>{1: 2, 3: 4};
+  expectMap(intMap, new Map<int, int>.from(numMap));
+  expectMap(intMap, new Map<num, num>.from(intMap));
+  expectMap(intMap, new HashMap<int, int>.from(numMap));
+  expectMap(intMap, new HashMap<num, num>.from(intMap));
+  expectMap(intMap, new LinkedHashMap<int, int>.from(numMap));
+  expectMap(intMap, new LinkedHashMap<num, num>.from(intMap));
+  expectMap(intMap, new SplayTreeMap<int, int>.from(numMap));
+  expectMap(intMap, new SplayTreeMap<num, num>.from(intMap));
+
+  var sub = new Sub();
+  Map<Super, Super> superMap = <Super, Super>{sub: sub};
+  Map<Interface, Interface> interfaceMap = <Interface, Interface>{sub: sub};
+  expectMap(superMap, new Map<Super, Super>.from(interfaceMap));
+  expectMap(superMap, new Map<Interface, Interface>.from(superMap));
+  expectMap(superMap, new HashMap<Super, Super>.from(interfaceMap));
+  expectMap(superMap, new HashMap<Interface, Interface>.from(superMap));
+  expectMap(superMap, new LinkedHashMap<Super, Super>.from(interfaceMap));
+  expectMap(superMap, new LinkedHashMap<Interface, Interface>.from(superMap));
+  expectMap(superMap, new SplayTreeMap<Super, Super>.from(interfaceMap));
+  expectMap(superMap, new SplayTreeMap<Interface, Interface>.from(superMap));
 }
