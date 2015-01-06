@@ -1126,9 +1126,26 @@ main() => new C();"""]);
   static const MessageKind BEFORE_TOP_LEVEL = const MessageKind(
       "Part header must come before top-level definitions.");
 
+  static const MessageKind IMPORT_PART_OF = const MessageKind(
+      "The imported library must not have a 'part-of' directive.",
+      howToFix: "Try removing the 'part-of' directive or replacing the "
+                "import of the library with a 'part' directive.",
+      examples: const [const {
+'main.dart': """
+library library;
+
+import 'part.dart';
+
+main() {}
+""",
+
+'part.dart': """
+part of library;
+"""}]);
+
   static const MessageKind LIBRARY_NAME_MISMATCH = const MessageKind(
       "Expected part of library name '#{libraryName}'.",
-      howToFix: "Trying changing the directive to 'part of #{libraryName};'.",
+      howToFix: "Try changing the directive to 'part of #{libraryName};'.",
       examples: const [const {
 'main.dart': """
 library lib.foo;
@@ -1145,7 +1162,7 @@ part of lib.bar;
   static const MessageKind MISSING_LIBRARY_NAME = const MessageKind(
       "Library has no name. Part directive expected library name "
       "to be '#{libraryName}'.",
-      howToFix: "Trying adding 'library #{libraryName};' to the library.",
+      howToFix: "Try adding 'library #{libraryName};' to the library.",
       examples: const [const {
 'main.dart': """
 part 'part.dart';
@@ -1165,9 +1182,6 @@ part of lib.foo;
 
   static const MessageKind DUPLICATED_PART_OF = const MessageKind(
       "Duplicated part-of directive.");
-
-  static const MessageKind ILLEGAL_DIRECTIVE = const MessageKind(
-      "Directive not allowed here.");
 
   static const MessageKind DUPLICATED_LIBRARY_NAME = const MessageKind(
       "Duplicated library name '#{libraryName}'.");
