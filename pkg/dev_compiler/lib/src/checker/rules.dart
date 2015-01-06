@@ -17,6 +17,10 @@ abstract class TypeRules {
   bool isAssignable(DartType t1, DartType t2);
 
   bool isGroundType(DartType t) => true;
+  // TODO(vsm): The default implementation is not ignoring the return type,
+  // only the restricted override is.
+  bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2,
+      {bool ignoreReturn: false}) => isSubTypeOf(f1, f2);
 
   bool isBoolType(DartType t) => t == provider.boolType;
   bool isDoubleType(DartType t) => t == provider.doubleType;

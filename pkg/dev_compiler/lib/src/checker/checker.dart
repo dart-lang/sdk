@@ -126,8 +126,7 @@ class ProgramChecker extends RecursiveAstVisitor {
             return new InferableOverride(
                 node, element, type, subType.returnType, baseType.returnType);
           }
-        } else if (node is MethodDeclaration &&
-            (node as MethodDeclaration).returnType == null &&
+        } else if (node is MethodDeclaration && node.returnType == null &&
             _rules.isFunctionSubTypeOf(subType, baseType, ignoreReturn: true)) {
           // node is a MethodDeclaration whenever getters and setters are
           // declared explicitly. Setters declared from a field will have the

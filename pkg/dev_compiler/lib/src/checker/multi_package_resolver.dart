@@ -14,7 +14,7 @@ import 'package:path/path.dart' show join;
 /// A package resolver that supports a non-standard package layout, where
 /// packages with dotted names are expanded to a hierarchy of directories, and
 /// packages can be found on one or more locations.
-class MultiPackageResolver implements UriResolver {
+class MultiPackageResolver extends UriResolver {
   static List<String> searchPaths =
       // TODO(sigmund): make this a normal flag instead.
       const String.fromEnvironment('package_paths', defaultValue: '').split(
