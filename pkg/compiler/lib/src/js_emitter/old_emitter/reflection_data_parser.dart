@@ -14,6 +14,9 @@ const DEFAULT_ARGUMENTS_INDEX = 5;
 
 const bool VALIDATE_DATA = false;
 
+// TODO(zarah): Rename this when renaming this file.
+String get parseReflectionDataName => 'parseReflectionData';
+
 jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
                                          JavaScriptBackend backend) {
   Namer namer = backend.namer;
@@ -419,7 +422,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   }
 
   return js('''
-(function (reflectionData) {
+function $parseReflectionDataName(reflectionData) {
   "use strict";
   #header;
   if (#needsClassSupport) {
@@ -433,7 +436,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   #tearOffCode;
   #incrementalSupport;
   #init;
-})''', {
+}''', {
       'header': header,
       'defineClass': oldEmitter.defineClassFunction,
       'inheritFrom': oldEmitter.buildInheritFrom(),

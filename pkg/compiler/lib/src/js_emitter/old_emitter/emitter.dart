@@ -1498,10 +1498,11 @@ class OldEmitter implements Emitter {
 
     mainBuffer.write('function ${namer.isolateName}()$_{}\n');
     if (isProgramSplit) {
-      mainBuffer
-        .write('${globalsHolder}.${namer.isolateName}$_=$_'
-               '${namer.isolateName}$N'
-               '${globalsHolder}.$initName$_=${_}$initName$N');
+      mainBuffer.write(
+          '${globalsHolder}.${namer.isolateName}$_=$_${namer.isolateName}$N'
+          '${globalsHolder}.$initName$_=${_}$initName$N'
+          '${globalsHolder}.$parseReflectionDataName$_=$_'
+            '$parseReflectionDataName$N');
     }
     mainBuffer.write('init()$N$n');
     mainBuffer.write('$isolateProperties$_=$_$isolatePropertiesName$N');
@@ -1536,15 +1537,15 @@ class OldEmitter implements Emitter {
       }
 
       mainBuffer
-          ..write('(')
           ..write(
               jsAst.prettyPrint(
                   getReflectionDataParser(this, backend),
                   compiler))
-          ..write(')')
-          ..write('([$n')
-          ..write(libraryBuffer)
-          ..write('])$N');
+          ..write(n);
+
+      mainBuffer..write('$parseReflectionDataName([$n')
+                ..write(libraryBuffer)
+                ..write('])$N');
     }
 
     interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
@@ -1978,6 +1979,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       }
       outputBuffer
           ..write('var init$_=$_${globalsHolder}.init$N')
+          ..write('var $parseReflectionDataName$_=$_'
+                    '$globalsHolder.$parseReflectionDataName$N')
           ..write('var ${namer.isolateName}$_=$_'
                     '${globalsHolder}.${namer.isolateName}$N');
       if (libraryDescriptorBuffer != null) {
@@ -1986,14 +1989,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // slow object in V8, so instead we should do something similar
       // to Isolate.$finishIsolateConstructor.
          outputBuffer
-           ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName;$n')
-           ..write('(')
-           ..write(
-               jsAst.prettyPrint(
-                   getReflectionDataParser(this, backend),
-                   compiler, monitor: compiler.dumpInfoTask))
-           ..write(')')
-           ..write('([$n')
+           ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName$N')
+           ..write('$parseReflectionDataName([$n')
            ..addBuffer(libraryDescriptorBuffer)
            ..write('])$N');
 
