@@ -24,8 +24,8 @@ const List<Group> TEST_DATA = const [
 main() {}
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Null)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -35,10 +35,10 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetCont (k0 v0)
-    (LetPrim v1 (Constant (Null)))
-    (InvokeContinuation return v1))
-  (InvokeStatic foo  k0))
+  (LetCont (k0 (v0)
+      (LetPrim (v1 (Constant (Null)))
+        (InvokeContinuation return (v1))))
+    (InvokeStatic foo () k0)))
 ''')
   ]),
 
@@ -49,8 +49,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -59,8 +59,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Double 1.5)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Double 1.5)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -69,8 +69,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Bool true)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Bool true)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -79,8 +79,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Bool false)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Bool false)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -89,8 +89,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (String "a")))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (String "a")))
+    (InvokeContinuation return (v0))))
 '''),
   ]),
 
@@ -99,16 +99,16 @@ main() {
 main(args) {}
 ''', '''
 (FunctionDefinition main (args) return ()
-  (LetPrim v0 (Constant (Null)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
 main(a, b) {}
 ''', '''
 (FunctionDefinition main (a b) return ()
-  (LetPrim v0 (Constant (Null)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
 '''),
   ]),
 
@@ -120,11 +120,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Null)))
-  (LetCont (k0 v1)
-    (LetPrim v2 (Constant (Null)))
-    (InvokeContinuation return v2))
-  (InvokeStatic foo v0 k0))
+  (LetPrim (v0 (Constant (Null)))
+    (LetCont (k0 (v1)
+        (LetPrim (v2 (Constant (Null)))
+          (InvokeContinuation return (v2))))
+      (InvokeStatic foo (v0) k0))))
 '''),
 
     const TestSpec('''
@@ -136,15 +136,15 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Null)))
-  (LetCont (k0 v1)
-    (LetPrim v2 (Constant (Int 0)))
-    (LetPrim v3 (Constant (String "")))
-    (LetCont (k1 v4)
-      (LetPrim v5 (Constant (Null)))
-      (InvokeContinuation return v5))
-    (InvokeStatic bar v2 v3 k1))
-  (InvokeStatic foo v0 k0))
+  (LetPrim (v0 (Constant (Null)))
+    (LetCont (k0 (v1)
+        (LetPrim (v2 (Constant (Int 0)))
+          (LetPrim (v3 (Constant (String "")))
+            (LetCont (k1 (v4)
+                (LetPrim (v5 (Constant (Null)))
+                  (InvokeContinuation return (v5))))
+              (InvokeStatic bar (v2 v3) k1)))))
+      (InvokeStatic foo (v0) k0))))
 '''),
 
     const TestSpec('''
@@ -154,10 +154,10 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Null)))
-  (LetCont (k0 v1)
-    (InvokeContinuation return v1))
-  (InvokeStatic foo v0 k0))
+  (LetPrim (v0 (Constant (Null)))
+    (LetCont (k0 (v1)
+        (InvokeContinuation return (v1)))
+      (InvokeStatic foo (v0) k0))))
 '''),
   ]),
 
@@ -169,8 +169,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Null)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -180,8 +180,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -190,7 +190,7 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (InvokeContinuation return a))
+  (InvokeContinuation return (a)))
 '''),
     ]),
 
@@ -203,9 +203,9 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Null)))
-  (LetPrim v1 (Constant (Int 10)))
-  (InvokeContinuation return v1))
+  (LetPrim (v0 (Constant (Null)))
+    (LetPrim (v1 (Constant (Int 10)))
+      (InvokeContinuation return (v1)))))
 '''),
 
     const TestSpec('''
@@ -216,9 +216,9 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (Int 10)))
-  (InvokeContinuation return v1))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (Int 10)))
+      (InvokeContinuation return (v1)))))
 '''),
 
     const TestSpec('''
@@ -231,13 +231,13 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetCont (k0 v1)
-    (LetPrim v2 (Constant (String "")))
-    (LetCont (k1 v3)
-      (InvokeContinuation return v2))
-    (InvokeStatic print v2 k1))
-  (InvokeStatic print v0 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont (k0 (v1)
+        (LetPrim (v2 (Constant (String "")))
+          (LetCont (k1 (v3)
+              (InvokeContinuation return (v2)))
+            (InvokeStatic print (v2) k1))))
+      (InvokeStatic print (v0) k0))))
 '''),
 
     const TestSpec('''
@@ -249,12 +249,12 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (LetPrim v1 (Constant (String "")))
-    (LetCont (k1 v2)
-      (InvokeContinuation return v1))
-    (InvokeStatic print v1 k1))
-  (InvokeStatic print a k0))
+  (LetCont (k0 (v0)
+      (LetPrim (v1 (Constant (String "")))
+        (LetCont (k1 (v2)
+            (InvokeContinuation return (v1)))
+          (InvokeStatic print (v1) k1))))
+    (InvokeStatic print (a) k0)))
 '''),
 
     const TestSpec('''
@@ -267,16 +267,16 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (LetCont (k1 v1)
-      (InvokeContinuation return v0))
-    (InvokeStatic print v0 k1))
-  (LetCont (k2)
-    (LetPrim v2 (Constant (String "")))
-    (InvokeContinuation k0 v2))
-  (LetCont (k3)
-    (InvokeContinuation k0 a))
-  (Branch (IsTrue a) k2 k3))
+  (LetCont (k0 (v0)
+      (LetCont (k1 (v1)
+          (InvokeContinuation return (v0)))
+        (InvokeStatic print (v0) k1)))
+    (LetCont (k2 ()
+        (LetPrim (v2 (Constant (String "")))
+          (InvokeContinuation k0 (v2))))
+      (LetCont (k3 ()
+          (InvokeContinuation k0 (a)))
+        (Branch (IsTrue a) k2 k3)))))
 '''),
   ]),
 
@@ -287,9 +287,9 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (InvokeMethod a foo  k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (InvokeMethod a foo () k0)))
 '''),
 
     const TestSpec('''
@@ -299,10 +299,10 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (String "")))
-  (LetCont (k0 v1)
-    (InvokeContinuation return v1))
-  (InvokeMethod v0 foo  k0))
+  (LetPrim (v0 (Constant (String "")))
+    (LetCont (k0 (v1)
+        (InvokeContinuation return (v1)))
+      (InvokeMethod v0 foo () k0))))
 '''),
     ]),
 
@@ -313,10 +313,10 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetCont (k0 v1)
-    (InvokeContinuation return v1))
-  (InvokeMethod a foo v0 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont (k0 (v1)
+        (InvokeContinuation return (v1)))
+      (InvokeMethod a foo (v0) k0))))
 '''),
 
     const TestSpec('''
@@ -326,12 +326,12 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (String "")))
-  (LetPrim v1 (Constant (Int 0)))
-  (LetPrim v2 (Constant (Int 1)))
-  (LetCont (k0 v3)
-    (InvokeContinuation return v3))
-  (InvokeMethod v0 foo v1 v2 k0))
+  (LetPrim (v0 (Constant (String "")))
+    (LetPrim (v1 (Constant (Int 0)))
+      (LetPrim (v2 (Constant (Int 1)))
+        (LetCont (k0 (v3)
+            (InvokeContinuation return (v3)))
+          (InvokeMethod v0 foo (v1 v2) k0))))))
 '''),
     ]),
 
@@ -342,11 +342,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 + v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 + (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -355,11 +355,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 - v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 - (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -368,11 +368,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 * v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 * (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -381,11 +381,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 / v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 / (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -394,11 +394,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 ~/ v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 ~/ (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -407,11 +407,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 < v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 < (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -420,11 +420,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 <= v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 <= (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -433,11 +433,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 > v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 > (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -446,11 +446,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 >= v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 >= (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -459,11 +459,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 << v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 << (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -472,11 +472,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 >> v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 >> (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -485,11 +485,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 & v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 & (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -498,11 +498,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 | v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 | (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -511,11 +511,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 ^ v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 ^ (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -524,11 +524,11 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 == v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (InvokeContinuation return (v2)))
+        (InvokeMethod v0 == (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -537,19 +537,19 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (LetCont (k1 v3)
-      (InvokeContinuation return v3))
-    (LetCont (k2)
-      (LetPrim v4 (Constant (Bool false)))
-      (InvokeContinuation k1 v4))
-    (LetCont (k3)
-      (LetPrim v5 (Constant (Bool true)))
-      (InvokeContinuation k1 v5))
-    (Branch (IsTrue v2) k2 k3))
-  (InvokeMethod v0 == v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (LetCont (k1 (v3)
+              (InvokeContinuation return (v3)))
+            (LetCont (k2 ()
+                (LetPrim (v4 (Constant (Bool false)))
+                  (InvokeContinuation k1 (v4))))
+              (LetCont (k3 ()
+                  (LetPrim (v5 (Constant (Bool true)))
+                    (InvokeContinuation k1 (v5))))
+                (Branch (IsTrue v2) k2 k3)))))
+        (InvokeMethod v0 == (v1) k0)))))
 '''),
 
     const TestSpec('''
@@ -558,22 +558,22 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetCont (k0 v1)
-    (InvokeContinuation return v1))
-  (LetCont (k1)
-    (LetPrim v2 (Constant (String "")))
-    (LetCont (k2)
-      (LetPrim v3 (Constant (Bool true)))
-      (InvokeContinuation k0 v3))
-    (LetCont (k3)
-      (LetPrim v4 (Constant (Bool false)))
-      (InvokeContinuation k0 v4))
-    (Branch (IsTrue v2) k2 k3))
-  (LetCont (k4)
-    (LetPrim v5 (Constant (Bool false)))
-    (InvokeContinuation k0 v5))
-  (Branch (IsTrue v0) k1 k4))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont (k0 (v1)
+        (InvokeContinuation return (v1)))
+      (LetCont (k1 ()
+          (LetPrim (v2 (Constant (String "")))
+            (LetCont (k2 ()
+                (LetPrim (v3 (Constant (Bool true)))
+                  (InvokeContinuation k0 (v3))))
+              (LetCont (k3 ()
+                  (LetPrim (v4 (Constant (Bool false)))
+                    (InvokeContinuation k0 (v4))))
+                (Branch (IsTrue v2) k2 k3)))))
+        (LetCont (k4 ()
+            (LetPrim (v5 (Constant (Bool false)))
+              (InvokeContinuation k0 (v5))))
+          (Branch (IsTrue v0) k1 k4))))))
 '''),
 
     const TestSpec('''
@@ -582,22 +582,22 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetCont (k0 v1)
-    (InvokeContinuation return v1))
-  (LetCont (k1)
-    (LetPrim v2 (Constant (Bool true)))
-    (InvokeContinuation k0 v2))
-  (LetCont (k2)
-    (LetPrim v3 (Constant (String "")))
-    (LetCont (k3)
-      (LetPrim v4 (Constant (Bool true)))
-      (InvokeContinuation k0 v4))
-    (LetCont (k4)
-      (LetPrim v5 (Constant (Bool false)))
-      (InvokeContinuation k0 v5))
-    (Branch (IsTrue v3) k3 k4))
-  (Branch (IsTrue v0) k1 k2))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont (k0 (v1)
+        (InvokeContinuation return (v1)))
+      (LetCont (k1 ()
+          (LetPrim (v2 (Constant (Bool true)))
+            (InvokeContinuation k0 (v2))))
+        (LetCont (k2 ()
+            (LetPrim (v3 (Constant (String "")))
+              (LetCont (k3 ()
+                  (LetPrim (v4 (Constant (Bool true)))
+                    (InvokeContinuation k0 (v4))))
+                (LetCont (k4 ()
+                    (LetPrim (v5 (Constant (Bool false)))
+                      (InvokeContinuation k0 (v5))))
+                  (Branch (IsTrue v3) k3 k4)))))
+          (Branch (IsTrue v0) k1 k2))))))
 '''),
 
     const TestSpec('''
@@ -606,14 +606,14 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetPrim v2 (Constant (Int 2)))
-  (LetCont (k0 v3)
-    (LetCont (k1 v4)
-      (InvokeContinuation return v4))
-    (InvokeMethod v0 + v3 k1))
-  (InvokeMethod v1 * v2 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetPrim (v2 (Constant (Int 2)))
+        (LetCont (k0 (v3)
+            (LetCont (k1 (v4)
+                (InvokeContinuation return (v4)))
+              (InvokeMethod v0 + (v3) k1)))
+          (InvokeMethod v1 * (v2) k0))))))
 '''),
 
     const TestSpec('''
@@ -622,14 +622,14 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "")))
-  (LetCont (k0 v2)
-    (LetPrim v3 (Constant (Int 2)))
-    (LetCont (k1 v4)
-      (InvokeContinuation return v4))
-    (InvokeMethod v2 + v3 k1))
-  (InvokeMethod v0 * v1 k0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "")))
+      (LetCont (k0 (v2)
+          (LetPrim (v3 (Constant (Int 2)))
+            (LetCont (k1 (v4)
+                (InvokeContinuation return (v4)))
+              (InvokeMethod v2 + (v3) k1))))
+        (InvokeMethod v0 * (v1) k0)))))
 '''),
     ]),
 
@@ -642,17 +642,17 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0)
-    (LetPrim v0 (Constant (Null)))
-    (InvokeContinuation return v0))
-  (LetCont (k1)
-    (LetPrim v1 (Constant (Int 0)))
-    (LetCont (k2 v2)
-      (InvokeContinuation k0 ))
-    (InvokeStatic print v1 k2))
-  (LetCont (k3)
-    (InvokeContinuation k0 ))
-  (Branch (IsTrue a) k1 k3))
+  (LetCont (k0 ()
+      (LetPrim (v0 (Constant (Null)))
+        (InvokeContinuation return (v0))))
+    (LetCont (k1 ()
+        (LetPrim (v1 (Constant (Int 0)))
+          (LetCont (k2 (v2)
+              (InvokeContinuation k0 ()))
+            (InvokeStatic print (v1) k2))))
+      (LetCont (k3 ()
+          (InvokeContinuation k0 ()))
+        (Branch (IsTrue a) k1 k3)))))
 '''),
 
     const TestSpec('''
@@ -665,20 +665,20 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0)
-    (LetPrim v0 (Constant (Null)))
-    (InvokeContinuation return v0))
-  (LetCont (k1)
-    (LetPrim v1 (Constant (Int 0)))
-    (LetCont (k2 v2)
-      (InvokeContinuation k0 ))
-    (InvokeStatic print v1 k2))
-  (LetCont (k3)
-    (LetPrim v3 (Constant (Int 1)))
-    (LetCont (k4 v4)
-      (InvokeContinuation k0 ))
-    (InvokeStatic print v3 k4))
-  (Branch (IsTrue a) k1 k3))
+  (LetCont (k0 ()
+      (LetPrim (v0 (Constant (Null)))
+        (InvokeContinuation return (v0))))
+    (LetCont (k1 ()
+        (LetPrim (v1 (Constant (Int 0)))
+          (LetCont (k2 (v2)
+              (InvokeContinuation k0 ()))
+            (InvokeStatic print (v1) k2))))
+      (LetCont (k3 ()
+          (LetPrim (v3 (Constant (Int 1)))
+            (LetCont (k4 (v4)
+                (InvokeContinuation k0 ()))
+              (InvokeStatic print (v3) k4))))
+        (Branch (IsTrue a) k1 k3)))))
 '''),
 
     const TestSpec('''
@@ -692,23 +692,23 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0)
-    (LetPrim v0 (Constant (Null)))
-    (InvokeContinuation return v0))
-  (LetCont (k1)
-    (LetPrim v1 (Constant (Int 0)))
-    (LetCont (k2 v2)
-      (InvokeContinuation k0 ))
-    (InvokeStatic print v1 k2))
-  (LetCont (k3)
-    (LetPrim v3 (Constant (Int 1)))
-    (LetCont (k4 v4)
-      (LetPrim v5 (Constant (Int 2)))
-      (LetCont (k5 v6)
-        (InvokeContinuation k0 ))
-      (InvokeStatic print v5 k5))
-    (InvokeStatic print v3 k4))
-  (Branch (IsTrue a) k1 k3))
+  (LetCont (k0 ()
+      (LetPrim (v0 (Constant (Null)))
+        (InvokeContinuation return (v0))))
+    (LetCont (k1 ()
+        (LetPrim (v1 (Constant (Int 0)))
+          (LetCont (k2 (v2)
+              (InvokeContinuation k0 ()))
+            (InvokeStatic print (v1) k2))))
+      (LetCont (k3 ()
+          (LetPrim (v3 (Constant (Int 1)))
+            (LetCont (k4 (v4)
+                (LetPrim (v5 (Constant (Int 2)))
+                  (LetCont (k5 (v6)
+                      (InvokeContinuation k0 ()))
+                    (InvokeStatic print (v5) k5))))
+              (InvokeStatic print (v3) k4))))
+        (Branch (IsTrue a) k1 k3)))))
 '''),
     ]),
 
@@ -719,19 +719,19 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (LetCont (k1)
-    (LetPrim v1 (Constant (Int 0)))
-    (LetCont (k2 v2)
-      (InvokeContinuation k0 v2))
-    (InvokeStatic print v1 k2))
-  (LetCont (k3)
-    (LetPrim v3 (Constant (Int 1)))
-    (LetCont (k4 v4)
-      (InvokeContinuation k0 v4))
-    (InvokeStatic print v3 k4))
-  (Branch (IsTrue a) k1 k3))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (LetCont (k1 ()
+        (LetPrim (v1 (Constant (Int 0)))
+          (LetCont (k2 (v2)
+              (InvokeContinuation k0 (v2)))
+            (InvokeStatic print (v1) k2))))
+      (LetCont (k3 ()
+          (LetPrim (v3 (Constant (Int 1)))
+            (LetCont (k4 (v4)
+                (InvokeContinuation k0 (v4)))
+              (InvokeStatic print (v3) k4))))
+        (Branch (IsTrue a) k1 k3)))))
 '''),
     ]),
 
@@ -745,8 +745,8 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -761,13 +761,13 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0)
-    (LetPrim v0 (Constant (Int 0)))
-    (InvokeContinuation return v0))
-  (LetCont (k1)
-    (LetPrim v1 (Constant (Int 2)))
-    (InvokeContinuation return v1))
-  (Branch (IsTrue a) k0 k1))
+  (LetCont (k0 ()
+      (LetPrim (v0 (Constant (Int 0)))
+        (InvokeContinuation return (v0))))
+    (LetCont (k1 ()
+        (LetPrim (v1 (Constant (Int 2)))
+          (InvokeContinuation return (v1))))
+      (Branch (IsTrue a) k0 k1))))
 '''),
 
     const TestSpec('''
@@ -784,19 +784,19 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0)
-    (LetPrim v0 (Constant (Int 0)))
-    (LetCont (k1 v1)
-      (LetPrim v2 (Constant (Int 0)))
-      (InvokeContinuation return v2))
-    (InvokeStatic print v0 k1))
-  (LetCont (k2)
-    (LetPrim v3 (Constant (Int 2)))
-    (LetCont (k3 v4)
-      (LetPrim v5 (Constant (Int 2)))
-      (InvokeContinuation return v5))
-    (InvokeStatic print v3 k3))
-  (Branch (IsTrue a) k0 k2))
+  (LetCont (k0 ()
+      (LetPrim (v0 (Constant (Int 0)))
+        (LetCont (k1 (v1)
+            (LetPrim (v2 (Constant (Int 0)))
+              (InvokeContinuation return (v2))))
+          (InvokeStatic print (v0) k1))))
+    (LetCont (k2 ()
+        (LetPrim (v3 (Constant (Int 2)))
+          (LetCont (k3 (v4)
+              (LetPrim (v5 (Constant (Int 2)))
+                (InvokeContinuation return (v5))))
+            (InvokeStatic print (v3) k3))))
+      (Branch (IsTrue a) k0 k2))))
 '''),
   ]),
 
@@ -807,10 +807,10 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (LetPrim v1 (Constant (Null)))
-    (InvokeContinuation return v1))
-  (InvokeConstructor Object  k0))
+  (LetCont (k0 (v0)
+      (LetPrim (v1 (Constant (Null)))
+        (InvokeContinuation return (v1))))
+    (InvokeConstructor Object () k0)))
 '''),
 
     const TestSpec('''
@@ -819,11 +819,11 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (String "")))
-  (LetCont (k0 v1)
-    (LetPrim v2 (Constant (Null)))
-    (InvokeContinuation return v2))
-  (InvokeConstructor Deprecated v0 k0))
+  (LetPrim (v0 (Constant (String "")))
+    (LetCont (k0 (v1)
+        (LetPrim (v2 (Constant (Null)))
+          (InvokeContinuation return (v2))))
+      (InvokeConstructor Deprecated (v0) k0))))
 '''),
   ]),
 
@@ -834,8 +834,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (LiteralList ()))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (LiteralList ()))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -844,9 +844,9 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (LiteralList (v0)))
-  (InvokeContinuation return v1))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (LiteralList (v0)))
+      (InvokeContinuation return (v1)))))
 '''),
 
     const TestSpec('''
@@ -855,10 +855,10 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (Int 1)))
-  (LetPrim v2 (LiteralList (v0 v1 a)))
-  (InvokeContinuation return v2))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (Int 1)))
+      (LetPrim (v2 (LiteralList (v0 v1 a)))
+        (InvokeContinuation return (v2))))))
 '''),
 
     const TestSpec('''
@@ -867,14 +867,14 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (Int 1)))
-  (LetPrim v2 (LiteralList (v1)))
-  (LetPrim v3 (Constant (Int 3)))
-  (LetPrim v4 (LiteralList (v3)))
-  (LetPrim v5 (LiteralList (a v4)))
-  (LetPrim v6 (LiteralList (v0 v2 v5)))
-  (InvokeContinuation return v6))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (Int 1)))
+      (LetPrim (v2 (LiteralList (v1)))
+        (LetPrim (v3 (Constant (Int 3)))
+          (LetPrim (v4 (LiteralList (v3)))
+            (LetPrim (v5 (LiteralList (a v4)))
+              (LetPrim (v6 (LiteralList (v0 v2 v5)))
+                (InvokeContinuation return (v6))))))))))
 '''),
   ]),
 
@@ -885,8 +885,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (LiteralMap () ()))
-  (InvokeContinuation return v0))
+  (LetPrim (v0 (LiteralMap () ()))
+    (InvokeContinuation return (v0))))
 '''),
 
     const TestSpec('''
@@ -895,10 +895,10 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (String "a")))
-  (LetPrim v1 (Constant (Int 0)))
-  (LetPrim v2 (LiteralMap (v0) (v1)))
-  (InvokeContinuation return v2))
+  (LetPrim (v0 (Constant (String "a")))
+    (LetPrim (v1 (Constant (Int 0)))
+      (LetPrim (v2 (LiteralMap (v0) (v1)))
+        (InvokeContinuation return (v2))))))
 '''),
 
     const TestSpec('''
@@ -907,13 +907,13 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (String "a")))
-  (LetPrim v1 (Constant (Int 0)))
-  (LetPrim v2 (Constant (String "b")))
-  (LetPrim v3 (Constant (Int 1)))
-  (LetPrim v4 (Constant (String "c")))
-  (LetPrim v5 (LiteralMap (v0 v2 v4) (v1 v3 a)))
-  (InvokeContinuation return v5))
+  (LetPrim (v0 (Constant (String "a")))
+    (LetPrim (v1 (Constant (Int 0)))
+      (LetPrim (v2 (Constant (String "b")))
+        (LetPrim (v3 (Constant (Int 1)))
+          (LetPrim (v4 (Constant (String "c")))
+            (LetPrim (v5 (LiteralMap (v0 v2 v4) (v1 v3 a)))
+              (InvokeContinuation return (v5)))))))))
 '''),
 
     const TestSpec('''
@@ -922,17 +922,17 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetPrim v1 (Constant (String "a")))
-  (LetPrim v2 (Constant (Int 1)))
-  (LetPrim v3 (Constant (Int 2)))
-  (LetPrim v4 (Constant (String "b")))
-  (LetPrim v5 (LiteralMap (v3) (v4)))
-  (LetPrim v6 (Constant (Int 3)))
-  (LetPrim v7 (Constant (String "c")))
-  (LetPrim v8 (LiteralMap (v6) (v7)))
-  (LetPrim v9 (LiteralMap (v0 v2 a) (v1 v5 v8)))
-  (InvokeContinuation return v9))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetPrim (v1 (Constant (String "a")))
+      (LetPrim (v2 (Constant (Int 1)))
+        (LetPrim (v3 (Constant (Int 2)))
+          (LetPrim (v4 (Constant (String "b")))
+            (LetPrim (v5 (LiteralMap (v3) (v4)))
+              (LetPrim (v6 (Constant (Int 3)))
+                (LetPrim (v7 (Constant (String "c")))
+                  (LetPrim (v8 (LiteralMap (v6) (v7)))
+                    (LetPrim (v9 (LiteralMap (v0 v2 a) (v1 v5 v8)))
+                      (InvokeContinuation return (v9)))))))))))))
 '''),
   ]),
 
@@ -943,15 +943,15 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetCont* (k0)
-    (LetPrim v0 (Constant (Bool true)))
-    (LetCont (k1)
-      (LetPrim v1 (Constant (Null)))
-      (InvokeContinuation return v1))
-    (LetCont (k2)
-      (InvokeContinuation* k0 ))
-    (Branch (IsTrue v0) k2 k1))
-  (InvokeContinuation k0 ))
+  (LetCont* (k0 ()
+      (LetPrim (v0 (Constant (Bool true)))
+        (LetCont (k1 ()
+            (LetPrim (v1 (Constant (Null)))
+              (InvokeContinuation return (v1))))
+          (LetCont (k2 ()
+              (InvokeContinuation* k0 ()))
+            (Branch (IsTrue v0) k2 k1)))))
+    (InvokeContinuation k0 ())))
 '''),
 
 const TestSpec('''
@@ -962,23 +962,23 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetCont* (k0 v1)
-    (LetPrim v2 (Constant (Int 10)))
-    (LetCont (k1 v3)
-      (LetCont (k2)
-        (LetPrim v4 (Constant (Null)))
-        (InvokeContinuation return v4))
-      (LetCont (k3)
-        (LetCont (k4 v5)
-          (LetPrim v6 (Constant (Int 1)))
-          (LetCont (k5 v7)
-            (InvokeContinuation* k0 v7))
-          (InvokeMethod v1 + v6 k5))
-        (InvokeStatic print v1 k4))
-      (Branch (IsTrue v3) k3 k2))
-    (InvokeMethod v1 < v2 k1))
-  (InvokeContinuation k0 v0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont* (k0 (v1)
+        (LetPrim (v2 (Constant (Int 10)))
+          (LetCont (k1 (v3)
+              (LetCont (k2 ()
+                  (LetPrim (v4 (Constant (Null)))
+                    (InvokeContinuation return (v4))))
+                (LetCont (k3 ()
+                    (LetCont (k4 (v5)
+                        (LetPrim (v6 (Constant (Int 1)))
+                          (LetCont (k5 (v7)
+                              (InvokeContinuation* k0 (v7)))
+                            (InvokeMethod v1 + (v6) k5))))
+                      (InvokeStatic print (v1) k4)))
+                  (Branch (IsTrue v3) k3 k2))))
+            (InvokeMethod v1 < (v2) k1))))
+      (InvokeContinuation k0 (v0)))))
 '''),
 
 const TestSpec('''
@@ -989,23 +989,23 @@ main(i) {
 }
 ''', '''
 (FunctionDefinition main (i) return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetCont* (k0 v1)
-    (LetPrim v2 (Constant (Int 10)))
-    (LetCont (k1 v3)
-      (LetCont (k2)
-        (LetPrim v4 (Constant (Null)))
-        (InvokeContinuation return v4))
-      (LetCont (k3)
-        (LetCont (k4 v5)
-          (LetPrim v6 (Constant (Int 1)))
-          (LetCont (k5 v7)
-            (InvokeContinuation* k0 v7))
-          (InvokeMethod v1 + v6 k5))
-        (InvokeStatic print v1 k4))
-      (Branch (IsTrue v3) k3 k2))
-    (InvokeMethod v1 < v2 k1))
-  (InvokeContinuation k0 v0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont* (k0 (v1)
+        (LetPrim (v2 (Constant (Int 10)))
+          (LetCont (k1 (v3)
+              (LetCont (k2 ()
+                  (LetPrim (v4 (Constant (Null)))
+                    (InvokeContinuation return (v4))))
+                (LetCont (k3 ()
+                    (LetCont (k4 (v5)
+                        (LetPrim (v6 (Constant (Int 1)))
+                          (LetCont (k5 (v7)
+                              (InvokeContinuation* k0 (v7)))
+                            (InvokeMethod v1 + (v6) k5))))
+                      (InvokeStatic print (v1) k4)))
+                  (Branch (IsTrue v3) k3 k2))))
+            (InvokeMethod v1 < (v2) k1))))
+      (InvokeContinuation k0 (v0)))))
 '''),
   ]),
 
@@ -1016,15 +1016,15 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetCont* (k0)
-    (LetPrim v0 (Constant (Bool true)))
-    (LetCont (k1)
-      (LetPrim v1 (Constant (Null)))
-      (InvokeContinuation return v1))
-    (LetCont (k2)
-      (InvokeContinuation* k0 ))
-    (Branch (IsTrue v0) k2 k1))
-  (InvokeContinuation k0 ))
+  (LetCont* (k0 ()
+      (LetPrim (v0 (Constant (Bool true)))
+        (LetCont (k1 ()
+            (LetPrim (v1 (Constant (Null)))
+              (InvokeContinuation return (v1))))
+          (LetCont (k2 ()
+              (InvokeContinuation* k0 ()))
+            (Branch (IsTrue v0) k2 k1)))))
+    (InvokeContinuation k0 ())))
 '''),
 
 const TestSpec('''
@@ -1037,23 +1037,23 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant (Int 0)))
-  (LetCont* (k0 v1)
-    (LetPrim v2 (Constant (Int 10)))
-    (LetCont (k1 v3)
-      (LetCont (k2)
-        (LetPrim v4 (Constant (Null)))
-        (InvokeContinuation return v4))
-      (LetCont (k3)
-        (LetCont (k4 v5)
-          (LetPrim v6 (Constant (Int 1)))
-          (LetCont (k5 v7)
-            (InvokeContinuation* k0 v7))
-          (InvokeMethod v1 + v6 k5))
-        (InvokeStatic print v1 k4))
-      (Branch (IsTrue v3) k3 k2))
-    (InvokeMethod v1 < v2 k1))
-  (InvokeContinuation k0 v0))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont* (k0 (v1)
+        (LetPrim (v2 (Constant (Int 10)))
+          (LetCont (k1 (v3)
+              (LetCont (k2 ()
+                  (LetPrim (v4 (Constant (Null)))
+                    (InvokeContinuation return (v4))))
+                (LetCont (k3 ()
+                    (LetCont (k4 (v5)
+                        (LetPrim (v6 (Constant (Int 1)))
+                          (LetCont (k5 (v7)
+                              (InvokeContinuation* k0 (v7)))
+                            (InvokeMethod v1 + (v6) k5))))
+                      (InvokeStatic print (v1) k4)))
+                  (Branch (IsTrue v3) k3 k2))))
+            (InvokeMethod v1 < (v2) k1))))
+      (InvokeContinuation k0 (v0)))))
 '''),
   ]),
 
@@ -1064,9 +1064,9 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (TypeOperator is a String k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (TypeOperator is a String k0)))
 '''),
 
     const TestSpec('''
@@ -1075,9 +1075,9 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (TypeOperator is a List<String> k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (TypeOperator is a List<String> k0)))
 '''),
 
     const TestSpec('''
@@ -1086,9 +1086,9 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (TypeOperator is a Comparator<String> k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (TypeOperator is a Comparator<String> k0)))
 '''),
 
   const TestSpec('''
@@ -1097,17 +1097,17 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (LetCont (k1 v1)
-      (InvokeContinuation return v1))
-    (LetCont (k2)
-      (LetPrim v2 (Constant (Bool false)))
-      (InvokeContinuation k1 v2))
-    (LetCont (k3)
-      (LetPrim v3 (Constant (Bool true)))
-      (InvokeContinuation k1 v3))
-    (Branch (IsTrue v0) k2 k3))
-  (TypeOperator is a String k0))
+  (LetCont (k0 (v0)
+      (LetCont (k1 (v1)
+          (InvokeContinuation return (v1)))
+        (LetCont (k2 ()
+            (LetPrim (v2 (Constant (Bool false)))
+              (InvokeContinuation k1 (v2))))
+          (LetCont (k3 ()
+              (LetPrim (v3 (Constant (Bool true)))
+                (InvokeContinuation k1 (v3))))
+            (Branch (IsTrue v0) k2 k3)))))
+    (TypeOperator is a String k0)))
 '''),
 
 const TestSpec('''
@@ -1116,9 +1116,9 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (TypeOperator as a String k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (TypeOperator as a String k0)))
 '''),
   ]),
 
@@ -1133,23 +1133,23 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (LetCont* (k1 v1)
-      (LetCont (k2 v2)
-        (LetCont (k3)
-          (LetPrim v3 (Constant (Null)))
-          (InvokeContinuation return v3))
-        (LetCont (k4)
-          (LetPrim v4 (Constant (Null)))
-          (LetCont (k5 v5)
-            (LetCont (k6 v6)
-              (InvokeContinuation* k1 v1))
-            (InvokeStatic print v5 k6))
-          (InvokeMethod v0 current  k5))
-        (Branch (IsTrue v2) k4 k3))
-      (InvokeMethod v0 moveNext  k2))
-    (InvokeContinuation k1 a))
-  (InvokeMethod a iterator  k0))
+  (LetCont (k0 (v0)
+      (LetCont* (k1 (v1)
+          (LetCont (k2 (v2)
+              (LetCont (k3 ()
+                  (LetPrim (v3 (Constant (Null)))
+                    (InvokeContinuation return (v3))))
+                (LetCont (k4 ()
+                    (LetPrim (v4 (Constant (Null)))
+                      (LetCont (k5 (v5)
+                          (LetCont (k6 (v6)
+                              (InvokeContinuation* k1 (v1)))
+                            (InvokeStatic print (v5) k6)))
+                        (InvokeMethod v0 current () k5))))
+                  (Branch (IsTrue v2) k4 k3))))
+            (InvokeMethod v0 moveNext () k2)))
+        (InvokeContinuation k1 (a))))
+    (InvokeMethod a iterator () k0)))
 '''),
 
     const TestSpec('''
@@ -1162,26 +1162,26 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (LetCont* (k1 v1)
-      (LetCont (k2 v2)
-        (LetCont (k3)
-          (LetPrim v3 (Constant (Null)))
-          (InvokeContinuation return v3))
-        (LetCont (k4)
-          (LetPrim v4 (Constant (Null)))
-          (LetCont (k5 v5)
-            (LetCont (k6 v6)
-              (LetPrim v7 (Constant (Int 0)))
-              (LetCont (k7 v8)
-                (InvokeContinuation* k1 v1))
-              (InvokeStatic print v7 k7))
-            (InvokeStatic print v5 k6))
-          (InvokeMethod v0 current  k5))
-        (Branch (IsTrue v2) k4 k3))
-      (InvokeMethod v0 moveNext  k2))
-    (InvokeContinuation k1 a))
-  (InvokeMethod a iterator  k0))
+  (LetCont (k0 (v0)
+      (LetCont* (k1 (v1)
+          (LetCont (k2 (v2)
+              (LetCont (k3 ()
+                  (LetPrim (v3 (Constant (Null)))
+                    (InvokeContinuation return (v3))))
+                (LetCont (k4 ()
+                    (LetPrim (v4 (Constant (Null)))
+                      (LetCont (k5 (v5)
+                          (LetCont (k6 (v6)
+                              (LetPrim (v7 (Constant (Int 0)))
+                                (LetCont (k7 (v8)
+                                    (InvokeContinuation* k1 (v1)))
+                                  (InvokeStatic print (v7) k7))))
+                            (InvokeStatic print (v5) k6)))
+                        (InvokeMethod v0 current () k5))))
+                  (Branch (IsTrue v2) k4 k3))))
+            (InvokeMethod v0 moveNext () k2)))
+        (InvokeContinuation k1 (a))))
+    (InvokeMethod a iterator () k0)))
 '''),
 
     const TestSpec('''
@@ -1193,23 +1193,23 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant (Null)))
-  (LetCont (k0 v1)
-    (LetCont* (k1 v2 v3)
-      (LetCont (k2 v4)
-        (LetCont (k3)
-          (LetPrim v5 (Constant (Null)))
-          (InvokeContinuation return v5))
-        (LetCont (k4)
-          (LetCont (k5 v6)
-            (LetCont (k6 v7)
-              (InvokeContinuation* k1 v2 v6))
-            (InvokeStatic print v6 k6))
-          (InvokeMethod v1 current  k5))
-        (Branch (IsTrue v4) k4 k3))
-      (InvokeMethod v1 moveNext  k2))
-    (InvokeContinuation k1 a v0))
-  (InvokeMethod a iterator  k0))
+  (LetPrim (v0 (Constant (Null)))
+    (LetCont (k0 (v1)
+        (LetCont* (k1 (v2 v3)
+            (LetCont (k2 (v4)
+                (LetCont (k3 ()
+                    (LetPrim (v5 (Constant (Null)))
+                      (InvokeContinuation return (v5))))
+                  (LetCont (k4 ()
+                      (LetCont (k5 (v6)
+                          (LetCont (k6 (v7)
+                              (InvokeContinuation* k1 (v2 v6)))
+                            (InvokeStatic print (v6) k6)))
+                        (InvokeMethod v1 current () k5)))
+                    (Branch (IsTrue v4) k4 k3))))
+              (InvokeMethod v1 moveNext () k2)))
+          (InvokeContinuation k1 (a v0))))
+      (InvokeMethod a iterator () k0))))
 '''),
   ]),
 
@@ -1221,13 +1221,13 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (CreateFunction
-    (FunctionDefinition local () return ()
-      (LetPrim v1 (Constant (Null)))
-      (InvokeContinuation return v1))))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 call  k0))
+  (LetPrim (v0 (CreateFunction
+      (FunctionDefinition local () return ()
+        (LetPrim (v1 (Constant (Null)))
+          (InvokeContinuation return (v1))))))
+    (LetCont (k0 (v2)
+        (InvokeContinuation return (v2)))
+      (InvokeMethod v0 call () k0))))
 '''),
 
   const TestSpec('''
@@ -1238,13 +1238,13 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (CreateFunction
-    (FunctionDefinition local () return ()
-      (LetPrim v1 (Constant (Null)))
-      (InvokeContinuation return v1))))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 call  k0))
+  (LetPrim (v0 (CreateFunction
+      (FunctionDefinition local () return ()
+        (LetPrim (v1 (Constant (Null)))
+          (InvokeContinuation return (v1))))))
+    (LetCont (k0 (v2)
+        (InvokeContinuation return (v2)))
+      (InvokeMethod v0 call () k0))))
 '''),
 
   const TestSpec('''
@@ -1253,13 +1253,13 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (CreateFunction
-    (FunctionDefinition  () return ()
-      (LetPrim v1 (Constant (Null)))
-      (InvokeContinuation return v1))))
-  (LetCont (k0 v2)
-    (InvokeContinuation return v2))
-  (InvokeMethod v0 call  k0))
+  (LetPrim (v0 (CreateFunction
+      (FunctionDefinition  () return ()
+        (LetPrim (v1 (Constant (Null)))
+          (InvokeContinuation return (v1))))))
+    (LetCont (k0 (v2)
+        (InvokeContinuation return (v2)))
+      (InvokeMethod v0 call () k0))))
 '''),
 
   const TestSpec('''
@@ -1269,23 +1269,23 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetCont (k0 v0)
-    (LetCont (k1 v1)
-      (InvokeContinuation return v1))
-    (InvokeMethod v0 call  k1))
-  (LetCont (k2)
-    (LetPrim v2 (CreateFunction
-      (FunctionDefinition  () return ()
-        (LetPrim v3 (Constant (Int 0)))
-        (InvokeContinuation return v3))))
-    (InvokeContinuation k0 v2))
-  (LetCont (k3)
-    (LetPrim v4 (CreateFunction
-      (FunctionDefinition  () return ()
-        (LetPrim v5 (Constant (Int 1)))
-        (InvokeContinuation return v5))))
-    (InvokeContinuation k0 v4))
-  (Branch (IsTrue a) k2 k3))
+  (LetCont (k0 (v0)
+      (LetCont (k1 (v1)
+          (InvokeContinuation return (v1)))
+        (InvokeMethod v0 call () k1)))
+    (LetCont (k2 ()
+        (LetPrim (v2 (CreateFunction
+            (FunctionDefinition  () return ()
+              (LetPrim (v3 (Constant (Int 0)))
+                (InvokeContinuation return (v3))))))
+          (InvokeContinuation k0 (v2))))
+      (LetCont (k3 ()
+          (LetPrim (v4 (CreateFunction
+              (FunctionDefinition  () return ()
+                (LetPrim (v5 (Constant (Int 1)))
+                  (InvokeContinuation return (v5))))))
+            (InvokeContinuation k0 (v4))))
+        (Branch (IsTrue a) k2 k3)))))
 '''),
   ]),
 
@@ -1298,9 +1298,9 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main (args) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (InvokeStatic field  k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (InvokeStatic field () k0)))
 ''',
       'field': '''
 (FieldDefinition field)
@@ -1314,14 +1314,14 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main (args) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (InvokeStatic field  k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (InvokeStatic field () k0)))
 ''',
       'field': '''
-(FieldDefinition field (return)
-  (LetPrim v0 (Constant (Null)))
-  (InvokeContinuation return v0))
+(FieldDefinition field () return
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
 '''}),
 
     const TestSpec('''
@@ -1332,14 +1332,14 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main (args) return ()
-  (LetCont (k0 v0)
-    (InvokeContinuation return v0))
-  (InvokeStatic field  k0))
+  (LetCont (k0 (v0)
+      (InvokeContinuation return (v0)))
+    (InvokeStatic field () k0)))
 ''',
       'field': '''
-(FieldDefinition field (return)
-  (LetPrim v0 (Constant (Int 0)))
-  (InvokeContinuation return v0))
+(FieldDefinition field () return
+  (LetPrim (v0 (Constant (Int 0)))
+    (InvokeContinuation return (v0))))
 '''}),
 
     const TestSpec('''
@@ -1350,13 +1350,13 @@ main(args) {
 }
 ''', '''
 (FunctionDefinition main (args) return ()
-  (LetCont (k0 v0)
-    (LetCont (k1 v1)
-      (LetCont (k2 v2)
-        (InvokeContinuation return v2))
-      (InvokeStatic field  k2))
-    (InvokeStatic field v0 k1))
-  (InvokeMethod args length  k0))
+  (LetCont (k0 (v0)
+      (LetCont (k1 (v1)
+          (LetCont (k2 (v2)
+              (InvokeContinuation return (v2)))
+            (InvokeStatic field () k2)))
+        (InvokeStatic field (v0) k1)))
+    (InvokeMethod args length () k0)))
 '''),
   ]),
 
@@ -1369,18 +1369,18 @@ main(x,foo) {
 }
 ''', '''
 (FunctionDefinition main (x foo) return (foo)
-  (LetCont (k0 v0)
-    (LetPrim v1 (CreateFunction
-      (FunctionDefinition getFoo () return ()
-        (LetPrim v2 (GetClosureVariable foo))
-        (InvokeContinuation return v2))))
-    (LetCont (k1 v3)
-      (LetCont (k2 v4)
-        (LetPrim v5 (Constant (Null)))
-        (InvokeContinuation return v5))
-      (InvokeStatic print v3 k2))
-    (InvokeMethod v1 call  k1))
-  (InvokeStatic print x k0))
+  (LetCont (k0 (v0)
+      (LetPrim (v1 (CreateFunction
+          (FunctionDefinition getFoo () return ()
+            (LetPrim (v2 (GetClosureVariable foo))
+              (InvokeContinuation return (v2))))))
+        (LetCont (k1 (v3)
+            (LetCont (k2 (v4)
+                (LetPrim (v5 (Constant (Null)))
+                  (InvokeContinuation return (v5))))
+              (InvokeStatic print (v3) k2)))
+          (InvokeMethod v1 call () k1))))
+    (InvokeStatic print (x) k0)))
 ''', skipInAnalyzerFrontend: true)
   ]),
 ];
