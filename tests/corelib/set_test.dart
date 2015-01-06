@@ -433,11 +433,11 @@ void testCESetFrom(setFrom) {
   Set<CE> set1 = setFrom(ceList);
   Expect.listEquals(ceList, set1.toList()..sort());
 
-  Set<ce> ceSet = ceList.toSet();
+  Set<CE> ceSet = ceList.toSet();
   Set<CE> set2 = setFrom(ceSet);
   Expect.listEquals(ceList, set2.toList()..sort());
 
-  Iterable<ce> ceIter = ceList.where((x) => true);
+  Iterable<CE> ceIter = ceList.where((x) => true);
   Set<CE> set3 = setFrom(ceIter);
   Expect.listEquals(ceList, set3.toList()..sort());
 
