@@ -200,8 +200,8 @@ patch class DateTime {
   }
 
   static bool _isLeapYear(y) {
-    return (y.remainder(4) == 0) &&
-        ((y.remainder(100) != 0) || (y.remainder(400) == 0));
+    // (y % 16 == 0) matches multiples of 400, and is faster than % 400.
+    return (y % 4 == 0) && ((y % 16 == 0) || (y % 100 != 0));
   }
 
   /* patch */ static int _brokenDownDateToMillisecondsSinceEpoch(
@@ -211,17 +211,24 @@ patch class DateTime {
     // Simplify calculations by working with zero-based month.
     --month;
     // Deal with under and overflow.
-    year += (month / 12).floor();
-    month = month % 12;
+    if (month >= 12) {
+      year += month ~/ 12;
+      month = month % 12;
+    } else if (month < 0) {
+      int realMonth = month % 12;
+      year += (month - realMonth) ~/ 12;
+      month = realMonth;
+    }
 
     // First compute the seconds in UTC, independent of the [isUtc] flag. If
     // necessary we will add the time-zone offset later on.
     int days = day - 1;
     days += _DAYS_UNTIL_MONTH[_isLeapYear(year) ? 1 : 0][month];
     days += _dayFromYear(year);
-    int millisecondsSinceEpoch = days * Duration.MILLISECONDS_PER_DAY +
-        hour * Duration.MILLISECONDS_PER_HOUR +
-        minute * Duration.MILLISECONDS_PER_MINUTE+
+    int millisecondsSinceEpoch =
+        days   * Duration.MILLISECONDS_PER_DAY    +
+        hour   * Duration.MILLISECONDS_PER_HOUR   +
+        minute * Duration.MILLISECONDS_PER_MINUTE +
         second * Duration.MILLISECONDS_PER_SECOND +
         millisecond;
 
