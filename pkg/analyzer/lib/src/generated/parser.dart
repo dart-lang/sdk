@@ -2272,11 +2272,6 @@ class Parser {
   bool _parseFunctionBodies = true;
 
   /**
-   * A flag indicating whether the parser is to parse the async support.
-   */
-  bool _parseAsync = AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC;
-
-  /**
    * A flag indicating whether the parser is to parse deferred libraries.
    */
   bool _parseDeferredLibraries =
@@ -2356,15 +2351,6 @@ class Parser {
       return false;
     }
     return _tokenMatchesIdentifier(next);
-  }
-
-  /**
-   * Set whether the parser is to parse the async support.
-   *
-   * @param parseAsync `true` if the parser is to parse the async support
-   */
-  void set parseAsync(bool parseAsync) {
-    this._parseAsync = parseAsync;
   }
 
   /**
@@ -4394,11 +4380,8 @@ class Parser {
         [TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
       return true;
     }
-    if (_parseAsync) {
-      String lexeme = afterParameters.lexeme;
-      return lexeme == ASYNC || lexeme == SYNC;
-    }
-    return false;
+    String lexeme = afterParameters.lexeme;
+    return lexeme == ASYNC || lexeme == SYNC;
   }
 
   /**
@@ -6525,20 +6508,18 @@ class Parser {
       }
       Token keyword = null;
       Token star = null;
-      if (_parseAsync) {
-        if (_matchesString(ASYNC)) {
-          keyword = getAndAdvance();
-          if (_matches(TokenType.STAR)) {
-            star = getAndAdvance();
-            _inGenerator = true;
-          }
-          _inAsync = true;
-        } else if (_matchesString(SYNC)) {
-          keyword = getAndAdvance();
-          if (_matches(TokenType.STAR)) {
-            star = getAndAdvance();
-            _inGenerator = true;
-          }
+      if (_matchesString(ASYNC)) {
+        keyword = getAndAdvance();
+        if (_matches(TokenType.STAR)) {
+          star = getAndAdvance();
+          _inGenerator = true;
+        }
+        _inAsync = true;
+      } else if (_matchesString(SYNC)) {
+        keyword = getAndAdvance();
+        if (_matches(TokenType.STAR)) {
+          star = getAndAdvance();
+          _inGenerator = true;
         }
       }
       if (_matches(TokenType.FUNCTION)) {

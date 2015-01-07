@@ -378,7 +378,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     bool needsRecompute =
         currentOptions.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
-        currentOptions.enableAsync != options.enableAsync ||
         currentOptions.enableDeferredLoading != options.enableDeferredLoading ||
         currentOptions.enableEnum != options.enableEnum ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
@@ -7827,16 +7826,6 @@ class ResolverTestCase extends EngineTestCase {
     // editor/tools/plugins/com.google.dart.tools.core/.options .
     AnalysisEngine.instance.enableUnionTypes = false;
     AnalysisEngine.instance.strictUnionTypes = false;
-  }
-
-  /**
-   * Reset the analysis context to have the 'enableAsync' option set to true.
-   */
-  void resetWithAsync() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableAsync = true;
-    analysisContext2 =
-        AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   /**

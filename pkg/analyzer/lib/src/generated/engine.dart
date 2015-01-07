@@ -1063,7 +1063,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.analyzeAngular != options.analyzeAngular ||
         this._options.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
-        this._options.enableAsync != options.enableAsync ||
         this._options.enableDeferredLoading != options.enableDeferredLoading ||
         this._options.enableEnum != options.enableEnum ||
         this._options.dart2jsHint != options.dart2jsHint ||
@@ -1095,7 +1094,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.analyzeAngular = options.analyzeAngular;
     this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
     this._options.generateSdkErrors = options.generateSdkErrors;
-    this._options.enableAsync = options.enableAsync;
     this._options.enableDeferredLoading = options.enableDeferredLoading;
     this._options.enableEnum = options.enableEnum;
     this._options.dart2jsHint = options.dart2jsHint;
@@ -6494,9 +6492,8 @@ abstract class AnalysisOptions {
 
   /**
    * Return `true` if analysis is to include the new async support.
-   *
-   * @return `true` if analysis is to include the new async support
    */
+  @deprecated
   bool get enableAsync;
 
   /**
@@ -6567,11 +6564,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static int DEFAULT_CACHE_SIZE = 64;
 
   /**
-   * The default value for enabling async support.
-   */
-  static bool DEFAULT_ENABLE_ASYNC = false;
-
-  /**
    * The default value for enabling deferred loading.
    */
   static bool DEFAULT_ENABLE_DEFERRED_LOADING = true;
@@ -6606,10 +6598,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool dart2jsHint = true;
 
-  /**
-   * A flag indicating whether analysis is to enable async support.
-   */
-  bool enableAsync = DEFAULT_ENABLE_ASYNC;
+  @deprecated
+  @override
+  bool get enableAsync => true;
+
+  @deprecated
+  void set enableAsync(bool enable) {
+    // Async support cannot be disabled
+  }
 
   /**
    * A flag indicating whether analysis is to enable deferred loading.
@@ -6672,7 +6668,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzePolymer = options.analyzePolymer;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
-    enableAsync = options.enableAsync;
     enableDeferredLoading = options.enableDeferredLoading;
     enableEnum = options.enableEnum;
     _generateSdkErrors = options.generateSdkErrors;
@@ -11344,7 +11339,6 @@ class ParseDartTask extends AnalysisTask {
       Parser parser = new Parser(source, errorListener);
       AnalysisOptions options = context.analysisOptions;
       parser.parseFunctionBodies = options.analyzeFunctionBodies;
-      parser.parseAsync = options.enableAsync;
       parser.parseDeferredLibraries = options.enableDeferredLoading;
       parser.parseEnum = options.enableEnum;
       _unit = parser.parseCompilationUnit(_tokenStream);

@@ -218,7 +218,6 @@ class AnalysisContextImplTest extends EngineTestCase {
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.con1(_context.analysisOptions);
     options.cacheSize = 256;
-    options.enableAsync = true;
     options.enableEnum = true;
     _context.analysisOptions = options;
   }
@@ -2264,7 +2263,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.analyzePolymer, options.analyzePolymer);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
-      expect(copy.enableAsync, options.enableAsync);
       expect(copy.enableDeferredLoading, options.enableDeferredLoading);
       expect(copy.enableEnum, options.enableEnum);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
@@ -2308,14 +2306,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
-  }
-
-  void test_getEnableAsync() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    expect(options.enableAsync, AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC);
-    bool value = !options.enableAsync;
-    options.enableAsync = value;
-    expect(options.enableAsync, value);
   }
 
   void test_getEnableDeferredLoading() {

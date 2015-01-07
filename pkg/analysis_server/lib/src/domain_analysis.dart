@@ -175,22 +175,6 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
-    // TODO(paulberry): analyzeAngular and analyzePolymer are not in the API.
-//    if (newOptions.analyzeAngular != null) {
-//      updaters.add((engine.AnalysisOptionsImpl options) {
-//        options.analyzeAngular = newOptions.analyzeAngular;
-//      });
-//    }
-//    if (newOptions.analyzePolymer != null) {
-//      updaters.add((engine.AnalysisOptionsImpl options) {
-//        options.analyzePolymer = newOptions.analyzePolymer;
-//      });
-//    }
-    if (newOptions.enableAsync != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableAsync = newOptions.enableAsync;
-      });
-    }
     if (newOptions.enableDeferredLoading != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.enableDeferredLoading = newOptions.enableDeferredLoading;
