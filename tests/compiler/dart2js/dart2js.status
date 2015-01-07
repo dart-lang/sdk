@@ -36,6 +36,7 @@ deferred_mirrors_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
 check_elements_invariants_test: Slow, Pass
 import_mirrors_test: Slow, Pass
+http_test: Pass, Slow
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one
