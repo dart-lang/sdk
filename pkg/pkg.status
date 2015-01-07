@@ -182,3 +182,7 @@ third_party/angular_tests/browser_test/change_detection/dirty_checking_change_de
 
 [ $use_repository_packages ]
 analyzer/test/*: PubGetError
+
+[ $runtime == vm ]
+analysis_server/test/search/element_references_test: RuntimeError # Issue 22014
+
