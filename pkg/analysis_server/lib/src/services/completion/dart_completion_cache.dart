@@ -253,7 +253,8 @@ class DartCompletionCache extends CompletionCache {
     matches.forEach((SearchMatch match) {
       if (match.kind == MatchKind.DECLARATION) {
         Element element = match.element;
-        if (element.isPublic &&
+        if (element.context == context &&
+            element.isPublic &&
             !excludedLibs.contains(element.library) &&
             !_importedCompletions.contains(element.displayName)) {
           _addSuggestion(element, CompletionRelevance.LOW);

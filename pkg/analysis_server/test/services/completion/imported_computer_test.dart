@@ -9,12 +9,16 @@ import 'package:analysis_server/src/services/completion/completion_manager.dart'
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../abstract_context.dart';
 import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 main() {
   groupSep = ' | ';
@@ -147,24 +151,6 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
-  test_partFile_TypeName() {
-    return super.test_partFile_TypeName().then((_) {
-      expect(
-          request.cache.importKey,
-          'part of libA;');
-    });
-  }
-
-  @override
-  test_partFile_TypeName2() {
-    return super.test_partFile_TypeName2().then((_) {
-      expect(
-          request.cache.importKey,
-          'library libA;import "/testB.dart";part "/testA.dart";');
-    });
-  }
-
-  @override
   test_Block_inherited_imported() {
     return super.test_Block_inherited_imported().then((_) {
       assertCached('E');
@@ -212,6 +198,76 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
       // Assert computer does not wait for or include low priority results
       // from non-imported libraries unless instructed to do so.
       assertNotSuggested('H');
+    });
+  }
+
+  /**
+   * Ensure that completions in one context don't appear in another
+   */
+  test_multiple_contexts() {
+
+    // Create a 2nd context with source
+    var context2 = AnalysisEngine.instance.createAnalysisContext();
+    context2.sourceFactory =
+        new SourceFactory([AbstractContextTest.SDK_RESOLVER, resourceResolver]);
+    {
+      AnalysisOptionsImpl options =
+          new AnalysisOptionsImpl.con1(context2.analysisOptions);
+      options.enableAsync = true;
+      options.enableEnum = true;
+      context2.analysisOptions = options;
+    }
+    String content2 = 'class ClassFromAnotherContext { }';
+    Source source2 =
+        provider.newFile('/context2/foo.dart', content2).createSource();
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source2);
+    context2.applyChanges(changeSet);
+    context2.setContents(source2, content2);
+
+    // Resolve the source in the 2nd context and update the index
+    var result = context2.performAnalysisTask();
+    while (result.hasMoreWork) {
+      result.changeNotices.forEach((ChangeNotice notice) {
+        CompilationUnit unit = notice.compilationUnit;
+        if (unit != null) {
+          index.indexUnit(context2, unit);
+        }
+      });
+      result = context2.performAnalysisTask();
+    }
+
+    // Check that source in 2nd context does not appear in completion in 1st
+    addSource('/context1/libA.dart', '''
+      library libA;
+      class ClassInLocalContext {int x;}''');
+    testFile = '/context1/completionTest.dart';
+    addTestSource('''
+      import "/context1/libA.dart";
+      import "/foo.dart";
+      main() {C^}
+      ''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestImportedClass('ClassInLocalContext');
+      // Assert computer does not include results from 2nd context.
+      assertNotSuggested('ClassFromAnotherContext');
+    });
+  }
+
+  @override
+  test_partFile_TypeName() {
+    return super.test_partFile_TypeName().then((_) {
+      expect(request.cache.importKey, 'part of libA;');
+    });
+  }
+
+  @override
+  test_partFile_TypeName2() {
+    return super.test_partFile_TypeName2().then((_) {
+      expect(
+          request.cache.importKey,
+          'library libA;import "/testB.dart";part "/testA.dart";');
     });
   }
 }
