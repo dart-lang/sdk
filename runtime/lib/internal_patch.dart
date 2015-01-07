@@ -4,3 +4,7 @@
 
 patch List makeListFixedLength(List growableList)
     native "Internal_makeListFixedLength";
+
+// TODO(iposva): Move bulk of timer implementation into async.
+// Used by the message handler to run timers
+var runTimerClosure = null;

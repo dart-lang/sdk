@@ -32,7 +32,9 @@ var blacklist = [
   // These prevent the test from exiting.
   'dart.io.sleep',
   'dart.io.HttpServer.HttpServer.listenOn',
-  new RegExp('dart\.io.*'),  /// smi: ok
+  new RegExp('dart\.io\..*'),  /// smi: ok
+  new RegExp('dart\.io\._Timer\..*'),
+  new RegExp('dart\.isolate\..*'),
 
   // Runtime exceptions we can't catch because they occur too early in event
   // dispatch to be caught in a zone.
@@ -176,7 +178,7 @@ main() {
   var valueObjects =
     [true, false, null, [], {}, dynamic,
      0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 3.14159,
-     "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ', "𝄞", #symbol];
+     "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ', "\u{1D11E}", #symbol];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
   uncaughtErrorHandler(self, parent, zone, error, stack) {};

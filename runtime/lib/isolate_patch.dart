@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:collection" show HashMap;
+import "dart:_internal";
 
 patch class ReceivePort {
   /* patch */ factory ReceivePort() = _ReceivePortImpl;
@@ -140,6 +141,11 @@ class _RawReceivePortImpl implements RawReceivePort {
     // so that we can run the immediate callbacks.
     handler(message);
     _runPendingImmediateCallback();
+
+    // Event was handled. Now run expired timers.
+    if (runTimerClosure != null) {
+      runTimerClosure(_runPendingImmediateCallback);
+    }
   }
 
   // Call into the VM to close the VM maintained mappings.
