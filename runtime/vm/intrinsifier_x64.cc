@@ -1865,7 +1865,7 @@ void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
 
 
 // TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
-void StringEquality(Assembler* assembler, intptr_t string_cid) {
+static void StringEquality(Assembler* assembler, intptr_t string_cid) {
   Label fall_through, is_true, is_false, loop;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // This.
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Other.

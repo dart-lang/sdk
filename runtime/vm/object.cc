@@ -6824,7 +6824,7 @@ const char* Function::ToCString() const {
 }
 
 
-const char* GetFunctionServiceId(const Function& f, const Class& cls) {
+static const char* GetFunctionServiceId(const Function& f, const Class& cls) {
   Zone* zone = Isolate::Current()->current_zone();
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;

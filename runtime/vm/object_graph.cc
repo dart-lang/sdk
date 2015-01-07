@@ -372,7 +372,7 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
 }
 
 
-void WritePtr(RawObject* raw, WriteStream* stream) {
+static void WritePtr(RawObject* raw, WriteStream* stream) {
   ASSERT(raw->IsHeapObject());
   ASSERT(raw->IsOldObject());
   uword addr = RawObject::ToAddr(raw);
@@ -409,7 +409,7 @@ class WritePointerVisitor : public ObjectPointerVisitor {
 };
 
 
-void WriteHeader(RawObject* raw, intptr_t size, intptr_t cid,
+static void WriteHeader(RawObject* raw, intptr_t size, intptr_t cid,
                  WriteStream* stream) {
   WritePtr(raw, stream);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
