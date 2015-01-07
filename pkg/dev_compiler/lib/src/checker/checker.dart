@@ -4,6 +4,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/info.dart';
@@ -66,8 +67,13 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   visitAssignmentExpression(AssignmentExpression node) {
-    DartType staticType = _rules.getStaticType(node.leftHandSide);
-    node.rightHandSide = checkAssignment(node.rightHandSide, staticType);
+    var token = node.operator;
+    if (token.type != TokenType.EQ) {
+      _checkCompoundAssignment(node);
+    } else {
+      DartType staticType = _rules.getStaticType(node.leftHandSide);
+      node.rightHandSide = checkAssignment(node.rightHandSide, staticType);
+    }
     node.visitChildren(this);
   }
 
@@ -351,6 +357,39 @@ class ProgramChecker extends RecursiveAstVisitor {
     _recordMessage(staticInfo);
     if (staticInfo is Conversion) expr = staticInfo;
     return expr;
+  }
+
+  void _checkCompoundAssignment(AssignmentExpression expr) {
+    var op = expr.operator.type;
+    assert(op.isAssignmentOperator && op != TokenType.EQ);
+    var methodElement = expr.staticElement;
+    if (methodElement == null) {
+      // Dynamic invocation
+      _recordDynamicInvoke(expr);
+    } else {
+      // Sanity check the operator
+      assert(methodElement.isOperator);
+      var functionType = methodElement.type;
+      var paramTypes = functionType.normalParameterTypes;
+      var returnType = functionType.returnType;
+      assert(paramTypes.length == 1);
+      assert(functionType.namedParameterTypes.isEmpty);
+      assert(functionType.optionalParameterTypes.isEmpty);
+
+      // Check the rhs type
+      var paramType = paramTypes.first;
+      var staticInfo = _rules.checkAssignment(expr.rightHandSide, paramType);
+      _recordMessage(staticInfo);
+      if (staticInfo is Conversion) expr.rightHandSide = staticInfo;
+
+      // Check the lhs type
+      var expectedType = _rules.getStaticType(expr.leftHandSide);
+      if (!_rules.isSubTypeOf(returnType, expectedType)) {
+        // Static type error
+        staticInfo = new StaticTypeError(_rules, expr, expectedType);
+        _recordMessage(staticInfo);
+      }
+    }
   }
 
   void _recordDynamicInvoke(AstNode node) {

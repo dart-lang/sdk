@@ -1204,4 +1204,52 @@ main() {
        '''
     });
   });
+
+  test('compound assignments', () {
+    testChecker({
+      '/main.dart': '''
+          class A {
+            A operator *(B b) {}
+            A operator /(B b) {}
+            A operator ~/(B b) {}
+            A operator %(B b) {}
+            A operator +(B b) {}
+            A operator -(B b) {}
+            A operator <<(B b) {}
+            A operator >>(B b) {}
+            A operator &(B b) {}
+            A operator ^(B b) {}
+            A operator |(B b) {}
+          }
+
+          class B {
+            A operator -(B b) {}
+          }
+
+          foo() => new A();
+
+          test() {
+            A a = new A();
+            B b = new B();
+            var c = foo();
+            a = a * b;
+            a *= b;
+            a *= /*info:DownCast*/c;
+            a /= b;
+            a ~/= b;
+            a %= b;
+            a += b;
+            a += /*severe:StaticTypeError*/a;
+            a -= b;
+            (/*severe:StaticTypeError*/b -= b);
+            a <<= b;
+            a >>= b;
+            a &= b;
+            a ^= b;
+            a |= b;
+            (/*warning:DynamicInvoke*/c += b);
+          }
+       '''
+    });
+  });
 }
