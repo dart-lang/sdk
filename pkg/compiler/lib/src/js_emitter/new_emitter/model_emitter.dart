@@ -15,6 +15,7 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
     INITIALIZE_LOADED_HUNK,
+    IS_HUNK_INITIALIZED,
     IS_HUNK_LOADED;
 
 import '../js_emitter.dart' show NativeGenerator;

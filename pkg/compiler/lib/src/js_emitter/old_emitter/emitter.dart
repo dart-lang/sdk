@@ -161,6 +161,7 @@ class OldEmitter implements Emitter {
   String get lazyInitializerName
       => '${namer.isolateName}.${lazyInitializerProperty}';
   String get initName => 'init';
+
   String get makeConstListProperty
       => namer.getMappedInstanceName('makeConstantList');
 
@@ -1831,23 +1832,34 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   /// Emits support-code for deferred loading into [buffer].
   void emitDeferredBoilerPlate(CodeBuffer buffer,
                                Map<OutputUnit, String> deferredLoadHashes) {
-    // Function for checking if a hunk is loaded given its hash.
-    buffer.write(jsAst.prettyPrint(
-        js('# = function(hunkHash) {'
-           '  return !!$deferredInitializers[hunkHash];'
-           '}', generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_LOADED)),
+    jsAst.Statement functions = js.statement('''
+        {
+          // Function for checking if a hunk is loaded given its hash.
+          #isHunkLoaded = function(hunkHash) {
+            return !!$deferredInitializers[hunkHash];
+          };
+          #deferredInitialized = new Object(null);
+          // Function for checking if a hunk is initialized given its hash.
+          #isHunkInitialized = function(hunkHash) {
+            return #deferredInitialized[hunkHash];
+          };
+          // Function for initializing a loaded hunk, given its hash.
+          #initializeLoadedHunk = function(hunkHash) {
+            $deferredInitializers[hunkHash](
+            $globalsHolder, ${namer.currentIsolate});
+            #deferredInitialized[hunkHash] = true;
+          };
+        }
+        ''', {"isHunkLoaded": generateEmbeddedGlobalAccess(
+                  embeddedNames.IS_HUNK_LOADED),
+              "isHunkInitialized": generateEmbeddedGlobalAccess(
+                  embeddedNames.IS_HUNK_INITIALIZED),
+              "initializeLoadedHunk": generateEmbeddedGlobalAccess(
+                  embeddedNames.INITIALIZE_LOADED_HUNK),
+              "deferredInitialized": generateEmbeddedGlobalAccess(
+                  embeddedNames.DEFERRED_INITIALIZED)});
+    buffer.write(jsAst.prettyPrint(functions,
         compiler, monitor: compiler.dumpInfoTask));
-    buffer.write('$N');
-    // Function for initializing a loaded hunk, given its hash.
-    buffer.write(jsAst.prettyPrint(
-        js('# = function(hunkHash) {'
-           '  $deferredInitializers[hunkHash]('
-                '$globalsHolder, ${namer.currentIsolate})'
-           '}',
-           generateEmbeddedGlobalAccess(
-               embeddedNames.INITIALIZE_LOADED_HUNK)),
-        compiler, monitor: compiler.dumpInfoTask));
-    buffer.write('$N');
     // Write a javascript mapping from Deferred import load ids (derrived
     // from the import prefix.) to a list of lists of uris of hunks to load,
     // and a corresponding mapping to a list of hashes used by
