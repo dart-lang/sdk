@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable_async
 
 import 'package:expect/expect.dart';
 
@@ -96,9 +95,9 @@ main() {
   asyncReturn.then((A result) => Expect.equals(result.value, 22));
 
   var foo = 17;
-  bar(int p1, p2) async { 
+  bar(int p1, p2) async {
     var z = 8;
-    return p2 + z + foo; 
+    return p2 + z + foo;
   }
   asyncReturn = bar(1,2);
   Expect.isTrue(asyncReturn is Future);
