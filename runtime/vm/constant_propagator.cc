@@ -803,6 +803,11 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
             Smi::New(Array::Cast(constant->value()).Length())));
         return;
       }
+      if (constant->value().IsTypedData()) {
+        SetValue(instr, Smi::ZoneHandle(I,
+            Smi::New(TypedData::Cast(constant->value()).Length())));
+        return;
+      }
     }
   }
   SetValue(instr, non_constant_);

@@ -199,7 +199,11 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
   // Generate a local list variable to represent the backtracking stack.
   StoreLocal(stack_, Bind(new(I) ConstantInstr(stack_array_)));
   PushArgumentInstr* stack_push = PushLocal(stack_);
-  Do(InstanceCall(InstanceCallDescriptor(Symbols::clear()), stack_push));
+  PushArgumentInstr* zero_push = PushArgument(Bind(Uint64Constant(0)));
+  Do(InstanceCall(InstanceCallDescriptor(
+      Library::PrivateCoreLibName(Symbols::_setLength())),
+      stack_push,
+      zero_push));
 
   // Jump to the start block.
   current_instruction_->Goto(start_block_);
