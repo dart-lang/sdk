@@ -53,15 +53,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   jsAst.Expression metadataAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.METADATA);
 
-  jsAst.Statement header = js.statement('''
-// [map] returns an object literal that V8 shouldn not try to optimize with a
-// hidden class. This prevents a potential performance problem where V8 tries
-// to build a hidden class for an object used as a hashMap.
-// It requires fewer characters to declare a variable as a parameter than
-// with `var`.
-  function map(x){x=Object.create(null);x.x=0;delete x.x;return x}
-''');
-
   jsAst.Statement processClassData = js.statement('''{
   function processClassData(cls, descriptor, processedClasses) {
     var newDesc = {};
@@ -433,7 +424,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   return js('''
 function $parseReflectionDataName(reflectionData) {
   "use strict";
-  #header;
   if (#needsClassSupport) {
     #defineClass;
     #inheritFrom;
@@ -448,7 +438,6 @@ function $parseReflectionDataName(reflectionData) {
   #incrementalSupport;
   #init;
 }''', {
-      'header': header,
       'defineClass': oldEmitter.defineClassFunction,
       'inheritFrom': oldEmitter.buildInheritFrom(),
       'processClassData': processClassData,

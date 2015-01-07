@@ -1419,10 +1419,21 @@ class OldEmitter implements Emitter {
       /// initializer of deferred files.
       mainBuffer.write('var ${globalsHolder}$_=${_}Object.create(null)$N');
     }
-    mainBuffer.write('function dart()$_{$n'
-        '${_}${_}this.x$_=${_}0$N'
-        '${_}${_}delete this.x$N'
-        '}$n');
+
+    jsAst.Statement mapFunction = js.statement('''
+// [map] returns an object that V8 shouldn't try to optimize with a hidden
+// class. This prevents a potential performance problem where V8 tries to build
+// a hidden class for an object used as a hashMap.
+// It requires fewer characters to declare a variable as a parameter than
+// with `var`.
+  function map(x) {
+    x = Object.create(null);
+    x.x = 0;
+    delete x.x;
+    return x;
+  }
+''');
+    mainBuffer.write(jsAst.prettyPrint(mapFunction, compiler));
     for (String globalObject in Namer.reservedGlobalObjectNames) {
       // The global objects start as so-called "slow objects". For V8, this
       // means that it won't try to make map transitions as we add properties
@@ -1433,7 +1444,7 @@ class OldEmitter implements Emitter {
       if(isProgramSplit) {
         mainBuffer.write('${globalsHolder}.$globalObject$_=${_}');
       }
-      mainBuffer.write('new dart$N');
+      mainBuffer.write('map()$N');
     }
 
     mainBuffer.write('function ${namer.isolateName}()$_{}\n');
@@ -1483,9 +1494,13 @@ class OldEmitter implements Emitter {
                   compiler))
           ..write(n);
 
-      mainBuffer..write('$parseReflectionDataName([$n')
+      // The argument to reflectionDataParser is assigned to a temporary 'dart'
+      // so that 'dart.' will appear as the prefix to dart methods in stack
+      // traces and profile entries.
+      mainBuffer..write('var dart = [$n')
                 ..write(libraryBuffer)
-                ..write('])$N');
+                ..write(']$N')
+                ..write('$parseReflectionDataName(dart)$N');
     }
 
     interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
@@ -1941,9 +1956,13 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // to Isolate.$finishIsolateConstructor.
          outputBuffer
            ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName$N')
-           ..write('$parseReflectionDataName([$n')
+            // The argument to reflectionDataParser is assigned to a temporary
+            // 'dart' so that 'dart.' will appear as the prefix to dart methods
+            // in stack traces and profile entries.
+           ..write('var dart = [$n ')
            ..addBuffer(libraryDescriptorBuffer)
-           ..write('])$N');
+           ..write(']$N')
+           ..write('$parseReflectionDataName(dart)$N');
 
       }
 
