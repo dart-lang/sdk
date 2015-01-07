@@ -1205,6 +1205,53 @@ main() {
     });
   });
 
+  test('operators', () {
+    testChecker({
+      '/main.dart': '''
+          class A {
+            A operator *(B b) {}
+            A operator /(B b) {}
+            A operator ~/(B b) {}
+            A operator %(B b) {}
+            A operator +(B b) {}
+            A operator -(B b) {}
+            A operator <<(B b) {}
+            A operator >>(B b) {}
+            A operator &(B b) {}
+            A operator ^(B b) {}
+            A operator |(B b) {}
+          }
+
+          class B {
+            A operator -(B b) {}
+          }
+
+          foo() => new A();
+
+          test() {
+            A a = new A();
+            B b = new B();
+            var c = foo();
+            a = a * b;
+            a = a * /*pass should be info:DownCast*/c;
+            a = a / b;
+            a = a ~/ b;
+            a = a % b;
+            a = a + b;
+            a = a + /*pass should be severe:StaticTypeError*/a;
+            a = a - b;
+            b = /*severe:StaticTypeError*/b - b;
+            a = a << b;
+            a = a >> b;
+            a = a & b;
+            a = a ^ b;
+            a = a | b;
+            c = (/*pass should be warning:DynamicInvoke*/c + b);
+          }
+       '''
+    });
+  });
+
   test('compound assignments', () {
     testChecker({
       '/main.dart': '''
