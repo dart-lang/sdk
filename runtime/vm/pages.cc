@@ -415,7 +415,7 @@ void PageSpace::FreeExternal(intptr_t size) {
 }
 
 
-// Provides exclusive access to the pages, and ensures they are walkable.
+// Provides exclusive access to all pages, and ensures they are walkable.
 class ExclusivePageIterator : ValueObject {
  public:
   explicit ExclusivePageIterator(const PageSpace* space)
@@ -434,6 +434,51 @@ class ExclusivePageIterator : ValueObject {
   void Advance() {
     ASSERT(!Done());
     page_ = space_->NextPageAnySize(page_);
+  }
+ private:
+  const PageSpace* space_;
+  MutexLocker ml_;
+  NoGCScope no_gc;
+  HeapPage* page_;
+};
+
+
+// Provides exclusive access to code pages, and ensures they are walkable.
+// NOTE: This does not iterate over large pages which can contain code.
+class ExclusiveCodePageIterator : ValueObject {
+ public:
+  explicit ExclusiveCodePageIterator(const PageSpace* space)
+      : space_(space), ml_(space->pages_lock_) {
+    space_->MakeIterable();
+    page_ = space_->exec_pages_;
+  }
+  HeapPage* page() const { return page_; }
+  bool Done() const { return page_ == NULL; }
+  void Advance() {
+    ASSERT(!Done());
+    page_ = page_->next();
+  }
+ private:
+  const PageSpace* space_;
+  MutexLocker ml_;
+  NoGCScope no_gc;
+  HeapPage* page_;
+};
+
+
+// Provides exclusive access to large pages, and ensures they are walkable.
+class ExclusiveLargePageIterator : ValueObject {
+ public:
+  explicit ExclusiveLargePageIterator(const PageSpace* space)
+      : space_(space), ml_(space->pages_lock_) {
+    space_->MakeIterable();
+    page_ = space_->large_pages_;
+  }
+  HeapPage* page() const { return page_; }
+  bool Done() const { return page_ == NULL; }
+  void Advance() {
+    ASSERT(!Done());
+    page_ = page_->next();
   }
  private:
   const PageSpace* space_;
@@ -462,6 +507,21 @@ bool PageSpace::Contains(uword addr) const {
 
 
 bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
+  if (type == HeapPage::kExecutable) {
+    // Fast path executable pages.
+    for (ExclusiveCodePageIterator it(this); !it.Done(); it.Advance()) {
+      if (it.page()->Contains(addr)) {
+        return true;
+      }
+    }
+    // Large pages can be executable, walk them too.
+    for (ExclusiveLargePageIterator it(this); !it.Done(); it.Advance()) {
+      if ((it.page()->type() == type) && it.page()->Contains(addr)) {
+        return true;
+      }
+    }
+    return false;
+  }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if ((it.page()->type() == type) && it.page()->Contains(addr)) {
       return true;
@@ -500,6 +560,26 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 
 RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
                                  HeapPage::PageType type) const {
+  if (type == HeapPage::kExecutable) {
+    // Fast path executable pages.
+    for (ExclusiveCodePageIterator it(this); !it.Done(); it.Advance()) {
+      RawObject* obj = it.page()->FindObject(visitor);
+      if (obj != Object::null()) {
+        return obj;
+      }
+    }
+    // Large pages can be executable, walk them too.
+    for (ExclusiveLargePageIterator it(this); !it.Done(); it.Advance()) {
+      if (it.page()->type() == type) {
+        RawObject* obj = it.page()->FindObject(visitor);
+        if (obj != Object::null()) {
+          return obj;
+        }
+      }
+    }
+    return Object::null();
+  }
+
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->type() == type) {
       RawObject* obj = it.page()->FindObject(visitor);

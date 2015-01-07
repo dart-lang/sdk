@@ -419,6 +419,8 @@ class PageSpace {
   intptr_t collections_;
 
   friend class ExclusivePageIterator;
+  friend class ExclusiveCodePageIterator;
+  friend class ExclusiveLargePageIterator;
   friend class PageSpaceController;
   friend class SweeperTask;
 

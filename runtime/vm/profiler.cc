@@ -30,6 +30,7 @@ namespace dart {
   DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 #endif
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
+DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
 DEFINE_FLAG(charp, profile_dir, NULL,
             "Enable writing profile data into specified directory.");
 DEFINE_FLAG(int, profile_period, 1000,
@@ -177,7 +178,7 @@ void Profiler::EndExecution(Isolate* isolate) {
 class ScopeStopwatch : public ValueObject {
  public:
   explicit ScopeStopwatch(const char* name) : name_(name) {
-    start_ = FLAG_trace_profiled_isolates ? OS::GetCurrentTimeMillis() : 0;
+    start_ = FLAG_trace_profiler ? OS::GetCurrentTimeMillis() : 0;
   }
 
   int64_t GetElapsed() const {
@@ -187,7 +188,7 @@ class ScopeStopwatch : public ValueObject {
   }
 
   ~ScopeStopwatch() {
-    if (FLAG_trace_profiled_isolates) {
+    if (FLAG_trace_profiler) {
       int64_t elapsed = GetElapsed();
       OS::Print("%s took %" Pd64 " millis.\n", name_, elapsed);
     }
@@ -1450,6 +1451,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
                                      &dead_code_table,
                                      &tag_code_table);
       {
+        ScopeStopwatch sw("FixTopFrame");
         // Preprocess samples and fix the caller when the top PC is in a
         // stub or intrinsic without a frame.
         FixTopFrameVisitor fixTopFrame(isolate);
@@ -1462,7 +1464,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
       }
       intptr_t samples = builder.visited();
       intptr_t frames = builder.frames();
-      if (FLAG_trace_profiled_isolates) {
+      if (FLAG_trace_profiler) {
         intptr_t total_live_code_objects = live_code_table.Length();
         intptr_t total_dead_code_objects = dead_code_table.Length();
         intptr_t total_tag_code_objects = tag_code_table.Length();
@@ -1476,7 +1478,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
       live_code_table.Verify();
       dead_code_table.Verify();
       tag_code_table.Verify();
-      if (FLAG_trace_profiled_isolates) {
+      if (FLAG_trace_profiler) {
         OS::Print("CodeRegionTables verified to be ordered and not overlap.\n");
       }
 #endif
