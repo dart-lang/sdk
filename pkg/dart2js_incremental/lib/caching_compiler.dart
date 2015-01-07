@@ -113,9 +113,6 @@ Future<Compiler> reuseCompiler(
         ..newlyEnqueuedElements.clear()
         ..newlySeenSelectors.clear();
 
-    backend.emitter.oldEmitter.containerBuilder
-        ..staticGetters.clear();
-
     backend.emitter.oldEmitter.nsmEmitter
         ..trivialNsmHandlers.clear();
 

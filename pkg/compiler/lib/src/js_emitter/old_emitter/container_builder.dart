@@ -9,8 +9,6 @@ part of dart2js.js_emitter;
 /// Initially, it is just a placeholder for code that is moved from
 /// [CodeEmitterTask].
 class ContainerBuilder extends CodeEmitterHelper {
-  final Map<Element, Element> staticGetters = new Map<Element, Element>();
-
   bool needsSuperGetter(FunctionElement element) =>
     compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
 
