@@ -17,6 +17,7 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     INITIALIZE_LOADED_HUNK,
     IS_HUNK_LOADED;
 
+import '../js_emitter.dart' show NativeGenerator;
 import '../model.dart';
 
 class ModelEmitter {
@@ -37,6 +38,11 @@ class ModelEmitter {
         this.namer = namer,
         constantEmitter =
             new ConstantEmitter(compiler, namer, makeConstantListTemplate);
+
+  js.Expression generateEmbeddedGlobalAccess(String global) {
+    // TODO(floitsch): We should not use "init" for globals.
+    return js.js("init.$global");
+  }
 
   int emitProgram(Program program) {
     List<Output> outputs = program.outputs;
@@ -77,7 +83,21 @@ class ModelEmitter {
     List<js.Expression> elements = unit.libraries.map(emitLibrary).toList();
     elements.add(
         emitLazilyInitializedStatics(unit.staticLazilyInitializedFields));
+
+    js.Statement nativeBoilerplate;
+    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+      nativeBoilerplate =
+          NativeGenerator.generateIsolateAffinityTagInitialization(
+              backend,
+              generateEmbeddedGlobalAccess,
+              // TODO(floitsch): convertToFastObject.
+              js.js("(function(x) { return x; })", []));
+    } else {
+      nativeBoilerplate = js.js.statement(";");
+    }
+
     js.Expression code = new js.ArrayInitializer(elements);
+
     return js.js.statement(
         boilerplate,
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
@@ -88,6 +108,7 @@ class ModelEmitter {
          'embeddedGlobals': emitEmbeddedGlobals(program.loadMap),
          'constants': emitConstants(unit.constants),
          'staticNonFinals': emitStaticNonFinalFields(unit.staticNonFinalFields),
+         'nativeBoilerplate': nativeBoilerplate,
          'eagerClasses': emitEagerClassInitializations(unit.libraries),
          'main': unit.main,
          'code': code});
@@ -131,8 +152,6 @@ class ModelEmitter {
       globals.add(emitIsHunkLoadedFunction());
       globals.add(emitInitializeLoadedHunk());
     }
-
-    if (globals.isEmpty) return new js.Block.empty();
 
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
@@ -540,6 +559,9 @@ class ModelEmitter {
 
   // Initialize static non-final fields.
   #staticNonFinals;
+
+  // Add native boilerplate code.
+  #nativeBoilerplate;
 
   // Initialize eager classes.
   #eagerClasses;

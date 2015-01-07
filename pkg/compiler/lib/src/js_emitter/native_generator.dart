@@ -6,17 +6,19 @@ part of dart2js.js_emitter;
 
 class NativeGenerator {
 
+  static bool needsIsolateAffinityTagInitialization(JavaScriptBackend backend) {
+    return backend.needToInitializeIsolateAffinityTag;
+  }
+
   /// Generates the code for isolate affinity tags.
   ///
   /// Independently Dart programs on the same page must not interfer and
   /// this code sets up the variables needed to guarantee that behavior.
   static jsAst.Statement generateIsolateAffinityTagInitialization(
+      JavaScriptBackend backend,
       jsAst.Expression generateEmbeddedGlobalAccess(String global),
-      {bool initializeIsolateAffinityTag,
-       bool initializeDispatchProperty}) {
-    assert(initializeIsolateAffinityTag != null);
-    assert(initializeDispatchProperty != null);
-    assert(!initializeDispatchProperty || initializeIsolateAffinityTag);
+      jsAst.Expression convertToFastObject) {
+    assert(backend.needToInitializeIsolateAffinityTag);
 
     jsAst.Expression getIsolateTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
@@ -26,14 +28,13 @@ class NativeGenerator {
         generateEmbeddedGlobalAccess(embeddedNames.DISPATCH_PROPERTY_NAME);
 
     return js.statement('''
-    if (#initializeIsolateAffinityTag)
       !function() {
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
         function intern(s) {
           var o = {};
           o[s] = 1;
-          return Object.keys(convertToFastObject(o))[0];
+          return Object.keys(#convertToFastObject(o))[0];
         }
 
         #getIsolateTag = function(name) {
@@ -61,8 +62,8 @@ class NativeGenerator {
         }
       }();
     ''',
-    {'initializeIsolateAffinityTag': initializeIsolateAffinityTag,
-     'initializeDispatchProperty': initializeDispatchProperty,
+    {'initializeDispatchProperty': backend.needToInitializeDispatchProperty,
+     'convertToFastObject': convertToFastObject,
      'getIsolateTag': getIsolateTagAccess,
      'isolateTag': isolateTagAccess,
      'dispatchPropertyName': dispatchPropertyNameAccess});

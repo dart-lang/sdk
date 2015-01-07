@@ -948,14 +948,15 @@ class OldEmitter implements Emitter {
       mainCallClosure = backend.emitter.staticFunctionAccess(main);
     }
 
-    bool initializeAffinityTag = backend.needToInitializeIsolateAffinityTag;
-    jsAst.Statement nativeBoilerPlate =
-        NativeGenerator.generateIsolateAffinityTagInitialization(
-        generateEmbeddedGlobalAccess,
-        initializeIsolateAffinityTag: initializeAffinityTag,
-        initializeDispatchProperty: backend.needToInitializeDispatchProperty);
-    buffer.write(jsAst.prettyPrint(nativeBoilerPlate,
-                                   compiler, monitor: compiler.dumpInfoTask));
+    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+      jsAst.Statement nativeBoilerPlate =
+          NativeGenerator.generateIsolateAffinityTagInitialization(
+              backend,
+              generateEmbeddedGlobalAccess,
+              js("convertToFastObject", []));
+      buffer.write(jsAst.prettyPrint(nativeBoilerPlate,
+                                     compiler, monitor: compiler.dumpInfoTask));
+    }
 
     jsAst.Expression currentScriptAccess =
         generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);

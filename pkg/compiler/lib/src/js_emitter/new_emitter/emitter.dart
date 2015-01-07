@@ -69,8 +69,7 @@ class Emitter implements emitterTask.Emitter {
 
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    // TODO(floitsch): We should not use "init" for globals.
-    return js.js("init.$global");
+    return _emitter.generateEmbeddedGlobalAccess(global);
   }
 
   @override
