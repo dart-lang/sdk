@@ -97,6 +97,8 @@ class _ConstantMapKeyIterable<K> extends IterableBase<K> {
   _ConstantMapKeyIterable(this._map);
 
   Iterator<K> get iterator => _map._keys.iterator;
+
+  int get length => _map._keys.length;
 }
 
 class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
