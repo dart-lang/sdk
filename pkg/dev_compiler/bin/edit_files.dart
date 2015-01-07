@@ -28,9 +28,10 @@ final ArgParser argParser = new ArgParser()
   ..addOption('checkout-files-arg',
       help: 'Arg to check out files from source control (e.g. checkout)',
       defaultsTo: null)
+  ..addOption('include-pattern',
+      help: 'regular expression of file names to include', defaultsTo: null)
   ..addOption('exclude-pattern',
-      help: 'regular expression of file names to exclude',
-      defaultsTo: null)
+      help: 'regular expression of file names to exclude', defaultsTo: null)
   ..addFlag('help', abbr: 'h', help: 'Display this message');
 
 void _showUsageAndExit() {
@@ -47,10 +48,11 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
   String level;
   String checkoutFilesExecutable;
   String checkoutFilesArg;
+  RegExp includePattern;
   RegExp excludePattern;
 
   EditFileSummaryVisitor(this.typeResolver, this.level,
-      this.checkoutFilesExecutable, this.checkoutFilesArg,
+      this.checkoutFilesExecutable, this.checkoutFilesArg, this.includePattern,
       this.excludePattern);
 
   TextEditTransaction getEdits(String name) => _files.putIfAbsent(name, () {
@@ -75,11 +77,11 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
       }
     }
     var fullName = typeResolver.findSource(uri).fullName;
-    // Skip excluded files.
+    if (includePattern != null && !includePattern.hasMatch(fullName)) return;
     if (excludePattern != null && excludePattern.hasMatch(fullName)) return;
     var edits = getEdits(fullName);
     edits.edit(message.span.start.offset, message.span.start.offset,
-        " /* ${message.level}: ${message.kind} */ ");
+        " /* DDC:${message.level}: ${message.kind}, ${message.message} */ ");
   }
 
   void build() {
@@ -109,15 +111,14 @@ void main(List<String> argv) {
 
   Map json = JSON.decode(new File(filename).readAsStringSync());
   var summary = GlobalSummary.parse(json);
-  var excludePattern = (args['exclude-pattern'] != null) ?
-      new RegExp(args['exclude-pattern']) : null;
+  var excludePattern = (args['exclude-pattern'] != null) ? new RegExp(
+      args['exclude-pattern']) : null;
+  var includePattern = (args['include-pattern'] != null) ? new RegExp(
+      args['include-pattern']) : null;
 
-  var visitor = new EditFileSummaryVisitor(
-      typeResolver,
-      args['level'],
-      args['checkout-files-executable'],
-      args['checkout-files-arg'],
-      excludePattern);
+  var visitor = new EditFileSummaryVisitor(typeResolver, args['level'],
+      args['checkout-files-executable'], args['checkout-files-arg'],
+      includePattern, excludePattern);
   summary.accept(visitor);
   visitor.build();
 }

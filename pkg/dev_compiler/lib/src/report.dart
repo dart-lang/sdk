@@ -113,14 +113,14 @@ class SummaryReporter implements CheckerReporter {
   void log(StaticInfo info) {
     assert(_file != null);
     var span = _spanForNode(_file, info.node);
-    _currentLibrary.messages.add(new MessageSummary(
-        '${info.runtimeType}', info.level.name.toLowerCase(), span));
+    _currentLibrary.messages.add(new MessageSummary('${info.runtimeType}',
+        info.level.name.toLowerCase(), span, info.message));
   }
 
   void logAnalyzerError(String message, Level level, int begin, int end) {
     var span = _file.span(begin, end);
-    _currentLibrary.messages.add(
-        new MessageSummary('AnalyzerError', level.name.toLowerCase(), span));
+    _currentLibrary.messages.add(new MessageSummary(
+        'AnalyzerError', level.name.toLowerCase(), span, message));
   }
 }
 
@@ -228,12 +228,14 @@ class MessageSummary implements Summary {
 
   /// Location where the error is reported.
   final SourceSpan span;
+  final String message;
 
-  MessageSummary(this.kind, this.level, this.span);
+  MessageSummary(this.kind, this.level, this.span, this.message);
 
   Map toJsonMap() => {
     'kind': kind,
     'level': level,
+    'message': message,
     'url': '${span.sourceUrl}',
     'start': span.start.offset,
     'end': span.end.offset,
@@ -246,7 +248,8 @@ class MessageSummary implements Summary {
     var start = new SourceLocation(json['start'], sourceUrl: json['url']);
     var end = new SourceLocation(json['end'], sourceUrl: json['url']);
     var span = new SourceSpanBase(start, end, json['text']);
-    return new MessageSummary(json['kind'], json['level'], span);
+    return new MessageSummary(
+        json['kind'], json['level'], span, json['message']);
   }
 }
 
