@@ -411,10 +411,3 @@ class _Timer implements Timer {
     return new _Timer(milliSeconds, callback);
   }
 }
-
-// Provide a closure which will allocate a Timer object to be able to hook
-// up the Timer interface in dart:isolate with the implementation here.
-_getTimerFactoryClosure() {
-  runTimerClosure = _Timer._handleTimeout;
-  return _Timer._factory;
-}
