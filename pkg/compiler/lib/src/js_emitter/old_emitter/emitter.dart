@@ -1018,12 +1018,10 @@ class OldEmitter implements Emitter {
     jsAst.FunctionDeclaration decl = js.statement('''
       function init() {
         $isolateProperties = Object.create(null);
-        (function(){
-         #allClasses = Object.create(null);
-         #interceptorsByTag = Object.create(null);
-         #leafTags = Object.create(null);
-         #finishedClasses = Object.create(null);
-        })();
+        #allClasses = Object.create(null);
+        #interceptorsByTag = Object.create(null);
+        #leafTags = Object.create(null);
+        #finishedClasses = Object.create(null);
 
         if (#needsLazyInitializer) {
           $lazyInitializerName = function (prototype, staticName, fieldName,

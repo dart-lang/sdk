@@ -234,7 +234,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
            requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
     var unmangledNameIndex = $unmangledNameIndex;
-    var isReflectable = array.length > unmangledNameIndex;
 
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
@@ -249,32 +248,38 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       f.\$callName = null;
       if (isIntercepted) #interceptedNames[getterStubName] = true;
     }
-    if (isReflectable) {
-      for (var i = 0; i < funcs.length; i++) {
-        funcs[i].$reflectableField = 1;
-        funcs[i].$reflectionInfoField = array;
+
+    if (#usesMangledNames) {
+      var isReflectable = array.length > unmangledNameIndex;
+      if (isReflectable) {
+        for (var i = 0; i < funcs.length; i++) {
+          funcs[i].$reflectableField = 1;
+          funcs[i].$reflectionInfoField = array;
+        }
+        var mangledNames = isStatic ? #mangledGlobalNames : #mangledNames;
+        var unmangledName = ${readString("array", "unmangledNameIndex")};
+        // The function is either a getter, a setter, or a method.
+        // If it is a method, it might also have a tear-off closure.
+        // The unmangledName is the same as the getter-name.
+        var reflectionName = unmangledName;
+        if (getterStubName) mangledNames[getterStubName] = reflectionName;
+        if (isSetter) {
+          reflectionName += "=";
+        } else if (!isGetter) {
+          reflectionName += ":" + requiredParameterCount +
+            ":" + optionalParameterCount;
+        }
+        mangledNames[name] = reflectionName;
+        funcs[0].$reflectionNameField = reflectionName;
+        funcs[0].$metadataIndexField = unmangledNameIndex + 1;
+        if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
       }
-      var mangledNames = isStatic ? #mangledGlobalNames : #mangledNames;
-      var unmangledName = ${readString("array", "unmangledNameIndex")};
-      // The function is either a getter, a setter, or a method.
-      // If it is a method, it might also have a tear-off closure.
-      // The unmangledName is the same as the getter-name.
-      var reflectionName = unmangledName;
-      if (getterStubName) mangledNames[getterStubName] = reflectionName;
-      if (isSetter) {
-        reflectionName += "=";
-      } else if (!isGetter) {
-        reflectionName += ":" + requiredParameterCount +
-          ":" + optionalParameterCount;
-      }
-      mangledNames[name] = reflectionName;
-      funcs[0].$reflectionNameField = reflectionName;
-      funcs[0].$metadataIndexField = unmangledNameIndex + 1;
-      if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
     }
   }
 ''', {'globalFunctions' : globalFunctionsAccess,
       'interceptedNames': interceptedNamesAccess,
+      'usesMangledNames':
+          compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
       'mangledGlobalNames': mangledGlobalNamesAccess,
       'mangledNames': mangledNamesAccess});
 
