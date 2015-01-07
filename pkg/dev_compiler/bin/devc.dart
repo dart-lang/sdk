@@ -14,24 +14,27 @@ import 'package:ddc/src/checker/dart_sdk.dart'
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
-  ..addFlag(
-      'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
-  ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
   ..addFlag('dart-gen',
       abbr: 'd', help: 'Generate dart output', defaultsTo: false)
   ..addFlag('dart-gen-fmt',
       help: 'Generate readable dart output', defaultsTo: true)
-  ..addFlag('mock-sdk',
-      abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
   ..addFlag('dump-info',
       abbr: 'i', help: 'Dump summary information', defaultsTo: false)
   ..addOption('dump-info-file',
       abbr: 'f',
       help: 'Dump info json file (requires dump-info)',
       defaultsTo: null)
+  ..addOption('dump-src-to', help: 'Dump dart src code', defaultsTo: null)
+  ..addFlag('force-compile',
+      help: 'Compile code with static errors', defaultsTo: false)
+  ..addFlag('help', abbr: 'h', help: 'Display this message')
+  ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
+  ..addFlag('mock-sdk',
+      abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
-  ..addFlag('help', abbr: 'h', help: 'Display this message');
+  ..addFlag(
+      'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false);
 
 void _showUsageAndExit() {
   print('usage: dartdevc [<options>] <file.dart>\n');
@@ -75,10 +78,12 @@ void main(List<String> argv) {
   var filename = args.rest.first;
   compile(filename, typeResolver,
       checkSdk: args['sdk-check'],
+      forceCompile: args['force-compile'],
       formatOutput: args['dart-gen-fmt'],
       outputDart: args['dart-gen'],
       dumpInfo: args['dump-info'],
       dumpInfoFile: args['dump-info-file'],
+      dumpSrcTo: args['dump-src-to'],
       outputDir: args['out'],
       useColors: useColors).then((success) {
     exit(success ? 0 : 1);

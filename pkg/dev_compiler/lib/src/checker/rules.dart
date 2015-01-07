@@ -341,7 +341,7 @@ class RestrictedRules extends TypeRules {
     for (int i = oo; i < o1s.length; ++i) {
       os[i] = Coercion.identity(o1s[i]);
     }
-    return Coercion.wrapper(fromT, rs, os, ns, ret);
+    return Coercion.wrapper(fromT, toT, rs, os, ns, ret);
   }
 
   // Produce a coercion which coerces something of type fromT
@@ -352,16 +352,16 @@ class RestrictedRules extends TypeRules {
   // according to our current criteria.
   Coercion _coerceTo(DartType fromT, DartType toT, [bool wrap = false]) {
     // fromT <: toT, no coercion needed
-    if (isSubTypeOf(fromT, toT)) return Coercion.identity(fromT);
+    if (isSubTypeOf(fromT, toT)) return Coercion.identity(toT);
 
     // Downcasting from dynamic to object always succeeds,
     // no coercion needed.
     if (fromT.isDynamic && toT == provider.objectType) {
-      return Coercion.identity(fromT);
+      return Coercion.identity(toT);
     }
 
     // We can use anything as void
-    if (toT.isVoid) return Coercion.identity(fromT);
+    if (toT.isVoid) return Coercion.identity(toT);
 
     // For now, we always wrap closures.
     if (wrap && fromT is FunctionType && toT is FunctionType) {

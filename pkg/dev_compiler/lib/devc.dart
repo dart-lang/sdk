@@ -28,7 +28,7 @@ StreamSubscription setupLogger(Level level, printFn) {
 Future<bool> compile(String inputFile, TypeResolver resolver,
     {bool checkSdk: false, bool formatOutput: false, bool outputDart: false,
     String outputDir, bool dumpInfo: false, String dumpInfoFile,
-    bool useColors: true}) {
+    String dumpSrcTo: null, bool forceCompile: false, bool useColors: true}) {
 
   // Run checker
   var reporter = dumpInfo ? new SummaryReporter() : new LogReporter(useColors);
@@ -40,12 +40,19 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
   if (dumpInfo) {
     print(summaryToString(reporter.result));
     if (dumpInfoFile != null) {
-      new File(dumpInfoFile).writeAsStringSync(
-          JSON.encode(reporter.result.toJsonMap()));
+      new File(dumpInfoFile)
+          .writeAsStringSync(JSON.encode(reporter.result.toJsonMap()));
     }
   }
 
-  if (results.failure) return new Future.value(false);
+  if (results.failure && !forceCompile) return new Future.value(false);
+
+  // Dump the source if requested
+  if (dumpSrcTo != null) {
+    var cg = new EmptyDartGenerator(
+        dumpSrcTo, uri, results.libraries, results.rules, formatOutput);
+    cg.generate().then((_) => true);
+  }
 
   // Generate code.
   if (outputDir != null) {

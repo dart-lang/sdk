@@ -9,7 +9,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Token;
 import 'package:logging/logging.dart' show Level;
 
-import 'checker/rules.dart';
+import 'package:ddc/src/checker/rules.dart';
+import 'package:ddc/src/utils.dart' as utils;
 
 /// Represents a summary of the results collected by running the program
 /// checker.
@@ -31,13 +32,7 @@ class LibraryInfo {
   final LibraryElement library;
 
   LibraryInfo(this.library) {
-    name = library.name;
-    if (name != null && library.name != '') return;
-
-    // Fall back on the file name.
-    var tail = library.source.uri.pathSegments.last;
-    if (tail.endsWith('.dart')) tail = tail.substring(0, tail.length - 5);
-    name = tail;
+    name = utils.libraryNameFromLibraryElement(library);
   }
 }
 
@@ -45,13 +40,17 @@ class LibraryInfo {
 // This class also exposes static builder functions which
 // check for errors and reduce redundant coercions to the identity.
 abstract class Coercion {
-  Coercion();
+  final DartType fromType;
+  final DartType toType;
+  Coercion(this.fromType, this.toType);
   static Coercion cast(DartType fromT, DartType toT) => new Cast(fromT, toT);
   static Coercion identity(DartType type) => new Identity(type);
   static Coercion error() => new CoercionError();
-  static Coercion wrapper(DartType fromType, List<Coercion> normalParameters,
-      List<Coercion> optionalParameters, Map<String, Coercion> namedParameters,
-      Coercion ret) {
+  static Coercion wrapper(DartType fromType, DartType toType,
+                          List<Coercion> normalParameters,
+                          List<Coercion> optionalParameters,
+                          Map<String, Coercion> namedParameters,
+                          Coercion ret) {
     {
       // If any sub coercion is error, return error
       bool isError(Coercion c) => c is CoercionError;
@@ -69,22 +68,19 @@ abstract class Coercion {
       id = optionalParameters.fold(id, folder);
       if (id) return identity(fromType);
     }
-    return new Wrapper(
-        normalParameters, optionalParameters, namedParameters, ret);
+    return new Wrapper(fromType, toType, normalParameters, optionalParameters,
+        namedParameters, ret);
   }
 }
 
 // Coercion which casts one type to another
 class Cast extends Coercion {
-  final DartType fromType;
-  final DartType toType;
-  Cast(this.fromType, this.toType) : super();
+  Cast(DartType fromType, DartType toType) : super(fromType, toType);
 }
 
 // The identity coercion
 class Identity extends Coercion {
-  final DartType fromType;
-  Identity(this.fromType) : super();
+  Identity(DartType fromType) : super(fromType, fromType);
 }
 
 // A closure wrapper coercion.
@@ -99,15 +95,16 @@ class Wrapper extends Coercion {
   final List<Coercion> normalParameters;
   final List<Coercion> optionalParameters;
   final Coercion ret;
-  Wrapper(this.normalParameters, this.optionalParameters, this.namedParameters,
-      this.ret) : super();
+  Wrapper(DartType fromType, DartType toType, this.normalParameters,
+      this.optionalParameters, this.namedParameters, this.ret)
+      : super(fromType, toType);
 }
 
 // The error coercion.  This coercion signals that a coercion
 // could not be generated.  The code generator should not see
 // these.
 class CoercionError extends Coercion {
-  CoercionError() : super();
+  CoercionError() : super(null, null);
 }
 
 abstract class StaticInfo {
@@ -173,6 +170,8 @@ class DownCast extends Conversion {
         (baseType.isDynamic || rules.isSubTypeOf(_cast.toType, baseType)));
   }
 
+  Cast get cast => _cast;
+
   DartType _getConvertedType() => _cast.toType;
 
   String get message => '$expression ($baseType) will need runtime check '
@@ -209,6 +208,8 @@ class ClosureWrap extends Conversion {
       'with a closure of type $convertedType';
 
   Level get level => Level.WARNING;
+
+  Wrapper get wrapper => _wrapper;
 
   accept(AstVisitor visitor) {
     if (visitor is ConversionVisitor) {

@@ -12,6 +12,21 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/analyzer.dart' show parseDirectives;
 
+// Choose a canonical name for library
+String libraryName(String name, Uri uri) {
+  if (name != null && name != '') return name;
+
+  // Fall back on the file name.
+  var tail = uri.pathSegments.last;
+  if (tail.endsWith('.dart')) tail = tail.substring(0, tail.length - 5);
+  return tail;
+}
+
+// Choose a canonical name for library element
+String libraryNameFromLibraryElement(LibraryElement library) {
+  return libraryName(library.name, library.source.uri);
+}
+
 /// Returns all libraries transitively imported or exported from [start].
 Iterable<LibraryElement> reachableLibraries(LibraryElement start) {
   var results = <LibraryElement>[];

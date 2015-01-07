@@ -26,7 +26,6 @@ abstract class CodeGenerator {
     var library = info.library;
     var libraryDir = path.join(outDir, name);
     new Directory(libraryDir)..createSync(recursive: true);
-    done.add(generateUnit(library.definingCompilationUnit, info, libraryDir));
     for (var unit in library.units) {
       done.add(generateUnit(unit, info, libraryDir));
     }
