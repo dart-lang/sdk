@@ -359,6 +359,37 @@ class ProgramChecker extends RecursiveAstVisitor {
     return expr;
   }
 
+  DartType _specializedBinaryReturnType(TokenType op, DartType t1, DartType t2,
+                                        DartType normalReturnType) {
+    // This special cases binary return types as per 16.26 and 16.27 of the
+    // Dart language spec.
+    switch(op) {
+      case TokenType.PLUS:
+      case TokenType.MINUS:
+      case TokenType.AMPERSAND:
+      case TokenType.TILDE_SLASH:
+      case TokenType.PERCENT:
+      case TokenType.PLUS_EQ:
+      case TokenType.MINUS_EQ:
+      case TokenType.AMPERSAND_EQ:
+      case TokenType.TILDE_SLASH_EQ:
+      case TokenType.PERCENT_EQ:
+        if (_rules.isIntType(t1) && _rules.isIntType(t2)) return t1;
+        if (_rules.isDoubleType(t1) && _rules.isDoubleType(t2)) return t1;
+        final numType = _rules.provider.numType;
+
+        // TODO(vsm): This should not be necessary, but the underlying function
+        // we're getting from the analyzer seems to return dynamic in this
+        // case.  That doesn't match the source code, so we need to check where
+        // the return type is being lost.
+        if (t1.isSubtypeOf(numType)
+            && t1.isSubtypeOf(numType)) {
+          return numType;
+        }
+    }
+    return normalReturnType;
+  }
+
   void _checkCompoundAssignment(AssignmentExpression expr) {
     var op = expr.operator.type;
     assert(op.isAssignmentOperator && op != TokenType.EQ);
@@ -371,19 +402,21 @@ class ProgramChecker extends RecursiveAstVisitor {
       assert(methodElement.isOperator);
       var functionType = methodElement.type;
       var paramTypes = functionType.normalParameterTypes;
-      var returnType = functionType.returnType;
       assert(paramTypes.length == 1);
       assert(functionType.namedParameterTypes.isEmpty);
       assert(functionType.optionalParameterTypes.isEmpty);
 
       // Check the rhs type
       var paramType = paramTypes.first;
+      var rhsType = _rules.getStaticType(expr.rightHandSide);
       var staticInfo = _rules.checkAssignment(expr.rightHandSide, paramType);
       _recordMessage(staticInfo);
       if (staticInfo is Conversion) expr.rightHandSide = staticInfo;
 
       // Check the lhs type
       var expectedType = _rules.getStaticType(expr.leftHandSide);
+      var returnType = _specializedBinaryReturnType(op, expectedType,
+          rhsType, functionType.returnType);
       if (!_rules.isSubTypeOf(returnType, expectedType)) {
         // Static type error
         staticInfo = new StaticTypeError(_rules, expr, expectedType);

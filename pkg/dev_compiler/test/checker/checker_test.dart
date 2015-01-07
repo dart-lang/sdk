@@ -1205,7 +1205,7 @@ main() {
     });
   });
 
-  test('operators', () {
+  test('binary operators', () {
     testChecker({
       '/main.dart': '''
           class A {
@@ -1276,6 +1276,18 @@ main() {
           foo() => new A();
 
           test() {
+            int x = 0;
+            x += 5;
+            (/*severe:StaticTypeError*/x += 3.14);
+
+            double y = 0.0;
+            (/*severe:StaticTypeError*/y += 5);
+            y += 3.14;
+
+            num z = 0;
+            z += 5;
+            z += 3.14;
+
             A a = new A();
             B b = new B();
             var c = foo();
