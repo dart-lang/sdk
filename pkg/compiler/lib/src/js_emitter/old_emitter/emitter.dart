@@ -24,6 +24,10 @@ class OldEmitter implements Emitter {
   bool needsClassSupport = false;
   bool needsMixinSupport = false;
   bool needsLazyInitializer = false;
+  /// This is set to true in ContainerBuilder if the program contains
+  /// function elements that need extra handling. In this case the element is
+  /// stored along with an array containing the needed information.
+  bool needsArrayInitializerSupport = false;
   final Namer namer;
   ConstantEmitter constantEmitter;
   NativeEmitter get nativeEmitter => task.nativeEmitter;

@@ -71,7 +71,8 @@ Future<Compiler> reuseCompiler(
     backend.emitter.oldEmitter
         ..needsClassSupport = true
         ..needsMixinSupport = true
-        ..needsLazyInitializer = true;
+        ..needsLazyInitializer = true
+        ..needsArrayInitializerSupport = true;
 
     Uri core = Uri.parse("dart:core");
     return compiler.libraryLoader.loadLibrary(core).then((_) {

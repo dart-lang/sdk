@@ -143,6 +143,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
        'metadata': metadataAccess,
        'notInCspMode': !compiler.useContentSecurityPolicy});
 
+  // TODO(zarah): Remove empty else branches in output when if(#hole) is false.
   jsAst.Statement processStatics = js.statement('''
     function processStatics(descriptor, processedClasses) {
       for (var property in descriptor) {
@@ -173,8 +174,10 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
           functions.push(property);
           #globalFunctions[property] = element;
         } else if (element.constructor === Array) {
-          addStubs(globalObject, element, property,
-                   true, descriptor, functions);
+          if (#needsArrayInitializerSupport) {
+            addStubs(globalObject, element, property,
+                     true, descriptor, functions);
+          }
         } else {
           // We will not enter this case if no classes are defined.
           if (#hasClasses) {
@@ -186,7 +189,8 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
     }
 ''', {'typeInformation': typeInformationAccess,
       'globalFunctions': globalFunctionsAccess,
-      'hasClasses': oldEmitter.needsClassSupport});
+      'hasClasses': oldEmitter.needsClassSupport,
+      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
 
 
   /**
@@ -437,8 +441,10 @@ function $parseReflectionDataName(reflectionData) {
     #processClassData;
   }
   #processStatics;
-  #addStubs;
-  #tearOffCode;
+  if (#needsArrayInitializerSupport) {
+    #addStubs;
+    #tearOffCode;
+  }
   #incrementalSupport;
   #init;
 }''', {
@@ -452,7 +458,8 @@ function $parseReflectionDataName(reflectionData) {
       'tearOffCode': tearOffCode,
       'init': init,
       'finishClasses': finishClasses,
-      'needsClassSupport': oldEmitter.needsClassSupport});
+      'needsClassSupport': oldEmitter.needsClassSupport,
+      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
 }
 
 
