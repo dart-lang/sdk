@@ -1093,7 +1093,7 @@ final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
  *   "requiredParameterCount": optional int
- *   "positionalParameterCount": optional int
+ *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
  * }
@@ -1116,7 +1116,7 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
     "parameterNames": isListOf(isString),
     "parameterTypes": isListOf(isString),
     "requiredParameterCount": isInt,
-    "positionalParameterCount": isInt,
+    "hasNamedParameters": isBool,
     "parameterName": isString,
     "parameterType": isString
   }));

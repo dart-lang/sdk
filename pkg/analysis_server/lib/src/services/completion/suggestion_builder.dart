@@ -12,6 +12,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element,
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Create a suggestion based upon the given imported element.
@@ -382,6 +383,17 @@ class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
       if (typeName != null && typeName.length > 0 && typeName != 'dynamic') {
         suggestion.returnType = typeName;
       }
+    }
+    if (element is ExecutableElement && element is! PropertyAccessorElement) {
+      suggestion.parameterNames = element.parameters.map(
+          (ParameterElement parameter) => parameter.name).toList();
+      suggestion.parameterTypes = element.parameters.map(
+          (ParameterElement parameter) => parameter.type.displayName).toList();
+      suggestion.requiredParameterCount = element.parameters.where(
+          (ParameterElement parameter) =>
+              parameter.parameterKind == ParameterKind.REQUIRED).length;
+      suggestion.hasNamedParameters = element.parameters.any(
+          (ParameterElement parameter) => parameter.parameterKind == ParameterKind.NAMED);
     }
     request.suggestions.add(suggestion);
   }

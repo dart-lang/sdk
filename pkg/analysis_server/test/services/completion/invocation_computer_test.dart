@@ -5,6 +5,7 @@
 library test.services.completion.invocation;
 
 
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:unittest/unittest.dart';
 
@@ -19,8 +20,157 @@ main() {
 @ReflectiveTestCase()
 class InvocationComputerTest extends AbstractSelectorSuggestionTest {
 
+  void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
+    expect(suggestion.parameterNames, isNull);
+    expect(suggestion.parameterTypes, isNull);
+    expect(suggestion.requiredParameterCount, isNull);
+    expect(suggestion.hasNamedParameters, isNull);
+  }
+
   @override
   void setUpComputer() {
     computer = new InvocationComputer();
+  }
+
+  test_method_parameters_mixed_required_and_named() {
+    addTestSource('''
+class C {
+  void m(x, {int y}) {}
+}
+void main() {new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, true);
+    });
+  }
+
+  test_method_parameters_mixed_required_and_positional() {
+    addTestSource('''
+class C {
+  void m(x, [int y]) {}
+}
+void main() {new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_method_parameters_named() {
+    addTestSource('''
+class C {
+  void m({x, int y}) {}
+}
+void main() {new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, true);
+    });
+  }
+
+  test_method_parameters_none() {
+    addTestSource('''
+class C {
+  void m() {}
+}
+void main() {new C().^}''');
+    computeFast();
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+      expect(suggestion.parameterNames, isEmpty);
+      expect(suggestion.parameterTypes, isEmpty);
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_method_parameters_positional() {
+    addTestSource('''
+class C {
+  void m([x, int y]) {}
+}
+void main() {new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_method_parameters_required() {
+    addTestSource('''
+class C {
+  void m(x, int y) {}
+}
+void main() {new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 2);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_no_parameters_field() {
+    addTestSource('''
+class C {
+  int x;
+}
+void main() {new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+      assertHasNoParameterInfo(suggestion);
+    });
+  }
+
+  test_no_parameters_getter() {
+    addTestSource('''
+class C {
+  int get x => null;
+}
+void main() {int y = new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+      assertHasNoParameterInfo(suggestion);
+    });
+  }
+
+  test_no_parameters_setter() {
+    addTestSource('''
+class C {
+  set x(int value) {};
+}
+void main() {int y = new C().^}''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestSetter('x');
+      assertHasNoParameterInfo(suggestion);
+    });
   }
 }

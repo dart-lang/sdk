@@ -5799,7 +5799,7 @@ class CompletionRelevance implements Enum {
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
  *   "requiredParameterCount": optional int
- *   "positionalParameterCount": optional int
+ *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
  * }
@@ -5896,10 +5896,10 @@ class CompletionSuggestion implements HasToJson {
   int requiredParameterCount;
 
   /**
-   * The number of positional parameters for the function or method being
-   * suggested. This field is omitted if the parameterNames field is omitted.
+   * True if the function or method being suggested has at least one named
+   * parameter. This field is omitted if the parameterNames field is omitted.
    */
-  int positionalParameterCount;
+  bool hasNamedParameters;
 
   /**
    * The name of the optional parameter being suggested. This field is omitted
@@ -5914,7 +5914,7 @@ class CompletionSuggestion implements HasToJson {
    */
   String parameterType;
 
-  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType});
+  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.hasNamedParameters, this.parameterName, this.parameterType});
 
   factory CompletionSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5995,9 +5995,9 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("requiredParameterCount")) {
         requiredParameterCount = jsonDecoder._decodeInt(jsonPath + ".requiredParameterCount", json["requiredParameterCount"]);
       }
-      int positionalParameterCount;
-      if (json.containsKey("positionalParameterCount")) {
-        positionalParameterCount = jsonDecoder._decodeInt(jsonPath + ".positionalParameterCount", json["positionalParameterCount"]);
+      bool hasNamedParameters;
+      if (json.containsKey("hasNamedParameters")) {
+        hasNamedParameters = jsonDecoder._decodeBool(jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
       }
       String parameterName;
       if (json.containsKey("parameterName")) {
@@ -6007,7 +6007,7 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("parameterType")) {
         parameterType = jsonDecoder._decodeString(jsonPath + ".parameterType", json["parameterType"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, positionalParameterCount: positionalParameterCount, parameterName: parameterName, parameterType: parameterType);
+      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion");
     }
@@ -6046,8 +6046,8 @@ class CompletionSuggestion implements HasToJson {
     if (requiredParameterCount != null) {
       result["requiredParameterCount"] = requiredParameterCount;
     }
-    if (positionalParameterCount != null) {
-      result["positionalParameterCount"] = positionalParameterCount;
+    if (hasNamedParameters != null) {
+      result["hasNamedParameters"] = hasNamedParameters;
     }
     if (parameterName != null) {
       result["parameterName"] = parameterName;
@@ -6079,7 +6079,7 @@ class CompletionSuggestion implements HasToJson {
           _listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
           _listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
           requiredParameterCount == other.requiredParameterCount &&
-          positionalParameterCount == other.positionalParameterCount &&
+          hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
           parameterType == other.parameterType;
     }
@@ -6104,7 +6104,7 @@ class CompletionSuggestion implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, parameterNames.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
     hash = _JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, positionalParameterCount.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterName.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterType.hashCode);
     return _JenkinsSmiHash.finish(hash);
