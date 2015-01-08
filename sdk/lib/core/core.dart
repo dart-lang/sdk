@@ -158,8 +158,6 @@ import "dart:_internal" as internal show Symbol;
 import "dart:convert" show UTF8, LATIN1, Encoding;
 import "dart:math" show Random;  // Used by List.shuffle.
 
-export "dart:async" show Future, Stream;
-
 part "annotations.dart";
 part "bool.dart";
 part "comparable.dart";
