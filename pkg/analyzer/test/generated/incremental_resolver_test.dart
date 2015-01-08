@@ -2284,7 +2284,11 @@ class B {
       LibraryElement library = resolve(source);
       fullNewUnit = resolveCompilationUnit(source, library);
     }
-    assertSameResolution(unit, fullNewUnit, fail);
+    try {
+      assertSameResolution(unit, fullNewUnit);
+    } on IncrementalResolutionMismatch catch (mismatch) {
+      fail(mismatch.message);
+    }
     // errors
     List<AnalysisError> newFullErrors =
         analysisContext.getErrors(source).errors;
@@ -3108,7 +3112,11 @@ f3() {
       LibraryElement library = resolve(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
       // Validate that "incremental" and "full" units have the same resolution.
-      assertSameResolution(newUnit, fullNewUnit, fail);
+      try {
+        assertSameResolution(newUnit, fullNewUnit, validateTypes: true);
+      } on IncrementalResolutionMismatch catch (mismatch) {
+        fail(mismatch.message);
+      }
       _assertEqualTokens(newUnit, fullNewUnit);
       List<AnalysisError> newFullErrors =
           analysisContext.getErrors(source).errors;

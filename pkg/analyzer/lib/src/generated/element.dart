@@ -2624,10 +2624,10 @@ abstract class ElementImpl implements Element {
   String _name;
 
   /**
-   * The offset of the name of this element in the file that contains the declaration of this
-   * element.
+   * The offset of the name of this element in the file that contains the
+   * declaration of this element.
    */
-  int nameOffset = 0;
+  int _nameOffset = 0;
 
   /**
    * A bit-encoded form of the modifiers associated with this element.
@@ -2663,7 +2663,7 @@ abstract class ElementImpl implements Element {
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ElementImpl(String name, this.nameOffset) {
+  ElementImpl(String name, this._nameOffset) {
     this._name = StringUtilities.intern(name);
   }
 
@@ -2778,6 +2778,22 @@ abstract class ElementImpl implements Element {
     this._name = name;
     _cachedLocation = null;
     _cachedHashCode = null;
+  }
+
+  /**
+   * The offset of the name of this element in the file that contains the
+   * declaration of this element.
+   */
+  int get nameOffset => _nameOffset;
+
+  /**
+   * Sets the offset of the name of this element in the file that contains the
+   * declaration of this element.
+   */
+  void set nameOffset(int offset) {
+    _nameOffset = offset;
+    _cachedHashCode = null;
+    _cachedLocation = null;
   }
 
   @override
@@ -3990,6 +4006,10 @@ class FieldElementImpl extends PropertyInducingElementImpl implements
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
   @override
+  bool get isEnumConstant =>
+      enclosingElement != null ? enclosingElement.isEnum : false;
+
+  @override
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   @override
@@ -4006,10 +4026,6 @@ class FieldElementImpl extends PropertyInducingElementImpl implements
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
-
-  @override
-  bool get isEnumConstant =>
-      enclosingElement != null ? enclosingElement.isEnum : false;
 }
 
 /**
@@ -4111,6 +4127,9 @@ class FieldMember extends VariableMember implements FieldElement {
       PropertyAccessorMember.from(baseElement.getter, definingType);
 
   @override
+  bool get isEnumConstant => baseElement.isEnumConstant;
+
+  @override
   bool get isStatic => baseElement.isStatic;
 
   @override
@@ -4182,9 +4201,6 @@ class FieldMember extends VariableMember implements FieldElement {
     }
     return false;
   }
-
-  @override
-  bool get isEnumConstant => baseElement.isEnumConstant;
 }
 
 /**

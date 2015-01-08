@@ -33,6 +33,7 @@ import 'sdk.dart' show DartSdk;
 import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_general.dart';
+import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 
 /**
  * Type of callback functions used by PendingFuture.  Functions of this type
@@ -1024,6 +1025,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * context.
    */
   List<AnalysisListener> _listeners = new List<AnalysisListener>();
+
+  /**
+   * The most recently incrementally resolved [Source].
+   * Is null when it was already validated, or the most recent change was
+   * not incrementally resolved.
+   */
+  Source incrementalResolutionValidation_lastUnitSource;
+
+  /**
+   * The most recently incrementally resolved library [Source].
+   * Is null when it was already validated, or the most recent change was
+   * not incrementally resolved.
+   */
+  Source incrementalResolutionValidation_lastLibrarySource;
+
+  /**
+   * The result of incremental resolution result of
+   * [incrementalResolutionValidation_lastSource].
+   */
+  CompilationUnit incrementalResolutionValidation_lastUnit;
 
   /**
    * Initialize a newly created analysis context.
@@ -2153,6 +2174,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       task = nextAnalysisTask;
     }
     if (task == null) {
+      _validateLastIncrementalResolutionResult();
       return new AnalysisResult(
           _getChangeNotices(true),
           getEnd - getStart,
@@ -2200,6 +2222,29 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         getEnd - getStart,
         task.runtimeType.toString(),
         performEnd - performStart);
+  }
+
+  void _validateLastIncrementalResolutionResult() {
+    if (incrementalResolutionValidation_lastUnitSource == null ||
+        incrementalResolutionValidation_lastLibrarySource == null ||
+        incrementalResolutionValidation_lastUnit == null) {
+      return;
+    }
+    CompilationUnit fullUnit = getResolvedCompilationUnit2(
+        incrementalResolutionValidation_lastUnitSource,
+        incrementalResolutionValidation_lastLibrarySource);
+    if (fullUnit != null) {
+      try {
+        assertSameResolution(incrementalResolutionValidation_lastUnit, fullUnit);
+      } on IncrementalResolutionMismatch catch (mismatch, stack) {
+        String failure = mismatch.message;
+        String message = 'Incremental resolution mismatch:\n$failure\nat\n$stack';
+        AnalysisEngine.instance.instrumentationService.logError(message);
+      }
+    }
+    incrementalResolutionValidation_lastUnitSource = null;
+    incrementalResolutionValidation_lastLibrarySource = null;
+    incrementalResolutionValidation_lastUnit = null;
   }
 
   @override
@@ -4917,6 +4962,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
+    incrementalResolutionValidation_lastUnitSource = null;
+    incrementalResolutionValidation_lastLibrarySource = null;
+    incrementalResolutionValidation_lastUnit = null;
+    // prepare the entry
     DartEntry dartEntry = _cache.get(unitSource);
     if (dartEntry == null) {
       return false;
@@ -4943,6 +4992,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (!success) {
       return false;
     }
+    // if validation, remember the result, but throw it away
+    if (analysisOptions.incrementalValidation) {
+      incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
+      incrementalResolutionValidation_lastLibrarySource = oldUnit.element.library.source;
+      incrementalResolutionValidation_lastUnit = oldUnit;
+      return false;
+    }
     // prepare notice
     ChangeNoticeImpl notice = _getNotice(unitSource);
     notice.compilationUnit = oldUnit;
@@ -4951,6 +5007,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       LineInfo lineInfo = getLineInfo(unitSource);
       notice.setErrors(dartEntry.allErrors, lineInfo);
     }
+    // OK
     return true;
   }
 
