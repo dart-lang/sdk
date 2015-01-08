@@ -190,6 +190,30 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestField(String name,
+      {CompletionRelevance relevance: CompletionRelevance.DEFAULT,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(
+        name,
+        csKind: kind,
+        relevance: relevance,
+        elemKind: protocol.ElementKind.FIELD,
+        isDeprecated: isDeprecated);
+    expect(cs.returnType, isNull);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.FIELD));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    // TODO (danrubel) return type should be null and there should be
+    // something that represents the type of the field
+    if (element.returnType != null) {
+      expect(element.returnType, 'dynamic');
+    }
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
       bool isDeprecated, [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
@@ -586,6 +610,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestImportedField(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestField(name, relevance: relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestImportedFunction(String name,
       String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
       CompletionRelevance.DEFAULT, CompletionSuggestionKind kind =
@@ -633,6 +666,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       CompletionRelevance.DEFAULT]) {
     if (computer is ImportedComputer) {
       return assertSuggestMethod(name, declaringType, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestImportedSetter(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestSetter(name, relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -713,6 +755,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestClassTypeAlias(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestLocalField(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestField(name, relevance: relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -1245,19 +1296,21 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addSource('/testB.dart', '''
       lib B;
-      class F { var f1; f2() { } }
+      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
       class E extends F { var e1; e2() { } }
-      class I { int i1; i2() { } }
+      class I { int i1; i2() { } get e1; }
       class M { var m1; int m2() { } }''');
     addTestSource('''
       import "/testB.dart";
       class A extends E implements I with M {a() {^}}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestImportedGetter('e1', null);
-      assertSuggestImportedGetter('f1', null);
-      assertSuggestImportedGetter('i1', 'int');
-      assertSuggestImportedGetter('m1', null);
+      assertSuggestImportedField('e1');
+      assertSuggestImportedField('f1');
+      assertSuggestImportedField('i1');
+      assertSuggestImportedField('m1');
+      assertSuggestImportedGetter('f3', null);
+      assertSuggestImportedSetter('f4');
       //TODO (danrubel) include declared type in suggestion
       assertSuggestImportedMethod('e2', null, null);
       assertSuggestImportedMethod('f2', null, null);
@@ -1270,17 +1323,19 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_Block_inherited_local() {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
-      class F { var f1; f2() { } }
+      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
       class E extends F { var e1; e2() { } }
       class I { int i1; i2() { } }
       class M { var m1; int m2() { } }
       class A extends E implements I with M {a() {^}}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestLocalGetter('e1', null);
-      assertSuggestLocalGetter('f1', null);
-      assertSuggestLocalGetter('i1', 'int');
-      assertSuggestLocalGetter('m1', null);
+      assertSuggestLocalField('e1');
+      assertSuggestLocalField('f1');
+      assertSuggestLocalField('i1');
+      assertSuggestLocalField('m1');
+      assertSuggestLocalGetter('f3', null);
+      assertSuggestLocalSetter('f4');
       assertSuggestLocalMethod('e2', 'E', null);
       assertSuggestLocalMethod('f2', 'F', null);
       assertSuggestLocalMethod('i2', 'I', null);
@@ -1490,8 +1545,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {var b; X _c; foo() {A a; if (^) something}}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestLocalGetter('b', null);
-      assertSuggestLocalGetter('_c', 'X');
+      assertSuggestLocalField('b');
+      assertSuggestLocalField('_c');
       assertSuggestImportedClass('Object');
       assertSuggestLocalClass('A');
       assertNotSuggested('==');
@@ -1993,13 +2048,13 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(methodA.element.isPrivate, isTrue);
       }
       CompletionSuggestion getterF =
-          assertSuggestLocalGetter('f', 'X', CompletionRelevance.LOW);
+          assertSuggestLocalField('f', CompletionRelevance.LOW);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
         expect(getterF.element.parameters, isNull);
       }
-      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
+      CompletionSuggestion getterG = assertSuggestLocalField('_g');
       if (getterG != null) {
         expect(getterG.element.isDeprecated, isFalse);
         expect(getterG.element.isPrivate, isTrue);

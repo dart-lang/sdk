@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/completion/completion_manager.dart'
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';

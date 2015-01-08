@@ -124,6 +124,11 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
             }
           }
         }
+        if (elem.isSynthetic) {
+          if (elem is PropertyAccessorElement || elem is FieldElement) {
+            return;
+          }
+        }
       }
       request.suggestions.add(
           createElementSuggestion(elem, relevance: CompletionRelevance.DEFAULT));
@@ -149,12 +154,14 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
         String name = inheritedTypes.removeLast();
         ClassElement elem = cache.importedClassMap[name];
         if (visited.add(name) && elem != null) {
+          _addElementSuggestions(elem.fields);
           _addElementSuggestions(elem.accessors);
           _addElementSuggestions(elem.methods);
           elem.allSupertypes.forEach((InterfaceType type) {
-            if (visited.add(type.name)) {
-              _addElementSuggestions(type.accessors);
-              _addElementSuggestions(type.methods);
+            if (visited.add(type.name) && type.element != null) {
+              _addElementSuggestions(type.element.fields);
+              _addElementSuggestions(type.element.accessors);
+              _addElementSuggestions(type.element.methods);
             }
           });
         }

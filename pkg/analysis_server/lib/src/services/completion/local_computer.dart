@@ -108,15 +108,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     bool isDeprecated = _isDeprecated(fieldDecl) || _isDeprecated(varDecl);
     CompletionSuggestion suggestion = _addSuggestion(
         varDecl.name,
-        fieldDecl.fields.type,
+        null,
         fieldDecl.parent,
         isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
-          protocol.ElementKind.GETTER,
+          protocol.ElementKind.FIELD,
           varDecl.name,
           null,
-          fieldDecl.fields.type,
+          null,
           false,
           isDeprecated);
     }
@@ -265,7 +265,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
-  CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName typeName,
+  CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName returnType,
       ClassDeclaration classDecl, bool isDeprecated) {
     if (id != null) {
       String completion = id.name;
@@ -287,8 +287,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             }
           }
         }
-        if (typeName != null) {
-          Identifier identifier = typeName.name;
+        if (returnType != null) {
+          Identifier identifier = returnType.name;
           if (identifier != null) {
             String name = identifier.name;
             if (name != null && name.length > 0) {
