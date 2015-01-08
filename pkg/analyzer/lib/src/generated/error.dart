@@ -3254,7 +3254,7 @@ class LintCode extends ErrorCode {
       : super(name, message, correction);
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.LINT;
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
 
   @override
   ErrorType get type => ErrorType.LINT;

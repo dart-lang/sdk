@@ -6806,6 +6806,12 @@ class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
     fail("Unexpectedly invoked visitScanDartTask");
     return null;
   }
+
+  @override
+  E visitGenerateDartLintsTask(GenerateDartLintsTask task) {
+    fail("Unexpectedly invoked visitGenerateDartLintsTask");
+    return null;
+  }
 }
 
 
