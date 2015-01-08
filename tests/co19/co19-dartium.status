@@ -19,6 +19,10 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Issue 20540
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: Fail # Issue 22007
+Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: Fail # Issue 22007
+Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
+LayoutTests/fast/speechsynthesis/*: Skip # Times out on Dartium. Fails elsewhere. Issue 22017
 LayoutTests/fast/borders/border-radius-child_t01: Skip # co19 issue 732.
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Skip # co19 issue 732.
 LayoutTests/fast/css/collapsed-whitespace-reattach-in-style-recalc_t01: Skip # co19 issue 732.
@@ -43,6 +47,11 @@ LayoutTests/fast/dom/StyleSheet/discarded-sheet-owner-null_t01: Skip # Test relo
 LayoutTests/fast/dom/css-cached-import-rule_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/cssTarget-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/empty-hash-and-search_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/submit-nil-value-field-assert_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/textarea-submit-crash_t01: Skip # Test reloads itself. Issue 18558.
+
+LayoutTests/fast/mediastream/getusermedia_t01: Skip # co19 issue 738
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Skip # Issue 13719: Please triage this failure.
@@ -267,8 +276,6 @@ LibTest/html/Node/previousNode_A01_t01: RuntimeError # co19-roll r722: Please tr
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Issue 19055.
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/Node-appendChild_t01: RuntimeError # Issue 21136
-WebPlatformTest/dom/ranges/Range-comparePoint_t02: RuntimeError # Issue 21136
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -480,10 +487,6 @@ LayoutTests/fast/canvas/webgl/is-object_t01: RuntimeError, Pass # co19-roll r761
 LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/triangle_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/winding-enumeration_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -495,6 +498,7 @@ LayoutTests/fast/css/content/content-normal_t01: RuntimeError # co19-roll r761: 
 LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/cursor-parsing-quirks_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: Pass, RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/focus-display-block-inline_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -704,7 +708,6 @@ LayoutTests/fast/sub-pixel/float-containing-block-with-margin_t01: RuntimeError 
 LayoutTests/fast/sub-pixel/replaced-element-baseline_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/sub-pixel/table-rows-have-stable-height_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/anonymous-table-section-removed_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/table/before-child-non-table-section-add-table-crash_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/caption-orthogonal-writing-mode-sizing_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/col-width-span-expand_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/computeLogicalWidth-table-needsSectionRecalc_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
@@ -798,7 +801,110 @@ LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Re-enable
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/text-api-arguments_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
+
+# co19-roll r801
+LayoutTests/fast/canvas/webgl/canvas-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/filesystem/read-directory-many_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/autofocus-focus-only-once_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/autofocus-input-css-style-change_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/autofocus-opera-007_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/autofocus-readonly-attribute_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/button/button-disabled-blur_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/clone-input-with-dirty-value_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/focus-style-pending_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/focus_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/input-stepup-stepdown_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/listbox-selection-2_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/menulist-disabled-selected-option_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/menulist-selection-reset_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/menulist-submit-without-selection_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/multiple-selected-options-innerHTML_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/option-change-single-selected_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/option-strip-unicode-spaces_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/parser-associated-form-removal_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/search-popup-crasher_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/select-list-box-mouse-focus_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/submit-nil-value-field-assert_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/textfield-focus-out_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/html/select-dropdown-consistent-background-color_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/boundingBox-with-continuation_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/inline-position-top-align_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/inline-with-empty-inline-children_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/positioned-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/about-blank-hash-change_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/hashchange-event-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/onhashchange-attribute-listeners_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/scroll-position-restored-on-back_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/stateobjects/pushstate-updates-location_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/stateobjects/replacestate-in-onunload_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/stateobjects/replacestate-updates-location_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/masking/parsing-clip-path-shape_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/masking/parsing-mask-source-type_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/masking/parsing-mask_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/media/media-query-list-syntax_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/balance-trailing-border_t02: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/break-after-always-bottom-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/break-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/cssom-view_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/float-truncation_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/hit-test-above-or-below_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/hit-test-end-of-column-with-line-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/hit-test-gap-between-pages_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance_t07: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance_t08: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance_t09: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance_t10: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-rl/break-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/widows_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/widows_t02: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/overflow/scroll-vertical-not-horizontal_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/parser/foster-parent-adopted_t02: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/parser/fragment-parser-doctype_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/parser/innerhtml-with-prefixed-elements_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/container-width-zero_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/table-percent-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/table-percent-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/ruby/ruby-line-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/parsing/parsing-shape-lengths_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-big-box-border-radius_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-diamond-margin-polygon_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-ellipse-margin-left_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-ellipse-margin-right_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t02: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-right_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/table/nested-tables-with-div-offset_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 # New Dartium checked failures on new co19 browser tests in co19 revision 706.
@@ -823,8 +929,10 @@ LayoutTests/fast/dom/custom/type-extensions_t01: RuntimeError, Pass # co19-roll 
 LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 
 # co19-roll r761
+LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/box-sizing-border-box-dynamic-padding-border-update_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/display-inline-block-scrollbar_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/fixed-width-intrinsic-width-excludes-scrollbars_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/xpath-result-eventlistener-crash_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -870,6 +978,22 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-invalid-values_t01: RuntimeError 
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
 
+# co19 roll r801
+LayoutTests/fast/flexbox/flexing-overflow-scroll-item_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/flexbox/intrinsic-min-width-applies-with-fixed-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/select-list-box-mouse-focus_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/empty-inline-before-collapsed-space_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/lists/list-style-position-inside_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/lists/marker-preferred-margins_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/fixed-column-percent-logical-height-orthogonal-writing-mode_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/parsing/parsing-shape-outside_t01: RuntimeError # co19-roll r801: Please triage this failure.
+
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: Skip # Issue 19495.
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: Skip # Issue 20540.
@@ -905,97 +1029,7 @@ LayoutTests/fast/dom/jsDevicePixelRatio_t01: RuntimeError # Reenable fast/dom te
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-beforeload_t01: Pass, RuntimeError # Reenable fast/dom tests: Please triage this failure.
 
 [ $compiler == none && $runtime == dartium && ($mode != debug || $system != macos) ]
-LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/canvas-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/canvas-zero-size_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/css-webkit-canvas-repaint_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/css-webkit-canvas_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/draw-arrays-out-of-bounds_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/draw-elements-out-of-bounds_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/error-reporting_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/framebuffer-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/functions-returning-strings_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-bind-attrib-location-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-enable-enum-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-getshadersource_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-getstring_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-pixelstorei_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-teximage_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-vertex-attrib-zero-issues_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-vertex-attrib_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-vertexattribpointer_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/glsl-conformance_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/index-validation-copies-indices_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/index-validation-crash-with-buffer-sub-data_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/index-validation-with-resized-buffer_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/index-validation_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/invalid-UTF-16_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/null-uniform-location_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/point-size_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/program-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/read-pixels-pack-alignment_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/renderer-and-vendor-strings_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/shader-precision-format_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgb565_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba4444_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgb565_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba4444_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba5551_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-uniform-binding-bugs_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-webgl_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-sub-image-2d_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-sub-image-cube-maps_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texImage2DImageDataTest_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texImageTest_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texture-active-bind_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texture-bindings-uneffected-on-resize_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texture-color-profile_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texture-complete_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texture-npot_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/uniform-location-length-limits_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/viewport-unchanged-upon-resize_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-composite-modes-repaint_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-composite-modes_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-exceptions_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-specific_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-texture-binding-preserved_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/webgl-viewport-parameters-preserved_t01: RuntimeError # co19-roll r761: Please triage this failure.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $system != windows ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
