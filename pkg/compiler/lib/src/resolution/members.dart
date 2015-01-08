@@ -743,6 +743,8 @@ class ResolverTask extends CompilerTask {
       Element nextTarget = target.immediateRedirectionTarget;
       if (seen.contains(nextTarget)) {
         error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
         break;
       }
       seen.add(target);
