@@ -156,7 +156,6 @@ LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/06_Functions/4_External_Functions_A01_t01: CompileTimeError, OK # http://dartbug.com/5021
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 issue 308
 LibTest/typed_data/Int64List/*: Fail # co19-roll r559: Please triage this failure
