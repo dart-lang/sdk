@@ -41,3 +41,5 @@ const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";
 const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
 const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
+
+const MAP_TYPE_TO_INTERCEPTOR = "mapTypeToInterceptor";

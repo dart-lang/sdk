@@ -144,10 +144,9 @@ class InterceptorEmitter extends CodeEmitterHelper {
     }
 
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
-    String name =
-        backend.namer.getNameOfGlobalField(backend.mapTypeToInterceptor);
-    jsAst.Expression assignment =
-        js('${emitter.isolateProperties}.# = #', [name, array]);
+    jsAst.Expression mapTypeToInterceptor = emitter
+        .generateEmbeddedGlobalAccess(embeddedNames.MAP_TYPE_TO_INTERCEPTOR);
+    jsAst.Expression assignment = js('# = #', [mapTypeToInterceptor, array]);
 
     buffer.write(jsAst.prettyPrint(assignment, compiler));
     buffer.write(N);

@@ -346,7 +346,6 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
       }''',
   'JSUInt31': 'class JSUInt31 extends JSUInt32 {}',
   'JSUInt32': 'class JSUInt32 extends JSPositiveInt {}',
-  'mapTypeToInterceptor': 'var mapTypeToInterceptor;',
   'ObjectInterceptor': 'class ObjectInterceptor {}',
   'PlainJavaScriptObject': 'class PlainJavaScriptObject {}',
   'UnknownJavaScriptObject': 'class UnknownJavaScriptObject {}',

@@ -773,8 +773,6 @@ class OldEmitter implements Emitter {
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       // [:interceptedNames:] is handled in [emitInterceptedNames].
       if (element == backend.interceptedNames) continue;
-      // `mapTypeToInterceptor` is handled in [emitMapTypeToInterceptor].
-      if (element == backend.mapTypeToInterceptor) continue;
       compiler.withCurrentElement(element, () {
         jsAst.Expression initialValue;
         if (outputUnit !=

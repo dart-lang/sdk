@@ -182,14 +182,6 @@ class JavaScriptBackend extends Backend {
   static const bool TRACE_CALLS = false;
   Element traceHelper;
 
-  /**
-   * This element is a top-level variable (in generated output) that the
-   * compiler initializes to a datastructure used to map from a Type to the
-   * interceptor.  See declaration of `mapTypeToInterceptor` in
-   * `interceptors.dart`.
-   */
-  Element mapTypeToInterceptor;
-
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get doubleType => compiler.typesTask.doubleType;
   TypeMask get intType => compiler.typesTask.intType;
@@ -1742,7 +1734,6 @@ class JavaScriptBackend extends Backend {
       if (uri == DART_INTERCEPTORS) {
         getInterceptorMethod = findMethod('getInterceptor');
         interceptedNames = findVariable('interceptedNames');
-        mapTypeToInterceptor = findVariable('mapTypeToInterceptor');
         getNativeInterceptorMethod = findMethod('getNativeInterceptor');
 
         List<ClassElement> classes = [

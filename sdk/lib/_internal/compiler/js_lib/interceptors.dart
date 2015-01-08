@@ -5,7 +5,8 @@
 library _interceptors;
 
 import 'dart:_js_embedded_names' show
-    DISPATCH_PROPERTY_NAME;
+    DISPATCH_PROPERTY_NAME,
+    MAP_TYPE_TO_INTERCEPTOR;
 
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
@@ -196,8 +197,9 @@ var interceptedNames;
  * is accessed only by code that also calls [findIndexForWebComponentType].  If
  * this assumption is invalidated, the compiler will have to be updated.
  */
-// TODO(sra): Mark this as initialized to a constant with unknown value.
-var mapTypeToInterceptor;
+get mapTypeToInterceptor {
+  return JS_EMBEDDED_GLOBAL('', MAP_TYPE_TO_INTERCEPTOR);
+}
 
 int findIndexForNativeSubclassType(Type type) {
   if (JS('bool', '# == null', mapTypeToInterceptor)) return null;
