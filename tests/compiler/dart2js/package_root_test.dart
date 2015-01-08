@@ -30,6 +30,7 @@ main() {}
 void runCompiler(Uri main) {
   Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
+  Uri packageRoot = script.resolve('./packages/');
 
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
@@ -53,15 +54,15 @@ void runCompiler(Uri main) {
                                    outputProvider,
                                    diagnosticHandler,
                                    libraryRoot,
-                                   null,
+                                   packageRoot,
                                    [],
                                    {});
 
   asyncTest(() => compiler.run(main).then((_) {
     Expect.equals(1, errors.length);
-    Expect.equals("Cannot resolve 'package:foo/foo.dart'. "
-                  "Package root has not been set.",
-                  errors[0]);
+    Expect.isTrue(
+        errors[0].startsWith(
+            "Can't read 'package:foo/foo.dart' (Error reading "));
   }));
 }
 

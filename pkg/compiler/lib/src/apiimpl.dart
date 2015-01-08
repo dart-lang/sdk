@@ -91,11 +91,17 @@ class Compiler extends leg.Compiler {
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),
     ]);
-    if (!libraryRoot.path.endsWith("/")) {
-      throw new ArgumentError("libraryRoot must end with a /");
+    if (libraryRoot == null) {
+      throw new ArgumentError("[libraryRoot] is null.");
     }
-    if (packageRoot != null && !packageRoot.path.endsWith("/")) {
-      throw new ArgumentError("packageRoot must end with a /");
+    if (!libraryRoot.path.endsWith("/")) {
+      throw new ArgumentError("[libraryRoot] must end with a /.");
+    }
+    if (packageRoot == null) {
+      throw new ArgumentError("[packageRoot] is null.");
+    }
+    if (!packageRoot.path.endsWith("/")) {
+      throw new ArgumentError("[packageRoot] must end with a /.");
     }
     if (!analyzeOnly) {
       if (enableAsyncAwait) {
@@ -309,10 +315,6 @@ class Compiler extends leg.Compiler {
   }
 
   Uri translatePackageUri(leg.Spannable node, Uri uri) {
-    if (packageRoot == null) {
-      reportFatalError(
-          node, leg.MessageKind.PACKAGE_ROOT_NOT_SET, {'uri': uri});
-    }
     return packageRoot.resolve(uri.path);
   }
 

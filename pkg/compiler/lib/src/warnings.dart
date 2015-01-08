@@ -1351,9 +1351,6 @@ main() => A.A = 1;
       "The class '#{class}' overrides 'operator==', "
       "but not 'get hashCode'.");
 
-  static const MessageKind PACKAGE_ROOT_NOT_SET = const MessageKind(
-      "Cannot resolve '#{uri}'. Package root has not been set.");
-
   static const MessageKind INTERNAL_LIBRARY_FROM = const MessageKind(
       "Internal library '#{resolvedUri}' is not accessible from "
       "'#{importingUri}'.");
