@@ -23,8 +23,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_sim, false, "Trace simulator execution.");
-DEFINE_FLAG(int, stop_sim_at, 0,
+DEFINE_FLAG(int, trace_sim_after, -1,
+            "Trace simulator execution after instruction count reached.");
+DEFINE_FLAG(int, stop_sim_at, -1,
             "Instruction address or instruction count to stop simulator at.");
 
 
@@ -639,8 +640,13 @@ void SimulatorDebugger::Debug() {
           OS::Print("Not at debugger stop.\n");
         }
       } else if (strcmp(cmd, "trace") == 0) {
-        FLAG_trace_sim = !FLAG_trace_sim;
-        OS::Print("execution tracing %s\n", FLAG_trace_sim ? "on" : "off");
+        if (FLAG_trace_sim_after == -1) {
+          FLAG_trace_sim_after = sim_->get_icount();
+          OS::Print("execution tracing on\n");
+        } else {
+          FLAG_trace_sim_after = -1;
+          OS::Print("execution tracing off\n");
+        }
       } else if (strcmp(cmd, "bt") == 0) {
         PrintBacktrace();
       } else {
@@ -1043,6 +1049,14 @@ uword Simulator::StackTop() const {
   // set the stack top.
   return reinterpret_cast<uword>(stack_) +
       (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+}
+
+
+bool Simulator::IsTracingExecution() const {
+  // Integer flag values are signed, so we must cast to unsigned.
+  // The default of -1 hence becomes the maximum unsigned value.
+  return (static_cast<uintptr_t>(icount_) >
+          static_cast<uintptr_t>(FLAG_trace_sim_after));
 }
 
 
@@ -1557,7 +1571,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
     int64_t saved_lr = get_register(LR);
     Redirection* redirection = Redirection::FromHltInstruction(instr);
     uword external = redirection->external_function();
-    if (FLAG_trace_sim) {
+    if (IsTracingExecution()) {
       OS::Print("Call to host function at 0x%" Pd "\n", external);
     }
 
@@ -2516,6 +2530,15 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
         static_cast<__int128>(rn_val) * static_cast<__int128>(rm_val);
     const int64_t alu_out = static_cast<int64_t>(res >> 64);
     set_register(instr, rd, alu_out, R31IsZR);
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 6) &&
+             (instr->Bit(15) == 0)) {
+    // Format(instr, "umulh 'rd, 'rn, 'rm");
+    const uint64_t rn_val = get_register(rn, R31IsZR);
+    const uint64_t rm_val = get_register(rm, R31IsZR);
+    const __int128 res =
+        static_cast<__int128>(rn_val) * static_cast<__int128>(rm_val);
+    const int64_t alu_out = static_cast<int64_t>(res >> 64);
+    set_register(instr, rd, alu_out, R31IsZR);
   } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
              (instr->Bit(15) == 0)) {
     // Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
@@ -3272,7 +3295,8 @@ void Simulator::DecodeDPSimd2(Instr* instr) {
 // Executes the current instruction.
 void Simulator::InstructionDecode(Instr* instr) {
   pc_modified_ = false;
-  if (FLAG_trace_sim) {
+  if (IsTracingExecution()) {
+    OS::Print("%" Pd " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);

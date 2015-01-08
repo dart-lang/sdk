@@ -264,6 +264,13 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     return sendExtractRequest(offset, length, name, extractAll);
   }
 
+  void tearDown() {
+    test_simulateRefactoringException_init = false;
+    test_simulateRefactoringException_final = false;
+    test_simulateRefactoringException_change = false;
+    super.tearDown();
+  }
+
   test_extractAll() {
     addTestFile('''
 main() {
@@ -354,6 +361,51 @@ main() {
       ExtractLocalVariableFeedback feedback = result.feedback;
       expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
       expect(feedback.lengths, [5, 6]);
+    });
+  }
+
+  test_serverError_change() {
+    test_simulateRefactoringException_change = true;
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendStringRequest('1 + 2', 'res', true).then((response) {
+        expect(response.error, isNotNull);
+        expect(response.error.code, RequestErrorCode.SERVER_ERROR);
+      });
+    });
+  }
+
+  test_serverError_final() {
+    test_simulateRefactoringException_final = true;
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendStringRequest('1 + 2', 'res', true).then((response) {
+        expect(response.error, isNotNull);
+        expect(response.error.code, RequestErrorCode.SERVER_ERROR);
+      });
+    });
+  }
+
+  test_serverError_init() {
+    test_simulateRefactoringException_init = true;
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendStringRequest('1 + 2', 'res', true).then((response) {
+        expect(response.error, isNotNull);
+        expect(response.error.code, RequestErrorCode.SERVER_ERROR);
+      });
     });
   }
 }

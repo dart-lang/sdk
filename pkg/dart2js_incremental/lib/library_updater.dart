@@ -19,6 +19,7 @@ import 'package:compiler/src/dart2jslib.dart' show
 
 import 'package:compiler/src/elements/elements.dart' show
     ClassElement,
+    CompilationUnitElement,
     Element,
     FunctionElement,
     LibraryElement,
@@ -27,19 +28,29 @@ import 'package:compiler/src/elements/elements.dart' show
 
 import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,
+    Listener,
+    NodeListener,
+    Parser,
     PartialClassElement,
     PartialElement,
     PartialFieldList,
     PartialFunctionElement,
+    Scanner,
     Token;
 
 import 'package:compiler/src/source_file.dart' show
+    CachingUtf8BytesSourceFile,
+    SourceFile,
     StringSourceFile;
 
 import 'package:compiler/src/tree/tree.dart' show
     ClassNode,
     FunctionExpression,
-    NodeList;
+    LibraryTag,
+    NodeList,
+    Part,
+    StringNode,
+    unparse;
 
 import 'package:compiler/src/js/js.dart' show
     js;
@@ -79,11 +90,15 @@ import 'package:compiler/src/universe/universe.dart' show
 import 'package:compiler/src/constants/values.dart' show
     ConstantValue;
 
+import 'package:compiler/src/library_loader.dart' show
+    TagState;
+
 import 'diff.dart' show
     Difference,
     computeDifference;
 
 import 'dart2js_incremental.dart' show
+    IncrementalCompilationFailed,
     IncrementalCompiler;
 
 typedef void Logger(message);
@@ -168,6 +183,16 @@ class LibraryUpdater extends JsFeatures {
 
   final IncrementalCompilerContext _context;
 
+  final Map<Uri, Future> _sources = <Uri, Future>{};
+
+  /// Cached tokens of entry compilation units.
+  final Map<LibraryElementX, Token> _entryUnitTokens =
+      <LibraryElementX, Token>{};
+
+  /// Cached source files for entry compilation units.
+  final Map<LibraryElementX, SourceFile> _entrySourceFiles =
+      <LibraryElementX, SourceFile>{};
+
   bool _hasComputedNeeds = false;
 
   bool _hasCapturedCompilerState = false;
@@ -212,23 +237,99 @@ class LibraryUpdater extends JsFeatures {
       logTime('Reusing $library (assumed read-only).');
       return new Future.value(true);
     }
-    for (CompilationUnitElementX unit in library.compilationUnits) {
-      Uri uri = unit.script.resourceUri;
-      if (_context._uriHasUpdate(uri)) {
-        if (!library.compilationUnits.tail.isEmpty) {
-          // TODO(ahe): Remove this restriction.
-          cannotReuse(library, "Multiple compilation units not supported.");
-          return new Future.value(true);
-        }
-        return inputProvider(uri).then((bytes) {
-          return canReuseLibrary(library, bytes);
-        });
+    return _haveTagsChanged(library).then((bool haveTagsChanged) {
+      if (haveTagsChanged) {
+        cannotReuse(
+            library,
+            "Changes to library, import, export, or part declarations not"
+            " supported.");
+        return true;
       }
+
+      bool isChanged = false;
+      List<Future<Script>> futureScripts = <Future<Script>>[];
+
+      for (CompilationUnitElementX unit in library.compilationUnits) {
+        Uri uri = unit.script.resourceUri;
+        if (_context._uriHasUpdate(uri)) {
+          isChanged = true;
+          futureScripts.add(_updatedScript(unit.script, library));
+        } else {
+          futureScripts.add(new Future.value(unit.script));
+        }
+      }
+
+      if (!isChanged) {
+        logTime("Reusing $library, source didn't change.");
+        return true;
+      }
+
+      return Future.wait(futureScripts).then(
+          (List<Script> scripts) => canReuseLibrary(library, scripts));
+    }).whenComplete(() => _cleanUp(library));
+  }
+
+  void _cleanUp(LibraryElementX library) {
+    _entryUnitTokens.remove(library);
+    _entrySourceFiles.remove(library);
+  }
+
+  Future<Script> _updatedScript(Script before, LibraryElementX library) {
+    if (before == library.entryCompilationUnit.script &&
+        _entrySourceFiles.containsKey(library)) {
+      return new Future.value(before.copyWithFile(_entrySourceFiles[library]));
     }
 
-    logTime("Reusing $library, source didn't change.");
-    // Source code of [library] wasn't changed.
-    return new Future.value(true);
+    return _readUri(before.resourceUri).then((bytes) {
+      String filename = before.file.filename;
+      SourceFile sourceFile = bytes is String
+          ? new StringSourceFile(filename, bytes)
+          : new CachingUtf8BytesSourceFile(filename, bytes);
+      return before.copyWithFile(sourceFile);
+    });
+  }
+
+  Future<bool> _haveTagsChanged(LibraryElement library) {
+    Script before = library.entryCompilationUnit.script;
+    if (!_context._uriHasUpdate(before.resourceUri)) {
+      // The entry compilation unit hasn't been updated. So the tags aren't
+      // changed.
+      return new Future<bool>.value(false);
+    }
+
+    return _updatedScript(before, library).then((Script script) {
+      _entrySourceFiles[library] = script.file;
+      Token token = new Scanner(_entrySourceFiles[library]).tokenize();
+      _entryUnitTokens[library] = token;
+      // Using two parsers to only create the nodes we want ([LibraryTag]).
+      Parser parser = new Parser(new Listener());
+      NodeListener listener = new NodeListener(
+          compiler, library.entryCompilationUnit);
+      Parser nodeParser = new Parser(listener);
+      Iterator<LibraryTag> tags = library.tags.iterator;
+      while (token.kind != EOF_TOKEN) {
+        token = parser.parseMetadataStar(token);
+        if (parser.optional('library', token) ||
+            parser.optional('import', token) ||
+            parser.optional('export', token) ||
+            parser.optional('part', token)) {
+          if (!tags.moveNext()) return true;
+          token = nodeParser.parseTopLevelDeclaration(token);
+          LibraryTag tag = listener.popNode();
+          assert(listener.nodes.isEmpty);
+          if (unparse(tags.current) != unparse(tag)) {
+            return true;
+          }
+        } else {
+          break;
+        }
+      }
+      return tags.moveNext();
+    });
+  }
+
+  Future _readUri(Uri uri) {
+    return _sources.putIfAbsent(uri, () => inputProvider(uri));
   }
 
   void _ensureCompilerStateCaptured() {
@@ -243,18 +344,59 @@ class LibraryUpdater extends JsFeatures {
   /// Returns true if [library] can be reused.
   ///
   /// This methods also computes the [updates] (patches) needed to have
-  /// [library] reflect the modifications in [bytes].
-  bool canReuseLibrary(LibraryElement library, bytes) {
+  /// [library] reflect the modifications in [scripts].
+  bool canReuseLibrary(LibraryElement library, List<Script> scripts) {
     logTime('Attempting to reuse ${library}.');
-    String newSource = bytes is String ? bytes : UTF8.decode(bytes);
-    logTime('Decoded UTF8');
 
-    Uri uri = library.entryCompilationUnit.script.resourceUri;
-    Script sourceScript = new Script(
-        uri, uri, new StringSourceFile('$uri', newSource));
-    var dartPrivacyIsBroken = compiler.libraryLoader;
-    LibraryElement newLibrary = dartPrivacyIsBroken.createLibrarySync(
-        null, sourceScript, uri);
+    Uri entryUri = library.entryCompilationUnit.script.resourceUri;
+    Script entryScript =
+        scripts.singleWhere((Script script) => script.resourceUri == entryUri);
+    LibraryElement newLibrary =
+        new LibraryElementX(entryScript, library.canonicalUri);
+    if (_entryUnitTokens.containsKey(library)) {
+      compiler.dietParser.dietParse(
+          newLibrary.entryCompilationUnit, _entryUnitTokens[library]);
+    } else {
+      compiler.scanner.scanLibrary(newLibrary);
+    }
+
+    TagState tagState = new TagState();
+    for (LibraryTag tag in newLibrary.tags) {
+      if (tag.isImport) {
+        tagState.checkTag(TagState.IMPORT_OR_EXPORT, tag, compiler);
+      } else if (tag.isExport) {
+        tagState.checkTag(TagState.IMPORT_OR_EXPORT, tag, compiler);
+      } else if (tag.isLibraryName) {
+        tagState.checkTag(TagState.LIBRARY, tag, compiler);
+        if (newLibrary.libraryTag == null) {
+          // Use the first if there are multiple (which is reported as an
+          // error in [TagState.checkTag]).
+          newLibrary.libraryTag = tag;
+        }
+      } else if (tag.isPart) {
+        tagState.checkTag(TagState.PART, tag, compiler);
+      }
+    }
+
+    // TODO(ahe): Process tags using TagState, not
+    // LibraryLoaderTask.processLibraryTags.
+    Link<CompilationUnitElement> units = library.compilationUnits;
+    for (Script script in scripts) {
+      CompilationUnitElementX unit = units.head;
+      units = units.tail;
+      if (script != entryScript) {
+        // TODO(ahe): Copied from library_loader.
+        CompilationUnitElement newUnit =
+            new CompilationUnitElementX(script, newLibrary);
+        compiler.withCurrentElement(newUnit, () {
+          compiler.scanner.scan(newUnit);
+          if (unit.partTag == null) {
+            compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
+          }
+        });
+      }
+    }
+
     logTime('New library synthesized.');
     return canReuseScopeContainerElement(library, newLibrary);
   }
@@ -583,8 +725,7 @@ class LibraryUpdater extends JsFeatures {
       update.captureState();
     }
     if (!_failedUpdates.isEmpty) {
-      throw new StateError(
-          "Can't compute update.\n\n${_failedUpdates.join('\n\n')}");
+      throw new IncrementalCompilationFailed(_failedUpdates.join('\n\n'));
     }
     for (ElementX element in _elementsToInvalidate) {
       compiler.forgetElement(element);
@@ -691,7 +832,7 @@ class LibraryUpdater extends JsFeatures {
     List<jsAst.Statement> inherits = <jsAst.Statement>[];
 
     for (ClassElementX cls in newClasses) {
-      jsAst.Node classAccess = emitter.classAccess(cls);
+      jsAst.Node classAccess = emitter.constructorAccess(cls);
       String name = namer.getNameOfClass(cls);
 
       updates.add(
@@ -700,7 +841,7 @@ class LibraryUpdater extends JsFeatures {
 
       ClassElement superclass = cls.superclass;
       if (superclass != null) {
-        jsAst.Node superAccess = emitter.classAccess(superclass);
+        jsAst.Node superAccess = emitter.constructorAccess(superclass);
         inherits.add(
             js.statement(
                 r'#.inheritFrom(#, #)', [helper, classAccess, superAccess]));
@@ -716,8 +857,8 @@ class LibraryUpdater extends JsFeatures {
       ClassElement superclass = cls.superclass;
       jsAst.Node superAccess =
           superclass == null ? js('null')
-              : emitter.classAccess(superclass);
-      jsAst.Node classAccess = emitter.classAccess(cls);
+              : emitter.constructorAccess(superclass);
+      jsAst.Node classAccess = emitter.constructorAccess(cls);
       updates.add(
           js.statement(
               r'# = #.schemaChange(#, #, #)',
@@ -804,7 +945,7 @@ if (#helper.pendingStubs) {
     jsAst.Node holder;
 
     if (element.isInstanceMember) {
-      holder = js('#.prototype', emitter.classAccess(element.enclosingClass));
+      holder = emitter.prototypeAccess(element.enclosingClass);
     } else {
       holder = js('#', namer.globalObjectFor(element));
     }
@@ -986,7 +1127,7 @@ class RemovedFunctionUpdate extends RemovalUpdate
     wasStateCaptured = true;
 
     if (element.isInstanceMember) {
-      elementAccess = emitter.classAccess(element.enclosingClass);
+      elementAccess = emitter.constructorAccess(element.enclosingClass);
       name = namer.getNameOfMember(element);
     } else {
       elementAccess = emitter.staticFunctionAccess(element);
@@ -1034,7 +1175,7 @@ class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
   void captureState() {
     if (wasStateCaptured) throw "captureState was called twice.";
     wasStateCaptured = true;
-    accessToStatics.add(emitter.classAccess(element));
+    accessToStatics.add(emitter.constructorAccess(element));
 
     element.forEachLocalMember((ElementX member) {
       if (!member.isInstanceMember) {
@@ -1078,7 +1219,7 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
 
   bool wasStateCaptured = false;
 
-  jsAst.Node elementAccess;
+  jsAst.Node prototypeAccess;
 
   String getterName;
 
@@ -1095,7 +1236,7 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
     if (wasStateCaptured) throw "captureState was called twice.";
     wasStateCaptured = true;
 
-    elementAccess = emitter.classAccess(element.enclosingClass);
+    prototypeAccess = emitter.prototypeAccess(element.enclosingClass);
     getterName = namer.getterName(element);
     setterName = namer.setterName(element);
   }
@@ -1117,9 +1258,9 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
     }
 
     updates.add(
-        js.statement('delete #.prototype.#', [elementAccess, getterName]));
+        js.statement('delete #.#', [prototypeAccess, getterName]));
     updates.add(
-        js.statement('delete #.prototype.#', [elementAccess, setterName]));
+        js.statement('delete #.#', [prototypeAccess, setterName]));
   }
 }
 

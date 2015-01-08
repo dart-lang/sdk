@@ -212,10 +212,11 @@ static RawObject* Spawn(Isolate* parent_isolate,
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 3) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(3));
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
     func = Closure::function(closure);
@@ -225,7 +226,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 3) {
       ctx = Closure::context(closure);
       ASSERT(ctx.num_variables() == 0);
 #endif
-      return Spawn(isolate, new IsolateSpawnState(port.Id(), func, message));
+      return Spawn(isolate, new IsolateSpawnState(
+          port.Id(), func, message, paused.value()));
     }
   }
   const String& msg = String::Handle(String::New(
@@ -235,12 +237,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 3) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 5) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 6) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
-  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(4));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
+  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(5));
 
   // Canonicalize the uri with respect to the current isolate.
   char* error = NULL;
@@ -262,8 +265,23 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 5) {
     utf8_package_root[len] = '\0';
   }
 
-  return Spawn(isolate, new IsolateSpawnState(
-      port.Id(), canonical_uri, utf8_package_root, args, message));
+  return Spawn(isolate, new IsolateSpawnState(port.Id(),
+                                              canonical_uri,
+                                              utf8_package_root,
+                                              args,
+                                              message,
+                                              paused.value()));
+}
+
+
+DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0) {
+  const Array& result = Array::Handle(Array::New(3));
+  result.SetAt(0, SendPort::Handle(SendPort::New(isolate->main_port())));
+  result.SetAt(1, Capability::Handle(
+                      Capability::New(isolate->pause_capability())));
+  result.SetAt(2, Capability::Handle(
+                      Capability::New(isolate->terminate_capability())));
+  return result.raw();
 }
 
 

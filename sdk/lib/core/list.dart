@@ -87,14 +87,14 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
   external factory List.filled(int length, E fill);
 
   /**
-   * Creates a list and initializes it using the contents of [other].
+   * Creates a list containing all [elements].
    *
-   * The [Iterator] of [other] provides the order of the objects.
+   * The [Iterator] of [elements] provides the order of the elements.
    *
-   * This constructor returns a growable list if [growable] is true;
+   * This constructor returns a growable list when [growable] is true;
    * otherwise, it returns a fixed-length list.
    */
-  external factory List.from(Iterable other, { bool growable: true });
+  external factory List.from(Iterable elements, { bool growable: true });
 
   /**
    * Generates a list of values.

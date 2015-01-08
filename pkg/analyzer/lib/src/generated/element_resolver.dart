@@ -631,6 +631,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     if (propagatedElement != null) {
+      propagatedElement.addUser(_resolver.enclosingFunction);
       List<ParameterElement> parameters =
           _computeCorrespondingParameters(argumentList, propagatedElement);
       if (parameters != null) {
@@ -3097,6 +3098,14 @@ class SyntheticIdentifier extends Identifier {
 
   @override
   Element get bestElement => null;
+
+  @override
+  Iterable get childEntities {
+    // Should never be called, since a SyntheticIdentifier never appears in the
+    // AST--it is just used for lookup.
+    assert(false);
+    return new ChildEntities();
+  }
 
   @override
   sc.Token get endToken => null;

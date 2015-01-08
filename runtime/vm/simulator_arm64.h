@@ -256,6 +256,9 @@ class Simulator {
   // Executes ARM64 instructions until the PC reaches kEndSimulatingPC.
   void Execute();
 
+  // Returns true if tracing of executed instructions is enabled.
+  bool IsTracingExecution() const;
+
   // Longjmp support for exceptions.
   SimulatorSetjmpBuffer* last_setjmp_buffer() {
     return last_setjmp_buffer_;

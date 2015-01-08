@@ -7,6 +7,7 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import '../mock_compiler.dart';
 import '../mock_libraries.dart';
+import '../output_collector.dart';
 import 'package:compiler/compiler.dart';
 import 'package:compiler/src/dart2jslib.dart' as leg;
 import 'package:compiler/src/dart_backend/dart_backend.dart';
@@ -91,15 +92,18 @@ testDart2Dart(String mainSrc, {String librarySrc,
   if (stripTypes) options.add('--force-strip=types');
 
   asyncTest(() {
+    OutputCollector outputCollector = new OutputCollector();
     return compile(
         scriptUri,
         fileUri('libraryRoot/'),
         fileUri('packageRoot/'),
         provider,
         handler,
-        options).then((s) {
-      Expect.equals(expectedResult, s,
-          'expected:\n$expectedResult\nactual:\n$s');
+        options,
+        outputCollector).then((_) {
+      String code = outputCollector.getOutput('', 'dart');
+      Expect.equals(expectedResult, code,
+          'expected:\n$expectedResult\nactual:\n$code');
     });
   });
 }

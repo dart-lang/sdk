@@ -959,6 +959,12 @@ static bool RunIsolate(uword parameter) {
     Capability& capability = Capability::Handle();
     capability = Capability::New(isolate->pause_capability());
     capabilities.SetAt(0, capability);
+    // Check whether this isolate should be started in paused state.
+    if (state->paused()) {
+      bool added = isolate->AddResumeCapability(capability);
+      ASSERT(added);  // There should be no pending resume capabilities.
+      isolate->message_handler()->increment_paused();
+    }
     capability = Capability::New(isolate->terminate_capability());
     capabilities.SetAt(1, capability);
 
@@ -1536,7 +1542,8 @@ static RawInstance* DeserializeObject(Isolate* isolate,
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const Function& func,
-                                     const Instance& message)
+                                     const Instance& message,
+                                     bool paused)
     : isolate_(NULL),
       parent_port_(parent_port),
       script_url_(NULL),
@@ -1548,7 +1555,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_(NULL),
       serialized_args_len_(0),
       serialized_message_(NULL),
-      serialized_message_len_(0) {
+      serialized_message_len_(0),
+      paused_(paused) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
@@ -1570,7 +1578,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* script_url,
                                      const char* package_root,
                                      const Instance& args,
-                                     const Instance& message)
+                                     const Instance& message,
+                                     bool paused)
     : isolate_(NULL),
       parent_port_(parent_port),
       package_root_(NULL),
@@ -1581,7 +1590,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_(NULL),
       serialized_args_len_(0),
       serialized_message_(NULL),
-      serialized_message_len_(0) {
+      serialized_message_len_(0),
+      paused_(paused) {
   script_url_ = strdup(script_url);
   if (package_root != NULL) {
     package_root_ = strdup(package_root);

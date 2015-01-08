@@ -11,6 +11,7 @@
 #include "vm/cha.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
+#include "vm/constant_propagator.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
@@ -456,6 +457,10 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
       }
 
+      // Maps inline_id_to_function[inline_id] -> function. Top scope
+      // function has inline_id 0. The map is populated by the inliner.
+      GrowableArray<const Function*> inline_id_to_function;
+      inline_id_to_function.Add(&function);
       // Collect all instance fields that are loaded in the graph and
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
@@ -473,6 +478,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+        FlowGraphInliner::SetInliningId(*flow_graph, 0);
+
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
           TimerScope timer(FLAG_compiler_stats,
@@ -485,7 +492,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           optimizer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-          FlowGraphInliner inliner(flow_graph);
+          FlowGraphInliner inliner(flow_graph, &inline_id_to_function);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -679,7 +686,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       }
 
       Assembler assembler(use_far_branches);
-      FlowGraphCompiler graph_compiler(&assembler, flow_graph, optimized);
+      FlowGraphCompiler graph_compiler(
+          &assembler, flow_graph, optimized, inline_id_to_function);
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphcompiler_timer,
@@ -694,6 +702,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
+        code.set_inlined_intervals(graph_compiler.inlined_code_intervals());
         graph_compiler.FinalizePcDescriptors(code);
         graph_compiler.FinalizeDeoptInfo(code);
         graph_compiler.FinalizeStackmaps(code);
@@ -1155,6 +1164,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     func.SetNumOptionalParameters(0, true);
     // Manually generated AST, do not recompile.
     func.SetIsOptimizable(false);
+    func.set_is_debuggable(false);
 
     // We compile the function here, even though InvokeFunction() below
     // would compile func automatically. We are checking fewer invariants

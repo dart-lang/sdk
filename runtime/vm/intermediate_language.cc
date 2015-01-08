@@ -5,6 +5,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/constant_propagator.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_allocator.h"
@@ -39,7 +40,6 @@ DEFINE_FLAG(bool, unbox_numeric_fields, true,
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
-DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 Definition::Definition(intptr_t deopt_id)

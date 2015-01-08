@@ -56,6 +56,9 @@ abstract class Iterable<E> {
   /**
    * Returns a new `Iterator` that allows iterating the elements of this
    * `Iterable`.
+   *
+   * Modifying the underlying data after creating the new iterator
+   * may cause an error the next time [Iterator.moveNext] is called.
    */
   Iterator<E> get iterator;
 

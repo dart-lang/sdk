@@ -5,17 +5,26 @@
 // Test of LibraryUpdater (one compilation unit per library).
 library trydart.library_updater_test;
 
-import 'dart:convert' show
-    UTF8;
-
 import 'package:dart2js_incremental/library_updater.dart' show
     IncrementalCompilerContext,
     LibraryUpdater,
     Update;
 
+import 'package:compiler/src/dart2jslib.dart' show
+    Script;
+
+import 'package:compiler/src/source_file.dart' show
+    StringSourceFile;
+
 import 'compiler_test_case.dart';
 
 void nolog(_) {}
+
+Script newScriptFrom(LibraryElement library, String newSource) {
+  Script script = library.entryCompilationUnit.script;
+  return script.copyWithFile(
+      new StringSourceFile(script.file.filename, newSource));
+}
 
 class LibraryUpdaterTestCase extends CompilerTestCase {
   final String newSource;
@@ -40,7 +49,8 @@ class LibraryUpdaterTestCase extends CompilerTestCase {
         new LibraryUpdater(this.compiler, null, nolog, nolog, context);
     context.registerUriWithUpdates([scriptUri]);
     bool actualCanReuse =
-        updater.canReuseLibrary(library, UTF8.encode(newSource));
+        updater.canReuseLibrary(
+            library, <Script>[newScriptFrom(library, newSource)]);
     Expect.equals(expectedCanReuse, actualCanReuse);
 
     Expect.setEquals(

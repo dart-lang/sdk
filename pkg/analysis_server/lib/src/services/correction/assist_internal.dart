@@ -76,6 +76,9 @@ class AssistProcessor {
     utils = new CorrectionUtils(unit);
     node =
         new NodeLocator.con2(selectionOffset, selectionEnd).searchWithin(unit);
+    if (node == null) {
+      return assists;
+    }
     // try to add proposals
     _addProposal_addTypeAnnotation_DeclaredIdentifier();
     _addProposal_addTypeAnnotation_VariableDeclaration();

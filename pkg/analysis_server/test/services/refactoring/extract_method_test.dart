@@ -1306,6 +1306,29 @@ main() {
 ''');
   }
 
+  test_singleExpression_occurrences_incompatibleTypes() {
+    indexTestUnit('''
+main() {
+  int x = 1;
+  String y = 'foo';
+  print(x.toString());
+  print(y.toString());
+}
+''');
+    _createRefactoringForString('x.toString()');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  int x = 1;
+  String y = 'foo';
+  print(res(x));
+  print(y.toString());
+}
+
+String res(int x) => x.toString();
+''');
+  }
+
   test_singleExpression_occurrences_inWholeUnit() {
     indexTestUnit('''
 main() {

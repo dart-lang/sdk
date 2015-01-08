@@ -40,6 +40,9 @@ import 'package:compiler/src/elements/elements.dart' show
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler;
 
+import 'package:dart2js_incremental/dart2js_incremental.dart' show
+    IncrementalCompilationFailed;
+
 import 'program_result.dart';
 
 const int TIMEOUT = 100;
@@ -1649,6 +1652,168 @@ main() {
             const ProgramExpectation(
                 const <String>['A(v2)', 'B(v2)', 'B(A(v2))', 'A(B(v2))']),
         ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart <==
+// Test that a change in a part is handled.
+library test.main;
+
+part 'part.dart';
+
+
+==> part.dart.patch <==
+part of test.main;
+
+main() {
+<<<<<<<
+  print('Hello, World!');
+=======
+  print('Hello, Brave New World!');
+>>>>>>>
+}
+""",
+        const [
+            'Hello, World!',
+            'Hello, Brave New World!',
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that a change in library name is handled.
+<<<<<<<
+library test.main1;
+=======
+library test.main2;
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that adding an import is handled.
+<<<<<<<
+=======
+import 'dart:core';
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that adding an export is handled.
+<<<<<<<
+=======
+export 'dart:core';
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart.patch <==
+// Test that adding a part is handled.
+library test.main;
+
+<<<<<<<
+=======
+part 'part.dart';
+>>>>>>>
+
+main() {
+  print('Hello, World!');
+}
+
+
+==> part.dart <==
+part of test.main
+""",
+        const [
+            'Hello, World!',
+            const ProgramExpectation(
+                const <String>['Hello, World!'],
+                // TODO(ahe): Shouldn't throw.
+                compileUpdatesShouldThrow: true),
+        ]),
+
+    const EncodedResult(
+        r"""
+==> main.dart <==
+// Test that changes in multiple libraries is handled.
+import 'library1.dart' as lib1;
+import 'library2.dart' as lib2;
+
+main() {
+  lib1.method();
+  lib2.method();
+}
+
+
+==> library1.dart.patch <==
+library test.library1;
+
+method() {
+<<<<<<<
+  print('lib1.v1');
+=======
+  print('lib1.v2');
+=======
+  print('lib1.v3');
+>>>>>>>
+}
+
+
+==> library2.dart.patch <==
+library test.library2;
+
+method() {
+<<<<<<<
+  print('lib2.v1');
+=======
+  print('lib2.v2');
+=======
+  print('lib2.v3');
+>>>>>>>
+}
+""",
+        const [
+            const <String>['lib1.v1', 'lib2.v1'],
+            const <String>['lib1.v2', 'lib2.v2'],
+            const <String>['lib1.v3', 'lib2.v3'],
+        ]),
 ];
 
 void main() {
@@ -1729,14 +1894,25 @@ Future compileAndRun(EncodedResult encodedResult) {
 
           WebInputProvider inputProvider =
               test.incrementalCompiler.inputProvider;
-          Uri uri = test.scriptUri.resolve('?v${version++}');
-          inputProvider.cachedSources[uri] = new Future.value(program.code);
+          Uri base = test.scriptUri;
+          Map<String, String> code = program.code is String
+              ? { 'main.dart': program.code }
+              : program.code;
+          Map<Uri, Uri> uriMap = <Uri, Uri>{};
+          for (String name in code.keys) {
+            Uri uri = base.resolve('$name?v${version++}');
+            inputProvider.cachedSources[uri] = new Future.value(code[name]);
+            uriMap[base.resolve(name)] = uri;
+          }
           Future future = test.incrementalCompiler.compileUpdates(
-              {test.scriptUri: uri}, logVerbose: logger, logTime: logger);
+              uriMap, logVerbose: logger, logTime: logger);
+          bool compileUpdatesThrew = false;
           future = future.catchError((error, trace) {
             String statusMessage;
             Future result;
-            if (program.compileUpdatesShouldThrow) {
+            compileUpdatesThrew = true;
+            if (program.compileUpdatesShouldThrow &&
+                error is IncrementalCompilationFailed) {
               statusMessage = "Expected error in compileUpdates.";
               result = null;
             } else {
@@ -1748,7 +1924,10 @@ Future compileAndRun(EncodedResult encodedResult) {
           });
           return future.then((String update) {
             if (program.compileUpdatesShouldThrow) {
-              Expect.isNull(update);
+              Expect.isTrue(
+                  compileUpdatesThrew,
+                  "Expected an exception in compileUpdates");
+              Expect.isNull( update, "Expected update == null");
               return null;
             }
             print({'update': update});
@@ -1757,6 +1936,9 @@ Future compileAndRun(EncodedResult encodedResult) {
             return listener.expect(
                 program.messagesWith('iframe-dart-updated-main-done'))
                 .then((_) {
+                  // TODO(ahe): Enable SerializeScopeTestCase for multiple
+                  // parts.
+                  if (program.code is! String) return null;
                   return new SerializeScopeTestCase(
                       program.code, test.incrementalCompiler.mainApp,
                       test.incrementalCompiler.compiler).run();
@@ -1825,23 +2007,30 @@ void logger(x) {
   }
 }
 
-DivElement numberedLines(String code) {
-  DivElement result = new DivElement();
-  result.classes.add("output");
-
-  for (String text in splitLines(code)) {
-    PreElement line = new PreElement()
-        ..appendText(text.trimRight())
-        ..classes.add("line");
-    result.append(line);
+DivElement numberedLines(code) {
+  if (code is! Map) {
+    code = {'main.dart': code};
   }
+  DivElement result = new DivElement();
+  code.forEach((String fileName, String code) {
+    result.append(new HeadingElement.h4()..appendText(fileName));
+    DivElement lines = new DivElement();
+    result.append(lines);
+    lines.classes.add("output");
 
+    for (String text in splitLines(code)) {
+      PreElement line = new PreElement()
+          ..appendText(text.trimRight())
+          ..classes.add("line");
+      lines.append(line);
+    }
+  });
   return result;
 }
 
 StyleElement lineNumberStyle() {
   StyleElement style = new StyleElement()..appendText('''
-h2, h3 {
+h2, h3, h4 {
   color: black;
 }
 

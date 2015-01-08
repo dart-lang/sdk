@@ -25,7 +25,7 @@ import '../native/native.dart' as native;
 import '../scanner/scannerlib.dart'
     show PartialFunctionElement, Token, PLUS_TOKEN;
 import '../source_file.dart';
-import '../source_map_builder.dart';
+import '../io/source_map_builder.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;

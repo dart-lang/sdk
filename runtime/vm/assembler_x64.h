@@ -570,6 +570,7 @@ class Assembler : public ValueObject {
   void divl(Register reg);
 
   void idivq(Register reg);
+  void divq(Register reg);
 
   void imull(Register dst, Register src);
   void imull(Register reg, const Immediate& imm);
@@ -579,6 +580,7 @@ class Assembler : public ValueObject {
   void imulq(Register dst, const Address& address);
   void imulq(Register dst, const Immediate& imm);
   void MulImmediate(Register reg, const Immediate& imm, Register pp);
+  void mulq(Register reg);
 
   void subl(Register dst, Register src);
   void subl(Register dst, const Immediate& imm);
@@ -610,6 +612,7 @@ class Assembler : public ValueObject {
   void shrq(Register operand, Register shifter);
   void sarq(Register reg, const Immediate& imm);
   void sarq(Register operand, Register shifter);
+  void shldq(Register dst, Register src, const Immediate& imm);
 
   void incl(const Address& address);
   void decl(const Address& address);

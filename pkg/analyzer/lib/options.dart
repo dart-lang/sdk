@@ -26,9 +26,6 @@ class CommandLineOptions {
   /** Whether to display version information */
   final bool displayVersion;
 
-  /** Whether to enable support for the proposed async feature. */
-  final bool enableAsync;
-
   /** Whether to enable support for the proposed enum feature. */
   final bool enableEnum;
 
@@ -80,7 +77,6 @@ class CommandLineOptions {
         this.definedVariables = definedVariables,
         disableHints = args['no-hints'],
         displayVersion = args['version'],
-        enableAsync = args['enable-async'],
         enableEnum = args['enable-enum'],
         enableTypeChecks = args['enable_type_checks'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],

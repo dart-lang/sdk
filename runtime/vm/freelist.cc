@@ -26,6 +26,9 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   uword tags = 0;
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
+  // All words in a freelist element header must look like smis; see
+  // TryAllocateSmiInitializedLocked.
+  ASSERT(!reinterpret_cast<RawObject*>(tags)->IsHeapObject());
 
   result->tags_ = tags;
   if (size > RawObject::SizeTag::kMaxSizeTag) {

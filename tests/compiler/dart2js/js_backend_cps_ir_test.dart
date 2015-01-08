@@ -53,8 +53,8 @@ main() {
     asyncTest(() {
       Compiler compiler = compilerFor(files);
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
-      return compiler.run(uri).then((_) {
-        Expect.isNotNull(compiler.assembledCode);
+      return compiler.run(uri).then((bool success) {
+        Expect.isTrue(success);
         String expectation = test.expectation;
         if (expectation != null) {
           String expected = test.expectation;

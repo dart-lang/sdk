@@ -1154,7 +1154,7 @@ void main(int argc, char** argv) {
       free(p->key);
       free(p->value);
     }
-    free(environment);
+    delete environment;
   }
 
   exit(Process::GlobalExitCode());

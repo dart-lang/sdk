@@ -8,22 +8,20 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/apiimpl.dart';
+import 'package:compiler/compiler.dart';
 
 import 'source_map_validator_helper.dart';
-import 'compiler_alt.dart' as alt;
 
 void main() {
-  entry.compileFunc = alt.compile;
-
   asyncTest(() => createTempDir().then((Directory tmpDir) {
     print(
         'Compiling tests/compiler/dart2js/source_map_validator_test_file.dart');
-    Future result = entry.internalMain(
+    Future<CompilationResult> result = entry.internalMain(
         ['tests/compiler/dart2js/source_map_validator_test_file.dart',
          '-o${tmpDir.path}/out.js',
          '--library-root=sdk']);
-      return result.then((_) {
-        Compiler compiler = alt.compiler;
+      return result.then((CompilationResult result) {
+        Compiler compiler = result.compiler;
         Uri uri =
             new Uri.file('${tmpDir.path}/out.js', windows: Platform.isWindows);
         validateSourceMap(uri, compiler);
@@ -33,3 +31,4 @@ void main() {
       });
   }));
 }
+

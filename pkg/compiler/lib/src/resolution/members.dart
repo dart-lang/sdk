@@ -2761,6 +2761,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else if (target.isTypeVariable) {
         ClassElement cls = target.enclosingClass;
         assert(enclosingElement.enclosingClass == cls);
+        if (Elements.isInStaticContext(enclosingElement)) {
+          compiler.reportError(node,
+              MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+              {'typeVariableName': node.selector});
+        }
         registry.registerClassUsingVariableExpression(cls);
         registry.registerTypeVariableExpression();
         // Set the type of the node to [Type] to mark this send as a

@@ -71,7 +71,7 @@ class IrBuilderTask extends CompilerTask {
       }
 
     } else if (element is! FieldElement) {
-      compiler.internalError(element, "Unexpected elementtype $element");
+      compiler.internalError(element, "Unexpected element type $element");
     }
     return compiler.backend.shouldOutput(element);
   }
@@ -190,7 +190,11 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     });
 
     List<ir.Initializer> initializers;
-    if (element.isGenerativeConstructor) {
+    if (element.isSynthesized) {
+      assert(element is ConstructorElement);
+      return irBuilder.makeConstructorDefinition(const <ConstantExpression>[],
+          const <ir.Initializer>[]);
+    } else if (element.isGenerativeConstructor) {
       initializers = buildConstructorInitializers(node, element);
       visit(node.body);
       return irBuilder.makeConstructorDefinition(defaults, initializers);
@@ -279,15 +283,29 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   ir.FunctionDefinition buildFunction(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
     ast.FunctionExpression node = element.node;
-    assert(node != null);
-    assert(elements[node] != null);
 
-    DetectClosureVariables closureLocals = new DetectClosureVariables(elements);
-    closureLocals.visit(node);
+    Iterable<Entity> usedFromClosure;
+    if (!element.isSynthesized) {
+      assert(node != null);
+      assert(elements[node] != null);
+
+      // TODO(karlklose): this information should be provided by resolution.
+      DetectClosureVariables closureLocals =
+          new DetectClosureVariables(elements);
+      closureLocals.visit(node);
+      usedFromClosure = closureLocals.usedFromClosure;
+    } else {
+      SynthesizedConstructorElementX constructor = element;
+      if (!constructor.isDefaultConstructor) {
+        giveup(null, 'cannot handle synthetic forwarding constructors');
+      }
+
+      usedFromClosure = <Entity>[];
+    }
 
     IrBuilder builder = new IrBuilder(compiler.backend.constantSystem,
                                       element,
-                                      closureLocals.usedFromClosure);
+                                      usedFromClosure);
 
     return withBuilder(builder, () => _makeFunctionBody(element, node));
   }

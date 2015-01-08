@@ -25,12 +25,25 @@ class StackFrame;
 // SourceBreakpoint represents a user-specified breakpoint location in
 // Dart source. There may be more than one CodeBreakpoint object per
 // SourceBreakpoint.
+// An unresolved breakpoint is one where the underlying code has not
+// been compiled yet. Since the code has not been compiled, we don't know
+// the definitive source location yet. The requested source location may
+// change when the underlying code gets compiled.
+// A latent breakpoint represents a breakpoint location in Dart source
+// that is not loaded in the VM when the breakpoint is requested.
+// When a script with matching url is loaded, a latent breakpoint
+// becomes an unresolved breakpoint.
 class SourceBreakpoint {
  public:
+  // Create a new unresolved breakpoint.
   SourceBreakpoint(intptr_t id,
                    const Script& script,
                    intptr_t token_pos,
                    intptr_t end_token_pos);
+  // Create a new latent breakpoint.
+  SourceBreakpoint(intptr_t id,
+                   const String& url,
+                   intptr_t line_number);
 
   RawFunction* function() const { return function_; }
   intptr_t token_pos() const { return token_pos_; }
@@ -38,7 +51,7 @@ class SourceBreakpoint {
   intptr_t id() const { return id_; }
 
   RawScript* script() const { return script_; }
-  RawString* SourceUrl();
+  RawString* url() const { return url_; }
   intptr_t LineNumber();
 
   void GetCodeLocation(Library* lib, Script* script, intptr_t* token_pos);
@@ -47,6 +60,7 @@ class SourceBreakpoint {
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
   bool IsResolved() const { return is_resolved_; }
+  bool IsLatent() const { return token_pos_ < 0; }
 
   bool IsOneShot() const { return is_one_shot_; }
   void SetIsOneShot() { is_one_shot_ = true; }
@@ -62,6 +76,7 @@ class SourceBreakpoint {
 
   const intptr_t id_;
   RawScript* script_;
+  RawString* url_;
   intptr_t token_pos_;
   intptr_t end_token_pos_;
   bool is_resolved_;
@@ -342,6 +357,7 @@ class Debugger {
   void Shutdown();
 
   void NotifyCompilation(const Function& func);
+  void NotifyDoneLoading();
 
   RawFunction* ResolveFunction(const Library& library,
                                const String& class_name,
@@ -462,6 +478,7 @@ class Debugger {
                                   intptr_t last_token_pos);
   void RemoveInternalBreakpoints();
   void UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt);
+  SourceBreakpoint* GetLatentBreakpoint(const String& url, intptr_t line);
   void RegisterSourceBreakpoint(SourceBreakpoint* bpt);
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   SourceBreakpoint* GetSourceBreakpoint(const Script& script,
@@ -511,7 +528,7 @@ class Debugger {
   // ID number generator.
   intptr_t next_id_;
 
-
+  SourceBreakpoint* latent_breakpoints_;
   SourceBreakpoint* src_breakpoints_;
   CodeBreakpoint* code_breakpoints_;
 

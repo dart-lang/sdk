@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable_async --optimization-counter-threshold=10
+// VMOptions=---optimization-counter-threshold=10
 
 import 'package:expect/expect.dart';
 
@@ -22,7 +22,7 @@ class C {
     staticField = val;
   }
   static int staticFoo(int param) => param;
-  
+
   int field = 1;
   int get getter => field;
   int set setter(val) {

@@ -6,9 +6,6 @@
 // after.
 library trydart.library_updater_test;
 
-import 'dart:convert' show
-    UTF8;
-
 import 'package:dart2js_incremental/library_updater.dart' show
     IncrementalCompilerContext,
     LibraryUpdater,
@@ -17,10 +14,17 @@ import 'package:dart2js_incremental/library_updater.dart' show
 import 'package:compiler/src/scanner/scannerlib.dart' show
     PartialFunctionElement;
 
+import 'package:compiler/src/dart2jslib.dart' show
+    Script;
+
+import 'package:compiler/src/source_file.dart' show
+    StringSourceFile;
+
 import 'compiler_test_case.dart';
 
 import 'library_updater_test.dart' show
     LibraryUpdaterTestCase,
+    newScriptFrom,
     nolog;
 
 class ApplyUpdateTestCase extends LibraryUpdaterTestCase {
@@ -44,7 +48,8 @@ class ApplyUpdateTestCase extends LibraryUpdaterTestCase {
     context.registerUriWithUpdates([scriptUri]);
 
     bool actualCanReuse =
-        updater.canReuseLibrary(library, UTF8.encode(newSource));
+        updater.canReuseLibrary(
+            library, <Script>[newScriptFrom(library, newSource)]);
     Expect.equals(expectedCanReuse, actualCanReuse);
 
     Update update = updater.updates.single;

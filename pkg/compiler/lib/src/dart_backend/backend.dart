@@ -131,31 +131,24 @@ class DartBackend extends Backend {
 
   /// Create an [ElementAst] from the CPS IR.
   static ElementAst createElementAst(
-       Compiler compiler,
-       Tracer tracer,
-       ConstantSystem constantSystem,
+       ElementAstCreationContext context,
        Element element,
        cps_ir.ExecutableDefinition cpsDefinition) {
     // Transformations on the CPS IR.
-    if (tracer != null) {
-      tracer.traceCompilation(element.name, null);
-    }
-
-    void traceGraph(String title, var irObject) {
-      if (tracer != null) {
-        tracer.traceGraph(title, irObject);
-      }
-    }
+    context.traceCompilation(element.name);
 
     // TODO(karlklose): enable type propagation for dart2dart when constant
     // types are correctly marked as instantiated (Issue 21880).
-    new TypePropagator(compiler.types, constantSystem, new UnitTypeSystem(),
-        compiler.internalError).rewrite(cpsDefinition);
-    traceGraph("Sparse constant propagation", cpsDefinition);
+    new TypePropagator(context.dartTypes,
+                       context.constantSystem,
+                       new UnitTypeSystem(),
+                       context.internalError)
+        .rewrite(cpsDefinition);
+    context.traceGraph("Sparse constant propagation", cpsDefinition);
     new RedundantPhiEliminator().rewrite(cpsDefinition);
-    traceGraph("Redundant phi elimination", cpsDefinition);
+    context.traceGraph("Redundant phi elimination", cpsDefinition);
     new ShrinkingReducer().rewrite(cpsDefinition);
-    traceGraph("Shrinking reductions", cpsDefinition);
+    context.traceGraph("Shrinking reductions", cpsDefinition);
 
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
@@ -163,22 +156,22 @@ class DartBackend extends Backend {
     new cps_ir.RegisterAllocator().visit(cpsDefinition);
 
     tree_builder.Builder builder =
-        new tree_builder.Builder(compiler.internalError);
+        new tree_builder.Builder(context.internalError);
     tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
     assert(treeDefinition != null);
-    traceGraph('Tree builder', treeDefinition);
+    context.traceGraph('Tree builder', treeDefinition);
 
     // Transformations on the Tree IR.
     new StatementRewriter().rewrite(treeDefinition);
-    traceGraph('Statement rewriter', treeDefinition);
+    context.traceGraph('Statement rewriter', treeDefinition);
     new CopyPropagator().rewrite(treeDefinition);
-    traceGraph('Copy propagation', treeDefinition);
+    context.traceGraph('Copy propagation', treeDefinition);
     new LoopRewriter().rewrite(treeDefinition);
-    traceGraph('Loop rewriter', treeDefinition);
+    context.traceGraph('Loop rewriter', treeDefinition);
     new LogicalRewriter().rewrite(treeDefinition);
-    traceGraph('Logical rewriter', treeDefinition);
+    context.traceGraph('Logical rewriter', treeDefinition);
     new backend_ast_emitter.UnshadowParameters().unshadow(treeDefinition);
-    traceGraph('Unshadow parameters', treeDefinition);
+    context.traceGraph('Unshadow parameters', treeDefinition);
 
     TreeElementMapping treeElements = new TreeElementMapping(element);
     backend_ast.ExecutableDefinition backendAst =
@@ -200,7 +193,9 @@ class DartBackend extends Backend {
         || mirrorRenamer.isMirrorHelperLibrary(element.library);
   }
 
-  void assembleProgram() {
+  int assembleProgram() {
+    ElementAstCreationContext context =
+        new _ElementAstCreationContext(compiler, constantSystem);
 
     ElementAst computeElementAst(AstElement element) {
       if (!compiler.irBuilder.hasIr(element)) {
@@ -209,8 +204,7 @@ class DartBackend extends Backend {
       } else {
         cps_ir.ExecutableDefinition definition =
             compiler.irBuilder.getIr(element);
-        return createElementAst(compiler,
-            compiler.tracer, constantSystem, element, definition);
+        return createElementAst(context, element, definition);
       }
     }
 
@@ -228,7 +222,7 @@ class DartBackend extends Backend {
       collector.collect();
     }
 
-    String assembledCode = outputter.assembleProgram(
+    int totalSize = outputter.assembleProgram(
         libraries: compiler.libraryLoader.libraries,
         instantiatedClasses: compiler.resolverWorld.directlyInstantiatedClasses,
         resolvedElements: compiler.enqueuer.resolution.resolvedElements,
@@ -241,16 +235,15 @@ class DartBackend extends Backend {
         mirrorRenamer: mirrorRenamer,
         mainFunction: compiler.mainFunction,
         outputUri: compiler.outputUri);
-    compiler.assembledCode = assembledCode;
-
-    int totalSize = assembledCode.length;
 
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.
     logResultBundleSizeInfo(
         outputter.libraryInfo.userLibraries,
         outputter.elementInfo.topLevelElements,
-        assembledCode.length);
+        totalSize);
+
+    return totalSize;
   }
 
   void logResultBundleSizeInfo(Iterable<LibraryElement> userLibraries,
@@ -527,4 +520,32 @@ class DartConstantTask extends ConstantCompilerTask
       return constantCompiler.compileMetadata(metadata, node, elements);
     });
   }
+}
+
+abstract class ElementAstCreationContext {
+  DartTypes get dartTypes;
+  ConstantSystem get constantSystem;
+  InternalErrorFunction get internalError;
+
+  void traceCompilation(String name);
+  void traceGraph(String title, var irObject);
+}
+
+class _ElementAstCreationContext implements ElementAstCreationContext {
+  final Compiler compiler;
+  final ConstantSystem constantSystem;
+
+  _ElementAstCreationContext(this.compiler, this.constantSystem);
+
+  void traceCompilation(String name) {
+    compiler.tracer.traceCompilation(name, null);
+  }
+
+  void traceGraph(String title, var irObject) {
+    compiler.tracer.traceGraph(title, irObject);
+  }
+
+  DartTypes get dartTypes => compiler.types;
+
+  InternalErrorFunction get internalError => compiler.internalError;
 }

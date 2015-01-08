@@ -7,7 +7,7 @@
 \usepackage{lmodern}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.6}}
+{\large Version 1.9}}
 %\author{The Dart Team}
 
 % For information about Location Markers (and in particular the
@@ -1106,7 +1106,11 @@ The purpose of an abstract method is to provide a declaration for purposes such 
 %always results in a run-time error. This must be \code{NoSuchMethodError} or an instance of a subclass of \code{NoSuchMethodError}, such as \code{AbstractMethodError}.
 
 \LMHash{}
-It is a static warning if an abstract member is declared or inherited in a concrete class unless that member overrides a concrete one.
+It is a static warning if an abstract member $m$ is declared or inherited in a concrete class $C$ unless:
+\begin{itemize}
+\item  $m$ overrides a concrete member, or 
+\item $C$ has a \cd{noSuchMethod()} method distinct from the one declared in class \cd{Object}.
+\end{itemize}
 
 \rationale {
 We wish to warn if one declares a concrete class with abstract members. However,  code like the following should work without warnings:
@@ -1115,16 +1119,14 @@ We wish to warn if one declares a concrete class with abstract members. However,
 \begin{dartCode}
  class Base \{
     int get one =$>$ 1;
-  \}
+ \}
 
-  abstract class Mix \{
+ abstract class Mix \{
     int get one;
     int get two =$>$ one + one;
-  \}
+ \}
 
-  class C extends Base with Mix \{
-  \}
-\}
+ class C extends Base with Mix \{ \}
 \end{dartCode}
 
 \rationale{At run time, the concrete method \cd{one} declared in \cd{Base} will be executed, and no problem should arise. Therefore no warning should be issued and so we suppress warnings if a corresponding concrete member exists in the hierarchy. }
@@ -1805,7 +1807,7 @@ If two members override each other, it is a static warning if the overriding mem
 \item Superinterface members are not inherited by a class, but are inherited by its implicit interface. Interfaces have their own inheritance rules (\ref{interfaceInheritanceAndOverriding}).
 \item A member is abstract if it has no body and is not labeled \EXTERNAL{} (\ref{abstractInstanceMembers}, \ref{externalFunctions}).
 \item A class is abstract iff it is explicitly labeled \ABSTRACT{}.% or if it declares (not just inherits) an abstract member (\ref{classes}).
-\item It is a static warning a concrete class has an abstract member (declared or inherited).
+\item It is a static warning if a concrete class has an abstract member (declared or inherited).
 \item It is a static warning and a dynamic error to call a non-factory constructor of an abstract class  (\ref{new}). 
 \item If a class defines an instance member named $m$, and any of its superinterfaces have a  member named $m$, the interface of the class overrides $m$.
 \item  An interface inherits all  members of its superinterfaces that are not overridden and not members of multiple superinterfaces.
@@ -1815,7 +1817,7 @@ If two members override each other, it is a static warning if the overriding mem
   \item  If possible the interface gets a member named $m$ that has the minimum number of required parameters among all the members in the superinterfaces, the maximal number of    positionals, and the superset of named parameters.  The types of these are all \DYNAMIC{}. If this is impossible then no member $m$ appears in the interface.
   \end{itemize}  (\ref{interfaceInheritanceAndOverriding})
 \item  Rule \ref{typeSigAssignable} applies to interfaces as well as classes  (\ref{interfaceInheritanceAndOverriding}).
-\item  It is a static warning if a concrete class does not have an implementation for a  method in any of its superinterfaces  unless it declares  its own \cd{noSuchMethod} method (\ref{superinterfaces}). 
+\item  It is a static warning if a concrete class does not have an implementation for a  method in any of its superinterfaces  unless it has a \cd{noSuchMethod} method (\ref{superinterfaces}). 
 \item The identifier of a named constructor cannot be the same as the name of a member declared (as opposed to inherited) in the same class (\ref{constructors}).
 \end{enumerate}
 }
@@ -1849,7 +1851,7 @@ One might argue that it is harmless to repeat a type in the superinterface list,
 It is a compile-time error if the interface of a class $C$ is a superinterface of itself.
 
 \LMHash{}
-Let $C$ be a concrete class that does not declare its own \code{noSuchMethod()} method.
+Let $C$ be a concrete class that does not have a \code{noSuchMethod()} method distinct from the one declared in class \cd{Object}.
 It is a static warning if the implicit interface of  $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding non-abstract instance member $m$ of type $F'$ such that $F' <: F$. 
 
 \commentary{A class does not inherit members from its superinterfaces. However, its implicit interface does.
@@ -1858,14 +1860,9 @@ It is a static warning if the implicit interface of  $C$ includes an instance me
 
 \rationale {
 We choose to issue these warnings only for concrete classes; an abstract class might legitimately be designed with the expectation that concrete subclasses will implement part of  the interface.
-We also disable these warnings if a \code{noSuchMethod()} declaration is present. In such cases, the supported interface is going to be implemented via \code{noSuchMethod()} and no actual declarations of the implemented interface's members are needed. This allows proxy classes for specific types to be implemented without provoking type warnings.
-
-In addition, it may be useful to suppress these warnings if \code{noSuchMethod} is inherited, However, this may suppress meaningful warnings and so we choose not to do so. If one does want to suppress the warnings in a subclass, one can define a simple implementation of \code{noSuchMethod} in the subclass:
+We also disable these warnings if a \code{noSuchMethod()} declaration is present or inherited from any class other than \cd{Object}. In such cases, the supported interface is going to be implemented via \code{noSuchMethod()} and no actual declarations of the implemented interface's members are needed. This allows proxy classes for specific types to be implemented without provoking type warnings.
 }
 
-\begin{dartCode}
-noSuchMethod(inv) =$>$ \SUPER.noSuchMethod(inv);
-\end{dartCode}
 
 \LMHash{}
 It is a static warning if the implicit interface of  a class $C$ includes an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if  $F'$ is not a subtype of $F$. 
@@ -3453,7 +3450,7 @@ Given an instance creation expression of the form \CONST{} $q(a_1, \ldots , a_n)
 \LMLabel{spawningAnIsolate}
 
 \LMHash{}
-Spawning an isolate is accomplished via what is syntactically an ordinary library call, invoking one of the functions \code{spawnUri()} or \code{spawnFunction()}defined in the \code{dart:isolate} library. However, such calls  have the  semantic effect of creating a new isolate with its own memory and thread of control.
+Spawning an isolate is accomplished via what is syntactically an ordinary library call, invoking one of the functions \code{spawnUri()} or \code{spawn()} defined in the \code{dart:isolate} library. However, such calls  have the  semantic effect of creating a new isolate with its own memory and thread of control.
 
 \LMHash{}
 An isolate's memory is finite, as is the space available to its thread's call stack. It is possible for a running isolate to exhaust its memory or stack, resulting in a run-time error that cannot be effectively caught, which will force the isolate to be suspended.
@@ -4292,7 +4289,7 @@ Evaluation of an equality expression $ee$ of the form \code{$e_1$ == $e_2$} proc
 \begin{itemize}
 \item The expression $e_1$ is evaluated to an object $o_1$.
 \item The expression $e_2$ is evaluated to an object $o_2$.
-\item If either $o_1$ or $o_2$ is \NULL{}, then $ee$ evaluates to \code{identical($o_1$, $o_2$)}.  Otherwise,
+\item If either $o_1$ or $o_2$ is \NULL{}, then $ee$ evaluates to \TRUE{} if both $o_1$ and $o_2$ are \NULL{} and to \FALSE{} otherwise.  Otherwise,
 \item $ee$ is equivalent to the method invocation \code{$o_1$.==($o_2$)}.
 \end{itemize}
 
@@ -4301,7 +4298,7 @@ Evaluation of an equality expression $ee$ of the form \code{$e_1$ == $e_2$} proc
 Evaluation of an equality expression $ee$ of the form \code{\SUPER{} == $e$} proceeds as follows:
 \begin{itemize}
 \item The expression $e$ is evaluated to an object $o$.
-\item If either \THIS{} or $o$ is \NULL{}, then $ee$ evaluates to \code{identical(\THIS{}, $o$)}. Otherwise,
+\item If either \THIS{} or $o$ is \NULL{}, then $ee$ evaluates to evaluates to \TRUE{} if both \THIS{} and $o$ are \NULL{} and to \FALSE{} otherwise. Otherwise,
 \item $ee$ is equivalent to the method invocation \code{\SUPER{}.==($o$)}.
 \end{itemize}
 
@@ -4647,7 +4644,7 @@ Of course, if assignable expressions always appeared {\em as} the left hand side
 
 \begin{grammar}
 
-{\bf assignableExpression:}primary (argument* assignableSelector)+;
+{\bf assignableExpression:}primary (arguments* assignableSelector)+;
       \SUPER{} assignableSelector;
       identifier
     .
@@ -6388,7 +6385,8 @@ Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart syste
 \LMLabel{scripts}
 
 \LMHash{}
-A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level function \code{main}. 
+A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level member named  \code{main}. It is a static warning if the static type of \code{main} is not assignable to a function type or is a function type with more than two required parameters.
+
 A script $S$ may be executed as follows:
 
 \LMHash{}
@@ -6399,7 +6397,11 @@ First, $S$ is compiled as a library as specified above. Then, the top-level func
 \end{enumerate}
 
 \LMHash{}
-It is a run time error if $S$ does not declare or import a top-level function \code{main}. It is a static warning if \code{main} has more than two required parameters.
+It is a run time error if $S$ does not declare or export either:
+\begin{itemize}
+\item  A top-level function named  \code{main}, or 
+\item A top-level getter named  \code{main} that returns a function.
+\end{itemize}
 
 \commentary {
 Note that if \code{main} requires more than two arguments, a run time error will occur. 
@@ -6824,7 +6826,7 @@ A function type $T$ may be assigned to a function type $S$, written  $T \Longlef
 \LMHash{}
 % ensure that Object  and dynamic may be assign dot a function type
 A function is always an instance of some class that implements the class \code{Function} and implements a \CALL{} method with the same signature as the function. All function types are subtypes of \code{Function}.
-If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{} is the function type $F$, then $I$ is considered to be more specific than $F$.  It is a static warning if a concrete class implements \cd{Function} and does not have a concrete method named \CALL{} unless that class declares its own implementation of \cd{noSuchMethod()}.
+If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{} is the function type $F$, then $I$ is considered to be more specific than $F$.  It is a static warning if a concrete class implements \cd{Function} and does not have a concrete method named \CALL{} unless that class has an implementation of \cd{noSuchMethod()} distinct from the one declared in class \cd{Object}.
 
 
 

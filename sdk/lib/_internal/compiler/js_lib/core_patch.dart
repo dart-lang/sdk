@@ -259,9 +259,9 @@ class List<E> {
   }
 
   @patch
-  factory List.from(Iterable other, { bool growable: true }) {
+  factory List.from(Iterable elements, { bool growable: true }) {
     List<E> list = new List<E>();
-    for (E e in other) {
+    for (E e in elements) {
       list.add(e);
     }
     if (growable) return list;

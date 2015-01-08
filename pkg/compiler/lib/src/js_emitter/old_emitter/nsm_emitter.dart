@@ -81,16 +81,25 @@ class NsmEmitter extends CodeEmitterHelper {
       }
 
       assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
-      jsAst.Expression expression = js('this.#(this, #(#, #, #, #, #))', [
-          noSuchMethodName,
-          backend.emitter.staticFunctionAccess(
-              backend.getCreateInvocationMirror()),
-          js.string(compiler.enableMinification ?
-              internalName : methodName),
-          js.string(internalName),
-          js.number(type),
-          new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
-          new jsAst.ArrayInitializer(argNames)]);
+      jsAst.Expression expression =
+          js('''this.#noSuchMethodName(this,
+                    #createInvocationMirror(#methodName,
+                                            #internalName,
+                                            #type,
+                                            #arguments,
+                                            #namedArguments))''',
+             {'noSuchMethodName': noSuchMethodName,
+              'createInvocationMirror':
+                  backend.emitter.staticFunctionAccess(
+                      backend.getCreateInvocationMirror()),
+              'methodName':
+                  js.string(compiler.enableMinification
+                      ? internalName : methodName),
+              'internalName': js.string(internalName),
+              'type': js.number(type),
+              'arguments':
+                  new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
+              'namedArguments': new jsAst.ArrayInitializer(argNames)});
 
       if (backend.isInterceptedName(selector.name)) {
         return js(r'function($receiver, #) { return # }',
@@ -277,9 +286,8 @@ class NsmEmitter extends CodeEmitterHelper {
     var type = 0;
     if (useDiffEncoding) {
       statements.add(js.statement('''{
-          var objectClassObject =
-                  collectedClasses[#],    // # is name of class Object.
-              shortNames = #.split(","),  // # is diffEncoding.
+          var objectClassObject = processedClasses.collected[#objectClass],
+              shortNames = #diffEncoding.split(","),
               nameNumber = 0,
               diffEncodedString = shortNames[0],
               calculatedShortNames = [0, 1];    // 0, 1 are args for splice.
@@ -316,21 +324,20 @@ class NsmEmitter extends CodeEmitterHelper {
             }
             shortNames.splice.apply(shortNames, calculatedShortNames);
           }
-        }''', [
-            js.string(namer.getNameOfClass(objectClass)),
-            js.string('$diffEncoding')]));
+        }''', {'objectClass': js.string(namer.getNameOfClass(objectClass)),
+               'diffEncoding': js.string('$diffEncoding')}));
     } else {
       // No useDiffEncoding version.
       Iterable<String> longs = trivialNsmHandlers.map((selector) =>
              selector.invocationMirrorMemberName);
       statements.add(js.statement(
-          'var objectClassObject = collectedClasses[#],'
-          '    shortNames = #.split(",")', [
-              js.string(namer.getNameOfClass(objectClass)),
-              js.string('$diffEncoding')]));
+          'var objectClassObject = processedClasses.collected[#objectClass],'
+          '    shortNames = #diffEncoding.split(",")',
+          {'objectClass': js.string(namer.getNameOfClass(objectClass)),
+           'diffEncoding': js.string('$diffEncoding')}));
       if (!minify) {
-        statements.add(js.statement('var longNames = #.split(",")',
-                js.string(longs.join(','))));
+        statements.add(js.statement('var longNames = #longs.split(",")',
+                {'longs': js.string(longs.join(','))}));
       }
       statements.add(js.statement(
           'if (objectClassObject instanceof Array)'
@@ -366,23 +373,23 @@ class NsmEmitter extends CodeEmitterHelper {
           //     createInvocationMirror(String name, internalName, type,
           //         arguments, argumentNames)
           //
-          $whatToPatch[short] = (function(name, short, type, #) {
+          $whatToPatch[short] = (function(name, short,
+                                          type, #sliceOffsetParams) {
               return function() {
-                return this.#(this,
-                    #(name, short, type,
-                      Array.prototype.slice.call(arguments, #),
-                      []));
+                return this.#noSuchMethodName(this,
+                    #createInvocationMirror(name, short, type,
+                        Array.prototype.slice.call(arguments,
+                                                   #sliceOffsetParams),
+                                                   []));
               }
-          })(#[j], short, type, #);
+          })(#names[j], short, type, #sliceOffsetArguments);
         }
-      }''', [
-          sliceOffsetParams,  // parameter
-          noSuchMethodName,
-          createInvocationMirror,
-          sliceOffsetParams,  // argument to slice
-          minify ? 'shortNames' : 'longNames',
-          sliceOffsetArguments
-      ]));
+      }''', {
+          'sliceOffsetParams': sliceOffsetParams,
+          'noSuchMethodName': noSuchMethodName,
+          'createInvocationMirror': createInvocationMirror,
+          'names': minify ? 'shortNames' : 'longNames',
+          'sliceOffsetArguments': sliceOffsetArguments}));
 
     return statements;
   }

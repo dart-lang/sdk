@@ -86,6 +86,8 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   CHECK_STACK_ALIGNMENT;
   VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
+  MSAN_UNPOISON(arguments, sizeof(*arguments));
   Isolate* isolate = arguments->isolate();
 
   ApiState* state = isolate->api_state();

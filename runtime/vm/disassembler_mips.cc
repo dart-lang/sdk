@@ -190,7 +190,8 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
       ASSERT(STRING_STARTS_WITH(format, "code"));
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                 remaining_size_in_buffer(),
-                                "%d", instr->BreakCodeField());
+                                "0x%x",
+                                 instr->BreakCodeField());
       return 4;
     }
     case 'h': {
@@ -759,41 +760,6 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   if (out_instr_len) {
     *out_instr_len = Instr::kInstrSize;
   }
-}
-
-
-void Disassembler::Disassemble(uword start,
-                               uword end,
-                               DisassemblyFormatter* formatter,
-                               const Code::Comments& comments) {
-  ASSERT(formatter != NULL);
-  char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
-  char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
-  uword pc = start;
-  intptr_t comment_finger = 0;
-  while (pc < end) {
-    const intptr_t offset = pc - start;
-    while (comment_finger < comments.Length() &&
-           comments.PCOffsetAt(comment_finger) <= offset) {
-      formatter->Print(
-          "        ;; %s\n",
-          String::Handle(comments.CommentAt(comment_finger)).ToCString());
-      comment_finger++;
-    }
-    int instruction_length;
-    DecodeInstruction(hex_buffer, sizeof(hex_buffer),
-                      human_buffer, sizeof(human_buffer),
-                      &instruction_length, pc);
-
-    formatter->ConsumeInstruction(hex_buffer,
-                                  sizeof(hex_buffer),
-                                  human_buffer,
-                                  sizeof(human_buffer),
-                                  pc);
-    pc += instruction_length;
-  }
-
-  return;
 }
 
 }  // namespace dart

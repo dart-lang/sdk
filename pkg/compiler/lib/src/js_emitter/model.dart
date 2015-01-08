@@ -7,6 +7,8 @@ library dart2js.new_js_emitter.model;
 import '../js/js.dart' as js show Expression;
 import '../constants/values.dart' show ConstantValue;
 
+import '../common.dart';
+
 class Program {
   final List<Output> outputs;
   final bool outputContainsConstantList;
@@ -109,14 +111,22 @@ class Constant {
 }
 
 class Library {
+  /// The element should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final Element element;
+
   final String uri;
   final List<StaticMethod> statics;
   final List<Class> classes;
 
-  Library(this.uri, this.statics, this.classes);
+  Library(this.element, this.uri, this.statics, this.classes);
 }
 
 class StaticField {
+  /// The element should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final Element element;
+
   final String name;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
@@ -125,11 +135,16 @@ class StaticField {
   final bool isFinal;
   final bool isLazy;
 
-  StaticField(this.name, this.holder, this.code,
+  StaticField(this.element,
+              this.name, this.holder, this.code,
               this.isFinal, this.isLazy);
 }
 
 class Class {
+  /// The element should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final Element element;
+
   final String name;
   final Holder holder;
   Class _superclass;
@@ -141,7 +156,8 @@ class Class {
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
-  Class(this.name, this.holder, this.methods, this.fields,
+  Class(this.element,
+        this.name, this.holder, this.methods, this.fields,
         {this.onlyForRti,
          this.isDirectlyInstantiated}) {
     assert(onlyForRti != null);
@@ -164,10 +180,14 @@ class Class {
 class MixinApplication extends Class {
   Class _mixinClass;
 
-  MixinApplication(String name, Holder holder,
+  MixinApplication(Element element,
+                   String name, Holder holder,
+                   List<Method> methods,
+                   List<InstanceField> fields,
                    {bool onlyForRti,
                     bool isDirectlyInstantiated})
-      : super(name, holder, const <Method>[], const <InstanceField>[],
+      : super(element,
+              name, holder, methods, fields,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated);
 
@@ -180,6 +200,10 @@ class MixinApplication extends Class {
 }
 
 class InstanceField {
+  /// The element should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final Element element;
+
   final String name;
 
   /// 00: Does not need any getter.
@@ -195,20 +219,33 @@ class InstanceField {
   final int setterFlags;
 
   // TODO(floitsch): support renamed fields.
-  InstanceField(this.name, this.getterFlags, this.setterFlags);
+  InstanceField(this.element, this.name, this.getterFlags, this.setterFlags);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsSetter => setterFlags != 0;
 }
 
 class Method {
+  /// The element should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final Element element;
+
   final String name;
   final js.Expression code;
-  Method(this.name, this.code);
+  Method(this.element, this.name, this.code);
+}
+
+class StubMethod extends Method {
+  StubMethod(String name, js.Expression code) : super(null, name, code);
 }
 
 class StaticMethod extends Method {
   final Holder holder;
-  StaticMethod(String name, this.holder, js.Expression code)
-      : super(name, code);
+  StaticMethod(Element element, String name, this.holder, js.Expression code)
+      : super(element, name, code);
+}
+
+class StaticStubMethod extends StaticMethod {
+  StaticStubMethod(String name, Holder holder, js.Expression code)
+      : super(null, name, holder, code);
 }

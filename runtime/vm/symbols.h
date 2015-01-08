@@ -26,6 +26,7 @@ class ObjectPointerVisitor;
   V(UnaryMinus, "unary-")                                                      \
   V(Identical, "identical")                                                    \
   V(Length, "length")                                                          \
+  V(_setLength, "_setLength")                                                  \
   V(IndexToken, "[]")                                                          \
   V(AssignIndexToken, "[]=")                                                   \
   V(TopLevel, "::")                                                            \

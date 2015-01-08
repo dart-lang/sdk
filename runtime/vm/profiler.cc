@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/address_sanitizer.h"
+#include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 
 #include "vm/allocation.h"
@@ -28,6 +30,7 @@ namespace dart {
   DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 #endif
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
+DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
 DEFINE_FLAG(charp, profile_dir, NULL,
             "Enable writing profile data into specified directory.");
 DEFINE_FLAG(int, profile_period, 1000,
@@ -175,7 +178,7 @@ void Profiler::EndExecution(Isolate* isolate) {
 class ScopeStopwatch : public ValueObject {
  public:
   explicit ScopeStopwatch(const char* name) : name_(name) {
-    start_ = FLAG_trace_profiled_isolates ? OS::GetCurrentTimeMillis() : 0;
+    start_ = FLAG_trace_profiler ? OS::GetCurrentTimeMillis() : 0;
   }
 
   int64_t GetElapsed() const {
@@ -185,7 +188,7 @@ class ScopeStopwatch : public ValueObject {
   }
 
   ~ScopeStopwatch() {
-    if (FLAG_trace_profiled_isolates) {
+    if (FLAG_trace_profiler) {
       int64_t elapsed = GetElapsed();
       OS::Print("%s took %" Pd64 " millis.\n", name_, elapsed);
     }
@@ -1448,6 +1451,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
                                      &dead_code_table,
                                      &tag_code_table);
       {
+        ScopeStopwatch sw("FixTopFrame");
         // Preprocess samples and fix the caller when the top PC is in a
         // stub or intrinsic without a frame.
         FixTopFrameVisitor fixTopFrame(isolate);
@@ -1460,7 +1464,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
       }
       intptr_t samples = builder.visited();
       intptr_t frames = builder.frames();
-      if (FLAG_trace_profiled_isolates) {
+      if (FLAG_trace_profiler) {
         intptr_t total_live_code_objects = live_code_table.Length();
         intptr_t total_dead_code_objects = dead_code_table.Length();
         intptr_t total_tag_code_objects = tag_code_table.Length();
@@ -1474,7 +1478,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
       live_code_table.Verify();
       dead_code_table.Verify();
       tag_code_table.Verify();
-      if (FLAG_trace_profiled_isolates) {
+      if (FLAG_trace_profiler) {
         OS::Print("CodeRegionTables verified to be ordered and not overlap.\n");
       }
 #endif
@@ -1678,8 +1682,11 @@ static void SetPCMarkerIfSafe(Sample* sample) {
       return;
     }
 #endif
-    const uword pc_marker = *(fp + kPcMarkerSlotFromFp);
-    sample->set_pc_marker(pc_marker);
+    uword* pc_marker_ptr = fp + kPcMarkerSlotFromFp;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(pc_marker_ptr, kWordSize);
+    ASAN_UNPOISON(pc_marker_ptr, kWordSize);
+    sample->set_pc_marker(*pc_marker_ptr);
   }
 }
 
@@ -1929,12 +1936,20 @@ class ProfilerNativeStackWalker : public ValueObject {
  private:
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != NULL);
-    return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
+    uword* caller_pc_ptr = fp + kSavedCallerPcSlotFromFp;
+    // This may actually be uninitialized, by design (see class comment above).
+    MSAN_UNPOISON(caller_pc_ptr, kWordSize);
+    ASAN_UNPOISON(caller_pc_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*caller_pc_ptr);
   }
 
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != NULL);
-    return reinterpret_cast<uword*>(*(fp + kSavedCallerFpSlotFromFp));
+    uword* caller_fp_ptr = fp + kSavedCallerFpSlotFromFp;
+    // This may actually be uninitialized, by design (see class comment above).
+    MSAN_UNPOISON(caller_fp_ptr, kWordSize);
+    ASAN_UNPOISON(caller_fp_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*caller_fp_ptr);
   }
 
   bool ValidFramePointer(uword* fp) const {
@@ -2010,8 +2025,8 @@ void Profiler::RecordSampleInterruptCallback(
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  isolate->GetProfilerStackBounds(&stack_lower, &stack_upper);
-  if ((stack_lower == 0) || (stack_upper == 0)) {
+  if (!isolate->GetProfilerStackBounds(&stack_lower, &stack_upper) ||
+      (stack_lower == 0) || (stack_upper == 0)) {
     // Could not get stack boundary.
     return;
   }

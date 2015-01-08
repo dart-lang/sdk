@@ -378,7 +378,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     bool needsRecompute =
         currentOptions.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
-        currentOptions.enableAsync != options.enableAsync ||
         currentOptions.enableDeferredLoading != options.enableDeferredLoading ||
         currentOptions.enableEnum != options.enableEnum ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
@@ -6759,7 +6758,7 @@ class B extends A {
     verify([source]);
   }
 
-  void test_propagatedFieldType() {
+  void fail_propagatedFieldType() {
     // From dartbug.com/20019
     Source source = addSource(r'''
 class A { }
@@ -7827,16 +7826,6 @@ class ResolverTestCase extends EngineTestCase {
     // editor/tools/plugins/com.google.dart.tools.core/.options .
     AnalysisEngine.instance.enableUnionTypes = false;
     AnalysisEngine.instance.strictUnionTypes = false;
-  }
-
-  /**
-   * Reset the analysis context to have the 'enableAsync' option set to true.
-   */
-  void resetWithAsync() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableAsync = true;
-    analysisContext2 =
-        AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   /**
@@ -11962,7 +11951,7 @@ main(CanvasElement canvas) {
     expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
   }
 
-  void test_finalPropertyInducingVariable_classMember_instance() {
+  void fail_finalPropertyInducingVariable_classMember_instance() {
     addNamedSource("/lib.dart", r'''
 class A {
   final v = 0;
@@ -11978,7 +11967,7 @@ f(A a) {
         typeProvider.intType);
   }
 
-  void test_finalPropertyInducingVariable_classMember_instance_inherited() {
+  void fail_finalPropertyInducingVariable_classMember_instance_inherited() {
     addNamedSource("/lib.dart", r'''
 class A {
   final v = 0;
@@ -11997,7 +11986,7 @@ class B extends A {
   }
 
   void
-      test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+      fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
     addNamedSource("/lib.dart", r'''
 class A {
   final v = 0;
@@ -12015,7 +12004,7 @@ f(p) {
         typeProvider.intType);
   }
 
-  void test_finalPropertyInducingVariable_classMember_static() {
+  void fail_finalPropertyInducingVariable_classMember_static() {
     addNamedSource("/lib.dart", r'''
 class A {
   static final V = 0;
@@ -12031,7 +12020,7 @@ f() {
         typeProvider.intType);
   }
 
-  void test_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
+  void fail_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
     addNamedSource("/lib.dart", "final V = 0;");
     String code = r'''
 import 'lib.dart' as p;
@@ -12044,7 +12033,7 @@ f() {
         typeProvider.intType);
   }
 
-  void test_finalPropertyInducingVariable_topLevelVaraible_simple() {
+  void fail_finalPropertyInducingVariable_topLevelVaraible_simple() {
     addNamedSource("/lib.dart", "final V = 0;");
     String code = r'''
 import 'lib.dart';

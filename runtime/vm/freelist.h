@@ -17,7 +17,9 @@ namespace dart {
 // two words in size.  Second word of the raw object is used to keep a next_
 // pointer to chain elements of the list together. For objects larger than the
 // object size encodable in tags field, the size of the element is embedded in
-// the element at the address following the next_ field.
+// the element at the address following the next_ field. All words written by
+// the freelist are guaranteed to look like smis, as required by
+// TryAllocateSmiInitializedLocked.
 class FreeListElement {
  public:
   FreeListElement* next() const {

@@ -33,11 +33,6 @@ typedef Dart_Port Dart_IsolateId;
 #define ILLEGAL_BREAKPOINT_ID 0
 
 
-// DEPRECATED -- use Dart_PausedEventHandler
-typedef void Dart_BreakpointHandler(Dart_IsolateId isolate_id,
-                                    Dart_Breakpoint breakpoint,
-                                    Dart_StackTrace stack_trace);
-
 typedef void Dart_ExceptionThrownHandler(Dart_IsolateId isolate_id,
                                          Dart_Handle exception_object,
                                          Dart_StackTrace stack_trace);
@@ -286,18 +281,6 @@ DART_EXPORT Dart_Handle Dart_SetStepInto();
  * Requires there to be a current isolate.
  */
 DART_EXPORT Dart_Handle Dart_SetStepOut();
-
-
-/**
- * DEPRECATED -- use Dart_SetPausedEventHandler
- *
- * Installs a handler callback function that gets called by the VM
- * when a breakpoint has been reached.
- *
- * Requires there to be a current isolate.
- */
-DART_EXPORT void Dart_SetBreakpointHandler(
-                            Dart_BreakpointHandler bp_handler);
 
 
 /**

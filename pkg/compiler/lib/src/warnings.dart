@@ -1126,9 +1126,26 @@ main() => new C();"""]);
   static const MessageKind BEFORE_TOP_LEVEL = const MessageKind(
       "Part header must come before top-level definitions.");
 
+  static const MessageKind IMPORT_PART_OF = const MessageKind(
+      "The imported library must not have a 'part-of' directive.",
+      howToFix: "Try removing the 'part-of' directive or replacing the "
+                "import of the library with a 'part' directive.",
+      examples: const [const {
+'main.dart': """
+library library;
+
+import 'part.dart';
+
+main() {}
+""",
+
+'part.dart': """
+part of library;
+"""}]);
+
   static const MessageKind LIBRARY_NAME_MISMATCH = const MessageKind(
       "Expected part of library name '#{libraryName}'.",
-      howToFix: "Trying changing the directive to 'part of #{libraryName};'.",
+      howToFix: "Try changing the directive to 'part of #{libraryName};'.",
       examples: const [const {
 'main.dart': """
 library lib.foo;
@@ -1145,7 +1162,7 @@ part of lib.bar;
   static const MessageKind MISSING_LIBRARY_NAME = const MessageKind(
       "Library has no name. Part directive expected library name "
       "to be '#{libraryName}'.",
-      howToFix: "Trying adding 'library #{libraryName};' to the library.",
+      howToFix: "Try adding 'library #{libraryName};' to the library.",
       examples: const [const {
 'main.dart': """
 part 'part.dart';
@@ -1165,9 +1182,6 @@ part of lib.foo;
 
   static const MessageKind DUPLICATED_PART_OF = const MessageKind(
       "Duplicated part-of directive.");
-
-  static const MessageKind ILLEGAL_DIRECTIVE = const MessageKind(
-      "Directive not allowed here.");
 
   static const MessageKind DUPLICATED_LIBRARY_NAME = const MessageKind(
       "Duplicated library name '#{libraryName}'.");
@@ -2177,6 +2191,66 @@ import 'dart-ext:main';
 
 main() {}
 """]);
+
+  static const MessageKind LIBRARY_TAG_MUST_BE_FIRST = const MessageKind(
+      "The library declaration should come before other declarations.",
+      howToFix: "Try moving the declaration to the top of the file.",
+      examples: const [
+"""
+import 'dart:core';
+library foo;
+main() {}
+""",
+      ]);
+
+  static const MessageKind ONLY_ONE_LIBRARY_TAG = const MessageKind(
+      "There can only be one library declaration.",
+      howToFix: "Try removing all other library declarations.",
+      examples: const [
+"""
+library foo;
+library bar;
+main() {}
+""",
+"""
+library foo;
+import 'dart:core';
+library bar;
+main() {}
+""",
+      ]);
+
+  static const MessageKind IMPORT_BEFORE_PARTS = const MessageKind(
+      "Import declarations should come before parts.",
+      howToFix: "Try moving this import further up in the file.",
+      examples: const [
+          const <String, String>{
+            'main.dart': """
+library test.main;
+part 'part.dart';
+import 'dart:core';
+main() {}
+""",
+            'part.dart': """
+part of test.main;
+""",
+      }]);
+
+  static const MessageKind EXPORT_BEFORE_PARTS = const MessageKind(
+      "Export declarations should come before parts.",
+      howToFix: "Try moving this export further up in the file.",
+      examples: const [
+          const <String, String>{
+            'main.dart': """
+library test.main;
+part 'part.dart';
+export 'dart:core';
+main() {}
+""",
+            'part.dart': """
+part of test.main;
+""",
+      }]);
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.

@@ -44,14 +44,19 @@ char** Platform::Environment(intptr_t* count) {
   wchar_t* tmp = strings;
   intptr_t i = 0;
   while (*tmp != '\0') {
-    i++;
+    // Skip environment strings starting with "=".
+    // These are synthetic variables corresponding to dynamic environment
+    // variables like %=C:% and %=ExitCode%, and the Dart environment does
+    // not include these.
+    if (*tmp != '=') i++;
     tmp += (wcslen(tmp) + 1);
   }
   *count = i;
   char** result = new char*[i];
   tmp = strings;
-  for (intptr_t current = 0; current < i; current++) {
-    result[current] = StringUtils::WideToUtf8(tmp);
+  for (intptr_t current = 0; current < i;) {
+    // Skip the strings that were not counted above.
+    if (*tmp != '=') result[current++] = StringUtils::WideToUtf8(tmp);
     tmp += (wcslen(tmp) + 1);
   }
   FreeEnvironmentStringsW(strings);

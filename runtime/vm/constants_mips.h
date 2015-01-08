@@ -45,6 +45,7 @@ enum Register {
   R30 = 30,
   R31 = 31,
   kNumberOfCpuRegisters = 32,
+  IMM = 32,  // Positive value is easier to encode than kNoRegister in bitfield.
   kNoRegister = -1,
 
   // Register aliases.
@@ -236,17 +237,22 @@ const FRegister kDartLastVolatileFpuReg = F19;
 const int kDartVolatileFpuRegCount = 20;
 
 
-// Values for the condition field.
-// There is no condition field on MIPS, but Conditions are used and passed
-// around by the intermediate language, so we need them here, too.
-enum Condition {
+// There is no status register on MIPS. Instead of representing a condition
+// code, type Condition (see assembler_mips.h) represents a pair of operands and
+// a relation operator between them.
+enum RelationOperator {
+  AL,  // always
+  NV,  // never
   EQ,  // equal
   NE,  // not equal
   GT,  // greater than
   GE,  // greater equal
   LT,  // less than
   LE,  // less equal
-  VS,  // overflow
+  UGT,  // unsigned greater than
+  UGE,  // unsigned greater equal
+  ULT,  // unsigned less than
+  ULE,  // unsigned less equal
 };
 
 
@@ -361,7 +367,7 @@ enum SpecialFunction {
   SYSCALL = 12,
   BREAK = 13,
   SYNC = 15,
-  MFHI =16,
+  MFHI = 16,
   MTHI = 17,
   MFLO = 18,
   MTLO = 19,

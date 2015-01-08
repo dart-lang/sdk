@@ -963,7 +963,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
+      raw->InitializeSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
@@ -2669,6 +2669,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
     invocation.SetParameterNameAt(i, String::Handle(desc.NameAt(index)));
   }
   invocation.set_result_type(Type::Handle(Type::DynamicType()));
+  invocation.set_is_debuggable(false);
   invocation.set_is_visible(false);  // Not visible in stack trace.
   invocation.set_saved_args_desc(args_desc);
 
@@ -6197,6 +6198,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_external(is_external);
   result.set_is_native(is_native);
   result.set_is_visible(true);  // Will be computed later.
+  result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
   result.set_is_async_closure(false);
@@ -6222,7 +6224,6 @@ RawFunction* Function::New(const String& name,
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
   }
-
   return result.raw();
 }
 
@@ -6297,6 +6298,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     owner,
                     0));
   ASSERT(!script.IsNull());
+  result.set_is_debuggable(false);
   result.set_eval_script(script);
   return result.raw();
 }
@@ -6754,7 +6756,6 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
-      // sed -i .bak -f /tmp/newkeys runtime/vm/intermediate_language.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
       OS::Print("s/%d/%d/\n", fp, SourceFingerprint());
     } else {
@@ -6823,7 +6824,7 @@ const char* Function::ToCString() const {
 }
 
 
-const char* GetFunctionServiceId(const Function& f, const Class& cls) {
+static const char* GetFunctionServiceId(const Function& f, const Class& cls) {
   Zone* zone = Isolate::Current()->current_zone();
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;
@@ -12257,10 +12258,9 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.EntryPoint();
   if (formatter == NULL) {
-    Disassembler::Disassemble(start, start + instr.size(), comments());
+    Disassembler::Disassemble(start, start + instr.size(), *this);
   } else {
-    Disassembler::Disassemble(start, start + instr.size(), formatter,
-                              comments());
+    Disassembler::Disassemble(start, start + instr.size(), formatter, *this);
   }
   if (fix_patch) {
     // Redo the patch.
@@ -12278,6 +12278,12 @@ const Code::Comments& Code::comments() const  {
 void Code::set_comments(const Code::Comments& comments) const {
   ASSERT(comments.comments_.IsOld());
   StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
+}
+
+
+void Code::set_inlined_intervals(const Array& value) const {
+  ASSERT(value.IsOld());
+  StorePointer(&raw_ptr()->inlined_intervals_, value.raw());
 }
 
 
@@ -12628,6 +12634,48 @@ RawStackmap* Code::GetStackmap(
   // If the code has stackmaps, it must have them for all safepoints.
   UNREACHABLE();
   return Stackmap::null();
+}
+
+
+void Code::GetInlinedFunctionsAt(
+    intptr_t offset, GrowableArray<Function*>* fs) const {
+  fs->Clear();
+  const Array& intervals = Array::Handle(inlined_intervals());
+  if (intervals.IsNull()) {
+    // E.g., for code stubs.
+    return;
+  }
+  Smi& start = Smi::Handle();
+  Smi& end = Smi::Handle();
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
+    start ^= intervals.At(i + Code::kInlIntStart);
+    if (!start.IsNull()) {
+      end ^= intervals.At(i + Code::kInlIntEnd);
+      if ((start.Value() <= offset) && (offset < end.Value())) {
+        function ^= intervals.At(i + Code::kInlIntFunction);
+        fs->Add(&Function::ZoneHandle(function.raw()));
+      }
+    }
+  }
+}
+
+
+void Code::DumpInlinedIntervals() const {
+  OS::Print("Inlined intervals:\n");
+  const Array& intervals = Array::Handle(inlined_intervals());
+  Smi& start = Smi::Handle();
+  Smi& end = Smi::Handle();
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
+    start ^= intervals.At(i + Code::kInlIntStart);
+    if (!start.IsNull()) {
+      end ^= intervals.At(i + Code::kInlIntEnd);
+      function ^= intervals.At(i + Code::kInlIntFunction);
+      OS::Print("%" Pd " .. %" Pd " %s\n",
+          start.Value(), end.Value(), function.ToQualifiedCString());
+    }
+  }
 }
 
 

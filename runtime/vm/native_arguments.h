@@ -6,6 +6,7 @@
 #define VM_NATIVE_ARGUMENTS_H_
 
 #include "platform/assert.h"
+#include "platform/memory_sanitizer.h"
 #include "vm/globals.h"
 #include "vm/handles_impl.h"
 #include "vm/simulator.h"
@@ -89,7 +90,10 @@ class NativeArguments {
 
   RawObject* ArgAt(int index) const {
     ASSERT((index >= 0) && (index < ArgCount()));
-    return (*argv_)[-index];
+    RawObject** arg_ptr = &((*argv_)[-index]);
+    // Tell MemorySanitizer the RawObject* was initialized (by generated code).
+    MSAN_UNPOISON(arg_ptr, kWordSize);
+    return *arg_ptr;
   }
 
   int NativeArgCount() const {

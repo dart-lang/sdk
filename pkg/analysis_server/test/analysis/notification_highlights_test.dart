@@ -180,10 +180,14 @@ main() {
     addTestFile('''
 main() async {
   await 42;
+  await for (var item in []) {
+    print(item);
+  }
 }
 ''');
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightRegionType.BUILT_IN, 'await 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'await for');
     });
   }
 

@@ -14,7 +14,9 @@ import 'dart:_js_embedded_names' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
     INITIALIZE_LOADED_HUNK,
-    IS_HUNK_LOADED;
+    IS_HUNK_LOADED,
+    IS_HUNK_INITIALIZED,
+    NATIVE_SUPERCLASS_TAG_NAME;
 
 import 'dart:collection';
 import 'dart:_isolate_helper' show
@@ -3312,15 +3314,18 @@ Future<Null> loadDeferredLibrary(String loadId) {
   // The indices into `uris` and `hashes` that we want to load.
   List<int> indices = new List.generate(uris.length, (i) => i);
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
+  var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
   // Filter away indices for hunks that have already been loaded.
   List<int> indicesToLoad = indices
       .where((int i) => !JS('bool','#(#)', isHunkLoaded, hashes[i]))
       .toList();
-  // Load the needed hunks.
   return Future.wait(indicesToLoad
       .map((int i) => _loadHunk(uris[i]))).then((_) {
     // Now all hunks have been loaded, we run the needed initializers.
-    for (int i in indicesToLoad) {
+    List<int> indicesToInitialize = indices
+        .where((int i) => !JS('bool','#(#)', isHunkInitialized, hashes[i]))
+        .toList();  // Load the needed hunks.
+    for (int i in indicesToInitialize) {
       var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
       JS('void', '#(#)', initializer, hashes[i]);
     }

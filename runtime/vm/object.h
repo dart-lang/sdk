@@ -2174,6 +2174,7 @@ class Function : public Object {
   V(Const, is_const)                                                           \
   V(Abstract, is_abstract)                                                     \
   V(Visible, is_visible)                                                       \
+  V(Debuggable, is_debuggable)                                                 \
   V(Optimizable, is_optimizable)                                               \
   V(Inlinable, is_inlinable)                                                   \
   V(Intrinsic, is_intrinsic)                                                   \
@@ -3959,6 +3960,23 @@ class Code : public Object {
 
   const Comments& comments() const;
   void set_comments(const Comments& comments) const;
+
+  enum InlinedIntervalEntries {
+    kInlIntStart = 0,
+    kInlIntEnd = 1,
+    kInlIntFunction = 2,
+    kInlIntNumEntries = 3
+  };
+
+  RawArray* inlined_intervals() const {
+    return raw_ptr()->inlined_intervals_;
+  }
+  void set_inlined_intervals(const Array& value) const;
+
+  void GetInlinedFunctionsAt(
+      intptr_t offset, GrowableArray<Function*>* fs) const;
+
+  void DumpInlinedIntervals() const;
 
   RawLocalVarDescriptors* var_descriptors() const {
     return raw_ptr()->var_descriptors_;

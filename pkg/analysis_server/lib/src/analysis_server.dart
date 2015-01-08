@@ -199,6 +199,8 @@ class AnalysisServer {
     contextDirectoryManager.defaultOptions.incremental = true;
     contextDirectoryManager.defaultOptions.incrementalApi =
         analysisServerOptions.enableIncrementalResolutionApi;
+    contextDirectoryManager.defaultOptions.incrementalValidation =
+        analysisServerOptions.enableIncrementalResolutionValidation;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
@@ -625,6 +627,14 @@ class AnalysisServer {
   }
 
   /**
+   * Report to the client that the given [exception] was caught with the
+   * associated [stackTrace].
+   */
+  void reportException(dynamic exception, StackTrace stackTrace) {
+    _sendServerErrorNotification(exception, stackTrace);
+  }
+
+  /**
    * Schedules execution of the given [ServerOperation].
    */
   void scheduleOperation(ServerOperation operation) {
@@ -936,6 +946,7 @@ class AnalysisServer {
 
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
+  bool enableIncrementalResolutionValidation = false;
 }
 
 /**

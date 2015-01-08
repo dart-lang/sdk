@@ -26,4 +26,9 @@ class Script {
 
   String get text => (file == null) ? null : file.slowText();
   String get name => (file == null) ? null : file.filename;
+
+  /// Creates a new [Script] with the same URIs, but new content ([file]).
+  Script copyWithFile(SourceFile file) {
+    return new Script(readableUri, resourceUri, file);
+  }
 }

@@ -7,6 +7,7 @@ library dart2js.new_js_emitter.emitter;
 import '../model.dart';
 import 'model_emitter.dart';
 import '../../common.dart';
+import '../../elements/elements.dart' show FieldElement;
 import '../../js/js.dart' as js;
 
 import '../../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
@@ -24,11 +25,13 @@ class Emitter implements emitterTask.Emitter {
         this.namer = namer,
         _emitter = new ModelEmitter(compiler, namer);
 
-  void emitProgram(Program program) {
-    _emitter.emitProgram(program);
+  @override
+  int emitProgram(Program program) {
+    return _emitter.emitProgram(program);
   }
 
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     if (constant.isFunction) return true;    // Already emitted.
     if (constant.isPrimitive) return true;   // Inlined.
@@ -41,6 +44,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  @override
   int compareConstants(ConstantValue a, ConstantValue b) {
     // Inlined constants don't affect the order and sometimes don't even have
     // names.
@@ -63,26 +67,17 @@ class Emitter implements emitterTask.Emitter {
     return namer.constantName(a).compareTo(namer.constantName(b));
   }
 
+  @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    // TODO(floitsch): We should not use "init" for globals.
-    return js.string("init.$global");
+    return _emitter.generateEmbeddedGlobalAccess(global);
   }
 
+  @override
   js.Expression constantReference(ConstantValue value) {
     return _emitter.constantEmitter.reference(value);
   }
 
-  js.Expression isolateLazyInitializerAccess(Element element) {
-    return js.js('#.#', [namer.globalObjectFor(element), 
-                         namer.getLazyInitializerName(element)]);
-  }
-
-  js.Expression isolateStaticClosureAccess(Element element) {
-    return js.js('#.#()',
-        [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
-  }
-  
-  js.PropertyAccess globalPropertyAccess(Element element) {
+  js.PropertyAccess _globalPropertyAccess(Element element) {
      String name = namer.getNameX(element);
      js.PropertyAccess pa = new js.PropertyAccess.field(
          new js.VariableUse(namer.globalObjectFor(element)),
@@ -90,21 +85,54 @@ class Emitter implements emitterTask.Emitter {
      return pa;
    }
 
-  js.PropertyAccess staticFieldAccess(Element element) {
-    return globalPropertyAccess(element);
+  @override
+  js.Expression isolateLazyInitializerAccess(FieldElement element) {
+    return js.js('#.#', [namer.globalObjectFor(element),
+                         namer.getLazyInitializerName(element)]);
   }
-  
-  js.PropertyAccess staticFunctionAccess(Element element) {
-    return globalPropertyAccess(element);
+
+  @override
+  js.Expression isolateStaticClosureAccess(FunctionElement element) {
+    return js.js('#.#()',
+        [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
   }
-  
-  js.PropertyAccess classAccess(Element element) {
-      return globalPropertyAccess(element);
+
+  @override
+  js.PropertyAccess staticFieldAccess(FieldElement element) {
+    return _globalPropertyAccess(element);
   }
-  
-  js.PropertyAccess typedefAccess(Element element) {
-      return globalPropertyAccess(element);
+
+  @override
+  js.PropertyAccess staticFunctionAccess(FunctionElement element) {
+    return _globalPropertyAccess(element);
   }
-  
+
+  @override
+  js.PropertyAccess constructorAccess(ClassElement element) {
+    return _globalPropertyAccess(element);
+  }
+
+  @override
+  js.PropertyAccess prototypeAccess(ClassElement element,
+                                    bool hasBeenInstantiated) {
+    js.Expression constructor =
+        hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
+    return js.js('#.prototype', constructor);
+  }
+
+  @override
+  js.PropertyAccess interceptorClassAccess(ClassElement element) {
+    // Interceptors are eagerly constructed. It's safe to just access them.
+    return _globalPropertyAccess(element);
+  }
+
+  @override
+  js.Expression typeAccess(Element element) {
+    // TODO(floitsch): minify 'ensureResolved'.
+    // TODO(floitsch): don't emit `ensureResolved` for eager classes.
+    return js.js('#.ensureResolved()', _globalPropertyAccess(element));
+  }
+
+  @override
   void invalidateCaches() {}
 }

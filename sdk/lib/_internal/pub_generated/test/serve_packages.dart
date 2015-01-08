@@ -148,8 +148,9 @@ class PackageServerBuilder {
       if (_packages.containsKey(name)) return;
       _packages[name] = [];
 
-      var pubspec = new Map.from(
-          loadYaml(readTextFile(p.join(repoRoot, 'pkg', name, 'pubspec.yaml'))));
+      var root = packagePath(name);
+      var pubspec =
+          new Map.from(loadYaml(readTextFile(p.join(root, 'pubspec.yaml'))));
 
       // Remove any SDK constraints since we don't have a valid SDK version
       // while testing.
@@ -160,9 +161,7 @@ class PackageServerBuilder {
               pubspec,
               [
                   d.file('pubspec.yaml', yaml(pubspec)),
-                  new d.DirectoryDescriptor.fromFilesystem(
-                      'lib',
-                      p.join(repoRoot, 'pkg', name, 'lib'))]));
+                  new d.DirectoryDescriptor.fromFilesystem('lib', p.join(root, 'lib'))]));
 
       if (pubspec.containsKey('dependencies')) {
         pubspec['dependencies'].keys.forEach(_addPackage);

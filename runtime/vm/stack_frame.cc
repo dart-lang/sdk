@@ -4,6 +4,7 @@
 
 #include "vm/stack_frame.h"
 
+#include "platform/memory_sanitizer.h"
 #include "vm/assembler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/isolate.h"
@@ -278,6 +279,15 @@ void StackFrameIterator::SetupNextExitFrameData() {
 }
 
 
+// Tell MemorySanitizer that generated code initializes part of the stack.
+// TODO(koda): Limit to frames that are actually written by generated code.
+static void UnpoisonStack(Isolate* isolate, uword fp) {
+  ASSERT(fp != 0);
+  uword size = isolate->GetSpecifiedStackSize();
+  MSAN_UNPOISON(reinterpret_cast<void*>(fp - size), 2 * size);
+}
+
+
 StackFrameIterator::StackFrameIterator(bool validate, Isolate* isolate)
     : validate_(validate),
       entry_(isolate),
@@ -340,6 +350,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     if (!HasNextFrame()) {
       return NULL;
     }
+    UnpoisonStack(isolate_, frames_.fp_);
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();

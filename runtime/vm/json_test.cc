@@ -402,8 +402,8 @@ TEST_CASE(JSON_JSONStream_Options) {
   EXPECT_STREQ("a", js.command());
 
   EXPECT(js.num_options() == 0);
-  js.SetOptions(&option_keys[0], &option_values[0], 3);
-  EXPECT(js.num_options() == 3);
+  js.SetOptions(&option_keys[0], &option_values[0], 2);
+  EXPECT(js.num_options() == 2);
   EXPECT(!js.HasOption("lizard"));
   EXPECT(js.HasOption("dog"));
   EXPECT(js.HasOption("cat"));

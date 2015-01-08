@@ -254,10 +254,6 @@ class ConstantLiteralEmitter
     return maybeAddTypeArguments(constant.type, value);
   }
 
-  jsAst.Expression getJsConstructor(ClassElement element) {
-    return backend.emitter.classAccess(element);
-  }
-
   @override
   jsAst.Expression visitMap(JavaScriptMapConstant constant, [_]) {
     jsAst.Expression jsMap() {
@@ -330,8 +326,9 @@ class ConstantLiteralEmitter
           "Compiler and ${className} disagree on number of fields.");
     }
 
-    jsAst.Expression value =
-        new jsAst.New(getJsConstructor(classElement), arguments);
+    jsAst.Expression constructor =
+        backend.emitter.constructorAccess(classElement);
+    jsAst.Expression value = new jsAst.New(constructor, arguments);
     return maybeAddTypeArguments(constant.type, value);
   }
 
@@ -352,9 +349,8 @@ class ConstantLiteralEmitter
 
   @override
   jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
-    return new jsAst.PropertyAccess.field(
-        getJsConstructor(constant.dispatchedType.element),
-        'prototype');
+    ClassElement interceptorClass = constant.dispatchedType.element;
+    return backend.emitter.interceptorPrototypeAccess(interceptorClass);
   }
 
   @override
@@ -371,9 +367,10 @@ class ConstantLiteralEmitter
       String value = str.primitiveValue.slowToString();
       return new jsAst.LiteralExpression(stripComments(value));
     }
-    jsAst.New instantiation = new jsAst.New(
-        getJsConstructor(constant.type.element),
-        _array(constant.fields));
+    jsAst.Expression constructor =
+        backend.emitter.constructorAccess(constant.type.element);
+    jsAst.New instantiation =
+        new jsAst.New(constructor, _array(constant.fields));
     return maybeAddTypeArguments(constant.type, instantiation);
   }
 

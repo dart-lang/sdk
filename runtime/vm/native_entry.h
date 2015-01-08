@@ -5,6 +5,8 @@
 #ifndef VM_NATIVE_ENTRY_H_
 #define VM_NATIVE_ENTRY_H_
 
+#include "platform/memory_sanitizer.h"
+
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
@@ -42,6 +44,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
+    /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
+    MSAN_UNPOISON(arguments, sizeof(*arguments));                              \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     TRACE_NATIVE_CALL("%s", ""#name);                                          \
     {                                                                          \

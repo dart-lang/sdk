@@ -67,6 +67,7 @@ const String SEARCH_RESULTS = 'search.results';
 //
 // Edit methods
 //
+const String EDIT_FORMAT = 'edit.format';
 const String EDIT_GET_ASSISTS = 'edit.getAssists';
 const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 const String EDIT_GET_FIXES = 'edit.getFixes';

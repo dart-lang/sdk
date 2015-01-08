@@ -2049,6 +2049,14 @@ void Assembler::idivq(Register reg) {
 }
 
 
+void Assembler::divq(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_W);
+  EmitUint8(0xF7);
+  EmitOperand(6, Operand(reg));
+}
+
+
 void Assembler::imull(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -2119,6 +2127,14 @@ void Assembler::imulq(Register dst, const Address& address) {
   EmitUint8(0x0F);
   EmitUint8(0xAF);
   EmitOperand(dst & 7, address);
+}
+
+
+void Assembler::mulq(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_W);
+  EmitUint8(0xF7);
+  EmitOperand(4, Operand(reg));
 }
 
 
@@ -2269,6 +2285,18 @@ void Assembler::sarq(Register reg, const Immediate& imm) {
 
 void Assembler::sarq(Register operand, Register shifter) {
   EmitGenericShift(true, 7, operand, shifter);
+}
+
+
+void Assembler::shldq(Register dst, Register src, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(imm.is_int8());
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xA4);
+  EmitOperand(src & 7, Operand(dst));
+  EmitUint8(imm.value() & 0xFF);
 }
 
 

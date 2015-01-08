@@ -9,8 +9,6 @@ part of dart2js.js_emitter;
 /// Initially, it is just a placeholder for code that is moved from
 /// [CodeEmitterTask].
 class ContainerBuilder extends CodeEmitterHelper {
-  final Map<Element, Element> staticGetters = new Map<Element, Element>();
-
   bool needsSuperGetter(FunctionElement element) =>
     compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
 
@@ -125,8 +123,10 @@ class ContainerBuilder extends CodeEmitterHelper {
         // Instead we need to call the statically resolved target.
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
         body = js.statement(
-            'return #.prototype.#.call(this, #);',
-            [backend.emitter.classAccess(superClass), methodName,
+            'return #.#.call(this, #);',
+            [backend.emitter.prototypeAccess(superClass,
+                                             hasBeenInstantiated: true),
+             methodName,
              argumentsBuffer]);
       } else {
         body = js.statement(
@@ -450,7 +450,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       return;
     }
-
+    emitter.needsArrayInitializerSupport = true;
 
     // This element is needed for reflection or needs additional stubs or has a
     // super alias. So we need to retain additional information.

@@ -213,11 +213,11 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
-  dynamic firstWhere(bool test(E value), {Object orElse()}) {
+  E firstWhere(bool test(E value), {E orElse()}) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  dynamic lastWhere(bool test(E value), {Object orElse()}) {
+  E lastWhere(bool test(E value), {E orElse()}) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 

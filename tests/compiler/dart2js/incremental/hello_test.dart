@@ -17,6 +17,9 @@ import 'package:dart2js_incremental/dart2js_incremental.dart' show
 import 'package:compiler/compiler.dart' show
     Diagnostic;
 
+import 'package:compiler/src/dart2jslib.dart' show
+    NullSink;
+
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
 
@@ -93,6 +96,7 @@ Future runTests(
   IncrementalCompiler compiler = new IncrementalCompiler(
       diagnosticHandler: handler,
       inputProvider: provider,
+      outputProvider: NullSink.outputProvider,
       options: ['--analyze-main'],
       libraryRoot: libraryRoot,
       packageRoot: packageRoot);

@@ -1388,6 +1388,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                             cls,
                             field.token_pos()));
           getter.set_result_type(type);
+          getter.set_is_debuggable(false);
           cls.AddFunction(getter);
           field.set_value(Instance::Handle(I, Object::sentinel().raw()));
         }
@@ -2070,6 +2071,7 @@ void ClassFinalizer::CreateForwardingConstructors(
       clone.SetNumOptionalParameters(func.NumOptionalParameters(),
                                      func.HasOptionalPositionalParameters());
       clone.set_result_type(dynamic_type);
+      clone.set_is_debuggable(false);
 
       const intptr_t num_parameters = func.NumParameters();
       // The cloned ctor shares the parameter names array with the
@@ -2302,6 +2304,14 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   HANDLESCOPE(Isolate::Current());
   if (cls.is_finalized()) {
+    return;
+  }
+  if (false && cls.is_patch()) {
+    // The fields and functions of a patch class are copied to the
+    // patched class after parsing. There is nothing to finalize.
+    ASSERT(Array::Handle(cls.functions()).Length() == 0);
+    ASSERT(Array::Handle(cls.fields()).Length() == 0);
+    cls.set_is_finalized();
     return;
   }
   if (FLAG_trace_class_finalization) {

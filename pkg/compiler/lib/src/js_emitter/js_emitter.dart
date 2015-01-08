@@ -18,12 +18,13 @@ import '../closure.dart' show
 import '../dart_types.dart' show
     TypedefType;
 
-import '../dart2jslib.dart' show
+import '../io/code_output.dart' show
     CodeBuffer;
 
 import '../elements/elements.dart' show
     ConstructorBodyElement,
     ElementKind,
+    FieldElement,
     ParameterElement,
     TypeVariableElement;
 
@@ -58,7 +59,7 @@ import '../source_file.dart' show
     SourceFile,
     StringSourceFile;
 
-import '../source_map_builder.dart' show
+import '../io/source_map_builder.dart' show
     SourceMapBuilder;
 
 import '../util/characters.dart' show
@@ -92,6 +93,7 @@ part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
 part 'interceptor_stub_generator.dart';
+part 'native_generator.dart';
 part 'type_test_generator.dart';
 part 'type_test_registry.dart';
 

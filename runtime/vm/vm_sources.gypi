@@ -95,6 +95,8 @@
     'compiler_stats.cc',
     'compiler_stats.h',
     'compiler_test.cc',
+    'constant_propagator.h',
+    'constant_propagator.cc',
     'constants_arm.h',
     'constants_arm64.h',
     'constants_ia32.h',

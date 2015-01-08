@@ -265,9 +265,11 @@ class FlowGraphCompiler : public ValueObject {
   };
 
  public:
-  FlowGraphCompiler(Assembler* assembler,
-                    FlowGraph* flow_graph,
-                    bool is_optimizing);
+  FlowGraphCompiler(
+      Assembler* assembler,
+      FlowGraph* flow_graph,
+      bool is_optimizing,
+      const GrowableArray<const Function*>& inline_id_to_function);
 
   ~FlowGraphCompiler();
 
@@ -519,6 +521,11 @@ class FlowGraphCompiler : public ValueObject {
 
   void AddStubCallTarget(const Code& code);
 
+  const Array& inlined_code_intervals() const {
+    ASSERT(inlined_code_intervals_ != NULL);
+    return *inlined_code_intervals_;
+  }
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -673,6 +680,9 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t lazy_deopt_pc_offset_;
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
+
+  const Array* inlined_code_intervals_;
+  const GrowableArray<const Function*>& inline_id_to_function_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

@@ -476,6 +476,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
+    computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.inKeyword, HighlightRegionType.KEYWORD);
     return super.visitForEachStatement(node);

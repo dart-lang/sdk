@@ -225,6 +225,9 @@ class Namer implements ClosureNamer {
   final String callPrefix = 'call';
   final String callCatchAllName = r'call$catchAll';
   final String reflectableField = r'$reflectable';
+  final String reflectionInfoField = r'$reflectionInfo';
+  final String reflectionNameField = r'$reflectionName';
+  final String metadataIndexField = r'$metadataIndex';
   final String defaultValuesField = r'$defaultValues';
   final String methodsWithOptionalArgumentsField =
       r'$methodsWithOptionalArguments';

@@ -178,7 +178,6 @@ class AnalyzerImpl {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.cacheSize = _MAX_CACHE_SIZE;
     contextOptions.hint = !options.disableHints;
-    contextOptions.enableAsync = options.enableAsync;
     contextOptions.enableEnum = options.enableEnum;
     context.analysisOptions = contextOptions;
 

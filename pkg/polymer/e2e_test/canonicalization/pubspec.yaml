@@ -1,5 +1,0 @@
-name: canonicalization
-dependencies:
-  polymer: any
-dev_dependencies:
-  unittest: any

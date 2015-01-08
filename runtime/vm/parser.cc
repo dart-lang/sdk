@@ -41,7 +41,7 @@ DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
-DEFINE_FLAG(bool, enable_async, false, "Enable async operations.");
+DEFINE_FLAG(bool, enable_async, true, "Enable async operations.");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -944,6 +944,7 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
         false,  // is_native
         cls,
         token_pos));
+    fake_function.set_is_debuggable(false);
     ParsedFunction* parsed_function =
         new ParsedFunction(isolate, fake_function);
     Parser parser(script, parsed_function, token_pos);
@@ -1082,6 +1083,7 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   // and inlining them. After the field is initialized, the
   // compiler can eliminate the call to the static initializer.
   initializer.set_is_visible(false);
+  initializer.set_is_debuggable(false);
   initializer.SetIsOptimizable(false);
   initializer.set_is_inlinable(false);
 
@@ -1139,6 +1141,7 @@ RawObject* Parser::ParseFunctionFromSource(const Class& owning_class,
     return error.raw();
   }
   UNREACHABLE();
+  return Object::null();
 }
 
 
@@ -1646,6 +1649,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                         current_class(),
                         parameter.name_pos));
       signature_function.set_result_type(result_type);
+      signature_function.set_is_debuggable(false);
       AddFormalParamsToFunction(&func_params, signature_function);
       const String& signature = String::Handle(I,
                                                signature_function.Signature());
@@ -3128,8 +3132,12 @@ SequenceNode* Parser::ParseFunc(const Function& func,
 
   Function& async_closure = Function::ZoneHandle(I);
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
+    // The code of an async function is synthesized. Disable debugging.
+    func.set_is_debuggable(false);
     async_closure = OpenAsyncFunction(func.token_pos());
   } else if (func.is_async_closure()) {
+    // The closure containing the body of an async function is debuggable.
+    ASSERT(func.is_debuggable());
     OpenAsyncClosure();
   }
 
@@ -3773,6 +3781,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                current_class(),
                                field->name_pos);
         getter.set_result_type(*field->type);
+        getter.set_is_debuggable(false);
         members->AddFunction(getter);
       }
     }
@@ -3793,6 +3802,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       ASSERT(current_class().raw() == getter.Owner());
       params.AddReceiver(ReceiverType(current_class()), field->name_pos);
       getter.set_result_type(*field->type);
+      getter.set_is_debuggable(false);
       AddFormalParamsToFunction(&params, getter);
       members->AddFunction(getter);
       if (!field->has_final) {
@@ -3814,6 +3824,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                  &Symbols::Value(),
                                  field->type);
         setter.set_result_type(Type::Handle(I, Type::VoidType()));
+        setter.set_is_debuggable(false);
         AddFormalParamsToFunction(&params, setter);
         members->AddFunction(setter);
       }
@@ -4413,6 +4424,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                          cls,
                          cls.token_pos());
   getter.set_result_type(int_type);
+  getter.set_is_debuggable(false);
   ParamList params;
   params.AddReceiver(&dynamic_type, cls.token_pos());
   AddFormalParamsToFunction(&params, getter);
@@ -4559,6 +4571,7 @@ void Parser::AddImplicitConstructor(const Class& cls) {
                     cls,
                     cls.token_pos()));
   ctor.set_end_token_pos(ctor.token_pos());
+  ctor.set_is_debuggable(false);
   if (library_.is_dart_scheme() && library_.IsPrivate(ctor_name)) {
     ctor.set_is_visible(false);
   }
@@ -4795,6 +4808,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                     function_type_alias,
                     alias_name_pos));
   signature_function.set_result_type(result_type);
+  signature_function.set_is_debuggable(false);
   AddFormalParamsToFunction(&func_params, signature_function);
 
   // Patch the signature function in the signature class.
@@ -5136,6 +5150,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                                current_class(),
                                name_pos);
         getter.set_result_type(type);
+        getter.set_is_debuggable(false);
         top_level->functions.Add(getter);
       }
     } else if (is_final) {
@@ -5258,8 +5273,11 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
   func.set_modifier(func_modifier);
-  if (is_native && library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
-    func.set_is_visible(false);
+  if (is_native) {
+    func.set_is_debuggable(false);
+    if (library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
+      func.set_is_visible(false);
+    }
   }
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
@@ -5398,9 +5416,11 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   func.set_result_type(result_type);
   func.set_end_token_pos(accessor_end_pos);
   func.set_modifier(func_modifier);
-  if (is_native && library_.is_dart_scheme() &&
-      library_.IsPrivate(accessor_name)) {
-    func.set_is_visible(false);
+  if (is_native) {
+    func.set_is_debuggable(false);
+    if (library_.is_dart_scheme() && library_.IsPrivate(accessor_name)) {
+      func.set_is_visible(false);
+    }
   }
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);

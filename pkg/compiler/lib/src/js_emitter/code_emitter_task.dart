@@ -56,36 +56,66 @@ class CodeEmitterTask extends CompilerTask {
     nativeEmitter = new NativeEmitter(this);
   }
 
-  jsAst.Expression isolateStaticClosureAccess(Element element) {
+  /// Returns the closure expression of a static function.
+  jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
     return emitter.isolateStaticClosureAccess(element);
   }
-  
-  jsAst.Expression isolateLazyInitializerAccess(Element element) {
+
+  /// Returns the JS function that must be invoked to get the value of the
+  /// lazily initialized static.
+  jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
     return emitter.isolateLazyInitializerAccess(element);
   }
-  
+
+  /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
     return emitter.generateEmbeddedGlobalAccess(global);
   }
 
-  jsAst.Expression constantReference(ConstantValue value) {
-    return emitter.constantReference(value);
+  /// Returns the JS code for accessing the given [constant].
+  jsAst.Expression constantReference(ConstantValue constant) {
+    return emitter.constantReference(constant);
   }
 
-  jsAst.Expression staticFieldAccess(Element e) {
+  jsAst.Expression staticFieldAccess(FieldElement e) {
+    return emitter.staticFieldAccess(e);
+  }
+
+  /// Returns the JS function representing the given function.
+  ///
+  /// The function must be invoked and can not be used as closure.
+  jsAst.Expression staticFunctionAccess(FunctionElement e) {
     return emitter.staticFunctionAccess(e);
   }
-  
-  jsAst.Expression staticFunctionAccess(Element e) {
-    return emitter.staticFunctionAccess(e);
+
+  /// Returns the JS constructor of the given element.
+  ///
+  /// The returned expression must only be used in a JS `new` expression.
+  jsAst.Expression constructorAccess(ClassElement e) {
+    return emitter.constructorAccess(e);
   }
-  
-  jsAst.Expression classAccess(Element e) {
-    return emitter.classAccess(e);
+
+  /// Returns the JS prototype of the given class [e].
+  jsAst.Expression prototypeAccess(ClassElement e,
+                                   {bool hasBeenInstantiated: false}) {
+    return emitter.prototypeAccess(e, hasBeenInstantiated);
   }
-  
-  jsAst.Expression typedefAccess(Element e) {
-    return emitter.typedefAccess(e);
+
+  /// Returns the JS prototype of the given interceptor class [e].
+  jsAst.Expression interceptorPrototypeAccess(ClassElement e) {
+    return jsAst.js('#.prototype', interceptorClassAccess(e));
+  }
+
+  /// Returns the JS constructor of the given interceptor class [e].
+  jsAst.Expression interceptorClassAccess(ClassElement e) {
+    return emitter.interceptorClassAccess(e);
+  }
+
+  /// Returns the JS expression representing the type [e].
+  ///
+  /// The given type [e] might be a Typedef.
+  jsAst.Expression typeAccess(Element e) {
+    return emitter.typeAccess(e);
   }
 
   void registerReadTypeVariable(TypeVariableElement element) {
@@ -360,8 +390,8 @@ class CodeEmitterTask extends CompilerTask {
     computeNeededLibraries();
   }
 
-  void assembleProgram() {
-    measure(() {
+  int assembleProgram() {
+    return measure(() {
       emitter.invalidateCaches();
 
       computeAllNeededEntities();
@@ -370,27 +400,48 @@ class CodeEmitterTask extends CompilerTask {
       if (USE_NEW_EMITTER) {
         program = new ProgramBuilder(compiler, namer, this).buildProgram();
       }
-      emitter.emitProgram(program);
+      return emitter.emitProgram(program);
     });
   }
 }
 
 abstract class Emitter {
-  void emitProgram(Program program);
+  /// Emits [program] and returns the size of the generated output.
+  int emitProgram(Program program);
 
-  jsAst.Expression isolateLazyInitializerAccess(Element element);
-  jsAst.Expression isolateStaticClosureAccess(Element element);
+  /// Returns the JS function that must be invoked to get the value of the
+  /// lazily initialized static.
+  jsAst.Expression isolateLazyInitializerAccess(FieldElement element);
+
+  /// Returns the closure expression of a static function.
+  jsAst.Expression isolateStaticClosureAccess(FunctionElement element);
+
+  /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
-  jsAst.Expression constantReference(ConstantValue value);
-  jsAst.PropertyAccess staticFunctionAccess(Element element);
-  
-  // TODO(zarah): Split into more fine-grained accesses.
-  /// Generates access to the js constructor of the class represented by 
-  /// [element]
-  jsAst.PropertyAccess classAccess(Element element);
-  jsAst.PropertyAccess typedefAccess(Element element);
-  jsAst.PropertyAccess staticFieldAccess(Element element);
-  
+
+  /// Returns the JS code for accessing the given [constant].
+  jsAst.Expression constantReference(ConstantValue constant);
+
+  /// Returns the JS function representing the given function.
+  ///
+  /// The function must be invoked and can not be used as closure.
+  jsAst.Expression staticFunctionAccess(FunctionElement element);
+
+  jsAst.Expression staticFieldAccess(FieldElement element);
+
+  /// Returns the JS constructor of the given element.
+  ///
+  /// The returned expression must only be used in a JS `new` expression.
+  jsAst.Expression constructorAccess(ClassElement e);
+
+  /// Returns the JS prototype of the given class [e].
+  jsAst.Expression prototypeAccess(ClassElement e, bool hasBeenInstantiated);
+
+  /// Returns the JS constructor of the given interceptor class [e].
+  jsAst.Expression interceptorClassAccess(ClassElement e);
+
+  /// Returns the JS expression representing the type [e].
+  jsAst.Expression typeAccess(Element e);
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);

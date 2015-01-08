@@ -7,7 +7,7 @@ part of js;
 class Printer extends Indentation implements NodeVisitor {
   final bool shouldCompressOutput;
   leg.Compiler compiler;
-  leg.CodeBuffer outBuffer;
+  CodeBuffer outBuffer;
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
@@ -24,7 +24,7 @@ class Printer extends Indentation implements NodeVisitor {
       : shouldCompressOutput = compiler.enableMinification,
         monitor = monitor,
         this.compiler = compiler,
-        outBuffer = new leg.CodeBuffer(),
+        outBuffer = new CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
         localNamer = determineRenamer(compiler.enableMinification,
                                       allowVariableMinification);
@@ -58,7 +58,7 @@ class Printer extends Indentation implements NodeVisitor {
     if (str != "") {
       if (pendingSemicolon) {
         if (!shouldCompressOutput) {
-          outBuffer.add(";");
+          outBuffer.write(";");
         } else if (str != "}") {
           // We want to output newline instead of semicolon because it makes
           // the raw stack traces much easier to read and it also makes line-
@@ -72,19 +72,19 @@ class Printer extends Indentation implements NodeVisitor {
           // is escaped in strings, it is a lot easier to deal with semicolons
           // than newlines because the former doesn't need escaping.
           if (USE_NEW_EMITTER || expressionContinuationRegExp.hasMatch(str)) {
-            outBuffer.add(";");
+            outBuffer.write(";");
           } else {
-            outBuffer.add("\n");
+            outBuffer.write("\n");
           }
         }
       }
       if (pendingSpace &&
           (!shouldCompressOutput || identifierCharacterRegExp.hasMatch(str))) {
-        outBuffer.add(" ");
+        outBuffer.write(" ");
       }
       pendingSpace = false;
       pendingSemicolon = false;
-      outBuffer.add(str);
+      outBuffer.write(str);
       lastAddedString = str;
     }
   }
@@ -1026,9 +1026,9 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 }
 
 
-leg.CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
-                           {DumpInfoTask monitor,
-                            allowVariableMinification: true}) {
+CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
+                       {DumpInfoTask monitor,
+                        bool allowVariableMinification: true}) {
   Printer printer =
       new Printer(compiler, monitor,
                   allowVariableMinification: allowVariableMinification);

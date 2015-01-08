@@ -273,7 +273,9 @@ abstract class Backend {
     return new native.NativeEnqueuer();
   }
 
-  void assembleProgram();
+  /// Generates the output and returns the total size of the generated code.
+  int assembleProgram();
+
   List<CompilerTask> get tasks;
 
   void onResolutionComplete() {}
@@ -627,7 +629,6 @@ abstract class Compiler implements DiagnosticListener {
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
   World world;
-  String assembledCode;
   Types types;
   _CompilerCoreTypes _coreTypes;
 
@@ -1079,8 +1080,6 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void internalError(Spannable node, reason) {
-    assembledCode = null; // Compilation failed. Make sure that we
-                          // don't return a bogus result.
     String message = tryToString(reason);
     reportDiagnosticInternal(
         node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
@@ -1426,7 +1425,7 @@ abstract class Compiler implements DiagnosticListener {
     // suitably maintained static reference to the current compiler.
     StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
-    TypedSelector.canonicalizedValues.clear();
+    world.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {
@@ -1615,17 +1614,14 @@ abstract class Compiler implements DiagnosticListener {
 
     if (compilationFailed) return;
 
-    backend.assembleProgram();
+    int programSize = backend.assembleProgram();
 
     if (dumpInfo) {
+      dumpInfoTask.reportSize(programSize);
       dumpInfoTask.dumpInfo();
     }
 
     checkQueues();
-
-    if (compilationFailed) {
-      assembledCode = null; // Signals failure.
-    }
   }
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {

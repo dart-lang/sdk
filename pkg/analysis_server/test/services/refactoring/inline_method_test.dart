@@ -161,6 +161,21 @@ class A {
     return _assertConditionsFatal('Cannot inline operator.');
   }
 
+  test_bad_propertyAccessor_synthetic() {
+    indexTestUnit(r'''
+class A {
+  int fff;
+}
+
+main(A a) {
+  print(a.fff);
+}
+''');
+    _createRefactoring('fff);');
+    // error
+    return _assertInvalidSelection();
+  }
+
   test_bad_reference_toClassMethod() {
     indexTestUnit(r'''
 class A {

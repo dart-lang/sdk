@@ -6,6 +6,7 @@
   'includes': [
     'tools/gyp/runtime-configurations.gypi',
     'vm/vm.gypi',
+    'observatory/observatory.gypi',
     'bin/bin.gypi',
     'third_party/double-conversion/src/double-conversion.gypi',
     'third_party/jscre/jscre.gypi',

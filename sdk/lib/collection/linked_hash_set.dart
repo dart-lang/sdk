@@ -65,8 +65,26 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    */
   external factory LinkedHashSet.identity();
 
-  factory LinkedHashSet.from(Iterable<E> iterable) {
-    return new LinkedHashSet<E>()..addAll(iterable);
+  /**
+   * Create a linked hash set containing all [elements].
+   *
+   * Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
+   * element of`elements` to this set in the order they are iterated.
+   *
+   * All the [elements] should be assignable to [E].
+   * The `elements` iterable itself may have any element type,
+   * so this constructor can be used to down-cast a `Set`, for example as:
+   *
+   *     Set<SuperType> superSet = ...;
+   *     Iterable<SuperType> tmp = superSet.where((e) => e is SubType);
+   *     Set<SubType> subSet = new LinkedHashSet<SubType>.from(tmp);
+   */
+  factory LinkedHashSet.from(Iterable<E> elements) {
+    LinkedHashSet<E> result = new LinkedHashSet<E>();
+    for (final E element in elements) {
+      result.add(element);
+    }
+    return result;
   }
 
   /**

@@ -106,13 +106,13 @@ final _barbackDeps = {
 /// Populates [_barbackVersions].
 Map<Version, String> _findBarbackVersions() {
   var versions = {};
-  var currentBarback = p.join(repoRoot, 'pkg', 'barback');
+  var currentBarback = p.join(repoRoot, 'third_party', 'pkg', 'barback');
   versions[new Pubspec.load(currentBarback, new SourceRegistry()).version] =
       currentBarback;
 
   for (var dir in listDir(p.join(repoRoot, 'third_party', 'pkg'))) {
     var basename = p.basename(dir);
-    if (!basename.startsWith('barback')) continue;
+    if (!basename.startsWith('barback-')) continue;
     versions[new Version.parse(split1(basename, '-').last)] = dir;
   }
 
@@ -231,11 +231,6 @@ String yaml(value) => JSON.encode(value);
 /// The full path to the created sandbox directory for an integration test.
 String get sandboxDir => _sandboxDir;
 String _sandboxDir;
-
-/// The path to the Dart repo's packages.
-final String pkgPath = p.absolute(p.join(
-    p.dirname(Platform.executable),
-    '../../../../pkg'));
 
 /// The path of the package cache directory used for tests, relative to the
 /// sandbox directory.
@@ -736,7 +731,7 @@ Iterable<String> pkg, Map<String, String> hosted}) {
     _addPackage(String package) {
       if (dependencies.containsKey(package)) return;
 
-      var packagePath;
+      var path;
       if (package == 'barback' && _packageOverrides == null) {
         throw new StateError("createLockFile() can only create a lock file "
             "with a barback dependency within a withBarbackVersions() "
@@ -744,14 +739,14 @@ Iterable<String> pkg, Map<String, String> hosted}) {
       }
 
       if (_packageOverrides.containsKey(package)) {
-        packagePath = _packageOverrides[package];
+        path = _packageOverrides[package];
       } else {
-        packagePath = p.join(pkgPath, package);
+        path = packagePath(package);
       }
 
-      dependencies[package] = packagePath;
+      dependencies[package] = path;
       var pubspec = loadYaml(
-          readTextFile(p.join(packagePath, 'pubspec.yaml')));
+          readTextFile(p.join(path, 'pubspec.yaml')));
       var packageDeps = pubspec['dependencies'];
       if (packageDeps == null) return;
       packageDeps.keys.forEach(_addPackage);
@@ -778,6 +773,12 @@ Iterable<String> pkg, Map<String, String> hosted}) {
 
   return lockFile;
 }
+
+/// Returns the path to [package] within the repo.
+String packagePath(String package) =>
+    dirExists(p.join(repoRoot, 'pkg', package)) ?
+        p.join(repoRoot, 'pkg', package) :
+        p.join(repoRoot, 'third_party', 'pkg', package);
 
 /// Uses [client] as the mock HTTP client for this test.
 ///

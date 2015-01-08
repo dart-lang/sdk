@@ -297,7 +297,6 @@ bool x = false;''');
   }
 
   void test_asyncForInWrongContext_async() {
-    resetWithAsync();
     Source source = addSource(r'''
 f(list) async {
   await for (var e in list) {
@@ -309,7 +308,6 @@ f(list) async {
   }
 
   void test_asyncForInWrongContext_asyncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f(list) async* {
   await for (var e in list) {
@@ -321,7 +319,6 @@ f(list) async* {
   }
 
   void test_awaitInWrongContext_async() {
-    resetWithAsync();
     Source source = addSource(r'''
 f(x, y) async {
   return await x + await y;
@@ -332,7 +329,6 @@ f(x, y) async {
   }
 
   void test_awaitInWrongContext_asyncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f(x, y) async* {
   yield await x + await y;
@@ -3831,7 +3827,6 @@ class A {
   }
 
   void test_returnInGenerator_async() {
-    resetWithAsync();
     Source source = addSource(r'''
 f() async {
   return 0;
@@ -3852,10 +3847,6 @@ f() {
   }
 
   void test_returnOfInvalidType_async() {
-    AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.con1(analysisContext2.analysisOptions);
-    options.enableAsync = true;
-    resetWithOptions(options);
     Source source = addSource(r'''
 import 'dart:async';
 class A {
@@ -4765,7 +4756,6 @@ class A {
   }
 
   void test_yieldEachInNonGenerator_asyncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f() async* {
   yield* 0;
@@ -4776,7 +4766,6 @@ f() async* {
   }
 
   void test_yieldEachInNonGenerator_syncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f() sync* {
   yield* 0;
@@ -4787,7 +4776,6 @@ f() sync* {
   }
 
   void test_yieldInNonGenerator_asyncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f() async* {
   yield 0;
@@ -4798,7 +4786,6 @@ f() async* {
   }
 
   void test_yieldInNonGenerator_syncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f() sync* {
   yield 0;

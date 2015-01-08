@@ -45,6 +45,8 @@ class InstrumentationService {
   static final InstrumentationService NULL_SERVICE =
       new InstrumentationService(null);
 
+  static const String TAG_ERROR = 'Err';
+  static const String TAG_EXCEPTION = 'Ex';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
@@ -65,13 +67,45 @@ class InstrumentationService {
   /**
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
-  String get _timestamp => new DateTime.now().millisecond.toString();
+  String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
+
+  /**
+   * Log the fact that an error, described by the given [message], has occurred.
+   */
+  void logError(String message) {
+    _log(TAG_ERROR, message);
+  }
+
+  /**
+   * Log that the given non-priority [exception] was thrown, with the given
+   * [stackTrace].
+   */
+  void logException(dynamic exception, StackTrace stackTrace) {
+    if (_instrumentationServer != null) {
+      String message = _toString(exception);
+      String trace = _toString(stackTrace);
+      _instrumentationServer.log(_join([TAG_EXCEPTION, message, trace]));
+    }
+  }
 
   /**
    * Log that a notification has been sent to the client.
    */
   void logNotification(String notification) {
     _log(TAG_NOTIFICATION, notification);
+  }
+
+  /**
+   * Log that the given priority [exception] was thrown, with the given
+   * [stackTrace].
+   */
+  void logPriorityException(dynamic exception, StackTrace stackTrace) {
+    if (_instrumentationServer != null) {
+      String message = _toString(exception);
+      String trace = _toString(stackTrace);
+      _instrumentationServer.logWithPriority(
+          _join([TAG_EXCEPTION, message, trace]));
+    }
   }
 
   /**
@@ -101,11 +135,54 @@ class InstrumentationService {
   }
 
   /**
+   * Write an escaped version of the given [field] to the given [buffer].
+   */
+  void _escape(StringBuffer buffer, String field) {
+    int index = field.indexOf(':');
+    if (index < 0) {
+      buffer.write(field);
+      return;
+    }
+    int start = 0;
+    while (index >= 0) {
+      buffer.write(field.substring(start, index));
+      buffer.write('::');
+      start = index + 1;
+      index = field.indexOf(':', start);
+    }
+    buffer.write(field.substring(start));
+  }
+
+  /**
+   * Return the result of joining the values of the given fields, escaping the
+   * separator character by doubling it.
+   */
+  String _join(List<String> fields) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(_timestamp);
+    for (String field in fields) {
+      buffer.write(':');
+      _escape(buffer, field);
+    }
+    return buffer.toString();
+  }
+
+  /**
    * Log the given message with the given tag.
    */
   void _log(String tag, String message) {
     if (_instrumentationServer != null) {
-      _instrumentationServer.log('$_timestamp:$tag:$message');
+      _instrumentationServer.log(_join([tag, message]));
     }
+  }
+
+  /**
+   * Convert the given [object] to a string.
+   */
+  String _toString(Object object) {
+    if (object == null) {
+      return 'null';
+    }
+    return object.toString();
   }
 }

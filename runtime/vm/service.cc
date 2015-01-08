@@ -252,7 +252,7 @@ void Service::SetEventMask(uint32_t mask) {
 }
 
 
-void SetEventMask(Dart_NativeArguments args) {
+static void SetEventMask(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
   StackZone zone(isolate);
@@ -816,7 +816,7 @@ void Service::SendEchoEvent(Isolate* isolate) {
 }
 
 
-bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
+static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("id", "_echo");
   if (js->num_arguments() == 2 && strcmp(js->GetArgument(1), "event") == 0) {
@@ -910,7 +910,7 @@ static bool GetInteger64Id(const char* s, int64_t* id, int base = 10) {
 
 // Scans the string until the '-' character. Returns pointer to string
 // at '-' character. Returns NULL if not found.
-const char* ScanUntilDash(const char* s) {
+static const char* ScanUntilDash(const char* s) {
   if ((s == NULL) || (*s == '\0')) {
     // Empty string.
     return NULL;

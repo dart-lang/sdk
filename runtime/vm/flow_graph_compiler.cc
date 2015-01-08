@@ -34,6 +34,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
@@ -80,44 +81,49 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 }
 
 
-FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
-                                     FlowGraph* flow_graph,
-                                     bool is_optimizing)
-    : isolate_(Isolate::Current()),
-      assembler_(assembler),
-      parsed_function_(*flow_graph->parsed_function()),
-      flow_graph_(*flow_graph),
-      block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
-      current_block_(NULL),
-      exception_handlers_list_(NULL),
-      pc_descriptors_list_(NULL),
-      stackmap_table_builder_(
-          is_optimizing ? new StackmapTableBuilder() : NULL),
-      block_info_(block_order_.length()),
-      deopt_infos_(),
-      static_calls_target_table_(GrowableObjectArray::ZoneHandle(
-          GrowableObjectArray::New())),
-      is_optimizing_(is_optimizing),
-      may_reoptimize_(false),
-      intrinsic_mode_(false),
-      double_class_(Class::ZoneHandle(
-          isolate_->object_store()->double_class())),
-      mint_class_(Class::ZoneHandle(
-          isolate_->object_store()->mint_class())),
-      float32x4_class_(Class::ZoneHandle(
-          isolate_->object_store()->float32x4_class())),
-      float64x2_class_(Class::ZoneHandle(
-          isolate_->object_store()->float64x2_class())),
-      int32x4_class_(Class::ZoneHandle(
-          isolate_->object_store()->int32x4_class())),
-      list_class_(Class::ZoneHandle(
-          Library::Handle(Library::CoreLibrary()).
-              LookupClass(Symbols::List()))),
-      parallel_move_resolver_(this),
-      pending_deoptimization_env_(NULL),
-      entry_patch_pc_offset_(Code::kInvalidPc),
-      patch_code_pc_offset_(Code::kInvalidPc),
-      lazy_deopt_pc_offset_(Code::kInvalidPc) {
+FlowGraphCompiler::FlowGraphCompiler(
+    Assembler* assembler,
+    FlowGraph* flow_graph,
+    bool is_optimizing,
+    const GrowableArray<const Function*>& inline_id_to_function)
+      : isolate_(Isolate::Current()),
+        assembler_(assembler),
+        parsed_function_(*flow_graph->parsed_function()),
+        flow_graph_(*flow_graph),
+        block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
+        current_block_(NULL),
+        exception_handlers_list_(NULL),
+        pc_descriptors_list_(NULL),
+        stackmap_table_builder_(
+            is_optimizing ? new StackmapTableBuilder() : NULL),
+        block_info_(block_order_.length()),
+        deopt_infos_(),
+        static_calls_target_table_(GrowableObjectArray::ZoneHandle(
+            GrowableObjectArray::New())),
+        is_optimizing_(is_optimizing),
+        may_reoptimize_(false),
+        intrinsic_mode_(false),
+        double_class_(Class::ZoneHandle(
+            isolate_->object_store()->double_class())),
+        mint_class_(Class::ZoneHandle(
+            isolate_->object_store()->mint_class())),
+        float32x4_class_(Class::ZoneHandle(
+            isolate_->object_store()->float32x4_class())),
+        float64x2_class_(Class::ZoneHandle(
+            isolate_->object_store()->float64x2_class())),
+        int32x4_class_(Class::ZoneHandle(
+            isolate_->object_store()->int32x4_class())),
+        list_class_(Class::ZoneHandle(
+            Library::Handle(Library::CoreLibrary()).
+                LookupClass(Symbols::List()))),
+        parallel_move_resolver_(this),
+        pending_deoptimization_env_(NULL),
+        entry_patch_pc_offset_(Code::kInvalidPc),
+        patch_code_pc_offset_(Code::kInvalidPc),
+        lazy_deopt_pc_offset_(Code::kInvalidPc),
+        deopt_id_to_ic_data_(NULL),
+        inlined_code_intervals_(NULL),
+        inline_id_to_function_(inline_id_to_function) {
   if (!is_optimizing) {
     const intptr_t len = isolate()->deopt_id();
     deopt_id_to_ic_data_ = new(isolate()) ZoneGrowableArray<const ICData*>(len);
@@ -336,6 +342,17 @@ static void LoopInfoComment(
 }
 
 
+// We collect intervals while generating code.
+struct IntervalStruct {
+  // 'start' and 'end' are pc-offsets.
+  intptr_t start;
+  intptr_t end;
+  intptr_t inlining_id;
+  IntervalStruct(intptr_t s, intptr_t e, intptr_t id)
+      : start(s), end(e), inlining_id(id) {}
+};
+
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
   const ZoneGrowableArray<BlockEntryInstr*>* loop_headers = NULL;
@@ -345,6 +362,11 @@ void FlowGraphCompiler::VisitBlocks() {
     ASSERT(loop_headers != NULL);
   }
 
+  // For collecting intervals of inlined code.
+  GrowableArray<IntervalStruct> intervals;
+  intptr_t prev_offset = 0;
+  intptr_t prev_inlining_id = 0;
+  intptr_t max_inlining_id = 0;
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
@@ -362,6 +384,19 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
+      // Compose intervals.
+      if (instr->has_inlining_id() && is_optimizing()) {
+        if (prev_inlining_id != instr->inlining_id()) {
+          intervals.Add(IntervalStruct(prev_offset,
+                                       assembler()->CodeSize(),
+                                       prev_inlining_id));
+          prev_offset = assembler()->CodeSize();
+          prev_inlining_id = instr->inlining_id();
+          if (prev_inlining_id > max_inlining_id) {
+            max_inlining_id = prev_inlining_id;
+          }
+        }
+      }
       if (FLAG_code_comments ||
           FLAG_disassemble ||
           FLAG_disassemble_optimized) {
@@ -380,6 +415,53 @@ void FlowGraphCompiler::VisitBlocks() {
         pending_deoptimization_env_ = NULL;
         EmitInstructionEpilogue(instr);
       }
+    }
+  }
+
+  intervals.Add(IntervalStruct(prev_offset, assembler()->CodeSize(),
+                               prev_inlining_id));
+  // Note that ranges [start..end] must be monotonically increasing in
+  // 'intervals' array.
+  inlined_code_intervals_ = &Array::ZoneHandle(Array::New(
+      (max_inlining_id + 1) * Code::kInlIntNumEntries, Heap::kOld));
+
+  Smi& start_h = Smi::Handle();
+  Smi& end_h = Smi::Handle();
+  for (intptr_t i = 0; i < intervals.length(); i++) {
+    const intptr_t id = intervals[i].inlining_id;
+    end_h = Smi::New(intervals[i].end);
+    if (inlined_code_intervals_->At
+          (id * Code::kInlIntNumEntries + Code::kInlIntFunction) ==
+        Object::null()) {
+      start_h = Smi::New(intervals[i].start);
+      inlined_code_intervals_->SetAt(
+          id * Code::kInlIntNumEntries + Code::kInlIntStart, start_h);
+      inlined_code_intervals_->SetAt(
+          id * Code::kInlIntNumEntries + Code::kInlIntEnd, end_h);
+      const Function* function =
+          inline_id_to_function_.At(intervals[i].inlining_id);
+      inlined_code_intervals_->SetAt(
+          id * Code::kInlIntNumEntries + Code::kInlIntFunction, *function);
+    } else {
+      // Check for monotonic increase.
+#if defined(DEBUG)
+      Smi& temp = Smi::Handle();
+      temp ^= inlined_code_intervals_->At(
+          id *  Code::kInlIntNumEntries + Code::kInlIntStart);
+      start_h = Smi::New(intervals[i].start);
+      ASSERT(temp.Value() <= start_h.Value());
+      temp ^= inlined_code_intervals_->At(
+          id * Code::kInlIntNumEntries + Code::kInlIntEnd);
+      ASSERT(temp.Value() <= end_h.Value());
+      const Function* function =
+          inline_id_to_function_.At(intervals[i].inlining_id);
+      Function& f = Function::Handle();
+      f ^= inlined_code_intervals_->At(
+          id * Code::kInlIntNumEntries + Code::kInlIntFunction);
+      ASSERT(function->raw() == f.raw());
+#endif
+      inlined_code_intervals_->SetAt(
+          id * Code::kInlIntNumEntries + Code::kInlIntEnd, end_h);
     }
   }
   set_current_block(NULL);
@@ -1454,6 +1536,8 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   intptr_t threshold;
   if (is_optimizing()) {
     threshold = FLAG_reoptimization_counter_threshold;
+  } else if (parsed_function_.function().IsIrregexpFunction()) {
+    threshold = FLAG_regexp_optimization_counter_threshold;
   } else {
     const intptr_t basic_blocks = flow_graph().preorder().length();
     ASSERT(basic_blocks > 0);

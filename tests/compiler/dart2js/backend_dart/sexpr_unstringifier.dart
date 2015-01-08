@@ -247,18 +247,6 @@ class SExpressionUnstringifier {
     return null;
   }
 
-  /// prim1 prim2 ... primn cont)
-  /// Note that cont is *not* included in the returned list and not consumed.
-  List<Primitive> parseArgumentList() {
-    List<Primitive> args = <Primitive>[];
-    while (tokens.next != ")") {
-      Primitive prim = name2variable[tokens.read()];
-      assert(prim != null);
-      args.add(prim);
-    }
-    return args;
-  }
-
   /// (prim1 prim2 ... primn)
   List<Primitive> parsePrimitiveList() {
     tokens.consumeStart();
@@ -349,11 +337,11 @@ class SExpressionUnstringifier {
     return new Branch(cond, trueCont, falseCont);
   }
 
-  /// (ConcatenateStrings args cont)
+  /// (ConcatenateStrings (args) cont)
   ConcatenateStrings parseConcatenateStrings() {
     tokens.consumeStart(CONCATENATE_STRINGS);
 
-    List<Primitive> args = parseArgumentList();
+    List<Primitive> args = parsePrimitiveList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -381,7 +369,7 @@ class SExpressionUnstringifier {
     return new DeclareFunction(local, def)..plug(body);
   }
 
-  /// (InvokeConstructor name args cont)
+  /// (InvokeConstructor name (args) cont)
   InvokeConstructor parseInvokeConstructor() {
     tokens.consumeStart(INVOKE_CONSTRUCTOR);
 
@@ -392,7 +380,7 @@ class SExpressionUnstringifier {
     dart_types.DartType type = new DummyNamedType(split[0]);
     Element element = new DummyElement((split.length == 1) ? "" : split[1]);
 
-    List<Primitive> args = parseArgumentList();
+    List<Primitive> args = parsePrimitiveList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -402,7 +390,7 @@ class SExpressionUnstringifier {
     return new InvokeConstructor(type, element, selector, cont, args);
   }
 
-  /// (InvokeContinuation name args)
+  /// (InvokeContinuation name (args))
   InvokeContinuation parseInvokeContinuation(bool recursive) {
     tokens.consumeStart(recursive
         ? INVOKE_CONTINUATION_RECURSIVE : INVOKE_CONTINUATION);
@@ -410,18 +398,13 @@ class SExpressionUnstringifier {
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
 
-    List<Primitive> args = <Primitive>[];
-    while (tokens.current != ")") {
-      Primitive arg = name2variable[tokens.read()];
-      assert(arg != null);
-      args.add(arg);
-    }
+    List<Primitive> args = parsePrimitiveList();
 
     tokens.consumeEnd();
     return new InvokeContinuation(cont, args, recursive: recursive);
   }
 
-  /// (InvokeMethod receiver method args cont)
+  /// (InvokeMethod receiver method (args) cont)
   InvokeMethod parseInvokeMethod() {
     tokens.consumeStart(INVOKE_METHOD);
 
@@ -430,7 +413,7 @@ class SExpressionUnstringifier {
 
     String methodName = tokens.read();
 
-    List<Primitive> args = parseArgumentList();
+    List<Primitive> args = parsePrimitiveList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -440,13 +423,13 @@ class SExpressionUnstringifier {
     return new InvokeMethod(receiver, selector, cont, args);
   }
 
-  /// (InvokeStatic method args cont)
+  /// (InvokeStatic method (args) cont)
   InvokeStatic parseInvokeStatic() {
     tokens.consumeStart(INVOKE_STATIC);
 
     String methodName = tokens.read();
 
-    List<Primitive> args = parseArgumentList();
+    List<Primitive> args = parsePrimitiveList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -458,13 +441,13 @@ class SExpressionUnstringifier {
     return new InvokeStatic(entity, selector, cont, args);
   }
 
-  /// (InvokeSuperMethod method args cont)
+  /// (InvokeSuperMethod method (args) cont)
   InvokeSuperMethod parseInvokeSuperMethod() {
     tokens.consumeStart(INVOKE_SUPER_METHOD);
 
     String methodName = tokens.read();
 
-    List<Primitive> args = parseArgumentList();
+    List<Primitive> args = parsePrimitiveList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -474,14 +457,16 @@ class SExpressionUnstringifier {
     return new InvokeSuperMethod(selector, cont, args);
   }
 
-  /// (LetCont (cont args) (cont_body)) body
+  /// (LetCont (name (args) cont_body) body)
   LetCont parseLetCont(bool recursive) {
     tokens.consumeStart(recursive ? LET_CONT_RECURSIVE : LET_CONT);
 
-    // (name args) (cont_body))
+    // (name
     tokens.consumeStart();
     String name = tokens.read();
 
+    // (args)
+    tokens.consumeStart();
     List<Parameter> params = <Parameter>[];
     while (tokens.current != ")") {
       String paramName = tokens.read();
@@ -495,11 +480,13 @@ class SExpressionUnstringifier {
     name2variable[name] = cont;
 
     cont.isRecursive = recursive;
+    // cont_body
     cont.body = parseExpression();
     tokens.consumeEnd();
 
-    // body
+    // body)
     Expression body = parseExpression();
+    tokens.consumeEnd();
 
     return new LetCont(cont, body);
   }
@@ -537,20 +524,22 @@ class SExpressionUnstringifier {
     return new TypeOperator(recv, type, cont, isTypeTest: operator == 'is');
   }
 
-  /// (LetPrim name (primitive)) body
+  /// (LetPrim (name primitive) body)
   LetPrim parseLetPrim() {
     tokens.consumeStart(LET_PRIM);
 
-    // name
+    // (name
+    tokens.consumeStart();
     String name = tokens.read();
 
-    // (primitive)
+    // primitive)
     Primitive primitive = parsePrimitive();
     name2variable[name] = primitive;
     tokens.consumeEnd();
 
-    // body
+    // body)
     Expression body = parseExpression();
+    tokens.consumeEnd();
 
     return new LetPrim(primitive)..plug(body);
   }
@@ -658,7 +647,7 @@ class SExpressionUnstringifier {
     return new GetClosureVariable(local);
   }
 
-  /// (LiteralList values)
+  /// (LiteralList (values))
   LiteralList parseLiteralList() {
     tokens.consumeStart(LITERAL_LIST);
     List<Primitive> values = parsePrimitiveList();
@@ -666,7 +655,7 @@ class SExpressionUnstringifier {
     return new LiteralList(null, values);
   }
 
-  /// (LiteralMap keys values)
+  /// (LiteralMap (keys) (values))
   LiteralMap parseLiteralMap() {
     tokens.consumeStart(LITERAL_MAP);
 

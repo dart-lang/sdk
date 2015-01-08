@@ -69,9 +69,10 @@ Future<Compiler> reuseCompiler(
     // Much like a scout, an incremental compiler is always prepared. For
     // mixins, classes, and lazy statics, at least.
     backend.emitter.oldEmitter
-        ..needsDefineClass = true
+        ..needsClassSupport = true
         ..needsMixinSupport = true
-        ..needsLazyInitializer = true;
+        ..needsLazyInitializer = true
+        ..needsArrayInitializerSupport = true;
 
     Uri core = Uri.parse("dart:core");
     return compiler.libraryLoader.loadLibrary(core).then((_) {
@@ -98,7 +99,6 @@ Future<Compiler> reuseCompiler(
         ..enqueuer.codegen.queueIsClosed = false
         ..enqueuer.codegen.hasEnqueuedReflectiveElements = false
         ..enqueuer.codegen.hasEnqueuedReflectiveStaticFields = false
-        ..assembledCode = null
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
 
@@ -112,9 +112,6 @@ Future<Compiler> reuseCompiler(
     compiler.enqueuer.codegen
         ..newlyEnqueuedElements.clear()
         ..newlySeenSelectors.clear();
-
-    backend.emitter.oldEmitter.containerBuilder
-        ..staticGetters.clear();
 
     backend.emitter.oldEmitter.nsmEmitter
         ..trivialNsmHandlers.clear();
@@ -172,4 +169,42 @@ Future<Compiler> reuseCompiler(
       return compiler;
     });
   }
+}
+
+/// Helper class to collect sources.
+class StringEventSink implements EventSink<String> {
+  List<String> data = <String>[];
+
+  final Function onClose;
+
+  StringEventSink(this.onClose);
+
+  void add(String event) {
+    if (data == null) throw 'StringEventSink is closed.';
+    data.add(event);
+  }
+
+  void addError(errorEvent, [StackTrace stackTrace]) {
+    throw 'addError($errorEvent, $stackTrace)';
+  }
+
+  void close() {
+    if (data != null) {
+      onClose(data.join());
+      data = null;
+    }
+  }
+}
+
+/// Output provider which collect output in [output].
+class OutputProvider {
+  final Map<String, String> output = new Map<String, String>();
+
+  EventSink<String> call(String name, String extension) {
+    return new StringEventSink((String data) {
+      output['$name.$extension'] = data;
+    });
+  }
+
+  String operator[] (String key) => output[key];
 }

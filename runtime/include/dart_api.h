@@ -1046,11 +1046,8 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
 /**
  * Schedules an interrupt for the specified isolate.
  *
- * Note that the interrupt does not occur immediately. In fact, if
- * 'isolate' does not execute any further Dart code, then the
- * interrupt will not occur at all.  If and when the isolate is
- * interrupted, the isolate interrupt callback will be invoked with
- * 'isolate' as the current isolate (see
+ * When the isolate is interrupted, the isolate interrupt callback
+ * will be invoked with 'isolate' as the current isolate (see
  * Dart_IsolateInterruptCallback).
  *
  * \param isolate The isolate to be interrupted.

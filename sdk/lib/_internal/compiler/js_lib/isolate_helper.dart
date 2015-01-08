@@ -1035,6 +1035,13 @@ class IsolateNatives {
     }, 'nonworker start');
   }
 
+  static Isolate get currentIsolate {
+    _IsolateContext context = JS_CURRENT_ISOLATE_CONTEXT();
+    return new Isolate(context.controlPort.sendPort,
+                       pauseCapability: context.pauseCapability,
+                       terminateCapability: context.terminateCapability);
+  }
+
   static void _startIsolate(Function topLevel,
                             List<String> args, message,
                             bool isSpawnUri,

@@ -115,12 +115,13 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       return DeclarationMatchKind.MATCH;
     }
     // simple API change
+    logger.log('_removedElements: $_removedElements');
+    logger.log('_addedElements: $_addedElements');
+    _removedElements.forEach(_removeElement);
     if (_removedElements.length <= 1 && _addedElements.length == 1) {
       return DeclarationMatchKind.MISMATCH_OK;
     }
     // something more complex
-    logger.log('_removedElements: $_removedElements');
-    logger.log('_addedElements: $_addedElements');
     return DeclarationMatchKind.MISMATCH;
   }
 
@@ -185,6 +186,13 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         _enclosingClass.getNamedConstructor(constructorName.name);
     _processElement(element);
     _assertCompatibleParameters(node.parameters, element.parameters);
+    // TODO(scheglov) debug null Location
+    if (element != null) {
+      if (element.context == null || element.source == null) {
+        logger.log(
+            'Bad constructor element $element for $node in ${node.parent}');
+      }
+    }
     // matches, update the existing element
     ExecutableElement newElement = node.element;
     node.element = element;
@@ -339,12 +347,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _setLocalElements(element, newElement);
     } on _DeclarationMismatchException catch (e) {
       _addedElements.add(newElement);
-      // remove old element
-      if (element is MethodElement) {
-        _enclosingClass.methods.remove(element);
-      } else if (element is PropertyAccessorElement) {
-        _enclosingClass.accessors.remove(element);
-      }
+      _removeElement(element);
       // add new element
       if (newElement is MethodElement) {
         List<MethodElement> methods = _enclosingClass.methods;
@@ -390,6 +393,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       element = _findElement(_enclosingClass.fields, name);
     }
     // verify
+    PropertyInducingElement newElement = node.name.staticElement;
     _assertNotNull(element);
     _processElement(element);
     _assertEquals(node.isConst, element.isConst);
@@ -402,6 +406,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         element.type);
     // matches, restore the existing element
     node.name.staticElement = element;
+    if (element is VariableElementImpl) {
+      (element as VariableElementImpl).initializer = newElement.initializer;
+    }
   }
 
   @override
@@ -627,6 +634,23 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     _removedElements.remove(element);
   }
 
+  void _removeElement(Element element) {
+    if (element != null) {
+      Element enclosingElement = element.enclosingElement;
+      if (element is MethodElement) {
+        ClassElement classElement = enclosingElement;
+        _removeIdenticalElement(classElement.methods, element);
+      } else if (element is PropertyAccessorElement) {
+        if (enclosingElement is ClassElement) {
+          _removeIdenticalElement(enclosingElement.accessors, element);
+        }
+        if (enclosingElement is CompilationUnitElement) {
+          _removeIdenticalElement(enclosingElement.accessors, element);
+        }
+      }
+    }
+  }
+
   /**
    * Return the [Element] in [elements] with the given [name].
    */
@@ -662,6 +686,19 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       return null;
     }
     return literal.stringValue;
+  }
+
+  /**
+   * Removes the first element identical to the given [element] from [elements].
+   */
+  static void _removeIdenticalElement(List elements, Object element) {
+    int length = elements.length;
+    for (int i = 0; i < length; i++) {
+      if (identical(elements[i], element)) {
+        elements.removeAt(i);
+        return;
+      }
+    }
   }
 
   static void _setLocalElements(ExecutableElementImpl to,
@@ -708,19 +745,29 @@ class DeclarationMatchKind {
  */
 class IncrementalResolver {
   /**
-   * The object used to access the types from the core library.
-   */
-  final TypeProvider _typeProvider;
-
-  /**
    * The element of the compilation unit being resolved.
    */
   final CompilationUnitElement _definingUnit;
 
   /**
+   * The context the compilation unit being resolved in.
+   */
+  AnalysisContextImpl _context;
+
+  /**
+   * The object used to access the types from the core library.
+   */
+  TypeProvider _typeProvider;
+
+  /**
    * The element for the library containing the compilation unit being resolved.
    */
   LibraryElement _definingLibrary;
+
+  /**
+   * The [DartEntry] corresponding to the source being resolved.
+   */
+  DartEntry entry;
 
   /**
    * The source representing the compilation unit being visited.
@@ -733,14 +780,16 @@ class IncrementalResolver {
   final int _updateOffset;
 
   /**
-   * The number of characters in the original contents that were replaced.
+   * The end of the changed contents in the old unit.
    */
-  final int _updateOldLength;
+  final int _updateEndOld;
 
   /**
-   * The number of characters in the replacement text.
+   * The end of the changed contents in the new unit.
    */
-  final int _updateNewLength;
+  final int _updateEndNew;
+
+  int _updateDelta;
 
   RecordingErrorListener errorListener = new RecordingErrorListener();
   ResolutionContext _resolutionContext;
@@ -758,10 +807,14 @@ class IncrementalResolver {
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
-  IncrementalResolver(this._typeProvider, this._definingUnit,
-      this._updateOffset, this._updateOldLength, this._updateNewLength) {
+  IncrementalResolver(this._definingUnit, this._updateOffset,
+      this._updateEndOld, this._updateEndNew) {
+    _updateDelta = _updateEndNew - _updateEndOld;
     _definingLibrary = _definingUnit.library;
     _source = _definingUnit.source;
+    _context = _definingUnit.context;
+    _typeProvider = _context.typeProvider;
+    entry = _context.getReadableSourceEntryOrNull(_source);
   }
 
   /**
@@ -774,15 +827,10 @@ class IncrementalResolver {
   bool resolve(AstNode node) {
     logger.enter('resolve: $_definingUnit');
     try {
-      logger.log(() => 'node: $node');
       AstNode rootNode = _findResolutionRoot(node);
-      logger.log(() => 'rootNode: $rootNode');
       _prepareResolutionContext(rootNode);
       // update elements
-      _updateElementNameOffsets(
-          _definingUnit,
-          _updateOffset,
-          _updateNewLength - _updateOldLength);
+      _updateElementNameOffsets();
       _buildElements(rootNode);
       if (!_canBeIncrementallyResolved(rootNode)) {
         return false;
@@ -792,6 +840,8 @@ class IncrementalResolver {
       // verify
       _verify(rootNode);
       _generateHints(rootNode);
+      // update entry errors
+      _updateEntry();
       // resolve queue in response of API changes
       _resolveQueue();
       // OK
@@ -865,10 +915,13 @@ class IncrementalResolver {
           node is ConstructorDeclaration ||
           node is FunctionDeclaration ||
           node is FunctionTypeAlias ||
-          node is MethodDeclaration;
+          node is MethodDeclaration ||
+          node is TopLevelVariableDeclaration;
 
   void _fillResolutionQueue(DeclarationMatcher matcher) {
-    for (Element removedElement in matcher._removedElements) {
+    HashSet<Element> removedElements = matcher._removedElements;
+    logger.log('${removedElements.length} elements removed');
+    for (Element removedElement in removedElements) {
       AnalysisContextImpl context = removedElement.context;
       IntSet users = removedElement.users;
       while (!users.isEmpty) {
@@ -942,15 +995,24 @@ class IncrementalResolver {
   * TODO(scheglov) revisit later. Each task duration should be kept short.
    */
   void _resolveQueue() {
+    logger.log('${_resolutionQueue.length} elements in the resolution queue');
     for (Element element in _resolutionQueue) {
       // TODO(scheglov) in general, we should not call Element.node, it
       // might perform complete unit resolution.
-      AstNode node = element.node;
-      CompilationUnitElement unit =
-          element.getAncestor((e) => e is CompilationUnitElement);
-      IncrementalResolver resolver =
-          new IncrementalResolver(_typeProvider, unit, 0, 0, 0);
-      resolver._resolveReferences(node);
+      logger.enter('resolve $element');
+      try {
+        AstNode node = element.node;
+        CompilationUnitElement unit =
+            element.getAncestor((e) => e is CompilationUnitElement);
+        IncrementalResolver resolver =
+            new IncrementalResolver(unit, node.offset, node.end, node.end);
+        resolver._resolveReferences(node);
+        resolver._verify(node);
+        resolver._generateHints(node);
+        resolver._updateEntry();
+      } finally {
+        logger.exit();
+      }
     }
   }
 
@@ -1005,6 +1067,81 @@ class IncrementalResolver {
     }
   }
 
+  void _shiftEntryErrors() {
+    _shiftErrors(DartEntry.RESOLUTION_ERRORS);
+    _shiftErrors(DartEntry.VERIFICATION_ERRORS);
+    _shiftErrors(DartEntry.HINTS);
+  }
+
+  void _shiftErrors(DataDescriptor<List<AnalysisError>> descriptor) {
+    Source librarySource = _definingLibrary.source;
+    List<AnalysisError> errors =
+        entry.getValueInLibrary(descriptor, librarySource);
+    for (AnalysisError error in errors) {
+      int errorOffset = error.offset;
+      if (errorOffset > _updateOffset) {
+        error.offset += _updateDelta;
+      }
+    }
+  }
+
+  void _updateElementNameOffsets() {
+    LoggingTimer timer = logger.startTimer();
+    try {
+      _definingUnit.accept(
+          new _ElementNameOffsetUpdater(_updateOffset, _updateDelta));
+    } finally {
+      timer.stop('update element offsets');
+    }
+  }
+
+  void _updateEntry() {
+    Source librarySource = _definingLibrary.source;
+    {
+      List<AnalysisError> oldErrors =
+          entry.getValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource);
+      List<AnalysisError> errors = _updateErrors(oldErrors, _resolveErrors);
+      entry.setValueInLibrary(
+          DartEntry.RESOLUTION_ERRORS,
+          librarySource,
+          errors);
+    }
+    {
+      List<AnalysisError> oldErrors =
+          entry.getValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource);
+      List<AnalysisError> errors = _updateErrors(oldErrors, _verifyErrors);
+      entry.setValueInLibrary(
+          DartEntry.VERIFICATION_ERRORS,
+          librarySource,
+          errors);
+    }
+    entry.setValueInLibrary(DartEntry.HINTS, librarySource, _hints);
+  }
+
+  List<AnalysisError> _updateErrors(List<AnalysisError> oldErrors,
+      List<AnalysisError> newErrors) {
+    List<AnalysisError> errors = new List<AnalysisError>();
+    // add updated old errors
+    for (AnalysisError error in oldErrors) {
+      int errorOffset = error.offset;
+      if (errorOffset < _updateOffset) {
+        errors.add(error);
+      } else if (errorOffset > _updateEndOld) {
+        error.offset += _updateDelta;
+        errors.add(error);
+      }
+    }
+    // add new errors
+    for (AnalysisError error in newErrors) {
+      int errorOffset = error.offset;
+      if (errorOffset > _updateOffset && errorOffset < _updateEndNew) {
+        errors.add(error);
+      }
+    }
+    // done
+    return errors;
+  }
+
   void _verify(AstNode node) {
     LoggingTimer timer = logger.startTimer();
     try {
@@ -1025,23 +1162,14 @@ class IncrementalResolver {
       timer.stop('verify');
     }
   }
-
-  static void _updateElementNameOffsets(Element root, int offset, int delta) {
-    LoggingTimer timer = logger.startTimer();
-    try {
-      root.accept(new _ElementNameOffsetUpdater(offset, delta));
-    } finally {
-      timer.stop('update element offsets');
-    }
-  }
 }
 
 
 class PoorMansIncrementalResolver {
   final TypeProvider _typeProvider;
   final Source _unitSource;
-  final Source _librarySource;
   final DartEntry _entry;
+  CompilationUnitElement _unitElement;
 
   int _updateOffset;
   int _updateDelta;
@@ -1050,12 +1178,9 @@ class PoorMansIncrementalResolver {
 
   List<AnalysisError> _newScanErrors = <AnalysisError>[];
   List<AnalysisError> _newParseErrors = <AnalysisError>[];
-  List<AnalysisError> _newResolveErrors = <AnalysisError>[];
-  List<AnalysisError> _newVerifyErrors = <AnalysisError>[];
-  List<AnalysisError> _newHints = <AnalysisError>[];
 
-  PoorMansIncrementalResolver(this._typeProvider, this._unitSource,
-      this._librarySource, this._entry, bool resolveApiChanges) {
+  PoorMansIncrementalResolver(this._typeProvider, this._unitSource, this._entry,
+      bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
   }
 
@@ -1066,8 +1191,8 @@ class PoorMansIncrementalResolver {
    */
   bool resolve(CompilationUnit oldUnit, String newCode) {
     logger.enter('diff/resolve $_unitSource');
-    logger.log(oldUnit != null ? 'has oldUnit' : 'oldUnit is null');
     try {
+      _unitElement = oldUnit.element;
       CompilationUnit newUnit = _parseUnit(newCode);
       _TokenPair firstPair =
           _findFirstDifferentToken(oldUnit.beginToken, newUnit.beginToken);
@@ -1087,21 +1212,27 @@ class PoorMansIncrementalResolver {
             identical(lastPair.newToken, firstPair.newToken)) {
           _updateOffset = beginOffsetOld - 1;
           _updateEndOld = endOffsetOld;
+          _updateEndNew = endOffsetNew;
           _updateDelta = newUnit.length - oldUnit.length;
           // A Dart documentation comment change.
           if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
-            _resolveComment(oldUnit, newUnit, firstPair);
-            logger.log('Success.');
-            return true;
+            bool success = _resolveComment(oldUnit, newUnit, firstPair);
+            logger.log('Documentation comment resolved: $success');
+            return success;
           }
           // A pure whitespace change.
           if (firstPair.kind == _TokenDifferenceKind.OFFSET) {
             logger.log('Whitespace change.');
             _shiftTokens(firstPair.oldToken);
-            IncrementalResolver._updateElementNameOffsets(
-                oldUnit.element,
-                _updateOffset,
-                _updateDelta);
+            {
+              IncrementalResolver incrementalResolver = new IncrementalResolver(
+                  _unitElement,
+                  _updateOffset,
+                  _updateEndOld,
+                  _updateEndNew);
+              incrementalResolver._updateElementNameOffsets();
+              incrementalResolver._shiftEntryErrors();
+            }
             _updateEntry();
             logger.log('Success.');
             return true;
@@ -1166,13 +1297,11 @@ class PoorMansIncrementalResolver {
           _shiftTokens(oldNode.endToken.next);
         }
         // perform incremental resolution
-        CompilationUnitElement oldUnitElement = oldUnit.element;
         IncrementalResolver incrementalResolver = new IncrementalResolver(
-            _typeProvider,
-            oldUnitElement,
+            _unitElement,
             _updateOffset,
-            oldNode.length,
-            newNode.length);
+            _updateEndOld,
+            _updateEndNew);
         bool success = incrementalResolver.resolve(newNode);
         // check if success
         if (!success) {
@@ -1180,9 +1309,6 @@ class PoorMansIncrementalResolver {
           return false;
         }
         // update DartEntry
-        _newResolveErrors = incrementalResolver._resolveErrors;
-        _newVerifyErrors = incrementalResolver._verifyErrors;
-        _newHints = incrementalResolver._hints;
         _updateEntry();
         logger.log('Success.');
         return true;
@@ -1211,11 +1337,21 @@ class PoorMansIncrementalResolver {
     }
   }
 
-  void _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
+  /**
+   * Attempts to resolve a documentation comment change.
+   * Returns `true` if success.
+   */
+  bool _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
       _TokenPair firstPair) {
     Token oldToken = firstPair.oldToken;
-    CommentToken precedingComments = oldToken.precedingComments;
-    int offset = precedingComments.offset;
+    Token newToken = firstPair.newToken;
+    CommentToken oldComments = oldToken.precedingComments;
+    CommentToken newComments = newToken.precedingComments;
+    if (oldComments == null || newComments == null) {
+      return false;
+    }
+    // find nodes
+    int offset = oldComments.offset;
     logger.log('offset: $offset');
     Comment oldComment = _findNodeCovering(oldUnit, offset, offset);
     Comment newComment = _findNodeCovering(newUnit, offset, offset);
@@ -1228,16 +1364,17 @@ class PoorMansIncrementalResolver {
     // replace node
     NodeReplacer.replace(oldComment, newComment);
     // update elements
-    IncrementalResolver._updateElementNameOffsets(
-        oldUnit.element,
+    IncrementalResolver incrementalResolver = new IncrementalResolver(
+        _unitElement,
         _updateOffset,
-        _updateDelta);
+        _updateEndOld,
+        _updateEndNew);
+    incrementalResolver._updateElementNameOffsets();
     _updateEntry();
     // resolve references in the comment
-    CompilationUnitElement oldUnitElement = oldUnit.element;
-    IncrementalResolver incrementalResolver =
-        new IncrementalResolver(_typeProvider, oldUnitElement, _updateOffset, 0, 0);
     incrementalResolver._resolveReferences(newComment);
+    // OK
+    return true;
   }
 
   Token _scan(String code) {
@@ -1272,49 +1409,6 @@ class PoorMansIncrementalResolver {
   void _updateEntry() {
     _entry.setValue(DartEntry.SCAN_ERRORS, _newScanErrors);
     _entry.setValue(DartEntry.PARSE_ERRORS, _newParseErrors);
-    {
-      List<AnalysisError> oldErrors =
-          _entry.getValueInLibrary(DartEntry.RESOLUTION_ERRORS, _librarySource);
-      List<AnalysisError> errors = _updateErrors(oldErrors, _newResolveErrors);
-      _entry.setValueInLibrary(
-          DartEntry.RESOLUTION_ERRORS,
-          _librarySource,
-          errors);
-    }
-    {
-      List<AnalysisError> oldErrors =
-          _entry.getValueInLibrary(DartEntry.VERIFICATION_ERRORS, _librarySource);
-      List<AnalysisError> errors = _updateErrors(oldErrors, _newVerifyErrors);
-      _entry.setValueInLibrary(
-          DartEntry.VERIFICATION_ERRORS,
-          _librarySource,
-          errors);
-    }
-    _entry.setValueInLibrary(DartEntry.HINTS, _librarySource, _newHints);
-  }
-
-  List<AnalysisError> _updateErrors(List<AnalysisError> oldErrors,
-      List<AnalysisError> newErrors) {
-    List<AnalysisError> errors = new List<AnalysisError>();
-    // add updated old errors
-    for (AnalysisError error in oldErrors) {
-      int errorOffset = error.offset;
-      if (errorOffset < _updateOffset) {
-        errors.add(error);
-      } else if (errorOffset > _updateEndOld) {
-        error.offset += _updateDelta;
-        errors.add(error);
-      }
-    }
-    // add new errors
-    for (AnalysisError error in newErrors) {
-      int errorOffset = error.offset;
-      if (errorOffset > _updateOffset && errorOffset < _updateEndNew) {
-        errors.add(error);
-      }
-    }
-    // done
-    return errors;
   }
 
   static _TokenDifferenceKind _compareToken(Token oldToken, Token newToken,

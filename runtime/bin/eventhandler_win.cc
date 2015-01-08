@@ -964,7 +964,6 @@ bool DatagramSocket::IssueRecvFrom() {
 
   DWORD flags;
   flags = 0;
-  int len;
   int rc = WSARecvFrom(socket(),
                        buffer->GetWASBUF(),
                        1,
@@ -1253,7 +1252,6 @@ void EventHandlerImplementation::HandleIOCompletion(DWORD bytes,
 
 
 EventHandlerImplementation::EventHandlerImplementation() {
-  intptr_t result;
   completion_port_ =
       CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 1);
   if (completion_port_ == NULL) {

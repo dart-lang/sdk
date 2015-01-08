@@ -6,6 +6,8 @@ test/dart2js/compiles_generated_file_from_dependency_test: Pass, Slow
 test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 test/transformer/loads_a_diamond_transformer_dependency_graph_test: Pass, Slow
 
+test/async_compile_test: Fail # pub_generated need to be updated (see dartbug.com/21940)
+
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip

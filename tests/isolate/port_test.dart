@@ -9,7 +9,6 @@
 library PortTest;
 import "package:expect/expect.dart";
 import 'dart:isolate';
-import '../../pkg/matcher/lib/matcher.dart';
 
 main() {
   testHashCode();

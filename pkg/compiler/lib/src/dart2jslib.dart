@@ -32,6 +32,7 @@ import 'elements/modelx.dart'
          AnalyzableElement,
          DeferredLoaderGetterElementX;
 import 'helpers/helpers.dart';  // Included for debug helpers.
+import 'io/code_output.dart' show CodeBuffer;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'library_loader.dart'
@@ -69,7 +70,6 @@ export 'util/util.dart'
          CURRENT_ELEMENT_SPANNABLE,
          NO_LOCATION_SPANNABLE;
 
-part 'code_buffer.dart';
 part 'compile_time_constants.dart';
 part 'compiler.dart';
 part 'constant_system.dart';

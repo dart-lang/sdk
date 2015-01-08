@@ -54,13 +54,13 @@ main() {
   }
 
   asyncStart();
-  Future<String> result =
+  Future<CompilationResult> result =
       compile(new Uri(scheme: 'main'),
               new Uri(scheme: 'lib', path: '/'),
               new Uri(scheme: 'package', path: '/'),
               provider, handler);
-  result.then((String code) {
-    Expect.isNull(code);
+  result.then((CompilationResult result) {
+    Expect.isFalse(result.isSuccess);
     Expect.isTrue(10 < count);
     // Two warnings for each time RECURSIVE_MAIN is read, except the
     // first time.

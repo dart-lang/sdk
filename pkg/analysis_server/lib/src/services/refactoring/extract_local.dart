@@ -549,11 +549,10 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitSimpleStringLiteral(SimpleStringLiteral node) {
+  Object visitStringLiteral(StringLiteral node) {
     if (ref.stringLiteralPart != null) {
       int occuLength = ref.stringLiteralPart.length;
-      String value = node.value;
-      int valueOffset = node.offset + (node.isMultiline ? 3 : 1);
+      String value = ref.utils.getNodeText(node);
       int lastIndex = 0;
       while (true) {
         int index = value.indexOf(ref.stringLiteralPart, lastIndex);
@@ -561,7 +560,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
           break;
         }
         lastIndex = index + occuLength;
-        int occuStart = valueOffset + index;
+        int occuStart = node.offset + index;
         SourceRange occuRange = rangeStartLength(occuStart, occuLength);
         occurrences.add(occuRange);
       }

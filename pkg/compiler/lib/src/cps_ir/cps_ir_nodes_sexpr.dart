@@ -61,7 +61,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     if (node.hasInitializer) {
       namer.setReturnContinuation(node.body.returnContinuation);
       String body = indentBlock(() => visit(node.body.body));
-      return '$indentation(FieldDefinition $name (return)\n'
+      return '$indentation(FieldDefinition $name () return\n'
              '$body)';
     } else {
       return '$indentation(FieldDefinition $name)';
@@ -71,8 +71,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitLetPrim(LetPrim node) {
     String name = newValueName(node.primitive);
     String value = visit(node.primitive);
-    String body = visit(node.body);
-    return '$indentation(LetPrim $name $value)\n$body';
+    String body = indentBlock(() => visit(node.body));
+    return '$indentation(LetPrim ($name $value)\n$body)';
   }
 
   String visitLetCont(LetCont node) {
@@ -81,14 +81,15 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     // should recurse to [visit].  Currently we can't do that, because the
     // unstringifier_test produces [LetConts] with dummy arguments on them.
     String parameters = node.continuation.parameters
-        .map((p) => ' ${decorator(p, newValueName(p))}')
-        .join('');
-    String contBody = indentBlock(() => visit(node.continuation.body));
-    String body = visit(node.body);
+        .map((p) => '${decorator(p, newValueName(p))}')
+        .join(' ');
+    String contBody =
+        indentBlock(() => indentBlock(() => visit(node.continuation.body)));
+    String body = indentBlock(() => visit(node.body));
     String op = node.continuation.isRecursive ? 'LetCont*' : 'LetCont';
-    return '$indentation($op ($cont$parameters)\n'
+    return '$indentation($op ($cont ($parameters)\n'
            '$contBody)\n'
-           '$body';
+           '$body)';
   }
 
   String formatArguments(Invoke node) {
@@ -101,7 +102,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
       Definition arg = node.arguments[positionalArgumentCount + i].definition;
       args.add("($name: $arg)");
     }
-    return args.join(' ');
+    return '(${args.join(' ')})';
   }
 
   String visitInvokeStatic(InvokeStatic node) {
@@ -141,7 +142,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitConcatenateStrings(ConcatenateStrings node) {
     String cont = access(node.continuation);
     String args = node.arguments.map(access).join(' ');
-    return '$indentation(ConcatenateStrings $args $cont)';
+    return '$indentation(ConcatenateStrings ($args) $cont)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
@@ -149,7 +150,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     String args = node.arguments.map(access).join(' ');
     String op =
         node.isRecursive ? 'InvokeContinuation*' : 'InvokeContinuation';
-    return '$indentation($op $cont $args)';
+    return '$indentation($op $cont ($args))';
   }
 
   String visitBranch(Branch node) {
@@ -174,7 +175,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitCreateFunction(CreateFunction node) {
-    String function = indentBlock(() => visit(node.definition));
+    String function =
+        indentBlock(() => indentBlock(() => visit(node.definition)));
     return '(CreateFunction\n$function)';
   }
 

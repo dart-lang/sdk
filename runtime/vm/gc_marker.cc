@@ -282,7 +282,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
 };
 
 
-bool IsUnreachable(const RawObject* raw_obj) {
+static bool IsUnreachable(const RawObject* raw_obj) {
   if (!raw_obj->IsHeapObject()) {
     return false;
   }

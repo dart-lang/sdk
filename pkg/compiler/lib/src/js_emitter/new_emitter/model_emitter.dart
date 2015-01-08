@@ -15,8 +15,10 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
     INITIALIZE_LOADED_HUNK,
+    IS_HUNK_INITIALIZED,
     IS_HUNK_LOADED;
 
+import '../js_emitter.dart' show NativeGenerator;
 import '../model.dart';
 
 class ModelEmitter {
@@ -38,7 +40,12 @@ class ModelEmitter {
         constantEmitter =
             new ConstantEmitter(compiler, namer, makeConstantListTemplate);
 
-  void emitProgram(Program program) {
+  js.Expression generateEmbeddedGlobalAccess(String global) {
+    // TODO(floitsch): We should not use "init" for globals.
+    return js.js("init.$global");
+  }
+
+  int emitProgram(Program program) {
     List<Output> outputs = program.outputs;
     MainOutput mainUnit = outputs.first;
     js.Statement mainAst = emitMainUnit(program);
@@ -47,15 +54,17 @@ class ModelEmitter {
         ..add(buildGeneratedBy(compiler))
         ..add(mainCode)
         ..close();
-    compiler.assembledCode = mainCode;
+    int totalSize = mainCode.length;
 
     outputs.skip(1).forEach((DeferredOutput deferredUnit) {
       js.Expression ast = emitDeferredUnit(deferredUnit, mainUnit.holders);
       String code = js.prettyPrint(ast, compiler).getText();
+      totalSize += code.length;
       compiler.outputProvider(deferredUnit.outputFileName, deferredExtension)
           ..add(code)
           ..close();
     });
+    return totalSize;
   }
 
   js.LiteralString unparse(Compiler compiler, js.Expression value) {
@@ -75,7 +84,21 @@ class ModelEmitter {
     List<js.Expression> elements = unit.libraries.map(emitLibrary).toList();
     elements.add(
         emitLazilyInitializedStatics(unit.staticLazilyInitializedFields));
+
+    js.Statement nativeBoilerplate;
+    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+      nativeBoilerplate =
+          NativeGenerator.generateIsolateAffinityTagInitialization(
+              backend,
+              generateEmbeddedGlobalAccess,
+              // TODO(floitsch): convertToFastObject.
+              js.js("(function(x) { return x; })", []));
+    } else {
+      nativeBoilerplate = js.js.statement(";");
+    }
+
     js.Expression code = new js.ArrayInitializer(elements);
+
     return js.js.statement(
         boilerplate,
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
@@ -86,6 +109,7 @@ class ModelEmitter {
          'embeddedGlobals': emitEmbeddedGlobals(program.loadMap),
          'constants': emitConstants(unit.constants),
          'staticNonFinals': emitStaticNonFinalFields(unit.staticNonFinalFields),
+         'nativeBoilerplate': nativeBoilerplate,
          'eagerClasses': emitEagerClassInitializations(unit.libraries),
          'main': unit.main,
          'code': code});
@@ -130,15 +154,13 @@ class ModelEmitter {
       globals.add(emitInitializeLoadedHunk());
     }
 
-    if (globals.isEmpty) return new js.Block.empty();
-
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
     List<js.Statement> statements =
         [new js.ExpressionStatement(
             new js.VariableDeclarationList(
                 [new js.VariableInitialization(
-                    new js.VariableDeclaration(r"init", allowRename: false),
+                    new js.VariableDeclaration("init", allowRename: false),
                     globalsObject)]))];
     return new js.Block(statements);
   }
@@ -299,7 +321,7 @@ class ModelEmitter {
     js.Expression fieldName = js.string(field.name);
     js.Expression code = js.js(getterTemplateFor(field.getterFlags), fieldName);
     String getterName = "${namer.getterPrefix}${field.name}";
-    return new Method(getterName, code);
+    return new StubMethod(getterName, code);
   }
 
   Method _generateSetter(InstanceField field) {
@@ -314,7 +336,7 @@ class ModelEmitter {
     js.Expression fieldName = js.string(field.name);
     js.Expression code = js.js(setterTemplateFor(field.setterFlags), fieldName);
     String setterName = "${namer.setterPrefix}${field.name}";
-    return new Method(setterName, code);
+    return new StubMethod(setterName, code);
   }
 
   Iterable<Method> _generateGettersSetters(Class cls) {
@@ -329,29 +351,26 @@ class ModelEmitter {
     return [getters, setters].expand((x) => x);
   }
 
-  js.Expression emitClass(Class cls) {
-    if (cls.isMixinApplication) return emitMixinApplication(cls);
-
-    List elements = [js.string(cls.superclassName),
-                     js.number(cls.superclassHolderIndex),
-                     _generateConstructor(cls)];
-    Iterable<Method> methods = cls.methods;
-    Iterable<Method> gettersSetters = _generateGettersSetters(cls);
-    Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
-    elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
-    return unparse(compiler, new js.ArrayInitializer(elements));
-  }
-
   // This string should be referenced wherever JavaScript code makes assumptions
   // on the mixin format.
   static final String mixinFormatDescription =
       "Mixins have no constructor, but a reference to their mixin class.";
 
-  js.Expression emitMixinApplication(MixinApplication cls) {
+  js.Expression emitClass(Class cls) {
     List elements = [js.string(cls.superclassName),
-                     js.number(cls.superclassHolderIndex),
-                     js.string(cls.mixinClass.name),
-                     js.number(cls.mixinClass.holder.index)];
+                     js.number(cls.superclassHolderIndex)];
+
+    if (cls.isMixinApplication) {
+      MixinApplication mixin = cls;
+      elements.add(js.string(mixin.mixinClass.name));
+      elements.add(js.number(mixin.mixinClass.holder.index));
+    } else {
+      elements.add(_generateConstructor(cls));
+    }
+    Iterable<Method> methods = cls.methods;
+    Iterable<Method> gettersSetters = _generateGettersSetters(cls);
+    Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
+    elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
     return unparse(compiler, new js.ArrayInitializer(elements));
   }
 
@@ -438,39 +457,45 @@ class ModelEmitter {
   }
 
   function setupClass(name, holder, descriptor) {
-    var resolve = function() {
+    var ensureResolved = function() {
       var constructor = compileConstructor(name, descriptor);
       holder[name] = constructor;
+      constructor.ensureResolved = function() { return this; };
       return constructor;
     };
 
     var patch = function() {
-      var constructor = resolve();
+      var constructor = ensureResolved();
       var object = new constructor();
       constructor.apply(object, arguments);
       return object;
     };
 
-    // We store the resolve function on the patch function to make it possible
-    // to resolve superclass references without constructing instances. The
-    // resolve property also serves as a marker that indicates whether or not
-    // a class has been resolved yet.
-    patch.resolve = resolve;
+    // We store the ensureResolved function on the patch function to make it
+    // possible to resolve superclass references without constructing instances.
+    patch.ensureResolved = ensureResolved;
     holder[name] = patch;
   }
 
   function compileConstructor(name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
+    var constructor;
     // $mixinFormatDescription.
     if (typeof descriptor[2] !== 'function') {
-      return compileMixinConstructor(name, prototype, descriptor);
+      constructor = compileMixinConstructor(name, prototype, descriptor);
+      for (var i = 4; i < descriptor.length; i += 2) {
+        prototype[descriptor[i]] = descriptor[i + 1];
+      }
+    } else {
+      constructor = descriptor[2];
+      for (var i = 3; i < descriptor.length; i += 2) {
+        prototype[descriptor[i]] = descriptor[i + 1];
+      }
     }
-    var constructor = descriptor[2];
-    for (var i = 3; i < descriptor.length; i += 2) {
-      prototype[descriptor[i]] = descriptor[i + 1];
-    }
+    constructor.builtin\$cls = name;  // Needed for RTI.
     constructor.prototype = prototype;
+    prototype.constructor = constructor;
     return constructor;
   }
 
@@ -478,8 +503,7 @@ class ModelEmitter {
     // $mixinFormatDescription.
     var mixinName = descriptor[2];
     var mixinHolderIndex = descriptor[3];
-    var mixin = holders[mixinHolderIndex][mixinName];
-    if (mixin.resolve) mixin = mixin.resolve();
+    var mixin = holders[mixinHolderIndex][mixinName].ensureResolved();
     var mixinPrototype = mixin.prototype;
 
     // Fill the prototype with the mixin's properties.
@@ -491,7 +515,6 @@ class ModelEmitter {
     // Since this is a mixin application the constructor will actually never
     // be invoked. We only use its prototype for the application's subclasses. 
     var constructor = function() {};
-    constructor.prototype = prototype;
     return constructor;
   }
 
@@ -501,8 +524,7 @@ class ModelEmitter {
 
     // Look up the superclass constructor function in the right holder.
     var holderIndex = descriptor[1];
-    var superclass = holders[holderIndex][superclassName];
-    if (superclass.resolve) superclass = superclass.resolve();
+    var superclass = holders[holderIndex][superclassName].ensureResolved();
 
     // Create a new prototype object chained to the superclass prototype.
     var intermediate = function() { };
@@ -538,6 +560,9 @@ class ModelEmitter {
 
   // Initialize static non-final fields.
   #staticNonFinals;
+
+  // Add native boilerplate code.
+  #nativeBoilerplate;
 
   // Initialize eager classes.
   #eagerClasses;

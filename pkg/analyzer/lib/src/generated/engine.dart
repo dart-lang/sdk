@@ -1063,7 +1063,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.analyzeAngular != options.analyzeAngular ||
         this._options.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
-        this._options.enableAsync != options.enableAsync ||
         this._options.enableDeferredLoading != options.enableDeferredLoading ||
         this._options.enableEnum != options.enableEnum ||
         this._options.dart2jsHint != options.dart2jsHint ||
@@ -1095,13 +1094,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.analyzeAngular = options.analyzeAngular;
     this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
     this._options.generateSdkErrors = options.generateSdkErrors;
-    this._options.enableAsync = options.enableAsync;
     this._options.enableDeferredLoading = options.enableDeferredLoading;
     this._options.enableEnum = options.enableEnum;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
+    this._options.incrementalValidation = options.incrementalValidation;
     this._options.preserveComments = options.preserveComments;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
@@ -5091,14 +5090,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (librarySources.length != 1) {
       return false;
     }
-    // do resolution
+    // prepare the existing unit
     Source librarySource = librarySources[0];
     CompilationUnit oldUnit =
         getResolvedCompilationUnit2(unitSource, librarySource);
+    if (oldUnit == null) {
+      return false;
+    }
+    // do resolution
     PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
         typeProvider,
         unitSource,
-        librarySource,
         dartEntry,
         analysisOptions.incrementalApi);
     bool success = resolver.resolve(oldUnit, newCode);
@@ -5108,7 +5110,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // prepare notice
     ChangeNoticeImpl notice = _getNotice(unitSource);
     notice.compilationUnit = oldUnit;
-    // TODO(scheglov) apply updated errors
+    // apply updated errors
     {
       LineInfo lineInfo = getLineInfo(unitSource);
       notice.setErrors(dartEntry.allErrors, lineInfo);
@@ -6490,9 +6492,8 @@ abstract class AnalysisOptions {
 
   /**
    * Return `true` if analysis is to include the new async support.
-   *
-   * @return `true` if analysis is to include the new async support
    */
+  @deprecated
   bool get enableAsync;
 
   /**
@@ -6539,6 +6540,12 @@ abstract class AnalysisOptions {
   bool get incrementalApi;
 
   /**
+   * A flag indicating whether validation should be performed after incremental
+   * analysis.
+   */
+  bool get incrementalValidation;
+
+  /**
    * Return `true` if analysis is to parse comments.
    *
    * @return `true` if analysis is to parse comments
@@ -6555,11 +6562,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The maximum number of sources for which data should be kept in the cache.
    */
   static int DEFAULT_CACHE_SIZE = 64;
-
-  /**
-   * The default value for enabling async support.
-   */
-  static bool DEFAULT_ENABLE_ASYNC = false;
 
   /**
    * The default value for enabling deferred loading.
@@ -6596,10 +6598,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool dart2jsHint = true;
 
-  /**
-   * A flag indicating whether analysis is to enable async support.
-   */
-  bool enableAsync = DEFAULT_ENABLE_ASYNC;
+  @deprecated
+  @override
+  bool get enableAsync => true;
+
+  @deprecated
+  void set enableAsync(bool enable) {
+    // Async support cannot be disabled
+  }
 
   /**
    * A flag indicating whether analysis is to enable deferred loading.
@@ -6635,6 +6641,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool incrementalApi = false;
 
   /**
+   * A flag indicating whether validation should be performed after incremental
+   * analysis.
+   */
+  bool incrementalValidation = false;
+
+  /**
    * A flag indicating whether analysis is to parse comments.
    */
   bool preserveComments = true;
@@ -6656,13 +6668,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzePolymer = options.analyzePolymer;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
-    enableAsync = options.enableAsync;
     enableDeferredLoading = options.enableDeferredLoading;
     enableEnum = options.enableEnum;
     _generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     incremental = options.incremental;
     incrementalApi = options.incrementalApi;
+    incrementalValidation = options.incrementalValidation;
     preserveComments = options.preserveComments;
   }
 
@@ -10710,7 +10722,6 @@ class IncrementalAnalysisTask extends AnalysisTask {
         LibraryElement library = element.library;
         if (library != null) {
           IncrementalResolver resolver = new IncrementalResolver(
-              typeProvider,
               element,
               cache.offset,
               cache.oldLength,
@@ -11328,7 +11339,6 @@ class ParseDartTask extends AnalysisTask {
       Parser parser = new Parser(source, errorListener);
       AnalysisOptions options = context.analysisOptions;
       parser.parseFunctionBodies = options.analyzeFunctionBodies;
-      parser.parseAsync = options.enableAsync;
       parser.parseDeferredLibraries = options.enableDeferredLoading;
       parser.parseEnum = options.enableEnum;
       _unit = parser.parseCompilationUnit(_tokenStream);

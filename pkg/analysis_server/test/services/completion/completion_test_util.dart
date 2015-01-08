@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
     ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
@@ -382,7 +383,10 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(element.name, equals(name));
     // TODO (danrubel) assert setter param
     //expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
+    // TODO (danrubel) it would be better if this was always null
+    if (element.returnType != null) {
+      expect(element.returnType, 'dynamic');
+    }
     return cs;
   }
 
@@ -421,6 +425,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         new NodeLocator.con1(completionOffset).searchWithin(testUnit);
     request.unit = testUnit;
     request.node = completionNode;
+    request.target = new CompletionTarget.forOffset(testUnit, completionOffset);
     return computer.computeFast(request);
   }
 
@@ -451,27 +456,30 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       });
 
       // If the unit has been resolved, then finish the completion
-      LibraryElement library = context.getLibraryElement(testSource);
-      if (library != null) {
-        CompilationUnit unit =
-            context.getResolvedCompilationUnit(testSource, library);
-        if (unit != null) {
-          request.unit = unit;
-          request.node =
-              new NodeLocator.con1(completionOffset).searchWithin(unit);
-          if (request.node is SimpleIdentifier) {
-            request.replacementOffset = request.node.offset;
-            request.replacementLength = request.node.length;
-          } else {
-            request.replacementOffset = request.offset;
-            request.replacementLength = 0;
-          }
-          if (request.replacementOffset == null) {
-            fail('expected non null');
-          }
-          resolved = true;
-          if (!fullAnalysis) {
-            break;
+      List<Source> libSourceList = context.getLibrariesContaining(testSource);
+      if (libSourceList.length > 0) {
+        LibraryElement library = context.getLibraryElement(libSourceList[0]);
+        if (library != null) {
+          CompilationUnit unit =
+              context.getResolvedCompilationUnit(testSource, library);
+          if (unit != null) {
+            request.unit = unit;
+            request.node =
+                new NodeLocator.con1(completionOffset).searchWithin(unit);
+            if (request.node is SimpleIdentifier) {
+              request.replacementOffset = request.node.offset;
+              request.replacementLength = request.node.length;
+            } else {
+              request.replacementOffset = request.offset;
+              request.replacementLength = 0;
+            }
+            if (request.replacementOffset == null) {
+              fail('expected non null');
+            }
+            resolved = true;
+            if (!fullAnalysis) {
+              break;
+            }
           }
         }
       }
@@ -753,6 +761,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestLocalSetter(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestSetter(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestLocalTopLevelVar(String name,
       String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -761,6 +778,12 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     } else {
       return assertNotSuggested(name);
     }
+  }
+
+  CompletionSuggestion assertSuggestNonLocalClass(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+    return assertSuggestImportedClass(name, relevance, kind);
   }
 
   Future computeFull(assertFunction(bool result), {bool fullAnalysis: true}) {
@@ -949,6 +972,27 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_AssignmentExpression_type_newline() {
+    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('''
+      class A {} main() {
+        int a;
+        ^
+        b = 1;}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('int');
+      // Allow non-types preceding an identifier on LHS of assignment
+      // if newline follows first identifier
+      // because user is probably starting a new statement
+      assertSuggestLocalVariable('a', 'int');
+      assertSuggestLocalFunction('main', null);
+      assertSuggestImportedFunction('identical', 'bool');
+    });
+  }
+
   test_AssignmentExpression_type_partial() {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
@@ -968,27 +1012,6 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       //assertNotSuggested('a');
       //assertNotSuggested('main');
       //assertNotSuggested('identical');
-    });
-  }
-
-  test_AssignmentExpression_type_newline() {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
-    // VariableDeclarationStatement  Block
-    addTestSource('''
-      class A {} main() {
-        int a;
-        ^
-        b = 1;}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestLocalClass('A');
-      assertSuggestImportedClass('int');
-      // Allow non-types preceding an identifier on LHS of assignment
-      // if newline follows first identifier
-      // because user is probably starting a new statement
-      assertSuggestLocalVariable('a', 'int');
-      assertSuggestLocalFunction('main', null);
-      assertSuggestImportedFunction('identical', 'bool');
     });
   }
 
@@ -1079,8 +1102,12 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testG.dart" as g;
       int T5;
       var _T6;
+      String get T7 => 'hello';
+      set T8(int value) { }
       Z D2() {int x;}
       class X {
+        int get clog => 8;
+        set blog(value) { }
         a() {
           var f;
           localF(int arg1) { }
@@ -1131,6 +1158,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalTopLevelVar('T5', 'int');
       assertSuggestLocalTopLevelVar('_T6', null);
       assertNotSuggested('==');
+      assertSuggestLocalGetter('T7', 'String');
+      assertSuggestLocalSetter('T8');
+      assertSuggestLocalGetter('clog', 'int');
+      assertSuggestLocalSetter('blog');
       // TODO (danrubel) suggest HtmlElement as low relevance
       assertNotSuggested('HtmlElement');
     });
@@ -1966,11 +1997,13 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
+        expect(getterF.element.parameters, isNull);
       }
       CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
       if (getterG != null) {
         expect(getterG.element.isDeprecated, isFalse);
         expect(getterG.element.isPrivate, isTrue);
+        expect(getterF.element.parameters, isNull);
       }
       assertSuggestImportedClass('bool');
     });
@@ -2041,6 +2074,68 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('X');
       assertNotSuggested('Object');
       assertNotSuggested('==');
+    });
+  }
+
+  test_partFile_TypeName() {
+    // SimpleIdentifier  TypeName  ConstructorName
+    addSource('/testB.dart', '''
+      lib B;
+      int T1;
+      F1() { }
+      class X {X.c(); X._d(); z() {}}''');
+    addSource('/testA.dart', '''
+      library libA;
+      import "/testB.dart";
+      part "$testFile";
+      class A { }
+      var m;''');
+    addTestSource('''
+      part of libA;
+      class B { }
+      main() {new ^}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('B');
+      assertSuggestImportedClass('Object');
+      assertSuggestImportedClass('X');
+      assertSuggestNonLocalClass('A');
+      assertNotSuggested('F1');
+      assertNotSuggested('T1');
+      assertNotSuggested('_d');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
+    });
+  }
+
+  test_partFile_TypeName2() {
+    // SimpleIdentifier  TypeName  ConstructorName
+    addSource('/testB.dart', '''
+      lib B;
+      int T1;
+      F1() { }
+      class X {X.c(); X._d(); z() {}}''');
+    addSource('/testA.dart', '''
+      part of libA;
+      class B { }''');
+    addTestSource('''
+      library libA;
+      import "/testB.dart";
+      part "/testA.dart";
+      class A { }
+      main() {new ^}
+      var m;''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+      assertSuggestImportedClass('X');
+      assertSuggestNonLocalClass('B');
+      assertNotSuggested('F1');
+      assertNotSuggested('T1');
+      assertNotSuggested('_d');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
     });
   }
 
@@ -2222,6 +2317,16 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_PrefixedIdentifier_propertyAccess() {
     // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
     addTestSource('class A {String x; int get foo {x.^}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('isEmpty', 'bool');
+      assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_propertyAccess_newStmt() {
+    // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
+    addTestSource('class A {String x; int get foo {x.^ int y = 0;}');
     computeFast();
     return computeFull((bool result) {
       assertSuggestInvocationGetter('isEmpty', 'bool');

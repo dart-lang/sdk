@@ -1061,7 +1061,7 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
       (instr->Bit(15) == 0)) {
     if (instr->RaField() == R31) {
-      Format(instr, "mul'sf, 'rd, 'rn, 'rm");
+      Format(instr, "mul'sf 'rd, 'rn, 'rm");
     } else {
       Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
     }
@@ -1071,6 +1071,9 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
              (instr->Bit(15) == 0)) {
     Format(instr, "smulh 'rd, 'rn, 'rm");
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 6) &&
+             (instr->Bit(15) == 0)) {
+    Format(instr, "umulh 'rd, 'rn, 'rm");
   } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
              (instr->Bit(15) == 0)) {
     Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
@@ -1432,39 +1435,6 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   OS::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
   if (out_instr_size) {
     *out_instr_size = Instr::kInstrSize;
-  }
-}
-
-
-void Disassembler::Disassemble(uword start,
-                               uword end,
-                               DisassemblyFormatter* formatter,
-                               const Code::Comments& comments) {
-  ASSERT(formatter != NULL);
-  char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
-  char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
-  uword pc = start;
-  intptr_t comment_finger = 0;
-  while (pc < end) {
-    const intptr_t offset = pc - start;
-    while (comment_finger < comments.Length() &&
-           comments.PCOffsetAt(comment_finger) <= offset) {
-      formatter->Print(
-          "        ;; %s\n",
-          String::Handle(comments.CommentAt(comment_finger)).ToCString());
-      comment_finger++;
-    }
-    int instruction_length;
-    DecodeInstruction(hex_buffer, sizeof(hex_buffer),
-                      human_buffer, sizeof(human_buffer),
-                      &instruction_length, pc);
-
-    formatter->ConsumeInstruction(hex_buffer,
-                                  sizeof(hex_buffer),
-                                  human_buffer,
-                                  sizeof(human_buffer),
-                                  pc);
-    pc += instruction_length;
   }
 }
 

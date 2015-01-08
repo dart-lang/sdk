@@ -825,8 +825,12 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
+  // Allocate memory where all words look like smis. This is currently
+  // only needed for DEBUG-mode validation in StorePointer/StoreSmi, but will
+  // be essential with the upcoming deletion barrier.
   uword address =
-      old_space()->TryAllocateDataBumpLocked(size, PageSpace::kForceGrowth);
+      old_space()->TryAllocateSmiInitializedLocked(size,
+                                                   PageSpace::kForceGrowth);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
@@ -836,18 +840,6 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
         object_store()->preallocated_unhandled_exception());
     Isolate::Current()->long_jump_base()->Jump(1, error);
   }
-#if defined(DEBUG)
-  // Zap the uninitialized memory area.
-  uword current = address;
-  uword end = address + size;
-  while (current < end) {
-    *reinterpret_cast<intptr_t*>(current) = kZapUninitializedWord;
-    current += kWordSize;
-  }
-#endif  // defined(DBEUG)
-  // Make sure to initialize the last word, as this can be left untouched in
-  // case the object deserialized has an alignment tail.
-  *reinterpret_cast<RawObject**>(address + size - kWordSize) = Object::null();
   VerifiedMemory::Accept(address, size);
 
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
@@ -1055,7 +1047,8 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
       class_table_(isolate_->class_table()),
       forward_list_(kMaxPredefinedObjectIds),
       exception_type_(Exceptions::kNone),
-      exception_msg_(NULL) {
+      exception_msg_(NULL),
+      unmarked_objects_(false) {
 }
 
 
@@ -1610,15 +1603,33 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 void SnapshotWriter::CheckIfSerializable(RawClass* cls) {
   if (Class::IsSignatureClass(cls)) {
     // We do not allow closure objects in an isolate message.
-    SetWriteException(Exceptions::kArgument,
-                      "Illegal argument in isolate message"
-                      " : (object is a closure)");
+    Isolate* isolate = Isolate::Current();
+    HANDLESCOPE(isolate);
+    const char* format = "Illegal argument in isolate message"
+                         " : (object is a closure - %s %s)";
+    UnmarkAll();  // Unmark objects now as we are about to print stuff.
+    const Class& clazz = Class::Handle(isolate, cls);
+    const Function& func = Function::Handle(isolate,
+                                            clazz.signature_function());
+    ASSERT(!func.IsNull());
+    intptr_t len = OS::SNPrint(NULL, 0, format,
+                               clazz.ToCString(), func.ToCString()) + 1;
+    char* chars = isolate->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, clazz.ToCString(), func.ToCString());
+    SetWriteException(Exceptions::kArgument, chars);
   }
   if (cls->ptr()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
-    SetWriteException(Exceptions::kArgument,
-                      "Illegal argument in isolate message"
-                      " : (object extends NativeWrapper)");
+    Isolate* isolate = Isolate::Current();
+    HANDLESCOPE(Isolate::Current());
+    const char* format = "Illegal argument in isolate message"
+                         " : (object extends NativeWrapper - %s)";
+    UnmarkAll();  // Unmark objects now as we are about to print stuff.
+    const Class& clazz = Class::Handle(isolate, cls);
+    intptr_t len = OS::SNPrint(NULL, 0, format, clazz.ToCString()) + 1;
+    char* chars = isolate->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, clazz.ToCString());
+    SetWriteException(Exceptions::kArgument, chars);
   }
 }
 

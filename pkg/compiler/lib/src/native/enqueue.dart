@@ -25,7 +25,7 @@ class NativeEnqueuer {
   /// Computes types instantiated due to setting a native field.
   void registerFieldStore(Element field) {}
 
-  NativeBehavior getNativeBehaviorOf(Send node) => NativeBehavior.NONE;
+  NativeBehavior getNativeBehaviorOf(Send node) => new NativeBehavior();
 
   /// Returns whether native classes are being used.
   bool hasInstantiatedNativeClasses() => false;

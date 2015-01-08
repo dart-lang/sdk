@@ -524,6 +524,8 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   StoreBufferBlock* pending = isolate->store_buffer()->Blocks();
   while (pending != NULL) {
     StoreBufferBlock* next = pending->next();
+    // Generated code appends to store buffers; tell MemorySanitizer.
+    MSAN_UNPOISON(pending, sizeof(*pending));
     intptr_t count = pending->Count();
     for (intptr_t i = 0; i < count; i++) {
       RawObject* raw_object = pending->At(i);

@@ -31,7 +31,7 @@ set VM_OPTIONS=%VM_OPTIONS% --old_gen_heap_size=1024
 rem Use the Dart binary in the built SDK so pub can find the version file next
 rem to it.
 set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
-set PACKAGES_DIR=%BUILD_DIR%\pub_packages
+set PACKAGES_DIR=%BUILD_DIR%\packages
 set DART=%BUILD_DIR%\dart-sdk\bin\dart
 
 rem Run the async/await compiled pub.

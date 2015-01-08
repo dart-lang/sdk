@@ -10,6 +10,21 @@ class _Platform {
   external static String _operatingSystem();
   external static _localHostname();
   external static _executable();
+  /**
+   * Retrieve the entries of the process environment.
+   *
+   * The result is an [Iterable] of strings, where each string represents
+   * an environment entry.
+   *
+   * Environment entries should be strings containing
+   * a non-empty name and a value separated by a '=' character.
+   * The name does not contain a '=' character,
+   * so the name is everything up to the first '=' character.
+   * Values are everything after the first '=' charcacter.
+   * A value may contain further '=' characters, and it may be empty.
+   *
+   * Returns an [OSError] if retrieving the environment fails.
+   */
   external static _environment();
   external static List<String> _executableArguments();
   external static String _packageRoot();
@@ -58,20 +73,16 @@ class _Platform {
         var isWindows = operatingSystem == 'windows';
         var result = isWindows ? new _CaseInsensitiveStringMap() : new Map();
         for (var str in env) {
-          // When running on Windows through cmd.exe there are strange
-          // environment variables that are used to record the current
-          // working directory for each drive and the exit code for the
-          // last command. As an example: '=A:=A:\subdir' records the
-          // current working directory on the 'A' drive.  In order to
-          // handle these correctly we search for a second occurrence of
-          // of '=' in the string if the first occurrence is at index 0.
+          // The Strings returned by [_environment()] are expected to be
+          // valid environment entries, but exceptions have been seen
+          // (e.g., an entry of just '=' has been seen on OS/X).
+          // Invalid entries (lines without a '=' or with an empty name)
+          // are discarded.
           var equalsIndex = str.indexOf('=');
-          if (equalsIndex == 0) {
-            equalsIndex = str.indexOf('=', 1);
+          if (equalsIndex > 0) {
+            result[str.substring(0, equalsIndex)] =
+                str.substring(equalsIndex + 1);
           }
-          assert(equalsIndex != -1);
-          result[str.substring(0, equalsIndex)] =
-              str.substring(equalsIndex + 1);
         }
         _environmentCache = new UnmodifiableMapView<String, String>(result);
       } else {

@@ -685,12 +685,12 @@ static void Get64SmiOrMint(Assembler* assembler,
 }
 
 
-static void CompareIntegers(Assembler* assembler, Condition true_condition) {
+static void CompareIntegers(Assembler* assembler, RelationOperator rel_op) {
   Label try_mint_smi, is_true, is_false, drop_two_fall_through, fall_through;
   TestBothArgumentsSmis(assembler, &try_mint_smi);
   // T0 contains the right argument. T1 contains left argument
 
-  switch (true_condition) {
+  switch (rel_op) {
     case LT: __ BranchSignedLess(T1, T0, &is_true); break;
     case LE: __ BranchSignedLessEqual(T1, T0, &is_true); break;
     case GT: __ BranchSignedGreater(T1, T0, &is_true); break;
@@ -718,15 +718,14 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   // T4: right low.
 
   // 64-bit comparison
-  // Condition hi_true_cond, hi_false_cond, lo_false_cond;
-  switch (true_condition) {
+  switch (rel_op) {
     case LT:
     case LE: {
       // Compare left hi, right high.
       __ BranchSignedGreater(T3, T5, &is_false);
       __ BranchSignedLess(T3, T5, &is_true);
       // Compare left lo, right lo.
-      if (true_condition == LT) {
+      if (rel_op == LT) {
         __ BranchUnsignedGreaterEqual(T2, T4, &is_false);
       } else {
         __ BranchUnsignedGreater(T2, T4, &is_false);
@@ -739,7 +738,7 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
       __ BranchSignedLess(T3, T5, &is_false);
       __ BranchSignedGreater(T3, T5, &is_true);
       // Compare left lo, right lo.
-      if (true_condition == GT) {
+      if (rel_op == GT) {
         __ BranchUnsignedLessEqual(T2, T4, &is_false);
       } else {
         __ BranchUnsignedLess(T2, T4, &is_false);
@@ -763,7 +762,7 @@ void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
-  Integer_greaterThanFromInt(assembler);
+  CompareIntegers(assembler, LT);
 }
 
 
@@ -1038,12 +1037,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulAdd(Uint32List x_digits, int xi,
-  //                     Uint32List m_digits, int i,
-  //                     Uint32List a_digits, int j, int n) {
+  // static int _mulAdd(Uint32List x_digits, int xi,
+  //                    Uint32List m_digits, int i,
+  //                    Uint32List a_digits, int j, int n) {
   //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
   //   if (x == 0 || n == 0) {
-  //     return;
+  //     return 1;
   //   }
   //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
   //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
@@ -1061,6 +1060,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   //     *ajp++ = low32(t);
   //     c = high32(t);  // c == 0 or 1.
   //   }
+  //   return 1;
   // }
 
   Label done;
@@ -1148,18 +1148,18 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ delay_slot()->addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
 
   __ Bind(&done);
-  // Returning Object::null() is not required, since this method is private.
+  __ addiu(V0, ZR, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ Ret();
 }
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _sqrAdd(Uint32List x_digits, int i,
-  //                     Uint32List a_digits, int used) {
+  // static int _sqrAdd(Uint32List x_digits, int i,
+  //                    Uint32List a_digits, int used) {
   //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
   //   uint32_t x = *xip++;
-  //   if (x == 0) return;
+  //   if (x == 0) return 1;
   //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
   //   uint32_t aj = *ajp;
   //   uint64_t t = x*x + aj;
@@ -1177,6 +1177,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
   //   *ajp++ = low32(t);
   //   *ajp = high32(t);
+  //   return 1;
   // }
 
   // T4 = xip = &x_digits[i >> 1]
@@ -1280,7 +1281,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ sw(T7, Address(T5, Bigint::kBytesPerDigit));
 
   __ Bind(&x_zero);
-  // Returning Object::null() is not required, since this method is private.
+  __ addiu(V0, ZR, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ Ret();
 }
 
@@ -1292,18 +1293,20 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
-  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  // static int _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 2.
   //   uint32_t d = digits[i >> 1];  // i is Smi.
   //   uint64_t t = rho*d;
-  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 4.
+  //   return 1;
   // }
 
   // T4 = args
   __ lw(T4, Address(SP, 2 * kWordSize));  // args
 
-  // T3 = rho = args[0]
-  __ lw(T3, FieldAddress(T4, TypedData::data_offset()));
+  // T3 = rho = args[2]
+  __ lw(T3,
+        FieldAddress(T4, TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
   // T2 = d = digits[i >> 1]
   __ lw(T0, Address(SP, 0 * kWordSize));  // T0 = i as Smi.
@@ -1315,12 +1318,12 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // HI:LO = t = rho*d
   __ multu(T2, T3);
 
-  // args[1] = t mod DIGIT_BASE = low32(t)
+  // args[4] = t mod DIGIT_BASE = low32(t)
   __ mflo(T0);
   __ sw(T0,
-        FieldAddress(T4, TypedData::data_offset() + Bigint::kBytesPerDigit));
+        FieldAddress(T4, TypedData::data_offset() + 4*Bigint::kBytesPerDigit));
 
-  // Returning Object::null() is not required, since this method is private.
+  __ addiu(V0, ZR, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ Ret();
 }
 
@@ -1344,7 +1347,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
 // type. Return true or false object in the register V0. Any NaN argument
 // returns false. Any non-double arg1 causes control flow to fall through to the
 // slow case (compiled method body).
-static void CompareDoubles(Assembler* assembler, Condition true_condition) {
+static void CompareDoubles(Assembler* assembler, RelationOperator rel_op) {
   Label is_smi, double_op, no_NaN, fall_through;
   __ Comment("CompareDoubles Intrinsic");
 
@@ -1362,7 +1365,7 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ Ret();
   __ Bind(&no_NaN);
 
-  switch (true_condition) {
+  switch (rel_op) {
     case EQ: __ ceqd(D0, D1); break;
     case LT: __ coltd(D0, D1); break;
     case LE: __ coled(D0, D1); break;
@@ -2006,7 +2009,7 @@ void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
 
 
 // TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
-void StringEquality(Assembler* assembler, intptr_t string_cid) {
+static void StringEquality(Assembler* assembler, intptr_t string_cid) {
   Label fall_through, is_true, is_false, loop;
   __ lw(T0, Address(SP, 1 * kWordSize));  // This.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Other.

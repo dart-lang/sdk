@@ -32,16 +32,16 @@ patch class List<E> {
     return result;
   }
 
-  /* patch */ factory List.from(Iterable other, { bool growable: true }) {
-    if (other is EfficientLength) {
-      int length = other.length;
+  /* patch */ factory List.from(Iterable elements, { bool growable: true }) {
+    if (elements is EfficientLength) {
+      int length = elements.length;
       var list = growable ? new _GrowableList<E>(length) : new _List<E>(length);
       int i = 0;
-      for (var element in other) { list[i++] = element; }
+      for (var element in elements) { list[i++] = element; }
       return list;
     }
     List<E> list = new _GrowableList<E>(0);
-    for (E e in other) {
+    for (E e in elements) {
       list.add(e);
     }
     if (growable) return list;

@@ -38,7 +38,7 @@ Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
     Directory sunflowerDir = new Directory.fromUri(
-        Platform.script.resolve('../../../samples/sunflower'));
+        Platform.script.resolve('../../../third_party/sunflower'));
 
     print("Copying '${sunflowerDir.path}' to '${tmpDir.path}'.");
     copyDirectory(sunflowerDir, tmpDir);

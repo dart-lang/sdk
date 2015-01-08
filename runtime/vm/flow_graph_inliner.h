@@ -6,28 +6,38 @@
 #define VM_FLOW_GRAPH_INLINER_H_
 
 #include "vm/allocation.h"
+#include "vm/growable_array.h"
 
 namespace dart {
 
 class Field;
 class FlowGraph;
 class Function;
-template <typename T> class GrowableArray;
 
 class FlowGraphInliner : ValueObject {
  public:
-  explicit FlowGraphInliner(FlowGraph* flow_graph) : flow_graph_(flow_graph) { }
+  FlowGraphInliner(FlowGraph* flow_graph,
+                   GrowableArray<const Function*>* inline_id_to_function)
+      : flow_graph_(flow_graph), inline_id_to_function_(inline_id_to_function) {
+  }
 
   // The flow graph is destructively updated upon inlining.
   void Inline();
 
   // Compute graph info if it was not already computed or if 'force' is true.
   static void CollectGraphInfo(FlowGraph* flow_graph, bool force = false);
+  static void SetInliningId(const FlowGraph& flow_graph, intptr_t inlining_id);
 
   static bool AlwaysInline(const Function& function);
 
+  FlowGraph* flow_graph() const { return flow_graph_; }
+  intptr_t NextInlineId(const Function& function);
+
  private:
+  friend class CallSiteInliner;
+
   FlowGraph* flow_graph_;
+  GrowableArray<const Function*>* inline_id_to_function_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);
 };

@@ -22,7 +22,7 @@ import '../../scanner/scannerlib.dart' as scanner;
 import '../../elements/elements.dart';
 import '../../closure.dart';
 import '../../js/js.dart' as js;
-import '../../source_map_builder.dart';
+import '../../io/source_map_builder.dart';
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../dart_backend/backend_ast_emitter.dart' as backend_ast_emitter;
 import '../../cps_ir/optimizers.dart';
@@ -64,6 +64,10 @@ class CspFunctionCompiler implements FunctionCompiler {
     types = new TypeMaskSystem(compiler);
     AstElement element = work.element;
     return compiler.withCurrentElement(element, () {
+      if (element.library.isPlatformLibrary) {
+        compiler.log('Using SSA compiler for platform element $element');
+        return fallbackCompiler.compile(work);
+      }
       try {
         if (tracer != null) {
           tracer.traceCompilation(element.name, null);
@@ -74,15 +78,9 @@ class CspFunctionCompiler implements FunctionCompiler {
         treeFunction = optimizeTreeIR(treeFunction);
         return compileToJavaScript(work, treeFunction);
       } on CodegenBailout catch (e) {
-        if (element.library.isPlatformLibrary) {
-          compiler.log('Falling back to SSA compiler for $element'
-              ' (${e.message})');
-          return fallbackCompiler.compile(work);
-        } else {
-          String message = "Unable to compile $element with the new compiler.\n"
-              "  Reason: ${e.message}";
-          compiler.internalError(element, message);
-        }
+        String message = "Unable to compile $element with the new compiler.\n"
+            "  Reason: ${e.message}";
+        compiler.internalError(element, message);
       }
     });
   }

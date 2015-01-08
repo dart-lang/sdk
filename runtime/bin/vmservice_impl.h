@@ -25,8 +25,7 @@ class VmService {
   static Dart_Handle LoadScript(const char* name);
   static Dart_Handle LoadSource(Dart_Handle library, const char* name);
   static Dart_Handle LoadResources(Dart_Handle library);
-  static Dart_Handle LoadResource(Dart_Handle library, const char* name,
-                                  const char* prefix);
+  static Dart_Handle LoadResource(Dart_Handle library, const char* name);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
                                        Dart_Handle url);
 

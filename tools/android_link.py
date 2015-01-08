@@ -76,11 +76,11 @@ def main():
   CheckDirExists(android_ndk_root, 'Android NDK')
 
   # Set up the directory of the Android NDK cross-compiler toolchain.
-  toolchain_arch = 'arm-linux-androideabi-4.6'
+  toolchain_arch = 'arm-linux-androideabi-4.9'
   if target_arch == 'arm64':
     toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
-    toolchain_arch = 'x86-4.6'
+    toolchain_arch = 'x86-4.9'
   toolchain_dir = 'linux-x86_64'
   android_toolchain = os.path.join(android_ndk_root,
       'toolchains', toolchain_arch,
@@ -108,13 +108,13 @@ def main():
   # Set up the path to the system root directory, which is where we'll find the
   # Android specific system includes and libraries.
   android_ndk_sysroot = os.path.join(android_ndk_root,
-      'platforms', 'android-14', 'arch-arm')
+      'platforms', 'android-L', 'arch-arm')
   if target_arch == 'arm64':
     android_ndk_sysroot = os.path.join(android_ndk_root,
       'platforms', 'android-L', 'arch-arm64')
   if target_arch == 'ia32':
     android_ndk_sysroot = os.path.join(android_ndk_root,
-        'platforms', 'android-14', 'arch-x86')
+        'platforms', 'android-L', 'arch-x86')
   CheckDirExists(android_ndk_sysroot, 'Android sysroot')
   android_ndk_lib = os.path.join(android_ndk_sysroot,'usr','lib')
   android_ndk_include = os.path.join(android_ndk_sysroot, 'usr', 'include')

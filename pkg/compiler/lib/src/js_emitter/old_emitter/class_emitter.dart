@@ -23,7 +23,7 @@ class ClassEmitter extends CodeEmitterHelper {
     assert(invariant(classElement, classElement.isDeclaration));
     assert(invariant(classElement, !classElement.isNative || onlyForRti));
 
-    emitter.needsDefineClass = true;
+    emitter.needsClassSupport = true;
     String className = namer.getNameOfClass(classElement);
 
     ClassElement superclass = classElement.superclass;

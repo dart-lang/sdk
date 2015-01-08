@@ -75,6 +75,13 @@ class Driver {
   static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
 
   /**
+   * The name of the option used to enable validation of incremental resolution
+   * results.
+   */
+  static const String INCREMENTAL_RESOLUTION_VALIDATION =
+      "incremental-resolution-validation";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -145,7 +152,12 @@ class Driver {
         negatable: false);
     parser.addOption(
         INCREMENTAL_RESOLUTION_LOG,
-        help: "the description of the incremental resolotion log");
+        help: "the description of the incremental resolution log");
+    parser.addFlag(
+        INCREMENTAL_RESOLUTION_VALIDATION,
+        help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
     parser.addFlag(
         INTERNAL_PRINT_TO_CONSOLE,
         help: "enable sending `print` output to the console",
@@ -204,6 +216,8 @@ class Driver {
     AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
     analysisServerOptions.enableIncrementalResolutionApi =
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
+    analysisServerOptions.enableIncrementalResolutionValidation =
+        results[INCREMENTAL_RESOLUTION_VALIDATION];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
@@ -229,7 +243,7 @@ class Driver {
       httpServer.serveHttp(port);
     }
 
-    if (results[INTERNAL_PRINT_TO_CONSOLE]) {
+    _captureExceptions(service, () {
       stdioServer.serveStdio().then((_) {
         if (serve_http) {
           httpServer.close();
@@ -237,30 +251,35 @@ class Driver {
         service.shutdown();
         exit(0);
       });
-    } else {
-      _capturePrints(() {
-        stdioServer.serveStdio().then((_) {
-          if (serve_http) {
-            httpServer.close();
-          }
-          service.shutdown();
-          exit(0);
-        });
-      }, httpServer.recordPrint);
-    }
+    },
+        print: results[INTERNAL_PRINT_TO_CONSOLE] ? null : httpServer.recordPrint);
   }
 
   /**
-   * Execute [callback], capturing any data it prints out and redirecting it to
-   * the function [printHandler].
+   * Execute the given [callback] within a zone that will capture any unhandled
+   * exceptions and both report them to the client and send them to the given
+   * instrumentation [service]. If a [print] function is provided, then also
+   * capture any data printed by the callback and redirect it to the function.
    */
-  dynamic _capturePrints(dynamic callback(), void printHandler(String line)) {
-    ZoneSpecification zoneSpecification = new ZoneSpecification(
-        print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-      printHandler(line);
+  dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
+      {void print(String line)}) {
+    Function errorFunction =
+        (Zone self, ZoneDelegate parent, Zone zone, dynamic exception,
+            StackTrace stackTrace) {
+      service.logPriorityException(exception, stackTrace);
+      socketServer.analysisServer.reportException(exception, stackTrace);
+      throw exception;
+    };
+    Function printFunction = print == null ?
+        null :
+        (Zone self, ZoneDelegate parent, Zone zone, String line) {
       // Note: we don't pass the line on to stdout, because that is reserved
       // for communication to the client.
-    });
+      print(line);
+    };
+    ZoneSpecification zoneSpecification = new ZoneSpecification(
+        handleUncaughtError: errorFunction,
+        print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 

@@ -1449,6 +1449,21 @@ ASSEMBLER_TEST_RUN(Smulh_neg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Umulh, assembler) {
+  __ movz(R1, Immediate(-1), 3);  // 0xffff000000000000
+  __ movz(R2, Immediate(7), 3);  // 0x0007000000000000
+  __ umulh(R0, R1, R2);  // 0x0006fff900000000
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Umulh, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(static_cast<int64_t>(0x6fff900000000),
+            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Umaddl, assembler) {
   __ movn(R1, Immediate(0), 0);  // W1 = 0xffffffff.
   __ movz(R2, Immediate(7), 0);  // W2 = 7.

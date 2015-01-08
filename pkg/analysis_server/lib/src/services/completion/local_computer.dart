@@ -115,7 +115,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       suggestion.element = _createElement(
           protocol.ElementKind.GETTER,
           varDecl.name,
-          '()',
+          null,
           fieldDecl.fields.type,
           false,
           isDeprecated);
@@ -134,10 +134,19 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     CompletionSuggestion suggestion =
         _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
     if (suggestion != null) {
+      FormalParameterList param = declaration.functionExpression.parameters;
+      protocol.ElementKind kind;
+      if (declaration.isGetter) {
+        kind = protocol.ElementKind.GETTER;
+      } else if (declaration.isSetter) {
+        kind = protocol.ElementKind.SETTER;
+      } else {
+        kind = protocol.ElementKind.FUNCTION;
+      }
       suggestion.element = _createElement(
-          protocol.ElementKind.FUNCTION,
+          kind,
           declaration.name,
-          declaration.functionExpression.parameters.toSource(),
+          param != null ? param.toSource() : null,
           declaration.returnType,
           false,
           isDeprecated);
@@ -190,17 +199,18 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
     protocol.ElementKind kind;
     String parameters;
+    TypeName returnType = declaration.returnType;
     if (declaration.isGetter) {
       kind = protocol.ElementKind.GETTER;
-      parameters = '()';
+      parameters = null;
     } else if (declaration.isSetter) {
       if (excludeVoidReturn) {
         return;
       }
       kind = protocol.ElementKind.SETTER;
-      parameters = '(${declaration.returnType.toSource()} value)';
+      returnType = null;
     } else {
-      if (excludeVoidReturn && _isVoid(declaration.returnType)) {
+      if (excludeVoidReturn && _isVoid(returnType)) {
         return;
       }
       kind = protocol.ElementKind.METHOD;
@@ -209,7 +219,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
-        declaration.returnType,
+        returnType,
         declaration.parent,
         isDeprecated);
     if (suggestion != null) {
@@ -217,7 +227,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           kind,
           declaration.name,
           parameters,
-          declaration.returnType,
+          returnType,
           declaration.isAbstract,
           isDeprecated);
     }

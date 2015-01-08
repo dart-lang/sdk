@@ -14,21 +14,20 @@ const DEFAULT_ARGUMENTS_INDEX = 5;
 
 const bool VALIDATE_DATA = false;
 
-// TODO(ahe): This code should be integrated in CodeEmitterTask.finishClasses.
-jsAst.Expression getReflectionDataParser(String classesCollector,
-                                        JavaScriptBackend backend) {
+// TODO(zarah): Rename this when renaming this file.
+String get parseReflectionDataName => 'parseReflectionData';
+
+jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
+                                         JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   CodeEmitterTask emitter = backend.emitter;
 
   String metadataField = '"${namer.metadataField}"';
   String reflectableField = namer.reflectableField;
-
-  // TODO(ahe): Move this string constants to namer.
-  String reflectionInfoField = r'$reflectionInfo';
-  String reflectionNameField = r'$reflectionName';
-  String metadataIndexField = r'$metadataIndex';
-
+  String reflectionInfoField = namer.reflectionInfoField;
+  String reflectionNameField = namer.reflectionNameField;
+  String metadataIndexField = namer.metadataIndexField;
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
@@ -51,18 +50,93 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       emitter.generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
   jsAst.Expression librariesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.LIBRARIES);
+  jsAst.Expression metadataAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.METADATA);
 
-  jsAst.Statement header = js.statement('''
-// [map] returns an object literal that V8 shouldn not try to optimize with a
-// hidden class. This prevents a potential performance problem where V8 tries
-// to build a hidden class for an object used as a hashMap.
-// It requires fewer characters to declare a variable as a parameter than
-// with `var`.
-  function map(x){x=Object.create(null);x.x=0;delete x.x;return x}
-''');
+  jsAst.Statement processClassData = js.statement('''{
+  function processClassData(cls, descriptor, processedClasses) {
+    var newDesc = {};
+    var previousProperty;
+    for (var property in descriptor) {
+      if (!hasOwnProperty.call(descriptor, property)) continue;
+      var firstChar = property.substring(0, 1);
+      if (property === "static") {
+        processStatics(#embeddedStatics[cls] = descriptor[property], 
+                       processedClasses);
+      } else if (firstChar === "+") {
+        mangledNames[previousProperty] = property.substring(1);
+        var flag = descriptor[property];
+        if (flag > 0)
+          descriptor[previousProperty].$reflectableField = flag;
+      } else if (firstChar === "@" && property !== "@") {
+        newDesc[property.substring(1)][$metadataField] = descriptor[property];
+      } else if (firstChar === "*") {
+        newDesc[previousProperty].$defaultValuesField = descriptor[property];
+        var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
+        if (!optionalMethods) {
+          newDesc.$methodsWithOptionalArgumentsField = optionalMethods={}
+        }
+        optionalMethods[property] = previousProperty;
+      } else {
+        var elem = descriptor[property];
+        if (property !== "${namer.classDescriptorProperty}" &&
+            elem != null &&
+            elem.constructor === Array &&
+            property !== "<>") {
+          addStubs(newDesc, elem, property, false, descriptor, []);
+        } else {
+          newDesc[previousProperty = property] = elem;
+        }
+      }
+    }
 
+    /* The 'fields' are either a constructor function or a
+     * string encoding fields, constructor and superclass. Gets the
+     * superclass and fields in the format
+     *   'Super;field1,field2'
+     * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
+     */
+    var classData = newDesc["${namer.classDescriptorProperty}"],
+        split, supr, fields = classData;
+
+    if (#hasRetainedMetadata)
+      if (typeof classData == "object" &&
+          classData instanceof Array) {
+        classData = fields = classData[0];
+      }
+    // ${ClassBuilder.fieldEncodingDescription}.
+    var s = fields.split(";");
+    fields = s[1] == "" ? [] : s[1].split(",");
+    supr = s[0];
+    // ${ClassBuilder.functionTypeEncodingDescription}.
+    split = supr.split(":");
+    if (split.length == 2) {
+      supr = split[0];
+      var functionSignature = split[1];
+      if (functionSignature)
+        newDesc.${namer.operatorSignature} = function(s) {
+          return function() {
+            return #metadata[s];
+          };
+        }(functionSignature);
+    }
+
+    if (supr) processedClasses.pending[cls] = supr;
+    if (#notInCspMode) {
+      processedClasses.combinedConstructorFunction += defineClass(cls, fields);
+      processedClasses.constructorsList.push(cls);
+    }
+    processedClasses.collected[cls] = [globalObject, newDesc];
+    classes.push(cls);
+  }
+}''', {'embeddedStatics': staticsAccess,
+       'hasRetainedMetadata': backend.hasRetainedMetadata,
+       'metadata': metadataAccess,
+       'notInCspMode': !compiler.useContentSecurityPolicy});
+
+  // TODO(zarah): Remove empty else branches in output when if(#hole) is false.
   jsAst.Statement processStatics = js.statement('''
-    function processStatics(descriptor) {
+    function processStatics(descriptor, processedClasses) {
       for (var property in descriptor) {
         if (!hasOwnProperty.call(descriptor, property)) continue;
         if (property === "${namer.classDescriptorProperty}") continue;
@@ -75,7 +149,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
           if (flag > 0)
             descriptor[previousProperty].$reflectableField = flag;
           if (element && element.length)
-            #[previousProperty] = element;  // embedded typeInformation.
+            #typeInformation[previousProperty] = element;
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.currentIsolate}[property][$metadataField] = element;
@@ -89,51 +163,25 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
         } else if (typeof element === "function") {
           globalObject[previousProperty = property] = element;
           functions.push(property);
-          #[property] = element;  // embedded globalFunctions.
+          #globalFunctions[property] = element;
         } else if (element.constructor === Array) {
-          addStubs(globalObject, element, property,
-                   true, descriptor, functions);
-        } else {
-          previousProperty = property;
-          var newDesc = {};
-          var previousProp;
-          for (var prop in element) {
-            if (!hasOwnProperty.call(element, prop)) continue;
-            firstChar = prop.substring(0, 1);
-            if (prop === "static") {
-              processStatics(#[property] = element[prop]);  // embedded statics.
-            } else if (firstChar === "+") {
-              mangledNames[previousProp] = prop.substring(1);
-              var flag = element[prop];
-              if (flag > 0)
-                element[previousProp].$reflectableField = flag;
-            } else if (firstChar === "@" && prop !== "@") {
-              newDesc[prop.substring(1)][$metadataField] = element[prop];
-            } else if (firstChar === "*") {
-              newDesc[previousProp].$defaultValuesField = element[prop];
-              var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
-              if (!optionalMethods) {
-                newDesc.$methodsWithOptionalArgumentsField = optionalMethods={}
-              }
-              optionalMethods[prop] = previousProp;
-            } else {
-              var elem = element[prop];
-              if (prop !== "${namer.classDescriptorProperty}" &&
-                  elem != null &&
-                  elem.constructor === Array &&
-                  prop !== "<>") {
-                addStubs(newDesc, elem, prop, false, element, []);
-              } else {
-                newDesc[previousProp = prop] = elem;
-              }
-            }
+          if (#needsArrayInitializerSupport) {
+            addStubs(globalObject, element, property,
+                     true, descriptor, functions);
           }
-          $classesCollector[property] = [globalObject, newDesc];
-          classes.push(property);
+        } else {
+          // We will not enter this case if no classes are defined.
+          if (#hasClasses) {
+            previousProperty = property;
+            processClassData(property, element, processedClasses);
+          }
         }
       }
     }
-''', [typeInformationAccess, globalFunctionsAccess, staticsAccess]);
+''', {'typeInformation': typeInformationAccess,
+      'globalFunctions': globalFunctionsAccess,
+      'hasClasses': oldEmitter.needsClassSupport,
+      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
 
 
   /**
@@ -181,66 +229,82 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
            requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
     var unmangledNameIndex = $unmangledNameIndex;
-    var isReflectable = array.length > unmangledNameIndex;
 
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
       descriptor[name].\$getter = f;
       f.\$getterStub = true;
       // Used to create an isolate using spawnFunction.
-      if (isStatic) #[name] = f;  // embedded globalFunctions.
+      if (isStatic) #globalFunctions[name] = f;
       originalDescriptor[getterStubName] = descriptor[getterStubName] = f;
       funcs.push(f);
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
-      if (isIntercepted) #[getterStubName] = true; // embedded interceptedNames.
+      if (isIntercepted) #interceptedNames[getterStubName] = true;
     }
-    if (isReflectable) {
-      for (var i = 0; i < funcs.length; i++) {
-        funcs[i].$reflectableField = 1;
-        funcs[i].$reflectionInfoField = array;
+
+    if (#usesMangledNames) {
+      var isReflectable = array.length > unmangledNameIndex;
+      if (isReflectable) {
+        for (var i = 0; i < funcs.length; i++) {
+          funcs[i].$reflectableField = 1;
+          funcs[i].$reflectionInfoField = array;
+        }
+        var mangledNames = isStatic ? #mangledGlobalNames : #mangledNames;
+        var unmangledName = ${readString("array", "unmangledNameIndex")};
+        // The function is either a getter, a setter, or a method.
+        // If it is a method, it might also have a tear-off closure.
+        // The unmangledName is the same as the getter-name.
+        var reflectionName = unmangledName;
+        if (getterStubName) mangledNames[getterStubName] = reflectionName;
+        if (isSetter) {
+          reflectionName += "=";
+        } else if (!isGetter) {
+          reflectionName += ":" + requiredParameterCount +
+            ":" + optionalParameterCount;
+        }
+        mangledNames[name] = reflectionName;
+        funcs[0].$reflectionNameField = reflectionName;
+        funcs[0].$metadataIndexField = unmangledNameIndex + 1;
+        if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
       }
-      var mangledNames = isStatic ? # : #;  // embedded mangledGlobalNames, mangledNames
-      var unmangledName = ${readString("array", "unmangledNameIndex")};
-      // The function is either a getter, a setter, or a method.
-      // If it is a method, it might also have a tear-off closure.
-      // The unmangledName is the same as the getter-name.
-      var reflectionName = unmangledName;
-      if (getterStubName) mangledNames[getterStubName] = reflectionName;
-      if (isSetter) {
-        reflectionName += "=";
-      } else if (!isGetter) {
-        reflectionName += ":" + requiredParameterCount +
-          ":" + optionalParameterCount;
-      }
-      mangledNames[name] = reflectionName;
-      funcs[0].$reflectionNameField = reflectionName;
-      funcs[0].$metadataIndexField = unmangledNameIndex + 1;
-      if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
     }
   }
-''', [globalFunctionsAccess, interceptedNamesAccess,
-      mangledGlobalNamesAccess, mangledNamesAccess]);
+''', {'globalFunctions' : globalFunctionsAccess,
+      'interceptedNames': interceptedNamesAccess,
+      'usesMangledNames':
+          compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
+      'mangledGlobalNames': mangledGlobalNamesAccess,
+      'mangledNames': mangledNamesAccess});
 
   List<jsAst.Statement> tearOffCode = buildTearOffCode(backend);
 
   jsAst.Statement init = js.statement('''{
   var functionCounter = 0;
-  var tearOffGetter = (typeof dart_precompiled == "function")
-      ? tearOffGetterCsp : tearOffGetterNoCsp;
-  if (!#) # = [];  // embedded libraries.
-  if (!#) # = map();  // embedded mangledNames.
-  if (!#) # = map();  // embedded mangledGlobalNames.
-  if (!#) # = map();  // embedded statics.
-  if (!#) # = map();  // embedded typeInformation.
-  if (!#) # = map();  // embedded globalFunctions.
-  if (!#) # = map();  // embedded interceptedNames.
-  var libraries = #;  // embeded libraries.
-  var mangledNames = #;  // embedded mangledNames.
-  var mangledGlobalNames = #;  // embedded mangledGlobalNames.
+  if (!#libraries) #libraries = [];
+  if (!#mangledNames) #mangledNames = map();
+  if (!#mangledGlobalNames) #mangledGlobalNames = map();
+  if (!#statics) #statics = map();
+  if (!#typeInformation) #typeInformation = map(); 
+  if (!#globalFunctions) #globalFunctions = map();
+  if (!#interceptedNames) #interceptedNames = map();
+  var libraries = #libraries;
+  var mangledNames = #mangledNames;
+  var mangledGlobalNames = #mangledGlobalNames;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
+  var processedClasses = Object.create(null);
+  processedClasses.collected = Object.create(null);
+  processedClasses.pending = Object.create(null);
+  if (#notInCspMode) {
+    processedClasses.constructorsList = [];
+    // For every class processed [processedClasses.combinedConstructorFunction]
+    // will be updated with the corresponding constructor function. 
+    processedClasses.combinedConstructorFunction =
+        "function \$reflectable(fn){fn.$reflectableField=1;return fn};\\n"+
+        "var \$desc;\\n";
+  }
   for (var i = 0; i < length; i++) {
     var data = reflectionData[i];
 
@@ -265,20 +329,90 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
     if (fields instanceof Array) fields = fields[0];
     var classes = [];
     var functions = [];
-    processStatics(descriptor);
+    processStatics(descriptor, processedClasses);
     libraries.push([name, uri, classes, functions, metadata, fields, isRoot,
                     globalObject]);
   }
-}''', [librariesAccess, librariesAccess,
-       mangledNamesAccess, mangledNamesAccess,
-       mangledGlobalNamesAccess, mangledGlobalNamesAccess,
-       staticsAccess, staticsAccess,
-       typeInformationAccess, typeInformationAccess,
-       globalFunctionsAccess, globalFunctionsAccess,
-       interceptedNamesAccess, interceptedNamesAccess,
-       librariesAccess,
-       mangledNamesAccess,
-       mangledGlobalNamesAccess]);
+    if (#needsClassSupport) finishClasses(processedClasses);
+}''', {'libraries': librariesAccess,
+       'mangledNames': mangledNamesAccess,
+       'mangledGlobalNames': mangledGlobalNamesAccess,
+       'statics': staticsAccess,
+       'typeInformation': typeInformationAccess,
+       'globalFunctions': globalFunctionsAccess,
+       'interceptedNames': interceptedNamesAccess,
+       'notInCspMode': !compiler.useContentSecurityPolicy,
+       'needsClassSupport': oldEmitter.needsClassSupport});
+
+  jsAst.Expression allClassesAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+
+  String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
+
+  // Class descriptions are collected in a JS object.
+  // 'finishClasses' takes all collected descriptions and sets up
+  // the prototype.
+  // Once set up, the constructors prototype field satisfy:
+  //  - it contains all (local) members.
+  //  - its internal prototype (__proto__) points to the superclass'
+  //    prototype field.
+  //  - the prototype's constructor field points to the JavaScript
+  //    constructor.
+  // For engines where we have access to the '__proto__' we can manipulate
+  // the object literal directly. For other engines we have to create a new
+  // object and copy over the members.
+  jsAst.Statement finishClasses = js.statement('''{
+  function finishClasses(processedClasses) {
+    if (#debugFastObjects)
+      print("Number of classes: " +
+            Object.getOwnPropertyNames(processedClasses.collected).length);
+
+    var allClasses = #allClasses;
+
+    if (#inCspMode) {
+      var constructors = dart_precompiled(processedClasses.collected);
+    }
+
+    if (#notInCspMode) {
+      processedClasses.combinedConstructorFunction +=
+        "return [\\n" + processedClasses.constructorsList.join(",\\n  ") + 
+        "\\n]";
+     var constructors =
+       new Function("\$collectedClasses", 
+           processedClasses.combinedConstructorFunction)
+               (processedClasses.collected);
+      processedClasses.combinedConstructorFunction = null;
+    }
+
+    for (var i = 0; i < constructors.length; i++) {
+      var constructor = constructors[i];
+      var cls = constructor.name;
+      var desc = processedClasses.collected[cls];
+      var globalObject = \$;
+      if (desc instanceof Array) {
+        globalObject = desc[0] || \$;
+        desc = desc[1];
+      }
+      if (#isTreeShakingDisabled)
+        constructor["${namer.metadataField}"] = desc;
+      allClasses[cls] = constructor;
+      globalObject[cls] = constructor;
+    }
+    constructors = null;
+
+    #finishClassFunction;
+
+    #trivialNsmHandlers;
+
+    for (var cls in processedClasses.pending) finishClass(cls);
+  }
+}''', {'allClasses': allClassesAccess,
+       'debugFastObjects': DEBUG_FAST_OBJECTS,
+       'isTreeShakingDisabled': backend.isTreeShakingDisabled,
+       'finishClassFunction': oldEmitter.buildFinishClass(),
+       'trivialNsmHandlers': oldEmitter.buildTrivialNsmHandlers(),
+       'inCspMode': compiler.useContentSecurityPolicy,
+       'notInCspMode': !compiler.useContentSecurityPolicy});
 
   List<jsAst.Statement> incrementalSupport = <jsAst.Statement>[];
   if (compiler.hasIncrementalSupport) {
@@ -288,21 +422,33 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
   }
 
   return js('''
-(function (reflectionData) {
+function $parseReflectionDataName(reflectionData) {
   "use strict";
-  #header;
+  if (#needsClassSupport) {
+    #defineClass;
+    #inheritFrom;
+    #finishClasses;
+    #processClassData;
+  }
   #processStatics;
-  #addStubs;
-  #tearOffCode;
+  if (#needsArrayInitializerSupport) {
+    #addStubs;
+    #tearOffCode;
+  }
   #incrementalSupport;
   #init;
-})''', {
-      'header': header,
+}''', {
+      'defineClass': oldEmitter.defineClassFunction,
+      'inheritFrom': oldEmitter.buildInheritFrom(),
+      'processClassData': processClassData,
       'processStatics': processStatics,
       'incrementalSupport': incrementalSupport,
       'addStubs': addStubs,
       'tearOffCode': tearOffCode,
-      'init': init});
+      'init': init,
+      'finishClasses': finishClasses,
+      'needsClassSupport': oldEmitter.needsClassSupport,
+      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
 }
 
 
@@ -333,60 +479,62 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
     tearOffGlobalObject = '($tearOffAccessText())';
   }
 
-  // This template is uncached because it is constructed from code fragments
-  // that can change from compilation to compilation.  Some of these could be
-  // avoided, except for the string literals that contain the compiled access
-  // path to 'closureFromTearOff'.
-  jsAst.Statement tearOffGetterNoCsp = js.uncachedStatementTemplate('''
-    function tearOffGetterNoCsp(funcs, reflectionInfo, name, isIntercepted) {
-      return isIntercepted
-          ? new Function("funcs", "reflectionInfo", "name",
-                         "$tearOffGlobalObjectName", "c",
-              "return function tearOff_" + name + (functionCounter++)+ "(x) {" +
-                "if (c === null) c = $tearOffAccessText(" +
-                    "this, funcs, reflectionInfo, false, [x], name);" +
-                "return new c(this, funcs[0], x, name);" +
-              "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
-          : new Function("funcs", "reflectionInfo", "name",
-                         "$tearOffGlobalObjectName", "c",
-              "return function tearOff_" + name + (functionCounter++)+ "() {" +
-                "if (c === null) c = $tearOffAccessText(" +
-                    "this, funcs, reflectionInfo, false, [], name);" +
-                "return new c(this, funcs[0], null, name);" +
-              "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
-    }''').instantiate([]);
-
-  jsAst.Statement tearOffGetterCsp = js.statement('''
-    function tearOffGetterCsp(funcs, reflectionInfo, name, isIntercepted) {
-      var cache = null;
-      return isIntercepted
-          ? function(x) {
-              if (cache === null) cache = #(
-                  this, funcs, reflectionInfo, false, [x], name);
-              return new cache(this, funcs[0], x, name);
-            }
-          : function() {
-              if (cache === null) cache = #(
-                  this, funcs, reflectionInfo, false, [], name);
-              return new cache(this, funcs[0], null, name);
-            };
-    }''', [tearOffAccessExpression, tearOffAccessExpression]);
+  jsAst.Statement tearOffGetter;
+  if (!compiler.useContentSecurityPolicy) {
+    // This template is uncached because it is constructed from code fragments
+    // that can change from compilation to compilation.  Some of these could be
+    // avoided, except for the string literals that contain the compiled access
+    // path to 'closureFromTearOff'.
+    tearOffGetter = js.uncachedStatementTemplate('''
+        function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+          return isIntercepted
+              ? new Function("funcs", "reflectionInfo", "name",
+                             "$tearOffGlobalObjectName", "c",
+                  "return function tearOff_" + name + (functionCounter++)+ "(x) {" +
+                    "if (c === null) c = $tearOffAccessText(" +
+                        "this, funcs, reflectionInfo, false, [x], name);" +
+                    "return new c(this, funcs[0], x, name);" +
+                  "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
+              : new Function("funcs", "reflectionInfo", "name",
+                             "$tearOffGlobalObjectName", "c",
+                  "return function tearOff_" + name + (functionCounter++)+ "() {" +
+                    "if (c === null) c = $tearOffAccessText(" +
+                        "this, funcs, reflectionInfo, false, [], name);" +
+                    "return new c(this, funcs[0], null, name);" +
+                  "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
+        }''').instantiate([]);
+  } else {
+    tearOffGetter = js.statement('''
+        function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+          var cache = null;
+          return isIntercepted
+              ? function(x) {
+                  if (cache === null) cache = #(
+                      this, funcs, reflectionInfo, false, [x], name);
+                  return new cache(this, funcs[0], x, name);
+                }
+              : function() {
+                  if (cache === null) cache = #(
+                      this, funcs, reflectionInfo, false, [], name);
+                  return new cache(this, funcs[0], null, name);
+                };
+        }''', [tearOffAccessExpression, tearOffAccessExpression]);
+  }
 
   jsAst.Statement tearOff = js.statement('''
     function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
       var cache;
       return isStatic
           ? function() {
-              if (cache === void 0) cache = #(
+              if (cache === void 0) cache = #tearOff(
                   this, funcs, reflectionInfo, true, [], name).prototype;
               return cache;
             }
           : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
-    }''', tearOffAccessExpression);
+    }''',  {'tearOff': tearOffAccessExpression});
 
-  return <jsAst.Statement>[tearOffGetterNoCsp, tearOffGetterCsp, tearOff];
+  return <jsAst.Statement>[tearOffGetter, tearOff];
 }
-
 
 String readString(String array, String index) {
   return readChecked(

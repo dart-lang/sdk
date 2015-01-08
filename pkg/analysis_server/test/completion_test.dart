@@ -11,10 +11,21 @@ import 'package:unittest/unittest.dart';
 
 import 'completion_test_support.dart';
 
+/**
+ * Assigning the name of a single test to this string causes just that test to
+ * be run.  Assigning null to this string causes all tests to be run.
+ */
+const String SOLO_TEST = null;
+
 main() {
   CompletionTestBuilder builder = new CompletionTestBuilder();
   builder.buildAll();
 }
+
+/**
+ * Type of functions used to create tests.
+ */
+typedef void _Tester(String spec, TestFunction body);
 
 /**
  * A builder that builds the completion tests.
@@ -93,7 +104,7 @@ class x implements M!1{}''', <String>["1+Map"]);
 class x implements M!1\n{}''', <String>["1+Map"]);
 
     buildTests('testCommentSnippets013', '''
-class x !2{!1}!3''', <String>["1+num", "2-num", "3-num"], failingTests: '3');
+class x !2{!1}!3''', <String>["1+num", "2-num", "3+num"]);
 
     // trailing space is important
     buildTests('testCommentSnippets014', '''
@@ -234,24 +245,21 @@ class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
 f(){int x;int y=!1;}''', <String>["1+x"]);
 
     buildTests('testCommentSnippets048', '''
-import 'dart:convert' as json;f() {var x=new js!1}''',
-        <String>["1+json"],
-        failingTests: '1');
+import 'dart:convert' as json;f() {var x=new js!1}''', <String>["1+json"]);
 
     buildTests('testCommentSnippets049', '''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
-class JsonParserX{}
+class JsonDecoderX{}
 f1() {var x=new !2j!1s!3}''',
         <String>[
             "1+json",
             "1+jxx",
             "2+json",
             "2+jxx",
-            "2-JsonParser",
+            "2-JsonDecoder",
             "3+json",
-            "3-jxx"],
-        failingTests: '123');
+            "3-jxx"]);
 
     buildTests('testCommentSnippets050', '''
 class xdr {
@@ -836,7 +844,7 @@ class MyClass {}
 main(p) {
   var justSomeVar;
   var v = p as !1
-}''', <String>["1+MyClass", "1-justSomeVar"], failingTests: '1');
+}''', <String>["1+MyClass", "1-justSomeVar"]);
 
     buildTests('testCompletion_cascade', '''
 class A {
@@ -855,28 +863,23 @@ main(A a) {
 
     buildTests('testCompletion_combinator_ended', '''
 import 'dart:math' show !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_export', '''
 export 'dart:math' show !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_hide', '''
 import 'dart:math' hide !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_notEnded', '''
 import 'dart:math' show !1"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests('testCompletion_combinator_usePrefix', '''
 import 'dart:math' show s!1"''',
-        <String>["1+sin", "1+sqrt", "1-cos", "1-String"],
-        failingTests: '1');
+        <String>["1+sin", "1+sqrt", "1-cos", "1-String"]);
 
     buildTests('testCompletion_constructor_field', '''
 class X { X(this.field); int f!1ield;}''',
@@ -995,7 +998,7 @@ class C {}''',
     buildTests('testCompletion_double_inFractionPart', '''
 main() {
   1.0!1
-}''', <String>["1-abs", "1-main"], failingTests: '1');
+}''', <String>["1-abs", "1-main"]);
 
     buildTests('testCompletion_enum', '''
 enum MyEnum {A, B, C}
@@ -1213,7 +1216,7 @@ class MyClass {}
 main(p) {
   var justSomeVar;
   var v = p is !1
-}''', <String>["1+MyClass", "1-justSomeVar"], failingTests: '1');
+}''', <String>["1+MyClass", "1-justSomeVar"]);
 
     buildTests('testCompletion_is_incompleteStatement2', '''
 class MyClass {}
@@ -1233,10 +1236,10 @@ main() {
 }''', <String>["1+caseVar", "1-otherVar"]);
 
     buildTests('testCompletion_libraryIdentifier_atEOF', '''
-library int.!1''', <String>["1-parse", "1-bool"], failingTests: '1');
+library int.!1''', <String>["1-parse", "1-bool"]);
 
     buildTests('testCompletion_libraryIdentifier_notEOF', '''
-library int.!1''', <String>["1-parse", "1-bool"], failingTests: '1');
+library int.!1''', <String>["1-parse", "1-bool"]);
 
     buildTests('testCompletion_methodRef_asArg_incompatibleFunctionType', '''
 foo( f(int p) ) {}
@@ -1438,7 +1441,7 @@ f() { var vvv = 42; return !1 }''', <String>["1+vvv"]);
     buildTests('testCompletion_staticField1', '''
 class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}''',
         <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"],
-        failingTests: '234');
+        failingTests: '23');
 
     buildTests('testCompletion_super_superType', '''
 class A {
@@ -1564,7 +1567,7 @@ main() {
 import 'dart:math' as math show PI;
 main() {
   math.!1
-}''', <String>["1+PI", "1-LN10"]);
+}''', <String>["1+PI", "1-LN10"], failingTests: '1');
 
     sources.clear();
     sources["/lib.dart"] = '''
@@ -1615,7 +1618,7 @@ library firth;
 class SerializationException {
   const SerializationException();
 }''';
-    buildTests('test001', '''
+    buildTests('testLibrary001', '''
 import 'firth.dart';
 main() {
 throw new Seria!1lizationException();}''',
@@ -1626,40 +1629,39 @@ throw new Seria!1lizationException();}''',
     // Type propagation.
     // TODO Include corelib analysis (this works in the editor)
     buildTests(
-        'test002',
+        'testLibrary002',
         '''t2() {var q=[0],z=q.!1length;q.!2clear();}''',
         <String>["1+length", "1+isEmpty", "2+clear"],
-        failingTests: '12');
+        failingTests: '1');
 
     // TODO Include corelib analysis
     buildTests(
-        'test003',
+        'testLibrary003',
         '''class X{var q; f() {q.!1a!2}}''',
         <String>["1+end", "2+abs", "2-end"],
         failingTests: '12');
 
     // TODO Include corelib analysis
     // Resolving dart:html takes between 2.5s and 30s; json, about 0.12s
-    buildTests('test004', '''
+    buildTests('testLibrary004', '''
             library foo;
             import 'dart:convert' as json;
-            class JsonParserX{}
+            class JsonDecoderX{}
             f1() {var x=new json.!1}
-            f2() {var x=new json.JsonPa!2}
-            f3() {var x=new json.JsonParser!3}''',
+            f2() {var x=new json.JsonDe!2}
+            f3() {var x=new json.JsonDecoder!3}''',
         <String>[
-            "1+JsonParser",
-            "1-JsonParserX",
-            "2+JsonParser",
-            "2-JsonParserX",
-            "3+JsonParser",
-            "3-JsonParserX"],
-        failingTests: '123');
+            "1+JsonDecoder",
+            "1-JsonDecoderX",
+            "2+JsonDecoder",
+            "2-JsonDecoderX",
+            "3+JsonDecoder",
+            "3-JsonDecoderX"]);
 
     // TODO Enable after type propagation is implemented. Not yet.
     // TODO Include corelib analysis
     buildTests(
-        'test005',
+        'testLibrary005',
         '''var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}''',
         <String>["1+abs"],
         failingTests: '1');
@@ -1685,7 +1687,7 @@ i1() {}''';
 library imp2;
 export 'exp2a.dart';
 i2() {}''';
-    buildTests('test006', '''
+    buildTests('testLibrary006', '''
 import 'imp1.dart';
 import 'imp2.dart';
 main() {!1
@@ -1705,7 +1707,7 @@ main() {!1
     sources["/l1.dart"] = '''
 library l1;
 var _l1t; var l1t;''';
-    buildTests('test007', '''
+    buildTests('testLibrary007', '''
 import 'l1.dart';
 main() {
   var x = l!1
@@ -1730,7 +1732,7 @@ class Private extends NonPrivate {
   void privateMethod() {
   }
 }''';
-    buildTests('test008', '''
+    buildTests('testLibrary008', '''
 import 'private.dart';
 import 'public.dart';
 class Test {
@@ -1750,7 +1752,7 @@ library lib;
 int X = 1;
 void m(){}
 class Y {}''';
-    buildTests('test009', '''
+    buildTests('testLibrary009', '''
 import 'lib.dart' as Q;
 void a() {
   var x = Q.!1
@@ -1909,26 +1911,26 @@ typ!7edef !5n!6''',
 class test !8<!1t !2 !3extends String,!4 List,!5 !6>!7 {}
 class tezetst !9<!BString,!C !DList>!A {}''',
         <String>[
-            "1+String",
-            "1+List",
+            "1-String",
+            "1-List",
             "1-test",
             "2-String",
             "2-test",
             "3+extends",
-            "4+tezetst",
+            "4-tezetst",
             "4-test",
-            "5+String",
-            "6+List",
+            "5-String",
+            "6-List",
             "7-List",
             "8-List",
             "9-String",
             "A-String",
-            "B+String",
-            "C+List",
+            "B-String",
+            "C-List",
             "C-tezetst",
-            "D+List",
-            "D+test"],
-        failingTests: '12345C');
+            "D-List",
+            "D-test"],
+        failingTests: '23');
 
     // name generation with conflicts
     buildTests(
@@ -2373,9 +2375,11 @@ class A<Z extends X> {
       }
     }
     for (LocationSpec spec in completionTests) {
+      String testName = '$baseName-${spec.id}';
+      _Tester tester = testName == SOLO_TEST ? solo_test : test;
       if (failingTests.contains(spec.id)) {
         ++expectedFailCount;
-        test("$baseName-${spec.id} (expected failure)", () {
+        tester("$testName (expected failure $expectedFailCount)", () {
           CompletionTestCase test = new CompletionTestCase();
           return new Future(() => test.runTest(spec, extraFiles)).then((_) {
             fail('Test passed - expected to fail.');
@@ -2383,7 +2387,7 @@ class A<Z extends X> {
         });
       } else {
         ++expectedPassCount;
-        test("$baseName-${spec.id}", () {
+        tester(testName, () {
           CompletionTestCase test = new CompletionTestCase();
           return test.runTest(spec, extraFiles);
         });

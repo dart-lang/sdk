@@ -14,15 +14,18 @@ import '../../../../pkg/analyzer2dart/test/test_helper.dart' hide TestSpec;
 import '../../../../pkg/analyzer2dart/test/end2end_data.dart';
 
 import 'test_helper.dart';
+import '../output_collector.dart';
 
 main() {
   performTests(TEST_DATA, asyncTester, (TestSpec result) {
-    asyncTest(() => compilerFor(result.input).then((Compiler compiler) {
+    OutputCollector outputCollector = new OutputCollector();
+    asyncTest(() => compilerFor(result.input, outputProvider: outputCollector)
+        .then((Compiler compiler) {
       String expectedOutput = result.output.trim();
       compiler.phase = Compiler.PHASE_COMPILING;
       DartBackend backend = compiler.backend;
       backend.assembleProgram();
-      String output = compiler.assembledCode.trim();
+      String output = outputCollector.getOutput('', 'dart').trim();
       Expect.equals(expectedOutput, output,
           '\nInput:\n${result.input}\n'
           'Expected:\n$expectedOutput\n'

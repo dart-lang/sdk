@@ -25,6 +25,11 @@ import 'package:analyzer/src/generated/scanner.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 
 
+bool test_simulateRefactoringException_change = false;
+bool test_simulateRefactoringException_final = false;
+bool test_simulateRefactoringException_init = false;
+
+
 /**
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]
  * that handles requests in the edit domain.
@@ -48,6 +53,23 @@ class EditDomainHandler implements RequestHandler {
   EditDomainHandler(this.server) {
     searchEngine = server.searchEngine;
     refactoringManager = new _RefactoringManager(server, searchEngine);
+  }
+
+  Response format(Request request) {
+    throw new RequestFailure(
+        new Response.unsupportedFeature(
+            request.id,
+            'The edit.format request is not yet supported'));
+
+//    EditFormatParams params = new EditFormatParams.fromRequest(request);
+//    String file = params.file;
+//    int initialOffset = params.selectionOffset;
+//    int initialLength = params.selectionLength;
+//
+//    List<SourceEdit> edits = <SourceEdit>[];
+//    int finalOffset = initialOffset;
+//    int finalLength = initialLength;
+//    return new EditFormatResult(edits, finalOffset, finalLength).toResponse(request.id);
   }
 
   Response getAssists(Request request) {
@@ -133,7 +155,9 @@ class EditDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EDIT_GET_ASSISTS) {
+      if (requestName == EDIT_FORMAT) {
+        return format(request);
+      } else if (requestName == EDIT_GET_ASSISTS) {
         return getAssists(request);
       } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
         return getAvailableRefactorings(request);
@@ -252,40 +276,55 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(request);
-    _init(params.kind, params.file, params.offset, params.length).then((_) {
-      if (initStatus.hasFatalError) {
-        feedback = null;
-        return _sendResultResponse();
-      }
-      // set options
-      if (_requiresOptions) {
-        if (params.options == null) {
-          optionsStatus = new RefactoringStatus();
+    runZoned(() {
+      _init(params.kind, params.file, params.offset, params.length).then((_) {
+        if (initStatus.hasFatalError) {
+          feedback = null;
           return _sendResultResponse();
         }
-        optionsStatus = _setOptions(params);
-        if (_hasFatalError) {
+        // set options
+        if (_requiresOptions) {
+          if (params.options == null) {
+            optionsStatus = new RefactoringStatus();
+            return _sendResultResponse();
+          }
+          optionsStatus = _setOptions(params);
+          if (_hasFatalError) {
+            return _sendResultResponse();
+          }
+        }
+        // done if just validation
+        if (params.validateOnly) {
+          finalStatus = new RefactoringStatus();
           return _sendResultResponse();
         }
-      }
-      // done if just validation
-      if (params.validateOnly) {
-        finalStatus = new RefactoringStatus();
-        return _sendResultResponse();
-      }
-      // validation and create change
-      refactoring.checkFinalConditions().then((_finalStatus) {
-        finalStatus = _finalStatus;
-        if (_hasFatalError) {
-          return _sendResultResponse();
+        // simulate an exception
+        if (test_simulateRefactoringException_final) {
+          throw 'A simulated refactoring exception - final.';
         }
-        // create change
-        return refactoring.createChange().then((change) {
-          result.change = change;
-          result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
-          return _sendResultResponse();
+        // validation and create change
+        return refactoring.checkFinalConditions().then((_finalStatus) {
+          finalStatus = _finalStatus;
+          if (_hasFatalError) {
+            return _sendResultResponse();
+          }
+          // simulate an exception
+          if (test_simulateRefactoringException_change) {
+            throw 'A simulated refactoring exception - change.';
+          }
+          // create change
+          return refactoring.createChange().then((change) {
+            result.change = change;
+            result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
+            return _sendResultResponse();
+          });
         });
       });
+    }, onError: (exception, stackTrace) {
+      server.instrumentationService.logException(exception, stackTrace);
+      server.sendResponse(
+          new Response.serverError(request, exception, stackTrace));
+      _reset();
     });
   }
 
@@ -307,6 +346,10 @@ class _RefactoringManager {
     this.file = file;
     this.offset = offset;
     this.length = length;
+    // simulate an exception
+    if (test_simulateRefactoringException_init) {
+      throw 'A simulated refactoring exception - init.';
+    }
     // create a new Refactoring instance
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
       List<Element> elements = server.getElementsAtOffset(file, offset);

@@ -409,6 +409,7 @@ RegExpEngine::CompilationResult RegExpCompiler::Assemble(
   if (reg_exp_too_big_) return IrregexpRegExpTooBig();
 
   macro_assembler->GenerateBacktrackBlock();
+  macro_assembler->FinalizeRegistersArray();
 
   return RegExpEngine::CompilationResult(macro_assembler->backtrack_goto(),
                                          macro_assembler->graph_entry(),
@@ -5128,6 +5129,7 @@ static void CreateSpecializedFunction(Isolate* isolate,
 
   fn.set_regexp(regexp);
   fn.set_regexp_cid(specialization_cid);
+  fn.set_is_debuggable(false);
 
   // The function is compiled lazily during the first call.
 }

@@ -781,8 +781,6 @@ class TypedSelector extends Selector {
     assert(asUntyped.mask == null);
   }
 
-  static Map<Selector, Map<TypeMask, TypedSelector>> canonicalizedValues =
-      new Map<Selector, Map<TypeMask, TypedSelector>>();
 
   factory TypedSelector(TypeMask mask, Selector selector, World world) {
     if (!world.hasClosedWorldAssumption) {
@@ -797,8 +795,8 @@ class TypedSelector extends Selector {
     assert(world.isClosed || mask.isExact);
     if (selector.mask == mask) return selector;
     Selector untyped = selector.asUntyped;
-    Map<TypeMask, TypedSelector> map = canonicalizedValues.putIfAbsent(untyped,
-        () => new Map<TypeMask, TypedSelector>());
+    Map<TypeMask, TypedSelector> map = world.canonicalizedValues
+        .putIfAbsent(untyped, () => new Map<TypeMask, TypedSelector>());
     TypedSelector result = map[mask];
     if (result == null) {
       int hashCode = Selector.mixHashCodeBits(untyped.hashCode, mask.hashCode);

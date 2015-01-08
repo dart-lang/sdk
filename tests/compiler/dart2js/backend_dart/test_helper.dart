@@ -6,16 +6,19 @@ library dart_backend.test_helper;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/dart2jslib.dart';
 import '../../../../pkg/analyzer2dart/test/test_helper.dart';
 import '../compiler_helper.dart';
 
 /// Compiles the given dart code (which must include a 'main' function) and
 /// returns the compiler.
-Future<Compiler> compilerFor(String code) {
+Future<Compiler> compilerFor(String code,
+                             {api.CompilerOutputProvider outputProvider}) {
   MockCompiler compiler = new MockCompiler.internal(
       emitJavaScript: false,
-      enableMinification: false);
+      enableMinification: false,
+      outputProvider: outputProvider);
   compiler.diagnosticHandler = createHandler(compiler, code);
   return compiler.init().then((_) {
     compiler.parseScript(code);

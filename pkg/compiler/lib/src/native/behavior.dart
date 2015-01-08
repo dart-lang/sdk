@@ -59,8 +59,6 @@ class NativeBehavior {
 
   final SideEffects sideEffects = new SideEffects.empty();
 
-  static NativeBehavior NONE = new NativeBehavior();
-
   /// Processes the type specification string of a call to JS and stores the
   /// result in the [typesReturned] and [typesInstantiated].
   ///

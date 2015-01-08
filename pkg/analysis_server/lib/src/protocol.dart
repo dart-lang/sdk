@@ -751,6 +751,19 @@ class Response {
           error: new RequestError(RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
+   * Initialize a newly created instance to represent the SERVER_ERROR error
+   * condition.
+   */
+  factory Response.serverError(Request request, exception, stackTrace) {
+    RequestError error =
+        new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+    if (stackTrace != null) {
+      error.stackTrace = stackTrace.toString();
+    }
+    return new Response(request.id, error: error);
+  }
+
+  /**
    * Initialize a newly created instance to represent the
    * SORT_MEMBERS_INVALID_FILE error condition.
    */

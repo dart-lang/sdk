@@ -55,15 +55,24 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   factory Set.identity() = LinkedHashSet<E>.identity;
 
   /**
-   * Creates a [Set] that contains all elements of [other].
+   * Creates a [Set] that contains all [elements].
+   *
+   * All the [elements] should be assignable to [E].
+   * The `elements` iterable itself can have any type,
+   * so this constructor can be used to down-cast a `Set`, for example as:
+   *
+   *     Set<SuperType> superSet = ...;
+   *     Set<SubType> subSet =
+   *         new Set<SubType>.from(superSet.where((e) => e is SubType));
    *
    * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using [==]) to be undistinguishable, and requires them to
+   * are equal (using [==]) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    *
-   * The set is equivalent to one created by `new LinkedHashSet<E>.from(other)`.
+   * The set is equivalent to one created by
+   * `new LinkedHashSet<E>.from(elements)`.
    */
-  factory Set.from(Iterable<E> other) = LinkedHashSet<E>.from;
+  factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
 
   /**
    * Provides an iterator that iterates over the elements of this set.
@@ -86,7 +95,7 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   bool add(E value);
 
   /**
-   * Adds all of [elements] to this Set.
+   * Adds all [elements] to this Set.
    *
    * Equivalent to adding each element in [elements] using [add],
    * but some collections may be able to optimize it.

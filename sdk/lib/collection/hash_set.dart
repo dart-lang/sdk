@@ -71,9 +71,9 @@ abstract class HashSet<E> implements Set<E> {
    * An example would be using [identical] and [identityHashCode],
    * which is equivalent to using the shorthand [LinkedSet.identity]).
    */
-  external factory HashSet({ bool equals(E e1, E e2),
-                             int hashCode(E e),
-                             bool isValidKey(potentialKey) });
+  external factory HashSet({bool equals(E e1, E e2),
+                            int hashCode(E e),
+                            bool isValidKey(potentialKey)});
 
   /**
    * Creates an unordered identity-based set.
@@ -85,13 +85,23 @@ abstract class HashSet<E> implements Set<E> {
   external factory HashSet.identity();
 
   /**
-   * Create a hash set containing the elements of [iterable].
+   * Create a hash set containing all [elements].
    *
    * Creates a hash set as by `new HashSet<E>()` and adds each element of
-   * `iterable` to this set in the order they are iterated.
+   * `elements` to this set in the order they are iterated.
+   *
+   * All the [elements] should be assignable to [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Set`, for example as:
+   *
+   *     Set<SuperType> superSet = ...;
+   *     Set<SubType> subSet =
+   *         new HashSet<SubType>.from(superSet.where((e) => e is SubType));
    */
-  factory HashSet.from(Iterable<E> iterable) {
-    return new HashSet<E>()..addAll(iterable);
+  factory HashSet.from(Iterable elements) {
+    HashSet<E> result = new HashSet<E>();
+    for (E e in elements) result.add(e);
+    return result;
   }
 
   /**

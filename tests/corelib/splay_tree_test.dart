@@ -50,6 +50,7 @@ main() {
   Expect.equals(5, tree.lastKeyBefore(6));
   Expect.equals(7, tree.firstKeyAfter(6));
 
+  testSetFrom();
   regressRemoveWhere();
   regressRemoveWhere2();
 }
@@ -57,7 +58,7 @@ main() {
 void regressRemoveWhere() {
   // Regression test. Fix in https://codereview.chromium.org/148523006/
   var t = new SplayTreeSet();
-  t.addAll([1,3,5,7,2,4,6,8,0]);
+  t.addAll([1, 3, 5, 7, 2, 4, 6, 8, 0]);
   var seen = new List<bool>.filled(9, false);
   t.removeWhere((x) {
     // Called only once per element.
@@ -72,10 +73,23 @@ void regressRemoveWhere2() {
   // Removing all elements with removeWhere causes error.
 
   var t = new SplayTreeSet();
-  t.addAll([1,2,3,4,5]);
+  t.addAll([1, 2, 3, 4, 5]);
   t.removeWhere((_) => true);  // Should not throw.
   Expect.isTrue(t.isEmpty);
-  t.addAll([1,2,3,4,5]);
+  t.addAll([1, 2, 3, 4, 5]);
   t.retainWhere((_) => false);  // Should not throw.
   Expect.isTrue(t.isEmpty);
+}
+
+void testSetFrom() {
+  var set1 = new SplayTreeSet<num>()..addAll([1, 2, 3, 4, 5]);
+  var set2 = new SplayTreeSet<int>.from(set1);
+  Expect.equals(5, set2.length);
+  for (int i = 1; i <= 5; i++) {
+    Expect.isTrue(set2.contains(i));
+  }
+
+  set1 = new SplayTreeSet<num>()..addAll([0, 1, 2.4, 3.14, 5]);
+  set2 = new SplayTreeSet<int>.from(set1.where((x) => x is int));
+  Expect.equals(3, set2.length);
 }

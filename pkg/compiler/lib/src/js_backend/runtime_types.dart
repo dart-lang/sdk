@@ -631,11 +631,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   jsAst.Expression getJavaScriptClassName(Element element) {
-    if (element.isTypedef) {
-      return backend.emitter.typedefAccess(element);
-    } else {
-      return backend.emitter.classAccess(element);  
-    }
+    return backend.emitter.typeAccess(element);
   }
 
   visit(DartType type) {

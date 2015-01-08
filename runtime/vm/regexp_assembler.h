@@ -338,6 +338,10 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // graph construction.
   void GenerateBacktrackBlock();
 
+  // Allocate the actual registers array once its size is known. Must be done
+  // after graph construction.
+  void FinalizeRegistersArray();
+
  private:
   // Generate the contents of preset blocks. The entry block is the entry point
   // of the generated code.
@@ -424,7 +428,11 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   ConstantInstr* WordCharacterMapConstant() const;
 
   ComparisonInstr* Comparison(ComparisonKind kind,
-                              Definition* lhs, Definition* rhs);
+                              PushArgumentInstr* lhs,
+                              PushArgumentInstr* rhs);
+  ComparisonInstr* Comparison(ComparisonKind kind,
+                              Definition* lhs,
+                              Definition* rhs);
 
   InstanceCallInstr* InstanceCall(const InstanceCallDescriptor& desc,
                                   PushArgumentInstr* arg1) const;
@@ -462,6 +470,13 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
 
   PushArgumentInstr* PushArgument(Value* value);
   PushArgumentInstr* PushLocal(LocalVariable* local);
+
+  PushArgumentInstr* PushRegisterIndex(intptr_t reg);
+  Value* LoadRegister(intptr_t reg);
+  void StoreRegister(intptr_t reg, intptr_t value);
+  void StoreRegister(PushArgumentInstr* registers,
+                     PushArgumentInstr* index,
+                     PushArgumentInstr* value);
 
   // Load a number of characters at the given offset from the
   // current position, into the current-character register.
@@ -609,11 +624,13 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   LocalVariable* result_;
 
   // Stored positions containing group bounds. Generated as needed.
-  const intptr_t position_registers_count_;
-  GrowableArray<LocalVariable*> position_registers_;
+  LocalVariable* registers_;
+  intptr_t registers_count_;
+  const intptr_t saved_registers_count_;
 
-  // The actual array object used as the stack.
+  // The actual array objects used for the stack and registers.
   GrowableObjectArray& stack_array_;
+  TypedData& registers_array_;
 
   IdAllocator block_id_;
   IdAllocator temp_id_;

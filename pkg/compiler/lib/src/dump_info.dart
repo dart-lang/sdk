@@ -86,20 +86,12 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
 
   final Map<Element, Map<String, dynamic>> jsonCache = {};
 
-  int programSize;
   String dart2jsVersion;
 
   ElementToJsonVisitor(this.compiler);
 
   void run() {
     Backend backend = compiler.backend;
-    if (backend is JavaScriptBackend) {
-      // Add up the sizes of all output-buffers.
-      programSize = backend.emitter.oldEmitter.outputBuffers.values.fold(0,
-          (a, b) => a + b.length);
-    } else {
-      programSize = compiler.assembledCode.length;
-    }
 
     dart2jsVersion = compiler.hasBuildId ? compiler.buildId : null;
 
@@ -405,6 +397,9 @@ class DumpInfoTask extends CompilerTask {
 
   ElementToJsonVisitor infoCollector;
 
+  /// The size of the generated output.
+  int _programSize;
+
   // A set of javascript AST nodes that we care about the size of.
   // This set is automatically populated when registerElementAst()
   // is called.
@@ -423,6 +418,11 @@ class DumpInfoTask extends CompilerTask {
   // A mapping from an element to a list of elements that are
   // inlined inside of it.
   final Map<Element, List<Element>> inlineMap = <Element, List<Element>>{};
+
+  /// Register the size of the generated output.
+  void reportSize(int programSize) {
+    _programSize = programSize;
+  }
 
   void registerInlined(Element element, Element inlinedFrom) {
     inlineCount.putIfAbsent(element, () => 0);
@@ -644,7 +644,7 @@ class DumpInfoTask extends CompilerTask {
     Duration toJsonDuration = new DateTime.now().difference(startToJsonTime);
 
     Map<String, dynamic> generalProgramInfo = <String, dynamic> {
-      'size': infoCollector.programSize,
+      'size': _programSize,
       'dart2jsVersion': infoCollector.dart2jsVersion,
       'compilationMoment': new DateTime.now().toString(),
       'compilationDuration': compiler.totalCompileTime.elapsed.toString(),

@@ -45,7 +45,6 @@ f() { return const C(); }''');
 
   void fail_invalidIdentifierInAsync_async() {
     // TODO(brianwilkerson) Report this error.
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   m() async {
@@ -59,7 +58,6 @@ class A {
 
   void fail_invalidIdentifierInAsync_await() {
     // TODO(brianwilkerson) Report this error.
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   m() async {
@@ -73,7 +71,6 @@ class A {
 
   void fail_invalidIdentifierInAsync_yield() {
     // TODO(brianwilkerson) Report this error.
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   m() async {
@@ -151,7 +148,6 @@ const y = x + 1;''');
   void fail_yieldEachInNonGenerator_async() {
     // TODO(brianwilkerson) We are currently parsing the yield statement as a
     // binary expression.
-    resetWithAsync();
     Source source = addSource(r'''
 f() async {
   yield* 0;
@@ -164,7 +160,6 @@ f() async {
   void fail_yieldEachInNonGenerator_sync() {
     // TODO(brianwilkerson) We are currently parsing the yield statement as a
     // binary expression.
-    resetWithAsync();
     Source source = addSource(r'''
 f() {
   yield* 0;
@@ -177,7 +172,6 @@ f() {
   void fail_yieldInNonGenerator_async() {
     // TODO(brianwilkerson) We are currently trying to parse the yield statement
     // as a binary expression.
-    resetWithAsync();
     Source source = addSource(r'''
 f() async {
   yield 0;
@@ -190,7 +184,6 @@ f() async {
   void fail_yieldInNonGenerator_sync() {
     // TODO(brianwilkerson) We are currently trying to parse the yield statement
     // as a binary expression.
-    resetWithAsync();
     Source source = addSource(r'''
 f() {
   yield 0;
@@ -240,7 +233,6 @@ f(list) {
   }
 
   void test_awaitInWrongContext_sync() {
-    resetWithAsync();
     Source source = addSource(r'''
 f(x) {
   return await x;
@@ -251,7 +243,6 @@ f(x) {
   }
 
   void test_awaitInWrongContext_syncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f(x) sync* {
   yield await x;
@@ -2724,7 +2715,6 @@ class A {
   }
 
   void test_invalidModifierOnConstructor_async() {
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   A() async {}
@@ -2737,7 +2727,6 @@ class A {
   }
 
   void test_invalidModifierOnConstructor_asyncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   A() async* {}
@@ -2750,7 +2739,6 @@ class A {
   }
 
   void test_invalidModifierOnConstructor_syncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   A() sync* {}
@@ -2763,7 +2751,6 @@ class A {
   }
 
   void test_invalidModifierOnSetter_member_async() {
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   set x(v) async {}
@@ -2774,7 +2761,6 @@ class A {
   }
 
   void test_invalidModifierOnSetter_member_asyncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   set x(v) async* {}
@@ -2785,7 +2771,6 @@ class A {
   }
 
   void test_invalidModifierOnSetter_member_syncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 class A {
   set x(v) sync* {}
@@ -2796,7 +2781,6 @@ class A {
   }
 
   void test_invalidModifierOnSetter_topLevel_async() {
-    resetWithAsync();
     Source source = addSource("set x(v) async {}");
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
@@ -2804,7 +2788,6 @@ class A {
   }
 
   void test_invalidModifierOnSetter_topLevel_asyncStar() {
-    resetWithAsync();
     Source source = addSource("set x(v) async* {}");
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
@@ -2812,7 +2795,6 @@ class A {
   }
 
   void test_invalidModifierOnSetter_topLevel_syncStar() {
-    resetWithAsync();
     Source source = addSource("set x(v) sync* {}");
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
@@ -4868,7 +4850,6 @@ class A {
   }
 
   void test_returnInGenerator_asyncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f() async* {
   return 0;
@@ -4879,7 +4860,6 @@ f() async* {
   }
 
   void test_returnInGenerator_syncStar() {
-    resetWithAsync();
     Source source = addSource(r'''
 f() sync* {
   return 0;

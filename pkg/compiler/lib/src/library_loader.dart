@@ -5,27 +5,37 @@
 library dart2js.library_loader;
 
 import 'dart:async';
-import 'dart2jslib.dart'
-    show Compiler,
-         CompilerTask,
-         MessageKind,
-         Script,
-         invariant;
-import 'elements/elements.dart'
-    show CompilationUnitElement,
-         Element,
-         LibraryElement,
-         PrefixElement;
-import 'elements/modelx.dart'
-    show CompilationUnitElementX,
-         DeferredLoaderGetterElementX,
-         ErroneousElementX,
-         LibraryElementX,
-         PrefixElementX;
+
+import 'dart2jslib.dart' show
+    Compiler,
+    CompilerTask,
+    DiagnosticListener,
+    MessageKind,
+    Script,
+    invariant;
+
+import 'elements/elements.dart' show
+    CompilationUnitElement,
+    Element,
+    LibraryElement,
+    PrefixElement;
+
+import 'elements/modelx.dart' show
+    CompilationUnitElementX,
+    DeferredLoaderGetterElementX,
+    ErroneousElementX,
+    LibraryElementX,
+    PrefixElementX;
+
 import 'helpers/helpers.dart';  // Included for debug helpers.
+
 import 'native/native.dart' as native;
+
 import 'tree/tree.dart';
-import 'util/util.dart' show Link, LinkBuilder;
+
+import 'util/util.dart' show
+    Link,
+    LinkBuilder;
 
 /**
  * [CompilerTask] for loading libraries and setting up the import/export scopes.
@@ -362,22 +372,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    */
   Future processLibraryTags(LibraryDependencyHandler handler,
                             LibraryElement library) {
-    int tagState = TagState.NO_TAG_SEEN;
-
-    /**
-     * If [value] is less than [tagState] complain and return
-     * [tagState]. Otherwise return the new value for [tagState]
-     * (transition function for state machine).
-     */
-    int checkTag(int value, LibraryTag tag) {
-      if (tagState > value) {
-        compiler.reportFatalError(
-            tag,
-            MessageKind.GENERIC, {'text': 'Error: Out of order.'});
-        return tagState;
-      }
-      return TagState.NEXT[value];
-    }
+    TagState tagState = new TagState();
 
     bool importsDartCore = false;
     var libraryDependencies = new LinkBuilder<LibraryDependency>();
@@ -387,26 +382,26 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       return compiler.withCurrentElement(library, () {
         if (tag.isImport) {
           Import import = tag;
-          tagState = checkTag(TagState.IMPORT_OR_EXPORT, import);
+          tagState.checkTag(TagState.IMPORT_OR_EXPORT, import, compiler);
           if (import.uri.dartString.slowToString() == 'dart:core') {
             importsDartCore = true;
           }
           libraryDependencies.addLast(import);
         } else if (tag.isExport) {
-          tagState = checkTag(TagState.IMPORT_OR_EXPORT, tag);
+          tagState.checkTag(TagState.IMPORT_OR_EXPORT, tag, compiler);
           libraryDependencies.addLast(tag);
         } else if (tag.isLibraryName) {
-          tagState = checkTag(TagState.LIBRARY, tag);
-          if (library.libraryTag != null) {
-            compiler.internalError(tag, "Duplicated library declaration.");
-          } else {
+          tagState.checkTag(TagState.LIBRARY, tag, compiler);
+          if (library.libraryTag == null) {
+            // Use the first if there are multiple (which is reported as an
+            // error in [TagState.checkTag]).
             library.libraryTag = tag;
           }
         } else if (tag.isPart) {
           Part part = tag;
           StringNode uri = part.uri;
           Uri resolvedUri = base.resolve(uri.dartString.slowToString());
-          tagState = checkTag(TagState.SOURCE, part);
+          tagState.checkTag(TagState.PART, part, compiler);
           return scanPart(part, resolvedUri, library);
         } else {
           compiler.internalError(tag, "Unhandled library tag.");
@@ -572,24 +567,72 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 }
 
 
-/**
- * The fields of this class models a state machine for checking script
- * tags come in the correct order.
- */
+/// A state machine for checking script tags come in the correct order.
 class TagState {
+  /// Initial state.
   static const int NO_TAG_SEEN = 0;
-  static const int LIBRARY = 1;
-  static const int IMPORT_OR_EXPORT = 2;
-  static const int SOURCE = 3;
-  static const int RESOURCE = 4;
 
-  /** Next state. */
-  static const List<int> NEXT =
-      const <int>[NO_TAG_SEEN,
-                  IMPORT_OR_EXPORT, // Only one library tag is allowed.
-                  IMPORT_OR_EXPORT,
-                  SOURCE,
-                  RESOURCE];
+  /// Passed to [checkTag] when a library declaration (the syntax "library
+  /// name;") has been seen. Not an actual state.
+  static const int LIBRARY = 1;
+
+  /// The state after the first library declaration.
+  static const int AFTER_LIBRARY_DECLARATION = 2;
+
+  /// The state after a import or export declaration has been seen, but before
+  /// a part tag has been seen.
+  static const int IMPORT_OR_EXPORT = 3;
+
+  /// The state after a part tag has been seen.
+  static const int PART = 4;
+
+  /// Encodes transition function for state machine.
+  static const List<int> NEXT = const <int>[
+      NO_TAG_SEEN,
+      AFTER_LIBRARY_DECLARATION, // Only one library tag is allowed.
+      IMPORT_OR_EXPORT,
+      IMPORT_OR_EXPORT,
+      PART,
+  ];
+
+  int tagState = TagState.NO_TAG_SEEN;
+
+  bool hasLibraryDeclaration = false;
+
+  /// If [value] is less than [tagState] complain. Regardless, update
+  /// [tagState] using transition function for state machine.
+  void checkTag(int value, LibraryTag tag, DiagnosticListener listener) {
+    if (tagState > value) {
+      MessageKind kind;
+      switch (value) {
+        case LIBRARY:
+          if (hasLibraryDeclaration) {
+            kind = MessageKind.ONLY_ONE_LIBRARY_TAG;
+          } else {
+            kind = MessageKind.LIBRARY_TAG_MUST_BE_FIRST;
+          }
+          break;
+
+        case IMPORT_OR_EXPORT:
+          if (tag.isImport) {
+            kind = MessageKind.IMPORT_BEFORE_PARTS;
+          } else if (tag.isExport) {
+            kind = MessageKind.EXPORT_BEFORE_PARTS;
+          } else {
+            listener.internalError(tag, "Expected import or export.");
+          }
+          break;
+
+        default:
+          listener.internalError(tag, "Unexpected order of library tags.");
+      }
+      listener.reportError(tag, kind);
+    }
+    tagState = NEXT[value];
+    if (value == LIBRARY) {
+      hasLibraryDeclaration = true;
+    }
+  }
 }
 
 /**

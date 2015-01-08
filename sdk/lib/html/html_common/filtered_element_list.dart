@@ -28,14 +28,14 @@ class FilteredElementList<T extends Element> extends ListBase<T>
   //
   // TODO(nweiz): we don't always need to create a new list. For example
   // forEach, every, any, ... could directly work on the _childNodes.
-  List<Element> get _filtered =>
-    new List<Element>.from(_childNodes.where((n) => n is Element));
+  List<T> get _filtered =>
+    new List<T>.from(_childNodes.where((n) => n is Element));
 
-  void forEach(void f(Element element)) {
+  void forEach(void f(T element)) {
     _filtered.forEach(f);
   }
 
-  void operator []=(int index, Element value) {
+  void operator []=(int index, T value) {
     this[index].replaceWith(value);
   }
 
@@ -50,38 +50,38 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     removeRange(newLength, len);
   }
 
-  void add(Element value) {
+  void add(T value) {
     _childNodes.add(value);
   }
 
-  void addAll(Iterable<Element> iterable) {
-    for (Element element in iterable) {
+  void addAll(Iterable<T> iterable) {
+    for (T element in iterable) {
       add(element);
     }
   }
 
   bool contains(Object needle) {
     if (needle is! Element) return false;
-    Element element = needle;
+    T element = needle;
     return element.parentNode == _node;
   }
 
-  Iterable<Element> get reversed => _filtered.reversed;
+  Iterable<T> get reversed => _filtered.reversed;
 
-  void sort([int compare(Element a, Element b)]) {
+  void sort([int compare(T a, T b)]) {
     throw new UnsupportedError('Cannot sort filtered list');
   }
 
-  void setRange(int start, int end, Iterable<Element> iterable,
+  void setRange(int start, int end, Iterable<T> iterable,
                 [int skipCount = 0]) {
     throw new UnsupportedError('Cannot setRange on filtered list');
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void fillRange(int start, int end, [T fillValue]) {
     throw new UnsupportedError('Cannot fillRange on filtered list');
   }
 
-  void replaceRange(int start, int end, Iterable<Element> iterable) {
+  void replaceRange(int start, int end, Iterable<T> iterable) {
     throw new UnsupportedError('Cannot replaceRange on filtered list');
   }
 
@@ -95,7 +95,7 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     _childNodes.clear();
   }
 
-  Element removeLast() {
+  T removeLast() {
     final result = this.last;
     if (result != null) {
       result.remove();
@@ -103,15 +103,15 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     return result;
   }
 
-  void insert(int index, Element value) {
+  void insert(int index, T value) {
     _childNodes.insert(index, value);
   }
 
-  void insertAll(int index, Iterable<Element> iterable) {
+  void insertAll(int index, Iterable<T> iterable) {
     _childNodes.insertAll(index, iterable);
   }
 
-  Element removeAt(int index) {
+  T removeAt(int index) {
     final result = this[index];
     result.remove();
     return result;
@@ -120,7 +120,7 @@ class FilteredElementList<T extends Element> extends ListBase<T>
   bool remove(Object element) {
     if (element is! Element) return false;
     for (int i = 0; i < length; i++) {
-      Element indexElement = this[i];
+      T indexElement = this[i];
       if (identical(indexElement, element)) {
         indexElement.remove();
         return true;
@@ -130,8 +130,8 @@ class FilteredElementList<T extends Element> extends ListBase<T>
   }
 
   int get length => _filtered.length;
-  Element operator [](int index) => _filtered[index];
-  Iterator<Element> get iterator => _filtered.iterator;
+  T operator [](int index) => _filtered[index];
+  Iterator<T> get iterator => _filtered.iterator;
 
   List<Node> get rawList => _node.childNodes;
 }

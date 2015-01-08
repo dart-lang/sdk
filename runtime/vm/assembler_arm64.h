@@ -680,6 +680,9 @@ class Assembler : public ValueObject {
   void smulh(Register rd, Register rn, Register rm) {
     EmitMiscDP3Source(SMULH, rd, rn, rm, R0, kDoubleWord);
   }
+  void umulh(Register rd, Register rn, Register rm) {
+    EmitMiscDP3Source(UMULH, rd, rn, rm, R0, kDoubleWord);
+  }
   void umaddl(Register rd, Register rn, Register rm, Register ra) {
     EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, kDoubleWord);
   }

@@ -80,22 +80,22 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
 
 
 class FindAddrVisitor : public FindObjectVisitor {
-   public:
-    explicit FindAddrVisitor(uword addr)
-        : FindObjectVisitor(Isolate::Current()), addr_(addr) { }
-    virtual ~FindAddrVisitor() { }
+ public:
+  explicit FindAddrVisitor(uword addr)
+      : FindObjectVisitor(Isolate::Current()), addr_(addr) { }
+  virtual ~FindAddrVisitor() { }
 
-    virtual uword filter_addr() const { return addr_; }
+  virtual uword filter_addr() const { return addr_; }
 
-    // Check if object matches find condition.
-    virtual bool FindObject(RawObject* obj) const {
-      return obj == reinterpret_cast<RawObject*>(addr_);
-    }
+  // Check if object matches find condition.
+  virtual bool FindObject(RawObject* obj) const {
+    return obj == reinterpret_cast<RawObject*>(addr_);
+  }
 
-   private:
-    const uword addr_;
+ private:
+  const uword addr_;
 
-    DISALLOW_COPY_AND_ASSIGN(FindAddrVisitor);
+  DISALLOW_COPY_AND_ASSIGN(FindAddrVisitor);
 };
 
 
@@ -103,6 +103,58 @@ bool Disassembler::CanFindOldObject(uword addr) {
   FindAddrVisitor visitor(addr);
   NoGCScope no_gc;
   return Isolate::Current()->heap()->FindOldObject(&visitor) != Object::null();
+}
+
+
+void Disassembler::Disassemble(uword start,
+                               uword end,
+                               DisassemblyFormatter* formatter,
+                               const Code& code) {
+  const Code::Comments& comments =
+      code.IsNull() ? Code::Comments::New(0) : code.comments();
+  ASSERT(formatter != NULL);
+  char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
+  char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
+  uword pc = start;
+  intptr_t comment_finger = 0;
+  GrowableArray<Function*> inlined_functions;
+  while (pc < end) {
+    const intptr_t offset = pc - start;
+    const intptr_t old_comment_finger = comment_finger;
+    while (comment_finger < comments.Length() &&
+           comments.PCOffsetAt(comment_finger) <= offset) {
+      formatter->Print(
+          "        ;; %s\n",
+          String::Handle(comments.CommentAt(comment_finger)).ToCString());
+      comment_finger++;
+    }
+    if (old_comment_finger != comment_finger) {
+      // Comment emitted, emit inlining information.
+      code.GetInlinedFunctionsAt(offset, &inlined_functions);
+      // Skip top scope function printing.
+      for (intptr_t i = 1; i < inlined_functions.length(); i++) {
+        if (i == 1) {
+          formatter->Print("        ;; Inlined ");
+        }
+        formatter->Print("-> %s ", inlined_functions[i]->ToQualifiedCString());
+      }
+      if (inlined_functions.length() > 1) {
+        formatter->Print("\n");
+      }
+    }
+    int instruction_length;
+    DecodeInstruction(hex_buffer,
+                      sizeof(hex_buffer),
+                      human_buffer,
+                      sizeof(human_buffer),
+                      &instruction_length, pc);
+    formatter->ConsumeInstruction(hex_buffer,
+                                  sizeof(hex_buffer),
+                                  human_buffer,
+                                  sizeof(human_buffer),
+                                  pc);
+    pc += instruction_length;
+  }
 }
 
 }  // namespace dart
