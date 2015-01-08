@@ -2842,7 +2842,7 @@ class ErrorType extends Enum<ErrorType> {
    * Lint warnings describe style and best practice recommendations that can be used to formalize a project's style
    * guidelines.
    */
-  static const ErrorType LINT = const ErrorType('LINT', 9, ErrorSeverity.INFO);
+  static const ErrorType LINT = const ErrorType('LINT', 8, ErrorSeverity.INFO);
 
   static const List<ErrorType> values = const [
       TODO,
