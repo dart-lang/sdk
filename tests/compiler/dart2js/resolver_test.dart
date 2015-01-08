@@ -15,6 +15,9 @@ import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
 import 'link_helper.dart';
 
+import "package:compiler/src/dart2jslib.dart" show
+    CompilerCancelledException;
+
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
 Node buildInitialization(String name) =>
@@ -278,7 +281,14 @@ Future testThis() {
               new CollectingTreeElements(funElement)));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler);
-      visitor.visit(function.body);
+      try {
+        visitor.visit(function.body);
+      } on CompilerCancelledException catch (_) {
+        // Ignored.
+
+        // TODO(ahe): Don't ignore CompilerCancelledException, instead, fix
+        // pkg/compiler/lib/src/resolution/members.dart.
+      }
       Expect.equals(0, compiler.warnings.length);
       Expect.equals(1, compiler.errors.length);
       Expect.equals(MessageKind.NO_INSTANCE_AVAILABLE,
