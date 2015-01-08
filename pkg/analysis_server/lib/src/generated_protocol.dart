@@ -5351,6 +5351,8 @@ class AnalysisErrorType implements Enum {
 
   static const HINT = const AnalysisErrorType._("HINT");
 
+  static const LINT = const AnalysisErrorType._("LINT");
+
   static const POLYMER = const AnalysisErrorType._("POLYMER");
 
   static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
@@ -5375,6 +5377,8 @@ class AnalysisErrorType implements Enum {
         return COMPILE_TIME_ERROR;
       case "HINT":
         return HINT;
+      case "LINT":
+        return LINT;
       case "POLYMER":
         return POLYMER;
       case "STATIC_TYPE_WARNING":
