@@ -96,19 +96,21 @@ class ServeCommand extends BarbackCommand {
           var adminPort = x0;
           join1(x1) {
             var watcherType = x1;
-            AssetEnvironment.create(
-                entrypoint,
-                mode,
-                watcherType: watcherType,
-                hostname: hostname,
-                basePort: port,
-                useDart2JS: useDart2JS).then((x2) {
+            new Future.value(
+                AssetEnvironment.create(
+                    entrypoint,
+                    mode,
+                    watcherType: watcherType,
+                    hostname: hostname,
+                    basePort: port,
+                    useDart2JS: useDart2JS)).then((x2) {
               try {
                 var environment = x2;
                 var directoryLength = sourceDirectories.map(((dir) {
                   return dir.length;
                 })).reduce(math.max);
-                environment.startAdminServer(adminPort).then((x3) {
+                new Future.value(
+                    environment.startAdminServer(adminPort)).then((x3) {
                   try {
                     var server = x3;
                     server.results.listen(((_) {
@@ -131,7 +133,7 @@ class ServeCommand extends BarbackCommand {
                           }
                         }), onError: _fatalError);
                         environment.resumeUpdates();
-                        _completer.future.then((x4) {
+                        new Future.value(_completer.future).then((x4) {
                           try {
                             x4;
                             completer0.complete();
@@ -145,10 +147,8 @@ class ServeCommand extends BarbackCommand {
                         trampoline0 = null;
                         if (it0.moveNext()) {
                           var directory = it0.current;
-                          _startServer(
-                              environment,
-                              directory,
-                              directoryLength).then((x5) {
+                          new Future.value(
+                              _startServer(environment, directory, directoryLength)).then((x5) {
                             trampoline0 = () {
                               trampoline0 = null;
                               try {
@@ -206,7 +206,7 @@ class ServeCommand extends BarbackCommand {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
-        environment.serveDirectory(rootDirectory).then((x0) {
+        new Future.value(environment.serveDirectory(rootDirectory)).then((x0) {
           try {
             var server = x0;
             join0() {

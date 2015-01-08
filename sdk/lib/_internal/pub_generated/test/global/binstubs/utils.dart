@@ -20,7 +20,7 @@ Future<Map> getEnvironment() {
       join0(x0) {
         var separator = x0;
         var path = "${Platform.environment["PATH"]}${separator}${binDir}";
-        getPubTestEnvironment().then((x1) {
+        new Future.value(getPubTestEnvironment()).then((x1) {
           try {
             var environment = x1;
             environment["PATH"] = path;

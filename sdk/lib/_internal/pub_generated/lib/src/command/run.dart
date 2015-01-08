@@ -41,15 +41,11 @@ class RunCommand extends PubCommand {
           join1() {
             var mode;
             join2() {
-              runExecutable(
-                  entrypoint,
-                  package,
-                  executable,
-                  args,
-                  mode: mode).then((x0) {
+              new Future.value(
+                  runExecutable(entrypoint, package, executable, args, mode: mode)).then((x0) {
                 try {
                   var exitCode = x0;
-                  flushThenExit(exitCode).then((x1) {
+                  new Future.value(flushThenExit(exitCode)).then((x1) {
                     try {
                       x1;
                       completer0.complete();

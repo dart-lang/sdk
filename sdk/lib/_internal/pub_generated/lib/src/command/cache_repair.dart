@@ -29,7 +29,7 @@ class CacheRepairCommand extends PubCommand {
         break0() {
           join0() {
             join1() {
-              globals.repairActivatedPackages().then((x0) {
+              new Future.value(globals.repairActivatedPackages()).then((x0) {
                 try {
                   var results = x0;
                   join2() {
@@ -39,7 +39,8 @@ class CacheRepairCommand extends PubCommand {
                           completer0.complete();
                         }
                         if (failures > 0) {
-                          flushThenExit(exit_codes.UNAVAILABLE).then((x1) {
+                          new Future.value(
+                              flushThenExit(exit_codes.UNAVAILABLE)).then((x1) {
                             try {
                               x1;
                               join5();
@@ -104,7 +105,7 @@ class CacheRepairCommand extends PubCommand {
           if (it0.moveNext()) {
             var source = it0.current;
             join6() {
-              source.repairCachedPackages().then((x2) {
+              new Future.value(source.repairCachedPackages()).then((x2) {
                 trampoline0 = () {
                   trampoline0 = null;
                   try {
