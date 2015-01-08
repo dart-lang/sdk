@@ -28,13 +28,16 @@ StreamSubscription setupLogger(Level level, printFn) {
 Future<bool> compile(String inputFile, TypeResolver resolver,
     {bool checkSdk: false, bool formatOutput: false, bool outputDart: false,
     String outputDir, bool dumpInfo: false, String dumpInfoFile,
-    String dumpSrcTo: null, bool forceCompile: false, bool useColors: true}) {
+    String dumpSrcTo: null, bool forceCompile: false, bool useColors: true,
+    bool covariantGenerics: true}) {
 
   // Run checker
   var reporter = dumpInfo ? new SummaryReporter() : new LogReporter(useColors);
   var uri = new Uri.file(path.absolute(inputFile));
   var results = checkProgram(uri, resolver, reporter,
-      checkSdk: checkSdk, useColors: useColors);
+      checkSdk: checkSdk,
+      useColors: useColors,
+      covariantGenerics: covariantGenerics);
 
   // TODO(sigmund): return right after?
   if (dumpInfo) {

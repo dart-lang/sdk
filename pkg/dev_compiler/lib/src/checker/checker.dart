@@ -16,13 +16,14 @@ import 'rules.dart';
 /// Runs the program checker using the restricted type rules on [fileUri].
 CheckerResults checkProgram(
     Uri fileUri, TypeResolver resolver, CheckerReporter reporter,
-    {bool checkSdk: false, bool useColors: true}) {
+    {bool checkSdk: false, bool useColors: true,
+    bool covariantGenerics: true}) {
 
   // Invoke the checker on the entry point.
   TypeProvider provider = resolver.context.typeProvider;
-  var rules = new RestrictedRules(provider, reporter);
-  final visitor = new ProgramChecker(
-      resolver, rules, fileUri, checkSdk, reporter);
+  var rules = new RestrictedRules(provider, reporter, covariantGenerics);
+  final visitor =
+      new ProgramChecker(resolver, rules, fileUri, checkSdk, reporter);
   visitor.check();
   return new CheckerResults(visitor.libraries, rules, visitor.failure);
 }
@@ -132,7 +133,8 @@ class ProgramChecker extends RecursiveAstVisitor {
             return new InferableOverride(
                 node, element, type, subType.returnType, baseType.returnType);
           }
-        } else if (node is MethodDeclaration && node.returnType == null &&
+        } else if (node is MethodDeclaration &&
+            node.returnType == null &&
             _rules.isFunctionSubTypeOf(subType, baseType, ignoreReturn: true)) {
           // node is a MethodDeclaration whenever getters and setters are
           // declared explicitly. Setters declared from a field will have the
@@ -359,11 +361,11 @@ class ProgramChecker extends RecursiveAstVisitor {
     return expr;
   }
 
-  DartType _specializedBinaryReturnType(TokenType op, DartType t1, DartType t2,
-                                        DartType normalReturnType) {
+  DartType _specializedBinaryReturnType(
+      TokenType op, DartType t1, DartType t2, DartType normalReturnType) {
     // This special cases binary return types as per 16.26 and 16.27 of the
     // Dart language spec.
-    switch(op) {
+    switch (op) {
       case TokenType.PLUS:
       case TokenType.MINUS:
       case TokenType.AMPERSAND:
@@ -382,8 +384,7 @@ class ProgramChecker extends RecursiveAstVisitor {
         // we're getting from the analyzer seems to return dynamic in this
         // case.  That doesn't match the source code, so we need to check where
         // the return type is being lost.
-        if (t1.isSubtypeOf(numType)
-            && t1.isSubtypeOf(numType)) {
+        if (t1.isSubtypeOf(numType) && t1.isSubtypeOf(numType)) {
           return numType;
         }
     }
@@ -415,8 +416,8 @@ class ProgramChecker extends RecursiveAstVisitor {
 
       // Check the lhs type
       var expectedType = _rules.getStaticType(expr.leftHandSide);
-      var returnType = _specializedBinaryReturnType(op, expectedType,
-          rhsType, functionType.returnType);
+      var returnType = _specializedBinaryReturnType(
+          op, expectedType, rhsType, functionType.returnType);
       if (!_rules.isSubTypeOf(returnType, expectedType)) {
         // Static type error
         staticInfo = new StaticTypeError(_rules, expr, expectedType);

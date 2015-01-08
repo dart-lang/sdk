@@ -77,8 +77,10 @@ class DartRules extends TypeRules {
 
 class RestrictedRules extends TypeRules {
   final CheckerReporter _reporter;
+  final bool covariantGenerics;
 
-  RestrictedRules(TypeProvider provider, this._reporter) : super(provider);
+  RestrictedRules(TypeProvider provider, this._reporter, this.covariantGenerics)
+      : super(provider);
 
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
@@ -176,7 +178,11 @@ class RestrictedRules extends TypeRules {
       for (int i = 0; i < tArgs1.length; i++) {
         DartType t1 = tArgs1[i];
         DartType t2 = tArgs2[i];
-        if ((t1 != t2) && !t2.isDynamic) return false;
+        if (covariantGenerics) {
+          if (!isSubTypeOf(t1, t2)) return false;
+        } else {
+          if ((t1 != t2) && !t2.isDynamic) return false;
+        }
       }
       return true;
     }

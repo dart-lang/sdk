@@ -42,7 +42,7 @@ import 'package:ddc/src/checker/checker.dart';
 ///     });
 ///
 CheckerResults testChecker(Map<String, String> testFiles,
-    {bool mockSdk: true, CheckerReporter reporter}) {
+  {bool mockSdk: true, CheckerReporter reporter, covariantGenerics: false}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
@@ -57,7 +57,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
   var mainFile = new Uri.file('/main.dart');
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
-  var results = checkProgram(mainFile, resolver, reporter);
+  var results = checkProgram(mainFile, resolver, reporter,
+                             covariantGenerics: covariantGenerics);
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};

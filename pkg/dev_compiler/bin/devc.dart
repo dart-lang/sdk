@@ -14,6 +14,8 @@ import 'package:ddc/src/checker/dart_sdk.dart'
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
+  ..addFlag(
+      'covariant-generics', help: 'Use covariant generics', defaultsTo: true)
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
   ..addFlag('dart-gen',
       abbr: 'd', help: 'Generate dart output', defaultsTo: false)
@@ -81,6 +83,7 @@ void main(List<String> argv) {
       forceCompile: args['force-compile'],
       formatOutput: args['dart-gen-fmt'],
       outputDart: args['dart-gen'],
+      covariantGenerics: args['covariant-generics'],
       dumpInfo: args['dump-info'],
       dumpInfoFile: args['dump-info-file'],
       dumpSrcTo: args['dump-src-to'],
