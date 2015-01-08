@@ -1463,10 +1463,15 @@ class ElementListener extends Listener {
     memberErrors = memberErrors.tail;
   }
 
+  /// Don't call this method. Should only be used as a last resort when there
+  /// is no feasible way to recover from a parser error.
   void reportFatalError(Spannable spannable,
                         String message) {
-    listener.reportFatalError(
+    listener.reportError(
         spannable, MessageKind.GENERIC, {'text': message});
+    // Some parse errors are infeasible to recover from, so we abort
+    // compilation instead.
+    throw new CompilerCancelledException(message);
   }
 
   void reportError(Spannable spannable,
@@ -1490,6 +1495,8 @@ class NodeListener extends ElementListener {
       {bool this.throwOnFatalError: false})
     : super(listener, element, null);
 
+  /// Don't call this method. Should only be used as a last resort when there
+  /// is no feasible way to recover from a parser error.
   void reportFatalError(Spannable spannable,
                         String message) {
     if (throwOnFatalError) {

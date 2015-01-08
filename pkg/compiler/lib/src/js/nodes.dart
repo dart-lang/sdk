@@ -741,8 +741,7 @@ class Binary extends Expression {
       case ',':
         return EXPRESSION;
       default:
-        throw new leg.CompilerCancelledException(
-            "Internal Error: Unhandled binary operator: $op");
+        throw "Internal Error: Unhandled binary operator: $op";
     }
   }
 }

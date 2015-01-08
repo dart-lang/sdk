@@ -12,21 +12,23 @@ import '../util/util.dart';
 import '../resolution/resolution.dart';
 import '../resolution/class_members.dart' show ClassMemberMixin;
 
-import '../dart2jslib.dart' show invariant,
-                                 InterfaceType,
-                                 DartType,
-                                 TypeVariableType,
-                                 TypedefType,
-                                 DualKind,
-                                 MessageKind,
-                                 DiagnosticListener,
-                                 Script,
-                                 FunctionType,
-                                 Selector,
-                                 Constant,
-                                 Compiler,
-                                 Backend,
-                                 isPrivateName;
+import '../dart2jslib.dart' show
+    Backend,
+    Compiler,
+    CompilerCancelledException,
+    Constant,
+    DartType,
+    DiagnosticListener,
+    DualKind,
+    FunctionType,
+    InterfaceType,
+    MessageKind,
+    Script,
+    Selector,
+    TypeVariableType,
+    TypedefType,
+    invariant,
+    isPrivateName;
 
 import '../dart_types.dart';
 
@@ -491,27 +493,30 @@ class ScopeX {
       listener.reportError(accessor,
                            MessageKind.DUPLICATE_DEFINITION,
                            {'name': accessor.name});
-      // TODO(johnniwinther): Make this an info instead of a fatal error.
-      listener.reportFatalError(other,
-                                MessageKind.EXISTING_DEFINITION,
-                                {'name': accessor.name});
+      listener.reportInfo(
+          other, MessageKind.EXISTING_DEFINITION, {'name': accessor.name});
+      // TODO(ahe): Don't throw, recover from error.
+      throw new CompilerCancelledException(null);
     }
 
     if (existing != null) {
       if (!identical(existing.kind, ElementKind.ABSTRACT_FIELD)) {
         reportError(existing);
+        return;
       } else {
         AbstractFieldElementX field = existing;
         accessor.abstractField = field;
         if (accessor.isGetter) {
           if (field.getter != null && field.getter != accessor) {
             reportError(field.getter);
+            return;
           }
           field.getter = accessor;
         } else {
           assert(accessor.isSetter);
           if (field.setter != null && field.setter != accessor) {
             reportError(field.setter);
+            return;
           }
           field.setter = accessor;
         }

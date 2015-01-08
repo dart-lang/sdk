@@ -133,8 +133,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     Node node = element.node;
     if (pendingVariables.contains(element)) {
       if (isConst) {
-        compiler.reportFatalError(
+        compiler.reportError(
             node, MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS);
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
       }
       return null;
     }
@@ -155,7 +157,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         if (elementType.isMalformed && !value.value.isNull) {
           if (isConst) {
             ErroneousElement element = elementType.element;
-            compiler.reportFatalError(
+            compiler.reportError(
                 node, element.messageKind, element.messageArguments);
           } else {
             // We need to throw an exception at runtime.
@@ -166,7 +168,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
           if (!constantSystem.isSubtype(compiler.types,
                                         constantType, elementType)) {
             if (isConst) {
-              compiler.reportFatalError(
+              compiler.reportError(
                   node, MessageKind.NOT_ASSIGNABLE,
                   {'fromType': constantType, 'toType': elementType});
             } else {
@@ -605,7 +607,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     } else if (!condition.value.isBool) {
       DartType conditionType = condition.value.getType(compiler.coreTypes);
       if (isEvaluatingConstant) {
-        compiler.reportFatalError(
+        compiler.reportError(
             node.condition, MessageKind.NOT_ASSIGNABLE,
             {'fromType': conditionType, 'toType': compiler.boolClass.rawType});
       }
@@ -655,10 +657,12 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (!selector.applies(target, compiler.world)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
-      compiler.reportFatalError(
+      compiler.reportError(
           node,
           MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
           {'constructorName': name});
+      // TODO(ahe): Don't throw, recover from error.
+      throw new CompilerCancelledException(null);
     }
     return selector.makeArgumentsList2(arguments,
                                        target,
@@ -728,14 +732,14 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       ConstantValue defaultValue = normalizedArguments[1].value;
 
       if (firstArgument.isNull) {
-        compiler.reportFatalError(
+        compiler.reportError(
             send.arguments.head, MessageKind.NULL_NOT_ALLOWED);
         return null;
       }
 
       if (!firstArgument.isString) {
         DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportFatalError(
+        compiler.reportError(
             send.arguments.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
         return null;
@@ -744,7 +748,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       if (constructor == compiler.intEnvironment &&
           !(defaultValue.isNull || defaultValue.isInt)) {
         DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportFatalError(
+        compiler.reportError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.intClass.rawType});
         return null;
@@ -753,7 +757,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       if (constructor == compiler.boolEnvironment &&
           !(defaultValue.isNull || defaultValue.isBool)) {
         DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportFatalError(
+        compiler.reportError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.boolClass.rawType});
         return null;
@@ -762,7 +766,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       if (constructor == compiler.stringEnvironment &&
           !(defaultValue.isNull || defaultValue.isString)) {
         DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportFatalError(
+        compiler.reportError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
         return null;
@@ -850,13 +854,16 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   error(Node node, MessageKind message) {
     // TODO(floitsch): get the list of constants that are currently compiled
     // and present some kind of stack-trace.
-    compiler.reportFatalError(node, message);
+    compiler.reportError(node, message);
   }
 
   AstConstant signalNotCompileTimeConstant(Node node,
       {MessageKind message: MessageKind.NOT_A_COMPILE_TIME_CONSTANT}) {
     if (isEvaluatingConstant) {
       error(node, message);
+
+      return new AstConstant(
+          null, node, new PrimitiveConstantExpression(new NullConstantValue()));
     }
     // Else we don't need to do anything. The final handler is only
     // optimistically trying to compile constants. So it is normal that we
@@ -913,7 +920,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       if (!constantSystem.isSubtype(compiler.types,
                                     constantType, elementType)) {
         compiler.withCurrentElement(constant.element, () {
-          compiler.reportFatalError(
+          compiler.reportError(
               constant.node, MessageKind.NOT_ASSIGNABLE,
               {'fromType': constantType, 'toType': elementType});
         });

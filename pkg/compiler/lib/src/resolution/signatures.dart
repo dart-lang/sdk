@@ -178,6 +178,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     } else if (!identical(enclosingElement.kind,
                           ElementKind.GENERATIVE_CONSTRUCTOR)) {
       error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
+      // TODO(ahe): Don't throw, recover from error.
+      throw new CompilerCancelledException(null);
     } else {
       Identifier name = getParameterName(node);
       validateName(name);
@@ -186,6 +188,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       if (fieldElement == null ||
           !identical(fieldElement.kind, ElementKind.FIELD)) {
         error(node, MessageKind.NOT_A_FIELD, {'fieldName': name});
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
       } else if (!fieldElement.isInstanceMember) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
       }

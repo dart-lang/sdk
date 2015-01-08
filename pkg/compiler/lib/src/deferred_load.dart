@@ -659,7 +659,7 @@ class DeferredLoadTask extends CompilerTask {
               Element element =
                   metadata.constant.value.getType(compiler.coreTypes).element;
               if (element == deferredLibraryClass) {
-                 compiler.reportFatalError(
+                 compiler.reportError(
                      import, MessageKind.DEFERRED_OLD_SYNTAX);
               }
             }

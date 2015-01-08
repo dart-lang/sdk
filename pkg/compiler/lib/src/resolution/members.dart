@@ -1332,8 +1332,7 @@ class ResolverTask extends CompilerTask {
   }
 
   error(Spannable node, MessageKind kind, [arguments = const {}]) {
-    // TODO(ahe): Make non-fatal.
-    compiler.reportFatalError(node, kind, arguments);
+    compiler.reportError(node, kind, arguments);
   }
 
   Link<MetadataAnnotation> resolveMetadata(Element element,
@@ -1413,6 +1412,8 @@ class InitializerResolver {
         error(selector, MessageKind.CANNOT_RESOLVE, {'name': name});
       } else if (target.kind != ElementKind.FIELD) {
         error(selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
       } else if (!target.isInstanceMember) {
         error(selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
       }
@@ -1639,7 +1640,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
   void error(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportFatalError(node, kind, arguments);
+    compiler.reportError(node, kind, arguments);
   }
 
   void warning(Spannable node, MessageKind kind, [Map arguments = const {}]) {
@@ -2237,10 +2238,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isThis()) {
       if (!inInstanceContext) {
         error(node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': node});
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
       }
       return null;
     } else if (node.isSuper()) {
-      if (!inInstanceContext) error(node, MessageKind.NO_SUPER_IN_STATIC);
+      if (!inInstanceContext) {
+        error(node, MessageKind.NO_SUPER_IN_STATIC);
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
+      }
       if ((ElementCategory.SUPER & allowedCategory) == 0) {
         error(node, MessageKind.INVALID_USE_OF_SUPER);
       }
@@ -2270,6 +2277,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           // TODO(ahe): Improve error message. Need UX input.
           error(node, MessageKind.GENERIC,
                 {'text': "is not an expression $element"});
+        // TODO(ahe): Don't throw, recover from error.
+          throw new CompilerCancelledException(null);
         }
       }
       if (!Elements.isUnresolved(element) && element.isClass) {
@@ -2526,12 +2535,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(ahe): Why is this using GENERIC?
       error(node.selector, MessageKind.GENERIC,
             {'text': "expected an identifier"});
+      return null;
     } else if (node.isSuperCall) {
       if (node.isOperator) {
         if (isUserDefinableOperator(name)) {
           name = selector.name;
         } else {
           error(node.selector, MessageKind.ILLEGAL_SUPER_SEND, {'name': name});
+          return null;
         }
       }
       if (!inInstanceContext) {
@@ -2543,6 +2554,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // for a real error message.
         error(node.receiver, MessageKind.GENERIC,
               {'text': "Object has no superclass"});
+        return null;
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
@@ -3341,6 +3353,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantExpression constant =
         compiler.resolver.constantCompiler.compileNode(
             node, registry.mapping);
+
+    if (constant == null) {
+      assert(invariant(node, compiler.compilationFailed));
+      return;
+    }
 
     ConstantValue value = constant.value;
     if (value.isMap) {
@@ -4910,8 +4927,12 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else if (element.isTypeVariable) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
             {'typeVariableName': name});
+      // TODO(ahe): Don't throw, recover from error.
+      throw new CompilerCancelledException(null);
     } else if (!element.isClass && !element.isPrefix) {
       error(node, MessageKind.NOT_A_TYPE, {'node': name});
+      // TODO(ahe): Don't throw, recover from error.
+      throw new CompilerCancelledException(null);
     }
     return element;
   }
