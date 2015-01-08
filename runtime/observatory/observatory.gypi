@@ -42,6 +42,8 @@
       'dependencies': [
         'dart_bootstrap#host',
         'fetch_observatory_deps#host',
+        # We use packages for building
+        '../pkg/pkg.gyp:pkg_packages#target',
       ],
       'toolsets': ['host'],
       'sources': [
@@ -175,6 +177,7 @@
           'action_name': 'pub_build_observatory',
           'inputs': [
             '../../tools/observatory_tool.py',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '<@(_sources)',
           ],
           'outputs': [
