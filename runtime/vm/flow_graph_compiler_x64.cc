@@ -1249,7 +1249,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    &target_label,
                    RawPcDescriptors::kUnoptStaticCall,
                    locs);
-  __ Drop(argument_count);
+  __ Drop(argument_count, RCX);
 #if defined(DEBUG)
   __ movq(RBX, Immediate(kInvalidObjectPointer));
   __ movq(R10, Immediate(kInvalidObjectPointer));
@@ -1311,7 +1311,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
                    target_label,
                    RawPcDescriptors::kIcCall,
                    locs);
-  __ Drop(argument_count);
+  __ Drop(argument_count, RCX);
 }
 
 
@@ -1328,7 +1328,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    target_label,
                    RawPcDescriptors::kIcCall,
                    locs);
-  __ Drop(argument_count);
+  __ Drop(argument_count, RCX);
 #if defined(DEBUG)
   __ movq(R10, Immediate(kInvalidObjectPointer));
 #endif
@@ -1392,7 +1392,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
-  __ Drop(argument_count);
+  __ Drop(argument_count, RCX);
 }
 
 
@@ -1413,7 +1413,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
                    RawPcDescriptors::kOptStaticCall,
                    locs);
   AddStaticCallTarget(function);
-  __ Drop(argument_count);
+  __ Drop(argument_count, RCX);
 }
 
 
@@ -1565,7 +1565,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                      locs);
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);
-    __ Drop(argument_count);
+    __ Drop(argument_count, RCX);
     if (!is_last_check) {
       __ jmp(&match_found);
     }

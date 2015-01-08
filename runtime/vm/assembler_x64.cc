@@ -151,8 +151,9 @@ void Assembler::call(const ExternalLabel* label) {
 void Assembler::CallPatchable(const ExternalLabel* label) {
   ASSERT(allow_constant_pool());
   intptr_t call_start = buffer_.GetPosition();
-  LoadExternalLabel(TMP, label, kPatchable, PP);
-  call(TMP);
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, kPatchable));
+  call(Address::AddressBaseImm32(PP, offset - kHeapObjectTag));
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
 
@@ -161,8 +162,9 @@ void Assembler::Call(const ExternalLabel* label, Register pp) {
   if (Isolate::Current() == Dart::vm_isolate()) {
     call(label);
   } else {
-    LoadExternalLabel(TMP, label, kNotPatchable, pp);
-    call(TMP);
+    const int32_t offset =
+        Array::element_offset(FindExternalLabel(label, kNotPatchable));
+    call(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
   }
 }
 
@@ -2590,7 +2592,7 @@ void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
   intptr_t call_start = buffer_.GetPosition();
   LoadExternalLabel(TMP, label, kPatchable, pp);
   jmp(TMP);
-  ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
+  ASSERT((buffer_.GetPosition() - call_start) == kJmpExternalLabelSize);
 }
 
 
@@ -2740,11 +2742,11 @@ void Assembler::SubImmediate(const Address& address, const Immediate& imm,
 }
 
 
-void Assembler::Drop(intptr_t stack_elements) {
+void Assembler::Drop(intptr_t stack_elements, Register tmp) {
   ASSERT(stack_elements >= 0);
   if (stack_elements <= 4) {
     for (intptr_t i = 0; i < stack_elements; i++) {
-      popq(TMP);
+      popq(tmp);
     }
     return;
   }

@@ -352,7 +352,8 @@ class Assembler : public ValueObject {
   void call(Label* label);
   void call(const ExternalLabel* label);
 
-  static const intptr_t kCallExternalLabelSize = 10;
+  static const intptr_t kCallExternalLabelSize = 7;
+  static const intptr_t kJmpExternalLabelSize = 10;
 
   void pushq(Register reg);
   void pushq(const Address& address);
@@ -726,7 +727,7 @@ class Assembler : public ValueObject {
   void SubImmediate(Register reg, const Immediate& imm, Register pp);
   void SubImmediate(const Address& address, const Immediate& imm, Register pp);
 
-  void Drop(intptr_t stack_elements);
+  void Drop(intptr_t stack_elements, Register tmp = TMP);
 
   enum Patchability {
     kPatchable,

@@ -1274,11 +1274,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
       break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
       // Writable register because the value must be untagged before storing.
       locs->set_in(2, Location::WritableRegister());
       break;
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
     case kTypedDataInt64ArrayCid:
       locs->set_in(2, Location::RequiresRegister());
       break;
