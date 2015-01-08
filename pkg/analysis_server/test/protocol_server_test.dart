@@ -451,12 +451,7 @@ class EnumTest {
     // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
     // use SearchResultKind inside the analysis server?
     new EnumTester<MatchKind, SearchResultKind>().run(
-        newSearchResultKind_fromEngine,
-        exceptions: {
-      // TODO(paulberry): do any of the exceptions below constitute bugs?
-      MatchKind.ANGULAR_REFERENCE: SearchResultKind.UNKNOWN,
-      MatchKind.ANGULAR_CLOSING_TAG_REFERENCE: SearchResultKind.UNKNOWN
-    });
+        newSearchResultKind_fromEngine);
   }
 }
 

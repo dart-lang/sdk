@@ -90,8 +90,6 @@ const String EXECUTION_LAUNCH_DATA = 'execution.launchData';
 //
 // Analysis option names
 //
-const String ANALYZE_ANGULAR = 'analyzeAngular'; // boolean
-const String ANALYZE_POLYMER = 'analyzePolymer'; // boolean
 const String ENABLE_ASYNC = 'enableAsync'; // boolean
 const String ENABLE_DEFERRED_LOADING = 'enableDeferredLoading'; // boolean
 const String ENABLE_ENUMS = 'enableEnums'; // boolean

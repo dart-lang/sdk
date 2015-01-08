@@ -119,22 +119,6 @@ abstract class Index {
  */
 class IndexConstants {
   /**
-   * Left: an Angular element.
-   *   Is referenced at.
-   * Right: location.
-   */
-  static final Relationship ANGULAR_REFERENCE =
-      Relationship.getRelationship("angular-reference");
-
-  /**
-   * Left: an Angular component.
-   *   Is closed "/>" at.
-   * Right: location.
-   */
-  static final Relationship ANGULAR_CLOSING_TAG_REFERENCE =
-      Relationship.getRelationship("angular-closing-tag-reference");
-
-  /**
    * Left: the Universe or a Library.
    *   Defines an Element.
    * Right: an Element declaration.

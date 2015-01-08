@@ -5331,12 +5331,10 @@ class AnalysisErrorSeverity implements Enum {
  * AnalysisErrorType
  *
  * enum {
- *   ANGULAR
  *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
  *   LINT
- *   POLYMER
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
  *   SYNTACTIC_ERROR
@@ -5344,8 +5342,6 @@ class AnalysisErrorSeverity implements Enum {
  * }
  */
 class AnalysisErrorType implements Enum {
-  static const ANGULAR = const AnalysisErrorType._("ANGULAR");
-
   static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
   static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
@@ -5353,8 +5349,6 @@ class AnalysisErrorType implements Enum {
   static const HINT = const AnalysisErrorType._("HINT");
 
   static const LINT = const AnalysisErrorType._("LINT");
-
-  static const POLYMER = const AnalysisErrorType._("POLYMER");
 
   static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
 
@@ -5370,8 +5364,6 @@ class AnalysisErrorType implements Enum {
 
   factory AnalysisErrorType(String name) {
     switch (name) {
-      case "ANGULAR":
-        return ANGULAR;
       case "CHECKED_MODE_COMPILE_TIME_ERROR":
         return CHECKED_MODE_COMPILE_TIME_ERROR;
       case "COMPILE_TIME_ERROR":
@@ -5380,8 +5372,6 @@ class AnalysisErrorType implements Enum {
         return HINT;
       case "LINT":
         return LINT;
-      case "POLYMER":
-        return POLYMER;
       case "STATIC_TYPE_WARNING":
         return STATIC_TYPE_WARNING;
       case "STATIC_WARNING":

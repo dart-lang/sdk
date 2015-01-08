@@ -150,17 +150,6 @@ main() {
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
       });
-      // TODO(paulberry): disabled because analyzeAngular is currently not in
-      // the API.
-//      test('valid', () {
-//        engine.AnalysisOptions oldOptions = server.contextDirectoryManager.defaultOptions;
-//        bool analyzeAngular = !oldOptions.analyzeAngular;
-//        var newOptions = new AnalysisOptions(analyzeAngular: analyzeAngular);
-//        var request = new AnalysisUpdateOptionsParams(newOptions).toRequest('0');
-//        var response = handler.handleRequest(request);
-//        expect(response, isResponseSuccess('0'));
-//        expect(oldOptions.analyzeAngular, equals(analyzeAngular));
-//      });
     });
   });
 }
