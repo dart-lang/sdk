@@ -1175,6 +1175,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisTask get nextAnalysisTask {
     bool hintsEnabled = _options.hint;
+    bool lintsEnabled = _options.lint;
     bool hasBlockedTask = false;
     //
     // Look for incremental analysis
@@ -1207,8 +1208,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           sourcesToRemove.add(source);
           continue;
         }
-        AnalysisContextImpl_TaskData taskData =
-            _getNextAnalysisTaskForSource(source, sourceEntry, true, hintsEnabled);
+        AnalysisContextImpl_TaskData taskData = _getNextAnalysisTaskForSource(
+            source,
+            sourceEntry,
+            true,
+            hintsEnabled,
+            lintsEnabled);
         task = taskData.task;
         if (task != null) {
           break;
@@ -1236,8 +1241,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int priorityCount = _priorityOrder.length;
     for (int i = 0; i < priorityCount; i++) {
       Source source = _priorityOrder[i];
-      AnalysisContextImpl_TaskData taskData =
-          _getNextAnalysisTaskForSource(source, _cache.get(source), true, hintsEnabled);
+      AnalysisContextImpl_TaskData taskData = _getNextAnalysisTaskForSource(
+          source,
+          _cache.get(source),
+          true,
+          hintsEnabled,
+          lintsEnabled);
       AnalysisTask task = taskData.task;
       if (task != null) {
         return task;
@@ -1280,8 +1289,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       while (sources.hasNext) {
         Source source = sources.next();
-        AnalysisContextImpl_TaskData taskData =
-            _getNextAnalysisTaskForSource(source, _cache.get(source), false, hintsEnabled);
+        AnalysisContextImpl_TaskData taskData = _getNextAnalysisTaskForSource(
+            source,
+            _cache.get(source),
+            false,
+            hintsEnabled,
+            lintsEnabled);
         AnalysisTask task = taskData.task;
         if (task != null) {
           return task;
@@ -1365,6 +1378,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> get sourcesNeedingProcessing {
     HashSet<Source> sources = new HashSet<Source>();
     bool hintsEnabled = _options.hint;
+    bool lintsEnabled = _options.lint;
+
     //
     // Look for priority sources that need to be analyzed.
     //
@@ -1374,6 +1389,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           _cache.get(source),
           true,
           hintsEnabled,
+          lintsEnabled,
           sources);
     }
     //
@@ -1387,6 +1403,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           _cache.get(source),
           false,
           hintsEnabled,
+          lintsEnabled,
           sources);
     }
     return new List<Source>.from(sources);
@@ -1573,6 +1590,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<AnalysisError> computeErrors(Source source) {
     bool enableHints = _options.hint;
+    bool enableLints = _options.lint;
+
     SourceEntry sourceEntry = _getReadableSourceEntry(source);
     if (sourceEntry is DartEntry) {
       List<AnalysisError> errors = new List<AnalysisError>();
@@ -1604,6 +1623,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
                 errors,
                 _getDartHintData(source, source, dartEntry, DartEntry.HINTS));
           }
+          if (enableLints) {
+            dartEntry = _getReadableDartEntry(source);
+            ListUtilities.addAll(
+                errors,
+                _getDartLintData(source, source, dartEntry, DartEntry.LINTS));
+          }
         } else {
           List<Source> libraries = getLibrariesContaining(source);
           for (Source librarySource in libraries) {
@@ -1627,6 +1652,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               ListUtilities.addAll(
                   errors,
                   _getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
+            }
+            if (enableLints) {
+              dartEntry = _getReadableDartEntry(source);
+              ListUtilities.addAll(
+                  errors,
+                  _getDartLintData(source, librarySource, dartEntry, DartEntry.LINTS));
             }
           }
         }
@@ -2215,6 +2246,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             DartEntry.HINTS,
             librarySource,
             AnalysisError.NO_ERRORS);
+        dartEntry.setValueInLibrary(
+            DartEntry.LINTS,
+            librarySource,
+            AnalysisError.NO_ERRORS);
       }
     });
   }
@@ -2441,6 +2476,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     bool hintsEnabled = _options.hint;
+    bool lintsEnabled = _options.lint;
     MapIterator<Source, SourceEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
       Source source = iterator.key;
@@ -2485,9 +2521,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             } else if (source.isInSystemLibrary &&
                 !_generateSdkErrors &&
                 (descriptor == DartEntry.VERIFICATION_ERRORS ||
-                    descriptor == DartEntry.HINTS)) {
+                    descriptor == DartEntry.HINTS ||
+                    descriptor == DartEntry.LINTS)) {
               continue;
             } else if (!hintsEnabled && descriptor == DartEntry.HINTS) {
+              continue;
+            } else if (!lintsEnabled && descriptor == DartEntry.LINTS) {
               continue;
             }
             callback(
@@ -2593,6 +2632,73 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return dartEntry;
   }
+
+  /**
+   * Given a source for a Dart file and the library that contains it, return a cache entry in which
+   * the state of the data represented by the given descriptor is either [CacheState.VALID] or
+   * [CacheStateERROR]. This method assumes that the data can be produced by generating lints
+   * for the library if the data is not already cached.
+   *
+   * <b>Note:</b> This method cannot be used in an async environment.
+   *
+   * @param unitSource the source representing the Dart file
+   * @param librarySource the source representing the library containing the Dart file
+   * @param dartEntry the cache entry associated with the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return a cache entry containing the required data
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  DartEntry _cacheDartLintData(Source unitSource, Source librarySource,
+      DartEntry dartEntry, DataDescriptor descriptor) {
+    //
+    // Check to see whether we already have the information being requested.
+    //
+    CacheState state = dartEntry.getStateInLibrary(descriptor, librarySource);
+    while (state != CacheState.ERROR && state != CacheState.VALID) {
+      //
+      // If not, compute the information.
+      // Unless the modification date of the source continues to change,
+      // this loop will eventually terminate.
+      //
+      DartEntry libraryEntry = _getReadableDartEntry(librarySource);
+      libraryEntry = _cacheDartResolutionData(
+          librarySource,
+          librarySource,
+          libraryEntry,
+          DartEntry.ELEMENT);
+      LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+      CompilationUnitElement definingUnit =
+          libraryElement.definingCompilationUnit;
+      List<CompilationUnitElement> parts = libraryElement.parts;
+      List<TimestampedData<CompilationUnit>> units =
+          new List<TimestampedData>(parts.length + 1);
+      units[0] = _getResolvedUnit(definingUnit, librarySource);
+      if (units[0] == null) {
+        Source source = definingUnit.source;
+        units[0] = new TimestampedData<CompilationUnit>(
+            getModificationStamp(source),
+            resolveCompilationUnit(source, libraryElement));
+      }
+      for (int i = 0; i < parts.length; i++) {
+        units[i + 1] = _getResolvedUnit(parts[i], librarySource);
+        if (units[i + 1] == null) {
+          Source source = parts[i].source;
+          units[i +
+              1] = new TimestampedData<CompilationUnit>(
+                  getModificationStamp(source),
+                  resolveCompilationUnit(source, libraryElement));
+        }
+      }
+      //TODO(pquitslund): revisit if we need all units or whether one will do
+      dartEntry = new GenerateDartLintsTask(
+          this,
+          units,
+          getLibraryElement(librarySource)).perform(_resultRecorder) as DartEntry;
+      state = dartEntry.getStateInLibrary(descriptor, librarySource);
+    }
+    return dartEntry;
+  }
+
 
   /**
    * Given a source for a Dart file, return a cache entry in which the state of the data represented
@@ -3137,6 +3243,53 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create a [GenerateDartLintsTask] for the given source, marking the lints as
+   * being in-process.
+   *
+   * @param source the source whose content is to be verified
+   * @param dartEntry the entry for the source
+   * @param librarySource the source for the library containing the source
+   * @param libraryEntry the entry for the library
+   * @return task data representing the created task
+   */
+  AnalysisContextImpl_TaskData _createGenerateDartLintsTask(Source source,
+      DartEntry dartEntry, Source librarySource, DartEntry libraryEntry) {
+    if (libraryEntry.getState(DartEntry.ELEMENT) != CacheState.VALID) {
+      return _createResolveDartLibraryTask(librarySource, libraryEntry);
+    }
+    LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+    CompilationUnitElement definingUnit =
+        libraryElement.definingCompilationUnit;
+    List<CompilationUnitElement> parts = libraryElement.parts;
+    List<TimestampedData<CompilationUnit>> units =
+        new List<TimestampedData>(parts.length + 1);
+    units[0] = _getResolvedUnit(definingUnit, librarySource);
+    if (units[0] == null) {
+      // TODO(brianwilkerson) We should return a ResolveDartUnitTask
+      // (unless there are multiple ASTs that need to be resolved).
+      return _createResolveDartLibraryTask(librarySource, libraryEntry);
+    }
+    for (int i = 0; i < parts.length; i++) {
+      units[i + 1] = _getResolvedUnit(parts[i], librarySource);
+      if (units[i + 1] == null) {
+        // TODO(brianwilkerson) We should return a ResolveDartUnitTask
+        // (unless there are multiple ASTs that need to be resolved).
+        return _createResolveDartLibraryTask(librarySource, libraryEntry);
+      }
+    }
+    dartEntry.setStateInLibrary(
+        DartEntry.LINTS,
+        librarySource,
+        CacheState.IN_PROCESS);
+    //TODO(pquitslund): revisit if we need all units or whether one will do
+    return new AnalysisContextImpl_TaskData(
+        new GenerateDartLintsTask(this, units, libraryElement),
+        false);
+  }
+
+
+
+  /**
    * Create a [GetContentTask] for the given source, marking the content as being in-process.
    *
    * @param source the source whose content is to be accessed
@@ -3374,6 +3527,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       DartEntry dartEntry, DataDescriptor descriptor) {
     dartEntry =
         _cacheDartHintData(unitSource, librarySource, dartEntry, descriptor);
+    if (identical(descriptor, DartEntry.ELEMENT)) {
+      return dartEntry.getValue(descriptor);
+    }
+    return dartEntry.getValueInLibrary(descriptor, librarySource);
+  }
+
+  /**
+   * Given a source for a Dart file and the library that contains it, return the data represented by
+   * the given descriptor that is associated with that source. This method assumes that the data can
+   * be produced by generating lints for the library if it is not already cached.
+   *
+   * <b>Note:</b> This method cannot be used in an async environment.
+   *
+   * @param unitSource the source representing the Dart file
+   * @param librarySource the source representing the library containing the Dart file
+   * @param dartEntry the entry representing the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be
+   *           resolved
+   */
+  Object _getDartLintData(Source unitSource, Source librarySource,
+      DartEntry dartEntry, DataDescriptor descriptor) {
+    dartEntry =
+        _cacheDartLintData(unitSource, librarySource, dartEntry, descriptor);
     if (identical(descriptor, DartEntry.ELEMENT)) {
       return dartEntry.getValue(descriptor);
     }
@@ -3658,10 +3836,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param sourceEntry the cache entry associated with the source
    * @param isPriority `true` if the source is a priority source
    * @param hintsEnabled `true` if hints are currently enabled
+   * @param lintsEnabled `true` if lints are currently enabled
    * @return the next task that needs to be performed for the given source
    */
   AnalysisContextImpl_TaskData _getNextAnalysisTaskForSource(Source source,
-      SourceEntry sourceEntry, bool isPriority, bool hintsEnabled) {
+      SourceEntry sourceEntry, bool isPriority, bool hintsEnabled,
+      bool lintsEnabled) {
     // Refuse to generate tasks for html based files that are above 1500 KB
     if (_isTooBigHtmlSourceEntry(source, sourceEntry)) {
       // TODO (jwren) we still need to report an error of some kind back to the
@@ -3765,6 +3945,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               if (hintsState == CacheState.INVALID ||
                   (isPriority && hintsState == CacheState.FLUSHED)) {
                 return _createGenerateDartHintsTask(
+                    source,
+                    dartEntry,
+                    librarySource,
+                    libraryEntry);
+              }
+            }
+            if (lintsEnabled) {
+              CacheState lintsState =
+                  dartEntry.getStateInLibrary(DartEntry.LINTS, librarySource);
+              if (lintsState == CacheState.INVALID ||
+                  (isPriority && lintsState == CacheState.FLUSHED)) {
+                return _createGenerateDartLintsTask(
                     source,
                     dartEntry,
                     librarySource,
@@ -3934,10 +4126,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param sourceEntry the cache entry associated with the source
    * @param isPriority `true` if the source is a priority source
    * @param hintsEnabled `true` if hints are currently enabled
+   * @param lintsEnabled `true` if lints are currently enabled
    * @param sources the set to which sources should be added
    */
   void _getSourcesNeedingProcessing(Source source, SourceEntry sourceEntry,
-      bool isPriority, bool hintsEnabled, HashSet<Source> sources) {
+      bool isPriority, bool hintsEnabled, bool lintsEnabled,
+      HashSet<Source> sources) {
     if (sourceEntry is DartEntry) {
       DartEntry dartEntry = sourceEntry;
       CacheState scanErrorsState = dartEntry.getState(DartEntry.SCAN_ERRORS);
@@ -3995,6 +4189,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
                   dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
               if (hintsState == CacheState.INVALID ||
                   (isPriority && hintsState == CacheState.FLUSHED)) {
+                LibraryElement libraryElement =
+                    libraryEntry.getValue(DartEntry.ELEMENT);
+                if (libraryElement != null) {
+                  sources.add(source);
+                  return;
+                }
+              }
+            }
+            if (lintsEnabled) {
+              CacheState lintsState =
+                  dartEntry.getStateInLibrary(DartEntry.LINTS, librarySource);
+              if (lintsState == CacheState.INVALID ||
+                  (isPriority && lintsState == CacheState.FLUSHED)) {
                 LibraryElement libraryElement =
                     libraryEntry.getValue(DartEntry.ELEMENT);
                 if (libraryElement != null) {
@@ -4360,6 +4567,50 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return libraryEntry;
   }
+
+  /**
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
+   */
+  DartEntry _recordGenerateDartLintsTask(GenerateDartLintsTask task) {
+    Source librarySource = task.libraryElement.source;
+    CaughtException thrownException = task.exception;
+    DartEntry libraryEntry = null;
+    HashMap<Source, List<AnalysisError>> lintMap = task.lintMap;
+    if (lintMap == null) {
+      // We don't have any information about which sources to mark as invalid
+      // other than the library source.
+      DartEntry libraryEntry = _cache.get(librarySource);
+      if (thrownException == null) {
+        String message =
+            "GenerateDartLintsTask returned a null lint map "
+                "without throwing an exception: ${librarySource.fullName}";
+        thrownException =
+            new CaughtException(new AnalysisException(message), null);
+      }
+      libraryEntry.recordLintErrorInLibrary(librarySource, thrownException);
+      throw new AnalysisException('<rethrow>', thrownException);
+    }
+    lintMap.forEach((Source unitSource, List<AnalysisError> lints) {
+      DartEntry dartEntry = _cache.get(unitSource);
+      if (unitSource == librarySource) {
+        libraryEntry = dartEntry;
+      }
+      if (thrownException == null) {
+        dartEntry.setValueInLibrary(DartEntry.LINTS, librarySource, lints);
+        ChangeNoticeImpl notice = _getNotice(unitSource);
+        LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+        notice.setErrors(dartEntry.allErrors, lineInfo);
+      } else {
+        dartEntry.recordLintErrorInLibrary(librarySource, thrownException);
+      }
+    });
+    if (thrownException != null) {
+      throw new AnalysisException('<rethrow>', thrownException);
+    }
+    return libraryEntry;
+  }
+
 
   /**
    * Record the results produced by performing a [task] and return the cache
@@ -4912,6 +5163,10 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements
       AnalysisContextImpl_this._recordGenerateDartHintsTask(task);
 
   @override
+  DartEntry visitGenerateDartLintsTask(GenerateDartLintsTask task) =>
+      AnalysisContextImpl_this._recordGenerateDartLintsTask(task);
+
+  @override
   SourceEntry visitGetContentTask(GetContentTask task) =>
       AnalysisContextImpl_this._recordGetContentsTask(task);
 
@@ -4986,6 +5241,7 @@ class AnalysisContextImpl_ContextRetentionPolicy implements CacheRetentionPolicy
 
   bool _astIsNeeded(DartEntry dartEntry) =>
       dartEntry.hasInvalidData(DartEntry.HINTS) ||
+          dartEntry.hasInvalidData(DartEntry.LINTS) ||
           dartEntry.hasInvalidData(DartEntry.VERIFICATION_ERRORS) ||
           dartEntry.hasInvalidData(DartEntry.RESOLUTION_ERRORS);
 }
@@ -6246,6 +6502,13 @@ abstract class AnalysisOptions {
   bool get incrementalValidation;
 
   /**
+   * Return `true` if analysis is to generate lint warnings.
+   *
+   * @return `true` if analysis is to generate lint warnings
+   */
+  bool get lint;
+
+  /**
    * Return `true` if analysis is to parse comments.
    *
    * @return `true` if analysis is to parse comments
@@ -6342,6 +6605,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool incrementalValidation = false;
 
   /**
+   * A flag indicating whether analysis is to generate lint warnings.
+   */
+  bool lint = false;
+
+  /**
    * A flag indicating whether analysis is to parse comments.
    */
   bool preserveComments = true;
@@ -6369,6 +6637,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     incremental = options.incremental;
     incrementalApi = options.incrementalApi;
     incrementalValidation = options.incrementalValidation;
+    lint = options.lint;
     preserveComments = options.preserveComments;
   }
 
@@ -6557,6 +6826,12 @@ abstract class AnalysisTaskVisitor<E> {
    * throw an AnalysisException if the visitor throws an exception.
    */
   E visitGenerateDartHintsTask(GenerateDartHintsTask task);
+
+  /**
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
+   */
+  E visitGenerateDartLintsTask(GenerateDartLintsTask task);
 
   /**
    * Visit the given [task], returning the result of the visit. This method will
@@ -7500,6 +7775,15 @@ class DartEntry extends SourceEntry {
       new DataDescriptor<bool>("DartEntry.IS_LAUNCHABLE", false);
 
   /**
+   * The data descriptor representing lint warnings resulting from auditing the
+   * source.
+   */
+  static final DataDescriptor<List<AnalysisError>> LINTS =
+      new DataDescriptor<List<AnalysisError>>(
+          "DartEntry.LINTS",
+          AnalysisError.NO_ERRORS);
+
+  /**
    * The data descriptor representing the errors resulting from parsing the
    * source.
    */
@@ -7592,6 +7876,7 @@ class DartEntry extends SourceEntry {
       errors.addAll(state.getValue(RESOLUTION_ERRORS));
       errors.addAll(state.getValue(VERIFICATION_ERRORS));
       errors.addAll(state.getValue(HINTS));
+      errors.addAll(state.getValue(LINTS));
       state = state._nextState;
     }
     if (errors.length == 0) {
@@ -7745,7 +8030,8 @@ class DartEntry extends SourceEntry {
         DartEntry.RESOLUTION_ERRORS,
         DartEntry.RESOLVED_UNIT,
         DartEntry.VERIFICATION_ERRORS,
-        DartEntry.HINTS];
+        DartEntry.HINTS,
+        DartEntry.LINTS];
   }
 
   /**
@@ -7917,6 +8203,21 @@ class DartEntry extends SourceEntry {
     this.exception = exception;
     ResolutionState state = _getOrCreateResolutionState(librarySource);
     state.recordHintError();
+  }
+
+  /**
+   * Record that an error occurred while attempting to generate lints for the
+   * source represented by this entry. This will set the state of all
+   * verification information as being in error.
+   *
+   * @param librarySource the source of the library in which lints were being generated
+   * @param exception the exception that shows where the error occurred
+   */
+  void recordLintErrorInLibrary(Source librarySource,
+      CaughtException exception) {
+    this.exception = exception;
+    ResolutionState state = _getOrCreateResolutionState(librarySource);
+    state.recordLintError();
   }
 
   /**
@@ -8141,6 +8442,7 @@ class DartEntry extends SourceEntry {
     return descriptor == BUILT_ELEMENT ||
         descriptor == BUILT_UNIT ||
         descriptor == HINTS ||
+        descriptor == LINTS ||
         descriptor == RESOLUTION_ERRORS ||
         descriptor == RESOLVED_UNIT ||
         descriptor == VERIFICATION_ERRORS;
@@ -8351,6 +8653,7 @@ class DefaultRetentionPolicy implements CacheRetentionPolicy {
    */
   bool astIsNeeded(DartEntry dartEntry) =>
       dartEntry.hasInvalidData(DartEntry.HINTS) ||
+          dartEntry.hasInvalidData(DartEntry.LINTS) ||
           dartEntry.hasInvalidData(DartEntry.VERIFICATION_ERRORS) ||
           dartEntry.hasInvalidData(DartEntry.RESOLUTION_ERRORS);
 
@@ -8596,6 +8899,57 @@ class GenerateDartHintsTask extends AnalysisTask {
     }
   }
 }
+
+/// Generates lint feedback for a single Dart library.
+class GenerateDartLintsTask extends AnalysisTask {
+
+  ///The compilation units that comprise the library, with the defining
+  ///compilation unit appearing first in the array.
+  final List<TimestampedData<CompilationUnit>> _units;
+
+  /// The element model for the library being analyzed.
+  final LibraryElement libraryElement;
+
+  /// Initialize a newly created task to perform lint checking over these
+  /// [_units] belonging to this [libraryElement] within the given [context].
+  GenerateDartLintsTask(context, this._units, this.libraryElement)
+      : super(context);
+
+  /// A mapping of analyzed sources to their associated lint warnings.
+  /// May be [null] if the task has not been performed or if analysis did not
+  /// complete normally.
+  HashMap<Source, List<AnalysisError>> lintMap;
+
+  @override
+  String get taskDescription {
+    Source librarySource = libraryElement.source;
+    return (librarySource == null) ?
+        "generate Dart lints for library without source" :
+        "generate Dart lints for ${librarySource.fullName}";
+  }
+
+  @override
+  accept(AnalysisTaskVisitor visitor) =>
+      visitor.visitGenerateDartLintsTask(this);
+
+  @override
+  void internalPerform() {
+
+    List<CompilationUnit> compilationUnits =
+        _units.map((TimestampedData<CompilationUnit> unit) => unit.data);
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    LintGenerator lintGenerator =
+        new LintGenerator(compilationUnits, errorListener);
+    lintGenerator.generate();
+
+    lintMap = new HashMap<Source, List<AnalysisError>>();
+    compilationUnits.forEach((CompilationUnit unit) {
+      Source source = unit.element.source;
+      lintMap[source] = errorListener.getErrorsForSource(source);
+    });
+  }
+}
+
 
 /**
  * Instances of the class `GetContentTask` get the contents of a source.
@@ -10077,6 +10431,11 @@ class PerformanceStatistics {
   static TimeCounter hints = new TimeCounter();
 
   /**
+   * The [TimeCounter] for time spent in linting.
+   */
+  static TimeCounter lint = new TimeCounter();
+
+  /**
    * Reset all of the time counters to zero.
    */
   static void reset() {
@@ -10087,6 +10446,7 @@ class PerformanceStatistics {
     polymer = new TimeCounter();
     errors = new TimeCounter();
     hints = new TimeCounter();
+    lint = new TimeCounter();
   }
 }
 
@@ -10926,6 +11286,7 @@ class ResolutionState {
     setState(DartEntry.BUILT_UNIT, CacheState.INVALID);
     setState(DartEntry.BUILT_ELEMENT, CacheState.INVALID);
     setState(DartEntry.HINTS, CacheState.INVALID);
+    setState(DartEntry.LINTS, CacheState.INVALID);
     setState(DartEntry.RESOLVED_UNIT, CacheState.INVALID);
     setState(DartEntry.RESOLUTION_ERRORS, CacheState.INVALID);
     setState(DartEntry.VERIFICATION_ERRORS, CacheState.INVALID);
@@ -10948,6 +11309,15 @@ class ResolutionState {
    */
   void recordHintError() {
     setState(DartEntry.HINTS, CacheState.ERROR);
+  }
+
+  /**
+   * Record that an exception occurred while attempting to generate lints for
+   * the source associated with this entry. This will set the state of all
+   * verification information as being in error.
+   */
+  void recordLintError() {
+    setState(DartEntry.LINTS, CacheState.ERROR);
   }
 
   /**
@@ -11058,6 +11428,8 @@ class ResolutionState {
         oldEntry);
     needsSeparator =
         _writeStateDiffOn(buffer, needsSeparator, "hints", DartEntry.HINTS, oldEntry);
+    needsSeparator =
+        _writeStateDiffOn(buffer, needsSeparator, "lints", DartEntry.LINTS, oldEntry);
     return needsSeparator;
   }
 
@@ -11078,6 +11450,7 @@ class ResolutionState {
           "verificationErrors",
           DartEntry.VERIFICATION_ERRORS);
       _writeStateOn(buffer, "hints", DartEntry.HINTS);
+      _writeStateOn(buffer, "lints", DartEntry.LINTS);
       if (_nextState != null) {
         _nextState._writeOn(buffer);
       }

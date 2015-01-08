@@ -797,6 +797,7 @@ class IncrementalResolver {
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
   List<AnalysisError> _verifyErrors = AnalysisError.NO_ERRORS;
   List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
+  List<AnalysisError> _lints = AnalysisError.NO_ERRORS;
 
   /**
    * The elements that should be resolved because of API changes.
@@ -840,6 +841,7 @@ class IncrementalResolver {
       // verify
       _verify(rootNode);
       _generateHints(rootNode);
+      _generateLints(rootNode);
       // update entry errors
       _updateEntry();
       // resolve queue in response of API changes
@@ -967,6 +969,20 @@ class IncrementalResolver {
     }
   }
 
+  void _generateLints(AstNode node) {
+    LoggingTimer timer = logger.startTimer();
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+      LintGenerator lintGenerator =
+          new LintGenerator(<CompilationUnit>[unit], errorListener);
+      lintGenerator.generate();
+      _lints = errorListener.getErrorsForSource(_source);
+    } finally {
+      timer.stop('generate lints');
+    }
+  }
+
   /**
    * Return the element defined by [node], or `null` if the node does not
    * define an element.
@@ -1009,6 +1025,7 @@ class IncrementalResolver {
         resolver._resolveReferences(node);
         resolver._verify(node);
         resolver._generateHints(node);
+        resolver._generateLints(node);
         resolver._updateEntry();
       } finally {
         logger.exit();
@@ -1071,6 +1088,7 @@ class IncrementalResolver {
     _shiftErrors(DartEntry.RESOLUTION_ERRORS);
     _shiftErrors(DartEntry.VERIFICATION_ERRORS);
     _shiftErrors(DartEntry.HINTS);
+    _shiftErrors(DartEntry.LINTS);
   }
 
   void _shiftErrors(DataDescriptor<List<AnalysisError>> descriptor) {
@@ -1116,6 +1134,7 @@ class IncrementalResolver {
           errors);
     }
     entry.setValueInLibrary(DartEntry.HINTS, librarySource, _hints);
+    entry.setValueInLibrary(DartEntry.LINTS, librarySource, _lints);
   }
 
   List<AnalysisError> _updateErrors(List<AnalysisError> oldErrors,

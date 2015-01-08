@@ -2838,6 +2838,12 @@ class ErrorType extends Enum<ErrorType> {
   static const ErrorType POLYMER =
       const ErrorType('POLYMER', 7, ErrorSeverity.INFO);
 
+  /**
+   * Lint warnings describe style and best practice recommendations that can be used to formalize a project's style
+   * guidelines.
+   */
+  static const ErrorType LINT = const ErrorType('LINT', 9, ErrorSeverity.INFO);
+
   static const List<ErrorType> values = const [
       TODO,
       HINT,
@@ -2846,7 +2852,8 @@ class ErrorType extends Enum<ErrorType> {
       STATIC_WARNING,
       STATIC_TYPE_WARNING,
       SYNTACTIC_ERROR,
-      POLYMER];
+      POLYMER,
+      LINT];
 
   /**
    * The severity of this type of error.
@@ -3233,6 +3240,24 @@ class HtmlWarningCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
+}
+
+/**
+ * Defines style and best practice recommendations.
+ *
+ * Unlike [HintCode]s, which are akin to traditional static warnings from a compiler, lint recommendations focus on
+ * matters of style and practices that might aggregated to define a project's style guide.
+ */
+class LintCode extends ErrorCode {
+
+  const LintCode(String name, String message, [String correction])
+      : super(name, message, correction);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.LINT;
+
+  @override
+  ErrorType get type => ErrorType.LINT;
 }
 
 /**

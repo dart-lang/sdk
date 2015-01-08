@@ -629,7 +629,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to
     // remove the (x is! TypeParameterType) checks.
     AstNode parent = node.parent;
-    if (parent is ConditionalExpression && (node == parent.thenExpression || node == parent.elseExpression)) {
+    if (parent is ConditionalExpression &&
+        (node == parent.thenExpression || node == parent.elseExpression)) {
       Expression thenExpression = parent.thenExpression;
       DartType thenType;
       if (thenExpression is AsExpression) {
@@ -4467,6 +4468,48 @@ class HintGenerator {
     //    unit.accept(new PubVerifier(context, errorReporter));
   }
 }
+
+
+/**
+ * Traverses a library's worth of dart code at a time to generate lint warnings
+ * over the set of sources.
+ *
+ * See [LintCode].
+ */
+class LintGenerator {
+
+  final List<CompilationUnit> _compilationUnits;
+  final AnalysisErrorListener _errorListener;
+
+  LintGenerator(this._compilationUnits, this._errorListener);
+
+  void generate() {
+    TimeCounter_TimeCounterHandle timeCounter =
+        PerformanceStatistics.lint.start();
+    try {
+      _compilationUnits.forEach((cu) {
+        if (cu.element != null) {
+          _generate(cu, cu.element.source);
+        }
+      });
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  void _generate(CompilationUnit unit, Source source) {
+    ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
+    unit.accept(new LintVerifier(errorReporter));
+  }
+}
+
+class LintVerifier extends RecursiveAstVisitor<Object> {
+
+  final ErrorReporter _reporter;
+
+  LintVerifier(this._reporter);
+}
+
 
 /**
  * Instances of the class {@code HtmlTagInfo} record information about the tags used in an HTML
