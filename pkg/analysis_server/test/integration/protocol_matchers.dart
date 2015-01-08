@@ -961,6 +961,7 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
+ *   LINT
  *   POLYMER
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
@@ -973,6 +974,7 @@ final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
   "CHECKED_MODE_COMPILE_TIME_ERROR",
   "COMPILE_TIME_ERROR",
   "HINT",
+  "LINT",
   "POLYMER",
   "STATIC_TYPE_WARNING",
   "STATIC_WARNING",

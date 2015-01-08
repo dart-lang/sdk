@@ -5335,6 +5335,7 @@ class AnalysisErrorSeverity implements Enum {
  *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
+ *   LINT
  *   POLYMER
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
