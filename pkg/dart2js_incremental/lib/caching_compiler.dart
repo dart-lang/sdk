@@ -72,7 +72,7 @@ Future<Compiler> reuseCompiler(
         ..needsClassSupport = true
         ..needsMixinSupport = true
         ..needsLazyInitializer = true
-        ..needsArrayInitializerSupport = true;
+        ..needsStructuredMemberInfo = true;
 
     Uri core = Uri.parse("dart:core");
     return compiler.libraryLoader.loadLibrary(core).then((_) {

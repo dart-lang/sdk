@@ -450,7 +450,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       return;
     }
-    emitter.needsArrayInitializerSupport = true;
+    emitter.needsStructuredMemberInfo = true;
 
     // This element is needed for reflection or needs additional stubs or has a
     // super alias. So we need to retain additional information.

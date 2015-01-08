@@ -165,7 +165,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
           functions.push(property);
           #globalFunctions[property] = element;
         } else if (element.constructor === Array) {
-          if (#needsArrayInitializerSupport) {
+          if (#needsStructuredMemberInfo) {
             addStubs(globalObject, element, property,
                      true, descriptor, functions);
           }
@@ -181,7 +181,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 ''', {'typeInformation': typeInformationAccess,
       'globalFunctions': globalFunctionsAccess,
       'hasClasses': oldEmitter.needsClassSupport,
-      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
+      'needsStructuredMemberInfo': oldEmitter.needsStructuredMemberInfo});
 
 
   /**
@@ -431,7 +431,7 @@ function $parseReflectionDataName(reflectionData) {
     #processClassData;
   }
   #processStatics;
-  if (#needsArrayInitializerSupport) {
+  if (#needsStructuredMemberInfo) {
     #addStubs;
     #tearOffCode;
   }
@@ -448,7 +448,7 @@ function $parseReflectionDataName(reflectionData) {
       'init': init,
       'finishClasses': finishClasses,
       'needsClassSupport': oldEmitter.needsClassSupport,
-      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
+      'needsStructuredMemberInfo': oldEmitter.needsStructuredMemberInfo});
 }
 
 
