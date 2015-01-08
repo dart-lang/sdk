@@ -804,7 +804,11 @@ LayoutTests/fast/dom/text-api-arguments_t01: RuntimeError # Re-enable fast/dom t
 
 # co19-roll r801
 LayoutTests/fast/canvas/webgl/canvas-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/filesystem/file-writer-abort-continue_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/filesystem/file-writer-events_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/filesystem/file-writer-gc-blob_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/filesystem/read-directory-many_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/filesystem/simple-readonly_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/autofocus-focus-only-once_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/autofocus-input-css-style-change_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/autofocus-opera-007_t01: Skip # Times out. co19-roll r801: Please triage this failure.
@@ -817,12 +821,14 @@ LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue
 LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fields-change-layout-by-value_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/focus-style-pending_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/focus_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/input-hit-test-border_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-stepup-stepdown_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/listbox-select-all_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/listbox-selection-2_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/forms/menulist-disabled-selected-option_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/menulist-disabled-selected-option_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/menulist-selection-reset_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/menulist-submit-without-selection_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/multiple-selected-options-innerHTML_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -830,7 +836,7 @@ LayoutTests/fast/forms/option-change-single-selected_t01: RuntimeError # co19-ro
 LayoutTests/fast/forms/option-strip-unicode-spaces_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/parser-associated-form-removal_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/forms/search-popup-crasher_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/search-popup-crasher_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/select-clientheight-with-multiple-attr_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
@@ -847,6 +853,7 @@ LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t0
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/positioned-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/layers/zindex-hit-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/about-blank-hash-change_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/hashchange-event-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -867,6 +874,7 @@ LayoutTests/fast/multicol/balance-trailing-border_t02: RuntimeError # co19-roll 
 LayoutTests/fast/multicol/break-after-always-bottom-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/break-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/cssom-view_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/flipped-blocks-hit-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/float-truncation_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-above-or-below_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-end-of-column-with-line-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -876,7 +884,7 @@ LayoutTests/fast/multicol/hit-test-gap-between-pages_t01: Pass, RuntimeError # c
 LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/newmulticol/balance_t04: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance_t07: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance_t08: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance_t09: RuntimeError # co19-roll r801: Please triage this failure.
@@ -999,7 +1007,9 @@ LayoutTests/fast/multicol/fixed-column-percent-logical-height-orthogonal-writing
 LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/shapes/parsing/parsing-shape-outside_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -1037,6 +1047,9 @@ LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: Pass, RuntimeErr
 LayoutTests/fast/dom/shadow/shadowdom-for-input-type-change_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/jsDevicePixelRatio_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-beforeload_t01: Pass, RuntimeError # Reenable fast/dom tests: Please triage this failure.
+LayoutTests/fast/inline/continuation-inlines-inserted-in-reverse-after-block_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 
 [ $compiler == none && $runtime == dartium && ($mode != debug || $system != macos) ]
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # co19-roll r761: Please triage this failure.
