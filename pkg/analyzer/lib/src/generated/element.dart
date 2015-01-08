@@ -1801,7 +1801,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements
       } else {
         message = 'Found unnamed constructor element with no enclosing element';
       }
-      AnalysisEngine.instance.instrumentationService.logError(message);
+      AnalysisEngine.instance.logger.logError(message);
       buffer.write('<unknown class>');
     } else {
       buffer.write(enclosingElement.displayName);

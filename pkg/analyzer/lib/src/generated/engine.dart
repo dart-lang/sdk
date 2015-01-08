@@ -2239,7 +2239,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } on IncrementalResolutionMismatch catch (mismatch, stack) {
         String failure = mismatch.message;
         String message = 'Incremental resolution mismatch:\n$failure\nat\n$stack';
-        AnalysisEngine.instance.instrumentationService.logError(message);
+        AnalysisEngine.instance.logger.logError(message);
       }
     }
     incrementalResolutionValidation_lastUnitSource = null;
