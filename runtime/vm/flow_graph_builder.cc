@@ -3492,7 +3492,8 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                      store_value,
                                      kEmitStoreBarrier,
                                      node->token_pos());
-  store->set_is_initialization(true);  // Maybe initializing store.
+  // Maybe initializing unboxed store.
+  store->set_is_potential_unboxed_initialization(true);
   ReturnDefinition(store);
 }
 

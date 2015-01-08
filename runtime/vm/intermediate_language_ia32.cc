@@ -1718,7 +1718,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
           ((IsPotentialUnboxedStore()) ? 3 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
-          ((IsUnboxedStore() && opt && is_initialization_) ||
+          ((IsUnboxedStore() && opt && is_potential_unboxed_initialization_) ||
            IsPotentialUnboxedStore())
           ? LocationSummary::kCallOnSlowPath
           : LocationSummary::kNoCall);
@@ -1779,7 +1779,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register temp2 = locs()->temp(1).reg();
     const intptr_t cid = field().UnboxedFieldCid();
 
-    if (is_initialization_) {
+    if (is_potential_unboxed_initialization_) {
       const Class* cls = NULL;
       switch (cid) {
         case kDoubleCid:
@@ -1927,11 +1927,18 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreIntoObjectNoBarrier(
           instance_reg,
           FieldAddress(instance_reg, offset_in_bytes_),
-          locs()->in(1).constant());
+          locs()->in(1).constant(),
+          is_object_reference_initialization_ ?
+              Assembler::kEmptyOrSmiOrNull :
+              Assembler::kHeapObjectOrSmi);
     } else {
       Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrier(instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_), value_reg);
+                                  FieldAddress(instance_reg, offset_in_bytes_),
+                                  value_reg,
+                                  is_object_reference_initialization_ ?
+                                      Assembler::kEmptyOrSmiOrNull :
+                                      Assembler::kHeapObjectOrSmi);
     }
   }
   __ Bind(&skip_store);
@@ -2050,12 +2057,12 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                       EBX);  // end address
 
   // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(EAX,
+  __ InitializeFieldNoBarrier(EAX,
                               FieldAddress(EAX, Array::type_arguments_offset()),
                               kElemTypeReg);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(EAX,
+  __ InitializeFieldNoBarrier(EAX,
                               FieldAddress(EAX, Array::length_offset()),
                               kLengthReg);
 
@@ -2073,13 +2080,13 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       intptr_t current_offset = 0;
       __ movl(EBX, raw_null);
       while (current_offset < array_size) {
-        __ StoreIntoObjectNoBarrier(EAX, Address(EDI, current_offset), EBX);
+        __ InitializeFieldNoBarrier(EAX, Address(EDI, current_offset), EBX);
         current_offset += kWordSize;
       }
     } else {
       Label init_loop;
       __ Bind(&init_loop);
-      __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), Object::null_object());
+      __ InitializeFieldNoBarrier(EAX, Address(EDI, 0), Object::null_object());
       __ addl(EDI, Immediate(kWordSize));
       __ cmpl(EDI, EBX);
       __ j(BELOW, &init_loop, Assembler::kNearJump);

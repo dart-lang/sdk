@@ -90,7 +90,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
       RCX);
 
   // Set the length field in the growable array object to 0.
-  __ ZeroSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()));
+  __ ZeroInitSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
@@ -1782,7 +1782,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                               FieldAddress(RAX, String::length_offset()),
                               RDI);
   // Clear hash.
-  __ ZeroSmiField(FieldAddress(RAX, String::hash_offset()));
+  __ ZeroInitSmiField(FieldAddress(RAX, String::hash_offset()));
   __ jmp(ok, Assembler::kNearJump);
 
   __ Bind(&pop_and_fail);

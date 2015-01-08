@@ -1457,6 +1457,15 @@ void Assembler::testl(Register reg, const Immediate& immediate) {
 }
 
 
+void Assembler::testb(const Address& address, const Immediate& imm) {
+  ASSERT(imm.is_int8());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF6);
+  EmitOperand(0, address);
+  EmitUint8(imm.value() & 0xFF);
+}
+
+
 void Assembler::andl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x23);
@@ -2212,7 +2221,21 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
-void Assembler::VerifyHeapWord(const Address& address) {
+void Assembler::VerifyHeapWord(const Address& address,
+                               FieldContent old_content) {
+#if defined(DEBUG)
+  switch (old_content) {
+    case kEmptyOrSmiOrNull:
+      VerifyUninitialized(address);
+      break;
+    case kHeapObjectOrSmi:
+      VerifyObjectOrSmi(address);
+      break;
+    case kOnlySmi:
+      VerifySmi(address);
+      break;
+  }
+#endif  // DEBUG
   if (VerifiedMemory::enabled()) {
     Register addr_reg = EDX;
     Register value = EBX;
@@ -2233,8 +2256,10 @@ void Assembler::VerifyHeapWord(const Address& address) {
 }
 
 
-void Assembler::VerifiedWrite(const Address& dest, Register value) {
-  VerifyHeapWord(dest);
+void Assembler::VerifiedWrite(const Address& dest,
+                              Register value,
+                              FieldContent old_content) {
+  VerifyHeapWord(dest, old_content);
   movl(dest, value);
   if (VerifiedMemory::enabled()) {
     Register temp = (value == EDX) ? ECX : EDX;
@@ -2246,13 +2271,51 @@ void Assembler::VerifiedWrite(const Address& dest, Register value) {
 }
 
 
+#if defined(DEBUG)
+void Assembler::VerifyObjectOrSmi(const Address& dest) {
+  Label ok;
+  testb(dest, Immediate(kHeapObjectTag));
+  j(ZERO, &ok, Assembler::kNearJump);
+  // Non-smi case: Verify object pointer is word-aligned when untagged.
+  COMPILE_ASSERT(kHeapObjectTag == 1);
+  testb(dest, Immediate((kWordSize - 1) - kHeapObjectTag));
+  j(ZERO, &ok, Assembler::kNearJump);
+  Stop("Expected heap object or Smi");
+  Bind(&ok);
+}
+
+
+void Assembler::VerifyUninitialized(const Address& dest) {
+  Label ok;
+  testb(dest, Immediate(kHeapObjectTag));
+  j(ZERO, &ok, Assembler::kNearJump);
+  // Non-smi case: Check for the special zap word or null.
+  cmpl(dest, Immediate(Heap::kZap32Bits));
+  j(EQUAL, &ok, Assembler::kNearJump);
+  cmpl(dest, Immediate(reinterpret_cast<uint32_t>(Object::null())));
+  j(EQUAL, &ok, Assembler::kNearJump);
+  Stop("Expected zapped, Smi or null");
+  Bind(&ok);
+}
+
+
+void Assembler::VerifySmi(const Address& dest, const char* stop_msg) {
+  Label done;
+  testb(dest, Immediate(kHeapObjectTag));
+  j(ZERO, &done, Assembler::kNearJump);
+  Stop(stop_msg);
+  Bind(&done);
+}
+#endif  // defined(DEBUG)
+
+
 // Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(dest, value);
+  VerifiedWrite(dest, value, kHeapObjectOrSmi);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -2277,8 +2340,9 @@ void Assembler::StoreIntoObject(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value) {
-  VerifiedWrite(dest, value);
+                                         Register value,
+                                         FieldContent old_content) {
+  VerifiedWrite(dest, value, old_content);
 #if defined(DEBUG)
   Label done;
   pushl(value);
@@ -2304,8 +2368,9 @@ void Assembler::UnverifiedStoreOldObject(const Address& dest,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
-  VerifyHeapWord(dest);
+                                         const Object& value,
+                                         FieldContent old_content) {
+  VerifyHeapWord(dest, old_content);
   if (value.IsSmi() || value.InVMHeap()) {
     Immediate imm_value(reinterpret_cast<int32_t>(value.raw()));
     movl(dest, imm_value);
@@ -2331,20 +2396,19 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
-  VerifiedWrite(dest, value);
 #if defined(DEBUG)
   Label done;
   testl(value, Immediate(kHeapObjectTag));
   j(ZERO, &done);
-  Stop("Smi expected");
+  Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
+  VerifiedWrite(dest, value, kOnlySmi);
 }
 
 
-void Assembler::ZeroSmiField(const Address& dest) {
-  // TODO(koda): Add VerifySmi once we distinguish initalization.
-  VerifyHeapWord(dest);
+void Assembler::ZeroInitSmiField(const Address& dest) {
+  VerifyHeapWord(dest, kEmptyOrSmiOrNull);
   Immediate zero(Smi::RawValue(0));
   movl(dest, zero);
   if (VerifiedMemory::enabled()) {
@@ -2360,8 +2424,7 @@ void Assembler::ZeroSmiField(const Address& dest) {
 void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
   // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
   // the length of this instruction sequence.
-  // TODO(koda): Add VerifySmi once we distinguish initalization.
-  VerifyHeapWord(dest);
+  VerifyHeapWord(dest, kOnlySmi);
   Immediate inc_imm(Smi::RawValue(increment));
   addl(dest, inc_imm);
   if (VerifiedMemory::enabled()) {

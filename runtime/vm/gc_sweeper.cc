@@ -44,6 +44,10 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
       obj_size = free_end - current;
       if (is_executable) {
         memset(reinterpret_cast<void*>(current), 0xcc, obj_size);
+      } else {
+#if defined(DEBUG)
+        memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
+#endif  // DEBUG
       }
       if ((current != start) || (free_end != end)) {
         // Only add to the free list if not covering the whole page.
@@ -77,7 +81,9 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   while (current < end) {
     RawObject* cur_obj = RawObject::FromAddr(current);
     ASSERT(!cur_obj->IsMarked());
-    current += cur_obj->Size();
+    intptr_t obj_size = cur_obj->Size();
+    memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
+    current += obj_size;
   }
 #endif  // DEBUG
   return words_to_end;

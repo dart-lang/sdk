@@ -772,7 +772,7 @@ class Assembler : public ValueObject {
 
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
-  void ZeroSmiField(const Address& dest);
+  void ZeroInitSmiField(const Address& dest);
   // Increments a Smi field. Leaves flags in same state as an 'addq'.
   void IncrementSmiField(const Address& dest, int64_t increment);
 

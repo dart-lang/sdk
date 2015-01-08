@@ -3095,7 +3095,7 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 }
 
 
-void Assembler::ZeroSmiField(const Address& dest) {
+void Assembler::ZeroInitSmiField(const Address& dest) {
   // TODO(koda): Add VerifySmi once we distinguish initalization.
   VerifyHeapWord(dest);
   Immediate zero(Smi::RawValue(0));
