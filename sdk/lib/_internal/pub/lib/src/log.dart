@@ -42,9 +42,6 @@ const _MAX_TRANSCRIPT = 10000;
 /// [recordTranscript()] is called.
 Transcript<Entry> _transcript;
 
-/// All currently-running progress indicators.
-final _progresses = new Set<Progress>();
-
 /// The currently-animated progress indicator, if any.
 ///
 /// This will also be in [_progresses].
@@ -374,19 +371,41 @@ void dumpTranscript() {
 /// information will only be visible at [Level.FINE].
 Future progress(String message, Future callback(), {bool fine: false}) {
   _stopProgress();
+
   var progress = new Progress(message, fine: fine);
   _animatedProgress = progress;
-  _progresses.add(progress);
-  return callback().whenComplete(() {
-    progress.stop();
-    _progresses.remove(progress);
-  });
+  return callback().whenComplete(progress.stop);
 }
 
 /// Stops animating the running progress indicator, if currently running.
 void _stopProgress() {
   if (_animatedProgress != null) _animatedProgress.stopAnimating();
   _animatedProgress = null;
+}
+
+/// The number of outstanding calls to [muteProgress] that have not been unmuted
+/// yet.
+int _numMutes = 0;
+
+/// Whether progress animation should be muted or not.
+bool get isMuted => _numMutes > 0;
+
+/// Stops animating any ongoing progress.
+///
+/// This is called before spawning Git since Git sometimes writes directly to
+/// the terminal to ask for login credentials, which would then get overwritten
+/// by the progress animation.
+///
+/// Each call to this must be paired with a call to [unmuteProgress].
+void muteProgress() {
+  _numMutes++;
+}
+
+/// Resumes animating any ongoing progress once all calls to [muteProgress]
+/// have made their matching [unmuteProgress].
+void unmuteProgress() {
+  assert(_numMutes > 0);
+  _numMutes--;
 }
 
 /// Wraps [text] in the ANSI escape codes to make it bold when on a platform
