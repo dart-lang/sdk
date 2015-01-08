@@ -5423,17 +5423,23 @@ class AnalysisErrorType implements Enum {
  */
 class AnalysisOptions implements HasToJson {
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed async feature.
    */
   bool enableAsync;
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
    */
   bool enableDeferredLoading;
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed enum feature.
    */
   bool enableEnums;

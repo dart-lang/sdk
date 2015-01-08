@@ -1403,15 +1403,12 @@ import 'lib2.dart';''');
   }
 
   void test_importOfNonLibrary() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 part of lib;
 class A {}''', r'''
 library lib;
 import 'lib1.dart' deferred as p;
 var a = new p.A();'''],
-          <ErrorCode>[
-              CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-              ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.IMPORT_OF_NON_LIBRARY]);
   }
 
@@ -3063,7 +3060,7 @@ f(int p) {
   }
 
   void test_typeAnnotationDeferredClass_asExpression() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
@@ -3071,12 +3068,11 @@ import 'lib1.dart' deferred as a;
 f(var v) {
   v as a.A;
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_catchClause() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
@@ -3086,12 +3082,11 @@ f(var v) {
   } on a.A {
   }
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_fieldFormalParameter() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
@@ -3100,35 +3095,32 @@ class C {
   var v;
   C(a.A this.v);
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_functionDeclaration_returnType() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 a.A f() { return null; }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void
       test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f(a.A g()) {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_isExpression() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
@@ -3136,12 +3128,11 @@ import 'lib1.dart' deferred as a;
 f(var v) {
   bool b = v is a.A;
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_methodDeclaration_returnType() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
@@ -3149,66 +3140,60 @@ import 'lib1.dart' deferred as a;
 class C {
   a.A m() { return null; }
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_simpleFormalParameter() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f(a.A v) {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_typeArgumentList() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C<E> {}
 C<a.A> c;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_typeArgumentList2() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C<E, F> {}
 C<a.A, a.A> c;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
               StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_typeParameter_bound() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C<E extends a.A> {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_variableDeclarationList() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 a.A v;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 

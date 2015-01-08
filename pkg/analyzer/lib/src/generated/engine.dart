@@ -1047,8 +1047,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     bool needsRecompute =
         this._options.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
-        this._options.enableDeferredLoading != options.enableDeferredLoading ||
-        this._options.enableEnum != options.enableEnum ||
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments;
@@ -1077,8 +1075,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
     this._options.generateSdkErrors = options.generateSdkErrors;
-    this._options.enableDeferredLoading = options.enableDeferredLoading;
-    this._options.enableEnum = options.enableEnum;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -5842,72 +5838,6 @@ abstract class AnalysisContextStatistics {
 }
 
 /**
- * Information about single piece of data in the cache.
- */
-abstract class AnalysisContextStatistics_CacheRow {
-  /**
-   * List of possible states which can be queried.
-   */
-  static const List<CacheState> STATES = const <CacheState>[
-      CacheState.ERROR,
-      CacheState.FLUSHED,
-      CacheState.IN_PROCESS,
-      CacheState.INVALID,
-      CacheState.VALID];
-
-  /**
-   * Return the number of entries whose state is [CacheState.ERROR].
-   */
-  int get errorCount;
-
-  /**
-   * Return the number of entries whose state is [CacheState.FLUSHED].
-   */
-  int get flushedCount;
-
-  /**
-   * Return the number of entries whose state is [CacheState.IN_PROCESS].
-   */
-  int get inProcessCount;
-
-  /**
-   * Return the number of entries whose state is [CacheState.INVALID].
-   */
-  int get invalidCount;
-
-  /**
-   * Return the name of the data represented by this object.
-   */
-  String get name;
-
-  /**
-   * Return the number of entries whose state is [CacheState.VALID].
-   */
-  int get validCount;
-
-  /**
-   * Return the number of entries whose state is [state].
-   */
-  int getCount(CacheState state);
-}
-
-/**
- * Information about a single partition in the cache.
- */
-abstract class AnalysisContextStatistics_PartitionData {
-  /**
-   * Return the number of entries in the partition that have an AST structure in one state or
-   * another.
-   */
-  int get astCount;
-
-  /**
-   * Return the total number of entries in the partition.
-   */
-  int get totalCount;
-}
-
-/**
  * Implementation of the [AnalysisContextStatistics].
  */
 class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
@@ -6021,6 +5951,72 @@ class AnalysisContextStatisticsImpl_PartitionDataImpl implements
 
   AnalysisContextStatisticsImpl_PartitionDataImpl(this.astCount,
       this.totalCount);
+}
+
+/**
+ * Information about single piece of data in the cache.
+ */
+abstract class AnalysisContextStatistics_CacheRow {
+  /**
+   * List of possible states which can be queried.
+   */
+  static const List<CacheState> STATES = const <CacheState>[
+      CacheState.ERROR,
+      CacheState.FLUSHED,
+      CacheState.IN_PROCESS,
+      CacheState.INVALID,
+      CacheState.VALID];
+
+  /**
+   * Return the number of entries whose state is [CacheState.ERROR].
+   */
+  int get errorCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState.FLUSHED].
+   */
+  int get flushedCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState.IN_PROCESS].
+   */
+  int get inProcessCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState.INVALID].
+   */
+  int get invalidCount;
+
+  /**
+   * Return the name of the data represented by this object.
+   */
+  String get name;
+
+  /**
+   * Return the number of entries whose state is [CacheState.VALID].
+   */
+  int get validCount;
+
+  /**
+   * Return the number of entries whose state is [state].
+   */
+  int getCount(CacheState state);
+}
+
+/**
+ * Information about a single partition in the cache.
+ */
+abstract class AnalysisContextStatistics_PartitionData {
+  /**
+   * Return the number of entries in the partition that have an AST structure in one state or
+   * another.
+   */
+  int get astCount;
+
+  /**
+   * Return the total number of entries in the partition.
+   */
+  int get totalCount;
 }
 
 /**
@@ -6457,6 +6453,7 @@ abstract class AnalysisOptions {
    *
    * @return `true` if analysis is to include the new deferred loading support
    */
+  @deprecated
   bool get enableDeferredLoading;
 
   /**
@@ -6464,6 +6461,7 @@ abstract class AnalysisOptions {
    *
    * @return `true` if analysis is to include the new enum support
    */
+  @deprecated
   bool get enableEnum;
 
   /**
@@ -6529,11 +6527,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * The default value for enabling deferred loading.
    */
+  @deprecated
   static bool DEFAULT_ENABLE_DEFERRED_LOADING = true;
 
   /**
    * The default value for enabling enum support.
    */
+  @deprecated
   static bool DEFAULT_ENABLE_ENUM = false;
 
   /**
@@ -6555,25 +6555,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether analysis is to generate dart2js related hint results.
    */
   bool dart2jsHint = true;
-
-  @deprecated
-  @override
-  bool get enableAsync => true;
-
-  @deprecated
-  void set enableAsync(bool enable) {
-    // Async support cannot be disabled
-  }
-
-  /**
-   * A flag indicating whether analysis is to enable deferred loading.
-   */
-  bool enableDeferredLoading = DEFAULT_ENABLE_DEFERRED_LOADING;
-
-  /**
-   * A flag indicating whether analysis is to enable enum support.
-   */
-  bool enableEnum = DEFAULT_ENABLE_ENUM;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated for sources in the
@@ -6630,8 +6611,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzePolymer = options.analyzePolymer;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
-    enableDeferredLoading = options.enableDeferredLoading;
-    enableEnum = options.enableEnum;
     _generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     incremental = options.incremental;
@@ -6639,6 +6618,33 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     incrementalValidation = options.incrementalValidation;
     lint = options.lint;
     preserveComments = options.preserveComments;
+  }
+
+  @deprecated
+  @override
+  bool get enableAsync => true;
+
+  @deprecated
+  void set enableAsync(bool enable) {
+    // Async support cannot be disabled
+  }
+
+  @deprecated
+  @override
+  bool get enableDeferredLoading => true;
+
+  @deprecated
+  void set enableDeferredLoading(bool enable) {
+    // Deferred loading support cannot be disabled
+  }
+
+  @deprecated
+  @override
+  bool get enableEnum => true;
+
+  @deprecated
+  void set enableEnum(bool enable) {
+    // Enum support cannot be disabled
   }
 
   @override
@@ -6899,32 +6905,6 @@ abstract class AnalysisTaskVisitor<E> {
    * throw an AnalysisException if the visitor throws an exception.
    */
   E visitScanDartTask(ScanDartTask task);
-}
-
-/**
- * A `CachedResult` is a single analysis result that is stored in a
- * [SourceEntry].
- */
-class CachedResult<E> {
-  /**
-   * The state of the cached value.
-   */
-  CacheState state;
-
-  /**
-   * The value being cached, or `null` if there is no value (for example, when
-   * the [state] is [CacheState.INVALID].
-   */
-  E value;
-
-  /**
-   * Initialize a newly created result holder to represent the value of data
-   * described by the given [descriptor].
-   */
-  CachedResult(DataDescriptor descriptor) {
-    state = CacheState.INVALID;
-    value = descriptor.defaultValue;
-  }
 }
 
 /**
@@ -7245,6 +7225,32 @@ class CacheState extends Enum<CacheState> {
       VALID];
 
   const CacheState(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * A `CachedResult` is a single analysis result that is stored in a
+ * [SourceEntry].
+ */
+class CachedResult<E> {
+  /**
+   * The state of the cached value.
+   */
+  CacheState state;
+
+  /**
+   * The value being cached, or `null` if there is no value (for example, when
+   * the [state] is [CacheState.INVALID].
+   */
+  E value;
+
+  /**
+   * Initialize a newly created result holder to represent the value of data
+   * described by the given [descriptor].
+   */
+  CachedResult(DataDescriptor descriptor) {
+    state = CacheState.INVALID;
+    value = descriptor.defaultValue;
+  }
 }
 
 /**
@@ -9977,8 +9983,6 @@ class ParseDartTask extends AnalysisTask {
       Parser parser = new Parser(source, errorListener);
       AnalysisOptions options = context.analysisOptions;
       parser.parseFunctionBodies = options.analyzeFunctionBodies;
-      parser.parseDeferredLibraries = options.enableDeferredLoading;
-      parser.parseEnum = options.enableEnum;
       _unit = parser.parseCompilationUnit(_tokenStream);
       _unit.lineInfo = lineInfo;
       AnalysisContext analysisContext = context;

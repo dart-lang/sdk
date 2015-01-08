@@ -155,14 +155,11 @@ main() {
 //      test('valid', () {
 //        engine.AnalysisOptions oldOptions = server.contextDirectoryManager.defaultOptions;
 //        bool analyzeAngular = !oldOptions.analyzeAngular;
-//        bool enableDeferredLoading = oldOptions.enableDeferredLoading;
-//        var newOptions = new AnalysisOptions(analyzeAngular: analyzeAngular,
-//            enableDeferredLoading: enableDeferredLoading, enableEnums: false);
+//        var newOptions = new AnalysisOptions(analyzeAngular: analyzeAngular);
 //        var request = new AnalysisUpdateOptionsParams(newOptions).toRequest('0');
 //        var response = handler.handleRequest(request);
 //        expect(response, isResponseSuccess('0'));
 //        expect(oldOptions.analyzeAngular, equals(analyzeAngular));
-//        expect(oldOptions.enableDeferredLoading, equals(enableDeferredLoading));
 //      });
     });
   });

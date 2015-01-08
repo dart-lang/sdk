@@ -317,7 +317,6 @@ class A {
   }
 
   void test_false_enum_constants_add() {
-    resetWithEnum();
     _assertDoesNotMatch(r'''
 enum E {A, B}
 ''', r'''
@@ -326,7 +325,6 @@ enum E {A, B, C}
   }
 
   void test_false_enum_constants_remove() {
-    resetWithEnum();
     _assertDoesNotMatch(r'''
 enum E {A, B, C}
 ''', r'''
@@ -1370,7 +1368,6 @@ class A {
   }
 
   void test_true_enum_constants_reorder() {
-    resetWithEnum();
     _assertMatches(r'''
 enum E {A, B, C}
 ''', r'''
@@ -1379,7 +1376,6 @@ enum E {C, A, B}
   }
 
   void test_true_enum_list_reorder() {
-    resetWithEnum();
     _assertMatches(r'''
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}
@@ -1392,7 +1388,6 @@ enum B {B1, B2, B3}
   }
 
   void test_true_enum_list_same() {
-    resetWithEnum();
     _assertMatches(r'''
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}

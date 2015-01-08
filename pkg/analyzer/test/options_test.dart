@@ -18,7 +18,6 @@ main() {
       expect(options.dartSdkPath, isNotNull);
       expect(options.disableHints, isFalse);
       expect(options.displayVersion, isFalse);
-      expect(options.enableEnum, isFalse);
       expect(options.enableTypeChecks, isFalse);
       expect(options.ignoreUnrecognizedFlags, isFalse);
       expect(options.log, isFalse);
@@ -44,12 +43,6 @@ main() {
           CommandLineOptions.parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
       expect(options.definedVariables['foo'], equals('bar'));
       expect(options.definedVariables['bar'], isNull);
-    });
-
-    test('enable enum', () {
-      CommandLineOptions options =
-          CommandLineOptions.parse(['--dart-sdk', '.', '--enable-enum', 'foo.dart']);
-      expect(options.enableEnum, isTrue);
     });
 
     test('enable type checks', () {

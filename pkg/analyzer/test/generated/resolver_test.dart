@@ -378,8 +378,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     bool needsRecompute =
         currentOptions.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
-        currentOptions.enableDeferredLoading != options.enableDeferredLoading ||
-        currentOptions.enableEnum != options.enableEnum ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments;
@@ -2978,14 +2976,13 @@ class B {}''');
   }
 
   void test_importDeferredLibraryWithLoadFunction() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 loadLibrary() {}
 f() {}''', r'''
 library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
   }
 
@@ -6548,13 +6545,12 @@ class B {}''');
   }
 
   void test_importDeferredLibraryWithLoadFunction() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 f() {}''', r'''
 library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           ErrorCode.EMPTY_LIST);
   }
 
@@ -7829,15 +7825,6 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Reset the analysis context to have the 'enableEnum' option set to true.
-   */
-  void resetWithEnum() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
-  }
-
-  /**
    * Reset the analysis context to have the given options applied.
    *
    * @param options the analysis options to be applied to the context
@@ -7892,12 +7879,19 @@ class ResolverTestCase extends EngineTestCase {
     return null;
   }
 
+  void resolveWithErrors(List<String> strSources, List<ErrorCode> codes) {
+    // Analysis and assertions
+    Source source = resolveSources(strSources);
+    assertErrors(source, codes);
+    verify([source]);
+  }
+
   void resolveWithAndWithoutExperimental(List<String> strSources,
       List<ErrorCode> codesWithoutExperimental,
       List<ErrorCode> codesWithExperimental) {
     // Setup analysis context as non-experimental
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableDeferredLoading = false;
+//    options.enableDeferredLoading = false;
     resetWithOptions(options);
     // Analysis and assertions
     Source source = resolveSources(strSources);
@@ -8662,7 +8656,6 @@ main() {}''');
   }
 
   void test_enum_externalLibrary() {
-    resetWithEnum();
     addNamedSource("/my_lib.dart", r'''
 library my_lib;
 enum EEE {A, B, C}''');

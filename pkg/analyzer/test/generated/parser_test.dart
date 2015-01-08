@@ -3023,10 +3023,7 @@ class ParserTestCase extends EngineTestCase {
    * @return the parser that was created
    */
   static Parser createParser(GatheringErrorListener listener) {
-    Parser parser = new Parser(null, listener);
-    parser.parseDeferredLibraries = true;
-    parser.parseEnum = true;
-    return parser;
+    return new Parser(null, listener);
   }
 
   /**
@@ -3059,7 +3056,6 @@ class ParserTestCase extends EngineTestCase {
     //
     Parser parser = createParser(listener);
     parser.parseFunctionBodies = parseFunctionBodies;
-    parser.parseDeferredLibraries = true;
     Object result =
         invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //

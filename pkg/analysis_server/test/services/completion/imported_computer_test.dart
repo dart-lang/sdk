@@ -210,13 +210,6 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
     var context2 = AnalysisEngine.instance.createAnalysisContext();
     context2.sourceFactory =
         new SourceFactory([AbstractContextTest.SDK_RESOLVER, resourceResolver]);
-    {
-      AnalysisOptionsImpl options =
-          new AnalysisOptionsImpl.con1(context2.analysisOptions);
-      options.enableAsync = true;
-      options.enableEnum = true;
-      context2.analysisOptions = options;
-    }
     String content2 = 'class ClassFromAnotherContext { }';
     Source source2 =
         provider.newFile('/context2/foo.dart', content2).createSource();

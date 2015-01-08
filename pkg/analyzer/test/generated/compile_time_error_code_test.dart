@@ -194,7 +194,6 @@ f() {
   }
 
   void test_accessPrivateEnumField() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 String name(E e) {
@@ -639,7 +638,7 @@ class A {
   }
 
   void test_constDeferredClass() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {
   const A();
@@ -649,12 +648,11 @@ import 'lib1.dart' deferred as a;
 main() {
   const a.A();
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
   }
 
   void test_constDeferredClass_namedConstructor() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {
   const A.b();
@@ -664,7 +662,6 @@ import 'lib1.dart' deferred as a;
 main() {
   const a.A.b();
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
   }
 
@@ -866,25 +863,23 @@ f(p) {
   }
 
   void test_constInitializedWithNonConstValueFromDeferredClass() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 const B = a.V;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_constInitializedWithNonConstValueFromDeferredClass_nested() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 const B = a.V + 1;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
@@ -1416,25 +1411,23 @@ export 'lib1.dart';''');
   }
 
   void test_extendsDeferredClass() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B extends a.A {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
   }
 
   void test_extendsDeferredClass_classTypeAlias() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class M {}
 class C = a.A with M;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
   }
 
@@ -1571,7 +1564,6 @@ class C = String with M;''');
   }
 
   void test_extendsEnum() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 class A extends E {}''');
@@ -1881,18 +1873,17 @@ class A {
   }
 
   void test_implementsDeferredClass() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B implements a.A {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
   }
 
   void test_implementsDeferredClass_classTypeAlias() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
@@ -1900,7 +1891,6 @@ import 'lib1.dart' deferred as a;
 class B {}
 class M {}
 class C = B with M implements a.A;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
   }
 
@@ -2039,7 +2029,6 @@ class C = A with M implements String, num;''');
   }
 
   void test_implementsEnum() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 class A implements E {}''');
@@ -2481,7 +2470,6 @@ class A {
   }
 
   void test_instantiateEnum_const() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 E e(String name) {
@@ -2493,7 +2481,6 @@ E e(String name) {
   }
 
   void test_instantiateEnum_new() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 E e(String name) {
@@ -2633,38 +2620,35 @@ class A {
 
   void test_invalidAnnotationFromDeferredLibrary() {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class V { const V(); }
 const v = const V();''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 @a.v main () {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_invalidAnnotationFromDeferredLibrary_constructor() {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class C { const C(); }''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 @a.C() main () {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_invalidAnnotationFromDeferredLibrary_namedConstructor() {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class C { const C.name(); }''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 @a.C.name() main () {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
   }
 
@@ -3054,7 +3038,6 @@ class A {
   }
 
   void test_missingEnumConstantInSwitch() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE, TWO, THREE, FOUR }
 bool odd(E e) {
@@ -3096,25 +3079,23 @@ class B = Object with A;''');
   }
 
   void test_mixinDeferredClass() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B extends Object with a.A {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
   }
 
   void test_mixinDeferredClass_classTypeAlias() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class C = B with a.A;'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
   }
 
@@ -3355,7 +3336,6 @@ class C = A with String, num;''');
   }
 
   void test_mixinOfEnum() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 class A extends Object with E {}''');
@@ -3842,25 +3822,23 @@ class A {
   }
 
   void test_nonConstantDefaultValueFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f({x : a.V}) {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstantDefaultValueFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f({x : a.V + 1}) {}'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
@@ -3879,7 +3857,7 @@ f(int p, int q) {
   }
 
   void test_nonConstCaseExpressionFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -3890,13 +3868,12 @@ main (int p) {
       break;
   }
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstCaseExpressionFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -3907,7 +3884,6 @@ main (int p) {
       break;
   }
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY]);
   }
@@ -3923,7 +3899,7 @@ f(a) {
   }
 
   void test_nonConstListElementFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -3931,13 +3907,12 @@ import 'lib1.dart' deferred as a;
 f() {
   return const [a.c];
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstListElementFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -3945,7 +3920,6 @@ import 'lib1.dart' deferred as a;
 f() {
   return const [a.c + 1];
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
   }
@@ -3985,7 +3959,7 @@ f(a) {
   }
 
   void test_nonConstMapKeyFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -3993,12 +3967,11 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {a.c : 0};
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstMapKeyFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -4006,7 +3979,6 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {a.c + 1 : 0};
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
   }
 
@@ -4021,7 +3993,7 @@ f(a) {
   }
 
   void test_nonConstMapValueFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -4029,12 +4001,11 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {'a' : a.c};
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstMapValueFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -4042,7 +4013,6 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {'a' : a.c + 1};
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
@@ -4168,7 +4138,7 @@ class B extends A {
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_field() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -4177,13 +4147,12 @@ class A {
   final int x;
   const A() : x = a.c;
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_field_nested() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -4192,13 +4161,12 @@ class A {
   final int x;
   const A() : x = a.c + 1;
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_redirecting() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -4207,13 +4175,12 @@ class A {
   const A.named(p);
   const A() : this.named(a.c);
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_super() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 const int c = 1;''', r'''
 library root;
@@ -4224,7 +4191,6 @@ class A {
 class B extends A {
   const B() : super(a.c);
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[
               CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
@@ -4870,7 +4836,7 @@ f() sync* {
   }
 
   void test_sharedDeferredPrefix() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 f1() {}''', r'''
 library lib2;
@@ -4879,7 +4845,6 @@ library root;
 import 'lib1.dart' deferred as lib;
 import 'lib2.dart' as lib;
 main() { lib.f1(); lib.f2(); }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[CompileTimeErrorCode.SHARED_DEFERRED_PREFIX]);
   }
 

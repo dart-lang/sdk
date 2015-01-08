@@ -218,7 +218,6 @@ class AnalysisContextImplTest extends EngineTestCase {
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.con1(_context.analysisOptions);
     options.cacheSize = 256;
-    options.enableEnum = true;
     _context.analysisOptions = options;
   }
 
@@ -2251,7 +2250,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzePolymer = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
-      options.enableDeferredLoading = booleanValue;
       options.generateSdkErrors = booleanValue;
       options.hint = booleanValue;
       options.incremental = booleanValue;
@@ -2261,8 +2259,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.analyzePolymer, options.analyzePolymer);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
-      expect(copy.enableDeferredLoading, options.enableDeferredLoading);
-      expect(copy.enableEnum, options.enableEnum);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
       expect(copy.hint, options.hint);
       expect(copy.incremental, options.incremental);
@@ -2297,24 +2293,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
-  }
-
-  void test_getEnableDeferredLoading() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    expect(
-        options.enableDeferredLoading,
-        AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING);
-    bool value = !options.enableDeferredLoading;
-    options.enableDeferredLoading = value;
-    expect(options.enableDeferredLoading, value);
-  }
-
-  void test_getEnableEnum() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    expect(options.enableEnum, AnalysisOptionsImpl.DEFAULT_ENABLE_ENUM);
-    bool value = !options.enableEnum;
-    options.enableEnum = value;
-    expect(options.enableEnum, value);
   }
 
   void test_getGenerateSdkErrors() {

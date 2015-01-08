@@ -240,8 +240,6 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = createAnalysisServer(index);
-    server.contextDirectoryManager.defaultOptions.enableAsync = true;
-    server.contextDirectoryManager.defaultOptions.enableEnum = true;
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream =
