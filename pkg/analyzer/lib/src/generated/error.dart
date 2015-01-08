@@ -2833,16 +2833,10 @@ class ErrorType extends Enum<ErrorType> {
       const ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
 
   /**
-   * Polymer specific semantic problems.
-   */
-  static const ErrorType POLYMER =
-      const ErrorType('POLYMER', 7, ErrorSeverity.INFO);
-
-  /**
    * Lint warnings describe style and best practice recommendations that can be used to formalize a project's style
    * guidelines.
    */
-  static const ErrorType LINT = const ErrorType('LINT', 8, ErrorSeverity.INFO);
+  static const ErrorType LINT = const ErrorType('LINT', 7, ErrorSeverity.INFO);
 
   static const List<ErrorType> values = const [
       TODO,
@@ -2852,7 +2846,6 @@ class ErrorType extends Enum<ErrorType> {
       STATIC_WARNING,
       STATIC_TYPE_WARNING,
       SYNTACTIC_ERROR,
-      POLYMER,
       LINT];
 
   /**
@@ -3258,54 +3251,6 @@ class LintCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.LINT;
-}
-
-/**
- * The enumeration `PolymerCode` defines Polymer specific problems.
- */
-class PolymerCode extends ErrorCode {
-  static const PolymerCode ATTRIBUTE_FIELD_NOT_PUBLISHED = const PolymerCode(
-      'ATTRIBUTE_FIELD_NOT_PUBLISHED',
-      "Field '{0}' in '{1}' must be @published");
-
-  static const PolymerCode DUPLICATE_ATTRIBUTE_DEFINITION = const PolymerCode(
-      'DUPLICATE_ATTRIBUTE_DEFINITION',
-      "The attribute '{0}' is already defined");
-
-  static const PolymerCode EMPTY_ATTRIBUTES = const PolymerCode(
-      'EMPTY_ATTRIBUTES',
-      "Empty 'attributes' attribute is useless");
-
-  static const PolymerCode INVALID_ATTRIBUTE_NAME = const PolymerCode(
-      'INVALID_ATTRIBUTE_NAME',
-      "'{0}' is not a valid name for a custom element attribute");
-
-  static const PolymerCode INVALID_TAG_NAME = const PolymerCode(
-      'INVALID_TAG_NAME',
-      "'{0}' is not a valid name for a custom element");
-
-  static const PolymerCode MISSING_TAG_NAME = const PolymerCode(
-      'MISSING_TAG_NAME',
-      "Missing tag name of the custom element. Please include an attribute like name='your-tag-name'");
-
-  static const PolymerCode UNDEFINED_ATTRIBUTE_FIELD = const PolymerCode(
-      'UNDEFINED_ATTRIBUTE_FIELD',
-      "There is no such field '{0}' in '{1}'");
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const PolymerCode(String name, String message, [String correction])
-      : super(name, message, correction);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
-
-  @override
-  ErrorType get type => ErrorType.POLYMER;
 }
 
 /**

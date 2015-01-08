@@ -2489,11 +2489,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The public namespace isn't computed by performAnalysisTask()
           // and therefore isn't interesting.
           continue;
-        } else if (descriptor == HtmlEntry.POLYMER_BUILD_ERRORS ||
-            descriptor == HtmlEntry.POLYMER_RESOLUTION_ERRORS) {
-          // These values are not currently being computed, so their state is
-          // not interesting.
-          continue;
         } else if (descriptor == HtmlEntry.HINTS) {
           // We are not currently recording any hints related to HTML.
           continue;
@@ -3338,54 +3333,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create a [PolymerBuildHtmlTask] for the given source, marking the Polymer elements as
-   * being in-process.
-   *
-   * @param source the source whose content is to be processed
-   * @param htmlEntry the entry for the source
-   * @return task data representing the created task
-   */
-  AnalysisContextImpl_TaskData _createPolymerBuildHtmlTask(Source source,
-      HtmlEntry htmlEntry) {
-    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
-      return _createResolveHtmlTask(source, htmlEntry);
-    }
-    htmlEntry.setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(
-        new PolymerBuildHtmlTask(
-            this,
-            source,
-            htmlEntry.getValue(SourceEntry.LINE_INFO),
-            htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)),
-        false);
-  }
-
-  /**
-   * Create a [PolymerResolveHtmlTask] for the given source, marking the Polymer errors as
-   * being in-process.
-   *
-   * @param source the source whose content is to be resolved
-   * @param htmlEntry the entry for the source
-   * @return task data representing the created task
-   */
-  AnalysisContextImpl_TaskData _createPolymerResolveHtmlTask(Source source,
-      HtmlEntry htmlEntry) {
-    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
-      return _createResolveHtmlTask(source, htmlEntry);
-    }
-    htmlEntry.setState(
-        HtmlEntry.POLYMER_RESOLUTION_ERRORS,
-        CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(
-        new PolymerResolveHtmlTask(
-            this,
-            source,
-            htmlEntry.getValue(SourceEntry.LINE_INFO),
-            htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)),
-        false);
-  }
-
-  /**
    * Create a [ResolveDartLibraryTask] for the given source, marking ? as being in-process.
    *
    * @param source the source whose content is to be resolved
@@ -3981,25 +3928,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
         return _createResolveHtmlTask(source, htmlEntry);
       }
-      //
-      // Polymer support
-      //
-      if (_options.analyzePolymer) {
-        // Build elements.
-        CacheState polymerBuildErrorsState =
-            htmlEntry.getState(HtmlEntry.POLYMER_BUILD_ERRORS);
-        if (polymerBuildErrorsState == CacheState.INVALID ||
-            (isPriority && polymerBuildErrorsState == CacheState.FLUSHED)) {
-          return _createPolymerBuildHtmlTask(source, htmlEntry);
-        }
-        // Resolve references.
-        CacheState polymerResolutionErrorsState =
-            htmlEntry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS);
-        if (polymerResolutionErrorsState == CacheState.INVALID ||
-            (isPriority && polymerResolutionErrorsState == CacheState.FLUSHED)) {
-          return _createPolymerResolveHtmlTask(source, htmlEntry);
-        }
-      }
     }
     return new AnalysisContextImpl_TaskData(null, false);
   }
@@ -4223,23 +4151,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
         sources.add(source);
         return;
-      }
-      // Polymer
-      if (_options.analyzePolymer) {
-        // Elements building.
-        CacheState polymerBuildErrorsState =
-            htmlEntry.getState(HtmlEntry.POLYMER_BUILD_ERRORS);
-        if (polymerBuildErrorsState == CacheState.INVALID ||
-            (isPriority && polymerBuildErrorsState == CacheState.FLUSHED)) {
-          sources.add(source);
-        }
-        // Resolution.
-        CacheState polymerResolutionErrorsState =
-            htmlEntry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS);
-        if (polymerResolutionErrorsState == CacheState.INVALID ||
-            (isPriority && polymerResolutionErrorsState == CacheState.FLUSHED)) {
-          sources.add(source);
-        }
       }
     }
   }
@@ -4742,46 +4653,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Record the results produced by performing a [task] and return the cache
    * entry associated with the results.
    */
-  HtmlEntry _recordPolymerBuildHtmlTaskResults(PolymerBuildHtmlTask task) {
-    Source source = task.source;
-    HtmlEntry htmlEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      htmlEntry.recordResolutionError(thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    htmlEntry.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, task.errors);
-    // notify about errors
-    ChangeNoticeImpl notice = _getNotice(source);
-    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(htmlEntry.allErrors, lineInfo);
-    return htmlEntry;
-  }
-
-  /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
-  HtmlEntry _recordPolymerResolveHtmlTaskResults(PolymerResolveHtmlTask task) {
-    Source source = task.source;
-    HtmlEntry htmlEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      htmlEntry.recordResolutionError(thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    htmlEntry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, task.errors);
-    // notify about errors
-    ChangeNoticeImpl notice = _getNotice(source);
-    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(htmlEntry.allErrors, lineInfo);
-    return htmlEntry;
-  }
-
-  /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
   DartEntry _recordResolveDartUnitTaskResults(ResolveDartUnitTask task) {
     Source unitSource = task.source;
     DartEntry dartEntry = _cache.get(unitSource);
@@ -5177,14 +5048,6 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements
   @override
   HtmlEntry visitParseHtmlTask(ParseHtmlTask task) =>
       AnalysisContextImpl_this._recordParseHtmlTaskResults(task);
-
-  @override
-  HtmlEntry visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) =>
-      AnalysisContextImpl_this._recordPolymerBuildHtmlTaskResults(task);
-
-  @override
-  HtmlEntry visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) =>
-      AnalysisContextImpl_this._recordPolymerResolveHtmlTaskResults(task);
 
   @override
   DartEntry
@@ -6422,13 +6285,6 @@ abstract class AnalysisOptions {
   bool get analyzeFunctionBodies;
 
   /**
-   * Return `true` if analysis is to analyze Polymer.
-   *
-   * @return `true` if analysis is to analyze Polymer
-   */
-  bool get analyzePolymer;
-
-  /**
    * Return the maximum number of sources for which AST structures should be kept in the cache.
    *
    * @return the maximum number of sources for which AST structures should be kept in the cache
@@ -6542,11 +6398,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool analyzeFunctionBodies = true;
 
   /**
-   * A flag indicating whether analysis is to analyze Polymer.
-   */
-  bool analyzePolymer = true;
-
-  /**
    * The maximum number of sources for which AST structures should be kept in the cache.
    */
   int cacheSize = DEFAULT_CACHE_SIZE;
@@ -6608,7 +6459,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   AnalysisOptionsImpl.con1(AnalysisOptions options) {
     analyzeFunctionBodies = options.analyzeFunctionBodies;
-    analyzePolymer = options.analyzePolymer;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     _generateSdkErrors = options.generateSdkErrors;
@@ -6863,18 +6713,6 @@ abstract class AnalysisTaskVisitor<E> {
    * throw an AnalysisException if the visitor throws an exception.
    */
   E visitParseHtmlTask(ParseHtmlTask task);
-
-  /**
-   * Visit the given [task], returning the result of the visit. This method will
-   * throw an AnalysisException if the visitor throws an exception.
-   */
-  E visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task);
-
-  /**
-   * Visit the given [task], returning the result of the visit. This method will
-   * throw an AnalysisException if the visitor throws an exception.
-   */
-  E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task);
 
   /**
    * Visit the given [task], returning the result of the visit. This method will
@@ -9102,24 +8940,6 @@ class HtmlEntry extends SourceEntry {
           AnalysisError.NO_ERRORS);
 
   /**
-   * The data descriptor representing the status of Polymer elements in the
-   * source.
-   */
-  static final DataDescriptor<List<AnalysisError>> POLYMER_BUILD_ERRORS =
-      new DataDescriptor<List<AnalysisError>>(
-          "HtmlEntry.POLYMER_BUILD_ERRORS",
-          AnalysisError.NO_ERRORS);
-
-  /**
-   * The data descriptor representing the errors reported during Polymer
-   * resolution.
-   */
-  static final DataDescriptor<List<AnalysisError>> POLYMER_RESOLUTION_ERRORS =
-      new DataDescriptor<List<AnalysisError>>(
-          "HtmlEntry.POLYMER_RESOLUTION_ERRORS",
-          AnalysisError.NO_ERRORS);
-
-  /**
    * Return all of the errors associated with the HTML file that are currently
    * cached.
    */
@@ -9128,8 +8948,6 @@ class HtmlEntry extends SourceEntry {
     errors.addAll(getValue(PARSE_ERRORS));
     errors.addAll(getValue(RESOLUTION_ERRORS));
     errors.addAll(getValue(HINTS));
-    errors.addAll(getValue(POLYMER_BUILD_ERRORS));
-    errors.addAll(getValue(POLYMER_RESOLUTION_ERRORS));
     if (errors.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
@@ -9159,8 +8977,6 @@ class HtmlEntry extends SourceEntry {
             HtmlEntry.ELEMENT,
             HtmlEntry.PARSE_ERRORS,
             HtmlEntry.PARSED_UNIT,
-            HtmlEntry.POLYMER_BUILD_ERRORS,
-            HtmlEntry.POLYMER_RESOLUTION_ERRORS,
             HtmlEntry.RESOLUTION_ERRORS,
             HtmlEntry.RESOLVED_UNIT,
             HtmlEntry.HINTS]);
@@ -9193,8 +9009,6 @@ class HtmlEntry extends SourceEntry {
    * source files should also be invalidated.
    */
   void invalidateAllResolutionInformation(bool invalidateUris) {
-    setState(POLYMER_BUILD_ERRORS, CacheState.INVALID);
-    setState(POLYMER_RESOLUTION_ERRORS, CacheState.INVALID);
     setState(ELEMENT, CacheState.INVALID);
     setState(RESOLUTION_ERRORS, CacheState.INVALID);
     setState(HINTS, CacheState.INVALID);
@@ -9233,8 +9047,6 @@ class HtmlEntry extends SourceEntry {
     setState(ELEMENT, CacheState.ERROR);
     setState(RESOLUTION_ERRORS, CacheState.ERROR);
     setState(HINTS, CacheState.ERROR);
-    setState(POLYMER_BUILD_ERRORS, CacheState.ERROR);
-    setState(POLYMER_RESOLUTION_ERRORS, CacheState.ERROR);
   }
 
   @override
@@ -9243,8 +9055,6 @@ class HtmlEntry extends SourceEntry {
         descriptor == HINTS ||
         descriptor == PARSED_UNIT ||
         descriptor == PARSE_ERRORS ||
-        descriptor == POLYMER_BUILD_ERRORS ||
-        descriptor == POLYMER_RESOLUTION_ERRORS ||
         descriptor == REFERENCED_LIBRARIES ||
         descriptor == RESOLUTION_ERRORS ||
         descriptor == RESOLVED_UNIT ||
@@ -9298,18 +9108,6 @@ class HtmlEntry extends SourceEntry {
         "element",
         HtmlEntry.ELEMENT,
         oldEntry);
-    needsSeparator = _writeStateDiffOn(
-        buffer,
-        needsSeparator,
-        "polymerBuildErrors",
-        HtmlEntry.POLYMER_BUILD_ERRORS,
-        oldEntry);
-    needsSeparator = _writeStateDiffOn(
-        buffer,
-        needsSeparator,
-        "polymerResolutionErrors",
-        HtmlEntry.POLYMER_RESOLUTION_ERRORS,
-        oldEntry);
     return needsSeparator;
   }
 
@@ -9323,8 +9121,6 @@ class HtmlEntry extends SourceEntry {
     _writeStateOn(buffer, "resolutionErrors", RESOLUTION_ERRORS);
     _writeStateOn(buffer, "referencedLibraries", REFERENCED_LIBRARIES);
     _writeStateOn(buffer, "element", ELEMENT);
-    _writeStateOn(buffer, "polymerBuildErrors", POLYMER_BUILD_ERRORS);
-    _writeStateOn(buffer, "polymerResolutionErrors", POLYMER_RESOLUTION_ERRORS);
   }
 }
 
@@ -10420,11 +10216,6 @@ class PerformanceStatistics {
   static TimeCounter resolve = new TimeCounter();
 
   /**
-   * The [TimeCounter] for time spent in Polymer analysis.
-   */
-  static TimeCounter polymer = new TimeCounter();
-
-  /**
    * The [TimeCounter] for time spent in error verifier.
    */
   static TimeCounter errors = new TimeCounter();
@@ -10447,527 +10238,9 @@ class PerformanceStatistics {
     scan = new TimeCounter();
     parse = new TimeCounter();
     resolve = new TimeCounter();
-    polymer = new TimeCounter();
     errors = new TimeCounter();
     hints = new TimeCounter();
     lint = new TimeCounter();
-  }
-}
-
-/**
- * Instances of the class `PolymerBuildHtmlTask` build Polymer specific elements.
- */
-class PolymerBuildHtmlTask extends AnalysisTask {
-  /**
-   * The source to build which Polymer HTML elements for.
-   */
-  final Source source;
-
-  /**
-   * The line information associated with the source.
-   */
-  final LineInfo _lineInfo;
-
-  /**
-   * The HTML unit to be resolved.
-   */
-  final ht.HtmlUnit _unit;
-
-  /**
-   * The resolution errors that were discovered while building elements.
-   */
-  List<AnalysisError> _errors = AnalysisError.NO_ERRORS;
-
-  /**
-   * Initialize a newly created task to perform analysis within the given context.
-   *
-   * @param context the context in which the task is to be performed
-   * @param source the source to be resolved
-   * @param lineInfo the line information associated with the source
-   * @param unit the HTML unit to build Polymer elements for
-   */
-  PolymerBuildHtmlTask(InternalAnalysisContext context, this.source,
-      this._lineInfo, this._unit)
-      : super(context);
-
-  List<AnalysisError> get errors => _errors;
-
-  @override
-  String get taskDescription => "build Polymer elements ${source.fullName}";
-
-  @override
-  accept(AnalysisTaskVisitor visitor) =>
-      visitor.visitPolymerBuildHtmlTask(this);
-
-  @override
-  void internalPerform() {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    PolymerHtmlUnitBuilder resolver =
-        new PolymerHtmlUnitBuilder(context, errorListener, source, _lineInfo, _unit);
-    resolver.build();
-    _errors = errorListener.getErrorsForSource(source);
-  }
-}
-
-/**
- * Instances of the class [PolymerHtmlUnitBuilder] build Polymer specific elements.
- */
-class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
-  /**
-   * These names are forbidden to use as a custom tag name.
-   *
-   * http://w3c.github.io/webcomponents/spec/custom/#concepts
-   */
-  static Set<String> _FORBIDDEN_TAG_NAMES = new Set();
-
-  final InternalAnalysisContext _context;
-
-  final AnalysisErrorListener _errorListener;
-
-  final Source _source;
-
-  final LineInfo _lineInfo;
-
-  final ht.HtmlUnit _unit;
-
-  List<PolymerTagHtmlElement> _tagHtmlElements = <PolymerTagHtmlElement>[];
-
-  ht.XmlTagNode _elementNode;
-
-  String _elementName;
-
-  PolymerTagHtmlElementImpl _htmlElement;
-
-  PolymerTagDartElementImpl _dartElement;
-
-  PolymerHtmlUnitBuilder(this._context, this._errorListener, this._source,
-      this._lineInfo, this._unit);
-
-  /**
-   * Returns the only [LibraryElement] referenced by a direct `script` child. Maybe
-   * `null` if none.
-   */
-  LibraryElement get dartUnitElement {
-    // TODO(scheglov) Maybe check if more than one "script".
-    for (ht.XmlTagNode child in _elementNode.tagNodes) {
-      if (child is ht.HtmlScriptTagNode) {
-        HtmlScriptElement scriptElement = child.scriptElement;
-        if (scriptElement is ExternalHtmlScriptElement) {
-          Source scriptSource = scriptElement.scriptSource;
-          if (scriptSource != null) {
-            return _context.getLibraryElement(scriptSource);
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Builds Polymer specific HTML elements.
-   */
-  void build() {
-    _unit.accept(this);
-    // set Polymer tags
-    HtmlElementImpl unitElement = _unit.element as HtmlElementImpl;
-    unitElement.polymerTags = new List.from(_tagHtmlElements);
-  }
-
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) {
-    if (node.tag == "polymer-element") {
-      _createTagHtmlElement(node);
-    }
-    // visit children
-    return super.visitXmlTagNode(node);
-  }
-
-  void _createAttributeElements() {
-    // prepare "attributes" attribute
-    ht.XmlAttributeNode attributesAttribute =
-        _elementNode.getAttribute("attributes");
-    if (attributesAttribute == null) {
-      return;
-    }
-    // check if there is a Dart part to resolve against it
-    if (_dartElement == null) {
-      // TODO(scheglov) maybe report error (if it is allowed at all to have
-      // element without Dart part)
-      return;
-    }
-    // prepare value of the "attributes" attribute
-    String attributesText = attributesAttribute.text;
-    if (attributesText.trim().isEmpty) {
-      _reportErrorForAttribute(
-          attributesAttribute,
-          PolymerCode.EMPTY_ATTRIBUTES);
-      return;
-    }
-    // prepare attribute name tokens
-    List<PolymerHtmlUnitBuilder_NameToken> nameTokens =
-        <PolymerHtmlUnitBuilder_NameToken>[
-        ];
-    {
-      int index = 0;
-      int textOffset = attributesAttribute.textOffset;
-      int nameOffset = -1;
-      StringBuffer nameBuffer = new StringBuffer();
-      while (index < attributesText.length) {
-        int c = attributesText.codeUnitAt(index++);
-        if (Character.isWhitespace(c)) {
-          if (nameOffset != -1) {
-            nameTokens.add(
-                new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuffer.toString()));
-            nameBuffer = new StringBuffer();
-            nameOffset = -1;
-          }
-          continue;
-        }
-        if (nameOffset == -1) {
-          nameOffset = textOffset + index - 1;
-        }
-        nameBuffer.writeCharCode(c);
-      }
-      if (nameOffset != -1) {
-        nameTokens.add(
-            new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuffer.toString()));
-        nameBuffer = new StringBuffer();
-      }
-    }
-    // create attributes for name tokens
-    List<PolymerAttributeElement> attributes = <PolymerAttributeElement>[];
-    Set<String> definedNames = new Set();
-    ClassElement classElement = _dartElement.classElement;
-    for (PolymerHtmlUnitBuilder_NameToken nameToken in nameTokens) {
-      int offset = nameToken._offset;
-      // prepare name
-      String name = nameToken._value;
-      if (!isValidAttributeName(name)) {
-        _reportErrorForNameToken(
-            nameToken,
-            PolymerCode.INVALID_ATTRIBUTE_NAME,
-            [name]);
-        continue;
-      }
-      if (!definedNames.add(name)) {
-        _reportErrorForNameToken(
-            nameToken,
-            PolymerCode.DUPLICATE_ATTRIBUTE_DEFINITION,
-            [name]);
-        continue;
-      }
-      // create attribute
-      PolymerAttributeElementImpl attribute =
-          new PolymerAttributeElementImpl(name, offset);
-      attributes.add(attribute);
-      // resolve field
-      FieldElement field = classElement.getField(name);
-      if (field == null) {
-        _reportErrorForNameToken(
-            nameToken,
-            PolymerCode.UNDEFINED_ATTRIBUTE_FIELD,
-            [name, classElement.displayName]);
-        continue;
-      }
-      if (!_isPublishedField(field)) {
-        _reportErrorForNameToken(
-            nameToken,
-            PolymerCode.ATTRIBUTE_FIELD_NOT_PUBLISHED,
-            [name, classElement.displayName]);
-      }
-      attribute.field = field;
-    }
-    _htmlElement.attributes = attributes;
-  }
-
-  void _createTagHtmlElement(ht.XmlTagNode node) {
-    this._elementNode = node;
-    this._elementName = null;
-    this._htmlElement = null;
-    this._dartElement = null;
-    // prepare 'name' attribute
-    ht.XmlAttributeNode nameAttribute = node.getAttribute("name");
-    if (nameAttribute == null) {
-      _reportErrorForToken(node.tagToken, PolymerCode.MISSING_TAG_NAME);
-      return;
-    }
-    // prepare name
-    _elementName = nameAttribute.text;
-    if (!isValidTagName(_elementName)) {
-      _reportErrorForAttributeValue(
-          nameAttribute,
-          PolymerCode.INVALID_TAG_NAME,
-          [_elementName]);
-      return;
-    }
-    // TODO(scheglov) Maybe check that at least one of "template" or "script"
-    // children.
-    // TODO(scheglov) Maybe check if more than one top-level "template".
-    // create HTML element
-    int nameOffset = nameAttribute.textOffset;
-    _htmlElement = new PolymerTagHtmlElementImpl(_elementName, nameOffset);
-    // bind to the corresponding Dart element
-    _dartElement = _findTagDartElement();
-    if (_dartElement != null) {
-      _htmlElement.dartElement = _dartElement;
-      _dartElement.htmlElement = _htmlElement;
-    }
-    // TODO(scheglov) create attributes
-    _createAttributeElements();
-    // done
-    _tagHtmlElements.add(_htmlElement);
-  }
-
-  /**
-   * Returns the [PolymerTagDartElement] that corresponds to the Polymer custom tag declared
-   * by the given [XmlTagNode].
-   */
-  PolymerTagDartElementImpl _findTagDartElement() {
-    LibraryElement dartLibraryElement = dartUnitElement;
-    if (dartLibraryElement == null) {
-      return null;
-    }
-    return _findTagDartElement_inLibrary(dartLibraryElement);
-  }
-
-  /**
-   * Returns the [PolymerTagDartElementImpl] declared in the given [LibraryElement] with
-   * the [elementName]. Maybe `null`.
-   */
-  PolymerTagDartElementImpl
-      _findTagDartElement_inLibrary(LibraryElement library) {
-    try {
-      library.accept(new _PolymerHtmlUnitBuilder_findTagDartElement(this));
-    } on PolymerHtmlUnitBuilder_FoundTagDartElementError catch (e) {
-      return e._result;
-    }
-    return null;
-  }
-
-  bool _isPublishedAnnotation(ElementAnnotation annotation) {
-    Element element = annotation.element;
-    if (element != null && element.name == "published") {
-      return true;
-    }
-    return false;
-  }
-
-  bool _isPublishedField(FieldElement field) {
-    List<ElementAnnotation> annotations = field.metadata;
-    for (ElementAnnotation annotation in annotations) {
-      if (_isPublishedAnnotation(annotation)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Reports an error on the attribute's value, or (if absent) on the attribute's name.
-   */
-  void _reportErrorForAttribute(ht.XmlAttributeNode node, ErrorCode errorCode,
-      [List<Object> arguments]) {
-    _reportErrorForOffset(node.offset, node.length, errorCode, arguments);
-  }
-
-  /**
-   * Reports an error on the attribute's value, or (if absent) on the attribute's name.
-   */
-  void _reportErrorForAttributeValue(ht.XmlAttributeNode node,
-      ErrorCode errorCode, [List<Object> arguments]) {
-    ht.Token valueToken = node.valueToken;
-    if (valueToken == null || valueToken.isSynthetic) {
-      _reportErrorForAttribute(node, errorCode, arguments);
-    } else {
-      _reportErrorForToken(valueToken, errorCode, arguments);
-    }
-  }
-
-  void _reportErrorForNameToken(PolymerHtmlUnitBuilder_NameToken token,
-      ErrorCode errorCode, [List<Object> arguments]) {
-    int offset = token._offset;
-    int length = token._value.length;
-    _reportErrorForOffset(offset, length, errorCode, arguments);
-  }
-
-  void _reportErrorForOffset(int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments]) {
-    _errorListener.onError(
-        new AnalysisError.con2(_source, offset, length, errorCode, arguments));
-  }
-
-  void _reportErrorForToken(ht.Token token, ErrorCode errorCode,
-      [List<Object> arguments]) {
-    int offset = token.offset;
-    int length = token.length;
-    _reportErrorForOffset(offset, length, errorCode, arguments);
-  }
-
-  static bool isValidAttributeName(String name) {
-    // cannot be empty
-    if (name.isEmpty) {
-      return false;
-    }
-    // check characters
-    int length = name.length;
-    for (int i = 0; i < length; i++) {
-      int c = name.codeUnitAt(i);
-      if (i == 0) {
-        if (!Character.isLetter(c)) {
-          return false;
-        }
-      } else {
-        if (!(Character.isLetterOrDigit(c) || c == 0x5F)) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  static bool isValidTagName(String name) {
-    // cannot be empty
-    if (name.isEmpty) {
-      return false;
-    }
-    // check for forbidden name
-    if (_FORBIDDEN_TAG_NAMES.contains(name)) {
-      return false;
-    }
-    // check characters
-    int length = name.length;
-    bool hasDash = false;
-    for (int i = 0; i < length; i++) {
-      int c = name.codeUnitAt(i);
-      // check for '-'
-      if (c == 0x2D) {
-        hasDash = true;
-      }
-      // check character
-      if (i == 0) {
-        if (hasDash) {
-          return false;
-        }
-        if (!Character.isLetter(c)) {
-          return false;
-        }
-      } else {
-        if (!(Character.isLetterOrDigit(c) || c == 0x2D || c == 0x5F)) {
-          return false;
-        }
-      }
-    }
-    if (!hasDash) {
-      return false;
-    }
-    return true;
-  }
-}
-
-class PolymerHtmlUnitBuilder_FoundTagDartElementError extends Error {
-  final PolymerTagDartElementImpl _result;
-
-  PolymerHtmlUnitBuilder_FoundTagDartElementError(this._result);
-}
-
-class PolymerHtmlUnitBuilder_NameToken {
-  final int _offset;
-
-  final String _value;
-
-  PolymerHtmlUnitBuilder_NameToken(this._offset, this._value);
-}
-
-/**
- * Instances of the class [PolymerHtmlUnitResolver] resolve Polymer specific
- * [XmlTagNode]s and expressions.
- *
- * TODO(scheglov) implement it
- */
-class PolymerHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
-  final InternalAnalysisContext _context;
-
-  final AnalysisErrorListener _errorListener;
-
-  final Source _source;
-
-  final LineInfo _lineInfo;
-
-  final ht.HtmlUnit _unit;
-
-  PolymerHtmlUnitResolver(this._context, this._errorListener, this._source,
-      this._lineInfo, this._unit);
-
-  /**
-   * Resolves Polymer specific features.
-   */
-  void resolveUnit() {
-    // TODO(scheglov) implement it
-    //    unit.accept(this);
-  }
-
-  @override
-  Object visitXmlAttributeNode(ht.XmlAttributeNode node) =>
-      super.visitXmlAttributeNode(node);
-
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) => super.visitXmlTagNode(node);
-}
-
-/**
- * Instances of the class `PolymerResolveHtmlTask` performs Polymer specific HTML file
- * resolution.
- *
- * TODO(scheglov) implement it
- */
-class PolymerResolveHtmlTask extends AnalysisTask {
-  /**
-   * The source to be resolved.
-   */
-  final Source source;
-
-  /**
-   * The line information associated with the source.
-   */
-  final LineInfo _lineInfo;
-
-  /**
-   * The HTML unit to be resolved.
-   */
-  final ht.HtmlUnit _unit;
-
-  /**
-   * The resolution errors that were discovered while resolving the source.
-   */
-  List<AnalysisError> _errors = AnalysisError.NO_ERRORS;
-
-  /**
-   * Initialize a newly created task to perform analysis within the given context.
-   *
-   * @param context the context in which the task is to be performed
-   * @param source the source to be resolved
-   * @param unit the HTML unit to be resolved
-   */
-  PolymerResolveHtmlTask(InternalAnalysisContext context, this.source,
-      this._lineInfo, this._unit)
-      : super(context);
-
-  List<AnalysisError> get errors => _errors;
-
-  @override
-  String get taskDescription => "resolve as Polymer ${source.fullName}";
-
-  @override
-  accept(AnalysisTaskVisitor visitor) =>
-      visitor.visitPolymerResolveHtmlTask(this);
-
-  @override
-  void internalPerform() {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    PolymerHtmlUnitResolver resolver =
-        new PolymerHtmlUnitResolver(context, errorListener, source, _lineInfo, _unit);
-    resolver.resolveUnit();
-    _errors = errorListener.getErrorsForSource(source);
   }
 }
 
@@ -12837,21 +12110,4 @@ class _ElementByIdFinder extends GeneralizingElementVisitor {
 }
 
 class _ElementByIdFinderException {
-}
-
-class _PolymerHtmlUnitBuilder_findTagDartElement extends
-    RecursiveElementVisitor<Object> {
-  final PolymerHtmlUnitBuilder PolymerHtmlUnitBuilder_this;
-
-  _PolymerHtmlUnitBuilder_findTagDartElement(this.PolymerHtmlUnitBuilder_this)
-      : super();
-
-  @override
-  Object visitPolymerTagDartElement(PolymerTagDartElement element) {
-    if (element.name == PolymerHtmlUnitBuilder_this._elementName) {
-      throw new PolymerHtmlUnitBuilder_FoundTagDartElementError(
-          element as PolymerTagDartElementImpl);
-    }
-    return null;
-  }
 }

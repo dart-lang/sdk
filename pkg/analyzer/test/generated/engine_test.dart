@@ -2247,7 +2247,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     for (int i = 0; i < 2; i++, booleanValue = !booleanValue) {
       AnalysisOptionsImpl options = new AnalysisOptionsImpl();
       options.analyzeFunctionBodies = booleanValue;
-      options.analyzePolymer = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
       options.generateSdkErrors = booleanValue;
@@ -2256,7 +2255,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.preserveComments = booleanValue;
       AnalysisOptionsImpl copy = new AnalysisOptionsImpl.con1(options);
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
-      expect(copy.analyzePolymer, options.analyzePolymer);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
@@ -2271,13 +2269,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.analyzeFunctionBodies;
     options.analyzeFunctionBodies = value;
     expect(options.analyzeFunctionBodies, value);
-  }
-
-  void test_getAnalyzePolymer() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    bool value = !options.analyzePolymer;
-    options.analyzePolymer = value;
-    expect(options.analyzePolymer, value);
   }
 
   void test_getCacheSize() {
@@ -4118,28 +4109,14 @@ class HtmlEntryTest extends EngineTestCase {
         <AnalysisError>[
             new AnalysisError.con1(source, HtmlWarningCode.INVALID_URI, ["-"])]);
     entry.setValue(
-        HtmlEntry.POLYMER_BUILD_ERRORS,
-        <AnalysisError>[
-            new AnalysisError.con1(source, PolymerCode.INVALID_ATTRIBUTE_NAME, ["-"])]);
-    entry.setValue(
-        HtmlEntry.POLYMER_RESOLUTION_ERRORS,
-        <AnalysisError>[
-            new AnalysisError.con1(source, PolymerCode.INVALID_ATTRIBUTE_NAME, ["-"])]);
-    entry.setValue(
         HtmlEntry.HINTS,
         <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE)]);
-    expect(entry.allErrors, hasLength(5));
+    expect(entry.allErrors, hasLength(3));
   }
 
   void test_invalidateAllResolutionInformation() {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
-    expect(
-        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
-        same(CacheState.INVALID));
-    expect(
-        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS),
-        same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.HINTS), same(CacheState.INVALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
@@ -4156,12 +4133,6 @@ class HtmlEntryTest extends EngineTestCase {
   void test_invalidateAllResolutionInformation_includingUris() {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(true);
-    expect(
-        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
-        same(CacheState.INVALID));
-    expect(
-        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS),
-        same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.HINTS), same(CacheState.INVALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
@@ -4193,14 +4164,6 @@ class HtmlEntryTest extends EngineTestCase {
 
   void test_setState_parseErrors() {
     state = HtmlEntry.PARSE_ERRORS;
-  }
-
-  void test_setState_polymerBuildErrors() {
-    state = HtmlEntry.POLYMER_BUILD_ERRORS;
-  }
-
-  void test_setState_polymerResolutionErrors() {
-    state = HtmlEntry.POLYMER_RESOLUTION_ERRORS;
   }
 
   void test_setState_referencedLibraries() {
@@ -4245,20 +4208,6 @@ class HtmlEntryTest extends EngineTestCase {
             new AnalysisError.con1(null, HtmlWarningCode.INVALID_URI, ["-"])]);
   }
 
-  void test_setValue_polymerBuildErrors() {
-    _setValue(
-        HtmlEntry.POLYMER_BUILD_ERRORS,
-        <AnalysisError>[
-            new AnalysisError.con1(null, PolymerCode.INVALID_ATTRIBUTE_NAME, ["-"])]);
-  }
-
-  void test_setValue_polymerResolutionErrors() {
-    _setValue(
-        HtmlEntry.POLYMER_RESOLUTION_ERRORS,
-        <AnalysisError>[
-            new AnalysisError.con1(null, PolymerCode.INVALID_ATTRIBUTE_NAME, ["-"])]);
-  }
-
   void test_setValue_referencedLibraries() {
     _setValue(HtmlEntry.REFERENCED_LIBRARIES, <Source>[new TestSource()]);
   }
@@ -4277,8 +4226,6 @@ class HtmlEntryTest extends EngineTestCase {
     entry.setValue(SourceEntry.LINE_INFO, null);
     entry.setValue(HtmlEntry.PARSE_ERRORS, null);
     entry.setValue(HtmlEntry.PARSED_UNIT, null);
-    entry.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, null);
-    entry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, null);
     entry.setValue(HtmlEntry.REFERENCED_LIBRARIES, null);
     entry.setValue(HtmlEntry.RESOLUTION_ERRORS, null);
     expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.VALID));
@@ -4286,12 +4233,6 @@ class HtmlEntryTest extends EngineTestCase {
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSED_UNIT), same(CacheState.VALID));
-    expect(
-        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
-        same(CacheState.VALID));
-    expect(
-        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS),
-        same(CacheState.VALID));
     expect(
         entry.getState(HtmlEntry.REFERENCED_LIBRARIES),
         same(CacheState.VALID));
@@ -6769,16 +6710,6 @@ class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   @override
   E visitParseHtmlTask(ParseHtmlTask task) {
     fail("Unexpectedly invoked visitParseHtmlTask");
-    return null;
-  }
-  @override
-  E visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) {
-    fail("Unexpectedly invoked visitPolymerBuildHtmlTask");
-    return null;
-  }
-  @override
-  E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) {
-    fail("Unexpectedly invoked visitPolymerResolveHtmlTask");
     return null;
   }
   @override

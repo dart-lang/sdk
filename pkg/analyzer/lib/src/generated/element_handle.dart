@@ -89,9 +89,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   InterfaceType get supertype => actualElement.supertype;
 
   @override
-  List<ToolkitObjectElement> get toolkitObjects => actualElement.toolkitObjects;
-
-  @override
   InterfaceType get type => actualElement.type;
 
   @override
@@ -834,9 +831,6 @@ class LocalVariableElementHandle extends VariableElementHandle implements
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
-
-  @override
-  List<ToolkitObjectElement> get toolkitObjects => actualElement.toolkitObjects;
 
   @override
   SourceRange get visibleRange => actualElement.visibleRange;

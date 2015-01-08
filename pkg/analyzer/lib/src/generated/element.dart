@@ -268,15 +268,6 @@ abstract class ClassElement implements Element {
   InterfaceType get supertype;
 
   /**
-   * Return an array containing all of the toolkit specific objects associated with this class. The
-   * array will be empty if the class does not have any toolkit specific objects or if the
-   * compilation unit containing the class has not yet had toolkit references resolved.
-   *
-   * @return the toolkit objects associated with this class
-   */
-  List<ToolkitObjectElement> get toolkitObjects;
-
-  /**
    * Return the type defined by the class.
    *
    * @return the type defined by the class
@@ -561,11 +552,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   InterfaceType supertype;
 
   /**
-   * An array containing all of the toolkit objects attached to this class.
-   */
-  List<ToolkitObjectElement> _toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
-
-  /**
    * The type defined by the class.
    */
   InterfaceType type;
@@ -783,9 +769,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   ClassDeclaration get node =>
       getNodeMatching((node) => node is ClassDeclaration);
 
-  @override
-  List<ToolkitObjectElement> get toolkitObjects => _toolkitObjects;
-
   /**
    * Set whether this class is defined by a typedef construct to correspond to the given value.
    *
@@ -832,19 +815,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
-
-  /**
-   * Add the given [toolkitObject] to the list of toolkit specific information
-   * objects attached to this class.
-   */
-  void addToolkitObjects(ToolkitObjectElement toolkitObject) {
-    (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
-    if (_toolkitObjects.isEmpty) {
-      // Convert from a non-growable list to a growable list.
-      _toolkitObjects = <ToolkitObjectElement>[];
-    }
-    _toolkitObjects.add(toolkitObject);
-  }
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -1023,7 +993,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(_constructors, visitor);
     safelyVisitChildren(_fields, visitor);
     safelyVisitChildren(_methods, visitor);
-    safelyVisitChildren(_toolkitObjects, visitor);
     safelyVisitChildren(_typeParameters, visitor);
   }
 
@@ -1384,11 +1353,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
   List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
 
   /**
-   * A table mapping elements to associated toolkit objects.
-   */
-  Map<Element, List<ToolkitObjectElement>> _toolkitObjects = {};
-
-  /**
    * An array containing all of the function type aliases contained in this compilation unit.
    */
   List<FunctionTypeAliasElement> _typeAliases =
@@ -1617,30 +1581,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
     safelyVisitChildren(_typeAliases, visitor);
     safelyVisitChildren(_types, visitor);
     safelyVisitChildren(_variables, visitor);
-  }
-
-  /**
-   * Returns the associated toolkit objects.
-   *
-   * @param element the [Element] to get toolkit objects for
-   * @return the associated toolkit objects, may be empty, but not `null`
-   */
-  List<ToolkitObjectElement> _getToolkitObjects(Element element) {
-    List<ToolkitObjectElement> objects = _toolkitObjects[element];
-    if (objects != null) {
-      return objects;
-    }
-    return ToolkitObjectElement.EMPTY_ARRAY;
-  }
-
-  /**
-   * Sets the toolkit objects that are associated with the given [Element].
-   *
-   * @param element the [Element] to associate toolkit objects with
-   * @param objects the toolkit objects to associate
-   */
-  void _setToolkitObjects(Element element, List<ToolkitObjectElement> objects) {
-    _toolkitObjects[element] = objects;
   }
 }
 
@@ -3082,31 +3022,22 @@ class ElementKind extends Enum<ElementKind> {
   static const ElementKind PARAMETER =
       const ElementKind('PARAMETER', 18, "parameter");
 
-  static const ElementKind POLYMER_ATTRIBUTE =
-      const ElementKind('POLYMER_ATTRIBUTE', 19, "Polymer attribute");
-
-  static const ElementKind POLYMER_TAG_DART =
-      const ElementKind('POLYMER_TAG_DART', 20, "Polymer Dart tag");
-
-  static const ElementKind POLYMER_TAG_HTML =
-      const ElementKind('POLYMER_TAG_HTML', 21, "Polymer HTML tag");
-
   static const ElementKind PREFIX =
-      const ElementKind('PREFIX', 22, "import prefix");
+      const ElementKind('PREFIX', 19, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 23, "setter");
+  static const ElementKind SETTER = const ElementKind('SETTER', 20, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind('TOP_LEVEL_VARIABLE', 24, "top level variable");
+      const ElementKind('TOP_LEVEL_VARIABLE', 21, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind('FUNCTION_TYPE_ALIAS', 25, "function type alias");
+      const ElementKind('FUNCTION_TYPE_ALIAS', 22, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      const ElementKind('TYPE_PARAMETER', 26, "type parameter");
+      const ElementKind('TYPE_PARAMETER', 23, "type parameter");
 
   static const ElementKind UNIVERSE =
-      const ElementKind('UNIVERSE', 27, "<universe>");
+      const ElementKind('UNIVERSE', 24, "<universe>");
 
   static const List<ElementKind> values = const [
       CLASS,
@@ -3128,9 +3059,6 @@ class ElementKind extends Enum<ElementKind> {
       METHOD,
       NAME,
       PARAMETER,
-      POLYMER_ATTRIBUTE,
-      POLYMER_TAG_DART,
-      POLYMER_TAG_HTML,
       PREFIX,
       SETTER,
       TOP_LEVEL_VARIABLE,
@@ -3445,12 +3373,6 @@ abstract class ElementVisitor<R> {
   R visitMultiplyDefinedElement(MultiplyDefinedElement element);
 
   R visitParameterElement(ParameterElement element);
-
-  R visitPolymerAttributeElement(PolymerAttributeElement element);
-
-  R visitPolymerTagDartElement(PolymerTagDartElement element);
-
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element);
 
   R visitPrefixElement(PrefixElement element);
 
@@ -5587,21 +5509,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitLocalElement(element);
 
   @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) =>
-      visitPolymerElement(element);
-
-  R visitPolymerElement(PolymerElement element) =>
-      visitToolkitObjectElement(element);
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) =>
-      visitPolymerElement(element);
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) =>
-      visitPolymerElement(element);
-
-  @override
   R visitPrefixElement(PrefixElement element) => visitElement(element);
 
   @override
@@ -5610,9 +5517,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   R visitPropertyInducingElement(PropertyInducingElement element) =>
       visitVariableElement(element);
-
-  R visitToolkitObjectElement(ToolkitObjectElement element) =>
-      visitElement(element);
 
   @override
   R visitTopLevelVariableElement(TopLevelVariableElement element) =>
@@ -5670,14 +5574,6 @@ class HideElementCombinatorImpl implements HideElementCombinator {
  */
 abstract class HtmlElement implements Element {
   /**
-   * Return an array containing all of the [PolymerTagHtmlElement]s defined in the HTML file.
-   *
-   * @return the [PolymerTagHtmlElement]s elements in the HTML file (not `null`,
-   *         contains no `null`s)
-   */
-  List<PolymerTagHtmlElement> get polymerTags;
-
-  /**
    * Return an array containing all of the script elements contained in the HTML file. This includes
    * scripts with libraries that are defined by the content of a script tag as well as libraries
    * that are referenced in the {@core source} attribute of a script tag.
@@ -5707,11 +5603,6 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   List<HtmlScriptElement> _scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
 
   /**
-   * The [PolymerTagHtmlElement]s defined in the HTML file.
-   */
-  List<PolymerTagHtmlElement> _polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
-
-  /**
    * The source that corresponds to this HTML file.
    */
   Source source;
@@ -5732,23 +5623,6 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
 
   @override
   ElementKind get kind => ElementKind.HTML;
-
-  @override
-  List<PolymerTagHtmlElement> get polymerTags => _polymerTags;
-
-  /**
-   * Set the [PolymerTagHtmlElement]s defined in the HTML file.
-   */
-  void set polymerTags(List<PolymerTagHtmlElement> polymerTags) {
-    if (polymerTags.length == 0) {
-      this._polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
-      return;
-    }
-    for (PolymerTagHtmlElement tag in polymerTags) {
-      (tag as PolymerTagHtmlElementImpl).enclosingElement = this;
-    }
-    this._polymerTags = polymerTags;
-  }
 
   @override
   List<HtmlScriptElement> get scripts => _scripts;
@@ -5797,7 +5671,6 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_scripts, visitor);
-    safelyVisitChildren(_polymerTags, visitor);
   }
 }
 
@@ -7881,12 +7754,6 @@ abstract class LocalElement implements Element {
  * a local variable.
  */
 abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /**
-   * Return an array containing all of the toolkit specific objects attached to this variable.
-   *
-   * @return the toolkit objects attached to this variable
-   */
-  List<ToolkitObjectElement> get toolkitObjects;
 }
 
 /**
@@ -7947,30 +7814,6 @@ class LocalVariableElementImpl extends VariableElementImpl implements
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
-
-  @override
-  List<ToolkitObjectElement> get toolkitObjects {
-    CompilationUnitElementImpl unit =
-        getAncestor((element) => element is CompilationUnitElementImpl);
-    if (unit == null) {
-      return ToolkitObjectElement.EMPTY_ARRAY;
-    }
-    return unit._getToolkitObjects(this);
-  }
-
-  /**
-   * Set the toolkit specific information objects attached to this variable.
-   *
-   * @param toolkitObjects the toolkit objects attached to this variable
-   */
-  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
-    CompilationUnitElementImpl unit =
-        getAncestor((element) => element is CompilationUnitElementImpl);
-    if (unit == null) {
-      return;
-    }
-    unit._setToolkitObjects(this, toolkitObjects);
-  }
 
   @override
   SourceRange get visibleRange {
@@ -9237,221 +9080,6 @@ class ParameterMember extends VariableMember implements ParameterElement {
 }
 
 /**
- * The interface `PolymerAttributeElement` defines an attribute in
- * [PolymerTagHtmlElement].
- *
- * <pre>
- * <polymer-element name="my-example" attributes='attrA attrB'>
- * </polymer-element>
- * </pre>
- */
-abstract class PolymerAttributeElement implements PolymerElement {
-  /**
-   * An empty list of Polymer custom tag attributes.
-   */
-  static const List<PolymerAttributeElement> EMPTY_ARRAY = const
-      <PolymerAttributeElement>[
-      ];
-
-  /**
-   * Return the [FieldElement] associated with this attribute. Maybe `null` if
-   * [PolymerTagDartElement] does not have a field associated with it.
-   */
-  FieldElement get field;
-}
-
-/**
- * Implementation of `PolymerAttributeElement`.
- */
-class PolymerAttributeElementImpl extends PolymerElementImpl implements
-    PolymerAttributeElement {
-  /**
-   * The [FieldElement] associated with this attribute.
-   */
-  FieldElement field;
-
-  /**
-   * Initialize a newly created Polymer attribute to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerAttributeElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_ATTRIBUTE;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerAttributeElement(this);
-}
-
-/**
- * The interface `PolymerElement` defines the behavior of objects representing information
- * about a Polymer specific element.
- */
-abstract class PolymerElement implements ToolkitObjectElement {
-  /**
-   * An empty list of Polymer elements.
-   */
-  static const List<PolymerElement> EMPTY_ARRAY = const <PolymerElement>[];
-}
-
-/**
- * Implementation of `PolymerElement`.
- */
-abstract class PolymerElementImpl extends ToolkitObjectElementImpl implements
-    PolymerElement {
-  /**
-   * Initialize a newly created Polymer element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerElementImpl(String name, int nameOffset) : super(name, nameOffset);
-}
-
-/**
- * The interface `PolymerTagDartElement` defines a Polymer custom tag in Dart.
- *
- * <pre>
- * @CustomTag('my-example')
- * </pre>
- */
-abstract class PolymerTagDartElement implements PolymerElement {
-  /**
-   * Return the [ClassElement] that is associated with this Polymer custom tag. Not
-   * `null`, because [PolymerTagDartElement]s are created for [ClassElement]s
-   * marked with the `@CustomTag` annotation.
-   */
-  ClassElement get classElement;
-
-  /**
-   * Return the [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if
-   * it has not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagHtmlElement get htmlElement;
-}
-
-/**
- * Implementation of `PolymerTagDartElement`.
- */
-class PolymerTagDartElementImpl extends PolymerElementImpl implements
-    PolymerTagDartElement {
-  /**
-   * The [ClassElement] that is associated with this Polymer custom tag.
-   */
-  final ClassElement classElement;
-
-  /**
-   * The [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if it has
-   * not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagHtmlElement htmlElement;
-
-  /**
-   * Initialize a newly created Dart part of a Polymer tag to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerTagDartElementImpl(String name, int nameOffset, this.classElement)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_TAG_DART;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerTagDartElement(this);
-}
-
-/**
- * The interface `PolymerTagHtmlElement` defines a Polymer custom tag in HTML.
- *
- * <pre>
- * <polymer-element name="my-example" attributes='attrA attrB'>
- * </polymer-element>
- * </pre>
- */
-abstract class PolymerTagHtmlElement implements PolymerElement {
-  /**
-   * An empty list of [PolymerTagHtmlElement]s.
-   */
-  static const List<PolymerTagHtmlElement> EMPTY_ARRAY = const
-      <PolymerTagHtmlElement>[
-      ];
-
-  /**
-   * Return an array containing all of the attributes declared by this tag.
-   */
-  List<PolymerAttributeElement> get attributes;
-
-  /**
-   * Return the [PolymerTagDartElement] part on this Polymer custom tag. Maybe `null` if
-   * it has not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagDartElement get dartElement;
-}
-
-/**
- * Implementation of `PolymerTagHtmlElement`.
- */
-class PolymerTagHtmlElementImpl extends PolymerElementImpl implements
-    PolymerTagHtmlElement {
-  /**
-   * The [PolymerTagDartElement] part of this Polymer custom tag. Maybe `null` if it has
-   * not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagDartElement dartElement;
-
-  /**
-   * The array containing all of the attributes declared by this tag.
-   */
-  List<PolymerAttributeElement> _attributes =
-      PolymerAttributeElement.EMPTY_ARRAY;
-
-  /**
-   * Initialize a newly created HTML part of a Polymer tag to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerTagHtmlElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  List<PolymerAttributeElement> get attributes => _attributes;
-
-  /**
-   * Set an array containing all of the attributes declared by this tag.
-   *
-   * @param attributes the properties to set
-   */
-  void set attributes(List<PolymerAttributeElement> attributes) {
-    for (PolymerAttributeElement property in attributes) {
-      encloseElement(property as PolymerAttributeElementImpl);
-    }
-    this._attributes = attributes;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_TAG_HTML;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerTagHtmlElement(this);
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChildren(_attributes, visitor);
-    super.visitChildren(visitor);
-  }
-}
-
-/**
  * The interface `PrefixElement` defines the behavior common to elements that represent a
  * prefix used to import one or more libraries into another library.
  */
@@ -10129,24 +9757,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitPrefixElement(PrefixElement element) {
     element.visitChildren(this);
     return null;
@@ -10298,15 +9908,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitParameterElement(ParameterElement element) => null;
 
   @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) => null;
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) => null;
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => null;
-
-  @override
   R visitPrefixElement(PrefixElement element) => null;
 
   @override
@@ -10317,36 +9918,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitTypeParameterElement(TypeParameterElement element) => null;
-}
-
-/**
- * The interface `ToolkitObjectElement` defines the behavior of elements that represent a
- * toolkit specific object, such as Angular controller or component. These elements are not based on
- * the Dart syntax, but on some semantic agreement, such as a special annotation.
- */
-abstract class ToolkitObjectElement implements Element {
-  /**
-   * An empty list of toolkit object elements.
-   */
-  static const List<ToolkitObjectElement> EMPTY_ARRAY = const
-      <ToolkitObjectElement>[
-      ];
-}
-
-/**
- * Instances of the class `ToolkitObjectElementImpl` implement a `ToolkitObjectElement`.
- */
-abstract class ToolkitObjectElementImpl extends ElementImpl implements
-    ToolkitObjectElement {
-  /**
-   * Initialize a newly created toolkit object element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  ToolkitObjectElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
 }
 
 /**

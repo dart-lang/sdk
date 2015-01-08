@@ -443,9 +443,6 @@ class EnumTest {
       engine.ElementKind.HTML: ElementKind.UNKNOWN,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
-      engine.ElementKind.POLYMER_ATTRIBUTE: ElementKind.UNKNOWN,
-      engine.ElementKind.POLYMER_TAG_DART: ElementKind.UNKNOWN,
-      engine.ElementKind.POLYMER_TAG_HTML: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
     });
   }

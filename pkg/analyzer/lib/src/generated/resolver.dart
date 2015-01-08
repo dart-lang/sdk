@@ -8553,16 +8553,6 @@ class LibraryResolver {
     } finally {
       timeCounter.stop();
     }
-    // Polymer
-    timeCounter = PerformanceStatistics.polymer.start();
-    try {
-      for (Source source in library.compilationUnitSources) {
-        CompilationUnit ast = library.getAST(source);
-        new PolymerCompilationUnitBuilder(ast).build();
-      }
-    } finally {
-      timeCounter.stop();
-    }
   }
 
   /**
@@ -9112,16 +9102,6 @@ class LibraryResolver2 {
         ResolverVisitor visitor =
             new ResolverVisitor.con4(library, source, _typeProvider);
         ast.accept(visitor);
-      }
-    } finally {
-      timeCounter.stop();
-    }
-    // Polymer
-    timeCounter = PerformanceStatistics.polymer.start();
-    try {
-      for (Source source in library.compilationUnitSources) {
-        CompilationUnit ast = library.getAST(source);
-        new PolymerCompilationUnitBuilder(ast).build();
       }
     } finally {
       timeCounter.stop();
@@ -9801,113 +9781,6 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` if the element has an override annotation associated with it
    */
   bool _isOverride(Element element) => element != null && element.isOverride;
-}
-
-/**
- * Instances of the class `PolymerCompilationUnitBuilder` build a Polymer specific element
- * model for a single compilation unit.
- */
-class PolymerCompilationUnitBuilder {
-  static String _CUSTOM_TAG = "CustomTag";
-
-  /**
-   * The compilation unit with built Dart element models.
-   */
-  final CompilationUnit _unit;
-
-  /**
-   * The [ClassDeclaration] that is currently being analyzed.
-   */
-  ClassDeclaration _classDeclaration;
-
-  /**
-   * The [ClassElementImpl] that is currently being analyzed.
-   */
-  ClassElementImpl _classElement;
-
-  /**
-   * The [Annotation] that is currently being analyzed.
-   */
-  Annotation _annotation;
-
-  /**
-   * Initialize a newly created compilation unit element builder.
-   *
-   * @param unit the compilation unit with built Dart element models
-   */
-  PolymerCompilationUnitBuilder(this._unit);
-
-  /**
-   * Builds Polymer specific element models and adds them to the existing Dart elements.
-   */
-  void build() {
-    // process classes
-    for (CompilationUnitMember unitMember in _unit.declarations) {
-      if (unitMember is ClassDeclaration) {
-        this._classDeclaration = unitMember;
-        this._classElement = _classDeclaration.element as ClassElementImpl;
-        // process annotations
-        NodeList<Annotation> annotations = _classDeclaration.metadata;
-        for (Annotation annotation in annotations) {
-          // verify annotation
-          if (annotation.arguments == null) {
-            continue;
-          }
-          this._annotation = annotation;
-          // @CustomTag
-          if (_isAnnotation(annotation, _CUSTOM_TAG)) {
-            _parseCustomTag();
-            continue;
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Checks if given [Annotation] is an annotation with required name.
-   */
-  bool _isAnnotation(Annotation annotation, String name) {
-    Element element = annotation.element;
-    if (element is ConstructorElement) {
-      ConstructorElement constructorElement = element;
-      return constructorElement.returnType.displayName == name;
-    }
-    return false;
-  }
-
-  void _parseCustomTag() {
-    List<Expression> arguments = _annotation.arguments.arguments;
-    if (arguments.length == 1) {
-      Expression nameExpression = arguments[0];
-      if (nameExpression is SimpleStringLiteral) {
-        SimpleStringLiteral nameLiteral = nameExpression;
-        String name = nameLiteral.value;
-        int nameOffset = nameLiteral.contentsOffset;
-        PolymerTagDartElementImpl element =
-            new PolymerTagDartElementImpl(name, nameOffset, _classElement);
-        _classElement.addToolkitObjects(element);
-        nameLiteral.toolkitElement = element;
-      }
-    }
-  }
-
-  static Element getElement(AstNode node, int offset) {
-    // maybe node is not SimpleStringLiteral
-    if (node is! SimpleStringLiteral) {
-      return null;
-    }
-    SimpleStringLiteral literal = node as SimpleStringLiteral;
-    // maybe has PolymerElement
-    {
-      Element element = literal.toolkitElement;
-      if (element is PolymerElement) {
-        return element;
-      }
-    }
-    // no Element
-    return null;
-  }
 }
 
 /**
