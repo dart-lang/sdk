@@ -160,10 +160,12 @@ abstract class Conversion extends Expression implements StaticInfo {
   int get precedence => 15;
 }
 
-class DownCast extends Conversion {
+// A down cast from a subtype to a supertype.  This must be checked at
+// runtime to recover soundness.
+abstract class DownCastBase extends Conversion {
   Cast _cast;
 
-  DownCast(TypeRules rules, Expression expression, this._cast)
+  DownCastBase._internal(TypeRules rules, Expression expression, this._cast)
       : super(rules, expression) {
     assert(_cast.toType != baseType &&
         _cast.fromType == baseType &&
@@ -184,11 +186,37 @@ class DownCast extends Conversion {
 
   accept(AstVisitor visitor) {
     if (visitor is ConversionVisitor) {
-      return visitor.visitDownCast(this);
+      return visitor.visitDownCastBase(this);
     } else {
       return expression.accept(visitor);
     }
   }
+}
+
+// Standard / unspecialized down cast.
+class DownCast extends DownCastBase {
+  DownCast(TypeRules rules, Expression expression, Cast cast) :
+    super._internal(rules, expression, cast);
+}
+
+// A down cast that would be "unnecessary" with standard Dart rules.
+// E.g., the fromType <: toType in standard Dart but not in our restricted
+// rules.  These occur due to our stricter rules on dynamic type parameters in
+// generics.
+class DownCastDynamic extends DownCastBase {
+  DownCastDynamic(TypeRules rules, Expression expression, Cast cast) :
+    super._internal(rules, expression, cast);
+
+  final Level level = Level.WARNING;
+}
+
+// A down cast on a literal expression.  This should never succeed.
+// TODO(vsm): Mark as severe / error?
+class DownCastExact extends DownCastBase {
+  DownCastExact(TypeRules rules, Expression expression, Cast cast) :
+    super._internal(rules, expression, cast);
+
+  final Level level = Level.WARNING;
 }
 
 class ClosureWrap extends Conversion {
@@ -338,7 +366,10 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
   R visitConversion(Conversion node) => visitNode(node);
 
   // Methods for conversion subtypes:
-  R visitDownCast(DownCast node) => visitConversion(node);
+  R visitDownCastBase(DownCastBase node) => visitConversion(node);
+  R visitDownCast(DownCastDynamic node) => visitDownCastBase(node);
+  R visitDownCastDynamic(DownCastDynamic node) => visitDownCastBase(node);
+  R visitDownCastExact(DownCastDynamic node) => visitDownCastBase(node);
   R visitClosureWrap(ClosureWrap node) => visitConversion(node);
   R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);
 }

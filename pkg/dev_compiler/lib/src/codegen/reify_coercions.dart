@@ -34,7 +34,7 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   ///////////////// Private //////////////////////////////////
 
   @override
-  Object visitDownCast(DownCast node) {
+  Object visitDownCastBase(DownCast node) {
     Expression castNode = _cm.coerceExpression(node.node, node.cast);
     if (!NodeReplacer.replace(node, castNode)) {
       _log.severe("Failed to replace node for DownCast");

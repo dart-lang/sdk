@@ -847,24 +847,24 @@ main() {
         lOfDynamics = ns;
 
         // L<T> <: L<S> iff S = dynamic or S=T
-        lOfAs = /*info:DownCast*/lRaw;
-        lOfAs = /*info:DownCast*/lOfDynamics;
+        lOfAs = /*warning:DownCastDynamic*/lRaw;
+        lOfAs = /*warning:DownCastDynamic*/lOfDynamics;
 
         // M<dynamic> </:/> L<A>
         lOfAs = /*severe:StaticTypeError*/mRaw;
         lOfAs = /*severe:StaticTypeError*/mOfDynamics;
 
         // L<T> <: L<S> iff S = dynamic or S=T
-        lOfBs = /*info:DownCast*/lRaw;
-        lOfBs = /*info:DownCast*/lOfDynamics;
+        lOfBs = /*warning:DownCastDynamic*/lRaw;
+        lOfBs = /*warning:DownCastDynamic*/lOfDynamics;
 
         // M<dynamic> </:/> L<B>
         lOfBs = /*severe:StaticTypeError*/mRaw;
         lOfBs = /*severe:StaticTypeError*/mOfDynamics;
 
         // L<T> <: L<S> iff S = dynamic or S=T
-        lOfCs = /*info:DownCast*/lRaw;
-        lOfCs = /*info:DownCast*/lOfDynamics;
+        lOfCs = /*warning:DownCastDynamic*/lRaw;
+        lOfCs = /*warning:DownCastDynamic*/lOfDynamics;
 
         // M<dynamic> </:/> L<C>
         lOfCs = /*severe:StaticTypeError*/mRaw;
@@ -901,24 +901,24 @@ main() {
         mOfAs = /*info:DownCast*/lOfDynamics;
 
         // M<dynamic> </:/> M<A>
-        mOfAs = /*info:DownCast*/mRaw;
-        mOfAs = /*info:DownCast*/mOfDynamics;
+        mOfAs = /*warning:DownCastDynamic*/mRaw;
+        mOfAs = /*warning:DownCastDynamic*/mOfDynamics;
 
         // M<T> <: L<S> iff S = dynamic or S=T
         mOfBs = /*info:DownCast*/lRaw;
         mOfBs = /*info:DownCast*/lOfDynamics;
 
         // M<dynamic> </:/> M<B>
-        mOfBs = /*info:DownCast*/mRaw;
-        mOfBs = /*info:DownCast*/mOfDynamics;
+        mOfBs = /*warning:DownCastDynamic*/mRaw;
+        mOfBs = /*warning:DownCastDynamic*/mOfDynamics;
 
         // M<T> <: L<S> iff S = dynamic or S=T
         mOfCs = /*info:DownCast*/lRaw;
         mOfCs = /*info:DownCast*/lOfDynamics;
 
         // M<dynamic> </:/> M<C>
-        mOfCs = /*info:DownCast*/mRaw;
-        mOfCs = /*info:DownCast*/mOfDynamics;
+        mOfCs = /*warning:DownCastDynamic*/mRaw;
+        mOfCs = /*warning:DownCastDynamic*/mOfDynamics;
 
         // Concrete subclass subtyping
         ns = /*info:DownCast*/lRaw;
@@ -986,21 +986,21 @@ main() {
         lOfDD = lOfAA;
 
         // L<dynamic, A>
-        lOfDA = /*info:DownCast*/lRaw;
-        lOfDA = /*info:DownCast*/lOfD_;
-        lOfDA = /*info:DownCast*/lOfA_;
+        lOfDA = /*warning:DownCastDynamic*/lRaw;
+        lOfDA = /*warning:DownCastDynamic*/lOfD_;
+        lOfDA = /*warning:DownCastDynamic*/lOfA_;
         lOfDA = lOfDA;
         lOfDA = /*severe:StaticTypeError*/lOfAD;
-        lOfDA = /*info:DownCast*/lOfDD;
+        lOfDA = /*warning:DownCastDynamic*/lOfDD;
         lOfDA = lOfAA;
 
         // L<A, dynamic>
-        lOfAD = /*info:DownCast*/lRaw;
-        lOfAD = /*info:DownCast*/lOfD_;
-        lOfAD = /*info:DownCast*/lOfA_;
+        lOfAD = /*warning:DownCastDynamic*/lRaw;
+        lOfAD = /*warning:DownCastDynamic*/lOfD_;
+        lOfAD = /*warning:DownCastDynamic*/lOfA_;
         lOfAD = /*severe:StaticTypeError*/lOfDA;
         lOfAD = lOfAD;
-        lOfAD = /*info:DownCast*/lOfDD;
+        lOfAD = /*warning:DownCastDynamic*/lOfDD;
         lOfAD = lOfAA;
 
         // L<A> == L<dynamic, dynamic>
@@ -1013,12 +1013,12 @@ main() {
         lOfA_ = lOfAA;
 
         // L<A, A>
-        lOfAA = /*info:DownCast*/lRaw;
-        lOfAA = /*info:DownCast*/lOfD_;
-        lOfAA = /*info:DownCast*/lOfA_;
-        lOfAA = /*info:DownCast*/lOfDA;
-        lOfAA = /*info:DownCast*/lOfAD;
-        lOfAA = /*info:DownCast*/lOfDD;
+        lOfAA = /*warning:DownCastDynamic*/lRaw;
+        lOfAA = /*warning:DownCastDynamic*/lOfD_;
+        lOfAA = /*warning:DownCastDynamic*/lOfA_;
+        lOfAA = /*warning:DownCastDynamic*/lOfDA;
+        lOfAA = /*warning:DownCastDynamic*/lOfAD;
+        lOfAA = /*warning:DownCastDynamic*/lOfDD;
         lOfAA = lOfAA;
       }
    '''
@@ -1137,6 +1137,28 @@ main() {
       }
    '''
     }, covariantGenerics: true);
+  });
+
+  test('Subtyping literals', () {
+    testChecker({
+      '/main.dart': '''
+          test() {
+            Iterable i1 = [1, 2, 3];
+            i1 = <int>[1, 2, 3];
+
+            List l1 = [1, 2, 3];
+            l1 = <int>[1, 2, 3];
+
+            Iterable<int> i2 = /*pass should be severe:StaticTypeError*/[1, 2, 3];
+            i2 = /*pass should be warning:DownCastDynamic*/i1;
+            i2 = /*pass should be severe:StaticTypeError*/l1;
+
+            List<int> l2 = /*warning:DownCastExact*/[1, 2, 3];
+            l2 = /*info:DownCast*/i1;
+            l2 = /*warning:DownCastDynamic*/l1;
+          }
+   '''
+    });
   });
 
   test('redirecting constructor', () {

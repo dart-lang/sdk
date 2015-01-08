@@ -95,7 +95,7 @@ class RestrictedRules extends TypeRules {
     if (t is TypeParameterType) return false;
     if (t.isDynamic) return true;
 
-    // t must be an InterfacetType.
+    // t must be an InterfaceType.
     var typeArguments = (t as InterfaceType).typeArguments;
     for (var typeArgument in typeArguments) {
       if (!typeArgument.isDynamic) return false;
@@ -384,8 +384,27 @@ class RestrictedRules extends TypeRules {
     final fromT = getStaticType(expr);
     final Coercion c = _coerceTo(fromT, toT, true);
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
-    if (c is Cast) return new DownCast(this, expr, c);
-    if (c is Wrapper) return new ClosureWrap(this, expr, c, toT);
+    if (c is Cast) {
+      // toT <:_R fromT => to <: fromT
+      assert(toT.isSubtypeOf(fromT));
+
+      // Specialized casts:
+      if (expr is Literal) {
+        // fromT should be an exact type - this will almost certainly fail at
+        // runtime.
+        return new DownCastExact(this, expr, c);
+      }
+      if (fromT.isSubtypeOf(toT) && !fromT.isDynamic) {
+        // This cast is (probably) due to our different treatment of dynamic.
+        // It may be more likely to fail at runtime.
+        return new DownCastDynamic(this, expr, c);
+      }
+      return new DownCast(this, expr, c);
+    }
+    if (c is Wrapper) {
+      // Specialized wrappers:
+      return new ClosureWrap(this, expr, c, toT);
+    }
     assert(c is Identity);
     return null;
   }
