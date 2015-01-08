@@ -186,3 +186,33 @@ class InstrumentationService {
     return object.toString();
   }
 }
+
+/**
+ * An [InstrumentationServer] that sends messages to multiple instances.
+ */
+class MulticastInstrumentationServer implements InstrumentationServer {
+  final List<InstrumentationServer> _servers;
+
+  MulticastInstrumentationServer(this._servers);
+
+  @override
+  void log(String message) {
+    for (InstrumentationServer server in _servers) {
+      server.log(message);
+    }
+  }
+
+  @override
+  void logWithPriority(String message) {
+    for (InstrumentationServer server in _servers) {
+      server.logWithPriority(message);
+    }
+  }
+
+  @override
+  void shutdown() {
+    for (InstrumentationServer server in _servers) {
+      server.shutdown();
+    }
+  }
+}

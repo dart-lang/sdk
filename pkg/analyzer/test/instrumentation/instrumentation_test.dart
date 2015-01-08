@@ -12,6 +12,7 @@ import '../reflective_tests.dart';
 main() {
   group('instrumentation', () {
     runReflectiveTests(InstrumentationServiceTest);
+    runReflectiveTests(MulticastInstrumentationServerTest);
   });
 }
 
@@ -77,6 +78,47 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
     String message = 'responseText';
     service.logResponse(message);
     assertNormal(server, InstrumentationService.TAG_RESPONSE, message);
+  }
+}
+
+@ReflectiveTestCase()
+class MulticastInstrumentationServerTest extends ReflectiveTestCase {
+  TestInstrumentationServer serverA = new TestInstrumentationServer();
+  TestInstrumentationServer serverB = new TestInstrumentationServer();
+  MulticastInstrumentationServer server;
+
+  void setUp() {
+    server = new MulticastInstrumentationServer([serverA, serverB]);
+  }
+
+  void test_log() {
+    server.log('foo bar');
+    _assertNormal(serverA, 'foo bar');
+    _assertNormal(serverB, 'foo bar');
+  }
+
+  void test_logWithPriority() {
+    server.logWithPriority('foo bar');
+    _assertPriority(serverA, 'foo bar');
+    _assertPriority(serverB, 'foo bar');
+  }
+
+  void test_shutdown() {
+    server.shutdown();
+  }
+
+  void _assertNormal(TestInstrumentationServer server, String message) {
+    String sent = server.normalChannel.toString();
+    if (!sent.endsWith('$message\n')) {
+      fail('Expected "...$message", found "$sent"');
+    }
+  }
+
+  void _assertPriority(TestInstrumentationServer server, String message) {
+    String sent = server.priorityChannel.toString();
+    if (!sent.endsWith('$message\n')) {
+      fail('Expected "...$message", found "$sent"');
+    }
   }
 }
 
