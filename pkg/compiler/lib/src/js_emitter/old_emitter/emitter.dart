@@ -1473,37 +1473,35 @@ class OldEmitter implements Emitter {
       mainBuffer.write(';');
     }
 
-    if (elementDescriptors.isNotEmpty) {
-      Iterable<LibraryElement> libraries =
-          task.outputLibraryLists[mainOutputUnit];
-      if (libraries == null) libraries = [];
-      emitLibraries(libraries);
-      emitTypedefs();
-      emitMangledNames();
+    Iterable<LibraryElement> libraries =
+        task.outputLibraryLists[mainOutputUnit];
+    if (libraries == null) libraries = [];
+    emitLibraries(libraries);
+    emitTypedefs();
+    emitMangledNames();
 
-      checkEverythingEmitted(elementDescriptors.keys);
+    checkEverythingEmitted(elementDescriptors.keys);
 
-      CodeBuffer libraryBuffer = new CodeBuffer();
-      for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-        writeLibraryDescriptors(libraryBuffer, library);
-        elementDescriptors.remove(library);
-      }
-
-      mainBuffer
-          ..write(
-              jsAst.prettyPrint(
-                  getReflectionDataParser(this, backend),
-                  compiler))
-          ..write(n);
-
-      // The argument to reflectionDataParser is assigned to a temporary 'dart'
-      // so that 'dart.' will appear as the prefix to dart methods in stack
-      // traces and profile entries.
-      mainBuffer..write('var dart = [$n')
-                ..write(libraryBuffer)
-                ..write(']$N')
-                ..write('$parseReflectionDataName(dart)$N');
+    CodeBuffer libraryBuffer = new CodeBuffer();
+    for (LibraryElement library in Elements.sortedByPosition(libraries)) {
+      writeLibraryDescriptors(libraryBuffer, library);
+      elementDescriptors.remove(library);
     }
+
+    mainBuffer
+        ..write(
+            jsAst.prettyPrint(
+                getReflectionDataParser(this, backend),
+                compiler))
+        ..write(n);
+
+    // The argument to reflectionDataParser is assigned to a temporary 'dart'
+    // so that 'dart.' will appear as the prefix to dart methods in stack
+    // traces and profile entries.
+    mainBuffer..write('var dart = [$n')
+              ..write(libraryBuffer)
+              ..write(']$N')
+              ..write('$parseReflectionDataName(dart)$N');
 
     interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
     interceptorEmitter.emitOneShotInterceptors(mainBuffer);
