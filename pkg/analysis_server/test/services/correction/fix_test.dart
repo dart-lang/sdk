@@ -769,7 +769,34 @@ main() {
 ''');
   }
 
-  void test_createMissingOverrides_functionType() {
+  void test_createMissingOverrides_functionTypeAlias() {
+    _indexTestUnit('''
+typedef int Binary(int left, int right);
+
+abstract class Emulator {
+  void performBinary(Binary binary);
+}
+
+class MyEmulator extends Emulator {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+typedef int Binary(int left, int right);
+
+abstract class Emulator {
+  void performBinary(Binary binary);
+}
+
+class MyEmulator extends Emulator {
+  @override
+  void performBinary(Binary binary) {
+    // TODO: implement performBinary
+  }
+}
+''');
+  }
+
+  void test_createMissingOverrides_functionTypedParameter() {
     _indexTestUnit('''
 abstract class A {
   forEach(int f(double p1, String p2));
