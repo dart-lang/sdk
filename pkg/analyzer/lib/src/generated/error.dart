@@ -285,81 +285,6 @@ class AnalysisErrorWithProperties extends AnalysisError {
 }
 
 /**
- * The enumeration `AngularCode` defines Angular specific problems.
- */
-class AngularCode extends ErrorCode {
-  static const AngularCode CANNOT_PARSE_SELECTOR = const AngularCode(
-      'CANNOT_PARSE_SELECTOR',
-      "The selector '{0}' cannot be parsed");
-
-  static const AngularCode INVALID_FORMATTER_NAME = const AngularCode(
-      'INVALID_FORMATTER_NAME',
-      "Formatter name must be a simple identifier");
-
-  static const AngularCode INVALID_PROPERTY_KIND = const AngularCode(
-      'INVALID_PROPERTY_KIND',
-      "Unknown property binding kind '{0}', use one of the '@', '=>', '=>!' or '<=>'");
-
-  static const AngularCode INVALID_PROPERTY_FIELD =
-      const AngularCode('INVALID_PROPERTY_FIELD', "Unknown property field '{0}'");
-
-  static const AngularCode INVALID_PROPERTY_MAP = const AngularCode(
-      'INVALID_PROPERTY_MAP',
-      "Argument 'map' must be a constant map literal");
-
-  static const AngularCode INVALID_PROPERTY_NAME = const AngularCode(
-      'INVALID_PROPERTY_NAME',
-      "Property name must be a string literal");
-
-  static const AngularCode INVALID_PROPERTY_SPEC = const AngularCode(
-      'INVALID_PROPERTY_SPEC',
-      "Property binding specification must be a string literal");
-
-  static const AngularCode INVALID_REPEAT_SYNTAX = const AngularCode(
-      'INVALID_REPEAT_SYNTAX',
-      "Expected statement in form '_item_ in _collection_ [tracked by _id_]'");
-
-  static const AngularCode INVALID_REPEAT_ITEM_SYNTAX = const AngularCode(
-      'INVALID_REPEAT_ITEM_SYNTAX',
-      "Item must by identifier or in '(_key_, _value_)' pair.");
-
-  static const AngularCode INVALID_URI =
-      const AngularCode('INVALID_URI', "Invalid URI syntax: '{0}'");
-
-  static const AngularCode MISSING_FORMATTER_COLON = const AngularCode(
-      'MISSING_FORMATTER_COLON',
-      "Missing ':' before formatter argument");
-
-  static const AngularCode MISSING_NAME =
-      const AngularCode('MISSING_NAME', "Argument 'name' must be provided");
-
-  static const AngularCode MISSING_PUBLISH_AS = const AngularCode(
-      'MISSING_PUBLISH_AS',
-      "Argument 'publishAs' must be provided");
-
-  static const AngularCode MISSING_SELECTOR =
-      const AngularCode('MISSING_SELECTOR', "Argument 'selector' must be provided");
-
-  static const AngularCode URI_DOES_NOT_EXIST =
-      const AngularCode('URI_DOES_NOT_EXIST', "Target of URI does not exist: '{0}'");
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const AngularCode(String name, String message, [String correction])
-      : super(name, message, correction);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
-
-  @override
-  ErrorType get type => ErrorType.ANGULAR;
-}
-
-/**
  * Instances of the class `BooleanErrorListener` implement a listener that keeps track of
  * whether an error has been reported to it.
  */
@@ -2908,16 +2833,10 @@ class ErrorType extends Enum<ErrorType> {
       const ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
 
   /**
-   * Angular specific semantic problems.
-   */
-  static const ErrorType ANGULAR =
-      const ErrorType('ANGULAR', 7, ErrorSeverity.INFO);
-
-  /**
    * Polymer specific semantic problems.
    */
   static const ErrorType POLYMER =
-      const ErrorType('POLYMER', 8, ErrorSeverity.INFO);
+      const ErrorType('POLYMER', 7, ErrorSeverity.INFO);
 
   static const List<ErrorType> values = const [
       TODO,
@@ -2927,7 +2846,6 @@ class ErrorType extends Enum<ErrorType> {
       STATIC_WARNING,
       STATIC_TYPE_WARNING,
       SYNTACTIC_ERROR,
-      ANGULAR,
       POLYMER];
 
   /**

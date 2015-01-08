@@ -56,14 +56,7 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchReferences(Element element) {
-    if (element.kind == ElementKind.ANGULAR_COMPONENT ||
-        element.kind == ElementKind.ANGULAR_CONTROLLER ||
-        element.kind == ElementKind.ANGULAR_FORMATTER ||
-        element.kind == ElementKind.ANGULAR_PROPERTY ||
-        element.kind == ElementKind.ANGULAR_SCOPE_PROPERTY ||
-        element.kind == ElementKind.ANGULAR_SELECTOR) {
-      return _searchReferences_Angular(element as AngularElement);
-    } else if (element.kind == ElementKind.CLASS) {
+    if (element.kind == ElementKind.CLASS) {
       return _searchReferences(element);
     } else if (element.kind == ElementKind.COMPILATION_UNIT) {
       return _searchReferences(element);
@@ -128,19 +121,6 @@ class SearchEngineImpl implements SearchEngine {
         element,
         IndexConstants.IS_REFERENCED_BY,
         MatchKind.REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>> _searchReferences_Angular(AngularElement element) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        element,
-        IndexConstants.ANGULAR_REFERENCE,
-        MatchKind.ANGULAR_REFERENCE);
-    requestor.add(
-        element,
-        IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE,
-        MatchKind.ANGULAR_CLOSING_TAG_REFERENCE);
     return requestor.merge();
   }
 

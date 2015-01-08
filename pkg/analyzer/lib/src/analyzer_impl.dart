@@ -306,17 +306,14 @@ class AnalyzerImpl {
     int resolveTime = PerformanceStatistics.resolve.result;
     int errorsTime = PerformanceStatistics.errors.result;
     int hintsTime = PerformanceStatistics.hints.result;
-    int angularTime = PerformanceStatistics.angular.result;
     stdout.writeln("io-cold:$ioTime");
     stdout.writeln("scan-cold:$scanTime");
     stdout.writeln("parse-cold:$parseTime");
     stdout.writeln("resolve-cold:$resolveTime");
     stdout.writeln("errors-cold:$errorsTime");
     stdout.writeln("hints-cold:$hintsTime");
-    stdout.writeln("angular-cold:$angularTime");
     stdout.writeln("other-cold:${totalTime
-        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
-        + angularTime)}");
+        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
     stdout.writeln("total-cold:$totalTime");
   }
 
@@ -343,17 +340,14 @@ class AnalyzerImpl {
       int resolveTime = PerformanceStatistics.resolve.result;
       int errorsTime = PerformanceStatistics.errors.result;
       int hintsTime = PerformanceStatistics.hints.result;
-      int angularTime = PerformanceStatistics.angular.result;
       stdout.writeln("io:$ioTime");
       stdout.writeln("scan:$scanTime");
       stdout.writeln("parse:$parseTime");
       stdout.writeln("resolve:$resolveTime");
       stdout.writeln("errors:$errorsTime");
       stdout.writeln("hints:$hintsTime");
-      stdout.writeln("angular:$angularTime");
       stdout.writeln("other:${totalTime
-          - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
-          + angularTime)}");
+          - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
       stdout.writeln("total:$totalTime");
     }
   }

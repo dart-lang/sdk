@@ -163,9 +163,6 @@ class ElementKindTest {
     expect(
         newElementKind_fromEngine(engine.ElementKind.TYPE_PARAMETER),
         ElementKind.TYPE_PARAMETER);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.ANGULAR_COMPONENT),
-        ElementKind.UNKNOWN);
   }
 
   void test_string_constructor() {
@@ -438,14 +435,6 @@ class EnumTest {
         newElementKind_fromEngine,
         exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
-      engine.ElementKind.ANGULAR_FORMATTER: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_COMPONENT: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_CONTROLLER: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_DIRECTIVE: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_PROPERTY: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_SCOPE_PROPERTY: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_SELECTOR: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_VIEW: ElementKind.UNKNOWN,
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
       engine.ElementKind.EMBEDDED_HTML_SCRIPT: ElementKind.UNKNOWN,
       engine.ElementKind.ERROR: ElementKind.UNKNOWN,

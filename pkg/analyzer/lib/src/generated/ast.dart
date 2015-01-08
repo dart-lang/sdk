@@ -6942,21 +6942,6 @@ class ElementLocator {
     if (nodeElement != null) {
       return nodeElement;
     }
-    // TODO(brianwilkerson) Implement or delete the code below.
-//    // try to get Angular specific Element
-//    {
-//      Element element = null;
-//      if (element != null) {
-//        return element;
-//      }
-//    }
-//    // try to get Polymer specific Element
-//    {
-//      Element element = null;
-//      if (element != null) {
-//        return element;
-//      }
-//    }
     // no Element
     return null;
   }

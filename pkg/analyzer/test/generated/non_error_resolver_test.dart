@@ -6,7 +6,6 @@ library engine.non_error_resolver_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';

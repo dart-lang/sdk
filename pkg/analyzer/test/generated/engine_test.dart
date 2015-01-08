@@ -2247,7 +2247,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool booleanValue = true;
     for (int i = 0; i < 2; i++, booleanValue = !booleanValue) {
       AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-      options.analyzeAngular = booleanValue;
       options.analyzeFunctionBodies = booleanValue;
       options.analyzePolymer = booleanValue;
       options.cacheSize = i;
@@ -2258,7 +2257,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.incremental = booleanValue;
       options.preserveComments = booleanValue;
       AnalysisOptionsImpl copy = new AnalysisOptionsImpl.con1(options);
-      expect(copy.analyzeAngular, options.analyzeAngular);
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
       expect(copy.analyzePolymer, options.analyzePolymer);
       expect(copy.cacheSize, options.cacheSize);
@@ -2270,13 +2268,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.incremental, options.incremental);
       expect(copy.preserveComments, options.preserveComments);
     }
-  }
-
-  void test_getAnalyzeAngular() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    bool value = !options.analyzeAngular;
-    options.analyzeAngular = value;
-    expect(options.analyzeAngular, value);
   }
 
   void test_getAnalyzeFunctionBodies() {
@@ -2416,10 +2407,6 @@ class DartEntryTest extends EngineTestCase {
         <AnalysisError>[
             new AnalysisError.con1(source, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)]);
     entry.setValueInLibrary(
-        DartEntry.ANGULAR_ERRORS,
-        source,
-        <AnalysisError>[new AnalysisError.con1(source, AngularCode.MISSING_NAME)]);
-    entry.setValueInLibrary(
         DartEntry.HINTS,
         source,
         <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE)]);
@@ -2453,9 +2440,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
-        same(CacheState.INVALID));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
         same(CacheState.INVALID));
@@ -2732,9 +2716,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
 
     expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
-        same(CacheState.INVALID));
-    expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
         same(CacheState.INVALID));
     expect(
@@ -2783,9 +2764,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
     expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
-        same(CacheState.INVALID));
-    expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
         same(CacheState.INVALID));
     expect(
@@ -2833,9 +2811,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
-        same(CacheState.INVALID));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
         same(CacheState.INVALID));
@@ -2916,9 +2891,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
     expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.ERROR));
-    expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.ERROR));
     expect(
@@ -2937,9 +2909,6 @@ class DartEntryTest extends EngineTestCase {
         entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
         same(CacheState.ERROR));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
-        same(CacheState.VALID));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
         same(CacheState.VALID));
@@ -2988,9 +2957,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.ERROR));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.ERROR));
@@ -3052,9 +3018,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
     expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.VALID));
-    expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.VALID));
     expect(
@@ -3073,9 +3036,6 @@ class DartEntryTest extends EngineTestCase {
         entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
         same(CacheState.VALID));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
-        same(CacheState.VALID));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
         same(CacheState.VALID));
@@ -3123,9 +3083,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.ERROR));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.ERROR));
@@ -3185,9 +3142,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.ERROR));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.ERROR));
@@ -3249,9 +3203,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
     expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.ERROR));
-    expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.VALID));
     expect(
@@ -3270,9 +3221,6 @@ class DartEntryTest extends EngineTestCase {
         entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
         same(CacheState.ERROR));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
-        same(CacheState.VALID));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
         same(CacheState.VALID));
@@ -3320,9 +3268,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.ERROR));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.ERROR));
@@ -3384,9 +3329,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
     expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-        same(CacheState.VALID));
-    expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
         same(CacheState.VALID));
     expect(
@@ -3405,9 +3347,6 @@ class DartEntryTest extends EngineTestCase {
         entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
         same(CacheState.ERROR));
 
-    expect(
-        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
-        same(CacheState.VALID));
     expect(
         entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
         same(CacheState.VALID));
@@ -3758,7 +3697,6 @@ class DartEntryTest extends EngineTestCase {
     entry.setValue(DartEntry.SOURCE_KIND, null);
     entry.setValue(DartEntry.TOKEN_STREAM, null);
     if (firstLibrary != null) {
-      entry.setValueInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary, null);
       entry.setValueInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary, null);
       entry.setValueInLibrary(DartEntry.BUILT_UNIT, firstLibrary, null);
       entry.setValueInLibrary(DartEntry.HINTS, firstLibrary, null);
@@ -3770,7 +3708,6 @@ class DartEntryTest extends EngineTestCase {
           null);
     }
     if (secondLibrary != null) {
-      entry.setValueInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary, null);
       entry.setValueInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary, null);
       entry.setValueInLibrary(DartEntry.BUILT_UNIT, secondLibrary, null);
       entry.setValueInLibrary(DartEntry.HINTS, secondLibrary, null);
@@ -3807,9 +3744,6 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
     if (firstLibrary != null) {
       expect(
-          entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
-          same(CacheState.VALID));
-      expect(
           entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
           same(CacheState.VALID));
       expect(
@@ -3829,9 +3763,6 @@ class DartEntryTest extends EngineTestCase {
           same(CacheState.VALID));
     }
     if (secondLibrary != null) {
-      expect(
-          entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
-          same(CacheState.VALID));
       expect(
           entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
           same(CacheState.VALID));
@@ -4209,10 +4140,6 @@ class HtmlEntryTest extends EngineTestCase {
         <AnalysisError>[
             new AnalysisError.con1(source, HtmlWarningCode.INVALID_URI, ["-"])]);
     entry.setValue(
-        HtmlEntry.ANGULAR_ERRORS,
-        <AnalysisError>[
-            new AnalysisError.con1(source, AngularCode.INVALID_REPEAT_SYNTAX, ["-"])]);
-    entry.setValue(
         HtmlEntry.POLYMER_BUILD_ERRORS,
         <AnalysisError>[
             new AnalysisError.con1(source, PolymerCode.INVALID_ATTRIBUTE_NAME, ["-"])]);
@@ -4223,18 +4150,12 @@ class HtmlEntryTest extends EngineTestCase {
     entry.setValue(
         HtmlEntry.HINTS,
         <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE)]);
-    expect(entry.allErrors, hasLength(6));
+    expect(entry.allErrors, hasLength(5));
   }
 
   void test_invalidateAllResolutionInformation() {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
-    expect(
-        entry.getState(HtmlEntry.ANGULAR_APPLICATION),
-        same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.ANGULAR_COMPONENT), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.ANGULAR_ENTRY), same(CacheState.INVALID));
-    expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.INVALID));
     expect(
         entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
         same(CacheState.INVALID));
@@ -4258,12 +4179,6 @@ class HtmlEntryTest extends EngineTestCase {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(true);
     expect(
-        entry.getState(HtmlEntry.ANGULAR_APPLICATION),
-        same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.ANGULAR_COMPONENT), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.ANGULAR_ENTRY), same(CacheState.INVALID));
-    expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.INVALID));
-    expect(
         entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
         same(CacheState.INVALID));
     expect(
@@ -4280,10 +4195,6 @@ class HtmlEntryTest extends EngineTestCase {
     expect(
         entry.getState(HtmlEntry.RESOLUTION_ERRORS),
         same(CacheState.INVALID));
-  }
-
-  void test_setState_angularErrors() {
-    state = HtmlEntry.ANGULAR_ERRORS;
   }
 
   void test_setState_element() {
@@ -4320,13 +4231,6 @@ class HtmlEntryTest extends EngineTestCase {
 
   void test_setState_resolutionErrors() {
     state = HtmlEntry.RESOLUTION_ERRORS;
-  }
-
-  void test_setValue_angularErrors() {
-    _setValue(
-        HtmlEntry.ANGULAR_ERRORS,
-        <AnalysisError>[
-            new AnalysisError.con1(null, AngularCode.INVALID_REPEAT_SYNTAX, ["-"])]);
   }
 
   void test_setValue_element() {
@@ -4390,9 +4294,6 @@ class HtmlEntryTest extends EngineTestCase {
 
   HtmlEntry _entryWithValidState() {
     HtmlEntry entry = new HtmlEntry();
-    entry.setValue(HtmlEntry.ANGULAR_APPLICATION, null);
-    entry.setValue(HtmlEntry.ANGULAR_COMPONENT, null);
-    entry.setValue(HtmlEntry.ANGULAR_ERRORS, null);
     entry.setValue(HtmlEntry.ELEMENT, null);
     entry.setValue(HtmlEntry.HINTS, null);
     entry.setValue(SourceEntry.LINE_INFO, null);
@@ -4402,7 +4303,6 @@ class HtmlEntryTest extends EngineTestCase {
     entry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, null);
     entry.setValue(HtmlEntry.REFERENCED_LIBRARIES, null);
     entry.setValue(HtmlEntry.RESOLUTION_ERRORS, null);
-    expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.HINTS), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
@@ -6078,11 +5978,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
   @override
-  AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
-    fail("Unexpected invocation of getAngularApplicationWithHtml");
-    return null;
-  }
-  @override
   CompilationUnitElement getCompilationUnitElement(Source unitSource,
       Source librarySource) {
     fail("Unexpected invocation of getCompilationUnitElement");
@@ -6393,18 +6288,6 @@ class TestAnalysisContext_test_getAnalysisOptions extends TestAnalysisContext {
   TestAnalysisContext_test_getAnalysisOptions();
   @override
   AnalysisOptions get analysisOptions {
-    invoked = true;
-    return null;
-  }
-}
-
-
-class TestAnalysisContext_test_getAngularApplicationWithHtml extends
-    TestAnalysisContext {
-  bool invoked = false;
-  TestAnalysisContext_test_getAngularApplicationWithHtml();
-  @override
-  AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
     invoked = true;
     return null;
   }
@@ -6918,17 +6801,6 @@ class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   @override
   E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) {
     fail("Unexpectedly invoked visitPolymerResolveHtmlTask");
-    return null;
-  }
-  @override
-  E
-      visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task) {
-    fail("Unexpectedly invoked visitResolveAngularComponentTemplateTask");
-    return null;
-  }
-  @override
-  E visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task) {
-    fail("Unexpectedly invoked visitResolveAngularEntryHtmlTask");
     return null;
   }
   @override

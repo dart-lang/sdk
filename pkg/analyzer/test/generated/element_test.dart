@@ -24,7 +24,6 @@ import 'test_support.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(AngularPropertyKindTest);
   runReflectiveTests(ElementKindTest);
   runReflectiveTests(FunctionTypeImplTest);
   runReflectiveTests(InterfaceTypeImplTest);
@@ -38,39 +37,6 @@ main() {
   runReflectiveTests(HtmlElementImplTest);
   runReflectiveTests(LibraryElementImplTest);
   runReflectiveTests(MultiplyDefinedElementImplTest);
-}
-
-@ReflectiveTestCase()
-class AngularPropertyKindTest extends EngineTestCase {
-  void test_ATTR() {
-    AngularPropertyKind kind = AngularPropertyKind.ATTR;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_CALLBACK() {
-    AngularPropertyKind kind = AngularPropertyKind.CALLBACK;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_ONE_WAY() {
-    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_ONE_WAY_ONE_TIME() {
-    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY_ONE_TIME;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_TWO_WAY() {
-    AngularPropertyKind kind = AngularPropertyKind.TWO_WAY;
-    expect(kind.callsGetter(), isTrue);
-    expect(kind.callsSetter(), isTrue);
-  }
 }
 
 @ReflectiveTestCase()

@@ -580,16 +580,6 @@ abstract class AnalysisContext {
   bool exists(Source source);
 
   /**
-   * Return the Angular application that contains the HTML file defined by the given source, or
-   * `null` if the source does not represent an HTML file, the Angular application containing
-   * the file has not yet been resolved, or the analysis of the HTML file failed for some reason.
-   *
-   * @param htmlSource the source defining the HTML file
-   * @return the Angular application that contains the HTML file defined by the given source
-   */
-  AngularApplication getAngularApplicationWithHtml(Source htmlSource);
-
-  /**
    * Return the element model corresponding to the compilation unit defined by the given source in
    * the library defined by the given source, or `null` if the element model does not
    * currently exist or if the library cannot be analyzed for some reason.
@@ -1025,11 +1015,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   WorkManager _workManager = new WorkManager();
 
   /**
-   * The set of [AngularApplication] in this context.
-   */
-  Set<AngularApplication> _angularApplications = new Set();
-
-  /**
    * The controller for sending [SourcesChangedEvent]s.
    */
   StreamController<SourcesChangedEvent> _onSourcesChangedController;
@@ -1060,7 +1045,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute =
-        this._options.analyzeAngular != options.analyzeAngular ||
         this._options.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.enableDeferredLoading != options.enableDeferredLoading ||
@@ -1091,7 +1075,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _priorityOrder = newPriorityOrder;
       }
     }
-    this._options.analyzeAngular = options.analyzeAngular;
     this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.enableDeferredLoading = options.enableDeferredLoading;
@@ -1820,21 +1803,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
-    SourceEntry sourceEntry = getReadableSourceEntryOrNull(htmlSource);
-    if (sourceEntry is HtmlEntry) {
-      HtmlEntry htmlEntry = sourceEntry;
-      AngularApplication application =
-          htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-      if (application != null) {
-        return application;
-      }
-      return htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
-    }
-    return null;
-  }
-
-  @override
   CompilationUnitElement getCompilationUnitElement(Source unitSource,
       Source librarySource) {
     LibraryElement libraryElement = getLibraryElement(librarySource);
@@ -2219,7 +2187,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _recordElementData(dartEntry, library, library.source, htmlSource);
         dartEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
         dartEntry.setValue(SourceEntry.LINE_INFO, new LineInfo(<int>[0]));
-        dartEntry.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
         // DartEntry.ELEMENT - set in recordElementData
         dartEntry.setValue(DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
         dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
@@ -2490,11 +2457,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The public namespace isn't computed by performAnalysisTask()
           // and therefore isn't interesting.
           continue;
-        } else if (descriptor == HtmlEntry.ANGULAR_APPLICATION ||
-            descriptor == HtmlEntry.ANGULAR_COMPONENT ||
-            descriptor == HtmlEntry.ANGULAR_ENTRY ||
-            descriptor == HtmlEntry.ANGULAR_ERRORS ||
-            descriptor == HtmlEntry.POLYMER_BUILD_ERRORS ||
+        } else if (descriptor == HtmlEntry.POLYMER_BUILD_ERRORS ||
             descriptor == HtmlEntry.POLYMER_RESOLUTION_ERRORS) {
           // These values are not currently being computed, so their state is
           // not interesting.
@@ -2514,8 +2477,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         List<Source> librarySources = getLibrariesContaining(source);
         for (Source librarySource in librarySources) {
           for (DataDescriptor descriptor in sourceEntry.libraryDescriptors) {
-            if (descriptor == DartEntry.ANGULAR_ERRORS ||
-                descriptor == DartEntry.BUILT_ELEMENT ||
+            if (descriptor == DartEntry.BUILT_ELEMENT ||
                 descriptor == DartEntry.BUILT_UNIT) {
               // These values are not currently being computed, so their state
               // is not interesting.
@@ -3275,56 +3237,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create a [ResolveAngularComponentTemplateTask] for the given source, marking the angular
-   * errors as being in-process.
-   *
-   * @param source the source whose content is to be resolved
-   * @param htmlEntry the entry for the source
-   * @return task data representing the created task
-   */
-  AnalysisContextImpl_TaskData
-      _createResolveAngularComponentTemplateTask(Source source, HtmlEntry htmlEntry) {
-    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
-      return _createResolveHtmlTask(source, htmlEntry);
-    }
-    AngularApplication application =
-        htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-    AngularComponentElement component =
-        htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-    htmlEntry.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(
-        new ResolveAngularComponentTemplateTask(
-            this,
-            source,
-            htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT),
-            component,
-            application),
-        false);
-  }
-
-  /**
-   * Create a [ResolveAngularEntryHtmlTask] for the given source, marking the angular entry as
-   * being in-process.
-   *
-   * @param source the source whose content is to be resolved
-   * @param htmlEntry the entry for the source
-   * @return task data representing the created task
-   */
-  AnalysisContextImpl_TaskData _createResolveAngularEntryHtmlTask(Source source,
-      HtmlEntry htmlEntry) {
-    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
-      return _createResolveHtmlTask(source, htmlEntry);
-    }
-    htmlEntry.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(
-        new ResolveAngularEntryHtmlTask(
-            this,
-            source,
-            htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)),
-        false);
-  }
-
-  /**
    * Create a [ResolveDartLibraryTask] for the given source, marking ? as being in-process.
    *
    * @param source the source whose content is to be resolved
@@ -3882,25 +3794,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return _createResolveHtmlTask(source, htmlEntry);
       }
       //
-      // Angular support
-      //
-      if (_options.analyzeAngular) {
-        // Try to resolve the HTML as an Angular entry point.
-        CacheState angularEntryState =
-            htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
-        if (angularEntryState == CacheState.INVALID ||
-            (isPriority && angularEntryState == CacheState.FLUSHED)) {
-          return _createResolveAngularEntryHtmlTask(source, htmlEntry);
-        }
-        // Try to resolve the HTML as an Angular application part.
-        CacheState angularErrorsState =
-            htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-        if (angularErrorsState == CacheState.INVALID ||
-            (isPriority && angularErrorsState == CacheState.FLUSHED)) {
-          return _createResolveAngularComponentTemplateTask(source, htmlEntry);
-        }
-      }
-      //
       // Polymer support
       //
       if (_options.analyzePolymer) {
@@ -4128,30 +4021,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         sources.add(source);
         return;
       }
-      // Angular
-      if (_options.analyzeAngular) {
-        CacheState angularErrorsState =
-            htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-        if (angularErrorsState == CacheState.INVALID ||
-            (isPriority && angularErrorsState == CacheState.FLUSHED)) {
-          AngularApplication entryInfo =
-              htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
-          if (entryInfo != null) {
-            sources.add(source);
-            return;
-          }
-          AngularApplication applicationInfo =
-              htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-          if (applicationInfo != null) {
-            AngularComponentElement component =
-                htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-            if (component != null) {
-              sources.add(source);
-              return;
-            }
-          }
-        }
-      }
       // Polymer
       if (_options.analyzePolymer) {
         // Elements building.
@@ -4204,54 +4073,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * In response to a change to Angular entry point [HtmlElement], invalidate any results that
-   * depend on it.
-   *
-   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
-   *
-   * <b>Note:</b> Any cache entries that were accessed before this method was invoked must be
-   * re-accessed after this method returns.
-   *
-   * @param entryCopy the [HtmlEntry] of the (maybe) Angular entry point being invalidated
-   */
-  void _invalidateAngularResolution(HtmlEntry entryCopy) {
-    AngularApplication application =
-        entryCopy.getValue(HtmlEntry.ANGULAR_ENTRY);
-    if (application == null) {
-      return;
-    }
-    _angularApplications.remove(application);
-    // invalidate Entry
-    entryCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.INVALID);
-    // reset HTML sources
-    List<AngularElement> oldAngularElements = application.elements;
-    for (AngularElement angularElement in oldAngularElements) {
-      if (angularElement is AngularHasTemplateElement) {
-        AngularHasTemplateElement hasTemplate = angularElement;
-        Source templateSource = hasTemplate.templateSource;
-        if (templateSource != null) {
-          HtmlEntry htmlEntry = _getReadableHtmlEntry(templateSource);
-          htmlEntry.setValue(HtmlEntry.ANGULAR_APPLICATION, null);
-          htmlEntry.setValue(HtmlEntry.ANGULAR_COMPONENT, null);
-          htmlEntry.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
-          _workManager.add(templateSource, SourcePriority.HTML);
-        }
-      }
-    }
-    // reset Dart sources
-    List<Source> oldElementSources = application.elementSources;
-    for (Source elementSource in oldElementSources) {
-      DartEntry dartEntry = _getReadableDartEntry(elementSource);
-      dartEntry.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
-      // notify about (disappeared) Angular errors
-      ChangeNoticeImpl notice = _getNotice(elementSource);
-      notice.setErrors(
-          dartEntry.allErrors,
-          dartEntry.getValue(SourceEntry.LINE_INFO));
-    }
-  }
-
-  /**
    * In response to a change to at least one of the compilation units in the given library,
    * invalidate any results that are dependent on the result of resolving that library.
    *
@@ -4278,16 +4099,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (partEntry is DartEntry) {
           partEntry.invalidateAllResolutionInformation(false);
         }
-      }
-    }
-    // invalidate Angular applications
-    List<AngularApplication> angularApplicationsCopy = <AngularApplication>[];
-    for (AngularApplication application in angularApplicationsCopy) {
-      if (application.dependsOn(librarySource)) {
-        Source entryPointSource = application.entryPoint;
-        HtmlEntry htmlEntry = _getReadableHtmlEntry(entryPointSource);
-        _invalidateAngularResolution(htmlEntry);
-        _workManager.add(entryPointSource, SourcePriority.HTML);
       }
     }
   }
@@ -4439,51 +4250,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
-
-  /**
-   * Updates [HtmlEntry]s that correspond to the previously known and new Angular application
-   * information.
-   */
-  void _recordAngularEntryPoint(HtmlEntry entry,
-      ResolveAngularEntryHtmlTask task) {
-    AngularApplication application = task.application;
-    if (application != null) {
-      _angularApplications.add(application);
-      // if this is an entry point, then we already resolved it
-      entry.setValue(HtmlEntry.ANGULAR_ERRORS, task.entryErrors);
-      // schedule HTML templates analysis
-      List<AngularElement> newAngularElements = application.elements;
-      for (AngularElement angularElement in newAngularElements) {
-        if (angularElement is AngularHasTemplateElement) {
-          AngularHasTemplateElement hasTemplate = angularElement;
-          Source templateSource = hasTemplate.templateSource;
-          if (templateSource != null) {
-            HtmlEntry htmlEntry = _getReadableHtmlEntry(templateSource);
-            htmlEntry.setValue(HtmlEntry.ANGULAR_APPLICATION, application);
-            if (hasTemplate is AngularComponentElement) {
-              AngularComponentElement component = hasTemplate;
-              htmlEntry.setValue(HtmlEntry.ANGULAR_COMPONENT, component);
-            }
-            htmlEntry.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
-            _workManager.add(templateSource, SourcePriority.HTML);
-          }
-        }
-      }
-      // update Dart sources errors
-      List<Source> newElementSources = application.elementSources;
-      for (Source elementSource in newElementSources) {
-        DartEntry dartEntry = _getReadableDartEntry(elementSource);
-        dartEntry.setValue(
-            DartEntry.ANGULAR_ERRORS,
-            task.getErrors(elementSource));
-        // notify about Dart errors
-        ChangeNoticeImpl notice = _getNotice(elementSource);
-        notice.setErrors(dartEntry.allErrors, computeLineInfo(elementSource));
-      }
-    }
-    // remember Angular entry point
-    entry.setValue(HtmlEntry.ANGULAR_ENTRY, application);
-  }
 
   /**
    * Record the results produced by performing a [task] and return the cache
@@ -4769,51 +4535,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Record the results produced by performing a [task] and return the cache
    * entry associated with the results.
    */
-  HtmlEntry
-      _recordResolveAngularComponentTemplateTaskResults(ResolveAngularComponentTemplateTask task) {
-    Source source = task.source;
-    HtmlEntry htmlEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      htmlEntry.recordResolutionError(thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    htmlEntry.setValue(HtmlEntry.ANGULAR_ERRORS, task.resolutionErrors);
-    // notify about errors
-    ChangeNoticeImpl notice = _getNotice(source);
-    notice.htmlUnit = task.resolvedUnit;
-    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(htmlEntry.allErrors, lineInfo);
-    return htmlEntry;
-  }
-
-  /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
-  HtmlEntry
-      _recordResolveAngularEntryHtmlTaskResults(ResolveAngularEntryHtmlTask task) {
-    Source source = task.source;
-    HtmlEntry htmlEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      htmlEntry.recordResolutionError(thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    htmlEntry.setValue(HtmlEntry.RESOLVED_UNIT, task.resolvedUnit);
-    _recordAngularEntryPoint(htmlEntry, task);
-    _cache.storedAst(source);
-    ChangeNoticeImpl notice = _getNotice(source);
-    notice.htmlUnit = task.resolvedUnit;
-    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(htmlEntry.allErrors, lineInfo);
-    return htmlEntry;
-  }
-
-  /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
   DartEntry _recordResolveDartUnitTaskResults(ResolveDartUnitTask task) {
     Source unitSource = task.source;
     DartEntry dartEntry = _cache.get(unitSource);
@@ -4990,7 +4711,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
       htmlEntry.modificationTime = getModificationStamp(source);
-      _invalidateAngularResolution(htmlEntry);
       htmlEntry.invalidateAllInformation();
       _cache.removedAst(source);
       _workManager.add(source, SourcePriority.HTML);
@@ -5023,7 +4743,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
-      _invalidateAngularResolution(htmlEntry);
       htmlEntry.recordContentError(
           new CaughtException(
               new AnalysisException("This source was marked as being deleted"),
@@ -5058,7 +4777,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void _sourceRemoved(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry is HtmlEntry) {
-      _invalidateAngularResolution(sourceEntry);
     } else if (sourceEntry is DartEntry) {
       HashSet<Source> libraries = new HashSet<Source>();
       for (Source librarySource in getLibrariesContaining(source)) {
@@ -5216,17 +4934,6 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements
   @override
   HtmlEntry visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) =>
       AnalysisContextImpl_this._recordPolymerResolveHtmlTaskResults(task);
-
-  @override
-  HtmlEntry
-      visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task) =>
-      AnalysisContextImpl_this._recordResolveAngularComponentTemplateTaskResults(
-          task);
-
-  @override
-  HtmlEntry
-      visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task) =>
-      AnalysisContextImpl_this._recordResolveAngularEntryHtmlTaskResults(task);
 
   @override
   DartEntry
@@ -6456,13 +6163,6 @@ class AnalysisNotScheduledError implements Exception {
  */
 abstract class AnalysisOptions {
   /**
-   * Return `true` if analysis is to analyze Angular.
-   *
-   * @return `true` if analysis is to analyze Angular
-   */
-  bool get analyzeAngular;
-
-  /**
    * Return `true` if analysis is to parse and analyze function bodies.
    *
    * @return `true` if analysis is to parse and analyzer function bodies
@@ -6574,11 +6274,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static bool DEFAULT_ENABLE_ENUM = false;
 
   /**
-   * A flag indicating whether analysis is to analyze Angular.
-   */
-  bool analyzeAngular = true;
-
-  /**
    * A flag indicating whether analysis is to parse and analyze function bodies.
    */
   bool analyzeFunctionBodies = true;
@@ -6663,7 +6358,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * @param options the analysis options whose values are being copied
    */
   AnalysisOptionsImpl.con1(AnalysisOptions options) {
-    analyzeAngular = options.analyzeAngular;
     analyzeFunctionBodies = options.analyzeFunctionBodies;
     analyzePolymer = options.analyzePolymer;
     cacheSize = options.cacheSize;
@@ -6905,19 +6599,6 @@ abstract class AnalysisTaskVisitor<E> {
    * Visit the given [task], returning the result of the visit. This method will
    * throw an AnalysisException if the visitor throws an exception.
    */
-  E
-      visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task);
-
-  /**
-   * Visit the given [task], returning the result of the visit. This method will
-   * throw an AnalysisException if the visitor throws an exception.
-   */
-  E visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task);
-
-  /**
-   * Visit the given [task], returning the result of the visit. This method will
-   * throw an AnalysisException if the visitor throws an exception.
-   */
   E visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task);
 
   /**
@@ -6943,1011 +6624,6 @@ abstract class AnalysisTaskVisitor<E> {
    * throw an AnalysisException if the visitor throws an exception.
    */
   E visitScanDartTask(ScanDartTask task);
-}
-
-/**
- * An [Expression] with optional [AngularFormatterNode]s.
- */
-class AngularExpression {
-  /**
-   * The [Expression] to apply formatters to.
-   */
-  final Expression expression;
-
-  /**
-   * The formatters to apply.
-   */
-  final List<AngularFormatterNode> formatters;
-
-  AngularExpression(this.expression, this.formatters);
-
-  /**
-   * Return the offset of the character immediately following the last character of this node's
-   * source range. This is equivalent to `node.getOffset() + node.getLength()`.
-   *
-   * @return the offset of the character just past the node's source range
-   */
-  int get end {
-    if (formatters.isEmpty) {
-      return expression.end;
-    }
-    AngularFormatterNode lastFormatter = formatters[formatters.length - 1];
-    List<AngularFormatterArgument> formatterArguments = lastFormatter.arguments;
-    if (formatterArguments.isEmpty) {
-      return lastFormatter.name.end;
-    }
-    return formatterArguments[formatterArguments.length - 1].expression.end;
-  }
-
-  /**
-   * Return Dart [Expression]s this Angular expression consists of.
-   */
-  List<Expression> get expressions {
-    List<Expression> expressions = <Expression>[];
-    expressions.add(expression);
-    for (AngularFormatterNode formatter in formatters) {
-      expressions.add(formatter.name);
-      for (AngularFormatterArgument formatterArgument in formatter.arguments) {
-        expressions.addAll(formatterArgument.subExpressions);
-        expressions.add(formatterArgument.expression);
-      }
-    }
-    return expressions;
-  }
-
-  /**
-   * Return the number of characters in the expression's source range.
-   */
-  int get length => end - offset;
-
-  /**
-   * Return the offset of the first character in the expression's source range.
-   */
-  int get offset => expression.offset;
-}
-
-/**
- * Angular formatter argument.
- */
-class AngularFormatterArgument {
-  /**
-   * The [TokenType.COLON] token.
-   */
-  final Token token;
-
-  /**
-   * The argument expression.
-   */
-  final Expression expression;
-
-  /**
-   * The optional sub-[Expression]s.
-   */
-  List<Expression> subExpressions = Expression.EMPTY_ARRAY;
-
-  AngularFormatterArgument(this.token, this.expression);
-}
-
-/**
- * Angular formatter node.
- */
-class AngularFormatterNode {
-  /**
-   * The [TokenType.BAR] token.
-   */
-  final Token token;
-
-  /**
-   * The name of the formatter.
-   */
-  final SimpleIdentifier name;
-
-  /**
-   * The arguments for this formatter.
-   */
-  final List<AngularFormatterArgument> arguments;
-
-  AngularFormatterNode(this.token, this.name, this.arguments);
-}
-
-/**
- * Instances of the class [AngularHtmlUnitResolver] resolve Angular specific expressions.
- */
-class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
-  static String _NG_APP = "ng-app";
-
-  final InternalAnalysisContext _context;
-
-  TypeProvider _typeProvider;
-
-  AngularHtmlUnitResolver_FilteringAnalysisErrorListener _errorListener;
-
-  final Source _source;
-
-  final LineInfo _lineInfo;
-
-  final ht.HtmlUnit _unit;
-
-//  List<AngularElement> _angularElements;
-
-  List<NgProcessor> _processors = <NgProcessor>[];
-
-  LibraryElementImpl _libraryElement;
-
-  CompilationUnitElementImpl _unitElement;
-
-  FunctionElementImpl _functionElement;
-
-  ResolverVisitor _resolver;
-
-  bool _isAngular = false;
-
-  List<LocalVariableElementImpl> _definedVariables = <LocalVariableElementImpl>[
-      ];
-
-  Set<LibraryElement> _injectedLibraries = new Set();
-
-  Scope _topNameScope;
-
-  Scope _nameScope;
-
-  AngularHtmlUnitResolver(this._context, AnalysisErrorListener errorListener,
-      this._source, this._lineInfo, this._unit) {
-    this._typeProvider = _context.typeProvider;
-    this._errorListener =
-        new AngularHtmlUnitResolver_FilteringAnalysisErrorListener(errorListener);
-  }
-
-  /**
-   * @return the [TypeProvider] of the [AnalysisContext].
-   */
-  TypeProvider get typeProvider => _typeProvider;
-
-  /**
-   * The [AngularApplication] for the Web application with this entry point, may be
-   * `null` if not an entry point.
-   */
-  AngularApplication calculateAngularApplication() {
-    // check if Angular at all
-    if (!hasAngularAnnotation(_unit)) {
-      return null;
-    }
-    // prepare resolved Dart unit
-    CompilationUnit dartUnit = _getDartUnit(_context, _unit);
-    if (dartUnit == null) {
-      return null;
-    }
-    // prepare accessible Angular elements
-    LibraryElement libraryElement = dartUnit.element.library;
-    Set<LibraryElement> libraries = new Set();
-    List<AngularElement> angularElements =
-        _getAngularElements(libraries, libraryElement);
-    // resolve AngularComponentElement template URIs
-    // TODO(scheglov) resolve to HtmlElement to allow F3 ?
-    Set<Source> angularElementsSources = new Set();
-    for (AngularElement angularElement in angularElements) {
-      if (angularElement is AngularHasTemplateElement) {
-        AngularHasTemplateElement hasTemplate = angularElement;
-        angularElementsSources.add(angularElement.source);
-        String templateUri = hasTemplate.templateUri;
-        if (templateUri == null) {
-          continue;
-        }
-        try {
-          Source templateSource = _context.sourceFactory.forUri2(
-              _source.resolveRelativeUri(parseUriWithException(templateUri)));
-          if (!_context.exists(templateSource)) {
-            templateSource =
-                _context.sourceFactory.resolveUri(_source, "package:$templateUri");
-            if (!_context.exists(templateSource)) {
-              _errorListener.onError(
-                  new AnalysisError.con2(
-                      angularElement.source,
-                      hasTemplate.templateUriOffset,
-                      templateUri.length,
-                      AngularCode.URI_DOES_NOT_EXIST,
-                      [templateUri]));
-              continue;
-            }
-          }
-          if (!AnalysisEngine.isHtmlFileName(templateUri)) {
-            continue;
-          }
-          if (hasTemplate is AngularComponentElementImpl) {
-            hasTemplate.templateSource = templateSource;
-          }
-          if (hasTemplate is AngularViewElementImpl) {
-            hasTemplate.templateSource = templateSource;
-          }
-        } on URISyntaxException catch (exception) {
-          _errorListener.onError(
-              new AnalysisError.con2(
-                  angularElement.source,
-                  hasTemplate.templateUriOffset,
-                  templateUri.length,
-                  AngularCode.INVALID_URI,
-                  [templateUri]));
-        }
-      }
-    }
-    // create AngularApplication
-    AngularApplication application = new AngularApplication(
-        _source,
-        _getLibrarySources(libraries),
-        angularElements,
-        new List.from(angularElementsSources));
-    // set AngularApplication for each AngularElement
-    for (AngularElement angularElement in angularElements) {
-      (angularElement as AngularElementImpl).application = application;
-    }
-    // done
-    return application;
-  }
-
-  /**
-   * Resolves [source] as an [AngularComponentElement] template file.
-   *
-   * @param application the Angular application we are resolving for
-   * @param component the [AngularComponentElement] to resolve template for, not `null`
-   */
-  void resolveComponentTemplate(AngularApplication application,
-      AngularComponentElement component) {
-    _isAngular = true;
-    _resolveInternal(application.elements, component);
-  }
-
-  /**
-   * Resolves [source] as an Angular application entry point.
-   */
-  void resolveEntryPoint(AngularApplication application) {
-    _resolveInternal(application.elements, null);
-  }
-
-  @override
-  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
-    _parseEmbeddedExpressionsInAttribute(node);
-    _resolveExpressions(node.expressions);
-    return super.visitXmlAttributeNode(node);
-  }
-
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) {
-    bool wasAngular = _isAngular;
-    try {
-      // new Angular context
-      if (node.getAttribute(_NG_APP) != null) {
-        _isAngular = true;
-        _visitModelDirectives(node);
-      }
-      // not Angular
-      if (!_isAngular) {
-        return super.visitXmlTagNode(node);
-      }
-      // process node in separate name scope
-      _pushNameScope();
-      try {
-        _parseEmbeddedExpressionsInTag(node);
-        // apply processors
-        for (NgProcessor processor in _processors) {
-          if (processor.canApply(node)) {
-            processor.apply(this, node);
-          }
-        }
-        // resolve expressions
-        _resolveExpressions(node.expressions);
-        // process children
-        return super.visitXmlTagNode(node);
-      } finally {
-        _popNameScope();
-      }
-    } finally {
-      _isAngular = wasAngular;
-    }
-  }
-
-  /**
-   * Puts into [libraryElement] an artificial [LibraryElementImpl] for this HTML
-   * [Source].
-   */
-  void _createLibraryElement() {
-    // create CompilationUnitElementImpl
-    String unitName = _source.shortName;
-    _unitElement = new CompilationUnitElementImpl(unitName);
-    _unitElement.source = _source;
-    // create LibraryElementImpl
-    _libraryElement =
-        new LibraryElementImpl.forNode(_context.getContextFor(_source), null);
-    _libraryElement.definingCompilationUnit = _unitElement;
-    _libraryElement.angularHtml = true;
-    _injectedLibraries.add(_libraryElement);
-    // create FunctionElementImpl
-    _functionElement = new FunctionElementImpl.forOffset(0);
-    _unitElement.functions = <FunctionElement>[_functionElement];
-  }
-
-  /**
-   * Creates new [LocalVariableElementImpl] with given type and identifier.
-   *
-   * @param type the [Type] of the variable
-   * @param identifier the identifier to create variable for
-   * @return the new [LocalVariableElementImpl]
-   */
-  LocalVariableElementImpl _createLocalVariableFromIdentifier(DartType type,
-      SimpleIdentifier identifier) {
-    LocalVariableElementImpl variable =
-        new LocalVariableElementImpl.forNode(identifier);
-    _definedVariables.add(variable);
-    variable.type = type;
-    return variable;
-  }
-
-  /**
-   * Creates new [LocalVariableElementImpl] with given name and type.
-   *
-   * @param type the [Type] of the variable
-   * @param name the name of the variable
-   * @return the new [LocalVariableElementImpl]
-   */
-  LocalVariableElementImpl _createLocalVariableWithName(DartType type,
-      String name) {
-    SimpleIdentifier identifier = _createIdentifier(name, 0);
-    return _createLocalVariableFromIdentifier(type, identifier);
-  }
-
-  /**
-   * Creates new [NgProcessor] for the given [AngularElement], maybe `null` if not
-   * supported.
-   */
-  NgProcessor _createProcessor(AngularElement element) {
-    if (element is AngularComponentElement) {
-      AngularComponentElement component = element;
-      return new NgComponentElementProcessor(component);
-    }
-    if (element is AngularControllerElement) {
-      AngularControllerElement controller = element;
-      return new NgControllerElementProcessor(controller);
-    }
-    if (element is AngularDecoratorElement) {
-      AngularDecoratorElement directive = element;
-      return new NgDecoratorElementProcessor(directive);
-    }
-    return null;
-  }
-
-  /**
-   * Puts into [resolver] an [ResolverVisitor] to resolve [Expression]s in
-   * [source].
-   */
-  void _createResolver() {
-    InheritanceManager inheritanceManager =
-        new InheritanceManager(_libraryElement);
-    _resolver = new ResolverVisitor.con2(
-        _libraryElement,
-        _source,
-        _typeProvider,
-        inheritanceManager,
-        _errorListener);
-    _topNameScope = _resolver.pushNameScope();
-    // add Scope variables - no type, no location, just to avoid warnings
-    {
-      DartType type = _typeProvider.dynamicType;
-      _topNameScope.define(_createLocalVariableWithName(type, "\$id"));
-      _topNameScope.define(_createLocalVariableWithName(type, "\$parent"));
-      _topNameScope.define(_createLocalVariableWithName(type, "\$root"));
-    }
-  }
-
-  /**
-   * Declares the given [LocalVariableElementImpl] in the [topNameScope].
-   */
-  void _defineTopVariable(LocalVariableElementImpl variable) {
-    _recordDefinedVariable(variable);
-    _topNameScope.define(variable);
-    _recordTypeLibraryInjected(variable);
-  }
-
-  /**
-   * Defines variable for the given [AngularElement] with type of the enclosing
-   * [ClassElement].
-   */
-  void _defineTopVariable_forClassElement(AngularElement element) {
-    ClassElement classElement = element.enclosingElement as ClassElement;
-    InterfaceType type = classElement.type;
-    LocalVariableElementImpl variable =
-        _createLocalVariableWithName(type, element.name);
-    _defineTopVariable(variable);
-    variable.toolkitObjects = <AngularElement>[element];
-  }
-
-  /**
-   * Defines variable for the given [AngularScopePropertyElement].
-   */
-  void
-      _defineTopVariable_forScopeProperty(AngularScopePropertyElement element) {
-    DartType type = element.type;
-    LocalVariableElementImpl variable =
-        _createLocalVariableWithName(type, element.name);
-    _defineTopVariable(variable);
-    variable.toolkitObjects = <AngularElement>[element];
-  }
-
-  /**
-   * Declares the given [LocalVariableElementImpl] in the current [nameScope].
-   */
-  void _defineVariable(LocalVariableElementImpl variable) {
-    _recordDefinedVariable(variable);
-    _nameScope.define(variable);
-    _recordTypeLibraryInjected(variable);
-  }
-
-//  /**
-//   * @return the [AngularElement] with the given name, maybe `null`.
-//   */
-//  AngularElement _findAngularElement(String name) {
-//    for (AngularElement element in _angularElements) {
-//      if (name == element.name) {
-//        return element;
-//      }
-//    }
-//    return null;
-//  }
-
-  /**
-   * Parses given [String] as an [AngularExpression] at the given offset.
-   */
-  AngularExpression _parseAngularExpression(String contents, int startIndex,
-      int endIndex, int offset) {
-    Token token = _scanDart(contents, startIndex, endIndex, offset);
-    return _parseAngularExpressionInToken(token);
-  }
-
-  AngularExpression _parseAngularExpressionInToken(Token token) {
-    List<Token> tokens = _splitAtBar(token);
-    Expression mainExpression = _parseDartExpressionInToken(tokens[0]);
-    // parse formatters
-    List<AngularFormatterNode> formatters = <AngularFormatterNode>[];
-    for (int i = 1; i < tokens.length; i++) {
-      Token formatterToken = tokens[i];
-      Token barToken = formatterToken;
-      formatterToken = formatterToken.next;
-      // parse name
-      Expression nameExpression = _parseDartExpressionInToken(formatterToken);
-      if (nameExpression is! SimpleIdentifier) {
-        _reportErrorForNode(AngularCode.INVALID_FORMATTER_NAME, nameExpression);
-        continue;
-      }
-      SimpleIdentifier name = nameExpression as SimpleIdentifier;
-      formatterToken = name.endToken.next;
-      // parse arguments
-      List<AngularFormatterArgument> arguments = <AngularFormatterArgument>[];
-      while (formatterToken.type != TokenType.EOF) {
-        // skip ":"
-        Token colonToken = formatterToken;
-        if (colonToken.type == TokenType.COLON) {
-          formatterToken = formatterToken.next;
-        } else {
-          _reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken);
-          break;
-        }
-        // parse argument
-        Expression argument = _parseDartExpressionInToken(formatterToken);
-        arguments.add(new AngularFormatterArgument(colonToken, argument));
-        // next token
-        formatterToken = argument.endToken.next;
-      }
-      formatters.add(new AngularFormatterNode(barToken, name, arguments));
-    }
-    // done
-    return new AngularExpression(mainExpression, formatters);
-  }
-
-//  /**
-//   * Parses given [String] as an [Expression] at the given offset.
-//   */
-//  Expression _parseDartExpression(String contents, int startIndex, int endIndex,
-//      int offset) {
-//    Token token = _scanDart(contents, startIndex, endIndex, offset);
-//    return _parseDartExpressionInToken(token);
-//  }
-
-  Expression _parseDartExpressionInToken(Token token) {
-    Parser parser = new Parser(_source, _errorListener);
-    return parser.parseExpression(token);
-  }
-
-  /**
-   * Parse the value of the given token for embedded expressions, and add any embedded expressions
-   * that are found to the given list of expressions.
-   *
-   * @param expressions the list to which embedded expressions are to be added
-   * @param token the token whose value is to be parsed
-   */
-  void
-      _parseEmbeddedExpressions(List<AngularMoustacheXmlExpression> expressions,
-      ht.Token token) {
-    // prepare Token information
-    String lexeme = token.lexeme;
-    int offset = token.offset;
-    // find expressions between {{ and }}
-    int startIndex = StringUtilities.indexOf2(
-        lexeme,
-        0,
-        AngularMoustacheXmlExpression.OPENING_DELIMITER_CHAR,
-        AngularMoustacheXmlExpression.OPENING_DELIMITER_CHAR);
-    while (startIndex >= 0) {
-      int endIndex = StringUtilities.indexOf2(
-          lexeme,
-          startIndex + AngularMoustacheXmlExpression.OPENING_DELIMITER_LENGTH,
-          AngularMoustacheXmlExpression.CLOSING_DELIMITER_CHAR,
-          AngularMoustacheXmlExpression.CLOSING_DELIMITER_CHAR);
-      if (endIndex < 0) {
-        // TODO(brianwilkerson) Should we report this error or will it be
-        // reported by something else?
-        return;
-      } else if (startIndex +
-          AngularMoustacheXmlExpression.OPENING_DELIMITER_LENGTH <
-          endIndex) {
-        startIndex += AngularMoustacheXmlExpression.OPENING_DELIMITER_LENGTH;
-        AngularExpression expression =
-            _parseAngularExpression(lexeme, startIndex, endIndex, offset);
-        expressions.add(
-            new AngularMoustacheXmlExpression(startIndex, endIndex, expression));
-      }
-      startIndex = StringUtilities.indexOf2(
-          lexeme,
-          endIndex + AngularMoustacheXmlExpression.CLOSING_DELIMITER_LENGTH,
-          AngularMoustacheXmlExpression.OPENING_DELIMITER_CHAR,
-          AngularMoustacheXmlExpression.OPENING_DELIMITER_CHAR);
-    }
-  }
-
-  void _parseEmbeddedExpressionsInAttribute(ht.XmlAttributeNode node) {
-    List<AngularMoustacheXmlExpression> expressions =
-        <AngularMoustacheXmlExpression>[
-        ];
-    _parseEmbeddedExpressions(expressions, node.valueToken);
-    if (!expressions.isEmpty) {
-      node.expressions = expressions;
-    }
-  }
-
-  void _parseEmbeddedExpressionsInTag(ht.XmlTagNode node) {
-    List<AngularMoustacheXmlExpression> expressions =
-        <AngularMoustacheXmlExpression>[
-        ];
-    ht.Token token = node.attributeEnd;
-    ht.Token endToken = node.endToken;
-    bool inChild = false;
-    while (!identical(token, endToken)) {
-      for (ht.XmlTagNode child in node.tagNodes) {
-        if (identical(token, child.beginToken)) {
-          inChild = true;
-          break;
-        }
-        if (identical(token, child.endToken)) {
-          inChild = false;
-          break;
-        }
-      }
-      if (!inChild && token.type == ht.TokenType.TEXT) {
-        _parseEmbeddedExpressions(expressions, token);
-      }
-      token = token.next;
-    }
-    node.expressions = expressions;
-  }
-
-  void _popNameScope() {
-    _nameScope = _resolver.popNameScope();
-  }
-
-  void _pushNameScope() {
-    _nameScope = _resolver.pushNameScope();
-  }
-
-  void _recordDefinedVariable(LocalVariableElementImpl variable) {
-    _definedVariables.add(variable);
-    _functionElement.localVariables = new List.from(_definedVariables);
-  }
-
-  /**
-   * When we inject variable, we give access to the library of its type.
-   */
-  void _recordTypeLibraryInjected(LocalVariableElementImpl variable) {
-    LibraryElement typeLibrary = variable.type.element.library;
-    _injectedLibraries.add(typeLibrary);
-  }
-
-  /**
-   * Reports given [ErrorCode] at the given [AstNode].
-   */
-  void _reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    _reportErrorForOffset(errorCode, node.offset, node.length, arguments);
-  }
-
-  /**
-   * Reports given [ErrorCode] at the given position.
-   */
-  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length,
-      [List<Object> arguments]) {
-    _errorListener.onError(
-        new AnalysisError.con2(_source, offset, length, errorCode, arguments));
-  }
-
-  /**
-   * Reports given [ErrorCode] at the given [Token].
-   */
-  void _reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object> arguments]) {
-    _reportErrorForOffset(errorCode, token.offset, token.length, arguments);
-  }
-
-  void _resolveExpression(AngularExpression angularExpression) {
-    List<Expression> dartExpressions = angularExpression.expressions;
-    for (Expression dartExpression in dartExpressions) {
-      _resolveNode(dartExpression);
-    }
-  }
-
-  void _resolveExpressions(List<ht.XmlExpression> expressions) {
-    for (ht.XmlExpression xmlExpression in expressions) {
-      if (xmlExpression is AngularXmlExpression) {
-        AngularXmlExpression angularXmlExpression = xmlExpression;
-        _resolveXmlExpression(angularXmlExpression);
-      }
-    }
-  }
-
-  /**
-   * Resolves Angular specific expressions and elements in the [source].
-   *
-   * @param angularElements the [AngularElement]s accessible in the component's library, not
-   *          `null`
-   * @param component the [AngularComponentElement] to resolve template for, maybe
-   *          `null` if not a component template
-   */
-  void _resolveInternal(List<AngularElement> angularElements,
-      AngularComponentElement component) {
-//    this._angularElements = angularElements;
-    // add built-in processors
-    _processors.add(NgModelProcessor.INSTANCE);
-    // _processors.add(NgRepeatProcessor.INSTANCE);
-    // add element's libraries
-    for (AngularElement angularElement in angularElements) {
-      _injectedLibraries.add(angularElement.library);
-    }
-    // prepare Dart library
-    _createLibraryElement();
-    (_unit.element as HtmlElementImpl).angularCompilationUnit = _unitElement;
-    // prepare Dart resolver
-    _createResolver();
-    // maybe resolving component template
-    if (component != null) {
-      _defineTopVariable_forClassElement(component);
-      for (AngularScopePropertyElement scopeProperty in
-          component.scopeProperties) {
-        _defineTopVariable_forScopeProperty(scopeProperty);
-      }
-    }
-    // add processors
-    for (AngularElement angularElement in angularElements) {
-      NgProcessor processor = _createProcessor(angularElement);
-      if (processor != null) {
-        _processors.add(processor);
-      }
-    }
-    // define formatters
-    for (AngularElement angularElement in angularElements) {
-      if (angularElement is AngularFormatterElement) {
-        _defineTopVariable_forClassElement(angularElement);
-      }
-    }
-    // run this HTML visitor
-    _unit.accept(this);
-    // simulate imports for injects
-    {
-      List<ImportElement> imports = <ImportElement>[];
-      for (LibraryElement injectedLibrary in _injectedLibraries) {
-        ImportElementImpl importElement = new ImportElementImpl(-1);
-        importElement.importedLibrary = injectedLibrary;
-        imports.add(importElement);
-      }
-      _libraryElement.imports = imports;
-    }
-  }
-
-  /**
-   * Resolves given [AstNode] using [resolver].
-   */
-  void _resolveNode(AstNode node) {
-    node.accept(_resolver);
-  }
-
-  void _resolveXmlExpression(AngularXmlExpression angularXmlExpression) {
-    AngularExpression angularExpression = angularXmlExpression.expression;
-    _resolveExpression(angularExpression);
-  }
-
-  Token _scanDart(String contents, int startIndex, int endIndex, int offset) =>
-      ht.HtmlParser.scanDartSource(
-          _source,
-          _lineInfo,
-          contents.substring(startIndex, endIndex),
-          offset + startIndex,
-          _errorListener);
-
-  List<Token> _splitAtBar(Token token) {
-    List<Token> tokens = <Token>[];
-    tokens.add(token);
-    while (token.type != TokenType.EOF) {
-      if (token.type == TokenType.BAR) {
-        tokens.add(token);
-        Token eofToken = new Token(TokenType.EOF, 0);
-        token.previous.setNext(eofToken);
-      }
-      token = token.next;
-    }
-    return tokens;
-  }
-
-  /**
-   * The "ng-model" directive is special, it contributes to the top-level name scope. These models
-   * can be used before actual "ng-model" attribute in HTML. So, we need to define them once we
-   * found [NG_APP] context.
-   */
-  void _visitModelDirectives(ht.XmlTagNode appNode) {
-    appNode.accept(new _AngularHtmlUnitResolver_visitModelDirectives(this));
-  }
-
-  /**
-   * Checks if given [Element] is an artificial local variable and returns corresponding
-   * [AngularElement], or `null` otherwise.
-   */
-  static AngularElement getAngularElement(Element element) {
-    // may be artificial local variable, replace with AngularElement
-    if (element is LocalVariableElement) {
-      LocalVariableElement local = element;
-      List<ToolkitObjectElement> toolkitObjects = local.toolkitObjects;
-      if (toolkitObjects.length == 1 && toolkitObjects[0] is AngularElement) {
-        return toolkitObjects[0] as AngularElement;
-      }
-    }
-    // not a special Element
-    return null;
-  }
-
-  /**
-   * @return `true` if the given [HtmlUnit] has <code>ng-app</code> annotation.
-   */
-  static bool hasAngularAnnotation(ht.HtmlUnit htmlUnit) {
-    try {
-      htmlUnit.accept(
-          new RecursiveXmlVisitor_AngularHtmlUnitResolver_hasAngularAnnotation());
-    } on AngularHtmlUnitResolver_FoundAppError catch (e) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Adds [AngularElement] declared by the given top-level [Element].
-   *
-   * @param angularElements the list to fill with top-level [AngularElement]s
-   * @param classElement the [ClassElement] to get [AngularElement]s from
-   */
-  static void _addAngularElementsFromClass(Set<AngularElement> angularElements,
-      ClassElement classElement) {
-    for (ToolkitObjectElement toolkitObject in classElement.toolkitObjects) {
-      if (toolkitObject is AngularElement) {
-        angularElements.add(toolkitObject);
-      }
-    }
-  }
-
-  /**
-   * Returns the array of all top-level Angular elements that could be used in this library.
-   *
-   * @param libraryElement the [LibraryElement] to analyze
-   * @return the array of all top-level Angular elements that could be used in this library
-   */
-  static void
-      _addAngularElementsFromLibrary(Set<AngularElement> angularElements,
-      LibraryElement library, Set<LibraryElement> visited) {
-    if (library == null) {
-      return;
-    }
-    if (!visited.add(library)) {
-      return;
-    }
-    // add Angular elements from current library
-    for (CompilationUnitElement unit in library.units) {
-      angularElements.addAll(unit.angularViews);
-      for (ClassElement type in unit.types) {
-        _addAngularElementsFromClass(angularElements, type);
-      }
-    }
-    // handle imports
-    for (ImportElement importElement in library.imports) {
-      LibraryElement importedLibrary = importElement.importedLibrary;
-      _addAngularElementsFromLibrary(angularElements, importedLibrary, visited);
-    }
-  }
-
-  static SimpleIdentifier _createIdentifier(String name, int offset) {
-    StringToken token = _createStringToken(name, offset);
-    return new SimpleIdentifier(token);
-  }
-
-  static StringToken _createStringToken(String name, int offset) =>
-      new StringToken(TokenType.IDENTIFIER, name, offset);
-
-  /**
-   * Returns the array of all top-level Angular elements that could be used in this library.
-   *
-   * @param libraryElement the [LibraryElement] to analyze
-   * @return the array of all top-level Angular elements that could be used in this library
-   */
-  static List<AngularElement> _getAngularElements(Set<LibraryElement> libraries,
-      LibraryElement libraryElement) {
-    Set<AngularElement> angularElements = new Set();
-    _addAngularElementsFromLibrary(angularElements, libraryElement, libraries);
-    return new List.from(angularElements);
-  }
-
-  /**
-   * Returns the external Dart [CompilationUnit] referenced by the given [HtmlUnit].
-   */
-  static CompilationUnit _getDartUnit(AnalysisContext context,
-      ht.HtmlUnit unit) {
-    for (HtmlScriptElement script in unit.element.scripts) {
-      if (script is ExternalHtmlScriptElement) {
-        Source scriptSource = script.scriptSource;
-        if (scriptSource != null) {
-          return context.resolveCompilationUnit2(scriptSource, scriptSource);
-        }
-      }
-    }
-    return null;
-  }
-
-  static Set<Source> _getLibrarySources(Set<LibraryElement> libraries) {
-    Set<Source> sources = new Set();
-    for (LibraryElement library in libraries) {
-      sources.add(library.source);
-    }
-    return sources;
-  }
-}
-
-class AngularHtmlUnitResolver_FilteringAnalysisErrorListener implements
-    AnalysisErrorListener {
-  final AnalysisErrorListener _listener;
-
-  AngularHtmlUnitResolver_FilteringAnalysisErrorListener(this._listener);
-
-  @override
-  void onError(AnalysisError error) {
-    ErrorCode errorCode = error.errorCode;
-    if (identical(errorCode, StaticWarningCode.UNDEFINED_GETTER) ||
-        identical(errorCode, StaticWarningCode.UNDEFINED_IDENTIFIER) ||
-        identical(errorCode, StaticTypeWarningCode.UNDEFINED_GETTER)) {
-      return;
-    }
-    _listener.onError(error);
-  }
-}
-
-class AngularHtmlUnitResolver_FoundAppError extends Error {
-}
-
-/**
- * Implementation of [AngularXmlExpression] for an [AngularExpression] enclosed between
- * <code>{{</code> and <code>}}</code>.
- */
-class AngularMoustacheXmlExpression extends AngularXmlExpression {
-  static int OPENING_DELIMITER_CHAR = 0x7B;
-
-  static int CLOSING_DELIMITER_CHAR = 0x7D;
-
-  static String OPENING_DELIMITER = "{{";
-
-  static String CLOSING_DELIMITER = "}}";
-
-  static int OPENING_DELIMITER_LENGTH = OPENING_DELIMITER.length;
-
-  static int CLOSING_DELIMITER_LENGTH = CLOSING_DELIMITER.length;
-
-  /**
-   * The offset of the first character of the opening delimiter.
-   */
-  final int _openingOffset;
-
-  /**
-   * The offset of the first character of the closing delimiter.
-   */
-  final int _closingOffset;
-
-  AngularMoustacheXmlExpression(this._openingOffset, this._closingOffset,
-      AngularExpression expression)
-      : super(expression);
-
-  @override
-  int get end => _closingOffset + CLOSING_DELIMITER_LENGTH;
-
-  @override
-  int get length => _closingOffset + CLOSING_DELIMITER_LENGTH - _openingOffset;
-
-  @override
-  int get offset => _openingOffset;
-}
-
-/**
- * Implementation of [AngularXmlExpression] for an [AngularExpression] embedded without
- * any wrapping characters.
- */
-class AngularRawXmlExpression extends AngularXmlExpression {
-  AngularRawXmlExpression(AngularExpression expression) : super(expression);
-
-  @override
-  int get end => expression.end;
-
-  @override
-  int get length => expression.length;
-
-  @override
-  int get offset => expression.offset;
-}
-
-/**
- * Abstract Angular specific [XmlExpression].
- */
-abstract class AngularXmlExpression extends ht.XmlExpression {
-  /**
-   * The expression that is enclosed between the delimiters.
-   */
-  final AngularExpression expression;
-
-  AngularXmlExpression(this.expression);
-
-  @override
-  ht.XmlExpression_Reference getReference(int offset) {
-    // main expression
-    ht.XmlExpression_Reference reference =
-        _getReferenceAtNode(expression.expression, offset);
-    if (reference != null) {
-      return reference;
-    }
-    // formatters
-    for (AngularFormatterNode formatter in expression.formatters) {
-      // formatter name
-      reference = _getReferenceAtNode(formatter.name, offset);
-      if (reference != null) {
-        return reference;
-      }
-      // formatter arguments
-      for (AngularFormatterArgument formatterArgument in formatter.arguments) {
-        reference = _getReferenceAtNode(formatterArgument.expression, offset);
-        if (reference != null) {
-          return reference;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * If the given [AstNode] has an [Element] at the given offset, then returns
-   * [Reference] with this [Element].
-   */
-  ht.XmlExpression_Reference _getReferenceAtNode(AstNode root, int offset) {
-    AstNode node = new NodeLocator.con1(offset).searchWithin(root);
-    if (node != null) {
-      Element element = ElementLocator.locate(node);
-      return new ht.XmlExpression_Reference(element, node.offset, node.length);
-    }
-    return null;
-  }
 }
 
 /**
@@ -8736,15 +7412,6 @@ class CycleBuilder_SourceEntryPair {
  */
 class DartEntry extends SourceEntry {
   /**
-   * The data descriptor representing the errors reported during Angular
-   * resolution.
-   */
-  static final DataDescriptor<List<AnalysisError>> ANGULAR_ERRORS =
-      new DataDescriptor<List<AnalysisError>>(
-          "DartEntry.ANGULAR_ERRORS",
-          AnalysisError.NO_ERRORS);
-
-  /**
    * The data descriptor representing the element model representing a single
    * compilation unit. This model is incomplete and should not be used except as
    * input to another task.
@@ -8927,7 +7594,6 @@ class DartEntry extends SourceEntry {
       errors.addAll(state.getValue(HINTS));
       state = state._nextState;
     }
-    errors.addAll(getValue(ANGULAR_ERRORS));
     if (errors.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
@@ -9074,7 +7740,6 @@ class DartEntry extends SourceEntry {
    */
   List<DataDescriptor> get libraryDescriptors {
     return <DataDescriptor>[
-        DartEntry.ANGULAR_ERRORS,
         DartEntry.BUILT_ELEMENT,
         DartEntry.BUILT_UNIT,
         DartEntry.RESOLUTION_ERRORS,
@@ -9452,8 +8117,7 @@ class DartEntry extends SourceEntry {
 
   @override
   bool _isValidDescriptor(DataDescriptor descriptor) {
-    return descriptor == ANGULAR_ERRORS ||
-        descriptor == CONTAINING_LIBRARIES ||
+    return descriptor == CONTAINING_LIBRARIES ||
         descriptor == ELEMENT ||
         descriptor == EXPORTED_LIBRARIES ||
         descriptor == IMPORTED_LIBRARIES ||
@@ -9474,8 +8138,7 @@ class DartEntry extends SourceEntry {
    * relative to a library.
    */
   bool _isValidLibraryDescriptor(DataDescriptor descriptor) {
-    return descriptor == ANGULAR_ERRORS ||
-        descriptor == BUILT_ELEMENT ||
+    return descriptor == BUILT_ELEMENT ||
         descriptor == BUILT_UNIT ||
         descriptor == HINTS ||
         descriptor == RESOLUTION_ERRORS ||
@@ -9639,7 +8302,6 @@ class DartEntry extends SourceEntry {
     _writeStateOn(buffer, "publicNamespace", PUBLIC_NAMESPACE);
     _writeStateOn(buffer, "clientServer", IS_CLIENT);
     _writeStateOn(buffer, "launchable", IS_LAUNCHABLE);
-    _writeStateOn(buffer, "angularErrors", ANGULAR_ERRORS);
     _resolutionState._writeOn(buffer);
   }
 }
@@ -9701,51 +8363,6 @@ class DefaultRetentionPolicy implements CacheRetentionPolicy {
       }
     }
     return RetentionPriority.LOW;
-  }
-}
-
-
-/**
- * Recursively visits [HtmlUnit] and every embedded [Expression].
- */
-abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
-  /**
-   * Visits the given [Expression]s embedded into tag or attribute.
-   *
-   * @param expression the [Expression] to visit, not `null`
-   */
-  void visitExpression(Expression expression);
-
-  @override
-  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
-    _visitExpressions(node.expressions);
-    return super.visitXmlAttributeNode(node);
-  }
-
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) {
-    _visitExpressions(node.expressions);
-    return super.visitXmlTagNode(node);
-  }
-
-  /**
-   * Visits [Expression]s of the given [XmlExpression]s.
-   */
-  void _visitExpressions(List<ht.XmlExpression> expressions) {
-    for (ht.XmlExpression xmlExpression in expressions) {
-      if (xmlExpression is AngularXmlExpression) {
-        AngularXmlExpression angularXmlExpression = xmlExpression;
-        List<Expression> dartExpressions =
-            angularXmlExpression.expression.expressions;
-        for (Expression dartExpression in dartExpressions) {
-          visitExpression(dartExpression);
-        }
-      }
-      if (xmlExpression is ht.RawXmlExpression) {
-        ht.RawXmlExpression rawXmlExpression = xmlExpression;
-        visitExpression(rawXmlExpression.expression);
-      }
-    }
   }
 }
 
@@ -10072,36 +8689,6 @@ class GetContentTask extends AnalysisTask {
  */
 class HtmlEntry extends SourceEntry {
   /**
-   * The data descriptor representing the information about an Angular
-   * application this source is used in.
-   */
-  static final DataDescriptor<AngularApplication> ANGULAR_APPLICATION =
-      new DataDescriptor<AngularApplication>("HtmlEntry.ANGULAR_APPLICATION");
-
-  /**
-   * The data descriptor representing the information about an Angular component
-   * this source is used as template for.
-   */
-  static final DataDescriptor<AngularComponentElement> ANGULAR_COMPONENT =
-      new DataDescriptor<AngularComponentElement>("HtmlEntry.ANGULAR_COMPONENT");
-
-  /**
-   * The data descriptor representing the information about an Angular
-   * application for which this source is an entry point.
-   */
-  static final DataDescriptor<AngularApplication> ANGULAR_ENTRY =
-      new DataDescriptor<AngularApplication>("HtmlEntry.ANGULAR_ENTRY");
-
-  /**
-   * The data descriptor representing the errors reported during Angular
-   * resolution.
-   */
-  static final DataDescriptor<List<AnalysisError>> ANGULAR_ERRORS =
-      new DataDescriptor<List<AnalysisError>>(
-          "HtmlEntry.ANGULAR_ERRORS",
-          AnalysisError.NO_ERRORS);
-
-  /**
    * The data descriptor representing the HTML element.
    */
   static final DataDescriptor<HtmlElement> ELEMENT =
@@ -10180,7 +8767,6 @@ class HtmlEntry extends SourceEntry {
     List<AnalysisError> errors = new List<AnalysisError>();
     errors.addAll(getValue(PARSE_ERRORS));
     errors.addAll(getValue(RESOLUTION_ERRORS));
-    errors.addAll(getValue(ANGULAR_ERRORS));
     errors.addAll(getValue(HINTS));
     errors.addAll(getValue(POLYMER_BUILD_ERRORS));
     errors.addAll(getValue(POLYMER_RESOLUTION_ERRORS));
@@ -10210,10 +8796,6 @@ class HtmlEntry extends SourceEntry {
     List<DataDescriptor> result = super.descriptors;
     result.addAll(
         [
-            HtmlEntry.ANGULAR_APPLICATION,
-            HtmlEntry.ANGULAR_COMPONENT,
-            HtmlEntry.ANGULAR_ENTRY,
-            HtmlEntry.ANGULAR_ERRORS,
             HtmlEntry.ELEMENT,
             HtmlEntry.PARSE_ERRORS,
             HtmlEntry.PARSED_UNIT,
@@ -10234,8 +8816,6 @@ class HtmlEntry extends SourceEntry {
   void flushAstStructures() {
     _flush(PARSED_UNIT);
     _flush(RESOLVED_UNIT);
-    _flush(ANGULAR_ENTRY);
-    _flush(ANGULAR_ERRORS);
   }
 
   @override
@@ -10253,8 +8833,6 @@ class HtmlEntry extends SourceEntry {
    * source files should also be invalidated.
    */
   void invalidateAllResolutionInformation(bool invalidateUris) {
-    setState(ANGULAR_ENTRY, CacheState.INVALID);
-    setState(ANGULAR_ERRORS, CacheState.INVALID);
     setState(POLYMER_BUILD_ERRORS, CacheState.INVALID);
     setState(POLYMER_RESOLUTION_ERRORS, CacheState.INVALID);
     setState(ELEMENT, CacheState.INVALID);
@@ -10291,7 +8869,6 @@ class HtmlEntry extends SourceEntry {
    */
   void recordResolutionError(CaughtException exception) {
     this.exception = exception;
-    setState(ANGULAR_ERRORS, CacheState.ERROR);
     setState(RESOLVED_UNIT, CacheState.ERROR);
     setState(ELEMENT, CacheState.ERROR);
     setState(RESOLUTION_ERRORS, CacheState.ERROR);
@@ -10302,11 +8879,7 @@ class HtmlEntry extends SourceEntry {
 
   @override
   bool _isValidDescriptor(DataDescriptor descriptor) {
-    return descriptor == ANGULAR_APPLICATION ||
-        descriptor == ANGULAR_COMPONENT ||
-        descriptor == ANGULAR_ENTRY ||
-        descriptor == ANGULAR_ERRORS ||
-        descriptor == ELEMENT ||
+    return descriptor == ELEMENT ||
         descriptor == HINTS ||
         descriptor == PARSED_UNIT ||
         descriptor == PARSE_ERRORS ||
@@ -10368,30 +8941,6 @@ class HtmlEntry extends SourceEntry {
     needsSeparator = _writeStateDiffOn(
         buffer,
         needsSeparator,
-        "angularApplicationState",
-        HtmlEntry.ANGULAR_APPLICATION,
-        oldEntry);
-    needsSeparator = _writeStateDiffOn(
-        buffer,
-        needsSeparator,
-        "angularComponent",
-        HtmlEntry.ANGULAR_COMPONENT,
-        oldEntry);
-    needsSeparator = _writeStateDiffOn(
-        buffer,
-        needsSeparator,
-        "angularEntry",
-        HtmlEntry.ANGULAR_ENTRY,
-        oldEntry);
-    needsSeparator = _writeStateDiffOn(
-        buffer,
-        needsSeparator,
-        "angularErrors",
-        HtmlEntry.ANGULAR_ERRORS,
-        oldEntry);
-    needsSeparator = _writeStateDiffOn(
-        buffer,
-        needsSeparator,
         "polymerBuildErrors",
         HtmlEntry.POLYMER_BUILD_ERRORS,
         oldEntry);
@@ -10414,10 +8963,6 @@ class HtmlEntry extends SourceEntry {
     _writeStateOn(buffer, "resolutionErrors", RESOLUTION_ERRORS);
     _writeStateOn(buffer, "referencedLibraries", REFERENCED_LIBRARIES);
     _writeStateOn(buffer, "element", ELEMENT);
-    _writeStateOn(buffer, "angularApplication", ANGULAR_APPLICATION);
-    _writeStateOn(buffer, "angularComponent", ANGULAR_COMPONENT);
-    _writeStateOn(buffer, "angularEntry", ANGULAR_ENTRY);
-    _writeStateOn(buffer, "angularErrors", ANGULAR_ERRORS);
     _writeStateOn(buffer, "polymerBuildErrors", POLYMER_BUILD_ERRORS);
     _writeStateOn(buffer, "polymerResolutionErrors", POLYMER_RESOLUTION_ERRORS);
   }
@@ -10880,267 +9425,6 @@ abstract class Logger {
    */
   @deprecated
   void logInformation2(String message, Object exception);
-}
-
-/**
- * [NgComponentElementProcessor] applies [AngularComponentElement] by parsing mapped
- * attributes as expressions.
- */
-class NgComponentElementProcessor extends NgDirectiveProcessor {
-  final AngularComponentElement _element;
-
-  NgComponentElementProcessor(this._element);
-
-  @override
-  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
-    node.element = _element.selector;
-    for (AngularPropertyElement property in _element.properties) {
-      String name = property.name;
-      ht.XmlAttributeNode attribute = node.getAttribute(name);
-      if (attribute != null) {
-        attribute.element = property;
-        // resolve if binding
-        if (property.propertyKind != AngularPropertyKind.ATTR) {
-          AngularExpression expression =
-              parseAngularExpression(resolver, attribute);
-          resolver._resolveExpression(expression);
-          setAngularExpression(attribute, expression);
-        }
-      }
-    }
-  }
-
-  @override
-  bool canApply(ht.XmlTagNode node) => _element.selector.apply(node);
-}
-
-/**
- * [NgControllerElementProcessor] applies [AngularControllerElement].
- */
-class NgControllerElementProcessor extends NgProcessor {
-  final AngularControllerElement _element;
-
-  NgControllerElementProcessor(this._element);
-
-  @override
-  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
-    InterfaceType type = (_element.enclosingElement as ClassElement).type;
-    String name = _element.name;
-    LocalVariableElementImpl variable =
-        resolver._createLocalVariableWithName(type, name);
-    resolver._defineVariable(variable);
-    variable.toolkitObjects = <AngularElement>[_element];
-  }
-
-  @override
-  bool canApply(ht.XmlTagNode node) => _element.selector.apply(node);
-}
-
-/**
- * [NgDecoratorElementProcessor] applies [AngularDecoratorElement] by parsing mapped
- * attributes as expressions.
- */
-class NgDecoratorElementProcessor extends NgDirectiveProcessor {
-  final AngularDecoratorElement _element;
-
-  NgDecoratorElementProcessor(this._element);
-
-  @override
-  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
-    String selectorAttributeName = null;
-    {
-      AngularSelectorElement selector = _element.selector;
-      if (selector is HasAttributeSelectorElementImpl) {
-        selectorAttributeName = selector.name;
-        // resolve attribute expression
-        ht.XmlAttributeNode attribute =
-            node.getAttribute(selectorAttributeName);
-        if (attribute != null) {
-          attribute.element = selector;
-        }
-      }
-    }
-    //
-    for (AngularPropertyElement property in _element.properties) {
-      // prepare attribute name
-      String name = property.name;
-      if (name == ".") {
-        name = selectorAttributeName;
-      }
-      // prepare attribute
-      ht.XmlAttributeNode attribute = node.getAttribute(name);
-      if (attribute == null) {
-        continue;
-      }
-      // if not resolved as the selector, resolve as a property
-      if (name != selectorAttributeName) {
-        attribute.element = property;
-      }
-      // skip if attribute has no value
-      if (!NgDirectiveProcessor.hasValue(attribute)) {
-        continue;
-      }
-      // resolve if binding
-      if (property.propertyKind != AngularPropertyKind.ATTR) {
-        resolver._pushNameScope();
-        try {
-          _onNgEventDirective(resolver);
-          AngularExpression expression =
-              parseAngularExpression(resolver, attribute);
-          resolver._resolveExpression(expression);
-          setAngularExpression(attribute, expression);
-        } finally {
-          resolver._popNameScope();
-        }
-      }
-    }
-  }
-
-  @override
-  bool canApply(ht.XmlTagNode node) => _element.selector.apply(node);
-
-  /**
-   * Support for <code>$event</code> variable in <code>NgEventDirective</code>.
-   */
-  void _onNgEventDirective(AngularHtmlUnitResolver resolver) {
-    if (_element.isClass("NgEventDirective")) {
-      DartType dynamicType = resolver.typeProvider.dynamicType;
-      resolver._defineVariable(
-          resolver._createLocalVariableWithName(dynamicType, "\$event"));
-    }
-  }
-}
-
-/**
- * [NgDirectiveProcessor] describes any <code>Directive</code> annotation instance.
- */
-abstract class NgDirectiveProcessor extends NgProcessor {
-  AngularExpression parseAngularExpression(AngularHtmlUnitResolver resolver,
-      ht.XmlAttributeNode attribute) {
-    Token token = _scanAttribute(resolver, attribute);
-    return resolver._parseAngularExpressionInToken(token);
-  }
-
-  Expression parseDartExpression(AngularHtmlUnitResolver resolver,
-      ht.XmlAttributeNode attribute) {
-    Token token = _scanAttribute(resolver, attribute);
-    return resolver._parseDartExpressionInToken(token);
-  }
-
-  /**
-   * Sets single [AngularExpression] for [XmlAttributeNode].
-   */
-  void setAngularExpression(ht.XmlAttributeNode attribute,
-      AngularExpression expression) {
-    _setExpression(attribute, newAngularRawXmlExpression(expression));
-  }
-
-  /**
-   * Sets single [Expression] for [XmlAttributeNode].
-   */
-  void setExpression(ht.XmlAttributeNode attribute, Expression expression) {
-    _setExpression(attribute, newRawXmlExpression(expression));
-  }
-
-  void setExpressions(ht.XmlAttributeNode attribute,
-      List<ht.XmlExpression> xmlExpressions) {
-    attribute.expressions = new List.from(xmlExpressions);
-  }
-
-  Token _scanAttribute(AngularHtmlUnitResolver resolver,
-      ht.XmlAttributeNode attribute) {
-    int offset = attribute.valueToken.offset + 1;
-    String value = attribute.text;
-    return resolver._scanDart(value, 0, value.length, offset);
-  }
-
-  void _setExpression(ht.XmlAttributeNode attribute,
-      ht.XmlExpression xmlExpression) {
-    attribute.expressions = <ht.XmlExpression>[xmlExpression];
-  }
-
-  static bool hasValue(ht.XmlAttributeNode attribute) {
-    ht.Token valueToken = attribute.valueToken;
-    return valueToken != null && !valueToken.isSynthetic;
-  }
-
-  static AngularRawXmlExpression
-      newAngularRawXmlExpression(AngularExpression e) =>
-      new AngularRawXmlExpression(e);
-
-  static ht.RawXmlExpression newRawXmlExpression(Expression e) =>
-      new ht.RawXmlExpression(e);
-}
-
-/**
- * [NgModelProcessor] describes built-in <code>NgModel</code> directive.
- */
-class NgModelProcessor extends NgDirectiveProcessor {
-  static String _NG_MODEL = "ng-model";
-
-  static NgModelProcessor INSTANCE = new NgModelProcessor();
-
-  @override
-  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
-    ht.XmlAttributeNode attribute = node.getAttribute(_NG_MODEL);
-    Expression expression = parseDartExpression(resolver, attribute);
-    // identifiers have been already handled by "apply top"
-    if (expression is SimpleIdentifier) {
-      return;
-    }
-    // resolve
-    resolver._resolveNode(expression);
-    // remember expression
-    setExpression(attribute, expression);
-  }
-
-  @override
-  bool canApply(ht.XmlTagNode node) => node.getAttribute(_NG_MODEL) != null;
-
-  /**
-   * This method is used to define top-level [VariableElement]s for each "ng-model" with
-   * simple identifier model.
-   */
-  void _applyTopDeclarations(AngularHtmlUnitResolver resolver,
-      ht.XmlTagNode node) {
-    ht.XmlAttributeNode attribute = node.getAttribute(_NG_MODEL);
-    Expression expression = parseDartExpression(resolver, attribute);
-    // if not identifier, then not a top-level model, delay until "apply"
-    if (expression is! SimpleIdentifier) {
-      return;
-    }
-    SimpleIdentifier identifier = expression as SimpleIdentifier;
-    // define variable Element
-    InterfaceType type = resolver.typeProvider.stringType;
-    LocalVariableElementImpl element =
-        resolver._createLocalVariableFromIdentifier(type, identifier);
-    resolver._defineTopVariable(element);
-    // remember expression
-    identifier.staticElement = element;
-    identifier.staticType = type;
-    setExpression(attribute, identifier);
-  }
-}
-
-/**
- * [NgProcessor] is used to apply an Angular feature.
- */
-abstract class NgProcessor {
-  /**
-   * Applies this [NgProcessor] to the resolver.
-   *
-   * @param resolver the [AngularHtmlUnitResolver] to apply to, not `null`
-   * @param node the [XmlTagNode] to apply within, not `null`
-   */
-  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node);
-
-  /**
-   * Checks if this processor can be applied to the given [XmlTagNode].
-   *
-   * @param node the [XmlTagNode] to check
-   * @return `true` if this processor can be applied, or `false` otherwise
-   */
-  bool canApply(ht.XmlTagNode node);
 }
 
 /**
@@ -11778,11 +10062,6 @@ class PerformanceStatistics {
   static TimeCounter resolve = new TimeCounter();
 
   /**
-   * The [TimeCounter] for time spent in Angular analysis.
-   */
-  static TimeCounter angular = new TimeCounter();
-
-  /**
    * The [TimeCounter] for time spent in Polymer analysis.
    */
   static TimeCounter polymer = new TimeCounter();
@@ -11805,7 +10084,6 @@ class PerformanceStatistics {
     scan = new TimeCounter();
     parse = new TimeCounter();
     resolve = new TimeCounter();
-    angular = new TimeCounter();
     polymer = new TimeCounter();
     errors = new TimeCounter();
     hints = new TimeCounter();
@@ -11880,8 +10158,6 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
 
   final InternalAnalysisContext _context;
 
-  TypeProvider _typeProvider;
-
   final AnalysisErrorListener _errorListener;
 
   final Source _source;
@@ -11901,9 +10177,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
   PolymerTagDartElementImpl _dartElement;
 
   PolymerHtmlUnitBuilder(this._context, this._errorListener, this._source,
-      this._lineInfo, this._unit) {
-    this._typeProvider = _context.typeProvider;
-  }
+      this._lineInfo, this._unit);
 
   /**
    * Returns the only [LibraryElement] referenced by a direct `script` child. Maybe
@@ -12249,8 +10523,6 @@ class PolymerHtmlUnitBuilder_NameToken {
 class PolymerHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   final InternalAnalysisContext _context;
 
-  TypeProvider _typeProvider;
-
   final AnalysisErrorListener _errorListener;
 
   final Source _source;
@@ -12260,9 +10532,7 @@ class PolymerHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   final ht.HtmlUnit _unit;
 
   PolymerHtmlUnitResolver(this._context, this._errorListener, this._source,
-      this._lineInfo, this._unit) {
-    this._typeProvider = _context.typeProvider;
-  }
+      this._lineInfo, this._unit);
 
   /**
    * Resolves Polymer specific features.
@@ -12402,17 +10672,6 @@ class RecordingErrorListener implements AnalysisErrorListener {
       _errors[source] = errorsForSource;
     }
     errorsForSource.add(error);
-  }
-}
-
-class RecursiveXmlVisitor_AngularHtmlUnitResolver_hasAngularAnnotation extends
-    ht.RecursiveXmlVisitor<Object> {
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) {
-    if (node.getAttribute(AngularHtmlUnitResolver._NG_APP) != null) {
-      throw new AngularHtmlUnitResolver_FoundAppError();
-    }
-    return super.visitXmlTagNode(node);
   }
 }
 
@@ -12699,7 +10958,6 @@ class ResolutionState {
     setState(DartEntry.RESOLVED_UNIT, CacheState.ERROR);
     setState(DartEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     recordVerificationError();
-    setState(DartEntry.ANGULAR_ERRORS, CacheState.ERROR);
   }
 
   /**
@@ -12886,211 +11144,6 @@ class ResolvableCompilationUnit {
    * @param unit the AST that was created from the source
    */
   ResolvableCompilationUnit(this.source, this.compilationUnit);
-}
-
-/**
- * Instances of the class `ResolveAngularComponentTemplateTask` resolve HTML template
- * referenced by [AngularComponentElement].
- */
-class ResolveAngularComponentTemplateTask extends AnalysisTask {
-  /**
-   * The source to be resolved.
-   */
-  final Source source;
-
-  /**
-   * The HTML unit to be resolved.
-   */
-  final ht.HtmlUnit _unit;
-
-  /**
-   * The [AngularComponentElement] to resolve template for.
-   */
-  final AngularComponentElement _component;
-
-  /**
-   * The Angular application to resolve in context of.
-   */
-  final AngularApplication _application;
-
-  /**
-   * The [HtmlUnit] that was resolved by this task.
-   */
-  ht.HtmlUnit _resolvedUnit;
-
-  /**
-   * The resolution errors that were discovered while resolving the source.
-   */
-  List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * Initialize a newly created task to perform analysis within the given context.
-   *
-   * @param context the context in which the task is to be performed
-   * @param source the source to be resolved
-   * @param unit the HTML unit to be resolved
-   * @param component the component that uses this HTML template, not `null`
-   * @param application the Angular application to resolve in context of
-   */
-  ResolveAngularComponentTemplateTask(InternalAnalysisContext context,
-      this.source, this._unit, this._component, this._application)
-      : super(context);
-
-  List<AnalysisError> get resolutionErrors => _resolutionErrors;
-
-  /**
-   * Return the [HtmlUnit] that was resolved by this task.
-   *
-   * @return the [HtmlUnit] that was resolved by this task
-   */
-  ht.HtmlUnit get resolvedUnit => _resolvedUnit;
-
-  @override
-  String get taskDescription => "resolve as Angular template $source";
-
-  @override
-  accept(AnalysisTaskVisitor visitor) =>
-      visitor.visitResolveAngularComponentTemplateTask(this);
-
-  @override
-  void internalPerform() {
-    //
-    // Prepare for resolution.
-    //
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    LineInfo lineInfo = context.getLineInfo(source);
-    //
-    // Perform resolution.
-    //
-    if (_application != null) {
-      AngularHtmlUnitResolver resolver =
-          new AngularHtmlUnitResolver(context, errorListener, source, lineInfo, _unit);
-      resolver.resolveComponentTemplate(_application, _component);
-      _resolvedUnit = _unit;
-    }
-    //
-    // Remember the errors.
-    //
-    _resolutionErrors = errorListener.getErrorsForSource(source);
-  }
-}
-
-/**
- * Instances of the class `ResolveAngularEntryHtmlTask` resolve a specific HTML file as an
- * Angular entry point.
- */
-class ResolveAngularEntryHtmlTask extends AnalysisTask {
-  /**
-   * The source to be resolved.
-   */
-  final Source source;
-
-  /**
-   * The HTML unit to be resolved.
-   */
-  final ht.HtmlUnit _unit;
-
-  /**
-   * The listener to record errors.
-   */
-  RecordingErrorListener _errorListener = new RecordingErrorListener();
-
-  /**
-   * The [HtmlUnit] that was resolved by this task.
-   */
-  ht.HtmlUnit _resolvedUnit;
-
-  /**
-   * The element produced by resolving the source.
-   */
-  HtmlElement _element = null;
-
-  /**
-   * The Angular application to resolve in context of.
-   */
-  AngularApplication _application;
-
-  /**
-   * Initialize a newly created task to perform analysis within the given context.
-   *
-   * @param context the context in which the task is to be performed
-   * @param source the source to be resolved
-   * @param unit the HTML unit to be resolved
-   */
-  ResolveAngularEntryHtmlTask(InternalAnalysisContext context, this.source,
-      this._unit)
-      : super(context);
-
-  /**
-   * Returns the [AngularApplication] for the Web application with this Angular entry point,
-   * maybe `null` if not an Angular entry point.
-   */
-  AngularApplication get application => _application;
-
-  HtmlElement get element => _element;
-
-  /**
-   * The resolution errors that were discovered while resolving the source.
-   */
-  List<AnalysisError> get entryErrors =>
-      _errorListener.getErrorsForSource(source);
-
-  /**
-   * Return the [HtmlUnit] that was resolved by this task.
-   *
-   * @return the [HtmlUnit] that was resolved by this task
-   */
-  ht.HtmlUnit get resolvedUnit => _resolvedUnit;
-
-  @override
-  String get taskDescription {
-    if (source == null) {
-      return "resolve as Angular entry point null source";
-    }
-    return "resolve as Angular entry point ${source.fullName}";
-  }
-
-  @override
-  accept(AnalysisTaskVisitor visitor) =>
-      visitor.visitResolveAngularEntryHtmlTask(this);
-
-  /**
-   * Returns [AnalysisError]s recorded for the given [Source].
-   */
-  List<AnalysisError> getErrors(Source source) =>
-      _errorListener.getErrorsForSource(source);
-
-  @override
-  void internalPerform() {
-    //
-    // Prepare for resolution.
-    //
-    LineInfo lineInfo = context.getLineInfo(source);
-    //
-    // Try to resolve as an Angular entry point.
-    //
-    _application = new AngularHtmlUnitResolver(
-        context,
-        _errorListener,
-        source,
-        lineInfo,
-        _unit).calculateAngularApplication();
-    //
-    // Perform resolution.
-    //
-    if (_application != null) {
-      new AngularHtmlUnitResolver(
-          context,
-          _errorListener,
-          source,
-          lineInfo,
-          _unit).resolveEntryPoint(_application);
-    }
-    //
-    // Remember the resolved unit.
-    //
-    _resolvedUnit = _unit;
-  }
 }
 
 /**
@@ -14387,23 +12440,6 @@ class _AnalysisFutureHelper<T> {
           () => <PendingFuture>[]).add(pendingFuture);
     }
     return pendingFuture.future;
-  }
-}
-
-class _AngularHtmlUnitResolver_visitModelDirectives extends
-    ht.RecursiveXmlVisitor<Object> {
-  final AngularHtmlUnitResolver resolver;
-
-  _AngularHtmlUnitResolver_visitModelDirectives(this.resolver)
-      : super();
-
-  @override
-  Object visitXmlTagNode(ht.XmlTagNode node) {
-    NgModelProcessor directive = NgModelProcessor.INSTANCE;
-    if (directive.canApply(node)) {
-      directive._applyTopDeclarations(resolver, node);
-    }
-    return super.visitXmlTagNode(node);
   }
 }
 

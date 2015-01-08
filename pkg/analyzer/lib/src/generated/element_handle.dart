@@ -184,9 +184,6 @@ class CompilationUnitElementHandle extends ElementHandle implements
       super.actualElement as CompilationUnitElement;
 
   @override
-  List<AngularViewElement> get angularViews => actualElement.angularViews;
-
-  @override
   LibraryElement get enclosingElement =>
       super.enclosingElement as LibraryElement;
 
@@ -779,9 +776,6 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   List<ImportElement> get imports => actualElement.imports;
-
-  @override
-  bool get isAngularHtml => actualElement.isAngularHtml;
 
   @override
   bool get isBrowserApplication => actualElement.isBrowserApplication;

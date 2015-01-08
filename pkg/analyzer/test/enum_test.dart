@@ -33,12 +33,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_AngularPropertyKind() {
-    new EnumTester<AngularPropertyKind>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_AssignmentKind() {
     new EnumTester<AssignmentKind>()
         ..check_getters()

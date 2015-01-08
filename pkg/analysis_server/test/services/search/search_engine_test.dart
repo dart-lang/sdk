@@ -16,7 +16,6 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../mocks.dart';
 import '../../reflective_tests.dart';
 
 
@@ -61,27 +60,6 @@ class ExpectedMatch {
     buffer.write(")");
     return buffer.toString();
   }
-}
-
-
-class MockAngularComponentElement extends TypedMock implements
-    AngularComponentElement {
-  final kind = ElementKind.ANGULAR_COMPONENT;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class MockAngularControllerElement extends TypedMock implements
-    AngularControllerElement {
-  final kind = ElementKind.ANGULAR_CONTROLLER;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class MockAngularFormatterElement extends TypedMock implements
-    AngularFormatterElement {
-  final kind = ElementKind.ANGULAR_FORMATTER;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 
@@ -187,33 +165,6 @@ main(A a, p) {
     return searchEngine.searchMemberReferences('test').then((matches) {
       _assertMatches(matches, expected);
     });
-  }
-
-  Future test_searchReferences_AngularComponentElement() {
-    // use mocks
-    index = new MockIndex();
-    searchEngine = new SearchEngineImpl(index);
-    Element elementA = new MockElement('A');
-    Element elementB = new MockElement('B');
-    // fill mocks
-    AngularComponentElement element = new MockAngularComponentElement();
-    void mockLocation(Element element, Relationship relationship,
-        Location location) {
-      index.getRelationships(element, relationship);
-      when(null).thenReturn(new Future.value([location]));
-    }
-    mockLocation(
-        element,
-        IndexConstants.ANGULAR_REFERENCE,
-        new Location(elementA, 1, 10));
-    mockLocation(
-        element,
-        IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE,
-        new Location(elementB, 2, 20));
-    var expected = [
-        new ExpectedMatch(elementA, MatchKind.ANGULAR_REFERENCE, 1, 10),
-        new ExpectedMatch(elementB, MatchKind.ANGULAR_CLOSING_TAG_REFERENCE, 2, 20)];
-    return _verifyReferences(element, expected);
   }
 
   Future test_searchReferences_ClassElement() {
