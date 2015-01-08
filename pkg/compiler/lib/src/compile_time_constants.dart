@@ -610,6 +610,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         compiler.reportError(
             node.condition, MessageKind.NOT_ASSIGNABLE,
             {'fromType': conditionType, 'toType': compiler.boolClass.rawType});
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
       }
       return null;
     }

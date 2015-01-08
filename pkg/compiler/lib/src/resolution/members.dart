@@ -1410,6 +1410,8 @@ class InitializerResolver {
       target = constructor.enclosingClass.lookupLocalMember(name);
       if (target == null) {
         error(selector, MessageKind.CANNOT_RESOLVE, {'name': name});
+        // TODO(ahe): Don't throw, recover from error.
+        throw new CompilerCancelledException(null);
       } else if (target.kind != ElementKind.FIELD) {
         error(selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
         // TODO(ahe): Don't throw, recover from error.
