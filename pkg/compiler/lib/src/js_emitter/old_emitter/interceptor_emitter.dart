@@ -62,31 +62,25 @@ class InterceptorEmitter extends CodeEmitterHelper {
   /**
    * If [JSInvocationMirror._invokeOn] has been compiled, emit all the
    * possible selector names that are intercepted into the
-   * [interceptedNames] top-level variable. The implementation of
+   * [interceptedNames] embedded global. The implementation of
    * [_invokeOn] will use it to determine whether it should call the
    * method with an extra parameter.
    */
-  void emitInterceptedNames(CodeBuffer buffer) {
-    // TODO(ahe): We should not generate the list of intercepted names at
-    // compile time, it can be generated automatically at runtime given
-    // subclasses of Interceptor (which can easily be identified).
-    if (!compiler.enabledInvokeOn) return;
-
-    // TODO(ahe): We should roll this into
-    // [emitStaticNonFinalFieldInitializations].
-    String name = backend.namer.getNameOfGlobalField(backend.interceptedNames);
+  jsAst.ObjectInitializer generateInterceptedNamesSet() {
+    // We could also generate the list of intercepted names at
+    // runtime, by running through the subclasses of Interceptor
+    // (which can easily be identified).
+    if (!compiler.enabledInvokeOn) return null;
 
     int index = 0;
-    var invocationNames = interceptorInvocationNames.toList()..sort();
-    List<jsAst.Expression> elements = invocationNames.map(js.string).toList();
-    jsAst.ArrayInitializer array =
-        new jsAst.ArrayInitializer(elements);
-
-    jsAst.Expression assignment =
-        js('${emitter.isolateProperties}.# = #', [name, array]);
-
-    buffer.write(jsAst.prettyPrint(assignment, compiler));
-    buffer.write(N);
+    List<String> invocationNames = interceptorInvocationNames.toList()..sort();
+    List<jsAst.Property> properties =
+        new List<jsAst.Property>(invocationNames.length);
+    for (int i = 0; i < invocationNames.length; i++) {
+      String name = invocationNames[i];
+      properties[i] = new jsAst.Property(js.string(name), js.number(1));
+    }
+    return new jsAst.ObjectInitializer(properties, isOneLiner: true);
   }
 
   /**

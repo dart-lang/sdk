@@ -771,8 +771,6 @@ class OldEmitter implements Emitter {
     Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
-      // [:interceptedNames:] is handled in [emitInterceptedNames].
-      if (element == backend.interceptedNames) continue;
       compiler.withCurrentElement(element, () {
         jsAst.Expression initialValue;
         if (outputUnit !=
@@ -1415,7 +1413,7 @@ class OldEmitter implements Emitter {
             'addMethod': buildIncrementalAddMethod() }), compiler));
     }
     if (isProgramSplit) {
-      /// We collect all the global state of the, so it can be passed to the
+      /// We collect all the global state, so it can be passed to the
       /// initializer of deferred files.
       mainBuffer.write('var ${globalsHolder}$_=${_}Object.create(null)$N');
     }
@@ -1519,7 +1517,6 @@ class OldEmitter implements Emitter {
     // Static field initializations require the classes and compile-time
     // constants to be set up.
     emitStaticNonFinalFieldInitializations(mainBuffer, mainOutputUnit);
-    interceptorEmitter.emitInterceptedNames(mainBuffer);
     interceptorEmitter.emitMapTypeToInterceptor(mainBuffer);
     emitLazilyInitializedStaticFields(mainBuffer);
 

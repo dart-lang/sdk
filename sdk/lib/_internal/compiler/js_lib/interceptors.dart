@@ -176,14 +176,6 @@ getNativeInterceptor(object) {
 }
 
 /**
- * If [JSInvocationMirror._invokeOn] is being used, this variable
- * contains a JavaScript array with the names of methods that are
- * intercepted.
- */
-var interceptedNames;
-
-
-/**
  * Data structure used to map a [Type] to the [Interceptor] and constructors for
  * that type.  It is JavaScript array of 3N entries of adjacent slots containing
  * a [Type], followed by an [Interceptor] class for the type, followed by a

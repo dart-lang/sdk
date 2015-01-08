@@ -241,7 +241,6 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
   'getNativeInterceptor': 'getNativeInterceptor(x) {}',
   'initializeDispatchProperty': 'initializeDispatchProperty(f,p,i) {}',
   'initializeDispatchPropertyCSP': 'initializeDispatchPropertyCSP(f,p,i) {}',
-  'interceptedNames': 'var interceptedNames;',
   'Interceptor': r'''
       class Interceptor {
         toString() {}

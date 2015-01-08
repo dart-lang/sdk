@@ -172,7 +172,6 @@ class JavaScriptBackend extends Backend {
   ClassElement irRepresentationClass;
 
   Element getInterceptorMethod;
-  Element interceptedNames;
 
   ClassElement jsInvocationMirrorClass;
 
@@ -1733,7 +1732,6 @@ class JavaScriptBackend extends Backend {
 
       if (uri == DART_INTERCEPTORS) {
         getInterceptorMethod = findMethod('getInterceptor');
-        interceptedNames = findVariable('interceptedNames');
         getNativeInterceptorMethod = findMethod('getNativeInterceptor');
 
         List<ClassElement> classes = [

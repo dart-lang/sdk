@@ -15,7 +15,14 @@ const DISPATCH_PROPERTY_NAME = "dispatchPropertyName";
 const TYPE_INFORMATION = 'typeInformation';
 const GLOBAL_FUNCTIONS = 'globalFunctions';
 const STATICS = 'statics';
+
+/**
+ * If [JSInvocationMirror._invokeOn] is being used, this embedded global
+ * contains a JavaScript map with the names of methods that are
+ * intercepted.
+ */
 const INTERCEPTED_NAMES = 'interceptedNames';
+
 const MANGLED_GLOBAL_NAMES = 'mangledGlobalNames';
 const MANGLED_NAMES = 'mangledNames';
 const LIBRARIES = 'libraries';

@@ -241,7 +241,10 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
-      if (isIntercepted) #interceptedNames[getterStubName] = true;
+      // Update the interceptedNames map (which only exists if `invokeOn` was
+      // enabled).
+      if (#enabledInvokeOn)
+        if (isIntercepted) #interceptedNames[getterStubName] = 1;
     }
 
     if (#usesMangledNames) {
@@ -271,7 +274,8 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       }
     }
   }
-''', {'globalFunctions' : globalFunctionsAccess,
+''', {'globalFunctions': globalFunctionsAccess,
+      'enabledInvokeOn': compiler.enabledInvokeOn,
       'interceptedNames': interceptedNamesAccess,
       'usesMangledNames':
           compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
@@ -279,6 +283,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       'mangledNames': mangledNamesAccess});
 
   List<jsAst.Statement> tearOffCode = buildTearOffCode(backend);
+
+  jsAst.ObjectInitializer interceptedNamesSet =
+      oldEmitter.interceptorEmitter.generateInterceptedNamesSet();
 
   jsAst.Statement init = js.statement('''{
   var functionCounter = 0;
@@ -288,7 +295,8 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   if (!#statics) #statics = map();
   if (!#typeInformation) #typeInformation = map(); 
   if (!#globalFunctions) #globalFunctions = map();
-  if (!#interceptedNames) #interceptedNames = map();
+  if (#enabledInvokeOn)
+    if (!#interceptedNames) #interceptedNames = #interceptedNamesSet;
   var libraries = #libraries;
   var mangledNames = #mangledNames;
   var mangledGlobalNames = #mangledGlobalNames;
@@ -340,7 +348,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
        'statics': staticsAccess,
        'typeInformation': typeInformationAccess,
        'globalFunctions': globalFunctionsAccess,
+       'enabledInvokeOn': compiler.enabledInvokeOn,
        'interceptedNames': interceptedNamesAccess,
+       'interceptedNamesSet': interceptedNamesSet,
        'notInCspMode': !compiler.useContentSecurityPolicy,
        'needsClassSupport': oldEmitter.needsClassSupport});
 
