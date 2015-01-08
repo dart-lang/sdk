@@ -2199,7 +2199,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 // to IndirectGoto as an input.
 class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  IndirectGotoInstr(GrowableObjectArray* offsets,
+  IndirectGotoInstr(TypedData* offsets,
                     Value* offset_from_start)
     : offsets_(*offsets) {
     SetInputAt(0, offset_from_start);
@@ -2228,12 +2228,12 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
-  const GrowableObjectArray& offsets() const { return offsets_; }
+  const TypedData& offsets() const { return offsets_; }
   void ComputeOffsetTable(Isolate* isolate);
 
  private:
   GrowableArray<TargetEntryInstr*> successors_;
-  GrowableObjectArray& offsets_;
+  TypedData& offsets_;
 };
 
 

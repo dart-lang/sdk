@@ -2580,8 +2580,8 @@ void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
     // Don't generate a table when contained in an unreachable block.
     return;
   }
-  ASSERT(SuccessorCount() == offsets_.Capacity());
-  offsets_.SetLength(SuccessorCount());
+  ASSERT(SuccessorCount() == offsets_.Length());
+  intptr_t element_size = offsets_.ElementSizeInBytes();
   for (intptr_t i = 0; i < SuccessorCount(); i++) {
     TargetEntryInstr* target = SuccessorAt(i);
     intptr_t offset = target->offset();
@@ -2605,7 +2605,7 @@ void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
 
     ASSERT(offset > 0);
     offset -= Assembler::EntryPointToPcMarkerOffset();
-    offsets_.SetAt(i, Smi::ZoneHandle(isolate, Smi::New(offset)));
+    offsets_.SetInt32(i * element_size, offset);
   }
 }
 
