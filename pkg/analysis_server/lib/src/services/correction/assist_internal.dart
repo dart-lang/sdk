@@ -1394,6 +1394,8 @@ class AssistProcessor {
     // prepare environment
     String indentOld = utils.getNodePrefix(firstStatement);
     String indentNew = "${indentOld}${utils.getIndent(1)}";
+    String indentedCode =
+        utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew);
     // "block"
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}{${eol}");
@@ -1405,208 +1407,208 @@ class AssistProcessor {
     }
     // "if"
     {
+      int offset = statementsRange.offset;
+      SourceBuilder sb = new SourceBuilder(file, offset);
+      sb.append(indentOld);
+      sb.append("if (");
       {
-        int offset = statementsRange.offset;
-        SourceBuilder sb = new SourceBuilder(file, offset);
-        sb.append(indentOld);
-        sb.append("if (");
-        {
-          sb.startPosition("CONDITION");
-          sb.append("condition");
-          sb.endPosition();
-        }
-        sb.append(") {");
-        sb.append(eol);
-        _insertBuilder(sb);
+        sb.startPosition("CONDITION");
+        sb.append("condition");
+        sb.endPosition();
       }
-      _addIndentEdit(statementsRange, indentOld, indentNew);
-      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-      exitPosition = _newPosition(lastStatement.end);
+      sb.append(") {");
+      sb.append(eol);
+      sb.append(indentedCode);
+      sb.append(indentOld);
+      sb.append('}');
+      exitPosition = _newPosition(sb.offset + sb.length);
+      sb.append(eol);
+      _insertBuilder(sb, statementsRange.length);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_IF, []);
     }
     // "while"
     {
+      int offset = statementsRange.offset;
+      SourceBuilder sb = new SourceBuilder(file, offset);
+      sb.append(indentOld);
+      sb.append("while (");
       {
-        int offset = statementsRange.offset;
-        SourceBuilder sb = new SourceBuilder(file, offset);
-        sb.append(indentOld);
-        sb.append("while (");
-        {
-          sb.startPosition("CONDITION");
-          sb.append("condition");
-          sb.endPosition();
-        }
-        sb.append(") {");
-        sb.append(eol);
-        _insertBuilder(sb);
+        sb.startPosition("CONDITION");
+        sb.append("condition");
+        sb.endPosition();
       }
-      _addIndentEdit(statementsRange, indentOld, indentNew);
-      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-      exitPosition = _newPosition(lastStatement.end);
+      sb.append(") {");
+      sb.append(eol);
+      sb.append(indentedCode);
+      sb.append(indentOld);
+      sb.append('}');
+      exitPosition = _newPosition(sb.offset + sb.length);
+      sb.append(eol);
+      _insertBuilder(sb, statementsRange.length);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_WHILE, []);
     }
     // "for-in"
     {
+      int offset = statementsRange.offset;
+      SourceBuilder sb = new SourceBuilder(file, offset);
+      sb.append(indentOld);
+      sb.append("for (var ");
       {
-        int offset = statementsRange.offset;
-        SourceBuilder sb = new SourceBuilder(file, offset);
-        sb.append(indentOld);
-        sb.append("for (var ");
-        {
-          sb.startPosition("NAME");
-          sb.append("item");
-          sb.endPosition();
-        }
-        sb.append(" in ");
-        {
-          sb.startPosition("ITERABLE");
-          sb.append("iterable");
-          sb.endPosition();
-        }
-        sb.append(") {");
-        sb.append(eol);
-        _insertBuilder(sb);
+        sb.startPosition("NAME");
+        sb.append("item");
+        sb.endPosition();
       }
-      _addIndentEdit(statementsRange, indentOld, indentNew);
-      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-      exitPosition = _newPosition(lastStatement.end);
+      sb.append(" in ");
+      {
+        sb.startPosition("ITERABLE");
+        sb.append("iterable");
+        sb.endPosition();
+      }
+      sb.append(") {");
+      sb.append(eol);
+      sb.append(indentedCode);
+      sb.append(indentOld);
+      sb.append('}');
+      exitPosition = _newPosition(sb.offset + sb.length);
+      sb.append(eol);
+      _insertBuilder(sb, statementsRange.length);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_FOR_IN, []);
     }
     // "for"
     {
+      int offset = statementsRange.offset;
+      SourceBuilder sb = new SourceBuilder(file, offset);
+      sb.append(indentOld);
+      sb.append("for (var ");
       {
-        int offset = statementsRange.offset;
-        SourceBuilder sb = new SourceBuilder(file, offset);
-        sb.append(indentOld);
-        sb.append("for (var ");
-        {
-          sb.startPosition("VAR");
-          sb.append("v");
-          sb.endPosition();
-        }
-        sb.append(" = ");
-        {
-          sb.startPosition("INIT");
-          sb.append("init");
-          sb.endPosition();
-        }
-        sb.append("; ");
-        {
-          sb.startPosition("CONDITION");
-          sb.append("condition");
-          sb.endPosition();
-        }
-        sb.append("; ");
-        {
-          sb.startPosition("INCREMENT");
-          sb.append("increment");
-          sb.endPosition();
-        }
-        sb.append(") {");
-        sb.append(eol);
-        _insertBuilder(sb);
+        sb.startPosition("VAR");
+        sb.append("v");
+        sb.endPosition();
       }
-      _addIndentEdit(statementsRange, indentOld, indentNew);
-      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-      exitPosition = _newPosition(lastStatement.end);
+      sb.append(" = ");
+      {
+        sb.startPosition("INIT");
+        sb.append("init");
+        sb.endPosition();
+      }
+      sb.append("; ");
+      {
+        sb.startPosition("CONDITION");
+        sb.append("condition");
+        sb.endPosition();
+      }
+      sb.append("; ");
+      {
+        sb.startPosition("INCREMENT");
+        sb.append("increment");
+        sb.endPosition();
+      }
+      sb.append(") {");
+      sb.append(eol);
+      sb.append(indentedCode);
+      sb.append(indentOld);
+      sb.append('}');
+      exitPosition = _newPosition(sb.offset + sb.length);
+      sb.append(eol);
+      _insertBuilder(sb, statementsRange.length);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_FOR, []);
     }
     // "do-while"
     {
-      _addInsertEdit(statementsRange.offset, "${indentOld}do {${eol}");
-      _addIndentEdit(statementsRange, indentOld, indentNew);
+      int offset = statementsRange.offset;
+      SourceBuilder sb = new SourceBuilder(file, offset);
+      sb.append(indentOld);
+      sb.append("do {");
+      sb.append(eol);
+      sb.append(indentedCode);
+      sb.append(indentOld);
+      sb.append("} while (");
       {
-        int offset = statementsRange.end;
-        SourceBuilder sb = new SourceBuilder(file, offset);
-        sb.append(indentOld);
-        sb.append("} while (");
-        {
-          sb.startPosition("CONDITION");
-          sb.append("condition");
-          sb.endPosition();
-        }
-        sb.append(");");
-        sb.append(eol);
-        _insertBuilder(sb);
+        sb.startPosition("CONDITION");
+        sb.append("condition");
+        sb.endPosition();
       }
-      exitPosition = _newPosition(lastStatement.end);
+      sb.append(");");
+      exitPosition = _newPosition(sb.offset + sb.length);
+      sb.append(eol);
+      _insertBuilder(sb, statementsRange.length);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_DO_WHILE, []);
     }
     // "try-catch"
     {
-      _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
-      _addIndentEdit(statementsRange, indentOld, indentNew);
+      int offset = statementsRange.offset;
+      SourceBuilder sb = new SourceBuilder(file, offset);
+      sb.append(indentOld);
+      sb.append("try {");
+      sb.append(eol);
+      sb.append(indentedCode);
+      sb.append(indentOld);
+      sb.append("} on ");
       {
-        int offset = statementsRange.end;
-        SourceBuilder sb = new SourceBuilder(file, offset);
-        sb.append(indentOld);
-        sb.append("} on ");
-        {
-          sb.startPosition("EXCEPTION_TYPE");
-          sb.append("Exception");
-          sb.endPosition();
-        }
-        sb.append(" catch (");
-        {
-          sb.startPosition("EXCEPTION_VAR");
-          sb.append("e");
-          sb.endPosition();
-        }
-        sb.append(") {");
-        sb.append(eol);
-        //
-        sb.append(indentNew);
-        {
-          sb.startPosition("CATCH");
-          sb.append("// TODO");
-          sb.endPosition();
-          sb.setExitOffset();
-        }
-        sb.append(eol);
-        //
-        sb.append(indentOld);
-        sb.append("}");
-        sb.append(eol);
-        //
-        _insertBuilder(sb);
-        exitPosition = _newPosition(sb.exitOffset);
+        sb.startPosition("EXCEPTION_TYPE");
+        sb.append("Exception");
+        sb.endPosition();
       }
+      sb.append(" catch (");
+      {
+        sb.startPosition("EXCEPTION_VAR");
+        sb.append("e");
+        sb.endPosition();
+      }
+      sb.append(") {");
+      sb.append(eol);
+      //
+      sb.append(indentNew);
+      {
+        sb.startPosition("CATCH");
+        sb.append("// TODO");
+        sb.endPosition();
+        sb.setExitOffset();
+      }
+      sb.append(eol);
+      //
+      sb.append(indentOld);
+      sb.append("}");
+      sb.append(eol);
+      _insertBuilder(sb, statementsRange.length);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_TRY_CATCH, []);
     }
     // "try-finally"
     {
-      _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
-      _addIndentEdit(statementsRange, indentOld, indentNew);
+      int offset = statementsRange.offset;
+      SourceBuilder sb = new SourceBuilder(file, offset);
+      //
+      sb.append(indentOld);
+      sb.append("try {");
+      sb.append(eol);
+      //
+      sb.append(indentedCode);
+      //
+      sb.append(indentOld);
+      sb.append("} finally {");
+      sb.append(eol);
+      //
+      sb.append(indentNew);
       {
-        int offset = statementsRange.end;
-        SourceBuilder sb = new SourceBuilder(file, offset);
-        //
-        sb.append(indentOld);
-        sb.append("} finally {");
-        sb.append(eol);
-        //
-        sb.append(indentNew);
-        {
-          sb.startPosition("FINALLY");
-          sb.append("// TODO");
-          sb.endPosition();
-        }
+        sb.startPosition("FINALLY");
+        sb.append("// TODO");
+        sb.endPosition();
         sb.setExitOffset();
-        sb.append(eol);
-        //
-        sb.append(indentOld);
-        sb.append("}");
-        sb.append(eol);
-        //
-        _insertBuilder(sb);
-        exitPosition = _newPosition(sb.exitOffset);
       }
+      sb.setExitOffset();
+      sb.append(eol);
+      //
+      sb.append(indentOld);
+      sb.append("}");
+      sb.append(eol);
+      //
+      _insertBuilder(sb, statementsRange.length);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_TRY_FINALLY, []);
     }
@@ -1670,9 +1672,12 @@ class AssistProcessor {
   /**
    * Inserts the given [SourceBuilder] at its offset.
    */
-  void _insertBuilder(SourceBuilder builder) {
-    String text = builder.toString();
-    _addInsertEdit(builder.offset, text);
+  void _insertBuilder(SourceBuilder builder, [int length = 0]) {
+    {
+      SourceRange range = rangeStartLength(builder.offset, length);
+      String text = builder.toString();
+      _addReplaceEdit(range, text);
+    }
     // add linked positions
     builder.linkedPositionGroups.forEach((String id, LinkedEditGroup group) {
       LinkedEditGroup fixGroup = _getLinkedPosition(id);
