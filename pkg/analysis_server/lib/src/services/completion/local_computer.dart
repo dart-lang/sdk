@@ -25,9 +25,11 @@ class LocalComputer extends DartCompletionComputer {
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
     if (optype.includeTopLevelSuggestions) {
-      _LocalVisitor localVisitor = new _LocalVisitor(request, request.offset);
-      localVisitor.typesOnly = optype.includeOnlyTypeNameSuggestions;
-      localVisitor.excludeVoidReturn = !optype.includeVoidReturnSuggestions;
+      _LocalVisitor localVisitor = new _LocalVisitor(
+          request,
+          request.offset,
+          optype.includeOnlyTypeNameSuggestions,
+          !optype.includeVoidReturnSuggestions);
 
       // Collect suggestions from the specific child [AstNode] that contains
       // the completion offset and all of its parents recursively.
@@ -61,12 +63,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       null);
 
   final DartCompletionRequest request;
-  bool typesOnly = false;
-  bool excludeVoidReturn;
+  final bool typesOnly;
+  final bool excludeVoidReturn;
 
-  _LocalVisitor(this.request, int offset) : super(offset) {
-    excludeVoidReturn = _computeExcludeVoidReturn(request.node);
-  }
+  _LocalVisitor(this.request, int offset, this.typesOnly,
+      this.excludeVoidReturn)
+      : super(offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {
@@ -106,11 +108,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       return;
     }
     bool isDeprecated = _isDeprecated(fieldDecl) || _isDeprecated(varDecl);
-    CompletionSuggestion suggestion = _addSuggestion(
-        varDecl.name,
-        null,
-        fieldDecl.parent,
-        isDeprecated);
+    CompletionSuggestion suggestion =
+        _addSuggestion(varDecl.name, null, fieldDecl.parent, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.FIELD,
@@ -217,11 +216,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       parameters = declaration.parameters.toSource();
     }
     bool isDeprecated = _isDeprecated(declaration);
-    CompletionSuggestion suggestion = _addSuggestion(
-        declaration.name,
-        returnType,
-        declaration.parent,
-        isDeprecated);
+    CompletionSuggestion suggestion =
+        _addSuggestion(declaration.name, returnType, declaration.parent, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           kind,
@@ -301,16 +297,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return null;
-  }
-
-  bool _computeExcludeVoidReturn(AstNode node) {
-    if (node is Block) {
-      return false;
-    } else if (node is SimpleIdentifier) {
-      return node.parent is ExpressionStatement ? false : true;
-    } else {
-      return true;
-    }
   }
 
 
