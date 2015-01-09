@@ -3086,7 +3086,8 @@ void Assembler::VerifySmi(const Address& dest, const char* stop_msg) {
   Label done;
   testb(dest, Immediate(kHeapObjectTag));
   j(ZERO, &done, Assembler::kNearJump);
-  Stop(stop_msg);
+  static const bool kFixedLengthEncoding = true;
+  Stop(stop_msg, kFixedLengthEncoding);
   Bind(&done);
 }
 #endif  // defined(DEBUG)

@@ -1288,7 +1288,7 @@ int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
   // Used by CodePatcher; so must be constant across all code in an isolate.
   int32_t size = 5;
 #if defined(DEBUG)
-  size += 33;  // VerifySmi
+  size += 36;  // VerifySmi
 #endif  // DEBUG
   if (VerifiedMemory::enabled()) {
     size += 72;
