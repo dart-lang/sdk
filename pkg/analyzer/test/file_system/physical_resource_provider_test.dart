@@ -68,9 +68,16 @@ main() {
         var path = join(tempPath, 'foo');
         new io.File(path).writeAsStringSync('contents');
         return delayed(() {
-          expect(changesReceived, hasLength(1));
+          // There should be an "add" event indicating that the file was added.
+          // Depending on how long it took to write the contents, it may be
+          // followed by "modify" events.
+          expect(changesReceived, isNotEmpty);
           expect(changesReceived[0].type, equals(ChangeType.ADD));
           expect(changesReceived[0].path, equals(path));
+          for (int i = 1; i < changesReceived.length; i++) {
+            expect(changesReceived[i].type, equals(ChangeType.MODIFY));
+            expect(changesReceived[i].path, equals(path));
+          }
         });
       }));
 
