@@ -679,6 +679,25 @@ main() {
     });
   });
 
+  test('Closure wrapping of literals', () {
+    testChecker({
+      '/main.dart': '''
+      typedef T F<T>(T t1, T t2);
+      typedef dynamic D(t1, t2);
+
+      void main() {
+        F f1 = (x, y) => x + y;
+        F<int> f2 = /*warning:ClosureWrapLiteral*/(x, y) => x + y;
+        D f3 = (x, y) => x + y;
+        Function f4 = (x, y) => x + y;
+        f2 = /*warning:ClosureWrap*/f1;
+        f1 = /*warning:ClosureWrapLiteral*/(int x, int y) => x + y;
+        f2 = /*severe:StaticTypeError*/(int x) => -x;
+      }
+   '''
+    });
+  });
+
   test('Generic subtyping: invariance', () {
     testChecker({
       '/main.dart': '''
@@ -1153,9 +1172,13 @@ main() {
             i2 = /*pass should be warning:DownCastDynamic*/i1;
             i2 = /*pass should be severe:StaticTypeError*/l1;
 
-            List<int> l2 = /*warning:DownCastExact*/[1, 2, 3];
+            List<int> l2 = /*warning:DownCastLiteral*/[1, 2, 3];
             l2 = /*info:DownCast*/i1;
             l2 = /*warning:DownCastDynamic*/l1;
+
+            l2 = /*warning:DownCastExact*/new List();
+            l2 = /*warning:DownCastExact*/new List(10);
+            l2 = /*warning:DownCastExact*/new List.filled(10, 42);
           }
    '''
     });

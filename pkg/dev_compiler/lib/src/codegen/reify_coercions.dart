@@ -45,7 +45,7 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
 
   // TODO(leafp): Bind the coercions at the top level
   @override
-  Object visitClosureWrap(ClosureWrap node) {
+  Object visitClosureWrapBase(ClosureWrapBase node) {
     Expression newE = _cm.coerceExpression(node.node, node.wrapper);
     if (!NodeReplacer.replace(node, newE)) {
       _log.severe("Failed to replace node for Closure Wrap");

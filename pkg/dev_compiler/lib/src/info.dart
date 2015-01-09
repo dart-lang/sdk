@@ -212,6 +212,15 @@ class DownCastDynamic extends DownCastBase {
 
 // A down cast on a literal expression.  This should never succeed.
 // TODO(vsm): Mark as severe / error?
+class DownCastLiteral extends DownCastBase {
+  DownCastLiteral(TypeRules rules, Expression expression, Cast cast) :
+    super._internal(rules, expression, cast);
+
+  final Level level = Level.WARNING;
+}
+
+// A down cast on a non-literal allocation site.  This should never succeed.
+// TODO(vsm): Mark as severe / error?
 class DownCastExact extends DownCastBase {
   DownCastExact(TypeRules rules, Expression expression, Cast cast) :
     super._internal(rules, expression, cast);
@@ -219,11 +228,12 @@ class DownCastExact extends DownCastBase {
   final Level level = Level.WARNING;
 }
 
-class ClosureWrap extends Conversion {
+// A wrapped closure coerces the underlying type to the desired type.
+class ClosureWrapBase extends Conversion {
   FunctionType _wrappedType;
   Wrapper _wrapper;
 
-  ClosureWrap(
+  ClosureWrapBase._internal(
       TypeRules rules, Expression expression, this._wrapper, this._wrappedType)
       : super(rules, expression) {
     assert(baseType is FunctionType);
@@ -241,11 +251,26 @@ class ClosureWrap extends Conversion {
 
   accept(AstVisitor visitor) {
     if (visitor is ConversionVisitor) {
-      return visitor.visitClosureWrap(this);
+      return visitor.visitClosureWrapBase(this);
     } else {
       return expression.accept(visitor);
     }
   }
+}
+
+// Standard closure wrapping.
+class ClosureWrap extends ClosureWrapBase {
+  ClosureWrap(TypeRules rules, Expression expression, Wrapper wrapper,
+      FunctionType wrappedType)
+      : super._internal(rules, expression, wrapper, wrappedType);
+}
+
+// "Wrapping" of an inline closure.  This could be optimized and / or we
+// could propagate the types into the literal.
+class ClosureWrapLiteral extends ClosureWrapBase {
+  ClosureWrapLiteral(TypeRules rules, Expression expression, Wrapper wrapper,
+      FunctionType wrappedType)
+      : super._internal(rules, expression, wrapper, wrappedType);
 }
 
 class DynamicInvoke extends Conversion {
@@ -370,7 +395,8 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
   R visitDownCast(DownCastDynamic node) => visitDownCastBase(node);
   R visitDownCastDynamic(DownCastDynamic node) => visitDownCastBase(node);
   R visitDownCastExact(DownCastDynamic node) => visitDownCastBase(node);
-  R visitClosureWrap(ClosureWrap node) => visitConversion(node);
+  R visitClosureWrapBase(ClosureWrapBase node) => visitConversion(node);
+  R visitClosureWrap(ClosureWrap node) => visitClosureWrapBase(node);
   R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);
 }
 
