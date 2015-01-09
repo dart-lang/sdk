@@ -56,6 +56,19 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
     assertNormal(server, InstrumentationService.TAG_EXCEPTION, '$message:null');
   }
 
+  void test_logLogEntry() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    String level = 'level';
+    DateTime time = new DateTime(2001);
+    String message = 'message';
+    service.logLogEntry(level, time, message);
+    assertNormal(
+        server,
+        InstrumentationService.TAG_LOG_ENTRY,
+        '$level:2001-01-01 00::00::00.000:$message');
+  }
+
   void test_logNotification() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);

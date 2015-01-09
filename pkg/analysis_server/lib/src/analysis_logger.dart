@@ -18,6 +18,15 @@ class AnalysisLogger implements Logger {
    */
   final logging.Logger baseLogger = new logging.Logger('analysis.server');
 
+  AnalysisLogger() {
+    logging.Logger.root.onRecord.listen((logging.LogRecord record) {
+      AnalysisEngine.instance.instrumentationService.logLogEntry(
+          record.level.name,
+          record.time,
+          record.message);
+    });
+  }
+
   @override
   void logError(String message, [CaughtException exception]) {
     if (exception == null) {

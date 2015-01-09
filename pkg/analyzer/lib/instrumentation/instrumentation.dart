@@ -47,6 +47,7 @@ class InstrumentationService {
 
   static const String TAG_ERROR = 'Err';
   static const String TAG_EXCEPTION = 'Ex';
+  static const String TAG_LOG_ENTRY = 'Log';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
@@ -85,6 +86,17 @@ class InstrumentationService {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
       _instrumentationServer.log(_join([TAG_EXCEPTION, message, trace]));
+    }
+  }
+
+  /**
+   * Log a log entry that was written to the analysis engine's log.
+   */
+  void logLogEntry(String level, DateTime time, String message) {
+    if (_instrumentationServer != null) {
+      String timeStamp = _toString(time);
+      _instrumentationServer.log(
+          _join([TAG_LOG_ENTRY, level, timeStamp, message]));
     }
   }
 
