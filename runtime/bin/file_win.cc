@@ -17,6 +17,7 @@
 #include "bin/builtin.h"
 #include "bin/log.h"
 #include "bin/utils.h"
+#include "platform/utils.h"
 
 
 namespace dart {
@@ -102,6 +103,44 @@ bool File::Truncate(int64_t length) {
 bool File::Flush() {
   ASSERT(handle_->fd());
   return _commit(handle_->fd()) != -1;
+}
+
+
+bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
+  ASSERT(handle_->fd() >= 0);
+  ASSERT(end == -1 || end > start);
+  HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(handle_->fd()));
+  OVERLAPPED overlapped;
+  ZeroMemory(&overlapped, sizeof(OVERLAPPED));
+
+  overlapped.Offset = Utils::Low32Bits(start);
+  overlapped.OffsetHigh = Utils::High32Bits(start);
+
+  int64_t length = end == -1 ? 0 : end - start;
+  if (length == 0) length = kMaxInt64;
+  int32_t length_low = Utils::Low32Bits(length);
+  int32_t length_high = Utils::High32Bits(length);
+
+
+  BOOL rc;
+  switch (lock) {
+    case File::kLockUnlock:
+      rc = UnlockFileEx(handle, 0, length_low, length_high, &overlapped);
+      break;
+    case File::kLockShared:
+    case File::kLockExclusive: {
+      DWORD flags = LOCKFILE_FAIL_IMMEDIATELY;
+      if (lock == File::kLockExclusive) {
+        flags |= LOCKFILE_EXCLUSIVE_LOCK;
+      }
+      rc = LockFileEx(handle, flags, 0,
+                      length_low, length_high, &overlapped);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  return rc;
 }
 
 
@@ -437,7 +476,7 @@ char* File::LinkTarget(const char* pathname) {
   // Remove "\??\" from beginning of target.
   if (target_length > 4 && wcsncmp(L"\\??\\", target, 4) == 0) {
     target += 4;
-    target_length -=4;
+    target_length -= 4;
   }
   int utf8_length = WideCharToMultiByte(CP_UTF8,
                                         0,

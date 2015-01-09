@@ -184,6 +184,10 @@ class _RandomAccessFile {
   static _flush(int id) {
     throw new UnsupportedError("RandomAccessFile._flush");
   }
+  @patch
+  static _lock(int id, int lock, int start, int end) {
+    throw new UnsupportedError("RandomAccessFile._lock");
+  }
 }
 
 @patch

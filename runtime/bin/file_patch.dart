@@ -38,6 +38,8 @@ patch class _RandomAccessFile {
   /* patch */ static _truncate(int id, int length) native "File_Truncate";
   /* patch */ static _length(int id) native "File_Length";
   /* patch */ static _flush(int id) native "File_Flush";
+  /* patch */ static _lock(int id, int lock, int start, int end)
+      native "File_Lock";
 }
 
 

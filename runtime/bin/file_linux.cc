@@ -109,6 +109,32 @@ bool File::Flush() {
 }
 
 
+bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
+  ASSERT(handle_->fd() >= 0);
+  ASSERT(end == -1 || end > start);
+  struct flock fl;
+  switch (lock) {
+    case File::kLockUnlock:
+      fl.l_type = F_UNLCK;
+      break;
+    case File::kLockShared:
+      fl.l_type = F_RDLCK;
+      break;
+    case File::kLockExclusive:
+      fl.l_type = F_WRLCK;
+      break;
+    default:
+      return false;
+  }
+  fl.l_whence = SEEK_SET;
+  fl.l_start = start;
+  fl.l_len = end == -1 ? 0 : end - start;
+  // fcntl does not block, but fails if the lock cannot be acquired.
+  int rc = fcntl(handle_->fd(), F_SETLK, &fl);
+  return rc != -1;
+}
+
+
 int64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct stat64 st;

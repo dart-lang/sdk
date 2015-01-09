@@ -940,6 +940,85 @@ class _RandomAccessFile
     }
   }
 
+  static final int LOCK_UNLOCK = 0;
+  static final int LOCK_SHARED = 1;
+  static final int LOCK_EXCLUSIVE = 2;
+
+  Future<RandomAccessFile> lock(
+      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end]) {
+    if ((start != null && start is !int) ||
+        (end != null && end is !int) ||
+         mode is !FileLock) {
+      throw new ArgumentError();
+    }
+    if (start == null) start = 0;
+    if (end == null) end = -1;
+    if (start < 0 || end < -1 || (end != -1 && start >= end)) {
+      throw new ArgumentError();
+    }
+    int lock = mode == FileLock.EXCLUSIVE ? LOCK_EXCLUSIVE : LOCK_SHARED;
+    return _dispatch(_FILE_LOCK, [_id, lock, start, end])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(response, 'lock failed', path);
+          }
+          return this;
+        });
+  }
+
+  Future<RandomAccessFile> unlock([int start = 0, int end]) {
+    if ((start != null && start is !int) ||
+        (end != null && end is !int)) {
+      throw new ArgumentError();
+    }
+    if (start == null) start = 0;
+    if (end == null) end = -1;
+    if (start == end) throw new ArgumentError();
+    return _dispatch(_FILE_LOCK, [_id, LOCK_UNLOCK, start, end])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(response, 'unlock failed', path);
+          }
+          return this;
+        });
+  }
+
+  external static _lock(int id, int lock, int start, int end);
+
+  void lockSync([FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end]) {
+    _checkAvailable();
+    if ((start != null && start is !int) ||
+        (end != null && end is !int) ||
+         mode is !FileLock) {
+      throw new ArgumentError();
+    }
+    if (start == null) start = 0;
+    if (end == null) end = -1;
+    if (start < 0 || end < -1 || (end != -1 && start >= end)) {
+      throw new ArgumentError();
+    }
+    int lock = mode == FileLock.EXCLUSIVE ? LOCK_EXCLUSIVE : LOCK_SHARED;
+    var result = _lock(_id, lock, start, end);
+    if (result is OSError) {
+      throw new FileSystemException('lock failed', path, result);
+    }
+  }
+
+  void unlockSync([int start = 0, int end]) {
+    _checkAvailable();
+    if ((start != null && start is !int) ||
+        (end != null && end is !int)) {
+      throw new ArgumentError();
+    }
+    if (start == null) start = 0;
+    if (end == null) end = -1;
+    if (start == end) throw new ArgumentError();
+    var result = _lock(_id, LOCK_UNLOCK, start, end);
+    if (result is OSError) {
+      throw new FileSystemException('unlock failed', path, result);
+    }
+  }
+
   bool get closed => _id == 0;
 
   Future _dispatch(int request, List data, { bool markClosed: false }) {

@@ -69,6 +69,15 @@ class File {
     kStatSize = 6
   };
 
+  enum LockType {
+    // These match the constants in FileStat in file_impl.dart.
+    kLockMin = 0,
+    kLockUnlock = 0,
+    kLockShared = 1,
+    kLockExclusive = 2,
+    kLockMax = 2
+  };
+
   ~File();
 
   intptr_t GetFD();
@@ -104,6 +113,9 @@ class File {
 
   // Flush contents of file.
   bool Flush();
+
+  // Lock range of a file.
+  bool Lock(LockType lock, int64_t start, int64_t end);
 
   // Returns whether the file has been closed.
   bool IsClosed();
@@ -168,6 +180,7 @@ class File {
   static CObject* TypeRequest(const CObjectArray& request);
   static CObject* IdenticalRequest(const CObjectArray& request);
   static CObject* StatRequest(const CObjectArray& request);
+  static CObject* LockRequest(const CObjectArray& request);
 
  private:
   explicit File(FileHandle* handle) : handle_(handle) { }
