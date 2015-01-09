@@ -76,7 +76,6 @@ ObjectStore::ObjectStore()
     pending_deferred_loads_(GrowableObjectArray::null()),
     resume_capabilities_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),
-    unhandled_exception_handler_(String::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),

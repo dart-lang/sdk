@@ -834,7 +834,6 @@ class IsolateSpawnState {
   char* library_url() const { return library_url_; }
   char* class_name() const { return class_name_; }
   char* function_name() const { return function_name_; }
-  char* exception_callback_name() const { return exception_callback_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
 
@@ -851,7 +850,6 @@ class IsolateSpawnState {
   char* library_url_;
   char* class_name_;
   char* function_name_;
-  char* exception_callback_name_;
   uint8_t* serialized_args_;
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;
