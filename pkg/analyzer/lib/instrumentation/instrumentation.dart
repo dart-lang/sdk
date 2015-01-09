@@ -47,6 +47,7 @@ class InstrumentationService {
 
   static const String TAG_ERROR = 'Err';
   static const String TAG_EXCEPTION = 'Ex';
+  static const String TAG_FILE_READ = 'Read';
   static const String TAG_LOG_ENTRY = 'Log';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_REQUEST = 'Req';
@@ -90,11 +91,24 @@ class InstrumentationService {
   }
 
   /**
-   * Log a log entry that was written to the analysis engine's log.
+   * Log that the contents of the file with the given [path] were read. The file
+   * had the given [content] and [modificationTime].
+   */
+  void logFileRead(String path, int modificationTime, String content) {
+    if (_instrumentationServer != null) {
+      String timeStamp = _toString(modificationTime);
+      _instrumentationServer.log(_join([TAG_FILE_READ, path, timeStamp, content]));
+    }
+  }
+
+  /**
+   * Log that a log entry that was written to the analysis engine's log. The log
+   * entry has the given [level] and [message], and was created at the given
+   * [time].
    */
   void logLogEntry(String level, DateTime time, String message) {
     if (_instrumentationServer != null) {
-      String timeStamp = _toString(time);
+      String timeStamp = time == null ? 'null' : time.millisecondsSinceEpoch.toString();
       _instrumentationServer.log(
           _join([TAG_LOG_ENTRY, level, timeStamp, message]));
     }

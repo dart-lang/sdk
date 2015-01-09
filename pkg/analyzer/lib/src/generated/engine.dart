@@ -8930,6 +8930,7 @@ class GetContentTask extends AnalysisTask {
       TimestampedData<String> data = context.getContents(source);
       _content = data.data;
       _modificationTime = data.modificationTime;
+      AnalysisEngine.instance.instrumentationService.logFileRead(source.fullName, _modificationTime, _content);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
           "Could not get contents of $source",

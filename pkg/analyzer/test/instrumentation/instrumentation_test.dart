@@ -56,6 +56,19 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
     assertNormal(server, InstrumentationService.TAG_EXCEPTION, '$message:null');
   }
 
+  void test_logFileRead() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    String path = '/file/path';
+    int time = 978336000000;
+    String content = 'class C {\n}\n';
+    service.logFileRead(path, time, content);
+    assertNormal(
+        server,
+        InstrumentationService.TAG_FILE_READ,
+        '$path:$time:$content');
+  }
+
   void test_logLogEntry() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
@@ -66,7 +79,7 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
     assertNormal(
         server,
         InstrumentationService.TAG_LOG_ENTRY,
-        '$level:2001-01-01 00::00::00.000:$message');
+        '$level:${time.millisecondsSinceEpoch}:$message');
   }
 
   void test_logNotification() {
