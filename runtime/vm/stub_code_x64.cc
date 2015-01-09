@@ -364,7 +364,12 @@ static void PushArgumentsArray(Assembler* assembler) {
   // R12: address of first argument on stack.
   // RBX: address of first argument in array.
   Label loop, loop_condition;
-  __ jmp(&loop_condition, Assembler::kNearJump);
+#if defined(DEBUG)
+  static const bool kJumpLength = Assembler::kFarJump;
+#else
+  static const bool kJumpLength = Assembler::kNearJump;
+#endif  // DEBUG
+  __ jmp(&loop_condition, kJumpLength);
   __ Bind(&loop);
   __ movq(RDI, Address(R12, 0));
   // No generational barrier needed, since array is in new space.
@@ -652,11 +657,16 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   Label init_loop;
   __ Bind(&init_loop);
   __ cmpq(RDI, RCX);
-  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+#if defined(DEBUG)
+  static const bool kJumpLength = Assembler::kFarJump;
+#else
+  static const bool kJumpLength = Assembler::kNearJump;
+#endif  // DEBUG
+  __ j(ABOVE_EQUAL, &done, kJumpLength);
   // No generational barrier needed, since we are storing null.
   __ InitializeFieldNoBarrier(RAX, Address(RDI, 0), R12);
   __ addq(RDI, Immediate(kWordSize));
-  __ jmp(&init_loop, Assembler::kNearJump);
+  __ jmp(&init_loop, kJumpLength);
   __ Bind(&done);
   __ ret();  // returns the newly allocated object in RAX.
 
