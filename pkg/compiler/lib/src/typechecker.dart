@@ -254,8 +254,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   final ClassElement currentClass;
 
-  InterfaceType thisType;
-  InterfaceType superType;
+  DartType thisType;
+  DartType superType;
 
   Link<DartType> cascadeTypes = const Link<DartType>();
 
@@ -339,6 +339,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (currentClass != null) {
       thisType = currentClass.thisType;
       superType = currentClass.supertype;
+    } else {
+      // If these are used, an error should have been reported by the resolver.
+      thisType = const DynamicType();
+      superType = const DynamicType();
     }
   }
 

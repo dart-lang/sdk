@@ -15,9 +15,6 @@ import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
 import 'link_helper.dart';
 
-import "package:compiler/src/dart2jslib.dart" show
-    CompilerCancelledException;
-
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
 Node buildInitialization(String name) =>
@@ -281,14 +278,7 @@ Future testThis() {
               new CollectingTreeElements(funElement)));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler);
-      try {
-        visitor.visit(function.body);
-      } on CompilerCancelledException catch (_) {
-        // Ignored.
-
-        // TODO(ahe): Don't ignore CompilerCancelledException, instead, fix
-        // pkg/compiler/lib/src/resolution/members.dart.
-      }
+      visitor.visit(function.body);
       Expect.equals(0, compiler.warnings.length);
       Expect.equals(1, compiler.errors.length);
       Expect.equals(MessageKind.NO_INSTANCE_AVAILABLE,
@@ -708,15 +698,7 @@ Future resolveConstructor(
         new ResolverVisitor(compiler, element,
             new ResolutionRegistry.internal(compiler,
                 new CollectingTreeElements(element)));
-    try {
-      new InitializerResolver(visitor).resolveInitializers(element, tree);
-    } on CompilerCancelledException catch (_) {
-      // Ignored.
-
-      // TODO(ahe): Don't ignore CompilerCancelledException, instead, fix
-      // pkg/compiler/lib/src/resolution/members.dart.
-    }
-
+    new InitializerResolver(visitor).resolveInitializers(element, tree);
     visitor.visit(tree.body);
     Expect.equals(expectedElementCount, map(visitor).length);
 
@@ -937,7 +919,7 @@ Future testInitializers() {
           """class A {
                A() : this.foo = 1;
              }""";
-      return resolveConstructor(script, "A a = new A();", "A", "", 0,
+      return resolveConstructor(script, "A a = new A();", "A", "", 1,
           expectedWarnings: [],
           expectedErrors: [MessageKind.CANNOT_RESOLVE]);
     },

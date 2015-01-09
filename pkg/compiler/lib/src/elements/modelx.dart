@@ -1272,6 +1272,79 @@ class FieldElementX extends VariableElementX
   }
 }
 
+/// A field that was synthesized to recover from a compile-time error.
+class ErroneousFieldElementX extends ElementX implements FieldElementX {
+  final VariableList variables;
+
+  ErroneousFieldElementX(Identifier name, Element enclosingElement)
+      : variables = new VariableList(Modifiers.EMPTY)
+            ..definitions = new VariableDefinitions(
+                null, Modifiers.EMPTY, new NodeList.singleton(name))
+            ..type = const DynamicType(),
+        super(name.source, ElementKind.FIELD, enclosingElement);
+
+  VariableDefinitions get definitionsCache => variables.definitions;
+
+  set definitionsCache(VariableDefinitions _) {
+    throw new UnsupportedError("definitionsCache=");
+  }
+
+  bool get hasNode => true;
+
+  VariableDefinitions get node => definitionsCache;
+
+  bool get hasResolvedAst => false;
+
+  ResolvedAst get resolvedAst {
+    throw new UnsupportedError("resolvedAst");
+  }
+
+  DynamicType get type => const DynamicType();
+
+  Token get token => node.getBeginToken();
+
+  get initializerCache {
+    throw new UnsupportedError("initializerCache");
+  }
+
+  set initializerCache(_) {
+    throw new UnsupportedError("initializerCache=");
+  }
+
+  void createDefinitions(VariableDefinitions definitions) {
+    throw new UnsupportedError("createDefinitions");
+  }
+
+  get initializer => null;
+
+  bool get isErroneous => true;
+
+  get nestedClosures {
+    throw new UnsupportedError("nestedClosures");
+  }
+
+  set nestedClosures(_) {
+    throw new UnsupportedError("nestedClosures=");
+  }
+
+  // TODO(ahe): Should this throw or do nothing?
+  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+
+  // TODO(ahe): Should return the context of the error site?
+  MemberElement get memberContext => this;
+
+  // TODO(ahe): Should return the definingElement of the error site?
+  AstElement get definingElement => this;
+
+  void reuseElement() {
+    throw new UnsupportedError("reuseElement");
+  }
+
+  FieldElementX copyWithEnclosing(Element enclosingElement) {
+    throw new UnsupportedError("copyWithEnclosing");
+  }
+}
+
 /// [Element] for a parameter-like element.
 class FormalElementX extends ElementX
     with AstElementMixin

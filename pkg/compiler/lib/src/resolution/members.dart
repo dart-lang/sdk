@@ -743,9 +743,7 @@ class ResolverTask extends CompilerTask {
       Element nextTarget = target.immediateRedirectionTarget;
       if (seen.contains(nextTarget)) {
         error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
-        break;
+        return;
       }
       seen.add(target);
       target = nextTarget;
@@ -1412,12 +1410,12 @@ class InitializerResolver {
       target = constructor.enclosingClass.lookupLocalMember(name);
       if (target == null) {
         error(selector, MessageKind.CANNOT_RESOLVE, {'name': name});
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
+        target = new ErroneousFieldElementX(
+            selector.asIdentifier(), constructor.enclosingClass);
       } else if (target.kind != ElementKind.FIELD) {
         error(selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
+        target = new ErroneousFieldElementX(
+            selector.asIdentifier(), constructor.enclosingClass);
       } else if (!target.isInstanceMember) {
         error(selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
       }
@@ -2242,8 +2240,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isThis()) {
       if (!inInstanceContext) {
         error(node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': node});
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
       }
       return null;
     } else if (node.isSuper()) {
