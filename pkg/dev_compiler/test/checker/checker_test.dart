@@ -1524,12 +1524,22 @@ main() {
             (/*severe:StaticTypeError*/x += 3.14);
 
             double y = 0.0;
-            (/*severe:StaticTypeError*/y += 5);
+            y += 5;
             y += 3.14;
 
             num z = 0;
             z += 5;
             z += 3.14;
+
+            x = /*info:DownCast*/x + z;
+            x += /*info:DownCast*/z;
+            y = /*info:DownCast*/y + z;
+            y += /*info:DownCast*/z;
+
+            dynamic w = 42;
+            x += /*info:DownCast*/w;
+            y += /*info:DownCast*/w;
+            z += /*info:DownCast*/w;
 
             A a = new A();
             B b = new B();

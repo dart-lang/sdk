@@ -379,8 +379,11 @@ class ProgramChecker extends RecursiveAstVisitor {
       case TokenType.PERCENT_EQ:
         if (_rules.isIntType(t1) && _rules.isIntType(t2)) return t1;
         if (_rules.isDoubleType(t1) && _rules.isDoubleType(t2)) return t1;
-        final numType = _rules.provider.numType;
+        // This particular combo is not spelled out in the spec, but all
+        // implementations and analyzer seem to follow this.
+        if (_rules.isDoubleType(t1) && _rules.isIntType(t2)) return t1;
 
+        final numType = _rules.provider.numType;
         // TODO(vsm): This should not be necessary, but the underlying function
         // we're getting from the analyzer seems to return dynamic in this
         // case.  That doesn't match the source code, so we need to check where
@@ -408,21 +411,37 @@ class ProgramChecker extends RecursiveAstVisitor {
       assert(functionType.namedParameterTypes.isEmpty);
       assert(functionType.optionalParameterTypes.isEmpty);
 
-      // Check the rhs type
-      var paramType = paramTypes.first;
-      var rhsType = _rules.getStaticType(expr.rightHandSide);
-      var staticInfo = _rules.checkAssignment(expr.rightHandSide, paramType);
-      _recordMessage(staticInfo);
-      if (staticInfo is Conversion) expr.rightHandSide = staticInfo;
-
       // Check the lhs type
-      var expectedType = _rules.getStaticType(expr.leftHandSide);
+      var staticInfo;
+      var rhsType = _rules.getStaticType(expr.rightHandSide);
+      var lhsType = _rules.getStaticType(expr.leftHandSide);
       var returnType = _specializedBinaryReturnType(
-          op, expectedType, rhsType, functionType.returnType);
-      if (!_rules.isSubTypeOf(returnType, expectedType)) {
-        // Static type error
-        staticInfo = new StaticTypeError(_rules, expr, expectedType);
+          op, lhsType, rhsType, functionType.returnType);
+
+      if (!_rules.isSubTypeOf(returnType, lhsType)) {
+        final numType = _rules.provider.numType;
+        // Try to fix up the numerical case if possible.
+        if (_rules.isSubTypeOf(lhsType, numType) &&
+            _rules.isSubTypeOf(lhsType, rhsType)) {
+          // This is also slightly different from spec, but allows us to keep
+          // compound operators in the int += num and num += dynamic cases.
+          staticInfo = DownCast.create(_rules, expr.rightHandSide,
+              Coercion.cast(rhsType, lhsType));
+          expr.rightHandSide = staticInfo;
+          rhsType = lhsType;
+        } else {
+          // Static type error
+          staticInfo = new StaticTypeError(_rules, expr, lhsType);
+        }
         _recordMessage(staticInfo);
+      }
+
+      // Check the rhs type
+      if (staticInfo is! Conversion) {
+        var paramType = paramTypes.first;
+        staticInfo = _rules.checkAssignment(expr.rightHandSide, paramType);
+        _recordMessage(staticInfo);
+        if (staticInfo is Conversion) expr.rightHandSide = staticInfo;
       }
     }
   }

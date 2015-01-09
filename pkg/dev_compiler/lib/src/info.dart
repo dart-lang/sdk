@@ -195,6 +195,35 @@ abstract class DownCastBase extends Conversion {
 class DownCast extends DownCastBase {
   DownCast(TypeRules rules, Expression expression, Cast cast)
       : super._internal(rules, expression, cast);
+
+  // Factory to create correct DownCast variant.
+  static DownCastBase create(TypeRules rules,
+                             Expression expression,
+                             Cast cast) {
+    final fromT = cast.fromType;
+    final toT = cast.toType;
+
+    // toT <:_R fromT => to <: fromT
+    assert(toT.isAssignableTo(fromT));
+
+    // Specialized casts:
+    if (expression is Literal) {
+      // fromT should be an exact type - this will almost certainly fail at
+      // runtime.
+      return new DownCastLiteral(rules, expression, cast);
+    }
+    if (expression is InstanceCreationExpression) {
+      // fromT should be an exact type - this will almost certainly fail at
+      // runtime.
+      return new DownCastExact(rules, expression, cast);
+    }
+    if (fromT.isSubtypeOf(toT) && !fromT.isDynamic) {
+      // This cast is (probably) due to our different treatment of dynamic.
+      // It may be more likely to fail at runtime.
+      return new DownCastDynamic(rules, expression, cast);
+    }
+    return new DownCast(rules, expression, cast);
+  }
 }
 
 // A down cast that would be "unnecessary" with standard Dart rules.
@@ -261,6 +290,16 @@ class ClosureWrap extends ClosureWrapBase {
   ClosureWrap(TypeRules rules, Expression expression, Wrapper wrapper,
       FunctionType wrappedType)
       : super._internal(rules, expression, wrapper, wrappedType);
+
+  static ClosureWrapBase create(TypeRules rules, Expression expression,
+      Wrapper wrapper, FunctionType wrappedType) {
+    // Specialized wrappers:
+    if (expression is FunctionExpression) {
+      // The expression is a function literal / inline closure.
+      return new ClosureWrapLiteral(rules, expression, wrapper, wrappedType);
+    }
+    return new ClosureWrap(rules, expression, wrapper, wrappedType);
+  }
 }
 
 // "Wrapping" of an inline closure.  This could be optimized and / or we

@@ -395,36 +395,8 @@ class RestrictedRules extends TypeRules {
     final fromT = getStaticType(expr);
     final Coercion c = _coerceTo(fromT, toT, true);
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
-    if (c is Cast) {
-      // toT <:_R fromT => to <: fromT
-      assert(toT.isAssignableTo(fromT));
-
-      // Specialized casts:
-      if (expr is Literal) {
-        // fromT should be an exact type - this will almost certainly fail at
-        // runtime.
-        return new DownCastLiteral(this, expr, c);
-      }
-      if (expr is InstanceCreationExpression) {
-        // fromT should be an exact type - this will almost certainly fail at
-        // runtime.
-        return new DownCastExact(this, expr, c);
-      }
-      if (fromT.isSubtypeOf(toT) && !fromT.isDynamic) {
-        // This cast is (probably) due to our different treatment of dynamic.
-        // It may be more likely to fail at runtime.
-        return new DownCastDynamic(this, expr, c);
-      }
-      return new DownCast(this, expr, c);
-    }
-    if (c is Wrapper) {
-      // Specialized wrappers:
-      if (expr is FunctionExpression) {
-        // The expression is a function literal / inline closure.
-        return new ClosureWrapLiteral(this, expr, c, toT);
-      }
-      return new ClosureWrap(this, expr, c, toT);
-    }
+    if (c is Cast) return DownCast.create(this, expr, c);
+    if (c is Wrapper) return ClosureWrap.create(this, expr, c, toT);
     assert(c is Identity);
     return null;
   }
