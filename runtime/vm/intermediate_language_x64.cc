@@ -1928,11 +1928,19 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (locs()->in(1).IsConstant()) {
       __ StoreIntoObjectNoBarrier(instance_reg,
                                   FieldAddress(instance_reg, offset_in_bytes_),
-                                  locs()->in(1).constant(), PP);
+                                  locs()->in(1).constant(),
+                                  PP,
+                                  is_object_reference_initialization_ ?
+                                      Assembler::kEmptyOrSmiOrNull :
+                                      Assembler::kHeapObjectOrSmi);
     } else {
       Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrier(instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_), value_reg);
+          FieldAddress(instance_reg, offset_in_bytes_),
+          value_reg,
+          is_object_reference_initialization_ ?
+              Assembler::kEmptyOrSmiOrNull :
+              Assembler::kHeapObjectOrSmi);
     }
   }
   __ Bind(&skip_store);
@@ -2048,12 +2056,12 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(RAX,
+  __ InitializeFieldNoBarrier(RAX,
                               FieldAddress(RAX, Array::type_arguments_offset()),
                               kElemTypeReg);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(RAX,
+  __ InitializeFieldNoBarrier(RAX,
                               FieldAddress(RAX, Array::length_offset()),
                               kLengthReg);
 
@@ -2069,13 +2077,13 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     if (array_size < (kInlineArraySize * kWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
-        __ StoreIntoObjectNoBarrier(RAX, Address(RDI, current_offset), R12);
+        __ InitializeFieldNoBarrier(RAX, Address(RDI, current_offset), R12);
         current_offset += kWordSize;
       }
     } else {
       Label init_loop;
       __ Bind(&init_loop);
-      __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
+      __ InitializeFieldNoBarrier(RAX, Address(RDI, 0), R12);
       __ addq(RDI, Immediate(kWordSize));
       __ cmpq(RDI, RCX);
       __ j(BELOW, &init_loop, Assembler::kNearJump);

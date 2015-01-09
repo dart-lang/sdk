@@ -368,7 +368,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ Bind(&loop);
   __ movq(RDI, Address(R12, 0));
   // No generational barrier needed, since array is in new space.
-  __ StoreIntoObjectNoBarrier(RAX, Address(RBX, 0), RDI);
+  __ InitializeFieldNoBarrier(RAX, Address(RBX, 0), RDI);
   __ addq(RBX, Immediate(kWordSize));
   __ subq(R12, Immediate(kWordSize));
   __ Bind(&loop_condition);
@@ -632,12 +632,12 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(RAX,
+  __ InitializeFieldNoBarrier(RAX,
                               FieldAddress(RAX, Array::type_arguments_offset()),
                               RBX);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(RAX,
+  __ InitializeFieldNoBarrier(RAX,
                               FieldAddress(RAX, Array::length_offset()),
                               R10);
 
@@ -654,7 +654,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ cmpq(RDI, RCX);
   __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
   // No generational barrier needed, since we are storing null.
-  __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
+  __ InitializeFieldNoBarrier(RAX, Address(RDI, 0), R12);
   __ addq(RDI, Immediate(kWordSize));
   __ jmp(&init_loop, Assembler::kNearJump);
   __ Bind(&done);
@@ -888,7 +888,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R10: number of context variables.
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(RAX,
+    __ InitializeFieldNoBarrier(RAX,
                                 FieldAddress(RAX, Context::parent_offset()),
                                 R12);
 
@@ -898,12 +898,16 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     {
       Label loop, entry;
       __ leaq(R13, FieldAddress(RAX, Context::variable_offset(0)));
-
-      __ jmp(&entry, Assembler::kNearJump);
+#if defined(DEBUG)
+      static const bool kJumpLength = Assembler::kFarJump;
+#else
+      static const bool kJumpLength = Assembler::kNearJump;
+#endif  // DEBUG
+      __ jmp(&entry, kJumpLength);
       __ Bind(&loop);
       __ decq(R10);
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(RAX,
+      __ InitializeFieldNoBarrier(RAX,
                                   Address(R13, R10, TIMES_8, 0),
                                   R12);
       __ Bind(&entry);
@@ -1077,7 +1081,7 @@ void StubCode::GenerateAllocationStubForClass(
       for (intptr_t current_offset = Instance::NextFieldOffset();
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ StoreIntoObjectNoBarrier(RAX,
+        __ InitializeFieldNoBarrier(RAX,
                                     FieldAddress(RAX, current_offset),
                                     R12);
       }
@@ -1093,7 +1097,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ Bind(&init_loop);
       __ cmpq(RCX, RBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ StoreIntoObjectNoBarrier(RAX, Address(RCX, 0), R12);
+      __ InitializeFieldNoBarrier(RAX, Address(RCX, 0), R12);
       __ addq(RCX, Immediate(kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
@@ -1102,7 +1106,7 @@ void StubCode::GenerateAllocationStubForClass(
       // RDX: new object type arguments.
       // Set the type arguments in the new object.
       intptr_t offset = cls.type_arguments_field_offset();
-      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset), RDX);
+      __ InitializeFieldNoBarrier(RAX, FieldAddress(RAX, offset), RDX);
     }
     // Done allocating and initializing the instance.
     // RAX: new object (tagged).
@@ -1630,7 +1634,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ LoadIsolate(RAX);
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
-  __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
+#if defined(DEBUG)
+      static const bool kJumpLength = Assembler::kFarJump;
+#else
+      static const bool kJumpLength = Assembler::kNearJump;
+#endif  // DEBUG
+  __ j(NOT_EQUAL, &stepping, kJumpLength);
   __ Bind(&done_stepping);
 
   // RBX: IC data object (preserved).

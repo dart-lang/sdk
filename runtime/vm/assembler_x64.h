@@ -517,6 +517,7 @@ class Assembler : public ValueObject {
 
   void testl(Register reg1, Register reg2);
   void testl(Register reg, const Immediate& imm);
+  void testb(const Address& address, const Immediate& imm);
 
   void testq(Register reg1, Register reg2);
   void testq(Register reg, const Immediate& imm);
@@ -756,6 +757,14 @@ class Assembler : public ValueObject {
   void PushObject(const Object& object, Register pp);
   void CompareObject(Register reg, const Object& object, Register pp);
 
+  // When storing into a heap object field, knowledge of the previous content
+  // is expressed through these constants.
+  enum FieldContent {
+    kEmptyOrSmiOrNull,  // Empty = garbage/zapped in release/debug mode.
+    kHeapObjectOrSmi,
+    kOnlySmi,
+  };
+
   // Destroys value.
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
@@ -764,11 +773,24 @@ class Assembler : public ValueObject {
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value);
+                                Register value,
+                                FieldContent old_content = kHeapObjectOrSmi);
+  void InitializeFieldNoBarrier(Register object,
+                                const Address& dest,
+                                Register value) {
+    return StoreIntoObjectNoBarrier(object, dest, value, kEmptyOrSmiOrNull);
+  }
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value,
-                                Register pp);
+                                Register pp,
+                                FieldContent old_content = kHeapObjectOrSmi);
+  void InitializeFieldNoBarrier(Register object,
+                                const Address& dest,
+                                const Object& value,
+                                Register pp) {
+    return StoreIntoObjectNoBarrier(object, dest, value, pp, kEmptyOrSmiOrNull);
+  }
 
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
@@ -1110,11 +1132,17 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
-
-  // Analogous to VerifiedMemory::Verify(address, kWordSize).
-  void VerifyHeapWord(const Address& address);
-  // Analogous to VerifiedMemory::Write.
-  void VerifiedWrite(const Address& dest, Register value);
+#if defined(DEBUG)
+  void VerifyUninitialized(const Address& address);
+  void VerifyObjectOrSmi(const Address& address);
+  void VerifySmi(const Address& address, const char* stop_msg = "Expected Smi");
+#endif  // DEBUG
+  // Like VerifiedMemory::Verify(address, kWordSize) and ::Write, but also,
+  // in DEBUG mode, verifies that 'address' has content of type 'old_content'.
+  void VerifyHeapWord(const Address& address, FieldContent old_content);
+  void VerifiedWrite(const Address& dest,
+                     Register value,
+                     FieldContent old_content);
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   void MoveImmediate(const Address& dst, const Immediate& imm, Register pp);
 

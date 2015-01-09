@@ -2290,8 +2290,12 @@ void Assembler::VerifyUninitialized(const Address& dest) {
   testb(dest, Immediate(kHeapObjectTag));
   j(ZERO, &ok, Assembler::kNearJump);
   // Non-smi case: Check for the special zap word or null.
+#if defined(DEBUG)
   cmpl(dest, Immediate(Heap::kZap32Bits));
   j(EQUAL, &ok, Assembler::kNearJump);
+#else
+#error Only supported in DEBUG mode
+#endif
   cmpl(dest, Immediate(reinterpret_cast<uint32_t>(Object::null())));
   j(EQUAL, &ok, Assembler::kNearJump);
   Stop("Expected zapped, Smi or null");
