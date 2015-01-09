@@ -18,11 +18,11 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  * Create a suggestion based upon the given imported element.
  */
 CompletionSuggestion createElementSuggestion(Element element,
-    {CompletionRelevance relevance: CompletionRelevance.DEFAULT}) {
+    {int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
   String completion = element.displayName;
   CompletionSuggestion suggestion = new CompletionSuggestion(
       CompletionSuggestionKind.INVOCATION,
-      element.isDeprecated ? CompletionRelevance.LOW : relevance,
+      element.isDeprecated ? COMPLETION_RELEVANCE_LOW : relevance,
       completion,
       completion.length,
       0,
@@ -361,7 +361,7 @@ class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
     bool isDeprecated = element.isDeprecated;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         kind,
-        isDeprecated ? CompletionRelevance.LOW : CompletionRelevance.DEFAULT,
+        isDeprecated ? COMPLETION_RELEVANCE_LOW : COMPLETION_RELEVANCE_DEFAULT,
         completion,
         completion.length,
         0,

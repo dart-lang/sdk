@@ -6,6 +6,7 @@ library test.services.completion.dart.combinator;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/combinator_computer.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -61,26 +62,26 @@ class CombinatorComputerTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       assertSuggestClass(
           'A',
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'B',
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'PB',
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestTopLevelVar(
           'T1',
           null,
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestFunction(
           'F1',
           'PB',
           false,
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertNotSuggested('C');
       assertNotSuggested('D');
@@ -114,36 +115,36 @@ class CombinatorComputerTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       assertSuggestClass(
           'A',
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'B',
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'PB',
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestTopLevelVar(
           'T1',
           null,
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestFunction(
           'F1',
           'PB',
           false,
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'Clz',
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestFunctionTypeAlias(
           'F2',
           null,
           false,
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           CompletionSuggestionKind.IDENTIFIER);
       assertNotSuggested('C');
       assertNotSuggested('D');

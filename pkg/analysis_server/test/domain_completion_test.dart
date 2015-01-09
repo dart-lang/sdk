@@ -13,6 +13,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -261,7 +262,7 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT, bool isDeprecated
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated
       = false, bool isPotential = false]) {
     var cs;
     suggestions.forEach((s) {
@@ -444,11 +445,11 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(
           CompletionSuggestionKind.KEYWORD,
           'import',
-          CompletionRelevance.HIGH);
+          COMPLETION_RELEVANCE_HIGH);
       assertHasResult(
           CompletionSuggestionKind.KEYWORD,
           'class',
-          CompletionRelevance.HIGH);
+          COMPLETION_RELEVANCE_HIGH);
     });
   }
 

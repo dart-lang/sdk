@@ -272,7 +272,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.INVOCATION,
-            isDeprecated ? CompletionRelevance.LOW : CompletionRelevance.DEFAULT,
+            isDeprecated ? COMPLETION_RELEVANCE_LOW : COMPLETION_RELEVANCE_DEFAULT,
             completion,
             completion.length,
             0,

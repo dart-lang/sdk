@@ -2000,7 +2000,6 @@ dt.typeDefinition {
       
       
       
-      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2173,13 +2172,7 @@ dt.typeDefinition {
           An identifier used to associate completion results with a
           completion request.
         </p>
-      </dd><dt class="typeDefinition"><a name="type_CompletionRelevance">CompletionRelevance: String</a></dt><dd>
-        <p>
-          An enumeration of the relevance of a completion
-          suggestion.
-        </p>
-        
-      <dl><dt class="value">LOW</dt><dt class="value">DEFAULT</dt><dt class="value">HIGH</dt></dl></dd><dt class="typeDefinition"><a name="type_CompletionSuggestion">CompletionSuggestion: object</a></dt><dd>
+      </dd><dt class="typeDefinition"><a name="type_CompletionSuggestion">CompletionSuggestion: object</a></dt><dd>
         <p>
           A suggestion for how to complete partially entered text. Many
           of the fields are optional, depending on the kind of element
@@ -2191,10 +2184,11 @@ dt.typeDefinition {
             <p>
               The kind of element being suggested.
             </p>
-          </dd><dt class="field"><b><i>relevance ( <a href="#type_CompletionRelevance">CompletionRelevance</a> )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>relevance ( int )</i></b></dt><dd>
             
             <p>
-              The relevance of this completion suggestion.
+              The relevance of this completion suggestion
+              where a higher number indicates a higher relevance.
             </p>
           </dd><dt class="field"><b><i>completion ( String )</i></b></dt><dd>
             

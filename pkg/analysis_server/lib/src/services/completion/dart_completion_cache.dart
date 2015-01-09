@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -177,7 +178,7 @@ class DartCompletionCache extends CompletionCache {
       if (elem is ClassElement) {
         importedClassMap[name] = elem;
       }
-      _addSuggestion(elem, CompletionRelevance.DEFAULT);
+      _addSuggestion(elem, COMPLETION_RELEVANCE_DEFAULT);
     });
   }
 
@@ -201,7 +202,7 @@ class DartCompletionCache extends CompletionCache {
                 if (elem is ClassElement) {
                   importedClassMap[name] = elem;
                 }
-                _addSuggestion(elem, CompletionRelevance.DEFAULT);
+                _addSuggestion(elem, COMPLETION_RELEVANCE_DEFAULT);
               });
             } else {
               // Exclude elements from prefixed imports
@@ -229,7 +230,7 @@ class DartCompletionCache extends CompletionCache {
     if (completion != null && completion.length > 0) {
       suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.INVOCATION,
-          CompletionRelevance.DEFAULT,
+          COMPLETION_RELEVANCE_DEFAULT,
           completion,
           completion.length,
           0,
@@ -257,7 +258,7 @@ class DartCompletionCache extends CompletionCache {
             element.isPublic &&
             !excludedLibs.contains(element.library) &&
             !_importedCompletions.contains(element.displayName)) {
-          _addSuggestion(element, CompletionRelevance.LOW);
+          _addSuggestion(element, COMPLETION_RELEVANCE_LOW);
         }
       }
     });
@@ -266,7 +267,7 @@ class DartCompletionCache extends CompletionCache {
   /**
    * Add a suggestion for the given element.
    */
-  void _addSuggestion(Element element, CompletionRelevance relevance) {
+  void _addSuggestion(Element element, int relevance) {
 
     if (element is ExecutableElement) {
       if (element.isOperator) {
@@ -333,7 +334,7 @@ class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
 
   @override
   void visitClassElement(ClassElement element) {
-    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
   }
 
   @override
@@ -348,16 +349,16 @@ class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
 
   @override
   void visitFunctionElement(FunctionElement element) {
-    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
   }
 
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
   }
 
   @override
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    cache._addSuggestion(element, CompletionRelevance.DEFAULT);
+    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
   }
 }

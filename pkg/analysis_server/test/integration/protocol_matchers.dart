@@ -1058,26 +1058,11 @@ final Matcher isChangeContentOverlay = new LazyMatcher(() => new MatchesJsonObje
 final Matcher isCompletionId = isString;
 
 /**
- * CompletionRelevance
- *
- * enum {
- *   LOW
- *   DEFAULT
- *   HIGH
- * }
- */
-final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
-  "LOW",
-  "DEFAULT",
-  "HIGH"
-]);
-
-/**
  * CompletionSuggestion
  *
  * {
  *   "kind": CompletionSuggestionKind
- *   "relevance": CompletionRelevance
+ *   "relevance": int
  *   "completion": String
  *   "selectionOffset": int
  *   "selectionLength": int
@@ -1099,7 +1084,7 @@ final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
 final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObject(
   "CompletionSuggestion", {
     "kind": isCompletionSuggestionKind,
-    "relevance": isCompletionRelevance,
+    "relevance": isInt,
     "completion": isString,
     "selectionOffset": isInt,
     "selectionLength": isInt,

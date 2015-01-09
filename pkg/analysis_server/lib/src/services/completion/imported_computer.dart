@@ -131,7 +131,7 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
         }
       }
       request.suggestions.add(
-          createElementSuggestion(elem, relevance: CompletionRelevance.DEFAULT));
+          createElementSuggestion(elem, relevance: COMPLETION_RELEVANCE_DEFAULT));
     });
   }
 
@@ -190,7 +190,7 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
             request.suggestions.add(suggestion);
           }
         } else {
-          if (suggestion.relevance != CompletionRelevance.LOW) {
+          if (suggestion.relevance != COMPLETION_RELEVANCE_LOW) {
             request.suggestions.add(suggestion);
           }
         }

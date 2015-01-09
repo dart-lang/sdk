@@ -1909,17 +1909,6 @@
           completion request.
         </p>
       </type>
-      <type name="CompletionRelevance">
-        <p>
-          An enumeration of the relevance of a completion
-          suggestion.
-        </p>
-        <enum>
-          <value><code>LOW</code></value>
-          <value><code>DEFAULT</code></value>
-          <value><code>HIGH</code></value>
-        </enum>
-      </type>
       <type name="CompletionSuggestion">
         <p>
           A suggestion for how to complete partially entered text. Many
@@ -1934,9 +1923,10 @@
             </p>
           </field>
           <field name="relevance">
-            <ref>CompletionRelevance</ref>
+            <ref>int</ref>
             <p>
-              The relevance of this completion suggestion.
+              The relevance of this completion suggestion
+              where a higher number indicates a higher relevance.
             </p>
           </field>
           <field name="completion">

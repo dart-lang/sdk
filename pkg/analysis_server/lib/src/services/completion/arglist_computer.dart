@@ -185,7 +185,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
     completion.write(')');
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.ARGUMENT_LIST,
-        CompletionRelevance.HIGH,
+        COMPLETION_RELEVANCE_HIGH,
         completion.toString(),
         completion.length,
         0,

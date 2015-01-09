@@ -87,12 +87,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     // Very simplistic suggestion because analyzer will warn if
     // the extends / with / implements keywords are out of order
     if (node.extendsClause == null) {
-      _addSuggestion(Keyword.EXTENDS, CompletionRelevance.HIGH);
+      _addSuggestion(Keyword.EXTENDS, COMPLETION_RELEVANCE_HIGH);
     } else if (node.withClause == null) {
-      _addSuggestion(Keyword.WITH, CompletionRelevance.HIGH);
+      _addSuggestion(Keyword.WITH, COMPLETION_RELEVANCE_HIGH);
     }
     if (node.implementsClause == null) {
-      _addSuggestion(Keyword.IMPLEMENTS, CompletionRelevance.HIGH);
+      _addSuggestion(Keyword.IMPLEMENTS, COMPLETION_RELEVANCE_HIGH);
     }
   }
 
@@ -120,18 +120,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (firstDirective is! LibraryDirective) {
       if (firstDirective != null) {
         if (request.offset <= firstDirective.offset) {
-          _addSuggestions([Keyword.LIBRARY], CompletionRelevance.HIGH);
+          _addSuggestions([Keyword.LIBRARY], COMPLETION_RELEVANCE_HIGH);
         }
       } else {
         if (request.offset <= startOfDeclarations) {
-          _addSuggestions([Keyword.LIBRARY], CompletionRelevance.HIGH);
+          _addSuggestions([Keyword.LIBRARY], COMPLETION_RELEVANCE_HIGH);
         }
       }
     }
     if (request.offset <= startOfDeclarations) {
       _addSuggestions(
           [Keyword.EXPORT, Keyword.IMPORT, Keyword.PART],
-          CompletionRelevance.HIGH);
+          COMPLETION_RELEVANCE_HIGH);
     }
     if (request.offset >= endOfDirectives) {
       _addSuggestions(
@@ -142,7 +142,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
               Keyword.FINAL,
               Keyword.TYPEDEF,
               Keyword.VAR],
-          CompletionRelevance.HIGH);
+          COMPLETION_RELEVANCE_HIGH);
     }
   }
 
@@ -167,8 +167,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
   }
 
-  void _addSuggestion(Keyword keyword, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+  void _addSuggestion(Keyword keyword, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     String completion = keyword.syntax;
     request.suggestions.add(
         new CompletionSuggestion(
@@ -181,8 +181,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
             false));
   }
 
-  void _addSuggestions(List<Keyword> keywords, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+  void _addSuggestions(List<Keyword> keywords, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     keywords.forEach((Keyword keyword) {
       _addSuggestion(keyword, relevance);
     });

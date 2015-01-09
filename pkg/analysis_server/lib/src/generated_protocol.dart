@@ -5733,60 +5733,11 @@ class ChangeContentOverlay implements HasToJson {
 }
 
 /**
- * CompletionRelevance
- *
- * enum {
- *   LOW
- *   DEFAULT
- *   HIGH
- * }
- */
-class CompletionRelevance implements Enum {
-  static const LOW = const CompletionRelevance._("LOW");
-
-  static const DEFAULT = const CompletionRelevance._("DEFAULT");
-
-  static const HIGH = const CompletionRelevance._("HIGH");
-
-  final String name;
-
-  const CompletionRelevance._(this.name);
-
-  factory CompletionRelevance(String name) {
-    switch (name) {
-      case "LOW":
-        return LOW;
-      case "DEFAULT":
-        return DEFAULT;
-      case "HIGH":
-        return HIGH;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory CompletionRelevance.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new CompletionRelevance(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "CompletionRelevance");
-  }
-
-  @override
-  String toString() => "CompletionRelevance.$name";
-
-  String toJson() => name;
-}
-
-/**
  * CompletionSuggestion
  *
  * {
  *   "kind": CompletionSuggestionKind
- *   "relevance": CompletionRelevance
+ *   "relevance": int
  *   "completion": String
  *   "selectionOffset": int
  *   "selectionLength": int
@@ -5812,9 +5763,10 @@ class CompletionSuggestion implements HasToJson {
   CompletionSuggestionKind kind;
 
   /**
-   * The relevance of this completion suggestion.
+   * The relevance of this completion suggestion where a higher number
+   * indicates a higher relevance.
    */
-  CompletionRelevance relevance;
+  int relevance;
 
   /**
    * The identifier to be inserted if the suggestion is selected. If the
@@ -5928,9 +5880,9 @@ class CompletionSuggestion implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "kind");
       }
-      CompletionRelevance relevance;
+      int relevance;
       if (json.containsKey("relevance")) {
-        relevance = new CompletionRelevance.fromJson(jsonDecoder, jsonPath + ".relevance", json["relevance"]);
+        relevance = jsonDecoder._decodeInt(jsonPath + ".relevance", json["relevance"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "relevance");
       }
@@ -6017,7 +5969,7 @@ class CompletionSuggestion implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["kind"] = kind.toJson();
-    result["relevance"] = relevance.toJson();
+    result["relevance"] = relevance;
     result["completion"] = completion;
     result["selectionOffset"] = selectionOffset;
     result["selectionLength"] = selectionLength;
