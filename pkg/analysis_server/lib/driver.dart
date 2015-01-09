@@ -8,7 +8,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/http_server.dart';
+import 'package:analysis_server/plugin/plugin.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/plugin/plugin_impl.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -120,6 +123,11 @@ class Driver {
    */
   InstrumentationServer instrumentationServer;
 
+  /**
+   * The plugins that are defined outside the analysis_server package.
+   */
+  List<Plugin> _userDefinedPlugins = <Plugin>[];
+
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
@@ -127,6 +135,14 @@ class Driver {
   StdioAnalysisServer stdioServer;
 
   Driver();
+
+  /**
+   * Set the [plugins] that are defined outside the analysis_server package.
+   */
+  void set userDefinedPlugins(List<Plugin> plugins) {
+    _userDefinedPlugins = plugins == null ? <Plugin>[] : plugins;
+  }
+
   /**
    * Use the given command-line arguments to start this server.
    */
@@ -234,8 +250,18 @@ class Driver {
         new InstrumentationService(instrumentationServer);
 //    service.logVersion(results[CLIENT_ID], defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
+    //
+    // Process all of the plugins so that extensions are registered.
+    //
+    ServerPlugin serverPlugin = new ServerPlugin();
+    List<Plugin> plugins = <Plugin>[];
+    plugins.add(serverPlugin);
+    plugins.addAll(_userDefinedPlugins);
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
 
-    socketServer = new SocketServer(analysisServerOptions, defaultSdk, service);
+    socketServer =
+        new SocketServer(analysisServerOptions, defaultSdk, service, serverPlugin);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
 

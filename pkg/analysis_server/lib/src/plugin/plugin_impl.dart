@@ -30,9 +30,8 @@ class ExtensionManager {
   void processPlugins(List<Plugin> plugins) {
     for (Plugin plugin in plugins) {
       plugin.registerExtensionPoints(
-          (String identifier, [ExtensionValidator validator]) {
-        registerExtensionPoint(plugin, identifier, validator);
-      });
+          (String identifier, [ExtensionValidator validator]) =>
+              registerExtensionPoint(plugin, identifier, validator));
     }
     for (Plugin plugin in plugins) {
       plugin.registerExtensions(registerExtension);
