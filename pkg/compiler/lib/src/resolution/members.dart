@@ -2245,8 +2245,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (node.isSuper()) {
       if (!inInstanceContext) {
         error(node, MessageKind.NO_SUPER_IN_STATIC);
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
       }
       if ((ElementCategory.SUPER & allowedCategory) == 0) {
         error(node, MessageKind.INVALID_USE_OF_SUPER);
@@ -2274,11 +2272,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // Use the erroneous element.
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
-          // TODO(ahe): Improve error message. Need UX input.
-          error(node, MessageKind.GENERIC,
-                {'text': "is not an expression $element"});
-        // TODO(ahe): Don't throw, recover from error.
-          throw new CompilerCancelledException(null);
+          element = warnAndCreateErroneousElement(
+              node, name,
+              MessageKind.GENERIC,
+              // TODO(ahe): Improve error message. Need UX input.
+              {'text': "is not an expression $element"});
         }
       }
       if (!Elements.isUnresolved(element) && element.isClass) {
@@ -4924,15 +4922,20 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else if (element.isTypedef) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
             {'typedefName': name});
+      element = new ErroneousElementX(
+          MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
+          {'typedefName': name}, name, resolver.enclosingElement);
     } else if (element.isTypeVariable) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
             {'typeVariableName': name});
-      // TODO(ahe): Don't throw, recover from error.
-      throw new CompilerCancelledException(null);
+      element = new ErroneousElementX(
+          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+          {'typeVariableName': name}, name, resolver.enclosingElement);
     } else if (!element.isClass && !element.isPrefix) {
       error(node, MessageKind.NOT_A_TYPE, {'node': name});
-      // TODO(ahe): Don't throw, recover from error.
-      throw new CompilerCancelledException(null);
+      element = new ErroneousElementX(
+          MessageKind.NOT_A_TYPE, {'node': name}, name,
+          resolver.enclosingElement);
     }
     return element;
   }
