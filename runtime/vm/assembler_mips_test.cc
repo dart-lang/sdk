@@ -1640,12 +1640,13 @@ ASSEMBLER_TEST_RUN(Movd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdc1Ldc1, assembler) {
-  __ AddImmediate(SP, -8 * kWordSize);
-  __ LoadImmediate(T1, ~(8 - 1));
-  __ and_(T0, SP, T1);  // Need 8 byte alignment.
+  __ mov(T0, SP);
+  __ AddImmediate(SP, -3 * kWordSize);
+  __ AndImmediate(SP, SP, ~(8 - 1));  // Align SP by 8 bytes.
   __ LoadImmediate(D1, 1.0);
-  __ sdc1(D1, Address(T0));
-  __ ldc1(D0, Address(T0));
+  __ sdc1(D1, Address(SP));
+  __ ldc1(D0, Address(SP));
+  __ mov(SP, T0);
   __ Ret();
 }
 

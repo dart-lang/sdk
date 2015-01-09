@@ -75,7 +75,6 @@ dart/inline_stack_frame_test: RuntimeError # Issue 7953
 
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
-cc/Sdc1Ldc1: Crash # Issue 20182
 cc/JSON_JSONStream_Options: Crash, Pass # Issue 19328
 
 [ $arch == mips && $mode == debug ]
