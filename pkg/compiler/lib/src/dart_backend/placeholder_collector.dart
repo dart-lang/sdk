@@ -279,7 +279,7 @@ class PlaceholderCollector extends Visitor {
   void tryMakeMemberPlaceholder(Identifier node) {
     assert(node != null);
     if (node is Operator) return;
-    final identifier = node.source;
+    String identifier = node.source;
     if (fixedMemberNames.contains(identifier)) return;
     memberPlaceholders.putIfAbsent(
         identifier, () => new Set<Identifier>()).add(node);
