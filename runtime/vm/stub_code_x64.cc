@@ -1106,7 +1106,12 @@ void StubCode::GenerateAllocationStubForClass(
       Label done;
       __ Bind(&init_loop);
       __ cmpq(RCX, RBX);
-      __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+#if defined(DEBUG)
+      static const bool kJumpLength = Assembler::kFarJump;
+#else
+      static const bool kJumpLength = Assembler::kNearJump;
+#endif  // DEBUG
+      __ j(ABOVE_EQUAL, &done, kJumpLength);
       __ InitializeFieldNoBarrier(RAX, Address(RCX, 0), R12);
       __ addq(RCX, Immediate(kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);

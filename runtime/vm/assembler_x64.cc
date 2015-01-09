@@ -3059,7 +3059,8 @@ void Assembler::VerifyObjectOrSmi(const Address& dest) {
   COMPILE_ASSERT(kHeapObjectTag == 1);
   testb(dest, Immediate((kWordSize - 1) - kHeapObjectTag));
   j(ZERO, &ok, Assembler::kNearJump);
-  Stop("Expected heap object or Smi");
+  static const bool kFixedLengthEncoding = true;
+  Stop("Expected heap object or Smi", kFixedLengthEncoding);
   Bind(&ok);
 }
 
@@ -3077,7 +3078,8 @@ void Assembler::VerifyUninitialized(const Address& dest) {
 #endif
   cmpq(dest, Immediate(reinterpret_cast<uint64_t>(Object::null())));
   j(EQUAL, &ok, Assembler::kNearJump);
-  Stop("Expected zapped, Smi or null");
+  static const bool kFixedLengthEncoding = true;
+  Stop("Expected zapped, Smi or null", kFixedLengthEncoding);
   Bind(&ok);
 }
 
