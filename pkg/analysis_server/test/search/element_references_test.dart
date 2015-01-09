@@ -40,6 +40,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
       searchId = result.id;
       searchElement = result.element;
       results.clear();
+      searchDone = false;
       if (searchId == null) {
         return null;
       } else {
@@ -189,22 +190,21 @@ main(A a) {
   a.fff = 10;
 }
 ''');
-    var forGetter = findElementReferences('fff =>', false).then((_) {
+    return findElementReferences('fff =>', false).then((_) {
       expect(searchElement.kind, ElementKind.FIELD);
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
       assertHasResult(SearchResultKind.READ, 'fff); // in main()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
-    });
-    var forSetter = findElementReferences('fff(x) {}', false).then((_) {
+      return findElementReferences('fff(x) {}', false);
+    }).then((_) {
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
       assertHasResult(SearchResultKind.READ, 'fff); // in main()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     });
-    return Future.wait([forGetter, forSetter]);
   }
 
   test_field_inFormalParameter() {
@@ -678,18 +678,17 @@ main() {
   vvv = 1;
 }
 ''');
-    var forGetter = findElementReferences('vvv =>', false).then((_) {
+    return findElementReferences('vvv =>', false).then((_) {
       expect(searchElement.kind, ElementKind.TOP_LEVEL_VARIABLE);
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.READ, 'vvv);');
       assertHasResult(SearchResultKind.WRITE, 'vvv = 1;');
-    });
-    var forSetter = findElementReferences('vvv(x) {}', false).then((_) {
+      return findElementReferences('vvv(x) {}', false);
+    }).then((_) {
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.READ, 'vvv);');
       assertHasResult(SearchResultKind.WRITE, 'vvv = 1;');
     });
-    return Future.wait([forGetter, forSetter]);
   }
 
   test_typeReference_class() {
