@@ -121,7 +121,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
         element.process = object;
         return element;
       case 'Profile':
-        IsolateProfileElement element = new Element.tag('isolate-profile');
+        CpuProfileElement element = new Element.tag('cpu-profile');
         element.profile = object;
         return element;
       case 'RandomAccessFileList':

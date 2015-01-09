@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library isolate_profile_element;
+library cpu_profile_element;
 
 import 'dart:html';
 import 'observatory_element.dart';
 import 'package:logging/logging.dart';
 import 'package:observatory/service.dart';
 import 'package:observatory/app.dart';
+import 'package:observatory/elements.dart';
 import 'package:polymer/polymer.dart';
 
 class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
@@ -24,8 +25,9 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
   @reflectable String tipTime = '';
 
   ProfileCodeTrieNodeTreeRow(this.profile, this.root, this.node,
+                             TableTree tree,
                              ProfileCodeTrieNodeTreeRow parent)
-      : super(parent) {
+      : super(tree, parent) {
     assert(root != null);
     assert(node != null);
     tipTicks = '${node.count}';
@@ -55,8 +57,6 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
       }
       tipExclusive = Utils.formatPercent(node.code.exclusiveTicks, root.count);
     }
-    columns.add(tipParent);
-    columns.add(tipExclusive);
   }
 
   bool shouldDisplayChild(CodeTrieNode childNode, double threshold) {
@@ -64,22 +64,71 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
             ((childNode.code.exclusiveTicks / root.count) > threshold);
   }
 
-  void onShow() {
-    var threshold = profile['threshold'];
-    if (children.length > 0) {
-      // Child rows already created.
-      return;
-    }
-    for (var childNode in node.children) {
-      if (!shouldDisplayChild(childNode, threshold)) {
-        continue;
-      }
-      var row = new ProfileCodeTrieNodeTreeRow(profile, root, childNode, this);
-      children.add(row);
-    }
+  void _buildTooltip(DivElement memberList, Map<String, String> items) {
+    items.forEach((k, v) {
+      var item = new DivElement();
+      item.classes.add('memberItem');
+      var name = new DivElement();
+      name.classes.add('memberName');
+      name.classes.add('white');
+      name.text = k;
+      var value = new DivElement();
+      value.classes.add('memberValue');
+      value.classes.add('white');
+      value.text = v;
+      item.children.add(name);
+      item.children.add(value);
+      memberList.children.add(item);
+    });
   }
 
-  void onHide() {
+  void onShow() {
+    super.onShow();
+    if (children.length == 0) {
+      var threshold = profile['threshold'];
+      for (var childNode in node.children) {
+        if (!shouldDisplayChild(childNode, threshold)) {
+          continue;
+        }
+        var row =
+            new ProfileCodeTrieNodeTreeRow(profile, root, childNode, tree, this);
+        children.add(row);
+      }
+    }
+    var row = tr;
+
+    var methodCell = tableColumns[0];
+    // Enable expansion by clicking anywhere on the method column.
+    methodCell.onClick.listen(onClick);
+
+    // Insert the parent percentage
+    var parentPercent = new DivElement();
+    parentPercent.style.position = 'relative';
+    parentPercent.style.display = 'inline';
+    parentPercent.text = tipParent;
+    methodCell.children.add(parentPercent);
+
+    var codeRef = new Element.tag('code-ref');
+    codeRef.ref = code;
+    methodCell.children.add(codeRef);
+
+    var selfCell = tableColumns[1];
+    selfCell.style.position = 'relative';
+    selfCell.text = tipExclusive;
+
+    var tooltipDiv = new DivElement();
+    tooltipDiv.classes.add('tooltip');
+
+    var memberListDiv = new DivElement();
+    memberListDiv.classes.add('memberList');
+    tooltipDiv.children.add(memberListDiv);
+    _buildTooltip(memberListDiv, {
+      'Kind' : tipKind,
+      'Percent of Parent' : tipParent,
+      'Sample Count' : tipTicks,
+      'Approximate Execution Time': tipTime,
+    });
+    selfCell.children.add(tooltipDiv);
   }
 
   bool hasChildren() {
@@ -87,10 +136,10 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
   }
 }
 
-/// Displays an IsolateProfile
-@CustomTag('isolate-profile')
-class IsolateProfileElement extends ObservatoryElement {
-  IsolateProfileElement.created() : super.created();
+/// Displays a CpuProfile
+@CustomTag('cpu-profile')
+class CpuProfileElement extends ObservatoryElement {
+  CpuProfileElement.created() : super.created();
   @published ServiceMap profile;
   @observable bool hideTagsChecked;
   @observable String sampleCount = '';
@@ -130,7 +179,9 @@ class IsolateProfileElement extends ObservatoryElement {
   @override
   void attached() {
     super.attached();
-    tree = new TableTree();
+    var tableBody = shadowRoot.querySelector('#tableTreeBody');
+    assert(tableBody != null);
+    tree = new TableTree(tableBody, 2);
     _update();
   }
 
@@ -161,50 +212,20 @@ class IsolateProfileElement extends ObservatoryElement {
     }
     try {
       tree.initialize(
-          new ProfileCodeTrieNodeTreeRow(profile, root, root, null));
+          new ProfileCodeTrieNodeTreeRow(profile, root, root, tree, null));
     } catch (e, stackTrace) {
+      print(e);
+      print(stackTrace);
       Logger.root.warning('_buildStackTree', e, stackTrace);
     }
     // Check if we only have one node at the root and expand it.
     if (tree.rows.length == 1) {
-      tree.toggle(0);
+      tree.toggle(tree.rows[0]);
     }
     notifyPropertyChange(#tree, null, tree);
   }
 
   void _buildTree() {
     _buildStackTree();
-  }
-
-  @observable String padding(TableTreeRow row) {
-    return 'padding-left: ${row.depth * 16}px;';
-  }
-
-  @observable String coloring(TableTreeRow row) {
-    const colors = const ['rowColor0', 'rowColor1', 'rowColor2', 'rowColor3',
-                          'rowColor4', 'rowColor5', 'rowColor6', 'rowColor7',
-                          'rowColor8'];
-    var index = (row.depth - 1) % colors.length;
-    return colors[index];
-  }
-
-  @observable void toggleExpanded(Event e, var detail, Element target) {
-    // We only want to expand a tree row if the target of the click is
-    // the table cell (passed in as target) or the span containing the
-    // expander symbol (#expand).
-    var eventTarget = e.target;
-    if ((eventTarget.id != 'expand') && (e.target != target)) {
-      // Target of click was not the expander span or the table cell.
-      return;
-    }
-    var row = target.parent;
-    if (row is TableRowElement) {
-      // Subtract 1 to get 0 based indexing.
-      try {
-        tree.toggle(row.rowIndex - 1);
-      }  catch (e, stackTrace) {
-        Logger.root.warning('toggleExpanded', e, stackTrace);
-      }
-    }
   }
 }

@@ -14,26 +14,30 @@ import 'package:polymer/polymer.dart';
 class ClassTreeRow extends TableTreeRow {
   @reflectable final Isolate isolate;
   @reflectable final Class cls;
-  ClassTreeRow(this.isolate, this.cls, ClassTreeRow parent) : super(parent) {
+  ClassTreeRow(this.isolate, this.cls, TableTree tree, ClassTreeRow parent)
+      : super(tree, parent) {
     assert(isolate != null);
     assert(cls != null);
   }
 
   void onShow() {
-    if (children.length > 0) {
-      // Child rows already created.
-      return;
-    }
-    for (var subclass in cls.subclasses) {
-      if (subclass.isPatch) {
-        continue;
+    super.onShow();
+    if (children.length == 0) {
+      for (var subclass in cls.subclasses) {
+        if (subclass.isPatch) {
+          continue;
+        }
+        var row = new ClassTreeRow(isolate, subclass, tree, this);
+        children.add(row);
       }
-      var row = new ClassTreeRow(isolate, subclass, this);
-      children.add(row);
     }
-  }
+    var classCell = tableColumns[0];
+    // Enable expansion by clicking anywhere on the class column.
+    classCell.onClick.listen(onClick);
 
-  void onHide() {
+    var classRef = new Element.tag('class-ref');
+    classRef.ref = cls;
+    classCell.children.add(classRef);
   }
 
   bool hasChildren() {
@@ -53,7 +57,9 @@ class ClassTreeElement extends ObservatoryElement {
   @override
   void attached() {
     super.attached();
-    tree = new TableTree();
+    var tableBody = shadowRoot.querySelector('#tableTreeBody');
+    assert(tableBody != null);
+    tree = new TableTree(tableBody, 1);
     if (isolate != null) {
       _update(isolate.objectClass);
     }
@@ -67,49 +73,16 @@ class ClassTreeElement extends ObservatoryElement {
 
   void _update(Class root) {
     try {
-      var rootRow = new ClassTreeRow(isolate, root, null);
-      rootRow.children.add(new ClassTreeRow(isolate, root, rootRow));
+      var rootRow = new ClassTreeRow(isolate, root, tree, null);
+      rootRow.children.add(new ClassTreeRow(isolate, root, tree, rootRow));
       tree.initialize(rootRow);
     } catch (e, stackTrace) {
       Logger.root.warning('_update', e, stackTrace);
     }
     // Check if we only have one node at the root and expand it.
     if (tree.rows.length == 1) {
-      tree.toggle(0);
+      tree.toggle(tree.rows[0]);
     }
     notifyPropertyChange(#tree, null, tree);
   }
-
-  @observable String padding(TableTreeRow row) {
-    return 'padding-left: ${row.depth * 16}px;';
-  }
-
-  @observable String coloring(TableTreeRow row) {
-    const colors = const ['rowColor0', 'rowColor1', 'rowColor2', 'rowColor3',
-                          'rowColor4', 'rowColor5', 'rowColor6', 'rowColor7',
-                          'rowColor8'];
-    var index = (row.depth - 1) % colors.length;
-    return colors[index];
-  }
-
-  @observable void toggleExpanded(Event e, var detail, Element target) {
-    // We only want to expand a tree row if the target of the click is
-    // the table cell (passed in as target) or the span containing the
-    // expander symbol (#expand).
-    var eventTarget = e.target;
-    if ((eventTarget.id != 'expand') && (e.target != target)) {
-      // Target of click was not the expander span or the table cell.
-      return;
-    }
-    var row = target.parent;
-    if (row is TableRowElement) {
-      try {
-        // Subtract 1 to get 0 based indexing.
-        tree.toggle(row.rowIndex - 1);
-      }  catch (e, stackTrace) {
-        Logger.root.warning('toggleExpanded', e, stackTrace);
-      }
-    }
-  }
-
 }

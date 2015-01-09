@@ -5,7 +5,7 @@
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="sliding_checkbox.html">
 
-<polymer-element name="isolate-profile" extends="observatory-element">
+<polymer-element name="cpu-profile" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
@@ -142,51 +142,17 @@
       </div>
       <hr>
       <table id="tableTree" class="table">
-        <thead>
+        <thead id="tableTreeheader">
           <tr>
             <th>Method</th>
             <th>Self</th>
           </tr>
         </thead>
-        <tbody>
-          <tr template repeat="{{row in tree.rows }}" style="{{}}">
-            <td on-click="{{toggleExpanded}}"
-                class="{{ coloring(row) }}"
-                style="{{ padding(row) }}">
-              <span id="expand" style="{{ row.expanderStyle }}">{{ row.expander }}</span>
-              <div style="position: relative;display: inline">
-                {{row.columns[0]}}
-              </div>
-              <code-ref ref="{{ row.code }}"></code-ref>
-            </td>
-            <td class="{{ coloring(row) }}" style="position: relative">
-              {{row.columns[1]}}
-              <div class="tooltip">
-                <div class="memberList">
-                  <div class="memberItem">
-                   <div class="memberName white">Kind</div>
-                   <div class="memberValue white">{{ row.tipKind }}</div>
-                  </div>
-                  <div class="memberItem">
-                   <div class="memberName white">Percent of Parent</div>
-                   <div class="memberValue white">{{ row.tipParent }}</div>
-                  </div>
-                  <div class="memberItem">
-                   <div class="memberName white">Sample Count</div>
-                   <div class="memberValue white">{{ row.tipTicks }} ({{ row.tipExclusive }})</div>
-                  </div>
-                  <div class="memberItem">
-                   <div class="memberName white">Approximate Execution Time</div>
-                   <div class="memberValue white">{{ row.tipTime }}</div>
-                  </div>
-                </div>
-              </div>
-            </td>
-          </tr>
+        <tbody id="tableTreeBody">
         </tbody>
       </table>
     </div>
   </template>
 </polymer-element>
 
-<script type="application/dart" src="isolate_profile.dart"></script>
+<script type="application/dart" src="cpu_profile.dart"></script>
