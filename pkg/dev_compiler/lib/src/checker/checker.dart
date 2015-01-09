@@ -16,12 +16,13 @@ import 'rules.dart';
 /// Runs the program checker using the restricted type rules on [fileUri].
 CheckerResults checkProgram(
     Uri fileUri, TypeResolver resolver, CheckerReporter reporter,
-    {bool checkSdk: false, bool useColors: true,
-    bool covariantGenerics: true}) {
+    {bool checkSdk: false, bool useColors: true, bool covariantGenerics: true,
+    bool relaxedCasts: true}) {
 
   // Invoke the checker on the entry point.
   TypeProvider provider = resolver.context.typeProvider;
-  var rules = new RestrictedRules(provider, reporter, covariantGenerics);
+  var rules = new RestrictedRules(provider, reporter,
+      covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
   final visitor =
       new ProgramChecker(resolver, rules, fileUri, checkSdk, reporter);
   visitor.check();

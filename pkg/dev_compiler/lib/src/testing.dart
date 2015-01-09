@@ -41,8 +41,8 @@ import 'package:ddc/src/checker/checker.dart';
 ///       '''
 ///     });
 ///
-CheckerResults testChecker(Map<String, String> testFiles,
-  {bool mockSdk: true, CheckerReporter reporter, covariantGenerics: false}) {
+CheckerResults testChecker(Map<String, String> testFiles, {bool mockSdk: true,
+    CheckerReporter reporter, covariantGenerics: true, relaxedCasts: true}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
@@ -58,7 +58,7 @@ CheckerResults testChecker(Map<String, String> testFiles,
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
   var results = checkProgram(mainFile, resolver, reporter,
-                             covariantGenerics: covariantGenerics);
+      covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
@@ -289,7 +289,8 @@ class _TestSource implements Source {
 
   SourceSpan spanFor(AstNode node) {
     final begin = node is AnnotatedNode ?
-        node.firstTokenAfterCommentAndMetadata.offset : node.offset;
+        node.firstTokenAfterCommentAndMetadata.offset :
+        node.offset;
     return _file.span(begin, node.end);
   }
 

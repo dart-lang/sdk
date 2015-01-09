@@ -47,10 +47,8 @@ abstract class Coercion {
   static Coercion identity(DartType type) => new Identity(type);
   static Coercion error() => new CoercionError();
   static Coercion wrapper(DartType fromType, DartType toType,
-                          List<Coercion> normalParameters,
-                          List<Coercion> optionalParameters,
-                          Map<String, Coercion> namedParameters,
-                          Coercion ret) {
+      List<Coercion> normalParameters, List<Coercion> optionalParameters,
+      Map<String, Coercion> namedParameters, Coercion ret) {
     {
       // If any sub coercion is error, return error
       bool isError(Coercion c) => c is CoercionError;
@@ -168,8 +166,8 @@ abstract class DownCastBase extends Conversion {
   DownCastBase._internal(TypeRules rules, Expression expression, this._cast)
       : super(rules, expression) {
     assert(_cast.toType != baseType &&
-        _cast.fromType == baseType &&
-        (baseType.isDynamic || rules.isSubTypeOf(_cast.toType, baseType)));
+           _cast.fromType == baseType &&
+           (baseType.isDynamic || baseType.isAssignableTo(_cast.toType)));
   }
 
   Cast get cast => _cast;
@@ -195,8 +193,8 @@ abstract class DownCastBase extends Conversion {
 
 // Standard / unspecialized down cast.
 class DownCast extends DownCastBase {
-  DownCast(TypeRules rules, Expression expression, Cast cast) :
-    super._internal(rules, expression, cast);
+  DownCast(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
 }
 
 // A down cast that would be "unnecessary" with standard Dart rules.
@@ -204,8 +202,8 @@ class DownCast extends DownCastBase {
 // rules.  These occur due to our stricter rules on dynamic type parameters in
 // generics.
 class DownCastDynamic extends DownCastBase {
-  DownCastDynamic(TypeRules rules, Expression expression, Cast cast) :
-    super._internal(rules, expression, cast);
+  DownCastDynamic(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
 }
@@ -222,8 +220,8 @@ class DownCastLiteral extends DownCastBase {
 // A down cast on a non-literal allocation site.  This should never succeed.
 // TODO(vsm): Mark as severe / error?
 class DownCastExact extends DownCastBase {
-  DownCastExact(TypeRules rules, Expression expression, Cast cast) :
-    super._internal(rules, expression, cast);
+  DownCastExact(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
 }

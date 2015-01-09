@@ -809,7 +809,7 @@ main() {
         ns = ns;
       }
    '''
-    }, covariantGenerics: false);
+    }, covariantGenerics: false, relaxedCasts: false);
   });
 
   test('Generic subtyping: covariant raw types', () {
@@ -946,7 +946,7 @@ main() {
         ns = /*info:DownCast*/mOfDynamics;
       }
    '''
-    }, covariantGenerics: false);
+    }, covariantGenerics: false, relaxedCasts: false);
   });
 
   test('Generic subtyping: covariant raw types with multiple parameters', () {
@@ -1041,7 +1041,7 @@ main() {
         lOfAA = lOfAA;
       }
    '''
-    }, covariantGenerics: false);
+    }, covariantGenerics: false, relaxedCasts: false);
   });
 
   test('Covariant generic subtyping: invariance', () {
@@ -1155,7 +1155,91 @@ main() {
         ns = ns;
       }
    '''
-    }, covariantGenerics: true);
+    }, covariantGenerics: true, relaxedCasts: false);
+  });
+
+  test('Relaxed casts', () {
+    testChecker({
+      '/main.dart': '''
+
+      class A {}
+
+      class L<T> {}
+      class M<T> extends L<T> {}
+      //     L<dynamic>
+      //    /          \
+      // M<dynamic> L<Object>
+      //    |      /    /
+      // M<Object>    L<A>
+      //    \        /
+      //       M<A>
+      // In normal Dart, there are additional edges
+      //  from M<A> to M<dynamic>
+      //  from L<Object> to M<dynamic>
+      //  from L<Object> to L<dynamic>
+      //  from L<A> to M<dynamic>
+      //  from L<A> to L<dynamic>
+      void main() {
+        L lOfDs;
+        L<Object> lOfOs;
+        L<A> lOfAs;
+
+        M mOfDs;
+        M<Object> mOfOs;
+        M<A> mOfAs;
+
+        {
+          lOfDs = mOfDs;
+          lOfDs = mOfOs;
+          lOfDs = mOfAs;
+          lOfDs = lOfDs;
+          lOfDs = lOfOs;
+          lOfDs = lOfAs;
+        }
+        {
+          lOfOs = /*warning:DownCastDynamic*/mOfDs;
+          lOfOs = mOfOs;
+          lOfOs = mOfAs;
+          lOfOs = /*warning:DownCastDynamic*/lOfDs;
+          lOfOs = lOfOs;
+          lOfOs = lOfAs;
+        }
+        {
+          lOfAs = /*warning:DownCastDynamic*/mOfDs;
+          lOfAs = /*severe:StaticTypeError*/mOfOs;
+          lOfAs = mOfAs;
+          lOfAs = /*warning:DownCastDynamic*/lOfDs;
+          lOfAs = /*info:DownCast*/lOfOs;
+          lOfAs = lOfAs;
+        }
+        {
+          mOfDs = mOfDs;
+          mOfDs = mOfOs;
+          mOfDs = mOfAs;
+          mOfDs = /*info:DownCast*/lOfDs;
+          mOfDs = /*info:DownCast*/lOfOs;
+          mOfDs = /*info:DownCast*/lOfAs;
+        }
+        {
+          mOfOs = /*warning:DownCastDynamic*/mOfDs;
+          mOfOs = mOfOs;
+          mOfOs = mOfAs;
+          mOfOs = /*info:DownCast*/lOfDs;
+          mOfOs = /*info:DownCast*/lOfOs;
+          mOfOs = /*severe:StaticTypeError*/lOfAs;
+        }
+        {
+          mOfAs = /*warning:DownCastDynamic*/mOfDs;
+          mOfAs = /*info:DownCast*/mOfOs;
+          mOfAs = mOfAs;
+          mOfAs = /*info:DownCast*/lOfDs;
+          mOfAs = /*info:DownCast*/lOfOs;
+          mOfAs = /*info:DownCast*/lOfAs;
+        }
+
+      }
+   '''
+    }, covariantGenerics: true, relaxedCasts: true);
   });
 
   test('Subtyping literals', () {

@@ -78,8 +78,10 @@ class DartRules extends TypeRules {
 class RestrictedRules extends TypeRules {
   final CheckerReporter _reporter;
   final bool covariantGenerics;
+  final bool relaxedCasts;
 
-  RestrictedRules(TypeProvider provider, this._reporter, this.covariantGenerics)
+  RestrictedRules(TypeProvider provider, this._reporter,
+      {this.covariantGenerics: true, this.relaxedCasts: true})
       : super(provider);
 
   DartType getStaticType(Expression expr) {
@@ -377,6 +379,15 @@ class RestrictedRules extends TypeRules {
     // Downcast if toT <: fromT
     if (isSubTypeOf(toT, fromT)) return Coercion.cast(fromT, toT);
 
+    // Downcast if toT <===> fromT
+    // The intention here is to allow casts that are sideways in the restricted
+    // type system, but allowed in the regular dart type system, since these
+    // are likely to succeed.  The canonical example is List<dynamic> and
+    // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
+    // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
+    if (relaxedCasts && fromT.isAssignableTo(toT)) {
+      return Coercion.cast(fromT, toT);
+    }
     return Coercion.error();
   }
 
@@ -386,7 +397,7 @@ class RestrictedRules extends TypeRules {
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
     if (c is Cast) {
       // toT <:_R fromT => to <: fromT
-      assert(toT.isSubtypeOf(fromT));
+      assert(toT.isAssignableTo(fromT));
 
       // Specialized casts:
       if (expr is Literal) {

@@ -35,6 +35,8 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('mock-sdk',
       abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
+  ..addFlag('relaxed-casts',
+      help: 'Cast between Dart assignable types', defaultsTo: true)
   ..addFlag(
       'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false);
 
@@ -80,14 +82,15 @@ void main(List<String> argv) {
   var filename = args.rest.first;
   compile(filename, typeResolver,
       checkSdk: args['sdk-check'],
-      forceCompile: args['force-compile'],
-      formatOutput: args['dart-gen-fmt'],
-      outputDart: args['dart-gen'],
       covariantGenerics: args['covariant-generics'],
       dumpInfo: args['dump-info'],
       dumpInfoFile: args['dump-info-file'],
       dumpSrcTo: args['dump-src-to'],
+      forceCompile: args['force-compile'],
+      formatOutput: args['dart-gen-fmt'],
+      outputDart: args['dart-gen'],
       outputDir: args['out'],
+      relaxedCasts: args['relaxed-casts'],
       useColors: useColors).then((success) {
     exit(success ? 0 : 1);
   });

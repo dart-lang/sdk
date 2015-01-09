@@ -29,7 +29,7 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
     {bool checkSdk: false, bool formatOutput: false, bool outputDart: false,
     String outputDir, bool dumpInfo: false, String dumpInfoFile,
     String dumpSrcTo: null, bool forceCompile: false, bool useColors: true,
-    bool covariantGenerics: true}) {
+    bool covariantGenerics: true, bool relaxedCasts: true}) {
 
   // Run checker
   var reporter = dumpInfo ? new SummaryReporter() : new LogReporter(useColors);
@@ -37,7 +37,8 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
   var results = checkProgram(uri, resolver, reporter,
       checkSdk: checkSdk,
       useColors: useColors,
-      covariantGenerics: covariantGenerics);
+      covariantGenerics: covariantGenerics,
+      relaxedCasts: relaxedCasts);
 
   // TODO(sigmund): return right after?
   if (dumpInfo) {
