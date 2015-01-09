@@ -70,6 +70,7 @@ class Compiler extends leg.Compiler {
             sourceMapUri: extractUriOption(options, '--source-map='),
             outputUri: extractUriOption(options, '--out='),
             terseDiagnostics: hasOption(options, '--terse'),
+            deferredMapUri: extractUriOption(options, '--deferred-map='),
             dumpInfo: hasOption(options, '--dump-info'),
             buildId: extractStringOption(
                 options, '--build-id=',

@@ -2297,6 +2297,20 @@ class JavaScriptBackend extends Backend {
     // communicate with the spawning isolate.
     enqueuer.enableIsolateSupport();
   }
+
+  /// Returns the filename for the output-unit named [name].
+  ///
+  /// The filename is of the form "<main output file>_<name>.part.js".
+  /// If [addExtension] is false, the ".part.js" suffix is left out.
+  String deferredPartFileName(String name, {bool addExtension: true}) {
+    assert(name != "");
+    String outPath = compiler.outputUri != null
+        ? compiler.outputUri.path
+        : "out";
+    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
+    String extension = addExtension ? ".part.js" : "";
+    return "${outName}_$name$extension";
+  }
 }
 
 class JavaScriptResolutionCallbacks extends ResolutionCallbacks {

@@ -40,6 +40,7 @@ import 'elements/elements.dart' show
 
 import 'util/util.dart' show
     Link, makeUnique;
+import 'util/uri_extras.dart' as uri_extras;
 
 import 'util/setlet.dart' show
     Setlet;
@@ -145,6 +146,10 @@ class DeferredLoadTask extends CompilerTask {
   /// The main library is included in this set for convenience.
   final Map<Import, LibraryElement> _allDeferredImports =
       new Map<Import, LibraryElement>();
+
+  /// Because the token-stream is forgotten later in the program, we cache a
+  /// description of each deferred import.
+  final _deferredImportDescriptions = new Map<Import, ImportDescription>();
 
   // For each deferred import we want to know exactly what elements have to
   // be loaded.
@@ -617,7 +622,7 @@ class DeferredLoadTask extends CompilerTask {
     });
   }
 
-  void ensureMetadataResolved(Compiler compiler) {
+  void beforeResolution(Compiler compiler) {
     if (compiler.mainApp == null) return;
     _allDeferredImports[_fakeMainImport] = compiler.mainApp;
     var lastDeferred;
@@ -671,13 +676,16 @@ class DeferredLoadTask extends CompilerTask {
           // The last import we saw with the same prefix.
           Import previousDeferredImport = prefixDeferredImport[prefix];
           if (import.isDeferred) {
-            _allDeferredImports[import] = library.getLibraryFromTag(import);
+            LibraryElement importedLibrary = library.getLibraryFromTag(import);
+            _allDeferredImports[import] = importedLibrary;
 
             if (prefix == null) {
               compiler.reportError(import,
                   MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
             } else {
               prefixDeferredImport[prefix] = import;
+              _deferredImportDescriptions[import] =
+                  new ImportDescription(import, library, compiler);
             }
             isProgramSplit = true;
             lastDeferred = import;
@@ -764,4 +772,62 @@ class DeferredLoadTask extends CompilerTask {
     }
     return null;
   }
+
+  /// Returns a json-style map for describing what files that are loaded by a
+  /// given deferred import.
+  /// The mapping is structured as:
+  /// library uri -> {"name": library name, "files": (prefix -> list of files)}
+  /// Where
+  ///
+  /// - <library uri> is the relative uri of the library making a deferred
+  ///   import
+  /// - <library name> is the name of the libary, and "<unnamed>" if it is
+  ///   unnamed.
+  /// - <prefix> is the `as` prefix used for a given deferred import.
+  /// - <list of files> is a list of the filenames the must be loaded when that
+  ///   import is loaded.
+  Map<String, Map<String, dynamic>> computeDeferredMap() {
+    JavaScriptBackend backend = compiler.backend;
+    Map<String, Map<String, dynamic>> mapping =
+        new Map<String, Map<String, dynamic>>();
+    _deferredImportDescriptions.keys.forEach((ast.Import import) {
+      List<OutputUnit> outputUnits = hunksToLoad[importDeferName[import]];
+      ImportDescription description = _deferredImportDescriptions[import];
+      Map<String, dynamic> libraryMap =
+          mapping.putIfAbsent(description.importingUri,
+              () => <String, dynamic>{"name": description.importingLibraryName,
+                                      "imports": <String, List<String>>{}});
+
+      libraryMap["imports"][description.prefix] = outputUnits.map(
+            (OutputUnit outputUnit) {
+          return backend.deferredPartFileName(outputUnit.name);
+        }).toList();
+    });
+    return mapping;
+  }
+}
+
+class ImportDescription {
+  /// Relative uri to the importing library.
+  final String importingUri;
+  /// The prefix this import is imported as.
+  final String prefix;
+  final LibraryElement _importingLibrary;
+
+  ImportDescription(Import import,
+                    LibraryElement importingLibrary,
+                    Compiler compiler)
+      : importingUri = uri_extras.relativize(
+          compiler.mainApp.canonicalUri,
+          importingLibrary.canonicalUri, false),
+        prefix = import.prefix.source,
+        _importingLibrary = importingLibrary;
+
+  String get importingLibraryName {
+    String libraryName = _importingLibrary.getLibraryName();
+    return libraryName == ""
+      ? "<unnamed>"
+      : libraryName;
+  }
+
 }

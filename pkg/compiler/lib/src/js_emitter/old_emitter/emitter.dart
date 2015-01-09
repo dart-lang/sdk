@@ -1240,22 +1240,6 @@ class OldEmitter implements Emitter {
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
-  /// Extracts the output name of the compiler's outputUri.
-  String deferredPartFileName(OutputUnit outputUnit,
-                              {bool addExtension: true}) {
-    String outPath = compiler.outputUri != null
-        ? compiler.outputUri.path
-        : "out";
-    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
-    String extension = addExtension ? ".part.js" : "";
-    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
-      return "$outName$extension";
-    } else {
-      String name = outputUnit.name;
-      return "${outName}_$name$extension";
-    }
-  }
-
   void emitLibraries(Iterable<LibraryElement> libraries) {
     if (libraries.isEmpty) return;
 
@@ -1513,6 +1497,10 @@ class OldEmitter implements Emitter {
     emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
     emitDeferredBoilerPlate(mainBuffer, deferredLoadHashes);
+
+    if (compiler.deferredMapUri != null) {
+      outputDeferredMap();
+    }
 
     // Static field initializations require the classes and compile-time
     // constants to be set up.
@@ -1884,7 +1872,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       List<String> hashes = new List<String>();
       deferredLibraryHashes[loadId] = new List<String>();
       for (OutputUnit outputUnit in outputUnits) {
-        uris.add(deferredPartFileName(outputUnit));
+        uris.add(backend.deferredPartFileName(outputUnit.name));
         hashes.add(deferredLoadHashes[outputUnit]);
       }
 
@@ -1995,7 +1983,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       outputBuffer.write('${deferredInitializers}["$hash"]$_=$_'
                          '${deferredInitializers}.current$N');
 
-      String partPrefix = deferredPartFileName(outputUnit, addExtension: false);
+      String partPrefix =
+          backend.deferredPartFileName(outputUnit.name, addExtension: false);
       if (generateSourceMap) {
         Uri mapUri, partUri;
         Uri sourceMapUri = compiler.sourceMapUri;
@@ -2050,6 +2039,18 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     String sourceMap = sourceMapBuilder.build();
     compiler.outputProvider(name, 'js.map')
         ..add(sourceMap)
+        ..close();
+  }
+
+  void outputDeferredMap() {
+    Map<String, dynamic> mapping = new Map<String, dynamic>();
+    // Json does not support comments, so we embed the explanation in the
+    // data.
+    mapping["_comment"] = "This mapping shows which compiled `.js` files are "
+        "needed for a given deferred library import.";
+    mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
+    compiler.outputProvider(compiler.deferredMapUri.path, 'deferred_map')
+        ..add(const JsonEncoder.withIndent("  ").convert(mapping))
         ..close();
   }
 

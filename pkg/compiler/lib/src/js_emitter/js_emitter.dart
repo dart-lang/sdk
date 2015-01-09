@@ -4,6 +4,8 @@
 
 library dart2js.js_emitter;
 
+import 'dart:convert';
+
 import '../common.dart';
 
 import '../constants/expressions.dart';

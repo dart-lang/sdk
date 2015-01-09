@@ -249,7 +249,11 @@ class RandomAccessFileOutputProvider {
     Uri uri;
     String sourceMapFileName;
     bool isPrimaryOutput = false;
-    if (name == '') {
+    // TODO (johnniwinther, sigurdm): Make a better interface for
+    // output-providers.
+    if (extension == "deferred_map") {
+      uri = out.resolve(name);
+    } else if (name == '') {
       if (extension == 'js' || extension == 'dart') {
         isPrimaryOutput = true;
         uri = out;
@@ -261,7 +265,7 @@ class RandomAccessFileOutputProvider {
                " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
-      } else if (extension == 'info.html' || extension == "info.json") {
+      } else if (extension == "info.json") {
         String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
         uri = out.resolve('$outName.$extension');
       } else {

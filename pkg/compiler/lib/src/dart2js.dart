@@ -333,6 +333,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler('--disable-type-inference', implyCompilation),
     new OptionHandler('--terse', passThrough),
+    new OptionHandler('--deferred-map=.+', implyCompilation),
     new OptionHandler('--dump-info', implyCompilation),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
@@ -598,6 +599,10 @@ be removed in a future version:
     is "Client".  Possible categories can be seen by providing an
     unsupported category, for example, --categories=help.  To enable
     all categories, use --categories=all.
+
+  --deferred-map=<file>
+    Generates a json file with a mapping from each deferred import to a list of
+    the part.js files that will be loaded.
 
   --dump-info
     Generates an out.info.json file with information about the generated code.

@@ -669,6 +669,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool trustPrimitives;
   final bool enableConcreteTypeInference;
   final bool disableTypeInferenceFlag;
+  final Uri deferredMapUri;
   final bool dumpInfo;
   final bool useContentSecurityPolicy;
   final bool enableExperimentalMirrors;
@@ -985,6 +986,7 @@ abstract class Compiler implements DiagnosticListener {
             this.outputUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
+            this.deferredMapUri: null,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,
@@ -1531,7 +1533,7 @@ abstract class Compiler implements DiagnosticListener {
     // compile-time constants that are metadata.  This means adding
     // something to the resolution queue.  So we cannot wait with
     // this until after the resolution queue is processed.
-    deferredLoadTask.ensureMetadataResolved(this);
+    deferredLoadTask.beforeResolution(this);
 
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
