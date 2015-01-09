@@ -7,35 +7,35 @@ import "package:expect/expect.dart";
 const x = "foo";
 const y = "foo";
 const g1 = x
-  + "bar"  /// 01: compile-time error
+  + "bar"
 ;
 const g2 = x
-  + null   /// 02: compile-time error
+  + null   /// 01: compile-time error
 ;
 const g3 = x
-  + 499   /// 03: compile-time error
+  + 499   /// 02: compile-time error
 ;
 const g4 = x
-  + 3.3   /// 04: compile-time error
+  + 3.3   /// 03: compile-time error
 ;
 const g5 = x
-  + true   /// 05: compile-time error
+  + true   /// 04: compile-time error
 ;
 const g6 = x
-  + false   /// 06: compile-time error
+  + false   /// 05: compile-time error
 ;
 const g7 = "foo"
-  + x[0]   /// 07: compile-time error
+  + x[0]   /// 06: compile-time error
 ;
 const g8 = 1
-  + x.length  /// 08: compile-time error
+  + x.length
 ;
 const g9 = x == y;
 
 use(x) => x;
 
 main() {
-  Expect.equals("foo", g1);
+  Expect.equals("foobar", g1);
   Expect.isTrue(g9);
   use(g1);
   use(g2);
