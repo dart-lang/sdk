@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const String s = "foo";
-const int i = s.length; /// 01: compile-time error
+const int i = s.length;
 
 use(x) => x;
 
 main() {
   use(s);
-  use(i); /// 01: continued
+  use(i);
 }

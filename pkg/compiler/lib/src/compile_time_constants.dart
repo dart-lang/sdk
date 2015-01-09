@@ -509,6 +509,16 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         assert(elements.isTypeLiteral(send));
         return makeTypeConstant(send, elements.getTypeLiteralType(send));
       } else if (send.receiver != null) {
+        if (send.selector.asIdentifier().source == "length") {
+          AstConstant left = evaluate(send.receiver);
+          if (left != null && left.value.isString) {
+            StringConstantValue stringConstantValue = left.value;
+            DartString string = stringConstantValue.primitiveValue;
+            IntConstantValue length = constantSystem.createInt(string.length);
+            return new AstConstant(
+                context, send, new VariableConstantExpression(length, element));
+          }
+        }
         // Fall through to error handling.
       } else if (!Elements.isUnresolved(element)
                  && element.isVariable
@@ -522,7 +532,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isCall) {
-      if (identical(element, compiler.identicalFunction)
+      if (element == compiler.identicalFunction
           && send.argumentCount() == 2) {
         AstConstant left = evaluate(send.argumentsNode.nodes.head);
         AstConstant right = evaluate(send.argumentsNode.nodes.tail.head);

@@ -97,6 +97,23 @@ class JavaScriptNegateOperation implements UnaryOperation {
   }
 }
 
+class JavaScriptAddOperation implements BinaryOperation {
+  final _addOperation = const AddOperation();
+  String get name => _addOperation.name;
+
+  const JavaScriptAddOperation();
+
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
+    ConstantValue result = _addOperation.fold(left, right);
+    if (result != null && result.isNum) {
+      return JAVA_SCRIPT_CONSTANT_SYSTEM.convertToJavaScriptConstant(result);
+    }
+    return result;
+  }
+
+  apply(left, right) => _addOperation.apply(left, right);
+}
+
 class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
   final BinaryOperation dartArithmeticOperation;
 
@@ -146,7 +163,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   final int BITS31 = 0x8FFFFFFF;
   final int BITS32 = 0xFFFFFFFF;
 
-  final add = const JavaScriptBinaryArithmeticOperation(const AddOperation());
+  final add = const JavaScriptAddOperation();
   final bitAnd = const JavaScriptBinaryBitOperation(const BitAndOperation());
   final bitNot = const JavaScriptBitNotOperation();
   final bitOr = const JavaScriptBinaryBitOperation(const BitOrOperation());
