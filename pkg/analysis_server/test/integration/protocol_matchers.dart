@@ -987,6 +987,7 @@ final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
  *   "enableEnums": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
+ *   "generateLints": optional bool
  * }
  */
 final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
@@ -995,7 +996,8 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
     "enableDeferredLoading": isBool,
     "enableEnums": isBool,
     "generateDart2jsHints": isBool,
-    "generateHints": isBool
+    "generateHints": isBool,
+    "generateLints": isBool
   }));
 
 /**

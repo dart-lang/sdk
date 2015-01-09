@@ -5410,6 +5410,7 @@ class AnalysisErrorType implements Enum {
  *   "enableEnums": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
+ *   "generateLints": optional bool
  * }
  */
 class AnalysisOptions implements HasToJson {
@@ -5442,12 +5443,18 @@ class AnalysisOptions implements HasToJson {
   bool generateDart2jsHints;
 
   /**
-   * True is hints should be generated as part of generating errors and
+   * True if hints should be generated as part of generating errors and
    * warnings.
    */
   bool generateHints;
 
-  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints});
+  /**
+   * True if lints should be generated as part of generating errors and
+   * warnings.
+   */
+  bool generateLints;
+
+  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints, this.generateLints});
 
   factory AnalysisOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5474,7 +5481,11 @@ class AnalysisOptions implements HasToJson {
       if (json.containsKey("generateHints")) {
         generateHints = jsonDecoder._decodeBool(jsonPath + ".generateHints", json["generateHints"]);
       }
-      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints);
+      bool generateLints;
+      if (json.containsKey("generateLints")) {
+        generateLints = jsonDecoder._decodeBool(jsonPath + ".generateLints", json["generateLints"]);
+      }
+      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions");
     }
@@ -5497,6 +5508,9 @@ class AnalysisOptions implements HasToJson {
     if (generateHints != null) {
       result["generateHints"] = generateHints;
     }
+    if (generateLints != null) {
+      result["generateLints"] = generateLints;
+    }
     return result;
   }
 
@@ -5510,7 +5524,8 @@ class AnalysisOptions implements HasToJson {
           enableDeferredLoading == other.enableDeferredLoading &&
           enableEnums == other.enableEnums &&
           generateDart2jsHints == other.generateDart2jsHints &&
-          generateHints == other.generateHints;
+          generateHints == other.generateHints &&
+          generateLints == other.generateLints;
     }
     return false;
   }
@@ -5523,6 +5538,7 @@ class AnalysisOptions implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, enableEnums.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateHints.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, generateLints.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
