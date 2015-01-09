@@ -14,9 +14,6 @@ import 'dart:async';
 
 // Methods to be skipped, by qualified name.
 var blacklist = [
-  // TODO(regis): investigate.
-  'dart.core._Montgomery._invDigitPair',
-
   // Don't recurse on this test.
   'test.invoke_natives',
 

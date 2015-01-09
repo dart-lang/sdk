@@ -162,11 +162,17 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 
 // The following functions are marked as invisible, meaning they will be hidden
 // in the stack trace and will be hidden from reflective access.
+// All mutators of canonical constants should be hidden from reflective access.
 // Additionally, private functions in dart:* that are native or constructors are
 // marked as invisible by the parser.
 #define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
   V(AsyncLibrary, _AsyncRun, _scheduleImmediate)                               \
   V(CoreLibrary, StringBuffer, _addPart)                                       \
+  V(CoreLibrary, _Bigint, _setInt)                                             \
+  V(CoreLibrary, _Bigint, _setHex)                                             \
+  V(CoreLibrary, _Bigint, _setDouble)                                          \
+  V(CoreLibrary, _Bigint, _ensureLength)                                       \
+  V(CoreLibrary, _Bigint, _clamp)                                              \
   V(CoreLibrary, _Bigint, _absAdd)                                             \
   V(CoreLibrary, _Bigint, _absSub)                                             \
   V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \

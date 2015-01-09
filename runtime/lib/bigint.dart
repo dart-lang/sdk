@@ -69,13 +69,7 @@ class _Bigint extends _IntegerImplementation implements int {
   int get _used native "Bigint_getUsed";
   void set _used(int value) native "Bigint_setUsed";
   Uint32List get _digits native "Bigint_getDigits";
-  void set _digits(Uint32List digits) {
-    // The VM expects digits_ to be a Uint32List.
-    assert(digits != null);
-    _set_digits(digits);
-  }
-
-  void _set_digits(Uint32List value) native "Bigint_setDigits";
+  void set _digits(Uint32List value) native "Bigint_setDigits";
 
   // Factory returning an instance initialized to value 0.
   factory _Bigint() native "Bigint_allocate";
