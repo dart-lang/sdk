@@ -1389,6 +1389,7 @@ class PoorMansIncrementalResolver {
         _updateEndOld,
         _updateEndNew);
     incrementalResolver._updateElementNameOffsets();
+    incrementalResolver._shiftEntryErrors();
     _updateEntry();
     // resolve references in the comment
     incrementalResolver._resolveReferences(newComment);

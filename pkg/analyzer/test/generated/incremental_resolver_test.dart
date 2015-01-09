@@ -2461,6 +2461,7 @@ class A {}
  * A function [main] with a parameter [p] of type [int].
  */
 main(int p) {
+  unresolvedFunctionProblem();
 }
 /**
  * Other comment with [int] reference.
@@ -2473,6 +2474,7 @@ foo() {}
  * Inserted text with [String] reference.
  */
 main(int p) {
+  unresolvedFunctionProblem();
 }
 /**
  * Other comment with [int] reference.
