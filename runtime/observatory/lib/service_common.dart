@@ -172,7 +172,9 @@ abstract class CommonWebSocketVM extends VM {
       _webSocket.nonStringToByteData(data).then((ByteData bytes) {
         // See format spec. in VMs Service::SendEvent.
         int offset = 0;
-        int metaSize = bytes.getUint64(offset, Endianness.BIG_ENDIAN);
+        // Dart2JS workaround (no getUint64). Limit to 4 GB metadata.
+        assert(bytes.getUint32(offset, Endianness.BIG_ENDIAN) == 0);
+        int metaSize = bytes.getUint32(offset + 4, Endianness.BIG_ENDIAN);
         offset += 8;
         var meta = _utf8Decoder.convert(new Uint8List.view(
             bytes.buffer, bytes.offsetInBytes + offset, metaSize));

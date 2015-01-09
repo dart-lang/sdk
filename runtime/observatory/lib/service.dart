@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
+import 'package:observatory/object_graph.dart';
 import 'package:observatory/tracer.dart';
 import 'package:observe/observe.dart';
 

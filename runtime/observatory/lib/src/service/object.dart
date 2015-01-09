@@ -693,6 +693,32 @@ class HeapSpace extends Observable {
   }
 }
 
+class HeapSnapshot {
+  final ObjectGraph graph;
+  final DateTime timeStamp;
+  final Isolate isolate;
+  
+  HeapSnapshot(this.isolate, ByteData data) :
+      graph = new ObjectGraph(new ReadStream(data)),
+      timeStamp = new DateTime.now() {
+  }
+  
+  List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
+    var result = [];
+    for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
+      var address = v.addressForWordSize(isolate.vm.architectureBits ~/ 8);
+      result.add(isolate.get(
+          'address/${address.toRadixString(16)}?ref=true').then((obj) {
+        obj.retainedSize = v.retainedSize;
+        return new Future(() => obj);
+      }));
+    }
+    return result;
+  }
+  
+  
+}
+
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner with Coverage {
   @reflectable VM get vm => owner;
@@ -854,6 +880,21 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable String fileAndLine;
 
   @observable DartError error;
+  @observable HeapSnapshot latestSnapshot;
+  Completer<HeapSnapshot> _snapshotFetch;
+  
+  void loadHeapSnapshot(ServiceEvent event) {
+    latestSnapshot = new HeapSnapshot(this, event.data);
+    _snapshotFetch.complete(latestSnapshot);
+  }
+  
+  Future<HeapSnapshot> fetchHeapSnapshot() {
+    if (_snapshotFetch == null || _snapshotFetch.isCompleted) {
+      get('graph');
+      _snapshotFetch = new Completer<HeapSnapshot>();
+    }
+    return _snapshotFetch.future;
+  }
 
   void updateHeapsFromMap(ObservableMap map) {
     newSpace.update(map['new']);
@@ -1541,6 +1582,7 @@ class Class extends ServiceObject with Coverage {
 class Instance extends ServiceObject {
   @observable Class clazz;
   @observable int size;
+  @observable int retainedSize;
   @observable String valueAsString;  // If primitive.
   @observable bool valueAsStringIsTruncated;
   @observable ServiceFunction closureFunc;  // If a closure.

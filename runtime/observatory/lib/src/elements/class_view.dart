@@ -14,6 +14,7 @@ class ClassViewElement extends ObservatoryElement {
   @published Class cls;
   @observable ServiceMap instances;
   @observable int retainedBytes;
+  @observable ObservableList mostRetained;
   ClassViewElement.created() : super.created();
 
   Future<ServiceObject> eval(String text) {
@@ -24,6 +25,16 @@ class ClassViewElement extends ObservatoryElement {
     return cls.get("instances?limit=$limit")
         .then((ServiceMap obj) {
           instances = obj;
+        });
+  }
+  
+  Future<ServiceObject> retainedToplist(var limit) {
+    return cls.isolate.fetchHeapSnapshot().then(
+        (HeapSnapshot snapshot) =>
+            Future.wait(snapshot.getMostRetained(classId: cls.vmCid,
+                                                 limit: 10))).then(
+        (List<ServiceObject> most) {
+            mostRetained = new ObservableList.from(most);
         });
   }
 
@@ -37,6 +48,7 @@ class ClassViewElement extends ObservatoryElement {
   void refresh(var done) {
     instances = null;
     retainedBytes = null;
+    mostRetained = null;
     cls.reload().whenComplete(done);
   }
 

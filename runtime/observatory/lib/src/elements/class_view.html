@@ -166,7 +166,7 @@
             </div>
           </div>
           <div class="memberItem">
-            <div class="memberName">retained size</div>
+            <div class="memberName">total retained memory size</div>
             <div class="memberValue">
               <template if="{{ retainedBytes == null }}">
                 <eval-link callback="{{ retainedSize }}"
@@ -175,6 +175,21 @@
               </template>
               <template if="{{ retainedBytes != null }}">
                 {{ retainedBytes | formatSize }}
+              </template>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">toplist by retained memory</div>
+            <div class="memberValue">
+              <template if="{{ mostRetained == null }}">
+                <eval-link callback="{{ retainedToplist }}"
+                           label="[find]">
+                </eval-link>
+              </template>
+              <template if="{{ mostRetained != null }}">
+                <template repeat="{{ most in mostRetained }}">
+                  {{ most.retainedSize | formatSize }}<instance-ref ref="{{ most }}"></instance-ref><br>
+                </template>
               </template>
             </div>
           </div>
