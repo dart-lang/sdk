@@ -767,33 +767,43 @@ class OldEmitter implements Emitter {
 
   void emitStaticNonFinalFieldInitializations(CodeBuffer buffer,
                                               OutputUnit outputUnit) {
-    JavaScriptConstantCompiler handler = backend.constants;
-    Iterable<VariableElement> staticNonFinalFields =
-        handler.getStaticNonFinalFieldsForEmission();
-    for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
-      compiler.withCurrentElement(element, () {
-        jsAst.Expression initialValue;
-        if (outputUnit !=
-            compiler.deferredLoadTask.outputUnitForElement(element)) {
-          if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
-            // In the main output-unit we output a stub initializer for deferred
-            // variables, such that `isolateProperties` stays a fast object.
-            initialValue = jsAst.number(0);
-          } else {
-            // Don't output stubs outside the main output file.
-            return;
-          }
-        } else {
-          initialValue = constantEmitter.referenceInInitializationContext(
-              handler.getInitialValueFor(element).value);
+    void emitInitialization(Element element, jsAst.Expression initialValue) {
+      jsAst.Expression init =
+        js('$isolateProperties.# = #',
+            [namer.getNameOfGlobalField(element), initialValue]);
+      buffer.write(jsAst.prettyPrint(init, compiler,
+                                     monitor: compiler.dumpInfoTask));
+      buffer.write('$N');
+    }
 
+    bool inMainUnit = (outputUnit == compiler.deferredLoadTask.mainOutputUnit);
+    JavaScriptConstantCompiler handler = backend.constants;
+
+    Iterable<Element> fields = task.outputStaticNonFinalFieldLists[outputUnit];
+    // If the outputUnit does not contain any static non-final fields, then
+    // [fields] is `null`.
+    if (fields != null) {
+      for (Element element in fields) {
+        compiler.withCurrentElement(element, () {
+          ConstantValue constant = handler.getInitialValueFor(element).value;
+          emitInitialization(
+              element,
+              constantEmitter.referenceInInitializationContext(constant));
+        });
+      }
+    }
+
+    if (inMainUnit && task.outputStaticNonFinalFieldLists.length > 1) {
+      // In the main output-unit we output a stub initializer for deferred
+      // variables, so that `isolateProperties` stays a fast object.
+      task.outputStaticNonFinalFieldLists.forEach(
+          (OutputUnit fieldsOutputUnit, Iterable<VariableElement> fields) {
+        if (fieldsOutputUnit == outputUnit) return;  // Skip the main unit.
+        for (Element element in fields) {
+          compiler.withCurrentElement(element, () {
+            emitInitialization(element, jsAst.number(0));
+          });
         }
-        jsAst.Expression init =
-          js('$isolateProperties.# = #',
-              [namer.getNameOfGlobalField(element), initialValue]);
-        buffer.write(jsAst.prettyPrint(init, compiler,
-                                       monitor: compiler.dumpInfoTask));
-        buffer.write('$N');
       });
     }
   }

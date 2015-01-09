@@ -27,6 +27,8 @@ class CodeEmitterTask extends CompilerTask {
       new Map<OutputUnit, List<ConstantValue>>();
   final Map<OutputUnit, List<Element>> outputStaticLists =
       new Map<OutputUnit, List<Element>>();
+  final Map<OutputUnit, List<VariableElement>> outputStaticNonFinalFieldLists =
+      new Map<OutputUnit, List<VariableElement>>();
   final Map<OutputUnit, Set<LibraryElement>> outputLibraryLists =
       new Map<OutputUnit, Set<LibraryElement>>();
 
@@ -360,10 +362,22 @@ class CodeEmitterTask extends CompilerTask {
         backend.generatedCode.keys.where(isStaticFunction);
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      outputStaticLists.putIfAbsent(
+      List<Element> list = outputStaticLists.putIfAbsent(
           compiler.deferredLoadTask.outputUnitForElement(element),
-          () => new List<Element>())
-          .add(element);
+          () => new List<Element>());
+      list.add(element);
+    }
+  }
+
+  void computeNeededStaticNonFinalFields() {
+    JavaScriptConstantCompiler handler = backend.constants;
+    Iterable<VariableElement> staticNonFinalFields =
+        handler.getStaticNonFinalFieldsForEmission();
+    for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
+      List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
+            compiler.deferredLoadTask.outputUnitForElement(element),
+            () => new List<VariableElement>());
+      list.add(element);
     }
   }
 
@@ -387,6 +401,7 @@ class CodeEmitterTask extends CompilerTask {
     computeNeededDeclarations();
     computeNeededConstants();
     computeNeededStatics();
+    computeNeededStaticNonFinalFields();
     computeNeededLibraries();
   }
 
