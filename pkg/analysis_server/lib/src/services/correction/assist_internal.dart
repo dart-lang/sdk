@@ -343,7 +343,7 @@ class AssistProcessor {
     }
     // prepare source
     SourceBuilder builder = new SourceBuilder(file, offset);
-    builder.append("var ");
+    builder.append('var ');
     // prepare excluded names
     Set<String> excluded = new Set<String>();
     {
@@ -355,7 +355,7 @@ class AssistProcessor {
     {
       List<String> suggestions =
           getVariableNameSuggestionsForExpression(type, expression, excluded);
-      builder.startPosition("NAME");
+      builder.startPosition('NAME');
       for (int i = 0; i < suggestions.length; i++) {
         String name = suggestions[i];
         if (i == 0) {
@@ -365,7 +365,7 @@ class AssistProcessor {
       }
       builder.endPosition();
     }
-    builder.append(" = ");
+    builder.append(' = ');
     // add proposal
     _insertBuilder(builder);
     _addAssist(AssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
@@ -384,7 +384,7 @@ class AssistProcessor {
     // add change
     String indent = utils.getIndent(1);
     String returnSource = 'return ' + _getNodeText(returnValue);
-    String newBodySource = "{$eol$prefix${indent}$returnSource;$eol$prefix}";
+    String newBodySource = '{$eol$prefix$indent$returnSource;$eol$prefix}';
     _addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
     _addAssist(AssistKind.CONVERT_INTO_BLOCK_BODY, []);
@@ -415,10 +415,10 @@ class AssistProcessor {
       return;
     }
     // add change
-    String newBodySource = "=> ${_getNodeText(returnExpression)}";
+    String newBodySource = '=> ${_getNodeText(returnExpression)}';
     if (body.parent is! FunctionExpression ||
         body.parent.parent is FunctionDeclaration) {
-      newBodySource += ";";
+      newBodySource += ';';
     }
     _addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
@@ -469,7 +469,7 @@ class AssistProcessor {
       _addRemoveEdit(
           rangeStartEnd(parExpression.rightParenthesis, prefExpression));
     }
-    _addInsertEdit(isExpression.isOperator.end, "!");
+    _addInsertEdit(isExpression.isOperator.end, '!');
     // add proposal
     _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
   }
@@ -518,7 +518,7 @@ class AssistProcessor {
       _addRemoveEdit(
           rangeStartEnd(parExpression.rightParenthesis, prefExpression));
     }
-    _addInsertEdit(isExpression.isOperator.end, "!");
+    _addInsertEdit(isExpression.isOperator.end, '!');
     // add proposal
     _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
   }
@@ -550,14 +550,14 @@ class AssistProcessor {
     }
     // should be "isEmpty"
     Element propertyElement = isEmptyIdentifier.bestElement;
-    if (propertyElement == null || "isEmpty" != propertyElement.name) {
+    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       _coverageMarker();
       return;
     }
     // should have "isNotEmpty"
     Element propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget == null ||
-        getChildren(propertyTarget, "isNotEmpty").isEmpty) {
+        getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       _coverageMarker();
       return;
     }
@@ -574,7 +574,7 @@ class AssistProcessor {
     }
     // do replace
     _addRemoveEdit(rangeStartStart(prefixExpression, prefixExpression.operand));
-    _addReplaceEdit(rangeNode(isEmptyIdentifier), "isNotEmpty");
+    _addReplaceEdit(rangeNode(isEmptyIdentifier), 'isNotEmpty');
     // add proposal
     _addAssist(AssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
   }
@@ -675,7 +675,7 @@ class AssistProcessor {
       return;
     }
     // prepare change
-    String showCombinator = " show ${StringUtils.join(referencedNames, ", ")}";
+    String showCombinator = ' show ${StringUtils.join(referencedNames, ', ')}';
     _addInsertEdit(importDirective.end - 1, showCombinator);
     // add proposal
     _addAssist(AssistKind.IMPORT_ADD_SHOW, []);
@@ -812,12 +812,12 @@ class AssistProcessor {
       String targetConditionSource = _getNodeText(targetCondition);
       String innerConditionSource = _getNodeText(innerCondition);
       if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
-        targetConditionSource = "(${targetConditionSource})";
+        targetConditionSource = '($targetConditionSource)';
       }
       if (_shouldWrapParenthesisBeforeAnd(innerCondition)) {
-        innerConditionSource = "(${innerConditionSource})";
+        innerConditionSource = '($innerConditionSource)';
       }
-      condition = "${targetConditionSource} && ${innerConditionSource}";
+      condition = '$targetConditionSource && $innerConditionSource';
     }
     // replace target "if" statement
     {
@@ -829,7 +829,7 @@ class AssistProcessor {
       String newSource = utils.indentSourceLeftRight(oldSource, false);
       _addReplaceEdit(
           rangeNode(targetIfStatement),
-          "if ($condition) {${eol}${newSource}${prefix}}");
+          'if ($condition) {$eol$newSource$prefix}');
     }
     // done
     _addAssist(AssistKind.JOIN_IF_WITH_INNER, []);
@@ -875,12 +875,12 @@ class AssistProcessor {
       String targetConditionSource = _getNodeText(targetCondition);
       String outerConditionSource = _getNodeText(outerCondition);
       if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
-        targetConditionSource = "(${targetConditionSource})";
+        targetConditionSource = '($targetConditionSource)';
       }
       if (_shouldWrapParenthesisBeforeAnd(outerCondition)) {
-        outerConditionSource = "(${outerConditionSource})";
+        outerConditionSource = '($outerConditionSource)';
       }
-      condition = "${outerConditionSource} && ${targetConditionSource}";
+      condition = '$outerConditionSource && $targetConditionSource';
     }
     // replace outer "if" statement
     {
@@ -892,7 +892,7 @@ class AssistProcessor {
       String newSource = utils.indentSourceLeftRight(oldSource, false);
       _addReplaceEdit(
           rangeNode(outerIfStatement),
-          "if ($condition) {${eol}${newSource}${prefix}}");
+          'if ($condition) {$eol$newSource$prefix}');
     }
     // done
     _addAssist(AssistKind.JOIN_IF_WITH_OUTER, []);
@@ -966,7 +966,7 @@ class AssistProcessor {
     // add edits
     {
       int assignOffset = assignExpression.operator.offset;
-      _addReplaceEdit(rangeEndStart(declNode, assignOffset), " ");
+      _addReplaceEdit(rangeEndStart(declNode, assignOffset), ' ');
     }
     // add proposal
     _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
@@ -1033,7 +1033,7 @@ class AssistProcessor {
     // add edits
     {
       int assignOffset = assignExpression.operator.offset;
-      _addReplaceEdit(rangeEndStart(decl.name, assignOffset), " ");
+      _addReplaceEdit(rangeEndStart(decl.name, assignOffset), ' ');
     }
     // add proposal
     _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
@@ -1084,7 +1084,7 @@ class AssistProcessor {
     // add edit
     if (typeStart != null && typeEnd != null) {
       SourceRange typeRange = rangeStartStart(typeStart, typeEnd);
-      _addReplaceEdit(typeRange, "var ");
+      _addReplaceEdit(typeRange, 'var ');
     }
     // add proposal
     _addAssist(AssistKind.REMOVE_TYPE_ANNOTATION, []);
@@ -1299,30 +1299,29 @@ class AssistProcessor {
       SourceRange thenBlockRange = rangeNode(thenBlock);
       // insert inner "if" with right part of "condition"
       {
-        String source =
-            "${eol}${prefix}${indent}if (${rightConditionSource}) {";
+        String source = '$eol$prefix${indent}if ($rightConditionSource) {';
         int thenBlockInsideOffset = thenBlockRange.offset + 1;
         _addInsertEdit(thenBlockInsideOffset, source);
       }
       // insert closing "}" for inner "if"
       {
         int thenBlockEnd = thenBlockRange.end;
-        String source = "${indent}}";
+        String source = "$indent}";
         // insert before outer "then" block "}"
-        source += "${eol}${prefix}";
+        source += '$eol$prefix';
         _addInsertEdit(thenBlockEnd - 1, source);
       }
     } else {
       // insert inner "if" with right part of "condition"
-      String source = "${eol}${prefix}${indent}if (${rightConditionSource})";
+      String source = '$eol$prefix${indent}if ($rightConditionSource)';
       _addInsertEdit(ifStatement.rightParenthesis.offset + 1, source);
     }
     // indent "then" statements to correspond inner "if"
     {
       List<Statement> thenStatements = getStatements(thenStatement);
       SourceRange linesRange = utils.getLinesRangeStatements(thenStatements);
-      String thenIndentOld = "${prefix}${indent}";
-      String thenIndentNew = "${thenIndentOld}${indent}";
+      String thenIndentOld = '$prefix$indent';
+      String thenIndentNew = '$thenIndentOld$indent';
       _addIndentEdit(linesRange, thenIndentOld, thenIndentNew);
     }
     // add proposal
@@ -1393,14 +1392,14 @@ class AssistProcessor {
         utils.getLinesRangeStatements(selectedStatements);
     // prepare environment
     String indentOld = utils.getNodePrefix(firstStatement);
-    String indentNew = "${indentOld}${utils.getIndent(1)}";
+    String indentNew = '$indentOld${utils.getIndent(1)}';
     String indentedCode =
         utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew);
     // "block"
     {
-      _addInsertEdit(statementsRange.offset, "${indentOld}{${eol}");
+      _addInsertEdit(statementsRange.offset, '$indentOld{$eol');
       _addIndentEdit(statementsRange, indentOld, indentNew);
-      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
+      _addInsertEdit(statementsRange.end, '$indentOld}$eol');
       exitPosition = _newPosition(lastStatement.end);
       // add proposal
       _addAssist(AssistKind.SURROUND_WITH_BLOCK, []);
@@ -1410,13 +1409,13 @@ class AssistProcessor {
       int offset = statementsRange.offset;
       SourceBuilder sb = new SourceBuilder(file, offset);
       sb.append(indentOld);
-      sb.append("if (");
+      sb.append('if (');
       {
-        sb.startPosition("CONDITION");
-        sb.append("condition");
+        sb.startPosition('CONDITION');
+        sb.append('condition');
         sb.endPosition();
       }
-      sb.append(") {");
+      sb.append(') {');
       sb.append(eol);
       sb.append(indentedCode);
       sb.append(indentOld);
@@ -1432,13 +1431,13 @@ class AssistProcessor {
       int offset = statementsRange.offset;
       SourceBuilder sb = new SourceBuilder(file, offset);
       sb.append(indentOld);
-      sb.append("while (");
+      sb.append('while (');
       {
-        sb.startPosition("CONDITION");
-        sb.append("condition");
+        sb.startPosition('CONDITION');
+        sb.append('condition');
         sb.endPosition();
       }
-      sb.append(") {");
+      sb.append(') {');
       sb.append(eol);
       sb.append(indentedCode);
       sb.append(indentOld);
@@ -1454,19 +1453,19 @@ class AssistProcessor {
       int offset = statementsRange.offset;
       SourceBuilder sb = new SourceBuilder(file, offset);
       sb.append(indentOld);
-      sb.append("for (var ");
+      sb.append('for (var ');
       {
-        sb.startPosition("NAME");
-        sb.append("item");
+        sb.startPosition('NAME');
+        sb.append('item');
         sb.endPosition();
       }
-      sb.append(" in ");
+      sb.append(' in ');
       {
-        sb.startPosition("ITERABLE");
-        sb.append("iterable");
+        sb.startPosition('ITERABLE');
+        sb.append('iterable');
         sb.endPosition();
       }
-      sb.append(") {");
+      sb.append(') {');
       sb.append(eol);
       sb.append(indentedCode);
       sb.append(indentOld);
@@ -1482,31 +1481,31 @@ class AssistProcessor {
       int offset = statementsRange.offset;
       SourceBuilder sb = new SourceBuilder(file, offset);
       sb.append(indentOld);
-      sb.append("for (var ");
+      sb.append('for (var ');
       {
-        sb.startPosition("VAR");
-        sb.append("v");
+        sb.startPosition('VAR');
+        sb.append('v');
         sb.endPosition();
       }
-      sb.append(" = ");
+      sb.append(' = ');
       {
-        sb.startPosition("INIT");
-        sb.append("init");
+        sb.startPosition('INIT');
+        sb.append('init');
         sb.endPosition();
       }
-      sb.append("; ");
+      sb.append('; ');
       {
-        sb.startPosition("CONDITION");
-        sb.append("condition");
+        sb.startPosition('CONDITION');
+        sb.append('condition');
         sb.endPosition();
       }
-      sb.append("; ");
+      sb.append('; ');
       {
-        sb.startPosition("INCREMENT");
-        sb.append("increment");
+        sb.startPosition('INCREMENT');
+        sb.append('increment');
         sb.endPosition();
       }
-      sb.append(") {");
+      sb.append(') {');
       sb.append(eol);
       sb.append(indentedCode);
       sb.append(indentOld);
@@ -1522,17 +1521,17 @@ class AssistProcessor {
       int offset = statementsRange.offset;
       SourceBuilder sb = new SourceBuilder(file, offset);
       sb.append(indentOld);
-      sb.append("do {");
+      sb.append('do {');
       sb.append(eol);
       sb.append(indentedCode);
       sb.append(indentOld);
-      sb.append("} while (");
+      sb.append('} while (');
       {
-        sb.startPosition("CONDITION");
-        sb.append("condition");
+        sb.startPosition('CONDITION');
+        sb.append('condition');
         sb.endPosition();
       }
-      sb.append(");");
+      sb.append(');');
       exitPosition = _newPosition(sb.offset + sb.length);
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
@@ -1544,36 +1543,36 @@ class AssistProcessor {
       int offset = statementsRange.offset;
       SourceBuilder sb = new SourceBuilder(file, offset);
       sb.append(indentOld);
-      sb.append("try {");
+      sb.append('try {');
       sb.append(eol);
       sb.append(indentedCode);
       sb.append(indentOld);
-      sb.append("} on ");
+      sb.append('} on ');
       {
-        sb.startPosition("EXCEPTION_TYPE");
-        sb.append("Exception");
+        sb.startPosition('EXCEPTION_TYPE');
+        sb.append('Exception');
         sb.endPosition();
       }
-      sb.append(" catch (");
+      sb.append(' catch (');
       {
-        sb.startPosition("EXCEPTION_VAR");
-        sb.append("e");
+        sb.startPosition('EXCEPTION_VAR');
+        sb.append('e');
         sb.endPosition();
       }
-      sb.append(") {");
+      sb.append(') {');
       sb.append(eol);
       //
       sb.append(indentNew);
       {
-        sb.startPosition("CATCH");
-        sb.append("// TODO");
+        sb.startPosition('CATCH');
+        sb.append('// TODO');
         sb.endPosition();
         sb.setExitOffset();
       }
       sb.append(eol);
       //
       sb.append(indentOld);
-      sb.append("}");
+      sb.append('}');
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
       // add proposal
@@ -1585,19 +1584,19 @@ class AssistProcessor {
       SourceBuilder sb = new SourceBuilder(file, offset);
       //
       sb.append(indentOld);
-      sb.append("try {");
+      sb.append('try {');
       sb.append(eol);
       //
       sb.append(indentedCode);
       //
       sb.append(indentOld);
-      sb.append("} finally {");
+      sb.append('} finally {');
       sb.append(eol);
       //
       sb.append(indentNew);
       {
-        sb.startPosition("FINALLY");
-        sb.append("// TODO");
+        sb.startPosition('FINALLY');
+        sb.append('// TODO');
         sb.endPosition();
         sb.setExitOffset();
       }
@@ -1605,7 +1604,7 @@ class AssistProcessor {
       sb.append(eol);
       //
       sb.append(indentOld);
-      sb.append("}");
+      sb.append('}');
       sb.append(eol);
       //
       _insertBuilder(sb, statementsRange.length);
