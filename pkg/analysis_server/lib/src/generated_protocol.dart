@@ -5839,9 +5839,9 @@ class CompletionSuggestion implements HasToJson {
   Element element;
 
   /**
-   * The return type of the getter, function or method being suggested. This
-   * field is omitted if the suggested element is not a getter, function or
-   * method.
+   * The return type of the getter, function or method or the type of the field
+   * being suggested. This field is omitted if the suggested element is not a
+   * getter, function or method.
    */
   String returnType;
 

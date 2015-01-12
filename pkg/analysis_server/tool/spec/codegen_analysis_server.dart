@@ -78,6 +78,17 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       });
 
       //
+      // isSocketOpen()
+      //
+      publicMethod('isSocketOpen', () {
+              writeln('''/**
+ * Return {@code true} if the socket is open.
+ */''');
+        writeln(
+          'public boolean isSocketOpen();');
+        });
+
+      //
       // start(..)
       //
       publicMethod('start', () {
