@@ -135,8 +135,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       if (isConst) {
         compiler.reportError(
             node, MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS);
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
+        return new ErroneousConstantExpression();
       }
       return null;
     }
@@ -620,8 +619,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         compiler.reportError(
             node.condition, MessageKind.NOT_ASSIGNABLE,
             {'fromType': conditionType, 'toType': compiler.boolClass.rawType});
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
+        return new ErroneousAstConstant(context, node);
       }
       return null;
     }
@@ -673,8 +671,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           node,
           MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
           {'constructorName': name});
-      // TODO(ahe): Don't throw, recover from error.
-      throw new CompilerCancelledException(null);
+
+      return new List<AstConstant>.filled(
+          target.functionSignature.parameterCount,
+          new ErroneousAstConstant(context, node));
     }
     return selector.makeArgumentsList2(arguments,
                                        target,
@@ -826,7 +826,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       Selector selector,
       List<AstConstant> concreteArguments,
       List<AstConstant> normalizedArguments) {
-    assert(invariant(node, selector.applies(constructor, compiler.world),
+    assert(invariant(node, selector.applies(constructor, compiler.world) ||
+                     compiler.compilationFailed,
         message: "Selector $selector does not apply to constructor "
                  "$constructor."));
 
@@ -1117,4 +1118,10 @@ class AstConstant {
   ConstantValue get value => expression.value;
 
   String toString() => expression.toString();
+}
+
+/// A synthetic constant used to recover from errors.
+class ErroneousAstConstant extends AstConstant {
+  ErroneousAstConstant(Element element, Node node)
+      : super(element, node, new ErroneousConstantExpression());
 }
