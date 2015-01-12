@@ -21,8 +21,8 @@ import 'multi_package_resolver.dart';
 
 final _log = new logger.Logger('ddc.src.resolver');
 // TODO(sigmund): make into a proper flag
-const _useMultipackage = const bool.fromEnvironment('use_multi_package',
-    defaultValue: false);
+const _useMultipackage =
+    const bool.fromEnvironment('use_multi_package', defaultValue: false);
 
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {
@@ -34,7 +34,8 @@ class TypeResolver {
     var resolvers = [sdkResolver];
     if (otherResolvers == null) {
       resolvers.add(new FileUriResolver());
-      resolvers.add(_useMultipackage ? new MultiPackageResolver() :
+      resolvers.add(_useMultipackage ?
+          new MultiPackageResolver() :
           new PackageUriResolver([new JavaFile('packages/')]));
     } else {
       resolvers.addAll(otherResolvers);

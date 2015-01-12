@@ -166,8 +166,8 @@ abstract class DownCastBase extends Conversion {
   DownCastBase._internal(TypeRules rules, Expression expression, this._cast)
       : super(rules, expression) {
     assert(_cast.toType != baseType &&
-           _cast.fromType == baseType &&
-           (baseType.isDynamic || baseType.isAssignableTo(_cast.toType)));
+        _cast.fromType == baseType &&
+        (baseType.isDynamic || baseType.isAssignableTo(_cast.toType)));
   }
 
   Cast get cast => _cast;
@@ -197,9 +197,8 @@ class DownCast extends DownCastBase {
       : super._internal(rules, expression, cast);
 
   // Factory to create correct DownCast variant.
-  static DownCastBase create(TypeRules rules,
-                             Expression expression,
-                             Cast cast) {
+  static DownCastBase create(
+      TypeRules rules, Expression expression, Cast cast) {
     final fromT = cast.fromType;
     final toT = cast.toType;
 
@@ -240,8 +239,8 @@ class DownCastDynamic extends DownCastBase {
 // A down cast on a literal expression.  This should never succeed.
 // TODO(vsm): Mark as severe / error?
 class DownCastLiteral extends DownCastBase {
-  DownCastLiteral(TypeRules rules, Expression expression, Cast cast) :
-    super._internal(rules, expression, cast);
+  DownCastLiteral(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
 }

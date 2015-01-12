@@ -41,8 +41,8 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  var sdkResolver = new TypeResolver(
-      TypeResolver.sdkResolverFromDir(dartSdkDirectory));
+  var sdkResolver =
+      new TypeResolver(TypeResolver.sdkResolverFromDir(dartSdkDirectory));
 
   // Validate that old output is gone before running.
   // TODO(jmesserly): it'd be nice to do all cleanup here, including removing
@@ -62,8 +62,8 @@ main(arguments) {
           outputDir: actualDir, useColors: false).then((success) {
 
         // Write compiler messages to disk.
-        new File(path.join(actualDir, '$filename.txt')).writeAsStringSync(
-            compilerMessages.toString());
+        new File(path.join(actualDir, '$filename.txt'))
+            .writeAsStringSync(compilerMessages.toString());
 
         var outputDir = new Directory(path.join(actualDir, filename));
         expect(outputDir.existsSync(), success,

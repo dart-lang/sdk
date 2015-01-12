@@ -13,8 +13,9 @@ import 'package:analyzer/src/generated/source.dart';
 /// Attempts to provide the current Dart SDK directory.  Returns null if the SDK
 /// cannot be found.
 final String dartSdkDirectory = () {
-  bool isSdkDir(String dirname) => new File(
-      path.join(dirname, 'lib', '_internal', 'libraries.dart')).existsSync();
+  bool isSdkDir(String dirname) =>
+      new File(path.join(dirname, 'lib', '_internal', 'libraries.dart'))
+          .existsSync();
 
   String executable = Platform.executable;
   if (path.split(executable).length == 1) {

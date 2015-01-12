@@ -425,8 +425,8 @@ class ProgramChecker extends RecursiveAstVisitor {
             _rules.isSubTypeOf(lhsType, rhsType)) {
           // This is also slightly different from spec, but allows us to keep
           // compound operators in the int += num and num += dynamic cases.
-          staticInfo = DownCast.create(_rules, expr.rightHandSide,
-              Coercion.cast(rhsType, lhsType));
+          staticInfo = DownCast.create(
+              _rules, expr.rightHandSide, Coercion.cast(rhsType, lhsType));
           expr.rightHandSide = staticInfo;
           rhsType = lhsType;
         } else {
