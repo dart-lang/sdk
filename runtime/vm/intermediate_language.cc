@@ -152,20 +152,42 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool CheckClassInstr::IsImmutableClassId(intptr_t cid) {
+  switch (cid) {
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return false;
+    default:
+      return true;
+  }
+}
+
+
+static bool AreAllChecksImmutable(const ICData& checks) {
+  const intptr_t len = checks.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (checks.IsUsedAt(i)) {
+      if (!CheckClassInstr::IsImmutableClassId(
+              checks.GetReceiverClassIdAt(i))) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
 EffectSet CheckClassInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  const bool externalizable =
-      unary_checks().HasReceiverClassId(kOneByteStringCid) ||
-      unary_checks().HasReceiverClassId(kTwoByteStringCid);
-  return externalizable ? EffectSet::Externalization() : EffectSet::None();
+  return !AreAllChecksImmutable(unary_checks()) ?
+      EffectSet::Externalization() : EffectSet::None();
 }
 
 
 EffectSet CheckClassIdInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  const bool externalizable =
-      cid_ == kOneByteStringCid || cid_ == kTwoByteStringCid;
-  return externalizable ? EffectSet::Externalization() : EffectSet::None();
+  return !CheckClassInstr::IsImmutableClassId(cid_) ?
+      EffectSet::Externalization() : EffectSet::None();
 }
 
 
