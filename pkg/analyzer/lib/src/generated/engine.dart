@@ -4923,6 +4923,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _cache.removedAst(source);
       _workManager.add(source, SourcePriority.UNKNOWN);
     }
+    // reset unit in the notification, it is out of date now
+    ChangeNoticeImpl notice = _pendingNotices[source];
+    if (notice != null) {
+      notice.compilationUnit = null;
+      notice.htmlUnit = null;
+    }
   }
 
   /**

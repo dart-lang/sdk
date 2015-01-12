@@ -22,6 +22,9 @@ import 'package:analyzer/src/generated/source.dart';
 
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
+  if (errors == null) {
+    errors = <AnalysisError>[];
+  }
   var serverErrors = protocol.doAnalysisError_listFromEngine(lineInfo, errors);
   var params = new protocol.AnalysisErrorsParams(file, serverErrors);
   server.sendNotification(params.toNotification());
