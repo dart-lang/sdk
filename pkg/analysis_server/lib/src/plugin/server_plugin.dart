@@ -101,7 +101,7 @@ class ServerPlugin implements Plugin {
     if (extension is! RequestHandlerFactory) {
       String id = domainExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
-          'Extensions to the $id must be a RequestHandlerFactory');
+          'Extensions to $id must be a RequestHandlerFactory');
     }
   }
 }

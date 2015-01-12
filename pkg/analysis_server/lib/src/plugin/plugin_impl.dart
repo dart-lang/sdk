@@ -30,8 +30,8 @@ class ExtensionManager {
   void processPlugins(List<Plugin> plugins) {
     for (Plugin plugin in plugins) {
       plugin.registerExtensionPoints(
-          (String identifier, [ExtensionValidator validator]) =>
-              registerExtensionPoint(plugin, identifier, validator));
+          (String identifier, [ValidateExtension validateExtension]) =>
+              registerExtensionPoint(plugin, identifier, validateExtension));
     }
     for (Plugin plugin in plugins) {
       plugin.registerExtensions(registerExtension);
@@ -53,17 +53,17 @@ class ExtensionManager {
 
   /**
    * Register an extension point being defined by the given [plugin] with the
-   * given simple [identifier] and [validator].
+   * given simple [identifier] and [validateExtension].
    */
   ExtensionPoint registerExtensionPoint(Plugin plugin, String identifier,
-      ExtensionValidator validator) {
+      ValidateExtension validateExtension) {
     String uniqueIdentifier = Plugin.buildUniqueIdentifier(plugin, identifier);
     if (extensionPoints.containsKey(uniqueIdentifier)) {
       throw new ExtensionError(
           'There is already an extension point with the id "$identifier"');
     }
     ExtensionPointImpl extensionPoint =
-        new ExtensionPointImpl(plugin, identifier, validator);
+        new ExtensionPointImpl(plugin, identifier, validateExtension);
     extensionPoints[uniqueIdentifier] = extensionPoint;
     return extensionPoint;
   }
@@ -80,9 +80,9 @@ class ExtensionPointImpl implements ExtensionPoint {
   final String simpleIdentifier;
 
   /**
-   * The validator used to validate extensions to this extension point.
+   * The function used to validate extensions to this extension point.
    */
-  final ExtensionValidator validator;
+  final ValidateExtension validateExtension;
 
   /**
    * The list of extensions to this extension point.
@@ -91,10 +91,12 @@ class ExtensionPointImpl implements ExtensionPoint {
 
   /**
    * Initialize a newly create extension point to belong to the given [plugin]
-   * and have the given [simpleIdentifier]. If the [validator] is non-`null` it
-   * will be used to validate extensions associated with this extension point.
+   * and have the given [simpleIdentifier]. If [validateExtension] is non-`null`
+   * it will be used to validate extensions associated with this extension
+   * point.
    */
-  ExtensionPointImpl(this.plugin, this.simpleIdentifier, this.validator);
+  ExtensionPointImpl(this.plugin, this.simpleIdentifier,
+      this.validateExtension);
 
   /**
    * Return a list containing all of the extensions that have been registered
@@ -115,8 +117,8 @@ class ExtensionPointImpl implements ExtensionPoint {
    * point, and if it is then add it to the list of registered exceptions.
    */
   void add(Object extension) {
-    if (validator != null) {
-      validator(extension);
+    if (validateExtension != null) {
+      validateExtension(extension);
     }
     _extensions.add(extension);
   }

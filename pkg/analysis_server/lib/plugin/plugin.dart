@@ -5,15 +5,6 @@
 library analysis_server.plugin.plugin;
 
 /**
- * A function used by a plugin to validate an [extension] to a extension point.
- *
- * An [ExtensionError] should be thrown if the [extension] is not valid for the
- * extension point, such as an [extension] that does not implement the required
- * interface.
- */
-typedef void ExtensionValidator(Object extension);
-
-/**
  * A function used to register the given [extension] to the extension point with
  * the given unique [identifier].
  *
@@ -33,7 +24,16 @@ typedef void RegisterExtension(String identifier, Object extension);
  * with the same simple identifier.
  */
 typedef ExtensionPoint RegisterExtensionPoint(String identifier,
-    [ExtensionValidator validator]);
+    [ValidateExtension validateExtension]);
+
+/**
+ * A function used by a plugin to validate an [extension] to a extension point.
+ *
+ * An [ExtensionError] should be thrown if the [extension] is not valid for the
+ * extension point, such as an [extension] that does not implement the required
+ * interface.
+ */
+typedef void ValidateExtension(Object extension);
 
 /**
  * An exception indicating that an error occurred while attempting to register
