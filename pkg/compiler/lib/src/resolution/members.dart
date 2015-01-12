@@ -1119,6 +1119,7 @@ class ResolverTask extends CompilerTask {
       compiler.internalError(member,
           "No abstract field for accessor");
     } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
+      if (lookupElement.isErroneous || lookupElement.isAmbiguous) return;
       compiler.internalError(member,
           "Inaccessible abstract field for accessor");
     }

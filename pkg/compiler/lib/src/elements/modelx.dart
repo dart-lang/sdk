@@ -15,7 +15,6 @@ import '../resolution/class_members.dart' show ClassMemberMixin;
 import '../dart2jslib.dart' show
     Backend,
     Compiler,
-    CompilerCancelledException,
     Constant,
     DartType,
     DiagnosticListener,
@@ -400,7 +399,7 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   accept(ElementVisitor visitor) => visitor.visitWarnOnUseElement(this);
 }
 
-class AmbiguousElementX extends ElementX implements AmbiguousElement {
+abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message to report on resolving this element.
    */
@@ -439,6 +438,20 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
     return set;
   }
 
+  accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
+
+  bool get isTopLevel => false;
+}
+
+/// Element synthesized to diagnose an ambiguous import.
+class AmbiguousImportX extends AmbiguousElementX {
+  AmbiguousImportX(
+      MessageKind messageKind,
+      Map messageArguments,
+      Element enclosingElement, Element existingElement, Element newElement)
+      : super(messageKind, messageArguments, enclosingElement, existingElement,
+              newElement);
+
   void diagnose(Element context, DiagnosticListener listener) {
     Setlet ambiguousElements = flatten();
     MessageKind code = (ambiguousElements.length == 1)
@@ -456,10 +469,16 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
       });
     }
   }
+}
 
-  accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
-
-  bool get isTopLevel => false;
+/// Element synthesized to recover from a duplicated member of an element.
+class DuplicatedElementX extends AmbiguousElementX {
+  DuplicatedElementX(
+      MessageKind messageKind,
+      Map messageArguments,
+      Element enclosingElement, Element existingElement, Element newElement)
+      : super(messageKind, messageArguments, enclosingElement, existingElement,
+              newElement);
 }
 
 class ScopeX {
@@ -509,8 +528,10 @@ class ScopeX {
                            {'name': accessor.name});
       listener.reportInfo(
           other, MessageKind.EXISTING_DEFINITION, {'name': accessor.name});
-      // TODO(ahe): Don't throw, recover from error.
-      throw new CompilerCancelledException(null);
+
+      contents[accessor.name] = new DuplicatedElementX(
+          MessageKind.DUPLICATE_DEFINITION, {'name': accessor.name},
+          accessor.memberContext.enclosingElement, other, accessor);
     }
 
     if (existing != null) {
@@ -718,7 +739,7 @@ class ImportScope {
               import, MessageKind.HIDDEN_IMPORT, existing, element);
         }
       } else {
-        Element ambiguousElement = new AmbiguousElementX(
+        Element ambiguousElement = new AmbiguousImportX(
             MessageKind.DUPLICATE_IMPORT, {'name': name},
             enclosingElement, existing, element);
         importScope[name] = ambiguousElement;
