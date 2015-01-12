@@ -37,6 +37,11 @@ class OpType {
   bool includeReturnValueSuggestions = false;
 
   /**
+   * Indicates whether statement labels should be suggested.
+   */
+  bool includeStatementLabelSuggestions = false;
+
+  /**
    * Determine the suggestions that should be made based upon the given
    * [CompletionTarget] and [offset].
    */
@@ -146,6 +151,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitBreakStatement(BreakStatement node) {
+    if (node.label == null || identical(entity, node.label)) {
+      optype.includeStatementLabelSuggestions = true;
+    }
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     if (node.cascadeSections.contains(entity)) {
       optype.includeInvocationSuggestions = true;
@@ -187,6 +199,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           optype.includeInvocationSuggestions = true;
         }
       }
+    }
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    if (node.label == null || identical(entity, node.label)) {
+      optype.includeStatementLabelSuggestions = true;
     }
   }
 

@@ -35,6 +35,10 @@ class LocalComputer extends DartCompletionComputer {
       // the completion offset and all of its parents recursively.
       request.node.accept(localVisitor);
     }
+    if (optype.includeStatementLabelSuggestions) {
+      _LabelVisitor labelVisitor = new _LabelVisitor(request);
+      request.node.accept(labelVisitor);
+    }
 
     // If the unit is not a part and does not reference any parts
     // then work is complete
@@ -48,6 +52,118 @@ class LocalComputer extends DartCompletionComputer {
     // TODO: implement computeFull
     // include results from part files that are included in the library
     return new Future.value(false);
+  }
+}
+
+/**
+ * A visitor for collecting suggestions for break and continue labels.
+ */
+class _LabelVisitor extends LocalDeclarationVisitor {
+  final DartCompletionRequest request;
+
+  _LabelVisitor(DartCompletionRequest request)
+      : super(request.offset),
+        request = request;
+
+  @override
+  void declaredClass(ClassDeclaration declaration) {
+    // ignored
+  }
+
+  @override
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {
+    // ignored
+  }
+
+  @override
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
+    // ignored
+  }
+
+  @override
+  void declaredFunction(FunctionDeclaration declaration) {
+    // ignored
+  }
+
+  @override
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
+    // ignored
+  }
+
+  @override
+  void declaredLabel(Label label) {
+    CompletionSuggestion suggestion = _addSuggestion(label.label);
+    if (suggestion != null) {
+      suggestion.element =
+          _createElement(protocol.ElementKind.LABEL, label.label);
+    }
+  }
+
+  @override
+  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
+    // ignored
+  }
+
+  @override
+  void declaredMethod(MethodDeclaration declaration) {
+    // ignored
+  }
+
+  @override
+  void declaredParam(SimpleIdentifier name, TypeName type) {
+    // ignored
+  }
+
+  @override
+  void declaredTopLevelVar(VariableDeclarationList varList,
+      VariableDeclaration varDecl) {
+    // ignored
+  }
+
+  @override
+  bool visitFunctionExpression(FunctionExpression node) {
+    // Labels are only accessible within the local function, so stop visiting
+    // once we reach a function boundary.
+    finished = true;
+    return true;
+  }
+
+  @override
+  bool visitMethodDeclaration(MethodDeclaration node) {
+    // Labels are only accessible within the local function, so stop visiting
+    // once we reach a function boundary.
+    finished = true;
+    return true;
+  }
+
+  CompletionSuggestion _addSuggestion(SimpleIdentifier id) {
+    if (id != null) {
+      String completion = id.name;
+      if (completion != null && completion.length > 0 && completion != '_') {
+        CompletionSuggestion suggestion = new CompletionSuggestion(
+            CompletionSuggestionKind.IDENTIFIER,
+            COMPLETION_RELEVANCE_DEFAULT,
+            completion,
+            completion.length,
+            0,
+            false,
+            false);
+        request.suggestions.add(suggestion);
+        return suggestion;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Create a new protocol Element for inclusion in a completion suggestion.
+   */
+  protocol.Element _createElement(protocol.ElementKind kind,
+      SimpleIdentifier id) {
+    String name = id.name;
+    int flags =
+        protocol.Element.makeFlags(isPrivate: Identifier.isPrivateName(name));
+    return new protocol.Element(kind, name, flags);
   }
 }
 

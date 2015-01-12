@@ -49,11 +49,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
   bool visitBlock(Block node) {
     node.statements.forEach((Statement stmt) {
       if (stmt.offset < offset) {
-        if (stmt is LabeledStatement) {
-          stmt.labels.forEach((Label label) {
-            declaredLabel(label);
-          });
-        } else if (stmt is VariableDeclarationStatement) {
+        if (stmt is VariableDeclarationStatement) {
           VariableDeclarationList varList = stmt.variables;
           if (varList != null) {
             varList.variables.forEach((VariableDeclaration varDecl) {
@@ -181,6 +177,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitInterpolationExpression(InterpolationExpression node) {
+    return visitNode(node);
+  }
+
+  @override
+  bool visitLabeledStatement(LabeledStatement node) {
+    node.labels.forEach(declaredLabel);
     return visitNode(node);
   }
 

@@ -44,11 +44,12 @@ class OpTypeTest {
   }
 
   void assertOpType({bool invocation: false, bool returnValue: false,
-      bool typeNames: false, bool voidReturn: false}) {
+      bool typeNames: false, bool voidReturn: false, bool statementLabel: false}) {
     expect(visitor.includeInvocationSuggestions, equals(invocation));
     expect(visitor.includeReturnValueSuggestions, equals(returnValue));
     expect(visitor.includeTypeNameSuggestions, equals(typeNames));
     expect(visitor.includeVoidReturnSuggestions, equals(voidReturn));
+    expect(visitor.includeStatementLabelSuggestions, equals(statementLabel));
   }
 
   test_Annotation() {
@@ -193,6 +194,21 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
+  test_Break_after_label() {
+    addTestSource('main() { foo: while (true) { break foo ^ ; } }');
+    assertOpType(/* No valid completions */);
+  }
+
+  test_Break_before_label() {
+    addTestSource('main() { foo: while (true) { break ^ foo; } }');
+    assertOpType(statementLabel: true);
+  }
+
+  test_Break_no_label() {
+    addTestSource('main() { foo: while (true) { break ^; } }');
+    assertOpType(statementLabel: true);
+  }
+
   test_CascadeExpression_selector1() {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
     addTestSource('''
@@ -305,6 +321,21 @@ class OpTypeTest {
     // InstanceCreationExpression
     addTestSource('main() {new String.fr^omCharCodes([]);}');
     assertOpType(invocation: true);
+  }
+
+  test_Continue_after_label() {
+    addTestSource('main() { foo: while (true) { continue foo ^ ; } }');
+    assertOpType(/* No valid completions */);
+  }
+
+  test_Continue_before_label() {
+    addTestSource('main() { foo: while (true) { continue ^ foo; } }');
+    assertOpType(statementLabel: true);
+  }
+
+  test_Continue_no_label() {
+    addTestSource('main() { foo: while (true) { continue ^; } }');
+    assertOpType(statementLabel: true);
   }
 
   test_DoStatement() {
