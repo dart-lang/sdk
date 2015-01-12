@@ -921,6 +921,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   static bool _TRACE_PERFORM_TASK = false;
 
   /**
+   * The next context identifier.
+   */
+  static int _NEXT_ID = 0;
+
+  /**
+   * The unique identifier of this context.
+   */
+  final int _id = _NEXT_ID++;
+
+  /**
    * The set of analysis options controlling the behavior of this context.
    */
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
@@ -1014,6 +1024,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * The object used to manage the list of sources that need to be analyzed.
    */
   WorkManager _workManager = new WorkManager();
+
+  /**
+   * The [Stopwatch] of the current "perform tasks cycle".
+   */
+  Stopwatch _performAnalysisTaskStopwatch;
 
   /**
    * The controller for sending [SourcesChangedEvent]s.
@@ -2175,11 +2190,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (task == null) {
       _validateLastIncrementalResolutionResult();
+      if (_performAnalysisTaskStopwatch != null) {
+        AnalysisEngine.instance.instrumentationService.logPerformance(
+            AnalysisPerformanceKind.FULL,
+            _performAnalysisTaskStopwatch,
+            'context_id=$_id');
+        _performAnalysisTaskStopwatch = null;
+      }
       return new AnalysisResult(
           _getChangeNotices(true),
           getEnd - getStart,
           null,
           -1);
+    }
+    if (_performAnalysisTaskStopwatch == null) {
+      _performAnalysisTaskStopwatch = new Stopwatch()..start();
     }
     String taskDescription = task.toString();
     _notifyAboutToPerformTask(taskDescription);
@@ -2235,10 +2260,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         incrementalResolutionValidation_lastLibrarySource);
     if (fullUnit != null) {
       try {
-        assertSameResolution(incrementalResolutionValidation_lastUnit, fullUnit);
+        assertSameResolution(
+            incrementalResolutionValidation_lastUnit,
+            fullUnit);
       } on IncrementalResolutionMismatch catch (mismatch, stack) {
         String failure = mismatch.message;
-        String message = 'Incremental resolution mismatch:\n$failure\nat\n$stack';
+        String message =
+            'Incremental resolution mismatch:\n$failure\nat\n$stack';
         AnalysisEngine.instance.logger.logError(message);
       }
     }
@@ -4983,19 +5011,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return false;
     }
     // do resolution
+    Stopwatch perfCounter = new Stopwatch()..start();
     PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
         typeProvider,
         unitSource,
         dartEntry,
         analysisOptions.incrementalApi);
     bool success = resolver.resolve(oldUnit, newCode);
+    AnalysisEngine.instance.instrumentationService.logPerformance(
+        AnalysisPerformanceKind.INCREMENTAL,
+        perfCounter,
+        'success=$success,context_id=$_id,code_length=${newCode.length}');
     if (!success) {
       return false;
     }
     // if validation, remember the result, but throw it away
     if (analysisOptions.incrementalValidation) {
       incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
-      incrementalResolutionValidation_lastLibrarySource = oldUnit.element.library.source;
+      incrementalResolutionValidation_lastLibrarySource =
+          oldUnit.element.library.source;
       incrementalResolutionValidation_lastUnit = oldUnit;
       return false;
     }

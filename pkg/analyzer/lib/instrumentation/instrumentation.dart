@@ -5,6 +5,14 @@
 library instrumentation;
 
 /**
+ * A container with analysis performance constants.
+ */
+class AnalysisPerformanceKind {
+  static const String FULL = 'analysis_full';
+  static const String INCREMENTAL = 'analysis_incremental';
+}
+
+/**
  * The interface used by client code to communicate with an instrumentation
  * server.
  */
@@ -50,6 +58,7 @@ class InstrumentationService {
   static const String TAG_FILE_READ = 'Read';
   static const String TAG_LOG_ENTRY = 'Log';
   static const String TAG_NOTIFICATION = 'Noti';
+  static const String TAG_PERFORMANCE = 'Perf';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
   static const String TAG_VERSION = 'Ver';
@@ -119,6 +128,18 @@ class InstrumentationService {
    */
   void logNotification(String notification) {
     _log(TAG_NOTIFICATION, notification);
+  }
+
+  /**
+   * Log the given performance fact.
+   */
+  void logPerformance(String kind, Stopwatch sw, String message) {
+    sw.stop();
+    String elapsed = sw.elapsedMilliseconds.toString();
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log(
+          _join([TAG_PERFORMANCE, kind, elapsed, message]));
+    }
   }
 
   /**
