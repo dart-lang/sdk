@@ -19,6 +19,7 @@ import '../elements/modelx.dart' show
     BaseClassElementX,
     BaseFunctionElementX,
     ConstructorElementX,
+    ErroneousConstructorElementX,
     ErroneousElementX,
     ErroneousFieldElementX,
     FieldElementX,

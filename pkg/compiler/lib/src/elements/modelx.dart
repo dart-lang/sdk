@@ -329,6 +329,20 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   accept(ElementVisitor visitor) => visitor.visitErroneousElement(this);
 }
 
+/// A constructor that was synthesized to recover from a compile-time error.
+class ErroneousConstructorElementX extends ErroneousElementX {
+  // TODO(ahe): Instead of subclassing [ErroneousElementX], this class should
+  // be more like [ErroneousFieldElementX]. In particular, its kind should be
+  // [ElementKind.GENERATIVE_CONSTRUCTOR], and it shouldn't throw as much.
+
+  ErroneousConstructorElementX(
+      MessageKind messageKind,
+      Map messageArguments,
+      String name,
+      Element enclosing)
+      : super(messageKind, messageArguments, name, enclosing);
+}
+
 /// A message attached to a [WarnOnUseElementX].
 class WrappedMessage {
   /// The message position. If [:null:] the position of the reference to the
