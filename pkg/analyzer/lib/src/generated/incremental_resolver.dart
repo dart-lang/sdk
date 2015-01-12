@@ -136,6 +136,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     ClassElement element = _findElement(_enclosingUnit.types, name);
     _enclosingClass = element;
     _processElement(element);
+    _assertSameAnnotations(node, element);
     _assertSameTypeParameters(node.typeParameters, element.typeParameters);
     // check for missing clauses
     if (node.extendsClause == null) {
@@ -264,6 +265,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // process element
     _processElement(element);
+    _assertSameAnnotations(node, element);
     _assertFalse(element.isSynthetic);
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(
@@ -338,6 +340,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     ExecutableElement newElement = node.element;
     try {
       _assertNotNull(element);
+      _assertSameAnnotations(node, element);
       _assertEquals(node.isStatic, element.isStatic);
       _assertSameType(node.returnType, element.returnType);
       _assertCompatibleParameters(node.parameters, element.parameters);
@@ -394,8 +397,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // verify
     PropertyInducingElement newElement = node.name.staticElement;
-    _assertNotNull(element);
     _processElement(element);
+    _assertSameAnnotations(node, element);
     _assertEquals(node.isConst, element.isConst);
     _assertEquals(node.isFinal, element.isFinal);
     if (_enclosingFieldNode != null) {
@@ -508,6 +511,26 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   void _assertNull(Object object) {
     if (object != null) {
       throw new _DeclarationMismatchException();
+    }
+  }
+
+  void _assertSameAnnotation(Annotation node, ElementAnnotation annotation) {
+    _assertNull(node.arguments);
+    Element element = annotation.element;
+    _assertTrue(element is PropertyAccessorElement);
+    _assertTrue(node.name is SimpleIdentifier);
+    String nodeName = node.name.name;
+    String elementName = element.displayName;
+    _assertEquals(nodeName, elementName);
+  }
+
+  void _assertSameAnnotations(AnnotatedNode node, Element element) {
+    List<Annotation> nodeAnnotaitons = node.metadata;
+    List<ElementAnnotation> elementAnnotations = element.metadata;
+    int length = nodeAnnotaitons.length;
+    _assertEquals(elementAnnotations.length, length);
+    for (int i = 0; i < length; i++) {
+      _assertSameAnnotation(nodeAnnotaitons[i], elementAnnotations[i]);
     }
   }
 

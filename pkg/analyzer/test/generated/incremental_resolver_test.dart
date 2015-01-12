@@ -70,6 +70,48 @@ class DeclarationMatcherTest extends ResolverTestCase {
     test_resolveApiChanges = true;
   }
 
+  void test_false_class_annotation_edit() {
+    _assertDoesNotMatch(r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+@my_annotationA
+class A {
+}
+''', r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+@my_annotationB
+class A {
+}
+''');
+  }
+
+  void test_false_class_annotations_add() {
+    _assertDoesNotMatch(r'''
+const my_annotation = const Object();
+class A {
+}
+''', r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
+''');
+  }
+
+  void test_false_class_annotations_remove() {
+    _assertDoesNotMatch(r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+}
+''');
+  }
+
   void test_false_class_list_add() {
     _assertDoesNotMatch(r'''
 class A {}
@@ -811,6 +853,54 @@ import 'dart:async' show Future;
 ''');
   }
 
+  void test_false_method_annotation_edit() {
+    _assertDoesNotMatchOK(r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+class A {
+  @my_annotationA
+  void m() {}
+}
+''', r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+class A {
+  @my_annotationB
+  void m() {}
+}
+''');
+  }
+
+  void test_false_method_annotations_add() {
+    _assertDoesNotMatchOK(r'''
+const my_annotation = const Object();
+class A {
+  void m() {}
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
+''');
+  }
+
+  void test_false_method_annotations_remove() {
+    _assertDoesNotMatchOK(r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+  void m() {}
+}
+''');
+  }
+
   void test_false_method_list_add() {
     _assertDoesNotMatchOK(r'''
 class A {
@@ -1180,6 +1270,20 @@ class C extends Object with A, B {}
 class A {}
 class B {}
 class C extends Object with B, A {}
+''');
+  }
+
+  void test_true_class_annotations_same() {
+    _assertMatches(r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
+''', r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
 ''');
   }
 
@@ -1608,6 +1712,22 @@ import 'dart:async' as async;
 import 'dart:async' show Future, Stream;
 ''', r'''
 import 'dart:async' show Stream, Future;
+''');
+  }
+
+  void test_true_method_annotations_same() {
+    _assertMatches(r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
 ''');
   }
 
