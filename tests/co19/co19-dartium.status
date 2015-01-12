@@ -804,6 +804,7 @@ LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fiel
 LayoutTests/fast/forms/focus-style-pending_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/focus_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/formmethod-attribute-input-html_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-hit-test-border_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-stepup-stepdown_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -1032,8 +1033,12 @@ LayoutTests/fast/inline/fixed-pos-moves-with-abspos-inline-parent_t01: Skip # Ti
 LayoutTests/fast/inline/inline-relative-offset-boundingbox_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: Skip # Times out. Please triage this failure.
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/block-formatting-context_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Skip # Times out. Please triage this failure.
 
 [ $compiler == none && $runtime == dartium ]
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # co19-roll r761: Please triage this failure.
