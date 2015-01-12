@@ -705,6 +705,15 @@ class _SplitIndexStoreTest {
     }
   }
 
+  void test_recordRelationship_multiplyDefinedElement() {
+    Element multiplyElement =
+        new MultiplyDefinedElementImpl(contextA, <Element>[elementA, elementB]);
+    Location location = mockLocation(elementA);
+    store.recordRelationship(multiplyElement, relationship, location);
+    store.doneIndex();
+    expect(nodeManager.isEmpty(), isTrue);
+  }
+
   void test_recordRelationship_nullElement() {
     Location locationA = mockLocation(elementA);
     store.recordRelationship(null, relationship, locationA);
