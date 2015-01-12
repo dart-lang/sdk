@@ -17,9 +17,6 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 
-compile_time_constant_c_test/01: Fail # Issue 21000
-compile_time_constant12_test: Fail # Issue 21000
-
 [ $runtime != vm ]
 # Async/await is currently only supported by the vm.
 async_test/*: Skip
@@ -65,6 +62,9 @@ cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
+
+compile_time_constant_c_test/01: Fail # Issue 21000
+compile_time_constant12_test: Fail # Issue 21000
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
