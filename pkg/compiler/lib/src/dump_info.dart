@@ -639,6 +639,10 @@ class DumpInfoTask extends CompilerTask {
       'holding': holding,
       'outputUnits': outputUnits,
       'dump_version': 3,
+      'deferredFiles': compiler.deferredLoadTask.computeDeferredMap(),
+      // This increases when new information is added to the map, but the viewer
+      // still is compatible.
+      'dump_minor_version': '1'
     };
 
     Duration toJsonDuration = new DateTime.now().difference(startToJsonTime);
