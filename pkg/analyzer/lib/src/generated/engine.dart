@@ -8836,7 +8836,7 @@ class GenerateDartLintsTask extends AnalysisTask {
   @override
   void internalPerform() {
 
-    List<CompilationUnit> compilationUnits =
+    Iterable<CompilationUnit> compilationUnits =
         _units.map((TimestampedData<CompilationUnit> unit) => unit.data);
     RecordingErrorListener errorListener = new RecordingErrorListener();
     LintGenerator lintGenerator =

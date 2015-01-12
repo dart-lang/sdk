@@ -4470,18 +4470,22 @@ class HintGenerator {
 }
 
 
-/**
- * Traverses a library's worth of dart code at a time to generate lint warnings
- * over the set of sources.
- *
- * See [LintCode].
- */
+/// Traverses a library's worth of dart code at a time to generate lint warnings
+/// over the set of sources.
+///
+/// See [LintCode].
 class LintGenerator {
 
-  final List<CompilationUnit> _compilationUnits;
-  final AnalysisErrorListener _errorListener;
+  /// A global container for contributed verifiers.
+  static final List<LintVerifier> VERIFIERS = <LintVerifier>[];
 
-  LintGenerator(this._compilationUnits, this._errorListener);
+  final Iterable<CompilationUnit> _compilationUnits;
+  final AnalysisErrorListener _errorListener;
+  final Iterable<LintVerifier> _verifiers;
+
+  LintGenerator(this._compilationUnits, this._errorListener,
+      [Iterable<LintVerifier> verifiers])
+      : _verifiers = verifiers != null ? verifiers : VERIFIERS;
 
   void generate() {
     TimeCounter_TimeCounterHandle timeCounter =
@@ -4499,15 +4503,18 @@ class LintGenerator {
 
   void _generate(CompilationUnit unit, Source source) {
     ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
-    unit.accept(new LintVerifier(errorReporter));
+    _verifiers.forEach((verifier) {
+      verifier.reporter = errorReporter;
+      return unit.accept(verifier);
+    });
   }
 }
 
-class LintVerifier extends RecursiveAstVisitor<Object> {
-
-  final ErrorReporter _reporter;
-
-  LintVerifier(this._reporter);
+/// Implementers contribute lint warnings via the provided error [reporter].
+abstract class LintVerifier extends RecursiveAstVisitor<Object> {
+  /// Used to report lint warnings.
+  /// NOTE: this is set by the framework before visit begins.
+  ErrorReporter reporter;
 }
 
 

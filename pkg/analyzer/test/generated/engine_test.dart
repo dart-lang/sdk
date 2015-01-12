@@ -50,10 +50,12 @@ main() {
   runReflectiveTests(DartEntryTest);
   runReflectiveTests(GenerateDartErrorsTaskTest);
   runReflectiveTests(GenerateDartHintsTaskTest);
+  runReflectiveTests(GenerateDartLintsTaskTest);
   runReflectiveTests(GetContentTaskTest);
   runReflectiveTests(HtmlEntryTest);
   runReflectiveTests(IncrementalAnalysisCacheTest);
   runReflectiveTests(IncrementalAnalysisTaskTest);
+  runReflectiveTests(LintGeneratorTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ParseHtmlTaskTest);
   runReflectiveTests(PartitionManagerTest);
@@ -4001,6 +4003,117 @@ class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
     expect(hintMap[librarySource], hasLength(1));
     expect(hintMap[partSource], hasLength(0));
     return true;
+  }
+}
+
+@ReflectiveTestCase()
+class GenerateDartLintsTaskTest extends EngineTestCase {
+  void test_accept() {
+    GenerateDartLintsTask task = new GenerateDartLintsTask(null, null, null);
+    expect(task.accept(new GenerateDartLintsTaskTestTV_accept()), isTrue);
+  }
+  void test_exception() {
+    GenerateDartLintsTask task = new GenerateDartLintsTask(null, null, null);
+    expect(task.exception, isNull);
+  }
+  void test_lintMap() {
+    GenerateDartLintsTask task = new GenerateDartLintsTask(null, null, null);
+    expect(task.lintMap, isNull);
+  }
+  void test_libraryElement() {
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    LibraryElement element = ElementFactory.library(context, "lib");
+    GenerateDartLintsTask task =
+        new GenerateDartLintsTask(context, null, element);
+    expect(task.libraryElement, same(element));
+  }
+
+  void test_perform() {
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    ChangeSet changeSet = new ChangeSet();
+    Source librarySource =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    changeSet.addedSource(librarySource);
+    context.applyChanges(changeSet);
+    context.setContents(librarySource, r'''
+library lib;
+''');
+    List<TimestampedData<CompilationUnit>> units = new List<TimestampedData>(1);
+    units[0] = new TimestampedData<CompilationUnit>(
+        context.getModificationStamp(librarySource),
+        context.resolveCompilationUnit2(librarySource, librarySource));
+    GenerateDartLintsTask task = new GenerateDartLintsTask(
+        context,
+        units,
+        context.computeLibraryElement(librarySource));
+    task.perform(new GenerateDartLintsTaskTestTV_perform(librarySource));
+  }
+}
+
+class GenerateDartLintsTaskTestTV_accept extends TestTaskVisitor<bool> {
+  @override
+  bool visitGenerateDartLintsTask(GenerateDartLintsTask task) => true;
+}
+
+class GenerateDartLintsTaskTestTV_perform extends TestTaskVisitor<bool> {
+  Source librarySource;
+  GenerateDartLintsTaskTestTV_perform(this.librarySource);
+  @override
+  bool visitGenerateDartLintsTask(GenerateDartLintsTask task) {
+    CaughtException exception = task.exception;
+    if (exception != null) {
+      throw exception;
+    }
+    expect(task.libraryElement, isNotNull);
+    return true;
+  }
+}
+
+@ReflectiveTestCase()
+class LintGeneratorTest extends EngineTestCase {
+  void test_generate() {
+
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    ChangeSet changeSet = new ChangeSet();
+    Source librarySource =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    changeSet.addedSource(librarySource);
+    context.applyChanges(changeSet);
+    context.setContents(librarySource, r'''
+library lib;
+''');
+
+    CompilationUnit unit =
+        context.resolveCompilationUnit2(librarySource, librarySource);
+    List<CompilationUnit> units = <CompilationUnit>[];
+    units.add(unit);
+
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+
+    LintGeneratorTest_Verifier verifier = new LintGeneratorTest_Verifier();
+
+    LintGenerator lintGenerator =
+        new LintGenerator(units, errorListener, [verifier]);
+    lintGenerator.generate();
+
+    verifier.testExpectations();
+  }
+}
+
+
+class LintGeneratorTest_Verifier extends LintVerifier {
+
+  bool visited;
+
+  @override
+  Object visitCompilationUnit(CompilationUnit node) {
+    visited = true;
+    return null;
+  }
+
+  testExpectations() {
+    expect(reporter, isNotNull);
+    expect(visited, isTrue);
   }
 }
 
