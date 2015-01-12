@@ -7,13 +7,14 @@ library driver;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/http_server.dart';
 import 'package:analysis_server/plugin/plugin.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_impl.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
-import 'package:analysis_server/stdio_server.dart';
+import 'package:analysis_server/starter.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
@@ -54,7 +55,7 @@ void _initIncrementalLogger(String spec) {
  * server application.  It is responsible for parsing command line options
  * and starting the HTTP and/or stdio servers.
  */
-class Driver {
+class Driver implements ServerStarter {
   /**
    * The name of the application that is used to start a server.
    */
@@ -144,53 +145,11 @@ class Driver {
   }
 
   /**
-   * Use the given command-line arguments to start this server.
+   * Use the given command-line [arguments] to start this server.
    */
-  void start(List<String> args) {
-    ArgParser parser = new ArgParser();
-    parser.addOption(
-        CLIENT_ID,
-        help: "an identifier used to identify the client");
-    parser.addFlag(
-        ENABLE_INCREMENTAL_RESOLUTION_API,
-        help: "enable using incremental resolution for API changes",
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(
-        ENABLE_INSTRUMENTATION_OPTION,
-        help: "enable sending instrumentation information to a server",
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(
-        HELP_OPTION,
-        help: "print this help message without starting a server",
-        defaultsTo: false,
-        negatable: false);
-    parser.addOption(
-        INCREMENTAL_RESOLUTION_LOG,
-        help: "the description of the incremental resolution log");
-    parser.addFlag(
-        INCREMENTAL_RESOLUTION_VALIDATION,
-        help: "enable validation of incremental resolution results (slow)",
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(
-        INTERNAL_PRINT_TO_CONSOLE,
-        help: "enable sending `print` output to the console",
-        defaultsTo: false,
-        negatable: false);
-    parser.addOption(
-        PORT_OPTION,
-        help: "[port] the port on which the server will listen");
-    parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
-    parser.addFlag(
-        NO_ERROR_NOTIFICATION,
-        help:
-            "disable sending all analysis error notifications to the server (not yet implemented)",
-        defaultsTo: false,
-        negatable: false);
-
-    ArgResults results = parser.parse(args);
+  void start(List<String> arguments) {
+    ArgParser parser = _createArgParser();
+    ArgResults results = parser.parse(arguments);
     if (results[HELP_OPTION]) {
       _printUsage(parser);
       return;
@@ -307,6 +266,56 @@ class Driver {
         handleUncaughtError: errorFunction,
         print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
+  }
+
+  /**
+   * Create and return the parser used to parse the command-line arguments.
+   */
+  ArgParser _createArgParser() {
+    ArgParser parser = new ArgParser();
+    parser.addOption(
+        CLIENT_ID,
+        help: "an identifier used to identify the client");
+    parser.addFlag(
+        ENABLE_INCREMENTAL_RESOLUTION_API,
+        help: "enable using incremental resolution for API changes",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
+        ENABLE_INSTRUMENTATION_OPTION,
+        help: "enable sending instrumentation information to a server",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
+        HELP_OPTION,
+        help: "print this help message without starting a server",
+        defaultsTo: false,
+        negatable: false);
+    parser.addOption(
+        INCREMENTAL_RESOLUTION_LOG,
+        help: "the description of the incremental resolution log");
+    parser.addFlag(
+        INCREMENTAL_RESOLUTION_VALIDATION,
+        help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
+        INTERNAL_PRINT_TO_CONSOLE,
+        help: "enable sending `print` output to the console",
+        defaultsTo: false,
+        negatable: false);
+    parser.addOption(
+        PORT_OPTION,
+        help: "[port] the port on which the server will listen");
+    parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
+    parser.addFlag(
+        NO_ERROR_NOTIFICATION,
+        help:
+            "disable sending all analysis error notifications to the server (not yet implemented)",
+        defaultsTo: false,
+        negatable: false);
+
+    return parser;
   }
 
   /**
