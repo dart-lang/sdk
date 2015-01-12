@@ -368,7 +368,10 @@ abstract class MembersCreator {
 
       DartType declaredType = declared.functionType;
       for (Member inherited in superMember.declarations) {
-        if (cls == inherited.declarer.element) {
+        if (inherited.element == declared.element) {
+          // TODO(ahe): For some reason, "call" elements are repeated in
+          // superMember.declarations. Investigate why.
+        } else if (cls == inherited.declarer.element) {
           // An error should already have been reported.
           assert(invariant(declared.element, compiler.compilationFailed));
           continue;
