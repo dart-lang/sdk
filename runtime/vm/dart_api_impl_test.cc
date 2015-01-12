@@ -7015,7 +7015,7 @@ void NewNativePort_send123(Dart_Port dest_port_id,
   response->type = Dart_CObject_kInt32;
   response->value.as_int32 = 123;
   Dart_PostCObject(
-      message->value.as_array.values[0]->value.as_send_port, response);
+      message->value.as_array.values[0]->value.as_send_port.id, response);
 }
 
 
@@ -7031,7 +7031,7 @@ void NewNativePort_send321(Dart_Port dest_port_id,
   response->type = Dart_CObject_kInt32;
   response->value.as_int32 = 321;
   Dart_PostCObject(
-      message->value.as_array.values[0]->value.as_send_port, response);
+      message->value.as_array.values[0]->value.as_send_port.id, response);
 }
 
 

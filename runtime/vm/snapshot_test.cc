@@ -151,7 +151,7 @@ TEST_CASE(SerializeNull) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const Object& null_object = Object::Handle();
   writer.WriteMessage(null_object);
   intptr_t buffer_len = writer.BytesWritten();
@@ -177,7 +177,7 @@ TEST_CASE(SerializeSmi1) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const Smi& smi = Smi::Handle(Smi::New(124));
   writer.WriteMessage(smi);
   intptr_t buffer_len = writer.BytesWritten();
@@ -204,7 +204,7 @@ TEST_CASE(SerializeSmi2) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const Smi& smi = Smi::Handle(Smi::New(-1));
   writer.WriteMessage(smi);
   intptr_t buffer_len = writer.BytesWritten();
@@ -229,7 +229,7 @@ TEST_CASE(SerializeSmi2) {
 Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteMessage(mint);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -299,7 +299,7 @@ TEST_CASE(SerializeDouble) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const Double& dbl = Double::Handle(Double::New(101.29));
   writer.WriteMessage(dbl);
   intptr_t buffer_len = writer.BytesWritten();
@@ -326,7 +326,7 @@ TEST_CASE(SerializeTrue) {
 
   // Write snapshot with true object.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const Bool& bl = Bool::True();
   writer.WriteMessage(bl);
   intptr_t buffer_len = writer.BytesWritten();
@@ -355,7 +355,7 @@ TEST_CASE(SerializeFalse) {
 
   // Write snapshot with false object.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const Bool& bl = Bool::False();
   writer.WriteMessage(bl);
   intptr_t buffer_len = writer.BytesWritten();
@@ -387,7 +387,7 @@ TEST_CASE(SerializeBigint) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
   const String& str = String::Handle(String::New(cstr));
   Bigint& bigint = Bigint::Handle();
@@ -419,7 +419,7 @@ TEST_CASE(SerializeBigint) {
 Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteMessage(bigint);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -471,7 +471,7 @@ TEST_CASE(SerializeBigint2) {
 TEST_CASE(SerializeSingletons) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &malloc_allocator);
+  MessageWriter writer(&buffer, &malloc_allocator, true);
   writer.WriteObject(Object::class_class());
   writer.WriteObject(Object::type_arguments_class());
   writer.WriteObject(Object::function_class());
@@ -513,7 +513,7 @@ static void TestString(const char* cstr) {
   EXPECT(Utf8::IsValid(reinterpret_cast<const uint8_t*>(cstr), strlen(cstr)));
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   String& str = String::Handle(String::New(cstr));
   writer.WriteMessage(str);
   intptr_t buffer_len = writer.BytesWritten();
@@ -555,7 +555,7 @@ TEST_CASE(SerializeArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kArrayLength = 10;
   Array& array = Array::Handle(Array::New(kArrayLength));
   Smi& smi = Smi::Handle();
@@ -645,7 +645,7 @@ TEST_CASE(SerializeEmptyArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kArrayLength = 0;
   Array& array = Array::Handle(Array::New(kArrayLength));
   writer.WriteMessage(array);
@@ -674,7 +674,7 @@ TEST_CASE(SerializeByteArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kTypedDataLength = 256;
   TypedData& typed_data = TypedData::Handle(
       TypedData::New(kTypedDataUint8ArrayCid, kTypedDataLength));
@@ -708,7 +708,7 @@ TEST_CASE(SerializeByteArray) {
   {                                                                           \
     StackZone zone(Isolate::Current());                                       \
     uint8_t* buffer;                                                          \
-    MessageWriter writer(&buffer, &zone_allocator);                           \
+    MessageWriter writer(&buffer, &zone_allocator, true);                     \
     const int kArrayLength = 127;                                             \
     TypedData& array = TypedData::Handle(                                     \
         TypedData::New(kTypedData##darttype##ArrayCid, kArrayLength));        \
@@ -739,7 +739,7 @@ TEST_CASE(SerializeByteArray) {
                                reinterpret_cast<uint8_t*>(data), length));    \
     intptr_t scale = array.ElementSizeInBytes();                              \
     uint8_t* buffer;                                                          \
-    MessageWriter writer(&buffer, &zone_allocator);                           \
+    MessageWriter writer(&buffer, &zone_allocator, true);                     \
     writer.WriteMessage(array);                                               \
     intptr_t buffer_len = writer.BytesWritten();                              \
     SnapshotReader reader(buffer, buffer_len,                                 \
@@ -786,7 +786,7 @@ TEST_CASE(SerializeEmptyByteArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kTypedDataLength = 0;
   TypedData& typed_data = TypedData::Handle(
       TypedData::New(kTypedDataUint8ArrayCid, kTypedDataLength));
@@ -816,7 +816,7 @@ class TestSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   TestSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kInitialSize) {
+      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kInitialSize, true) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -1463,7 +1463,7 @@ static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
 
   // Serialize the list into a message.
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, false);
   const Object& list = Object::Handle(Api::UnwrapHandle(result));
   writer.WriteMessage(list);
   intptr_t buffer_len = writer.BytesWritten();
@@ -1477,7 +1477,7 @@ static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
 static void CheckString(Dart_Handle dart_string, const char* expected) {
   StackZone zone(Isolate::Current());
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, false);
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
   writer.WriteMessage(str);
@@ -1497,7 +1497,7 @@ static void CheckString(Dart_Handle dart_string, const char* expected) {
 static void CheckStringInvalid(Dart_Handle dart_string) {
   StackZone zone(Isolate::Current());
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, false);
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
   writer.WriteMessage(str);
@@ -1607,7 +1607,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     {
       StackZone zone(Isolate::Current());
       uint8_t* buffer;
-      MessageWriter writer(&buffer, &zone_allocator);
+      MessageWriter writer(&buffer, &zone_allocator, false);
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
       writer.WriteMessage(smi);
@@ -1625,7 +1625,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     {
       StackZone zone(Isolate::Current());
       uint8_t* buffer;
-      MessageWriter writer(&buffer, &zone_allocator);
+      MessageWriter writer(&buffer, &zone_allocator, false);
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
       writer.WriteMessage(bigint);
@@ -2725,7 +2725,7 @@ UNIT_TEST_CASE(PostCObject) {
 TEST_CASE(OmittedObjectEncodingLength) {
   StackZone zone(Isolate::Current());
   uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteInlinedObjectHeader(kOmittedObjectId);
   // For performance, we'd like single-byte headers when ids are omitted.
   // If this starts failing, consider renumbering the snapshot ids.

@@ -1816,6 +1816,7 @@ class RawCapability : public RawInstance {
 class RawSendPort : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SendPort);
   Dart_Port id_;
+  Dart_Port origin_id_;
 
   friend class ReceivePort;
 };

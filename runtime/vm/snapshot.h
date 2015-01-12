@@ -568,7 +568,8 @@ class SnapshotWriter : public BaseWriter {
   SnapshotWriter(Snapshot::Kind kind,
                  uint8_t** buffer,
                  ReAlloc alloc,
-                 intptr_t initial_size);
+                 intptr_t initial_size,
+                 bool can_send_any_object);
 
  public:
   // Snapshot kind.
@@ -589,6 +590,7 @@ class SnapshotWriter : public BaseWriter {
   void set_exception_msg(const char* msg) {
     exception_msg_ = msg;
   }
+  bool can_send_any_object() const { return can_send_any_object_; }
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
   // Write a version string for the snapshot.
@@ -623,6 +625,7 @@ class SnapshotWriter : public BaseWriter {
                      RawClass* cls,
                      intptr_t tags);
   void WriteInstanceRef(RawObject* raw, RawClass* cls);
+  bool AllowObjectsInDartLibrary(RawLibrary* library);
 
   Isolate* isolate() const { return isolate_; }
   ObjectStore* object_store() const { return object_store_; }
@@ -636,6 +639,7 @@ class SnapshotWriter : public BaseWriter {
   Exceptions::ExceptionType exception_type_;  // Exception type.
   const char* exception_msg_;  // Message associated with exception.
   bool unmarked_objects_;  // True if marked objects have been unmarked.
+  bool can_send_any_object_;  // True if any Dart instance can be sent.
 
   friend class RawArray;
   friend class RawClass;
@@ -663,7 +667,7 @@ class FullSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kFull, buffer, alloc, kInitialSize) {
+      : SnapshotWriter(Snapshot::kFull, buffer, alloc, kInitialSize, true) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -681,7 +685,7 @@ class ScriptSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kInitialSize) {
+      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kInitialSize, true) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -698,8 +702,12 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
-  MessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kMessage, buffer, alloc, kInitialSize) {
+  MessageWriter(uint8_t** buffer, ReAlloc alloc, bool can_send_any_object)
+      : SnapshotWriter(Snapshot::kMessage,
+                       buffer,
+                       alloc,
+                       kInitialSize,
+                       can_send_any_object) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }

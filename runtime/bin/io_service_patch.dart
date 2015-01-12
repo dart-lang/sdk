@@ -20,7 +20,14 @@ patch class _IOService {
     _initialize(index);
     var completer = new Completer();
     _messageMap[id] = completer;
-    _servicePort[index].send([id, _replyToPort, request, data]);
+    try {
+      _servicePort[index].send([id, _replyToPort, request, data]);
+    } catch (error) {
+      _messageMap.remove(id).complete(error);
+      if (_messageMap.length == 0) {
+        _finalize();
+      }
+    }
     return completer.future;
   }
 
@@ -35,12 +42,16 @@ patch class _IOService {
         assert(data is List && data.length == 2);
         _messageMap.remove(data[0]).complete(data[1]);
         if (_messageMap.length == 0) {
-          _id = 0;
-          _receivePort.close();
-          _receivePort = null;
+          _finalize();
         }
       };
     }
+  }
+
+  static void _finalize() {
+    _id = 0;
+    _receivePort.close();
+    _receivePort = null;
   }
 
   static int _getNextId() {

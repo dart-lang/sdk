@@ -52,6 +52,24 @@ DEFINE_FLAG(bool, break_at_isolate_spawn, false,
 #define I (isolate())
 
 
+#if defined(DEBUG)
+// Helper class to ensure that a live origin_id is never reused
+// and assigned to an isolate.
+class VerifyOriginId : public IsolateVisitor {
+ public:
+  explicit VerifyOriginId(Dart_Port id) : id_(id) {}
+
+  void VisitIsolate(Isolate* isolate) {
+    ASSERT(isolate->origin_id() != id_);
+  }
+
+ private:
+  Dart_Port id_;
+  DISALLOW_COPY_AND_ASSIGN(VerifyOriginId);
+};
+#endif
+
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -60,8 +78,9 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 static void SerializeObject(const Instance& obj,
                             uint8_t** obj_data,
-                            intptr_t* obj_len) {
-  MessageWriter writer(obj_data, &allocator);
+                            intptr_t* obj_len,
+                            bool allow_any_object) {
+  MessageWriter writer(obj_data, &allocator, allow_any_object);
   writer.WriteMessage(obj);
   *obj_len = writer.BytesWritten();
 }
@@ -178,7 +197,7 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
       if (priority == kImmediateAction) {
         uint8_t* data = NULL;
         intptr_t len = 0;
-        SerializeObject(Object::null_instance(), &data, &len);
+        SerializeObject(Object::null_instance(), &data, &len, false);
         PortMap::PostMessage(new Message(send_port.Id(),
                                          data, len,
                                          Message::kNormalPriority));
@@ -192,7 +211,7 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
         message.SetAt(3, Smi::Handle(I, Smi::New(kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
-        SerializeObject(message, &data, &len);
+        SerializeObject(message, &data, &len, false);
         this->PostMessage(new Message(Message::kIllegalPort,
                                       data, len,
                                       Message::kNormalPriority),
@@ -220,7 +239,7 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
         message.SetAt(3, Smi::Handle(I, Smi::New(kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
-        SerializeObject(message, &data, &len);
+        SerializeObject(message, &data, &len, false);
         this->PostMessage(new Message(Message::kIllegalPort,
                                       data, len,
                                       Message::kNormalPriority),
@@ -422,6 +441,7 @@ Isolate::Isolate()
       name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
       main_port_(0),
+      origin_id_(0),
       pause_capability_(0),
       terminate_capability_(0),
       heap_(NULL),
@@ -632,6 +652,12 @@ Isolate* Isolate::Init(const char* name_prefix) {
   // main thread.
   result->SetStackLimitFromStackBase(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
+#if defined(DEBUG)
+  // Verify that we are never reusing a live origin id.
+  VerifyOriginId id_verifier(result->main_port());
+  Isolate::VisitIsolates(&id_verifier);
+#endif
+  result->set_origin_id(result->main_port());
   result->set_pause_capability(result->random()->NextUInt64());
   result->set_terminate_capability(result->random()->NextUInt64());
 
@@ -1486,7 +1512,11 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     const String& class_name = String::Handle(cls.Name());
     class_name_ = strdup(class_name.ToCString());
   }
-  SerializeObject(message, &serialized_message_, &serialized_message_len_);
+  bool can_send_any_object = true;
+  SerializeObject(message,
+                  &serialized_message_,
+                  &serialized_message_len_,
+                  can_send_any_object);
 }
 
 
@@ -1513,8 +1543,15 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
   }
   library_url_ = NULL;
   function_name_ = strdup("main");
-  SerializeObject(args, &serialized_args_, &serialized_args_len_);
-  SerializeObject(message, &serialized_message_, &serialized_message_len_);
+  bool can_send_any_object = false;
+  SerializeObject(args,
+                  &serialized_args_,
+                  &serialized_args_len_,
+                  can_send_any_object);
+  SerializeObject(message,
+                  &serialized_message_,
+                  &serialized_message_len_,
+                  can_send_any_object);
 }
 
 

@@ -19945,7 +19945,8 @@ RawReceivePort* ReceivePort::New(Dart_Port id,
                                  bool is_control_port,
                                  Heap::Space space) {
   Isolate* isolate = Isolate::Current();
-  const SendPort& send_port = SendPort::Handle(isolate, SendPort::New(id));
+  const SendPort& send_port =
+      SendPort::Handle(isolate, SendPort::New(id, isolate->origin_id()));
 
   ReceivePort& result = ReceivePort::Handle(isolate);
   {
@@ -19976,6 +19977,13 @@ void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
+  return New(id, Isolate::Current()->origin_id(), space);
+}
+
+
+RawSendPort* SendPort::New(Dart_Port id,
+                           Dart_Port origin_id,
+                           Heap::Space space) {
   SendPort& result = SendPort::Handle();
   {
     RawObject* raw = Object::Allocate(SendPort::kClassId,
@@ -19984,6 +19992,7 @@ RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
     NoGCScope no_gc;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->id_, id);
+    result.StoreNonPointer(&result.raw_ptr()->origin_id_, origin_id);
   }
   return result.raw();
 }

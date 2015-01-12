@@ -608,8 +608,10 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
     case kSendPortCid: {
       int64_t value64 = Read<int64_t>();
+      int64_t originId = Read<uint64_t>();
       Dart_CObject* object = AllocateDartCObject(Dart_CObject_kSendPort);
-      object->value.as_send_port = value64;
+      object->value.as_send_port.id = value64;
+      object->value.as_send_port.origin_id = originId;
       AddBackRef(object_id, object, kIsDeserialized);
       return object;
     }
