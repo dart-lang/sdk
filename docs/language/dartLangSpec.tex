@@ -758,7 +758,7 @@ If we allowed named parameters to begin with an underscore, they would be consid
 \LMLabel{typeOfAFunction}
 
 \LMHash{}
-If a function does not declare a return type explicitly, its return type is \DYNAMIC{} (\ref{typeDynamic}).
+If a function does not declare a return type explicitly, its return type is \DYNAMIC{} (\ref{typeDynamic}), unless it is a constructor function, in which case its return type is the immediately enclosing class.
 
 \LMHash{}
 Let $F$ be a function with required formal parameters $T_1$ $p_1 \ldots, T_n$ $p_n$, return type $T_0$ and no optional parameters. Then the type of $F$ is $(T_1 ,\ldots, T_n) \rightarrow T_0$.
@@ -859,12 +859,17 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
 \LMHash{}
 A class has constructors,  instance members and static members. The instance members of a class are its instance methods, getters, setters and instance variables. The static members of a class are its static methods, getters, setters and static variables. The members of a class are its static and instance members.
 
-% A class has a static scope and an instance scope. The enclosing scope of the static scope of a non-generic class is the enclosing scope of the class declaration. The enclosing scope of the static scope of a generic class is the type parameter scope (\ref{}) of the generic class declaration.
-%The enclosing scope of a class' instance scope is the class' static scope.
+A class has several scopes:
+\begin{itemize}
+\item A {\em type-parameter scope}, which is empty if the class is not generic (\ref{generics}).  The enclosing scope of the type-parameter scope of a class is the enclosing scope of the class declaration. 
+\item A {\em static scope}. The enclosing scope of the static scope of a  class is the type parameter scope (\ref{generics}) of the class.
+\item  An {\em instance scope}.
+The enclosing scope of a class' instance scope is the class' static scope.
+\end{itemize}
 
-%The enclosing scope of an instance member declaration is the instance scope of the class in which it is declared.
+The enclosing scope of an instance member declaration is the instance scope of the class in which it is declared.
 
-%The enclosing scope of a static member declaration is the static scope of the class in which it is declared.
+The enclosing scope of a static member declaration is the static scope of the class in which it is declared.
 
 
 \LMHash{}
@@ -1707,6 +1712,9 @@ It is a compile-time error to specify an \EXTENDS{} clause for class \code{Objec
 %} 
 
 \LMHash{}
+The scope of the \EXTENDS{} and \WITH{} clauses of a class $C$ is the type-parameter scope of $C$.
+
+\LMHash{}
 %It is a compile-time error if  the \EXTENDS{} clause of a class $C$ includes a type expression that does not denote a class available in the lexical scope of $C$. 
 It is a compile-time error if  the \EXTENDS{} clause of a class $C$ specifies an enumerated type (\ref{enums}), a malformed  type or a deferred type (\ref{staticTypes}) as a superclass.
 % too strict? Do we e want extends List<Undeclared> to work as List<dynamic>? 
@@ -1838,6 +1846,9 @@ A class has a set of direct superinterfaces. This set includes the interface of 
       \IMPLEMENTS{} typeList
     .
 \end{grammar}
+
+\LMHash{}
+The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
 It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies an enumerated type (\ref{enums}),  a malformed type or deferred type (\ref{staticTypes}) as a superinterface  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
@@ -2160,6 +2171,7 @@ $G$ may be {\em generic}, that is, $G$ may have formal type parameters declared.
 A type parameter $T$ may be suffixed with an \EXTENDS{} clause that specifies the {\em upper bound} for $T$. If no  \EXTENDS{} clause is present, the upper bound is \code{Object}.  It is a static type warning if a type parameter is a supertype of its upper bound. The bounds of type variables are a form of type annotation and have no effect on execution in production mode.
 
 \LMHash{}
+Type parameters are declared in the type-parameter scope of a class.
 The type parameters of a generic $G$ are in scope in the bounds of all of the type parameters of $G$. The type parameters of a generic class declaration $G$ are also in scope in the \EXTENDS{} and \IMPLEMENTS{} clauses of $G$ (if these exist) and in the body of $G$.   However, a type parameter is considered to be a malformed type when referenced by a static member.
 
 \rationale{
@@ -2687,7 +2699,7 @@ print("A simple sum: 2 + 2 =  \$\{2+2\}");
 \end{dartCode}
 
 
-\rationale{String interpolation work well for most cases. The main situation where it is not fully satisfactory is for string literals that are too large to fit on a line. Multiline strings can be useful, but in some cases, we want to visually align the code. This can be expressed by writing smaller strings separated by whitespace, as shown here:}
+\rationale{String interpolation works well for most cases. The main situation where it is not fully satisfactory is for string literals that are too large to fit on a line. Multiline strings can be useful, but in some cases, we want to visually align the code. This can be expressed by writing smaller strings separated by whitespace, as shown here:}
 
 
 
@@ -3285,7 +3297,7 @@ Otherwise, if $q$ is a generative constructor (\ref{generativeConstructors}), th
 \commentary{Note that it this point we are assured that the number of actual type arguments match the number of formal type parameters.}
 
 \LMHash{}
-A fresh instance (\ref{generativeConstructors}), $i$,  of class $R$ is allocated. For each instance variable $f$ of $i$,  if the variable declaration of $f$ has an initializer expression $e_f$, then $e_f$ is evaluated to an object $o_f$ and $f$ is bound to $o_f$. Otherwise $f$ is bound to \NULL{}.
+A fresh instance (\ref{generativeConstructors}), $i$,  of class $R$ is allocated. For each instance variable $f$ of $i$,  if the variable declaration of $f$ has an initializer expression $e_f$, then $e_f$ is evaluated, with the type parameters (if any) of $R$ bound to the actual type arguments $V_1, \ldots, V_l$, to an object $o_f$ and $f$ is bound to $o_f$. Otherwise $f$ is bound to \NULL{}.
 
 \commentary{
 Observe that \THIS{} is not in scope in $e_f$. Hence, the initialization cannot depend on other properties of the object being instantiated.
@@ -4013,7 +4025,7 @@ The special treatment of equality in this case facilitates the use of extracted 
 \commentary{Observations:
 \begin{enumerate}
 \item One cannot closurize a getter or a setter.
-\item One can tell whether one implemented a property via a method or via field/getter, which means that one has to plan ahead as to what construct to use, and that choice is reflected in the interface of the class.
+\item One can tell whether one implemented a property via a method or via a field/getter, which means that one has to plan ahead as to what construct to use, and that choice is reflected in the interface of the class.
 \end{enumerate}
 } 
 
@@ -5132,7 +5144,7 @@ The {\em for statement} supports iteration.
       identifier \IN{} expression
     .
 
-{\bf forInitializerStatement:}localVariableDeclaration `{\escapegrammar ;}';
+{\bf forInitializerStatement:}localVariableDeclaration;
       expression? `{\escapegrammar ;}'
     .
  \end{grammar}
@@ -7162,7 +7174,7 @@ Logical AND & \&\& & Left & 5\\
 \hline
 Logical Or &  $||$ & Left & 4\\
 \hline
-Conditional &  e1? e2: e3 & None & 3\\
+Conditional &  e1? e2: e3 & Right & 3\\
 \hline
 Cascade & ..  & Left & 2\\
 \hline
