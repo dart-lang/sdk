@@ -370,6 +370,9 @@ String _getReturnTypeString(engine.Element element) {
     } else {
       return element.returnType.toString();
     }
+  } else if (element is engine.VariableElement) {
+    engine.DartType type = element.type;
+    return type != null ? type.displayName : 'dynamic';
   } else {
     return null;
   }

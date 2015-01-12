@@ -12,13 +12,17 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element,
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+
+final DYNAMIC = 'dynamic';
+final DartType NO_RETURN_TYPE = new _NoReturnType();
 
 /**
  * Create a suggestion based upon the given imported element.
  */
-CompletionSuggestion createElementSuggestion(Element element,
-    {int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
+CompletionSuggestion createElementSuggestion(Element element, {int relevance:
+    COMPLETION_RELEVANCE_DEFAULT}) {
   String completion = element.displayName;
   CompletionSuggestion suggestion = new CompletionSuggestion(
       CompletionSuggestionKind.INVOCATION,
@@ -32,19 +36,14 @@ CompletionSuggestion createElementSuggestion(Element element,
   suggestion.element = newElement_fromEngine(element);
 
   DartType type;
-  if (element is FunctionElement) {
+  if (element is ExecutableElement) {
     type = element.returnType;
-  } else if (element is PropertyAccessorElement && element.isGetter) {
-    type = element.returnType;
-  } else if (element is TopLevelVariableElement) {
+  } else if (element is VariableElement) {
     type = element.type;
+  } else {
+    type = NO_RETURN_TYPE;
   }
-  if (type != null) {
-    String name = type.displayName;
-    if (name != null && name.length > 0 && name != 'dynamic') {
-      suggestion.returnType = name;
-    }
-  }
+  suggestion.returnType = _nameForType(type);
   return suggestion;
 }
 
@@ -128,6 +127,24 @@ void visitInheritedTypes(ClassDeclaration node, void
 }
 
 /**
+   * Return the name for the given type.
+   */
+String _nameForType(DartType type) {
+  if (type == NO_RETURN_TYPE) {
+    return null;
+  }
+  if (type == null) {
+    return DYNAMIC;
+  }
+  String name = type.displayName;
+  if (name == null || name.length <= 0) {
+    return DYNAMIC;
+  }
+  //TODO (danrubel) include type arguments ??
+  return name;
+}
+
+/**
  * This class visits elements in a class and provides suggestions based upon
  * the visible members in that class. Clients should call
  * [ClassElementSuggestionBuilder.suggestionsFor].
@@ -185,10 +202,7 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
           element.returnType,
           element.enclosingElement);
     } else if (element.isSetter) {
-      _addElementSuggestion(
-          element,
-          element.returnType,
-          element.enclosingElement);
+      _addElementSuggestion(element, NO_RETURN_TYPE, element.enclosingElement);
     }
   }
 
@@ -220,7 +234,7 @@ class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   @override
   visitClassElement(ClassElement element) {
-    _addElementSuggestion(element, null, null);
+    _addElementSuggestion(element, NO_RETURN_TYPE, null);
   }
 
   @override
@@ -312,7 +326,6 @@ class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder
     // ignored
   }
 }
-
 /**
  * Common interface implemented by suggestion builders.
  */
@@ -340,6 +353,9 @@ class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
 
   _AbstractSuggestionBuilder(this.request, this.kind);
 
+  /**
+   * Add a suggestion based upon the given element.
+   */
   void _addElementSuggestion(Element element, DartType type,
       ClassElement enclosingElement) {
     if (element.isSynthetic) {
@@ -368,22 +384,10 @@ class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
         isDeprecated,
         false);
     suggestion.element = protocol.newElement_fromEngine(element);
-    if (suggestion.element != null) {
-      if (element is FieldElement) {
-        suggestion.element.kind = protocol.ElementKind.GETTER;
-        suggestion.element.returnType =
-            element.type != null ? element.type.displayName : 'dynamic';
-      }
-    }
     if (enclosingElement != null) {
       suggestion.declaringType = enclosingElement.displayName;
     }
-    if (type != null) {
-      String typeName = type.displayName;
-      if (typeName != null && typeName.length > 0 && typeName != 'dynamic') {
-        suggestion.returnType = typeName;
-      }
-    }
+    suggestion.returnType = _nameForType(type);
     if (element is ExecutableElement && element is! PropertyAccessorElement) {
       suggestion.parameterNames = element.parameters.map(
           (ParameterElement parameter) => parameter.name).toList();
@@ -397,4 +401,54 @@ class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
     }
     request.suggestions.add(suggestion);
   }
+}
+
+class _NoReturnType extends DartType {
+
+  @override
+  String get displayName => name;
+
+  @override
+  Element get element => null;
+
+  @override
+  bool get isBottom => false;
+
+  @override
+  bool get isDartCoreFunction => false;
+
+  @override
+  bool get isDynamic => false;
+
+  @override
+  bool get isObject => false;
+
+  @override
+  bool get isUndefined => false;
+
+  @override
+  bool get isVoid => false;
+
+  @override
+  String get name => 'NoReturnType';
+
+  @override
+  DartType getLeastUpperBound(DartType type) => this;
+
+  @override
+  bool isAssignableTo(DartType type) => type is _NoReturnType;
+
+  @override
+  bool isMoreSpecificThan(DartType type) => false;
+
+  @override
+  bool isSubtypeOf(DartType type) => false;
+
+  @override
+  bool isSupertypeOf(DartType type) => false;
+
+  @override
+  DartType substitute2(List<DartType> argumentTypes,
+      List<DartType> parameterTypes) =>
+      this;
 }

@@ -6,6 +6,7 @@ library test.services.completion.invocation;
 
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:unittest/unittest.dart';
 
@@ -25,6 +26,16 @@ class InvocationComputerTest extends AbstractSelectorSuggestionTest {
     expect(suggestion.parameterTypes, isNull);
     expect(suggestion.requiredParameterCount, isNull);
     expect(suggestion.hasNamedParameters, isNull);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestInvocationField(String name, String type,
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertSuggestField(
+        name,
+        type,
+        relevance: relevance,
+        isDeprecated: isDeprecated);
   }
 
   @override
@@ -145,7 +156,7 @@ class C {
 }
 void main() {new C().^}''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+      CompletionSuggestion suggestion = assertSuggestField('x', 'int');
       assertHasNoParameterInfo(suggestion);
     });
   }

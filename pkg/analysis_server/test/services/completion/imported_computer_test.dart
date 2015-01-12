@@ -27,6 +27,12 @@ main() {
 @ReflectiveTestCase()
 class ImportedComputerTest extends AbstractSelectorSuggestionTest {
 
+  @override
+  CompletionSuggestion assertSuggestImportedField(String name, String type, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
+    return assertSuggestField(name, type, relevance: relevance);
+  }
+
   void assertCached(String completion) {
     DartCompletionCache cache = request.cache;
     if (!isCached(cache.importedTypeSuggestions, completion) &&

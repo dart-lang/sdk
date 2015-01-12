@@ -4,6 +4,8 @@
 
 library test.services.completion.dart.local;
 
+import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_computer.dart';
 import 'package:unittest/unittest.dart';
 
@@ -17,6 +19,12 @@ main() {
 
 @ReflectiveTestCase()
 class LocalComputerTest extends AbstractSelectorSuggestionTest {
+
+  @override
+  CompletionSuggestion assertSuggestLocalField(String name, String type,
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+    return assertSuggestField(name, type, relevance: relevance);
+  }
 
   @override
   void setUpComputer() {

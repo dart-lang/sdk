@@ -190,13 +190,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredClass(ClassDeclaration declaration) {
     bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, null, null, isDeprecated);
+        _addSuggestion(declaration.name, NO_RETURN_TYPE, null, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS,
           declaration.name,
           null,
-          _LocalVisitor.NO_RETURN_TYPE,
+          NO_RETURN_TYPE,
           declaration.isAbstract,
           isDeprecated);
     }
@@ -206,7 +206,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, null, null, isDeprecated);
+        _addSuggestion(declaration.name, NO_RETURN_TYPE, null, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS_TYPE_ALIAS,
@@ -224,14 +224,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       return;
     }
     bool isDeprecated = _isDeprecated(fieldDecl) || _isDeprecated(varDecl);
+    TypeName type = fieldDecl.fields.type;
     CompletionSuggestion suggestion =
-        _addSuggestion(varDecl.name, null, fieldDecl.parent, isDeprecated);
+        _addSuggestion(varDecl.name, type, fieldDecl.parent, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.FIELD,
           varDecl.name,
           null,
-          null,
+          type,
           false,
           isDeprecated);
     }
@@ -242,27 +243,32 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (typesOnly) {
       return;
     }
-    if (excludeVoidReturn && _isVoid(declaration.returnType)) {
-      return;
-    }
+    TypeName returnType = declaration.returnType;
     bool isDeprecated = _isDeprecated(declaration);
+    protocol.ElementKind kind;
+    if (declaration.isGetter) {
+      kind = protocol.ElementKind.GETTER;
+    } else if (declaration.isSetter) {
+      if (excludeVoidReturn) {
+        return;
+      }
+      kind = protocol.ElementKind.SETTER;
+      returnType = NO_RETURN_TYPE;
+    } else {
+      if (excludeVoidReturn && _isVoid(returnType)) {
+        return;
+      }
+      kind = protocol.ElementKind.FUNCTION;
+    }
     CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
+        _addSuggestion(declaration.name, returnType, null, isDeprecated);
     if (suggestion != null) {
       FormalParameterList param = declaration.functionExpression.parameters;
-      protocol.ElementKind kind;
-      if (declaration.isGetter) {
-        kind = protocol.ElementKind.GETTER;
-      } else if (declaration.isSetter) {
-        kind = protocol.ElementKind.SETTER;
-      } else {
-        kind = protocol.ElementKind.FUNCTION;
-      }
       suggestion.element = _createElement(
           kind,
           declaration.name,
           param != null ? param.toSource() : null,
-          declaration.returnType,
+          returnType,
           false,
           isDeprecated);
     }
@@ -271,15 +277,16 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     bool isDeprecated = _isDeprecated(declaration);
+    TypeName returnType = declaration.returnType;
     CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
+        _addSuggestion(declaration.name, returnType, null, isDeprecated);
     if (suggestion != null) {
       // TODO (danrubel) determine parameters and return type
       suggestion.element = _createElement(
           protocol.ElementKind.FUNCTION_TYPE_ALIAS,
           declaration.name,
           null,
-          NO_RETURN_TYPE,
+          returnType,
           true,
           isDeprecated);
     }
@@ -323,7 +330,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         return;
       }
       kind = protocol.ElementKind.SETTER;
-      returnType = null;
+      returnType = NO_RETURN_TYPE;
     } else {
       if (excludeVoidReturn && _isVoid(returnType)) {
         return;
@@ -389,22 +396,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             completion.length,
             0,
             false,
-            false);
+            false,
+            returnType: _nameForType(returnType));
         if (classDecl != null) {
           SimpleIdentifier identifier = classDecl.name;
           if (identifier != null) {
             String name = identifier.name;
             if (name != null && name.length > 0) {
               suggestion.declaringType = name;
-            }
-          }
-        }
-        if (returnType != null) {
-          Identifier identifier = returnType.name;
-          if (identifier != null) {
-            String name = identifier.name;
-            if (name != null && name.length > 0) {
-              suggestion.returnType = name;
             }
           }
         }
