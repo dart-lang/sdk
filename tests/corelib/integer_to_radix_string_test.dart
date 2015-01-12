@@ -43,12 +43,19 @@ main() {
     0x8000000000000800,
     0x10000000000000000,
     0x10000000000001000,
+    0x100000000000010000,
+    0x1000000000000100000,
+    0x10000000000001000000,
+    0x100000000000010000000,
+    0x1000000000000100000000,
+    0x10000000000001000000000,
   ];
   for (var bignum in bignums) {
     for (int radix = 2; radix <= 36; radix++) {
       String digits = bignum.toRadixString(radix);
       int result = int.parse(digits, radix: radix);
-      Expect.equals(bignum, result, "$bignum -> $digits/$radix");
+      Expect.equals(bignum, result,
+                    "${bignum.toRadixString(16)} -> $digits/$radix");
     }
   }
 }
