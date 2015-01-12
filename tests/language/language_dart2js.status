@@ -71,9 +71,6 @@ default_factory2_test/01: Fail # Issue 14121
 [ $compiler == dart2js && $unchecked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
 assertion_test: RuntimeError # Issue 12748
-double_to_string_as_exponential2_test: RuntimeError # Issue 12749
-double_to_string_as_fixed2_test: RuntimeError # Issue 12749
-double_to_string_as_precision2_test: RuntimeError # Issue 12749
 generic_test: RuntimeError, OK
 map_literal4_test: RuntimeError, OK # Checked mode required.
 named_parameters_type_test/01: MissingRuntimeError, OK

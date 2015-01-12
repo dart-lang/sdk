@@ -56,6 +56,7 @@ symbol_reserved_word_test/03: RuntimeError # bug 19972
 int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 int_parse_radix_test/02: Fail # No bigints.
 double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
+integer_to_radix_string_test: RuntimeError # issue 22045
 
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
