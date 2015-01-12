@@ -6216,7 +6216,9 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(target_address_reg, Address(RBP, kPcMarkerSlotFromFp * kWordSize));
 
   // Calculate the final absolute address.
-  __ SmiUntag(offset_reg);
+  if (offset()->definition()->representation() == kTagged) {
+    __ SmiUntag(offset_reg);
+  }
   __ addq(target_address_reg, offset_reg);
 
   // Jump to the absolute address.

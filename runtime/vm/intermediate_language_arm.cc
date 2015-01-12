@@ -6778,9 +6778,11 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
-  __ add(target_address_reg,
-         target_address_reg,
-         Operand(offset_reg, ASR, kSmiTagSize));
+  Operand offset_opr =
+      (offset()->definition()->representation() == kTagged) ?
+      Operand(offset_reg, ASR, kSmiTagSize) :
+      Operand(offset_reg);
+  __ add(target_address_reg, target_address_reg, offset_opr);
 
   // Jump to the absolute address.
   __ bx(target_address_reg);

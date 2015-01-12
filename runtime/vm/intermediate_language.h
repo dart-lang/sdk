@@ -2207,6 +2207,11 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 
   DECLARE_INSTRUCTION(IndirectGoto)
 
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNoRepresentation;
+  }
+
   virtual intptr_t ArgumentCount() const { return 0; }
 
   void AddSuccessor(TargetEntryInstr* successor) {
@@ -2228,7 +2233,7 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
-  const TypedData& offsets() const { return offsets_; }
+  Value* offset() const { return inputs_[0]; }
   void ComputeOffsetTable(Isolate* isolate);
 
  private:
