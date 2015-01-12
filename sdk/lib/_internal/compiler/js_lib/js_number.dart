@@ -110,8 +110,7 @@ class JSNumber extends Interceptor implements num {
   toDouble() => this;
 
   String toStringAsFixed(int fractionDigits) {
-    checkNum(fractionDigits);
-    // TODO(floitsch): fractionDigits must be an integer.
+    checkInt(fractionDigits);
     if (fractionDigits < 0 || fractionDigits > 20) {
       throw new RangeError(fractionDigits);
     }
@@ -123,8 +122,7 @@ class JSNumber extends Interceptor implements num {
   String toStringAsExponential([int fractionDigits]) {
     String result;
     if (fractionDigits != null) {
-      // TODO(floitsch): fractionDigits must be an integer.
-      checkNum(fractionDigits);
+      checkInt(fractionDigits);
       if (fractionDigits < 0 || fractionDigits > 20) {
         throw new RangeError(fractionDigits);
       }
@@ -137,8 +135,7 @@ class JSNumber extends Interceptor implements num {
   }
 
   String toStringAsPrecision(int precision) {
-    // TODO(floitsch): precision must be an integer.
-    checkNum(precision);
+    checkInt(precision);
     if (precision < 1 || precision > 21) {
       throw new RangeError(precision);
     }
@@ -149,9 +146,33 @@ class JSNumber extends Interceptor implements num {
   }
 
   String toRadixString(int radix) {
-    checkNum(radix);
+    checkInt(radix);
     if (radix < 2 || radix > 36) throw new RangeError(radix);
-    return JS('String', r'#.toString(#)', this, radix);
+    String result = JS('String', r'#.toString(#)', this, radix);
+    const int rightParenCode = 0x29;
+    if (result.codeUnitAt(result.length - 1) != rightParenCode) {
+      return result;
+    }
+    return _handleIEtoString(result);
+  }
+
+  static String _handleIEtoString(String result) {
+    // Result is probably IE's untraditional format for large numbers,
+    // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
+    var match = JS('List|Null',
+                   r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)',
+                   result);
+    if (match == null) {
+      // Then we don't know how to handle it at all.
+      throw new UnsupportedError("Unexpected toString result: $result");
+    }
+    String result = JS('String', '#', match[1]);
+    int exponent = JS("int", "+#", match[3]);
+    if (match[2] != null) {
+      result = JS('String', '# + #', result, match[2]);
+      exponent -= JS('int', '#.length', match[2]);
+    }
+    return result + "0" * exponent;
   }
 
   // Note: if you change this, also change the function [S].

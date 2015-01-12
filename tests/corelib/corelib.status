@@ -213,10 +213,6 @@ iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 
-[ $runtime == ie10 ]
-num_parse_test: RuntimeError  # Issue 15316
-num_parse_test/01: RuntimeError  # Issue 15316
-
 [ $system == windows && $arch == x64 ]
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
