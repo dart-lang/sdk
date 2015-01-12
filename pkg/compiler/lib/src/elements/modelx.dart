@@ -1378,6 +1378,8 @@ class ErroneousFieldElementX extends ElementX implements FieldElementX {
   FieldElementX copyWithEnclosing(Element enclosingElement) {
     throw new UnsupportedError("copyWithEnclosing");
   }
+
+  DartType computeType(Compiler compiler) => type;
 }
 
 /// [Element] for a parameter-like element.
@@ -1482,7 +1484,7 @@ class LocalParameterElementX extends ParameterElementX
 /// `A(this.field)`.
 class InitializingFormalElementX extends ParameterElementX
     implements InitializingFormalElement {
-  FieldElement fieldElement;
+  final FieldElement fieldElement;
 
   InitializingFormalElementX(ConstructorElement constructorDeclaration,
                              VariableDefinitions variables,
@@ -1499,6 +1501,29 @@ class InitializingFormalElementX extends ParameterElementX
   bool get isLocal => false;
 }
 
+class ErroneousInitializingFormalElementX extends ParameterElementX
+    implements InitializingFormalElementX {
+  final ErroneousFieldElementX fieldElement;
+
+  ErroneousInitializingFormalElementX(
+      Identifier identifier,
+      Element enclosingElement)
+      : this.fieldElement =
+            new ErroneousFieldElementX(identifier, enclosingElement),
+        super(
+            ElementKind.INITIALIZING_FORMAL,
+            enclosingElement, null, identifier, null);
+
+  VariableDefinitions get definitions => fieldElement.node;
+
+  MemberElement get memberContext => enclosingElement;
+
+  bool get isLocal => false;
+
+  bool get isErroneous => true;
+
+  DynamicType get type => const DynamicType();
+}
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   FunctionElementX getter;

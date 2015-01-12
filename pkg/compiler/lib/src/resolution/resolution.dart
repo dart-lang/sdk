@@ -22,6 +22,7 @@ import '../elements/modelx.dart' show
     ErroneousConstructorElementX,
     ErroneousElementX,
     ErroneousFieldElementX,
+    ErroneousInitializingFormalElementX,
     FieldElementX,
     FormalElementX,
     FunctionElementX,

@@ -172,15 +172,17 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   InitializingFormalElementX createFieldParameter(Send node,
                                                   Expression initializer) {
     InitializingFormalElementX element;
-    if (node.receiver.asIdentifier() == null ||
-        !node.receiver.asIdentifier().isThis()) {
+    Identifier receiver = node.receiver.asIdentifier();
+    if (receiver == null || !receiver.isThis()) {
       error(node, MessageKind.INVALID_PARAMETER);
-    } else if (!identical(enclosingElement.kind,
-                          ElementKind.GENERATIVE_CONSTRUCTOR)) {
-      error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
-      // TODO(ahe): Don't throw, recover from error.
-      throw new CompilerCancelledException(null);
+      return new ErroneousInitializingFormalElementX(
+          getParameterName(node), enclosingElement);
     } else {
+      if (!enclosingElement.isGenerativeConstructor) {
+        error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
+        return new ErroneousInitializingFormalElementX(
+            getParameterName(node), enclosingElement);
+      }
       Identifier name = getParameterName(node);
       validateName(name);
       Element fieldElement =
@@ -188,10 +190,12 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       if (fieldElement == null ||
           !identical(fieldElement.kind, ElementKind.FIELD)) {
         error(node, MessageKind.NOT_A_FIELD, {'fieldName': name});
-        // TODO(ahe): Don't throw, recover from error.
-        throw new CompilerCancelledException(null);
+        fieldElement = new ErroneousFieldElementX(
+            name, enclosingElement.enclosingClass);
       } else if (!fieldElement.isInstanceMember) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
+        fieldElement = new ErroneousFieldElementX(
+            name, enclosingElement.enclosingClass);
       }
       element = new InitializingFormalElementX(enclosingElement,
           currentDefinitions, name, initializer, fieldElement);
