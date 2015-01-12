@@ -416,6 +416,42 @@ class MissingTypeError extends StaticInfo {
   MissingTypeError(this.node);
 }
 
+/// Dart constructors have one weird quirk, illustrated with this example:
+///
+///     class Base {
+///       var x;
+///       Base() : x = print('Base.1') {
+///         print('Base.2');
+///       }
+///     }
+///
+///     class Derived extends Base {
+///       var y, z;
+///       Derived()
+///           : y = print('Derived.1'),
+///             super(),
+///             z = print('Derived.2') {
+///         print('Derived.3');
+///       }
+///     }
+///
+/// The order will be Derived.1, Base.1, Derived.2, Base.2, Derived.3; this
+/// ordering preserves the invariant that code can't observe uninitialized
+/// state, however it results in super constructor body not being run
+/// immediately after super initializers. Normally this isn't observable, but it
+/// could be if initializers have side effects.
+///
+/// Better to have `super` at the end, as required by the Dart style guide:
+/// <http://goo.gl/q1T4BB>
+///
+/// For now this is the only pattern we support.
+class InvalidSuperInvocation extends StaticError {
+  InvalidSuperInvocation(SuperConstructorInvocation node) : super(node);
+
+  String get message => "super call must be last in an initializer list "
+      "(see http://goo.gl/q1T4BB): $node";
+}
+
 /// A simple generalizing visitor interface for the conversion nodes.
 /// This can be mixed in to your visitor if the AST can contain these nodes.
 abstract class ConversionVisitor<R> implements AstVisitor<R> {

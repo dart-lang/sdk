@@ -200,6 +200,20 @@ class ProgramChecker extends RecursiveAstVisitor {
     }
   }
 
+  /// Check constructor declaration to ensure correct super call placement.
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    node.visitChildren(this);
+
+    final init = node.initializers;
+    for (int i = 0, last = init.length - 1; i < last; i++) {
+      final node = init[i];
+      if (node is SuperConstructorInvocation) {
+        _recordMessage(new InvalidSuperInvocation(node));
+      }
+    }
+  }
+
   // Check invocations
   bool checkArgumentList(ArgumentList node, FunctionType type) {
     NodeList<Expression> list = node.arguments;

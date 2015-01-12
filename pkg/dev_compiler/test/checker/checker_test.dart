@@ -1564,4 +1564,41 @@ main() {
        '''
     });
   });
+
+  test('super call placement', () {
+    testChecker({
+        '/main.dart': '''
+          class Base {
+            var x;
+            Base() : x = print('Base.1') { print('Base.2'); }
+          }
+
+          class Derived extends Base {
+            var y, z;
+            Derived()
+                : y = print('Derived.1'),
+                  /*severe:InvalidSuperInvocation*/super(),
+                  z = print('Derived.2') {
+              print('Derived.3');
+            }
+          }
+
+          class Valid extends Base {
+            var y, z;
+            Valid()
+                : y = print('Valid.1'),
+                  z = print('Valid.2'),
+                  super() {
+              print('Valid.3');
+            }
+          }
+
+          class AlsoValid extends Base {
+            AlsoValid() : super();
+          }
+
+          main() => new Derived();
+       '''
+    });
+  });
 }
