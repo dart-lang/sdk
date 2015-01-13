@@ -71,6 +71,13 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         new CompletionPerformance());
   }
 
+  void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
+    expect(suggestion.parameterNames, isNull);
+    expect(suggestion.parameterTypes, isNull);
+    expect(suggestion.requiredParameterCount, isNull);
+    expect(suggestion.hasNamedParameters, isNull);
+  }
+
   void assertNoSuggestions({CompletionSuggestionKind kind: null}) {
     if (kind == null) {
       if (request.suggestions.length > 0) {
@@ -213,7 +220,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
-      bool isDeprecated, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
+      [bool isDeprecated = false, int relevance = COMPLETION_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
@@ -1298,23 +1305,25 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       lib B;
       class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
       class E extends F { var e1; e2() { } }
-      class I { int i1; i2() { } get e1; }
+      class I { int i1; i2() { } }
       class M { var m1; int m2() { } }''');
     addTestSource('''
       import "/testB.dart";
       class A extends E implements I with M {a() {^}}''');
     computeFast();
     return computeFull((bool result) {
+      // TODO (danrubel) prefer fields over getters
+      // If add `get e1;` to interface I
+      // then suggestions include getter e1 rather than field e1
       assertSuggestImportedField('e1', null);
       assertSuggestImportedField('f1', null);
       assertSuggestImportedField('i1', 'int');
       assertSuggestImportedField('m1', null);
       assertSuggestImportedGetter('f3', null);
       assertSuggestImportedSetter('f4');
-      //TODO (danrubel) include declared type in suggestion
-      assertSuggestImportedMethod('e2', null, null);
-      assertSuggestImportedMethod('f2', null, null);
-      assertSuggestImportedMethod('i2', null, null);
+      assertSuggestImportedMethod('e2', 'E', null);
+      assertSuggestImportedMethod('f2', 'F', null);
+      assertSuggestImportedMethod('i2', 'I', null);
       //assertSuggestImportedMethod('m2', null, null);
       assertNotSuggested('==');
     });

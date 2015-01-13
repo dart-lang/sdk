@@ -27,12 +27,6 @@ main() {
 @ReflectiveTestCase()
 class ImportedComputerTest extends AbstractSelectorSuggestionTest {
 
-  @override
-  CompletionSuggestion assertSuggestImportedField(String name, String type, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    return assertSuggestField(name, type, relevance: relevance);
-  }
-
   void assertCached(String completion) {
     DartCompletionCache cache = request.cache;
     if (!isCached(cache.importedTypeSuggestions, completion) &&
@@ -109,6 +103,12 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
         isCached(cache.otherImportedSuggestions, completion)) {
       fail('expected $completion NOT to be cached');
     }
+  }
+
+  @override
+  CompletionSuggestion assertSuggestImportedField(String name, String type,
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+    return assertSuggestField(name, type, relevance: relevance);
   }
 
   bool isCached(List<CompletionSuggestion> suggestions, String completion) =>
@@ -206,6 +206,278 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
     });
   }
 
+  test_function_parameters_mixed_required_and_named() {
+    addSource('/libA.dart', '''
+void m(x, {int y}) {}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, true);
+    });
+  }
+
+  test_function_parameters_mixed_required_and_positional() {
+    addSource('/libA.dart', '''
+void m(x, [int y]) {}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_function_parameters_named() {
+    addSource('/libA.dart', '''
+void m({x, int y}) {}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, true);
+    });
+  }
+
+  test_function_parameters_none() {
+    addSource('/libA.dart', '''
+void m() {}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    computeFast();
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+      expect(suggestion.parameterNames, isEmpty);
+      expect(suggestion.parameterTypes, isEmpty);
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_function_parameters_positional() {
+    addSource('/libA.dart', '''
+void m([x, int y]) {}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_function_parameters_required() {
+    addSource('/libA.dart', '''
+void m(x, int y) {}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 2);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_method_parameters_mixed_required_and_named() {
+    addSource('/libA.dart', '''
+class A {
+  void m(x, {int y}) {}
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, true);
+    });
+  }
+
+  test_method_parameters_mixed_required_and_positional() {
+    addSource('/libA.dart', '''
+class A {
+  void m(x, [int y]) {}
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_method_parameters_named() {
+    addSource('/libA.dart', '''
+class A {
+  void m({x, int y}) {}
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, true);
+    });
+  }
+
+  test_method_parameters_none() {
+    addSource('/libA.dart', '''
+class A {
+  void m() {}
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    computeFast();
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+      expect(suggestion.parameterNames, isEmpty);
+      expect(suggestion.parameterTypes, isEmpty);
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_method_parameters_positional() {
+    addSource('/libA.dart', '''
+class A {
+  void m([x, int y]) {}
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_method_parameters_required() {
+    addSource('/libA.dart', '''
+class A {
+  void m(x, int y) {}
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'y');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 2);
+      expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
   /**
    * Ensure that completions in one context don't appear in another
    */
@@ -250,6 +522,60 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
       assertSuggestImportedClass('ClassInLocalContext');
       // Assert computer does not include results from 2nd context.
       assertNotSuggested('ClassFromAnotherContext');
+    });
+  }
+
+  test_no_parameters_field() {
+    addSource('/libA.dart', '''
+class A {
+  int x;
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestField('x', 'int');
+      assertHasNoParameterInfo(suggestion);
+    });
+  }
+
+  test_no_parameters_getter() {
+    addSource('/libA.dart', '''
+class A {
+  int get x => null;
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+      assertHasNoParameterInfo(suggestion);
+    });
+  }
+
+  test_no_parameters_setter() {
+    addSource('/libA.dart', '''
+class A {
+  set x(int value) {};
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class B extends A {
+  main() {^}
+}
+''');
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion = assertSuggestSetter('x');
+      assertHasNoParameterInfo(suggestion);
     });
   }
 

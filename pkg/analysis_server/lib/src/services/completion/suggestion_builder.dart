@@ -12,38 +12,64 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element,
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 final DYNAMIC = 'dynamic';
 final DartType NO_RETURN_TYPE = new _NoReturnType();
 
 /**
- * Create a suggestion based upon the given imported element.
+ * Return a suggestion based upon the given element
+ * or `null` if a suggestion is not appropriate for the given element.
  */
-CompletionSuggestion createElementSuggestion(Element element, {int relevance:
-    COMPLETION_RELEVANCE_DEFAULT}) {
-  String completion = element.displayName;
-  CompletionSuggestion suggestion = new CompletionSuggestion(
-      CompletionSuggestionKind.INVOCATION,
-      element.isDeprecated ? COMPLETION_RELEVANCE_LOW : relevance,
-      completion,
-      completion.length,
-      0,
-      element.isDeprecated,
-      false);
-
-  suggestion.element = newElement_fromEngine(element);
-
+CompletionSuggestion createSuggestion(Element element,
+    {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+    int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
   DartType type;
   if (element is ExecutableElement) {
-    type = element.returnType;
+    if (element.isOperator) {
+      return null;
+    }
+    if (element is PropertyAccessorElement && element.isSetter) {
+      type = NO_RETURN_TYPE;
+    } else {
+      type = element.returnType;
+    }
   } else if (element is VariableElement) {
     type = element.type;
+  } else if (element is FunctionTypeAliasElement) {
+    type = element.returnType;
   } else {
     type = NO_RETURN_TYPE;
   }
+  String completion = element.displayName;
+  bool isDeprecated = element.isDeprecated;
+  CompletionSuggestion suggestion = new CompletionSuggestion(
+      kind,
+      isDeprecated ? COMPLETION_RELEVANCE_LOW : relevance,
+      completion,
+      completion.length,
+      0,
+      isDeprecated,
+      false);
+  suggestion.element = protocol.newElement_fromEngine(element);
+  if (element is ClassMemberElement) {
+    ClassElement enclosingElement = element.enclosingElement;
+    if (enclosingElement != null) {
+      suggestion.declaringType = enclosingElement.displayName;
+    }
+  }
   suggestion.returnType = _nameForType(type);
+  if (element is ExecutableElement && element is! PropertyAccessorElement) {
+    suggestion.parameterNames = element.parameters.map(
+        (ParameterElement parameter) => parameter.name).toList();
+    suggestion.parameterTypes = element.parameters.map(
+        (ParameterElement parameter) => parameter.type.displayName).toList();
+    suggestion.requiredParameterCount = element.parameters.where(
+        (ParameterElement parameter) =>
+            parameter.parameterKind == ParameterKind.REQUIRED).length;
+    suggestion.hasNamedParameters = element.parameters.any(
+        (ParameterElement parameter) => parameter.parameterKind == ParameterKind.NAMED);
+  }
   return suggestion;
 }
 
@@ -149,12 +175,16 @@ String _nameForType(DartType type) {
  * the visible members in that class. Clients should call
  * [ClassElementSuggestionBuilder.suggestionsFor].
  */
-class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
+class ClassElementSuggestionBuilder extends GeneralizingElementVisitor with
+    ElementSuggestionBuilder {
   final bool staticOnly;
+  final DartCompletionRequest request;
 
-  ClassElementSuggestionBuilder(DartCompletionRequest request, bool staticOnly)
-      : super(request, CompletionSuggestionKind.INVOCATION),
-        this.staticOnly = staticOnly;
+  ClassElementSuggestionBuilder(this.request, bool staticOnly)
+      : this.staticOnly = staticOnly;
+
+  @override
+  CompletionSuggestionKind get kind => CompletionSuggestionKind.INVOCATION;
 
   @override
   visitClassElement(ClassElement element) {
@@ -174,7 +204,7 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
     if (staticOnly && !element.isStatic) {
       return;
     }
-    _addElementSuggestion(element, element.type, element.enclosingElement);
+    addSuggestion(element);
   }
 
   @override
@@ -185,10 +215,7 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
     if (element.isOperator) {
       return;
     }
-    _addElementSuggestion(
-        element,
-        element.returnType,
-        element.enclosingElement);
+    addSuggestion(element);
   }
 
   @override
@@ -196,14 +223,7 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
     if (staticOnly && !element.isStatic) {
       return;
     }
-    if (element.isGetter) {
-      _addElementSuggestion(
-          element,
-          element.returnType,
-          element.enclosingElement);
-    } else if (element.isSetter) {
-      _addElementSuggestion(element, NO_RETURN_TYPE, element.enclosingElement);
-    }
+    addSuggestion(element);
   }
 
   /**
@@ -222,19 +242,69 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 }
 
 /**
+ * Common mixin for sharing behavior
+ */
+abstract class ElementSuggestionBuilder {
+
+  /**
+   * Internal collection of completions to prevent duplicate completions.
+   */
+  final Set<String> _completions = new Set<String>();
+
+  /**
+   * Return the kind of suggestions that should be built.
+   */
+  CompletionSuggestionKind get kind;
+
+  /**
+   * Return the request on which the builder is operating.
+   */
+  DartCompletionRequest get request;
+
+  /**
+   * Add a suggestion based upon the given element.
+   */
+  void addSuggestion(Element element) {
+    if (element.isPrivate) {
+      LibraryElement elementLibrary = element.library;
+      LibraryElement unitLibrary = request.unit.element.library;
+      if (elementLibrary != unitLibrary) {
+        return;
+      }
+    }
+    if (element.isSynthetic) {
+      if (element is PropertyAccessorElement || element is FieldElement) {
+        return;
+      }
+    }
+    String completion = element.displayName;
+    if (completion == null ||
+        completion.length <= 0 ||
+        !_completions.add(completion)) {
+      return;
+    }
+    CompletionSuggestion suggestion = createSuggestion(element, kind: kind);
+    if (suggestion != null) {
+      request.suggestions.add(suggestion);
+    }
+  }
+}
+
+/**
  * This class visits elements in a library and provides suggestions based upon
  * the visible members in that library. Clients should call
  * [LibraryElementSuggestionBuilder.suggestionsFor].
  */
-class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
+class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor with
+    ElementSuggestionBuilder {
+  final DartCompletionRequest request;
+  final CompletionSuggestionKind kind;
 
-  LibraryElementSuggestionBuilder(DartCompletionRequest request,
-      CompletionSuggestionKind kind)
-      : super(request, kind);
+  LibraryElementSuggestionBuilder(this.request, this.kind);
 
   @override
   visitClassElement(ClassElement element) {
-    _addElementSuggestion(element, NO_RETURN_TYPE, null);
+    addSuggestion(element);
   }
 
   @override
@@ -249,17 +319,17 @@ class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   @override
   visitFunctionElement(FunctionElement element) {
-    _addElementSuggestion(element, element.returnType, null);
+    addSuggestion(element);
   }
 
   @override
   visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addElementSuggestion(element, element.returnType, null);
+    addSuggestion(element);
   }
 
   @override
   visitTopLevelVariableElement(TopLevelVariableElement element) {
-    _addElementSuggestion(element, element.type, null);
+    addSuggestion(element);
   }
 
   /**
@@ -277,11 +347,14 @@ class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
  * This class visits elements in a class and provides suggestions based upon
  * the visible named constructors in that class.
  */
-class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder
-    implements SuggestionBuilder {
+class NamedConstructorSuggestionBuilder extends GeneralizingElementVisitor with
+    ElementSuggestionBuilder implements SuggestionBuilder {
+  final DartCompletionRequest request;
 
-  NamedConstructorSuggestionBuilder(DartCompletionRequest request)
-      : super(request, CompletionSuggestionKind.INVOCATION);
+  NamedConstructorSuggestionBuilder(this.request);
+
+  @override
+  CompletionSuggestionKind get kind => CompletionSuggestionKind.INVOCATION;
 
   @override
   bool computeFast(AstNode node) {
@@ -315,10 +388,7 @@ class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder
 
   @override
   visitConstructorElement(ConstructorElement element) {
-    _addElementSuggestion(
-        element,
-        element.returnType,
-        element.enclosingElement);
+    addSuggestion(element);
   }
 
   @override
@@ -326,6 +396,7 @@ class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder
     // ignored
   }
 }
+
 /**
  * Common interface implemented by suggestion builders.
  */
@@ -341,66 +412,6 @@ abstract class SuggestionBuilder {
    * The future returns `true` if suggestions were added, else `false`.
    */
   Future<bool> computeFull(AstNode node);
-}
-
-/**
- * Common superclass for sharing behavior
- */
-class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
-  final DartCompletionRequest request;
-  final CompletionSuggestionKind kind;
-  final Set<String> _completions = new Set<String>();
-
-  _AbstractSuggestionBuilder(this.request, this.kind);
-
-  /**
-   * Add a suggestion based upon the given element.
-   */
-  void _addElementSuggestion(Element element, DartType type,
-      ClassElement enclosingElement) {
-    if (element.isSynthetic) {
-      return;
-    }
-    if (element.isPrivate) {
-      LibraryElement elementLibrary = element.library;
-      LibraryElement unitLibrary = request.unit.element.library;
-      if (elementLibrary != unitLibrary) {
-        return;
-      }
-    }
-    String completion = element.displayName;
-    if (completion == null ||
-        completion.length <= 0 ||
-        !_completions.add(completion)) {
-      return;
-    }
-    bool isDeprecated = element.isDeprecated;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
-        kind,
-        isDeprecated ? COMPLETION_RELEVANCE_LOW : COMPLETION_RELEVANCE_DEFAULT,
-        completion,
-        completion.length,
-        0,
-        isDeprecated,
-        false);
-    suggestion.element = protocol.newElement_fromEngine(element);
-    if (enclosingElement != null) {
-      suggestion.declaringType = enclosingElement.displayName;
-    }
-    suggestion.returnType = _nameForType(type);
-    if (element is ExecutableElement && element is! PropertyAccessorElement) {
-      suggestion.parameterNames = element.parameters.map(
-          (ParameterElement parameter) => parameter.name).toList();
-      suggestion.parameterTypes = element.parameters.map(
-          (ParameterElement parameter) => parameter.type.displayName).toList();
-      suggestion.requiredParameterCount = element.parameters.where(
-          (ParameterElement parameter) =>
-              parameter.parameterKind == ParameterKind.REQUIRED).length;
-      suggestion.hasNamedParameters = element.parameters.any(
-          (ParameterElement parameter) => parameter.parameterKind == ParameterKind.NAMED);
-    }
-    request.suggestions.add(suggestion);
-  }
 }
 
 class _NoReturnType extends DartType {

@@ -276,7 +276,7 @@ class DartCompletionCache extends CompletionCache {
     }
 
     CompletionSuggestion suggestion =
-        createElementSuggestion(element, relevance: relevance);
+        createSuggestion(element, relevance: relevance);
 
     if (element is ExecutableElement) {
       DartType returnType = element.returnType;

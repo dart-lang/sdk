@@ -21,13 +21,6 @@ main() {
 @ReflectiveTestCase()
 class InvocationComputerTest extends AbstractSelectorSuggestionTest {
 
-  void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
-    expect(suggestion.parameterNames, isNull);
-    expect(suggestion.parameterTypes, isNull);
-    expect(suggestion.requiredParameterCount, isNull);
-    expect(suggestion.hasNamedParameters, isNull);
-  }
-
   @override
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
       {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
