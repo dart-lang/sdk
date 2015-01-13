@@ -211,6 +211,7 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 [ $runtime == chrome || $runtime == ff || $runtime == ContentShellOnAndroid ]
 convert/streamed_conversion_utf8_encode_test: Skip # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: Skip # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_decode_test: Skip # Times out. Issue 22050
 async/slow_consumer2_test: Skip # Times out. Issue 22050
 async/stream_timeout_test: Skip # Times out. Issue 22050
 

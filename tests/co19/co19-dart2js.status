@@ -616,7 +616,7 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
 LibTest/core/List/List_class_A01_t01: Pass, Timeout
 
-[ $compiler == dart2js && $runtime == chrome ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == drt) ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
@@ -1184,6 +1184,7 @@ LibTest/html/Document/childNodes_A01_t01: RuntimeError # Please triage this fail
 LibTest/html/Document/clone_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Document/clone_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Document/securityPolicy_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/blur_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/borderEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/contentEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/dataset_A02_t01: RuntimeError # Please triage this failure
@@ -1427,7 +1428,7 @@ WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # Please triage t
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == chrome && $checked ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == drt) && $checked ]
 LayoutTests/fast/css-intrinsic-dimensions/css-tables_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-absolutes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-blocks_t01: RuntimeError # Please triage this failure
@@ -1498,7 +1499,7 @@ WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: Run
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == chrome && $system != macos ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == drt) && $system != macos ]
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
@@ -2455,6 +2456,7 @@ LayoutTests/fast/forms/datetimelocal/ValidityState-rangeUnderflow-datetimelocal_
 LayoutTests/fast/forms/datetimelocal/ValidityState-stepMismatch-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/ValidityState-typeMismatch-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
@@ -2515,6 +2517,7 @@ LayoutTests/fast/forms/textarea-no-scroll-on-blur_t01: RuntimeError # Please tri
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-rows-cols_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-set-defaultvalue-after-value_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/textarea-submit-crash_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-trailing-newline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textfield-clone_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textfield-focus-out_t01: Skip # Times out. Please triage this failure

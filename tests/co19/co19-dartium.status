@@ -840,6 +840,7 @@ LayoutTests/fast/layers/zindex-hit-test_t01: Pass, RuntimeError # co19-roll r801
 LayoutTests/fast/loader/about-blank-hash-change_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/hashchange-event-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/onhashchange-attribute-listeners_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/scroll-position-restored-on-back_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: Skip # Times out. co19-roll r801: Please triage this failure.
@@ -1008,7 +1009,7 @@ LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-scale-fillPath-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/canvas-scale-fillRect-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/canvas-scale-fillRect-shadow_t01: Skip # Times out. co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/canvas-test_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
@@ -1020,6 +1021,7 @@ LayoutTests/fast/css-generated-content/empty-first-letter-with-columns-crash_t01
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-intrinsic-dimensions/css-tables_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-intrinsic-dimensions/tables_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/filesystem/file-writer-abort-continue_t01: Skip # Times out. co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text-autosizing/text-removal_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/transforms/scrollIntoView-transformed_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -1037,15 +1039,18 @@ LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: Ski
 LayoutTests/fast/layers/negative-scroll-positions_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: Skip # Times out. Please triage this failure.
+LayoutTests/fast/writing-mode/auto-margins-across-boundaries_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/block-formatting-context_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/broken-ideographic-font_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/writing-mode/display-mutation_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow-scroll_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/flipped-blocks-text-map-local-to-container_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-padding_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Skip # Times out. Please triage this failure.
+LibTest/core/DateTime/parse_A01_t02: Skip # Times out. Please triage this failure.
 
 [ $compiler == none && $runtime == dartium ]
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # co19-roll r761: Please triage this failure.
