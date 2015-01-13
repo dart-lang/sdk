@@ -5023,15 +5023,30 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (dartEntry == null) {
       return false;
     }
-    // prepare the (only) library
+    // prepare the (only) library source
     List<Source> librarySources = getLibrariesContaining(unitSource);
     if (librarySources.length != 1) {
       return false;
     }
-    // prepare the existing unit
     Source librarySource = librarySources[0];
-    CompilationUnit oldUnit =
-        getResolvedCompilationUnit2(unitSource, librarySource);
+    // prepare the library element
+    LibraryElement libraryElement = getLibraryElement(librarySource);
+    if (libraryElement == null) {
+      return false;
+    }
+    // prepare the existing library units
+    Map<Source, CompilationUnit> units = <Source, CompilationUnit>{};
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      Source unitSource = unitElement.source;
+      CompilationUnit unit =
+          getResolvedCompilationUnit2(unitSource, librarySource);
+      if (unit == null) {
+        return false;
+      }
+      units[unitSource] = unit;
+    }
+    // prepare the existing unit
+    CompilationUnit oldUnit = units[unitSource];
     if (oldUnit == null) {
       return false;
     }
@@ -5039,10 +5054,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     Stopwatch perfCounter = new Stopwatch()..start();
     PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
         typeProvider,
+        units,
         unitSource,
         dartEntry,
         analysisOptions.incrementalApi);
-    bool success = resolver.resolve(oldUnit, newCode);
+    bool success = resolver.resolve(newCode);
     AnalysisEngine.instance.instrumentationService.logPerformance(
         AnalysisPerformanceKind.INCREMENTAL,
         perfCounter,
@@ -5058,14 +5074,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       incrementalResolutionValidation_lastUnit = oldUnit;
       return false;
     }
-    // prepare notice
-    ChangeNoticeImpl notice = _getNotice(unitSource);
-    notice.compilationUnit = oldUnit;
-    // apply updated errors
-    {
-      LineInfo lineInfo = getLineInfo(unitSource);
+    // prepare notices
+    units.forEach((Source source, CompilationUnit unit) {
+      DartEntry dartEntry = _cache.get(source);
+      LineInfo lineInfo = getLineInfo(source);
+      ChangeNoticeImpl notice = _getNotice(source);
+      notice.compilationUnit = unit;
       notice.setErrors(dartEntry.allErrors, lineInfo);
-    }
+    });
     // OK
     return true;
   }
@@ -9540,6 +9556,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
         LibraryElement library = element.library;
         if (library != null) {
           IncrementalResolver resolver = new IncrementalResolver(
+              <Source, CompilationUnit>{},
               element,
               cache.offset,
               cache.oldLength,

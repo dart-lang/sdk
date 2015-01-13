@@ -2432,11 +2432,10 @@ class B {
     int updateOffset = edit.offset;
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
-    IncrementalResolver resolver = new IncrementalResolver(
-        unit.element,
-        updateOffset,
-        updateEndOld,
-        updateOldNew);
+    IncrementalResolver resolver =
+        new IncrementalResolver(<Source, CompilationUnit>{
+      source: newUnit
+    }, unit.element, updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
     List<AnalysisError> newErrors = analysisContext.getErrors(source).errors;
@@ -3057,6 +3056,82 @@ class A {
   }
 }
 ''');
+  }
+
+  void test_unusedHint_add_wasUsedOnlyInPart() {
+    Source partSource = addNamedSource('/my_unit.dart', r'''
+part of lib;
+
+f(A a) {
+  a._foo();
+}
+''');
+    _resolveUnit(r'''
+library lib;
+part 'my_unit.dart';
+class A {
+  _foo() {
+    print(1);
+  }
+}
+''');
+    _runTasks();
+    // perform incremental resolution
+    _resetWithIncremental(true);
+    analysisContext2.setContents(partSource, r'''
+part of lib;
+
+f(A a) {
+//  a._foo();
+}
+''');
+    // a new hint should be added
+    List<AnalysisError> errors = analysisContext.getErrors(source).errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode.type, ErrorType.HINT);
+    // the same hint should be reported using a ChangeNotice
+    bool noticeFound = false;
+    AnalysisResult result = analysisContext2.performAnalysisTask();
+    for (ChangeNotice notice in result.changeNotices) {
+      if (notice.source == source) {
+        expect(notice.errors, contains(errors[0]));
+        noticeFound = true;
+      }
+    }
+    expect(noticeFound, isTrue);
+  }
+
+  void test_unusedHint_false_stillUsedInPart() {
+    addNamedSource('/my_unit.dart', r'''
+part of lib;
+
+f(A a) {
+  a._foo();
+}
+''');
+    _resolveUnit(r'''
+library lib;
+part 'my_unit.dart';
+class A {
+  _foo() {
+    print(1);
+  }
+}
+''');
+    // perform incremental resolution
+    _resetWithIncremental(true);
+    analysisContext2.setContents(source, r'''
+library lib;
+part 'my_unit.dart';
+class A {
+  _foo() {
+    print(12);
+  }
+}
+''');
+    // no hints
+    List<AnalysisError> errors = analysisContext.getErrors(source).errors;
+    expect(errors, isEmpty);
   }
 
   void test_updateErrors_addNew_hint() {

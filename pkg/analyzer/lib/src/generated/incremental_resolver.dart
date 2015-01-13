@@ -775,6 +775,11 @@ class DeclarationMatchKind {
  */
 class IncrementalResolver {
   /**
+   * All resolved units of the [_definingLibrary].
+   */
+  final Map<Source, CompilationUnit> _units;
+
+  /**
    * The element of the compilation unit being resolved.
    */
   final CompilationUnitElement _definingUnit;
@@ -805,6 +810,11 @@ class IncrementalResolver {
   Source _source;
 
   /**
+   * The source representing the library of the compilation unit being visited.
+   */
+  Source _librarySource;
+
+  /**
    * The offset of the changed contents.
    */
   final int _updateOffset;
@@ -826,7 +836,6 @@ class IncrementalResolver {
 
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
   List<AnalysisError> _verifyErrors = AnalysisError.NO_ERRORS;
-  List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
   List<AnalysisError> _lints = AnalysisError.NO_ERRORS;
 
   /**
@@ -838,10 +847,11 @@ class IncrementalResolver {
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
-  IncrementalResolver(this._definingUnit, this._updateOffset,
+  IncrementalResolver(this._units, this._definingUnit, this._updateOffset,
       this._updateEndOld, this._updateEndNew) {
     _updateDelta = _updateEndNew - _updateEndOld;
     _definingLibrary = _definingUnit.library;
+    _librarySource = _definingLibrary.source;
     _source = _definingUnit.source;
     _context = _definingUnit.context;
     _typeProvider = _context.typeProvider;
@@ -988,12 +998,24 @@ class IncrementalResolver {
     LoggingTimer timer = logger.startTimer();
     try {
       RecordingErrorListener errorListener = new RecordingErrorListener();
-      CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+      // prepare a list of the library units
+      List<CompilationUnit> units;
+      {
+        CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+        _units[_source] = unit;
+        units = _units.values.toList();
+      }
+      // run the generator
       AnalysisContext analysisContext = _definingLibrary.context;
       HintGenerator hintGenerator =
-          new HintGenerator(<CompilationUnit>[unit], analysisContext, errorListener);
+          new HintGenerator(units, analysisContext, errorListener);
       hintGenerator.generateForLibrary();
-      _hints = errorListener.getErrorsForSource(_source);
+      // remember hints
+      for (Source source in _units.keys) {
+        List<AnalysisError> hints = errorListener.getErrorsForSource(source);
+        DartEntry entry = _context.getReadableSourceEntryOrNull(source);
+        entry.setValueInLibrary(DartEntry.HINTS, _librarySource, hints);
+      }
     } finally {
       timer.stop('generate hints');
     }
@@ -1051,7 +1073,7 @@ class IncrementalResolver {
         CompilationUnitElement unit =
             element.getAncestor((e) => e is CompilationUnitElement);
         IncrementalResolver resolver =
-            new IncrementalResolver(unit, node.offset, node.end, node.end);
+            new IncrementalResolver(_units, unit, node.offset, node.end, node.end);
         resolver._resolveReferences(node);
         resolver._verify(node);
         resolver._generateHints(node);
@@ -1122,9 +1144,8 @@ class IncrementalResolver {
   }
 
   void _shiftErrors(DataDescriptor<List<AnalysisError>> descriptor) {
-    Source librarySource = _definingLibrary.source;
     List<AnalysisError> errors =
-        entry.getValueInLibrary(descriptor, librarySource);
+        entry.getValueInLibrary(descriptor, _librarySource);
     for (AnalysisError error in errors) {
       int errorOffset = error.offset;
       if (errorOffset > _updateOffset) {
@@ -1144,27 +1165,25 @@ class IncrementalResolver {
   }
 
   void _updateEntry() {
-    Source librarySource = _definingLibrary.source;
     {
       List<AnalysisError> oldErrors =
-          entry.getValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource);
+          entry.getValueInLibrary(DartEntry.RESOLUTION_ERRORS, _librarySource);
       List<AnalysisError> errors = _updateErrors(oldErrors, _resolveErrors);
       entry.setValueInLibrary(
           DartEntry.RESOLUTION_ERRORS,
-          librarySource,
+          _librarySource,
           errors);
     }
     {
       List<AnalysisError> oldErrors =
-          entry.getValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource);
+          entry.getValueInLibrary(DartEntry.VERIFICATION_ERRORS, _librarySource);
       List<AnalysisError> errors = _updateErrors(oldErrors, _verifyErrors);
       entry.setValueInLibrary(
           DartEntry.VERIFICATION_ERRORS,
-          librarySource,
+          _librarySource,
           errors);
     }
-    entry.setValueInLibrary(DartEntry.HINTS, librarySource, _hints);
-    entry.setValueInLibrary(DartEntry.LINTS, librarySource, _lints);
+    entry.setValueInLibrary(DartEntry.LINTS, _librarySource, _lints);
   }
 
   List<AnalysisError> _updateErrors(List<AnalysisError> oldErrors,
@@ -1216,6 +1235,7 @@ class IncrementalResolver {
 
 class PoorMansIncrementalResolver {
   final TypeProvider _typeProvider;
+  final Map<Source, CompilationUnit> _units;
   final Source _unitSource;
   final DartEntry _entry;
   CompilationUnitElement _unitElement;
@@ -1228,8 +1248,8 @@ class PoorMansIncrementalResolver {
   List<AnalysisError> _newScanErrors = <AnalysisError>[];
   List<AnalysisError> _newParseErrors = <AnalysisError>[];
 
-  PoorMansIncrementalResolver(this._typeProvider, this._unitSource, this._entry,
-      bool resolveApiChanges) {
+  PoorMansIncrementalResolver(this._typeProvider, this._units, this._unitSource,
+      this._entry, bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
   }
 
@@ -1238,9 +1258,10 @@ class PoorMansIncrementalResolver {
    * Returns `true` if success, or `false` otherwise.
    * The [oldUnit] might be damaged.
    */
-  bool resolve(CompilationUnit oldUnit, String newCode) {
+  bool resolve(String newCode) {
     logger.enter('diff/resolve $_unitSource');
     try {
+      CompilationUnit oldUnit = _units[_unitSource];
       _unitElement = oldUnit.element;
       CompilationUnit newUnit = _parseUnit(newCode);
       _TokenPair firstPair =
@@ -1275,6 +1296,7 @@ class PoorMansIncrementalResolver {
             _shiftTokens(firstPair.oldToken);
             {
               IncrementalResolver incrementalResolver = new IncrementalResolver(
+                  _units,
                   _unitElement,
                   _updateOffset,
                   _updateEndOld,
@@ -1347,6 +1369,7 @@ class PoorMansIncrementalResolver {
         }
         // perform incremental resolution
         IncrementalResolver incrementalResolver = new IncrementalResolver(
+            _units,
             _unitElement,
             _updateOffset,
             _updateEndOld,
@@ -1414,6 +1437,7 @@ class PoorMansIncrementalResolver {
     NodeReplacer.replace(oldComment, newComment);
     // update elements
     IncrementalResolver incrementalResolver = new IncrementalResolver(
+        _units,
         _unitElement,
         _updateOffset,
         _updateEndOld,
