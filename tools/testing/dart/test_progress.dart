@@ -10,6 +10,7 @@ import "dart:io" as io;
 import "dart:convert" show JSON;
 import "path.dart";
 import "status_file_parser.dart";
+import "summary_report.dart";
 import "test_runner.dart";
 import "test_suite.dart";
 import "utils.dart";
@@ -308,8 +309,8 @@ class UnexpectedCrashDumpArchiver extends EventListener {
 
 class SummaryPrinter extends EventListener {
   void allTestsKnown() {
-    if (SummaryReport.total > 0) {
-      SummaryReport.printReport();
+    if (summaryReport.total > 0) {
+      summaryReport.printReport();
     }
   }
 }

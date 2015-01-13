@@ -21,6 +21,7 @@ import "html_test.dart" as htmlTest;
 import "path.dart";
 import "multitest.dart";
 import "status_file_parser.dart";
+import "summary_report.dart";
 import "test_runner.dart";
 import "utils.dart";
 import "http_server.dart" show PREFIX_BUILDDIR, PREFIX_DARTDIR;
@@ -279,10 +280,10 @@ abstract class TestSuite {
       if (testCase.expectCompileError &&
           TestUtils.isBrowserRuntime(configuration['runtime']) &&
           new CompilerConfiguration(configuration).hasCompiler) {
-        SummaryReport.addCompileErrorSkipTest();
+        summaryReport.addCompileErrorSkipTest();
         return;
       } else {
-        SummaryReport.add(testCase);
+        summaryReport.add(testCase);
       }
     }
 
@@ -2404,108 +2405,5 @@ class TestUtils {
       }
     }
     return path;
-  }
-}
-
-
-class SummaryReport {
-  static int total = 0;
-  static int skipped = 0;
-  static int skippedByDesign = 0;
-  static int noCrash = 0;
-  static int flakyCrash = 0;
-  static int pass = 0;
-  static int failOk = 0;
-  static int fail = 0;
-  static int crash = 0;
-  static int timeout = 0;
-  static int compileErrorSkip = 0;
-
-  static List<TestCase> nonStandardTestCases = [];
-
-  static void add(TestCase testCase) {
-    var expectations = testCase.expectedOutcomes;
-
-    bool containsFail = expectations.any(
-        (expectation) => expectation.canBeOutcomeOf(Expectation.FAIL));
-    bool containsPass = expectations.contains(Expectation.PASS);
-    bool containsSkip = expectations.contains(Expectation.SKIP);
-    bool containsSkipByDesign = 
-        expectations.contains(Expectation.SKIP_BY_DESIGN);
-    bool containsCrash = expectations.contains(Expectation.CRASH);
-    bool containsOK = expectations.contains(Expectation.OK);
-    bool containsSlow = expectations.contains(Expectation.SLOW);
-    bool containsTimeout = expectations.contains(Expectation.TIMEOUT);
-
-    ++total;
-    if (containsSkip) {
-      ++skipped;
-    } else if (containsSkipByDesign) {
-      ++skipped;
-      ++skippedByDesign;
-    } else {
-      // We don't do if-else below because the buckets should be exclusive.
-      // We keep a count around to guarantee that
-      int markers = 0;
-
-      // Counts the number of flaky tests.
-      if (containsFail && containsPass && !containsCrash && !containsOK) {
-        ++noCrash;
-        ++markers;
-      }
-      if (containsCrash && !containsOK &&  expectations.length > 1) {
-        ++flakyCrash;
-        ++markers;
-      }
-      if ((containsPass && expectations.length == 1) ||
-          (containsPass && containsSlow && expectations.length == 2)) {
-        ++pass;
-        ++markers;
-      }
-      if (containsFail && containsOK) {
-        ++failOk;
-        ++markers;
-      }
-      if ((containsFail && expectations.length == 1) ||
-          (containsFail && containsSlow && expectations.length == 2)) {
-        ++fail;
-        ++markers;
-      }
-      if ((containsCrash && expectations.length == 1) ||
-          (containsCrash && containsSlow && expectations.length == 2)) {
-        ++crash;
-        ++markers;
-      }
-      if (containsTimeout && expectations.length == 1) {
-        ++timeout;
-        ++markers;
-      }
-      if (markers != 1) {
-        nonStandardTestCases.add(testCase);
-      }
-    }
-  }
-
-  static void addCompileErrorSkipTest() {
-    total++;
-    compileErrorSkip++;
-  }
-
-  static void printReport() {
-    if (total == 0) return;
-    var bogus = nonStandardTestCases.length;
-    String report = """Total: $total tests
- * $skipped tests will be skipped ($skippedByDesign skipped by design)
- * $noCrash tests are expected to be flaky but not crash
- * $flakyCrash tests are expected to flaky crash
- * $pass tests are expected to pass
- * $failOk tests are expected to fail that we won't fix
- * $fail tests are expected to fail that we should fix
- * $crash tests are expected to crash that we should fix
- * $timeout tests are allowed to timeout
- * $compileErrorSkip tests are skipped on browsers due to compile-time error
- * $bogus could not be categorized or are in multiple categories
-""";
-    print(report);
   }
 }
