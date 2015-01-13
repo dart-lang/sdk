@@ -673,7 +673,11 @@ Future<api.CompilationResult> internalMain(List<String> arguments) {
   }
 }
 
-const _EXIT_SIGNAL = const Object();
+class _ExitSignal {
+  const _ExitSignal();
+}
+
+const _EXIT_SIGNAL = const _ExitSignal();
 
 void batchMain(List<String> batchArguments) {
   int exitCode;
