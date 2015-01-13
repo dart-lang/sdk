@@ -171,7 +171,7 @@ class ObjectPointerVisitor;
   V(StackTrace, "StackTrace")                                                  \
   V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
   V(RegExp, "RegExp")                                                          \
-  V(IrregExp, ":irregexp")                                                     \
+  V(Irregexp, ":irregexp")                                                     \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
