@@ -62,6 +62,8 @@ void testConfigurations(List<Map> configurations) {
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
 
+  var reportInJson = firstConf['report_in_json'];
+
   var recordingPath = firstConf['record_to_file'];
   var recordingOutputPath = firstConf['replay_from_file'];
 
@@ -266,7 +268,7 @@ void testConfigurations(List<Map> configurations) {
   // The only progress indicator when listing tests should be the
   // the summary printer.
   if (listTests) {
-    eventListener.add(new SummaryPrinter());
+    eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
   } else {
     eventListener.add(new ExitCodeSetter());
   }

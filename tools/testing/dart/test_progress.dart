@@ -308,8 +308,15 @@ class UnexpectedCrashDumpArchiver extends EventListener {
 
 
 class SummaryPrinter extends EventListener {
+  final bool jsonOnly;
+
+  SummaryPrinter({this.jsonOnly});
+
   void allTestsKnown() {
-    if (summaryReport.total > 0) {
+    if (jsonOnly) {
+      print("JSON:");
+      print(JSON.encode(summaryReport.values));
+    } else {
       summaryReport.printReport();
     }
   }

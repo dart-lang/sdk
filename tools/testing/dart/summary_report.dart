@@ -24,6 +24,8 @@ class SummaryReport {
 
   int get total => _total;
 
+  int get skippedOther => _skipped - _skippedByDesign;
+
   int get bogus => _nonStandardTestCases.length;
 
   final List<TestCase> _nonStandardTestCases = <TestCase>[];
@@ -97,7 +99,8 @@ class SummaryReport {
   }
 
   Map<String, int> get values => {
-    'skipped': _skipped,
+    'total': _total,
+    'skippedOther': skippedOther,
     'skippedByDesign': _skippedByDesign,
     'pass': _pass,
     'noCrash': _noCrash,
