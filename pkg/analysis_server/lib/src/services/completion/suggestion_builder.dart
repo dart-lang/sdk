@@ -14,8 +14,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
-final DYNAMIC = 'dynamic';
-final DartType NO_RETURN_TYPE = new _NoReturnType();
+const String DYNAMIC = 'dynamic';
 
 /**
  * Return a suggestion based upon the given element
@@ -24,23 +23,36 @@ final DartType NO_RETURN_TYPE = new _NoReturnType();
 CompletionSuggestion createSuggestion(Element element,
     {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
     int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
-  DartType type;
+
+  String nameForType(DartType type) {
+    if (type == null) {
+      return DYNAMIC;
+    }
+    String name = type.displayName;
+    if (name == null || name.length <= 0) {
+      return DYNAMIC;
+    }
+    //TODO (danrubel) include type arguments ??
+    return name;
+  }
+
+  String returnType = null;
   if (element is ExecutableElement) {
     if (element.isOperator) {
+      // Do not include operators in suggestions
       return null;
     }
     if (element is PropertyAccessorElement && element.isSetter) {
-      type = NO_RETURN_TYPE;
+      // no return type
     } else {
-      type = element.returnType;
+      returnType = nameForType(element.returnType);
     }
   } else if (element is VariableElement) {
-    type = element.type;
+    returnType = nameForType(element.type);
   } else if (element is FunctionTypeAliasElement) {
-    type = element.returnType;
-  } else {
-    type = NO_RETURN_TYPE;
+    returnType = nameForType(element.returnType);
   }
+
   String completion = element.displayName;
   bool isDeprecated = element.isDeprecated;
   CompletionSuggestion suggestion = new CompletionSuggestion(
@@ -58,7 +70,7 @@ CompletionSuggestion createSuggestion(Element element,
       suggestion.declaringType = enclosingElement.displayName;
     }
   }
-  suggestion.returnType = _nameForType(type);
+  suggestion.returnType = returnType;
   if (element is ExecutableElement && element is! PropertyAccessorElement) {
     suggestion.parameterNames = element.parameters.map(
         (ParameterElement parameter) => parameter.name).toList();
@@ -150,24 +162,6 @@ void visitInheritedTypes(ClassDeclaration node, void
       }
     });
   }
-}
-
-/**
-   * Return the name for the given type.
-   */
-String _nameForType(DartType type) {
-  if (type == NO_RETURN_TYPE) {
-    return null;
-  }
-  if (type == null) {
-    return DYNAMIC;
-  }
-  String name = type.displayName;
-  if (name == null || name.length <= 0) {
-    return DYNAMIC;
-  }
-  //TODO (danrubel) include type arguments ??
-  return name;
 }
 
 /**
@@ -412,54 +406,4 @@ abstract class SuggestionBuilder {
    * The future returns `true` if suggestions were added, else `false`.
    */
   Future<bool> computeFull(AstNode node);
-}
-
-class _NoReturnType extends DartType {
-
-  @override
-  String get displayName => name;
-
-  @override
-  Element get element => null;
-
-  @override
-  bool get isBottom => false;
-
-  @override
-  bool get isDartCoreFunction => false;
-
-  @override
-  bool get isDynamic => false;
-
-  @override
-  bool get isObject => false;
-
-  @override
-  bool get isUndefined => false;
-
-  @override
-  bool get isVoid => false;
-
-  @override
-  String get name => 'NoReturnType';
-
-  @override
-  DartType getLeastUpperBound(DartType type) => this;
-
-  @override
-  bool isAssignableTo(DartType type) => type is _NoReturnType;
-
-  @override
-  bool isMoreSpecificThan(DartType type) => false;
-
-  @override
-  bool isSubtypeOf(DartType type) => false;
-
-  @override
-  bool isSupertypeOf(DartType type) => false;
-
-  @override
-  DartType substitute2(List<DartType> argumentTypes,
-      List<DartType> parameterTypes) =>
-      this;
 }
