@@ -818,7 +818,30 @@ class ClosureTranslator extends Visitor {
   }
 
   visitFor(For node) {
-    visitLoop(node);
+    inNewScope(node, () {
+      // First visit initializer and update so we can easily check if a loop
+      // variable was captured in one of these subexpressions.
+      if (node.initializer != null) visit(node.initializer);
+      if (node.update != null) visit(node.update);
+
+      // Loop variables that have not been captured yet can safely be flagged as
+      // non-mutated, because no nested function can observe the mutation.
+      if (node.initializer is VariableDefinitions) {
+        VariableDefinitions definitions = node.initializer;
+        definitions.definitions.nodes.forEach((Node node) {
+          LocalVariableElement local = elements[node];
+          if (!isCapturedVariable(local)) {
+            mutatedVariables.remove(local);
+          }
+        });
+      }
+
+      // Visit condition and body.
+      // This must happen after the above, so any loop variables mutated in the
+      // condition or body are indeed flagged as mutated.
+      if (node.conditionStatement != null) visit(node.conditionStatement);
+      if (node.body != null) visit(node.body);
+    });
     // See if we have declared loop variables that need to be boxed.
     if (node.initializer == null) return;
     VariableDefinitions definitions = node.initializer.asVariableDefinitions();

@@ -102,21 +102,15 @@ main() {
 """,
 r"""
 function() {
-  var a, box_0, i, v0, box_01, v1;
+  var a, i, v0, v1;
   a = null;
-  box_0 = {};
-  box_0.i_0 = 0;
+  i = 0;
   while (true) {
-    i = box_0.i_0;
     v0 = 10;
     if (P.identical(J.getInterceptor(i).$lt(i, v0), true)) {
-      a = new V.main_closure(box_0);
-      box_01 = {};
-      box_01.i_0 = box_0.i_0;
-      i = box_01.i_0;
+      a = new V.main_closure(i);
       v1 = 1;
-      box_01.i_0 = J.getInterceptor(i).$add(i, v1);
-      box_0 = box_01;
+      i = J.getInterceptor(i).$add(i, v1);
     } else {
       P.print(a.call$0());
       return null;
