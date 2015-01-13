@@ -67,6 +67,7 @@ class Zone {
       large_segments_(NULL),
       handles_(),
       previous_(NULL) {
+    ASSERT(Utils::IsAligned(position_, kAlignment));
 #ifdef DEBUG
     // Zap the entire initial buffer.
     memset(initial_buffer_.pointer(), kZapUninitializedByte,
@@ -84,7 +85,7 @@ class Zone {
   }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
-  static const intptr_t kAlignment = kWordSize;
+  static const intptr_t kAlignment = kDoubleSize;
 
   // Default initial chunk size.
   static const intptr_t kInitialChunkSize = 1 * KB;
@@ -125,7 +126,8 @@ class Zone {
   // This would act as the initial stack allocated chunk so that we don't
   // end up calling malloc/free on zone scopes that allocate less than
   // kChunkSize
-  uint8_t buffer_[kInitialChunkSize];
+  COMPILE_ASSERT(kAlignment <= 8);
+  ALIGN8 uint8_t buffer_[kInitialChunkSize];
   MemoryRegion initial_buffer_;
 
   // The free region in the current (head) segment or the initial buffer is
