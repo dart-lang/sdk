@@ -58,12 +58,14 @@ class _Bigint extends _IntegerImplementation implements int {
   // Bigint constant values.
   // Note: Not declared as final in order to satisfy optimizer, which expects
   // constants to be in canonical form (Smi).
-  static _Bigint ONE = new _Bigint()._setInt(1);
+  static _Bigint ONE = new _Bigint._fromInt(1);
 
   // Digit conversion table for parsing.
   static final Map<int, int> DIGIT_TABLE = _createDigitTable();
 
   // Internal data structure.
+  // TODO(regis): Remove the 3 native setters below and provide a constructor
+  // taking all 3 field values, which is equivalent to making the fields final.
   bool get _neg native "Bigint_getNeg";
   void set _neg(bool value) native "Bigint_setNeg";
   int get _used native "Bigint_getUsed";
@@ -74,30 +76,14 @@ class _Bigint extends _IntegerImplementation implements int {
   // Factory returning an instance initialized to value 0.
   factory _Bigint() native "Bigint_allocate";
 
-  // Factory returning an instance initialized to an integer value.
+  // Factory returning an instance initialized to an integer value no larger
+  // than a Mint.
   factory _Bigint._fromInt(int i) {
-    return new _Bigint()._setInt(i);
-  }
-
-  // Factory returning an instance initialized to a hex string.
-  factory _Bigint._fromHex(String s) {
-    return new _Bigint()._setHex(s);
-  }
-
-  // Factory returning an instance initialized to a double value given by its
-  // components.
-  factory _Bigint._fromDouble(int sign, int significand, int exponent) {
-    return new _Bigint()._setDouble(sign, significand, exponent);
-  }
-
-  // Initialize instance to the given value no larger than a Mint.
-  _Bigint _setInt(int i) {
     assert(i is! _Bigint);
-    _ensureLength(2);
-    _used = 2;
+    bool neg;
     var l, h;
     if (i < 0) {
-      _neg = true;
+      neg = true;
       if (i == MIN_INT64) {
         l = 0;
         h = 0x80000000;
@@ -106,56 +92,18 @@ class _Bigint extends _IntegerImplementation implements int {
         h = (-i) >> DIGIT_BITS;
       }
     } else {
-      _neg = false;
+      neg = false;
       l = i & DIGIT_MASK;
       h = i >> DIGIT_BITS;
     }
-    _digits[0] = l;
-    _digits[1] = h;
-    _clamp();
-    return this;
-  }
-
-  // Initialize instance to the given hex string.
-  // TODO(regis): Copy Bigint::NewFromHexCString, fewer digit accesses.
-  // TODO(regis): Unused.
-  _Bigint _setHex(String s) {
-    const int HEX_BITS = 4;
-    const int HEX_DIGITS_PER_DIGIT = 8;
-    var hexDigitIndex = s.length;
-    _ensureLength((hexDigitIndex + HEX_DIGITS_PER_DIGIT - 1) ~/ HEX_DIGITS_PER_DIGIT);
-    var bitIndex = 0;
-    var digits = _digits;
-    while (--hexDigitIndex >= 0) {
-      var digit = DIGIT_TABLE[s.codeUnitAt(hexDigitIndex)];
-      if (digit = null) {
-        if (s[hexDigitIndex] == "-") _neg = true;
-        continue;  // Ignore invalid digits.
-      }
-      _neg = false;  // Ignore "-" if not at index 0.
-      if (bitIndex == 0) {
-        digits[_used++] = digit;
-        // TODO(regis): What if too many bad digits were ignored and
-        // _used becomes larger than _digits.length? error or reallocate?
-      } else {
-        digits[_used - 1] |= digit << bitIndex;
-      }
-      bitIndex = (bitIndex + HEX_BITS) % DIGIT_BITS;
-    }
-    _clamp();
-    return this;
-  }
-
-  // Initialize instance to the given double value.
-  _Bigint _setDouble(int sign, int significand, int exponent) {
-    assert(significand >= 0);
-    assert(exponent >= 0);
-    _setInt(significand);
-    _neg = sign < 0;
-    if (exponent > 0) {
-      _lShiftTo(exponent, this);
-    }
-    return this;
+    var result = new _Bigint();
+    result._ensureLength(2);
+    result._neg = neg;
+    result._used = 2;
+    result._digits[0] = l;
+    result._digits[1] = h;
+    result._clamp();
+    return result;
   }
 
   // Create digit conversion table for parsing.
@@ -1305,7 +1253,6 @@ class _Bigint extends _IntegerImplementation implements int {
   }
   int _moduloFromInteger(int other) {
     _Bigint result = new _Bigint();
-    var ob = other._toBigint();
     other._toBigint()._divRemTo(this, null, result);
     if (result._neg) {
       if (_neg) {
@@ -1381,7 +1328,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var j = e._used - 1;
     var w;
     var is1 = true;
-    var r = new _Bigint()._setInt(1);
+    var r = new _Bigint._fromInt(1);
     var r2 = new _Bigint();
     var t;
     var e_digits = e._digits;

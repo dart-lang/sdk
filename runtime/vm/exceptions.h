@@ -55,7 +55,6 @@ class Exceptions : AllStatic {
     kUnsupported,
     kStackOverflow,
     kOutOfMemory,
-    kInternalError,
     kNullThrown,
     kIsolateSpawn,
     kIsolateUnhandledException,

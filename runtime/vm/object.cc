@@ -168,9 +168,6 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 #define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
   V(AsyncLibrary, _AsyncRun, _scheduleImmediate)                               \
   V(CoreLibrary, StringBuffer, _addPart)                                       \
-  V(CoreLibrary, _Bigint, _setInt)                                             \
-  V(CoreLibrary, _Bigint, _setHex)                                             \
-  V(CoreLibrary, _Bigint, _setDouble)                                          \
   V(CoreLibrary, _Bigint, _ensureLength)                                       \
   V(CoreLibrary, _Bigint, _clamp)                                              \
   V(CoreLibrary, _Bigint, _absAdd)                                             \

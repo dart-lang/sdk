@@ -148,7 +148,6 @@ class ObjectPointerVisitor;
   V(_Smi, "_Smi")                                                              \
   V(_Mint, "_Mint")                                                            \
   V(_Bigint, "_Bigint")                                                        \
-  V(_BigintFromDoubleFactory, "_Bigint._fromDouble")                           \
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
   V(True, "true")                                                              \
@@ -273,7 +272,6 @@ class ObjectPointerVisitor;
   V(UnsupportedError, "UnsupportedError")                                      \
   V(StackOverflowError, "StackOverflowError")                                  \
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
-  V(InternalError, "_InternalError")                                           \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
