@@ -1774,6 +1774,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -1789,6 +1790,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "CONTENT_MODIFIED",
+  "FORMAT_INVALID_FILE",
   "GET_ERRORS_INVALID_FILE",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",

@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'assists_test.dart' as assists_test;
 import 'fixes_test.dart' as fixes_test;
+import 'format_test.dart' as format_test;
 import 'refactoring_test.dart' as refactoring_test;
 import 'sort_members_test.dart' as sort_members_test;
 
@@ -19,6 +20,7 @@ main() {
   group('edit', () {
     assists_test.main();
     fixes_test.main();
+    format_test.main();
     refactoring_test.main();
     sort_members_test.main();
   });

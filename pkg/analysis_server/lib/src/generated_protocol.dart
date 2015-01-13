@@ -9002,6 +9002,7 @@ class RequestError implements HasToJson {
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -9022,6 +9023,12 @@ class RequestErrorCode implements Enum {
    * results could be computed.
    */
   static const CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
+
+  /**
+   * An "edit.format" request specified a FilePath which does not match a Dart
+   * file in an analysis root.
+   */
+  static const FORMAT_INVALID_FILE = const RequestErrorCode._("FORMAT_INVALID_FILE");
 
   /**
    * An "analysis.getErrors" request specified a FilePath which does not match
@@ -9106,6 +9113,8 @@ class RequestErrorCode implements Enum {
     switch (name) {
       case "CONTENT_MODIFIED":
         return CONTENT_MODIFIED;
+      case "FORMAT_INVALID_FILE":
+        return FORMAT_INVALID_FILE;
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
       case "INVALID_OVERLAY_CHANGE":

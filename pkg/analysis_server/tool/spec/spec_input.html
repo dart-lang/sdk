@@ -1224,6 +1224,13 @@
           matching the original as possible, but whitespace at the beginning or
           end of the selected region will be ignored.
         </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>FORMAT_INVALID_FILE</tt> will be generated.
+        </p>
         <params>
           <field name="file">
             <ref>FilePath</ref>
@@ -2957,6 +2964,13 @@
               An "analysis.getErrors" or "analysis.getNavigation" request could
               not be satisfied because the content of the file changed before
               the requested results could be computed.
+            </p>
+          </value>
+          <value>
+            <code>FORMAT_INVALID_FILE</code>
+            <p>
+              An "edit.format" request specified a FilePath
+              which does not match a Dart file in an analysis root.
             </p>
           </value>
           <value>
