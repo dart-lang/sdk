@@ -3215,8 +3215,27 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (originalContents != null) {
       _incrementalAnalysisCache =
           IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-      _sourceChanged(source);
       changed = true;
+      // We are removing the overlay for the file, check if the file's
+      // contents is the same as it was in the overlay.
+      SourceEntry sourceEntry = _cache.get(source);
+      if (sourceEntry != null) {
+        try {
+          TimestampedData<String> fileContents = getContents(source);
+          String fileContentsData = fileContents.data;
+          if (fileContentsData == originalContents) {
+            sourceEntry.modificationTime = fileContents.modificationTime;
+            sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
+            changed = false;
+          }
+        } catch (e) {
+        }
+      }
+      // If not the same content (e.g. the file is being closed without save),
+      // then force analysis.
+      if (changed) {
+        _sourceChanged(source);
+      }
     }
     return changed;
   }
