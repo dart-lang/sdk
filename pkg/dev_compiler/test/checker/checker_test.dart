@@ -1601,4 +1601,21 @@ main() {
        '''
     });
   });
+
+  test('for loop variable', () {
+    testChecker({
+        '/main.dart': '''
+          foo() {
+            for (int i = 0; i < 10; i++) {
+              i = /*severe:StaticTypeError*/"hi";
+            }
+          }
+          bar() {
+            for (var i = 0; i < 10; i++) {
+              int j = i + 1;
+            }
+          }
+        '''
+    });
+  });
 }
