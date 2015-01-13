@@ -224,6 +224,13 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     return node;
   }
 
+  Statement visitSetField(SetField node) {
+    node.next = visitStatement(node.next);
+    visitExpression(node.value);
+    visitExpression(node.object);
+    return node;
+  }
+
   void visitFunctionExpression(FunctionExpression node) {
     new CopyPropagator().rewrite(node.definition);
   }

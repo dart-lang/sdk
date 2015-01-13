@@ -120,6 +120,10 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.typeAccess(e);
   }
 
+  jsAst.Expression closureClassConstructorAccess(ClosureClassElement e) {
+    return emitter.closureClassConstructorAccess(e);
+  }
+
   void registerReadTypeVariable(TypeVariableElement element) {
     readTypeVariables.add(element);
   }
@@ -457,6 +461,9 @@ abstract class Emitter {
 
   /// Returns the JS expression representing the type [e].
   jsAst.Expression typeAccess(Element e);
+
+  /// Returns the JS constructor for the given closure class [e].
+  jsAst.Expression closureClassConstructorAccess(ClosureClassElement e);
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);

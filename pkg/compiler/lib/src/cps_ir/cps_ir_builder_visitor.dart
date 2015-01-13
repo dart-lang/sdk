@@ -108,6 +108,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     with IrBuilderMixin<ast.Node> {
   final Compiler compiler;
   final SourceFile sourceFile;
+  ClosureClassMap closureMap;
 
   // In SSA terms, join-point continuation parameters are the phis and the
   // continuation invocation arguments are the corresponding phi inputs.  To
@@ -131,6 +132,10 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   IrBuilderVisitor(TreeElements elements, this.compiler, this.sourceFile)
       : super(elements);
 
+  /// True if using the JavaScript backend; we use this to determine how
+  /// closures should be translated.
+  bool get isJavaScriptBackend => compiler.backend is JavaScriptBackend;
+
   /**
    * Builds the [ir.ExecutableDefinition] for an executable element. In case the
    * function uses features that cannot be expressed in the IR, this element
@@ -148,8 +153,74 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     });
   }
 
+  Map mapValues(Map map, dynamic fn(dynamic)) {
+    Map result = {};
+    map.forEach((key,value) {
+      result[key] = fn(value);
+    });
+    return result;
+  }
+
+  // Converts closure.dart's CapturedVariable into a ClosureLocation.
+  // There is a 1:1 corresponce between these; we do this because the IR builder
+  // should not depend on synthetic elements.
+  ClosureLocation getLocation(CapturedVariable v) {
+    if (v is BoxFieldElement) {
+      return new ClosureLocation(v.box, v);
+    } else {
+      ClosureFieldElement field = v;
+      return new ClosureLocation(null, field);
+    }
+  }
+
+  /// If the current function is a nested function with free variables (or a
+  /// captured reference to `this`), this returns a [ClosureEnvironment]
+  /// indicating how to access these.
+  ClosureEnvironment getClosureEnvironment() {
+    if (closureMap == null) return null; // dart2dart does not use closureMap.
+    if (closureMap.closureElement == null) return null;
+    return new ClosureEnvironment(
+        closureMap.closureElement,
+        closureMap.thisLocal,
+        mapValues(closureMap.freeVariableMap, getLocation));
+  }
+
+  /// If [node] has declarations for variables that should be boxed, this
+  /// returns a [ClosureScope] naming a box to create, and enumerating the
+  /// variables that should be stored in the box.
+  ///
+  /// Also see [ClosureScope].
+  ClosureScope getClosureScope(ast.Node node) {
+    if (closureMap == null) return null; // dart2dart does not use closureMap.
+    closurelib.ClosureScope scope = closureMap.capturingScopes[node];
+    if (scope == null) return null;
+    // We translate a ClosureScope from closure.dart into IR builder's variant
+    // because the IR builder should not depend on the synthetic elements
+    // created in closure.dart.
+    return new ClosureScope(scope.boxElement,
+                            mapValues(scope.capturedVariables, getLocation),
+                            scope.boxedLoopVariables);
+  }
+
+  IrBuilder makeIRBuilder(ast.Node node, ExecutableElement element) {
+    if (isJavaScriptBackend) {
+      closureMap = compiler.closureToClassMapper.computeClosureToClassMapping(
+          element,
+          node,
+          elements);
+      return new JsIrBuilder(compiler.backend.constantSystem, element);
+    } else {
+      DetectClosureVariables closures = new DetectClosureVariables(elements);
+      if (!element.isSynthesized) {
+        closures.visit(node);
+      }
+      return new DartIrBuilder(compiler.backend.constantSystem,
+                               element,
+                               closures);
+    }
+  }
+
   /// Returns a [ir.FieldDefinition] describing the initializer of [element].
-  /// Returns `null` if [element] has no initializer.
   ir.FieldDefinition buildField(FieldElement element) {
     assert(invariant(element, element.isImplementation));
     ast.VariableDefinitions definitions = element.node;
@@ -160,14 +231,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
     assert(fieldDefinition != null);
     assert(elements[fieldDefinition] != null);
-    DetectClosureVariables closureLocals =
-    new DetectClosureVariables(elements);
-        closureLocals.visit(fieldDefinition);
 
-    IrBuilder builder = new IrBuilder(compiler.backend.constantSystem,
-        element,
-        closureLocals.usedFromClosure);
+    IrBuilder builder = makeIRBuilder(fieldDefinition, element);
+
     return withBuilder(builder, () {
+      builder.buildFieldInitializerHeader(
+          closureScope: getClosureScope(fieldDefinition));
       ir.Primitive initializer;
       if (fieldDefinition is ast.SendSet) {
         ast.SendSet sendSet = fieldDefinition;
@@ -180,9 +249,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
                                           ast.FunctionExpression node) {
     FunctionSignature signature = element.functionSignature;
-    signature.orderedForEachParameter((ParameterElement parameterElement) {
-      irBuilder.createFunctionParameter(parameterElement);
-    });
+    List<ParameterElement> parameters = [];
+    signature.orderedForEachParameter(parameters.add);
+
+    irBuilder.buildFunctionHeader(parameters,
+                                  closureScope: getClosureScope(node),
+                                  closureEnvironment: getClosureEnvironment());
 
     List<ConstantExpression> defaults = new List<ConstantExpression>();
     signature.orderedOptionalParameters.forEach((ParameterElement element) {
@@ -212,7 +284,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     void tryAddInitializingFormal(ParameterElement parameterElement) {
       if (parameterElement.isInitializingFormal) {
         InitializingFormalElement initializingFormal = parameterElement;
-        withBuilder(new IrBuilder.delimited(irBuilder), () {
+        withBuilder(irBuilder.makeDelimitedBuilder(), () {
           ir.Primitive value = irBuilder.buildLocalGet(parameterElement);
           result.add(irBuilder.makeFieldInitializer(
               initializingFormal.fieldElement,
@@ -230,7 +302,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       if (initializer is ast.SendSet) {
         // Field initializer.
         FieldElement field = elements[initializer];
-        withBuilder(new IrBuilder.delimited(irBuilder), () {
+        withBuilder(irBuilder.makeDelimitedBuilder(), () {
           ir.Primitive value = visit(initializer.arguments.head);
           ir.RunnableBody body = irBuilder.makeRunnableBody(value);
           result.add(irBuilder.makeFieldInitializer(field, body));
@@ -244,7 +316,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         Selector selector = elements.getSelector(initializer);
         List<ir.RunnableBody> arguments =
             initializer.arguments.mapToList((ast.Node argument) {
-          return withBuilder(new IrBuilder.delimited(irBuilder), () {
+          return withBuilder(irBuilder.makeDelimitedBuilder(), () {
             ir.Primitive value = visit(argument);
             return irBuilder.makeRunnableBody(value);
           });
@@ -288,12 +360,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     if (!element.isSynthesized) {
       assert(node != null);
       assert(elements[node] != null);
-
-      // TODO(karlklose): this information should be provided by resolution.
-      DetectClosureVariables closureLocals =
-          new DetectClosureVariables(elements);
-      closureLocals.visit(node);
-      usedFromClosure = closureLocals.usedFromClosure;
     } else {
       SynthesizedConstructorElementX constructor = element;
       if (!constructor.isDefaultConstructor) {
@@ -303,9 +369,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       usedFromClosure = <Entity>[];
     }
 
-    IrBuilder builder = new IrBuilder(compiler.backend.constantSystem,
-                                      element,
-                                      usedFromClosure);
+    IrBuilder builder = makeIRBuilder(node, element);
 
     return withBuilder(builder, () => _makeFunctionBody(element, node));
   }
@@ -346,12 +410,13 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   visitFor(ast.For node) {
-    // TODO(kmillikin,sigurdm): Handle closure variables declared in a for-loop.
-    if (node.initializer is ast.VariableDefinitions) {
+    // TODO(asgerf): Handle closure variables declared in a for-loop.
+    if (!isJavaScriptBackend && node.initializer is ast.VariableDefinitions) {
       ast.VariableDefinitions definitions = node.initializer;
       for (ast.Node definition in definitions.definitions.nodes) {
-        Element element = elements[definition];
-        if (irBuilder.isClosureVariable(element)) {
+        LocalElement element = elements[definition];
+        DartIrBuilder dartIrBuilder = irBuilder;
+        if (dartIrBuilder.isInClosureVariable(element)) {
           return giveup(definition, 'Closure variable in for loop initializer');
         }
       }
@@ -363,6 +428,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         buildCondition: subbuild(node.condition),
         buildBody: subbuild(node.body),
         buildUpdate: subbuildSequence(node.update),
+        closureScope: getClosureScope(node),
         target: target);
   }
 
@@ -379,7 +445,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     JumpTarget target = elements.getTargetDefinition(body);
     JumpCollector jumps = new JumpCollector(target);
     irBuilder.state.breakCollectors.add(jumps);
-    IrBuilder innerBuilder = new IrBuilder.delimited(irBuilder);
+    IrBuilder innerBuilder = irBuilder.makeDelimitedBuilder();
     withBuilder(innerBuilder, () {
       visit(body);
     });
@@ -420,7 +486,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     irBuilder.buildWhile(
         buildCondition: subbuild(node.condition),
         buildBody: subbuild(node.body),
-        target: elements.getTargetDefinition(node));
+        target: elements.getTargetDefinition(node),
+        closureScope: getClosureScope(node));
   }
 
   visitForIn(ast.ForIn node) {
@@ -439,7 +506,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         variableElement: variableElement,
         variableSelector: selector,
         buildBody: subbuild(node.body),
-        target: elements.getTargetDefinition(node));
+        target: elements.getTargetDefinition(node),
+        closureScope: getClosureScope(node));
   }
 
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
@@ -950,13 +1018,21 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return irBuilder.buildConstantLiteral(constant);
   }
 
-  ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
-    FunctionElement element = elements[node];
-    assert(invariant(element, element.isImplementation));
+  /// Returns the backend-specific representation of an inner function.
+  Object makeSubFunction(ast.FunctionExpression node) {
+    if (isJavaScriptBackend) {
+      ClosureClassMap innerMap =
+          compiler.closureToClassMapper.getMappingForNestedFunction(node);
+      ClosureClassElement closureClass = innerMap.closureClassElement;
+      return closureClass;
+    } else {
+      FunctionElement element = elements[node];
+      assert(invariant(element, element.isImplementation));
 
-    IrBuilder builder = new IrBuilder.innerFunction(irBuilder, element);
+      IrBuilder builder = irBuilder.makeInnerFunctionBuilder(element);
 
-    return withBuilder(builder, () => _makeFunctionBody(element, node));
+      return withBuilder(builder, () => _makeFunctionBody(element, node));
+    }
   }
 
   ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
@@ -965,7 +1041,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
     LocalFunctionElement element = elements[node.function];
-    ir.FunctionDefinition inner = makeSubFunction(node.function);
+    Object inner = makeSubFunction(node.function);
     irBuilder.declareLocalFunction(element, inner);
   }
 
@@ -994,19 +1070,17 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 /// Classifies local variables and local functions as 'closure variables'.
 /// A closure variable is one that is accessed from an inner function nested
 /// one or more levels inside the one that declares it.
-class DetectClosureVariables extends ast.Visitor {
+class DetectClosureVariables extends ast.Visitor
+                             implements ClosureVariableInfo {
   final TreeElements elements;
   DetectClosureVariables(this.elements);
 
   FunctionElement currentFunction;
   bool insideInitializer = false;
-  Set<Local> usedFromClosure = new Set<Local>();
-  Set<FunctionElement> recursiveFunctions = new Set<FunctionElement>();
-
-  bool isClosureVariable(Entity entity) => usedFromClosure.contains(entity);
+  Set<Local> capturedVariables = new Set<Local>();
 
   void markAsClosureVariable(Local local) {
-    usedFromClosure.add(local);
+    capturedVariables.add(local);
   }
 
   visit(ast.Node node) => node.accept(this);

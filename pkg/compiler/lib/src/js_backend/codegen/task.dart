@@ -44,8 +44,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
 
-  // TODO(sigurdm): Assign this.
-  Tracer tracer;
+  Tracer get tracer => compiler.tracer;
 
   CspFunctionCompiler(Compiler compiler, JavaScriptBackend backend)
       : irBuilderTask = new IrBuilderTask(compiler),
@@ -98,7 +97,6 @@ class CspFunctionCompiler implements FunctionCompiler {
   cps.FunctionDefinition compileToCpsIR(AstElement element) {
     // TODO(sigurdm): Support these constructs.
     if (element.isGenerativeConstructorBody ||
-        element.enclosingClass is ClosureClassElement ||
         element.isNative ||
         element.isField) {
       giveUp('unsupported element kind: ${element.name}:${element.kind}');
@@ -108,7 +106,9 @@ class CspFunctionCompiler implements FunctionCompiler {
     if (cpsNode == null) {
       giveUp('unable to build cps definition of $element');
     }
+    traceGraph("IR Builder", cpsNode);
     new UnsugarVisitor(glue).rewrite(cpsNode);
+    traceGraph("Unsugaring", cpsNode);
     return cpsNode;
   }
 
@@ -131,7 +131,6 @@ class CspFunctionCompiler implements FunctionCompiler {
 
   cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
     // Transformations on the CPS IR.
-    traceGraph("IR Builder", cpsNode);
 
     TypePropagator typePropagator = new TypePropagator<TypeMask>(
         compiler.types,

@@ -151,6 +151,11 @@ class BlockCollector extends StatementVisitor {
     visitStatement(node.next);
   }
 
+  visitSetField(SetField node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
+
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
@@ -277,6 +282,16 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
     printStatement(null, 'function ${node.definition.element.name}');
   }
 
+  visitSetField(SetField node) {
+    String object = expr(node.object);
+    String field = node.field.name;
+    String value = expr(node.value);
+    if (SubexpressionVisitor.usesInfixNotation(node.object)) {
+      object = '($object)';
+    }
+    printStatement(null, '$object.$field = $value');
+  }
+
   String expr(Expression e) {
     return e.accept(new SubexpressionVisitor(names));
   }
@@ -368,7 +383,7 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "typevar [${node.typeVariable.name}]";
   }
 
-  bool usesInfixNotation(Expression node) {
+  static bool usesInfixNotation(Expression node) {
     return node is Conditional || node is LogicalOperator;
   }
 
@@ -415,6 +430,25 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   String visitSuperInitializer(SuperInitializer node) {
     throw "$node should not be visited by $this";
+  }
+
+  String visitGetField(GetField node) {
+    String object = visitExpression(node.object);
+    String field = node.field.name;
+    if (usesInfixNotation(node.object)) {
+      object = '($object)';
+    }
+    return '$object.$field';
+  }
+
+  String visitCreateBox(CreateBox node) {
+    return 'CreateBox';
+  }
+
+  String visitCreateClosureClass(CreateClosureClass node) {
+    String className = node.classElement.name;
+    String arguments = node.arguments.map(visitExpression).join(', ');
+    return 'CreateClosure $className($arguments)';
   }
 
 }

@@ -47,10 +47,9 @@ class Builder extends cps_ir.Visitor<Node> {
   final dart2js.InternalErrorFunction internalError;
 
   /// Maps variable/parameter elements to the Tree variables that represent it.
-  final Map<Element, List<Variable>> element2variables =
-      <Element,List<Variable>>{};
+  final Map<Local, List<Variable>> local2variables = <Local, List<Variable>>{};
 
-  /// Like [element2variables], except for closure variables.
+  /// Like [local2variables], except for closure variables.
   final Map<cps_ir.ClosureVariable, Variable> local2closure =
       <cps_ir.ClosureVariable, Variable>{};
 
@@ -87,7 +86,7 @@ class Builder extends cps_ir.Visitor<Node> {
     if (primitive.registerIndex == null) {
       return null; // variable is unused
     }
-    List<Variable> variables = element2variables.putIfAbsent(primitive.hint,
+    List<Variable> variables = local2variables.putIfAbsent(primitive.hint,
         () => <Variable>[]);
     while (variables.length <= primitive.registerIndex) {
       variables.add(new Variable(currentElement, primitive.hint));

@@ -11,6 +11,7 @@ import '../../js/js.dart' as js;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../constants/expressions.dart';
+import '../../closure.dart' show ClosureClassElement;
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -79,4 +80,13 @@ class Glue {
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
     _backend.registerSpecializedGetInterceptor(classes);
   }
+
+  js.Expression closureClassConstructorAccess(ClosureClassElement element) {
+    return _backend.emitter.closureClassConstructorAccess(element);
+  }
+
+  String instanceFieldPropertyName(Element field) {
+    return _namer.instanceFieldPropertyName(field);
+  }
+
 }

@@ -19,6 +19,7 @@ import 'js_backend_cps_ir_literals.dart' as literals;
 import 'js_backend_cps_ir_operators.dart' as operators;
 import 'js_backend_cps_ir_control_flow.dart' as control_flow;
 import 'js_backend_cps_ir_interceptors.dart' as interceptors;
+import 'js_backend_cps_ir_closures.dart' as closures;
 
 const String TEST_MAIN_FILE = 'test.dart';
 
@@ -27,7 +28,8 @@ List<TestEntry> tests = <TestEntry>[]
      ..addAll(literals.tests)
      ..addAll(control_flow.tests)
      ..addAll(operators.tests)
-     ..addAll(interceptors.tests);
+     ..addAll(interceptors.tests)
+     ..addAll(closures.tests);
 
 class TestEntry {
   final String source;

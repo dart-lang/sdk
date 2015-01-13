@@ -65,11 +65,12 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       analyzer.PropertyInducingElement field, VariableDeclaration node) {
     dart2js.FieldElement element = converter.convertElement(field);
     return withBuilder(
-        new IrBuilder(DART_CONSTANT_SYSTEM,
-                      element,
-                      // TODO(johnniwinther): Supported closure variables.
-                      const <dart2js.Local>[]),
+        new DartIrBuilder(DART_CONSTANT_SYSTEM,
+                          element,
+                          // TODO(johnniwinther): Supported closure variables.
+                          new NullClosureVariableInfo()),
         () {
+      irBuilder.buildFieldInitializerHeader();
       ir.Primitive initializer = build(node.initializer);
       return irBuilder.makeFieldDefinition(initializer);
     });
@@ -79,16 +80,13 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       analyzer.FunctionElement function, FunctionExpression node) {
     dart2js.FunctionElement element = converter.convertElement(function);
     return withBuilder(
-        new IrBuilder(DART_CONSTANT_SYSTEM,
-                      element,
-                      // TODO(johnniwinther): Supported closure variables.
-                      const <dart2js.Local>[]),
+        new DartIrBuilder(DART_CONSTANT_SYSTEM,
+                          element,
+                          // TODO(johnniwinther): Supported closure variables.
+                          new NullClosureVariableInfo()),
         () {
-      function.parameters.forEach((analyzer.ParameterElement parameter) {
-        // TODO(johnniwinther): Support "closure variables", that is variables
-        // accessed from an inner function.
-        irBuilder.createFunctionParameter(converter.convertElement(parameter));
-      });
+      irBuilder.buildFunctionHeader(
+          function.parameters.map(converter.convertElement));
       // Visit the body directly to avoid processing the signature as
       // expressions.
       visit(node.body);
@@ -520,4 +518,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         converter.convertType(node.type.type),
         isTypeTest: false);
   }
+}
+
+class NullClosureVariableInfo extends ClosureVariableInfo {
+  Iterable get capturedVariables => const [];
 }

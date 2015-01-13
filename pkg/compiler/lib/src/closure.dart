@@ -104,7 +104,7 @@ abstract class CapturedVariable {}
 // find a more general solution.
 class ClosureFieldElement extends ElementX
     implements VariableElement, CapturedVariable {
-  /// The source variable this element refers to.
+  /// The [BoxLocal] or [LocalElement] being accessed through the field.
   final Local local;
 
   ClosureFieldElement(String name,
@@ -301,25 +301,25 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX {
 // The box-element for a scope, and the captured variables that need to be
 // stored in the box.
 class ClosureScope {
-  BoxLocal boxElement;
-  Map<VariableElement, BoxFieldElement> _capturedVariableMapping;
+  final BoxLocal boxElement;
+  final Map<Local, BoxFieldElement> capturedVariables;
 
   // If the scope is attached to a [For] contains the variables that are
   // declared in the initializer of the [For] and that need to be boxed.
   // Otherwise contains the empty List.
   List<VariableElement> boxedLoopVariables = const <VariableElement>[];
 
-  ClosureScope(this.boxElement, this._capturedVariableMapping);
+  ClosureScope(this.boxElement, this.capturedVariables);
 
   bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty;
 
   bool isCapturedVariable(VariableElement variable) {
-    return _capturedVariableMapping.containsKey(variable);
+    return capturedVariables.containsKey(variable);
   }
 
   void forEachCapturedVariable(f(LocalVariableElement variable,
                                  BoxFieldElement boxField)) {
-    _capturedVariableMapping.forEach(f);
+    capturedVariables.forEach(f);
   }
 }
 
@@ -335,19 +335,12 @@ class ClosureClassMap {
   // other argument. It is only set for instance-members.
   final ThisLocal thisLocal;
 
-  // Maps free locals, arguments and function elements to their captured
-  // copies.
-  final Map<Local, CapturedVariable> _freeVariableMapping =
+  // Maps free locals, arguments, function elements, and box locals to
+  // their locations.
+  final Map<Local, CapturedVariable> freeVariableMap =
       new Map<Local, CapturedVariable>();
 
-  // Maps closure-fields to their captured elements. This is somehow the inverse
-  // mapping of [freeVariableMapping], but whereas [freeVariableMapping] does
-  // not deal with boxes, here we map instance-fields (which might represent
-  // boxes) to their boxElement.
-  final Map<ClosureFieldElement, Local> _closureFieldMapping =
-      new Map<ClosureFieldElement, Local>();
-
-  // Maps scopes ([Loop] and [FunctionExpression] nodes) to their
+  // Maps [Loop] and [FunctionExpression] nodes to their
   // [ClosureScope] which contains their box and the
   // captured variables that are stored in the box.
   // This map will be empty if the method/closure of this [ClosureData] does not
@@ -362,45 +355,23 @@ class ClosureClassMap {
                   this.thisLocal);
 
   void addFreeVariable(Local element) {
-    assert(_freeVariableMapping[element] == null);
-    _freeVariableMapping[element] = null;
+    assert(freeVariableMap[element] == null);
+    freeVariableMap[element] = null;
   }
 
-  Iterable<Local> get freeVariables => _freeVariableMapping.keys;
+  Iterable<Local> get freeVariables => freeVariableMap.keys;
 
   bool isFreeVariable(Local element) {
-    return _freeVariableMapping.containsKey(element);
+    return freeVariableMap.containsKey(element);
   }
-
-  CapturedVariable getFreeVariableElement(Local element) {
-    return _freeVariableMapping[element];
-  }
-
-  /// Sets the free [variable] to be captured by the [boxField].
-  void setFreeVariableBoxField(Local variable,
-                               BoxFieldElement boxField) {
-    _freeVariableMapping[variable] = boxField;
-  }
-
-  /// Sets the free [variable] to be captured by the [closureField].
-  void setFreeVariableClosureField(Local variable,
-                                   ClosureFieldElement closureField) {
-    _freeVariableMapping[variable] = closureField;
-  }
-
 
   void forEachFreeVariable(f(Local variable,
                              CapturedVariable field)) {
-    _freeVariableMapping.forEach(f);
+    freeVariableMap.forEach(f);
   }
 
   Local getLocalVariableForClosureField(ClosureFieldElement field) {
-    return _closureFieldMapping[field];
-  }
-
-  void setLocalVariableForClosureField(ClosureFieldElement field,
-      Local variable) {
-    _closureFieldMapping[field] = variable;
+    return field.local;
   }
 
   bool get isClosure => closureElement != null;
@@ -412,7 +383,7 @@ class ClosureClassMap {
   }
 
   bool isVariableBoxed(Local variable) {
-    CapturedVariable copy = _freeVariableMapping[variable];
+    CapturedVariable copy = freeVariableMap[variable];
     if (copy is BoxFieldElement) {
       return true;
     }
@@ -421,7 +392,7 @@ class ClosureClassMap {
 
   void forEachCapturedVariable(void f(Local variable,
                                       CapturedVariable field)) {
-    _freeVariableMapping.forEach((variable, copy) {
+    freeVariableMap.forEach((variable, copy) {
       if (variable is BoxLocal) return;
       f(variable, copy);
     });
@@ -432,7 +403,7 @@ class ClosureClassMap {
 
   void forEachBoxedVariable(void f(LocalVariableElement local,
                                    BoxFieldElement field)) {
-    _freeVariableMapping.forEach((variable, copy) {
+    freeVariableMap.forEach((variable, copy) {
       if (!isVariableBoxed(variable)) return;
       f(variable, copy);
     });
@@ -442,7 +413,7 @@ class ClosureClassMap {
   }
 
   void removeMyselfFrom(Universe universe) {
-    _freeVariableMapping.values.forEach((e) {
+    freeVariableMap.values.forEach((e) {
       universe.closurizedMembers.remove(e);
       universe.fieldSetters.remove(e);
       universe.fieldGetters.remove(e);
@@ -544,7 +515,7 @@ class ClosureTranslator extends Visitor {
       Iterable<Local> freeVariables = data.freeVariables.toList();
       freeVariables.forEach((Local fromElement) {
         assert(data.isFreeVariable(fromElement));
-        assert(data.getFreeVariableElement(fromElement) == null);
+        assert(data.freeVariableMap[fromElement] == null);
         assert(isCapturedVariable(fromElement));
         BoxFieldElement boxFieldElement =
             getCapturedVariableBoxField(fromElement);
@@ -554,7 +525,7 @@ class ClosureTranslator extends Visitor {
           fieldCaptures.add(fromElement);
         } else {
           // A boxed element.
-          data.setFreeVariableBoxField(fromElement, boxFieldElement);
+          data.freeVariableMap[fromElement] = boxFieldElement;
           boxes.add(boxFieldElement.box);
         }
       });
@@ -566,8 +537,7 @@ class ClosureTranslator extends Visitor {
         ClosureFieldElement closureField =
             new ClosureFieldElement(name, local, closureClass);
         closureClass.addField(closureField, compiler);
-        data.setLocalVariableForClosureField(closureField, local);
-        data.setFreeVariableClosureField(local, closureField);
+        data.freeVariableMap[local] = closureField;
       }
 
       // Add the box elements first so we get the same ordering.

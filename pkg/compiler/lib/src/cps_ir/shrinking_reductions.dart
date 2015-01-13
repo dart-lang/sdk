@@ -420,6 +420,23 @@ class ParentVisitor extends RecursiveVisitor {
   processInterceptor(Interceptor node) {
     node.input.parent = node;
   }
+
+  processSetField(SetField node) {
+    node.object.parent = node;
+    node.value.parent = node;
+    node.body.parent = node;
+  }
+
+  processGetField(GetField node) {
+    node.object.parent = node;
+  }
+
+  processCreateClosureClass(CreateClosureClass node) {
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
+  processCreateBox(CreateBox node) {
+  }
 }
 
 class _ReductionKind {

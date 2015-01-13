@@ -894,6 +894,24 @@ class ASTEmitter
     return new SuperInitializer(node.target,
                                 emitArguments(arguments, node.selector));
   }
+
+  @override
+  visitGetField(tree.GetField node, arg) => errorUnsupportedNode(node);
+
+  @override
+  visitSetField(tree.SetField node, arg) => errorUnsupportedNode(node);
+
+  @override
+  visitCreateBox(tree.CreateBox node, arg) => errorUnsupportedNode(node);
+
+  @override
+  visitCreateClosureClass(tree.CreateClosureClass node, arg) {
+    return errorUnsupportedNode(node);
+  }
+
+  errorUnsupportedNode(tree.JsSpecificNode node) {
+    throw '$node not supported by dart backend';
+  }
 }
 
 class TypeGenerator {
