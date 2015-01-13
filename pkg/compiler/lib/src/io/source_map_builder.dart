@@ -6,8 +6,9 @@ library dart2js.source_map_builder;
 
 import '../util/util.dart';
 import '../scanner/scannerlib.dart' show Token;
-import '../source_file.dart';
 import '../util/uri_extras.dart' show relativize;
+import 'line_column_provider.dart';
+import 'source_file.dart';
 
 class SourceMapBuilder {
   static const int VLQ_BASE_SHIFT = 5;
@@ -20,7 +21,7 @@ class SourceMapBuilder {
   final Uri uri;
   final Uri fileUri;
 
-  SourceFile targetFile;
+  LineColumnProvider lineColumnProvider;
   List<SourceMapEntry> entries;
 
   Map<String, int> sourceUrlMap;
@@ -36,7 +37,7 @@ class SourceMapBuilder {
   int previousSourceNameIndex;
   bool firstEntryInLine;
 
-  SourceMapBuilder(this.uri, this.fileUri, this.targetFile) {
+  SourceMapBuilder(this.uri, this.fileUri, this.lineColumnProvider) {
     entries = new List<SourceMapEntry>();
 
     sourceUrlMap = new Map<String, int>();
@@ -87,7 +88,8 @@ class SourceMapBuilder {
   void addMapping(int targetOffset, SourceFileLocation sourceLocation) {
 
     bool sameLine(int position, otherPosition) {
-      return targetFile.getLine(position) == targetFile.getLine(otherPosition);
+      return lineColumnProvider.getLine(position) ==
+                 lineColumnProvider.getLine(otherPosition);
     }
 
     if (!entries.isEmpty && sameLine(targetOffset, entries.last.targetOffset)) {
@@ -125,8 +127,9 @@ class SourceMapBuilder {
   String build() {
     resetPreviousSourceLocation();
     StringBuffer mappingsBuffer = new StringBuffer();
-    entries.forEach((SourceMapEntry entry) => writeEntry(entry, targetFile,
-                                                         mappingsBuffer));
+    entries.forEach((SourceMapEntry entry) {
+      writeEntry(entry, mappingsBuffer);
+    });
     StringBuffer buffer = new StringBuffer();
     buffer.write('{\n');
     buffer.write('  "version": 3,\n');
@@ -151,9 +154,10 @@ class SourceMapBuilder {
     return buffer.toString();
   }
 
-  void writeEntry(SourceMapEntry entry, SourceFile targetFile, StringBuffer output) {
-    int targetLine = targetFile.getLine(entry.targetOffset);
-    int targetColumn = targetFile.getColumn(targetLine, entry.targetOffset);
+  void writeEntry(SourceMapEntry entry, StringBuffer output) {
+    int targetLine = lineColumnProvider.getLine(entry.targetOffset);
+    int targetColumn =
+        lineColumnProvider.getColumn(targetLine, entry.targetOffset);
 
     if (targetLine > previousTargetLine) {
       for (int i = previousTargetLine; i < targetLine; ++i) {

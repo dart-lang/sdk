@@ -9,7 +9,7 @@ import '../constants/values.dart' show PrimitiveConstantValue;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
-import '../source_file.dart';
+import '../io/source_file.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../universe/universe.dart' show SelectorKind;

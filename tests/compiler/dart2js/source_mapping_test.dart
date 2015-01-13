@@ -6,7 +6,7 @@ import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "package:compiler/src/io/code_output.dart";
-import 'package:compiler/src/source_file.dart';
+import 'package:compiler/src/io/source_file.dart';
 import "mock_compiler.dart";
 import 'package:compiler/src/js_backend/js_backend.dart';
 
@@ -16,7 +16,8 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   compiler.sourceFiles[uri.toString()] = sourceFile;
   JavaScriptBackend backend = compiler.backend;
   return compiler.runCompiler(uri).then((_) {
-    return backend.emitter.oldEmitter.mainBuffer;
+    return backend.emitter.oldEmitter
+        .outputBuffers[compiler.deferredLoadTask.mainOutputUnit];
   });
 }
 
@@ -30,9 +31,9 @@ void testSourceMapLocations(String codeWithMarkers) {
   String code = codeWithMarkers.replaceAll('@', '');
 
   SourceFile sourceFile = new StringSourceFile('<test script>', code);
-  asyncTest(() => compileAll(sourceFile).then((CodeBuffer buffer) {
+  asyncTest(() => compileAll(sourceFile).then((CodeOutput output) {
     Set<int> locations = new Set<int>();
-    buffer.forEachSourceLocation((int offset, var sourcePosition) {
+    output.forEachSourceLocation((int offset, var sourcePosition) {
       if (sourcePosition != null && sourcePosition.sourceFile == sourceFile) {
         locations.add(sourcePosition.token.charOffset);
       }

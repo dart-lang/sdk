@@ -2,19 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source_file;
+library dart2js.io.source_file;
 
 import 'dart:math';
 import 'dart:convert' show UTF8;
 
-/// Interface for providing line/column information.
-abstract class LineColumnProvider {
-  /// Returns the line number (0-based) for [offset].
-  int getLine(int offset);
-
-  /// Returns the column number (0-based) for [offset] at the given [line].
-  int getColumn(int line, int offset);
-}
+import 'line_column_provider.dart';
 
 /**
  * Represents a file of source code. The content can be either a [String] or

@@ -12,7 +12,7 @@ import 'dart:math' as math;
 import '../compiler.dart' as api show Diagnostic, DiagnosticHandler;
 import 'dart2js.dart' show AbortLeg;
 import 'colors.dart' as colors;
-import 'source_file.dart';
+import 'io/source_file.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'dart:typed_data';

@@ -47,7 +47,7 @@ import 'resolution/class_members.dart' show MembersCreator;
 import 'resolution/resolution.dart';
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
-import 'source_file.dart' show SourceFile;
+import 'io/source_file.dart' show SourceFile;
 import 'tracer.dart' show Tracer;
 import 'tree/tree.dart';
 import 'types/types.dart' as ti;

@@ -9,7 +9,6 @@ class NativeEmitter {
   final Map<Element, ClassBuilder> cachedBuilders;
 
   final CodeEmitterTask emitterTask;
-  CodeBuffer nativeBuffer;
 
   // Native classes found in the application.
   Set<ClassElement> nativeClasses = new Set<ClassElement>();
@@ -33,7 +32,6 @@ class NativeEmitter {
         subtypes = new Map<ClassElement, List<ClassElement>>(),
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         nativeMethods = new Set<FunctionElement>(),
-        nativeBuffer = new CodeBuffer(),
         cachedBuilders = emitterTask.compiler.cacheStrategy.newMap();
 
   Compiler get compiler => emitterTask.compiler;
@@ -45,7 +43,6 @@ class NativeEmitter {
   }
 
   /**
-   * Writes the class definitions for the interceptors to [mainBuffer].
    * Writes code to associate dispatch tags with interceptors to [nativeBuffer].
    *
    * The interceptors are filtered to avoid emitting trivial interceptors.  For
@@ -68,7 +65,6 @@ class NativeEmitter {
    */
   void generateNativeClasses(
       List<ClassElement> classes,
-      CodeBuffer mainBuffer,
       Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties) {
     // Compute a pre-order traversal of the subclass forest.  We actually want a
     // post-order traversal but it is easier to compute the pre-order and use it
@@ -442,7 +438,7 @@ class NativeEmitter {
     return isSupertypeOfNativeClass(element);
   }
 
-  void assembleCode(CodeBuffer targetBuffer) {
+  void assembleCode(CodeOutput targetOutput) {
     List<jsAst.Property> objectProperties = <jsAst.Property>[];
 
     jsAst.Property addProperty(String name, jsAst.Expression value) {
@@ -470,13 +466,14 @@ class NativeEmitter {
           [ defPropFunction,
             new jsAst.ObjectInitializer(objectProperties)]);
 
-      if (emitterTask.compiler.enableMinification) targetBuffer.write(';');
-      targetBuffer.write(jsAst.prettyPrint(
+      if (emitterTask.compiler.enableMinification) {
+        targetOutput.add(';');
+      }
+      targetOutput.addBuffer(jsAst.prettyPrint(
           new jsAst.ExpressionStatement(init), compiler));
-      targetBuffer.write('\n');
+      targetOutput.add('\n');
     }
 
-    targetBuffer.write(nativeBuffer);
-    targetBuffer.write('\n');
+    targetOutput.add('\n');
   }
 }

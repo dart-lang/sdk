@@ -58,7 +58,7 @@ class Printer extends Indentation implements NodeVisitor {
     if (str != "") {
       if (pendingSemicolon) {
         if (!shouldCompressOutput) {
-          outBuffer.write(";");
+          outBuffer.add(";");
         } else if (str != "}") {
           // We want to output newline instead of semicolon because it makes
           // the raw stack traces much easier to read and it also makes line-
@@ -72,19 +72,19 @@ class Printer extends Indentation implements NodeVisitor {
           // is escaped in strings, it is a lot easier to deal with semicolons
           // than newlines because the former doesn't need escaping.
           if (USE_NEW_EMITTER || expressionContinuationRegExp.hasMatch(str)) {
-            outBuffer.write(";");
+            outBuffer.add(";");
           } else {
-            outBuffer.write("\n");
+            outBuffer.add("\n");
           }
         }
       }
       if (pendingSpace &&
           (!shouldCompressOutput || identifierCharacterRegExp.hasMatch(str))) {
-        outBuffer.write(" ");
+        outBuffer.add(" ");
       }
       pendingSpace = false;
       pendingSemicolon = false;
-      outBuffer.write(str);
+      outBuffer.add(str);
       lastAddedString = str;
     }
   }

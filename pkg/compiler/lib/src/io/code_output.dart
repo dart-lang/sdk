@@ -6,8 +6,6 @@ library dart2js.code_output;
 
 import 'dart:async';
 
-import '../source_file.dart';
-
 import 'source_map_builder.dart';
 
 class CodeOutputMarker {
@@ -17,27 +15,55 @@ class CodeOutputMarker {
   CodeOutputMarker(this.offsetDelta, this.sourcePosition);
 }
 
+abstract class CodeOutputListener {
+  void onText(String text);
+  void onDone(int length);
+}
+
 abstract class CodeOutput {
-  List<CodeOutputMarker> markers = new List<CodeOutputMarker>();
+  /// Write [text] to this output.
+  ///
+  /// If the output is closed, a [StateError] is thrown.
+  void add(String text);
 
-  int lastBufferOffset = 0;
-  int mappedRangeCounter = 0;
+  /// Adds the content of [buffer] to the output and adds its markers to
+  /// [markers].
+  ///
+  /// If the output is closed, a [StateError] is thrown.
+  void addBuffer(CodeBuffer buffer);
 
+  /// Returns the number of characters currently write to this output.
   int get length;
 
-  void _writeInternal(String text);
+  /// Returns `true` if this output has been closed.
+  bool get isClosed;
 
-  /// Converts [object] to a string and adds it to the buffer. If [object] is a
-  /// [CodeBuffer], adds its markers to [markers].
-  void write(var object) {
-    if (object is CodeBuffer) {
-      addBuffer(object);
-      return;
+  /// Closes the output. Further writes will cause a [StateError].
+  void close();
+
+  /// Applies [f] to every marker in this output.
+  void forEachSourceLocation(void f(int targetOffset,
+                                    SourceFileLocation sourceLocation));
+}
+
+abstract class AbstractCodeOutput extends CodeOutput {
+  List<CodeOutputMarker> markers = new List<CodeOutputMarker>();
+  int lastBufferOffset = 0;
+  int mappedRangeCounter = 0;
+  bool isClosed = false;
+
+  void _addInternal(String text);
+
+  @override
+  void add(String text) {
+    if (isClosed) {
+      throw new StateError("Code output is closed. Trying to write '$text'.");
     }
     if (mappedRangeCounter == 0) setSourceLocation(null);
-    _writeInternal(object);
+    _addInternal(text);
   }
 
+  @override
   void addBuffer(CodeBuffer other) {
     if (other.markers.length > 0) {
       CodeOutputMarker firstMarker = other.markers[0];
@@ -50,7 +76,10 @@ abstract class CodeOutput {
       }
       lastBufferOffset = length + other.lastBufferOffset;
     }
-    _writeInternal(other.getText());
+    if (!other.isClosed) {
+      other.close();
+    }
+    _addInternal(other.getText());
   }
 
   void beginMappedRange() {
@@ -78,141 +107,58 @@ abstract class CodeOutput {
       f(targetOffset, marker.sourcePosition);
     });
   }
+
+  void close() {
+    if (isClosed) {
+      throw new StateError("Code output is already closed.");
+    }
+    isClosed = true;
+  }
 }
 
 /// [CodeOutput] using a [StringBuffer] as backend.
-class CodeBuffer extends CodeOutput implements StringBuffer {
+class CodeBuffer extends AbstractCodeOutput {
   StringBuffer buffer = new StringBuffer();
 
   @override
-  void _writeInternal(String text) {
+  void _addInternal(String text) {
     buffer.write(text);
   }
 
   @override
   int get length => buffer.length;
 
-  @override
-  bool get isEmpty => buffer.isEmpty;
-
-  @override
-  bool get isNotEmpty => buffer.isNotEmpty;
-
-  @override
-  void writeAll(Iterable<Object> objects, [String separator = ""]) {
-    Iterator iterator = objects.iterator;
-    if (!iterator.moveNext()) return;
-    if (separator.isEmpty) {
-      do {
-        write(iterator.current);
-      } while (iterator.moveNext());
-    } else {
-      write(iterator.current);
-      while (iterator.moveNext()) {
-        write(separator);
-        write(iterator.current);
-      }
-    }
-  }
-
-  @override
-  void writeln([var object = ""]) {
-    write(object);
-    write("\n");
-  }
-
-  @override
-  void writeCharCode(int charCode) {
-    buffer.writeCharCode(charCode);
-  }
-
-  @override
-  void clear() {
-    buffer = new StringBuffer();
-    markers.clear();
-    lastBufferOffset = 0;
+  String getText() {
+    return buffer.toString();
   }
 
   String toString() {
     throw "Don't use CodeBuffer.toString() since it drops sourcemap data.";
   }
-
-  String getText() {
-    return buffer.toString();
-  }
 }
 
 /// [CodeOutput] using a [CompilationOutput] as backend.
-class StreamCodeOutput extends CodeOutput {
+class StreamCodeOutput extends AbstractCodeOutput {
   int length = 0;
   final EventSink<String> output;
+  final List<CodeOutputListener> _listeners;
 
-  StreamCodeOutput(this.output);
+  StreamCodeOutput(this.output, [this._listeners]);
 
   @override
-  void _writeInternal(String text) {
+  void _addInternal(String text) {
     output.add(text);
     length += text.length;
+    if (_listeners != null) {
+      _listeners.forEach((listener) => listener.onText(text));
+    }
   }
 
   void close() {
     output.close();
-  }
-}
-
-/// [StreamCodeSink] that collects line information.
-class LineColumnCodeOutput extends StreamCodeOutput
-    implements LineColumnProvider {
-  int lastLineStart = 0;
-  List<int> lineStarts = <int>[0];
-
-  LineColumnCodeOutput(EventSink<String> output) : super(output);
-
-  @override
-  void _writeInternal(String text) {
-    int offset = lastLineStart;
-    int index = 0;
-    while (index < text.length) {
-      // Unix uses '\n' and Windows uses '\r\n', so this algorithm works for
-      // both platforms.
-      index = text.indexOf('\n', index) + 1;
-      if (index <= 0) break;
-      lastLineStart = offset + index;
-      lineStarts.add(lastLineStart);
-    }
-    super._writeInternal(text);
-  }
-
-  @override
-  int getLine(int offset) {
-    List<int> starts = lineStarts;
-    if (offset < 0|| starts.last <= offset) {
-      throw 'bad position #$offset in buffer with length ${length}.';
-    }
-    int first = 0;
-    int count = starts.length;
-    while (count > 1) {
-      int step = count ~/ 2;
-      int middle = first + step;
-      int lineStart = starts[middle];
-      if (offset < lineStart) {
-        count = step;
-      } else {
-        first = middle;
-        count -= step;
-      }
-    }
-    return first;
-  }
-
-  @override
-  int getColumn(int line, int offset) {
-    return offset - lineStarts[line];
-  }
-
-  @override
-  void close() {
-    lineStarts.add(length);
     super.close();
+    if (_listeners != null) {
+      _listeners.forEach((listener) => listener.onDone(length));
+    }
   }
 }

@@ -12,7 +12,7 @@ import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
 import 'package:_internal/libraries.dart' hide LIBRARIES;
 import 'package:_internal/libraries.dart' as library_info show LIBRARIES;
-import 'source_file.dart';
+import 'io/source_file.dart';
 
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');

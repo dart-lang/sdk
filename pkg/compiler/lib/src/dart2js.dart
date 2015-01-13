@@ -12,7 +12,7 @@ import 'dart:io'
          stdin, stderr;
 
 import '../compiler.dart' as api;
-import 'source_file.dart';
+import 'io/source_file.dart';
 import 'source_file_provider.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';

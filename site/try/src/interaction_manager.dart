@@ -33,7 +33,7 @@ import 'package:compiler/src/scanner/scannerlib.dart' show
     UnmatchedToken,
     UnterminatedToken;
 
-import 'package:compiler/src/source_file.dart' show
+import 'package:compiler/src/io/source_file.dart' show
     StringSourceFile;
 
 import 'package:compiler/src/string_validator.dart' show

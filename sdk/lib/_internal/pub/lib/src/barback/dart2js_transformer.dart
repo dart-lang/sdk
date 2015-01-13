@@ -15,7 +15,7 @@ import 'package:pool/pool.dart';
 import '../../../../../../../pkg/compiler/lib/compiler.dart' as compiler;
 import '../../../../../../../pkg/compiler/lib/src/dart2js.dart'
     show AbortLeg;
-import '../../../../../../../pkg/compiler/lib/src/source_file.dart';
+import '../../../../../../../pkg/compiler/lib/src/io/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
 import '../utils.dart';

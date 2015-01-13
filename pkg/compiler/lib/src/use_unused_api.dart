@@ -192,8 +192,6 @@ useSsa(ssa.HInstruction instruction) {
 }
 
 useCodeBuffer(io.CodeBuffer buffer) {
-  buffer.writeln();
-  new io.LineColumnCodeOutput(null);
 }
 
 usedByTests() {

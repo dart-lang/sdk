@@ -75,9 +75,14 @@ class OutputUnit {
   /// loaded.
   final Setlet<Import> imports = new Setlet<Import>();
 
+  /// `true` if this output unit is for the main output file.
+  final bool isMainOutput;
+
   /// A unique name representing this [OutputUnit].
   /// Based on the set of [imports].
   String name;
+
+  OutputUnit({this.isMainOutput: false});
 
   String toString() => "OutputUnit($name)";
 
@@ -111,7 +116,7 @@ class DeferredLoadTask extends CompilerTask {
       new LiteralDartString("main")), null, null, null);
 
   /// The OutputUnit that will be loaded when the program starts.
-  final OutputUnit mainOutputUnit = new OutputUnit();
+  final OutputUnit mainOutputUnit = new OutputUnit(isMainOutput: true);
 
   /// A set containing (eventually) all output units that will result from the
   /// program.

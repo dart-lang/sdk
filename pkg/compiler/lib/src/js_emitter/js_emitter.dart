@@ -4,6 +4,7 @@
 
 library dart2js.js_emitter;
 
+import 'dart:async';
 import 'dart:convert';
 
 import '../common.dart';
@@ -20,8 +21,7 @@ import '../closure.dart' show
 import '../dart_types.dart' show
     TypedefType;
 
-import '../io/code_output.dart' show
-    CodeBuffer;
+import '../io/code_output.dart';
 
 import '../elements/elements.dart' show
     ConstructorBodyElement,
@@ -32,7 +32,7 @@ import '../elements/elements.dart' show
 
 import '../hash/sha1.dart' show hashOfString;
 
-// import '../helpers/helpers.dart';  // Included for debug helpers.
+import '../helpers/helpers.dart';  // Included for debug helpers.
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show
@@ -57,9 +57,9 @@ import 'program_builder.dart';
 
 import 'new_emitter/emitter.dart' as new_js_emitter;
 
-import '../source_file.dart' show
-    SourceFile,
-    StringSourceFile;
+import '../io/line_column_provider.dart' show
+    LineColumnCollector,
+    LineColumnProvider;
 
 import '../io/source_map_builder.dart' show
     SourceMapBuilder;

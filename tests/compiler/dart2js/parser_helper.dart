@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 import "package:compiler/src/elements/elements.dart";
 import "package:compiler/src/tree/tree.dart";
 import "package:compiler/src/scanner/scannerlib.dart";
-import "package:compiler/src/source_file.dart";
+import "package:compiler/src/io/source_file.dart";
 import "package:compiler/src/util/util.dart";
 
 import "package:compiler/src/elements/modelx.dart"

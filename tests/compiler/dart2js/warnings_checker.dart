@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/source_file.dart';
+import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'dart:convert';

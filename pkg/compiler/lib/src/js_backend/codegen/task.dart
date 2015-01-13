@@ -11,7 +11,7 @@ import 'unsugar.dart';
 
 import '../js_backend.dart';
 import '../../dart2jslib.dart';
-import '../../source_file.dart';
+import '../../io/source_file.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_builder.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;

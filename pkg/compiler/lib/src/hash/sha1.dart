@@ -11,33 +11,55 @@ library sha1;
 import 'dart:math' show pow;
 import 'dart:convert';
 
-/// Returns the base64-encoded SHA-1 hash of the utf-8 bytes of [input].
-String hashOfString(String input) {
-  Hash hasher = new SHA1();
-  hasher.add(const Utf8Encoder().convert(input));
-  return _bytesToBase64(hasher.close());
-}
+import '../io/code_output.dart' show CodeOutputListener;
 
-/**
- * Converts a list of bytes into a Base 64 encoded string.
- *
- * The list can be any list of integers in the range 0..255,
- * for example a message digest.
- *
- * If [addLineSeparator] is true, the resulting string will  be
- * broken into lines of 76 characters, separated by "\r\n".
- *
- * If [urlSafe] is true, the result is URL and filename safe.
- *
- * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
- *
- */
-String _bytesToBase64(List<int> bytes,
-                            {bool urlSafe : false,
-                             bool addLineSeparator : false}) {
-  return _CryptoUtils.bytesToBase64(bytes,
-                                    urlSafe,
-                                    addLineSeparator);
+class Hasher implements CodeOutputListener {
+  Hash _hasher = new SHA1();
+  String _hashString;
+
+  @override
+  void onDone(int length) {
+    // Do nothing.
+  }
+
+  @override
+  void onText(String text) {
+    if (_hasher != null) {
+      _hasher.add(const Utf8Encoder().convert(text));
+    }
+  }
+
+  /// Returns the base64-encoded SHA-1 hash of the utf-8 bytes of the output
+  /// text.
+  String getHash() {
+    if (_hashString == null) {
+      _hashString = _bytesToBase64(_hasher.close());
+      _hasher = null;
+    }
+    return _hashString;
+  }
+
+  /**
+   * Converts a list of bytes into a Base 64 encoded string.
+   *
+   * The list can be any list of integers in the range 0..255,
+   * for example a message digest.
+   *
+   * If [addLineSeparator] is true, the resulting string will  be
+   * broken into lines of 76 characters, separated by "\r\n".
+   *
+   * If [urlSafe] is true, the result is URL and filename safe.
+   *
+   * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
+   *
+   */
+  String _bytesToBase64(List<int> bytes,
+                              {bool urlSafe : false,
+                               bool addLineSeparator : false}) {
+    return _CryptoUtils.bytesToBase64(bytes,
+                                      urlSafe,
+                                      addLineSeparator);
+  }
 }
 
 
