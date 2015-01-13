@@ -515,13 +515,20 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   void _assertSameAnnotation(Annotation node, ElementAnnotation annotation) {
-    _assertNull(node.arguments);
     Element element = annotation.element;
-    _assertTrue(element is PropertyAccessorElement);
-    _assertTrue(node.name is SimpleIdentifier);
-    String nodeName = node.name.name;
-    String elementName = element.displayName;
-    _assertEquals(nodeName, elementName);
+    if (element is ConstructorElement) {
+      _assertTrue(node.name is SimpleIdentifier);
+      _assertNull(node.constructorName);
+      TypeName nodeType = new TypeName(node.name, null);
+      _assertSameType(nodeType, element.returnType);
+      // TODO(scheglov) validate arguments
+    }
+    if (element is PropertyAccessorElement) {
+      _assertTrue(node.name is SimpleIdentifier);
+      String nodeName = node.name.name;
+      String elementName = element.displayName;
+      _assertEquals(nodeName, elementName);
+    }
   }
 
   void _assertSameAnnotations(AnnotatedNode node, Element element) {

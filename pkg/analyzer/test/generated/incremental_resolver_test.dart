@@ -70,7 +70,7 @@ class DeclarationMatcherTest extends ResolverTestCase {
     test_resolveApiChanges = true;
   }
 
-  void test_false_class_annotation_edit() {
+  void test_false_class_annotation_accessor_edit() {
     _assertDoesNotMatch(r'''
 const my_annotationA = const Object();
 const my_annotationB = const Object();
@@ -81,6 +81,30 @@ class A {
 const my_annotationA = const Object();
 const my_annotationB = const Object();
 @my_annotationB
+class A {
+}
+''');
+  }
+
+  void test_false_class_annotation_constructor_edit() {
+    _assertDoesNotMatch(r'''
+class MyAnnotationA {
+  const MyAnnotationA();
+}
+class MyAnnotationB {
+  const MyAnnotationB();
+}
+@MyAnnotationA()
+class A {
+}
+''', r'''
+class MyAnnotationA {
+  const MyAnnotationA();
+}
+class MyAnnotationB {
+  const MyAnnotationB();
+}
+@MyAnnotationB()
 class A {
 }
 ''');
@@ -1715,7 +1739,7 @@ import 'dart:async' show Stream, Future;
 ''');
   }
 
-  void test_true_method_annotations_same() {
+  void test_true_method_annotation_accessor_same() {
     _assertMatches(r'''
 const my_annotation = const Object();
 class A {
@@ -1726,6 +1750,26 @@ class A {
 const my_annotation = const Object();
 class A {
   @my_annotation
+  void m() {}
+}
+''');
+  }
+
+  void test_true_method_annotation_constructor_same() {
+    _assertMatches(r'''
+class MyAnnotation {
+  const MyAnnotation();
+}
+class A {
+  @MyAnnotation()
+  void m() {}
+}
+''', r'''
+class MyAnnotation {
+  const MyAnnotation();
+}
+class A {
+  @MyAnnotation()
   void m() {}
 }
 ''');
