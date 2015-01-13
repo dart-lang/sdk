@@ -265,8 +265,6 @@ class _IntegerImplementation extends _Num {
 
   _leftShiftWithMask32(count, mask)  native "Integer_leftShiftWithMask32";
 
-  // TODO(regis): Make this method private once the plumbing to invoke it from
-  // dart:math is in place. Move the argument checking to dart:math.
   // Return pow(this, e) % m.
   int modPow(int e, int m) {
     if (e is! int) throw new ArgumentError(e);

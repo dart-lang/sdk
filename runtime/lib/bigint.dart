@@ -1328,8 +1328,6 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigint()._compareTo(this) == 0;
   }
 
-  // TODO(regis): Make this method private once the plumbing to invoke it from
-  // dart:math is in place. Move the argument checking to dart:math.
   // Return pow(this, e) % m.
   int modPow(int e, int m) {
     if (e is! int) throw new ArgumentError(e);
