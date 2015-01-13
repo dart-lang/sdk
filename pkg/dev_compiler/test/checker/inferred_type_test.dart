@@ -53,6 +53,35 @@ main() {
     });
   });
 
+  test('infer types on loop indices', () {
+    // foreach loop
+    testChecker({
+      '/main.dart': '''
+      class Foo {
+        int bar = 42;
+      }
+
+      test() {
+        var l = List<Foo>();
+        for (var x in list) {
+          String y = /*info:DownCast should be severe:StaticTypeError*/x;
+        }
+      }
+      '''
+    });
+
+    // for loop, with inference
+    testChecker({
+      '/main.dart': '''
+      test() {
+        for (var i = 0; i < 10; i++) {
+          int j = i + 1;
+        }
+      }
+      '''
+    });
+  });
+
   test('propagate inference to field in class', () {
     testChecker({
       '/main.dart': '''
