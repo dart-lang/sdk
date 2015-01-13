@@ -9,8 +9,6 @@ dependencies:
   analyzer: 0.23.0-dev.13
   args: '>=0.12.1 <0.13.0'
   dart_style: '>=1.0.2'
-  g3_instrumentation_server:
-    path: /Users/pquitslund/src/git/tgz/dart-instrumentation-master/dartClient
   logging: any
   path: any
   watcher: any
