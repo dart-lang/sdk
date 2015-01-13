@@ -22,58 +22,83 @@ import 'package:analyzer/src/generated/source.dart';
 
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
-  if (errors == null) {
-    errors = <AnalysisError>[];
+  try {
+    if (errors == null) {
+      errors = <AnalysisError>[];
+    }
+    var serverErrors =
+        protocol.doAnalysisError_listFromEngine(lineInfo, errors);
+    var params = new protocol.AnalysisErrorsParams(file, serverErrors);
+    server.sendNotification(params.toNotification());
+  } catch (exception, stackTrace) {
+    server.sendServerErrorNotification(exception, stackTrace);
   }
-  var serverErrors = protocol.doAnalysisError_listFromEngine(lineInfo, errors);
-  var params = new protocol.AnalysisErrorsParams(file, serverErrors);
-  server.sendNotification(params.toNotification());
 }
 
 
 void sendAnalysisNotificationHighlights(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  var regions = new DartUnitHighlightsComputer(dartUnit).compute();
-  var params = new protocol.AnalysisHighlightsParams(file, regions);
-  server.sendNotification(params.toNotification());
+  try {
+    var regions = new DartUnitHighlightsComputer(dartUnit).compute();
+    var params = new protocol.AnalysisHighlightsParams(file, regions);
+    server.sendNotification(params.toNotification());
+  } catch (exception, stackTrace) {
+    server.sendServerErrorNotification(exception, stackTrace);
+  }
 }
 
 
 void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  var computer = new DartUnitNavigationComputer(dartUnit);
-  computer.compute();
-  var params = new protocol.AnalysisNavigationParams(
-      file,
-      computer.regions,
-      computer.targets,
-      computer.files);
-  server.sendNotification(params.toNotification());
+  try {
+    var computer = new DartUnitNavigationComputer(dartUnit);
+    computer.compute();
+    var params = new protocol.AnalysisNavigationParams(
+        file,
+        computer.regions,
+        computer.targets,
+        computer.files);
+    server.sendNotification(params.toNotification());
+  } catch (exception, stackTrace) {
+    server.sendServerErrorNotification(exception, stackTrace);
+  }
 }
 
 
 void sendAnalysisNotificationOccurrences(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  var occurrences = new DartUnitOccurrencesComputer(dartUnit).compute();
-  var params = new protocol.AnalysisOccurrencesParams(file, occurrences);
-  server.sendNotification(params.toNotification());
+  try {
+    var occurrences = new DartUnitOccurrencesComputer(dartUnit).compute();
+    var params = new protocol.AnalysisOccurrencesParams(file, occurrences);
+    server.sendNotification(params.toNotification());
+  } catch (exception, stackTrace) {
+    server.sendServerErrorNotification(exception, stackTrace);
+  }
 }
 
 
 void sendAnalysisNotificationOutline(AnalysisServer server, Source source,
     LineInfo lineInfo, CompilationUnit dartUnit) {
-  var outline =
-      new DartUnitOutlineComputer(source, lineInfo, dartUnit).compute();
-  var params = new protocol.AnalysisOutlineParams(source.fullName, outline);
-  server.sendNotification(params.toNotification());
+  try {
+    var computer = new DartUnitOutlineComputer(source, lineInfo, dartUnit);
+    var outline = computer.compute();
+    var params = new protocol.AnalysisOutlineParams(source.fullName, outline);
+    server.sendNotification(params.toNotification());
+  } catch (exception, stackTrace) {
+    server.sendServerErrorNotification(exception, stackTrace);
+  }
 }
 
 
 void sendAnalysisNotificationOverrides(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  var overrides = new DartUnitOverridesComputer(dartUnit).compute();
-  var params = new protocol.AnalysisOverridesParams(file, overrides);
-  server.sendNotification(params.toNotification());
+  try {
+    var overrides = new DartUnitOverridesComputer(dartUnit).compute();
+    var params = new protocol.AnalysisOverridesParams(file, overrides);
+    server.sendNotification(params.toNotification());
+  } catch (exception, stackTrace) {
+    server.sendServerErrorNotification(exception, stackTrace);
+  }
 }
 
 
@@ -116,7 +141,7 @@ class PerformAnalysisOperation extends ServerOperation {
     }
     // process results
     sendNotices(server, notices);
-    updateIndex(server.index, notices);
+    updateIndex(server, notices);
     // continue analysis
     server.addOperation(new PerformAnalysisOperation(context, true));
   }
@@ -170,24 +195,29 @@ class PerformAnalysisOperation extends ServerOperation {
     }
   }
 
-  void updateIndex(Index index, List<ChangeNotice> notices) {
+  void updateIndex(AnalysisServer server, List<ChangeNotice> notices) {
+    Index index = server.index;
     if (index == null) {
       return;
     }
     for (ChangeNotice notice in notices) {
       // Dart
-      {
+      try {
         CompilationUnit dartUnit = notice.compilationUnit;
         if (dartUnit != null) {
           index.indexUnit(context, dartUnit);
         }
+      } catch (exception, stackTrace) {
+        server.sendServerErrorNotification(exception, stackTrace);
       }
       // HTML
-      {
+      try {
         HtmlUnit htmlUnit = notice.htmlUnit;
         if (htmlUnit != null) {
           index.indexHtmlUnit(context, htmlUnit);
         }
+      } catch (exception, stackTrace) {
+        server.sendServerErrorNotification(exception, stackTrace);
       }
     }
   }

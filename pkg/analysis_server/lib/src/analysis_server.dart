@@ -512,7 +512,9 @@ class AnalysisServer {
         }
       }
       channel.sendResponse(new Response.unknownRequest(request));
-    }, onError: _sendServerErrorNotification);
+    }, onError: (exception, stackTrace) {
+      sendServerErrorNotification(exception, stackTrace, fatal: true);
+    });
   }
 
   /**
@@ -603,7 +605,7 @@ class AnalysisServer {
             'Unexpected exception during analysis',
             new CaughtException(exception, stackTrace));
       }
-      _sendServerErrorNotification(exception, stackTrace);
+      sendServerErrorNotification(exception, stackTrace, fatal: true);
       shutdown();
     } finally {
       if (!operationQueue.isEmpty) {
@@ -624,14 +626,6 @@ class AnalysisServer {
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
     contextDirectoryManager.refresh();
-  }
-
-  /**
-   * Report to the client that the given [exception] was caught with the
-   * associated [stackTrace].
-   */
-  void reportException(dynamic exception, StackTrace stackTrace) {
-    _sendServerErrorNotification(exception, stackTrace);
   }
 
   /**
@@ -677,6 +671,32 @@ class AnalysisServer {
    */
   void sendResponse(Response response) {
     channel.sendResponse(response);
+  }
+
+  /**
+   * Sends a `server.error` notification.
+   */
+  void sendServerErrorNotification(exception, stackTrace, {bool fatal: false}) {
+    // prepare exception.toString()
+    String exceptionString;
+    if (exception != null) {
+      exceptionString = exception.toString();
+    } else {
+      exceptionString = 'null exception';
+    }
+    // prepare stackTrace.toString()
+    String stackTraceString;
+    if (stackTrace != null) {
+      stackTraceString = stackTrace.toString();
+    } else {
+      stackTraceString = 'null stackTrace';
+    }
+    // send the notification
+    channel.sendNotification(
+        new ServerErrorParams(
+            fatal,
+            exceptionString,
+            stackTraceString).toNotification());
   }
 
   /**
@@ -914,32 +934,6 @@ class AnalysisServer {
     assert(!performOperationPending);
     new Future(performOperation);
     performOperationPending = true;
-  }
-
-  /**
-   * Sends a fatal `server.error` notification.
-   */
-  void _sendServerErrorNotification(exception, stackTrace) {
-    // prepare exception.toString()
-    String exceptionString;
-    if (exception != null) {
-      exceptionString = exception.toString();
-    } else {
-      exceptionString = 'null exception';
-    }
-    // prepare stackTrace.toString()
-    String stackTraceString;
-    if (stackTrace != null) {
-      stackTraceString = stackTrace.toString();
-    } else {
-      stackTraceString = 'null stackTrace';
-    }
-    // send the notification
-    channel.sendNotification(
-        new ServerErrorParams(
-            true,
-            exceptionString,
-            stackTraceString).toNotification());
   }
 }
 

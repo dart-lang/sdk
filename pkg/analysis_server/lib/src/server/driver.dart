@@ -252,7 +252,8 @@ class Driver implements ServerStarter {
         (Zone self, ZoneDelegate parent, Zone zone, dynamic exception,
             StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
-      socketServer.analysisServer.reportException(exception, stackTrace);
+      AnalysisServer analysisServer = socketServer.analysisServer;
+      analysisServer.sendServerErrorNotification(exception, stackTrace);
       throw exception;
     };
     Function printFunction = print == null ?
