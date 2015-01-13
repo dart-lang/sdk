@@ -118,7 +118,9 @@ class Zone {
   template <class ElementType>
   void Free(ElementType* old_array, intptr_t len) {
 #ifdef DEBUG
-    memset(old_array, kZapUninitializedByte, len * sizeof(ElementType));
+    if (len > 0) {
+      memset(old_array, kZapUninitializedByte, len * sizeof(ElementType));
+    }
 #endif
   }
 
