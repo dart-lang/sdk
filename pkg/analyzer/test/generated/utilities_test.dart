@@ -61,7 +61,7 @@ class AstCloneComparator extends AstComparator {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AstClonerTest extends EngineTestCase {
   void test_visitAdjacentStrings() {
     _assertClone(
@@ -2053,7 +2053,7 @@ class AstClonerTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class BooleanArrayTest {
   void test_get_negative() {
     try {
@@ -2113,7 +2113,7 @@ class BooleanArrayTest {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class DirectedGraphTest extends EngineTestCase {
   void test_addEdge() {
     DirectedGraph<DirectedGraphTest_Node> graph =
@@ -3251,7 +3251,7 @@ class Getter_NodeReplacerTest_testUriBasedDirective implements
   StringLiteral get(UriBasedDirective node) => node.uri;
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LineInfoTest {
   void test_creation() {
     expect(new LineInfo(<int>[0]), isNotNull);
@@ -3563,7 +3563,7 @@ class ListGetter_NodeReplacerTest_testSwitchMember_2 extends
   NodeList<Statement> getList(SwitchMember node) => node.statements;
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ListUtilitiesTest {
   void test_addAll_emptyToEmpty() {
     List<String> list = new List<String>();
@@ -3596,7 +3596,7 @@ class ListUtilitiesTest {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class MultipleMapIteratorTest extends EngineTestCase {
   void test_multipleMaps_firstEmpty() {
     Map<String, String> map1 = new HashMap<String, String>();
@@ -3714,7 +3714,7 @@ class MultipleMapIteratorTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NodeReplacerTest extends EngineTestCase {
   /**
    * An empty list of tokens.
@@ -4764,7 +4764,7 @@ abstract class NodeReplacerTest_ListGetter<P extends AstNode, C extends AstNode>
   NodeList<C> getList(P parent);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SingleMapIteratorTest extends EngineTestCase {
   void test_empty() {
     Map<String, String> map = new HashMap<String, String>();
@@ -4822,7 +4822,7 @@ class SingleMapIteratorTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SourceRangeTest {
   void test_access() {
     SourceRange r = new SourceRange(10, 1);
@@ -4972,7 +4972,7 @@ class SourceRangeTest {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class StringUtilitiesTest {
   void test_EMPTY() {
     expect(StringUtilities.EMPTY, "");
@@ -5229,7 +5229,7 @@ class StringUtilitiesTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TokenMapTest {
   void test_creation() {
     expect(new TokenMap(), isNotNull);

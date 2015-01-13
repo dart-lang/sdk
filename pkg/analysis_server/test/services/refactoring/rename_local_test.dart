@@ -17,7 +17,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RenameLocalTest extends RenameRefactoringTest {
   test_checkFinalConditions_hasLocalFunction_after() {
     indexTestUnit('''

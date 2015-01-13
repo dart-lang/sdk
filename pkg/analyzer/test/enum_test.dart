@@ -25,7 +25,7 @@ void main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class EnumTest {
   void test_AnalysisLevel() {
     new EnumTester<AnalysisLevel>()

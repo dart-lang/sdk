@@ -17,7 +17,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SearchResultKindTest {
   void test_fromEngine() {
     expect(

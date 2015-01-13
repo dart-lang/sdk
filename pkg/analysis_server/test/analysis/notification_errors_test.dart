@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NotificationErrorsTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 

@@ -95,7 +95,7 @@ class BreadthFirstVisitor_BreadthFirstVisitorTest_testIt extends
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class BreadthFirstVisitorTest extends ParserTestCase {
   void test_it() {
     String source = r'''
@@ -147,7 +147,7 @@ A f(var p) {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ClassDeclarationTest extends ParserTestCase {
   void test_getConstructor() {
     List<ConstructorInitializer> initializers =
@@ -246,7 +246,7 @@ class ClassDeclarationTest extends ParserTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ClassTypeAliasTest extends ParserTestCase {
   void test_isAbstract() {
     expect(
@@ -264,7 +264,7 @@ class ClassTypeAliasTest extends ParserTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ConstantEvaluatorTest extends ParserTestCase {
   void fail_constructor() {
     Object value = _getConstantValue("?");
@@ -582,7 +582,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
       ParserTestCase.parseExpression(source).accept(new ConstantEvaluator());
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ConstructorDeclarationTest extends EngineTestCase {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
     Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
@@ -662,7 +662,7 @@ class ConstructorDeclarationTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class IndexExpressionTest extends EngineTestCase {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstFactory.indexExpression(
@@ -797,7 +797,7 @@ class IndexExpressionTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NodeListTest extends EngineTestCase {
   void test_add() {
     AstNode parent = AstFactory.argumentList();
@@ -1025,7 +1025,7 @@ class NodeListTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NodeLocatorTest extends ParserTestCase {
   void test_range() {
     CompilationUnit unit =
@@ -1087,7 +1087,7 @@ class B {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_catch_exception() {
     SimpleIdentifier identifier =
@@ -1406,7 +1406,7 @@ class SimpleIdentifierTest extends ParserTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SimpleStringLiteralTest extends ParserTestCase {
   void test_contentsEnd() {
     expect(
@@ -1620,7 +1620,7 @@ class SimpleStringLiteralTest extends ParserTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class StringInterpolationTest extends ParserTestCase {
   void test_contentsOffsetEnd() {
     AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
@@ -1750,7 +1750,7 @@ class StringInterpolationTest extends ParserTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ToSourceVisitorTest extends EngineTestCase {
   void test_visitAdjacentStrings() {
     _assertSource(
@@ -4044,7 +4044,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class VariableDeclarationTest extends ParserTestCase {
   void test_getDocumentationComment_onGrandParent() {
     VariableDeclaration varDecl = AstFactory.variableDeclaration("a");

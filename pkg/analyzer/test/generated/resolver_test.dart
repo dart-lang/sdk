@@ -463,7 +463,7 @@ class AnalysisContextHelper {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisDeltaTest extends EngineTestCase {
   TestSource source1 = new TestSource('/1.dart');
   TestSource source2 = new TestSource('/2.dart');
@@ -503,7 +503,7 @@ class AnalysisDeltaTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ChangeSetTest extends EngineTestCase {
   void test_changedContent() {
     TestSource source = new TestSource();
@@ -556,7 +556,7 @@ class ChangeSetTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
   void test_fieldFormalParameterAssignableToField_extends() {
     // According to checked-mode type checking rules, a value of type B is
@@ -1142,7 +1142,7 @@ var v = const A.a1(0);''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementResolverTest extends EngineTestCase {
   /**
    * The error listener to which errors will be reported.
@@ -2076,7 +2076,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -2107,7 +2107,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ErrorResolverTest extends ResolverTestCase {
   void test_breakLabelOnSwitchMember() {
     Source source = addSource(r'''
@@ -2170,7 +2170,7 @@ class C {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class HintCodeTest extends ResolverTestCase {
   void fail_deadCode_statementAfterRehrow() {
     Source source = addSource(r'''
@@ -4440,7 +4440,7 @@ class A {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InheritanceManagerTest extends EngineTestCase {
   /**
    * The type provider used to access the types.
@@ -5658,7 +5658,7 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryElementBuilderTest extends EngineTestCase {
   /**
    * The analysis context used to analyze sources.
@@ -5842,7 +5842,7 @@ class A {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_conflictingImports() {
     AnalysisContext context = new AnalysisContextImpl();
@@ -6038,7 +6038,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryResolver2Test extends ResolverTestCase {
   LibraryResolver2 _resolver;
 
@@ -6085,7 +6085,7 @@ class B {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryResolverTest extends ResolverTestCase {
   LibraryResolver _resolver;
 
@@ -6126,7 +6126,7 @@ class A {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryScopeTest extends ResolverTestCase {
   void test_creation_empty() {
     LibraryElement definingLibrary = createDefaultTestLibrary();
@@ -6163,7 +6163,7 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryTest extends EngineTestCase {
   /**
    * The error listener to which all errors will be reported.
@@ -6280,7 +6280,7 @@ class LibraryTest extends EngineTestCase {
               FileUtilities2.createFile(definingCompilationUnitPath)));
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class MemberMapTest {
   /**
    * The null type.
@@ -6326,7 +6326,7 @@ class MemberMapTest {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(r'''
@@ -7975,7 +7975,7 @@ class Scope_EnclosedScopeTest_test_define_normal extends Scope {
       null;
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener = new GatheringErrorListener();
@@ -8033,7 +8033,7 @@ class ScopeTest_TestScope extends Scope {
       localLookup(name, referencingLibrary);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SimpleResolverTest extends ResolverTestCase {
   void fail_staticInvocation() {
     Source source = addSource(r'''
@@ -9375,7 +9375,7 @@ class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
 /**
  * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class StaticTypeAnalyzer2Test extends ResolverTestCase {
   String testCode;
   Source testSource;
@@ -9448,7 +9448,7 @@ main(p) {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
    * The error listener to which errors will be reported.
@@ -10867,7 +10867,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
  * The class `StrictModeTest` contains tests to ensure that the correct errors and warnings
  * are reported when the analysis engine is run in strict mode.
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class StrictModeTest extends ResolverTestCase {
   void fail_for() {
     Source source = addSource(r'''
@@ -11019,7 +11019,7 @@ int f() {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SubtypeManagerTest extends EngineTestCase {
   /**
    * The inheritance manager being tested.
@@ -11585,7 +11585,7 @@ class TestTypeProvider implements TypeProvider {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypeOverrideManagerTest extends EngineTestCase {
   void test_exitScope_noScopes() {
     TypeOverrideManager manager = new TypeOverrideManager();
@@ -11656,7 +11656,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
@@ -13132,7 +13132,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypeProviderImplTest extends EngineTestCase {
   void test_creation() {
     //
@@ -13219,7 +13219,7 @@ class TypeProviderImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypeResolverVisitorTest extends EngineTestCase {
   /**
    * The error listener to which errors will be reported.

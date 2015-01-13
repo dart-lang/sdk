@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class VariableNameSuggestionTest extends AbstractSingleUnitTest {
   void test_forExpression_cast() {
     resolveTestUnit('''

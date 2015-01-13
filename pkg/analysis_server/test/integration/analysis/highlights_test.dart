@@ -14,7 +14,7 @@ main() {
   runReflectiveTests(AnalysisHighlightsTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   test_highlights() {
     String pathname = sourcePath('test.dart');

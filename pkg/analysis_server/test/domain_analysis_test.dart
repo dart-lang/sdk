@@ -352,7 +352,7 @@ testUpdateContent() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 

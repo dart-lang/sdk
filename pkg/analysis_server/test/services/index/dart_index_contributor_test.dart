@@ -61,7 +61,7 @@ bool _equalsRecordedRelation(RecordedRelation recordedRelation,
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class DartUnitContributorTest extends AbstractSingleUnitTest {
   IndexStore store = new MockIndexStore();
   List<RecordedRelation> recordedRelations = <RecordedRelation>[];

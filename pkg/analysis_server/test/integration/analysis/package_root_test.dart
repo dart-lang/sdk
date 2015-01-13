@@ -15,7 +15,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_package_root() {
     String projPath = sourcePath('project');

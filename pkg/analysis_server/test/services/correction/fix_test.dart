@@ -26,7 +26,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class FixProcessorTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;

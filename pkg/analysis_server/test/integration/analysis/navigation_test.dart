@@ -14,7 +14,7 @@ main() {
   runReflectiveTests(AnalysisNavigationTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisNavigationTest extends AbstractAnalysisServerIntegrationTest {
   test_navigation() {
     String pathname1 = sourcePath('test1.dart');

@@ -15,7 +15,7 @@ main() {
   runReflectiveTests(LevenshteinTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LevenshteinTest {
   void test_different_caseInsensitive() {
     expect(levenshtein('Saturday', 'sunday', 5, caseSensitive: false), 3);

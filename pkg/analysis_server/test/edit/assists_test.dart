@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AssistsTest extends AbstractAnalysisTest {
   List<SourceChange> changes;
 

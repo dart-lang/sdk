@@ -22,7 +22,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class GetTypeHierarchyTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getTypeHierarchy';
 

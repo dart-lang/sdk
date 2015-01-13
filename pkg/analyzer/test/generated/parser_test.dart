@@ -123,7 +123,7 @@ class AstValidator extends UnifyingAstVisitor<Object> {
  *
  * Simpler tests should be defined in the class [SimpleParserTest].
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class ComplexParserTest extends ParserTestCase {
   void test_additiveExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x + y - z");
@@ -584,7 +584,7 @@ class C {
  * The class `ErrorParserTest` defines parser tests that test the parsing of code to ensure
  * that errors are correctly reported, and in some cases, not reported.
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class ErrorParserTest extends ParserTestCase {
   void fail_expectedListOrMapLiteral() {
     // It isn't clear that this test can ever pass. The parser is currently
@@ -2578,7 +2578,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class IncrementalParserTest extends EngineTestCase {
   void fail_replace_identifier_with_functionLiteral_in_initializer_interp() {
     // TODO(paulberry, brianwilkerson): broken due to incremental scanning bugs
@@ -2969,7 +2969,7 @@ class C {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NonErrorParserTest extends ParserTestCase {
   void test_constFactory_external() {
     ParserTestCase.parse(
@@ -3267,7 +3267,7 @@ class ParserTestCase extends EngineTestCase {
  * The class `RecoveryParserTest` defines parser tests that test the parsing of invalid code
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class RecoveryParserTest extends ParserTestCase {
   void fail_incomplete_returnType() {
     ParserTestCase.parseCompilationUnit(r'''
@@ -4513,7 +4513,7 @@ class C {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ResolutionCopierTest extends EngineTestCase {
   void test_visitAnnotation() {
     String annotationName = "proxy";
@@ -5163,7 +5163,7 @@ class ResolutionCopierTest extends EngineTestCase {
  *
  * More complex tests should be defined in the class [ComplexParserTest].
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class SimpleParserTest extends ParserTestCase {
   void fail_parseCommentReference_this() {
     // This fails because we are returning null from the method and asserting

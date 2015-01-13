@@ -35,7 +35,7 @@ Iterable<String> _toElementNames(List<Location> locations) {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LocalIndexTest extends AbstractContextTest {
   LocalIndex index;
 

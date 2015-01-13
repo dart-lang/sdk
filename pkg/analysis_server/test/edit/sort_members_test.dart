@@ -21,7 +21,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SortMembersTest extends AbstractAnalysisTest {
   SourceFileEdit fileEdit;
 

@@ -55,7 +55,7 @@ void _assertHasLocationQ(List<Location> locations, Element element, int offset,
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _FileNodeManagerTest {
   MockLogger logger = new MockLogger();
   StringCodec stringCodec = new StringCodec();
@@ -255,7 +255,7 @@ class _FileNodeManagerTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _IndexNodeTest {
   AnalysisContext context = new MockAnalysisContext('context');
   ElementCodec elementCodec = new MockElementCodec();
@@ -341,7 +341,7 @@ class _IndexNodeTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _LocationDataTest {
   AnalysisContext context = new MockAnalysisContext('context');
   ElementCodec elementCodec = new MockElementCodec();
@@ -426,7 +426,7 @@ class _MockIndexNode extends TypedMock implements IndexNode {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _RelationKeyDataTest {
   AnalysisContext context = new MockAnalysisContext('context');
   ElementCodec elementCodec = new MockElementCodec();
@@ -478,7 +478,7 @@ class _RelationKeyDataTest {
 
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _SplitIndexStoreTest {
   AnalysisContext contextA = new MockAnalysisContext('contextA');
 

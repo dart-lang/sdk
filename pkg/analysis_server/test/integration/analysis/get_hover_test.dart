@@ -17,7 +17,7 @@ main() {
   runReflectiveTests(AnalysisGetHoverIntegrationTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisGetHoverIntegrationTest extends
     AbstractAnalysisServerIntegrationTest {
   /**

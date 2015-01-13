@@ -21,7 +21,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ConvertGetterToMethodTest extends RefactoringTest {
   ConvertGetterToMethodRefactoring refactoring;
 

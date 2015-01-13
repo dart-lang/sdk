@@ -17,7 +17,7 @@ main() {
   runReflectiveTests(LocalComputerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LocalComputerTest extends AbstractSelectorSuggestionTest {
 
   @override

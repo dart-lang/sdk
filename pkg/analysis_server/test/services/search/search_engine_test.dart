@@ -68,7 +68,7 @@ class MockIndex extends TypedMock implements Index {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SearchEngineImplTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;

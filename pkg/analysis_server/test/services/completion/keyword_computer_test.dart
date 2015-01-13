@@ -18,7 +18,7 @@ main() {
   runReflectiveTests(KeywordComputerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class KeywordComputerTest extends AbstractCompletionTest {
 
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,

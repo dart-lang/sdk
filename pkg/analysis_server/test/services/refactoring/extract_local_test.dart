@@ -21,7 +21,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ExtractLocalTest extends RefactoringTest {
   ExtractLocalRefactoringImpl refactoring;
 

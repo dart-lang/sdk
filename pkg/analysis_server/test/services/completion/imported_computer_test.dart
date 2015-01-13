@@ -24,7 +24,7 @@ main() {
   runReflectiveTests(ImportedComputerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ImportedComputerTest extends AbstractSelectorSuggestionTest {
 
   void assertCached(String completion) {

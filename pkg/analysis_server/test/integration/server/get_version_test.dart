@@ -11,7 +11,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_getVersion() {
     return sendServerGetVersion();

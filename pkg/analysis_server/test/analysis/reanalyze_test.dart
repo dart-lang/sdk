@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisTest {
   test_reanalyze() {
     createProject();

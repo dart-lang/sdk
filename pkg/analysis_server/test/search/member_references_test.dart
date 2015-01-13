@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class MemberReferencesTest extends AbstractSearchDomainTest {
   void assertHasRef(SearchResultKind kind, String search, bool isPotential) {
     assertHasResult(kind, search);

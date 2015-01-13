@@ -70,7 +70,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisCacheTest extends EngineTestCase {
   void test_creation() {
     expect(new AnalysisCache(new List<CachePartition>(0)), isNotNull);
@@ -153,7 +153,7 @@ class AnalysisCacheTest extends EngineTestCase {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisContextImplTest extends EngineTestCase {
   /**
    * An analysis context whose source factory is [sourceFactory].
@@ -2242,7 +2242,7 @@ class AnalysisContextImplTest_Source_getModificationStamp_overridden extends
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisOptionsImplTest extends EngineTestCase {
   void test_AnalysisOptionsImpl_copy() {
     bool booleanValue = true;
@@ -2335,7 +2335,7 @@ class AnalysisTask_test_perform_exception extends AnalysisTask {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisTaskTest extends EngineTestCase {
   void test_perform_exception() {
     InternalAnalysisContext context = new AnalysisContextImpl();
@@ -2351,7 +2351,7 @@ class CompilationUnitMock extends TypedMock implements CompilationUnit {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class DartEntryTest extends EngineTestCase {
   void test_allErrors() {
     Source source = new TestSource();
@@ -3796,7 +3796,7 @@ class DartEntryTest extends EngineTestCase {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class GenerateDartErrorsTaskTest extends EngineTestCase {
   void test_accept() {
     GenerateDartErrorsTask task =
@@ -3925,7 +3925,7 @@ class GenerateDartErrorsTaskTestTV_perform_validateDirectives extends
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class GenerateDartHintsTaskTest extends EngineTestCase {
   void test_accept() {
     GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
@@ -4006,7 +4006,7 @@ class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class GenerateDartLintsTaskTest extends EngineTestCase {
   void test_accept() {
     GenerateDartLintsTask task = new GenerateDartLintsTask(null, null, null);
@@ -4069,7 +4069,7 @@ class GenerateDartLintsTaskTestTV_perform extends TestTaskVisitor<bool> {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LintGeneratorTest extends EngineTestCase {
   void test_generate() {
 
@@ -4118,7 +4118,7 @@ class LintGeneratorTest_Verifier extends LintVerifier {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class GetContentTaskTest extends EngineTestCase {
   void test_accept() {
     Source source = new TestSource('/test.dart', '');
@@ -4195,7 +4195,7 @@ class GetContentTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class HtmlEntryTest extends EngineTestCase {
   void set state(DataDescriptor descriptor) {
     HtmlEntry entry = new HtmlEntry();
@@ -4364,7 +4364,7 @@ class HtmlEntryTest extends EngineTestCase {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class IncrementalAnalysisCacheTest {
   Source _source = new TestSource();
   DartEntry _entry = new DartEntry();
@@ -4889,7 +4889,7 @@ class IncrementalAnalysisCacheTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class IncrementalAnalysisTaskTest extends EngineTestCase {
   void test_accept() {
     IncrementalAnalysisTask task = new IncrementalAnalysisTask(null, null);
@@ -4966,7 +4966,7 @@ class IncrementalAnalysisTaskTestTV_assertTask extends
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ParseDartTaskTest extends EngineTestCase {
   void test_accept() {
     ParseDartTask task = new ParseDartTask(null, null, null, null);
@@ -5164,7 +5164,7 @@ class ParseDartTaskTestTV_perform_validateDirectives extends
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ParseHtmlTaskTest extends EngineTestCase {
   ParseHtmlTask parseContents(String contents, TestLogger testLogger) {
     return parseSource(
@@ -5348,7 +5348,7 @@ class ParseHtmlTaskTestTV_parseSource extends TestTaskVisitor<bool> {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class PartitionManagerTest extends EngineTestCase {
   void test_clearCache() {
     PartitionManager manager = new PartitionManager();
@@ -5378,7 +5378,7 @@ class PartitionManagerTest extends EngineTestCase {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ResolveDartLibraryTaskTest extends EngineTestCase {
   void test_accept() {
     ResolveDartLibraryTask task = new ResolveDartLibraryTask(null, null, null);
@@ -5459,7 +5459,7 @@ class ResolveDartLibraryTaskTestTV_perform_library extends TestTaskVisitor<bool>
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ResolveDartUnitTaskTest extends EngineTestCase {
   void test_accept() {
     ResolveDartUnitTask task = new ResolveDartUnitTask(null, null, null);
@@ -5560,7 +5560,7 @@ class ResolveDartUnitTaskTestTV_perform_library extends TestTaskVisitor<bool> {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ResolveHtmlTaskTest extends EngineTestCase {
   void test_accept() {
     ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0, null);
@@ -5659,7 +5659,7 @@ class ResolveHtmlTaskTestTV_perform_valid_2 extends TestTaskVisitor<Object> {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ScanDartTaskTest extends EngineTestCase {
   void test_accept() {
     ScanDartTask task = new ScanDartTask(null, null, null);
@@ -5723,7 +5723,7 @@ class ScanDartTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SdkCachePartitionTest extends EngineTestCase {
   void test_contains_false() {
     SdkCachePartition partition = new SdkCachePartition(null, 8);
@@ -5745,7 +5745,7 @@ class SdkCachePartitionTest extends EngineTestCase {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SourcesChangedEventTest {
 
   void test_added() {
@@ -6859,7 +6859,7 @@ class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class UniversalCachePartitionTest extends EngineTestCase {
   void test_contains() {
     UniversalCachePartition partition =
@@ -6949,7 +6949,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class WorkManagerTest extends EngineTestCase {
   void test_addFirst() {
     TestSource source1 = new TestSource("/f1.dart");

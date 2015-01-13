@@ -63,7 +63,7 @@ void _assertEqualErrors(List<AnalysisError> incrErrors,
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class DeclarationMatcherTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
@@ -2032,7 +2032,7 @@ class B extends Object with A {}
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class IncrementalResolverTest extends ResolverTestCase {
   Source source;
   String code;
@@ -2475,7 +2475,7 @@ class B {
  * The test for [poorMansIncrementalResolution] function and its integration
  * into [AnalysisContext].
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class PoorMansIncrementalResolutionTest extends ResolverTestCase {
   Source source;
   String code;
@@ -3283,7 +3283,7 @@ f3() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ResolutionContextBuilderTest extends EngineTestCase {
   GatheringErrorListener listener = new GatheringErrorListener();
 

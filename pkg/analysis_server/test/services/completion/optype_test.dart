@@ -19,7 +19,7 @@ main() {
   runReflectiveTests(OpTypeTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class OpTypeTest {
 
   OpType visitor;

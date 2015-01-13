@@ -36,7 +36,7 @@ class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisErrorTest {
   engine.Source source = new MockSource();
   engine.LineInfo lineInfo;
@@ -115,7 +115,7 @@ class AnalysisErrorTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementKindTest {
   void test_fromEngine() {
     expect(
@@ -216,7 +216,7 @@ class ElementKindTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementTest extends AbstractContextTest {
   engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
       [engine.ElementKind kind]) {
@@ -413,7 +413,7 @@ class A {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class EnumTest {
   void test_AnalysisErrorSeverity() {
     new EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(

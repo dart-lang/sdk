@@ -18,7 +18,7 @@ main() {
   runReflectiveTests(InvocationComputerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InvocationComputerTest extends AbstractSelectorSuggestionTest {
 
   @override

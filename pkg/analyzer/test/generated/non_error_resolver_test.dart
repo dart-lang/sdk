@@ -21,7 +21,7 @@ main() {
   runReflectiveTests(NonErrorResolverTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NonErrorResolverTest extends ResolverTestCase {
   void fail_undefinedEnumConstant() {
     Source source = addSource(r'''

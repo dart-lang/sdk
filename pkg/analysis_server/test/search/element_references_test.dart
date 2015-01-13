@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementReferencesTest extends AbstractSearchDomainTest {
   Element searchElement;
 

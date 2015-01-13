@@ -11,7 +11,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AnalysisDomainGetErrorsTest {
   Test() : super(true);
 }

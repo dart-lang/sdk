@@ -22,7 +22,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AssistProcessorTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;

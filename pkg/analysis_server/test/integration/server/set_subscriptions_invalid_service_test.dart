@@ -13,7 +13,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_setSubscriptions_invalidService() {
     // TODO(paulberry): verify that if an invalid service is specified, the

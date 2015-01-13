@@ -39,7 +39,7 @@ Future pumpEventQueue([int times = 20]) {
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class DartCompletionManagerTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;

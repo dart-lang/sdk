@@ -16,7 +16,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_status() {
     // After we kick off analysis, we should get one server.status message with

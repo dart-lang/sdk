@@ -21,7 +21,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class GetErrorsTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getError';
 

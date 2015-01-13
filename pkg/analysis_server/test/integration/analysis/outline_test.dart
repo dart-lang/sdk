@@ -14,7 +14,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   /**
    * Verify that the range of source text covered by the given outline objects

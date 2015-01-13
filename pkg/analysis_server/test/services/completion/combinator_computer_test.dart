@@ -17,7 +17,7 @@ main() {
   runReflectiveTests(CombinatorComputerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CombinatorComputerTest extends AbstractCompletionTest {
 
   @override

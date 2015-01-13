@@ -23,7 +23,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class HierarchyTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;

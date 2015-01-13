@@ -16,7 +16,7 @@ void main() {
   runReflectiveTests(CancelableFutureTests);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CancelableFutureTests {
   Future test_defaultConstructor_returnValue() {
     Object obj = new Object();
@@ -140,7 +140,7 @@ class CancelableFutureTests {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CancelableCompleterTests {
   CancelableCompleter<Object> completer;
   int cancelCount = 0;

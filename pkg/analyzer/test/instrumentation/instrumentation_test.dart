@@ -16,8 +16,8 @@ main() {
   });
 }
 
-@ReflectiveTestCase()
-class InstrumentationServiceTest extends ReflectiveTestCase {
+@reflectiveTest
+class InstrumentationServiceTest {
   void assertNormal(TestInstrumentationServer server, String tag,
       String message) {
     String sent = server.normalChannel.toString();
@@ -107,8 +107,8 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
   }
 }
 
-@ReflectiveTestCase()
-class MulticastInstrumentationServerTest extends ReflectiveTestCase {
+@reflectiveTest
+class MulticastInstrumentationServerTest {
   TestInstrumentationServer serverA = new TestInstrumentationServer();
   TestInstrumentationServer serverB = new TestInstrumentationServer();
   MulticastInstrumentationServer server;

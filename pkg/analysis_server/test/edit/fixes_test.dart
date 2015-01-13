@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class FixesTest extends AbstractAnalysisTest {
   @override
   void setUp() {

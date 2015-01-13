@@ -19,7 +19,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');

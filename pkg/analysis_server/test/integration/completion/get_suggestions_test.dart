@@ -15,7 +15,7 @@ main() {
   runReflectiveTests(Test);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   fail_test_getSuggestions_string_var() {
     // See dartbug.com/20188

@@ -36,7 +36,7 @@ main() {
   runReflectiveTests(CompletionTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CompletionManagerTest extends AbstractAnalysisTest {
   AnalysisDomainHandler analysisDomain;
   Test_CompletionDomainHandler completionDomain;
@@ -242,7 +242,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CompletionTest extends AbstractAnalysisTest {
   String completionId;
   int completionOffset;

@@ -29,7 +29,7 @@ main() {
   runReflectiveTests(AnalysisServerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisServerTest {
   MockServerChannel channel;
   AnalysisServer server;
