@@ -68,8 +68,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
         var flag = descriptor[property];
         if (flag > 0)
           descriptor[previousProperty].$reflectableField = flag;
-      } else if (firstChar === "@" && property !== "@") {
-        newDesc[property.substring(1)][$metadataField] = descriptor[property];
       } else if (firstChar === "*") {
         newDesc[previousProperty].$defaultValuesField = descriptor[property];
         var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
@@ -150,9 +148,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
             descriptor[previousProperty].$reflectableField = flag;
           if (element && element.length)
             #typeInformation[previousProperty] = element;
-        } else if (firstChar === "@") {
-          property = property.substring(1);
-          ${namer.currentIsolate}[property][$metadataField] = element;
         } else if (firstChar === "*") {
           globalObject[previousProperty].$defaultValuesField = element;
           var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
