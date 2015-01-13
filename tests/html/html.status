@@ -350,6 +350,9 @@ websql_test/supported: Fail
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
 
+[ $compiler == dart2js && $runtime == ff ]
+history_test/history: Skip # Issue 22050
+
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 event_customevent_test: Fail       # Test cannot run under CSP restrictions.

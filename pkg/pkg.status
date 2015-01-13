@@ -92,8 +92,8 @@ async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
-[ $compiler == dart2js && $runtime == chrome ]
-collection/test/unmodifiable_collection_test: Skip # Times out. Started when co19 started running. Please triage this failure.
+[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
+collection/test/unmodifiable_collection_test: Skip # Times out. Issue 22050
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 third_party/angular_tests/browser_test: Skip # uses dart:html
