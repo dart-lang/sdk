@@ -18,7 +18,7 @@ class BB {}
 class B<T> implements BB {
   foo() {
     // Don't inline.
-    if (new DateTime.now().millisecondsSinceEpoch == 42) return foo(x);
+    if (new DateTime.now().millisecondsSinceEpoch == 42) return foo();
     return new A<T>().foo(new B());
   }
 }
