@@ -158,7 +158,7 @@ final Map<String, String> mockSdkSources = {
         class String extends Object {}
         class bool extends Object {}
         class num extends Object {
-          operator +(num other) {}
+          num operator +(num other) {}
         }
         class int extends num {}
         class double extends num {}

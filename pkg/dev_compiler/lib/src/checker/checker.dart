@@ -396,15 +396,6 @@ class ProgramChecker extends RecursiveAstVisitor {
         // This particular combo is not spelled out in the spec, but all
         // implementations and analyzer seem to follow this.
         if (_rules.isDoubleType(t1) && _rules.isIntType(t2)) return t1;
-
-        final numType = _rules.provider.numType;
-        // TODO(vsm): This should not be necessary, but the underlying function
-        // we're getting from the analyzer seems to return dynamic in this
-        // case.  That doesn't match the source code, so we need to check where
-        // the return type is being lost.
-        if (t1.isSubtypeOf(numType) && t1.isSubtypeOf(numType)) {
-          return numType;
-        }
     }
     return normalReturnType;
   }
