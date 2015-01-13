@@ -7293,13 +7293,13 @@ class LibraryElementBuilder {
   }
 
   /**
-   * Build the library element for the given library.
+   * Build the library element for the given library.  The resulting element is
+   * stored in the [ResolvableLibrary] structure.
    *
    * @param library the library for which an element model is to be built
-   * @return the library element that was built
    * @throws AnalysisException if the analysis could not be performed
    */
-  LibraryElementImpl buildLibrary2(ResolvableLibrary library) {
+  void buildLibrary2(ResolvableLibrary library) {
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
     Source librarySource = library.librarySource;
     CompilationUnit definingCompilationUnit = library.definingCompilationUnit;
@@ -7401,7 +7401,6 @@ class LibraryElementBuilder {
     if (sourcedUnitCount > 0) {
       _patchTopLevelAccessors(libraryElement);
     }
-    return libraryElement;
   }
 
   /**
@@ -8888,8 +8887,7 @@ class LibraryResolver2 {
     for (ResolvableLibrary library in _librariesInCycle) {
       LibraryElementBuilder builder =
           new LibraryElementBuilder(analysisContext, errorListener);
-      LibraryElementImpl libraryElement = builder.buildLibrary2(library);
-      library.libraryElement = libraryElement;
+      builder.buildLibrary2(library);
     }
   }
 
