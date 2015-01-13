@@ -1,7 +1,6 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=-DUSE_CPS_IR=true
 
 // Test that the CPS IR code generator compiles programs and produces the
 // the expected output.
@@ -14,22 +13,7 @@ import 'memory_compiler.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/common.dart' show Element;
 
-import 'js_backend_cps_ir_basic.dart' as basic;
-import 'js_backend_cps_ir_literals.dart' as literals;
-import 'js_backend_cps_ir_operators.dart' as operators;
-import 'js_backend_cps_ir_control_flow.dart' as control_flow;
-import 'js_backend_cps_ir_interceptors.dart' as interceptors;
-import 'js_backend_cps_ir_closures.dart' as closures;
-
 const String TEST_MAIN_FILE = 'test.dart';
-
-List<TestEntry> tests = <TestEntry>[]
-     ..addAll(basic.tests)
-     ..addAll(literals.tests)
-     ..addAll(control_flow.tests)
-     ..addAll(operators.tests)
-     ..addAll(interceptors.tests)
-     ..addAll(closures.tests);
 
 class TestEntry {
   final String source;
@@ -47,7 +31,8 @@ String getCodeForMain(Compiler compiler) {
   return js.prettyPrint(ast, compiler).getText();
 }
 
-main() {
+
+runTests(List<TestEntry> tests) {
   Expect.isTrue(const bool.fromEnvironment("USE_CPS_IR"));
 
   for (TestEntry test in tests) {
