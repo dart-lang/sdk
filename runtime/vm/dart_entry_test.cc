@@ -63,7 +63,6 @@ TEST_CASE(InvokeStatic_CompileError) {
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
   EXPECT(!function.IsNull());
-  GrowableArray<const Object*> arguments;
   const Object& retval = Object::Handle(
       DartEntry::InvokeFunction(function, Object::empty_array()));
   EXPECT(retval.IsError());

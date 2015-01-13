@@ -65,10 +65,10 @@ class DynamicAssertionHelper {
 
   template<typename E, typename A>
   void GreaterEqual(const E& left, const A& right);
+#endif
 
   template<typename T>
-  void NotNull(const T p);
-#endif
+  T NotNull(const T p);
 
  private:
   const char* const file_;
@@ -215,14 +215,15 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
   std::string es = ess.str(), as = ass.str();
   Fail("expected: %s >= %s", es.c_str(), as.c_str());
 }
+#endif
 
 
 template<typename T>
-void DynamicAssertionHelper::NotNull(const T p) {
-  if (p != NULL) return;
+T DynamicAssertionHelper::NotNull(const T p) {
+  if (p != NULL) return p;
   Fail("expected: not NULL, found NULL");
+  return NULL;
 }
-#endif
 
 }  // namespace dart
 
@@ -258,6 +259,11 @@ void DynamicAssertionHelper::NotNull(const T p) {
 // mode.
 #define DEBUG_ASSERT(cond) ASSERT(cond)
 
+// Returns 'ptr'; useful for initializer lists:
+//   class Foo { Foo(int* ptr) : ptr_(ASSERT_NOTNULL(ptr)) ...
+#define ASSERT_NOTNULL(ptr)                                                    \
+  dart::Assert(__FILE__, __LINE__).NotNull((ptr))
+
 #else  // if defined(DEBUG)
 
 // In order to avoid variable unused warnings for code that only uses
@@ -266,6 +272,8 @@ void DynamicAssertionHelper::NotNull(const T p) {
 #define ASSERT(condition) do {} while (false && (condition))
 
 #define DEBUG_ASSERT(cond)
+
+#define ASSERT_NOTNULL(ptr) (ptr)
 
 #endif  // if defined(DEBUG)
 

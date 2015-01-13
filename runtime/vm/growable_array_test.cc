@@ -8,8 +8,9 @@
 
 namespace dart {
 
-TEST_CASE(GrowableArray) {
-  GrowableArray<int> g;
+template<class GrowableArrayInt, class GrowableArrayInt64>
+void TestGrowableArray() {
+  GrowableArrayInt g;
   EXPECT_EQ(0, g.length());
   EXPECT(g.is_empty());
   g.Add(5);
@@ -17,7 +18,7 @@ TEST_CASE(GrowableArray) {
   EXPECT_EQ(1, g.length());
   EXPECT(!g.is_empty());
   g.Add(3);
-  const GrowableArray<int>& temp = g;
+  const GrowableArrayInt& temp = g;
   EXPECT_EQ(5, temp[0]);
   EXPECT_EQ(3, temp[1]);
   for (int i = 0; i < 10000; i++) {
@@ -26,7 +27,7 @@ TEST_CASE(GrowableArray) {
   EXPECT_EQ(10002, g.length());
   EXPECT_EQ(10000 - 1, g.Last());
 
-  GrowableArray<int64_t> f(10);
+  GrowableArrayInt64 f(10);
   EXPECT_EQ(0, f.length());
   f.Add(-1LL);
   f.Add(15LL);
@@ -38,7 +39,7 @@ TEST_CASE(GrowableArray) {
   EXPECT_EQ(100 - 1, f.Last());
   EXPECT_EQ(-1LL, f[0]);
 
-  GrowableArray<int> h;
+  GrowableArrayInt h;
   EXPECT_EQ(0, h.length());
   h.Add(101);
   h.Add(102);
@@ -59,6 +60,18 @@ TEST_CASE(GrowableArray) {
   EXPECT(!h.is_empty());
   h.Clear();
   EXPECT(h.is_empty());
+}
+
+
+TEST_CASE(GrowableArray) {
+  TestGrowableArray<GrowableArray<int>,
+                    GrowableArray<int64_t> >();
+}
+
+
+TEST_CASE(MallocGrowableArray) {
+  TestGrowableArray<MallocGrowableArray<int>,
+                    MallocGrowableArray<int64_t> >();
 }
 
 

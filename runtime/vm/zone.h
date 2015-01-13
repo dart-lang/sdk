@@ -113,6 +113,15 @@ class Zone {
   // Delete all objects and free all memory allocated in the zone.
   void DeleteAll();
 
+  // Does not actually free any memory. Enables templated containers like
+  // BaseGrowableArray to use different allocators.
+  template <class ElementType>
+  void Free(ElementType* old_array, intptr_t len) {
+#ifdef DEBUG
+    memset(old_array, kZapUninitializedByte, len * sizeof(ElementType));
+#endif
+  }
+
 #if defined(DEBUG)
   // Dump the current allocated sizes in the zone object.
   void DumpZoneSizes();
@@ -155,7 +164,8 @@ class Zone {
 
   friend class StackZone;
   friend class ApiZone;
-  template<typename T, typename B> friend class BaseGrowableArray;
+  template<typename T, typename B, typename Allocator>
+  friend class BaseGrowableArray;
   DISALLOW_COPY_AND_ASSIGN(Zone);
 };
 

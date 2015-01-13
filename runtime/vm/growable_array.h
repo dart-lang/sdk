@@ -4,6 +4,8 @@
 // Defines growable array classes, that differ where they are allocated:
 // - GrowableArray: allocated on stack.
 // - ZoneGrowableArray: allocated in the zone.
+// - MallocGrowableArray: allocates using malloc/realloc; free is only called
+//   at destruction.
 
 #ifndef VM_GROWABLE_ARRAY_H_
 #define VM_GROWABLE_ARRAY_H_
@@ -15,21 +17,22 @@
 
 namespace dart {
 
-template<typename T, typename B>
+template<typename T, typename B, typename Allocator = Zone>
 class BaseGrowableArray : public B {
  public:
-  explicit BaseGrowableArray(Zone* zone)
-      : length_(0), capacity_(0), data_(NULL), zone_(zone) {
-    ASSERT(zone_ != NULL);
-  }
+  explicit BaseGrowableArray(Allocator* allocator)
+      : length_(0), capacity_(0), data_(NULL), allocator_(allocator) {}
 
-  BaseGrowableArray(intptr_t initial_capacity, Zone* zone)
-      : length_(0), capacity_(0), data_(NULL), zone_(zone) {
-    ASSERT(zone_ != NULL);
+  BaseGrowableArray(intptr_t initial_capacity, Allocator* allocator)
+      : length_(0), capacity_(0), data_(NULL), allocator_(allocator) {
     if (initial_capacity > 0) {
       capacity_ = Utils::RoundUpToPowerOfTwo(initial_capacity);
-      data_ = zone_->Alloc<T>(capacity_);
+      data_ = allocator_->template Alloc<T>(capacity_);
     }
+  }
+
+  ~BaseGrowableArray() {
+    allocator_->template Free<T>(data_, capacity_);
   }
 
   intptr_t length() const { return length_; }
@@ -97,7 +100,7 @@ class BaseGrowableArray : public B {
   intptr_t length_;
   intptr_t capacity_;
   T* data_;
-  Zone* zone_;  // Zone in which we are allocating the array.
+  Allocator* allocator_;  // Used to (re)allocate the array.
 
   // Used for growing the array.
   void Resize(intptr_t new_length);
@@ -106,19 +109,20 @@ class BaseGrowableArray : public B {
 };
 
 
-template<typename T, typename B>
-inline void BaseGrowableArray<T, B>::Sort(
+template<typename T, typename B, typename Allocator>
+inline void BaseGrowableArray<T, B, Allocator>::Sort(
     int compare(const T*, const T*)) {
   typedef int (*CompareFunction)(const void*, const void*);
   qsort(data_, length_, sizeof(T), reinterpret_cast<CompareFunction>(compare));
 }
 
 
-template<typename T, typename B>
-void BaseGrowableArray<T, B>::Resize(intptr_t new_length) {
+template<typename T, typename B, typename Allocator>
+void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
   if (new_length > capacity_) {
     intptr_t new_capacity = Utils::RoundUpToPowerOfTwo(new_length);
-    T* new_data = zone_->Realloc<T>(data_, capacity_, new_capacity);
+    T* new_data =
+        allocator_->template Realloc<T>(data_, capacity_, new_capacity);
     ASSERT(new_data != NULL);
     data_ = new_data;
     capacity_ = new_capacity;
@@ -127,10 +131,10 @@ void BaseGrowableArray<T, B>::Resize(intptr_t new_length) {
 }
 
 
-template<typename T, typename B>
-void BaseGrowableArray<T, B>::SetLength(intptr_t new_length) {
+template<typename T, typename B, typename Allocator>
+void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
   if (new_length > capacity_) {
-    T* new_data = zone_->Alloc<T>(new_length);
+    T* new_data = allocator_->template Alloc<T>(new_length);
     ASSERT(new_data != NULL);
     data_ = new_data;
     capacity_ = new_length;
@@ -144,13 +148,14 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject> {
  public:
   GrowableArray(Isolate* isolate, intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
-          initial_capacity, isolate->current_zone()) {}
+          initial_capacity, ASSERT_NOTNULL(isolate->current_zone())) {}
   explicit GrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
-          initial_capacity, Isolate::Current()->current_zone()) {}
+          initial_capacity,
+          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
   GrowableArray()
       : BaseGrowableArray<T, ValueObject>(
-          Isolate::Current()->current_zone()) {}
+          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
 };
 
 
@@ -159,14 +164,46 @@ class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
  public:
   ZoneGrowableArray(Isolate* isolate, intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
-          initial_capacity, isolate->current_zone()) {}
+          initial_capacity, ASSERT_NOTNULL(isolate->current_zone())) {}
   explicit ZoneGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
           initial_capacity,
-          Isolate::Current()->current_zone()) {}
-  ZoneGrowableArray() :
-      BaseGrowableArray<T, ZoneAllocated>(
-          Isolate::Current()->current_zone()) {}
+          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
+  ZoneGrowableArray()
+      : BaseGrowableArray<T, ZoneAllocated>(
+          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
+};
+
+
+class Malloc : public AllStatic {
+ public:
+  template <class T>
+  static inline T* Alloc(intptr_t len) {
+    return reinterpret_cast<T*>(malloc(len * sizeof(T)));
+  }
+
+  template <class T>
+  static inline T* Realloc(T* old_array, intptr_t old_len, intptr_t new_len) {
+    return reinterpret_cast<T*>(realloc(old_array, new_len * sizeof(T)));
+  }
+
+  template <class T>
+  static inline void Free(T* old_array, intptr_t old_len) {
+    free(old_array);
+  }
+};
+
+
+class EmptyBase {};
+
+
+template<typename T>
+class MallocGrowableArray : public BaseGrowableArray<T, EmptyBase, Malloc> {
+ public:
+  explicit MallocGrowableArray(intptr_t initial_capacity)
+      : BaseGrowableArray<T, EmptyBase, Malloc>(initial_capacity, NULL) {}
+  MallocGrowableArray()
+      : BaseGrowableArray<T, EmptyBase, Malloc>(NULL) {}
 };
 
 }  // namespace dart
