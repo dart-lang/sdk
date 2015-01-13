@@ -136,7 +136,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLabel(Label label) {
+  void declaredLabel(Label label, bool isCaseLabel) {
   }
 
   @override

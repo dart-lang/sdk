@@ -107,7 +107,44 @@ void main() {
     assertSuggestLabel('bar');
   }
 
-  test_continue_ignores_outer_functions_using_closure() {
+  test_continue_from_loop_to_switch() {
+    addTestSource('''
+void main() {
+  switch (x) {
+    foo: case 1:
+      break;
+    bar: case 2:
+      while (true) {
+        continue ^;
+      }
+      break;
+    baz: case 3:
+      break;
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestLabel('foo');
+    assertSuggestLabel('bar');
+    assertSuggestLabel('baz');
+  }
+
+  test_continue_from_switch_to_loop() {
+    addTestSource('''
+void main() {
+  foo: while (true) {
+    switch (x) {
+      case 1:
+        continue ^;
+    }
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestLabel('foo');
+  }
+
+  test_continue_ignores_outer_functions_using_closure_with_loop() {
     addTestSource('''
 void main() {
   foo: while (true) {
@@ -123,13 +160,47 @@ void main() {
     assertNotSuggested('foo');
   }
 
-  test_continue_ignores_outer_functions_using_local_function() {
+  test_continue_ignores_outer_functions_using_closure_with_switch() {
+    addTestSource('''
+void main() {
+  switch (x) {
+    foo: case 1:
+      var f = () {
+        bar: while (true) { continue ^ }
+      };
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    // Labels in outer functions are never accessible.
+    assertSuggestLabel('bar');
+    assertNotSuggested('foo');
+  }
+
+  test_continue_ignores_outer_functions_using_local_function_with_loop() {
     addTestSource('''
 void main() {
   foo: while (true) {
     void f() {
       bar: while (true) { continue ^ }
     };
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    // Labels in outer functions are never accessible.
+    assertSuggestLabel('bar');
+    assertNotSuggested('foo');
+  }
+
+  test_continue_ignores_outer_functions_using_local_function_with_switch() {
+    addTestSource('''
+void main() {
+  switch (x) {
+    foo: case 1:
+      void f() {
+        bar: while (true) { continue ^ }
+      };
   }
 }
 ''');
@@ -155,6 +226,21 @@ void main() {
     assertNotSuggested('bar');
   }
 
+  test_continue_to_earlier_case() {
+    addTestSource('''
+void main() {
+  switch (x) {
+    foo: case 1:
+      break;
+    case 2:
+      continue ^;
+    case 3:
+      break;
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestLabel('foo');
+  }
+
   test_continue_to_enclosing_loop() {
     addTestSource('''
 void main() {
@@ -168,5 +254,58 @@ void main() {
     expect(computeFast(), isTrue);
     assertSuggestLabel('foo');
     assertSuggestLabel('bar');
+  }
+
+  test_continue_to_enclosing_switch() {
+    addTestSource('''
+void main() {
+  switch (x) {
+    foo: case 1:
+      break;
+    bar: case 2:
+      switch (y) {
+        case 1:
+          continue ^;
+      }
+      break;
+    baz: case 3:
+      break;
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestLabel('foo');
+    assertSuggestLabel('bar');
+    assertSuggestLabel('baz');
+  }
+
+  test_continue_to_later_case() {
+    addTestSource('''
+void main() {
+  switch (x) {
+    case 1:
+      break;
+    case 2:
+      continue ^;
+    foo: case 3:
+      break;
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestLabel('foo');
+  }
+
+  test_continue_to_same_case() {
+    addTestSource('''
+void main() {
+  switch (x) {
+    case 1:
+      break;
+    foo: case 2:
+      continue ^;
+    case 3:
+      break;
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestLabel('foo');
   }
 }

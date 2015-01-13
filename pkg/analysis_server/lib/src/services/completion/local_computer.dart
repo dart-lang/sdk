@@ -35,8 +35,12 @@ class LocalComputer extends DartCompletionComputer {
       // the completion offset and all of its parents recursively.
       request.node.accept(localVisitor);
     }
-    if (optype.includeStatementLabelSuggestions) {
-      _LabelVisitor labelVisitor = new _LabelVisitor(request);
+    if (optype.includeStatementLabelSuggestions ||
+        optype.includeCaseLabelSuggestions) {
+      _LabelVisitor labelVisitor = new _LabelVisitor(
+          request,
+          optype.includeStatementLabelSuggestions,
+          optype.includeCaseLabelSuggestions);
       request.node.accept(labelVisitor);
     }
 
@@ -61,7 +65,18 @@ class LocalComputer extends DartCompletionComputer {
 class _LabelVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
 
-  _LabelVisitor(DartCompletionRequest request)
+  /**
+   * True if statement labels should be included as suggestions.
+   */
+  final bool includeStatementLabels;
+
+  /**
+   * True if case labels should be included as suggestions.
+   */
+  final bool includeCaseLabels;
+
+  _LabelVisitor(DartCompletionRequest request, this.includeStatementLabels,
+      this.includeCaseLabels)
       : super(request.offset),
         request = request;
 
@@ -91,11 +106,13 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLabel(Label label) {
-    CompletionSuggestion suggestion = _addSuggestion(label.label);
-    if (suggestion != null) {
-      suggestion.element =
-          _createElement(protocol.ElementKind.LABEL, label.label);
+  void declaredLabel(Label label, bool isCaseLabel) {
+    if (isCaseLabel ? includeCaseLabels : includeStatementLabels) {
+      CompletionSuggestion suggestion = _addSuggestion(label.label);
+      if (suggestion != null) {
+        suggestion.element =
+            _createElement(protocol.ElementKind.LABEL, label.label);
+      }
     }
   }
 
@@ -293,7 +310,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLabel(Label label) {
+  void declaredLabel(Label label, bool isCaseLabel) {
     // ignored
   }
 

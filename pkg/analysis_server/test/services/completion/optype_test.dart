@@ -44,12 +44,14 @@ class OpTypeTest {
   }
 
   void assertOpType({bool invocation: false, bool returnValue: false,
-      bool typeNames: false, bool voidReturn: false, bool statementLabel: false}) {
+      bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
+      bool caseLabel: false}) {
     expect(visitor.includeInvocationSuggestions, equals(invocation));
     expect(visitor.includeReturnValueSuggestions, equals(returnValue));
     expect(visitor.includeTypeNameSuggestions, equals(typeNames));
     expect(visitor.includeVoidReturnSuggestions, equals(voidReturn));
     expect(visitor.includeStatementLabelSuggestions, equals(statementLabel));
+    expect(visitor.includeCaseLabelSuggestions, equals(caseLabel));
   }
 
   test_Annotation() {
@@ -330,12 +332,12 @@ class OpTypeTest {
 
   test_Continue_before_label() {
     addTestSource('main() { foo: while (true) { continue ^ foo; } }');
-    assertOpType(statementLabel: true);
+    assertOpType(statementLabel: true, caseLabel: true);
   }
 
   test_Continue_no_label() {
     addTestSource('main() { foo: while (true) { continue ^; } }');
-    assertOpType(statementLabel: true);
+    assertOpType(statementLabel: true, caseLabel: true);
   }
 
   test_DoStatement() {
