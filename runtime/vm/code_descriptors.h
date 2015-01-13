@@ -135,7 +135,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].pc_offset = pc_offset;
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;
-    list_[try_index].needs_stacktrace = needs_stacktrace;
+    list_[try_index].needs_stacktrace |= needs_stacktrace;
   }
 
 
@@ -145,7 +145,10 @@ class ExceptionHandlerList : public ZoneAllocated {
     if (try_index == CatchClauseNode::kInvalidTryIndex) {
       return;
     }
-    ASSERT((0 <= try_index) && (try_index < Length()));
+    ASSERT(try_index >= 0);
+    while (Length() <= try_index) {
+      AddPlaceHolder();
+    }
     list_[try_index].needs_stacktrace = true;
   }
 
