@@ -80,7 +80,7 @@ positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 generic_field_mixin3_test: Crash # Issue 18651
-
+generic_instanceof4_test: RuntimeError # Issue 21969
 
 [ $compiler == dart2js && $minified ]
 cyclic_type_test/0*: Fail # Issue 12605
