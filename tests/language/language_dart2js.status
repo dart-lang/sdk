@@ -8,10 +8,6 @@ deferred_mixin_test: RuntimeError # Issue 21863
 [ $compiler == dart2js ]
 async_control_structures_test: CompileTimeError # Issue 21411
 async_test/none: CompileTimeError # Issue 21411
-async_test/type-mismatch1: CompileTimeError # Issue 21411
-async_test/type-mismatch2: CompileTimeError # Issue 21411
-async_test/type-mismatch3: CompileTimeError # Issue 21411
-async_test/type-mismatch4: CompileTimeError # Issue 21411
 await_backwards_compatibility_test/none: CompileTimeError # Issue 21411
 await_exceptions_test: CompileTimeError # Issue 21411
 await_for_test: CompileTimeError # Issue 21411
