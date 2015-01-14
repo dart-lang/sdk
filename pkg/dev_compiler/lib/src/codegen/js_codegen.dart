@@ -30,12 +30,17 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
 
   ClassDeclaration currentClass;
 
+  final _constEval = new ConstantEvaluator();
+  final _exports = <String>[];
+
   UnitGenerator(CompilationUnitElementImpl unit, this.outDir, this.libraryInfo,
       this.rules)
       : unit = unit.node,
         uri = unit.source.uri;
 
   String get outputPath => path.join(outDir, '${uri.pathSegments.last}.js');
+
+  Element get currentLibrary => libraryInfo.library;
 
   Future generate() {
     out = new OutWriter(outputPath);
@@ -44,8 +49,16 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
     out.write("""
 var $libName;
 (function ($libName) {
+  'use strict';
 """, 2);
     unit.visitChildren(this);
+
+    if (_exports.isNotEmpty) out.write('// Exports:\n');
+
+    for (var name in _exports) {
+      out.write('${libraryInfo.name}.$name = $name;\n');
+    }
+
     out.write("""
 })($libName || ($libName = {}));
 """, -2);
@@ -75,201 +88,258 @@ var $libName;
     // typedef?
   }
 
-  void generateInitializer(
-      ClassDeclaration node, List<String> initializedFields) {
-    // TODO: generate one field initialzing function per-class and one
-    // initializer list function per constructor. Inline if possible.
-    var params = (['_this']..addAll(initializedFields)).join(', ');
-    out.write("""
-var _initializer = (function ($params) {
-""", 2);
-    var members = node.members;
-    for (var member in members) {
-      if (member is FieldDeclaration) {
-        if (!member.isStatic) {
-          for (var field in member.fields.variables) {
-            var name = field.name.name;
-            var initializer = field.initializer;
-
-            if (initializer != null) {
-              // TODO(vsm): Check for conversion.
-              out.write("_this.$name = ");
-              initializer.accept(this);
-              out.write(";\n");
-            } else if (!initializedFields.contains(name)) {
-              out.write("_this.$name = null;\n");
-            }
-            if (initializedFields.contains(name)) {
-              // TODO: track whether this field is always constructor
-              // initialized, if so, don't emit the check for undefined
-              out.write("_this.$name = ($name === void 0) ? null : $name;\n");
-            }
-          }
-        }
-      }
-    }
-    out.write("""
-});
-""", -2);
-  }
-
-  Iterable<String> getFieldFormalParameters(ConstructorDeclaration ctor) =>
-      ctor.parameters.parameters
-          .where((p) => p is FieldFormalParameter)
-          .map((FieldFormalParameter p) => p.identifier.name);
-
-  void generateConstructor(ConstructorDeclaration ctor, String name,
-      List<String> initializedFields, bool needsInitializer) {
-    var fieldParameters = ctor == null ? [] : getFieldFormalParameters(ctor);
-
-    var initializers = ctor == null
-        ? {}
-        : new Map.fromIterable(
-            ctor.initializers.where((i) => i is ConstructorFieldInitializer),
-            key: (i) => i.fieldName.name);
-
-    out.write("function $name(");
-    if (ctor != null) ctor.parameters.accept(this);
-    out.write(") {");
-
-    var indent = 0;
-    if (needsInitializer || ctor != null) {
-      indent = 2;
-      out.write('\n', indent);
-    }
-
-    if (needsInitializer) {
-      out.write("_initializer(this");
-
-      for (var field in initializedFields) {
-        out.write(", ");
-        if (fieldParameters.contains(field)) {
-          out.write(field);
-        } else if (initializers.containsKey(field)) {
-          initializers[field].expression.accept(this);
-        } else {
-          out.write('undefined');
-        }
-      }
-      out.write(");\n");
-    }
-
-    if (ctor != null) {
-      var superCall = ctor.initializers.firstWhere(
-          (i) => i is SuperConstructorInvocation, orElse: () => null);
-      if (superCall != null) {
-        var superName = superCall.constructorName;
-        var args = superCall.argumentList.arguments.map((a) => a.toString());
-        var superArgs = (['this']..addAll(args)).join(', ');
-        var superSelector = superName == null ? '' : '.$superName';
-        out.write("_super$superSelector.call($superArgs);\n");
-      }
-
-      generateArgumentInitializers(ctor.parameters);
-    }
-
-    out.write("};\n", -indent);
-  }
-
-  void generateDefaultConstructor(ClassDeclaration node,
-      List<String> initializedFields, bool needsInitializer) {
-    var name = node.name.name;
-    var ctors = node.members.where((m) => m is ConstructorDeclaration);
-    var ctor = ctors.firstWhere((m) => m.name == null, orElse: () => null);
-
-    if (ctor == null && ctors.isNotEmpty) {
-      out.write("""
-var constructor = function $name() {
-  throw "no default constructor";
-}\n""");
-    } else {
-      out.write("var constructor = ");
-      generateConstructor(ctor, name, initializedFields, needsInitializer);
-    }
-    out.write("dart_runtime.dextend(constructor, _super);\n");
-  }
-
-  void generateNamedConstructors(ClassDeclaration node,
-      List<String> initializedFields, bool needsInitializer) {
-    var ctors = node.members
-        .where((m) => m is ConstructorDeclaration && m.name != null);
-    for (var ctor in ctors) {
-      var name = ctor.name.name;
-      out.write("constructor.$name = ");
-      generateConstructor(
-          ctor, node.name.name, initializedFields, needsInitializer);
-      out.write("""
-constructor.$name.prototype = constructor.prototype;
-""");
-    }
-  }
-
-  /**
-   * Returns a list of fields set via constructors. This forms the parameter
-   * list for _initialize().
-   */
-  Set<String> getConstructorInitializedFields(ClassDeclaration node) {
-    var ctors = node.members.where((m) => m is ConstructorDeclaration);
-    var fields = new Set<String>();
-
-    for (var ctor in ctors) {
-      ConstructorDeclaration c = ctor;
-
-      // initializer list
-      var initializers = c.initializers
-          .where((i) => i is ConstructorFieldInitializer)
-          .map((ConstructorFieldInitializer i) => i.fieldName.name);
-      fields.addAll(initializers);
-
-      // field parameters: this.foo
-      var parameters = getFieldFormalParameters(ctor);
-      fields.addAll(parameters);
-    }
-    return fields;
-  }
-
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     currentClass = node;
+
     var name = node.name.name;
-    var superclassName = getSuperclassExpression(node);
+    var supertype = node.element.supertype;
 
-    out.write("""
-// Class $name
-var $name = (function (_super) {
-""", 2);
-    var needsInitializer =
-        node.members.where((m) => m is FieldDeclaration).isNotEmpty;
-    var initializedFields = getConstructorInitializedFields(node).toList();
-    if (needsInitializer) {
-      generateInitializer(node, initializedFields);
+    out.write('class $name');
+    if (!supertype.isObject) {
+      out.write(' extends ${_typeName(supertype)}');
     }
-    generateDefaultConstructor(node, initializedFields, needsInitializer);
-    generateNamedConstructors(node, initializedFields, needsInitializer);
+    out.write(' {\n', 2);
 
-    generateProperties(node);
+    var ctors = new List<ConstructorDeclaration>.from(
+        node.members.where((m) => m is ConstructorDeclaration));
+    var fields = new List<FieldDeclaration>.from(
+        node.members.where((m) => m is FieldDeclaration));
 
-    node.members
-        .where((m) => m is MethodDeclaration)
-        .forEach((m) => m.accept(this));
+    // Iff no constructor is specified for a class C, it implicitly has a
+    // default constructor `C() : super() {}`, unless C is class Object.
+    if (ctors.isEmpty && !node.element.type.isObject) {
+      _generateImplicitConstructor(node, fields);
+    }
 
-    out.write("""
-  return constructor;
-})($superclassName);
-""", -2);
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration) {
+        if (member.name == null) {
+          _generateDefaultConstructor(member, fields);
+        }
+      } else if (member is MethodDeclaration) {
+        member.accept(this);
+      }
+    }
 
-    if (isPublic(name)) out.write("${libraryInfo.name}.$name = $name;\n");
-    out.write("\n");
+    out.write('}\n', -2);
+
+    if (isPublic(name)) _exports.add(name);
+
+    // Named constructors don't have syntax, so generate after the class.
+    for (ConstructorDeclaration member in ctors) {
+      if (member.name != null) _generateNamedConstructor(member, name, fields);
+    }
+
+    out.write('\n');
     currentClass = null;
   }
 
-  generateArgumentInitializers(FormalParameterList parameters) {
+  void _generateDefaultConstructor(
+      ConstructorDeclaration node, List<FieldDeclaration> fields) {
+    out.write('constructor(');
+    _visitNode(node.parameters);
+    out.write(') {\n', 2);
+    _generateConstructorBody(node, fields);
+    out.write('}\n', -2);
+  }
+
+  /// Generates the implicit default constructor for class C of the form
+  /// `C() : super() {}`.
+  void _generateImplicitConstructor(
+      ClassDeclaration node, List<FieldDeclaration> fields) {
+    // If we don't have a method body, use the implicit JS ctor.
+    if (fields.isEmpty) return;
+    out.write('constructor() {\n', 2);
+    _initializeFields(fields);
+    out.write('super();\n');
+    out.write('}\n', -2);
+  }
+
+  void _generateNamedConstructor(ConstructorDeclaration node, String className,
+      List<FieldDeclaration> fields) {
+    out.write('\n$className.${node.name} = function(');
+    _visitNode(node.parameters);
+    out.write(') {\n', 2);
+    _generateConstructorBody(node, fields);
+    out.write('};\n', -2);
+    out.write('$className.${node.name}.prototype = $className.prototype;\n');
+  }
+
+  void _generateConstructorBody(
+      ConstructorDeclaration node, List<FieldDeclaration> fields) {
+    // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
+    if (node.redirectedConstructor != null) {
+      out.write('return new ');
+      node.redirectedConstructor.accept(this);
+      out.write('(');
+      _visitNode(node.parameters);
+      out.write(');\n');
+      return;
+    }
+
+    // Generate optional/named argument value assignment. These can not have
+    // side effects, and may be used by the constructor's initializers, so it's
+    // nice to do them first.
+    _generateArgumentInitializers(node.parameters);
+
+    // Redirecting constructors: these are not allowed to have initializers,
+    // and the redirecting ctor invocation runs before field initializers.
+    var redirectCall = node.initializers.firstWhere(
+        (i) => i is RedirectingConstructorInvocation, orElse: () => null);
+
+    if (redirectCall != null) {
+      redirectCall.accept(this);
+      out.write("}\n", -2);
+      return;
+    }
+
+    // Initializers only run for non-factory constructors.
+    if (node.factoryKeyword == null) {
+      // Generate field initializers.
+      // These are expanded into each non-redirecting constructor.
+      // In the future we may want to create an initializer function if we have
+      // multiple constructors, but it needs to be balanced against readability.
+      _initializeFields(fields, node.parameters, node.initializers);
+
+      var superCall = node.initializers.firstWhere(
+          (i) => i is SuperConstructorInvocation, orElse: () => null);
+
+      // If no superinitializer is provided, an implicit superinitializer of the
+      // form `super()` is added at the end of the initializer list, unless the
+      // enclosing class is class Object.
+      ClassElement element = (node.parent as ClassDeclaration).element;
+      if (superCall == null) {
+        if (!element.type.isObject && !element.supertype.isObject) {
+          _superConstructorCall(node);
+        }
+      } else {
+        _superConstructorCall(
+            node, superCall.constructorName, superCall.argumentList);
+      }
+    }
+
+    var body = node.body;
+    if (body is BlockFunctionBody) {
+      body.block.statements.accept(this);
+    } else {
+      assert(body is EmptyFunctionBody);
+    }
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    var name = (node.parent as ConstructorDeclaration).name.name;
+    out.write('$name.call(this');
+    var args = node.argumentList;
+    if (args != null) {
+      _visitNodeList(args.arguments, prefix: ', ', separator: ', ');
+    }
+    out.write(');\n');
+  }
+
+  void _superConstructorCall(ConstructorDeclaration ctor,
+      [SimpleIdentifier superName, ArgumentList args]) {
+
+    // If no named constructors are involved we can use ES `super`, otherwise
+    // use ES5 style: TypeName.call(this, arg0, ..., argN)
+    if (ctor.name == null && superName == null) {
+      out.write('super(');
+      if (args != null) {
+        _visitNodeList(args.arguments, separator: ', ');
+      }
+    } else {
+      var supertype = (ctor.parent as ClassDeclaration).element.supertype;
+      var ctorName = superName != null ? '.${superName.name}' : '';
+      out.write('${_typeName(supertype)}$ctorName.call(this');
+      if (args != null) {
+        _visitNodeList(args.arguments, prefix: ', ', separator: ', ');
+      }
+    }
+    out.write(');\n');
+  }
+
+  /// Initialize fields. They follow the sequence:
+  ///
+  ///   1. field declaration initializer if non-const,
+  ///   2. field initializing parameters,
+  ///   3. constructor field initializers,
+  ///   4. initialize fields not covered in 1-3
+  void _initializeFields(List<FieldDeclaration> fields,
+      [FormalParameterList parameters,
+      NodeList<ConstructorInitializer> initializers]) {
+    var initialized = new Set<String>();
+
+    // Run field initializers if they can have side-effects.
+    var unsetFields = new Map<String, Expression>();
+    for (var declaration in fields) {
+      for (var field in declaration.fields.variables) {
+        var init = field.initializer;
+        if (init != null) {
+          // TODO(jmesserly): check the performance of using ConstantEvaluator.
+          // We could replace it with a simpler check if needed, since we don't
+          // care about the value itself, only that the expression has no side
+          // effects.
+          var value = init.accept(_constEval);
+          if (identical(value, ConstantEvaluator.NOT_A_CONSTANT)) {
+            field.name.accept(this);
+            out.write(' = ');
+            init.accept(this);
+            out.write(';\n');
+            continue;
+          }
+        }
+
+        unsetFields[field.name.name] = init;
+      }
+    }
+
+    // Initialize fields from `this.fieldName` parameters.
+    if (parameters != null) {
+      for (var p in parameters.parameters) {
+        if (p is DefaultFormalParameter) p = p.parameter;
+        if (p is FieldFormalParameter) {
+          var name = p.identifier.name;
+          out.write('this.$name = $name;\n');
+          unsetFields.remove(name);
+        }
+      }
+    }
+
+    // Run constructor field initializers such as `: foo = bar.baz`
+    if (initializers != null) {
+      for (var init in initializers) {
+        if (init is ConstructorFieldInitializer) {
+          init.fieldName.accept(this);
+          out.write(' = ');
+          init.expression.accept(this);
+          out.write(';\n');
+          unsetFields.remove(init.fieldName.name);
+        }
+      }
+    }
+
+    // Initialize all remaining fields
+    unsetFields.forEach((name, expression) {
+      out.write('this.$name = ');
+      if (expression != null) {
+        expression.accept(this);
+      } else {
+        out.write('null');
+      }
+      out.write(';\n');
+    });
+  }
+
+  void _generateArgumentInitializers(FormalParameterList parameters) {
+    if (parameters == null) return;
     for (var param in parameters.parameters) {
-      // TODO(justinfagnani): rename identifier if neccessary
+      // TODO(justinfagnani): rename identifier if necessary
       var name = param.identifier.name;
 
       if (param.kind == ParameterKind.NAMED) {
-        out.write('var $name = opt\$.$name === undefined ? ');
+        out.write('let $name = opt\$.$name === undefined ? ');
         if (param is DefaultFormalParameter && param.defaultValue != null) {
           param.defaultValue.accept(this);
         } else {
@@ -277,80 +347,35 @@ var $name = (function (_super) {
         }
         out.write(' : opt\$.$name;\n');
       } else if (param.kind == ParameterKind.POSITIONAL) {
-        out.write('if ($name !== undefined) { $name = ');
+        out.write('if ($name === undefined) $name = ');
         if (param is DefaultFormalParameter && param.defaultValue != null) {
           param.defaultValue.accept(this);
         } else {
           out.write('null');
         }
-        out.write(';}\n');
+        out.write(';\n');
       }
-    }
-  }
-
-  void generateProperties(ClassDeclaration node) {
-    Map<String, _Property> properties = {};
-
-    for (var member in node.members) {
-      if (member is MethodDeclaration &&
-          !member.isAbstract &&
-          !member.isStatic) {
-        if (member.isGetter) {
-          var property =
-              properties.putIfAbsent(member.name.name, () => new _Property());
-          property.getter = member;
-        } else if (member.isSetter) {
-          var property =
-              properties.putIfAbsent(member.name.name, () => new _Property());
-          property.setter = member;
-        }
-      }
-    }
-
-    if (properties.isNotEmpty) {
-      out.write('\nObject.defineProperties(constructor.prototype, {\n', 2);
-
-      for (var name in properties.keys) {
-        var property = properties[name];
-
-        out.write('$name: {\n', 2);
-
-        if (property.getter != null) {
-          out.write('"get": function() ');
-          property.getter.body.accept(this);
-          out.write(',\n');
-        }
-        if (property.setter != null) {
-          out.write('"set": function(');
-          property.setter.parameters.accept(this);
-          out.write(') ');
-          property.setter.body.accept(this);
-          out.write(',\n');
-        }
-        out.write('},\n', -2);
-      }
-
-      out.write('});\n', -2);
     }
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isAbstract || node.isGetter || node.isSetter || node.isStatic) {
-      return;
+    if (node.isAbstract) return;
+
+    if (node.isStatic) {
+      out.write('static ');
+    }
+    if (node.isGetter) {
+      out.write('get ');
+    } else if (node.isSetter) {
+      out.write('set ');
     }
 
     var name = node.name;
-
-    out.write("\nconstructor.prototype.$name = ");
-
-    out.write("function $name(");
-    node.parameters.accept(this);
+    out.write("$name(");
+    _visitNode(node.parameters);
     out.write(") {\n", 2);
-    // TODO(jmesserly): if we don't have argument initializers, we can avoid
-    // generating the curly braces here, and let Block handle that. This is
-    // also nice for ExpressionFunctionBody, which can avoid some newlines.
-    generateArgumentInitializers(node.parameters);
+    _generateArgumentInitializers(node.parameters);
     var body = node.body;
     if (body is BlockFunctionBody) {
       body.block.statements.accept(this);
@@ -371,36 +396,40 @@ var $name = (function (_super) {
     out.write("// Function $name: ${node.element.type}\n");
     out.write("function $name(");
     var function = node.functionExpression;
-    function.parameters.accept(this);
+    _visitNode(function.parameters);
     out.write(") ");
     function.body.accept(this);
     out.write("\n");
-    if (isPublic(name)) out.write("${libraryInfo.name}.$name = $name;\n");
+    if (isPublic(name)) _exports.add(name);
     out.write("\n");
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    // Bind all free variables.
-    out.write('/* Unimplemented: bind any free variables. */');
-
-    out.write("function(");
-    node.parameters.accept(this);
-    out.write(") ");
-    node.body.accept(this);
+    out.write("(");
+    _visitNode(node.parameters);
+    out.write(") => ");
+    var body = node.body;
+    if (body is ExpressionFunctionBody) body = body.expression;
+    body.accept(this);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    // TODO(justinfagnani): check that 'this' isn't prepended to static
-    // references
-    if (node.staticElement != null &&
-        currentClass != null &&
-        node.parent is! PropertyAccess &&
-        node.staticElement.enclosingElement == currentClass.element) {
-      out.write('this.');
+    var e = node.staticElement;
+    if (currentClass != null && e.enclosingElement == currentClass.element) {
+      if (e is PropertyAccessorElement && !e.variable.isStatic ||
+          e is ClassMemberElement && !e.isStatic) {
+        out.write('this.');
+      }
     }
     out.write(node.name);
+  }
+
+  String _typeName(InterfaceType type) {
+    var name = type.name;
+    var library = type.element.library;
+    return library == currentLibrary ? name : '${getLibraryId(library)}.$name';
   }
 
   @override
@@ -412,8 +441,6 @@ var $name = (function (_super) {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    // TODO(jmesserly): generate arrow functions in ES6 mode
-    // TODO(jmesserly): generate newlines if it's a long expression?
     out.write("{ return ");
     node.expression.accept(this);
     out.write("; }");
@@ -433,25 +460,14 @@ var $name = (function (_super) {
 
     var target = node.isCascaded ? _cascadeTarget : node.target;
     writeQualifiedName(target, node.methodName);
-    out.write('(');
     node.argumentList.accept(this);
-    out.write(')');
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
-    // TODO(vsm): Optional parameters.
-    var arguments = node.arguments;
-    var length = arguments.length;
-    if (length > 0) {
-      // TODO(vsm): Check for conversion.
-      arguments[0].accept(this);
-      for (var i = 1; i < length; ++i) {
-        out.write(', ');
-        // TODO(vsm): Check for conversion.
-        arguments[i].accept(this);
-      }
-    }
+    out.write('(');
+    _visitNodeList(node.arguments, separator: ', ');
+    out.write(')');
   }
 
   @override
@@ -524,19 +540,23 @@ var $name = (function (_super) {
   }
 
   void _generateVariableList(VariableDeclarationList list, bool lazy) {
-    // TODO(vsm): Detect when we can avoid wrapping in function.
-    var prefix = lazy ? 'function() { return ' : '';
-    var postfix = lazy ? '; }()' : '';
     var declarations = list.variables;
     for (var declaration in declarations) {
       var name = declaration.name.name;
       var initializer = declaration.initializer;
       if (initializer == null) {
-        out.write('var $name');
+        out.write('let $name');
       } else {
-        out.write('var $name = $prefix');
+        lazy = lazy &&
+            identical(initializer.accept(_constEval),
+                ConstantEvaluator.NOT_A_CONSTANT);
+
+        out.write('let $name = ');
+
+        // TODO(jmesserly): implement lazy eval. Probably uses the same design
+        // as top level getters/setters.
+        if (lazy) out.write('/* Unimplemented lazy eval */');
         initializer.accept(this);
-        out.write('$postfix');
       }
     }
   }
@@ -571,9 +591,7 @@ var $name = (function (_super) {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     out.write('new ');
     node.constructorName.accept(this);
-    out.write('(');
     node.argumentList.accept(this);
-    out.write(')');
   }
 
   bool typeIsPrimitiveInJS(DartType t) {
@@ -696,13 +714,10 @@ var $name = (function (_super) {
     if (rules.isDynamicGet(target)) {
       out.write('dart_runtime.dload(');
       target.accept(this);
-      out.write(', "');
-      name.accept(this);
-      out.write('")');
+      out.write(', "${name.name}")');
     } else {
       target.accept(this);
-      out.write('.');
-      name.accept(this);
+      out.write('.${name.name}');
     }
   }
 
@@ -753,10 +768,12 @@ var $name = (function (_super) {
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     // TODO(jmesserly): skip parens if not needed.
+    // TODO(jmesserly): we could also use ES6 template strings here:
+    // https://github.com/lukehoban/es6features#template-strings
     out.write('(');
     node.expression.accept(this);
     // Assuming we implement toString() on our objects, we can avoid calling it
-    // in most cases. The potential is builtin types which may differ.
+    // in most cases. Builtin types may differ though.
     // For example, Dart's concrete List type does not have the same toString
     // as Array.prototype.toString().
     // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-addition-operator-plus-runtime-semantics-evaluation
@@ -782,16 +799,6 @@ var $name = (function (_super) {
     'dart.core': 'dart_core',
   };
 
-  String getSuperclassExpression(ClassDeclaration node) {
-    var element = node.element;
-    var superclass = node.element.supertype.element;
-
-    if (superclass.library == element.library) {
-      return superclass.name;
-    }
-    return '${getLibraryId(superclass.library)}.${superclass.name}';
-  }
-
   String getLibraryId(LibraryElement element) {
     var libraryName = element.name;
     return _builtins.containsKey(libraryName)
@@ -808,7 +815,9 @@ var $name = (function (_super) {
       if (element.enclosingElement is CompilationUnitElement) {
         var library = element.enclosingElement.enclosingElement;
         assert(library is LibraryElement);
-        out.write('${getLibraryId(library)}.');
+        if (library != libraryInfo.library) {
+          out.write('${getLibraryId(library)}.');
+        }
       }
     }
     id.accept(this);
@@ -824,7 +833,7 @@ var $name = (function (_super) {
   }
 
   /// Print a list of nodes, with an optional prefix, suffix, and separator.
-  void _visitNodeList(NodeList<AstNode> nodes,
+  void _visitNodeList(List<AstNode> nodes,
       {String prefix: '', String suffix: '', String separator: ''}) {
     if (nodes == null) return;
 

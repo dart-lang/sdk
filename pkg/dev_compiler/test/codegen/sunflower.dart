@@ -24,6 +24,31 @@ int seeds = 0;
 final CanvasRenderingContext2D context =
     (querySelector("#canvas") as CanvasElement).getContext('2d');
 
+// TODO(jmesserly): modified this example to use classes.
+class Circle {
+  final num x, y, radius;
+  final String color;
+
+  Circle(this.x, this.y, this.radius, this.color);
+
+  /// Draw a small circle representing a seed centered at (x,y).
+  void draw() {
+    context
+      ..beginPath()
+      ..lineWidth = 2
+      ..fillStyle = color
+      ..strokeStyle = color
+      ..arc(x, y, radius, 0, TAU, false)
+      ..fill()
+      ..closePath()
+      ..stroke();
+  }
+}
+
+class SunflowerSeed extends Circle {
+  SunflowerSeed(num x, num y) : super(x, y, SEED_RADIUS, ORANGE);
+}
+
 void main() {
   slider.addEventListener('change', (e) => draw());
   draw();
@@ -36,20 +61,9 @@ void draw() {
   for (var i = 0; i < seeds; i++) {
     final num theta = i * TAU / PHI;
     final num r = sqrt(i) * SCALE_FACTOR;
-    drawSeed(centerX + r * cos(theta), centerY - r * sin(theta));
+    final num x = centerX + r * cos(theta);
+    final num y = centerY - r * sin(theta);
+    new SunflowerSeed(x, y).draw();
   }
-  notes.textContent = "${seeds} seeds";
-}
-
-/// Draw a small circle representing a seed centered at (x,y).
-void drawSeed(num x, num y) {
-  context
-    ..beginPath()
-    ..lineWidth = 2
-    ..fillStyle = ORANGE
-    ..strokeStyle = ORANGE
-    ..arc(x, y, SEED_RADIUS, 0, TAU, false)
-    ..fill()
-    ..closePath()
-    ..stroke();
+  notes.textContent = "$seeds seeds";
 }

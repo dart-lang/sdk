@@ -1,60 +1,46 @@
 var methods;
 (function (methods) {
-  // Class A
-  var A = (function (_super) {
-    var _initializer = (function (_this) {
-      _this._c = 3;
-    });
-    var constructor = function A() {
-      _initializer(this);
-    };
-    dart_runtime.dextend(constructor, _super);
-
-    Object.defineProperties(constructor.prototype, {
-      a: {
-        "get": function() { return this.x(); },
-      },
-      b: {
-        "set": function(b) {
-        },
-      },
-      c: {
-        "get": function() { return this._c; },
-        "set": function(c) {
-          this._c = c;
-        },
-      },
-    });
-
-    constructor.prototype.x = function x() {
+  'use strict';
+  class A {
+    constructor() {
+      this._c = 3;
+      super();
+    }
+    x() {
       return 42;
     }
-
-    constructor.prototype.y = function y(a) {
+    y(a) {
       return a;
     }
-
-    constructor.prototype.z = function z(b) {
-      if (b !== undefined) { b = null;}
+    z(b) {
+      if (b === undefined) b = null;
       return b;
     }
-
-    constructor.prototype.zz = function zz(b) {
-      if (b !== undefined) { b = 0;}
+    zz(b) {
+      if (b === undefined) b = 0;
       return b;
     }
-
-    constructor.prototype.w = function w(a, opt$) {
-      var b = opt$.b === undefined ? null : opt$.b;
+    w(a, opt$) {
+      let b = opt$.b === undefined ? null : opt$.b;
       return a + b;
     }
-
-    constructor.prototype.ww = function ww(a, opt$) {
-      var b = opt$.b === undefined ? 0 : opt$.b;
+    ww(a, opt$) {
+      let b = opt$.b === undefined ? 0 : opt$.b;
       return a + b;
     }
-    return constructor;
-  })(dart_core.Object);
+    get a() {
+      return this.x();
+    }
+    set b(b) {
+    }
+    get c() {
+      return this._c;
+    }
+    set c(c) {
+      this._c = c;
+    }
+  }
+
+  // Exports:
   methods.A = A;
-
 })(methods || (methods = {}));

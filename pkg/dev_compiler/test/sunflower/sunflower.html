@@ -14,6 +14,11 @@
     <h1>drfibonacci's Sunflower Spectacular</h1>
 
     <p>A canvas 2D demo.</p>
+    <p>If it's not working, you may need to enable EcmaScript 6 features in
+    your browser. It should work directly in Firefox (tested 35) and Chrome with
+    these flags (tested 41 canary):
+    <pre>chrome --js-flags="--harmony-arrow-functions --harmony-classes"</pre>
+    </p>
 
     <div id="container">
       <canvas id="canvas" width="300" height="300" class="center"></canvas>
@@ -35,6 +40,10 @@
       var dart = { math: Math };
       var int = { parse: Number };
     </script>
+    <!-- TODO(jmesserly): remove this script tag when Firefox is fixed. -->
+    <script type="application/javascript;version=1.7"
+            src="../codegen/expect/sunflower/sunflower.dart.js"></script>
+
     <script src="../codegen/expect/sunflower/sunflower.dart.js"></script>
     <script>sunflower.main();</script>
   </body>

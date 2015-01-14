@@ -1632,7 +1632,7 @@ main() {
 
   test('super call placement', () {
     testChecker({
-        '/main.dart': '''
+      '/main.dart': '''
           class Base {
             var x;
             Base() : x = print('Base.1') { print('Base.2'); }
@@ -1669,7 +1669,7 @@ main() {
 
   test('for loop variable', () {
     testChecker({
-        '/main.dart': '''
+      '/main.dart': '''
           foo() {
             for (int i = 0; i < 10; i++) {
               i = /*severe:StaticTypeError*/"hi";
