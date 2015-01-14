@@ -342,13 +342,13 @@ patch class Isolate {
   static const _KILL = 4;
 
 
-  static SendPort _spawnFunction(SendPort readyPort, Function topLevelFunction,
-                                 var message, bool paused)
+  static void _spawnFunction(SendPort readyPort, Function topLevelFunction,
+                             var message, bool paused)
       native "Isolate_spawnFunction";
 
-  static SendPort _spawnUri(SendPort readyPort, String uri,
-                            List<String> args, var message,
-                            bool paused, String packageRoot)
+  static void _spawnUri(SendPort readyPort, String uri,
+                        List<String> args, var message,
+                        bool paused, String packageRoot)
       native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";

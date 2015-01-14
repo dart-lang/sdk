@@ -12,10 +12,6 @@ abstract class DiagnosticListener {
 
   SourceSpan spanFromSpannable(Spannable node);
 
-  /// Reports an error and terminates computation immediately.
-  void reportFatalError(Spannable node, MessageKind errorCode,
-                        [Map arguments = const {}]);
-
   void reportError(Spannable node, MessageKind errorCode,
                    [Map arguments = const {}]);
 

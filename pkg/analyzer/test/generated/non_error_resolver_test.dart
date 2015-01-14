@@ -6,7 +6,6 @@ library engine.non_error_resolver_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -22,7 +21,7 @@ main() {
   runReflectiveTests(NonErrorResolverTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NonErrorResolverTest extends ResolverTestCase {
   void fail_undefinedEnumConstant() {
     Source source = addSource(r'''
@@ -774,7 +773,7 @@ class A {
   }
 
   void test_constDeferredClass_new() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 class A {
   const A.b();
@@ -784,7 +783,6 @@ import 'lib1.dart' deferred as a;
 main() {
   new a.A.b();
 }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[]);
   }
 
@@ -2515,16 +2513,13 @@ var v2 = const <int> [42];''');
   }
 
   void test_loadLibraryDefined() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 foo() => 22;''', r'''
 import 'lib1.dart' deferred as other;
 main() {
   other.loadLibrary().then((_) => other.foo());
 }'''],
-          <ErrorCode>[
-              ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED,
-              StaticTypeWarningCode.UNDEFINED_FUNCTION],
           <ErrorCode>[]);
   }
 
@@ -2617,7 +2612,6 @@ set x(v) {}''');
   }
 
   void test_missingEnumConstantInSwitch_all() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { A, B, C }
 
@@ -2634,7 +2628,6 @@ f(E e) {
   }
 
   void test_missingEnumConstantInSwitch_default() {
-    resetWithEnum();
     Source source = addSource(r'''
 enum E { A, B, C }
 
@@ -3973,7 +3966,7 @@ class _InvertedCodec<T2, S2> extends Codec<T2, S2> {
   }
 
   void test_sharedDeferredPrefix() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 f1() {}''', r'''
 library lib2;
@@ -3985,7 +3978,6 @@ import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib;
 import 'lib3.dart' as lib;
 main() { lib1.f1(); lib.f2(); lib.f3(); }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[]);
   }
 

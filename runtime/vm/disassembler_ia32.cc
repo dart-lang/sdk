@@ -1332,10 +1332,16 @@ int X86Decoder::InstructionDecode(uword pc) {
           PrintCPURegister(rm);
           Print(",");
           PrintHex(*(data+2));
+          data += 3;
         } else {
-          UNIMPLEMENTED();
+          data++;
+          Print("test_b ");
+          data += PrintRightOperand(data);
+          int32_t imm = *data;
+          Print(",");
+          PrintHex(imm);
+          data++;
         }
-        data += 3;
       }
         break;
 

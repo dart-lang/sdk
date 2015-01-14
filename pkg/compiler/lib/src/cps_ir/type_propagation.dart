@@ -786,6 +786,22 @@ class _TypePropagationVisitor<T> extends Visitor {
   void visitInterceptor(Interceptor node) {
     setReachable(node.input.definition);
   }
+
+  void visitGetField(GetField node) {
+    setValue(node, nonConst());
+  }
+
+  void visitSetField(SetField node) {
+    setReachable(node.body);
+  }
+
+  void visitCreateBox(CreateBox node) {
+    setValue(node, nonConst());
+  }
+
+  void visitCreateClosureClass(CreateClosureClass node) {
+    setValue(node, nonConst());
+  }
 }
 
 /// Represents the abstract value of a primitive value at some point in the

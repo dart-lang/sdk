@@ -152,20 +152,42 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool CheckClassInstr::IsImmutableClassId(intptr_t cid) {
+  switch (cid) {
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return false;
+    default:
+      return true;
+  }
+}
+
+
+static bool AreAllChecksImmutable(const ICData& checks) {
+  const intptr_t len = checks.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (checks.IsUsedAt(i)) {
+      if (!CheckClassInstr::IsImmutableClassId(
+              checks.GetReceiverClassIdAt(i))) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
 EffectSet CheckClassInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  const bool externalizable =
-      unary_checks().HasReceiverClassId(kOneByteStringCid) ||
-      unary_checks().HasReceiverClassId(kTwoByteStringCid);
-  return externalizable ? EffectSet::Externalization() : EffectSet::None();
+  return !AreAllChecksImmutable(unary_checks()) ?
+      EffectSet::Externalization() : EffectSet::None();
 }
 
 
 EffectSet CheckClassIdInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  const bool externalizable =
-      cid_ == kOneByteStringCid || cid_ == kTwoByteStringCid;
-  return externalizable ? EffectSet::Externalization() : EffectSet::None();
+  return !CheckClassInstr::IsImmutableClassId(cid_) ?
+      EffectSet::Externalization() : EffectSet::None();
 }
 
 
@@ -2580,8 +2602,8 @@ void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
     // Don't generate a table when contained in an unreachable block.
     return;
   }
-  ASSERT(SuccessorCount() == offsets_.Capacity());
-  offsets_.SetLength(SuccessorCount());
+  ASSERT(SuccessorCount() == offsets_.Length());
+  intptr_t element_size = offsets_.ElementSizeInBytes();
   for (intptr_t i = 0; i < SuccessorCount(); i++) {
     TargetEntryInstr* target = SuccessorAt(i);
     intptr_t offset = target->offset();
@@ -2605,7 +2627,7 @@ void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
 
     ASSERT(offset > 0);
     offset -= Assembler::EntryPointToPcMarkerOffset();
-    offsets_.SetAt(i, Smi::ZoneHandle(isolate, Smi::New(offset)));
+    offsets_.SetInt32(i * element_size, offset);
   }
 }
 

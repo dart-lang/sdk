@@ -493,7 +493,8 @@ class CObjectSendPort : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(SendPort)
 
-  Dart_Port Value() const { return cobject_->value.as_send_port; }
+  Dart_Port Value() const { return cobject_->value.as_send_port.id; }
+  Dart_Port OriginId() const { return cobject_->value.as_send_port.origin_id; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectSendPort);

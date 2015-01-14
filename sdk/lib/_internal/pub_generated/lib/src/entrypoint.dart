@@ -115,26 +115,28 @@ class Entrypoint {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
-        resolveVersions(
-            type,
-            cache.sources,
-            root,
-            lockFile: lockFile,
-            useLatest: useLatest).then((x0) {
+        new Future.value(
+            resolveVersions(
+                type,
+                cache.sources,
+                root,
+                lockFile: lockFile,
+                useLatest: useLatest)).then((x0) {
           try {
             var result = x0;
             join0() {
               result.showReport(type);
               join1() {
                 join2() {
-                  Future.wait(result.packages.map(_get)).then((x1) {
+                  new Future.value(
+                      Future.wait(result.packages.map(_get))).then((x1) {
                     try {
                       var ids = x1;
                       _saveLockFile(ids);
                       join3() {
                         _linkOrDeleteSecondaryPackageDirs();
                         result.summarizeChanges(type, dryRun: dryRun);
-                        loadPackageGraph(result).then((x2) {
+                        new Future.value(loadPackageGraph(result)).then((x2) {
                           try {
                             var packageGraph = x2;
                             packageGraph.loadTransformerCache().clearIfOutdated(
@@ -203,7 +205,7 @@ class Entrypoint {
     scheduleMicrotask(() {
       try {
         join0() {
-          loadPackageGraph().then((x0) {
+          new Future.value(loadPackageGraph()).then((x0) {
             try {
               var graph = x0;
               var depsDir = path.join('.pub', 'deps', 'debug');
@@ -222,7 +224,8 @@ class Entrypoint {
               })).toSet();
               join1() {
                 join2() {
-                  log.progress("Precompiling dependencies", (() {
+                  new Future.value(
+                      log.progress("Precompiling dependencies", (() {
                     final completer0 = new Completer();
                     scheduleMicrotask(() {
                       try {
@@ -230,19 +233,22 @@ class Entrypoint {
                             dependenciesToPrecompile.map(graph.transitiveDependencies)).map(((package) {
                           return package.name;
                         })).toSet();
-                        AssetEnvironment.create(
-                            this,
-                            BarbackMode.DEBUG,
-                            packages: packagesToLoad,
-                            useDart2JS: false).then((x0) {
+                        new Future.value(
+                            AssetEnvironment.create(
+                                this,
+                                BarbackMode.DEBUG,
+                                packages: packagesToLoad,
+                                useDart2JS: false)).then((x0) {
                           try {
                             var environment = x0;
                             environment.barback.errors.listen(((_) {
                             }));
-                            environment.barback.getAllAssets().then((x1) {
+                            new Future.value(
+                                environment.barback.getAllAssets()).then((x1) {
                               try {
                                 var assets = x1;
-                                waitAndPrintErrors(assets.map(((asset) {
+                                new Future.value(
+                                    waitAndPrintErrors(assets.map(((asset) {
                                   final completer0 = new Completer();
                                   scheduleMicrotask(() {
                                     try {
@@ -250,9 +256,8 @@ class Entrypoint {
                                         var destPath =
                                             path.join(depsDir, asset.id.package, path.fromUri(asset.id.path));
                                         ensureDir(path.dirname(destPath));
-                                        createFileFromStream(
-                                            asset.read(),
-                                            destPath).then((x0) {
+                                        new Future.value(
+                                            createFileFromStream(asset.read(), destPath)).then((x0) {
                                           try {
                                             x0;
                                             completer0.complete();
@@ -272,7 +277,7 @@ class Entrypoint {
                                     }
                                   });
                                   return completer0.future;
-                                }))).then((x2) {
+                                })))).then((x2) {
                                   try {
                                     x2;
                                     log.message(
@@ -301,7 +306,7 @@ class Entrypoint {
                     dependenciesToPrecompile.forEach(
                         (package) => deleteEntry(path.join(depsDir, package)));
                     throw error;
-                  })).then((x1) {
+                  }))).then((x1) {
                     try {
                       x1;
                       completer0.complete();
@@ -394,7 +399,7 @@ class Entrypoint {
               fileExists(sdkVersionPath) &&
               readTextFile(sdkVersionPath) == "${sdk.version}\n";
           join1() {
-            loadPackageGraph().then((x0) {
+            new Future.value(loadPackageGraph()).then((x0) {
               try {
                 var graph = x0;
                 var executables =
@@ -407,7 +412,8 @@ class Entrypoint {
                 break0() {
                   join2() {
                     join3() {
-                      log.progress("Precompiling executables", (() {
+                      new Future.value(
+                          log.progress("Precompiling executables", (() {
                         final completer0 = new Completer();
                         scheduleMicrotask(() {
                           try {
@@ -421,28 +427,30 @@ class Entrypoint {
                                 unionAll(executables.values.map(((ids) {
                               return ids.toSet();
                             })));
-                            AssetEnvironment.create(
-                                this,
-                                BarbackMode.RELEASE,
-                                packages: packagesToLoad,
-                                entrypoints: executableIds,
-                                useDart2JS: false).then((x0) {
+                            new Future.value(
+                                AssetEnvironment.create(
+                                    this,
+                                    BarbackMode.RELEASE,
+                                    packages: packagesToLoad,
+                                    entrypoints: executableIds,
+                                    useDart2JS: false)).then((x0) {
                               try {
                                 var environment = x0;
                                 environment.barback.errors.listen(((error) {
                                   log.error(log.red("Build error:\n$error"));
                                 }));
-                                waitAndPrintErrors(
-                                    executables.keys.map(((package) {
+                                new Future.value(
+                                    waitAndPrintErrors(executables.keys.map(((package) {
                                   final completer0 = new Completer();
                                   scheduleMicrotask(() {
                                     try {
                                       var dir = path.join(binDir, package);
                                       cleanDir(dir);
-                                      environment.precompileExecutables(
-                                          package,
-                                          dir,
-                                          executableIds: executables[package]).then((x0) {
+                                      new Future.value(
+                                          environment.precompileExecutables(
+                                              package,
+                                              dir,
+                                              executableIds: executables[package])).then((x0) {
                                         try {
                                           x0;
                                           completer0.complete();
@@ -455,7 +463,7 @@ class Entrypoint {
                                     }
                                   });
                                   return completer0.future;
-                                }))).then((x1) {
+                                })))).then((x1) {
                                   try {
                                     x1;
                                     completer0.complete();
@@ -472,7 +480,7 @@ class Entrypoint {
                           }
                         });
                         return completer0.future;
-                      })).then((x1) {
+                      }))).then((x1) {
                         try {
                           x1;
                           completer0.complete();
@@ -700,20 +708,22 @@ class Entrypoint {
     scheduleMicrotask(() {
       try {
         join0() {
-          log.progress("Loading package graph", (() {
+          new Future.value(log.progress("Loading package graph", (() {
             final completer0 = new Completer();
             scheduleMicrotask(() {
               try {
                 join0() {
-                  ensureLockFileIsUpToDate().then((x0) {
+                  new Future.value(ensureLockFileIsUpToDate()).then((x0) {
                     try {
                       x0;
-                      Future.wait(lockFile.packages.values.map(((id) {
+                      new Future.value(
+                          Future.wait(lockFile.packages.values.map(((id) {
                         final completer0 = new Completer();
                         scheduleMicrotask(() {
                           try {
                             var source = cache.sources[id.source];
-                            source.getDirectory(id).then((x0) {
+                            new Future.value(
+                                source.getDirectory(id)).then((x0) {
                               try {
                                 var dir = x0;
                                 completer0.complete(
@@ -727,7 +737,7 @@ class Entrypoint {
                           }
                         });
                         return completer0.future;
-                      }))).then((x1) {
+                      })))).then((x1) {
                         try {
                           var packages = x1;
                           var packageMap =
@@ -747,11 +757,12 @@ class Entrypoint {
                   }, onError: completer0.completeError);
                 }
                 if (result != null) {
-                  Future.wait(result.packages.map(((id) {
+                  new Future.value(Future.wait(result.packages.map(((id) {
                     final completer0 = new Completer();
                     scheduleMicrotask(() {
                       try {
-                        cache.sources[id.source].getDirectory(id).then((x0) {
+                        new Future.value(
+                            cache.sources[id.source].getDirectory(id)).then((x0) {
                           try {
                             var dir = x0;
                             completer0.complete(
@@ -765,7 +776,7 @@ class Entrypoint {
                       }
                     });
                     return completer0.future;
-                  }))).then((x2) {
+                  })))).then((x2) {
                     try {
                       var packages = x2;
                       completer0.complete(
@@ -787,7 +798,7 @@ class Entrypoint {
               }
             });
             return completer0.future;
-          }), fine: true).then((x0) {
+          }), fine: true)).then((x0) {
             try {
               var graph = x0;
               _packageGraph = graph;

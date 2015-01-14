@@ -1441,6 +1441,13 @@ dt.typeDefinition {
           matching the original as possible, but whitespace at the beginning or
           end of the selected region will be ignored.
         </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>FORMAT_INVALID_FILE</tt> will be generated.
+        </p>
         
         
       <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
@@ -2000,7 +2007,6 @@ dt.typeDefinition {
       
       
       
-      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2080,7 +2086,7 @@ dt.typeDefinition {
           An enumeration of the possible types of analysis errors.
         </p>
         
-      <dl><dt class="value">ANGULAR</dt><dt class="value">CHECKED_MODE_COMPILE_TIME_ERROR</dt><dt class="value">COMPILE_TIME_ERROR</dt><dt class="value">HINT</dt><dt class="value">POLYMER</dt><dt class="value">STATIC_TYPE_WARNING</dt><dt class="value">STATIC_WARNING</dt><dt class="value">SYNTACTIC_ERROR</dt><dt class="value">TODO</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisOptions">AnalysisOptions: object</a></dt><dd>
+      <dl><dt class="value">CHECKED_MODE_COMPILE_TIME_ERROR</dt><dt class="value">COMPILE_TIME_ERROR</dt><dt class="value">HINT</dt><dt class="value">LINT</dt><dt class="value">STATIC_TYPE_WARNING</dt><dt class="value">STATIC_WARNING</dt><dt class="value">SYNTACTIC_ERROR</dt><dt class="value">TODO</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisOptions">AnalysisOptions: object</a></dt><dd>
         <p>
           A set of options controlling what kind of analysis is to be
           performed. If the value of a field is omitted the value of the
@@ -2089,19 +2095,22 @@ dt.typeDefinition {
         
       <dl><dt class="field"><b><i>enableAsync ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
-            <p>
+            <p><b><i>Deprecated</i></b>/</p><p>
+            </p><p>
               True if the client wants to enable support for the
               proposed async feature.
             </p>
           </dd><dt class="field"><b><i>enableDeferredLoading ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
-            <p>
+            <p><b><i>Deprecated</i></b>/</p><p>
+            </p><p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
             </p>
           </dd><dt class="field"><b><i>enableEnums ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
-            <p>
+            <p><b><i>Deprecated</i></b>/</p><p>
+            </p><p>
               True if the client wants to enable support for the
               proposed enum feature.
             </p>
@@ -2114,7 +2123,13 @@ dt.typeDefinition {
           </dd><dt class="field"><b><i>generateHints ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
             <p>
-              True is hints should be generated as part of generating
+              True if hints should be generated as part of generating
+              errors and warnings.
+            </p>
+          </dd><dt class="field"><b><i>generateLints ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
+            
+            <p>
+              True if lints should be generated as part of generating
               errors and warnings.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisService">AnalysisService: String</a></dt><dd>
@@ -2170,13 +2185,7 @@ dt.typeDefinition {
           An identifier used to associate completion results with a
           completion request.
         </p>
-      </dd><dt class="typeDefinition"><a name="type_CompletionRelevance">CompletionRelevance: String</a></dt><dd>
-        <p>
-          An enumeration of the relevance of a completion
-          suggestion.
-        </p>
-        
-      <dl><dt class="value">LOW</dt><dt class="value">DEFAULT</dt><dt class="value">HIGH</dt></dl></dd><dt class="typeDefinition"><a name="type_CompletionSuggestion">CompletionSuggestion: object</a></dt><dd>
+      </dd><dt class="typeDefinition"><a name="type_CompletionSuggestion">CompletionSuggestion: object</a></dt><dd>
         <p>
           A suggestion for how to complete partially entered text. Many
           of the fields are optional, depending on the kind of element
@@ -2188,10 +2197,11 @@ dt.typeDefinition {
             <p>
               The kind of element being suggested.
             </p>
-          </dd><dt class="field"><b><i>relevance ( <a href="#type_CompletionRelevance">CompletionRelevance</a> )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>relevance ( int )</i></b></dt><dd>
             
             <p>
-              The relevance of this completion suggestion.
+              The relevance of this completion suggestion
+              where a higher number indicates a higher relevance.
             </p>
           </dd><dt class="field"><b><i>completion ( String )</i></b></dt><dd>
             
@@ -2254,8 +2264,9 @@ dt.typeDefinition {
           </dd><dt class="field"><b><i>returnType ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
             
             <p>
-              The return type of the getter, function or method being
-              suggested. This field is omitted if the suggested element
+              The return type of the getter, function or method
+              or the type of the field being suggested.
+              This field is omitted if the suggested element
               is not a getter, function or method.
             </p>
           </dd><dt class="field"><b><i>parameterNames ( <span style="color:#999999">optional</span> List&lt;String&gt; )</i></b></dt><dd>
@@ -2962,6 +2973,12 @@ dt.typeDefinition {
               An "analysis.getErrors" or "analysis.getNavigation" request could
               not be satisfied because the content of the file changed before
               the requested results could be computed.
+            </p>
+          </dd><dt class="value">FORMAT_INVALID_FILE</dt><dd>
+            
+            <p>
+              An "edit.format" request specified a FilePath
+              which does not match a Dart file in an analysis root.
             </p>
           </dd><dt class="value">GET_ERRORS_INVALID_FILE</dt><dd>
             

@@ -18,7 +18,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RenameImportTest extends RenameRefactoringTest {
   test_checkNewName() {
     indexTestUnit("import 'dart:async' as test;");

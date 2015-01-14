@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   Outline outline;
 

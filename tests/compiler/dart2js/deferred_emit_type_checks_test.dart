@@ -6,21 +6,9 @@
 // Files when using deferred loading.
 
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'memory_source_file_helper.dart';
-import "dart:async";
-
-import 'package:compiler/src/dart2jslib.dart'
-       as dart2js;
-
-class MemoryOutputSink<T> extends EventSink<T> {
-  List<T> mem = new List<T>();
-  void add(T event) {
-    mem.add(event);
-  }
-  void addError(T event, [StackTrace stackTrace]) {}
-  void close() {}
-}
+import 'output_collector.dart';
 
 void main() {
   Uri script = currentDirectory.resolveUri(Platform.script);
@@ -30,30 +18,22 @@ void main() {
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
 
-  Map<String, MemoryOutputSink> outputs = new Map<String, MemoryOutputSink>();
-
-  MemoryOutputSink outputSaver(name, extension) {
-    if (name == '') {
-      name = 'main';
-      extension ='js';
-    }
-    return outputs.putIfAbsent("$name.$extension", () {
-     return new MemoryOutputSink();
-    });
-  }
+  OutputCollector collector = new OutputCollector();
 
   Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   outputSaver,
+      collector,
                                    handler.diagnosticHandler,
                                    libraryRoot,
                                    packageRoot,
                                    [],
                                    {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
-    String mainOutput = outputs['main.js'].mem[0];
-    String deferredOutput = outputs['out_1.part.js'].mem[0];
+    String mainOutput = collector.getOutput('', 'js');
+    String deferredOutput =  collector.getOutput('out_1', 'part.js');
     String isPrefix = compiler.backend.namer.operatorIsPrefix;
-    Expect.isTrue(deferredOutput.contains('${isPrefix}A: true'));
+    Expect.isTrue(deferredOutput.contains('${isPrefix}A: true'),
+        "Deferred output doesn't contain '${isPrefix}A: true':\n"
+        "$deferredOutput");
     Expect.isFalse(mainOutput.contains('${isPrefix}A: true'));
   }));
 }

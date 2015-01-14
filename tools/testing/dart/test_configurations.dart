@@ -62,6 +62,8 @@ void testConfigurations(List<Map> configurations) {
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
 
+  var reportInJson = firstConf['report_in_json'];
+
   var recordingPath = firstConf['record_to_file'];
   var recordingOutputPath = firstConf['replay_from_file'];
 
@@ -224,7 +226,9 @@ void testConfigurations(List<Map> configurations) {
   }
 
   var eventListener = [];
-  if (progressIndicator != 'silent') {
+
+  // We don't print progress if we list tests.
+  if (progressIndicator != 'silent' && !listTests) {
     var printFailures = true;
     var formatter = new Formatter();
     if (progressIndicator == 'color') {
@@ -261,7 +265,13 @@ void testConfigurations(List<Map> configurations) {
     eventListener.add(new UnexpectedCrashDumpArchiver());
   }
 
-  eventListener.add(new ExitCodeSetter());
+  // The only progress indicator when listing tests should be the
+  // the summary printer.
+  if (listTests) {
+    eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
+  } else {
+    eventListener.add(new ExitCodeSetter());
+  }
 
   void startProcessQueue() {
     // [firstConf] is needed here, since the ProcessQueue needs to know the

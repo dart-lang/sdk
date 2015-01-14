@@ -7247,10 +7247,20 @@ class SendPort : public Instance {
  public:
   Dart_Port Id() const { return raw_ptr()->id_; }
 
+  Dart_Port origin_id() const { return raw_ptr()->origin_id_; }
+  void set_origin_id(Dart_Port id) const {
+    ASSERT(origin_id() == 0);
+    StoreNonPointer(&(raw_ptr()->origin_id_), id);
+  }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawSendPort));
   }
-  static RawSendPort* New(Dart_Port id, Heap::Space space = Heap::kNew);
+  static RawSendPort* New(Dart_Port id,
+                          Heap::Space space = Heap::kNew);
+  static RawSendPort* New(Dart_Port id,
+                          Dart_Port origin_id,
+                          Heap::Space space = Heap::kNew);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SendPort, Instance);

@@ -68,8 +68,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
         var flag = descriptor[property];
         if (flag > 0)
           descriptor[previousProperty].$reflectableField = flag;
-      } else if (firstChar === "@" && property !== "@") {
-        newDesc[property.substring(1)][$metadataField] = descriptor[property];
       } else if (firstChar === "*") {
         newDesc[previousProperty].$defaultValuesField = descriptor[property];
         var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
@@ -150,9 +148,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
             descriptor[previousProperty].$reflectableField = flag;
           if (element && element.length)
             #typeInformation[previousProperty] = element;
-        } else if (firstChar === "@") {
-          property = property.substring(1);
-          ${namer.currentIsolate}[property][$metadataField] = element;
         } else if (firstChar === "*") {
           globalObject[previousProperty].$defaultValuesField = element;
           var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
@@ -165,7 +160,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
           functions.push(property);
           #globalFunctions[property] = element;
         } else if (element.constructor === Array) {
-          if (#needsArrayInitializerSupport) {
+          if (#needsStructuredMemberInfo) {
             addStubs(globalObject, element, property,
                      true, descriptor, functions);
           }
@@ -181,7 +176,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 ''', {'typeInformation': typeInformationAccess,
       'globalFunctions': globalFunctionsAccess,
       'hasClasses': oldEmitter.needsClassSupport,
-      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
+      'needsStructuredMemberInfo': oldEmitter.needsStructuredMemberInfo});
 
 
   /**
@@ -241,7 +236,10 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
-      if (isIntercepted) #interceptedNames[getterStubName] = true;
+      // Update the interceptedNames map (which only exists if `invokeOn` was
+      // enabled).
+      if (#enabledInvokeOn)
+        if (isIntercepted) #interceptedNames[getterStubName] = 1;
     }
 
     if (#usesMangledNames) {
@@ -271,7 +269,8 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       }
     }
   }
-''', {'globalFunctions' : globalFunctionsAccess,
+''', {'globalFunctions': globalFunctionsAccess,
+      'enabledInvokeOn': compiler.enabledInvokeOn,
       'interceptedNames': interceptedNamesAccess,
       'usesMangledNames':
           compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
@@ -279,6 +278,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       'mangledNames': mangledNamesAccess});
 
   List<jsAst.Statement> tearOffCode = buildTearOffCode(backend);
+
+  jsAst.ObjectInitializer interceptedNamesSet =
+      oldEmitter.interceptorEmitter.generateInterceptedNamesSet();
 
   jsAst.Statement init = js.statement('''{
   var functionCounter = 0;
@@ -288,7 +290,8 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   if (!#statics) #statics = map();
   if (!#typeInformation) #typeInformation = map(); 
   if (!#globalFunctions) #globalFunctions = map();
-  if (!#interceptedNames) #interceptedNames = map();
+  if (#enabledInvokeOn)
+    if (!#interceptedNames) #interceptedNames = #interceptedNamesSet;
   var libraries = #libraries;
   var mangledNames = #mangledNames;
   var mangledGlobalNames = #mangledGlobalNames;
@@ -340,7 +343,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
        'statics': staticsAccess,
        'typeInformation': typeInformationAccess,
        'globalFunctions': globalFunctionsAccess,
+       'enabledInvokeOn': compiler.enabledInvokeOn,
        'interceptedNames': interceptedNamesAccess,
+       'interceptedNamesSet': interceptedNamesSet,
        'notInCspMode': !compiler.useContentSecurityPolicy,
        'needsClassSupport': oldEmitter.needsClassSupport});
 
@@ -431,7 +436,7 @@ function $parseReflectionDataName(reflectionData) {
     #processClassData;
   }
   #processStatics;
-  if (#needsArrayInitializerSupport) {
+  if (#needsStructuredMemberInfo) {
     #addStubs;
     #tearOffCode;
   }
@@ -448,7 +453,7 @@ function $parseReflectionDataName(reflectionData) {
       'init': init,
       'finishClasses': finishClasses,
       'needsClassSupport': oldEmitter.needsClassSupport,
-      'needsArrayInitializerSupport': oldEmitter.needsArrayInitializerSupport});
+      'needsStructuredMemberInfo': oldEmitter.needsStructuredMemberInfo});
 }
 
 

@@ -391,6 +391,35 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  ASSERT(file != NULL);
+  int64_t lock;
+  int64_t start;
+  int64_t end;
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &lock) &&
+      DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &start) &&
+      DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 3), &end)) {
+    if ((lock >= File::kLockMin) && (lock <= File::kLockMax) &&
+        (start >= 0) && (end == -1 || end > start)) {
+      if (file->Lock(static_cast<File::LockType>(lock), start, end)) {
+        Dart_SetReturnValue(args, Dart_True());
+      } else {
+        Dart_Handle err = DartUtils::NewDartOSError();
+        if (Dart_IsError(err)) Dart_PropagateError(err);
+        Dart_SetReturnValue(args, err);
+      }
+      return;
+    }
+  }
+
+  OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+  Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+  if (Dart_IsError(err)) Dart_PropagateError(err);
+  Dart_SetReturnValue(args, err);
+}
+
+
 void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
@@ -1192,6 +1221,31 @@ CObject* File::StatRequest(const CObjectArray& request) {
     wrapper->SetAt(0, new CObjectInt32(CObject::NewInt32(CObject::kSuccess)));
     wrapper->SetAt(1, result);
     return wrapper;
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+CObject* File::LockRequest(const CObjectArray& request) {
+  if (request.Length() == 4 &&
+      request[0]->IsIntptr() &&
+      request[1]->IsInt32OrInt64() &&
+      request[2]->IsInt32OrInt64() &&
+      request[3]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[0]);
+    ASSERT(file != NULL);
+    if (!file->IsClosed()) {
+      int64_t lock = CObjectInt32OrInt64ToInt64(request[1]);
+      int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
+      int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
+      if (file->Lock(static_cast<File::LockType>(lock), start, end)) {
+        return CObject::True();
+      } else {
+        return CObject::NewOSError();
+      }
+    } else {
+      return CObject::FileClosedError();
+    }
   }
   return CObject::IllegalArgumentError();
 }

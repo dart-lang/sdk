@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisHoverTest extends AbstractAnalysisTest {
   Future<HoverInformation> prepareHover(String search) {
     int offset = findOffset(search);

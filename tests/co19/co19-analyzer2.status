@@ -254,14 +254,35 @@ LayoutTests/fast/html/imports/import-events_t01: StaticWarning # co19-roll r761:
 # co19-roll r786
 LayoutTests/fast/events/initkeyboardevent-crash_t01: StaticWarning # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/wheelevent-constructor_t01: StaticWarning # co19-roll r786: Please triage this failure.
-LayoutTests/fast/svg/getbbox_t01: StaticWarning # co19-roll r786: Please triage this failure.
+
+# co19-roll r801
+LayoutTests/fast/html/select-dropdown-consistent-background-color_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/boundingBox-with-continuation_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/about-blank-hash-kept_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/hashchange-event-properties_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/stateobjects/replacestate-in-onunload_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/media/media-query-list-syntax_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/media/mq-append-delete_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/media/mq-color-index_t02: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/media/mq-js-media-except_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/media/mq-js-media-except_t02: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/media/mq-parsing_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/overflow/scroll-vertical-not-horizontal_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/ruby/after-doesnt-crash_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-big-box-border-radius_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-diamond-margin-polygon_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t01: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t02: StaticWarning # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t01: StaticWarning # co19-roll r801: Please triage this failure.
 
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: StaticWarning # co19 issue 703
 WebPlatformTest/dom/Node-replaceChild_t01: CompileTimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/email_t02: StaticWarning # co19 issue 701
-
-LayoutTests/fast/table/before-child-non-table-section-add-table-crash_t01: StaticWarning # co19 issue 720.
-LayoutTests/fast/table/computeLogicalWidth-table-needsSectionRecalc_t01: StaticWarning # co19 issue 720.
-LayoutTests/fast/table/incorrect-colgroup-span-values_t01: StaticWarning # co19 issue 720.
-LayoutTests/fast/table/rowindex-comment-nodes_t01: StaticWarning # co19 issue 720.
-LayoutTests/fast/table/table-cell-offset-width_t01: StaticWarning # co19 issue 720.
+Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: MissingCompileTimeError # Issue 22010
+Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: MissingCompileTimeError # Issue 22010

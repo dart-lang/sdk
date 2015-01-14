@@ -18,7 +18,7 @@ import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     Script;
 
-import 'package:compiler/src/source_file.dart' show
+import 'package:compiler/src/io/source_file.dart' show
     StringSourceFile;
 
 import 'package:compiler/src/elements/elements.dart' show

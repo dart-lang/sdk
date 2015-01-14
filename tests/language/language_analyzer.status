@@ -6,6 +6,9 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
+compile_time_constant_c_test/01: Fail # Issue 21000
+compile_time_constant12_test: Fail # Issue 21000
+
 enum_syntax_test/02: Fail # 21649
 enum_syntax_test/03: Fail # 21649
 enum_syntax_test/04: Fail # 21649

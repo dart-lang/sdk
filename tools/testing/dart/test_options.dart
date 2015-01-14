@@ -222,6 +222,13 @@ class TestOptionsParser {
               false,
               type: 'bool'),
           new _TestOptionSpecification(
+              'report_in_json',
+              'When doing list, output result summary in json only.',
+              ['--report-in-json'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
               'time',
               'Print timing information after running tests',
               ['--time'],
@@ -679,6 +686,11 @@ Note: currently only implemented for dart2js.''',
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
+    }
+
+    if (configuration['report_in_json']) {
+      configuration['list'] = true;
+      configuration['report'] = true;
     }
 
     // Use verbose progress indication for verbose output unless buildbot

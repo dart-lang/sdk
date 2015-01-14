@@ -34,7 +34,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
 
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration);
 
-  void declaredLabel(Label label);
+  void declaredLabel(Label label, bool isCaseLabel);
 
   void declaredLocalVar(SimpleIdentifier name, TypeName type);
 
@@ -49,11 +49,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
   bool visitBlock(Block node) {
     node.statements.forEach((Statement stmt) {
       if (stmt.offset < offset) {
-        if (stmt is LabeledStatement) {
-          stmt.labels.forEach((Label label) {
-            declaredLabel(label);
-          });
-        } else if (stmt is VariableDeclarationStatement) {
+        if (stmt is VariableDeclarationStatement) {
           VariableDeclarationList varList = stmt.variables;
           if (varList != null) {
             varList.variables.forEach((VariableDeclaration varDecl) {
@@ -181,6 +177,24 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitInterpolationExpression(InterpolationExpression node) {
+    return visitNode(node);
+  }
+
+  @override
+  bool visitSwitchStatement(SwitchStatement node) {
+    for (SwitchMember member in node.members) {
+      for (Label label in member.labels) {
+        declaredLabel(label, true);
+      }
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitLabeledStatement(LabeledStatement node) {
+    for (Label label in node.labels) {
+      declaredLabel(label, false);
+    }
     return visitNode(node);
   }
 

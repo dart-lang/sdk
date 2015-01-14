@@ -1576,7 +1576,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   DARTSCOPE(isolate);
   const Object& object = Object::Handle(isolate, Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(object);
   intptr_t len = writer.BytesWritten();
   return PortMap::PostMessage(new Message(

@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   List<NavigationRegion> regions;
   List<NavigationTarget> targets;

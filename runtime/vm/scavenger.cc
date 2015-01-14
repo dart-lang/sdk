@@ -327,7 +327,8 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 SemiSpace::~SemiSpace() {
   if (reserved_ != NULL) {
 #if defined(DEBUG)
-    memset(reserved_->address(), kZapValue, size_in_words() << kWordSizeLog2);
+    memset(reserved_->address(), Heap::kZapByte,
+           size_in_words() << kWordSizeLog2);
 #endif  // defined(DEBUG)
     delete reserved_;
   }
@@ -366,7 +367,7 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
       return NULL;
     }
 #if defined(DEBUG)
-    memset(reserved->address(), kZapValue, size_in_bytes);
+    memset(reserved->address(), Heap::kZapByte, size_in_bytes);
     VerifiedMemory::Accept(reserved->start(), size_in_bytes);
 #endif  // defined(DEBUG)
     return new SemiSpace(reserved);
@@ -378,7 +379,7 @@ void SemiSpace::Delete() {
 #ifdef DEBUG
   if (reserved_ != NULL) {
     const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
-    memset(reserved_->address(), kZapValue, size_in_bytes);
+    memset(reserved_->address(), Heap::kZapByte, size_in_bytes);
     VerifiedMemory::Accept(reserved_->start(), size_in_bytes);
   }
 #endif

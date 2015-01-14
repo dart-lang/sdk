@@ -407,6 +407,29 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
+  Statement visitSetField(SetField node) {
+    node.next = visitStatement(node.next);
+    node.object = visitExpression(node.object);
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Expression visitGetField(GetField node) {
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  Expression visitCreateBox(CreateBox node) {
+    return node;
+  }
+
+  Expression visitCreateClosureClass(CreateClosureClass node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
   /// If [s] and [t] are similar statements we extract their subexpressions
   /// and returns a new statement of the same type using expressions combined
   /// with the [combine] callback. For example:

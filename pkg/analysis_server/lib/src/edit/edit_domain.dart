@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/scanner.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:dart_style/dart_style.dart';
 
 
 bool test_simulateRefactoringException_change = false;
@@ -56,20 +57,47 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response format(Request request) {
-    throw new RequestFailure(
-        new Response.unsupportedFeature(
-            request.id,
-            'The edit.format request is not yet supported'));
 
-//    EditFormatParams params = new EditFormatParams.fromRequest(request);
-//    String file = params.file;
-//    int initialOffset = params.selectionOffset;
-//    int initialLength = params.selectionLength;
-//
-//    List<SourceEdit> edits = <SourceEdit>[];
-//    int finalOffset = initialOffset;
-//    int finalLength = initialLength;
-//    return new EditFormatResult(edits, finalOffset, finalLength).toResponse(request.id);
+    EditFormatParams params = new EditFormatParams.fromRequest(request);
+    String file = params.file;
+
+    engine.AnalysisContext context = server.getAnalysisContext(file);
+    if (context == null) {
+      return new Response.formatInvalidFile(request);
+    }
+
+    Source source = server.getSource(file);
+    engine.TimestampedData<String> contents;
+    try {
+      contents = context.getContents(source);
+    } catch (e) {
+      return new Response.formatInvalidFile(request);
+    }
+    String unformattedSource = contents.data;
+
+    SourceCode code = new SourceCode(
+        unformattedSource,
+        uri: null,
+        isCompilationUnit: true,
+        selectionStart: params.selectionOffset,
+        selectionLength: params.selectionLength);
+    DartFormatter formatter = new DartFormatter();
+    SourceCode formattedResult = formatter.formatSource(code);
+    String formattedSource = formattedResult.text;
+
+    List<SourceEdit> edits = <SourceEdit>[];
+
+    if (formattedSource != unformattedSource) {
+      //TODO: replace full replacements with smaller, more targeted edits
+      SourceEdit edit =
+          new SourceEdit(0, unformattedSource.length, formattedSource);
+      edits.add(edit);
+    }
+
+    return new EditFormatResult(
+        edits,
+        formattedResult.selectionStart,
+        formattedResult.selectionLength).toResponse(request.id);
   }
 
   Response getAssists(Request request) {

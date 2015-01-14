@@ -182,7 +182,19 @@ main() => new B();
       "Cannot resolve type '#{typeName}'.");
 
   static const MessageKind DUPLICATE_DEFINITION = const MessageKind(
-      "Duplicate definition of '#{name}'.");
+      "Duplicate definition of '#{name}'.",
+      howToFix: "Try to rename or remove this definition.",
+      examples: const ["""
+class C {
+  void f() {}
+  int get f => 1;
+}
+
+main() {
+  new C();
+}
+
+"""]);
 
   static const MessageKind EXISTING_DEFINITION = const MessageKind(
       "Existing definition of '#{name}'.");
@@ -1350,9 +1362,6 @@ main() => A.A = 1;
   static const MessageKind OVERRIDE_EQUALS_NOT_HASH_CODE = const MessageKind(
       "The class '#{class}' overrides 'operator==', "
       "but not 'get hashCode'.");
-
-  static const MessageKind PACKAGE_ROOT_NOT_SET = const MessageKind(
-      "Cannot resolve '#{uri}'. Package root has not been set.");
 
   static const MessageKind INTERNAL_LIBRARY_FROM = const MessageKind(
       "Internal library '#{resolvedUri}' is not accessible from "

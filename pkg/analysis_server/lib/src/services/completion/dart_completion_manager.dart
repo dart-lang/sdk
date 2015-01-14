@@ -22,6 +22,13 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+// TODO (danrubel) these are temporary constants as we transition completion
+// relevance from CompletionRelevance.LOW/DEFAULT/HIGH to int.
+// These should be removed in a subsequent CL
+const int COMPLETION_RELEVANCE_LOW = 500;
+const int COMPLETION_RELEVANCE_DEFAULT = 1000;
+const int COMPLETION_RELEVANCE_HIGH = 2000;
+
 /**
  * The base class for computing code completion suggestions.
  */

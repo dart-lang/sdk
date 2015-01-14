@@ -697,10 +697,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::UnsupportedError();
       break;
-    case kInternalError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::InternalError();
-      break;
     case kNullThrown:
       library = Library::CoreLibrary();
       class_name = &Symbols::NullThrownError();

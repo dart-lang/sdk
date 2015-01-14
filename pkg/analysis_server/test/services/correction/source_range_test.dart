@@ -22,7 +22,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SourceRangesTest extends AbstractSingleUnitTest {
   void test_rangeElementName() {
     resolveTestUnit('class ABC {}');

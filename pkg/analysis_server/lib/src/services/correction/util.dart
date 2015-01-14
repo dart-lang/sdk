@@ -877,7 +877,7 @@ class CorrectionUtils {
       return name;
     }
     // function type
-    if (type is FunctionType) {
+    if (type is FunctionType && type.element.isSynthetic) {
       FunctionType functionType = type;
       StringBuffer sb = new StringBuffer();
       // return type

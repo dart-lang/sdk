@@ -228,7 +228,7 @@ static void SendIsolateServiceMessage(Dart_NativeArguments args) {
 
   // Serialize message.
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(message);
 
   // TODO(turnidge): Throw an exception when the return value is false?
@@ -497,7 +497,7 @@ bool Service::SendIsolateStartupMessage() {
                                 name));
   ASSERT(!list.IsNull());
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
@@ -525,7 +525,7 @@ bool Service::SendIsolateShutdownMessage() {
                                 name));
   ASSERT(!list.IsNull());
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
@@ -2633,7 +2633,7 @@ void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
 
   // Push the event to port_.
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {

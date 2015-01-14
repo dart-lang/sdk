@@ -22,7 +22,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InlineMethodTest extends RefactoringTest {
   InlineMethodRefactoringImpl refactoring;
   bool deleteSource;

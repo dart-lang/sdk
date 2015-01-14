@@ -172,7 +172,6 @@ class JavaScriptBackend extends Backend {
   ClassElement irRepresentationClass;
 
   Element getInterceptorMethod;
-  Element interceptedNames;
 
   ClassElement jsInvocationMirrorClass;
 
@@ -181,14 +180,6 @@ class JavaScriptBackend extends Backend {
   /// the method is called.
   static const bool TRACE_CALLS = false;
   Element traceHelper;
-
-  /**
-   * This element is a top-level variable (in generated output) that the
-   * compiler initializes to a datastructure used to map from a Type to the
-   * interceptor.  See declaration of `mapTypeToInterceptor` in
-   * `interceptors.dart`.
-   */
-  Element mapTypeToInterceptor;
 
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get doubleType => compiler.typesTask.doubleType;
@@ -1741,8 +1732,6 @@ class JavaScriptBackend extends Backend {
 
       if (uri == DART_INTERCEPTORS) {
         getInterceptorMethod = findMethod('getInterceptor');
-        interceptedNames = findVariable('interceptedNames');
-        mapTypeToInterceptor = findVariable('mapTypeToInterceptor');
         getNativeInterceptorMethod = findMethod('getNativeInterceptor');
 
         List<ClassElement> classes = [
@@ -2307,6 +2296,20 @@ class JavaScriptBackend extends Backend {
     // takes no arguments, but in this case the spawned isolate can't
     // communicate with the spawning isolate.
     enqueuer.enableIsolateSupport();
+  }
+
+  /// Returns the filename for the output-unit named [name].
+  ///
+  /// The filename is of the form "<main output file>_<name>.part.js".
+  /// If [addExtension] is false, the ".part.js" suffix is left out.
+  String deferredPartFileName(String name, {bool addExtension: true}) {
+    assert(name != "");
+    String outPath = compiler.outputUri != null
+        ? compiler.outputUri.path
+        : "out";
+    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
+    String extension = addExtension ? ".part.js" : "";
+    return "${outName}_$name$extension";
   }
 }
 

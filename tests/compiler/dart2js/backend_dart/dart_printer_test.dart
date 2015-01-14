@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/dart_backend/backend_ast_nodes.dart';
 import 'package:compiler/src/scanner/scannerlib.dart';
-import 'package:compiler/src/source_file.dart';
+import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/tree/tree.dart' show DartString;
 import 'dart:mirrors';

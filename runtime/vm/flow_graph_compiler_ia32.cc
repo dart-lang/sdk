@@ -1235,15 +1235,29 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   intptr_t increment_start = assembler_->CodeSize();
 #endif  // DEBUG
   __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(0)), 1);
+#if defined(DEBUG)
   // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
-  DEBUG_ASSERT((assembler_->CodeSize() - increment_start) ==
-               EdgeCounterIncrementSizeInBytes());
+  intptr_t expected = EdgeCounterIncrementSizeInBytes();
+  intptr_t actual = assembler_->CodeSize() - increment_start;
+  if (actual != expected) {
+    FATAL2("Edge counter increment length: %" Pd ", expected %" Pd "\n",
+           actual,
+           expected);
+  }
+#endif  // DEBUG
 }
 
 
 int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
   // Used by CodePatcher; so must be constant across all code in an isolate.
-  return VerifiedMemory::enabled() ? 50 : 4;
+  int32_t size = 4;
+#if defined(DEBUG)
+  size += 19;  // VerifySmi
+#endif  // DEBUG
+  if (VerifiedMemory::enabled()) {
+    size += 50;
+  }
+  return size;
 }
 
 

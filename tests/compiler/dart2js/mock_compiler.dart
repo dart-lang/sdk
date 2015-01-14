@@ -13,7 +13,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
 import 'package:compiler/src/resolution/resolution.dart';
-import 'package:compiler/src/source_file.dart';
+import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/util/util.dart';
 import 'parser_helper.dart';
@@ -163,12 +163,6 @@ class MockCompiler extends Compiler {
                      api.Diagnostic.WARNING);
   }
 
-  void reportFatalError(Spannable node,
-                        MessageKind messageKind,
-                        [Map arguments = const {}]) {
-    reportError(node, messageKind, arguments);
-  }
-
   void reportDiagnostic(Spannable node,
                         Message message,
                         api.Diagnostic kind) {
@@ -218,7 +212,14 @@ class MockCompiler extends Compiler {
     if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
-    visitor.visit(tree);
+    try {
+      visitor.visit(tree);
+    } on CompilerCancelledException catch (_) {
+      // Ignored.
+
+      // TODO(ahe): Don't ignore CompilerCancelledException, instead, fix
+      // pkg/compiler/lib/src/resolution/members.dart.
+    }
     visitor.scope = new LibraryScope(element.library);
     return visitor.registry.mapping;
   }

@@ -76,7 +76,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
   // RAX is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
+  __ InitializeFieldNoBarrier(
       RAX,
       FieldAddress(RAX, GrowableObjectArray::data_offset()),
       RCX);
@@ -84,13 +84,13 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // RAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movq(RCX, Address(RSP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObjectNoBarrier(
+  __ InitializeFieldNoBarrier(
       RAX,
       FieldAddress(RAX, GrowableObjectArray::type_arguments_offset()),
       RCX);
 
   // Set the length field in the growable array object to 0.
-  __ ZeroSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()));
+  __ ZeroInitSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
@@ -286,7 +286,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
-  __ StoreIntoObjectNoBarrier(RAX,                                             \
+  __ InitializeFieldNoBarrier(RAX,                                             \
                               FieldAddress(RAX, type_name::length_offset()),   \
                               RDI);                                            \
   /* Initialize all array elements to 0. */                                    \
@@ -1778,11 +1778,11 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Set the length field.
   __ popq(RDI);
-  __ StoreIntoObjectNoBarrier(RAX,
+  __ InitializeFieldNoBarrier(RAX,
                               FieldAddress(RAX, String::length_offset()),
                               RDI);
   // Clear hash.
-  __ ZeroSmiField(FieldAddress(RAX, String::hash_offset()));
+  __ ZeroInitSmiField(FieldAddress(RAX, String::hash_offset()));
   __ jmp(ok, Assembler::kNearJump);
 
   __ Bind(&pop_and_fail);

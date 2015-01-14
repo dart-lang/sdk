@@ -58,13 +58,14 @@ class TransformerLoader {
           return !_isolates.containsKey(id);
         })).toList();
         join0() {
-          log.progress("Loading ${toSentence(ids)} transformers", (() {
+          new Future.value(
+              log.progress("Loading ${toSentence(ids)} transformers", (() {
             return TransformerIsolate.spawn(
                 _environment,
                 _transformerServer,
                 ids,
                 snapshot: snapshot);
-          })).then((x0) {
+          }))).then((x0) {
             try {
               var isolate = x0;
               var it0 = ids.iterator;
@@ -126,7 +127,7 @@ class TransformerLoader {
             completer0.complete(_transformers[config]);
           }
           if (_isolates.containsKey(config.id)) {
-            _isolates[config.id].create(config).then((x0) {
+            new Future.value(_isolates[config.id].create(config)).then((x0) {
               try {
                 var transformers = x0;
                 join2() {
@@ -198,11 +199,12 @@ class TransformerLoader {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
-        Future.wait(phases.map(((phase) {
+        new Future.value(Future.wait(phases.map(((phase) {
           final completer0 = new Completer();
           scheduleMicrotask(() {
             try {
-              waitAndPrintErrors(phase.map(transformersFor)).then((x0) {
+              new Future.value(
+                  waitAndPrintErrors(phase.map(transformersFor))).then((x0) {
                 try {
                   var transformers = x0;
                   completer0.complete(unionAll(transformers));
@@ -215,7 +217,7 @@ class TransformerLoader {
             }
           });
           return completer0.future;
-        }))).then((x0) {
+        })))).then((x0) {
           try {
             var result = x0;
             completer0.complete(result.toList());

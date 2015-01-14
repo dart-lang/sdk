@@ -155,7 +155,7 @@ class DartOutputter {
     PlaceholderCollector collector = new PlaceholderCollector(
         listener,
         mirrorRenamer,
-        libraryInfo.fixedMemberNames,
+        libraryInfo.fixedDynamicNames,
         elementInfo.elementAsts,
         mainFunction);
 
@@ -183,7 +183,9 @@ class DartOutputter {
             && isSafeToRemoveTypeDeclarations(elementInfo.classMembers));
 
     PlaceholderRenamer placeholderRenamer = new PlaceholderRenamer(
-        libraryInfo.fixedMemberNames, libraryInfo.reexportingLibraries,
+        libraryInfo.fixedDynamicNames,
+        libraryInfo.fixedStaticNames,
+        libraryInfo.reexportingLibraries,
         cutDeclarationTypes: shouldCutDeclarationTypes,
         enableMinification: enableMinification);
 
@@ -215,18 +217,21 @@ class DartOutputter {
 }
 
 class LibraryInfo {
-  final Set<String> fixedMemberNames;
+  final Set<String> fixedStaticNames;
+  final Set<String> fixedDynamicNames;
   final Map<Element, LibraryElement> reexportingLibraries;
   final List<LibraryElement> userLibraries;
 
-  LibraryInfo(this.fixedMemberNames,
+  LibraryInfo(this.fixedStaticNames,
+              this.fixedDynamicNames,
               this.reexportingLibraries,
               this.userLibraries);
 
   static LibraryInfo processLibraries(
       Iterable<LibraryElement> libraries,
       Iterable<AstElement> resolvedElements) {
-    Set<String> fixedMemberNames = new Set<String>();
+    Set<String> fixedStaticNames = new Set<String>();
+    Set<String> fixedDynamicNames = new Set<String>();
     Map<Element, LibraryElement> reexportingLibraries =
           <Element, LibraryElement>{};
     List<LibraryElement> userLibraries = <LibraryElement>[];
@@ -246,13 +251,10 @@ class LibraryInfo {
           assert(invariant(classElement, classElement.isResolved,
               message: "Unresolved platform class."));
           classElement.forEachLocalMember((member) {
-            String name = member.name;
-            // Skip operator names.
-            if (!name.startsWith(r'operator$')) {
-              // Fetch name of named constructors and factories if any,
-              // otherwise store regular name.
-              // TODO(antonm): better way to analyze the name.
-              fixedMemberNames.add(name.split(r'$').last);
+            if (member.isInstanceMember) {
+              fixedDynamicNames.add(member.name);
+            } else {
+              fixedStaticNames.add(member.name);
             }
           });
         }
@@ -260,7 +262,7 @@ class LibraryInfo {
         // if one imports dart:core with a prefix, we cannot tell prefix.name
         // from dynamic invocation (alas!).  So we'd better err on preserving
         // those names.
-        fixedMemberNames.add(element.name);
+        fixedStaticNames.add(element.name);
       });
 
       for (Element export in library.exports) {
@@ -282,20 +284,16 @@ class LibraryInfo {
           element.functionSignature.optionalParameters;
       for (final optional in optionalParameters) {
         if (!optional.isInitializingFormal) continue;
-        fixedMemberNames.add(optional.name);
+        fixedDynamicNames.add(optional.name);
       }
     }
     // The VM will automatically invoke the call method of objects
     // that are invoked as functions. Make sure to not rename that.
-    fixedMemberNames.add('call');
-    // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
-    // runtime/lib/error.dart. Overall, all DartVM specific libs should be
-    // accounted for.
-    fixedMemberNames.add('srcType');
-    fixedMemberNames.add('dstType');
+    fixedDynamicNames.add('call');
 
     return new LibraryInfo(
-        fixedMemberNames, reexportingLibraries, userLibraries);
+        fixedStaticNames, fixedDynamicNames,
+        reexportingLibraries, userLibraries);
   }
 }
 
@@ -523,11 +521,18 @@ class MainOutputGenerator {
         }
       }
     } else {
-      for(LibraryElement library in placeholderRenamer.platformImports) {
-        if (library.isPlatformLibrary && !library.isInternalLibrary) {
-          mainUnparser.unparseImportTag(library.canonicalUri.toString());
+      placeholderRenamer.platformImports.forEach(
+          (LibraryElement library, String prefix) {
+        assert(library.isPlatformLibrary && !library.isInternalLibrary);
+        mainUnparser.unparseImportTag(library.canonicalUri.toString());
+        if (prefix != null) {
+          // Adding a prefixed import because (some) top-level access need
+          // it to avoid shadowing.
+          // TODO(johnniwinther): Avoid prefix-less import if not needed.
+          mainUnparser.unparseImportTag(library.canonicalUri.toString(),
+                                        prefix: prefix);
         }
-      }
+      });
     }
 
     for (int i = 0; i < elementInfo.topLevelElements.length; i++) {

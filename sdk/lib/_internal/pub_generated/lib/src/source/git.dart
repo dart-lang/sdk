@@ -193,16 +193,14 @@ class GitSource extends CachedSource {
                 }
               }
               try {
-                git.run(
-                    ["clean", "-d", "--force", "-x"],
-                    workingDir: package.dir).then((x0) {
+                new Future.value(
+                    git.run(["clean", "-d", "--force", "-x"], workingDir: package.dir)).then((x0) {
                   trampoline0 = () {
                     trampoline0 = null;
                     try {
                       x0;
-                      git.run(
-                          ["reset", "--hard", "HEAD"],
-                          workingDir: package.dir).then((x1) {
+                      new Future.value(
+                          git.run(["reset", "--hard", "HEAD"], workingDir: package.dir)).then((x1) {
                         trampoline0 = () {
                           trampoline0 = null;
                           try {

@@ -14,7 +14,7 @@ main() {
   runReflectiveTests(AnalysisErrorIntegrationTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
   test_detect_simple_error() {

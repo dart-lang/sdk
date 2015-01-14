@@ -251,6 +251,31 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "IsTrue(${names.name(node.value.definition)})";
   }
 
+  visitSetField(cps_ir.SetField node) {
+    String dummy = names.name(node);
+    String object = formatReference(node.object);
+    String field = node.field.name;
+    String value = formatReference(node.value);
+    printStmt(dummy, 'SetField $object.$field = $value');
+    visit(node.body);
+  }
+
+  visitGetField(cps_ir.GetField node) {
+    String object = formatReference(node.object);
+    String field = node.field.name;
+    return 'GetField($object.$field)';
+  }
+
+  visitCreateBox(cps_ir.CreateBox node) {
+    return 'CreateBox';
+  }
+
+  visitCreateClosureClass(cps_ir.CreateClosureClass node) {
+    String className = node.classElement.name;
+    String arguments = node.arguments.map(formatReference).join(', ');
+    return 'CreateClosureClass $className ($arguments)';
+  }
+
   visitIdentical(cps_ir.Identical node) {
     String left = formatReference(node.left);
     String right = formatReference(node.right);
@@ -258,7 +283,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitInterceptor(cps_ir.Interceptor node) {
-    return "Interceptor(${node.input})";
+    return "Interceptor(${formatReference(node.input)})";
   }
 
   visitThis(cps_ir.This node) {
@@ -429,6 +454,10 @@ class BlockCollector extends cps_ir.Visitor {
   }
 
   visitSetClosureVariable(cps_ir.SetClosureVariable exp) {
+    visit(exp.body);
+  }
+
+  visitSetField(cps_ir.SetField exp) {
     visit(exp.body);
   }
 

@@ -32,7 +32,7 @@ import '../string_validator.dart';
 import '../tree/tree.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
-import '../source_file.dart' show SourceFile, Utf8BytesSourceFile;
+import '../io/source_file.dart' show SourceFile, Utf8BytesSourceFile;
 import 'dart:convert' show UTF8, UNICODE_BOM_CHARACTER_RUNE;
 import 'dart:typed_data' show Uint8List;
 

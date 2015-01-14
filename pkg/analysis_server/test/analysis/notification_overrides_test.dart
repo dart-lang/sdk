@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   List<Override> overridesList;
   Override override;

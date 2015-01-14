@@ -274,9 +274,10 @@ Future<MirrorSystem> analyzeLibraries(List<Uri> libraries, String
       ..showWarnings = false).diagnosticHandler;
   Uri libraryUri = new Uri.file(appendSlash(libraryRoot));
   Uri packageUri = null;
-  if (packageRoot != null) {
-    packageUri = new Uri.file(appendSlash(packageRoot));
+  if (packageRoot == null) {
+    packageRoot = Platform.packageRoot;
   }
+  packageUri = new Uri.file(appendSlash(packageRoot));
   return dart2js.analyze(libraries, libraryUri, packageUri,
       provider.readStringFromUri, diagnosticHandler, ['--preserve-comments',
       '--categories=Client,Server'])..catchError((error) {

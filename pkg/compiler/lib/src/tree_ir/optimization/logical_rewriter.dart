@@ -315,6 +315,27 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
+  Statement visitSetField(SetField node) {
+    node.object = visitExpression(node.object);
+    node.value = visitExpression(node.value);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Expression visitGetField(GetField node) {
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  Expression visitCreateBox(CreateBox node) {
+    return node;
+  }
+
+  Expression visitCreateClosureClass(CreateClosureClass node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
+
   /// True if the given expression is known to evaluate to a boolean.
   /// This will not recursively traverse [Conditional] expressions, but if
   /// applied to the result of [visitExpression] conditionals will have been

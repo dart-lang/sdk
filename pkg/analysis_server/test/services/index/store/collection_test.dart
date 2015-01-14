@@ -17,7 +17,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _IntArrayToIntMapTest {
   IntArrayToIntMap map = new IntArrayToIntMap();
 
@@ -31,7 +31,7 @@ class _IntArrayToIntMapTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _IntToIntSetMapTest {
   IntToIntSetMap map = new IntToIntSetMap();
 

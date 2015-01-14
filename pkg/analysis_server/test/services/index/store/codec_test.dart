@@ -24,7 +24,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _ContextCodecTest {
   ContextCodec codec = new ContextCodec();
 
@@ -63,7 +63,7 @@ class _ContextCodecTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _ElementCodecTest extends AbstractSingleUnitTest {
   ElementCodec codec;
   AnalysisContext context = new MockAnalysisContext('context');
@@ -201,7 +201,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _RelationshipCodecTest {
   StringCodec stringCodec = new StringCodec();
   RelationshipCodec codec;
@@ -218,7 +218,7 @@ class _RelationshipCodecTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _StringCodecTest {
   StringCodec codec = new StringCodec();
 

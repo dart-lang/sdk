@@ -48,4 +48,25 @@ class JsTreeBuilder extends Builder {
         new Selector.fromElement(getInterceptor),
         <Expression>[getVariableReference(node.input)]);
   }
+
+  Expression visitGetField(cps_ir.GetField node) {
+    return new GetField(getVariableReference(node.object), node.field);
+  }
+
+  Statement visitSetField(cps_ir.SetField node) {
+    return new SetField(getVariableReference(node.object),
+                        node.field,
+                        getVariableReference(node.value),
+                        visit(node.body));
+  }
+
+  Expression visitCreateBox(cps_ir.CreateBox node) {
+    return new CreateBox();
+  }
+
+  Expression visitCreateClosureClass(cps_ir.CreateClosureClass node) {
+    return new CreateClosureClass(
+        node.classElement,
+        node.arguments.map(getVariableReference).toList());
+  }
 }

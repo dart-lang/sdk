@@ -166,25 +166,40 @@ void FlowGraphTypePropagator::HandleBranchOnNull(BlockEntryInstr* block) {
   }
 
   StrictCompareInstr* compare = branch->comparison()->AsStrictCompare();
-  if ((compare == NULL) || !compare->right()->BindsToConstantNull()) {
+  if ((compare == NULL) || !compare->right()->BindsToConstant()) {
     return;
   }
 
   const intptr_t rollback_point = rollback_.length();
 
   Definition* defn = compare->left()->definition();
+  const Object& right = compare->right()->BoundConstant();
+  intptr_t cid = right.GetClassId();
+
+  if (defn->IsLoadClassId() && right.IsSmi()) {
+    defn = defn->AsLoadClassId()->object()->definition();
+    cid = Smi::Cast(right).Value();
+  }
+
+  if (!CheckClassInstr::IsImmutableClassId(cid)) {
+    return;
+  }
 
   if (compare->kind() == Token::kEQ_STRICT) {
-    branch->set_constrained_type(MarkNonNullable(defn));
-    PropagateRecursive(branch->false_successor());
+    if (cid == kNullCid) {
+      branch->set_constrained_type(MarkNonNullable(defn));
+      PropagateRecursive(branch->false_successor());
+    }
 
-    SetCid(defn, kNullCid);
+    SetCid(defn, cid);
     PropagateRecursive(branch->true_successor());
   } else if (compare->kind() == Token::kNE_STRICT) {
-    branch->set_constrained_type(MarkNonNullable(defn));
-    PropagateRecursive(branch->true_successor());
+    if (cid == kNullCid) {
+      branch->set_constrained_type(MarkNonNullable(defn));
+      PropagateRecursive(branch->true_successor());
+    }
 
-    SetCid(defn, kNullCid);
+    SetCid(defn, cid);
     PropagateRecursive(branch->false_successor());
   }
 
@@ -280,6 +295,12 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 
 
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
+  if (!check->Dependencies().IsNone()) {
+    // TODO(vegorov): If check is affected by side-effect we can still propagate
+    // the type further but not the cid.
+    return;
+  }
+
   LoadClassIdInstr* load_cid =
       check->value()->definition()->OriginalDefinition()->AsLoadClassId();
   if (load_cid != NULL) {

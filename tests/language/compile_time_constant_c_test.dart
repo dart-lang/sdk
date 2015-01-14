@@ -6,7 +6,7 @@ const m0 = const {
   499: 400 + 99
 };
 const m1 = const {
-  "foo" + "bar": 42            /// 01: compile-time error
+  "foo" + "bar": 42            /// 01: ok
 };
 const m2 = const {
   "foo" * 4: 42                /// 02: compile-time error

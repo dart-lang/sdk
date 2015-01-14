@@ -1224,6 +1224,13 @@
           matching the original as possible, but whitespace at the beginning or
           end of the selected region will be ignored.
         </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>FORMAT_INVALID_FILE</tt> will be generated.
+        </p>
         <params>
           <field name="file">
             <ref>FilePath</ref>
@@ -1781,11 +1788,10 @@
           An enumeration of the possible types of analysis errors.
         </p>
         <enum>
-          <value><code>ANGULAR</code></value>
           <value><code>CHECKED_MODE_COMPILE_TIME_ERROR</code></value>
           <value><code>COMPILE_TIME_ERROR</code></value>
           <value><code>HINT</code></value>
-          <value><code>POLYMER</code></value>
+          <value><code>LINT</code></value>
           <value><code>STATIC_TYPE_WARNING</code></value>
           <value><code>STATIC_WARNING</code></value>
           <value><code>SYNTACTIC_ERROR</code></value>
@@ -1801,6 +1807,7 @@
         <object>
           <field name="enableAsync" optional="true">
             <ref>bool</ref>
+            <p><b><i>Deprecated</i></b>/<p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
@@ -1808,6 +1815,7 @@
           </field>
           <field name="enableDeferredLoading" optional="true">
             <ref>bool</ref>
+            <p><b><i>Deprecated</i></b>/<p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
@@ -1815,6 +1823,7 @@
           </field>
           <field name="enableEnums" optional="true">
             <ref>bool</ref>
+            <p><b><i>Deprecated</i></b>/<p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
@@ -1830,7 +1839,14 @@
           <field name="generateHints" optional="true">
             <ref>bool</ref>
             <p>
-              True is hints should be generated as part of generating
+              True if hints should be generated as part of generating
+              errors and warnings.
+            </p>
+          </field>
+          <field name="generateLints" optional="true">
+            <ref>bool</ref>
+            <p>
+              True if lints should be generated as part of generating
               errors and warnings.
             </p>
           </field>
@@ -1907,17 +1923,6 @@
           completion request.
         </p>
       </type>
-      <type name="CompletionRelevance">
-        <p>
-          An enumeration of the relevance of a completion
-          suggestion.
-        </p>
-        <enum>
-          <value><code>LOW</code></value>
-          <value><code>DEFAULT</code></value>
-          <value><code>HIGH</code></value>
-        </enum>
-      </type>
       <type name="CompletionSuggestion">
         <p>
           A suggestion for how to complete partially entered text. Many
@@ -1932,9 +1937,10 @@
             </p>
           </field>
           <field name="relevance">
-            <ref>CompletionRelevance</ref>
+            <ref>int</ref>
             <p>
-              The relevance of this completion suggestion.
+              The relevance of this completion suggestion
+              where a higher number indicates a higher relevance.
             </p>
           </field>
           <field name="completion">
@@ -2007,8 +2013,9 @@
           <field name="returnType" optional="true">
             <ref>String</ref>
             <p>
-              The return type of the getter, function or method being
-              suggested. This field is omitted if the suggested element
+              The return type of the getter, function or method
+              or the type of the field being suggested.
+              This field is omitted if the suggested element
               is not a getter, function or method.
             </p>
           </field>
@@ -2957,6 +2964,13 @@
               An "analysis.getErrors" or "analysis.getNavigation" request could
               not be satisfied because the content of the file changed before
               the requested results could be computed.
+            </p>
+          </value>
+          <value>
+            <code>FORMAT_INVALID_FILE</code>
+            <p>
+              An "edit.format" request specified a FilePath
+              which does not match a Dart file in an analysis root.
             </p>
           </value>
           <value>

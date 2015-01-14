@@ -39,7 +39,7 @@ Future pumpEventQueue([int times = 20]) {
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class DartCompletionManagerTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
@@ -68,7 +68,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager = new DartCompletionManager.create(context, searchEngine, source);
     suggestion1 = new CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
-        CompletionRelevance.DEFAULT,
+        COMPLETION_RELEVANCE_DEFAULT,
         "suggestion1",
         1,
         1,
@@ -76,7 +76,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         false);
     suggestion2 = new CompletionSuggestion(
         CompletionSuggestionKind.IDENTIFIER,
-        CompletionRelevance.DEFAULT,
+        COMPLETION_RELEVANCE_DEFAULT,
         "suggestion2",
         2,
         2,

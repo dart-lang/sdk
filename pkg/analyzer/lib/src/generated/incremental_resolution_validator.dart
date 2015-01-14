@@ -8,22 +8,33 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 
+/**
+ * Validates that the [actual] and the [expected] units have the same structure
+ * and resolution. Throws [IncrementalResolutionMismatch] otherwise.
+ */
 void assertSameResolution(CompilationUnit actual, CompilationUnit expected,
-    FailHandler failHandler) {
+    {bool validateTypes: false}) {
   _SameResolutionValidator validator =
-      new _SameResolutionValidator(failHandler, expected);
+      new _SameResolutionValidator(validateTypes, expected);
   actual.accept(validator);
 }
 
 
-typedef FailHandler(String reason);
+/**
+ * This exception is thrown when a mismatch between actual and expected AST
+ * or resolution is found.
+ */
+class IncrementalResolutionMismatch {
+  final String message;
+  IncrementalResolutionMismatch(this.message);
+}
 
 
 class _SameResolutionValidator implements AstVisitor {
-  final FailHandler failHandler;
+  final bool validateTypes;
   AstNode other;
 
-  _SameResolutionValidator(this.failHandler, this.other);
+  _SameResolutionValidator(this.validateTypes, this.other);
 
   @override
   visitAdjacentStrings(AdjacentStrings node) {
@@ -775,7 +786,7 @@ class _SameResolutionValidator implements AstVisitor {
       String message = '';
       message += 'Expected: $expected\n';
       message += '  Actual: $actual\n';
-      failHandler(message);
+      _fail(message);
     }
   }
 
@@ -784,7 +795,7 @@ class _SameResolutionValidator implements AstVisitor {
       String message = '';
       message += 'Expected: null\n';
       message += '  Actual: $obj\n';
-      failHandler(message);
+      _fail(message);
     }
   }
 
@@ -793,33 +804,46 @@ class _SameResolutionValidator implements AstVisitor {
     message += 'Expected length: $expected\n';
     if (actualList == null) {
       message += 'but null found.';
-      failHandler(message);
+      _fail(message);
     }
     int actual = actualList.length;
     if (actual != expected) {
       message += 'but $actual found\n';
       message += 'in $actualList';
-      failHandler(message);
+      _fail(message);
     }
   }
 
+  void _fail(String message) {
+    throw new IncrementalResolutionMismatch(message);
+  }
+
   void _verifyElement(Element a, Element b) {
-    if (a != b) {
-      print(a.location);
-      print(b.location);
-      failHandler('Expected: $b\n  Actual: $a');
+    if (a is Member && b is Member) {
+      a = (a as Member).baseElement;
+      b = (b as Member).baseElement;
+    }
+    String locationA = _getElementLocationWithoutUri(a);
+    String locationB = _getElementLocationWithoutUri(b);
+    if (locationA != locationB) {
+      int offset = other.offset;
+      _fail('[$offset]\nExpected: $b ($locationB)\n  Actual: $a ($locationA)');
     }
     if (a == null && b == null) {
       return;
     }
     if (a.nameOffset != b.nameOffset) {
-      failHandler('Expected: ${b.nameOffset}\n  Actual: ${a.nameOffset}');
+      _fail('Expected: ${b.nameOffset}\n  Actual: ${a.nameOffset}');
     }
   }
 
   void _verifyType(DartType a, DartType b) {
+    if (!validateTypes) {
+      return;
+    }
     if (a != b) {
-      failHandler('Expected: $b\n  Actual: $a');
+      int offset = other.offset;
+      _fail('[$offset]\nExpected: $b\n  Actual: $a');
     }
   }
 
@@ -870,5 +894,51 @@ class _SameResolutionValidator implements AstVisitor {
     _visitNode(node.documentationComment, other.documentationComment);
     _visitList(node.metadata, other.metadata);
     _visitNode(node.identifier, other.identifier);
+  }
+
+  /**
+   * Returns an URI scheme independent version of the [element] location.
+   */
+  static String _getElementLocationWithoutUri(Element element) {
+    if (element == null) {
+      return '<null>';
+    }
+    if (element is UriReferencedElementImpl) {
+      return '<ignored>';
+    }
+    ElementLocation location = element.location;
+    List<String> components = location.components;
+    String uriPrefix = '';
+    Element unit = element is CompilationUnitElement ?
+        element :
+        element.getAncestor((e) => e is CompilationUnitElement);
+    if (unit != null) {
+      String libComponent = components[0];
+      String unitComponent = components[1];
+      components = components.sublist(2);
+      uriPrefix = _getShortElementLocationUri(libComponent) +
+          ':' +
+          _getShortElementLocationUri(unitComponent);
+    } else {
+      String libComponent = components[0];
+      components = components.sublist(1);
+      uriPrefix = _getShortElementLocationUri(libComponent);
+    }
+    return uriPrefix + ':' + components.join(':');
+  }
+
+  /**
+   * Returns a "short" version of the given [uri].
+   *
+   * For example:
+   *     /User/me/project/lib/my_lib.dart -> my_lib.dart
+   *     package:project/my_lib.dart      -> my_lib.dart
+   */
+  static String _getShortElementLocationUri(String uri) {
+    int index = uri.lastIndexOf('/');
+    if (index == -1) {
+      return uri;
+    }
+    return uri.substring(index + 1);
   }
 }

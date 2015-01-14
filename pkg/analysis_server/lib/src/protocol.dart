@@ -718,6 +718,17 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent the
+   * FORMAT_INVALID_FILE error condition.
+   */
+  Response.formatInvalidFile(Request request)
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.FORMAT_INVALID_FILE,
+              'Error during `edit.format`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
    * GET_ERRORS_INVALID_FILE error condition.
    */
   Response.getErrorsInvalidFile(Request request)

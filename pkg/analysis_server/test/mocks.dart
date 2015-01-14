@@ -14,7 +14,6 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/source/package_map_provider.dart';
@@ -331,7 +330,7 @@ class MockServerOperation implements PerformAnalysisOperation {
   }
 
   @override
-  void updateIndex(Index index, List<ChangeNotice> notices) {
+  void updateIndex(AnalysisServer server, List<ChangeNotice> notices) {
   }
 }
 

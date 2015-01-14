@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
   test_checkFinalConditions_hasMember_constructor() {
     indexTestUnit('''

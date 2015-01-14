@@ -1039,7 +1039,8 @@ void SnapshotReader::ArrayReadFrom(const Array& result,
 SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
                                uint8_t** buffer,
                                ReAlloc alloc,
-                               intptr_t initial_size)
+                               intptr_t initial_size,
+                               bool can_send_any_object)
     : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
       isolate_(Isolate::Current()),
@@ -1048,7 +1049,8 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
       forward_list_(kMaxPredefinedObjectIds),
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL),
-      unmarked_objects_(false) {
+      unmarked_objects_(false),
+      can_send_any_object_(can_send_any_object) {
 }
 
 
@@ -1708,9 +1710,15 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
 }
 
 
+bool SnapshotWriter::AllowObjectsInDartLibrary(RawLibrary* library) {
+  return (library == object_store()->collection_library() ||
+          library == object_store()->typed_data_library());
+}
+
+
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
-  isolate()->object_store()->clear_sticky_error();
+  object_store()->clear_sticky_error();
   UnmarkAll();
   if (msg != NULL) {
     const String& msg_obj = String::Handle(String::New(msg));

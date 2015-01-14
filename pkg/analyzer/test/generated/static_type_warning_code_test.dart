@@ -17,7 +17,7 @@ main() {
   runReflectiveTests(StaticTypeWarningCodeTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
   void fail_inaccessibleSetter() {
     Source source = addSource(r'''

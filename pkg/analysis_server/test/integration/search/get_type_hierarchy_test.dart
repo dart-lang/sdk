@@ -61,7 +61,7 @@ class HierarchyResults {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
   /**
    * Pathname of the main file to run tests in.

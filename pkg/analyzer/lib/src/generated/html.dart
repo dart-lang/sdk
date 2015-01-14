@@ -11,8 +11,7 @@ import 'dart:collection';
 
 import 'ast.dart';
 import 'element.dart';
-import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver,
-    ExpressionVisitor;
+import 'engine.dart' show AnalysisEngine;
 import 'error.dart' show AnalysisErrorListener;
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -346,23 +345,6 @@ abstract class AbstractScanner {
   }
 }
 
-class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
-  final int offset;
-
-  Expression result;
-
-  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset);
-
-  @override
-  void visitExpression(Expression expression) {
-    Expression at = HtmlUnitUtils._getExpressionAt(expression, offset);
-    if (at != null) {
-      result = at;
-      throw new HtmlUnitUtils_FoundExpressionError();
-    }
-  }
-}
-
 /**
  * Instances of the class `HtmlParser` are used to parse tokens into a AST structure comprised
  * of [XmlNode]s.
@@ -665,178 +647,6 @@ class HtmlUnit extends XmlNode {
 }
 
 /**
- * Utilities locating [Expression]s and [Element]s in [HtmlUnit].
- */
-class HtmlUnitUtils {
-  /**
-   * Returns the [XmlAttributeNode] that is part of the given [HtmlUnit] and encloses
-   * the given offset.
-   */
-  static XmlAttributeNode getAttributeNode(HtmlUnit htmlUnit, int offset) {
-    if (htmlUnit == null) {
-      return null;
-    }
-    RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode visitor =
-        new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset);
-    try {
-      htmlUnit.accept(visitor);
-    } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
-      return visitor.result;
-    }
-    return null;
-  }
-
-  /**
-   * Returns the best [Element] of the given [Expression].
-   */
-  static Element getElement(Expression expression) {
-    if (expression == null) {
-      return null;
-    }
-    return ElementLocator.locate(expression);
-  }
-
-  /**
-   * Returns the [Element] of the [Expression] in the given [HtmlUnit], enclosing
-   * the given offset.
-   */
-  static Element getElementAtOffset(HtmlUnit htmlUnit, int offset) {
-    Expression expression = getExpression(htmlUnit, offset);
-    return getElement(expression);
-  }
-
-  /**
-   * Returns the [Element] to open when requested at the given [Expression].
-   */
-  static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
-    Element element = getElement(expression);
-    {
-      AngularElement angularElement =
-          AngularHtmlUnitResolver.getAngularElement(element);
-      if (angularElement != null) {
-        return angularElement;
-      }
-    }
-    return element;
-  }
-
-  /**
-   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and encloses the
-   * given offset.
-   */
-  static XmlTagNode getEnclosingTagNode(HtmlUnit htmlUnit, int offset) {
-    if (htmlUnit == null) {
-      return null;
-    }
-    RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode visitor =
-        new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset);
-    try {
-      htmlUnit.accept(visitor);
-    } on HtmlUnitUtils_FoundTagNodeError catch (e) {
-      return visitor.result;
-    }
-    return null;
-  }
-
-  /**
-   * Returns the [Expression] that is part of the given [HtmlUnit] and encloses the
-   * given offset.
-   */
-  static Expression getExpression(HtmlUnit htmlUnit, int offset) {
-    if (htmlUnit == null) {
-      return null;
-    }
-    ExpressionVisitor_HtmlUnitUtils_getExpression visitor =
-        new ExpressionVisitor_HtmlUnitUtils_getExpression(offset);
-    try {
-      // TODO(scheglov) this code is very Angular specific
-      htmlUnit.accept(visitor);
-    } on HtmlUnitUtils_FoundExpressionError catch (e) {
-      return visitor.result;
-    }
-    return null;
-  }
-
-  /**
-   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and its open or
-   * closing tag name encloses the given offset.
-   */
-  static XmlTagNode getTagNode(HtmlUnit htmlUnit, int offset) {
-    XmlTagNode node = getEnclosingTagNode(htmlUnit, offset);
-    // do we have an enclosing tag at all?
-    if (node == null) {
-      return null;
-    }
-    // is "offset" in the open tag?
-    Token openTag = node.tagToken;
-    if (openTag.offset <= offset && offset <= openTag.end) {
-      return node;
-    }
-    // is "offset" in the open tag?
-    Token closeTag = node.closingTag;
-    if (closeTag != null &&
-        closeTag.offset <= offset &&
-        offset <= closeTag.end) {
-      return node;
-    }
-    // not on a tag name
-    return null;
-  }
-
-  /**
-   * Returns the [Expression] that is part of the given root [AstNode] and encloses the
-   * given offset.
-   */
-  static Expression _getExpressionAt(AstNode root, int offset) {
-    if (root.offset <= offset && offset <= root.end) {
-      AstNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
-      if (dartNode is Expression) {
-        return dartNode;
-      }
-    }
-    return null;
-  }
-}
-
-class HtmlUnitUtils_FoundAttributeNodeError extends Error {
-}
-
-class HtmlUnitUtils_FoundExpressionError extends Error {
-}
-
-class HtmlUnitUtils_FoundTagNodeError extends Error {
-}
-
-/**
- * Implementation of [XmlExpression] for an [Expression] embedded without any wrapping
- * characters.
- */
-class RawXmlExpression extends XmlExpression {
-  final Expression expression;
-
-  RawXmlExpression(this.expression);
-
-  @override
-  int get end => expression.end;
-
-  @override
-  int get length => expression.length;
-
-  @override
-  int get offset => expression.offset;
-
-  @override
-  XmlExpression_Reference getReference(int offset) {
-    AstNode node = new NodeLocator.con1(offset).searchWithin(expression);
-    if (node != null) {
-      Element element = ElementLocator.locate(node);
-      return new XmlExpression_Reference(element, node.offset, node.length);
-    }
-    return null;
-  }
-}
-
-/**
  * Instances of the class `RecursiveXmlVisitor` implement an XML visitor that will recursively
  * visit all of the nodes in an XML structure. For example, using an instance of this class to visit
  * a [XmlTagNode] will also cause all of the contained [XmlAttributeNode]s and
@@ -868,44 +678,6 @@ class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
   @override
   R visitXmlTagNode(XmlTagNode node) {
     node.visitChildren(this);
-    return null;
-  }
-}
-
-class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends
-    RecursiveXmlVisitor<Object> {
-  final int offset;
-
-  XmlAttributeNode result;
-
-  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset);
-
-  @override
-  Object visitXmlAttributeNode(XmlAttributeNode node) {
-    Token nameToken = node.nameToken;
-    if (nameToken.offset <= offset && offset <= nameToken.end) {
-      result = node;
-      throw new HtmlUnitUtils_FoundAttributeNodeError();
-    }
-    return super.visitXmlAttributeNode(node);
-  }
-}
-
-class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends
-    RecursiveXmlVisitor<Object> {
-  final int offset;
-
-  XmlTagNode result;
-
-  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset);
-
-  @override
-  Object visitXmlTagNode(XmlTagNode node) {
-    if (node.offset <= offset && offset < node.end) {
-      result = node;
-      super.visitXmlTagNode(node);
-      throw new HtmlUnitUtils_FoundTagNodeError();
-    }
     return null;
   }
 }

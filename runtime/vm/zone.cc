@@ -63,6 +63,7 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
 Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   ASSERT(size >= 0);
   Segment* result = reinterpret_cast<Segment*>(new uint8_t[size]);
+  ASSERT(Utils::IsAligned(result->start(), Zone::kAlignment));
   if (result != NULL) {
 #ifdef DEBUG
     // Zap the entire allocated segment (including the header).

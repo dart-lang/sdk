@@ -12,7 +12,7 @@ import 'dart:io'
          stdin, stderr;
 
 import '../compiler.dart' as api;
-import 'source_file.dart';
+import 'io/source_file.dart';
 import 'source_file_provider.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
@@ -333,6 +333,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler('--disable-type-inference', implyCompilation),
     new OptionHandler('--terse', passThrough),
+    new OptionHandler('--deferred-map=.+', implyCompilation),
     new OptionHandler('--dump-info', implyCompilation),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
@@ -599,6 +600,10 @@ be removed in a future version:
     unsupported category, for example, --categories=help.  To enable
     all categories, use --categories=all.
 
+  --deferred-map=<file>
+    Generates a json file with a mapping from each deferred import to a list of
+    the part.js files that will be loaded.
+
   --dump-info
     Generates an out.info.json file with information about the generated code.
     You can inspect the generated file with the viewer at:
@@ -668,7 +673,11 @@ Future<api.CompilationResult> internalMain(List<String> arguments) {
   }
 }
 
-const _EXIT_SIGNAL = const Object();
+class _ExitSignal {
+  const _ExitSignal();
+}
+
+const _EXIT_SIGNAL = const _ExitSignal();
 
 void batchMain(List<String> batchArguments) {
   int exitCode;

@@ -30,7 +30,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
   test_function() {
     addTestFile('''
@@ -126,7 +126,7 @@ main(A a, B b, C c, D d) {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ConvertMethodToGetterTest extends _AbstractGetRefactoring_Test {
   test_function() {
     addTestFile('''
@@ -240,7 +240,7 @@ main(A a, B b, C c, D d) {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendExtractRequest(int offset, int length, String name,
       bool extractAll) {
@@ -411,7 +411,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ExtractMethodTest extends _AbstractGetRefactoring_Test {
   int offset;
   int length;
@@ -624,7 +624,7 @@ void res(int a, int b) {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   /**
    * Tests that there is a RENAME refactoring available at the [search] offset.
@@ -805,7 +805,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
   test_feedback() {
     addTestFile('''
@@ -867,7 +867,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InlineMethodTest extends _AbstractGetRefactoring_Test {
   InlineMethodOptions options = new InlineMethodOptions(true, true);
 
@@ -994,7 +994,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class MoveFileTest extends _AbstractGetRefactoring_Test {
   MoveFileOptions options = new MoveFileOptions(null);
 
@@ -1026,7 +1026,7 @@ import 'bin/lib.dart';
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
       [bool validateOnly = false]) {
@@ -1580,7 +1580,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   /**
    * Asserts that [problems] has a single ERROR problem.

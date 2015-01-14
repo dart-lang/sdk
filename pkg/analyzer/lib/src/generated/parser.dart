@@ -1112,12 +1112,6 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   @override
-  AstNode visitFormalParameterList(FormalParameterList node) {
-    // We don't know which kind of parameter to parse.
-    throw new InsufficientContextException();
-  }
-
-  @override
   AstNode visitForStatement(ForStatement node) {
     if (identical(_oldNode, node.variables)) {
       throw new InsufficientContextException();
@@ -1131,6 +1125,12 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       return _parser.parseStatement2();
     }
     return _notAChild(node);
+  }
+
+  @override
+  AstNode visitFormalParameterList(FormalParameterList node) {
+    // We don't know which kind of parameter to parse.
+    throw new InsufficientContextException();
   }
 
   @override
@@ -1482,19 +1482,19 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   @override
-  AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (identical(_oldNode, node.prefix)) {
-      return _parser.parseSimpleIdentifier();
-    } else if (identical(_oldNode, node.identifier)) {
-      return _parser.parseSimpleIdentifier();
+  AstNode visitPrefixExpression(PrefixExpression node) {
+    if (identical(_oldNode, node.operand)) {
+      throw new InsufficientContextException();
     }
     return _notAChild(node);
   }
 
   @override
-  AstNode visitPrefixExpression(PrefixExpression node) {
-    if (identical(_oldNode, node.operand)) {
-      throw new InsufficientContextException();
+  AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (identical(_oldNode, node.prefix)) {
+      return _parser.parseSimpleIdentifier();
+    } else if (identical(_oldNode, node.identifier)) {
+      return _parser.parseSimpleIdentifier();
     }
     return _notAChild(node);
   }
@@ -1825,6 +1825,100 @@ class IncrementalParseException extends RuntimeException {
 }
 
 /**
+ * Visitor capable of inferring the correct parser state for incremental
+ * parsing.  This visitor visits each parent/child relationship in the chain of
+ * ancestors of the node to be replaced (starting with the root of the parse
+ * tree), updating the parser to the correct state for parsing the child of the
+ * given parent.  Once it has visited all of these relationships, the parser
+ * will be in the correct state for reparsing the node to be replaced.
+ *
+ * TODO(paulberry): add support for other pieces of parser state (_inAsync,
+ * _inGenerator, _inLoop, and _inSwitch).  Note that _inLoop and _inSwitch only
+ * affect error message generation.
+ */
+class IncrementalParseStateBuilder extends SimpleAstVisitor {
+  /**
+   * The parser whose state should be built.
+   */
+  final Parser _parser;
+
+  /**
+   * The child node in the parent/child relationship currently being visited.
+   * (The corresponding parent is the node passed to the visit...() function.)
+   */
+  AstNode _childNode;
+
+  /**
+   * Create an IncrementalParseStateBuilder which will build the correct state
+   * for [_parser].
+   */
+  IncrementalParseStateBuilder(this._parser);
+
+  /**
+   * Build the correct parser state for parsing a replacement for [node].
+   */
+  void buildState(AstNode node) {
+    List<AstNode> ancestors = <AstNode>[];
+    while (node != null) {
+      ancestors.add(node);
+      node = node.parent;
+    }
+    _parser._inInitializer = false;
+    for (int i = ancestors.length - 2; i >= 0; i--) {
+      _childNode = ancestors[i];
+      ancestors[i + 1].accept(this);
+    }
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    _parser._inInitializer = false;
+  }
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (identical(_childNode, node.expression)) {
+      _parser._inInitializer = true;
+    }
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    if (identical(_childNode, node.index)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    if (identical(_childNode, node.expression)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.elements.contains(_childNode)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    if (node.entries.contains(_childNode)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    if (identical(_childNode, node.expression)) {
+      _parser._inInitializer = false;
+    }
+  }
+}
+
+/**
  * Instances of the class `IncrementalParser` re-parse a single AST structure within a larger
  * AST structure.
  */
@@ -1998,100 +2092,6 @@ class IncrementalParser {
       firstToken = firstToken.previous;
     }
     return firstToken;
-  }
-}
-
-/**
- * Visitor capable of inferring the correct parser state for incremental
- * parsing.  This visitor visits each parent/child relationship in the chain of
- * ancestors of the node to be replaced (starting with the root of the parse
- * tree), updating the parser to the correct state for parsing the child of the
- * given parent.  Once it has visited all of these relationships, the parser
- * will be in the correct state for reparsing the node to be replaced.
- *
- * TODO(paulberry): add support for other pieces of parser state (_inAsync,
- * _inGenerator, _inLoop, and _inSwitch).  Note that _inLoop and _inSwitch only
- * affect error message generation.
- */
-class IncrementalParseStateBuilder extends SimpleAstVisitor {
-  /**
-   * The parser whose state should be built.
-   */
-  final Parser _parser;
-
-  /**
-   * The child node in the parent/child relationship currently being visited.
-   * (The corresponding parent is the node passed to the visit...() function.)
-   */
-  AstNode _childNode;
-
-  /**
-   * Create an IncrementalParseStateBuilder which will build the correct state
-   * for [_parser].
-   */
-  IncrementalParseStateBuilder(this._parser);
-
-  /**
-   * Build the correct parser state for parsing a replacement for [node].
-   */
-  void buildState(AstNode node) {
-    List<AstNode> ancestors = <AstNode>[];
-    while (node != null) {
-      ancestors.add(node);
-      node = node.parent;
-    }
-    _parser._inInitializer = false;
-    for (int i = ancestors.length - 2; i >= 0; i--) {
-      _childNode = ancestors[i];
-      ancestors[i + 1].accept(this);
-    }
-  }
-
-  @override
-  void visitArgumentList(ArgumentList node) {
-    _parser._inInitializer = false;
-  }
-
-  @override
-  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (identical(_childNode, node.expression)) {
-      _parser._inInitializer = true;
-    }
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    if (identical(_childNode, node.index)) {
-      _parser._inInitializer = false;
-    }
-  }
-
-  @override
-  void visitInterpolationExpression(InterpolationExpression node) {
-    if (identical(_childNode, node.expression)) {
-      _parser._inInitializer = false;
-    }
-  }
-
-  @override
-  void visitListLiteral(ListLiteral node) {
-    if (node.elements.contains(_childNode)) {
-      _parser._inInitializer = false;
-    }
-  }
-
-  @override
-  void visitMapLiteral(MapLiteral node) {
-    if (node.entries.contains(_childNode)) {
-      _parser._inInitializer = false;
-    }
-  }
-
-  @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
-    if (identical(_childNode, node.expression)) {
-      _parser._inInitializer = false;
-    }
   }
 }
 
@@ -2272,17 +2272,6 @@ class Parser {
   bool _parseFunctionBodies = true;
 
   /**
-   * A flag indicating whether the parser is to parse deferred libraries.
-   */
-  bool _parseDeferredLibraries =
-      AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING;
-
-  /**
-   * A flag indicating whether the parser is to parse enum declarations.
-   */
-  bool _parseEnum = AnalysisOptionsImpl.DEFAULT_ENABLE_ENUM;
-
-  /**
    * The next token to be parsed.
    */
   Token _currentToken;
@@ -2327,16 +2316,6 @@ class Parser {
   }
 
   /**
-   * Advance to the next token in the token stream, making it the new current
-   * token and return the token that was current before this method was invoked.
-   */
-  Token getAndAdvance() {
-    Token token = _currentToken;
-    _advance();
-    return token;
-  }
-
-  /**
    * Return `true` if the current token is the first token of a return type that is followed
    * by an identifier, possibly followed by a list of type parameters, followed by a
    * left-parenthesis. This is used by parseTypeAlias to determine whether or not to parse a return
@@ -2354,12 +2333,21 @@ class Parser {
   }
 
   /**
+   * Set whether the parser is to parse the async support.
+   *
+   * @param parseAsync `true` if the parser is to parse the async support
+   */
+  void set parseAsync(bool parseAsync) {
+    // Async support cannot be disabled
+  }
+
+  /**
    * Set whether the parser is to parse deferred libraries.
    *
    * @param parseDeferredLibraries `true` if the parser is to parse deferred libraries
    */
   void set parseDeferredLibraries(bool parseDeferredLibraries) {
-    this._parseDeferredLibraries = parseDeferredLibraries;
+    // Deferred libraries support cannot be disabled
   }
 
   /**
@@ -2368,7 +2356,7 @@ class Parser {
    * @param parseEnum `true` if the parser is to parse enum declarations
    */
   void set parseEnum(bool parseEnum) {
-    this._parseEnum = parseEnum;
+    // Enum support cannot be disabled
   }
 
   /**
@@ -2378,6 +2366,16 @@ class Parser {
    */
   void set parseFunctionBodies(bool parseFunctionBodies) {
     this._parseFunctionBodies = parseFunctionBodies;
+  }
+
+  /**
+   * Advance to the next token in the token stream, making it the new current
+   * token and return the token that was current before this method was invoked.
+   */
+  Token getAndAdvance() {
+    Token token = _currentToken;
+    _advance();
+    return token;
   }
 
   /**
@@ -5528,7 +5526,7 @@ class Parser {
         !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
       _validateModifiersForTypedef(modifiers);
       return _parseTypeAlias(commentAndMetadata);
-    } else if (_parseEnum && _matchesKeyword(Keyword.ENUM)) {
+    } else if (_matchesKeyword(Keyword.ENUM)) {
       _validateModifiersForEnum(modifiers);
       return _parseEnumDeclaration(commentAndMetadata);
     }
@@ -5986,6 +5984,40 @@ class Parser {
   }
 
   /**
+   * Parse a do statement.
+   *
+   * <pre>
+   * doStatement ::=
+   *     'do' statement 'while' '(' expression ')' ';'
+   * </pre>
+   *
+   * @return the do statement that was parsed
+   */
+  Statement _parseDoStatement() {
+    bool wasInLoop = _inLoop;
+    _inLoop = true;
+    try {
+      Token doKeyword = _expectKeyword(Keyword.DO);
+      Statement body = parseStatement2();
+      Token whileKeyword = _expectKeyword(Keyword.WHILE);
+      Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
+      Expression condition = parseExpression2();
+      Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
+      Token semicolon = _expect(TokenType.SEMICOLON);
+      return new DoStatement(
+          doKeyword,
+          body,
+          whileKeyword,
+          leftParenthesis,
+          condition,
+          rightParenthesis,
+          semicolon);
+    } finally {
+      _inLoop = wasInLoop;
+    }
+  }
+
+  /**
    * Parse a documentation comment.
    *
    * <pre>
@@ -6024,40 +6056,6 @@ class Parser {
     return Comment.createDocumentationCommentWithReferences(
         documentationTokens,
         references);
-  }
-
-  /**
-   * Parse a do statement.
-   *
-   * <pre>
-   * doStatement ::=
-   *     'do' statement 'while' '(' expression ')' ';'
-   * </pre>
-   *
-   * @return the do statement that was parsed
-   */
-  Statement _parseDoStatement() {
-    bool wasInLoop = _inLoop;
-    _inLoop = true;
-    try {
-      Token doKeyword = _expectKeyword(Keyword.DO);
-      Statement body = parseStatement2();
-      Token whileKeyword = _expectKeyword(Keyword.WHILE);
-      Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
-      Expression condition = parseExpression2();
-      Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
-      Token semicolon = _expect(TokenType.SEMICOLON);
-      return new DoStatement(
-          doKeyword,
-          body,
-          whileKeyword,
-          leftParenthesis,
-          condition,
-          rightParenthesis,
-          semicolon);
-    } finally {
-      _inLoop = wasInLoop;
-    }
   }
 
   /**
@@ -6252,64 +6250,6 @@ class Parser {
   }
 
   /**
-   * Parse a formal parameter. At most one of `isOptional` and `isNamed` can be
-   * `true`.
-   *
-   * <pre>
-   * defaultFormalParameter ::=
-   *     normalFormalParameter ('=' expression)?
-   *
-   * defaultNamedParameter ::=
-   *     normalFormalParameter (':' expression)?
-   * </pre>
-   *
-   * @param kind the kind of parameter being expected based on the presence or absence of group
-   *          delimiters
-   * @return the formal parameter that was parsed
-   */
-  FormalParameter _parseFormalParameter(ParameterKind kind) {
-    NormalFormalParameter parameter = parseNormalFormalParameter();
-    if (_matches(TokenType.EQ)) {
-      Token seperator = getAndAdvance();
-      Expression defaultValue = parseExpression2();
-      if (kind == ParameterKind.NAMED) {
-        _reportErrorForToken(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER,
-            seperator);
-      } else if (kind == ParameterKind.REQUIRED) {
-        _reportErrorForNode(
-            ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP,
-            parameter);
-      }
-      return new DefaultFormalParameter(
-          parameter,
-          kind,
-          seperator,
-          defaultValue);
-    } else if (_matches(TokenType.COLON)) {
-      Token seperator = getAndAdvance();
-      Expression defaultValue = parseExpression2();
-      if (kind == ParameterKind.POSITIONAL) {
-        _reportErrorForToken(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-            seperator);
-      } else if (kind == ParameterKind.REQUIRED) {
-        _reportErrorForNode(
-            ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
-            parameter);
-      }
-      return new DefaultFormalParameter(
-          parameter,
-          kind,
-          seperator,
-          defaultValue);
-    } else if (kind != ParameterKind.REQUIRED) {
-      return new DefaultFormalParameter(parameter, kind, null, null);
-    }
-    return parameter;
-  }
-
-  /**
    * Parse a for statement.
    *
    * <pre>
@@ -6458,6 +6398,64 @@ class Parser {
     } finally {
       _inLoop = wasInLoop;
     }
+  }
+
+  /**
+   * Parse a formal parameter. At most one of `isOptional` and `isNamed` can be
+   * `true`.
+   *
+   * <pre>
+   * defaultFormalParameter ::=
+   *     normalFormalParameter ('=' expression)?
+   *
+   * defaultNamedParameter ::=
+   *     normalFormalParameter (':' expression)?
+   * </pre>
+   *
+   * @param kind the kind of parameter being expected based on the presence or absence of group
+   *          delimiters
+   * @return the formal parameter that was parsed
+   */
+  FormalParameter _parseFormalParameter(ParameterKind kind) {
+    NormalFormalParameter parameter = parseNormalFormalParameter();
+    if (_matches(TokenType.EQ)) {
+      Token seperator = getAndAdvance();
+      Expression defaultValue = parseExpression2();
+      if (kind == ParameterKind.NAMED) {
+        _reportErrorForToken(
+            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER,
+            seperator);
+      } else if (kind == ParameterKind.REQUIRED) {
+        _reportErrorForNode(
+            ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP,
+            parameter);
+      }
+      return new DefaultFormalParameter(
+          parameter,
+          kind,
+          seperator,
+          defaultValue);
+    } else if (_matches(TokenType.COLON)) {
+      Token seperator = getAndAdvance();
+      Expression defaultValue = parseExpression2();
+      if (kind == ParameterKind.POSITIONAL) {
+        _reportErrorForToken(
+            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+            seperator);
+      } else if (kind == ParameterKind.REQUIRED) {
+        _reportErrorForNode(
+            ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
+            parameter);
+      }
+      return new DefaultFormalParameter(
+          parameter,
+          kind,
+          seperator,
+          defaultValue);
+    } else if (kind != ParameterKind.REQUIRED) {
+      return new DefaultFormalParameter(parameter, kind, null, null);
+    }
+    return parameter;
   }
 
   /**
@@ -6895,13 +6893,7 @@ class Parser {
     Token asToken = null;
     SimpleIdentifier prefix = null;
     if (_matchesKeyword(Keyword.DEFERRED)) {
-      if (_parseDeferredLibraries) {
-        deferredToken = getAndAdvance();
-      } else {
-        _reportErrorForCurrentToken(
-            ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED);
-        _advance();
-      }
+      deferredToken = getAndAdvance();
     }
     if (_matchesKeyword(Keyword.AS)) {
       asToken = getAndAdvance();
@@ -9984,27 +9976,6 @@ class Parser {
   }
 }
 /**
- * Instances of the class `SyntheticKeywordToken` implement a synthetic keyword token.
- */
-class Parser_SyntheticKeywordToken extends KeywordToken {
-  /**
-   * Initialize a newly created token to represent the given keyword.
-   *
-   * @param keyword the keyword being represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
-   */
-  Parser_SyntheticKeywordToken(Keyword keyword, int offset)
-      : super(keyword, offset);
-
-  @override
-  int get length => 0;
-
-  @override
-  Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
-}
-
-
-/**
  * The enumeration `ParserErrorCode` defines the error codes used for errors
  * detected by the parser. The convention for this class is for the name of the
  * error code to indicate the problem that caused the error to be generated and
@@ -10115,11 +10086,6 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode(
           'CONTINUE_WITHOUT_LABEL_IN_CASE',
           "A continue statement in a switch statement must have a label as a target");
-
-  static const ParserErrorCode DEFERRED_IMPORTS_NOT_SUPPORTED =
-      const ParserErrorCode(
-          'DEFERRED_IMPORTS_NOT_SUPPORTED',
-          "Deferred imports are not supported by default");
 
   static const ParserErrorCode DEPRECATED_CLASS_TYPE_ALIAS =
       const ParserErrorCode(
@@ -10712,6 +10678,27 @@ class ParserErrorCode extends ErrorCode {
 
 
 /**
+ * Instances of the class `SyntheticKeywordToken` implement a synthetic keyword token.
+ */
+class Parser_SyntheticKeywordToken extends KeywordToken {
+  /**
+   * Initialize a newly created token to represent the given keyword.
+   *
+   * @param keyword the keyword being represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  Parser_SyntheticKeywordToken(Keyword keyword, int offset)
+      : super(keyword, offset);
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
+}
+
+
+/**
  * Instances of the class `ResolutionCopier` copies resolution information from one AST
  * structure to another as long as the structures of the corresponding children of a pair of nodes
  * are the same.
@@ -11188,17 +11175,6 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
-  bool visitFormalParameterList(FormalParameterList node) {
-    FormalParameterList toNode = this._toNode as FormalParameterList;
-    return _and(
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodeLists(node.parameters, toNode.parameters),
-        _isEqualTokens(node.leftDelimiter, toNode.leftDelimiter),
-        _isEqualTokens(node.rightDelimiter, toNode.rightDelimiter),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
-  }
-
-  @override
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
     return _and(
@@ -11212,6 +11188,17 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodeLists(node.updaters, toNode.updaters),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitFormalParameterList(FormalParameterList node) {
+    FormalParameterList toNode = this._toNode as FormalParameterList;
+    return _and(
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodeLists(node.parameters, toNode.parameters),
+        _isEqualTokens(node.leftDelimiter, toNode.leftDelimiter),
+        _isEqualTokens(node.rightDelimiter, toNode.rightDelimiter),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
   }
 
   @override
@@ -11628,20 +11615,6 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
-  bool visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
-    if (_and(
-        _isEqualNodes(node.prefix, toNode.prefix),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.identifier, toNode.identifier))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
   bool visitPrefixExpression(PrefixExpression node) {
     PrefixExpression toNode = this._toNode as PrefixExpression;
     if (_and(
@@ -11650,6 +11623,20 @@ class ResolutionCopier implements AstVisitor<bool> {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitPrefixedIdentifier(PrefixedIdentifier node) {
+    PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
+    if (_and(
+        _isEqualNodes(node.prefix, toNode.prefix),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.identifier, toNode.identifier))) {
+      toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
     }

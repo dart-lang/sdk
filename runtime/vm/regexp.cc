@@ -5102,7 +5102,13 @@ static void CreateSpecializedFunction(Isolate* isolate,
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
 
   Function& fn = Function::Handle(isolate, Function::New(
-      Symbols::IrregExp(),
+      // Append the regexp pattern to the function name.
+      String::Handle(isolate, Symbols::New(
+          String::Handle(isolate, String::Concat(
+              String::Handle(isolate, String::Concat(
+                  Symbols::Irregexp(),
+                  Symbols::ColonSpace(), Heap::kOld)),
+              String::Handle(regexp.pattern()), Heap::kOld)))),
       RawFunction::kIrregexpFunction,
       true,  // Static.
       false,  // Not const.

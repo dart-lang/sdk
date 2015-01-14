@@ -21,6 +21,7 @@ import "html_test.dart" as htmlTest;
 import "path.dart";
 import "multitest.dart";
 import "status_file_parser.dart";
+import "summary_report.dart";
 import "test_runner.dart";
 import "utils.dart";
 import "http_server.dart" show PREFIX_BUILDDIR, PREFIX_DARTDIR;
@@ -279,10 +280,10 @@ abstract class TestSuite {
       if (testCase.expectCompileError &&
           TestUtils.isBrowserRuntime(configuration['runtime']) &&
           new CompilerConfiguration(configuration).hasCompiler) {
-        SummaryReport.addCompileErrorSkipTest();
+        summaryReport.addCompileErrorSkipTest();
         return;
       } else {
-        SummaryReport.add(expectations);
+        summaryReport.add(testCase);
       }
     }
 
@@ -2404,76 +2405,5 @@ class TestUtils {
       }
     }
     return path;
-  }
-}
-
-
-class SummaryReport {
-  static int total = 0;
-  static int skipped = 0;
-  static int skippedByDesign = 0;
-  static int noCrash = 0;
-  static int pass = 0;
-  static int failOk = 0;
-  static int fail = 0;
-  static int crash = 0;
-  static int timeout = 0;
-  static int compileErrorSkip = 0;
-
-  static void add(Set<Expectation> expectations) {
-    bool containsFail = expectations.any(
-        (expectation) => expectation.canBeOutcomeOf(Expectation.FAIL));
-    ++total;
-    if (expectations.contains(Expectation.SKIP)) {
-      ++skipped;
-    } else if (expectations.contains(Expectation.SKIP_BY_DESIGN)) {
-      ++skipped;
-      ++skippedByDesign;
-    } else {
-      // Counts the number of flaky tests.
-      if (expectations.contains(Expectation.PASS) &&
-          containsFail &&
-          !expectations.contains(Expectation.CRASH) &&
-          !expectations.contains(Expectation.OK)) {
-        ++noCrash;
-      }
-      if (expectations.contains(Expectation.PASS) && expectations.length == 1) {
-        ++pass;
-      }
-      if (expectations.containsAll([Expectation.FAIL, Expectation.OK]) &&
-          expectations.length == 2) {
-        ++failOk;
-      }
-      if (containsFail && expectations.length == 1) {
-        ++fail;
-      }
-      if (expectations.contains(Expectation.CRASH) &&
-          expectations.length == 1) {
-        ++crash;
-      }
-      if (expectations.contains(Expectation.TIMEOUT)) {
-        ++timeout;
-      }
-    }
-  }
-
-  static void addCompileErrorSkipTest() {
-    total++;
-    compileErrorSkip++;
-  }
-
-  static void printReport() {
-    if (total == 0) return;
-    String report = """Total: $total tests
- * $skipped tests will be skipped ($skippedByDesign skipped by design)
- * $noCrash tests are expected to be flaky but not crash
- * $pass tests are expected to pass
- * $failOk tests are expected to fail that we won't fix
- * $fail tests are expected to fail that we should fix
- * $crash tests are expected to crash that we should fix
- * $timeout tests are allowed to timeout
- * $compileErrorSkip tests are skipped on browsers due to compile-time error
-""";
-    print(report);
   }
 }

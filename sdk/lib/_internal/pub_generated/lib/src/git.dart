@@ -50,13 +50,17 @@ Future<List<String>> run(List<String> args, {String workingDir, Map<String,
         "Cannot find a Git executable.\n" "Please ensure Git is correctly installed.");
   }
 
+  log.muteProgress();
   return runProcess(
       _gitCommand,
       args,
       workingDir: workingDir,
       environment: environment).then((result) {
     if (!result.success) throw new GitException(args, result.stderr.join("\n"));
+
     return result.stdout;
+  }).whenComplete(() {
+    log.unmuteProgress();
   });
 }
 

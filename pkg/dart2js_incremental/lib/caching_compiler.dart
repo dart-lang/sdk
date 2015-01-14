@@ -72,7 +72,7 @@ Future<Compiler> reuseCompiler(
         ..needsClassSupport = true
         ..needsMixinSupport = true
         ..needsLazyInitializer = true
-        ..needsArrayInitializerSupport = true;
+        ..needsStructuredMemberInfo = true;
 
     Uri core = Uri.parse("dart:core");
     return compiler.libraryLoader.loadLibrary(core).then((_) {
@@ -130,7 +130,6 @@ Future<Compiler> reuseCompiler(
         ..globalMetadataMap.clear();
 
     backend.emitter.nativeEmitter
-        ..nativeBuffer.clear()
         ..nativeClasses.clear()
         ..nativeMethods.clear();
 
@@ -138,7 +137,6 @@ Future<Compiler> reuseCompiler(
 
     backend.emitter.oldEmitter
         ..outputBuffers.clear()
-        ..deferredConstants.clear()
         ..isolateProperties = null
         ..classesCollector = null
         ..neededClasses.clear()

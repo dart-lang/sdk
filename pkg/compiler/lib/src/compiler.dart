@@ -669,6 +669,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool trustPrimitives;
   final bool enableConcreteTypeInference;
   final bool disableTypeInferenceFlag;
+  final Uri deferredMapUri;
   final bool dumpInfo;
   final bool useContentSecurityPolicy;
   final bool enableExperimentalMirrors;
@@ -985,6 +986,7 @@ abstract class Compiler implements DiagnosticListener {
             this.outputUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
+            this.deferredMapUri: null,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,
@@ -1531,7 +1533,7 @@ abstract class Compiler implements DiagnosticListener {
     // compile-time constants that are metadata.  This means adding
     // something to the resolution queue.  So we cannot wait with
     // this until after the resolution queue is processed.
-    deferredLoadTask.ensureMetadataResolved(this);
+    deferredLoadTask.beforeResolution(this);
 
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
@@ -1786,34 +1788,6 @@ abstract class Compiler implements DiagnosticListener {
                    [Map arguments = const {}]) {
     reportDiagnosticInternal(
         node, messageKind, arguments, api.Diagnostic.ERROR);
-  }
-
-  /**
-   * Reports an error and then aborts the compiler. Avoid using this method.
-   *
-   * In order to support incremental compilation, it is preferable to use
-   * [reportError]. However, care must be taken to leave the compiler in a
-   * consistent state, for example, by creating synthetic erroneous objects.
-   *
-   * If there's absolutely no way to leave the compiler in a consistent state,
-   * calling this method is preferred as it will set [compilerWasCancelled] to
-   * true which alerts the incremental compiler to discard all state and start
-   * a new compiler. Throwing an exception is also better, as this will set
-   * [hasCrashed] which the incremental compiler also listens too (but don't
-   * throw exceptions, it creates a really bad user experience).
-   *
-   * In any case, calling this method is a last resort, as it essentially
-   * breaks the user experience of the incremental compiler. The purpose of the
-   * incremental compiler is to improve developer productivity. Developers
-   * frequently make mistakes, so syntax errors and spelling errors are
-   * considered normal to the incremental compiler.
-   */
-  void reportFatalError(Spannable node, MessageKind messageKind,
-                        [Map arguments = const {}]) {
-    reportError(node, messageKind, arguments);
-    // TODO(ahe): Make this only abort the current method.
-    throw new CompilerCancelledException(
-        'Error: Cannot continue due to previous error.');
   }
 
   void reportWarning(Spannable node, MessageKind messageKind,
@@ -2155,7 +2129,12 @@ class CompilerTask {
   }
 }
 
-class CompilerCancelledException implements Exception {
+/// Don't throw this error. It immediately aborts the compiler which causes the
+/// following problems:
+///
+/// 1. No further errors and warnings are reported.
+/// 2. Breaks incremental compilation.
+class CompilerCancelledException extends Error {
   final String reason;
   CompilerCancelledException(this.reason);
 

@@ -38,6 +38,9 @@ class ReadStream {
 class ObjectVertex {
   // Never null. The isolate root has id 0.
   final int _id;
+  bool get isRoot => _id == 0;
+  // TODO(koda): Include units in object graph metadata.
+  int addressForWordSize(int bytesPerWord) => _id * 2 * bytesPerWord;
   // null for VM-heap objects.
   int _shallowSize;
   int get shallowSize => _shallowSize;
@@ -75,11 +78,26 @@ class ObjectGraph {
       _addFrom(reader);
     }
     _computeRetainedSizes();
+    _mostRetained = new List<ObjectVertex>.from(
+        vertices.where((u) => !u.isRoot));
+    _mostRetained.sort((u, v) => v.retainedSize - u.retainedSize);
   }
 
   Iterable<ObjectVertex> get vertices => _idToVertex.values;
+  List<ObjectVertex> _mostRetained;
 
   ObjectVertex get root => _asVertex(0);
+  
+  Iterable<ObjectVertex> getMostRetained({int classId, int limit}) {
+    var result = _mostRetained;
+    if (classId != null) {
+      result = result.where((u) => u.classId == classId);
+    }
+    if (limit != null) {
+      result = result.take(limit);
+    }
+    return result;
+  }
   
   void _computeRetainedSizes() {
     // The retained size for an object is the sum of the shallow sizes of

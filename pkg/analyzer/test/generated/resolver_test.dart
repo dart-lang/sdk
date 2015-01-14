@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
@@ -378,8 +379,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     bool needsRecompute =
         currentOptions.analyzeFunctionBodies != options.analyzeFunctionBodies ||
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
-        currentOptions.enableDeferredLoading != options.enableDeferredLoading ||
-        currentOptions.enableEnum != options.enableEnum ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments;
@@ -465,7 +464,7 @@ class AnalysisContextHelper {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisDeltaTest extends EngineTestCase {
   TestSource source1 = new TestSource('/1.dart');
   TestSource source2 = new TestSource('/2.dart');
@@ -505,7 +504,7 @@ class AnalysisDeltaTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ChangeSetTest extends EngineTestCase {
   void test_changedContent() {
     TestSource source = new TestSource();
@@ -558,7 +557,7 @@ class ChangeSetTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
   void test_fieldFormalParameterAssignableToField_extends() {
     // According to checked-mode type checking rules, a value of type B is
@@ -1144,7 +1143,7 @@ var v = const A.a1(0);''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementResolverTest extends EngineTestCase {
   /**
    * The error listener to which errors will be reported.
@@ -2078,7 +2077,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -2109,7 +2108,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ErrorResolverTest extends ResolverTestCase {
   void test_breakLabelOnSwitchMember() {
     Source source = addSource(r'''
@@ -2172,7 +2171,7 @@ class C {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class HintCodeTest extends ResolverTestCase {
   void fail_deadCode_statementAfterRehrow() {
     Source source = addSource(r'''
@@ -2978,14 +2977,13 @@ class B {}''');
   }
 
   void test_importDeferredLibraryWithLoadFunction() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 loadLibrary() {}
 f() {}''', r'''
 library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           <ErrorCode>[HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
   }
 
@@ -4443,7 +4441,7 @@ class A {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InheritanceManagerTest extends EngineTestCase {
   /**
    * The type provider used to access the types.
@@ -5661,7 +5659,7 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryElementBuilderTest extends EngineTestCase {
   /**
    * The analysis context used to analyze sources.
@@ -5845,7 +5843,7 @@ class A {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_conflictingImports() {
     AnalysisContext context = new AnalysisContextImpl();
@@ -6041,7 +6039,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryResolver2Test extends ResolverTestCase {
   LibraryResolver2 _resolver;
 
@@ -6088,7 +6086,7 @@ class B {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryResolverTest extends ResolverTestCase {
   LibraryResolver _resolver;
 
@@ -6129,7 +6127,7 @@ class A {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryScopeTest extends ResolverTestCase {
   void test_creation_empty() {
     LibraryElement definingLibrary = createDefaultTestLibrary();
@@ -6166,7 +6164,7 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryTest extends EngineTestCase {
   /**
    * The error listener to which all errors will be reported.
@@ -6283,7 +6281,7 @@ class LibraryTest extends EngineTestCase {
               FileUtilities2.createFile(definingCompilationUnitPath)));
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class MemberMapTest {
   /**
    * The null type.
@@ -6329,7 +6327,7 @@ class MemberMapTest {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(r'''
@@ -6548,13 +6546,12 @@ class B {}''');
   }
 
   void test_importDeferredLibraryWithLoadFunction() {
-    resolveWithAndWithoutExperimental(<String>[r'''
+    resolveWithErrors(<String>[r'''
 library lib1;
 f() {}''', r'''
 library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }'''],
-          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
           ErrorCode.EMPTY_LIST);
   }
 
@@ -7829,15 +7826,6 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Reset the analysis context to have the 'enableEnum' option set to true.
-   */
-  void resetWithEnum() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
-  }
-
-  /**
    * Reset the analysis context to have the given options applied.
    *
    * @param options the analysis options to be applied to the context
@@ -7892,12 +7880,19 @@ class ResolverTestCase extends EngineTestCase {
     return null;
   }
 
+  void resolveWithErrors(List<String> strSources, List<ErrorCode> codes) {
+    // Analysis and assertions
+    Source source = resolveSources(strSources);
+    assertErrors(source, codes);
+    verify([source]);
+  }
+
   void resolveWithAndWithoutExperimental(List<String> strSources,
       List<ErrorCode> codesWithoutExperimental,
       List<ErrorCode> codesWithExperimental) {
     // Setup analysis context as non-experimental
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableDeferredLoading = false;
+//    options.enableDeferredLoading = false;
     resetWithOptions(options);
     // Analysis and assertions
     Source source = resolveSources(strSources);
@@ -7981,7 +7976,7 @@ class Scope_EnclosedScopeTest_test_define_normal extends Scope {
       null;
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener = new GatheringErrorListener();
@@ -8039,7 +8034,7 @@ class ScopeTest_TestScope extends Scope {
       localLookup(name, referencingLibrary);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SimpleResolverTest extends ResolverTestCase {
   void fail_staticInvocation() {
     Source source = addSource(r'''
@@ -8662,7 +8657,6 @@ main() {}''');
   }
 
   void test_enum_externalLibrary() {
-    resetWithEnum();
     addNamedSource("/my_lib.dart", r'''
 library my_lib;
 enum EEE {A, B, C}''');
@@ -9382,7 +9376,7 @@ class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
 /**
  * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class StaticTypeAnalyzer2Test extends ResolverTestCase {
   String testCode;
   Source testSource;
@@ -9455,7 +9449,7 @@ main(p) {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
    * The error listener to which errors will be reported.
@@ -10874,7 +10868,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
  * The class `StrictModeTest` contains tests to ensure that the correct errors and warnings
  * are reported when the analysis engine is run in strict mode.
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class StrictModeTest extends ResolverTestCase {
   void fail_for() {
     Source source = addSource(r'''
@@ -11026,7 +11020,7 @@ int f() {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SubtypeManagerTest extends EngineTestCase {
   /**
    * The inheritance manager being tested.
@@ -11122,477 +11116,9 @@ class SubtypeManagerTest extends EngineTestCase {
   }
 }
 
-/**
- * Instances of the class `TestTypeProvider` implement a type provider that can be used by
- * tests without creating the element model for the core library.
- */
-class TestTypeProvider implements TypeProvider {
-  /**
-   * The type representing the built-in type 'bool'.
-   */
-  InterfaceType _boolType;
 
-  /**
-   * The type representing the type 'bottom'.
-   */
-  DartType _bottomType;
 
-  /**
-   * The type representing the built-in type 'double'.
-   */
-  InterfaceType _doubleType;
-
-  /**
-   * The type representing the built-in type 'deprecated'.
-   */
-  InterfaceType _deprecatedType;
-
-  /**
-   * The type representing the built-in type 'dynamic'.
-   */
-  DartType _dynamicType;
-
-  /**
-   * The type representing the built-in type 'Function'.
-   */
-  InterfaceType _functionType;
-
-  /**
-   * The type representing the built-in type 'int'.
-   */
-  InterfaceType _intType;
-
-  /**
-   * The type representing the built-in type 'Iterable'.
-   */
-  InterfaceType _iterableType;
-
-  /**
-   * The type representing the built-in type 'Iterator'.
-   */
-  InterfaceType _iteratorType;
-
-  /**
-   * The type representing the built-in type 'List'.
-   */
-  InterfaceType _listType;
-
-  /**
-   * The type representing the built-in type 'Map'.
-   */
-  InterfaceType _mapType;
-
-  /**
-   * The type representing the built-in type 'Null'.
-   */
-  InterfaceType _nullType;
-
-  /**
-   * The type representing the built-in type 'num'.
-   */
-  InterfaceType _numType;
-
-  /**
-   * The type representing the built-in type 'Object'.
-   */
-  InterfaceType _objectType;
-
-  /**
-   * The type representing the built-in type 'StackTrace'.
-   */
-  InterfaceType _stackTraceType;
-
-  /**
-   * The type representing the built-in type 'String'.
-   */
-  InterfaceType _stringType;
-
-  /**
-   * The type representing the built-in type 'Symbol'.
-   */
-  InterfaceType _symbolType;
-
-  /**
-   * The type representing the built-in type 'Type'.
-   */
-  InterfaceType _typeType;
-
-  /**
-   * The type representing typenames that can't be resolved.
-   */
-  DartType _undefinedType;
-
-  @override
-  InterfaceType get boolType {
-    if (_boolType == null) {
-      ClassElementImpl boolElement = ElementFactory.classElement2("bool");
-      _boolType = boolElement.type;
-      ConstructorElementImpl fromEnvironment =
-          ElementFactory.constructorElement(boolElement, "fromEnvironment", true);
-      fromEnvironment.parameters = <ParameterElement>[
-          ElementFactory.requiredParameter2("name", stringType),
-          ElementFactory.namedParameter2("defaultValue", _boolType)];
-      fromEnvironment.factory = true;
-      boolElement.constructors = <ConstructorElement>[fromEnvironment];
-    }
-    return _boolType;
-  }
-
-  @override
-  DartType get bottomType {
-    if (_bottomType == null) {
-      _bottomType = BottomTypeImpl.instance;
-    }
-    return _bottomType;
-  }
-
-  @override
-  InterfaceType get deprecatedType {
-    if (_deprecatedType == null) {
-      ClassElementImpl deprecatedElement =
-          ElementFactory.classElement2("Deprecated");
-      deprecatedElement.constructors = <ConstructorElement>[
-          ElementFactory.constructorElement(deprecatedElement, null, true, [stringType])];
-      _deprecatedType = deprecatedElement.type;
-    }
-    return _deprecatedType;
-  }
-
-  @override
-  InterfaceType get doubleType {
-    if (_doubleType == null) {
-      _initializeNumericTypes();
-    }
-    return _doubleType;
-  }
-
-  @override
-  DartType get dynamicType {
-    if (_dynamicType == null) {
-      _dynamicType = DynamicTypeImpl.instance;
-    }
-    return _dynamicType;
-  }
-
-  @override
-  InterfaceType get functionType {
-    if (_functionType == null) {
-      _functionType = ElementFactory.classElement2("Function").type;
-    }
-    return _functionType;
-  }
-
-  @override
-  InterfaceType get intType {
-    if (_intType == null) {
-      _initializeNumericTypes();
-    }
-    return _intType;
-  }
-
-  InterfaceType get iterableType {
-    if (_iterableType == null) {
-      ClassElementImpl iterableElement =
-          ElementFactory.classElement2("Iterable", ["E"]);
-      _iterableType = iterableElement.type;
-      DartType eType = iterableElement.typeParameters[0].type;
-      iterableElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement(
-              "iterator",
-              false,
-              iteratorType.substitute4(<DartType>[eType])),
-          ElementFactory.getterElement("last", false, eType)];
-      _propagateTypeArguments(iterableElement);
-    }
-    return _iterableType;
-  }
-
-  InterfaceType get iteratorType {
-    if (_iteratorType == null) {
-      ClassElementImpl iteratorElement =
-          ElementFactory.classElement2("Iterator", ["E"]);
-      _iteratorType = iteratorElement.type;
-      DartType eType = iteratorElement.typeParameters[0].type;
-      iteratorElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("current", false, eType)];
-      _propagateTypeArguments(iteratorElement);
-    }
-    return _iteratorType;
-  }
-
-  @override
-  InterfaceType get listType {
-    if (_listType == null) {
-      ClassElementImpl listElement =
-          ElementFactory.classElement2("List", ["E"]);
-      listElement.constructors =
-          <ConstructorElement>[ElementFactory.constructorElement2(listElement, null)];
-      _listType = listElement.type;
-      DartType eType = listElement.typeParameters[0].type;
-      InterfaceType iterableType =
-          this.iterableType.substitute4(<DartType>[eType]);
-      listElement.interfaces = <InterfaceType>[iterableType];
-      listElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("length", false, intType)];
-      listElement.methods = <MethodElement>[
-          ElementFactory.methodElement("[]", eType, [intType]),
-          ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
-          ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])];
-      _propagateTypeArguments(listElement);
-    }
-    return _listType;
-  }
-
-  @override
-  InterfaceType get mapType {
-    if (_mapType == null) {
-      ClassElementImpl mapElement =
-          ElementFactory.classElement2("Map", ["K", "V"]);
-      _mapType = mapElement.type;
-      DartType kType = mapElement.typeParameters[0].type;
-      DartType vType = mapElement.typeParameters[1].type;
-      mapElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("length", false, intType)];
-      mapElement.methods = <MethodElement>[
-          ElementFactory.methodElement("[]", vType, [objectType]),
-          ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [kType, vType])];
-      _propagateTypeArguments(mapElement);
-    }
-    return _mapType;
-  }
-
-  @override
-  InterfaceType get nullType {
-    if (_nullType == null) {
-      _nullType = ElementFactory.classElement2("Null").type;
-    }
-    return _nullType;
-  }
-
-  @override
-  InterfaceType get numType {
-    if (_numType == null) {
-      _initializeNumericTypes();
-    }
-    return _numType;
-  }
-
-  @override
-  InterfaceType get objectType {
-    if (_objectType == null) {
-      ClassElementImpl objectElement = ElementFactory.object;
-      _objectType = objectElement.type;
-      objectElement.constructors =
-          <ConstructorElement>[ElementFactory.constructorElement2(objectElement, null)];
-      objectElement.methods = <MethodElement>[
-          ElementFactory.methodElement("toString", stringType),
-          ElementFactory.methodElement("==", boolType, [_objectType]),
-          ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])];
-      objectElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("hashCode", false, intType),
-          ElementFactory.getterElement("runtimeType", false, typeType)];
-    }
-    return _objectType;
-  }
-
-  @override
-  InterfaceType get stackTraceType {
-    if (_stackTraceType == null) {
-      _stackTraceType = ElementFactory.classElement2("StackTrace").type;
-    }
-    return _stackTraceType;
-  }
-
-  @override
-  InterfaceType get stringType {
-    if (_stringType == null) {
-      _stringType = ElementFactory.classElement2("String").type;
-      ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
-      stringElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("isEmpty", false, boolType),
-          ElementFactory.getterElement("length", false, intType),
-          ElementFactory.getterElement(
-              "codeUnits",
-              false,
-              listType.substitute4(<DartType>[intType]))];
-      stringElement.methods = <MethodElement>[
-          ElementFactory.methodElement("+", _stringType, [_stringType]),
-          ElementFactory.methodElement("toLowerCase", _stringType),
-          ElementFactory.methodElement("toUpperCase", _stringType)];
-      ConstructorElementImpl fromEnvironment =
-          ElementFactory.constructorElement(stringElement, "fromEnvironment", true);
-      fromEnvironment.parameters = <ParameterElement>[
-          ElementFactory.requiredParameter2("name", stringType),
-          ElementFactory.namedParameter2("defaultValue", _stringType)];
-      fromEnvironment.factory = true;
-      stringElement.constructors = <ConstructorElement>[fromEnvironment];
-    }
-    return _stringType;
-  }
-
-  @override
-  InterfaceType get symbolType {
-    if (_symbolType == null) {
-      ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor =
-          ElementFactory.constructorElement(symbolClass, null, true, [stringType]);
-      constructor.factory = true;
-      symbolClass.constructors = <ConstructorElement>[constructor];
-      _symbolType = symbolClass.type;
-    }
-    return _symbolType;
-  }
-
-  @override
-  InterfaceType get typeType {
-    if (_typeType == null) {
-      _typeType = ElementFactory.classElement2("Type").type;
-    }
-    return _typeType;
-  }
-
-  @override
-  DartType get undefinedType {
-    if (_undefinedType == null) {
-      _undefinedType = UndefinedTypeImpl.instance;
-    }
-    return _undefinedType;
-  }
-
-  /**
-   * Initialize the numeric types. They are created as a group so that we can (a) create the right
-   * hierarchy and (b) add members to them.
-   */
-  void _initializeNumericTypes() {
-    //
-    // Create the type hierarchy.
-    //
-    ClassElementImpl numElement = ElementFactory.classElement2("num");
-    _numType = numElement.type;
-    ClassElementImpl intElement = ElementFactory.classElement("int", _numType);
-    _intType = intElement.type;
-    ClassElementImpl doubleElement =
-        ElementFactory.classElement("double", _numType);
-    _doubleType = doubleElement.type;
-    //
-    // Force the referenced types to be cached.
-    //
-    objectType;
-    boolType;
-    stringType;
-    //
-    // Add the methods.
-    //
-    numElement.methods = <MethodElement>[
-        ElementFactory.methodElement("+", _numType, [_numType]),
-        ElementFactory.methodElement("-", _numType, [_numType]),
-        ElementFactory.methodElement("*", _numType, [_numType]),
-        ElementFactory.methodElement("%", _numType, [_numType]),
-        ElementFactory.methodElement("/", _doubleType, [_numType]),
-        ElementFactory.methodElement("~/", _numType, [_numType]),
-        ElementFactory.methodElement("-", _numType),
-        ElementFactory.methodElement("remainder", _numType, [_numType]),
-        ElementFactory.methodElement("<", _boolType, [_numType]),
-        ElementFactory.methodElement("<=", _boolType, [_numType]),
-        ElementFactory.methodElement(">", _boolType, [_numType]),
-        ElementFactory.methodElement(">=", _boolType, [_numType]),
-        ElementFactory.methodElement("==", _boolType, [_objectType]),
-        ElementFactory.methodElement("isNaN", _boolType),
-        ElementFactory.methodElement("isNegative", _boolType),
-        ElementFactory.methodElement("isInfinite", _boolType),
-        ElementFactory.methodElement("abs", _numType),
-        ElementFactory.methodElement("floor", _numType),
-        ElementFactory.methodElement("ceil", _numType),
-        ElementFactory.methodElement("round", _numType),
-        ElementFactory.methodElement("truncate", _numType),
-        ElementFactory.methodElement("toInt", _intType),
-        ElementFactory.methodElement("toDouble", _doubleType),
-        ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-        ElementFactory.methodElement("toStringAsExponential", _stringType, [_intType]),
-        ElementFactory.methodElement("toStringAsPrecision", _stringType, [_intType]),
-        ElementFactory.methodElement("toRadixString", _stringType, [_intType])];
-    intElement.methods = <MethodElement>[
-        ElementFactory.methodElement("&", _intType, [_intType]),
-        ElementFactory.methodElement("|", _intType, [_intType]),
-        ElementFactory.methodElement("^", _intType, [_intType]),
-        ElementFactory.methodElement("~", _intType),
-        ElementFactory.methodElement("<<", _intType, [_intType]),
-        ElementFactory.methodElement(">>", _intType, [_intType]),
-        ElementFactory.methodElement("-", _intType),
-        ElementFactory.methodElement("abs", _intType),
-        ElementFactory.methodElement("round", _intType),
-        ElementFactory.methodElement("floor", _intType),
-        ElementFactory.methodElement("ceil", _intType),
-        ElementFactory.methodElement("truncate", _intType),
-        ElementFactory.methodElement("toString", _stringType)];
-    ConstructorElementImpl fromEnvironment =
-        ElementFactory.constructorElement(intElement, "fromEnvironment", true);
-    fromEnvironment.parameters = <ParameterElement>[
-        ElementFactory.requiredParameter2("name", stringType),
-        ElementFactory.namedParameter2("defaultValue", _intType)];
-    fromEnvironment.factory = true;
-    intElement.constructors = <ConstructorElement>[fromEnvironment];
-    List<FieldElement> fields = <FieldElement>[
-        ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
-        ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),
-        ElementFactory.fieldElement(
-            "NEGATIVE_INFINITY",
-            true,
-            false,
-            true,
-            _doubleType),
-        ElementFactory.fieldElement("MIN_POSITIVE", true, false, true, _doubleType),
-        ElementFactory.fieldElement("MAX_FINITE", true, false, true, _doubleType)];
-    doubleElement.fields = fields;
-    int fieldCount = fields.length;
-    List<PropertyAccessorElement> accessors =
-        new List<PropertyAccessorElement>(fieldCount);
-    for (int i = 0; i < fieldCount; i++) {
-      accessors[i] = fields[i].getter;
-    }
-    doubleElement.accessors = accessors;
-    doubleElement.methods = <MethodElement>[
-        ElementFactory.methodElement("remainder", _doubleType, [_numType]),
-        ElementFactory.methodElement("+", _doubleType, [_numType]),
-        ElementFactory.methodElement("-", _doubleType, [_numType]),
-        ElementFactory.methodElement("*", _doubleType, [_numType]),
-        ElementFactory.methodElement("%", _doubleType, [_numType]),
-        ElementFactory.methodElement("/", _doubleType, [_numType]),
-        ElementFactory.methodElement("~/", _doubleType, [_numType]),
-        ElementFactory.methodElement("-", _doubleType),
-        ElementFactory.methodElement("abs", _doubleType),
-        ElementFactory.methodElement("round", _doubleType),
-        ElementFactory.methodElement("floor", _doubleType),
-        ElementFactory.methodElement("ceil", _doubleType),
-        ElementFactory.methodElement("truncate", _doubleType),
-        ElementFactory.methodElement("toString", _stringType)];
-  }
-
-  /**
-   * Given a class element representing a class with type parameters, propagate those type
-   * parameters to all of the accessors, methods and constructors defined for the class.
-   *
-   * @param classElement the element representing the class with type parameters
-   */
-  void _propagateTypeArguments(ClassElementImpl classElement) {
-    List<DartType> typeArguments =
-        TypeParameterTypeImpl.getTypes(classElement.typeParameters);
-    for (PropertyAccessorElement accessor in classElement.accessors) {
-      FunctionTypeImpl functionType = accessor.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
-    }
-    for (MethodElement method in classElement.methods) {
-      FunctionTypeImpl functionType = method.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
-    }
-    for (ConstructorElement constructor in classElement.constructors) {
-      FunctionTypeImpl functionType = constructor.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
-    }
-  }
-}
-
-@ReflectiveTestCase()
+@reflectiveTest
 class TypeOverrideManagerTest extends EngineTestCase {
   void test_exitScope_noScopes() {
     TypeOverrideManager manager = new TypeOverrideManager();
@@ -11663,7 +11189,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
@@ -13139,7 +12665,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypeProviderImplTest extends EngineTestCase {
   void test_creation() {
     //
@@ -13226,7 +12752,7 @@ class TypeProviderImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypeResolverVisitorTest extends EngineTestCase {
   /**
    * The error listener to which errors will be reported.

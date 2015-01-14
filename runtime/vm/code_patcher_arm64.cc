@@ -12,14 +12,6 @@
 
 namespace dart {
 
-RawArray* CodePatcher::GetClosureArgDescAt(uword return_address,
-                                           const Code& code) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  CallPattern call(return_address, code);
-  return call.ClosureArgumentsDescriptor();
-}
-
-
 uword CodePatcher::GetStaticCallTargetAt(uword return_address,
                                          const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));

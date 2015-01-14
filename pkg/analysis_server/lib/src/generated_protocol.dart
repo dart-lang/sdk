@@ -5331,11 +5331,10 @@ class AnalysisErrorSeverity implements Enum {
  * AnalysisErrorType
  *
  * enum {
- *   ANGULAR
  *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
- *   POLYMER
+ *   LINT
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
  *   SYNTACTIC_ERROR
@@ -5343,15 +5342,13 @@ class AnalysisErrorSeverity implements Enum {
  * }
  */
 class AnalysisErrorType implements Enum {
-  static const ANGULAR = const AnalysisErrorType._("ANGULAR");
-
   static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
   static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
   static const HINT = const AnalysisErrorType._("HINT");
 
-  static const POLYMER = const AnalysisErrorType._("POLYMER");
+  static const LINT = const AnalysisErrorType._("LINT");
 
   static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
 
@@ -5367,16 +5364,14 @@ class AnalysisErrorType implements Enum {
 
   factory AnalysisErrorType(String name) {
     switch (name) {
-      case "ANGULAR":
-        return ANGULAR;
       case "CHECKED_MODE_COMPILE_TIME_ERROR":
         return CHECKED_MODE_COMPILE_TIME_ERROR;
       case "COMPILE_TIME_ERROR":
         return COMPILE_TIME_ERROR;
       case "HINT":
         return HINT;
-      case "POLYMER":
-        return POLYMER;
+      case "LINT":
+        return LINT;
       case "STATIC_TYPE_WARNING":
         return STATIC_TYPE_WARNING;
       case "STATIC_WARNING":
@@ -5415,21 +5410,28 @@ class AnalysisErrorType implements Enum {
  *   "enableEnums": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
+ *   "generateLints": optional bool
  * }
  */
 class AnalysisOptions implements HasToJson {
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed async feature.
    */
   bool enableAsync;
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
    */
   bool enableDeferredLoading;
 
   /**
+   * Deprecated/
+   *
    * True if the client wants to enable support for the proposed enum feature.
    */
   bool enableEnums;
@@ -5441,12 +5443,18 @@ class AnalysisOptions implements HasToJson {
   bool generateDart2jsHints;
 
   /**
-   * True is hints should be generated as part of generating errors and
+   * True if hints should be generated as part of generating errors and
    * warnings.
    */
   bool generateHints;
 
-  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints});
+  /**
+   * True if lints should be generated as part of generating errors and
+   * warnings.
+   */
+  bool generateLints;
+
+  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints, this.generateLints});
 
   factory AnalysisOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5473,7 +5481,11 @@ class AnalysisOptions implements HasToJson {
       if (json.containsKey("generateHints")) {
         generateHints = jsonDecoder._decodeBool(jsonPath + ".generateHints", json["generateHints"]);
       }
-      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints);
+      bool generateLints;
+      if (json.containsKey("generateLints")) {
+        generateLints = jsonDecoder._decodeBool(jsonPath + ".generateLints", json["generateLints"]);
+      }
+      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions");
     }
@@ -5496,6 +5508,9 @@ class AnalysisOptions implements HasToJson {
     if (generateHints != null) {
       result["generateHints"] = generateHints;
     }
+    if (generateLints != null) {
+      result["generateLints"] = generateLints;
+    }
     return result;
   }
 
@@ -5509,7 +5524,8 @@ class AnalysisOptions implements HasToJson {
           enableDeferredLoading == other.enableDeferredLoading &&
           enableEnums == other.enableEnums &&
           generateDart2jsHints == other.generateDart2jsHints &&
-          generateHints == other.generateHints;
+          generateHints == other.generateHints &&
+          generateLints == other.generateLints;
     }
     return false;
   }
@@ -5522,6 +5538,7 @@ class AnalysisOptions implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, enableEnums.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateHints.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, generateLints.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -5732,60 +5749,11 @@ class ChangeContentOverlay implements HasToJson {
 }
 
 /**
- * CompletionRelevance
- *
- * enum {
- *   LOW
- *   DEFAULT
- *   HIGH
- * }
- */
-class CompletionRelevance implements Enum {
-  static const LOW = const CompletionRelevance._("LOW");
-
-  static const DEFAULT = const CompletionRelevance._("DEFAULT");
-
-  static const HIGH = const CompletionRelevance._("HIGH");
-
-  final String name;
-
-  const CompletionRelevance._(this.name);
-
-  factory CompletionRelevance(String name) {
-    switch (name) {
-      case "LOW":
-        return LOW;
-      case "DEFAULT":
-        return DEFAULT;
-      case "HIGH":
-        return HIGH;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory CompletionRelevance.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new CompletionRelevance(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "CompletionRelevance");
-  }
-
-  @override
-  String toString() => "CompletionRelevance.$name";
-
-  String toJson() => name;
-}
-
-/**
  * CompletionSuggestion
  *
  * {
  *   "kind": CompletionSuggestionKind
- *   "relevance": CompletionRelevance
+ *   "relevance": int
  *   "completion": String
  *   "selectionOffset": int
  *   "selectionLength": int
@@ -5811,9 +5779,10 @@ class CompletionSuggestion implements HasToJson {
   CompletionSuggestionKind kind;
 
   /**
-   * The relevance of this completion suggestion.
+   * The relevance of this completion suggestion where a higher number
+   * indicates a higher relevance.
    */
-  CompletionRelevance relevance;
+  int relevance;
 
   /**
    * The identifier to be inserted if the suggestion is selected. If the
@@ -5870,9 +5839,9 @@ class CompletionSuggestion implements HasToJson {
   Element element;
 
   /**
-   * The return type of the getter, function or method being suggested. This
-   * field is omitted if the suggested element is not a getter, function or
-   * method.
+   * The return type of the getter, function or method or the type of the field
+   * being suggested. This field is omitted if the suggested element is not a
+   * getter, function or method.
    */
   String returnType;
 
@@ -5927,9 +5896,9 @@ class CompletionSuggestion implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "kind");
       }
-      CompletionRelevance relevance;
+      int relevance;
       if (json.containsKey("relevance")) {
-        relevance = new CompletionRelevance.fromJson(jsonDecoder, jsonPath + ".relevance", json["relevance"]);
+        relevance = jsonDecoder._decodeInt(jsonPath + ".relevance", json["relevance"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "relevance");
       }
@@ -6016,7 +5985,7 @@ class CompletionSuggestion implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["kind"] = kind.toJson();
-    result["relevance"] = relevance.toJson();
+    result["relevance"] = relevance;
     result["completion"] = completion;
     result["selectionOffset"] = selectionOffset;
     result["selectionLength"] = selectionLength;
@@ -9033,6 +9002,7 @@ class RequestError implements HasToJson {
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -9053,6 +9023,12 @@ class RequestErrorCode implements Enum {
    * results could be computed.
    */
   static const CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
+
+  /**
+   * An "edit.format" request specified a FilePath which does not match a Dart
+   * file in an analysis root.
+   */
+  static const FORMAT_INVALID_FILE = const RequestErrorCode._("FORMAT_INVALID_FILE");
 
   /**
    * An "analysis.getErrors" request specified a FilePath which does not match
@@ -9137,6 +9113,8 @@ class RequestErrorCode implements Enum {
     switch (name) {
       case "CONTENT_MODIFIED":
         return CONTENT_MODIFIED;
+      case "FORMAT_INVALID_FILE":
+        return FORMAT_INVALID_FILE;
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
       case "INVALID_OVERLAY_CHANGE":

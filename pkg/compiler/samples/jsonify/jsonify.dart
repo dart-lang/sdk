@@ -16,7 +16,7 @@ import '../../lib/src/mirrors/dart2js_mirrors.dart'
     show BackDoor;
 
 import '../../lib/src/filenames.dart';
-import '../../lib/src/source_file.dart';
+import '../../lib/src/io/source_file.dart';
 import '../../lib/src/source_file_provider.dart';
 import '../../lib/src/util/uri_extras.dart';
 
@@ -46,7 +46,12 @@ main(List<String> arguments) {
   Uri myLocation =
       handler.provider.cwd.resolveUri(Platform.script);
 
-  sdkRoot = myLocation.resolve(SDK_ROOT).resolve('../');
+  Uri packageRoot =
+      handler.provider.cwd.resolve(Platform.packageRoot);
+
+  Uri libraryRoot = myLocation.resolve(SDK_ROOT);
+
+  sdkRoot = libraryRoot.resolve('../');
 
   // Get the names of public dart2js libraries.
   Iterable<String> names = LIBRARIES.keys.where(isPublicDart2jsLibrary);
@@ -54,7 +59,7 @@ main(List<String> arguments) {
   // Turn the names into uris by prepending dart: to them.
   List<Uri> uris = names.map((String name) => Uri.parse('dart:$name')).toList();
 
-  analyze(uris, myLocation.resolve(SDK_ROOT), null, handler.provider, handler)
+  analyze(uris, libraryRoot, packageRoot, handler.provider, handler)
       .then(jsonify);
 }
 

@@ -54,7 +54,8 @@ class ImportedComputer extends DartCompletionComputer {
  * [_ImportedSuggestionBuilder] traverses the imports and builds suggestions
  * based upon imported elements.
  */
-class _ImportedSuggestionBuilder implements SuggestionBuilder {
+class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
+    SuggestionBuilder {
   bool shouldWaitForLowPrioritySuggestions;
   final DartCompletionRequest request;
   final bool typesOnly;
@@ -65,6 +66,9 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
       this.excludeVoidReturn: false}) {
     cache = request.cache;
   }
+
+  @override
+  CompletionSuggestionKind get kind => CompletionSuggestionKind.INVOCATION;
 
   /**
    * If the needed information is cached, then add suggestions and return `true`
@@ -114,9 +118,6 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
           return;
         }
         if (elem is ExecutableElement) {
-          if (elem.isOperator) {
-            return;
-          }
           DartType returnType = elem.returnType;
           if (returnType != null && returnType.isVoid) {
             if (excludeVoidReturn) {
@@ -125,8 +126,7 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
           }
         }
       }
-      request.suggestions.add(
-          createElementSuggestion(elem, relevance: CompletionRelevance.DEFAULT));
+      addSuggestion(elem);
     });
   }
 
@@ -149,12 +149,14 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
         String name = inheritedTypes.removeLast();
         ClassElement elem = cache.importedClassMap[name];
         if (visited.add(name) && elem != null) {
+          _addElementSuggestions(elem.fields);
           _addElementSuggestions(elem.accessors);
           _addElementSuggestions(elem.methods);
           elem.allSupertypes.forEach((InterfaceType type) {
-            if (visited.add(type.name)) {
-              _addElementSuggestions(type.accessors);
-              _addElementSuggestions(type.methods);
+            if (visited.add(type.name) && type.element != null) {
+              _addElementSuggestions(type.element.fields);
+              _addElementSuggestions(type.element.accessors);
+              _addElementSuggestions(type.element.methods);
             }
           });
         }
@@ -183,7 +185,7 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
             request.suggestions.add(suggestion);
           }
         } else {
-          if (suggestion.relevance != CompletionRelevance.LOW) {
+          if (suggestion.relevance != COMPLETION_RELEVANCE_LOW) {
             request.suggestions.add(suggestion);
           }
         }

@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NamingConventionsTest extends RefactoringTest {
   @override
   Refactoring get refactoring => null;

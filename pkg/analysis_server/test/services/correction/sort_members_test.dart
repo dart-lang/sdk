@@ -18,7 +18,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class SortMembersTest extends AbstractSingleUnitTest {
   void test_classMembers_accessor() {
     _parseTestUnit(r'''

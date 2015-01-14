@@ -5,6 +5,14 @@
 library instrumentation;
 
 /**
+ * A container with analysis performance constants.
+ */
+class AnalysisPerformanceKind {
+  static const String FULL = 'analysis_full';
+  static const String INCREMENTAL = 'analysis_incremental';
+}
+
+/**
  * The interface used by client code to communicate with an instrumentation
  * server.
  */
@@ -47,7 +55,10 @@ class InstrumentationService {
 
   static const String TAG_ERROR = 'Err';
   static const String TAG_EXCEPTION = 'Ex';
+  static const String TAG_FILE_READ = 'Read';
+  static const String TAG_LOG_ENTRY = 'Log';
   static const String TAG_NOTIFICATION = 'Noti';
+  static const String TAG_PERFORMANCE = 'Perf';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
   static const String TAG_VERSION = 'Ver';
@@ -89,10 +100,46 @@ class InstrumentationService {
   }
 
   /**
+   * Log that the contents of the file with the given [path] were read. The file
+   * had the given [content] and [modificationTime].
+   */
+  void logFileRead(String path, int modificationTime, String content) {
+    if (_instrumentationServer != null) {
+      String timeStamp = _toString(modificationTime);
+      _instrumentationServer.log(_join([TAG_FILE_READ, path, timeStamp, content]));
+    }
+  }
+
+  /**
+   * Log that a log entry that was written to the analysis engine's log. The log
+   * entry has the given [level] and [message], and was created at the given
+   * [time].
+   */
+  void logLogEntry(String level, DateTime time, String message) {
+    if (_instrumentationServer != null) {
+      String timeStamp = time == null ? 'null' : time.millisecondsSinceEpoch.toString();
+      _instrumentationServer.log(
+          _join([TAG_LOG_ENTRY, level, timeStamp, message]));
+    }
+  }
+
+  /**
    * Log that a notification has been sent to the client.
    */
   void logNotification(String notification) {
     _log(TAG_NOTIFICATION, notification);
+  }
+
+  /**
+   * Log the given performance fact.
+   */
+  void logPerformance(String kind, Stopwatch sw, String message) {
+    sw.stop();
+    String elapsed = sw.elapsedMilliseconds.toString();
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log(
+          _join([TAG_PERFORMANCE, kind, elapsed, message]));
+    }
   }
 
   /**
@@ -184,5 +231,35 @@ class InstrumentationService {
       return 'null';
     }
     return object.toString();
+  }
+}
+
+/**
+ * An [InstrumentationServer] that sends messages to multiple instances.
+ */
+class MulticastInstrumentationServer implements InstrumentationServer {
+  final List<InstrumentationServer> _servers;
+
+  MulticastInstrumentationServer(this._servers);
+
+  @override
+  void log(String message) {
+    for (InstrumentationServer server in _servers) {
+      server.log(message);
+    }
+  }
+
+  @override
+  void logWithPriority(String message) {
+    for (InstrumentationServer server in _servers) {
+      server.logWithPriority(message);
+    }
+  }
+
+  @override
+  void shutdown() {
+    for (InstrumentationServer server in _servers) {
+      server.shutdown();
+    }
   }
 }

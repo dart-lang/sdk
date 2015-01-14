@@ -42,6 +42,8 @@
       'dependencies': [
         'dart_bootstrap#host',
         'fetch_observatory_deps#host',
+        # We use packages for building
+        '../pkg/pkg.gyp:pkg_packages#target',
       ],
       'toolsets': ['host'],
       'sources': [
@@ -78,6 +80,8 @@
         'lib/src/elements/context_ref.html',
         'lib/src/elements/context_view.dart',
         'lib/src/elements/context_view.html',
+        'lib/src/elements/cpu_profile.dart',
+        'lib/src/elements/cpu_profile.html',
         'lib/src/elements/curly_block.dart',
         'lib/src/elements/curly_block.html',
         'lib/src/elements/debugger.dart',
@@ -112,8 +116,6 @@
         'lib/src/elements/instance_view.html',
         'lib/src/elements/io_view.dart',
         'lib/src/elements/io_view.html',
-        'lib/src/elements/isolate_profile.dart',
-        'lib/src/elements/isolate_profile.html',
         'lib/src/elements/isolate_ref.dart',
         'lib/src/elements/isolate_ref.html',
         'lib/src/elements/isolate_summary.dart',
@@ -175,6 +177,7 @@
           'action_name': 'pub_build_observatory',
           'inputs': [
             '../../tools/observatory_tool.py',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '<@(_sources)',
           ],
           'outputs': [

@@ -10,6 +10,7 @@ import "dart:io" as io;
 import "dart:convert" show JSON;
 import "path.dart";
 import "status_file_parser.dart";
+import "summary_report.dart";
 import "test_runner.dart";
 import "test_suite.dart";
 import "utils.dart";
@@ -307,9 +308,17 @@ class UnexpectedCrashDumpArchiver extends EventListener {
 
 
 class SummaryPrinter extends EventListener {
+  final bool jsonOnly;
+
+  SummaryPrinter({bool jsonOnly})
+      : jsonOnly = (jsonOnly == null) ? false : jsonOnly;
+
   void allTestsKnown() {
-    if (SummaryReport.total > 0) {
-      SummaryReport.printReport();
+    if (jsonOnly) {
+      print("JSON:");
+      print(JSON.encode(summaryReport.values));
+    } else {
+      summaryReport.printReport();
     }
   }
 }

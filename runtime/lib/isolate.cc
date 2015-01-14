@@ -102,7 +102,8 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  bool can_send_any_object = (isolate->origin_id() == port.origin_id());
+  MessageWriter writer(&data, &allocator, can_send_any_object);
   writer.WriteMessage(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
@@ -178,6 +179,11 @@ static bool CreateIsolate(Isolate* parent_isolate,
     Isolate::SetCurrent(parent_isolate);
     return false;
   }
+  if (!state->is_spawn_uri()) {
+    // For isolates spawned using the spawnFunction semantics we set
+    // the origin_id to the origin_id of the parent isolate.
+    child_isolate->set_origin_id(parent_isolate->origin_id());
+  }
   state->set_isolate(reinterpret_cast<Isolate*>(child_isolate));
 
   Isolate::SetCurrent(parent_isolate);
@@ -185,8 +191,7 @@ static bool CreateIsolate(Isolate* parent_isolate,
 }
 
 
-static RawObject* Spawn(Isolate* parent_isolate,
-                        IsolateSpawnState* state) {
+static void Spawn(Isolate* parent_isolate, IsolateSpawnState* state) {
   // Create a new isolate.
   char* error = NULL;
   if (!CreateIsolate(parent_isolate, state, &error)) {
@@ -196,19 +201,13 @@ static RawObject* Spawn(Isolate* parent_isolate,
     ThrowIsolateSpawnException(msg);
   }
 
-  // Create a SendPort for the new isolate.
-  Isolate* spawned_isolate = state->isolate();
-  const SendPort& port = SendPort::Handle(
-      SendPort::New(spawned_isolate->main_port()));
-
   // Start the new isolate if it is already marked as runnable.
+  Isolate* spawned_isolate = state->isolate();
   MutexLocker ml(spawned_isolate->mutex());
   spawned_isolate->set_spawn_state(state);
   if (spawned_isolate->is_runnable()) {
     spawned_isolate->Run();
   }
-
-  return port.raw();
 }
 
 
@@ -226,8 +225,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
       ctx = Closure::context(closure);
       ASSERT(ctx.num_variables() == 0);
 #endif
-      return Spawn(isolate, new IsolateSpawnState(
-          port.Id(), func, message, paused.value()));
+      Spawn(isolate, new IsolateSpawnState(port.Id(),
+                                           func,
+                                           message,
+                                           paused.value()));
+      return Object::null();
     }
   }
   const String& msg = String::Handle(String::New(
@@ -265,12 +267,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 6) {
     utf8_package_root[len] = '\0';
   }
 
-  return Spawn(isolate, new IsolateSpawnState(port.Id(),
-                                              canonical_uri,
-                                              utf8_package_root,
-                                              args,
-                                              message,
-                                              paused.value()));
+  Spawn(isolate, new IsolateSpawnState(port.Id(),
+                                       canonical_uri,
+                                       utf8_package_root,
+                                       args,
+                                       message,
+                                       paused.value()));
+  return Object::null();
 }
 
 
@@ -293,7 +296,7 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(msg);
 
   PortMap::PostMessage(new Message(port.Id(),

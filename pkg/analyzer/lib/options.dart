@@ -26,9 +26,6 @@ class CommandLineOptions {
   /** Whether to display version information */
   final bool displayVersion;
 
-  /** Whether to enable support for the proposed enum feature. */
-  final bool enableEnum;
-
   /**
    * Whether to treat type mismatches found during constant evaluation as
    * errors.
@@ -77,7 +74,6 @@ class CommandLineOptions {
         this.definedVariables = definedVariables,
         disableHints = args['no-hints'],
         displayVersion = args['version'],
-        enableEnum = args['enable-enum'],
         enableTypeChecks = args['enable_type_checks'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         log = args['log'],

@@ -49,11 +49,12 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                 join5() {
                   var assetPath = "${p.url.joinAll(p.split(executable))}.dart";
                   var id = new AssetId(package, assetPath);
-                  AssetEnvironment.create(
-                      entrypoint,
-                      mode,
-                      useDart2JS: false,
-                      entrypoints: [id]).then((x0) {
+                  new Future.value(
+                      AssetEnvironment.create(
+                          entrypoint,
+                          mode,
+                          useDart2JS: false,
+                          entrypoints: [id])).then((x0) {
                     try {
                       var environment = x0;
                       environment.barback.errors.listen(((error) {
@@ -73,9 +74,8 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                               vmArgs.add(
                                   server.url.resolve(relativePath).toString());
                               vmArgs.addAll(args);
-                              Process.start(
-                                  Platform.executable,
-                                  vmArgs).then((x0) {
+                              new Future.value(
+                                  Process.start(Platform.executable, vmArgs)).then((x0) {
                                 try {
                                   var process = x0;
                                   process.stderr.listen(stderr.add);
@@ -105,7 +105,8 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                         })));
                       }
                       if (package == entrypoint.root.name) {
-                        environment.serveDirectory(rootDir).then((x1) {
+                        new Future.value(
+                            environment.serveDirectory(rootDir)).then((x1) {
                           try {
                             server = x1;
                             join6();
@@ -114,8 +115,8 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                           }
                         }, onError: completer0.completeError);
                       } else {
-                        environment.servePackageBinDirectory(
-                            package).then((x2) {
+                        new Future.value(
+                            environment.servePackageBinDirectory(package)).then((x2) {
                           try {
                             server = x2;
                             join6();
@@ -165,7 +166,7 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
             !entrypoint.root.immediateDependencies.any(((dep) {
           return dep.name == package;
         }))) {
-          entrypoint.loadPackageGraph().then((x3) {
+          new Future.value(entrypoint.loadPackageGraph()).then((x3) {
             try {
               var graph = x3;
               join7() {
@@ -228,7 +229,8 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
             final completer0 = new Completer();
             scheduleMicrotask(() {
               try {
-                Process.start(Platform.executable, vmArgs).then((x0) {
+                new Future.value(
+                    Process.start(Platform.executable, vmArgs)).then((x0) {
                   try {
                     var process = x0;
                     process.stderr.listen(stderr.add);
@@ -245,11 +247,11 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
             });
             return completer0.future;
           }
-          runProcess(stdin1).then((x0) {
+          new Future.value(runProcess(stdin1)).then((x0) {
             try {
               var exitCode = x0;
               join2() {
-                recompile().then((x1) {
+                new Future.value(recompile()).then((x1) {
                   try {
                     x1;
                     completer0.complete(runProcess(stdin2));

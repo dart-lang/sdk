@@ -286,6 +286,9 @@ class _AsyncDirectoryLister {
           if (response is int) {
             id = response;
             next();
+	  } else if (response is Error) {
+            controller.addError(response);
+            close();
           } else {
             error(response);
             close();

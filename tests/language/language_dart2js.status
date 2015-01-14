@@ -18,7 +18,6 @@ full_stacktrace3_test: Pass, RuntimeError # Issue 12698
 stacktrace_test: Pass, RuntimeError # # Issue 12698
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError # Issue 12698
 stacktrace_rethrow_error_test: Pass, RuntimeError # Issue 12698
-illegal_invocation_test/01: CompileTimeError # Issue 13630
 instantiate_type_variable_test/01: CompileTimeError # Issue 13631
 library_ambiguous_test/00: CompileTimeError # Issue 13632
 library_ambiguous_test/01: CompileTimeError # Issue 13632
@@ -72,9 +71,6 @@ default_factory2_test/01: Fail # Issue 14121
 [ $compiler == dart2js && $unchecked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
 assertion_test: RuntimeError # Issue 12748
-double_to_string_as_exponential2_test: RuntimeError # Issue 12749
-double_to_string_as_fixed2_test: RuntimeError # Issue 12749
-double_to_string_as_precision2_test: RuntimeError # Issue 12749
 generic_test: RuntimeError, OK
 map_literal4_test: RuntimeError, OK # Checked mode required.
 named_parameters_type_test/01: MissingRuntimeError, OK
@@ -84,7 +80,7 @@ positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 generic_field_mixin3_test: Crash # Issue 18651
-
+generic_instanceof4_test: RuntimeError # Issue 21969
 
 [ $compiler == dart2js && $minified ]
 cyclic_type_test/0*: Fail # Issue 12605
@@ -258,6 +254,7 @@ super_call4_test: Fail, OK # hardcoded names.
 
 [ $minified ]
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
+regress_21795_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 *deferred*: Skip # Issue 17458

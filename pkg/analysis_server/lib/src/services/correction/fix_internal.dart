@@ -80,7 +80,7 @@ class FixProcessor {
     unitLibraryFolder = dirname(unitLibraryFile);
   }
 
-  DartType get coreTypeBool => _getCoreType("bool");
+  DartType get coreTypeBool => _getCoreType('bool');
 
   /**
    * Returns the EOL to use for this [CompilationUnit].
@@ -264,7 +264,7 @@ class FixProcessor {
 
   void _addFix_boolInsteadOfBoolean() {
     SourceRange range = rf.rangeError(error);
-    _addReplaceEdit(range, "bool");
+    _addReplaceEdit(range, 'bool');
     _addFix(FixKind.REPLACE_BOOLEAN_WITH_BOOL, []);
   }
 
@@ -275,28 +275,28 @@ class FixProcessor {
       CompilationUnitMember enclosingMember =
           node.getAncestor((node) => node is CompilationUnitMember);
       int offset = enclosingMember.end;
-      String prefix = "";
+      String prefix = '';
       // prepare source
       SourceBuilder sb = new SourceBuilder(file, offset);
       {
-        sb.append("${eol}${eol}");
+        sb.append('$eol$eol');
         sb.append(prefix);
         // "class"
-        sb.append("class ");
+        sb.append('class ');
         // append name
         {
-          sb.startPosition("NAME");
+          sb.startPosition('NAME');
           sb.append(name);
           sb.endPosition();
         }
         // no members
-        sb.append(" {");
+        sb.append(' {');
         sb.append(eol);
-        sb.append("}");
+        sb.append('}');
       }
       // insert source
       _insertBuilder(sb);
-      _addLinkedPosition("NAME", sb, rf.rangeNode(node));
+      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
       // add proposal
       _addFix(FixKind.CREATE_CLASS, [name]);
     }
@@ -349,14 +349,14 @@ class FixProcessor {
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
-      String indent = "  ";
+      String indent = '  ';
       sb.append(targetLocation.prefix);
       sb.append(indent);
       sb.append(targetElement.name);
       _addFix_undefinedMethod_create_parameters(
           sb,
           instanceCreation.argumentList);
-      sb.append(") {${eol}${indent}}");
+      sb.append(') {$eol$indent}');
       sb.append(targetLocation.suffix);
     }
     // insert source
@@ -407,27 +407,27 @@ class FixProcessor {
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
-      String indent = "  ";
+      String indent = '  ';
       sb.append(targetLocation.prefix);
       sb.append(indent);
       sb.append(targetElement.name);
-      sb.append(".");
+      sb.append('.');
       // append name
       {
-        sb.startPosition("NAME");
+        sb.startPosition('NAME');
         sb.append(name.name);
         sb.endPosition();
       }
       _addFix_undefinedMethod_create_parameters(
           sb,
           instanceCreation.argumentList);
-      sb.append(") {${eol}${indent}}");
+      sb.append(') {$eol$indent}');
       sb.append(targetLocation.suffix);
     }
     // insert source
     _insertBuilder(sb);
     if (targetFile == file) {
-      _addLinkedPosition("NAME", sb, rf.rangeNode(name));
+      _addLinkedPosition('NAME', sb, rf.rangeNode(name));
     }
     // add proposal
     _addFixToElement(
@@ -459,23 +459,23 @@ class FixProcessor {
         if (initializers.isEmpty) {
           int insertOffset = targetConstructor.parameters.end;
           sb = new SourceBuilder(file, insertOffset);
-          sb.append(" : ");
+          sb.append(' : ');
         } else {
           ConstructorInitializer lastInitializer =
               initializers[initializers.length - 1];
           int insertOffset = lastInitializer.end;
           sb = new SourceBuilder(file, insertOffset);
-          sb.append(", ");
+          sb.append(', ');
         }
       }
       // add super constructor name
-      sb.append("super");
+      sb.append('super');
       if (!StringUtils.isEmpty(constructorName)) {
-        sb.append(".");
+        sb.append('.');
         sb.append(constructorName);
       }
       // add arguments
-      sb.append("(");
+      sb.append('(');
       bool firstParameter = true;
       for (ParameterElement parameter in superConstructor.parameters) {
         // skip non-required parameters
@@ -486,7 +486,7 @@ class FixProcessor {
         if (firstParameter) {
           firstParameter = false;
         } else {
-          sb.append(", ");
+          sb.append(', ');
         }
         // default value
         DartType parameterType = parameter.type;
@@ -494,7 +494,7 @@ class FixProcessor {
         sb.append(getDefaultValueCode(parameterType));
         sb.endPosition();
       }
-      sb.append(")");
+      sb.append(')');
       // insert proposal
       _insertBuilder(sb);
       // add proposal
@@ -556,7 +556,7 @@ class FixProcessor {
           sb.append(constructorName);
           sb.endPosition();
         }
-        sb.append("(");
+        sb.append('(');
         sb.append(parametersBuffer.toString());
         sb.append(') : super');
         if (!constructorName.isEmpty) {
@@ -882,7 +882,7 @@ class FixProcessor {
       // append method
       sb.append(prefix);
       sb.append(
-          "noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);");
+          'noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);');
       sb.append(eol);
     }
     // done
@@ -902,7 +902,7 @@ class FixProcessor {
     String suffix;
     {
       // if no directives
-      prefix = "";
+      prefix = '';
       suffix = eol;
       CorrectionUtils libraryUtils = new CorrectionUtils(libraryUnit);
       // after last directive in library
@@ -910,7 +910,7 @@ class FixProcessor {
         if (directive is LibraryDirective || directive is ImportDirective) {
           offset = directive.end;
           prefix = eol;
-          suffix = "";
+          suffix = '';
         }
       }
       // if still beginning of file, skip shebang and line comments
@@ -918,11 +918,11 @@ class FixProcessor {
         CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
         offset = desc.offset;
         prefix = desc.prefix;
-        suffix = "${desc.suffix}${eol}";
+        suffix = '${desc.suffix}$eol';
       }
     }
     // insert new import
-    String importSource = "${prefix}import '${importPath}';${suffix}";
+    String importSource = "${prefix}import '$importPath';$suffix";
     _addInsertEdit(offset, importSource);
     // add proposal
     _addFixToElement(kind, [importPath], libraryUnitElement);
@@ -930,7 +930,7 @@ class FixProcessor {
 
   void _addFix_importLibrary_withElement(String name, ElementKind kind) {
     // ignore if private
-    if (name.startsWith("_")) {
+    if (name.startsWith('_')) {
       return;
     }
 
@@ -953,7 +953,7 @@ class FixProcessor {
       PrefixElement prefix = imp.prefix;
       if (prefix != null) {
         SourceRange range = rf.rangeStartLength(node, 0);
-        _addReplaceEdit(range, "${prefix.displayName}.");
+        _addReplaceEdit(range, '${prefix.displayName}.');
         _addFix(
             FixKind.IMPORT_LIBRARY_PREFIX,
             [libraryElement.displayName, prefix.displayName]);
@@ -974,7 +974,7 @@ class FixProcessor {
           libraryName = imp.uri;
         }
         // update library
-        String newShowCode = "show ${StringUtils.join(showNames, ", ")}";
+        String newShowCode = 'show ${StringUtils.join(showNames, ", ")}';
         _addReplaceEdit(rf.rangeOffsetEnd(showCombinator), newShowCode);
         _addFixToElement(
             FixKind.IMPORT_LIBRARY_SHOW,
@@ -1086,7 +1086,7 @@ class FixProcessor {
   void _addFix_insertSemicolon() {
     if (error.message.contains("';'")) {
       int insertOffset = error.offset + error.length;
-      _addInsertEdit(insertOffset, ";");
+      _addInsertEdit(insertOffset, ';');
       _addFix(FixKind.INSERT_SEMICOLON, []);
     }
   }
@@ -1096,7 +1096,7 @@ class FixProcessor {
       IsExpression isExpression = coveredNode as IsExpression;
       _addReplaceEdit(
           rf.rangeEndEnd(isExpression.expression, isExpression),
-          " != null");
+          ' != null');
       _addFix(FixKind.USE_NOT_EQ_NULL, []);
     }
   }
@@ -1106,7 +1106,7 @@ class FixProcessor {
       IsExpression isExpression = coveredNode as IsExpression;
       _addReplaceEdit(
           rf.rangeEndEnd(isExpression.expression, isExpression),
-          " == null");
+          ' == null');
       _addFix(FixKind.USE_EQ_EQ_NULL, []);
     }
   }
@@ -1115,7 +1115,7 @@ class FixProcessor {
     ClassDeclaration enclosingClass =
         node.getAncestor((node) => node is ClassDeclaration);
     String className = enclosingClass.name.name;
-    _addInsertEdit(enclosingClass.classKeyword.offset, "abstract ");
+    _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
     _addFix(FixKind.MAKE_CLASS_ABSTRACT, [className]);
   }
 
@@ -1124,7 +1124,7 @@ class FixProcessor {
       MethodDeclaration method = node.parent as MethodDeclaration;
       FunctionBody body = method.body;
       if (method.name == node && body != null) {
-        _addReplaceEdit(rf.rangeEndStart(node, body), " ");
+        _addReplaceEdit(rf.rangeEndStart(node, body), ' ');
         _addFix(FixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION, []);
       }
     }
@@ -1195,14 +1195,14 @@ class FixProcessor {
 
   void _addFix_replaceVarWithDynamic() {
     SourceRange range = rf.rangeError(error);
-    _addReplaceEdit(range, "dynamic");
+    _addReplaceEdit(range, 'dynamic');
     _addFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, []);
   }
 
   void _addFix_replaceWithConstInstanceCreation() {
     if (coveredNode is InstanceCreationExpression) {
       var instanceCreation = coveredNode as InstanceCreationExpression;
-      _addReplaceEdit(rf.rangeToken(instanceCreation.keyword), "const");
+      _addReplaceEdit(rf.rangeToken(instanceCreation.keyword), 'const');
       _addFix(FixKind.USE_CONST, []);
     }
   }
@@ -1259,7 +1259,7 @@ class FixProcessor {
     AstNode enclosingMember =
         node.getAncestor((node) => node is CompilationUnitMember);
     insertOffset = enclosingMember.end;
-    sourcePrefix = "${eol}${eol}";
+    sourcePrefix = '$eol$eol';
     utils.targetClassElement = null;
     // build method source
     SourceBuilder sb = new SourceBuilder(file, insertOffset);
@@ -1272,12 +1272,12 @@ class FixProcessor {
       }
       // append name
       {
-        sb.startPosition("NAME");
+        sb.startPosition('NAME');
         sb.append(name);
         sb.endPosition();
       }
       _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
-      sb.append(") {${eol}}");
+      sb.append(') {$eol}');
     }
     // insert source
     _insertBuilder(sb);
@@ -1334,8 +1334,8 @@ class FixProcessor {
         staticModifier = _inStaticContext();
         prefix = utils.getNodePrefix(enclosingMember);
         insertOffset = enclosingMember.end;
-        sourcePrefix = "${eol}${eol}";
-        sourceSuffix = "";
+        sourcePrefix = '$eol$eol';
+        sourceSuffix = '';
       } else {
         // prepare target interface type
         DartType targetType = target.bestType;
@@ -1350,10 +1350,10 @@ class FixProcessor {
         }
         // prepare insert offset
         ClassDeclaration targetClassNode = targetClassElement.node;
-        prefix = "  ";
+        prefix = '  ';
         insertOffset = targetClassNode.end - 1;
         if (targetClassNode.members.isEmpty) {
-          sourcePrefix = "";
+          sourcePrefix = '';
         } else {
           sourcePrefix = eol;
         }
@@ -1367,7 +1367,7 @@ class FixProcessor {
         sb.append(prefix);
         // maybe "static"
         if (staticModifier) {
-          sb.append("static ");
+          sb.append('static ');
         }
         // append return type
         {
@@ -1376,12 +1376,12 @@ class FixProcessor {
         }
         // append name
         {
-          sb.startPosition("NAME");
+          sb.startPosition('NAME');
           sb.append(name);
           sb.endPosition();
         }
         _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
-        sb.append(") {${eol}${prefix}}");
+        sb.append(') {$eol$prefix}');
         sb.append(sourceSuffix);
       }
       // insert source
@@ -1398,14 +1398,14 @@ class FixProcessor {
   void _addFix_undefinedMethod_create_parameters(SourceBuilder sb,
       ArgumentList argumentList) {
     // append parameters
-    sb.append("(");
+    sb.append('(');
     Set<String> excluded = new Set();
     List<Expression> arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       Expression argument = arguments[i];
       // append separator
       if (i != 0) {
-        sb.append(", ");
+        sb.append(', ');
       }
       // append type name
       DartType type = argument.bestType;
@@ -1413,19 +1413,19 @@ class FixProcessor {
       // TODO(scheglov) use librariesToImport
       String typeSource = utils.getTypeSource(type, librariesToImport);
       {
-        sb.startPosition("TYPE${i}");
+        sb.startPosition('TYPE$i');
         sb.append(typeSource);
         _addSuperTypeProposals(sb, new Set(), type);
         sb.endPosition();
       }
-      sb.append(" ");
+      sb.append(' ');
       // append parameter name
       {
         List<String> suggestions =
             _getArgumentNameSuggestions(excluded, type, argument, i);
         String favorite = suggestions[0];
         excluded.add(favorite);
-        sb.startPosition("ARG${i}");
+        sb.startPosition('ARG$i');
         sb.append(favorite);
         sb.addSuggestions(LinkedEditSuggestionKind.PARAMETER, suggestions);
         sb.endPosition();
@@ -1478,7 +1478,7 @@ class FixProcessor {
         }
         // replace "/" with "~/"
         BinaryExpression binary = target as BinaryExpression;
-        _addReplaceEdit(rf.rangeToken(binary.operator), "~/");
+        _addReplaceEdit(rf.rangeToken(binary.operator), '~/');
         // remove everything before and after
         _addRemoveEdit(rf.rangeStartStart(invocation, binary.leftOperand));
         _addRemoveEdit(rf.rangeEndEnd(binary.rightOperand, invocation));
@@ -1574,24 +1574,24 @@ class FixProcessor {
       sb.append(prefix);
       // may be static
       if (isStatic) {
-        sb.append("static ");
+        sb.append('static ');
       }
       // append return type
       _appendType(sb, functionType.returnType, groupId: 'RETURN_TYPE');
       // append name
       {
-        sb.startPosition("NAME");
+        sb.startPosition('NAME');
         sb.append(name);
         sb.endPosition();
       }
       // append parameters
-      sb.append("(");
+      sb.append('(');
       List<ParameterElement> parameters = functionType.parameters;
       for (int i = 0; i < parameters.length; i++) {
         ParameterElement parameter = parameters[i];
         // append separator
         if (i != 0) {
-          sb.append(", ");
+          sb.append(', ');
         }
         // append type name
         DartType type = parameter.type;
@@ -1600,30 +1600,30 @@ class FixProcessor {
           // TODO(scheglov) use librariesToImport
           String typeSource = utils.getTypeSource(type, librariesToImport);
           {
-            sb.startPosition("TYPE${i}");
+            sb.startPosition('TYPE$i');
             sb.append(typeSource);
             _addSuperTypeProposals(sb, new Set(), type);
             sb.endPosition();
           }
-          sb.append(" ");
+          sb.append(' ');
         }
         // append parameter name
         {
-          sb.startPosition("ARG${i}");
+          sb.startPosition('ARG$i');
           sb.append(parameter.displayName);
           sb.endPosition();
         }
       }
-      sb.append(")");
+      sb.append(')');
       // close method
-      sb.append(" {${eol}${prefix}}");
+      sb.append(' {$eol$prefix}');
       sb.append(sourceSuffix);
     }
     // insert source
     _insertBuilder(sb);
     // add linked positions
     if (targetSource == unitSource) {
-      _addLinkedPosition("NAME", sb, rf.rangeNode(node));
+      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     }
   }
 
@@ -1636,8 +1636,8 @@ class FixProcessor {
     // prepare environment
     int insertOffset = unit.end;
     // prepare prefix
-    String prefix = "";
-    String sourcePrefix = "${eol}";
+    String prefix = '';
+    String sourcePrefix = '$eol';
     String sourceSuffix = eol;
     _addProposal_createFunction(
         functionType,
@@ -1665,10 +1665,10 @@ class FixProcessor {
     ClassDeclaration targetClassNode = targetClassElement.node;
     int insertOffset = targetClassNode.end - 1;
     // prepare prefix
-    String prefix = "  ";
+    String prefix = '  ';
     String sourcePrefix;
     if (targetClassNode.members.isEmpty) {
-      sourcePrefix = "";
+      sourcePrefix = '';
     } else {
       sourcePrefix = eol;
     }
@@ -1702,13 +1702,13 @@ class FixProcessor {
   }
 
   void _appendParameters(SourceBuilder sb, List<ParameterElement> parameters) {
-    sb.append("(");
+    sb.append('(');
     bool firstParameter = true;
     bool sawNamed = false;
     bool sawPositional = false;
     for (ParameterElement parameter in parameters) {
       if (!firstParameter) {
-        sb.append(", ");
+        sb.append(', ');
       } else {
         firstParameter = false;
       }
@@ -1716,13 +1716,13 @@ class FixProcessor {
       ParameterKind parameterKind = parameter.parameterKind;
       if (parameterKind == ParameterKind.NAMED) {
         if (!sawNamed) {
-          sb.append("{");
+          sb.append('{');
           sawNamed = true;
         }
       }
       if (parameterKind == ParameterKind.POSITIONAL) {
         if (!sawPositional) {
-          sb.append("[");
+          sb.append('[');
           sawPositional = true;
         }
       }
@@ -1732,21 +1732,21 @@ class FixProcessor {
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
         if (sawPositional) {
-          sb.append(" = ");
+          sb.append(' = ');
         } else {
-          sb.append(": ");
+          sb.append(': ');
         }
         sb.append(defaultCode);
       }
     }
     // close parameters
     if (sawNamed) {
-      sb.append("}");
+      sb.append('}');
     }
     if (sawPositional) {
-      sb.append("]");
+      sb.append(']');
     }
-    sb.append(")");
+    sb.append(')');
   }
 
   void _appendParameterSource(SourceBuilder sb, DartType type, String name) {
@@ -1781,11 +1781,11 @@ class FixProcessor {
    */
   String _getConstructorProposalName(ConstructorElement constructor) {
     SourceBuilder proposalNameBuffer = new SourceBuilder.buffer();
-    proposalNameBuffer.append("super");
+    proposalNameBuffer.append('super');
     // may be named
     String constructorName = constructor.displayName;
     if (!constructorName.isEmpty) {
-      proposalNameBuffer.append(".");
+      proposalNameBuffer.append('.');
       proposalNameBuffer.append(constructorName);
     }
     // parameters
@@ -2091,7 +2091,7 @@ class FixProcessor {
     if (suggestions.length != 0) {
       return suggestions;
     }
-    return <String>["arg${index}"];
+    return <String>['arg$index'];
   }
 
   /**

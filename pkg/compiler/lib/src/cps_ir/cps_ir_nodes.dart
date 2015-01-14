@@ -13,6 +13,7 @@ import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 import '../cps_ir/optimizers.dart';
+import '../closure.dart' show ClosureClassElement;
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -59,7 +60,7 @@ abstract class Definition<T extends Definition<T>> extends Node {
 abstract class Primitive extends Definition<Primitive> {
   /// The [VariableElement] or [ParameterElement] from which the primitive
   /// binding originated.
-  Element hint;
+  Entity hint;
 
   /// Register in which the variable binding this primitive can be allocated.
   /// Separate register spaces are used for primitives with different [element].
@@ -69,7 +70,7 @@ abstract class Primitive extends Definition<Primitive> {
   /// Use the given element as a hint for naming this primitive.
   ///
   /// Has no effect if this primitive already has a non-null [element].
-  void useElementAsHint(Element hint) {
+  void useElementAsHint(Entity hint) {
     if (this.hint == null) {
       this.hint = hint;
     }
@@ -460,6 +461,55 @@ class Branch extends Expression {
 /// to the Tree IR, which is implemented in JsTreeBuilder.
 abstract class JsSpecificNode {}
 
+/// Directly assigns to a field on a given object.
+class SetField extends Expression implements InteriorNode, JsSpecificNode {
+  final Reference<Primitive> object;
+  Element field;
+  final Reference<Primitive> value;
+  Expression body;
+
+  SetField(Primitive object, this.field, Primitive value)
+      : this.object = new Reference<Primitive>(object),
+        this.value = new Reference<Primitive>(value);
+
+  Expression plug(Expression expr) {
+    assert(body == null);
+    return body = expr;
+  }
+
+  accept(Visitor visitor) => visitor.visitSetField(this);
+}
+
+/// Directly reads from a field on a given object.
+class GetField extends Primitive implements JsSpecificNode {
+  final Reference<Primitive> object;
+  Element field;
+
+  GetField(Primitive object, this.field)
+      : this.object = new Reference<Primitive>(object);
+
+  accept(Visitor visitor) => visitor.visitGetField(this);
+}
+
+/// Creates an object for holding boxed variables captured by a closure.
+class CreateBox extends Primitive implements JsSpecificNode {
+  accept(Visitor visitor) => visitor.visitCreateBox(this);
+}
+
+/// Instantiates a synthetic class created by closure conversion.
+class CreateClosureClass extends Primitive implements JsSpecificNode {
+  final ClosureClassElement classElement;
+
+  /// Values and boxes for locals captured by the closure.
+  /// The order corresponds to [ClosureClassElement.closureFields].
+  final List<Reference<Primitive>> arguments;
+
+  CreateClosureClass(this.classElement, List<Primitive> arguments)
+      : this.arguments = _referenceList(arguments);
+
+  accept(Visitor visitor) => visitor.visitCreateClosureClass(this);
+}
+
 class Identical extends Primitive implements JsSpecificNode {
   final Reference<Primitive> left;
   final Reference<Primitive> right;
@@ -544,8 +594,8 @@ class CreateFunction extends Primitive {
 }
 
 class Parameter extends Primitive {
-  Parameter(Element element) {
-    super.hint = element;
+  Parameter(Entity hint) {
+    super.hint = hint;
   }
 
   accept(Visitor visitor) => visitor.visitParameter(this);
@@ -757,6 +807,7 @@ abstract class Visitor<T> {
   T visitTypeOperator(TypeOperator node) => visitExpression(node);
   T visitSetClosureVariable(SetClosureVariable node) => visitExpression(node);
   T visitDeclareFunction(DeclareFunction node) => visitExpression(node);
+  T visitSetField(SetField node) => visitExpression(node);
 
   // Definitions.
   T visitLiteralList(LiteralList node) => visitPrimitive(node);
@@ -769,6 +820,9 @@ abstract class Visitor<T> {
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
   T visitClosureVariable(ClosureVariable node) => visitDefinition(node);
+  T visitGetField(GetField node) => visitDefinition(node);
+  T visitCreateBox(CreateBox node) => visitDefinition(node);
+  T visitCreateClosureClass(CreateClosureClass node) => visitDefinition(node);
 
   // Conditions.
   T visitIsTrue(IsTrue node) => visitCondition(node);
@@ -998,6 +1052,31 @@ abstract class RecursiveVisitor extends Visitor {
     processInterceptor(node);
     processReference(node.input);
   }
+
+  processCreateClosureClass(CreateClosureClass node) {}
+  visitCreateClosureClass(CreateClosureClass node) {
+    processCreateClosureClass(node);
+    node.arguments.forEach(processReference);
+  }
+
+  processSetField(SetField node) {}
+  visitSetField(SetField node) {
+    processSetField(node);
+    processReference(node.object);
+    processReference(node.value);
+    visit(node.body);
+  }
+
+  processGetField(GetField node) {}
+  visitGetField(GetField node) {
+    processGetField(node);
+    processReference(node.object);
+  }
+
+  processCreateBox(CreateBox node) {}
+  visitCreateBox(CreateBox node) {
+    processCreateBox(node);
+  }
 }
 
 /// Keeps track of currently unused register indices.
@@ -1027,15 +1106,14 @@ class RegisterArray {
 /// for removing all of the redundant variables.
 class RegisterAllocator extends Visitor {
   /// Separate register spaces for each source-level variable/parameter.
-  /// Note that null is used as key for primitives without elements.
-  final Map<Element, RegisterArray> elementRegisters =
-      <Element, RegisterArray>{};
+  /// Note that null is used as key for primitives without hints.
+  final Map<Local, RegisterArray> elementRegisters = <Local, RegisterArray>{};
 
-  RegisterArray getRegisterArray(Element element) {
-    RegisterArray registers = elementRegisters[element];
+  RegisterArray getRegisterArray(Local local) {
+    RegisterArray registers = elementRegisters[local];
     if (registers == null) {
       registers = new RegisterArray();
-      elementRegisters[element] = registers;
+      elementRegisters[local] = registers;
     }
     return registers;
   }
@@ -1202,6 +1280,23 @@ class RegisterAllocator extends Visitor {
   }
 
   // JavaScript specific nodes.
+
+  void visitSetField(SetField node) {
+    visit(node.body);
+    visitReference(node.value);
+    visitReference(node.object);
+  }
+
+  void visitGetField(GetField node) {
+    visitReference(node.object);
+  }
+
+  void visitCreateBox(CreateBox node) {
+  }
+
+  void visitCreateClosureClass(CreateClosureClass node) {
+    node.arguments.forEach(visitReference);
+  }
 
   void visitIdentical(Identical node) {
     visitReference(node.left);

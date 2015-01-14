@@ -74,7 +74,7 @@ class TypeTestGenerator {
           compiler.closureToClassMapper.closureMappingCache[node];
       if (closureData != null) {
         ClosureFieldElement thisLocal =
-            closureData.getFreeVariableElement(closureData.thisLocal);
+            closureData.freeVariableMap[closureData.thisLocal];
         if (thisLocal != null) {
           String thisName = namer.instanceFieldPropertyName(thisLocal);
           thisAccess = js('this.#', thisName);

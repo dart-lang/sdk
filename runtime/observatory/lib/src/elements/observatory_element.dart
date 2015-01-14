@@ -88,6 +88,7 @@ class ObservatoryElement extends PolymerElement {
   /// within the application using the [LocationManager].
   void goto(MouseEvent event, var detail, Element target) {
     app.locationManager.onGoto(event, detail, target);
+    event.stopPropagation();
   }
 
   /// Create a link that can be consumed by [goto].

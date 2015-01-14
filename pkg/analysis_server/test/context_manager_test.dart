@@ -25,7 +25,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ContextManagerTest {
   TestContextManager manager;
   MemoryResourceProvider resourceProvider;

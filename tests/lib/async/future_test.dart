@@ -749,6 +749,133 @@ void testSyncFuture_i13368() {
     });
 }
 
+void testWaitCleanUp() {
+  asyncStart();
+  // Creates three futures with different completion times, and where some fail.
+  // The `mask` specifies which futures fail (values 1-7),
+  // and `permute` defines the order of completion. values 0-5.
+  void doTest(int mask, int permute) {
+    asyncStart();
+    String stringId = "waitCleanup-$mask-$permute";
+    List futures = new List(3);
+    List cleanup = new List(3);
+    int permuteTmp = permute;
+    for (int i = 0; i < 3; i++) {
+      bool throws = (mask & (1 << i)) != 0;
+      var future = new Future.delayed(
+          new Duration(milliseconds: 100 * (i + 1)),
+          () => (throws ? throw "Error $i($mask-$permute)" : i));
+      int mod = 3 - i;
+      int position = permuteTmp % mod;
+      permuteTmp = permuteTmp ~/ mod;
+      while (futures[position] != null) position++;
+      futures[position] = future;
+      cleanup[i] = throws;
+    }
+    void cleanUp(index) {
+      Expect.isFalse(cleanup[index]);
+      cleanup[index] = true;
+    }
+    Future.wait(futures, cleanUp: cleanUp)
+          .then((_) { Expect.fail("No error: $stringId"); },
+                onError: (e, s) {
+                  Expect.listEquals([true, true, true], cleanup);
+                  asyncEnd();
+                });
+  }
+
+  for (int i = 1; i < 8; i++) {
+    for (int j = 0; j < 6; j++) {
+      doTest(i, j);
+    }
+  }
+  asyncEnd();
+}
+
+void testWaitCleanUpEager() {
+  asyncStart();
+  // Creates three futures with different completion times, and where some fail.
+  // The `mask` specifies which futures fail (values 1-7),
+  // and `permute` defines the order of completion. values 0-5.
+  void doTest(int mask, int permute) {
+    asyncStart();
+    asyncStart();
+    bool done = false;
+    String stringId = "waitCleanup-$mask-$permute";
+    List futures = new List(3);
+    List cleanup = new List(3);
+    int permuteTmp = permute;
+    for (int i = 0; i < 3; i++) {
+      bool throws = (mask & (1 << i)) != 0;
+      var future = new Future.delayed(
+          new Duration(milliseconds: 100 * (i + 1)),
+          () => (throws ? throw "Error $i($mask-$permute)" : i));
+      int mod = 3 - i;
+      int position = permuteTmp % mod;
+      permuteTmp = permuteTmp ~/ mod;
+      while (futures[position] != null) position++;
+      futures[position] = future;
+      cleanup[i] = throws;
+    }
+    void checkDone() {
+      if (done) return;
+      if (cleanup.every((v) => v)) {
+        done = true;
+        asyncEnd();
+      }
+    }
+    void cleanUp(index) {
+      Expect.isFalse(cleanup[index]);
+      cleanup[index] = true;
+      // Cleanup might happen before and after the wait().then() callback.
+      checkDone();
+    }
+    Future.wait(futures, eagerError: true, cleanUp: cleanUp)
+          .then((_) { Expect.fail("No error: $stringId"); },
+                onError: (e, s) {
+                  asyncEnd();
+                  checkDone();
+                });
+  }
+
+  for (int i = 1; i < 8; i++) {
+    for (int j = 0; j < 6; j++) {
+      doTest(i, j);
+    }
+  }
+  asyncEnd();
+}
+
+void testWaitCleanUpError() {
+  var cms = const Duration(milliseconds: 100);
+  var cleanups = new List.filled(3, false);
+  var uncaughts = new List.filled(3, false);
+  asyncStart();
+  asyncStart();
+  asyncStart();
+  runZoned(() {
+    Future.wait([new Future.delayed(cms, () => 0),
+                 new Future.delayed(cms * 2, ()=> throw 1),
+                 new Future.delayed(cms * 3, () => 2)],
+                 cleanUp: (index) {
+                   Expect.isTrue(index == 0 || index == 2, "$index");
+                   Expect.isFalse(cleanups[index]);
+                   cleanups[index] = true;
+                   throw index;
+                 })
+          .catchError((e) {
+            Expect.equals(e, 1);
+            asyncEnd();
+          });
+
+  }, onError: (int index, s) {
+    Expect.isTrue(index == 0 || index == 2, "$index");
+    Expect.isFalse(uncaughts[index]);
+    uncaughts[index] = true;
+    asyncEnd();
+  });
+}
+
 main() {
   asyncStart();
 
@@ -804,6 +931,9 @@ main() {
   testChainedFutureError();
 
   testSyncFuture_i13368();
+
+  testWaitCleanUp();
+  testWaitCleanUpError();
 
   asyncEnd();
 }

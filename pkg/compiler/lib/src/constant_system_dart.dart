@@ -233,6 +233,12 @@ class AddOperation implements BinaryOperation {
       NumConstantValue rightNum = right;
       double result = leftNum.primitiveValue + rightNum.primitiveValue;
       return DART_CONSTANT_SYSTEM.createDouble(result);
+    } else if (left.isString && right.isString) {
+      StringConstantValue leftString = left;
+      StringConstantValue rightString = right;
+      DartString result = new DartString.concat(leftString.primitiveValue,
+                                                rightString.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createString(result);
     } else {
       return null;
     }

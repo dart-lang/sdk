@@ -63,11 +63,77 @@ void _assertEqualErrors(List<AnalysisError> incrErrors,
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class DeclarationMatcherTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     test_resolveApiChanges = true;
+  }
+
+  void test_false_class_annotation_accessor_edit() {
+    _assertDoesNotMatch(r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+@my_annotationA
+class A {
+}
+''', r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+@my_annotationB
+class A {
+}
+''');
+  }
+
+  void test_false_class_annotation_constructor_edit() {
+    _assertDoesNotMatch(r'''
+class MyAnnotationA {
+  const MyAnnotationA();
+}
+class MyAnnotationB {
+  const MyAnnotationB();
+}
+@MyAnnotationA()
+class A {
+}
+''', r'''
+class MyAnnotationA {
+  const MyAnnotationA();
+}
+class MyAnnotationB {
+  const MyAnnotationB();
+}
+@MyAnnotationB()
+class A {
+}
+''');
+  }
+
+  void test_false_class_annotations_add() {
+    _assertDoesNotMatch(r'''
+const my_annotation = const Object();
+class A {
+}
+''', r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
+''');
+  }
+
+  void test_false_class_annotations_remove() {
+    _assertDoesNotMatch(r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+}
+''');
   }
 
   void test_false_class_list_add() {
@@ -317,7 +383,6 @@ class A {
   }
 
   void test_false_enum_constants_add() {
-    resetWithEnum();
     _assertDoesNotMatch(r'''
 enum E {A, B}
 ''', r'''
@@ -326,7 +391,6 @@ enum E {A, B, C}
   }
 
   void test_false_enum_constants_remove() {
-    resetWithEnum();
     _assertDoesNotMatch(r'''
 enum E {A, B, C}
 ''', r'''
@@ -813,6 +877,54 @@ import 'dart:async' show Future;
 ''');
   }
 
+  void test_false_method_annotation_edit() {
+    _assertDoesNotMatchOK(r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+class A {
+  @my_annotationA
+  void m() {}
+}
+''', r'''
+const my_annotationA = const Object();
+const my_annotationB = const Object();
+class A {
+  @my_annotationB
+  void m() {}
+}
+''');
+  }
+
+  void test_false_method_annotations_add() {
+    _assertDoesNotMatchOK(r'''
+const my_annotation = const Object();
+class A {
+  void m() {}
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
+''');
+  }
+
+  void test_false_method_annotations_remove() {
+    _assertDoesNotMatchOK(r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+  void m() {}
+}
+''');
+  }
+
   void test_false_method_list_add() {
     _assertDoesNotMatchOK(r'''
 class A {
@@ -1185,6 +1297,20 @@ class C extends Object with B, A {}
 ''');
   }
 
+  void test_true_class_annotations_same() {
+    _assertMatches(r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
+''', r'''
+const my_annotation = const Object();
+@my_annotation
+class A {
+}
+''');
+  }
+
   void test_true_class_list_reorder() {
     _assertMatches(r'''
 class A {}
@@ -1370,7 +1496,6 @@ class A {
   }
 
   void test_true_enum_constants_reorder() {
-    resetWithEnum();
     _assertMatches(r'''
 enum E {A, B, C}
 ''', r'''
@@ -1379,7 +1504,6 @@ enum E {C, A, B}
   }
 
   void test_true_enum_list_reorder() {
-    resetWithEnum();
     _assertMatches(r'''
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}
@@ -1392,7 +1516,6 @@ enum B {B1, B2, B3}
   }
 
   void test_true_enum_list_same() {
-    resetWithEnum();
     _assertMatches(r'''
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}
@@ -1613,6 +1736,42 @@ import 'dart:async' as async;
 import 'dart:async' show Future, Stream;
 ''', r'''
 import 'dart:async' show Stream, Future;
+''');
+  }
+
+  void test_true_method_annotation_accessor_same() {
+    _assertMatches(r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
+''', r'''
+const my_annotation = const Object();
+class A {
+  @my_annotation
+  void m() {}
+}
+''');
+  }
+
+  void test_true_method_annotation_constructor_same() {
+    _assertMatches(r'''
+class MyAnnotation {
+  const MyAnnotation();
+}
+class A {
+  @MyAnnotation()
+  void m() {}
+}
+''', r'''
+class MyAnnotation {
+  const MyAnnotation();
+}
+class A {
+  @MyAnnotation()
+  void m() {}
+}
 ''');
   }
 
@@ -1917,7 +2076,7 @@ class B extends Object with A {}
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class IncrementalResolverTest extends ResolverTestCase {
   Source source;
   String code;
@@ -2273,11 +2432,10 @@ class B {
     int updateOffset = edit.offset;
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
-    IncrementalResolver resolver = new IncrementalResolver(
-        unit.element,
-        updateOffset,
-        updateEndOld,
-        updateOldNew);
+    IncrementalResolver resolver =
+        new IncrementalResolver(<Source, CompilationUnit>{
+      source: newUnit
+    }, unit.element, updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
     List<AnalysisError> newErrors = analysisContext.getErrors(source).errors;
@@ -2289,7 +2447,11 @@ class B {
       LibraryElement library = resolve(source);
       fullNewUnit = resolveCompilationUnit(source, library);
     }
-    assertSameResolution(unit, fullNewUnit, fail);
+    try {
+      assertSameResolution(unit, fullNewUnit);
+    } on IncrementalResolutionMismatch catch (mismatch) {
+      fail(mismatch.message);
+    }
     // errors
     List<AnalysisError> newFullErrors =
         analysisContext.getErrors(source).errors;
@@ -2356,7 +2518,7 @@ class B {
  * The test for [poorMansIncrementalResolution] function and its integration
  * into [AnalysisContext].
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class PoorMansIncrementalResolutionTest extends ResolverTestCase {
   Source source;
   String code;
@@ -2462,6 +2624,7 @@ class A {}
  * A function [main] with a parameter [p] of type [int].
  */
 main(int p) {
+  unresolvedFunctionProblem();
 }
 /**
  * Other comment with [int] reference.
@@ -2474,6 +2637,7 @@ foo() {}
  * Inserted text with [String] reference.
  */
 main(int p) {
+  unresolvedFunctionProblem();
 }
 /**
  * Other comment with [int] reference.
@@ -2894,6 +3058,82 @@ class A {
 ''');
   }
 
+  void test_unusedHint_add_wasUsedOnlyInPart() {
+    Source partSource = addNamedSource('/my_unit.dart', r'''
+part of lib;
+
+f(A a) {
+  a._foo();
+}
+''');
+    _resolveUnit(r'''
+library lib;
+part 'my_unit.dart';
+class A {
+  _foo() {
+    print(1);
+  }
+}
+''');
+    _runTasks();
+    // perform incremental resolution
+    _resetWithIncremental(true);
+    analysisContext2.setContents(partSource, r'''
+part of lib;
+
+f(A a) {
+//  a._foo();
+}
+''');
+    // a new hint should be added
+    List<AnalysisError> errors = analysisContext.getErrors(source).errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode.type, ErrorType.HINT);
+    // the same hint should be reported using a ChangeNotice
+    bool noticeFound = false;
+    AnalysisResult result = analysisContext2.performAnalysisTask();
+    for (ChangeNotice notice in result.changeNotices) {
+      if (notice.source == source) {
+        expect(notice.errors, contains(errors[0]));
+        noticeFound = true;
+      }
+    }
+    expect(noticeFound, isTrue);
+  }
+
+  void test_unusedHint_false_stillUsedInPart() {
+    addNamedSource('/my_unit.dart', r'''
+part of lib;
+
+f(A a) {
+  a._foo();
+}
+''');
+    _resolveUnit(r'''
+library lib;
+part 'my_unit.dart';
+class A {
+  _foo() {
+    print(1);
+  }
+}
+''');
+    // perform incremental resolution
+    _resetWithIncremental(true);
+    analysisContext2.setContents(source, r'''
+library lib;
+part 'my_unit.dart';
+class A {
+  _foo() {
+    print(12);
+  }
+}
+''');
+    // no hints
+    List<AnalysisError> errors = analysisContext.getErrors(source).errors;
+    expect(errors, isEmpty);
+  }
+
   void test_updateErrors_addNew_hint() {
     _resolveUnit(r'''
 int main() {
@@ -3113,7 +3353,11 @@ f3() {
       LibraryElement library = resolve(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
       // Validate that "incremental" and "full" units have the same resolution.
-      assertSameResolution(newUnit, fullNewUnit, fail);
+      try {
+        assertSameResolution(newUnit, fullNewUnit, validateTypes: true);
+      } on IncrementalResolutionMismatch catch (mismatch) {
+        fail(mismatch.message);
+      }
       _assertEqualTokens(newUnit, fullNewUnit);
       List<AnalysisError> newFullErrors =
           analysisContext.getErrors(source).errors;
@@ -3158,7 +3402,7 @@ f3() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ResolutionContextBuilderTest extends EngineTestCase {
   GatheringErrorListener listener = new GatheringErrorListener();
 

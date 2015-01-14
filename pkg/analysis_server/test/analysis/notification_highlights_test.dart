@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   List<HighlightRegion> regions;
 
@@ -1017,7 +1017,7 @@ part 'test.dart';
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class HighlightTypeTest {
   void test_constructor() {
     expect(

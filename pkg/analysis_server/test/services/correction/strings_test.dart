@@ -17,7 +17,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class StringsTest {
   void test_capitalize() {
     expect(capitalize(''), '');

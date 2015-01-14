@@ -348,8 +348,15 @@ abstract class MembersCreator {
       }
     } else {
       assert(declared.name == superMember.name);
+
       if (declared.isStatic) {
         for (Member inherited in superMember.declarations) {
+          if (cls == inherited.declarer.element) {
+            // An error should already have been reported.
+            assert(invariant(declared.element, compiler.compilationFailed));
+            continue;
+          }
+
           reportMessage(
               inherited.element, MessageKind.NO_STATIC_OVERRIDE, () {
             reportErrorWithContext(
@@ -361,6 +368,14 @@ abstract class MembersCreator {
 
       DartType declaredType = declared.functionType;
       for (Member inherited in superMember.declarations) {
+        if (inherited.element == declared.element) {
+          // TODO(ahe): For some reason, "call" elements are repeated in
+          // superMember.declarations. Investigate why.
+        } else if (cls == inherited.declarer.element) {
+          // An error should already have been reported.
+          assert(invariant(declared.element, compiler.compilationFailed));
+          continue;
+        }
 
         void reportError(MessageKind errorKind, MessageKind infoKind) {
           reportMessage(

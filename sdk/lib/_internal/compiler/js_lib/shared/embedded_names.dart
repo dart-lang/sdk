@@ -15,7 +15,14 @@ const DISPATCH_PROPERTY_NAME = "dispatchPropertyName";
 const TYPE_INFORMATION = 'typeInformation';
 const GLOBAL_FUNCTIONS = 'globalFunctions';
 const STATICS = 'statics';
+
+/**
+ * If [JSInvocationMirror._invokeOn] is being used, this embedded global
+ * contains a JavaScript map with the names of methods that are
+ * intercepted.
+ */
 const INTERCEPTED_NAMES = 'interceptedNames';
+
 const MANGLED_GLOBAL_NAMES = 'mangledGlobalNames';
 const MANGLED_NAMES = 'mangledNames';
 const LIBRARIES = 'libraries';
@@ -41,3 +48,5 @@ const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";
 const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
 const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
+
+const MAP_TYPE_TO_INTERCEPTOR = "mapTypeToInterceptor";

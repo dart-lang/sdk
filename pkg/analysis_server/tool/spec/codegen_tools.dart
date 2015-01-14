@@ -211,14 +211,15 @@ class GeneratedDirectory extends GeneratedContent {
   bool check() {
     Map<String, FileContentsComputer> map = directoryContentsComputer();
     try {
-      map.forEach((String file, FileContentsComputer fileContentsComputer) {
+      for (String file in map.keys) {
+        FileContentsComputer fileContentsComputer = map[file];
         String expectedContents = fileContentsComputer();
         File outputFile =
             new File(joinAll(posix.split(posix.join(outputDirPath, file))));
         if (expectedContents != outputFile.readAsStringSync()) {
           return false;
         }
-      });
+      }
       int nonHiddenFileCount = 0;
       outputFile.listSync(
           recursive: false,

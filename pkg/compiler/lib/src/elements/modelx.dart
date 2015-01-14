@@ -12,21 +12,22 @@ import '../util/util.dart';
 import '../resolution/resolution.dart';
 import '../resolution/class_members.dart' show ClassMemberMixin;
 
-import '../dart2jslib.dart' show invariant,
-                                 InterfaceType,
-                                 DartType,
-                                 TypeVariableType,
-                                 TypedefType,
-                                 DualKind,
-                                 MessageKind,
-                                 DiagnosticListener,
-                                 Script,
-                                 FunctionType,
-                                 Selector,
-                                 Constant,
-                                 Compiler,
-                                 Backend,
-                                 isPrivateName;
+import '../dart2jslib.dart' show
+    Backend,
+    Compiler,
+    Constant,
+    DartType,
+    DiagnosticListener,
+    DualKind,
+    FunctionType,
+    InterfaceType,
+    MessageKind,
+    Script,
+    Selector,
+    TypeVariableType,
+    TypedefType,
+    invariant,
+    isPrivateName;
 
 import '../dart_types.dart';
 
@@ -327,6 +328,20 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   accept(ElementVisitor visitor) => visitor.visitErroneousElement(this);
 }
 
+/// A constructor that was synthesized to recover from a compile-time error.
+class ErroneousConstructorElementX extends ErroneousElementX {
+  // TODO(ahe): Instead of subclassing [ErroneousElementX], this class should
+  // be more like [ErroneousFieldElementX]. In particular, its kind should be
+  // [ElementKind.GENERATIVE_CONSTRUCTOR], and it shouldn't throw as much.
+
+  ErroneousConstructorElementX(
+      MessageKind messageKind,
+      Map messageArguments,
+      String name,
+      Element enclosing)
+      : super(messageKind, messageArguments, name, enclosing);
+}
+
 /// A message attached to a [WarnOnUseElementX].
 class WrappedMessage {
   /// The message position. If [:null:] the position of the reference to the
@@ -384,7 +399,7 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   accept(ElementVisitor visitor) => visitor.visitWarnOnUseElement(this);
 }
 
-class AmbiguousElementX extends ElementX implements AmbiguousElement {
+abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message to report on resolving this element.
    */
@@ -423,6 +438,20 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
     return set;
   }
 
+  accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
+
+  bool get isTopLevel => false;
+}
+
+/// Element synthesized to diagnose an ambiguous import.
+class AmbiguousImportX extends AmbiguousElementX {
+  AmbiguousImportX(
+      MessageKind messageKind,
+      Map messageArguments,
+      Element enclosingElement, Element existingElement, Element newElement)
+      : super(messageKind, messageArguments, enclosingElement, existingElement,
+              newElement);
+
   void diagnose(Element context, DiagnosticListener listener) {
     Setlet ambiguousElements = flatten();
     MessageKind code = (ambiguousElements.length == 1)
@@ -440,10 +469,16 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
       });
     }
   }
+}
 
-  accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
-
-  bool get isTopLevel => false;
+/// Element synthesized to recover from a duplicated member of an element.
+class DuplicatedElementX extends AmbiguousElementX {
+  DuplicatedElementX(
+      MessageKind messageKind,
+      Map messageArguments,
+      Element enclosingElement, Element existingElement, Element newElement)
+      : super(messageKind, messageArguments, enclosingElement, existingElement,
+              newElement);
 }
 
 class ScopeX {
@@ -491,27 +526,32 @@ class ScopeX {
       listener.reportError(accessor,
                            MessageKind.DUPLICATE_DEFINITION,
                            {'name': accessor.name});
-      // TODO(johnniwinther): Make this an info instead of a fatal error.
-      listener.reportFatalError(other,
-                                MessageKind.EXISTING_DEFINITION,
-                                {'name': accessor.name});
+      listener.reportInfo(
+          other, MessageKind.EXISTING_DEFINITION, {'name': accessor.name});
+
+      contents[accessor.name] = new DuplicatedElementX(
+          MessageKind.DUPLICATE_DEFINITION, {'name': accessor.name},
+          accessor.memberContext.enclosingElement, other, accessor);
     }
 
     if (existing != null) {
       if (!identical(existing.kind, ElementKind.ABSTRACT_FIELD)) {
         reportError(existing);
+        return;
       } else {
         AbstractFieldElementX field = existing;
         accessor.abstractField = field;
         if (accessor.isGetter) {
           if (field.getter != null && field.getter != accessor) {
             reportError(field.getter);
+            return;
           }
           field.getter = accessor;
         } else {
           assert(accessor.isSetter);
           if (field.setter != null && field.setter != accessor) {
             reportError(field.setter);
+            return;
           }
           field.setter = accessor;
         }
@@ -699,7 +739,7 @@ class ImportScope {
               import, MessageKind.HIDDEN_IMPORT, existing, element);
         }
       } else {
-        Element ambiguousElement = new AmbiguousElementX(
+        Element ambiguousElement = new AmbiguousImportX(
             MessageKind.DUPLICATE_IMPORT, {'name': name},
             enclosingElement, existing, element);
         importScope[name] = ambiguousElement;
@@ -1267,6 +1307,81 @@ class FieldElementX extends VariableElementX
   }
 }
 
+/// A field that was synthesized to recover from a compile-time error.
+class ErroneousFieldElementX extends ElementX implements FieldElementX {
+  final VariableList variables;
+
+  ErroneousFieldElementX(Identifier name, Element enclosingElement)
+      : variables = new VariableList(Modifiers.EMPTY)
+            ..definitions = new VariableDefinitions(
+                null, Modifiers.EMPTY, new NodeList.singleton(name))
+            ..type = const DynamicType(),
+        super(name.source, ElementKind.FIELD, enclosingElement);
+
+  VariableDefinitions get definitionsCache => variables.definitions;
+
+  set definitionsCache(VariableDefinitions _) {
+    throw new UnsupportedError("definitionsCache=");
+  }
+
+  bool get hasNode => true;
+
+  VariableDefinitions get node => definitionsCache;
+
+  bool get hasResolvedAst => false;
+
+  ResolvedAst get resolvedAst {
+    throw new UnsupportedError("resolvedAst");
+  }
+
+  DynamicType get type => const DynamicType();
+
+  Token get token => node.getBeginToken();
+
+  get initializerCache {
+    throw new UnsupportedError("initializerCache");
+  }
+
+  set initializerCache(_) {
+    throw new UnsupportedError("initializerCache=");
+  }
+
+  void createDefinitions(VariableDefinitions definitions) {
+    throw new UnsupportedError("createDefinitions");
+  }
+
+  get initializer => null;
+
+  bool get isErroneous => true;
+
+  get nestedClosures {
+    throw new UnsupportedError("nestedClosures");
+  }
+
+  set nestedClosures(_) {
+    throw new UnsupportedError("nestedClosures=");
+  }
+
+  // TODO(ahe): Should this throw or do nothing?
+  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+
+  // TODO(ahe): Should return the context of the error site?
+  MemberElement get memberContext => this;
+
+  // TODO(ahe): Should return the definingElement of the error site?
+  AstElement get definingElement => this;
+
+  void reuseElement() {
+    throw new UnsupportedError("reuseElement");
+  }
+
+  FieldElementX copyWithEnclosing(Element enclosingElement) {
+    throw new UnsupportedError("copyWithEnclosing");
+  }
+
+  DartType computeType(Compiler compiler) => type;
+}
+
 /// [Element] for a parameter-like element.
 class FormalElementX extends ElementX
     with AstElementMixin
@@ -1369,7 +1484,7 @@ class LocalParameterElementX extends ParameterElementX
 /// `A(this.field)`.
 class InitializingFormalElementX extends ParameterElementX
     implements InitializingFormalElement {
-  FieldElement fieldElement;
+  final FieldElement fieldElement;
 
   InitializingFormalElementX(ConstructorElement constructorDeclaration,
                              VariableDefinitions variables,
@@ -1386,6 +1501,29 @@ class InitializingFormalElementX extends ParameterElementX
   bool get isLocal => false;
 }
 
+class ErroneousInitializingFormalElementX extends ParameterElementX
+    implements InitializingFormalElementX {
+  final ErroneousFieldElementX fieldElement;
+
+  ErroneousInitializingFormalElementX(
+      Identifier identifier,
+      Element enclosingElement)
+      : this.fieldElement =
+            new ErroneousFieldElementX(identifier, enclosingElement),
+        super(
+            ElementKind.INITIALIZING_FORMAL,
+            enclosingElement, null, identifier, null);
+
+  VariableDefinitions get definitions => fieldElement.node;
+
+  MemberElement get memberContext => enclosingElement;
+
+  bool get isLocal => false;
+
+  bool get isErroneous => true;
+
+  DynamicType get type => const DynamicType();
+}
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   FunctionElementX getter;

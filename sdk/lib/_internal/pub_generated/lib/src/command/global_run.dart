@@ -42,14 +42,11 @@ class GlobalRunCommand extends PubCommand {
           join1() {
             var args = commandOptions.rest.skip(1).toList();
             join2() {
-              globals.runExecutable(
-                  package,
-                  executable,
-                  args,
-                  mode: mode).then((x0) {
+              new Future.value(
+                  globals.runExecutable(package, executable, args, mode: mode)).then((x0) {
                 try {
                   var exitCode = x0;
-                  flushThenExit(exitCode).then((x1) {
+                  new Future.value(flushThenExit(exitCode)).then((x1) {
                     try {
                       x1;
                       completer0.complete();

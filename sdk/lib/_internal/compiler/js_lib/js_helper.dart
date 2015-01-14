@@ -225,18 +225,10 @@ class JSInvocationMirror implements Invocation {
     var receiver = object;
     var name = _internalName;
     var arguments = _arguments;
-    var embeddedInterceptedNames = JS_EMBEDDED_GLOBAL('', INTERCEPTED_NAMES);
-    // TODO(ngeoffray): If this functionality ever become performance
-    // critical, we might want to dynamically change [interceptedNames]
-    // to be a JavaScript object with intercepted names as property
-    // instead of a JavaScript array.
-    // TODO(floitsch): we already add stubs (tear-off getters) as properties
-    // in the embedded global interceptedNames.
-    // Finish the transition and always use the object as hashtable.
+    var interceptedNames = JS_EMBEDDED_GLOBAL('', INTERCEPTED_NAMES);
     bool isIntercepted =
-        JS("bool",
-            'Object.prototype.hasOwnProperty.call(#, #) || #.indexOf(#) !== -1',
-            embeddedInterceptedNames, name, interceptedNames, name);
+        JS("bool", 'Object.prototype.hasOwnProperty.call(#, #)',
+            interceptedNames, name);
     if (isIntercepted) {
       receiver = interceptor;
       if (JS('bool', '# === #', object, interceptor)) {

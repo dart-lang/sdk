@@ -21,7 +21,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ExtractMethodTest extends RefactoringTest {
   ExtractMethodRefactoringImpl refactoring;
 

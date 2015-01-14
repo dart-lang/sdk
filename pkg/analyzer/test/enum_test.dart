@@ -25,16 +25,10 @@ void main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class EnumTest {
   void test_AnalysisLevel() {
     new EnumTester<AnalysisLevel>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_AngularPropertyKind() {
-    new EnumTester<AngularPropertyKind>()
         ..check_getters()
         ..check_explicit_values();
   }

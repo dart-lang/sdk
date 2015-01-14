@@ -102,7 +102,7 @@ void JSONStream::PostReply() {
   ASSERT(!reply.IsNull());
 
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
+  MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(reply);
   PortMap::PostMessage(new Message(port, data,
                                    writer.BytesWritten(),

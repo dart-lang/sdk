@@ -45,6 +45,17 @@ abstract class ConstantExpression {
   }
 }
 
+/// A synthetic constant used to recover from errors.
+class ErroneousConstantExpression extends ConstantExpression {
+  final PrimitiveConstantValue value = new NullConstantValue();
+
+  ErroneousConstantExpression();
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    // Do nothing. This is an error.
+  }
+}
+
 /// Boolean, int, double, string, or null constant.
 class PrimitiveConstantExpression extends ConstantExpression {
   final PrimitiveConstantValue value;

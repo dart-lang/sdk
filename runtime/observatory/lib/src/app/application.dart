@@ -87,6 +87,9 @@ class ObservatoryApplication extends Observable {
         notifications.add(event);
         break;
 
+      case '_Graph':
+        event.isolate.loadHeapSnapshot(event);
+        break;
 
       case 'GC':
         // Ignore GC events for now.

@@ -424,4 +424,33 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     // TODO: implement SuperInitializer
   }
 
+  @override
+  js.Expression visitCreateBox(tree_ir.CreateBox node) {
+    return new js.ObjectInitializer([]);
+  }
+
+  @override
+  js.Expression visitCreateClosureClass(tree_ir.CreateClosureClass node) {
+    registry.registerInstantiatedClass(node.classElement);
+    return new js.New(glue.closureClassConstructorAccess(node.classElement),
+                      node.arguments.map(visitExpression).toList());
+  }
+
+  @override
+  js.Expression visitGetField(tree_ir.GetField node) {
+    return new js.PropertyAccess.field(
+        visitExpression(node.object),
+        glue.instanceFieldPropertyName(node.field));
+  }
+
+  @override
+  void visitSetField(tree_ir.SetField node) {
+    js.PropertyAccess field =
+        new js.PropertyAccess.field(
+            visitExpression(node.object),
+            glue.instanceFieldPropertyName(node.field));
+    js.Assignment asn = new js.Assignment(field, visitExpression(node.value));
+    accumulator.add(new js.ExpressionStatement(asn));
+    visitStatement(node.next);
+  }
 }

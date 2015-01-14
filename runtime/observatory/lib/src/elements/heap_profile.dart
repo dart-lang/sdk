@@ -99,7 +99,7 @@ class HeapProfileElement extends ObservatoryElement {
 
   @override
   void detached() {
-    _subscription.cancel((){});
+    _subscription.cancel();
     super.detached();
   }
   

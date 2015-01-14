@@ -12,7 +12,7 @@ When bug #104 is fixed, we can remove this entirely.
 
 The code here was compiled using the async-await compiler at commit:
 
-    b151ae5aeb8b825c528f46181d80430b2ee33a63
+    04e540562a04380a3e20a422c8bfe306e6f79f95
 
 (Note: this file is also parsed by a tool to update the above commit, so be
 careful not to reformat it.)

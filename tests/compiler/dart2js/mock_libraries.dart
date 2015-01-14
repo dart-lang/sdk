@@ -241,7 +241,6 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
   'getNativeInterceptor': 'getNativeInterceptor(x) {}',
   'initializeDispatchProperty': 'initializeDispatchProperty(f,p,i) {}',
   'initializeDispatchPropertyCSP': 'initializeDispatchPropertyCSP(f,p,i) {}',
-  'interceptedNames': 'var interceptedNames;',
   'Interceptor': r'''
       class Interceptor {
         toString() {}
@@ -346,7 +345,6 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
       }''',
   'JSUInt31': 'class JSUInt31 extends JSUInt32 {}',
   'JSUInt32': 'class JSUInt32 extends JSPositiveInt {}',
-  'mapTypeToInterceptor': 'var mapTypeToInterceptor;',
   'ObjectInterceptor': 'class ObjectInterceptor {}',
   'PlainJavaScriptObject': 'class PlainJavaScriptObject {}',
   'UnknownJavaScriptObject': 'class UnknownJavaScriptObject {}',

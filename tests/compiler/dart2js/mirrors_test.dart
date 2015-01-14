@@ -43,13 +43,14 @@ DeclarationMirror findMirror(Iterable<DeclarationMirror> list, Symbol name) {
 
 main() {
   Uri scriptUri = currentDirectory.resolveUri(Platform.script);
+  Uri packageRoot = scriptUri.resolve('./packages/');
   Uri libUri = scriptUri.resolve('../../../sdk/');
   Uri inputUri = scriptUri.resolve('mirrors_helper.dart');
   var provider = new CompilerSourceFileProvider();
   var diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   asyncStart();
-  var result = analyze([inputUri], libUri, null,
+  var result = analyze([inputUri], libUri, packageRoot,
                        provider.readStringFromUri, diagnosticHandler,
                        <String>['--preserve-comments']);
   result.then((MirrorSystem mirrors) {

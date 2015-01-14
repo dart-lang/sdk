@@ -22,764 +22,6 @@ import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_dart.dart';
 
-/**
- * Information about Angular application.
- */
-class AngularApplication {
-  final Source entryPoint;
-
-  final Set<Source> _librarySources;
-
-  final List<AngularElement> elements;
-
-  final List<Source> elementSources;
-
-  AngularApplication(this.entryPoint, this._librarySources, this.elements,
-      this.elementSources);
-
-  /**
-   * Checks if this application depends on the library with the given [Source].
-   */
-  bool dependsOn(Source librarySource) =>
-      _librarySources.contains(librarySource);
-}
-
-/**
- * The interface `AngularControllerElement` defines the Angular component described by
- * <code>Component</code> annotation.
- */
-abstract class AngularComponentElement implements AngularHasSelectorElement,
-    AngularHasTemplateElement {
-  /**
-   * Return an array containing all of the properties declared by this component.
-   */
-  List<AngularPropertyElement> get properties;
-
-  /**
-   * Return an array containing all of the scope properties set in the implementation of this
-   * component.
-   */
-  List<AngularScopePropertyElement> get scopeProperties;
-
-  /**
-   * Returns the CSS file URI.
-   */
-  String get styleUri;
-
-  /**
-   * Return the offset of the [getStyleUri] in the [getSource].
-   *
-   * @return the offset of the style URI
-   */
-  int get styleUriOffset;
-}
-
-/**
- * Implementation of `AngularComponentElement`.
- */
-class AngularComponentElementImpl extends AngularHasSelectorElementImpl
-    implements AngularComponentElement {
-  /**
-   * The offset of the defining <code>Component</code> annotation.
-   */
-  final int _annotationOffset;
-
-  /**
-   * The array containing all of the properties declared by this component.
-   */
-  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
-
-  /**
-   * The array containing all of the scope properties set by this component.
-   */
-  List<AngularScopePropertyElement> _scopeProperties =
-      AngularScopePropertyElement.EMPTY_ARRAY;
-
-  /**
-   * The the CSS file URI.
-   */
-  String styleUri;
-
-  /**
-   * The offset of the [styleUri] in the [getSource].
-   */
-  int styleUriOffset = 0;
-
-  /**
-   * The HTML template URI.
-   */
-  String templateUri;
-
-  /**
-   * The HTML template source.
-   */
-  Source templateSource;
-
-  /**
-   * The offset of the [templateUri] in the [getSource].
-   */
-  int templateUriOffset = 0;
-
-  /**
-   * Initialize a newly created Angular component to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularComponentElementImpl(String name, int nameOffset,
-      this._annotationOffset)
-      : super(name, nameOffset);
-
-  @override
-  String get identifier => "AngularComponent@$_annotationOffset";
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_COMPONENT;
-
-  @override
-  List<AngularPropertyElement> get properties => _properties;
-
-  /**
-   * Set an array containing all of the properties declared by this component.
-   *
-   * @param properties the properties to set
-   */
-  void set properties(List<AngularPropertyElement> properties) {
-    for (AngularPropertyElement property in properties) {
-      encloseElement(property as AngularPropertyElementImpl);
-    }
-    this._properties = properties;
-  }
-
-  @override
-  List<AngularScopePropertyElement> get scopeProperties => _scopeProperties;
-
-  /**
-   * Set an array containing all of the scope properties declared by this component.
-   *
-   * @param properties the properties to set
-   */
-  void set scopeProperties(List<AngularScopePropertyElement> properties) {
-    for (AngularScopePropertyElement property in properties) {
-      encloseElement(property as AngularScopePropertyElementImpl);
-    }
-    this._scopeProperties = properties;
-  }
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChildren(_properties, visitor);
-    safelyVisitChildren(_scopeProperties, visitor);
-    super.visitChildren(visitor);
-  }
-}
-
-/**
- * The interface `AngularControllerElement` defines the Angular controller described by
- * <code>Controller</code> annotation.
- */
-abstract class AngularControllerElement implements AngularHasSelectorElement {
-}
-
-/**
- * Implementation of `AngularControllerElement`.
- */
-class AngularControllerElementImpl extends AngularHasSelectorElementImpl
-    implements AngularControllerElement {
-  /**
-   * Initialize a newly created Angular controller to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularControllerElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_CONTROLLER;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularControllerElement(this);
-}
-
-/**
- * The interface `AngularDirectiveElement` defines the Angular controller described by
- * <code>Decorator</code> annotation.
- */
-abstract class AngularDecoratorElement implements AngularHasSelectorElement {
-  /**
-   * Return an array containing all of the properties declared by this directive.
-   */
-  List<AngularPropertyElement> get properties;
-
-  /**
-   * Checks if this directive is implemented by the class with given name.
-   */
-  bool isClass(String name);
-}
-
-/**
- * Implementation of `AngularDirectiveElement`.
- */
-class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl
-    implements AngularDecoratorElement {
-  /**
-   * The offset of the annotation that defines this directive.
-   */
-  final int _offset;
-
-  /**
-   * The array containing all of the properties declared by this directive.
-   */
-  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
-
-  /**
-   * Initialize a newly created Angular directive to have the given name.
-   *
-   * @param offset the offset of the annotation that defines this directive
-   */
-  AngularDecoratorElementImpl(this._offset) : super(null, -1);
-
-  @override
-  String get displayName => selector.displayName;
-
-  @override
-  String get identifier => "Decorator@$_offset";
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_DIRECTIVE;
-
-  @override
-  List<AngularPropertyElement> get properties => _properties;
-
-  /**
-   * Set an array containing all of the properties declared by this directive.
-   *
-   * @param properties the properties to set
-   */
-  void set properties(List<AngularPropertyElement> properties) {
-    for (AngularPropertyElement property in properties) {
-      encloseElement(property as AngularPropertyElementImpl);
-    }
-    this._properties = properties;
-  }
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularDirectiveElement(this);
-
-  @override
-  bool isClass(String name) {
-    Element enclosing = enclosingElement;
-    return enclosing is ClassElement && enclosing.name == name;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChildren(_properties, visitor);
-    super.visitChildren(visitor);
-  }
-}
-
-/**
- * The interface `AngularElement` defines the behavior of objects representing information
- * about an Angular specific element.
- */
-abstract class AngularElement implements ToolkitObjectElement {
-  /**
-   * An empty list of Angular elements.
-   */
-  static const List<AngularElement> EMPTY_ARRAY = const <AngularElement>[];
-
-  /**
-   * Returns the [AngularApplication] this element is used in.
-   *
-   * @return the [AngularApplication] this element is used in
-   */
-  AngularApplication get application;
-}
-
-/**
- * Implementation of `AngularElement`.
- */
-abstract class AngularElementImpl extends ToolkitObjectElementImpl implements
-    AngularElement {
-  /**
-   * The [AngularApplication] this element is used in.
-   */
-  AngularApplication _application;
-
-  /**
-   * Initialize a newly created Angular element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  @override
-  AngularApplication get application => _application;
-
-  /**
-   * Set the [AngularApplication] this element is used in.
-   */
-  void set application(AngularApplication application) {
-    this._application = application;
-  }
-}
-
-/**
- * The interface `AngularFormatterElement` defines the Angular formatter described by
- * <code>Formatter</code> annotation.
- */
-abstract class AngularFormatterElement implements AngularElement {
-}
-
-/**
- * Implementation of `AngularFormatterElement`.
- */
-class AngularFormatterElementImpl extends AngularElementImpl implements
-    AngularFormatterElement {
-  /**
-   * Initialize a newly created Angular formatter to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularFormatterElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_FORMATTER;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularFormatterElement(this);
-}
-
-/**
- * [AngularSelectorElement] based on presence of attribute.
- */
-abstract class AngularHasAttributeSelectorElement implements
-    AngularSelectorElement {
-}
-
-/**
- * [AngularSelectorElement] based on presence of a class.
- */
-abstract class AngularHasClassSelectorElement implements AngularSelectorElement
-    {
-}
-
-/**
- * Implementation of [AngularSelectorElement] based on presence of a class.
- */
-class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl
-    implements AngularHasClassSelectorElement {
-  AngularHasClassSelectorElementImpl(String name, int offset)
-      : super(name, offset);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write(".");
-    buffer.write(name);
-  }
-
-  @override
-  bool apply(XmlTagNode node) {
-    XmlAttributeNode attribute = node.getAttribute("class");
-    if (attribute != null) {
-      String text = attribute.text;
-      if (text != null) {
-        String name = this.name;
-        for (String className in StringUtils.split(text)) {
-          if (className == name) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-}
-
-/**
- * The interface `AngularElement` defines the behavior of objects representing information
- * about an Angular element which is applied conditionally using some [AngularSelectorElement].
- */
-abstract class AngularHasSelectorElement implements AngularElement {
-  /**
-   * Returns the selector specified for this element.
-   *
-   * @return the [AngularSelectorElement] specified for this element
-   */
-  AngularSelectorElement get selector;
-}
-
-/**
- * Implementation of `AngularSelectorElement`.
- */
-abstract class AngularHasSelectorElementImpl extends AngularElementImpl
-    implements AngularHasSelectorElement {
-  /**
-   * The selector of this element.
-   */
-  AngularSelectorElement _selector;
-
-  /**
-   * Initialize a newly created Angular element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularHasSelectorElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  AngularSelectorElement get selector => _selector;
-
-  /**
-   * Set the selector of this selector-based element.
-   *
-   * @param selector the selector to set
-   */
-  void set selector(AngularSelectorElement selector) {
-    encloseElement(selector as AngularSelectorElementImpl);
-    this._selector = selector;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChild(_selector, visitor);
-    super.visitChildren(visitor);
-  }
-}
-
-/**
- * The interface `AngularHasTemplateElement` defines common behavior for
- * [AngularElement] that have template URI / [Source].
- */
-abstract class AngularHasTemplateElement implements AngularElement {
-  /**
-   * Returns the HTML template [Source], `null` if not resolved.
-   */
-  Source get templateSource;
-
-  /**
-   * Returns the HTML template URI.
-   */
-  String get templateUri;
-
-  /**
-   * Return the offset of the [getTemplateUri] in the [getSource].
-   *
-   * @return the offset of the template URI
-   */
-  int get templateUriOffset;
-}
-
-/**
- * The interface `AngularPropertyElement` defines a single property in
- * [AngularComponentElement].
- */
-abstract class AngularPropertyElement implements AngularElement {
-  /**
-   * An empty list of property elements.
-   */
-  static const List<AngularPropertyElement> EMPTY_ARRAY = const
-      <AngularPropertyElement>[
-      ];
-
-  /**
-   * Returns the field this property is mapped to.
-   *
-   * @return the field this property is mapped to.
-   */
-  FieldElement get field;
-
-  /**
-   * Return the offset of the field name of this property in the property map, or `-1` if
-   * property was created using annotation on [FieldElement].
-   *
-   * @return the offset of the field name of this property
-   */
-  int get fieldNameOffset;
-
-  /**
-   * Returns the kind of this property.
-   *
-   * @return the kind of this property
-   */
-  AngularPropertyKind get propertyKind;
-}
-
-/**
- * Implementation of `AngularPropertyElement`.
- */
-class AngularPropertyElementImpl extends AngularElementImpl implements
-    AngularPropertyElement {
-  /**
-   * The [FieldElement] to which this property is bound.
-   */
-  FieldElement field;
-
-  /**
-   * The offset of the field name in the property map.
-   */
-  int fieldNameOffset = -1;
-
-  AngularPropertyKind propertyKind;
-
-  /**
-   * Initialize a newly created Angular property to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularPropertyElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_PROPERTY;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularPropertyElement(this);
-}
-
-/**
- * The enumeration `AngularPropertyKind` defines the different kinds of property bindings.
- */
-class AngularPropertyKind extends Enum<AngularPropertyKind> {
-  /**
-   * `@` - Map the DOM attribute string. The attribute string will be taken literally or
-   * interpolated if it contains binding {{}} syntax and assigned to the expression. (cost: 0
-   * watches)
-   */
-  static const AngularPropertyKind ATTR = const AngularPropertyKind('ATTR', 0);
-
-  /**
-   * `&` - Treat the DOM attribute value as an expression. Assign a closure function into the field.
-   * This allows the component to control the invocation of the closure. This is useful for passing
-   * expressions into controllers which act like callbacks. (cost: 0 watches)
-   */
-  static const AngularPropertyKind CALLBACK =
-      const AngularPropertyKind('CALLBACK', 1);
-
-  /**
-   * `=>` - Treat the DOM attribute value as an expression. Set up a watch, which will read the
-   * expression in the attribute and assign the value to destination expression. (cost: 1 watch)
-   */
-  static const AngularPropertyKind ONE_WAY =
-      const AngularPropertyKind('ONE_WAY', 2);
-
-  /**
-   * `=>!` - Treat the DOM attribute value as an expression. Set up a one time watch on expression.
-   * Once the expression turns not null it will no longer update. (cost: 1 watches until not null,
-   * then 0 watches)
-   */
-  static const AngularPropertyKind ONE_WAY_ONE_TIME =
-      const AngularPropertyKind('ONE_WAY_ONE_TIME', 3);
-
-  /**
-   * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
-   * as component scope to keep the source and destination in sync. (cost: 2 watches)
-   */
-  static const AngularPropertyKind TWO_WAY =
-      const AngularPropertyKind_TWO_WAY('TWO_WAY', 4);
-
-  static const List<AngularPropertyKind> values = const [
-      ATTR,
-      CALLBACK,
-      ONE_WAY,
-      ONE_WAY_ONE_TIME,
-      TWO_WAY];
-
-  const AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
-
-  /**
-   * Returns `true` if property of this kind calls field getter.
-   */
-  bool callsGetter() => false;
-
-  /**
-   * Returns `true` if property of this kind calls field setter.
-   */
-  bool callsSetter() => true;
-}
-
-class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
-  const AngularPropertyKind_TWO_WAY(String name, int ordinal)
-      : super(name, ordinal);
-
-  @override
-  bool callsGetter() => true;
-}
-
-/**
- * The interface `AngularScopeVariableElement` defines the Angular <code>Scope</code>
- * property. They are created for every <code>scope['property'] = value;</code> code snippet.
- */
-abstract class AngularScopePropertyElement implements AngularElement {
-  /**
-   * An empty list of scope property elements.
-   */
-  static const List<AngularScopePropertyElement> EMPTY_ARRAY = const
-      <AngularScopePropertyElement>[
-      ];
-
-  /**
-   * Returns the type of this property, not `null`, maybe <code>dynamic</code>.
-   *
-   * @return the type of this property.
-   */
-  DartType get type;
-}
-
-/**
- * Implementation of `AngularScopePropertyElement`.
- */
-class AngularScopePropertyElementImpl extends AngularElementImpl implements
-    AngularScopePropertyElement {
-  /**
-   * The type of the property
-   */
-  final DartType type;
-
-  /**
-   * Initialize a newly created Angular scope property to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularScopePropertyElementImpl(String name, int nameOffset, this.type)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_SCOPE_PROPERTY;
-
-  @override
-  accept(ElementVisitor visitor) =>
-      visitor.visitAngularScopePropertyElement(this);
-}
-
-/**
- * [AngularSelectorElement] is used to decide when Angular object should be applied.
- *
- * This class is an [Element] to support renaming component tag names, which are identifiers
- * in selectors.
- */
-abstract class AngularSelectorElement implements AngularElement {
-  /**
-   * Checks if the given [XmlTagNode] matches this selector.
-   *
-   * @param node the [XmlTagNode] to check
-   * @return `true` if the given [XmlTagNode] matches, or `false` otherwise
-   */
-  bool apply(XmlTagNode node);
-}
-
-/**
- * Implementation of `AngularFormatterElement`.
- */
-abstract class AngularSelectorElementImpl extends AngularElementImpl implements
-    AngularSelectorElement {
-  /**
-   * Initialize a newly created Angular selector to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  AngularSelectorElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_SELECTOR;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularSelectorElement(this);
-}
-
-/**
- * [AngularSelectorElement] based on tag name.
- */
-abstract class AngularTagSelectorElement implements AngularSelectorElement {
-}
-
-/**
- * Implementation of [AngularSelectorElement] based on tag name.
- */
-class AngularTagSelectorElementImpl extends AngularSelectorElementImpl
-    implements AngularTagSelectorElement {
-  AngularTagSelectorElementImpl(String name, int offset) : super(name, offset);
-
-  @override
-  AngularApplication get application =>
-      (enclosingElement as AngularElementImpl).application;
-
-  @override
-  bool apply(XmlTagNode node) {
-    String tagName = name;
-    return node.tag == tagName;
-  }
-}
-
-/**
- * The interface `AngularViewElement` defines the Angular view defined using invocation like
- * <code>view('views/create.html')</code>.
- */
-abstract class AngularViewElement implements AngularHasTemplateElement {
-  /**
-   * An empty list of view elements.
-   */
-  static const List<AngularViewElement> EMPTY_ARRAY = const
-      <AngularViewElement>[
-      ];
-}
-
-/**
- * Implementation of `AngularViewElement`.
- */
-class AngularViewElementImpl extends AngularElementImpl implements
-    AngularViewElement {
-  /**
-   * The HTML template URI.
-   */
-  final String templateUri;
-
-  /**
-   * The offset of the [templateUri] in the [getSource].
-   */
-  final int templateUriOffset;
-
-  /**
-   * The HTML template source.
-   */
-  Source templateSource;
-
-  /**
-   * Initialize a newly created Angular view.
-   */
-  AngularViewElementImpl(this.templateUri, this.templateUriOffset)
-      : super(null, -1);
-
-  @override
-  String get identifier => "AngularView@$templateUriOffset";
-
-  @override
-  ElementKind get kind => ElementKind.ANGULAR_VIEW;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitAngularViewElement(this);
-}
 
 /**
  * For AST nodes that could be in both the getter and setter contexts ([IndexExpression]s and
@@ -1024,15 +266,6 @@ abstract class ClassElement implements Element {
    * @return the superclass of this class
    */
   InterfaceType get supertype;
-
-  /**
-   * Return an array containing all of the toolkit specific objects associated with this class. The
-   * array will be empty if the class does not have any toolkit specific objects or if the
-   * compilation unit containing the class has not yet had toolkit references resolved.
-   *
-   * @return the toolkit objects associated with this class
-   */
-  List<ToolkitObjectElement> get toolkitObjects;
 
   /**
    * Return the type defined by the class.
@@ -1319,11 +552,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   InterfaceType supertype;
 
   /**
-   * An array containing all of the toolkit objects attached to this class.
-   */
-  List<ToolkitObjectElement> _toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
-
-  /**
    * The type defined by the class.
    */
   InterfaceType type;
@@ -1541,9 +769,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   ClassDeclaration get node =>
       getNodeMatching((node) => node is ClassDeclaration);
 
-  @override
-  List<ToolkitObjectElement> get toolkitObjects => _toolkitObjects;
-
   /**
    * Set whether this class is defined by a typedef construct to correspond to the given value.
    *
@@ -1590,19 +815,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
-
-  /**
-   * Add the given [toolkitObject] to the list of toolkit specific information
-   * objects attached to this class.
-   */
-  void addToolkitObjects(ToolkitObjectElement toolkitObject) {
-    (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
-    if (_toolkitObjects.isEmpty) {
-      // Convert from a non-growable list to a growable list.
-      _toolkitObjects = <ToolkitObjectElement>[];
-    }
-    _toolkitObjects.add(toolkitObject);
-  }
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -1781,7 +993,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(_constructors, visitor);
     safelyVisitChildren(_fields, visitor);
     safelyVisitChildren(_methods, visitor);
-    safelyVisitChildren(_toolkitObjects, visitor);
     safelyVisitChildren(_typeParameters, visitor);
   }
 
@@ -2025,15 +1236,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   List<PropertyAccessorElement> get accessors;
 
   /**
-   * Return an array containing all of the Angular views defined in this compilation unit. The array
-   * will be empty if the element does not have any Angular views or if the compilation unit has not
-   * yet had toolkit references resolved.
-   *
-   * @return the Angular views defined in this compilation unit.
-   */
-  List<AngularViewElement> get angularViews;
-
-  /**
    * Return the library in which this compilation unit is defined.
    *
    * @return the library in which this compilation unit is defined
@@ -2151,11 +1353,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
   List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
 
   /**
-   * A table mapping elements to associated toolkit objects.
-   */
-  Map<Element, List<ToolkitObjectElement>> _toolkitObjects = {};
-
-  /**
    * An array containing all of the function type aliases contained in this compilation unit.
    */
   List<FunctionTypeAliasElement> _typeAliases =
@@ -2171,11 +1368,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
    */
   List<TopLevelVariableElement> _variables =
       TopLevelVariableElementImpl.EMPTY_ARRAY;
-
-  /**
-   * An array containing all of the Angular views contained in this compilation unit.
-   */
-  List<AngularViewElement> _angularViews = AngularViewElement.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created compilation unit element to have the given name.
@@ -2198,21 +1390,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
     this._accessors = accessors;
-  }
-
-  @override
-  List<AngularViewElement> get angularViews => _angularViews;
-
-  /**
-   * Set the Angular views defined in this compilation unit.
-   *
-   * @param angularViews the Angular views defined in this compilation unit
-   */
-  void set angularViews(List<AngularViewElement> angularViews) {
-    for (AngularViewElement view in angularViews) {
-      (view as AngularViewElementImpl).enclosingElement = this;
-    }
-    this._angularViews = angularViews;
   }
 
   @override
@@ -2404,31 +1581,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
     safelyVisitChildren(_typeAliases, visitor);
     safelyVisitChildren(_types, visitor);
     safelyVisitChildren(_variables, visitor);
-    safelyVisitChildren(_angularViews, visitor);
-  }
-
-  /**
-   * Returns the associated toolkit objects.
-   *
-   * @param element the [Element] to get toolkit objects for
-   * @return the associated toolkit objects, may be empty, but not `null`
-   */
-  List<ToolkitObjectElement> _getToolkitObjects(Element element) {
-    List<ToolkitObjectElement> objects = _toolkitObjects[element];
-    if (objects != null) {
-      return objects;
-    }
-    return ToolkitObjectElement.EMPTY_ARRAY;
-  }
-
-  /**
-   * Sets the toolkit objects that are associated with the given [Element].
-   *
-   * @param element the [Element] to associate toolkit objects with
-   * @param objects the toolkit objects to associate
-   */
-  void _setToolkitObjects(Element element, List<ToolkitObjectElement> objects) {
-    _toolkitObjects[element] = objects;
   }
 }
 
@@ -2649,7 +1801,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements
       } else {
         message = 'Found unnamed constructor element with no enclosing element';
       }
-      AnalysisEngine.instance.instrumentationService.logError(message);
+      AnalysisEngine.instance.logger.logError(message);
       buffer.write('<unknown class>');
     } else {
       buffer.write(enclosingElement.displayName);
@@ -3472,10 +2624,10 @@ abstract class ElementImpl implements Element {
   String _name;
 
   /**
-   * The offset of the name of this element in the file that contains the declaration of this
-   * element.
+   * The offset of the name of this element in the file that contains the
+   * declaration of this element.
    */
-  int nameOffset = 0;
+  int _nameOffset = 0;
 
   /**
    * A bit-encoded form of the modifiers associated with this element.
@@ -3511,7 +2663,7 @@ abstract class ElementImpl implements Element {
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ElementImpl(String name, this.nameOffset) {
+  ElementImpl(String name, this._nameOffset) {
     this._name = StringUtilities.intern(name);
   }
 
@@ -3626,6 +2778,22 @@ abstract class ElementImpl implements Element {
     this._name = name;
     _cachedLocation = null;
     _cachedHashCode = null;
+  }
+
+  /**
+   * The offset of the name of this element in the file that contains the
+   * declaration of this element.
+   */
+  int get nameOffset => _nameOffset;
+
+  /**
+   * Sets the offset of the name of this element in the file that contains the
+   * declaration of this element.
+   */
+  void set nameOffset(int offset) {
+    _nameOffset = offset;
+    _cachedHashCode = null;
+    _cachedLocation = null;
   }
 
   @override
@@ -3821,114 +2989,73 @@ abstract class ElementImpl implements Element {
  * The enumeration `ElementKind` defines the various kinds of elements in the element model.
  */
 class ElementKind extends Enum<ElementKind> {
-  static const ElementKind ANGULAR_FORMATTER =
-      const ElementKind('ANGULAR_FORMATTER', 0, "Angular formatter");
-
-  static const ElementKind ANGULAR_COMPONENT =
-      const ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
-
-  static const ElementKind ANGULAR_CONTROLLER =
-      const ElementKind('ANGULAR_CONTROLLER', 2, "Angular controller");
-
-  static const ElementKind ANGULAR_DIRECTIVE =
-      const ElementKind('ANGULAR_DIRECTIVE', 3, "Angular directive");
-
-  static const ElementKind ANGULAR_PROPERTY =
-      const ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
-
-  static const ElementKind ANGULAR_SCOPE_PROPERTY =
-      const ElementKind('ANGULAR_SCOPE_PROPERTY', 5, "Angular scope property");
-
-  static const ElementKind ANGULAR_SELECTOR =
-      const ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
-
-  static const ElementKind ANGULAR_VIEW =
-      const ElementKind('ANGULAR_VIEW', 7, "Angular view");
-
-  static const ElementKind CLASS = const ElementKind('CLASS', 8, "class");
+  static const ElementKind CLASS = const ElementKind('CLASS', 0, "class");
 
   static const ElementKind COMPILATION_UNIT =
-      const ElementKind('COMPILATION_UNIT', 9, "compilation unit");
+      const ElementKind('COMPILATION_UNIT', 1, "compilation unit");
 
   static const ElementKind CONSTRUCTOR =
-      const ElementKind('CONSTRUCTOR', 10, "constructor");
+      const ElementKind('CONSTRUCTOR', 2, "constructor");
 
   static const ElementKind DYNAMIC =
-      const ElementKind('DYNAMIC', 11, "<dynamic>");
+      const ElementKind('DYNAMIC', 3, "<dynamic>");
 
   static const ElementKind EMBEDDED_HTML_SCRIPT =
-      const ElementKind('EMBEDDED_HTML_SCRIPT', 12, "embedded html script");
+      const ElementKind('EMBEDDED_HTML_SCRIPT', 4, "embedded html script");
 
-  static const ElementKind ERROR = const ElementKind('ERROR', 13, "<error>");
+  static const ElementKind ERROR = const ElementKind('ERROR', 5, "<error>");
 
   static const ElementKind EXPORT =
-      const ElementKind('EXPORT', 14, "export directive");
+      const ElementKind('EXPORT', 6, "export directive");
 
   static const ElementKind EXTERNAL_HTML_SCRIPT =
-      const ElementKind('EXTERNAL_HTML_SCRIPT', 15, "external html script");
+      const ElementKind('EXTERNAL_HTML_SCRIPT', 7, "external html script");
 
-  static const ElementKind FIELD = const ElementKind('FIELD', 16, "field");
+  static const ElementKind FIELD = const ElementKind('FIELD', 8, "field");
 
   static const ElementKind FUNCTION =
-      const ElementKind('FUNCTION', 17, "function");
+      const ElementKind('FUNCTION', 9, "function");
 
-  static const ElementKind GETTER = const ElementKind('GETTER', 18, "getter");
+  static const ElementKind GETTER = const ElementKind('GETTER', 10, "getter");
 
-  static const ElementKind HTML = const ElementKind('HTML', 19, "html");
+  static const ElementKind HTML = const ElementKind('HTML', 11, "html");
 
   static const ElementKind IMPORT =
-      const ElementKind('IMPORT', 20, "import directive");
+      const ElementKind('IMPORT', 12, "import directive");
 
-  static const ElementKind LABEL = const ElementKind('LABEL', 21, "label");
+  static const ElementKind LABEL = const ElementKind('LABEL', 13, "label");
 
   static const ElementKind LIBRARY =
-      const ElementKind('LIBRARY', 22, "library");
+      const ElementKind('LIBRARY', 14, "library");
 
   static const ElementKind LOCAL_VARIABLE =
-      const ElementKind('LOCAL_VARIABLE', 23, "local variable");
+      const ElementKind('LOCAL_VARIABLE', 15, "local variable");
 
-  static const ElementKind METHOD = const ElementKind('METHOD', 24, "method");
+  static const ElementKind METHOD = const ElementKind('METHOD', 16, "method");
 
-  static const ElementKind NAME = const ElementKind('NAME', 25, "<name>");
+  static const ElementKind NAME = const ElementKind('NAME', 17, "<name>");
 
   static const ElementKind PARAMETER =
-      const ElementKind('PARAMETER', 26, "parameter");
-
-  static const ElementKind POLYMER_ATTRIBUTE =
-      const ElementKind('POLYMER_ATTRIBUTE', 27, "Polymer attribute");
-
-  static const ElementKind POLYMER_TAG_DART =
-      const ElementKind('POLYMER_TAG_DART', 28, "Polymer Dart tag");
-
-  static const ElementKind POLYMER_TAG_HTML =
-      const ElementKind('POLYMER_TAG_HTML', 29, "Polymer HTML tag");
+      const ElementKind('PARAMETER', 18, "parameter");
 
   static const ElementKind PREFIX =
-      const ElementKind('PREFIX', 30, "import prefix");
+      const ElementKind('PREFIX', 19, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 31, "setter");
+  static const ElementKind SETTER = const ElementKind('SETTER', 20, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind('TOP_LEVEL_VARIABLE', 32, "top level variable");
+      const ElementKind('TOP_LEVEL_VARIABLE', 21, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind('FUNCTION_TYPE_ALIAS', 33, "function type alias");
+      const ElementKind('FUNCTION_TYPE_ALIAS', 22, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      const ElementKind('TYPE_PARAMETER', 34, "type parameter");
+      const ElementKind('TYPE_PARAMETER', 23, "type parameter");
 
   static const ElementKind UNIVERSE =
-      const ElementKind('UNIVERSE', 35, "<universe>");
+      const ElementKind('UNIVERSE', 24, "<universe>");
 
   static const List<ElementKind> values = const [
-      ANGULAR_FORMATTER,
-      ANGULAR_COMPONENT,
-      ANGULAR_CONTROLLER,
-      ANGULAR_DIRECTIVE,
-      ANGULAR_PROPERTY,
-      ANGULAR_SCOPE_PROPERTY,
-      ANGULAR_SELECTOR,
-      ANGULAR_VIEW,
       CLASS,
       COMPILATION_UNIT,
       CONSTRUCTOR,
@@ -3948,9 +3075,6 @@ class ElementKind extends Enum<ElementKind> {
       METHOD,
       NAME,
       PARAMETER,
-      POLYMER_ATTRIBUTE,
-      POLYMER_TAG_DART,
-      POLYMER_TAG_HTML,
       PREFIX,
       SETTER,
       TOP_LEVEL_VARIABLE,
@@ -4230,22 +3354,6 @@ class ElementPair {
  * element structure.
  */
 abstract class ElementVisitor<R> {
-  R visitAngularComponentElement(AngularComponentElement element);
-
-  R visitAngularControllerElement(AngularControllerElement element);
-
-  R visitAngularDirectiveElement(AngularDecoratorElement element);
-
-  R visitAngularFormatterElement(AngularFormatterElement element);
-
-  R visitAngularPropertyElement(AngularPropertyElement element);
-
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element);
-
-  R visitAngularSelectorElement(AngularSelectorElement element);
-
-  R visitAngularViewElement(AngularViewElement element);
-
   R visitClassElement(ClassElement element);
 
   R visitCompilationUnitElement(CompilationUnitElement element);
@@ -4281,12 +3389,6 @@ abstract class ElementVisitor<R> {
   R visitMultiplyDefinedElement(MultiplyDefinedElement element);
 
   R visitParameterElement(ParameterElement element);
-
-  R visitPolymerAttributeElement(PolymerAttributeElement element);
-
-  R visitPolymerTagDartElement(PolymerTagDartElement element);
-
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element);
 
   R visitPrefixElement(PrefixElement element);
 
@@ -4904,6 +4006,10 @@ class FieldElementImpl extends PropertyInducingElementImpl implements
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
   @override
+  bool get isEnumConstant =>
+      enclosingElement != null ? enclosingElement.isEnum : false;
+
+  @override
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   @override
@@ -4920,10 +4026,6 @@ class FieldElementImpl extends PropertyInducingElementImpl implements
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
-
-  @override
-  bool get isEnumConstant =>
-      enclosingElement != null ? enclosingElement.isEnum : false;
 }
 
 /**
@@ -5025,6 +4127,9 @@ class FieldMember extends VariableMember implements FieldElement {
       PropertyAccessorMember.from(baseElement.getter, definingType);
 
   @override
+  bool get isEnumConstant => baseElement.isEnumConstant;
+
+  @override
   bool get isStatic => baseElement.isStatic;
 
   @override
@@ -5096,9 +4201,6 @@ class FieldMember extends VariableMember implements FieldElement {
     }
     return false;
   }
-
-  @override
-  bool get isEnumConstant => baseElement.isEnumConstant;
 }
 
 /**
@@ -6338,44 +5440,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
  */
 class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @override
-  R visitAngularComponentElement(AngularComponentElement element) =>
-      visitAngularHasSelectorElement(element);
-
-  @override
-  R visitAngularControllerElement(AngularControllerElement element) =>
-      visitAngularHasSelectorElement(element);
-
-  @override
-  R visitAngularDirectiveElement(AngularDecoratorElement element) =>
-      visitAngularHasSelectorElement(element);
-
-  R visitAngularElement(AngularElement element) =>
-      visitToolkitObjectElement(element);
-
-  @override
-  R visitAngularFormatterElement(AngularFormatterElement element) =>
-      visitAngularElement(element);
-
-  R visitAngularHasSelectorElement(AngularHasSelectorElement element) =>
-      visitAngularElement(element);
-
-  @override
-  R visitAngularPropertyElement(AngularPropertyElement element) =>
-      visitAngularElement(element);
-
-  @override
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element) =>
-      visitAngularElement(element);
-
-  @override
-  R visitAngularSelectorElement(AngularSelectorElement element) =>
-      visitAngularElement(element);
-
-  @override
-  R visitAngularViewElement(AngularViewElement element) =>
-      visitAngularElement(element);
-
-  @override
   R visitClassElement(ClassElement element) => visitElement(element);
 
   @override
@@ -6461,21 +5525,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitLocalElement(element);
 
   @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) =>
-      visitPolymerElement(element);
-
-  R visitPolymerElement(PolymerElement element) =>
-      visitToolkitObjectElement(element);
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) =>
-      visitPolymerElement(element);
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) =>
-      visitPolymerElement(element);
-
-  @override
   R visitPrefixElement(PrefixElement element) => visitElement(element);
 
   @override
@@ -6484,9 +5533,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   R visitPropertyInducingElement(PropertyInducingElement element) =>
       visitVariableElement(element);
-
-  R visitToolkitObjectElement(ToolkitObjectElement element) =>
-      visitElement(element);
 
   @override
   R visitTopLevelVariableElement(TopLevelVariableElement element) =>
@@ -6497,28 +5543,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitElement(element);
 
   R visitVariableElement(VariableElement element) => visitElement(element);
-}
-
-/**
- * Implementation of [AngularSelectorElement] based on presence of attribute.
- */
-class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl
-    implements AngularHasAttributeSelectorElement {
-  HasAttributeSelectorElementImpl(String attributeName, int offset)
-      : super(attributeName, offset);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write("[");
-    buffer.write(name);
-    buffer.write("]");
-  }
-
-  @override
-  bool apply(XmlTagNode node) {
-    String attributeName = name;
-    return node.getAttribute(attributeName) != null;
-  }
 }
 
 /**
@@ -6566,20 +5590,6 @@ class HideElementCombinatorImpl implements HideElementCombinator {
  */
 abstract class HtmlElement implements Element {
   /**
-   * Return the [CompilationUnitElement] associated with this Angular HTML file, maybe
-   * `null` if not an Angular file.
-   */
-  CompilationUnitElement get angularCompilationUnit;
-
-  /**
-   * Return an array containing all of the [PolymerTagHtmlElement]s defined in the HTML file.
-   *
-   * @return the [PolymerTagHtmlElement]s elements in the HTML file (not `null`,
-   *         contains no `null`s)
-   */
-  List<PolymerTagHtmlElement> get polymerTags;
-
-  /**
    * Return an array containing all of the script elements contained in the HTML file. This includes
    * scripts with libraries that are defined by the content of a script tag as well as libraries
    * that are referenced in the {@core source} attribute of a script tag.
@@ -6609,20 +5619,9 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   List<HtmlScriptElement> _scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
 
   /**
-   * The [PolymerTagHtmlElement]s defined in the HTML file.
-   */
-  List<PolymerTagHtmlElement> _polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
-
-  /**
    * The source that corresponds to this HTML file.
    */
   Source source;
-
-  /**
-   * The element associated with Dart pieces in this HTML unit or `null` if the receiver is
-   * not resolved.
-   */
-  CompilationUnitElement angularCompilationUnit;
 
   /**
    * Initialize a newly created HTML element to have the given name.
@@ -6640,23 +5639,6 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
 
   @override
   ElementKind get kind => ElementKind.HTML;
-
-  @override
-  List<PolymerTagHtmlElement> get polymerTags => _polymerTags;
-
-  /**
-   * Set the [PolymerTagHtmlElement]s defined in the HTML file.
-   */
-  void set polymerTags(List<PolymerTagHtmlElement> polymerTags) {
-    if (polymerTags.length == 0) {
-      this._polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
-      return;
-    }
-    for (PolymerTagHtmlElement tag in polymerTags) {
-      (tag as PolymerTagHtmlElementImpl).enclosingElement = this;
-    }
-    this._polymerTags = polymerTags;
-  }
 
   @override
   List<HtmlScriptElement> get scripts => _scripts;
@@ -6705,7 +5687,6 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_scripts, visitor);
-    safelyVisitChildren(_polymerTags, visitor);
   }
 }
 
@@ -8075,29 +7056,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 }
 
 /**
- * Combination of [AngularTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
- */
-class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
-  String _tagName;
-
-  String _attributeName;
-
-  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName)
-      : super("$tagName[$attributeName]", -1) {
-    this._tagName = tagName;
-    this._attributeName = attributeName;
-  }
-
-  String get attributeName => _attributeName;
-
-  String get tagName => _tagName;
-
-  @override
-  bool apply(XmlTagNode node) =>
-      node.tag == _tagName && node.getAttribute(_attributeName) != null;
-}
-
-/**
  * The interface `LabelElement` defines the behavior of elements representing a label
  * associated with a statement.
  */
@@ -8233,14 +7191,6 @@ abstract class LibraryElement implements Element {
   List<ImportElement> get imports;
 
   /**
-   * Return `true` if this library is created for Angular analysis. If this library has not
-   * yet had toolkit references resolved, then `false` will be returned.
-   *
-   * @return `true` if this library is created for Angular analysis
-   */
-  bool get isAngularHtml;
-
-  /**
    * Return `true` if this library is an application that can be run in the browser.
    *
    * @return `true` if this library is an application that can be run in the browser
@@ -8367,11 +7317,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<CompilationUnitElement> _parts = CompilationUnitElementImpl.EMPTY_ARRAY;
 
   /**
-   * Is `true` if this library is created for Angular analysis.
-   */
-  bool _isAngularHtml = false;
-
-  /**
    * The element representing the synthetic function `loadLibrary` that is defined for this
    * library, or `null` if the element has not yet been created.
    */
@@ -8396,13 +7341,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
       : super.forNode(name);
-
-  /**
-   * Specifies if this library is created for Angular analysis.
-   */
-  void set angularHtml(bool isAngularHtml) {
-    this._isAngularHtml = isAngularHtml;
-  }
 
   @override
   CompilationUnitElement get definingCompilationUnit =>
@@ -8508,9 +7446,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     this._imports = imports;
   }
-
-  @override
-  bool get isAngularHtml => _isAngularHtml;
 
   @override
   bool get isBrowserApplication =>
@@ -8835,12 +7770,6 @@ abstract class LocalElement implements Element {
  * a local variable.
  */
 abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /**
-   * Return an array containing all of the toolkit specific objects attached to this variable.
-   *
-   * @return the toolkit objects attached to this variable
-   */
-  List<ToolkitObjectElement> get toolkitObjects;
 }
 
 /**
@@ -8901,30 +7830,6 @@ class LocalVariableElementImpl extends VariableElementImpl implements
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
-
-  @override
-  List<ToolkitObjectElement> get toolkitObjects {
-    CompilationUnitElementImpl unit =
-        getAncestor((element) => element is CompilationUnitElementImpl);
-    if (unit == null) {
-      return ToolkitObjectElement.EMPTY_ARRAY;
-    }
-    return unit._getToolkitObjects(this);
-  }
-
-  /**
-   * Set the toolkit specific information objects attached to this variable.
-   *
-   * @param toolkitObjects the toolkit objects attached to this variable
-   */
-  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
-    CompilationUnitElementImpl unit =
-        getAncestor((element) => element is CompilationUnitElementImpl);
-    if (unit == null) {
-      return;
-    }
-    unit._setToolkitObjects(this, toolkitObjects);
-  }
 
   @override
   SourceRange get visibleRange {
@@ -10191,221 +9096,6 @@ class ParameterMember extends VariableMember implements ParameterElement {
 }
 
 /**
- * The interface `PolymerAttributeElement` defines an attribute in
- * [PolymerTagHtmlElement].
- *
- * <pre>
- * <polymer-element name="my-example" attributes='attrA attrB'>
- * </polymer-element>
- * </pre>
- */
-abstract class PolymerAttributeElement implements PolymerElement {
-  /**
-   * An empty list of Polymer custom tag attributes.
-   */
-  static const List<PolymerAttributeElement> EMPTY_ARRAY = const
-      <PolymerAttributeElement>[
-      ];
-
-  /**
-   * Return the [FieldElement] associated with this attribute. Maybe `null` if
-   * [PolymerTagDartElement] does not have a field associated with it.
-   */
-  FieldElement get field;
-}
-
-/**
- * Implementation of `PolymerAttributeElement`.
- */
-class PolymerAttributeElementImpl extends PolymerElementImpl implements
-    PolymerAttributeElement {
-  /**
-   * The [FieldElement] associated with this attribute.
-   */
-  FieldElement field;
-
-  /**
-   * Initialize a newly created Polymer attribute to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerAttributeElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_ATTRIBUTE;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerAttributeElement(this);
-}
-
-/**
- * The interface `PolymerElement` defines the behavior of objects representing information
- * about a Polymer specific element.
- */
-abstract class PolymerElement implements ToolkitObjectElement {
-  /**
-   * An empty list of Polymer elements.
-   */
-  static const List<PolymerElement> EMPTY_ARRAY = const <PolymerElement>[];
-}
-
-/**
- * Implementation of `PolymerElement`.
- */
-abstract class PolymerElementImpl extends ToolkitObjectElementImpl implements
-    PolymerElement {
-  /**
-   * Initialize a newly created Polymer element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerElementImpl(String name, int nameOffset) : super(name, nameOffset);
-}
-
-/**
- * The interface `PolymerTagDartElement` defines a Polymer custom tag in Dart.
- *
- * <pre>
- * @CustomTag('my-example')
- * </pre>
- */
-abstract class PolymerTagDartElement implements PolymerElement {
-  /**
-   * Return the [ClassElement] that is associated with this Polymer custom tag. Not
-   * `null`, because [PolymerTagDartElement]s are created for [ClassElement]s
-   * marked with the `@CustomTag` annotation.
-   */
-  ClassElement get classElement;
-
-  /**
-   * Return the [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if
-   * it has not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagHtmlElement get htmlElement;
-}
-
-/**
- * Implementation of `PolymerTagDartElement`.
- */
-class PolymerTagDartElementImpl extends PolymerElementImpl implements
-    PolymerTagDartElement {
-  /**
-   * The [ClassElement] that is associated with this Polymer custom tag.
-   */
-  final ClassElement classElement;
-
-  /**
-   * The [PolymerTagHtmlElement] part of this Polymer custom tag. Maybe `null` if it has
-   * not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagHtmlElement htmlElement;
-
-  /**
-   * Initialize a newly created Dart part of a Polymer tag to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerTagDartElementImpl(String name, int nameOffset, this.classElement)
-      : super(name, nameOffset);
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_TAG_DART;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerTagDartElement(this);
-}
-
-/**
- * The interface `PolymerTagHtmlElement` defines a Polymer custom tag in HTML.
- *
- * <pre>
- * <polymer-element name="my-example" attributes='attrA attrB'>
- * </polymer-element>
- * </pre>
- */
-abstract class PolymerTagHtmlElement implements PolymerElement {
-  /**
-   * An empty list of [PolymerTagHtmlElement]s.
-   */
-  static const List<PolymerTagHtmlElement> EMPTY_ARRAY = const
-      <PolymerTagHtmlElement>[
-      ];
-
-  /**
-   * Return an array containing all of the attributes declared by this tag.
-   */
-  List<PolymerAttributeElement> get attributes;
-
-  /**
-   * Return the [PolymerTagDartElement] part on this Polymer custom tag. Maybe `null` if
-   * it has not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagDartElement get dartElement;
-}
-
-/**
- * Implementation of `PolymerTagHtmlElement`.
- */
-class PolymerTagHtmlElementImpl extends PolymerElementImpl implements
-    PolymerTagHtmlElement {
-  /**
-   * The [PolymerTagDartElement] part of this Polymer custom tag. Maybe `null` if it has
-   * not been resolved yet or there are no corresponding Dart part defined.
-   */
-  PolymerTagDartElement dartElement;
-
-  /**
-   * The array containing all of the attributes declared by this tag.
-   */
-  List<PolymerAttributeElement> _attributes =
-      PolymerAttributeElement.EMPTY_ARRAY;
-
-  /**
-   * Initialize a newly created HTML part of a Polymer tag to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  PolymerTagHtmlElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @override
-  List<PolymerAttributeElement> get attributes => _attributes;
-
-  /**
-   * Set an array containing all of the attributes declared by this tag.
-   *
-   * @param attributes the properties to set
-   */
-  void set attributes(List<PolymerAttributeElement> attributes) {
-    for (PolymerAttributeElement property in attributes) {
-      encloseElement(property as PolymerAttributeElementImpl);
-    }
-    this._attributes = attributes;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.POLYMER_TAG_HTML;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitPolymerTagHtmlElement(this);
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChildren(_attributes, visitor);
-    super.visitChildren(visitor);
-  }
-}
-
-/**
  * The interface `PrefixElement` defines the behavior common to elements that represent a
  * prefix used to import one or more libraries into another library.
  */
@@ -10975,54 +9665,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
  */
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   @override
-  R visitAngularComponentElement(AngularComponentElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularControllerElement(AngularControllerElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularDirectiveElement(AngularDecoratorElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularFormatterElement(AngularFormatterElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularPropertyElement(AngularPropertyElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularSelectorElement(AngularSelectorElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitAngularViewElement(AngularViewElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitClassElement(ClassElement element) {
     element.visitChildren(this);
     return null;
@@ -11131,24 +9773,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitPrefixElement(PrefixElement element) {
     element.visitChildren(this);
     return null;
@@ -11245,31 +9869,6 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
  */
 class SimpleElementVisitor<R> implements ElementVisitor<R> {
   @override
-  R visitAngularComponentElement(AngularComponentElement element) => null;
-
-  @override
-  R visitAngularControllerElement(AngularControllerElement element) => null;
-
-  @override
-  R visitAngularDirectiveElement(AngularDecoratorElement element) => null;
-
-  @override
-  R visitAngularFormatterElement(AngularFormatterElement element) => null;
-
-  @override
-  R visitAngularPropertyElement(AngularPropertyElement element) => null;
-
-  @override
-  R visitAngularScopePropertyElement(AngularScopePropertyElement element) =>
-      null;
-
-  @override
-  R visitAngularSelectorElement(AngularSelectorElement element) => null;
-
-  @override
-  R visitAngularViewElement(AngularViewElement element) => null;
-
-  @override
   R visitClassElement(ClassElement element) => null;
 
   @override
@@ -11325,15 +9924,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitParameterElement(ParameterElement element) => null;
 
   @override
-  R visitPolymerAttributeElement(PolymerAttributeElement element) => null;
-
-  @override
-  R visitPolymerTagDartElement(PolymerTagDartElement element) => null;
-
-  @override
-  R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) => null;
-
-  @override
   R visitPrefixElement(PrefixElement element) => null;
 
   @override
@@ -11344,36 +9934,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitTypeParameterElement(TypeParameterElement element) => null;
-}
-
-/**
- * The interface `ToolkitObjectElement` defines the behavior of elements that represent a
- * toolkit specific object, such as Angular controller or component. These elements are not based on
- * the Dart syntax, but on some semantic agreement, such as a special annotation.
- */
-abstract class ToolkitObjectElement implements Element {
-  /**
-   * An empty list of toolkit object elements.
-   */
-  static const List<ToolkitObjectElement> EMPTY_ARRAY = const
-      <ToolkitObjectElement>[
-      ];
-}
-
-/**
- * Instances of the class `ToolkitObjectElementImpl` implement a `ToolkitObjectElement`.
- */
-abstract class ToolkitObjectElementImpl extends ElementImpl implements
-    ToolkitObjectElement {
-  /**
-   * Initialize a newly created toolkit object element to have the given name.
-   *
-   * @param name the name of this element
-   * @param nameOffset the offset of the name of this element in the file that contains the
-   *          declaration of this element
-   */
-  ToolkitObjectElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
 }
 
 /**

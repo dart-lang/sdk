@@ -2793,15 +2793,18 @@ class ProcessQueue {
           print("\nGenerating all matching test cases ....\n");
 
           for (TestCase testCase in testCases) {
+            eventFinishedTestCase(testCase);
             print("${testCase.displayName}   "
                   "Expectations: ${testCase.expectedOutcomes.join(', ')}   "
                   "Configuration: '${testCase.configurationString}'");
           }
+          eventAllTestsKnown();
         });
     }
 
     var testCaseEnqueuer;
     CommandQueue commandQueue;
+
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
       Timer _debugTimer;
       // If we haven't seen a single test finishing during a 10 minute period

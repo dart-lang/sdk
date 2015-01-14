@@ -148,7 +148,7 @@ class HostedSource extends CachedSource {
               var packages =
                   _getCachedPackagesInDirectory(path.basename(serverDir));
               packages.sort(Package.orderByNameAndVersion);
-              Future.forEach(packages, ((package) {
+              new Future.value(Future.forEach(packages, ((package) {
                 final completer0 = new Completer();
                 scheduleMicrotask(() {
                   try {
@@ -177,11 +177,8 @@ class HostedSource extends CachedSource {
                       }
                     }
                     try {
-                      _download(
-                          url,
-                          package.name,
-                          package.version,
-                          package.dir).then((x0) {
+                      new Future.value(
+                          _download(url, package.name, package.version, package.dir)).then((x0) {
                         try {
                           x0;
                           successes++;
@@ -198,7 +195,7 @@ class HostedSource extends CachedSource {
                   }
                 });
                 return completer0.future;
-              })).then((x0) {
+              }))).then((x0) {
                 trampoline0 = () {
                   trampoline0 = null;
                   try {

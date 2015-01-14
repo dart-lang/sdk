@@ -4504,7 +4504,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 void FlowGraphOptimizer::VisitStoreInstanceField(
     StoreInstanceFieldInstr* instr) {
   if (instr->IsUnboxedStore()) {
-    ASSERT(instr->is_initialization_);
+    ASSERT(instr->is_potential_unboxed_initialization_);
     // Determine if this field should be unboxed based on the usage of getter
     // and setter functions: The heuristic requires that the setter has a
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
@@ -4549,7 +4549,9 @@ void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
                                      new Value(flow_graph_->constant_null()),
                                      kNoStoreBarrier,
                                      instr->token_pos());
-  store->set_is_initialization(true);  // Won't be eliminated by DSE.
+  // Storing into uninitialized memory; remember to prevent dead store
+  // elimination and ensure proper GC barrier.
+  store->set_is_object_reference_initialization(true);
   flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
   Definition* cursor = store;
   for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
@@ -4559,7 +4561,9 @@ void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
                                        new Value(flow_graph_->constant_null()),
                                        kNoStoreBarrier,
                                        instr->token_pos());
-    store->set_is_initialization(true);  // Won't be eliminated by DSE.
+    // Storing into uninitialized memory; remember to prevent dead store
+    // elimination and ensure proper GC barrier.
+    store->set_is_object_reference_initialization(true);
     flow_graph_->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
     cursor = store;
   }
@@ -7132,11 +7136,12 @@ class StoreOptimizer : public LivenessAnalysis {
 
   bool CanEliminateStore(Instruction* instr) {
     switch (instr->tag()) {
-      case Instruction::kStoreInstanceField:
-        if (instr->AsStoreInstanceField()->is_initialization()) {
-          // Can't eliminate stores that initialized unboxed fields.
-          return false;
-        }
+      case Instruction::kStoreInstanceField: {
+        StoreInstanceFieldInstr* store_instance = instr->AsStoreInstanceField();
+        // Can't eliminate stores that initialize fields.
+        return !(store_instance->is_potential_unboxed_initialization() ||
+                 store_instance->is_object_reference_initialization());
+      }
       case Instruction::kStoreIndexed:
       case Instruction::kStoreStaticField:
         return true;

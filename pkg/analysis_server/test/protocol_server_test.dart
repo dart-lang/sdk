@@ -36,7 +36,7 @@ class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisErrorTest {
   engine.Source source = new MockSource();
   engine.LineInfo lineInfo;
@@ -115,7 +115,7 @@ class AnalysisErrorTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementKindTest {
   void test_fromEngine() {
     expect(
@@ -163,9 +163,6 @@ class ElementKindTest {
     expect(
         newElementKind_fromEngine(engine.ElementKind.TYPE_PARAMETER),
         ElementKind.TYPE_PARAMETER);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.ANGULAR_COMPONENT),
-        ElementKind.UNKNOWN);
   }
 
   void test_string_constructor() {
@@ -219,7 +216,7 @@ class ElementKindTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementTest extends AbstractContextTest {
   engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
       [engine.ElementKind kind]) {
@@ -307,8 +304,31 @@ class A {
       expect(location.startColumn, 16);
     }
     expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
+    expect(element.returnType, 'dynamic');
     expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
+  }
+
+  void test_fromElement_FUNCTION_TYPE_ALIAS() {
+    engine.Source source = addSource('/test.dart', '''
+typedef int f(String x);
+''');
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.FunctionTypeAliasElement engineElement = findElementInUnit(unit, 'f');
+    // create notification Element
+    Element element = newElement_fromEngine(engineElement);
+    expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element.name, 'f');
+    {
+      Location location = element.location;
+      expect(location.file, '/test.dart');
+      expect(location.offset, 12);
+      expect(location.length, 'f'.length);
+      expect(location.startLine, 1);
+      expect(location.startColumn, 13);
+    }
+    expect(element.parameters, '(String x)');
+    expect(element.returnType, 'int');
+    expect(element.flags, 0);
   }
 
   void test_fromElement_GETTER() {
@@ -416,7 +436,7 @@ class A {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class EnumTest {
   void test_AnalysisErrorSeverity() {
     new EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
@@ -438,14 +458,6 @@ class EnumTest {
         newElementKind_fromEngine,
         exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
-      engine.ElementKind.ANGULAR_FORMATTER: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_COMPONENT: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_CONTROLLER: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_DIRECTIVE: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_PROPERTY: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_SCOPE_PROPERTY: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_SELECTOR: ElementKind.UNKNOWN,
-      engine.ElementKind.ANGULAR_VIEW: ElementKind.UNKNOWN,
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
       engine.ElementKind.EMBEDDED_HTML_SCRIPT: ElementKind.UNKNOWN,
       engine.ElementKind.ERROR: ElementKind.UNKNOWN,
@@ -454,9 +466,6 @@ class EnumTest {
       engine.ElementKind.HTML: ElementKind.UNKNOWN,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
-      engine.ElementKind.POLYMER_ATTRIBUTE: ElementKind.UNKNOWN,
-      engine.ElementKind.POLYMER_TAG_DART: ElementKind.UNKNOWN,
-      engine.ElementKind.POLYMER_TAG_HTML: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
     });
   }
@@ -465,12 +474,7 @@ class EnumTest {
     // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
     // use SearchResultKind inside the analysis server?
     new EnumTester<MatchKind, SearchResultKind>().run(
-        newSearchResultKind_fromEngine,
-        exceptions: {
-      // TODO(paulberry): do any of the exceptions below constitute bugs?
-      MatchKind.ANGULAR_REFERENCE: SearchResultKind.UNKNOWN,
-      MatchKind.ANGULAR_CLOSING_TAG_REFERENCE: SearchResultKind.UNKNOWN
-    });
+        newSearchResultKind_fromEngine);
   }
 }
 

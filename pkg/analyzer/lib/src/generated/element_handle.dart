@@ -89,9 +89,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   InterfaceType get supertype => actualElement.supertype;
 
   @override
-  List<ToolkitObjectElement> get toolkitObjects => actualElement.toolkitObjects;
-
-  @override
   InterfaceType get type => actualElement.type;
 
   @override
@@ -182,9 +179,6 @@ class CompilationUnitElementHandle extends ElementHandle implements
   @override
   CompilationUnitElement get actualElement =>
       super.actualElement as CompilationUnitElement;
-
-  @override
-  List<AngularViewElement> get angularViews => actualElement.angularViews;
 
   @override
   LibraryElement get enclosingElement =>
@@ -781,9 +775,6 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   List<ImportElement> get imports => actualElement.imports;
 
   @override
-  bool get isAngularHtml => actualElement.isAngularHtml;
-
-  @override
   bool get isBrowserApplication => actualElement.isBrowserApplication;
 
   @override
@@ -840,9 +831,6 @@ class LocalVariableElementHandle extends VariableElementHandle implements
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
-
-  @override
-  List<ToolkitObjectElement> get toolkitObjects => actualElement.toolkitObjects;
 
   @override
   SourceRange get visibleRange => actualElement.visibleRange;

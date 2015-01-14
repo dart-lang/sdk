@@ -369,7 +369,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ Bind(&loop);
   __ movl(EDI, Address(EBX, 0));
   // No generational barrier needed, since array is in new space.
-  __ StoreIntoObjectNoBarrier(EAX, Address(ECX, 0), EDI);
+  __ InitializeFieldNoBarrier(EAX, Address(ECX, 0), EDI);
   __ AddImmediate(ECX, Immediate(kWordSize));
   __ AddImmediate(EBX, Immediate(-kWordSize));
   __ Bind(&loop_condition);
@@ -631,12 +631,12 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // ECX: array element type.
   // EDX: Array length as Smi (preserved).
   // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(EAX,
+  __ InitializeFieldNoBarrier(EAX,
                               FieldAddress(EAX, Array::type_arguments_offset()),
                               ECX);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(EAX,
+  __ InitializeFieldNoBarrier(EAX,
                               FieldAddress(EAX, Array::length_offset()),
                               EDX);
 
@@ -654,7 +654,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ cmpl(EDI, EBX);
   __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
   // No generational barrier needed, since we are storing null.
-  __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), Object::null_object());
+  __ InitializeFieldNoBarrier(EAX, Address(EDI, 0), Object::null_object());
   __ addl(EDI, Immediate(kWordSize));
   __ jmp(&init_loop, Assembler::kNearJump);
   __ Bind(&done);
@@ -813,7 +813,12 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+#if defined(DEBUG)
+      static const bool kJumpLength = Assembler::kFarJump;
+#else
+      static const bool kJumpLength = Assembler::kNearJump;
+#endif  // DEBUG
+      __ j(ABOVE_EQUAL, &slow_case, kJumpLength);
     }
 
     // Successfully allocated the object, now update top to point to
@@ -861,7 +866,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EDX: number of context variables.
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(EAX,
+    __ InitializeFieldNoBarrier(EAX,
                                 FieldAddress(EAX, Context::parent_offset()),
                                 Object::null_object());
 
@@ -876,7 +881,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ Bind(&loop);
       __ decl(EDX);
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(EAX,
+      __ InitializeFieldNoBarrier(EAX,
                                   Address(EBX, EDX, TIMES_4, 0),
                                   Object::null_object());
       __ Bind(&entry);
@@ -1054,7 +1059,7 @@ void StubCode::GenerateAllocationStubForClass(
       for (intptr_t current_offset = Instance::NextFieldOffset();
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ StoreIntoObjectNoBarrier(EAX,
+        __ InitializeFieldNoBarrier(EAX,
                                     FieldAddress(EAX, current_offset),
                                     Object::null_object());
       }
@@ -1070,7 +1075,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ Bind(&init_loop);
       __ cmpl(ECX, EBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ StoreIntoObjectNoBarrier(EAX,
+      __ InitializeFieldNoBarrier(EAX,
                                   Address(ECX, 0),
                                   Object::null_object());
       __ addl(ECX, Immediate(kWordSize));
@@ -1081,7 +1086,8 @@ void StubCode::GenerateAllocationStubForClass(
       // EDX: new object type arguments.
       // Set the type arguments in the new object.
       intptr_t offset = cls.type_arguments_field_offset();
-      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset), EDX);
+      // TODO(koda): Figure out why previous content is sometimes null here.
+      __ InitializeFieldNoBarrier(EAX, FieldAddress(EAX, offset), EDX);
     }
     // Done allocating and initializing the instance.
     // EAX: new object (tagged).

@@ -17,7 +17,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RenameLabelTest extends RenameRefactoringTest {
   test_checkNewName_LocalVariableElement() {
     indexTestUnit('''

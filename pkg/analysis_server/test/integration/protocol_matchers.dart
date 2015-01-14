@@ -957,11 +957,10 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  * AnalysisErrorType
  *
  * enum {
- *   ANGULAR
  *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
- *   POLYMER
+ *   LINT
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
  *   SYNTACTIC_ERROR
@@ -969,11 +968,10 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  * }
  */
 final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
-  "ANGULAR",
   "CHECKED_MODE_COMPILE_TIME_ERROR",
   "COMPILE_TIME_ERROR",
   "HINT",
-  "POLYMER",
+  "LINT",
   "STATIC_TYPE_WARNING",
   "STATIC_WARNING",
   "SYNTACTIC_ERROR",
@@ -989,6 +987,7 @@ final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
  *   "enableEnums": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
+ *   "generateLints": optional bool
  * }
  */
 final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
@@ -997,7 +996,8 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
     "enableDeferredLoading": isBool,
     "enableEnums": isBool,
     "generateDart2jsHints": isBool,
-    "generateHints": isBool
+    "generateHints": isBool,
+    "generateLints": isBool
   }));
 
 /**
@@ -1060,26 +1060,11 @@ final Matcher isChangeContentOverlay = new LazyMatcher(() => new MatchesJsonObje
 final Matcher isCompletionId = isString;
 
 /**
- * CompletionRelevance
- *
- * enum {
- *   LOW
- *   DEFAULT
- *   HIGH
- * }
- */
-final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
-  "LOW",
-  "DEFAULT",
-  "HIGH"
-]);
-
-/**
  * CompletionSuggestion
  *
  * {
  *   "kind": CompletionSuggestionKind
- *   "relevance": CompletionRelevance
+ *   "relevance": int
  *   "completion": String
  *   "selectionOffset": int
  *   "selectionLength": int
@@ -1101,7 +1086,7 @@ final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
 final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObject(
   "CompletionSuggestion", {
     "kind": isCompletionSuggestionKind,
-    "relevance": isCompletionRelevance,
+    "relevance": isInt,
     "completion": isString,
     "selectionOffset": isInt,
     "selectionLength": isInt,
@@ -1789,6 +1774,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -1804,6 +1790,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "CONTENT_MODIFIED",
+  "FORMAT_INVALID_FILE",
   "GET_ERRORS_INVALID_FILE",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",

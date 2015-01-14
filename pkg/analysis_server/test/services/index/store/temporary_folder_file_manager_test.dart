@@ -19,7 +19,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class _SeparateFileManagerTest {
   TemporaryFolderFileManager fileManager;
 

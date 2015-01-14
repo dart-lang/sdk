@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -24,7 +25,6 @@ import 'test_support.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(AngularPropertyKindTest);
   runReflectiveTests(ElementKindTest);
   runReflectiveTests(FunctionTypeImplTest);
   runReflectiveTests(InterfaceTypeImplTest);
@@ -40,40 +40,7 @@ main() {
   runReflectiveTests(MultiplyDefinedElementImplTest);
 }
 
-@ReflectiveTestCase()
-class AngularPropertyKindTest extends EngineTestCase {
-  void test_ATTR() {
-    AngularPropertyKind kind = AngularPropertyKind.ATTR;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_CALLBACK() {
-    AngularPropertyKind kind = AngularPropertyKind.CALLBACK;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_ONE_WAY() {
-    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_ONE_WAY_ONE_TIME() {
-    AngularPropertyKind kind = AngularPropertyKind.ONE_WAY_ONE_TIME;
-    expect(kind.callsGetter(), isFalse);
-    expect(kind.callsSetter(), isTrue);
-  }
-
-  void test_TWO_WAY() {
-    AngularPropertyKind kind = AngularPropertyKind.TWO_WAY;
-    expect(kind.callsGetter(), isTrue);
-    expect(kind.callsSetter(), isTrue);
-  }
-}
-
-@ReflectiveTestCase()
+@reflectiveTest
 class ClassElementImplTest extends EngineTestCase {
   void test_getAllSupertypes_interface() {
     ClassElement classA = ElementFactory.classElement2("A");
@@ -928,7 +895,7 @@ class B {}''');
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CompilationUnitElementImplTest extends EngineTestCase {
   void test_getEnum_declared() {
     TestTypeProvider typeProvider = new TestTypeProvider();
@@ -971,7 +938,7 @@ class CompilationUnitElementImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementImplTest extends EngineTestCase {
   void test_equals() {
     LibraryElementImpl library =
@@ -1067,7 +1034,7 @@ class ElementImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementKindTest extends EngineTestCase {
   void test_of_nonNull() {
     expect(
@@ -1080,7 +1047,7 @@ class ElementKindTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ElementLocationImplTest extends EngineTestCase {
   void test_create_encoding() {
     String encoding = "a;b;c";
@@ -1145,7 +1112,7 @@ class ElementLocationImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class FunctionTypeImplTest extends EngineTestCase {
   void test_creation() {
     expect(
@@ -1744,7 +1711,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class HtmlElementImplTest extends EngineTestCase {
   void test_equals_differentSource() {
     AnalysisContextImpl context = createAnalysisContext();
@@ -1773,7 +1740,7 @@ class HtmlElementImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InterfaceTypeImplTest extends EngineTestCase {
   /**
    * The type provider used to access the types.
@@ -3395,7 +3362,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LibraryElementImplTest extends EngineTestCase {
   void test_creation() {
     expect(
@@ -3565,7 +3532,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class MultiplyDefinedElementImplTest extends EngineTestCase {
   void test_fromElements_conflicting() {
     Element firstElement = ElementFactory.localVariableElement2("xx");
@@ -3618,7 +3585,7 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TypeParameterTypeImplTest extends EngineTestCase {
   void test_creation() {
     expect(
@@ -3747,7 +3714,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class UnionTypeImplTest extends EngineTestCase {
   ClassElement _classA;
 
@@ -3946,7 +3913,7 @@ class UnionTypeImplTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class VoidTypeImplTest extends EngineTestCase {
   /**
    * Reference {code VoidTypeImpl.getInstance()}.

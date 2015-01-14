@@ -170,6 +170,12 @@ class Isolate : public BaseIsolate {
     ASSERT(main_port_ == 0);  // Only set main port once.
     main_port_ = port;
   }
+  Dart_Port origin_id() const { return origin_id_; }
+  void set_origin_id(Dart_Port id) {
+    ASSERT((id == main_port_ && origin_id_ == 0) ||
+           (origin_id_ == main_port_));
+    origin_id_ = id;
+  }
   void set_pause_capability(uint64_t value) { pause_capability_ = value; }
   uint64_t pause_capability() const { return pause_capability_; }
   void set_terminate_capability(uint64_t value) {
@@ -633,6 +639,7 @@ class Isolate : public BaseIsolate {
   char* name_;
   int64_t start_time_;
   Dart_Port main_port_;
+  Dart_Port origin_id_;  // Isolates created by spawnFunc have some origin id.
   uint64_t pause_capability_;
   uint64_t terminate_capability_;
   Heap* heap_;
@@ -834,7 +841,6 @@ class IsolateSpawnState {
   char* library_url() const { return library_url_; }
   char* class_name() const { return class_name_; }
   char* function_name() const { return function_name_; }
-  char* exception_callback_name() const { return exception_callback_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
 
@@ -851,7 +857,6 @@ class IsolateSpawnState {
   char* library_url_;
   char* class_name_;
   char* function_name_;
-  char* exception_callback_name_;
   uint8_t* serialized_args_;
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;

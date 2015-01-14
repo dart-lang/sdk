@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InlineLocalTest extends RefactoringTest {
   InlineLocalRefactoringImpl refactoring;
 

@@ -136,7 +136,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLabel(Label label) {
+  void declaredLabel(Label label, bool isCaseLabel) {
   }
 
   @override
@@ -185,7 +185,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
     completion.write(')');
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.ARGUMENT_LIST,
-        CompletionRelevance.HIGH,
+        COMPLETION_RELEVANCE_HIGH,
         completion.toString(),
         completion.length,
         0,

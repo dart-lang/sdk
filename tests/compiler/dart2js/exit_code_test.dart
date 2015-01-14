@@ -99,8 +99,9 @@ class TestCompiler extends apiimpl.Compiler {
         break;
       case 'fatalError':
         onTest(testMarker, testType);
-        reportFatalError(NO_LOCATION_SPANNABLE,
-                         MessageKind.GENERIC, {'text': marker});
+        reportError(NO_LOCATION_SPANNABLE,
+                    MessageKind.GENERIC, {'text': marker});
+        throw new CompilerCancelledException(null);
         break;
       case 'internalError':
         onTest(testMarker, testType);

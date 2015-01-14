@@ -128,20 +128,11 @@ class ProgramBuilder {
     return result;
   }
 
-  /// Returns a name composed of the main output file name and [name].
-  String _outputFileName(String name) {
-    assert(name != "");
-    String outPath = _compiler.outputUri != null
-        ? _compiler.outputUri.path
-        : "out";
-    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
-    return "${outName}_$name";
-  }
-
   DeferredOutput _buildDeferredOutput(MainOutput mainOutput,
                                       Fragment fragment) {
     DeferredOutput result = new DeferredOutput(
-        _outputFileName(fragment.name), fragment.name,
+        backend.deferredPartFileName(fragment.name, addExtension: false),
+                                     fragment.name,
         mainOutput,
         _buildLibraries(fragment),
         _buildStaticNonFinalFields(fragment),
@@ -444,6 +435,7 @@ class ProgramBuilder {
                           List<ConstantValue> constantValues) {
     if (constantValues == null) return;
     for (ConstantValue constantValue in constantValues) {
+      _registry.registerConstant(outputUnit, constantValue);
       assert(!_constants.containsKey(constantValue));
       String name = namer.constantName(constantValue);
       String constantObject = namer.globalObjectForConstant(constantValue);

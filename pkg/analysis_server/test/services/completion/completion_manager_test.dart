@@ -17,7 +17,7 @@ main() {
   runReflectiveTests(CompletionManagerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CompletionManagerTest extends AbstractContextTest {
   var perf = new CompletionPerformance();
 

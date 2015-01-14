@@ -5,7 +5,8 @@
 library _interceptors;
 
 import 'dart:_js_embedded_names' show
-    DISPATCH_PROPERTY_NAME;
+    DISPATCH_PROPERTY_NAME,
+    MAP_TYPE_TO_INTERCEPTOR;
 
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
@@ -175,14 +176,6 @@ getNativeInterceptor(object) {
 }
 
 /**
- * If [JSInvocationMirror._invokeOn] is being used, this variable
- * contains a JavaScript array with the names of methods that are
- * intercepted.
- */
-var interceptedNames;
-
-
-/**
  * Data structure used to map a [Type] to the [Interceptor] and constructors for
  * that type.  It is JavaScript array of 3N entries of adjacent slots containing
  * a [Type], followed by an [Interceptor] class for the type, followed by a
@@ -196,8 +189,9 @@ var interceptedNames;
  * is accessed only by code that also calls [findIndexForWebComponentType].  If
  * this assumption is invalidated, the compiler will have to be updated.
  */
-// TODO(sra): Mark this as initialized to a constant with unknown value.
-var mapTypeToInterceptor;
+get mapTypeToInterceptor {
+  return JS_EMBEDDED_GLOBAL('', MAP_TYPE_TO_INTERCEPTOR);
+}
 
 int findIndexForNativeSubclassType(Type type) {
   if (JS('bool', '# == null', mapTypeToInterceptor)) return null;

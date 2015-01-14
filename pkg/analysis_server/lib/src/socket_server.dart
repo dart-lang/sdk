@@ -6,13 +6,8 @@ library socket.server;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_execution.dart';
-import 'package:analysis_server/src/domain_server.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -41,6 +36,7 @@ class SocketServer {
   final AnalysisServerOptions analysisServerOptions;
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
+  final ServerPlugin serverPlugin;
 
   /**
    * The analysis server that was created when a client established a
@@ -49,7 +45,7 @@ class SocketServer {
   AnalysisServer analysisServer;
 
   SocketServer(this.analysisServerOptions, this.defaultSdk,
-      this.instrumentationService);
+      this.instrumentationService, this.serverPlugin);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -84,12 +80,6 @@ class SocketServer {
    * Initialize the handlers to be used by the given [server].
    */
   void _initializeHandlers(AnalysisServer server) {
-    server.handlers = [
-        new ServerDomainHandler(server),
-        new AnalysisDomainHandler(server),
-        new EditDomainHandler(server),
-        new SearchDomainHandler(server),
-        new CompletionDomainHandler(server),
-        new ExecutionDomainHandler(server),];
+    server.handlers = serverPlugin.createDomains(server);
   }
 }

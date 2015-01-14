@@ -71,6 +71,13 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         new CompletionPerformance());
   }
 
+  void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
+    expect(suggestion.parameterNames, isNull);
+    expect(suggestion.parameterTypes, isNull);
+    expect(suggestion.requiredParameterCount, isNull);
+    expect(suggestion.hasNamedParameters, isNull);
+  }
+
   void assertNoSuggestions({CompletionSuggestionKind kind: null}) {
     if (kind == null) {
       if (request.suggestions.length > 0) {
@@ -98,17 +105,18 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggest(String completion,
       {CompletionSuggestionKind csKind: CompletionSuggestionKind.INVOCATION,
-      CompletionRelevance relevance: CompletionRelevance.DEFAULT,
-      protocol.ElementKind elemKind: null, bool isDeprecated: false, bool isPotential:
-      false}) {
+      int relevance: COMPLETION_RELEVANCE_DEFAULT, protocol.ElementKind elemKind:
+      null, bool isDeprecated: false, bool isPotential: false}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
-      failedCompletion('expected $completion $csKind', request.suggestions);
+      failedCompletion(
+          'expected $completion $csKind $elemKind',
+          request.suggestions);
     }
     expect(cs.kind, equals(csKind));
     if (isDeprecated) {
-      expect(cs.relevance, equals(CompletionRelevance.LOW));
+      expect(cs.relevance, equals(COMPLETION_RELEVANCE_LOW));
     } else {
       expect(cs.relevance, equals(relevance));
     }
@@ -131,7 +139,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         paramTypes,
         cs.parameterNames,
         cs.parameterTypes);
-    expect(cs.relevance, CompletionRelevance.HIGH);
+    expect(cs.relevance, COMPLETION_RELEVANCE_HIGH);
   }
 
   void assertSuggestArgumentList_params(List<String> expectedNames,
@@ -162,9 +170,9 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     fail(msg.toString());
   }
 
-  CompletionSuggestion assertSuggestClass(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+  CompletionSuggestion assertSuggestClass(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
     protocol.Element element = cs.element;
@@ -176,9 +184,9 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestClassTypeAlias(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+  CompletionSuggestion assertSuggestClassTypeAlias(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
     protocol.Element element = cs.element;
@@ -190,15 +198,36 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestField(String name, String type,
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
+      CompletionSuggestionKind.INVOCATION, bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(
+        name,
+        csKind: kind,
+        relevance: relevance,
+        elemKind: protocol.ElementKind.FIELD,
+        isDeprecated: isDeprecated);
+    // The returnType represents the type of a field
+    expect(cs.returnType, type != null ? type : 'dynamic');
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.FIELD));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    // The returnType represents the type of a field
+    expect(element.returnType, type != null ? type : 'dynamic');
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
-      bool isDeprecated, [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      [bool isDeprecated = false, int relevance = COMPLETION_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
         csKind: kind,
         relevance: relevance,
         isDeprecated: isDeprecated);
-    expect(cs.returnType, equals(returnType));
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.FUNCTION));
@@ -215,15 +244,15 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestFunctionTypeAlias(String name,
-      String returnType, bool isDeprecated, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT, CompletionSuggestionKind kind =
+      String returnType, bool isDeprecated, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
         csKind: kind,
         relevance: relevance,
         isDeprecated: isDeprecated);
-    expect(cs.returnType, equals(returnType));
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.FUNCTION_TYPE_ALIAS));
@@ -242,16 +271,15 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestGetter(String name, String returnType,
-      {CompletionRelevance relevance: CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool isDeprecated: false}) {
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
+      CompletionSuggestionKind.INVOCATION, bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(
         name,
         csKind: kind,
         relevance: relevance,
         elemKind: protocol.ElementKind.GETTER,
         isDeprecated: isDeprecated);
-    expect(cs.returnType, equals(returnType));
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.GETTER));
@@ -265,9 +293,25 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestLibraryPrefix(String prefix,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+  CompletionSuggestion assertSuggestLabel(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.IDENTIFIER]) {
+    CompletionSuggestion cs =
+        assertSuggest(name, csKind: kind, relevance: relevance);
+    expect(cs.returnType, isNull);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.flags, 0);
+    expect(element.kind, equals(protocol.ElementKind.LABEL));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestLibraryPrefix(String prefix, [int relevance
+      = COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     // Library prefix should only be suggested by ImportedComputer
     if (computer is ImportedComputer) {
       CompletionSuggestion cs =
@@ -284,21 +328,19 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestLocalVariable(String name,
-      String returnType, [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     // Local variables should only be suggested by LocalComputer
     if (computer is LocalComputer) {
       CompletionSuggestion cs =
           assertSuggest(name, csKind: kind, relevance: relevance);
-      expect(cs.returnType, equals(returnType));
+      expect(cs.returnType, returnType != null ? returnType : 'dynamic');
       protocol.Element element = cs.element;
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
       expect(element.name, equals(name));
       expect(element.parameters, isNull);
-      expect(
-          element.returnType,
-          equals(returnType != null ? returnType : 'dynamic'));
+      expect(element.returnType, returnType != null ? returnType : 'dynamic');
       return cs;
     } else {
       return assertNotSuggested(name);
@@ -306,12 +348,12 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestMethod(String name, String declaringType,
-      String returnType, [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
     expect(cs.declaringType, equals(declaringType));
-    expect(cs.returnType, equals(returnType));
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.METHOD));
@@ -320,14 +362,12 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(param, isNotNull);
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
-    expect(
-        element.returnType,
-        equals(returnType != null ? returnType : 'dynamic'));
+    expect(element.returnType, returnType != null ? returnType : 'dynamic');
     return cs;
   }
 
   CompletionSuggestion assertSuggestNamedConstructor(String name,
-      String returnType, [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     if (computer is InvocationComputer) {
       CompletionSuggestion cs =
@@ -348,13 +388,13 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     // Parameters should only be suggested by LocalComputer
     if (computer is LocalComputer) {
       CompletionSuggestion cs =
           assertSuggest(name, csKind: kind, relevance: relevance);
-      expect(cs.returnType, equals(returnType));
+      expect(cs.returnType, returnType != null ? returnType : 'dynamic');
       protocol.Element element = cs.element;
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.PARAMETER));
@@ -369,9 +409,9 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     }
   }
 
-  CompletionSuggestion assertSuggestSetter(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+  CompletionSuggestion assertSuggestSetter(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
         csKind: kind,
@@ -391,25 +431,22 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestTopLevelVar(String name, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
-    expect(cs.returnType, equals(returnType));
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.TOP_LEVEL_VARIABLE));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
-    //TODO (danrubel) return type level variable 'type' but not as 'returnType'
-//    expect(
-//        element.returnType,
-//        equals(returnType != null ? returnType : 'dynamic'));
+    expect(element.returnType, returnType != null ? returnType : 'dynamic');
     return cs;
   }
 
   void assertSuggestTopLevelVarGetterSetter(String name, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is ImportedComputer) {
       assertSuggestGetter(name, returnType);
       assertSuggestSetter(name);
@@ -567,8 +604,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertLocalSuggestMethod(String name,
-      String declaringType, String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String declaringType, String returnType, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestMethod(name, declaringType, returnType, relevance);
     } else {
@@ -576,9 +613,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestImportedClass(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+  CompletionSuggestion assertSuggestImportedClass(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestClass(name, relevance, kind);
     } else {
@@ -586,9 +623,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestImportedField(String name, String type,
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+    return assertNotSuggested(name);
+  }
+
   CompletionSuggestion assertSuggestImportedFunction(String name,
-      String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT, CompletionSuggestionKind kind =
+      String returnType, [bool isDeprecated = false, int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestFunction(
@@ -603,8 +645,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedFunctionTypeAlias(String name,
-      String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT, CompletionSuggestionKind kind =
+      String returnType, [bool isDeprecated = false, int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestFunctionTypeAlias(
@@ -619,8 +661,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedGetter(String name,
-      String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is ImportedComputer) {
       return assertSuggestGetter(name, returnType, relevance: relevance);
     } else {
@@ -629,8 +670,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedMethod(String name,
-      String declaringType, String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String declaringType, String returnType, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is ImportedComputer) {
       return assertSuggestMethod(name, declaringType, returnType, relevance);
     } else {
@@ -638,8 +679,17 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestImportedSetter(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestSetter(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestImportedTopLevelVar(String name,
-      String returnType, [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestTopLevelVar(name, returnType, relevance, kind);
@@ -648,8 +698,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestInvocationClass(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+  CompletionSuggestion assertSuggestInvocationClass(String name, [int relevance
+      = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestClass(name, relevance);
     } else {
@@ -657,8 +707,13 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestInvocationField(String name, String type,
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertNotSuggested(name);
+  }
+
   CompletionSuggestion assertSuggestInvocationGetter(String name,
-      String returnType, {CompletionRelevance relevance: CompletionRelevance.DEFAULT,
+      String returnType, {int relevance: COMPLETION_RELEVANCE_DEFAULT,
       bool isDeprecated: false}) {
     if (computer is InvocationComputer) {
       return assertSuggestGetter(
@@ -672,8 +727,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestInvocationMethod(String name,
-      String declaringType, String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String declaringType, String returnType, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestMethod(name, declaringType, returnType, relevance);
     } else {
@@ -681,8 +736,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestInvocationSetter(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+  CompletionSuggestion assertSuggestInvocationSetter(String name, [int relevance
+      = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestSetter(name);
     } else {
@@ -691,8 +746,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestInvocationTopLevelVar(String name,
-      String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestTopLevelVar(name, returnType, relevance);
     } else {
@@ -700,8 +754,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestLocalClass(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+  CompletionSuggestion assertSuggestLocalClass(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestClass(name, relevance);
     } else {
@@ -710,7 +764,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestClassTypeAlias(name, relevance);
     } else {
@@ -718,9 +772,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestLocalField(String name, String type,
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+    return assertNotSuggested(name);
+  }
+
   CompletionSuggestion assertSuggestLocalFunction(String name,
-      String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String returnType, [bool isDeprecated = false, int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestFunction(name, returnType, isDeprecated, relevance);
     } else {
@@ -729,8 +788,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalFunctionTypeAlias(String name,
-      String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String returnType, [bool isDeprecated = false, int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestFunctionTypeAlias(
           name,
@@ -743,7 +802,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestGetter(name, returnType, relevance: relevance);
     } else {
@@ -752,8 +811,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalMethod(String name,
-      String declaringType, String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String declaringType, String returnType, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestMethod(name, declaringType, returnType, relevance);
     } else {
@@ -761,8 +820,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestLocalSetter(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+  CompletionSuggestion assertSuggestLocalSetter(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestSetter(name, relevance);
     } else {
@@ -771,8 +830,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalTopLevelVar(String name,
-      String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
+      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestTopLevelVar(name, returnType, relevance);
     } else {
@@ -780,9 +838,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestNonLocalClass(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+  CompletionSuggestion assertSuggestNonLocalClass(String name, [int relevance =
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      CompletionSuggestionKind.INVOCATION]) {
     return assertSuggestImportedClass(name, relevance, kind);
   }
 
@@ -1134,26 +1192,26 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('C');
       // hidden element suggested as low relevance
       // but imported results are partially filtered
-      //assertSuggestImportedClass('D', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('D', COMPLETION_RELEVANCE_LOW);
       //assertSuggestImportedFunction(
-      //    'D1', null, true, CompletionRelevance.LOW);
+      //    'D1', null, true, COMPLETION_RELEVANCE_LOW);
       assertSuggestLocalFunction('D2', 'Z');
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
-      //assertSuggestImportedClass('F', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
       assertSuggestLibraryPrefix('g');
       assertNotSuggested('G');
-      //assertSuggestImportedClass('H', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
       assertSuggestImportedFunction('min', 'num', false);
       //assertSuggestImportedFunction(
       //    'max',
       //    'num',
       //    false,
-      //    CompletionRelevance.LOW);
+      //    COMPLETION_RELEVANCE_LOW);
       assertSuggestTopLevelVarGetterSetter('T1', 'String');
       assertNotSuggested('_T2');
-      //assertSuggestImportedTopLevelVar('T3', 'int', CompletionRelevance.LOW);
+      //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
       assertNotSuggested('_T4');
       assertSuggestLocalTopLevelVar('T5', 'int');
       assertSuggestLocalTopLevelVar('_T6', null);
@@ -1213,25 +1271,25 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('_B');
       //assertSuggestImportedClass('C');
       // hidden element suggested as low relevance
-      assertSuggestImportedClass('D', CompletionRelevance.LOW);
-      assertSuggestImportedFunction('D1', null, true, CompletionRelevance.LOW);
+      assertSuggestImportedClass('D', COMPLETION_RELEVANCE_LOW);
+      assertSuggestImportedFunction('D1', null, true, COMPLETION_RELEVANCE_LOW);
       assertSuggestLocalFunction('D2', 'Z');
       //assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
-      //assertSuggestImportedClass('F', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
       //assertSuggestLibraryPrefix('g');
       assertNotSuggested('G');
-      //assertSuggestImportedClass('H', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       //assertSuggestImportedClass('Object');
       //assertSuggestImportedFunction('min', 'num', false);
       //assertSuggestImportedFunction(
       //    'max',
       //    'num',
       //    false,
-      //    CompletionRelevance.LOW);
+      //    COMPLETION_RELEVANCE_LOW);
       //assertSuggestTopLevelVarGetterSetter('T1', 'String');
       assertNotSuggested('_T2');
-      //assertSuggestImportedTopLevelVar('T3', 'int', CompletionRelevance.LOW);
+      //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
       assertNotSuggested('_T4');
       //assertSuggestLocalTopLevelVar('T5', 'int');
       //assertSuggestLocalTopLevelVar('_T6', null);
@@ -1245,7 +1303,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addSource('/testB.dart', '''
       lib B;
-      class F { var f1; f2() { } }
+      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
       class E extends F { var e1; e2() { } }
       class I { int i1; i2() { } }
       class M { var m1; int m2() { } }''');
@@ -1254,14 +1312,18 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A extends E implements I with M {a() {^}}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestImportedGetter('e1', null);
-      assertSuggestImportedGetter('f1', null);
-      assertSuggestImportedGetter('i1', 'int');
-      assertSuggestImportedGetter('m1', null);
-      //TODO (danrubel) include declared type in suggestion
-      assertSuggestImportedMethod('e2', null, null);
-      assertSuggestImportedMethod('f2', null, null);
-      assertSuggestImportedMethod('i2', null, null);
+      // TODO (danrubel) prefer fields over getters
+      // If add `get e1;` to interface I
+      // then suggestions include getter e1 rather than field e1
+      assertSuggestImportedField('e1', null);
+      assertSuggestImportedField('f1', null);
+      assertSuggestImportedField('i1', 'int');
+      assertSuggestImportedField('m1', null);
+      assertSuggestImportedGetter('f3', null);
+      assertSuggestImportedSetter('f4');
+      assertSuggestImportedMethod('e2', 'E', null);
+      assertSuggestImportedMethod('f2', 'F', null);
+      assertSuggestImportedMethod('i2', 'I', null);
       //assertSuggestImportedMethod('m2', null, null);
       assertNotSuggested('==');
     });
@@ -1270,17 +1332,19 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_Block_inherited_local() {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
-      class F { var f1; f2() { } }
+      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
       class E extends F { var e1; e2() { } }
       class I { int i1; i2() { } }
       class M { var m1; int m2() { } }
       class A extends E implements I with M {a() {^}}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestLocalGetter('e1', null);
-      assertSuggestLocalGetter('f1', null);
-      assertSuggestLocalGetter('i1', 'int');
-      assertSuggestLocalGetter('m1', null);
+      assertSuggestLocalField('e1', null);
+      assertSuggestLocalField('f1', null);
+      assertSuggestLocalField('i1', 'int');
+      assertSuggestLocalField('m1', null);
+      assertSuggestLocalGetter('f3', null);
+      assertSuggestLocalSetter('f4');
       assertSuggestLocalMethod('e2', 'E', null);
       assertSuggestLocalMethod('f2', 'F', null);
       assertSuggestLocalMethod('i2', 'I', null);
@@ -1301,8 +1365,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a.^.z}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('b', null);
-      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationField('b', null);
+      assertSuggestInvocationField('_c', 'X');
       assertNotSuggested('Object');
       assertNotSuggested('A');
       assertNotSuggested('B');
@@ -1323,8 +1387,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a..^z}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('b', null);
-      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationField('b', null);
+      assertSuggestInvocationField('_c', 'X');
       assertNotSuggested('Object');
       assertNotSuggested('A');
       assertNotSuggested('B');
@@ -1345,8 +1409,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a..^ return}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('b', null);
-      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationField('b', null);
+      assertSuggestInvocationField('_c', 'X');
       assertNotSuggested('Object');
       assertNotSuggested('A');
       assertNotSuggested('B');
@@ -1412,7 +1476,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       CompletionSuggestion suggestionA =
-          assertSuggestLocalClass('A', CompletionRelevance.LOW);
+          assertSuggestLocalClass('A', COMPLETION_RELEVANCE_LOW);
       if (suggestionA != null) {
         expect(suggestionA.element.isDeprecated, isTrue);
         expect(suggestionA.element.isPrivate, isFalse);
@@ -1490,8 +1554,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {var b; X _c; foo() {A a; if (^) something}}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestLocalGetter('b', null);
-      assertSuggestLocalGetter('_c', 'X');
+      assertSuggestLocalField('b', null);
+      assertSuggestLocalField('_c', 'X');
       assertSuggestImportedClass('Object');
       assertSuggestLocalClass('A');
       assertNotSuggested('==');
@@ -1969,7 +2033,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(methodA.element.isPrivate, isFalse);
       }
       CompletionSuggestion getterF =
-          assertSuggestLocalGetter('f', 'X', CompletionRelevance.LOW);
+          assertSuggestLocalGetter('f', 'X', COMPLETION_RELEVANCE_LOW);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
@@ -1993,13 +2057,13 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(methodA.element.isPrivate, isTrue);
       }
       CompletionSuggestion getterF =
-          assertSuggestLocalGetter('f', 'X', CompletionRelevance.LOW);
+          assertSuggestLocalField('f', 'X', COMPLETION_RELEVANCE_LOW);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
         expect(getterF.element.parameters, isNull);
       }
-      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
+      CompletionSuggestion getterG = assertSuggestLocalField('_g', null);
       if (getterG != null) {
         expect(getterG.element.isDeprecated, isFalse);
         expect(getterG.element.isPrivate, isTrue);
@@ -2015,7 +2079,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       CompletionSuggestion methodA =
-          assertSuggestLocalMethod('a', 'A', 'Z', CompletionRelevance.LOW);
+          assertSuggestLocalMethod('a', 'A', 'Z', COMPLETION_RELEVANCE_LOW);
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isTrue);
         expect(methodA.element.isPrivate, isFalse);
@@ -2162,9 +2226,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A.^}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('scA', 'String');
-      assertSuggestInvocationGetter('scB', 'int');
-      assertSuggestInvocationGetter('scI', null);
+      assertSuggestInvocationField('scA', 'String');
+      assertSuggestInvocationField('scB', 'int');
+      assertSuggestInvocationField('scI', null);
       assertNotSuggested('b');
       assertNotSuggested('_c');
       assertNotSuggested('d');
@@ -2201,8 +2265,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a.^}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('sc', 'int');
-      assertSuggestInvocationGetter('b', null, isDeprecated: true);
+      assertSuggestInvocationField('sc', 'int');
+      assertSuggestInvocationField('b', null, isDeprecated: true);
       assertNotSuggested('_c');
       assertSuggestInvocationGetter('d', 'X');
       assertNotSuggested('_e');
@@ -2234,9 +2298,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('sc', 'int');
-      assertSuggestInvocationGetter('b', null);
-      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationField('sc', 'int');
+      assertSuggestInvocationField('b', null);
+      assertSuggestInvocationField('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');
       assertSuggestInvocationGetter('_e', null);
       assertSuggestInvocationGetter('f', 'X');
@@ -2290,7 +2354,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       foo(X x) {x.^}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('y', 'M');
+      assertSuggestInvocationField('y', 'M');
       assertNotSuggested('_z');
       assertNotSuggested('==');
     });
@@ -2376,8 +2440,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('b', null);
-      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationField('b', null);
+      assertSuggestInvocationField('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');
       assertSuggestInvocationGetter('_e', null);
       assertSuggestInvocationGetter('f', 'X');
@@ -2411,8 +2475,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestInvocationGetter('b', null);
-      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationField('b', null);
+      assertSuggestInvocationField('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');
       assertSuggestInvocationGetter('_e', null);
       assertSuggestInvocationGetter('f', 'X');

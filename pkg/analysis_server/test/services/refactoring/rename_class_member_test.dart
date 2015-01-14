@@ -17,7 +17,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RenameClassMemberTest extends RenameRefactoringTest {
   test_checkFinalConditions_hasMember_MethodElement() {
     indexTestUnit('''

@@ -57,7 +57,10 @@ typedef struct _Dart_CObject {
       intptr_t used;
       struct _Dart_CObject* digits;
     } as_bigint;
-    Dart_Port as_send_port;
+    struct {
+      Dart_Port id;
+      Dart_Port origin_id;
+    } as_send_port;
     struct {
       intptr_t length;
       struct _Dart_CObject** values;

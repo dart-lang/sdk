@@ -16,7 +16,7 @@ main() {
   runReflectiveTests(ArgListComputerTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ArgListComputerTest extends AbstractCompletionTest {
 
   @override

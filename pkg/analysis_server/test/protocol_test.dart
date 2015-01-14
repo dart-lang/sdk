@@ -25,7 +25,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class InvalidParameterResponseMatcher extends Matcher {
   static const String ERROR_CODE = 'INVALID_PARAMETER';
 
@@ -54,7 +54,7 @@ class InvalidParameterResponseMatcher extends Matcher {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class NotificationTest {
   void test_fromJson() {
     Notification original = new Notification('foo');
@@ -101,7 +101,7 @@ class NotificationTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RequestErrorTest {
   void test_create() {
     RequestError error =
@@ -141,7 +141,7 @@ class RequestErrorTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RequestTest {
   void test_fromJson() {
     Request original = new Request('one', 'aMethod');
@@ -207,7 +207,7 @@ class RequestTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ResponseTest {
   void test_create_invalidRequestFormat() {
     Response response = new Response.invalidRequestFormat();

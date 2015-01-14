@@ -20,7 +20,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   List<Occurrences> occurrencesList;
   Occurrences testOccurences;

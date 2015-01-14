@@ -37,10 +37,11 @@ class DowngradeCommand extends PubCommand {
     scheduleMicrotask(() {
       try {
         var dryRun = commandOptions['dry-run'];
-        entrypoint.acquireDependencies(
-            SolveType.DOWNGRADE,
-            useLatest: commandOptions.rest,
-            dryRun: dryRun).then((x0) {
+        new Future.value(
+            entrypoint.acquireDependencies(
+                SolveType.DOWNGRADE,
+                useLatest: commandOptions.rest,
+                dryRun: dryRun)).then((x0) {
           try {
             x0;
             join0() {

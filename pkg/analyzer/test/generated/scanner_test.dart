@@ -20,7 +20,7 @@ main() {
   runReflectiveTests(TokenTypeTest);
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class CharSequenceReaderTest {
   void test_advance() {
     CharSequenceReader reader = new CharSequenceReader("x");
@@ -124,7 +124,7 @@ class CharacterRangeReaderTest extends EngineTestCase {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class KeywordStateTest {
   void test_KeywordState() {
     //
@@ -168,7 +168,7 @@ class KeywordStateTest {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ScannerTest {
   void fail_incomplete_string_interpolation() {
     // https://code.google.com/p/dart/issues/detail?id=18073
@@ -1341,7 +1341,7 @@ class TokenStreamValidator {
   }
 }
 
-@ReflectiveTestCase()
+@reflectiveTest
 class TokenTypeTest extends EngineTestCase {
   void test_isOperator() {
     expect(TokenType.AMPERSAND.isOperator, isTrue);

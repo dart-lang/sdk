@@ -24,7 +24,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
   void test_createLocation_forElement() {
     resolveTestUnit('class MyClass {}');
@@ -75,7 +75,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class RefactoringStatusTest {
   void test_addError() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();

@@ -743,7 +743,7 @@ class ResolverTask extends CompilerTask {
       Element nextTarget = target.immediateRedirectionTarget;
       if (seen.contains(nextTarget)) {
         error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
-        break;
+        return;
       }
       seen.add(target);
       target = nextTarget;
@@ -1119,6 +1119,7 @@ class ResolverTask extends CompilerTask {
       compiler.internalError(member,
           "No abstract field for accessor");
     } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
+      if (lookupElement.isErroneous || lookupElement.isAmbiguous) return;
       compiler.internalError(member,
           "Inaccessible abstract field for accessor");
     }
@@ -1332,8 +1333,7 @@ class ResolverTask extends CompilerTask {
   }
 
   error(Spannable node, MessageKind kind, [arguments = const {}]) {
-    // TODO(ahe): Make non-fatal.
-    compiler.reportFatalError(node, kind, arguments);
+    compiler.reportError(node, kind, arguments);
   }
 
   Link<MetadataAnnotation> resolveMetadata(Element element,
@@ -1411,8 +1411,12 @@ class InitializerResolver {
       target = constructor.enclosingClass.lookupLocalMember(name);
       if (target == null) {
         error(selector, MessageKind.CANNOT_RESOLVE, {'name': name});
+        target = new ErroneousFieldElementX(
+            selector.asIdentifier(), constructor.enclosingClass);
       } else if (target.kind != ElementKind.FIELD) {
         error(selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
+        target = new ErroneousFieldElementX(
+            selector.asIdentifier(), constructor.enclosingClass);
       } else if (!target.isInstanceMember) {
         error(selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
       }
@@ -1639,7 +1643,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
   void error(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportFatalError(node, kind, arguments);
+    compiler.reportError(node, kind, arguments);
   }
 
   void warning(Spannable node, MessageKind kind, [Map arguments = const {}]) {
@@ -2230,6 +2234,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                                                  MessageKind kind,
                                                  [Map arguments = const {}]) {
     compiler.reportWarning(node, kind, arguments);
+    // TODO(ahe): Use [allowedCategory] to synthesize a more precise subclass
+    // of [ErroneousElementX]. For example, [ErroneousFieldElementX],
+    // [ErroneousConstructorElementX], etc.
     return new ErroneousElementX(kind, arguments, name, enclosingElement);
   }
 
@@ -2240,7 +2247,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       return null;
     } else if (node.isSuper()) {
-      if (!inInstanceContext) error(node, MessageKind.NO_SUPER_IN_STATIC);
+      if (!inInstanceContext) {
+        error(node, MessageKind.NO_SUPER_IN_STATIC);
+      }
       if ((ElementCategory.SUPER & allowedCategory) == 0) {
         error(node, MessageKind.INVALID_USE_OF_SUPER);
       }
@@ -2267,9 +2276,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // Use the erroneous element.
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
-          // TODO(ahe): Improve error message. Need UX input.
-          error(node, MessageKind.GENERIC,
-                {'text': "is not an expression $element"});
+          element = warnAndCreateErroneousElement(
+              node, name,
+              MessageKind.GENERIC,
+              // TODO(ahe): Improve error message. Need UX input.
+              {'text': "is not an expression $element"});
         }
       }
       if (!Elements.isUnresolved(element) && element.isClass) {
@@ -2526,12 +2537,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(ahe): Why is this using GENERIC?
       error(node.selector, MessageKind.GENERIC,
             {'text': "expected an identifier"});
+      return null;
     } else if (node.isSuperCall) {
       if (node.isOperator) {
         if (isUserDefinableOperator(name)) {
           name = selector.name;
         } else {
           error(node.selector, MessageKind.ILLEGAL_SUPER_SEND, {'name': name});
+          return null;
         }
       }
       if (!inInstanceContext) {
@@ -2543,6 +2556,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // for a real error message.
         error(node.receiver, MessageKind.GENERIC,
               {'text': "Object has no superclass"});
+        return null;
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
@@ -3341,6 +3355,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantExpression constant =
         compiler.resolver.constantCompiler.compileNode(
             node, registry.mapping);
+
+    if (constant == null) {
+      assert(invariant(node, compiler.compilationFailed));
+      return;
+    }
 
     ConstantValue value = constant.value;
     if (value.isMap) {
@@ -4907,11 +4926,20 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else if (element.isTypedef) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
             {'typedefName': name});
+      element = new ErroneousConstructorElementX(
+          MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
+          {'typedefName': name}, name, resolver.enclosingElement);
     } else if (element.isTypeVariable) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
             {'typeVariableName': name});
+      element = new ErroneousConstructorElementX(
+          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+          {'typeVariableName': name}, name, resolver.enclosingElement);
     } else if (!element.isClass && !element.isPrefix) {
       error(node, MessageKind.NOT_A_TYPE, {'node': name});
+      element = new ErroneousConstructorElementX(
+          MessageKind.NOT_A_TYPE, {'node': name}, name,
+          resolver.enclosingElement);
     }
     return element;
   }

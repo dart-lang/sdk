@@ -5,26 +5,26 @@
 part of app;
 
 abstract class TableTreeRow extends Observable {
-  final TableTreeRow parent;
-  @observable final int depth;
-  @observable final List<TableTreeRow> children = new List<TableTreeRow>();
-  @observable final List<String> columns = [];
   static const arrowRight = '\u2192';
   static const arrowDownRight = '\u21b3';
-  static const showExpanderStyle = 'cursor: pointer;';
-  static const hideExpanderStyle = 'visibility:hidden;';
+  // Number of pixels each subtree is indented.
+  static const subtreeIndent = 16;
 
-  // TODO(johnmccutchan): Move expander display decisions into html once
-  // tables and templates are better supported.
-  @observable String expander = arrowRight;
-  @observable String expanderStyle = showExpanderStyle;
+  final TableTree tree;
+  final TableTreeRow parent;
+  final int depth;
+  final List<TableTreeRow> children = new List<TableTreeRow>();
+  final List<TableCellElement> tableColumns = new List<TableCellElement>();
+  SpanElement _expander;
+  TableRowElement _tr;
+  TableRowElement get tr {
+    assert(_tr != null);
+    return _tr;
+  }
 
-  TableTreeRow(TableTreeRow parent) :
+  TableTreeRow(this.tree, TableTreeRow parent) :
       parent = parent,
       depth = parent != null ? parent.depth+1 : 0 {
-    if (!hasChildren()) {
-      expanderStyle = hideExpanderStyle;
-    }
   }
 
   bool _expanded = false;
@@ -35,48 +35,121 @@ abstract class TableTreeRow extends Observable {
     if (changed) {
       // If the state has changed, fire callbacks.
       if (_expanded) {
-        expander = arrowDownRight;
-        onShow();
+        _onExpand();
       } else {
-        expander = arrowRight;
-        onHide();
+        _onCollapse();
       }
     }
   }
 
-  bool toggle() {
+  bool expandOrCollapse() {
     expanded = !expanded;
     return expanded;
   }
 
   bool hasChildren();
 
-  /// Fired when the tree row is expanded. Add children rows here.
-  void onShow();
+  String _backgroundColorClassForRow() {
+    const colors = const ['rowColor0', 'rowColor1', 'rowColor2', 'rowColor3',
+                          'rowColor4', 'rowColor5', 'rowColor6', 'rowColor7',
+                          'rowColor8'];
+    var index = (depth - 1) % colors.length;
+    return colors[index];
+  }
 
-  /// Fired when the tree row is collapsed.
-  void onHide();
+  void _buildRow() {
+    _tr = new TableRowElement();
+    for (var i = 0; i < tree.columnCount; i++) {
+      var cell = _tr.insertCell(-1);
+      cell.classes.add(_backgroundColorClassForRow());
+      tableColumns.add(cell);
+    }
+    var firstColumn = tableColumns[0];
+    _expander = new SpanElement();
+    _expander.style.display = 'inline-block';
+    _expander.style.minWidth = '1.5em';
+    _expander.onClick.listen(onClick);
+    firstColumn.children.add(_expander);
+    firstColumn.style.paddingLeft = '${depth * subtreeIndent}px';
+    updateExpanderView();
+  }
+
+  void updateExpanderView() {
+    if (_expander == null) {
+      return;
+    }
+    if (!hasChildren()) {
+      _expander.style.visibility = 'hidden';
+      _expander.style.cursor = 'auto';
+      return;
+    } else {
+      _expander.style.visibility = 'visible';
+      _expander.style.cursor = 'pointer';
+    }
+    _expander.text = expanded ? arrowDownRight : arrowRight;
+  }
+
+  /// Fired when the tree row is being shown.
+  /// Populate tr and add logical children here.
+  void onShow() {
+    assert(_tr == null);
+    _buildRow();
+  }
+
+  /// Fired when the tree row is being hidden.
+  void onHide() {
+    assert(_tr != null);
+    _tr = null;
+    tableColumns.clear();
+    _expander = null;
+  }
+
+  /// Fired when the tree row is being expanded.
+  void _onExpand() {
+    for (var child in children) {
+      child.onShow();
+      child.updateExpanderView();
+    }
+    updateExpanderView();
+  }
+
+  /// Fired when the tree row is being collapsed.
+  void _onCollapse() {
+    for (var child in children) {
+      child.onHide();
+    }
+    updateExpanderView();
+  }
+
+  void onClick(Event e) {
+    tree.toggle(this);
+    e.stopPropagation();
+  }
 }
 
 class TableTree extends Observable {
-  @observable final List<TableTreeRow> rows = toObservable([]);
+  final TableSectionElement tableBody;
+  final List<TableTreeRow> rows = [];
+  final int columnCount;
 
   /// Create a table tree with column [headers].
-  TableTree();
+  TableTree(this.tableBody, this.columnCount);
 
   /// Initialize the table tree with the list of root children.
   void initialize(TableTreeRow root) {
+    tableBody.children.clear();
     rows.clear();
     root.onShow();
     rows.addAll(root.children);
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].onShow();
+      tableBody.children.add(rows[i].tr);
+    }
   }
 
-  /// Toggle expansion of row at [rowIndex].
-  void toggle(int rowIndex) {
-    assert(rowIndex >= 0);
-    assert(rowIndex < rows.length);
-    var row = rows[rowIndex];
-    if (row.toggle()) {
+  /// Toggle expansion of row in tree.
+  void toggle(TableTreeRow row) {
+    if (row.expandOrCollapse()) {
       _expand(row);
     } else {
       _collapse(row);
@@ -89,6 +162,9 @@ class TableTree extends Observable {
     int index = _index(row);
     assert(index != -1);
     rows.insertAll(index + 1, row.children);
+    for (var i = 0; i < row.children.length; i++) {
+      tableBody.children.insert(index + i + 1, row.children[i].tr);
+    }
   }
 
   void _collapse(TableTreeRow row) {
@@ -107,6 +183,9 @@ class TableTree extends Observable {
     // Remove all children.
     int index = _index(row);
     rows.removeRange(index + 1, index + 1 + childCount);
+    for (var i = 0; i < childCount; i++) {
+      tableBody.children.removeAt(index + 1);
+    }
   }
 }
 

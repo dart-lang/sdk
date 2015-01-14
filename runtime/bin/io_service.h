@@ -41,18 +41,19 @@ namespace bin {
   V(File, Type, 24)                                                            \
   V(File, Identical, 25)                                                       \
   V(File, Stat, 26)                                                            \
-  V(Socket, Lookup, 27)                                                        \
-  V(Socket, ListInterfaces, 28)                                                \
-  V(Socket, ReverseLookup, 29)                                                 \
-  V(Directory, Create, 30)                                                     \
-  V(Directory, Delete, 31)                                                     \
-  V(Directory, Exists, 32)                                                     \
-  V(Directory, CreateTemp, 33)                                                 \
-  V(Directory, ListStart, 34)                                                  \
-  V(Directory, ListNext, 35)                                                   \
-  V(Directory, ListStop, 36)                                                   \
-  V(Directory, Rename, 37)                                                     \
-  V(SSLFilter, ProcessFilter, 38)
+  V(File, Lock, 27)                                                            \
+  V(Socket, Lookup, 28)                                                        \
+  V(Socket, ListInterfaces, 29)                                                \
+  V(Socket, ReverseLookup, 30)                                                 \
+  V(Directory, Create, 31)                                                     \
+  V(Directory, Delete, 32)                                                     \
+  V(Directory, Exists, 33)                                                     \
+  V(Directory, CreateTemp, 34)                                                 \
+  V(Directory, ListStart, 35)                                                  \
+  V(Directory, ListNext, 36)                                                   \
+  V(Directory, ListStop, 37)                                                   \
+  V(Directory, Rename, 38)                                                     \
+  V(SSLFilter, ProcessFilter, 39)
 
 #define DECLARE_REQUEST(type, method, id)                                      \
   k##type##method##Request = id,

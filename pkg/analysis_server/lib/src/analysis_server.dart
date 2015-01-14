@@ -154,6 +154,11 @@ class AnalysisServer {
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
+   * The option possibly set from the server initialization which disables error notifications.
+   */
+  bool _noErrorNotification;
+
+  /**
    * The controller that is notified when analysis is started.
    */
   StreamController<AnalysisContext> _onAnalysisStartedController;
@@ -201,6 +206,7 @@ class AnalysisServer {
         analysisServerOptions.enableIncrementalResolutionApi;
     contextDirectoryManager.defaultOptions.incrementalValidation =
         analysisServerOptions.enableIncrementalResolutionValidation;
+    _noErrorNotification = analysisServerOptions.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
@@ -512,7 +518,9 @@ class AnalysisServer {
         }
       }
       channel.sendResponse(new Response.unknownRequest(request));
-    }, onError: _sendServerErrorNotification);
+    }, onError: (exception, stackTrace) {
+      sendServerErrorNotification(exception, stackTrace, fatal: true);
+    });
   }
 
   /**
@@ -603,7 +611,7 @@ class AnalysisServer {
             'Unexpected exception during analysis',
             new CaughtException(exception, stackTrace));
       }
-      _sendServerErrorNotification(exception, stackTrace);
+      sendServerErrorNotification(exception, stackTrace, fatal: true);
       shutdown();
     } finally {
       if (!operationQueue.isEmpty) {
@@ -624,14 +632,6 @@ class AnalysisServer {
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
     contextDirectoryManager.refresh();
-  }
-
-  /**
-   * Report to the client that the given [exception] was caught with the
-   * associated [stackTrace].
-   */
-  void reportException(dynamic exception, StackTrace stackTrace) {
-    _sendServerErrorNotification(exception, stackTrace);
   }
 
   /**
@@ -677,6 +677,32 @@ class AnalysisServer {
    */
   void sendResponse(Response response) {
     channel.sendResponse(response);
+  }
+
+  /**
+   * Sends a `server.error` notification.
+   */
+  void sendServerErrorNotification(exception, stackTrace, {bool fatal: false}) {
+    // prepare exception.toString()
+    String exceptionString;
+    if (exception != null) {
+      exceptionString = exception.toString();
+    } else {
+      exceptionString = 'null exception';
+    }
+    // prepare stackTrace.toString()
+    String stackTraceString;
+    if (stackTrace != null) {
+      stackTraceString = stackTrace.toString();
+    } else {
+      stackTraceString = 'null stackTrace';
+    }
+    // send the notification
+    channel.sendNotification(
+        new ServerErrorParams(
+            fatal,
+            exceptionString,
+            stackTraceString).toNotification());
   }
 
   /**
@@ -819,8 +845,8 @@ class AnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    // TODO(scheglov) add support for the "--no-error-notification" flag.
-    return contextDirectoryManager.isInAnalysisRoot(file);
+    return !_noErrorNotification &&
+        contextDirectoryManager.isInAnalysisRoot(file);
   }
 
   void shutdown() {
@@ -915,38 +941,13 @@ class AnalysisServer {
     new Future(performOperation);
     performOperationPending = true;
   }
-
-  /**
-   * Sends a fatal `server.error` notification.
-   */
-  void _sendServerErrorNotification(exception, stackTrace) {
-    // prepare exception.toString()
-    String exceptionString;
-    if (exception != null) {
-      exceptionString = exception.toString();
-    } else {
-      exceptionString = 'null exception';
-    }
-    // prepare stackTrace.toString()
-    String stackTraceString;
-    if (stackTrace != null) {
-      stackTraceString = stackTrace.toString();
-    } else {
-      stackTraceString = 'null stackTrace';
-    }
-    // send the notification
-    channel.sendNotification(
-        new ServerErrorParams(
-            true,
-            exceptionString,
-            stackTraceString).toNotification());
-  }
 }
 
 
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
+  bool noErrorNotification = false;
 }
 
 /**

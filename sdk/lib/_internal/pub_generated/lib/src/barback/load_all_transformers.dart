@@ -59,12 +59,13 @@ Future loadAllTransformers(AssetEnvironment environment,
           var it0 = stagedTransformers.iterator;
           break0() {
             join2() {
-              Future.wait(environment.graph.packages.values.map(((package) {
+              new Future.value(
+                  Future.wait(environment.graph.packages.values.map(((package) {
                 final completer0 = new Completer();
                 scheduleMicrotask(() {
                   try {
-                    loader.transformersForPhases(
-                        package.pubspec.transformers).then((x0) {
+                    new Future.value(
+                        loader.transformersForPhases(package.pubspec.transformers)).then((x0) {
                       try {
                         var phases = x0;
                         var transformers =
@@ -99,7 +100,7 @@ Future loadAllTransformers(AssetEnvironment environment,
                   }
                 });
                 return completer0.future;
-              }))).then((x1) {
+              })))).then((x1) {
                 try {
                   x1;
                   completer0.complete();
@@ -123,7 +124,8 @@ Future loadAllTransformers(AssetEnvironment environment,
               join3(x2) {
                 var snapshotPath = x2;
                 first = false;
-                loader.load(stage, snapshot: snapshotPath).then((x3) {
+                new Future.value(
+                    loader.load(stage, snapshot: snapshotPath)).then((x3) {
                   trampoline0 = () {
                     trampoline0 = null;
                     try {
@@ -131,14 +133,15 @@ Future loadAllTransformers(AssetEnvironment environment,
                       var packagesToUpdate = unionAll(stage.map(((id) {
                         return packagesThatUseTransformers[id];
                       })));
-                      Future.wait(packagesToUpdate.map(((packageName) {
+                      new Future.value(
+                          Future.wait(packagesToUpdate.map(((packageName) {
                         final completer0 = new Completer();
                         scheduleMicrotask(() {
                           try {
                             var package =
                                 environment.graph.packages[packageName];
-                            loader.transformersForPhases(
-                                package.pubspec.transformers).then((x0) {
+                            new Future.value(
+                                loader.transformersForPhases(package.pubspec.transformers)).then((x0) {
                               try {
                                 var phases = x0;
                                 environment.barback.updateTransformers(
@@ -154,7 +157,7 @@ Future loadAllTransformers(AssetEnvironment environment,
                           }
                         });
                         return completer0.future;
-                      }))).then((x4) {
+                      })))).then((x4) {
                         trampoline0 = () {
                           trampoline0 = null;
                           try {

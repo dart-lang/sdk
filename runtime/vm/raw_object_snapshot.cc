@@ -116,7 +116,17 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
   } else {
-    writer->WriteClassId(this);
+    // Until we have maps implemented as internal VM objects we will use
+    // the collections library qualifier to allow maps to be sent across.
+    if (writer->can_send_any_object() ||
+        writer->AllowObjectsInDartLibrary(ptr()->library_)) {
+      writer->WriteClassId(this);
+    } else {
+      // We do not allow regular dart instances in isolate messages.
+      writer->SetWriteException(Exceptions::kArgument,
+                                "Illegal argument in isolate message"
+                                " : (object is a regular Dart Instance)");
+    }
   }
 }
 
@@ -2666,9 +2676,10 @@ RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
   uint64_t id = reader->Read<uint64_t>();
+  uint64_t origin_id = reader->Read<uint64_t>();
 
   SendPort& result = SendPort::ZoneHandle(reader->isolate(),
-                                          SendPort::New(id));
+                                          SendPort::New(id, origin_id));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
   return result.raw();
 }
@@ -2685,6 +2696,7 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   writer->Write<uint64_t>(ptr()->id_);
+  writer->Write<uint64_t>(ptr()->origin_id_);
 }
 
 

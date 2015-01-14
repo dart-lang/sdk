@@ -228,6 +228,30 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     return '(IsTrue $value)';
   }
 
+  String visitSetField(SetField node) {
+    String object = access(node.object);
+    String field = node.field.name;
+    String value = access(node.value);
+    String body = indentBlock(() => visit(node.body));
+    return '$indentation(SetField $object $field $value)\n$body';
+  }
+
+  String visitGetField(GetField node) {
+    String object = access(node.object);
+    String field = node.field.toString();
+    return '(GetField $object $field)';
+  }
+
+  String visitCreateBox(CreateBox node) {
+    return '(CreateBox)';
+  }
+
+  String visitCreateClosureClass(CreateClosureClass node) {
+    String className = node.classElement.name;
+    String arguments = node.arguments.map(access).join(' ');
+    return '(CreateClosureClass $className ($arguments))';
+  }
+
   String visitIdentical(Identical node) {
     String left = access(node.left);
     String right = access(node.right);

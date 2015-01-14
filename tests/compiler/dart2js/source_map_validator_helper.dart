@@ -15,7 +15,7 @@ import 'package:compiler/src/elements/elements.dart'
          CompilationUnitElement,
          ClassElement,
          AstElement;
-import 'package:compiler/src/source_file.dart' show SourceFile;
+import 'package:compiler/src/io/source_file.dart' show SourceFile;
 
 validateSourceMap(Uri targetUri, [Compiler compiler]) {
   Uri mapUri = getMapUri(targetUri);
@@ -174,7 +174,7 @@ sameSourcePoint(TargetEntry entry, TargetEntry otherEntry) {
 Uri getMapUri(Uri targetUri) {
   print('Accessing $targetUri');
   File targetFile = new File.fromUri(targetUri);
-  Expect.isTrue(targetFile.existsSync());
+  Expect.isTrue(targetFile.existsSync(), "File '$targetUri' doesn't exist.");
   List<String> target = targetFile.readAsStringSync().split('\n');
   String mapReference = target[target.length - 2]; // #sourceMappingURL=<url>
   Expect.isTrue(mapReference.startsWith('//# sourceMappingURL='));

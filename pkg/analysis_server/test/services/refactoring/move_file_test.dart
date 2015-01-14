@@ -25,7 +25,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 

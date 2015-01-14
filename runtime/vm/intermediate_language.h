@@ -2199,13 +2199,18 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 // to IndirectGoto as an input.
 class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  IndirectGotoInstr(GrowableObjectArray* offsets,
+  IndirectGotoInstr(TypedData* offsets,
                     Value* offset_from_start)
     : offsets_(*offsets) {
     SetInputAt(0, offset_from_start);
   }
 
   DECLARE_INSTRUCTION(IndirectGoto)
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNoRepresentation;
+  }
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2228,12 +2233,12 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
-  const GrowableObjectArray& offsets() const { return offsets_; }
+  Value* offset() const { return inputs_[0]; }
   void ComputeOffsetTable(Isolate* isolate);
 
  private:
   GrowableArray<TargetEntryInstr*> successors_;
-  GrowableObjectArray& offsets_;
+  TypedData& offsets_;
 };
 
 
@@ -3425,7 +3430,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
         offset_in_bytes_(field.Offset()),
         emit_store_barrier_(emit_store_barrier),
         token_pos_(token_pos),
-        is_initialization_(false) {
+        is_potential_unboxed_initialization_(false),
+        is_object_reference_initialization_(false) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
   }
@@ -3439,14 +3445,20 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
         offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
         token_pos_(token_pos),
-        is_initialization_(false) {
+        is_potential_unboxed_initialization_(false),
+        is_object_reference_initialization_(false) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
 
-  void set_is_initialization(bool value) { is_initialization_ = value; }
+  void set_is_potential_unboxed_initialization(bool value) {
+    is_potential_unboxed_initialization_ = value;
+  }
+  void set_is_object_reference_initialization(bool value) {
+    is_object_reference_initialization_ = value;
+  }
 
   enum {
     kInstancePos = 0,
@@ -3455,7 +3467,12 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
 
   Value* instance() const { return inputs_[kInstancePos]; }
   Value* value() const { return inputs_[kValuePos]; }
-  bool is_initialization() const { return is_initialization_; }
+  bool is_potential_unboxed_initialization() const {
+    return is_potential_unboxed_initialization_;
+  }
+  bool is_object_reference_initialization() const {
+    return is_object_reference_initialization_;
+  }
   virtual intptr_t token_pos() const { return token_pos_; }
 
   const Field& field() const { return field_; }
@@ -3500,7 +3517,11 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
   const intptr_t token_pos_;
-  bool is_initialization_;  // Marks stores in the constructor.
+  // This may be the first store to an unboxed field.
+  bool is_potential_unboxed_initialization_;
+  // True if this store initializes an object reference field of an object that
+  // was allocated uninitialized; see AllocateUninitializedContext.
+  bool is_object_reference_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
@@ -7580,6 +7601,8 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   virtual bool AttributesEqual(Instruction* other) const;
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
+  static bool IsImmutableClassId(intptr_t cid);
 
  private:
   const ICData& unary_checks_;

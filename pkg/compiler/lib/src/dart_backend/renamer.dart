@@ -72,12 +72,14 @@ class LocalRenamable extends Renamable {
 class PlaceholderRenamer {
   /// After running [computeRenames] this will contain the computed renames.
   final Map<Node, String> renames = new Map<Node, String>();
-  /// After running [computeRenames] this will contain the used platform
-  /// libraries.
-  final Set<LibraryElement> platformImports = new Set<LibraryElement>();
+  /// After running [computeRenames] this will map the used platform
+  /// libraries to their respective prefixes.
+  final Map<LibraryElement, String> platformImports =
+      <LibraryElement, String>{};
 
   final bool enableMinification;
-  final Set<String> fixedMemberNames;
+  final Set<String> fixedDynamicNames;
+  final Set<String> fixedStaticNames;
   final Map<Element, LibraryElement> reexportingLibraries;
   final bool cutDeclarationTypes;
 
@@ -92,7 +94,8 @@ class PlaceholderRenamer {
 
   Generator _generator;
 
-  PlaceholderRenamer(this.fixedMemberNames,
+  PlaceholderRenamer(this.fixedDynamicNames,
+                     this.fixedStaticNames,
                      this.reexportingLibraries,
                      {this.enableMinification, this.cutDeclarationTypes});
 
@@ -102,7 +105,7 @@ class PlaceholderRenamer {
     }
   }
 
-  String _generateUniqueTopLevelName(originalName) {
+  String _generateUniqueTopLevelName(String originalName) {
     String newName = _generator.generate(originalName, (name) {
       return _forbiddenIdentifiers.contains(name) ||
              _allNamedParameterIdentifiers.contains(name);
@@ -142,13 +145,22 @@ class PlaceholderRenamer {
         library = reexportingLibraries[entity];
       }
       if (library.isPlatformLibrary) {
-        if (library.canonicalUri != Compiler.DART_CORE) {
-          platformImports.add(library);
-        }
+        // TODO(johnniwinther): Handle prefixes for dart:core.
+        if (library.canonicalUri == Compiler.DART_CORE) return entity.name;
         if (library.isInternalLibrary) {
           throw new SpannableAssertionFailure(entity,
               "Internal library $library should never have been imported from "
               "the code compiled by dart2dart.");
+        }
+
+        String prefix = platformImports.putIfAbsent(library, () => null);
+        if (entity.isTopLevel &&
+            fixedDynamicNames.contains(entity.name)) {
+          if (prefix == null) {
+            prefix = _generateUniqueTopLevelName('');
+            platformImports[library] = prefix;
+          }
+          return '$prefix.${entity.name}';
         }
         return entity.name;
       }
@@ -261,7 +273,8 @@ class PlaceholderRenamer {
       _allNamedParameterIdentifiers.addAll(functionScope.parameterIdentifiers);
     }
 
-    _forbiddenIdentifiers = new Set<String>.from(fixedMemberNames);
+    _forbiddenIdentifiers = new Set<String>.from(fixedDynamicNames);
+    _forbiddenIdentifiers.addAll(fixedStaticNames);
     _forbiddenIdentifiers.addAll(Keyword.keywords.keys);
     _forbiddenIdentifiers.add('main');
 

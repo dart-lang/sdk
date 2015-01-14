@@ -30,6 +30,7 @@ main() {}
 void runCompiler(Uri main, String expectedMessage) {
   Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
+  Uri packageRoot = script.resolve('./packages/');
 
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
@@ -53,7 +54,7 @@ void runCompiler(Uri main, String expectedMessage) {
                                    outputProvider,
                                    diagnosticHandler,
                                    libraryRoot,
-                                   null,
+                                   packageRoot,
                                    [],
                                    {});
 

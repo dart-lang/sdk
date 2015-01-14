@@ -74,7 +74,7 @@ class AssetEnvironment {
       final completer0 = new Completer();
       scheduleMicrotask(() {
         try {
-          entrypoint.loadPackageGraph().then((x0) {
+          new Future.value(entrypoint.loadPackageGraph()).then((x0) {
             try {
               var graph = x0;
               graph = _adjustPackageGraph(graph, mode, packages);
@@ -82,9 +82,8 @@ class AssetEnvironment {
               barback.log.listen(_log);
               var environment =
                   new AssetEnvironment._(graph, barback, mode, watcherType, hostname, basePort);
-              environment._load(
-                  entrypoints: entrypoints,
-                  useDart2JS: useDart2JS).then((x1) {
+              new Future.value(
+                  environment._load(entrypoints: entrypoints, useDart2JS: useDart2JS)).then((x1) {
                 try {
                   x1;
                   completer0.complete(environment);
@@ -294,7 +293,7 @@ class AssetEnvironment {
           log.fine("Executables for ${packageName}: ${executableIds}");
           join1() {
             var package = graph.packages[packageName];
-            servePackageBinDirectory(packageName).then((x0) {
+            new Future.value(servePackageBinDirectory(packageName)).then((x0) {
               try {
                 var server = x0;
                 join2() {
@@ -309,18 +308,19 @@ class AssetEnvironment {
                 }
                 try {
                   var precompiled = {};
-                  waitAndPrintErrors(executableIds.map(((id) {
+                  new Future.value(waitAndPrintErrors(executableIds.map(((id) {
                     final completer0 = new Completer();
                     scheduleMicrotask(() {
                       try {
                         var basename = path.url.basename(id.path);
                         var snapshotPath =
                             path.join(directory, "${basename}.snapshot");
-                        runProcess(
-                            Platform.executable,
-                            [
-                                '--snapshot=${snapshotPath}',
-                                server.url.resolve(basename).toString()]).then((x0) {
+                        new Future.value(
+                            runProcess(
+                                Platform.executable,
+                                [
+                                    '--snapshot=${snapshotPath}',
+                                    server.url.resolve(basename).toString()])).then((x0) {
                           try {
                             var result = x0;
                             join0() {
@@ -347,7 +347,7 @@ class AssetEnvironment {
                       }
                     });
                     return completer0.future;
-                  }))).then((x1) {
+                  })))).then((x1) {
                     try {
                       x1;
                       final v0 = precompiled;
@@ -553,7 +553,7 @@ class AssetEnvironment {
                 (config) => config.id.package == '\$dart2js');
           }));
           join0() {
-            BarbackServer.bind(this, _hostname, 0).then((x0) {
+            new Future.value(BarbackServer.bind(this, _hostname, 0)).then((x0) {
               try {
                 var transformerServer = x0;
                 var errorStream = barback.errors.map(((error) {
@@ -561,9 +561,9 @@ class AssetEnvironment {
                   log.error(log.red(error.message));
                   log.fine(error.stackTrace.terse);
                 }));
-                _withStreamErrors((() {
+                new Future.value(_withStreamErrors((() {
                   return log.progress("Loading source assets", _provideSources);
-                }), [errorStream, barback.results]).then((x1) {
+                }), [errorStream, barback.results])).then((x1) {
                   try {
                     x1;
                     log.fine("Provided sources.");
@@ -581,7 +581,7 @@ class AssetEnvironment {
                               message,
                               null));
                     }));
-                    _withStreamErrors((() {
+                    new Future.value(_withStreamErrors((() {
                       final completer0 = new Completer();
                       scheduleMicrotask(() {
                         try {
@@ -590,10 +590,11 @@ class AssetEnvironment {
                             final completer0 = new Completer();
                             scheduleMicrotask(() {
                               try {
-                                loadAllTransformers(
-                                    this,
-                                    transformerServer,
-                                    entrypoints: entrypoints).then((x0) {
+                                new Future.value(
+                                    loadAllTransformers(
+                                        this,
+                                        transformerServer,
+                                        entrypoints: entrypoints)).then((x0) {
                                   try {
                                     x0;
                                     transformerServer.close();
@@ -614,7 +615,7 @@ class AssetEnvironment {
                       });
                       return completer0.future;
                     }),
-                        [errorStream, barback.results, transformerServer.results]).then((x2) {
+                        [errorStream, barback.results, transformerServer.results])).then((x2) {
                       try {
                         x2;
                         completer0.complete();
@@ -653,12 +654,13 @@ class AssetEnvironment {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
-        Future.wait(graph.packages.values.map(((package) {
+        new Future.value(Future.wait(graph.packages.values.map(((package) {
           final completer0 = new Completer();
           scheduleMicrotask(() {
             try {
               join0() {
-                _provideDirectorySources(package, "lib").then((x0) {
+                new Future.value(
+                    _provideDirectorySources(package, "lib")).then((x0) {
                   try {
                     x0;
                     completer0.complete();
@@ -677,7 +679,7 @@ class AssetEnvironment {
             }
           });
           return completer0.future;
-        }))).then((x0) {
+        })))).then((x0) {
           try {
             x0;
             completer0.complete();

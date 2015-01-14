@@ -24,7 +24,7 @@ main() {
  * Once enough commands have been sent, we begin reading from the server's
  * output buffer, and verify that it responds to the last command.
  */
-@ReflectiveTestCase()
+@reflectiveTest
 class AsynchronyIntegrationTest {
   /**
    * Number of messages to queue up before listening for responses.

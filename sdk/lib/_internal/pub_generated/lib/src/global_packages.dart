@@ -85,14 +85,15 @@ class GlobalPackages {
     scheduleMicrotask(() {
       try {
         var source = cache.sources["git"] as GitSource;
-        source.getPackageNameFromRepo(repo).then((x0) {
+        new Future.value(source.getPackageNameFromRepo(repo)).then((x0) {
           try {
             var name = x0;
             _describeActive(name);
-            _installInCache(
-                new PackageDep(name, "git", VersionConstraint.any, repo),
-                executables,
-                overwriteBinStubs: overwriteBinStubs).then((x1) {
+            new Future.value(
+                _installInCache(
+                    new PackageDep(name, "git", VersionConstraint.any, repo),
+                    executables,
+                    overwriteBinStubs: overwriteBinStubs)).then((x1) {
               try {
                 x1;
                 completer0.complete();
@@ -127,10 +128,11 @@ class GlobalPackages {
     scheduleMicrotask(() {
       try {
         _describeActive(name);
-        _installInCache(
-            new PackageDep(name, "hosted", constraint, name),
-            executables,
-            overwriteBinStubs: overwriteBinStubs).then((x0) {
+        new Future.value(
+            _installInCache(
+                new PackageDep(name, "hosted", constraint, name),
+                executables,
+                overwriteBinStubs: overwriteBinStubs)).then((x0) {
           try {
             x0;
             completer0.complete();
@@ -160,7 +162,7 @@ class GlobalPackages {
     scheduleMicrotask(() {
       try {
         var entrypoint = new Entrypoint(path, cache);
-        entrypoint.ensureLockFileIsUpToDate().then((x0) {
+        new Future.value(entrypoint.ensureLockFileIsUpToDate()).then((x0) {
           try {
             x0;
             var name = entrypoint.root.name;
@@ -209,24 +211,26 @@ class GlobalPackages {
                 "pub global activate",
                 dependencies: [dep],
                 sources: cache.sources));
-        resolveVersions(SolveType.GET, cache.sources, root).then((x0) {
+        new Future.value(
+            resolveVersions(SolveType.GET, cache.sources, root)).then((x0) {
           try {
             var result = x0;
             join0() {
               result.showReport(SolveType.GET);
-              Future.wait(result.packages.map(_cacheDependency)).then((x1) {
+              new Future.value(
+                  Future.wait(result.packages.map(_cacheDependency))).then((x1) {
                 try {
                   var ids = x1;
                   var lockFile = new LockFile(ids);
-                  new Entrypoint.inMemory(
-                      root,
-                      lockFile,
-                      cache).loadPackageGraph(result).then((x2) {
+                  new Future.value(
+                      new Entrypoint.inMemory(
+                          root,
+                          lockFile,
+                          cache).loadPackageGraph(result)).then((x2) {
                     try {
                       var graph = x2;
-                      _precompileExecutables(
-                          graph.entrypoint,
-                          dep.name).then((x3) {
+                      new Future.value(
+                          _precompileExecutables(graph.entrypoint, dep.name)).then((x3) {
                         try {
                           var snapshots = x3;
                           _writeLockFile(dep.name, lockFile);
@@ -295,14 +299,15 @@ class GlobalPackages {
         try {
           var binDir = p.join(_directory, package, 'bin');
           cleanDir(binDir);
-          entrypoint.loadPackageGraph().then((x0) {
+          new Future.value(entrypoint.loadPackageGraph()).then((x0) {
             try {
               var graph = x0;
-              AssetEnvironment.create(
-                  entrypoint,
-                  BarbackMode.RELEASE,
-                  entrypoints: graph.packages[package].executableIds,
-                  useDart2JS: false).then((x1) {
+              new Future.value(
+                  AssetEnvironment.create(
+                      entrypoint,
+                      BarbackMode.RELEASE,
+                      entrypoints: graph.packages[package].executableIds,
+                      useDart2JS: false)).then((x1) {
                 try {
                   var environment = x1;
                   environment.barback.errors.listen(((error) {
@@ -338,7 +343,7 @@ class GlobalPackages {
           completer0.complete(source.resolveId(id));
         }
         if (!id.isRoot && source is CachedSource) {
-          source.downloadToSystemCache(id).then((x0) {
+          new Future.value(source.downloadToSystemCache(id)).then((x0) {
             try {
               x0;
               join0();
@@ -640,19 +645,19 @@ class GlobalPackages {
                   id = _loadPackageId(entry);
                   log.message(
                       "Reactivating ${log.bold(id.name)} ${id.version}...");
-                  find(id.name).then((x0) {
+                  new Future.value(find(id.name)).then((x0) {
                     trampoline0 = () {
                       trampoline0 = null;
                       try {
                         var entrypoint = x0;
-                        entrypoint.loadPackageGraph().then((x1) {
+                        new Future.value(
+                            entrypoint.loadPackageGraph()).then((x1) {
                           trampoline0 = () {
                             trampoline0 = null;
                             try {
                               var graph = x1;
-                              _precompileExecutables(
-                                  entrypoint,
-                                  id.name).then((x2) {
+                              new Future.value(
+                                  _precompileExecutables(entrypoint, id.name)).then((x2) {
                                 trampoline0 = () {
                                   trampoline0 = null;
                                   try {

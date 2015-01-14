@@ -13,7 +13,7 @@ export 'package:compiler/src/apiimpl.dart'
 export 'package:compiler/src/filenames.dart'
        show currentDirectory;
 
-import 'package:compiler/src/source_file.dart'
+import 'package:compiler/src/io/source_file.dart'
        show StringSourceFile;
 
 import 'package:compiler/src/source_file_provider.dart'

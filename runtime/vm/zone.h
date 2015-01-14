@@ -67,6 +67,7 @@ class Zone {
       large_segments_(NULL),
       handles_(),
       previous_(NULL) {
+    ASSERT(Utils::IsAligned(position_, kAlignment));
 #ifdef DEBUG
     // Zap the entire initial buffer.
     memset(initial_buffer_.pointer(), kZapUninitializedByte,
@@ -84,7 +85,7 @@ class Zone {
   }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
-  static const intptr_t kAlignment = kWordSize;
+  static const intptr_t kAlignment = kDoubleSize;
 
   // Default initial chunk size.
   static const intptr_t kInitialChunkSize = 1 * KB;
@@ -112,16 +113,32 @@ class Zone {
   // Delete all objects and free all memory allocated in the zone.
   void DeleteAll();
 
+  // Does not actually free any memory. Enables templated containers like
+  // BaseGrowableArray to use different allocators.
+  template <class ElementType>
+  void Free(ElementType* old_array, intptr_t len) {
+#ifdef DEBUG
+    if (len > 0) {
+      memset(old_array, kZapUninitializedByte, len * sizeof(ElementType));
+    }
+#endif
+  }
+
 #if defined(DEBUG)
   // Dump the current allocated sizes in the zone object.
   void DumpZoneSizes();
 #endif
 
+  // Overflow check (FATAL) for array length.
+  template <class ElementType>
+  static inline void CheckLength(intptr_t len);
+
   // This buffer is used for allocation before any segments.
   // This would act as the initial stack allocated chunk so that we don't
   // end up calling malloc/free on zone scopes that allocate less than
   // kChunkSize
-  uint8_t buffer_[kInitialChunkSize];
+  COMPILE_ASSERT(kAlignment <= 8);
+  ALIGN8 uint8_t buffer_[kInitialChunkSize];
   MemoryRegion initial_buffer_;
 
   // The free region in the current (head) segment or the initial buffer is
@@ -149,7 +166,8 @@ class Zone {
 
   friend class StackZone;
   friend class ApiZone;
-  template<typename T, typename B> friend class BaseGrowableArray;
+  template<typename T, typename B, typename Allocator>
+  friend class BaseGrowableArray;
   DISALLOW_COPY_AND_ASSIGN(Zone);
 };
 
@@ -225,26 +243,48 @@ inline uword Zone::AllocUnsafe(intptr_t size) {
   return result;
 }
 
+
+template <class ElementType>
+inline void Zone::CheckLength(intptr_t len) {
+  const intptr_t kElementSize = sizeof(ElementType);
+  if (len > (kIntptrMax / kElementSize)) {
+    FATAL2("Zone::Alloc: 'len' is too large: len=%" Pd ", kElementSize=%" Pd,
+           len, kElementSize);
+  }
+}
+
+
 template <class ElementType>
 inline ElementType* Zone::Alloc(intptr_t len) {
-  const intptr_t element_size = sizeof(ElementType);
-  if (len > (kIntptrMax / element_size)) {
-    FATAL2("Zone::Alloc: 'len' is too large: len=%" Pd ", element_size=%" Pd,
-           len, element_size);
-  }
-  return reinterpret_cast<ElementType*>(AllocUnsafe(len * element_size));
+  CheckLength<ElementType>(len);
+  return reinterpret_cast<ElementType*>(AllocUnsafe(len * sizeof(ElementType)));
 }
 
 template <class ElementType>
 inline ElementType* Zone::Realloc(ElementType* old_data,
-                                      intptr_t old_len,
-                                      intptr_t new_len) {
+                                  intptr_t old_len,
+                                  intptr_t new_len) {
+  CheckLength<ElementType>(new_len);
+  const intptr_t kElementSize = sizeof(ElementType);
+  uword old_end = reinterpret_cast<uword>(old_data) + (old_len * kElementSize);
+  // Resize existing allocation if nothing was allocated in between...
+  if (Utils::RoundUp(old_end, kAlignment) == position_) {
+    uword new_end =
+        reinterpret_cast<uword>(old_data) + (new_len * kElementSize);
+    // ...and there is sufficient space.
+    if (new_end <= limit_) {
+      position_ = Utils::RoundUp(new_end, kAlignment);
+      return old_data;
+    }
+  }
+  if (new_len <= old_len) {
+    return old_data;
+  }
   ElementType* new_data = Alloc<ElementType>(new_len);
   if (old_data != 0) {
     memmove(reinterpret_cast<void*>(new_data),
             reinterpret_cast<void*>(old_data),
-            Utils::Minimum(old_len * sizeof(ElementType),
-                           new_len * sizeof(ElementType)));
+            old_len * kElementSize);
   }
   return new_data;
 }

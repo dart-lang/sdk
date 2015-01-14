@@ -217,8 +217,8 @@ void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
 
   const intptr_t entries_count = entry_block_->indirect_entries().length();
 
-  GrowableObjectArray& offsets = GrowableObjectArray::ZoneHandle(
-      I, GrowableObjectArray::New(entries_count, Heap::kOld));
+  TypedData& offsets = TypedData::ZoneHandle(I,
+      TypedData::New(kTypedDataInt32ArrayCid, entries_count, Heap::kOld));
 
   PushArgumentInstr* block_offsets_push =
       PushArgument(Bind(new(I) ConstantInstr(offsets)));

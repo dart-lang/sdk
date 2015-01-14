@@ -23,7 +23,7 @@ main() {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class ChangeTest {
   void test_addEdit() {
     SourceChange change = new SourceChange('msg');
@@ -141,7 +141,7 @@ class ChangeTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class EditTest {
   void test_applySequence() {
     SourceEdit edit1 = new SourceEdit(5, 2, 'abc');
@@ -193,7 +193,7 @@ class EditTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class FileEditTest {
   void test_add_sorts() {
     SourceEdit edit1a = new SourceEdit(1, 0, 'a1');
@@ -251,7 +251,7 @@ class FileEditTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LinkedEditGroupTest {
   void test_new() {
     LinkedEditGroup group = new LinkedEditGroup.empty();
@@ -292,7 +292,7 @@ class LinkedEditGroupTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class LinkedEditSuggestionTest {
   void test_eqEq() {
     var a = new LinkedEditSuggestion('a', LinkedEditSuggestionKind.METHOD);
@@ -308,7 +308,7 @@ class LinkedEditSuggestionTest {
 }
 
 
-@ReflectiveTestCase()
+@reflectiveTest
 class PositionTest {
   void test_eqEq() {
     Position a = new Position('/a.dart', 1);

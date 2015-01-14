@@ -198,6 +198,27 @@ ASSEMBLER_TEST_RUN(Cmpb, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Testb, assembler) {
+  __ movl(EAX, Immediate(1));
+  __ movl(ECX, Immediate(0));
+  __ pushl(Immediate(0xffffff11));
+  __ testb(Address(ESP, 0), Immediate(0x10));
+  // Fail if zero flag set.
+  __ cmove(EAX, ECX);
+  __ testb(Address(ESP, 0), Immediate(0x20));
+  // Fail if zero flag not set.
+  __ cmovne(EAX, ECX);
+  __ popl(ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Testb, test) {
+  typedef int (*TestbCode)();
+  EXPECT_EQ(1, reinterpret_cast<TestbCode>(test->entry())());
+}
+
+
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
   __ movl(EAX, Immediate(0));
   __ pushl(EAX);

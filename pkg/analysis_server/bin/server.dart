@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/driver.dart';
+import 'package:analysis_server/starter.dart';
 
 /**
- * Create and run an HTTP-based analysis server.
+ * Create and run an analysis server.
  */
 void main(List<String> args) {
-  Driver driver = new Driver();
-  driver.start(args);
+  ServerStarter starter = new ServerStarter();
+  starter.start(args);
 }

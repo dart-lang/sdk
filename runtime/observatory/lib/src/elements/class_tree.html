@@ -97,21 +97,12 @@
     <div class="content-centered">
       <h1>Class Hierarchy</h1>
       <table id="tableTree" class="table">
-        <thead>
+        <thead id="tableTreeHeader">
           <tr>
             <th>Class</th>
           </tr>
         </thead>
-        <tbody>
-          <tr template repeat="{{row in tree.rows }}">
-            <td on-click="{{toggleExpanded}}"
-                class="{{ coloring(row) }}"
-                style="{{ padding(row) }}">
-              <span id="expand" style="{{ row.expanderStyle }}">{{ row.expander }}</span>
-              <class-ref ref="{{ row.cls }}"></class-ref>
-            </td>
-          </tr>
-        </tbody>
+        <tbody id="tableTreeBody"></tbody>
       </table>
     </div>
   </template>

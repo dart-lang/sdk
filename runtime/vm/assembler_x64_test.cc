@@ -297,6 +297,30 @@ ASSEMBLER_TEST_RUN(Cmpb, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Testb, assembler) {
+  Label done;
+  __ movq(RAX, Immediate(1));
+  __ movq(RCX, Immediate(0));
+  __ pushq(Immediate(0xffffff11));
+  __ testb(Address(RSP, 0), Immediate(0x10));
+  // Fail if zero flag set.
+  __ cmoveq(RAX, RCX);
+  __ testb(Address(RSP, 0), Immediate(0x20));
+  // Fail if zero flag not set.
+  __ j(ZERO, &done);
+  __ movq(RAX, Immediate(0));
+  __ Bind(&done);
+  __ popq(RCX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Testb, test) {
+  typedef int (*TestbCode)();
+  EXPECT_EQ(1, reinterpret_cast<TestbCode>(test->entry())());
+}
+
+
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
   __ movq(RAX, Immediate(0));
   __ pushq(RAX);

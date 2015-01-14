@@ -12,11 +12,12 @@ import '../reflective_tests.dart';
 main() {
   group('instrumentation', () {
     runReflectiveTests(InstrumentationServiceTest);
+    runReflectiveTests(MulticastInstrumentationServerTest);
   });
 }
 
-@ReflectiveTestCase()
-class InstrumentationServiceTest extends ReflectiveTestCase {
+@reflectiveTest
+class InstrumentationServiceTest {
   void assertNormal(TestInstrumentationServer server, String tag,
       String message) {
     String sent = server.normalChannel.toString();
@@ -55,6 +56,32 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
     assertNormal(server, InstrumentationService.TAG_EXCEPTION, '$message:null');
   }
 
+  void test_logFileRead() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    String path = '/file/path';
+    int time = 978336000000;
+    String content = 'class C {\n}\n';
+    service.logFileRead(path, time, content);
+    assertNormal(
+        server,
+        InstrumentationService.TAG_FILE_READ,
+        '$path:$time:$content');
+  }
+
+  void test_logLogEntry() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    String level = 'level';
+    DateTime time = new DateTime(2001);
+    String message = 'message';
+    service.logLogEntry(level, time, message);
+    assertNormal(
+        server,
+        InstrumentationService.TAG_LOG_ENTRY,
+        '$level:${time.millisecondsSinceEpoch}:$message');
+  }
+
   void test_logNotification() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
@@ -77,6 +104,47 @@ class InstrumentationServiceTest extends ReflectiveTestCase {
     String message = 'responseText';
     service.logResponse(message);
     assertNormal(server, InstrumentationService.TAG_RESPONSE, message);
+  }
+}
+
+@reflectiveTest
+class MulticastInstrumentationServerTest {
+  TestInstrumentationServer serverA = new TestInstrumentationServer();
+  TestInstrumentationServer serverB = new TestInstrumentationServer();
+  MulticastInstrumentationServer server;
+
+  void setUp() {
+    server = new MulticastInstrumentationServer([serverA, serverB]);
+  }
+
+  void test_log() {
+    server.log('foo bar');
+    _assertNormal(serverA, 'foo bar');
+    _assertNormal(serverB, 'foo bar');
+  }
+
+  void test_logWithPriority() {
+    server.logWithPriority('foo bar');
+    _assertPriority(serverA, 'foo bar');
+    _assertPriority(serverB, 'foo bar');
+  }
+
+  void test_shutdown() {
+    server.shutdown();
+  }
+
+  void _assertNormal(TestInstrumentationServer server, String message) {
+    String sent = server.normalChannel.toString();
+    if (!sent.endsWith('$message\n')) {
+      fail('Expected "...$message", found "$sent"');
+    }
+  }
+
+  void _assertPriority(TestInstrumentationServer server, String message) {
+    String sent = server.priorityChannel.toString();
+    if (!sent.endsWith('$message\n')) {
+      fail('Expected "...$message", found "$sent"');
+    }
   }
 }
 

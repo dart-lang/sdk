@@ -13,7 +13,7 @@ import 'package:dart2js_incremental/library_updater.dart' show
 import 'package:compiler/src/dart2jslib.dart' show
     Script;
 
-import 'package:compiler/src/source_file.dart' show
+import 'package:compiler/src/io/source_file.dart' show
     StringSourceFile;
 
 import 'compiler_test_case.dart';

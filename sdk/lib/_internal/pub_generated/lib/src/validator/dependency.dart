@@ -40,7 +40,8 @@ class DependencyValidator extends Validator {
     scheduleMicrotask(() {
       try {
         var caretDeps = [];
-        Future.forEach(entrypoint.root.pubspec.dependencies, ((dependency) {
+        new Future.value(
+            Future.forEach(entrypoint.root.pubspec.dependencies, ((dependency) {
           final completer0 = new Completer();
           scheduleMicrotask(() {
             try {
@@ -48,7 +49,7 @@ class DependencyValidator extends Validator {
                 completer0.complete();
               }
               if (dependency.source != "hosted") {
-                _warnAboutSource(dependency).then((x0) {
+                new Future.value(_warnAboutSource(dependency)).then((x0) {
                   try {
                     x0;
                     join0();
@@ -111,7 +112,7 @@ class DependencyValidator extends Validator {
             }
           });
           return completer0.future;
-        })).then((x0) {
+        }))).then((x0) {
           try {
             x0;
             join0() {

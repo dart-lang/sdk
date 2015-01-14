@@ -14,9 +14,6 @@ import 'dart:async';
 
 // Methods to be skipped, by qualified name.
 var blacklist = [
-  // TODO(regis): investigate.
-  'dart.core._Montgomery._invDigitPair',
-
   // Don't recurse on this test.
   'test.invoke_natives',
 
@@ -45,6 +42,8 @@ var blacklist = [
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.
   'dart.io._IOService.dispatch',
+  'dart.io._IOService._initialize',
+  'dart.io._IOService._finalize',
   'dart.io._StdIOUtils._socketType',
   'dart.io._StdIOUtils._getStdioOutputStream',
   'dart.io._Filter.newZLibInflateFilter',

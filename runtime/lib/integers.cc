@@ -440,6 +440,7 @@ DEFINE_NATIVE_ENTRY(Bigint_getDigits, 1) {
 DEFINE_NATIVE_ENTRY(Bigint_setDigits, 2) {
   const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
   const TypedData& digits = TypedData::CheckedHandle(arguments->NativeArgAt(1));
+  ASSERT(!digits.IsNull());
   bigint.set_digits(digits);
   return Object::null();
 }

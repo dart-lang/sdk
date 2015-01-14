@@ -4,7 +4,7 @@
 
 library reflective_tests;
 
-@MirrorsUsed(metaTargets: 'ReflectiveTestCase')
+@MirrorsUsed(metaTargets: 'ReflectiveTest')
 import 'dart:mirrors';
 import 'dart:async';
 
@@ -31,10 +31,10 @@ void runReflectiveTests(Type type) {
   ClassMirror classMirror = reflectClass(type);
   if (!classMirror.metadata.any(
       (InstanceMirror annotation) =>
-          annotation.type.reflectedType == ReflectiveTestCase)) {
+          annotation.type.reflectedType == ReflectiveTest)) {
     String name = MirrorSystem.getName(classMirror.qualifiedName);
     throw new Exception(
-        'Class $name must have annotation "@ReflectiveTestCase()" '
+        'Class $name must have annotation "@reflectiveTest" '
             'in order to be run by runReflectiveTests.');
   }
   String className = MirrorSystem.getName(classMirror.simpleName);
@@ -124,6 +124,12 @@ _runTest(ClassMirror classMirror, Symbol symbol) {
  * A marker annotation used to instruct dart2js to keep reflection information
  * for the annotated classes.
  */
-class ReflectiveTestCase {
-  const ReflectiveTestCase();
+class ReflectiveTest {
+  const ReflectiveTest();
 }
+
+/**
+ * A marker annotation used to instruct dart2js to keep reflection information
+ * for the annotated classes.
+ */
+const ReflectiveTest reflectiveTest = const ReflectiveTest();

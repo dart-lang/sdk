@@ -12,6 +12,7 @@ import '../elements/elements.dart';
 import '../universe/universe.dart';
 import '../universe/universe.dart' show Selector;
 import 'optimization/optimization.dart';
+import '../closure.dart' show ClosureClassElement;
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -650,6 +651,47 @@ class ConstructorDefinition extends FunctionDefinition {
   applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
 }
 
+abstract class JsSpecificNode implements Node {}
+
+class CreateBox extends Expression implements JsSpecificNode {
+  accept(ExpressionVisitor visitor) => visitor.visitCreateBox(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitCreateBox(this, arg);
+}
+
+class CreateClosureClass extends Expression implements JsSpecificNode {
+  ClosureClassElement classElement;
+  List<Expression> arguments;
+
+  CreateClosureClass(this.classElement, this.arguments);
+
+  accept(ExpressionVisitor visitor) => visitor.visitCreateClosureClass(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitCreateClosureClass(this, arg);
+  }
+}
+
+class GetField extends Expression implements JsSpecificNode {
+  Expression object;
+  Element field;
+
+  GetField(this.object, this.field);
+
+  accept(ExpressionVisitor visitor) => visitor.visitGetField(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetField(this, arg);
+}
+
+class SetField extends Statement implements JsSpecificNode {
+  Expression object;
+  Element field;
+  Expression value;
+  Statement next;
+
+  SetField(this.object, this.field, this.value, this.next);
+
+  accept(StatementVisitor visitor) => visitor.visitSetField(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression e) => e.accept(this);
   E visitVariable(Variable node);
@@ -670,6 +712,9 @@ abstract class ExpressionVisitor<E> {
   E visitFunctionExpression(FunctionExpression node);
   E visitFieldInitializer(FieldInitializer node);
   E visitSuperInitializer(SuperInitializer node);
+  E visitGetField(GetField node);
+  E visitCreateBox(CreateBox node);
+  E visitCreateClosureClass(CreateClosureClass node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -692,6 +737,9 @@ abstract class ExpressionVisitor1<E, A> {
   E visitFunctionExpression(FunctionExpression node, A arg);
   E visitFieldInitializer(FieldInitializer node, A arg);
   E visitSuperInitializer(SuperInitializer node, A arg);
+  E visitGetField(GetField node, A arg);
+  E visitCreateBox(CreateBox node, A arg);
+  E visitCreateClosureClass(CreateClosureClass node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -706,6 +754,7 @@ abstract class StatementVisitor<S> {
   S visitWhileCondition(WhileCondition node);
   S visitFunctionDeclaration(FunctionDeclaration node);
   S visitExpressionStatement(ExpressionStatement node);
+  S visitSetField(SetField node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -720,6 +769,7 @@ abstract class StatementVisitor1<S, A> {
   S visitWhileCondition(WhileCondition node, A arg);
   S visitFunctionDeclaration(FunctionDeclaration node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
+  S visitSetField(SetField node, A arg);
 }
 
 abstract class Visitor<S, E> implements ExpressionVisitor<E>,
@@ -853,5 +903,22 @@ class RecursiveVisitor extends Visitor {
 
   visitSuperInitializer(SuperInitializer node) {
     node.arguments.forEach(visitStatement);
+  }
+
+  visitGetField(GetField node) {
+    visitExpression(node.object);
+  }
+
+  visitSetField(SetField node) {
+    visitExpression(node.object);
+    visitExpression(node.value);
+    visitStatement(node.next);
+  }
+
+  visitCreateBox(CreateBox node) {
+  }
+
+  visitCreateClosureClass(CreateClosureClass node) {
+    node.arguments.forEach(visitExpression);
   }
 }

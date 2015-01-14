@@ -175,16 +175,6 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
-    if (newOptions.enableDeferredLoading != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableDeferredLoading = newOptions.enableDeferredLoading;
-      });
-    }
-    if (newOptions.enableEnums != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableEnum = newOptions.enableEnums;
-      });
-    }
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;

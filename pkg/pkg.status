@@ -92,6 +92,9 @@ async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
+[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
+collection/test/unmodifiable_collection_test: Skip # Times out. Issue 22050
+
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 third_party/angular_tests/browser_test: Skip # uses dart:html
 
@@ -182,7 +185,3 @@ third_party/angular_tests/browser_test/change_detection/dirty_checking_change_de
 
 [ $use_repository_packages ]
 analyzer/test/*: PubGetError
-
-[ $runtime == vm ]
-analysis_server/test/search/element_references_test: RuntimeError # Issue 22014
-

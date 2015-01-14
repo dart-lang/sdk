@@ -148,6 +148,7 @@ abstract class Browser {
                             {Map<String,String> environment}) {
     return Process.start(command, arguments, environment: environment)
         .then((startedProcess) {
+      _logEvent("Started browser using $command ${arguments.join(' ')}");
       process = startedProcess;
       // Used to notify when exiting, and as a return value on calls to
       // close().

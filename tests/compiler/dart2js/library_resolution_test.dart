@@ -21,7 +21,8 @@ import 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
 
 import 'package:compiler/src/dart2jslib.dart' show
-    MessageKind;
+    MessageKind,
+    NullSink;
 
 import 'package:_internal/libraries.dart' show
     DART2JS_PLATFORM,

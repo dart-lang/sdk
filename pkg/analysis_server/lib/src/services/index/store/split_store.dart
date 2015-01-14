@@ -684,7 +684,10 @@ class SplitIndexStore implements IndexStore {
   @override
   void recordRelationship(Element element, Relationship relationship,
       Location location) {
-    if (element == null || location == null) {
+    if (element == null || element.location == null) {
+      return;
+    }
+    if (location == null) {
       return;
     }
     // special support for UniverseElement

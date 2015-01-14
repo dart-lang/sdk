@@ -48,10 +48,11 @@ class Progress {
       return;
     }
 
-    _update();
     _timer = new Timer.periodic(new Duration(milliseconds: 100), (_) {
       _update();
     });
+
+    _update();
   }
 
   /// Stops the progress indicator.
@@ -88,11 +89,11 @@ class Progress {
 
   /// Refreshes the progress line.
   void _update() {
+    if (log.isMuted) return;
+
     stdout.write(log.format("\r$_message... "));
 
     // Show the time only once it gets noticeably long.
-    if (_stopwatch.elapsed.inSeconds > 0) {
-      stdout.write(log.gray(_time));
-    }
+    if (_stopwatch.elapsed.inSeconds > 0) stdout.write("${log.gray(_time)} ");
   }
 }

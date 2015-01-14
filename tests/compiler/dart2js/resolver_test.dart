@@ -919,7 +919,7 @@ Future testInitializers() {
           """class A {
                A() : this.foo = 1;
              }""";
-      return resolveConstructor(script, "A a = new A();", "A", "", 0,
+      return resolveConstructor(script, "A a = new A();", "A", "", 1,
           expectedWarnings: [],
           expectedErrors: [MessageKind.CANNOT_RESOLVE]);
     },

@@ -54,6 +54,10 @@ class Registry {
   final Map<OutputUnit, Fragment> _deferredFragmentsMap =
       <OutputUnit, Fragment>{};
 
+  /// Cache for the last seen output unit.
+  OutputUnit _lastOutputUnit;
+  Fragment _lastFragment;
+
   DeferredLoadTask get _deferredLoadTask => _compiler.deferredLoadTask;
   Iterable<Holder> get holders => _holdersMap.values;
   Iterable<Fragment> get deferredFragments => _deferredFragmentsMap.values;
@@ -68,17 +72,23 @@ class Registry {
   OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
 
   Fragment _mapUnitToFragment(OutputUnit targetUnit) {
+    if (targetUnit == _lastOutputUnit) return _lastFragment;
+
     if (mainFragment == null) {
       mainFragment = new Fragment.main(_deferredLoadTask.mainOutputUnit);
     }
-    if (!_isProgramSplit) {
-      assert(targetUnit == _deferredLoadTask.mainOutputUnit);
-      return mainFragment;
+
+    Fragment result;
+    if (targetUnit == _mainOutputUnit) {
+      result = mainFragment;
+    } else {
+      String name = targetUnit.name;
+      result = _deferredFragmentsMap.putIfAbsent(
+          targetUnit, () => new Fragment.deferred(targetUnit, name));
     }
-    if (targetUnit == _mainOutputUnit) return mainFragment;
-    String name = targetUnit.name;
-    return _deferredFragmentsMap.putIfAbsent(
-        targetUnit, () => new Fragment.deferred(targetUnit, name));
+    _lastOutputUnit = targetUnit;
+    _lastFragment = result;
+    return result;
   }
 
   /// Adds all elements to their respective libraries in the correct fragment.
@@ -87,6 +97,12 @@ class Registry {
     for (Element element in Elements.sortedByPosition(elements)) {
       targetFragment.add(element.library, element);
     }
+  }
+
+  void registerConstant(OutputUnit outputUnit, ConstantValue constantValue) {
+    // We just need to make sure that the target fragment is registered.
+    // Otherwise a fragment that contains only constants is not built.
+    _mapUnitToFragment(outputUnit);
   }
 
   Holder registerHolder(String name) {

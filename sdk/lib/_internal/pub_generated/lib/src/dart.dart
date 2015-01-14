@@ -151,7 +151,7 @@ Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
   scheduleMicrotask(() {
     try {
       join0() {
-        withTempDir(((dir) {
+        new Future.value(withTempDir(((dir) {
           final completer0 = new Completer();
           scheduleMicrotask(() {
             try {
@@ -159,15 +159,15 @@ Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
               writeTextFile(dartPath, code, dontLogContents: true);
               var port = new ReceivePort();
               join0(x0) {
-                Isolate.spawn(_isolateBuffer, {
+                new Future.value(Isolate.spawn(_isolateBuffer, {
                   'replyTo': port.sendPort,
                   'uri': path.toUri(dartPath).toString(),
                   'packageRoot': x0,
                   'message': message
-                }).then((x1) {
+                })).then((x1) {
                   try {
                     x1;
-                    port.first.then((x2) {
+                    new Future.value(port.first).then((x2) {
                       try {
                         var response = x2;
                         join1() {
@@ -177,9 +177,8 @@ Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
                             join3() {
                               snapshotArgs.addAll(
                                   ['--snapshot=${snapshot}', dartPath]);
-                              runProcess(
-                                  Platform.executable,
-                                  snapshotArgs).then((x3) {
+                              new Future.value(
+                                  runProcess(Platform.executable, snapshotArgs)).then((x3) {
                                 try {
                                   var result = x3;
                                   join4() {
@@ -237,7 +236,7 @@ Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
             }
           });
           return completer0.future;
-        })).then((x0) {
+        }))).then((x0) {
           try {
             x0;
             completer0.complete();
@@ -266,11 +265,12 @@ Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
             }
           }
           try {
-            Isolate.spawnUri(
-                path.toUri(snapshot),
-                [],
-                message,
-                packageRoot: packageRoot).then((x1) {
+            new Future.value(
+                Isolate.spawnUri(
+                    path.toUri(snapshot),
+                    [],
+                    message,
+                    packageRoot: packageRoot)).then((x1) {
               try {
                 x1;
                 completer0.complete(null);

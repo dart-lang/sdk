@@ -27,18 +27,6 @@ SearchEngine createSearchEngine(Index index) {
  */
 class MatchKind {
   /**
-   * A reference to an Angular element.
-   */
-  static const MatchKind ANGULAR_REFERENCE =
-      const MatchKind('ANGULAR_REFERENCE');
-
-  /**
-   * A reference to an Angular element.
-   */
-  static const MatchKind ANGULAR_CLOSING_TAG_REFERENCE =
-      const MatchKind('ANGULAR_CLOSING_TAG_REFERENCE');
-
-  /**
    * A declaration of an element.
    */
   static const MatchKind DECLARATION = const MatchKind('DECLARATION');

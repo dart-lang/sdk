@@ -253,7 +253,7 @@ Future validatePlatform() {
   scheduleMicrotask(() {
     try {
       join0() {
-        runProcess('ver', []).then((x0) {
+        new Future.value(runProcess('ver', [])).then((x0) {
           try {
             var result = x0;
             join1() {
@@ -261,7 +261,7 @@ Future validatePlatform() {
             }
             if (result.stdout.join('\n').contains('XP')) {
               log.error('Sorry, but pub is not supported on Windows XP.');
-              flushThenExit(exit_codes.USAGE).then((x1) {
+              new Future.value(flushThenExit(exit_codes.USAGE)).then((x1) {
                 try {
                   x1;
                   join1();

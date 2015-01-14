@@ -43,8 +43,8 @@ void testWithMirrorRenaming({bool minify}) {
     DartBackend backend = compiler.backend;
     MirrorRenamerImpl mirrorRenamer = backend.mirrorRenamer;
     Map<Node, String> renames = backend.placeholderRenamer.renames;
-    Set<LibraryElement> imports =
-        backend.placeholderRenamer.platformImports;
+    Iterable<LibraryElement> imports =
+        backend.placeholderRenamer.platformImports.keys;
 
     FunctionExpression node = backend.memberNodes.values.first.first;
     Block block = node.body;
@@ -65,8 +65,8 @@ void testWithoutMirrorRenaming({bool minify}) {
 
     DartBackend backend = compiler.backend;
     Map<Node, String> renames = backend.placeholderRenamer.renames;
-    Set<LibraryElement> imports =
-        backend.placeholderRenamer.platformImports;
+    Iterable<LibraryElement> imports =
+        backend.placeholderRenamer.platformImports.keys;
     FunctionExpression node = backend.memberNodes.values.first.first;
     Block block = node.body;
     ExpressionStatement getNameFunctionNode = block.statements.nodes.head;
