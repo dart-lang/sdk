@@ -58,6 +58,11 @@ class ProgramBuilder {
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
   Program buildProgram() {
+    // Note: In rare cases (mostly tests) output units can be empty. This
+    // happens when the deferred code is dead-code eliminated but we still need
+    // to check that the library has been loaded.
+    _compiler.deferredLoadTask.allOutputUnits.forEach(
+        _registry.registerOutputUnit);
     _task.outputClassLists.forEach(_registry.registerElements);
     _task.outputStaticLists.forEach(_registry.registerElements);
     _task.outputConstantLists.forEach(_registerConstants);

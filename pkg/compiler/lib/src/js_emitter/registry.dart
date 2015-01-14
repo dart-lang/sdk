@@ -78,22 +78,27 @@ class Registry {
   LibrariesMap _mapUnitToLibrariesMap(OutputUnit targetUnit) {
     if (targetUnit == _lastOutputUnit) return _lastLibrariesMap;
 
-    if (mainLibrariesMap == null) {
-      mainLibrariesMap =
-          new LibrariesMap.main(_deferredLoadTask.mainOutputUnit);
-    }
+    LibrariesMap result = (targetUnit == _mainOutputUnit)
+        ? mainLibrariesMap
+        : _deferredLibrariesMap[targetUnit];
 
-    LibrariesMap result;
-    if (targetUnit == _mainOutputUnit) {
-      result = mainLibrariesMap;
-    } else {
-      String name = targetUnit.name;
-      result = _deferredLibrariesMap.putIfAbsent(
-          targetUnit, () => new LibrariesMap.deferred(targetUnit, name));
-    }
+    assert(result != null);
     _lastOutputUnit = targetUnit;
     _lastLibrariesMap = result;
     return result;
+  }
+
+  void registerOutputUnit(OutputUnit outputUnit) {
+    if (outputUnit == _mainOutputUnit) {
+      assert(mainLibrariesMap == null);
+      mainLibrariesMap =
+          new LibrariesMap.main(_deferredLoadTask.mainOutputUnit);
+    } else {
+      assert(!_deferredLibrariesMap.containsKey(outputUnit));
+      String name = outputUnit.name;
+      _deferredLibrariesMap[outputUnit] =
+          new LibrariesMap.deferred(outputUnit, name);
+    }
   }
 
   /// Adds all elements to their respective libraries in the correct
@@ -106,9 +111,7 @@ class Registry {
   }
 
   void registerConstant(OutputUnit outputUnit, ConstantValue constantValue) {
-    // We just need to make sure that the target library map is registered.
-    // Otherwise a library map that contains only constants is not built.
-    _mapUnitToLibrariesMap(outputUnit);
+    // Ignore for now.
   }
 
   Holder registerHolder(String name) {
