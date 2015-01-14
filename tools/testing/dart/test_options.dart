@@ -654,8 +654,7 @@ Note: currently only implemented for dart2js.''',
           "runtime '${config['runtime']}' is invalid. "
           "Skipping this combination.");
     }
-    if ((config['runtime'] == 'ie9' || config['runtime'] == 'ie10') &&
-        Platform.operatingSystem != 'windows') {
+    if (config['ie'] && Platform.operatingSystem != 'windows') {
       isValid = false;
       print("Warning cannot run Internet Explorer on non-Windows operating"
           " system.");

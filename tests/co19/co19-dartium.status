@@ -471,6 +471,7 @@ LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # co19-roll r761:
 LayoutTests/fast/css/collapsed-whitespace-reattach-in-style-recalc_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/content/content-none_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/css/counters/complex-before_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/cursor-parsing-quirks_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -1013,7 +1014,6 @@ LayoutTests/fast/canvas/canvas-scale-fillRect-shadow_t01: Skip # Times out. co19
 LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/canvas-test_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
-LayoutTests/fast/css/counters/complex-before_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/getComputedStyle/computed-style-select-overflow_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/vertical-align-length-copy-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css-generated-content/bug-106384_t01: Skip # Times out. co19-roll r786: Please triage this failure.
@@ -1038,6 +1038,7 @@ LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t0
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/negative-scroll-positions_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/sub-pixel/computedstylemargin_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/auto-margins-across-boundaries_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Skip # Times out. Please triage this failure.
@@ -1046,8 +1047,11 @@ LayoutTests/fast/writing-mode/broken-ideographic-font_t01: Skip # Times out. co1
 LayoutTests/fast/writing-mode/display-mutation_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow-scroll_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/flipped-blocks-text-map-local-to-container_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/writing-mode/overhanging-float-legend-crash_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/writing-mode/percentage-margins-absolute_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-padding_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/writing-mode/table-hit-test_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Skip # Times out. Please triage this failure.
 LibTest/core/DateTime/parse_A01_t02: Skip # Times out. Please triage this failure.
