@@ -3351,6 +3351,7 @@ Future<Null> _loadHunk(String hunkName) {
         // context.
         JS('void', '(new Function(#))()', 'load("$uri")');
       } catch (error, stackTrace) {
+        _loadingLibraries[hunkName] = null;
         throw new DeferredLoadException("Loading $uri failed.");
       }
       return null;
@@ -3371,6 +3372,7 @@ Future<Null> _loadHunk(String hunkName) {
       JS('void', '#.addEventListener("load", #, false)',
          xhr, convertDartClosureToJS((event) {
         if (JS('int', '#.status', xhr) != 200) {
+          _loadingLibraries[hunkName] = null;
           completer.completeError(
               new DeferredLoadException("Loading $uri failed."));
           return;
@@ -3381,6 +3383,7 @@ Future<Null> _loadHunk(String hunkName) {
           // context.
           JS('void', '(new Function(#))()', code);
         } catch (error, stackTrace) {
+          _loadingLibraries[hunkName] = null;
           completer.completeError(
             new DeferredLoadException("Evaluating $uri failed."));
           return;
@@ -3389,6 +3392,7 @@ Future<Null> _loadHunk(String hunkName) {
       }, 1));
 
       var fail = convertDartClosureToJS((event) {
+        _loadingLibraries[hunkName] = null;
         new DeferredLoadException("Loading $uri failed.");
       }, 1);
       JS('void', '#.addEventListener("error", #, false)', xhr, fail);
@@ -3411,6 +3415,7 @@ Future<Null> _loadHunk(String hunkName) {
     }, 1));
     JS('', '#.addEventListener("error", #, false)',
        script, convertDartClosureToJS((event) {
+      _loadingLibraries[hunkName] = null;
       completer.completeError(
           new DeferredLoadException("Loading $uri failed."));
     }, 1));
