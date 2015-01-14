@@ -136,8 +136,6 @@ Future<Compiler> reuseCompiler(
         ..outputBuffers.clear()
         ..isolateProperties = null
         ..classesCollector = null
-        ..neededClasses.clear()
-        ..outputClassLists.clear()
         ..nativeClasses.clear()
         ..mangledFieldNames.clear()
         ..mangledGlobalFieldNames.clear()
@@ -147,7 +145,13 @@ Future<Compiler> reuseCompiler(
         ..elementDescriptors.clear();
 
     backend.emitter
-        ..outputContainsConstantList = false;
+        ..outputContainsConstantList = false
+        ..neededClasses.clear()
+        ..outputClassLists.clear()
+        ..outputConstantLists.clear()
+        ..outputStaticLists.clear()
+        ..outputStaticNonFinalFieldLists.clear()
+        ..outputLibraryLists.clear();
 
     backend
         ..preMirrorsMethodCount = 0;
