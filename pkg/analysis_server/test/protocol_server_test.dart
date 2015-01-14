@@ -308,6 +308,29 @@ class A {
     expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
   }
 
+  void test_fromElement_FUNCTION_TYPE_ALIAS() {
+    engine.Source source = addSource('/test.dart', '''
+typedef int f(String x);
+''');
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.FunctionTypeAliasElement engineElement = findElementInUnit(unit, 'f');
+    // create notification Element
+    Element element = newElement_fromEngine(engineElement);
+    expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element.name, 'f');
+    {
+      Location location = element.location;
+      expect(location.file, '/test.dart');
+      expect(location.offset, 12);
+      expect(location.length, 'f'.length);
+      expect(location.startLine, 1);
+      expect(location.startColumn, 13);
+    }
+    expect(element.parameters, '(String x)');
+    expect(element.returnType, 'int');
+    expect(element.flags, 0);
+  }
+
   void test_fromElement_GETTER() {
     engine.Source source = addSource('/test.dart', '''
 class A {

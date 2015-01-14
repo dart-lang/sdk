@@ -330,38 +330,40 @@ List<Element> _computePath(engine.Element element) {
 
 String _getParametersString(engine.Element element) {
   // TODO(scheglov) expose the corresponding feature from ExecutableElement
+  List<engine.ParameterElement> parameters;
   if (element is engine.ExecutableElement) {
     // valid getters don't have parameters
     if (element.kind == engine.ElementKind.GETTER &&
         element.parameters.isEmpty) {
       return null;
     }
-    // append parameters
-    StringBuffer sb = new StringBuffer();
-    String closeOptionalString = '';
-    for (engine.ParameterElement parameter in element.parameters) {
-      if (sb.isNotEmpty) {
-        sb.write(', ');
-      }
-      if (closeOptionalString.isEmpty) {
-        if (parameter.kind == engine.ParameterKind.NAMED) {
-          sb.write('{');
-          closeOptionalString = '}';
-        }
-        if (parameter.kind == engine.ParameterKind.POSITIONAL) {
-          sb.write('[');
-          closeOptionalString = ']';
-        }
-      }
-      sb.write(parameter.toString());
-    }
-    sb.write(closeOptionalString);
-    return '(' + sb.toString() + ')';
+    parameters = element.parameters;
+  } else if (element is engine.FunctionTypeAliasElement) {
+    parameters = element.parameters;
   } else {
     return null;
   }
+  StringBuffer sb = new StringBuffer();
+  String closeOptionalString = '';
+  for (engine.ParameterElement parameter in parameters) {
+    if (sb.isNotEmpty) {
+      sb.write(', ');
+    }
+    if (closeOptionalString.isEmpty) {
+      if (parameter.kind == engine.ParameterKind.NAMED) {
+        sb.write('{');
+        closeOptionalString = '}';
+      }
+      if (parameter.kind == engine.ParameterKind.POSITIONAL) {
+        sb.write('[');
+        closeOptionalString = ']';
+      }
+    }
+    sb.write(parameter.toString());
+  }
+  sb.write(closeOptionalString);
+  return '(' + sb.toString() + ')';
 }
-
 
 String _getReturnTypeString(engine.Element element) {
   if (element is engine.ExecutableElement) {
@@ -373,6 +375,8 @@ String _getReturnTypeString(engine.Element element) {
   } else if (element is engine.VariableElement) {
     engine.DartType type = element.type;
     return type != null ? type.displayName : 'dynamic';
+  } else if (element is engine.FunctionTypeAliasElement) {
+    return element.returnType.toString();
   } else {
     return null;
   }
