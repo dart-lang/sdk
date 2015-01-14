@@ -49,11 +49,30 @@ class PartialClassElement extends ClassElementX with PartialElement {
       compiler.parser.measure(() {
         MemberListener listener = new MemberListener(compiler, this);
         Parser parser = new ClassElementParser(listener);
-        Token token = parser.parseTopLevelDeclaration(beginToken);
-        assert(identical(token, endToken.next));
-        cachedNode = listener.popNode();
-        assert(invariant(beginToken, listener.nodes.isEmpty,
-            message: "Non-empty listener stack: ${listener.nodes}"));
+        try {
+          Token token = parser.parseTopLevelDeclaration(beginToken);
+          assert(identical(token, endToken.next));
+          cachedNode = listener.popNode();
+          assert(
+              invariant(
+                  beginToken, listener.nodes.isEmpty,
+                  message: "Non-empty listener stack: ${listener.nodes}"));
+        } on ParserError catch (e) {
+          // TODO(ahe): Often, a ParserError is thrown while parsing the class
+          // body. This means that the stack actually contains most of the
+          // information synthesized below. Consider rewriting the parser so
+          // endClassDeclaration is called before parsing the class body.
+          Identifier name = new Identifier(findMyName(beginToken));
+          NodeList typeParameters = null;
+          Node supertype = null;
+          NodeList interfaces = listener.makeNodeList(0, null, null, ",");
+          Token extendsKeyword = null;
+          NodeList body = listener.makeNodeList(0, beginToken, endToken, null);
+          cachedNode = new ClassNode(
+              Modifiers.EMPTY, name, typeParameters, supertype, interfaces,
+              beginToken, extendsKeyword, body, endToken);
+          hasParseError = true;
+        }
       });
       compiler.patchParser.measure(() {
         if (isPatched) {

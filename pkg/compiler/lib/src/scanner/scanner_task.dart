@@ -61,7 +61,11 @@ class DietParserTask extends CompilerTask {
       ElementListener listener =
           new ElementListener(compiler, compilationUnit, idGenerator);
       PartialParser parser = new PartialParser(listener);
-      parser.parseUnit(tokens);
+      try {
+        parser.parseUnit(tokens);
+      } on ParserError catch (e) {
+        assert(invariant(compilationUnit, compiler.compilationFailed));
+      }
     });
   }
 }

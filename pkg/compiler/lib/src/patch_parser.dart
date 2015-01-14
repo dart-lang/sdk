@@ -170,7 +170,14 @@ class PatchParserTask extends CompilerTask {
       Listener patchListener = new PatchElementListener(compiler,
                                                         compilationUnit,
                                                         idGenerator);
-      new PartialParser(patchListener).parseUnit(tokens);
+      try {
+        new PartialParser(patchListener).parseUnit(tokens);
+      } on ParserError catch (e) {
+        // No need to recover from a parser error in platform libraries, user
+        // will never see this if the libraries are tested correctly.
+        compiler.internalError(
+            compilationUnit, "Parser error in patch file: $e");
+      }
     });
   }
 
@@ -182,8 +189,15 @@ class PatchParserTask extends CompilerTask {
     measure(() => compiler.withCurrentElement(element, () {
       MemberListener listener = new MemberListener(compiler, element);
       Parser parser = new PatchClassElementParser(listener);
-      Token token = parser.parseTopLevelDeclaration(element.beginToken);
-      assert(identical(token, element.endToken.next));
+      try {
+        Token token = parser.parseTopLevelDeclaration(element.beginToken);
+        assert(identical(token, element.endToken.next));
+      } on ParserError catch (e) {
+        // No need to recover from a parser error in platform libraries, user
+        // will never see this if the libraries are tested correctly.
+        compiler.internalError(
+            element, "Parser error in patch file: $e");
+      }
       element.cachedNode = listener.popNode();
       assert(listener.nodes.isEmpty);
 

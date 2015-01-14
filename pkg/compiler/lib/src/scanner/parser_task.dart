@@ -16,7 +16,12 @@ class ParserTask extends CompilerTask {
     return measure(() {
       NodeListener listener = new NodeListener(compiler, null);
       Parser parser = new Parser(listener);
-      parser.parseUnit(token);
+      try {
+        parser.parseUnit(token);
+      } on ParserError catch (e) {
+        assert(invariant(token, compiler.compilationFailed));
+        return listener.makeNodeList(0, null, null, '\n');
+      }
       Node result = listener.popNode();
       assert(listener.nodes.isEmpty);
       return result;

@@ -805,9 +805,10 @@ class ElementListener extends Listener {
 
   bool suppressParseErrors = false;
 
-  ElementListener(DiagnosticListener listener,
-                  this.compilationUnitElement,
-                  this.idGenerator)
+  ElementListener(
+      DiagnosticListener listener,
+      this.compilationUnitElement,
+      this.idGenerator)
       : this.listener = listener,
         stringValidator = new StringValidator(listener),
         interpolationScope = const Link<StringQuoting>();
@@ -1465,13 +1466,10 @@ class ElementListener extends Listener {
 
   /// Don't call this method. Should only be used as a last resort when there
   /// is no feasible way to recover from a parser error.
-  void reportFatalError(Spannable spannable,
-                        String message) {
-    listener.reportError(
-        spannable, MessageKind.GENERIC, {'text': message});
-    // Some parse errors are infeasible to recover from, so we abort
-    // compilation instead.
-    throw new CompilerCancelledException(message);
+  void reportFatalError(Spannable spannable, String message) {
+    reportError(spannable, MessageKind.GENERIC, {'text': message});
+    // Some parse errors are infeasible to recover from, so we throw an error.
+    throw new ParserError(message);
   }
 
   void reportError(Spannable spannable,
@@ -1487,27 +1485,10 @@ class ElementListener extends Listener {
 }
 
 class NodeListener extends ElementListener {
-  final bool throwOnFatalError;
-
   NodeListener(
       DiagnosticListener listener,
-      CompilationUnitElement element,
-      {bool this.throwOnFatalError: false})
+      CompilationUnitElement element)
     : super(listener, element, null);
-
-  /// Don't call this method. Should only be used as a last resort when there
-  /// is no feasible way to recover from a parser error.
-  void reportFatalError(Spannable spannable,
-                        String message) {
-    if (throwOnFatalError) {
-      if (!currentMemberHasParseError && !suppressParseErrors) {
-        reportError(spannable, MessageKind.GENERIC, {'text': message});
-      }
-      throw new ParserError(message);
-    } else {
-      super.reportFatalError(spannable, message);
-    }
-  }
 
   void addLibraryTag(LibraryTag tag) {
     pushNode(tag);
@@ -2511,8 +2492,7 @@ Node parse(DiagnosticListener diagnosticListener,
            Element element,
            doParse(Parser parser)) {
   CompilationUnitElement unit = element.compilationUnit;
-  NodeListener listener =
-      new NodeListener(diagnosticListener, unit, throwOnFatalError: true);
+  NodeListener listener = new NodeListener(diagnosticListener, unit);
   listener.memberErrors = listener.memberErrors.prepend(false);
   try {
     doParse(new Parser(listener));

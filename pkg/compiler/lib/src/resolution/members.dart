@@ -1873,10 +1873,13 @@ class TypeResolver {
           ambiguous.messageKind, ambiguous.messageArguments);
       ambiguous.diagnose(registry.mapping.analyzedElement, compiler);
     } else if (element.isErroneous) {
-      ErroneousElement erroneousElement = element;
-      type = reportFailureAndCreateType(
-          erroneousElement.messageKind, erroneousElement.messageArguments,
-          erroneousElement: erroneousElement);
+      if (element is ErroneousElement) {
+        type = reportFailureAndCreateType(
+            element.messageKind, element.messageArguments,
+            erroneousElement: element);
+      } else {
+        type = const DynamicType();
+      }
     } else if (!element.impliesType) {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
