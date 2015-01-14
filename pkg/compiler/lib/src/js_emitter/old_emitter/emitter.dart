@@ -1473,10 +1473,6 @@ class OldEmitter implements Emitter {
       }
     }
 
-    if (compiler.enableMinification) {
-      mainOutput.add(';');
-    }
-
     Iterable<LibraryElement> libraries =
         task.outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = [];
