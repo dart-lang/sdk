@@ -952,7 +952,8 @@ typedef Validator ValidatorCreator(Entrypoint entrypoint);
 Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return schedule(() {
-    var cache = new SystemCache.withSources(p.join(sandboxDir, cachePath));
+    var cache = new SystemCache.withSources(
+        rootDir: p.join(sandboxDir, cachePath));
 
     return new Future.sync(() {
       var validator = fn(new Entrypoint(p.join(sandboxDir, appPath), cache));

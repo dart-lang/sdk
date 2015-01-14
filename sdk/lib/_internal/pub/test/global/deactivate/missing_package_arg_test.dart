@@ -13,7 +13,7 @@ main() {
             No package to deactivate given.
 
             Usage: pub global deactivate <package>
-            -h, --help    Print usage information for this command.
+            -h, --help    Print this usage information.
 
             Run "pub help" to see global options.
             """,

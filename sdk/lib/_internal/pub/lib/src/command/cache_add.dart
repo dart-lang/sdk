@@ -15,43 +15,43 @@ import '../utils.dart';
 
 /// Handles the `cache add` pub command.
 class CacheAddCommand extends PubCommand {
+  String get name => "add";
   String get description => "Install a package.";
-  String get usage =>
+  String get invocation =>
       "pub cache add <package> [--version <constraint>] [--all]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-cache.html";
-  bool get takesArguments => true;
 
   CacheAddCommand() {
-    commandParser.addFlag("all",
+    argParser.addFlag("all",
         help: "Install all matching versions.",
         negatable: false);
 
-    commandParser.addOption("version", abbr: "v",
+    argParser.addOption("version", abbr: "v",
         help: "Version constraint.");
   }
 
-  Future onRun() {
+  Future run() {
     // Make sure there is a package.
-    if (commandOptions.rest.isEmpty) {
-      usageError("No package to add given.");
+    if (argResults.rest.isEmpty) {
+      usageException("No package to add given.");
     }
 
     // Don't allow extra arguments.
-    if (commandOptions.rest.length > 1) {
-      var unexpected = commandOptions.rest.skip(1).map((arg) => '"$arg"');
+    if (argResults.rest.length > 1) {
+      var unexpected = argResults.rest.skip(1).map((arg) => '"$arg"');
       var arguments = pluralize("argument", unexpected.length);
-      usageError("Unexpected $arguments ${toSentence(unexpected)}.");
+      usageException("Unexpected $arguments ${toSentence(unexpected)}.");
     }
 
-    var package = commandOptions.rest.single;
+    var package = argResults.rest.single;
 
     // Parse the version constraint, if there is one.
     var constraint = VersionConstraint.any;
-    if (commandOptions["version"] != null) {
+    if (argResults["version"] != null) {
       try {
-        constraint = new VersionConstraint.parse(commandOptions["version"]);
+        constraint = new VersionConstraint.parse(argResults["version"]);
       } on FormatException catch (error) {
-        usageError(error.message);
+        usageException(error.message);
       }
     }
 
@@ -82,7 +82,7 @@ class CacheAddCommand extends PubCommand {
         });
       }
 
-      if (commandOptions["all"]) {
+      if (argResults["all"]) {
         // Install them in ascending order.
         versions.sort();
         return Future.forEach(versions, downloadVersion);

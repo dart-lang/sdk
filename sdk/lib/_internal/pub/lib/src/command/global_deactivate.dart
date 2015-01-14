@@ -12,27 +12,25 @@ import '../utils.dart';
 
 /// Handles the `global deactivate` pub command.
 class GlobalDeactivateCommand extends PubCommand {
+  String get name => "deactivate";
   String get description => "Remove a previously activated package.";
-  String get usage => "pub global deactivate <package>";
-  bool get takesArguments => true;
+  String get invocation => "pub global deactivate <package>";
 
-  Future onRun() {
+  void run() {
     // Make sure there is a package.
-    if (commandOptions.rest.isEmpty) {
-      usageError("No package to deactivate given.");
+    if (argResults.rest.isEmpty) {
+      usageException("No package to deactivate given.");
     }
 
     // Don't allow extra arguments.
-    if (commandOptions.rest.length > 1) {
-      var unexpected = commandOptions.rest.skip(1).map((arg) => '"$arg"');
+    if (argResults.rest.length > 1) {
+      var unexpected = argResults.rest.skip(1).map((arg) => '"$arg"');
       var arguments = pluralize("argument", unexpected.length);
-      usageError("Unexpected $arguments ${toSentence(unexpected)}.");
+      usageException("Unexpected $arguments ${toSentence(unexpected)}.");
     }
 
-    if (!globals.deactivate(commandOptions.rest.first)) {
-      dataError("No active package ${log.bold(commandOptions.rest.first)}.");
+    if (!globals.deactivate(argResults.rest.first)) {
+      dataError("No active package ${log.bold(argResults.rest.first)}.");
     }
-
-    return null;
   }
 }

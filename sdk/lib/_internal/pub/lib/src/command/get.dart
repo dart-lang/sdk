@@ -11,22 +11,23 @@ import '../solver/version_solver.dart';
 
 /// Handles the `get` pub command.
 class GetCommand extends PubCommand {
+  String get name => "get";
   String get description => "Get the current package's dependencies.";
-  String get usage => "pub get";
+  String get invocation => "pub get";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-get.html";
   List<String> get aliases => const ["install"];
-  bool get isOffline => commandOptions["offline"];
+  bool get isOffline => argResults["offline"];
 
   GetCommand() {
-    commandParser.addFlag('offline',
+    argParser.addFlag('offline',
         help: 'Use cached packages instead of accessing the network.');
 
-    commandParser.addFlag('dry-run', abbr: 'n', negatable: false,
+    argParser.addFlag('dry-run', abbr: 'n', negatable: false,
         help: "Report what dependencies would change but don't change any.");
   }
 
-  Future onRun() {
+  Future run() {
     return entrypoint.acquireDependencies(SolveType.GET,
-        dryRun: commandOptions['dry-run']);
+        dryRun: argResults['dry-run']);
   }
 }

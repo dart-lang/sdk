@@ -24,10 +24,8 @@ final _allSourceDirectories = new Set<String>.from([
 
 /// Shared base class for [BuildCommand] and [ServeCommand].
 abstract class BarbackCommand extends PubCommand {
-  final takesArguments = true;
-
   /// The build mode.
-  BarbackMode get mode => new BarbackMode(commandOptions["mode"]);
+  BarbackMode get mode => new BarbackMode(argResults["mode"]);
 
   /// The directories in the entrypoint package that should be added to the
   /// build environment.
@@ -41,20 +39,20 @@ abstract class BarbackCommand extends PubCommand {
   List<String> get defaultSourceDirectories;
 
   BarbackCommand() {
-    commandParser.addOption("mode", defaultsTo: defaultMode.toString(),
+    argParser.addOption("mode", defaultsTo: defaultMode.toString(),
         help: "Mode to run transformers in.");
 
-    commandParser.addFlag("all",
+    argParser.addFlag("all",
         help: "Use all default source directories.",
         defaultsTo: false, negatable: false);
   }
 
-  Future onRun() {
+  Future run() {
     // Switch to JSON output if specified. We need to do this before parsing
     // the source directories so an error will be correctly reported in JSON
     // format.
-    log.json.enabled = commandOptions.options.contains("format") &&
-        commandOptions["format"] == "json";
+    log.json.enabled = argResults.options.contains("format") &&
+        argResults["format"] == "json";
 
     _parseSourceDirectories();
     return onRunTransformerCommand();
@@ -75,18 +73,18 @@ abstract class BarbackCommand extends PubCommand {
   ///
   /// Throws an exception if the arguments are invalid.
   void _parseSourceDirectories() {
-    if (commandOptions["all"]) {
+    if (argResults["all"]) {
       _addAllDefaultSources();
       return;
     }
 
     // If no directories were specified, use the defaults.
-    if (commandOptions.rest.isEmpty) {
+    if (argResults.rest.isEmpty) {
       _addDefaultSources();
       return;
     }
 
-    sourceDirectories.addAll(commandOptions.rest);
+    sourceDirectories.addAll(argResults.rest);
 
     // Prohibit "lib".
     var disallowed = sourceDirectories.where((dir) {
@@ -95,13 +93,13 @@ abstract class BarbackCommand extends PubCommand {
     });
 
     if (disallowed.isNotEmpty) {
-      usageError(_directorySentence(disallowed, "is", "are", "not allowed"));
+      usageException(_directorySentence(disallowed, "is", "are", "not allowed"));
     }
 
     // Make sure the source directories don't reach out of the package.
     var invalid = sourceDirectories.where((dir) => !path.isWithin('.', dir));
     if (invalid.isNotEmpty) {
-      usageError(_directorySentence(invalid, "isn't", "aren't",
+      usageException(_directorySentence(invalid, "isn't", "aren't",
           "in this package"));
     }
 
@@ -127,7 +125,7 @@ abstract class BarbackCommand extends PubCommand {
     }
 
     if (overlapping.isNotEmpty) {
-      usageError(_directorySentence(overlapping, "cannot", "cannot",
+      usageException(_directorySentence(overlapping, "cannot", "cannot",
           "overlap"));
     }
   }
@@ -135,8 +133,8 @@ abstract class BarbackCommand extends PubCommand {
   /// Handles "--all" by adding all default source directories that are
   /// present.
   void _addAllDefaultSources() {
-    if (commandOptions.rest.isNotEmpty) {
-      usageError(
+    if (argResults.rest.isNotEmpty) {
+      usageException(
           'Directory names are not allowed if "--all" is passed.');
     }
 

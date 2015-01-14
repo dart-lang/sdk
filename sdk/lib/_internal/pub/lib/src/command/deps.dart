@@ -16,10 +16,12 @@ import '../utils.dart';
 
 /// Handles the `deps` pub command.
 class DepsCommand extends PubCommand {
+  String get name => "deps";
   String get description => "Print package dependencies.";
   List<String> get aliases => const ["dependencies", "tab"];
-  String get usage => "pub deps";
+  String get invocation => "pub deps";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-deps.html";
+  bool get takesArguments => false;
 
   /// The loaded package graph.
   PackageGraph _graph;
@@ -28,20 +30,20 @@ class DepsCommand extends PubCommand {
   StringBuffer _buffer;
 
   DepsCommand() {
-    commandParser.addOption("style", abbr: "s",
+    argParser.addOption("style", abbr: "s",
         help: "How output should be displayed.",
         allowed: ["compact", "tree", "list"],
         defaultsTo: "tree");
   }
 
-  Future onRun() {
+  Future run() {
     return entrypoint.loadPackageGraph().then((graph) {
       _graph = graph;
       _buffer = new StringBuffer();
 
       _buffer.writeln(_labelPackage(entrypoint.root));
 
-      switch (commandOptions["style"]) {
+      switch (argResults["style"]) {
         case "compact": _outputCompact(); break;
         case "list": _outputList(); break;
         case "tree": _outputTree(); break;

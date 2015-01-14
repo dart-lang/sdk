@@ -19,35 +19,36 @@ final _arrow = getSpecial('\u2192', '=>');
 
 /// Handles the `serve` pub command.
 class ServeCommand extends BarbackCommand {
+  String get name => "serve";
   String get description =>
       'Run a local web development server.\n\n'
       'By default, this serves "web/" and "test/", but an explicit list of \n'
       'directories to serve can be provided as well.';
-  String get usage => "pub serve [directories...]";
+  String get invocation => "pub serve [directories...]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-serve.html";
 
   PubPackageProvider _provider;
 
-  String get hostname => commandOptions['hostname'];
+  String get hostname => argResults['hostname'];
 
   /// The base port for the servers.
   ///
   /// This will print a usage error and exit if the specified port is invalid.
-  int get port => parseInt(commandOptions['port'], 'port');
+  int get port => parseInt(argResults['port'], 'port');
 
   /// The port for the admin UI.
   ///
   /// This will print a usage error and exit if the specified port is invalid.
   int get adminPort {
-    var adminPort = commandOptions['admin-port'];
+    var adminPort = argResults['admin-port'];
     return adminPort == null ? null : parseInt(adminPort, 'admin port');
   }
 
   /// `true` if Dart entrypoints should be compiled to JavaScript.
-  bool get useDart2JS => commandOptions['dart2js'];
+  bool get useDart2JS => argResults['dart2js'];
 
   /// `true` if the admin server URL should be displayed on startup.
-  bool get logAdminUrl => commandOptions['log-admin-url'];
+  bool get logAdminUrl => argResults['log-admin-url'];
 
   BarbackMode get defaultMode => BarbackMode.DEBUG;
 
@@ -58,9 +59,9 @@ class ServeCommand extends BarbackCommand {
   final _completer = new Completer();
 
   ServeCommand() {
-    commandParser.addOption('hostname', defaultsTo: 'localhost',
+    argParser.addOption('hostname', defaultsTo: 'localhost',
         help: 'The hostname to listen on.');
-    commandParser.addOption('port', defaultsTo: '8080',
+    argParser.addOption('port', defaultsTo: '8080',
         help: 'The base port to listen on.');
 
     // TODO(rnystrom): A hidden option to print the URL that the admin server
@@ -68,23 +69,23 @@ class ServeCommand extends BarbackCommand {
     // Socket interface, we don't want to show it to users, but the tests and
     // Editor need this logged to know what port to bind to.
     // Remove this (and always log) when #16954 is fixed.
-    commandParser.addFlag('log-admin-url', defaultsTo: false, hide: true);
+    argParser.addFlag('log-admin-url', defaultsTo: false, hide: true);
 
     // TODO(nweiz): Make this public when issue 16954 is fixed.
-    commandParser.addOption('admin-port', hide: true);
+    argParser.addOption('admin-port', hide: true);
 
-    commandParser.addFlag('dart2js', defaultsTo: true,
+    argParser.addFlag('dart2js', defaultsTo: true,
         help: 'Compile Dart to JavaScript.');
-    commandParser.addFlag('force-poll', defaultsTo: false,
+    argParser.addFlag('force-poll', defaultsTo: false,
         help: 'Force the use of a polling filesystem watcher.');
   }
 
   Future onRunTransformerCommand() async {
-    var port = parseInt(commandOptions['port'], 'port');
-    var adminPort = commandOptions['admin-port'] == null ? null :
-        parseInt(commandOptions['admin-port'], 'admin port');
+    var port = parseInt(argResults['port'], 'port');
+    var adminPort = argResults['admin-port'] == null ? null :
+        parseInt(argResults['admin-port'], 'admin port');
 
-    var watcherType = commandOptions['force-poll'] ?
+    var watcherType = argResults['force-poll'] ?
         WatcherType.POLLING : WatcherType.AUTO;
 
     var environment = await AssetEnvironment.create(entrypoint, mode,

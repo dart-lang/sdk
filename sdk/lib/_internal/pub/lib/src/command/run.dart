@@ -16,27 +16,27 @@ import '../utils.dart';
 
 /// Handles the `run` pub command.
 class RunCommand extends PubCommand {
-  bool get takesArguments => true;
-  bool get allowTrailingOptions => false;
+  String get name => "run";
   String get description => "Run an executable from a package.\n"
       "NOTE: We are currently optimizing this command's startup time.";
-  String get usage => "pub run <executable> [args...]";
+  String get invocation => "pub run <executable> [args...]";
+  bool get allowTrailingOptions => false;
 
   RunCommand() {
-    commandParser.addOption("mode",
+    argParser.addOption("mode",
         help: 'Mode to run transformers in.\n'
               '(defaults to "release" for dependencies, "debug" for '
                 'entrypoint)');
   }
 
-  Future onRun() async {
-    if (commandOptions.rest.isEmpty) {
-      usageError("Must specify an executable to run.");
+  Future run() async {
+    if (argResults.rest.isEmpty) {
+      usageException("Must specify an executable to run.");
     }
 
     var package = entrypoint.root.name;
-    var executable = commandOptions.rest[0];
-    var args = commandOptions.rest.skip(1).toList();
+    var executable = argResults.rest[0];
+    var args = argResults.rest.skip(1).toList();
 
     // A command like "foo:bar" runs the "bar" script from the "foo" package.
     // If there is no colon prefix, default to the root package.
@@ -48,14 +48,14 @@ class RunCommand extends PubCommand {
       if (p.split(executable).length > 1) {
       // TODO(nweiz): Use adjacent strings when the new async/await compiler
       // lands.
-        usageError("Cannot run an executable in a subdirectory of a " +
+        usageException("Cannot run an executable in a subdirectory of a " +
             "dependency.");
       }
     }
 
     var mode;
-    if (commandOptions['mode'] != null) {
-      mode = new BarbackMode(commandOptions['mode']);
+    if (argResults['mode'] != null) {
+      mode = new BarbackMode(argResults['mode']);
     } else if (package == entrypoint.root.name) {
       mode = BarbackMode.DEBUG;
     } else {

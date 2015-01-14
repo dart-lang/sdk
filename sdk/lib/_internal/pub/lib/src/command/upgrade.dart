@@ -12,27 +12,27 @@ import '../solver/version_solver.dart';
 
 /// Handles the `upgrade` pub command.
 class UpgradeCommand extends PubCommand {
+  String get name => "upgrade";
   String get description =>
       "Upgrade the current package's dependencies to latest versions.";
-  String get usage => "pub upgrade [dependencies...]";
+  String get invocation => "pub upgrade [dependencies...]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-upgrade.html";
   List<String> get aliases => const ["update"];
-  bool get takesArguments => true;
 
-  bool get isOffline => commandOptions['offline'];
+  bool get isOffline => argResults['offline'];
 
   UpgradeCommand() {
-    commandParser.addFlag('offline',
+    argParser.addFlag('offline',
         help: 'Use cached packages instead of accessing the network.');
 
-    commandParser.addFlag('dry-run', abbr: 'n', negatable: false,
+    argParser.addFlag('dry-run', abbr: 'n', negatable: false,
         help: "Report what dependencies would change but don't change any.");
   }
 
-  Future onRun() async {
-    var dryRun = commandOptions['dry-run'];
+  Future run() async {
+    var dryRun = argResults['dry-run'];
     await entrypoint.acquireDependencies(SolveType.UPGRADE,
-        useLatest: commandOptions.rest, dryRun: dryRun);
+        useLatest: argResults.rest, dryRun: dryRun);
     if (isOffline) {
       log.warning("Warning: Upgrading when offline may not update you to the "
                   "latest versions of your dependencies.");

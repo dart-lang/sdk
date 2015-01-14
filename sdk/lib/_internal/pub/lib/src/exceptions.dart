@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import "package:analyzer/analyzer.dart";
+import 'package:args/command_runner.dart';
 import "package:http/http.dart" as http;
 import "package:stack_trace/stack_trace.dart";
 import "package:yaml/yaml.dart";
@@ -59,17 +60,6 @@ class WrappedException extends ApplicationException {
 class SilentException extends WrappedException {
   SilentException(innerError, [StackTrace innerTrace])
       : super(innerError.toString(), innerError, innerTrace);
-}
-
-/// A class for command usage exceptions.
-class UsageException extends ApplicationException {
-  /// The command usage information.
-  String _usage;
-
-  UsageException(String message, this._usage)
-      : super(message);
-
-  String toString() => "$message\n\n$_usage";
 }
 
 /// A class for errors in a command's input data.
@@ -124,5 +114,6 @@ bool isUserFacingException(error) {
     error is IsolateSpawnException ||
     error is IOException ||
     error is http.ClientException ||
-    error is YamlException;
+    error is YamlException ||
+    error is UsageException;
 }

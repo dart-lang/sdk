@@ -14,17 +14,19 @@ import '../utils.dart';
 
 /// Handles the `list-package-dirs` pub command.
 class ListPackageDirsCommand extends PubCommand {
+  String get name => "list-package-dirs";
   String get description => "Print local paths to dependencies.";
-  String get usage => "pub list-package-dirs";
+  String get invocation => "pub list-package-dirs";
+  bool get takesArguments => false;
   bool get hidden => true;
 
   ListPackageDirsCommand() {
-    commandParser.addOption("format",
+    argParser.addOption("format",
         help: "How output should be displayed.",
         allowed: ["json"]);
   }
 
-  Future onRun() {
+  Future run() {
     log.json.enabled = true;
 
     if (!entrypoint.lockFileExists) {

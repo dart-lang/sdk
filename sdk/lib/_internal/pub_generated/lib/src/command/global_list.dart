@@ -10,12 +10,13 @@ import '../command.dart';
 
 /// Handles the `global list` pub command.
 class GlobalListCommand extends PubCommand {
-  bool get allowTrailingOptions => false;
+  String get name => "list";
   String get description => 'List globally activated packages.';
-  String get usage => 'pub global list';
+  String get invocation => 'pub global list';
+  bool get allowTrailingOptions => false;
+  bool get takesArguments => false;
 
-  Future onRun() {
+  void run() {
     globals.listActivePackages();
-    return null;
   }
 }

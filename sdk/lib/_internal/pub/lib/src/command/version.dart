@@ -4,19 +4,17 @@
 
 library pub.command.version;
 
-import 'dart:async';
-
 import '../command.dart';
 import '../log.dart' as log;
 import '../sdk.dart' as sdk;
 
 /// Handles the `version` pub command.
 class VersionCommand extends PubCommand {
+  String get name => "version";
   String get description => "Print pub version.";
-  String get usage => "pub version";
+  String get invocation => "pub version";
 
-  Future onRun() {
+  void run() {
     log.message("Pub ${sdk.version}");
-    return null;
   }
 }
