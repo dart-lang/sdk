@@ -10,12 +10,12 @@ import '../constants/values.dart' show ConstantValue;
 import '../common.dart';
 
 class Program {
-  final List<Output> outputs;
+  final List<Fragment> fragments;
   final bool outputContainsConstantList;
-  /// A map from load id to the list of outputs that need to be loaded.
-  final Map<String, List<Output>> loadMap;
+  /// A map from load id to the list of fragments that need to be loaded.
+  final Map<String, List<Fragment>> loadMap;
 
-  Program(this.outputs, this.outputContainsConstantList, this.loadMap);
+  Program(this.fragments, this.outputContainsConstantList, this.loadMap);
 }
 
 /**
@@ -31,11 +31,12 @@ class Holder {
 /**
  * This class represents one output file.
  *
- * If no library is deferred, there is only one [Output] of type [MainOutput].
+ * If no library is deferred, there is only one [Fragment] of type
+ * [MainFragment].
  */
-abstract class Output {
-  bool get isMainOutput => mainOutput == this;
-  MainOutput get mainOutput;
+abstract class Fragment {
+  bool get isMainFragment => mainFragment == this;
+  MainFragment get mainFragment;
   final List<Library> libraries;
   final List<Constant> constants;
   // TODO(floitsch): should we move static fields into libraries or classes?
@@ -46,55 +47,55 @@ abstract class Output {
   /// Output file name without extension.
   final String outputFileName;
 
-  Output(this.outputFileName,
-         this.libraries,
-         this.staticNonFinalFields,
-         this.staticLazilyInitializedFields,
-         this.constants);
+  Fragment(this.outputFileName,
+           this.libraries,
+           this.staticNonFinalFields,
+           this.staticLazilyInitializedFields,
+           this.constants);
 }
 
 /**
  * The main output file.
  *
- * This code emitted from this [Output] must be loaded first. It can then load
- * other [DeferredOutput]s.
+ * This code emitted from this [Fragment] must be loaded first. It can then load
+ * other [DeferredFragment]s.
  */
-class MainOutput extends Output {
+class MainFragment extends Fragment {
   final js.Expression main;
   final List<Holder> holders;
 
-  MainOutput(String outputFileName,
-             this.main,
-             List<Library> libraries,
-             List<StaticField> staticNonFinalFields,
-             List<StaticField> staticLazilyInitializedFields,
-             List<Constant> constants,
-             this.holders)
+  MainFragment(String outputFileName,
+               this.main,
+               List<Library> libraries,
+               List<StaticField> staticNonFinalFields,
+               List<StaticField> staticLazilyInitializedFields,
+               List<Constant> constants,
+               this.holders)
       : super(outputFileName,
               libraries,
               staticNonFinalFields,
               staticLazilyInitializedFields,
               constants);
 
-  MainOutput get mainOutput => this;
+  MainFragment get mainFragment => this;
 }
 
 /**
  * An output (file) for deferred code.
  */
-class DeferredOutput extends Output {
-  final MainOutput mainOutput;
+class DeferredFragment extends Fragment {
+  final MainFragment mainFragment;
   final String name;
 
-  List<Holder> get holders => mainOutput.holders;
+  List<Holder> get holders => mainFragment.holders;
 
-  DeferredOutput(String outputFileName,
-                 this.name,
-                 this.mainOutput,
-                 List<Library> libraries,
-                 List<StaticField> staticNonFinalFields,
-                 List<StaticField> staticLazilyInitializedFields,
-                 List<Constant> constants)
+  DeferredFragment(String outputFileName,
+                   this.name,
+                   this.mainFragment,
+                   List<Library> libraries,
+                   List<StaticField> staticNonFinalFields,
+                   List<StaticField> staticLazilyInitializedFields,
+                   List<Constant> constants)
       : super(outputFileName,
               libraries,
               staticNonFinalFields,

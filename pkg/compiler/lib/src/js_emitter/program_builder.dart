@@ -49,9 +49,9 @@ class ProgramBuilder {
   /// update the superclass in the [Class].
   final Map<ClassElement, Class> _classes = <ClassElement, Class>{};
 
-  /// Mapping from [OutputUnit] to constructed [Output]. We need this to
+  /// Mapping from [OutputUnit] to constructed [Fragment]. We need this to
   /// generate the deferredLoadingMap (to know which hunks to load).
-  final Map<OutputUnit, Output> _outputs = <OutputUnit, Output>{};
+  final Map<OutputUnit, Fragment> _outputs = <OutputUnit, Fragment>{};
 
   /// Mapping from [ConstantValue] to constructed [Constant]. We need this to
   /// update field-initializers to point to the ConstantModel.
@@ -66,11 +66,11 @@ class ProgramBuilder {
     // $ holder so we have to register that. Can we track if we have to?
     _registry.registerHolder(r'$');
 
-    MainOutput mainOutput = _buildMainOutput(_registry.mainFragment);
-    Iterable<Output> deferredOutputs = _registry.deferredFragments
-        .map((fragment) => _buildDeferredOutput(mainOutput, fragment));
+    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
+    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
+        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
 
-    List<Output> outputs = new List<Output>(_registry.fragmentCount);
+    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
     outputs[0] = mainOutput;
     outputs.setAll(1, deferredOutputs);
 
@@ -98,13 +98,13 @@ class ProgramBuilder {
   }
 
   /// Builds a map from loadId to outputs-to-load.
-  Map<String, List<Output>> _buildLoadMap() {
+  Map<String, List<Fragment>> _buildLoadMap() {
     List<OutputUnit> convertHunks(List<OutputUnit> hunks) {
       return hunks.map((OutputUnit unit) => _outputs[unit])
           .toList(growable: false);
     }
 
-    Map<String, List<Output>> loadMap = <String, List<Output>>{};
+    Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
     _compiler.deferredLoadTask.hunksToLoad
         .forEach((String loadId, List<OutputUnit> outputUnits) {
       loadMap[loadId] = outputUnits
@@ -114,46 +114,48 @@ class ProgramBuilder {
     return loadMap;
   }
 
-  MainOutput _buildMainOutput(Fragment fragment) {
+  MainFragment _buildMainOutput(LibrariesMap librariesMap) {
     // Construct the main output from the libraries and the registered holders.
-    MainOutput result = new MainOutput(
+    MainFragment result = new MainFragment(
         "",  // The empty string is the name for the main output file.
         backend.emitter.staticFunctionAccess(_compiler.mainFunction),
-        _buildLibraries(fragment),
-        _buildStaticNonFinalFields(fragment),
-        _buildStaticLazilyInitializedFields(fragment),
-        _buildConstants(fragment),
+        _buildLibraries(librariesMap),
+        _buildStaticNonFinalFields(librariesMap),
+        _buildStaticLazilyInitializedFields(librariesMap),
+        _buildConstants(librariesMap),
         _registry.holders.toList(growable: false));
-    _outputs[fragment.outputUnit] = result;
+    _outputs[librariesMap.outputUnit] = result;
     return result;
   }
 
-  DeferredOutput _buildDeferredOutput(MainOutput mainOutput,
-                                      Fragment fragment) {
-    DeferredOutput result = new DeferredOutput(
-        backend.deferredPartFileName(fragment.name, addExtension: false),
-                                     fragment.name,
+  DeferredFragment _buildDeferredOutput(MainFragment mainOutput,
+                                      LibrariesMap librariesMap) {
+    DeferredFragment result = new DeferredFragment(
+        backend.deferredPartFileName(librariesMap.name, addExtension: false),
+                                     librariesMap.name,
         mainOutput,
-        _buildLibraries(fragment),
-        _buildStaticNonFinalFields(fragment),
-        _buildStaticLazilyInitializedFields(fragment),
-        _buildConstants(fragment));
-    _outputs[fragment.outputUnit] = result;
+        _buildLibraries(librariesMap),
+        _buildStaticNonFinalFields(librariesMap),
+        _buildStaticLazilyInitializedFields(librariesMap),
+        _buildConstants(librariesMap));
+    _outputs[librariesMap.outputUnit] = result;
     return result;
   }
 
-  List<Constant> _buildConstants(Fragment fragment) {
+  List<Constant> _buildConstants(LibrariesMap librariesMap) {
     List<ConstantValue> constantValues =
-        _task.outputConstantLists[fragment.outputUnit];
+        _task.outputConstantLists[librariesMap.outputUnit];
     if (constantValues == null) return const <Constant>[];
     return constantValues.map((ConstantValue value) => _constants[value])
         .toList(growable: false);
   }
 
-  List<StaticField> _buildStaticNonFinalFields(Fragment fragment) {
+  List<StaticField> _buildStaticNonFinalFields(LibrariesMap librariesMap) {
     // TODO(floitsch): handle static non-final fields correctly with deferred
     // libraries.
-    if (fragment != _registry.mainFragment) return const <StaticField>[];
+    if (librariesMap != _registry.mainLibrariesMap) {
+      return const <StaticField>[];
+    }
     Iterable<VariableElement> staticNonFinalFields =
         backend.constants.getStaticNonFinalFieldsForEmission();
     return Elements.sortedByPosition(staticNonFinalFields)
@@ -173,10 +175,13 @@ class ProgramBuilder {
                            isFinal, isLazy);
   }
 
-  List<StaticField> _buildStaticLazilyInitializedFields(Fragment fragment) {
+  List<StaticField> _buildStaticLazilyInitializedFields(
+      LibrariesMap librariesMap) {
     // TODO(floitsch): lazy fields should just be in their respective
     // libraries.
-    if (fragment != _registry.mainFragment) return const <StaticField>[];
+    if (librariesMap != _registry.mainLibrariesMap) {
+      return const <StaticField>[];
+    }
 
     JavaScriptConstantCompiler handler = backend.constants;
     List<VariableElement> lazyFields =
@@ -203,10 +208,10 @@ class ProgramBuilder {
                            isFinal, isLazy);
   }
 
-  List<Library> _buildLibraries(Fragment fragment) {
-    List<Library> libraries = new List<Library>(fragment.length);
+  List<Library> _buildLibraries(LibrariesMap librariesMap) {
+    List<Library> libraries = new List<Library>(librariesMap.length);
     int count = 0;
-    fragment.forEach((LibraryElement library, List<Element> elements) {
+    librariesMap.forEach((LibraryElement library, List<Element> elements) {
       libraries[count++] = _buildLibrary(library, elements);
     });
     return libraries;

@@ -4,11 +4,13 @@
 
 part of dart2js.js_emitter.program_builder;
 
-/// A Fragment maps [LibraryElement]s to their [Element]s.
+/// Maps [LibraryElement]s to their [Element]s.
 ///
 /// Fundamentally, this class nicely encapsulates a
 /// `Map<LibraryElement, List<Element>>`.
-class Fragment {
+///
+/// There exists exactly one instance per [OutputUnit].
+class LibrariesMap {
   final Map<LibraryElement, List<Element>> _mapping =
       <LibraryElement, List<Element>>{};
 
@@ -17,13 +19,13 @@ class Fragment {
   LibraryElement _lastLibrary;
   List<Element> _lastElements;
 
-  /// A unique name representing this fragment.
+  /// A unique name representing this instance.
   final String name;
   final OutputUnit outputUnit;
 
-  Fragment.main(this.outputUnit) : name = "";
+  LibrariesMap.main(this.outputUnit) : name = "";
 
-  Fragment.deferred(this.outputUnit, this.name) {
+  LibrariesMap.deferred(this.outputUnit, this.name) {
     assert(name != "");
   }
 
@@ -44,65 +46,69 @@ class Fragment {
 
 /// Keeps track of all elements and holders.
 ///
-/// This class assigns each registered element to its [Fragment] (which are in
-/// bijection with [OutputUnit]s).
+/// This class assigns each registered element to its [LibrariesMap] (which are
+/// in bijection with [OutputUnit]s).
 ///
 /// Registered holders are assigned a name.
 class Registry {
   final Compiler _compiler;
   final Map<String, Holder> _holdersMap = <String, Holder>{};
-  final Map<OutputUnit, Fragment> _deferredFragmentsMap =
-      <OutputUnit, Fragment>{};
+  final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap =
+      <OutputUnit, LibrariesMap>{};
 
   /// Cache for the last seen output unit.
   OutputUnit _lastOutputUnit;
-  Fragment _lastFragment;
+  LibrariesMap _lastLibrariesMap;
 
   DeferredLoadTask get _deferredLoadTask => _compiler.deferredLoadTask;
   Iterable<Holder> get holders => _holdersMap.values;
-  Iterable<Fragment> get deferredFragments => _deferredFragmentsMap.values;
-  // Add one for the main fragment.
-  int get fragmentCount => _deferredFragmentsMap.length + 1;
+  Iterable<LibrariesMap> get deferredLibrariesMap =>
+      _deferredLibrariesMap.values;
 
-  Fragment mainFragment;
+  // Add one for the main libraries map.
+  int get librariesMapCount => _deferredLibrariesMap.length + 1;
+
+  LibrariesMap mainLibrariesMap;
 
   Registry(this._compiler);
 
   bool get _isProgramSplit => _deferredLoadTask.isProgramSplit;
   OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
 
-  Fragment _mapUnitToFragment(OutputUnit targetUnit) {
-    if (targetUnit == _lastOutputUnit) return _lastFragment;
+  LibrariesMap _mapUnitToLibrariesMap(OutputUnit targetUnit) {
+    if (targetUnit == _lastOutputUnit) return _lastLibrariesMap;
 
-    if (mainFragment == null) {
-      mainFragment = new Fragment.main(_deferredLoadTask.mainOutputUnit);
+    if (mainLibrariesMap == null) {
+      mainLibrariesMap =
+          new LibrariesMap.main(_deferredLoadTask.mainOutputUnit);
     }
 
-    Fragment result;
+    LibrariesMap result;
     if (targetUnit == _mainOutputUnit) {
-      result = mainFragment;
+      result = mainLibrariesMap;
     } else {
       String name = targetUnit.name;
-      result = _deferredFragmentsMap.putIfAbsent(
-          targetUnit, () => new Fragment.deferred(targetUnit, name));
+      result = _deferredLibrariesMap.putIfAbsent(
+          targetUnit, () => new LibrariesMap.deferred(targetUnit, name));
     }
     _lastOutputUnit = targetUnit;
-    _lastFragment = result;
+    _lastLibrariesMap = result;
     return result;
   }
 
-  /// Adds all elements to their respective libraries in the correct fragment.
+  /// Adds all elements to their respective libraries in the correct
+  /// libraries map.
   void registerElements(OutputUnit outputUnit, List<Element> elements) {
-    Fragment targetFragment = _mapUnitToFragment(outputUnit);
+    LibrariesMap targetLibrariesMap = _mapUnitToLibrariesMap(outputUnit);
     for (Element element in Elements.sortedByPosition(elements)) {
-      targetFragment.add(element.library, element);
+      targetLibrariesMap.add(element.library, element);
     }
   }
 
   void registerConstant(OutputUnit outputUnit, ConstantValue constantValue) {
-    // We just need to make sure that the target fragment is registered.
-    // Otherwise a fragment that contains only constants is not built.
-    _mapUnitToFragment(outputUnit);
+    // We just need to make sure that the target library map is registered.
+    // Otherwise a library map that contains only constants is not built.
+    _mapUnitToLibrariesMap(outputUnit);
   }
 
   Holder registerHolder(String name) {
