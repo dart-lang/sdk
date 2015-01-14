@@ -7,6 +7,8 @@ library dart2js.new_js_emitter.model;
 import '../js/js.dart' as js show Expression;
 import '../constants/values.dart' show ConstantValue;
 
+import '../deferred_load.dart' show OutputUnit;
+
 import '../common.dart';
 
 class Program {
@@ -35,8 +37,10 @@ class Holder {
  * [MainFragment].
  */
 abstract class Fragment {
-  bool get isMainFragment => mainFragment == this;
-  MainFragment get mainFragment;
+  /// The outputUnit should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final OutputUnit outputUnit;
+
   final List<Library> libraries;
   final List<Constant> constants;
   // TODO(floitsch): should we move static fields into libraries or classes?
@@ -47,11 +51,15 @@ abstract class Fragment {
   /// Output file name without extension.
   final String outputFileName;
 
-  Fragment(this.outputFileName,
+  Fragment(this.outputUnit,
+           this.outputFileName,
            this.libraries,
            this.staticNonFinalFields,
            this.staticLazilyInitializedFields,
            this.constants);
+
+  bool get isMainFragment => mainFragment == this;
+  MainFragment get mainFragment;
 }
 
 /**
@@ -64,14 +72,16 @@ class MainFragment extends Fragment {
   final js.Expression main;
   final List<Holder> holders;
 
-  MainFragment(String outputFileName,
+  MainFragment(OutputUnit outputUnit,
+               String outputFileName,
                this.main,
                List<Library> libraries,
                List<StaticField> staticNonFinalFields,
                List<StaticField> staticLazilyInitializedFields,
                List<Constant> constants,
                this.holders)
-      : super(outputFileName,
+      : super(outputUnit,
+              outputFileName,
               libraries,
               staticNonFinalFields,
               staticLazilyInitializedFields,
@@ -89,14 +99,16 @@ class DeferredFragment extends Fragment {
 
   List<Holder> get holders => mainFragment.holders;
 
-  DeferredFragment(String outputFileName,
+  DeferredFragment(OutputUnit outputUnit,
+                   String outputFileName,
                    this.name,
                    this.mainFragment,
                    List<Library> libraries,
                    List<StaticField> staticNonFinalFields,
                    List<StaticField> staticLazilyInitializedFields,
                    List<Constant> constants)
-      : super(outputFileName,
+      : super(outputUnit,
+              outputFileName,
               libraries,
               staticNonFinalFields,
               staticLazilyInitializedFields,

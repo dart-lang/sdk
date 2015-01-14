@@ -123,6 +123,7 @@ class ProgramBuilder {
   MainFragment _buildMainOutput(LibrariesMap librariesMap) {
     // Construct the main output from the libraries and the registered holders.
     MainFragment result = new MainFragment(
+        librariesMap.outputUnit,
         "",  // The empty string is the name for the main output file.
         backend.emitter.staticFunctionAccess(_compiler.mainFunction),
         _buildLibraries(librariesMap),
@@ -137,6 +138,7 @@ class ProgramBuilder {
   DeferredFragment _buildDeferredOutput(MainFragment mainOutput,
                                       LibrariesMap librariesMap) {
     DeferredFragment result = new DeferredFragment(
+        librariesMap.outputUnit,
         backend.deferredPartFileName(librariesMap.name, addExtension: false),
                                      librariesMap.name,
         mainOutput,
