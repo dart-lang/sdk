@@ -4,6 +4,8 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_test.dart';
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
@@ -39,7 +41,7 @@ main() {
       d.libPubspec('foo', '1.0.0')
     ]).commit();
 
-    pubUpgrade();
+    pubUpgrade(output: contains("Changed 1 dependency!"));
 
     // When we download a new version of the git package, we should re-use the
     // git/cache directory but create a new git/ directory.

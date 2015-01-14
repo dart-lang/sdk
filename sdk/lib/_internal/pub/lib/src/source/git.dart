@@ -116,14 +116,34 @@ class GitSource extends CachedSource {
     return description;
   }
 
+  /// If [description] has a resolved ref, print it out in short-form.
+  ///
+  /// This helps distinguish different git commits with the same pubspec
+  /// version.
+  String formatDescription(String containingPath, description) {
+    if (description is Map && description.containsKey('resolved-ref')) {
+      return "${description['url']} at "
+          "${description['resolved-ref'].substring(0, 6)}";
+    } else {
+      return super.formatDescription(containingPath, description);
+    }
+  }
+
   /// Two Git descriptions are equal if both their URLs and their refs are
   /// equal.
   bool descriptionsEqual(description1, description2) {
     // TODO(nweiz): Do we really want to throw an error if you have two
     // dependencies on some repo, one of which specifies a ref and one of which
     // doesn't? If not, how do we handle that case in the version solver?
-    return _getUrl(description1) == _getUrl(description2) &&
-      _getRef(description1) == _getRef(description2);
+    if (_getUrl(description1) != _getUrl(description2)) return false;
+    if (_getRef(description1) != _getRef(description2)) return false;
+
+    if (description1 is Map && description1.containsKey('resolved-ref') &&
+        description2 is Map && description2.containsKey('resolved-ref')) {
+      return description1['resolved-ref'] == description2['resolved-ref'];
+    }
+
+    return true;
   }
 
   /// Attaches a specific commit to [id] to disambiguate it.
