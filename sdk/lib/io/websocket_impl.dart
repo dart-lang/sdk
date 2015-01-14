@@ -401,7 +401,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
       sha1.add("$key$_webSocketGUID".codeUnits);
       String accept = _CryptoUtils.bytesToBase64(sha1.close());
       response.headers.add("Sec-WebSocket-Accept", accept);
-      if (protocol != null && protocol.isNotEmpty) {
+      if (protocol != null) {
         response.headers.add("Sec-WebSocket-Protocol", protocol);
       }
       response.headers.contentLength = 0;
@@ -769,7 +769,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   static final HttpClient _httpClient = new HttpClient();
 
-  static Future<WebSocket> connect(String url, List<String> protocols) {
+  static Future<WebSocket> connect(
+      String url, Iterable<String> protocols, Map<String, dynamic> headers) {
     Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
@@ -795,15 +796,18 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
                   fragment: uri.fragment);
     return _httpClient.openUrl("GET", uri)
       .then((request) {
+        if (headers != null) {
+          headers.forEach((field, value) => request.headers.add(field, value));
+        }
         // Setup the initial handshake.
         request.headers
-            ..add(HttpHeaders.CONNECTION, "Upgrade")
+            ..set(HttpHeaders.CONNECTION, "Upgrade")
             ..set(HttpHeaders.UPGRADE, "websocket")
             ..set("Sec-WebSocket-Key", nonce)
             ..set("Cache-Control", "no-cache")
             ..set("Sec-WebSocket-Version", "13");
-        if (protocols.isNotEmpty) {
-          request.headers.add("Sec-WebSocket-Protocol", protocols);
+        if (protocols != null) {
+          request.headers.add("Sec-WebSocket-Protocol", protocols.toList());
         }
         return request.close();
       })

@@ -5,7 +5,7 @@
 part of dart.io;
 
 /**
- * Web socket status codes used when closing a web socket connection.
+ * WebSocket status codes used when closing a WebSocket connection.
  */
 abstract class WebSocketStatus {
   static const int NORMAL_CLOSURE = 1000;
@@ -49,7 +49,7 @@ abstract class WebSocketStatus {
  *
  *     server.transform(new WebSocketTransformer()).listen((webSocket) => ...);
  *
- * This transformer strives to implement web sockets as specified by RFC6455.
+ * This transformer strives to implement WebSockets as specified by RFC6455.
  */
 abstract class WebSocketTransformer
     implements StreamTransformer<HttpRequest, WebSocket> {
@@ -68,7 +68,7 @@ abstract class WebSocketTransformer
 
   /**
    * Upgrades a [HttpRequest] to a [WebSocket] connection. If the
-   * request is not a valid web socket upgrade request a HTTP response
+   * request is not a valid WebSocket upgrade request an HTTP response
    * with status code 500 will be returned. Otherwise the returned
    * future will complete with the [WebSocket] when the upgrade pocess
    * is complete.
@@ -125,13 +125,33 @@ abstract class WebSocket implements Stream, StreamSink {
   Duration pingInterval;
 
   /**
-   * Create a new web socket connection. The URL supplied in [url]
-   * must use the scheme [:ws:] or [:wss:]. The [protocols] argument is
-   * specifying the subprotocols the client is willing to speak.
+   * Create a new WebSocket connection. The URL supplied in [url]
+   * must use the scheme `ws` or `wss`.
+   *
+   * The [protocols] argument is specifying the subprotocols the
+   * client is willing to speak.
+   *
+   * The [headers] argument is specifying additional HTTP headers for
+   * setting up the connection. This would typically be the `Origin`
+   * header and potentially cookies. The keys of the map are the header
+   * fields and the values are either String or List<String>.
+   *
+   * If [headers] is provided, there are a number of headers
+   * which are controlled by the WebSocket connection process. These
+   * headers are:
+   *
+   *   - `connection`
+   *   - `sec-websocket-key`
+   *   - `sec-websocket-protocol`
+   *   - `sec-websocket-version`
+   *   - `upgrade`
+   *
+   * If any of these are passed in the `headers` map they will be ignored.
    */
   static Future<WebSocket> connect(String url,
-                                   {List<String> protocols: const []}) =>
-      _WebSocketImpl.connect(url, protocols);
+                                   {Iterable<String> protocols,
+                                    Map<String, dynamic> headers}) =>
+      _WebSocketImpl.connect(url, protocols, headers);
 
   @Deprecated('This constructor will be removed in Dart 2.0. Use `implements`'
       ' instead of `extends` if implementing this abstract class.')
@@ -168,33 +188,33 @@ abstract class WebSocket implements Stream, StreamSink {
 
   /**
    * The extensions property is initially the empty string. After the
-   * web socket connection is established this string reflects the
+   * WebSocket connection is established this string reflects the
    * extensions used by the server.
    */
   String get extensions;
 
   /**
    * The protocol property is initially the empty string. After the
-   * web socket connection is established the value is the subprotocol
+   * WebSocket connection is established the value is the subprotocol
    * selected by the server. If no subprotocol is negotiated the
    * value will remain [:null:].
    */
   String get protocol;
 
   /**
-   * The close code set when the web socket connection is closed. If
+   * The close code set when the WebSocket connection is closed. If
    * there is no close code available this property will be [:null:]
    */
   int get closeCode;
 
   /**
-   * The close reason set when the web socket connection is closed. If
+   * The close reason set when the WebSocket connection is closed. If
    * there is no close reason available this property will be [:null:]
    */
   String get closeReason;
 
   /**
-   * Closes the web socket connection. Set the optional [code] and [reason]
+   * Closes the WebSocket connection. Set the optional [code] and [reason]
    * arguments to send close information to the remote peer. If they are
    * omitted, the peer will see [WebSocketStatus.NO_STATUS_RECEIVED] code
    * with no reason.
@@ -202,13 +222,13 @@ abstract class WebSocket implements Stream, StreamSink {
   Future close([int code, String reason]);
 
   /**
-   * Sends data on the web socket connection. The data in [data] must
+   * Sends data on the WebSocket connection. The data in [data] must
    * be either a [:String:], or a [:List<int>:] holding bytes.
    */
   void add(data);
 
   /**
-   * Sends data from a stream on web socket connection. Each data event from
+   * Sends data from a stream on WebSocket connection. Each data event from
    * [stream] will be send as a single WebSocket frame. The data from [stream]
    * must be either [:String:]s, or [:List<int>:]s holding bytes.
    */
