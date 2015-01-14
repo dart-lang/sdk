@@ -154,6 +154,11 @@ class AnalysisServer {
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
+   * The option possibly set from the server initialization which disables error notifications.
+   */
+  bool _noErrorNotification;
+
+  /**
    * The controller that is notified when analysis is started.
    */
   StreamController<AnalysisContext> _onAnalysisStartedController;
@@ -201,6 +206,7 @@ class AnalysisServer {
         analysisServerOptions.enableIncrementalResolutionApi;
     contextDirectoryManager.defaultOptions.incrementalValidation =
         analysisServerOptions.enableIncrementalResolutionValidation;
+    _noErrorNotification = analysisServerOptions.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
@@ -839,8 +845,8 @@ class AnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    // TODO(scheglov) add support for the "--no-error-notification" flag.
-    return contextDirectoryManager.isInAnalysisRoot(file);
+    return !_noErrorNotification &&
+        contextDirectoryManager.isInAnalysisRoot(file);
   }
 
   void shutdown() {
@@ -941,6 +947,7 @@ class AnalysisServer {
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
+  bool noErrorNotification = false;
 }
 
 /**

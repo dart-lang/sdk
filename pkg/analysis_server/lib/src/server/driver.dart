@@ -193,6 +193,7 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
@@ -312,7 +313,7 @@ class Driver implements ServerStarter {
     parser.addFlag(
         NO_ERROR_NOTIFICATION,
         help:
-            "disable sending all analysis error notifications to the server (not yet implemented)",
+            "disable sending all analysis error notifications to the server",
         defaultsTo: false,
         negatable: false);
 
