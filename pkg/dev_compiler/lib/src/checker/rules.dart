@@ -106,6 +106,16 @@ class RestrictedRules extends TypeRules {
     return true;
   }
 
+  FunctionType getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      ClassElement element = t.element;
+      InheritanceManager manager = new InheritanceManager(element.library);
+      FunctionType callType = manager.lookupMemberType(t, "call");
+      return callType;
+    }
+    return null;
+  }
+
   /// Check that f1 is a subtype of f2. [ignoreReturn] is used in the DDC
   /// checker to determine whether f1 would be a subtype of f2 if the return
   /// type of f1 is set to match f2's return type.
@@ -249,12 +259,12 @@ class RestrictedRules extends TypeRules {
     if (t1 is! FunctionType && t2 is! FunctionType) return false;
 
     if (t1 is InterfaceType && t2 is FunctionType) {
-      // TODO(leafp): check t1 for a call method of the appropriate type
-      return false;
+      var callType = getCallMethodType(t1);
+      if (callType == null) return false;
+      return isFunctionSubTypeOf(callType, t2 as FunctionType);
     }
 
     if (t1 is FunctionType && t2 is InterfaceType) {
-      // TODO(leafp): check t2 for a call method of the appropriate type
       return false;
     }
 
@@ -374,6 +384,16 @@ class RestrictedRules extends TypeRules {
     // For now, we always wrap closures.
     if (wrap && fromT is FunctionType && toT is FunctionType) {
       return _wrapTo(fromT, toT);
+    }
+
+    // For now, reject conversions between function types and
+    // call method objects.  We could choose to allow casts here.
+    // Wrapping a function type to assign it to a call method
+    // object will never succeed.  Wrapping the other way could
+    // be allowed.
+    if ((fromT is FunctionType && getCallMethodType(toT) != null) ||
+        (toT is FunctionType && getCallMethodType(fromT) != null)) {
+      return Coercion.error();
     }
 
     // Downcast if toT <: fromT

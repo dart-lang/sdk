@@ -111,12 +111,12 @@ void main(List<String> argv) {
 
   Map json = JSON.decode(new File(filename).readAsStringSync());
   var summary = GlobalSummary.parse(json);
-  var excludePattern = (args['exclude-pattern'] != null) ?
-      new RegExp(args['exclude-pattern']) :
-      null;
-  var includePattern = (args['include-pattern'] != null) ?
-      new RegExp(args['include-pattern']) :
-      null;
+  var excludePattern = (args['exclude-pattern'] != null)
+      ? new RegExp(args['exclude-pattern'])
+      : null;
+  var includePattern = (args['include-pattern'] != null)
+      ? new RegExp(args['include-pattern'])
+      : null;
 
   var visitor = new EditFileSummaryVisitor(typeResolver, args['level'],
       args['checkout-files-executable'], args['checkout-files-arg'],

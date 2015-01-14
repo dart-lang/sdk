@@ -47,9 +47,9 @@ CheckerResults testChecker(Map<String, String> testFiles, {bool mockSdk: true,
       reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
-  var dartUriResolver = mockSdk ?
-      TypeResolver.sdkResolverFromMock(mockSdkSources) :
-      TypeResolver.sdkResolverFromDir(dartSdkDirectory);
+  var dartUriResolver = mockSdk
+      ? TypeResolver.sdkResolverFromMock(mockSdkSources)
+      : TypeResolver.sdkResolverFromDir(dartSdkDirectory);
   var testUriResolver = new _TestUriResolver(testFiles);
   var resolver = new TypeResolver(dartUriResolver, [testUriResolver]);
 
@@ -288,9 +288,9 @@ class _TestSource implements Source {
   Uri resolveRelativeUri(Uri relativeUri) => uri.resolveUri(relativeUri);
 
   SourceSpan spanFor(AstNode node) {
-    final begin = node is AnnotatedNode ?
-        node.firstTokenAfterCommentAndMetadata.offset :
-        node.offset;
+    final begin = node is AnnotatedNode
+        ? node.firstTokenAfterCommentAndMetadata.offset
+        : node.offset;
     return _file.span(begin, node.end);
   }
 

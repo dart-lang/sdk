@@ -122,9 +122,9 @@ var _initializer = (function ($params) {
       List<String> initializedFields, bool needsInitializer) {
     var fieldParameters = ctor == null ? [] : getFieldFormalParameters(ctor);
 
-    var initializers = ctor == null ?
-        {} :
-        new Map.fromIterable(
+    var initializers = ctor == null
+        ? {}
+        : new Map.fromIterable(
             ctor.initializers.where((i) => i is ConstructorFieldInitializer),
             key: (i) => i.fieldName.name);
 
@@ -794,9 +794,9 @@ var $name = (function (_super) {
 
   String getLibraryId(LibraryElement element) {
     var libraryName = element.name;
-    return _builtins.containsKey(libraryName) ?
-        _builtins[libraryName] :
-        libraryName;
+    return _builtins.containsKey(libraryName)
+        ? _builtins[libraryName]
+        : libraryName;
   }
 
   void writeQualifiedName(Expression target, SimpleIdentifier id) {

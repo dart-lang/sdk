@@ -167,7 +167,10 @@ abstract class DownCastBase extends Conversion {
       : super(rules, expression) {
     assert(_cast.toType != baseType &&
         _cast.fromType == baseType &&
-        (baseType.isDynamic || baseType.isAssignableTo(_cast.toType)));
+        (baseType.isDynamic ||
+            // Call methods make the following non-redundant
+            _cast.toType.isSubtypeOf(baseType) ||
+            baseType.isAssignableTo(_cast.toType)));
   }
 
   Cast get cast => _cast;
@@ -203,7 +206,9 @@ class DownCast extends DownCastBase {
     final toT = cast.toType;
 
     // toT <:_R fromT => to <: fromT
-    assert(toT.isAssignableTo(fromT));
+    // NB: classes with call methods are subtypes of function
+    // types, but the function type is not assignable to the class
+    assert(toT.isSubtypeOf(fromT) || fromT.isAssignableTo(toT));
 
     // Specialized casts:
     if (expression is Literal) {

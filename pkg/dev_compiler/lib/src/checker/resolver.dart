@@ -34,9 +34,9 @@ class TypeResolver {
     var resolvers = [sdkResolver];
     if (otherResolvers == null) {
       resolvers.add(new FileUriResolver());
-      resolvers.add(_useMultipackage ?
-          new MultiPackageResolver() :
-          new PackageUriResolver([new JavaFile('packages/')]));
+      resolvers.add(_useMultipackage
+          ? new MultiPackageResolver()
+          : new PackageUriResolver([new JavaFile('packages/')]));
     } else {
       resolvers.addAll(otherResolvers);
     }

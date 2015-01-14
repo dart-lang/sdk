@@ -485,8 +485,8 @@ class _Counter extends RecursiveSummaryVisitor {
 
 /// Returns a [SourceSpan] in [file] for the offsets of [node].
 SourceSpan _spanForNode(SourceFile file, AstNode node) {
-  final begin = node is AnnotatedNode ?
-      node.firstTokenAfterCommentAndMetadata.offset :
-      node.offset;
+  final begin = node is AnnotatedNode
+      ? node.firstTokenAfterCommentAndMetadata.offset
+      : node.offset;
   return file.span(begin, node.end);
 }

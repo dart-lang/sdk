@@ -75,9 +75,9 @@ void main(List<String> argv) {
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
   if (!args['dump-info']) setupLogger(level, print);
 
-  var typeResolver = new TypeResolver(shouldMockSdk ?
-      TypeResolver.sdkResolverFromMock(mockSdkSources) :
-      TypeResolver.sdkResolverFromDir(dartSdkPath));
+  var typeResolver = new TypeResolver(shouldMockSdk
+      ? TypeResolver.sdkResolverFromMock(mockSdkSources)
+      : TypeResolver.sdkResolverFromDir(dartSdkPath));
 
   var filename = args.rest.first;
   compile(filename, typeResolver,

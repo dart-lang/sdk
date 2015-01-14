@@ -679,6 +679,71 @@ main() {
     });
   });
 
+  test('Function subtyping: objects with call methods', () {
+    testChecker({
+      '/main.dart': '''
+
+      typedef int I2I(int x);
+      typedef num N2N(num x);
+      class A {
+         int call(int x) => x;
+      }
+      class B {
+         num call(num x) => x;
+      }
+      int i2i(int x) => x;
+      num n2n(num x) => x;
+      void main() {
+         {
+           I2I f;
+           f = new A();
+           f = /*severe:StaticTypeError*/new B();
+           f = i2i;
+           f = /*warning:ClosureWrap*/n2n;
+           f = /*warning:DownCast*/(i2i as Object);
+           f = /*warning:DownCast*/(n2n as Function);
+         }
+         {
+           N2N f;
+           f = /*severe:StaticTypeError*/new A();
+           f = new B();
+           f = /*warning:ClosureWrap*/i2i;
+           f = n2n;
+           f = /*warning:DownCast*/(i2i as Object);
+           f = /*warning:DownCast*/(n2n as Function);
+         }
+         {
+           A f;
+           f = new A();
+           f = /*severe:StaticTypeError*/new B();
+           f = /*severe:StaticTypeError*/i2i;
+           f = /*severe:StaticTypeError*/n2n;
+           f = /*info:DownCast*/(i2i as Object);
+           f = /*info:DownCast*/(n2n as Function);
+         }
+         {
+           B f;
+           f = /*severe:StaticTypeError*/new A();
+           f = new B();
+           f = /*severe:StaticTypeError*/i2i;
+           f = /*severe:StaticTypeError*/n2n;
+           f = /*info:DownCast*/(i2i as Object);
+           f = /*info:DownCast*/(n2n as Function);
+         }
+         {
+           Function f;
+           f = new A();
+           f = new B();
+           f = i2i;
+           f = n2n;
+           f = /*info:DownCast*/(i2i as Object);
+           f = (n2n as Function);
+         }
+      }
+   '''
+    });
+  });
+
   test('Closure wrapping of literals', () {
     testChecker({
       '/main.dart': '''

@@ -60,10 +60,10 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
 
   // Generate code.
   if (outputDir != null) {
-    var cg = outputDart ?
-        new DartGenerator(
-            outputDir, uri, results.libraries, results.rules, formatOutput) :
-        new JSGenerator(outputDir, uri, results.libraries, results.rules);
+    var cg = outputDart
+        ? new DartGenerator(
+            outputDir, uri, results.libraries, results.rules, formatOutput)
+        : new JSGenerator(outputDir, uri, results.libraries, results.rules);
     return cg.generate().then((_) => true);
   }
 
