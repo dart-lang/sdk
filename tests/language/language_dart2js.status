@@ -5,6 +5,21 @@
 [ $compiler == dart2js && $csp && $browser ]
 deferred_mixin_test: RuntimeError # Issue 21863
 
+[ $compiler == dart2js ]
+async_control_structures_test: CompileTimeError # Issue 21411
+async_test/none: CompileTimeError # Issue 21411
+async_test/type-mismatch1: CompileTimeError # Issue 21411
+async_test/type-mismatch2: CompileTimeError # Issue 21411
+async_test/type-mismatch3: CompileTimeError # Issue 21411
+async_test/type-mismatch4: CompileTimeError # Issue 21411
+await_backwards_compatibility_test/none: CompileTimeError # Issue 21411
+await_exceptions_test: CompileTimeError # Issue 21411
+await_for_test: CompileTimeError # Issue 21411
+await_future_test: CompileTimeError # Issue 21411
+await_nonfuture_test: CompileTimeError # Issue 21411
+await_regression_test: CompileTimeError # Issue 21411
+await_test: CompileTimeError # Issue 21411
+
 [ $compiler == dart2js || $compiler == dart2dart ]
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363

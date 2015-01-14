@@ -48,7 +48,7 @@ class B {
   const B._internal(this._y);
   const factory B.createConst(int y) async = A._internal;  /// constructor4: compile-time error
 
-  B();
+  B() : _y = null;
 
   set dontDoThat(value) async {}  /// setter1: compile-time error
 }

@@ -3,6 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+await_backwards_compatibility_test/none: CompileTimeError # Issue 22052
+await_test: CompileTimeError # Issue 22052
+
+async_test/type-mismatch2: MissingStaticWarning # Issue 22053
+async_test/type-mismatch3: MissingStaticWarning # Issue 22053
+async_test/type-mismatch4: MissingStaticWarning # Issue 22053
+
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 

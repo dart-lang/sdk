@@ -17,30 +17,21 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 
-[ $runtime != vm ]
-# Async/await is currently only supported by the vm.
-async_test/*: Skip
-async_control_structures_test: Skip
-await_test: Skip
-await_regression_test: Skip
-await_for_test: Skip
-await_future_test: Skip
-await_nonfuture_test: Skip
-await_exceptions_test: Skip
-await_backwards_compatibility_test/*: Skip
-vm/optimized_await_regress_test: Skip
-
 [ $compiler == dart2dart]
-# Async/await not yet supported in dart2dart.
-async_test/*: Skip
-async_control_structures_test: Skip
-await_test: Skip
-await_regression_test: Skip
-await_for_test: Skip
-await_future_test: Skip
-await_nonfuture_test: Skip
-await_exceptions_test: Skip
-await_backwards_compatibility_test/*: Skip
+async_control_structures_test: CompileTimeError # Issue 22051
+async_test/none: CompileTimeError # Issue 22051
+async_test/type-mismatch1: CompileTimeError # Issue 22051
+async_test/type-mismatch2: CompileTimeError # Issue 22051
+async_test/type-mismatch3: CompileTimeError # Issue 22051
+async_test/type-mismatch4: CompileTimeError # Issue 22051
+await_backwards_compatibility_test/none: CompileTimeError # Issue 22051
+await_exceptions_test: CompileTimeError # Issue 22051
+await_for_test: CompileTimeError # Issue 22051
+await_future_test: CompileTimeError # Issue 22051
+await_nonfuture_test: CompileTimeError # Issue 22051
+await_regression_test: CompileTimeError # Issue 22051
+await_test: CompileTimeError # Issue 22051
+
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
 deferred_not_loaded_check_test: Fail # Issue 17523
