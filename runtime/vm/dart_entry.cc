@@ -54,6 +54,26 @@ class ScopedIsolateStackLimits : public ValueObject {
 };
 
 
+// Clears/restores Isolate::long_jump_base on construction/destruction.
+// Ensures that we do not attempt to long jump across Dart frames.
+class SuspendLongJumpScope : public StackResource {
+ public:
+  explicit SuspendLongJumpScope(Isolate* isolate)
+      : StackResource(isolate),
+        saved_long_jump_base_(isolate->long_jump_base()) {
+    isolate->set_long_jump_base(NULL);
+  }
+
+  ~SuspendLongJumpScope() {
+    ASSERT(isolate()->long_jump_base() == NULL);
+    isolate()->set_long_jump_base(saved_long_jump_base_);
+  }
+
+ private:
+  LongJumpScope* saved_long_jump_base_;
+};
+
+
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
                                      const Array& arguments_descriptor) {
@@ -75,6 +95,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(isolate);
+  SuspendLongJumpScope suspend_long_jump_scope(isolate);
 #if defined(USING_SIMULATOR)
 #if defined(ARCH_IS_64_BIT)
   // TODO(zra): Change to intptr_t so we have only one case.
