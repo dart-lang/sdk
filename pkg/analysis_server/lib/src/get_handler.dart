@@ -396,6 +396,13 @@ class GetHandler {
       } else {
         response.write('<p>Running (not analyzing)</p>');
       }
+      response.write('<p>Instrumentation status: ');
+      if (AnalysisEngine.instance.instrumentationService.isActive) {
+        response.write('<span style="color:red">active</span>');
+      } else {
+        response.write('inactive');
+      }
+      response.write('</p>');
       response.write('<h1>Analysis Contexts</h1>');
       response.write('<h2>Summary</h2>');
       response.write('<table>');
