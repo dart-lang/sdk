@@ -216,11 +216,7 @@ class _NumberBuffer {
   }
 
   String getString() {
-    var list = this.list;
-    if (length < list.length) {
-      list = new Uint8List.view(list.buffer, 0, length);
-    }
-    String result = new String.fromCharCodes(list);
+    String result = new String.fromCharCodes(list, 0, length);
     return result;
   }
 
@@ -548,8 +544,13 @@ abstract class _ChunkedJsonParser {
    * underlying source.
    *
    * This is used for string literals that contain no escapes.
+   *
+   * The [bits] integer is an upper bound on the code point in the range
+   * from `start` to `end`.
+   * Usually found by doing bitwise or of all the values.
+   * The function may choose to optimize depending on the value.
    */
-  String getString(int start, int end);
+  String getString(int start, int end, int bits);
 
   /**
    * Parse a slice of the current chunk as an integer.
@@ -557,7 +558,8 @@ abstract class _ChunkedJsonParser {
    * The format is expected to be correct.
    */
   int parseInt(int start, int end) {
-    return int.parse(getString(start, end));
+    const int asciiBits = 0x7f;  // Integer literals are ASCII only.
+    return int.parse(getString(start, end, asciiBits));
   }
 
   /**
@@ -568,7 +570,8 @@ abstract class _ChunkedJsonParser {
    * built exactly during parsing.
    */
   double parseDouble(int start, int end) {
-    return double.parse(getString(start, end));
+    const int asciiBits = 0x7f;  // Double literals are ASCII only.
+    return double.parse(getString(start, end, asciiBits));
   }
 
   /**
@@ -971,8 +974,10 @@ abstract class _ChunkedJsonParser {
     // Initial position is right after first '"'.
     int start = position;
     int end = chunkEnd;
+    int bits = 0;
     while (position < end) {
       int char = getChar(position++);
+      bits |= char;  // Includes final '"', but that never matters.
       // BACKSLASH is larger than QUOTE and SPACE.
       if (char > BACKSLASH) {
         continue;
@@ -981,10 +986,10 @@ abstract class _ChunkedJsonParser {
         beginString();
         int sliceEnd = position - 1;
         if (start < sliceEnd) addSliceToString(start, sliceEnd);
-        return parseStringToBuffer(position - 1);
+        return parseStringToBuffer(sliceEnd);
       }
       if (char == QUOTE) {
-        listener.handleString(getString(start, position - 1));
+        listener.handleString(getString(start, position - 1, bits));
         return position;
       }
       if (char < SPACE) {
@@ -1322,7 +1327,7 @@ class _JsonStringParser extends _ChunkedJsonParser {
 
   int getChar(int position) => chunk.codeUnitAt(position);
 
-  String getString(int start, int end) {
+  String getString(int start, int end, int bits) {
     return chunk.substring(start, end);
   }
 
@@ -1668,7 +1673,11 @@ class _JsonUtf8Parser extends _ChunkedJsonParser {
 
   int getChar(int position) => chunk[position];
 
-  String getString(int start, int end) {
+  String getString(int start, int end, int bits) {
+    const int maxAsciiChar = 0x7f;
+    if (bits <= maxAsciiChar) {
+      return new String.fromCharCodes(chunk, start, end);
+    }
     beginString();
     if (start < end) addSliceToString(start, end);
     String result = endString();
@@ -1701,7 +1710,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParser {
   }
 
   double parseDouble(int start, int end) {
-    String string = getString(start, end);
+    String string = getString(start, end, 0x7f);
     return _parseDouble(string, 0, string.length);
   }
 }
