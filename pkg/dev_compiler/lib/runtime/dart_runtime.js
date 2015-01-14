@@ -69,4 +69,9 @@ var dart_runtime;
   }
   dart_runtime.isGroundType = isGroundType;
 
+  function arity(f) {
+    // TODO(vsm): Implement.
+    throw new dart_core.UnimplementedError();
+  }
+  dart_runtime.arity = arity;
 })(dart_runtime || (dart_runtime = {}));

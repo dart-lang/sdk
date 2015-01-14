@@ -16,6 +16,7 @@ dynamic dinvokef(dynamic f, List args) {
   return Function.apply(f, args);
 }
 
+// TODO(vsm): Update with new covariance rules.
 dynamic cast(dynamic obj, Type staticType) {
   // This is our 'as' equivalent.
   if (obj == null) {
@@ -29,6 +30,7 @@ dynamic cast(dynamic obj, Type staticType) {
   throw new CastError();
 }
 
+// TODO(vsm): Update with new covariance rules.
 bool instanceOf(dynamic obj, Type staticType) {
   // This is our 'is' equivalent.
   if (obj == null) {
@@ -62,6 +64,33 @@ bool isGroundType(Type type) {
 bool isPrimitiveType(Type t) {
   if (t == int || t == double || t == bool) return true;
   return false;
+}
+
+class Arity {
+  final int normal;
+  final int optionalPositional;
+
+  Arity._internal(this.normal, this.optionalPositional);
+
+  int get min => normal;
+  int get max => normal + optionalPositional;
+}
+
+Arity getArity(Function f) {
+  final FunctionTypeMirror mirror = reflectType(f.runtimeType);
+  final parameters = mirror.parameters;
+  int normal = 0;
+  int optionalPositional = 0;
+  for (var parameter in parameters) {
+    if (parameter.isNamed) {
+      // Ignore named parameters - these cannot be passed positionally.
+    } else if (parameter.isOptional) {
+      optionalPositional++;
+    } else {
+      normal++;
+    }
+  }
+  return new Arity._internal(normal, optionalPositional);
 }
 
 bool _isFunctionSubType(TypeMirror t1, TypeMirror t2) {

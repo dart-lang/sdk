@@ -59,6 +59,12 @@ void checkType(x, Type type, [bool expectedTrue = true]) {
   expect(!(dartSubType && isGround) || restrictedSubType, isTrue);
 }
 
+void checkArity(Function f, int min, int max) {
+  Arity arity = getArity(f);
+  expect(arity.min, equals(min));
+  expect(arity.max, equals(max));
+}
+
 void main() {
   test('int', () {
     expect(isGroundType(int), isTrue);
@@ -168,5 +174,15 @@ void main() {
     checkType(bar8, bar6.runtimeType, false);
     checkType(bar7, bar8.runtimeType, false);
     checkType(bar8, bar7.runtimeType, false);
+  });
+
+  test('arity', () {
+    checkArity(bar1, 2, 2);
+    checkArity(bar4, 2, 2);
+    checkArity(bar6, 3, 3);
+    checkArity(bar7, 2, 3);
+    checkArity(bar8, 2, 2);
+    checkArity(() {}, 0, 0);
+    checkArity((a, [b]) {}, 1, 2);
   });
 }
