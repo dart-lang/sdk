@@ -436,7 +436,8 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   object##_handle_(NULL),
 
 Isolate::Isolate()
-    : store_buffer_(),
+    : vm_tag_(0),
+      store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
@@ -495,7 +496,8 @@ Isolate::Isolate()
 }
 
 Isolate::Isolate(Isolate* original)
-    : store_buffer_(true),
+    : vm_tag_(0),
+      store_buffer_(true),
       class_table_(original->class_table()),
       message_notify_callback_(NULL),
       name_(NULL),

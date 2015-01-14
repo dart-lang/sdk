@@ -98,14 +98,6 @@ class BaseIsolate {
   static void AssertCurrent(BaseIsolate* isolate);
 #endif
 
-  uword vm_tag() const {
-    return vm_tag_;
-  }
-
-  void set_vm_tag(uword tag) {
-    vm_tag_ = tag;
-  }
-
  protected:
   BaseIsolate()
       : top_resource_(NULL),
@@ -115,8 +107,7 @@ class BaseIsolate {
         no_handle_scope_depth_(0),
         no_gc_scope_depth_(0),
 #endif
-        no_callback_scope_depth_(0),
-        vm_tag_(0)
+        no_callback_scope_depth_(0)
   {}
 
   ~BaseIsolate() {
@@ -131,7 +122,6 @@ class BaseIsolate {
   int32_t no_gc_scope_depth_;
 #endif
   int32_t no_callback_scope_depth_;
-  uword vm_tag_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);
