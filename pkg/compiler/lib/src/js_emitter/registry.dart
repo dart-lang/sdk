@@ -98,7 +98,7 @@ class Registry {
 
   /// Adds all elements to their respective libraries in the correct
   /// libraries map.
-  void registerElements(OutputUnit outputUnit, List<Element> elements) {
+  void registerElements(OutputUnit outputUnit, Iterable<Element> elements) {
     LibrariesMap targetLibrariesMap = _mapUnitToLibrariesMap(outputUnit);
     for (Element element in Elements.sortedByPosition(elements)) {
       targetLibrariesMap.add(element.library, element);

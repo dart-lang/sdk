@@ -61,6 +61,7 @@ class ProgramBuilder {
     _task.outputClassLists.forEach(_registry.registerElements);
     _task.outputStaticLists.forEach(_registry.registerElements);
     _task.outputConstantLists.forEach(_registerConstants);
+    _task.outputStaticNonFinalFieldLists.forEach(_registry.registerElements);
 
     // TODO(kasperl): There's code that implicitly needs access to the special
     // $ holder so we have to register that. Can we track if we have to?
@@ -437,7 +438,8 @@ class ProgramBuilder {
   }
 
   void _registerConstants(OutputUnit outputUnit,
-                          List<ConstantValue> constantValues) {
+                          Iterable<ConstantValue> constantValues) {
+    // `constantValues` is null if an outputUnit doesn't contain any constants.
     if (constantValues == null) return;
     for (ConstantValue constantValue in constantValues) {
       _registry.registerConstant(outputUnit, constantValue);
@@ -447,6 +449,6 @@ class ProgramBuilder {
       Holder holder = _registry.registerHolder(constantObject);
       Constant constant = new Constant(name, holder, constantValue);
       _constants[constantValue] = constant;
-    };
+    }
   }
 }
