@@ -39,6 +39,12 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.UNIMPLEMENTED_METHOD_ONE,
     MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
     MessageKind.VOID_NOT_ALLOWED,
+
+    MessageKind.INVALID_STARRED_KEYWORD, // TODO(ahe): Have CL to fix this.
+    MessageKind.INVALID_SYNC_MODIFIER, // TODO(ahe): Have CL to fix this.
+    MessageKind.NATIVE_NOT_SUPPORTED, // TODO(ahe): Have CL to fix this.
+    MessageKind.UNMATCHED_TOKEN, // TODO(ahe): Have CL to fix this.
+    MessageKind.UNTERMINATED_STRING, // TODO(ahe): Have CL to fix this.
 ]);
 
 /// Most messages can be tested without causing a fatal error. Add an exception

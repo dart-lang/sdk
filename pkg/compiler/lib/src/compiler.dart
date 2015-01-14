@@ -1378,7 +1378,8 @@ abstract class Compiler implements DiagnosticListener {
     _coreTypes.iterableClass = lookupCoreClass('Iterable');
     _coreTypes.symbolClass = lookupCoreClass('Symbol');
     if (!missingCoreClasses.isEmpty) {
-      internalError(coreLibrary,
+      internalError(
+          coreLibrary,
           'dart:core library does not contain required classes: '
           '$missingCoreClasses');
     }
@@ -1437,11 +1438,7 @@ abstract class Compiler implements DiagnosticListener {
         });
       }
     }).then((_) {
-      if (!compilationFailed) {
-        // TODO(johnniwinther): Reenable analysis of programs with load failures
-        // when these are handled as erroneous libraries/compilation units.
-        compileLoadedLibraries();
-      }
+      compileLoadedLibraries();
     });
   }
 
@@ -1504,7 +1501,9 @@ abstract class Compiler implements DiagnosticListener {
         mainFunction = errorElement;
       }
     }
-    if (errorElement != null && errorElement.isSynthesized) {
+    if (errorElement != null &&
+        errorElement.isSynthesized &&
+        !mainApp.isSynthesized) {
       reportWarning(
           errorElement, errorElement.messageKind,
           errorElement.messageArguments);
@@ -1921,6 +1920,13 @@ abstract class Compiler implements DiagnosticListener {
    */
   Future<Script> readScript(Spannable node, Uri readableUri) {
     unimplemented(node, 'Compiler.readScript');
+    return null;
+  }
+
+  /// Compatible with [readScript] and used by [LibraryLoader] to create
+  /// synthetic scripts to recover from read errors and bad URIs.
+  Future<Script> synthesizeScript(Spannable node, Uri readableUri) {
+    unimplemented(node, 'Compiler.synthesizeScript');
     return null;
   }
 

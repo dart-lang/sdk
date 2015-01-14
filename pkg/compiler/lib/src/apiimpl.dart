@@ -208,24 +208,30 @@ class Compiler extends leg.Compiler {
     // [node] to be valid.
     elements.Element element = currentElement;
     void reportReadError(exception) {
-      withCurrentElement(element, () {
-        reportError(node,
-                    leg.MessageKind.READ_SCRIPT_ERROR,
-                    {'uri': readableUri, 'exception': exception});
-      });
+      if (element == null || node == null) {
+        reportError(
+            new leg.SourceSpan(readableUri, 0, 0),
+            leg.MessageKind.READ_SELF_ERROR,
+            {'uri': readableUri, 'exception': exception});
+      } else {
+        withCurrentElement(element, () {
+          reportError(
+              node,
+              leg.MessageKind.READ_SCRIPT_ERROR,
+              {'uri': readableUri, 'exception': exception});
+        });
+      }
     }
 
     Uri resourceUri = translateUri(node, readableUri);
-    String resourceUriString = resourceUri.toString();
+    String resourceUriString = '$resourceUri';
     if (resourceUri.scheme == 'dart-ext') {
       if (!allowNativeExtensions) {
         withCurrentElement(element, () {
           reportError(node, leg.MessageKind.DART_EXT_NOT_SUPPORTED);
         });
       }
-      return new Future.value(new leg.Script(readableUri, resourceUri,
-          new StringSourceFile(resourceUriString,
-              "// Synthetic source file generated for '$readableUri'.")));
+      return synthesizeScript(node, readableUri);
     }
 
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
@@ -249,8 +255,19 @@ class Compiler extends leg.Compiler {
       return new leg.Script(readableUri, resourceUri, sourceFile);
     }).catchError((error) {
       reportReadError(error);
-      return null;
+      return synthesizeScript(node, readableUri);
     });
+  }
+
+  Future<leg.Script> synthesizeScript(leg.Spannable node, Uri readableUri) {
+    Uri resourceUri = translateUri(node, readableUri);
+    return new Future.value(
+        new leg.Script(
+            readableUri, resourceUri,
+            new StringSourceFile(
+                '$resourceUri',
+                "// Synthetic source file generated for '$readableUri'."),
+            isSynthesized: true));
   }
 
   /**

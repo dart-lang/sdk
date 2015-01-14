@@ -756,6 +756,10 @@ class LibraryElementX
     extends ElementX with AnalyzableElementX, PatchMixin<LibraryElementX>
     implements LibraryElement {
   final Uri canonicalUri;
+
+  /// True if the constructing script was synthesized.
+  final bool isSynthesized;
+
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const Link<CompilationUnitElement>();
@@ -787,6 +791,7 @@ class LibraryElementX
                   [Uri canonicalUri, LibraryElementX origin])
     : this.canonicalUri =
           ((canonicalUri == null) ? script.readableUri : canonicalUri),
+      this.isSynthesized = script.isSynthesized,
       super(script.name, ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
     if (origin != null) {

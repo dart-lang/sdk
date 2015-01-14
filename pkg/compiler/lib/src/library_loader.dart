@@ -488,7 +488,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
                 new CompilationUnitElementX(sourceScript, library);
             compiler.withCurrentElement(unit, () {
               compiler.scanner.scan(unit);
-              if (unit.partTag == null) {
+              if (unit.partTag == null && !sourceScript.isSynthesized) {
                 compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
               }
             });
@@ -525,17 +525,19 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
                                        LibraryElement importingLibrary,
                                        Uri resolvedUri,
                                        [Node node]) {
-    // TODO(johnniwinther): Create erroneous library elements for missing
-    // libraries.
     Uri readableUri =
         compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
-    if (readableUri == null) return new Future.value();
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
     if (library != null) {
       return new Future.value(library);
     }
+    var readScript = compiler.readScript;
+    if (readableUri == null) {
+      readableUri = resolvedUri;
+      readScript = compiler.synthesizeScript;
+    }
     return compiler.withCurrentElement(importingLibrary, () {
-      return compiler.readScript(node, readableUri).then((Script script) {
+      return readScript(node, readableUri).then((Script script) {
         if (script == null) return null;
         LibraryElement element =
             createLibrarySync(handler, script, resolvedUri);
