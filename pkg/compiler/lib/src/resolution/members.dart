@@ -2054,7 +2054,9 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
 
   /// Register [node] as the definition of [element].
   void defineLocalVariable(Node node, LocalVariableElement element) {
-    invariant(node, element != null);
+    if (element == null) {
+      throw compiler.internalError(node, 'element is null');
+    }
     checkLocalDefinitionName(node, element);
     registry.defineElement(node, element);
   }
@@ -4177,9 +4179,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     : super(compiler, classElement, registry);
 
   DartType visitClassNode(ClassNode node) {
-    invariant(node, element != null);
-    invariant(element, element.resolutionState == STATE_STARTED,
-        message: () => 'cyclic resolution of class $element');
+    if (element == null) {
+      throw compiler.internalError(node, 'element is null');
+    }
+    if (element.resolutionState != STATE_STARTED) {
+      throw compiler.internalError(element,
+          'cyclic resolution of class $element');
+    }
 
     InterfaceType type = element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
@@ -4264,9 +4270,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       compiler.reportError(node, MessageKind.EXPERIMENTAL_ENUMS);
     }
 
-    invariant(node, element != null);
-    invariant(element, element.resolutionState == STATE_STARTED,
-        message: () => 'cyclic resolution of class $element');
+    if (element == null) {
+      throw compiler.internalError(node, 'element is null');
+    }
+    if (element.resolutionState != STATE_STARTED) {
+      throw compiler.internalError(element,
+          'cyclic resolution of class $element');
+    }
 
     InterfaceType enumType = element.computeType(compiler);
     element.supertype = compiler.objectClass.computeType(compiler);
@@ -4304,9 +4314,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   DartType visitNamedMixinApplication(NamedMixinApplication node) {
-    invariant(node, element != null);
-    invariant(element, element.resolutionState == STATE_STARTED,
-        message: () => 'cyclic resolution of class $element');
+    if (element == null) {
+      throw compiler.internalError(node, 'element is null');
+    }
+    if (element.resolutionState != STATE_STARTED) {
+      throw compiler.internalError(element,
+          'cyclic resolution of class $element');
+    }
 
     if (identical(node.classKeyword.stringValue, 'typedef')) {
       // TODO(aprelev@gmail.com): Remove this deprecation diagnostic
