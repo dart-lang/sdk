@@ -89,7 +89,7 @@ class OutWriter {
   IOSink _sink;
   int _indent = 0;
   String _prefix = "";
-  bool newline = true;
+  bool _needsIndent = true;
 
   OutWriter(String path) {
     var file = new File(path);
@@ -101,19 +101,28 @@ class OutWriter {
 
   void write(String string, [int indent = 0]) {
     if (indent < 0) inc(indent);
+
     var lines = string.split('\n');
-    var length = lines.length;
-    for (var i = 0; i < length - 1; ++i) {
-      var prefix = (lines[i].isNotEmpty && (newline || i > 0)) ? _prefix : '';
-      _sink.write('$prefix${lines[i]}\n');
+    for (var i = 0, end = lines.length - 1; i < end; i++) {
+      _writeln(lines[i]);
     }
-    var last = lines.last;
-    if (last.isNotEmpty && (newline && length == 1 || length > 1)) {
-      _sink.write(_prefix);
-    }
-    _sink.write(last);
-    newline = string.isNotEmpty && last.isEmpty;
+    _write(lines.last);
+
     if (indent > 0) inc(indent);
+  }
+
+  void _writeln(String string) {
+    if (_needsIndent && string.isNotEmpty) _sink.write(_prefix);
+    _sink.writeln(string);
+    _needsIndent = true;
+  }
+
+  void _write(String string) {
+    if (_needsIndent && string.isNotEmpty) {
+      _sink.write(_prefix);
+      _needsIndent = false;
+    }
+    _sink.write(string);
   }
 
   void inc([int n = 2]) {
