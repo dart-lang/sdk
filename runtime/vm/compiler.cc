@@ -850,6 +850,17 @@ static void DisassembleCode(const Function& function, bool optimized) {
     OS::Print("}\n");
   }
 
+  const Array& object_pool = Array::Handle(
+      Instructions::Handle(code.instructions()).object_pool());
+  if (object_pool.Length() > 0) {
+    OS::Print("Object Pool: {\n");
+    for (intptr_t i = 0; i < object_pool.Length(); i++) {
+      OS::Print("  %" Pd ": %s\n", i,
+          Object::Handle(object_pool.At(i)).ToCString());
+    }
+    OS::Print("}\n");
+  }
+
   OS::Print("Stackmaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
     const Array& stackmap_table = Array::Handle(code.stackmaps());

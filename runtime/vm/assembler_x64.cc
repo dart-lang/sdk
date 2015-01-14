@@ -2842,10 +2842,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) {
   }
   ASSERT(object.IsNotTemporaryScopedHandle());
   ASSERT(object.IsOld());
-  return (Isolate::Current() != Dart::vm_isolate()) &&
-         // Not in the VMHeap, OR is one of the VMHeap objects we put in every
-         // object pool.
-         (!object.InVMHeap() || IsAlwaysInConstantPool(object));
+  return (Isolate::Current() != Dart::vm_isolate());
 }
 
 
