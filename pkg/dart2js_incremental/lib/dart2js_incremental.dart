@@ -57,8 +57,6 @@ class IncrementalCompiler {
 
   Compiler _compiler;
 
-  bool get compilerWasCancelled => _compiler.compilerWasCancelled;
-
   IncrementalCompiler({
       this.libraryRoot,
       this.packageRoot,

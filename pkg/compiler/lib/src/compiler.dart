@@ -752,10 +752,6 @@ abstract class Compiler implements DiagnosticListener {
 
   bool disableInlining = false;
 
-  /// True if compilation was aborted with a [CompilerCancelledException]. Only
-  /// set after Future retuned by [run] has completed.
-  bool compilerWasCancelled = false;
-
   List<Uri> librariesToAnalyzeWhenRun;
 
   Tracer tracer;
@@ -865,8 +861,6 @@ abstract class Compiler implements DiagnosticListener {
         pleaseReportCrash();
       }
       hasCrashed = true;
-      rethrow;
-    } on CompilerCancelledException catch (ex) {
       rethrow;
     } on StackOverflowError catch (ex) {
       // We cannot report anything useful in this case, because we
@@ -1162,12 +1156,6 @@ abstract class Compiler implements DiagnosticListener {
     totalCompileTime.start();
 
     return new Future.sync(() => runCompiler(uri)).catchError((error) {
-      if (error is CompilerCancelledException) {
-        compilerWasCancelled = true;
-        log('Error: $error');
-        return false;
-      }
-
       try {
         if (!hasCrashed) {
           hasCrashed = true;
@@ -2126,21 +2114,6 @@ class CompilerTask {
 
   measureElement(Element element, action()) {
     compiler.withCurrentElement(element, () => measure(action));
-  }
-}
-
-/// Don't throw this error. It immediately aborts the compiler which causes the
-/// following problems:
-///
-/// 1. No further errors and warnings are reported.
-/// 2. Breaks incremental compilation.
-class CompilerCancelledException extends Error {
-  final String reason;
-  CompilerCancelledException(this.reason);
-
-  String toString() {
-    String banner = 'compiler cancelled';
-    return (reason != null) ? '$banner: $reason' : '$banner';
   }
 }
 

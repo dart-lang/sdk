@@ -41,7 +41,6 @@ class ElementVisitor extends elements_visitor.ElementVisitor {
 }
 
 void main(List<String> arguments) {
-  new dart2jslib.CompilerCancelledException(null);
   useApi();
   dart2js.main(arguments);
   useConstant(null, null);

@@ -49,16 +49,6 @@ final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
     // If you add something here, please file a *new* bug report.
 ]);
 
-/// Most messages can be tested without causing a fatal error. Add an exception
-/// here if a fatal error is unavoidable.
-/// Try to avoid adding exceptions here; a fatal error causes the compiler to
-/// stop before analyzing all input, and it isn't safe to reuse it.
-final Set<MessageKind> kindsWithFatalErrors = new Set<MessageKind>.from([
-    // If you add something here, please file a *new* bug report.
-    MessageKind.UNMATCHED_TOKEN,
-    MessageKind.UNTERMINATED_STRING,
-]);
-
 Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
   Expect.isNotNull(kind.howToFix);
   Expect.isFalse(kind.examples.isEmpty);
@@ -120,8 +110,6 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
           throw 'Unexpected messages found.';
         }
       }
-      Expect.isTrue(!compiler.compilerWasCancelled ||
-                    kindsWithFatalErrors.contains(kind));
 
       bool pendingStuff = false;
       for (var e in compiler.resolver.pendingClassesToBePostProcessed) {
@@ -138,7 +126,7 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
       }
       Expect.isTrue(!pendingStuff || kindsWithPendingClasses.contains(kind));
 
-      if (!pendingStuff && !compiler.compilerWasCancelled) {
+      if (!pendingStuff) {
         // If there is pending stuff, or the compiler was cancelled, we
         // shouldn't reuse the compiler.
         cachedCompiler = compiler;

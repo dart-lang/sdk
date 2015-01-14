@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test the exit code of dart2js in case of exceptions, fatal errors, errors,
-// warnings, etc.
+// Test the exit code of dart2js in case of exceptions, errors, warnings, etc.
 
 
 import 'dart:async';
@@ -96,12 +95,6 @@ class TestCompiler extends apiimpl.Compiler {
         onTest(testMarker, testType);
         reportError(NO_LOCATION_SPANNABLE,
                     MessageKind.GENERIC, {'text': marker});
-        break;
-      case 'fatalError':
-        onTest(testMarker, testType);
-        reportError(NO_LOCATION_SPANNABLE,
-                    MessageKind.GENERIC, {'text': marker});
-        throw new CompilerCancelledException(null);
         break;
       case 'internalError':
         onTest(testMarker, testType);
@@ -235,7 +228,6 @@ void main() {
     'invariant': 253,
     'warning': 0,
     'error': 1,
-    'fatalError': 1,
     'internalError': 253,
   };
 

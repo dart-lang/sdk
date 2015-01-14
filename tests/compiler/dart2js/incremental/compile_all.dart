@@ -38,7 +38,6 @@ main(List<String> arguments) {
 }
 
 void compileTests(Map<String, String> sources) {
-  int cancellations = 0;
   int testCount = 0;
   int skipCount = 0;
   Set<String> crashes = new Set<String>();
@@ -69,7 +68,6 @@ void compileTests(Map<String, String> sources) {
       UserTag.defaultTag.makeCurrent();
       sw.stop();
       print('Compiled $path in ${sw.elapsedMilliseconds}');
-      if (compiler.compilerWasCancelled) cancellations++;
       sw..reset()..start();
     }).catchError((error, trace) {
       sw.stop();
@@ -83,7 +81,6 @@ void compileTests(Map<String, String> sources) {
     print('''
 
 Total: $testCount tests
- * $cancellations tests (${percent(cancellations)}) cancelled the compiler
  * ${crashes.length} tests (${percent(crashes.length)}) crashed the compiler
  * $skipCount tests (${percent(skipCount)}) were skipped
 ''');
