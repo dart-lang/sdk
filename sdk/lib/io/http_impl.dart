@@ -2301,15 +2301,11 @@ class _HttpServer
   }
 
   void _handleRequest(_HttpRequest request) {
-    // Delay the request until the isolate's message-queue is handled.
-    // This greatly improves scheduling when a lot of requests are active.
-    Timer.run(() {
-      if (!closed) {
-        _controller.add(request);
-      } else {
-        request._httpConnection.destroy();
-      }
-    });
+    if (!closed) {
+      _controller.add(request);
+    } else {
+      request._httpConnection.destroy();
+    }
   }
 
   void _handleError(error) {
