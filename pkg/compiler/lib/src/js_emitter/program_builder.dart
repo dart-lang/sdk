@@ -231,12 +231,9 @@ class ProgramBuilder {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = elements
-        .where((e) => e is FunctionElement).map(_buildStaticMethod).toList();
-
-    statics.addAll(elements
         .where((e) => e is FunctionElement)
-        .where((e) => universe.staticFunctionsNeedingGetter.contains(e))
-        .map(_buildStaticMethodTearOff));
+        .map(_buildStaticMethod)
+        .toList();
 
     if (library == backend.interceptorsLibrary) {
       statics.addAll(_generateGetInterceptorMethods());
@@ -319,11 +316,13 @@ class ProgramBuilder {
 
   Method _buildMethod(FunctionElement element, js.Expression code) {
     String name = namer.getNameOfInstanceMember(element);
-    return new Method(element, name, code);
+    // TODO(floitsch): compute `needsTearOff`.
+    return new Method(element, name, code, needsTearOff: false);
   }
 
   Method _buildStubMethod(String name, js.Expression code) {
-    return new StubMethod(name, code);
+    // TODO(floitsch): compute `needsTearOff`.
+    return new StubMethod(name, code, needsTearOff: false);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -353,7 +352,8 @@ class ProgramBuilder {
     return names.map((String name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
-      return new StaticStubMethod(name, holder, code);
+      // TODO(floitsch): compute `needsTearOff`.
+      return new StaticStubMethod(name, holder, code, needsTearOff: false);
     });
   }
 
@@ -423,7 +423,7 @@ class ProgramBuilder {
     List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
     return names.map((String name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
-      return new StaticStubMethod(name, holder, code);
+      return new StaticStubMethod(name, holder, code, needsTearOff: false);
     });
   }
 
@@ -431,17 +431,12 @@ class ProgramBuilder {
     String name = namer.getNameOfMember(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
+    bool needsTearOff =
+        universe.staticFunctionsNeedingGetter.contains(element);
+    // TODO(floitsch): add tear-off name: namer.getStaticClosureName(element).
     return new StaticMethod(element,
-                            name, _registry.registerHolder(holder), code);
-  }
-
-  StaticMethod _buildStaticMethodTearOff(FunctionElement element) {
-    String name = namer.getStaticClosureName(element);
-    String holder = namer.globalObjectFor(element);
-    // TODO(kasperl): This clearly doesn't work yet.
-    js.Expression code = js.string("<<unimplemented>>");
-    return new StaticMethod(element,
-                            name, _registry.registerHolder(holder), code);
+                            name, _registry.registerHolder(holder), code,
+                            needsTearOff: needsTearOff);
   }
 
   void _registerConstants(OutputUnit outputUnit,

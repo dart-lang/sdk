@@ -18,6 +18,9 @@ class Program {
   final Map<String, List<Fragment>> loadMap;
 
   Program(this.fragments, this.outputContainsConstantList, this.loadMap);
+
+  bool get isSplit => fragments.length > 1;
+  Iterable<Fragment> get deferredFragments => fragments.skip(1);
 }
 
 /**
@@ -245,20 +248,27 @@ class Method {
 
   final String name;
   final js.Expression code;
-  Method(this.element, this.name, this.code);
+  final bool needsTearOff;
+
+  Method(this.element, this.name, this.code, {this.needsTearOff}) {
+    assert(needsTearOff != null);
+  }
 }
 
 class StubMethod extends Method {
-  StubMethod(String name, js.Expression code) : super(null, name, code);
+  StubMethod(String name, js.Expression code, {bool needsTearOff})
+      : super(null, name, code, needsTearOff: needsTearOff);
 }
 
 class StaticMethod extends Method {
   final Holder holder;
-  StaticMethod(Element element, String name, this.holder, js.Expression code)
-      : super(element, name, code);
+  StaticMethod(Element element, String name, this.holder, js.Expression code,
+               {bool needsTearOff})
+      : super(element, name, code, needsTearOff: needsTearOff);
 }
 
 class StaticStubMethod extends StaticMethod {
-  StaticStubMethod(String name, Holder holder, js.Expression code)
-      : super(null, name, holder, code);
+  StaticStubMethod(String name, Holder holder, js.Expression code,
+                   {bool needsTearOff})
+      : super(null, name, holder, code, needsTearOff: needsTearOff);
 }

@@ -754,8 +754,13 @@ class OldEmitter implements Emitter {
     });
   }
 
-  void emitStaticFunctions(List<Element> staticFunctions) {
-    for (Element element in staticFunctions) {
+  void emitStaticFunctions(Iterable<Method> staticFunctions) {
+    // We need to filter out null-elements for the interceptors.
+    Iterable<Element> elements = staticFunctions
+        .where((Method method) => method.element != null)
+        .map((Method method) => method.element);
+
+    for (Element element in elements) {
       ClassBuilder builder = new ClassBuilder(element, namer);
       containerBuilder.addMember(element, builder);
       getElementDescriptor(element).properties.addAll(builder.properties);
@@ -876,24 +881,28 @@ class OldEmitter implements Emitter {
     return namer.constantName(a).compareTo(namer.constantName(b));
   }
 
-  void emitCompileTimeConstants(CodeOutput output, OutputUnit outputUnit) {
-    List<ConstantValue> constants = outputConstantLists[outputUnit];
-    if (constants == null) return;
+  void emitCompileTimeConstants(CodeOutput output,
+                                List<Constant> constants,
+                                {bool isMainFragment}) {
+    assert(isMainFragment != null);
+
+    if (constants.isEmpty) return;
     CodeOutput constantOutput = output;
-    if (compiler.hasIncrementalSupport && outputUnit.isMainOutput) {
+    if (compiler.hasIncrementalSupport && isMainFragment) {
       constantOutput = cachedEmittedConstantsBuffer;
     }
-    for (ConstantValue constant in constants) {
-      if (compiler.hasIncrementalSupport && outputUnit.isMainOutput) {
-        if (cachedEmittedConstants.contains(constant)) continue;
-        cachedEmittedConstants.add(constant);
+    for (Constant constant in constants) {
+      ConstantValue constantValue = constant.value;
+      if (compiler.hasIncrementalSupport && isMainFragment) {
+        if (cachedEmittedConstants.contains(constantValue)) continue;
+        cachedEmittedConstants.add(constantValue);
       }
-      jsAst.Expression init = buildConstantInitializer(constant);
+      jsAst.Expression init = buildConstantInitializer(constantValue);
       constantOutput.addBuffer(jsAst.prettyPrint(init, compiler,
                                          monitor: compiler.dumpInfoTask));
       constantOutput.add('$N');
     }
-    if (compiler.hasIncrementalSupport && outputUnit.isMainOutput) {
+    if (compiler.hasIncrementalSupport && isMainFragment) {
       output.addBuffer(constantOutput);
     }
   }
@@ -1275,7 +1284,6 @@ class OldEmitter implements Emitter {
     // TODO(karlklose): unify required classes and typedefs to declarations
     // and have builders for each kind.
     for (TypedefElement typedef in typedefsNeededForReflection) {
-      OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
       LibraryElement library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
       DartType type = typedef.alias;
@@ -1369,8 +1377,26 @@ class OldEmitter implements Emitter {
     }
   }
 
-  void emitMainOutputUnit(Map<OutputUnit, String> deferredLoadHashes,
+  void emitLibrary(Library library) {
+    emitStaticFunctions(library.statics);
+
+    Iterable<ClassElement> classes =
+        library.classes.map((Class cls) => cls.element);
+    for (ClassElement element in classes) {
+      generateClass(element, getElementDescriptor(element));
+    }
+
+    LibraryElement libraryElement = library.element;
+    ClassBuilder builder = getElementDescriptor(libraryElement);
+    classEmitter.emitFields(library.element, builder, emitStatics: true);
+  }
+
+  void emitMainOutputUnit(Program program,
+                          Map<OutputUnit, String> deferredLoadHashes,
                           CodeBuffer nativeBuffer) {
+    Fragment mainFragment = program.fragments.first;
+    OutputUnit mainOutputUnit = mainFragment.outputUnit;
+
     LineColumnCollector lineColumnCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (generateSourceMap) {
@@ -1378,13 +1404,12 @@ class OldEmitter implements Emitter {
       codeOutputListeners = <CodeOutputListener>[lineColumnCollector];
     }
 
-    OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     CodeOutput mainOutput =
         new StreamCodeOutput(compiler.outputProvider('', 'js'),
                              codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
-    bool isProgramSplit = compiler.deferredLoadTask.isProgramSplit;
+    bool isProgramSplit = program.isSplit;
 
     mainOutput.add(buildGeneratedBy());
     addComment(HOOKS_API_USAGE, mainOutput);
@@ -1464,19 +1489,11 @@ class OldEmitter implements Emitter {
     mainOutput.add('init()$N$n');
     mainOutput.add('$isolateProperties$_=$_$isolatePropertiesName$N');
 
-    emitStaticFunctions(task.outputStaticLists[mainOutputUnit]);
-
-    List<ClassElement> classes = task.outputClassLists[mainOutputUnit];
-    if (classes != null) {
-      for (ClassElement element in classes) {
-        generateClass(element, getElementDescriptor(element));
-      }
-    }
+    mainFragment.libraries.forEach(emitLibrary);
 
     Iterable<LibraryElement> libraries =
         task.outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = [];
-    emitLibraries(libraries);
     emitTypedefs();
     emitMangledNames(mainOutput);
 
@@ -1514,7 +1531,8 @@ class OldEmitter implements Emitter {
     // which may need getInterceptor (and one-shot interceptor) methods, so
     // we have to make sure that [emitGetInterceptorMethods] and
     // [emitOneShotInterceptors] have been called.
-    emitCompileTimeConstants(mainOutput, mainOutputUnit);
+    emitCompileTimeConstants(
+        mainOutput, mainFragment.constants, isMainFragment: true);
 
     emitDeferredBoilerPlate(mainOutput, deferredLoadHashes);
 
@@ -1733,32 +1751,22 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   /// identifies the code of the output-unit. It does not include
   /// boilerplate JS code, like the sourcemap directives or the hash
   /// itself.
-  Map<OutputUnit, String> emitDeferredOutputUnits() {
-    if (!compiler.deferredLoadTask.isProgramSplit) return const {};
+  Map<OutputUnit, String> emitDeferredOutputUnits(Program program) {
+    if (!program.isSplit) return const {};
 
     Map<OutputUnit, CodeBuffer> outputBuffers =
         new Map<OutputUnit, CodeBuffer>();
 
-    for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
-      if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) continue;
+    for (Fragment fragment in program.deferredFragments) {
+      OutputUnit outputUnit = fragment.outputUnit;
 
-      List<Element> functions = task.outputStaticLists[outputUnit];
-      if (functions != null) {
-        emitStaticFunctions(functions);
-      }
 
-      List<ClassElement> classes = task.outputClassLists[outputUnit];
-      if (classes != null) {
-        for (ClassElement element in classes) {
-          generateClass(element, getElementDescriptor(element));
-        }
-      }
+      fragment.libraries.forEach(emitLibrary);
 
       if (elementDescriptors.isNotEmpty) {
         Iterable<LibraryElement> libraries =
             task.outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
-        emitLibraries(libraries);
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
         CodeBuffer buffer = new CodeBuffer();
@@ -1770,7 +1778,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       }
     }
 
-    return emitDeferredCode(outputBuffers);
+    return emitDeferredCode(program, outputBuffers);
   }
 
   CodeBuffer buildNativesBuffer() {
@@ -1800,9 +1808,10 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     // identifies the code of the output-unit. It does not include
     // boilerplate JS code, like the sourcemap directives or the hash
     // itself.
-    Map<OutputUnit, String> deferredLoadHashes = emitDeferredOutputUnits();
+    Map<OutputUnit, String> deferredLoadHashes =
+        emitDeferredOutputUnits(program);
     CodeBuffer nativeBuffer = buildNativesBuffer();
-    emitMainOutputUnit(deferredLoadHashes, nativeBuffer);
+    emitMainOutputUnit(program, deferredLoadHashes, nativeBuffer);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
@@ -1925,12 +1934,13 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   /// Returns a mapping from outputUnit to a hash of the corresponding hunk that
   /// can be used for calling the initializer.
   Map<OutputUnit, String> emitDeferredCode(
+      Program program,
       Map<OutputUnit, CodeBuffer> deferredBuffers) {
 
     Map<OutputUnit, String> hunkHashes = new Map<OutputUnit, String>();
 
-    for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
-      if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) continue;
+    for (Fragment fragment in program.deferredFragments) {
+      OutputUnit outputUnit = fragment.outputUnit;
 
       CodeOutput libraryDescriptorBuffer = deferredBuffers[outputUnit];
 
@@ -1994,7 +2004,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // access the wrong object.
       output.add("${namer.currentIsolate}$_=${_}arguments[1]$N");
 
-      emitCompileTimeConstants(output, outputUnit);
+      emitCompileTimeConstants(
+          output, fragment.constants, isMainFragment: false);
       emitStaticNonFinalFieldInitializations(output, outputUnit);
       output.add('}$N');
 

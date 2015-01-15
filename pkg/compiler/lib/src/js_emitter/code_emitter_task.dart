@@ -415,10 +415,8 @@ class CodeEmitterTask extends CompilerTask {
 
       computeAllNeededEntities();
 
-      Program program;
-      if (USE_NEW_EMITTER) {
-        program = new ProgramBuilder(compiler, namer, this).buildProgram();
-      }
+      Program program =
+          new ProgramBuilder(compiler, namer, this).buildProgram();
       return emitter.emitProgram(program);
     });
   }
