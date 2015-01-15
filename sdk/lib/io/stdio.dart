@@ -149,17 +149,29 @@ class Stdin extends _StdStream implements Stream<List<int>> {
 
 
 /**
- * [Stdout] exposes methods to query the terminal for properties.
+ * [Stdout] represents the [IOSink] for either `stdout` or `stderr`.
  *
- * Use [hasTerminal] to test if there is a terminal associated to stdout.
+ * It provides a *blocking* `IOSink`, so using this to write will block until
+ * the output is written.
+ *
+ * In some situations this blocking behavior is undesirable as it does not
+ * provide the same non-blocking behavior as dart:io in general exposes.
+ * Use the property [nonBlocking] to get an `IOSink` which has the non-blocking
+ * behavior.
+ *
+ * This class can also be used to check whether `stdout` or `stderr` is
+ * connected to a terminal and query some terminal properties.
  */
 class Stdout extends _StdSink implements IOSink {
-  Stdout._(IOSink sink) : super(sink);
+  final int _fd;
+  IOSink _nonBlocking;
+
+  Stdout._(IOSink sink, this._fd) : super(sink);
 
   /**
    * Returns true if there is a terminal attached to stdout.
    */
-  external bool get hasTerminal;
+  bool get hasTerminal => _hasTerminal(_fd);
 
   /**
    * Get the number of columns of the terminal.
@@ -167,7 +179,7 @@ class Stdout extends _StdSink implements IOSink {
    * If no terminal is attached to stdout, a [StdoutException] is thrown. See
    * [hasTerminal] for more info.
    */
-  external int get terminalColumns;
+  int get terminalColumns => _terminalColumns(_fd);
 
   /**
    * Get the number of lines of the terminal.
@@ -175,7 +187,21 @@ class Stdout extends _StdSink implements IOSink {
    * If no terminal is attached to stdout, a [StdoutException] is thrown. See
    * [hasTerminal] for more info.
    */
-  external int get terminalLines;
+  int get terminalLines => _terminalLines(_fd);
+
+  external bool _hasTerminal(int fd);
+  external int _terminalColumns(int fd);
+  external int _terminalLines(int fd);
+
+  /**
+   * Get a non-blocking `IOSink`.
+   */
+  IOSink get nonBlocking {
+    if (_nonBlocking == null) {
+      _nonBlocking = new IOSink(new _FileStreamConsumer.fromStdio(_fd));
+    }
+    return _nonBlocking;
+  }
 }
 
 
@@ -190,6 +216,34 @@ class StdoutException implements IOException {
   }
 }
 
+class _StdConsumer implements StreamConsumer<List<int>> {
+  final _file;
+
+  _StdConsumer(int fd) : _file = _File._openStdioSync(fd);
+
+  Future addStream(Stream<List<int>> stream) {
+    var completer = new Completer();
+    var sub;
+    sub = stream.listen(
+        (data) {
+          try {
+            _file.writeFromSync(data);
+          } catch (e, s) {
+            sub.cancel();
+            completer.completeError(e, s);
+          }
+        },
+        onError: completer.completeError,
+        onDone: completer.complete,
+        cancelOnError: true);
+    return completer.future;
+  }
+
+  Future close() {
+    _file.closeSync();
+    return new Future.value();
+  }
+}
 
 class _StdSink implements IOSink {
   final IOSink _sink;
@@ -227,7 +281,7 @@ class StdioType {
 
 Stdin _stdin;
 Stdout _stdout;
-IOSink _stderr;
+Stdout _stderr;
 
 
 /// The standard input stream of data read by this program.
@@ -249,7 +303,7 @@ Stdout get stdout {
 
 
 /// The standard output stream of errors written by this program.
-IOSink get stderr {
+Stdout get stderr {
   if (_stderr == null) {
     _stderr = _StdIOUtils._getStdioOutputStream(2);
   }

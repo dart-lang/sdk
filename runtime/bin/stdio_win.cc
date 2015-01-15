@@ -65,8 +65,13 @@ void Stdin::SetLineMode(bool enabled) {
 }
 
 
-bool Stdout::GetTerminalSize(int size[2]) {
-  HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+bool Stdout::GetTerminalSize(int fd, int size[2]) {
+  HANDLE h;
+  if (fd == 1) {
+    h = GetStdHandle(STD_OUTPUT_HANDLE);
+  } else {
+    h = GetStdHandle(STD_ERROR_HANDLE);
+  }
   CONSOLE_SCREEN_BUFFER_INFO info;
   if (!GetConsoleScreenBufferInfo(h, &info)) return false;
   size[0] = info.srWindow.Right - info.srWindow.Left + 1;

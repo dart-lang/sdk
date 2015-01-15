@@ -212,7 +212,6 @@ import 'dart:typed_data';
 
 part 'bytes_builder.dart';
 part 'common.dart';
-part 'console.dart';
 part 'crypto.dart';
 part 'data_transformer.dart';
 part 'directory.dart';

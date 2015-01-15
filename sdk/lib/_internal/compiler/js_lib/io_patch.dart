@@ -495,15 +495,15 @@ class Stdin {
 @patch
 class Stdout {
   @patch
-  bool get hasTerminal {
+  bool _hasTerminal(int fd) {
     throw new UnsupportedError("Stdout.hasTerminal");
   }
   @patch
-  int get terminalColumns {
+  int _terminalColumns(int fd) {
     throw new UnsupportedError("Stdout.terminalColumns");
   }
   @patch
-  int get terminalLines {
+  int _terminalLines(int fd) {
     throw new UnsupportedError("Stdout.terminalLines");
   }
 }
