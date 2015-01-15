@@ -93,8 +93,6 @@ class Universe {
    */
   final Set<Element> closurizedMembers = new Set<Element>();
 
-  bool usingFactoryWithTypeArguments = false;
-
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
   /// super-call.

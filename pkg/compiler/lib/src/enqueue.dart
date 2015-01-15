@@ -569,15 +569,6 @@ abstract class Enqueuer {
            !type.element.enclosingElement.isTypedef);
   }
 
-  /**
-   * If a factory constructor is used with type arguments, we lose track
-   * which arguments could be used to create instances of classes that use their
-   * type variables as expressions, so we have to remember if we saw such a use.
-   */
-  void registerFactoryWithTypeArguments(Registry registry) {
-    universe.usingFactoryWithTypeArguments = true;
-  }
-
   void registerCallMethodWithFreeTypeVariables(
       Element element,
       Registry registry) {

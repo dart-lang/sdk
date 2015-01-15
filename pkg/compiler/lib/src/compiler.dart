@@ -145,10 +145,6 @@ class CodegenRegistry extends Registry {
     world.registerSelectorUse(selector);
   }
 
-  void registerFactoryWithTypeArguments() {
-    world.registerFactoryWithTypeArguments(this);
-  }
-
   void registerConstSymbol(String name) {
     backend.registerConstSymbol(name, this);
   }

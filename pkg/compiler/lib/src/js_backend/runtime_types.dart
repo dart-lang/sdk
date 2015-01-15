@@ -60,7 +60,10 @@ class RuntimeTypes {
     checkedBounds.add(bound);
   }
 
-  bool usingFactoryWithTypeArguments = false;
+  // TODO(21969): remove this and analyze instantiated types and factory calls
+  // instead to find out which types are instantiated, if finitely many, or if
+  // we have to use the more imprecise generic algorithm.
+  bool get cannotDetermineInstantiatedTypesPrecisely => true;
 
   /**
    * Compute type arguments of classes that use one of their type variables in
@@ -77,7 +80,7 @@ class RuntimeTypes {
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
     Set<DartType> instantiatedTypes = universe.instantiatedTypes;
-    if (universe.usingFactoryWithTypeArguments) {
+    if (cannotDetermineInstantiatedTypesPrecisely) {
       for (DartType type in instantiatedTypes) {
         if (type.kind != TypeKind.INTERFACE) continue;
         InterfaceType interface = type;

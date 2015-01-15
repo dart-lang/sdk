@@ -4305,11 +4305,6 @@ class SsaBuilder extends ResolvedVisitor {
                                          send.arguments,
                                          constructor.implementation));
 
-    if (constructor.isFactoryConstructor &&
-        !expectedType.typeArguments.isEmpty) {
-      registry.registerFactoryWithTypeArguments();
-    }
-
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
       if (!inputs[0].isNumber(compiler)) {
@@ -5417,10 +5412,6 @@ class SsaBuilder extends ResolvedVisitor {
     InterfaceType expectedType =
         functionElement.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
-
-    if (constructor.isFactoryConstructor) {
-      registry.registerFactoryWithTypeArguments();
-    }
 
     ClassElement cls = constructor.enclosingClass;
 

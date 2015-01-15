@@ -3294,9 +3294,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // TODO(johniwinther): Avoid registration of `type` in face of redirecting
     // factory constructors.
     registry.registerInstantiatedType(type);
-    if (constructor.isFactoryConstructor && !type.typeArguments.isEmpty) {
-      registry.registerFactoryWithTypeArguments();
-    }
     if (constructor.isGenerativeConstructor && cls.isAbstract) {
       warning(node, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
       registry.registerAbstractClassInstantiation();
