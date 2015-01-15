@@ -343,9 +343,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--enable-async', setEnableAsync),
     new OptionHandler('--enable-enum', passThrough),
     new OptionHandler('--allow-native-extensions', setAllowNativeExtensions),
-    new OptionHandler('-D.+=.*', addInEnvironment),
+    new OptionHandler('--generate-code-with-compile-time-errors', passThrough),
 
-    // The following two options must come last.
+    // The following three options must come last.
+    new OptionHandler('-D.+=.*', addInEnvironment),
     new OptionHandler('-.*', (String argument) {
       helpAndFail("Unknown option '$argument'.");
     }),
@@ -609,6 +610,9 @@ be removed in a future version:
     You can inspect the generated file with the viewer at:
     https://dart-lang.github.io/dump-info-visualizer/
 
+  --generate-code-with-compile-time-errors
+    Generates output even if the program contains compile-time errors. Use the
+    exit code to determine if compilation failed.
 '''.trim());
 }
 

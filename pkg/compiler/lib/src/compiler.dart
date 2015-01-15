@@ -744,7 +744,11 @@ abstract class Compiler implements DiagnosticListener {
   /// If `true` native extension syntax is supported by the frontend.
   final bool allowNativeExtensions;
 
-  api.CompilerOutputProvider outputProvider;
+  /// Output provider from user of Compiler API.
+  api.CompilerOutputProvider userOutputProvider;
+
+  /// Generate output even when there are compile-time errors.
+  final bool generateCodeWithCompileTimeErrors;
 
   bool disableInlining = false;
 
@@ -998,6 +1002,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableAsyncAwait: false,
             this.enableEnums: false,
             this.allowNativeExtensions: false,
+            this.generateCodeWithCompileTimeErrors: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -1008,7 +1013,7 @@ abstract class Compiler implements DiagnosticListener {
         this.analyzeAllFlag = analyzeAllFlag,
         this.hasIncrementalSupport = hasIncrementalSupport,
         cacheStrategy = new CacheStrategy(hasIncrementalSupport),
-        this.outputProvider = (outputProvider == null)
+        this.userOutputProvider = (outputProvider == null)
             ? NullSink.outputProvider
             : outputProvider {
     if (hasIncrementalSupport) {
@@ -2089,6 +2094,11 @@ abstract class Compiler implements DiagnosticListener {
 
   bool elementHasCompileTimeError(Element element) {
     return elementsWithCompileTimeErrors.contains(element);
+  }
+
+  EventSink<String> outputProvider(String name, String extension) {
+    if (compilationFailed) return new NullSink('$name.$extension');
+    return userOutputProvider(name, extension);
   }
 }
 
