@@ -214,24 +214,31 @@ class GitSource extends CachedSource {
   Future<String> _ensureRevision(PackageId id) {
     return new Future.sync(() {
       var path = _repoCachePath(id);
+      log.fine("ensuring $path has ${id.description}");
       if (!entryExists(path)) {
+        log.fine("$path doesn't exist");
         return _clone(_getUrl(id), path, mirror: true)
-            .then((_) => _revParse(id));
+            .then((_) => _getRev(id));
       }
 
       // If [id] didn't come from a lockfile, it may be using a symbolic
       // reference. We want to get the latest version of that reference.
       var description = id.description;
       if (description is! Map || !description.containsKey('resolved-ref')) {
-        return _updateRepoCache(id).then((_) => _revParse(id));
+        log.fine("ID doesn't have a resolved ref");
+        return _updateRepoCache(id).then((_) => _getRev(id));
       }
 
       // If [id] did come from a lockfile, then we want to avoid running "git
       // fetch" if possible to avoid networking time and errors. See if the
       // revision exists in the repo cache before updating it.
-      return _revParse(id).catchError((error) {
+      return _getRev(id).then((res) {
+        log.fine("ref is $res");
+        return res;
+      }).catchError((error) {
+        log.fine("repo doesn't have ref, updating");
         if (error is! git.GitException) throw error;
-        return _updateRepoCache(id).then((_) => _revParse(id));
+        return _updateRepoCache(id).then((_) => _getRev(id));
       });
     });
   }
@@ -248,12 +255,12 @@ class GitSource extends CachedSource {
     });
   }
 
-  /// Runs "git rev-parse" in the canonical clone of the repository referred to
+  /// Runs "git rev-list" in the canonical clone of the repository referred to
   /// by [id] on the effective ref of [id].
   ///
   /// This assumes that the canonical clone already exists.
-  Future<String> _revParse(PackageId id) {
-    return git.run(["rev-parse", _getEffectiveRef(id)],
+  Future<String> _getRev(PackageId id) {
+    return git.run(["rev-list", "--max-count=1", _getEffectiveRef(id)],
         workingDir: _repoCachePath(id)).then((result) => result.first);
   }
 
