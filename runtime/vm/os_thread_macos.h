@@ -30,7 +30,7 @@ class ThreadInlineImpl {
     return reinterpret_cast<uword>(pthread_getspecific(key));
   }
 
-  friend class Thread;
+  friend class OSThread;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);

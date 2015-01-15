@@ -29,7 +29,7 @@ class ThreadInlineImpl {
     return reinterpret_cast<uword>(TlsGetValue(key));
   }
 
-  friend class Thread;
+  friend class OSThread;
   friend unsigned int __stdcall ThreadEntry(void* data_ptr);
 
   DISALLOW_ALLOCATION();
