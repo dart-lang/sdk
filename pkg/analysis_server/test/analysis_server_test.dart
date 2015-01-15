@@ -284,6 +284,7 @@ import "../foo/foo.dart";
     notice.setErrors([], new LineInfo([0]));
     AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
     AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
+    when(context.analysisOptions).thenReturn(new AnalysisOptionsImpl());
     when(
         context.performAnalysisTask).thenReturnList(
             [firstResult, firstResult, firstResult, lastResult]);
