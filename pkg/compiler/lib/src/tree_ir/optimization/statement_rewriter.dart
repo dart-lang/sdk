@@ -409,8 +409,8 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
 
   Statement visitSetField(SetField node) {
     node.next = visitStatement(node.next);
-    node.object = visitExpression(node.object);
     node.value = visitExpression(node.value);
+    node.object = visitExpression(node.object);
     return node;
   }
 

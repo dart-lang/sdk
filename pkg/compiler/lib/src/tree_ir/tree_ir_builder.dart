@@ -189,16 +189,28 @@ class Builder extends cps_ir.Visitor<Node> {
         body, initializers, node.localConstants, node.defaultParameterValues);
   }
 
-
+  /// Returns a list of variables corresponding to the arguments to a method
+  /// call or similar construct.
+  ///
+  /// The `readCount` for these variables will be incremented.
+  ///
+  /// The list will be typed as a list of [Expression] to allow inplace updates
+  /// on the list during the rewrite phases.
   List<Expression> translateArguments(List<cps_ir.Reference> args) {
     return new List<Expression>.generate(args.length,
          (int index) => getVariableReference(args[index]),
          growable: false);
   }
 
+  /// Returns the list of variables corresponding to the arguments to a join
+  /// continuation.
+  ///
+  /// The `readCount` of these variables will not be incremented. Instead,
+  /// [buildPhiAssignments] will handle the increment, if necessary.
   List<Variable> translatePhiArguments(List<cps_ir.Reference> args) {
     return new List<Variable>.generate(args.length,
-         (int index) => getVariableReference(args[index]));
+         (int index) => getVariable(args[index].definition),
+         growable: false);
   }
 
   Statement buildContinuationAssignment(
@@ -247,6 +259,8 @@ class Builder extends cps_ir.Visitor<Node> {
 
     Statement first, current;
     void addAssignment(Variable dst, Variable src) {
+      ++src.readCount;
+      // `dst.writeCount` will be updated by the Assign constructor.
       if (first == null) {
         first = current = new Assign(dst, src, null);
       } else {

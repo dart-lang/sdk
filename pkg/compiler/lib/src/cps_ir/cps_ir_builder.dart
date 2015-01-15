@@ -1646,8 +1646,10 @@ class DartIrBuilder extends IrBuilder {
   ir.Primitive buildLocalGet(LocalElement local) {
     assert(isOpen);
     if (isInClosureVariable(local)) {
-      ir.Primitive result = new ir.GetClosureVariable(getClosureVariable(local));
-      result.useElementAsHint(local);
+      // Do not use [local] as a hint on [result]. The variable should always
+      // be inlined, but the hint prevents it.
+      ir.Primitive result =
+          new ir.GetClosureVariable(getClosureVariable(local));
       add(new ir.LetPrim(result));
       return result;
     } else {
