@@ -2,26 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/globals.h"
-#if defined(TARGET_OS_LINUX)
+#include "platform/globals.h"  // NOLINT
+#if defined(TARGET_OS_MACOS)
 
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
-#include <errno.h>  // NOLINT
-#include <sys/resource.h>  // NOLINT
-#include <sys/time.h>  // NOLINT
+#include <sys/errno.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
+#include <sys/sysctl.h>  // NOLINT
+#include <mach/mach_init.h>  // NOLINT
+#include <mach/mach_host.h>  // NOLINT
+#include <mach/mach_port.h>  // NOLINT
+#include <mach/mach_traps.h>  // NOLINT
+#include <mach/task_info.h>  // NOLINT
+#include <mach/thread_info.h>  // NOLINT
+#include <mach/thread_act.h>  // NOLINT
 
 #include "platform/assert.h"
 #include "vm/isolate.h"
 
 namespace dart {
 
-#define VALIDATE_PTHREAD_RESULT(result) \
+#define VALIDATE_PTHREAD_RESULT(result)         \
   if (result != 0) { \
     const int kBufferSize = 1024; \
-    char error_buf[kBufferSize]; \
-    FATAL2("pthread error: %d (%s)", result, \
-           strerror_r(result, error_buf, kBufferSize)); \
+    char error_message[kBufferSize]; \
+    strerror_r(result, error_message, kBufferSize); \
+    FATAL2("pthread error: %d (%s)", result, error_message); \
   }
 
 
@@ -29,10 +36,10 @@ namespace dart {
 #define RETURN_ON_PTHREAD_FAILURE(result) \
   if (result != 0) { \
     const int kBufferSize = 1024; \
-    char error_buf[kBufferSize]; \
+    char error_message[kBufferSize]; \
+    strerror_r(result, error_message, kBufferSize); \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
-            __FILE__, __LINE__, result, \
-            strerror_r(result, error_buf, kBufferSize)); \
+            __FILE__, __LINE__, result, error_message); \
     return result; \
   }
 #else
@@ -41,32 +48,17 @@ namespace dart {
 #endif
 
 
-static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
-  int64_t secs = micros / kMicrosecondsPerSecond;
-  int64_t nanos =
-      (micros - (secs * kMicrosecondsPerSecond)) * kNanosecondsPerMicrosecond;
-  int result = clock_gettime(CLOCK_MONOTONIC, ts);
-  ASSERT(result == 0);
-  ts->tv_sec += secs;
-  ts->tv_nsec += nanos;
-  if (ts->tv_nsec >= kNanosecondsPerSecond) {
-    ts->tv_sec += 1;
-    ts->tv_nsec -= kNanosecondsPerSecond;
-  }
-}
-
-
 class ThreadStartData {
  public:
-  ThreadStartData(Thread::ThreadStartFunction function,
+  ThreadStartData(OSThread::ThreadStartFunction function,
                   uword parameter)
       : function_(function), parameter_(parameter) {}
 
-  Thread::ThreadStartFunction function() const { return function_; }
+  OSThread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
-  Thread::ThreadStartFunction function_;
+  OSThread::ThreadStartFunction function_;
   uword parameter_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
@@ -79,7 +71,7 @@ class ThreadStartData {
 static void* ThreadStart(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
-  Thread::ThreadStartFunction function = data->function();
+  OSThread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
 
@@ -90,7 +82,7 @@ static void* ThreadStart(void* data_ptr) {
 }
 
 
-int Thread::Start(ThreadStartFunction function, uword parameter) {
+int OSThread::Start(ThreadStartFunction function, uword parameter) {
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);
@@ -98,7 +90,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   RETURN_ON_PTHREAD_FAILURE(result);
 
-  result = pthread_attr_setstacksize(&attr, Thread::GetMaxStackSize());
+  result = pthread_attr_setstacksize(&attr, OSThread::GetMaxStackSize());
   RETURN_ON_PTHREAD_FAILURE(result);
 
   ThreadStartData* data = new ThreadStartData(function, parameter);
@@ -114,10 +106,11 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
+ThreadLocalKey OSThread::kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+ThreadId OSThread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
 
-ThreadLocalKey Thread::CreateThreadLocal() {
+ThreadLocalKey OSThread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;
   int result = pthread_key_create(&key, NULL);
   VALIDATE_PTHREAD_RESULT(result);
@@ -126,55 +119,68 @@ ThreadLocalKey Thread::CreateThreadLocal() {
 }
 
 
-void Thread::DeleteThreadLocal(ThreadLocalKey key) {
+void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   int result = pthread_key_delete(key);
   VALIDATE_PTHREAD_RESULT(result);
 }
 
 
-void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
+void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   int result = pthread_setspecific(key, reinterpret_cast<void*>(value));
   VALIDATE_PTHREAD_RESULT(result);
 }
 
 
-intptr_t Thread::GetMaxStackSize() {
+intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 
 
-ThreadId Thread::GetCurrentThreadId() {
+ThreadId OSThread::GetCurrentThreadId() {
   return pthread_self();
 }
 
 
-bool Thread::Join(ThreadId id) {
+bool OSThread::Join(ThreadId id) {
   return false;
 }
 
 
-intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
+intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
-  return static_cast<intptr_t>(id);
+  return reinterpret_cast<intptr_t>(id);
 }
 
 
-bool Thread::Compare(ThreadId a, ThreadId b) {
+bool OSThread::Compare(ThreadId a, ThreadId b) {
   return pthread_equal(a, b) != 0;
 }
 
 
-void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
+void OSThread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
   ASSERT(thread_id == GetCurrentThreadId());
   ASSERT(cpu_usage != NULL);
-  struct timespec ts;
-  int r = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
-  ASSERT(r == 0);
-  *cpu_usage = (ts.tv_sec * kNanosecondsPerSecond + ts.tv_nsec) /
-               kNanosecondsPerMicrosecond;
+  // TODO(johnmccutchan): Enable this after fixing issue with macos directory
+  // watcher.
+  const bool get_cpu_usage = false;
+  if (get_cpu_usage) {
+    mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+    thread_basic_info_data_t info_data;
+    thread_basic_info_t info = &info_data;
+    mach_port_t thread_port = mach_thread_self();
+    kern_return_t r = thread_info(thread_port, THREAD_BASIC_INFO,
+                                  (thread_info_t)info, &count);
+    mach_port_deallocate(mach_task_self(), thread_port);
+    if (r == KERN_SUCCESS) {
+      *cpu_usage = (info->user_time.seconds * kMicrosecondsPerSecond) +
+                   info->user_time.microseconds;
+      return;
+    }
+  }
+  *cpu_usage = 0;
 }
 
 
@@ -229,7 +235,7 @@ void Mutex::Lock() {
 bool Mutex::TryLock() {
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
-  if (result == EBUSY) {
+  if ((result == EBUSY) || (result == EDEADLK)) {
     return false;
   }
   ASSERT(result == 0);  // Verify no other errors.
@@ -255,32 +261,22 @@ void Mutex::Unlock() {
 
 
 Monitor::Monitor() {
-  pthread_mutexattr_t mutex_attr;
-  int result = pthread_mutexattr_init(&mutex_attr);
+  pthread_mutexattr_t attr;
+  int result = pthread_mutexattr_init(&attr);
   VALIDATE_PTHREAD_RESULT(result);
 
 #if defined(DEBUG)
-  result = pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
   VALIDATE_PTHREAD_RESULT(result);
 #endif  // defined(DEBUG)
 
-  result = pthread_mutex_init(data_.mutex(), &mutex_attr);
+  result = pthread_mutex_init(data_.mutex(), &attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_mutexattr_destroy(&mutex_attr);
+  result = pthread_mutexattr_destroy(&attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  pthread_condattr_t cond_attr;
-  result = pthread_condattr_init(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_init(data_.cond(), &cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_destroy(&cond_attr);
+  result = pthread_cond_init(data_.cond(), NULL);
   VALIDATE_PTHREAD_RESULT(result);
 }
 
@@ -322,8 +318,18 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
     VALIDATE_PTHREAD_RESULT(result);
   } else {
     struct timespec ts;
-    ComputeTimeSpecMicros(&ts, micros);
-    int result = pthread_cond_timedwait(data_.cond(), data_.mutex(), &ts);
+    int64_t secs = micros / kMicrosecondsPerSecond;
+    if (secs > kMaxInt32) {
+      // Avoid truncation of overly large timeout values.
+      secs = kMaxInt32;
+    }
+    int64_t nanos =
+        (micros - (secs * kMicrosecondsPerSecond)) * kNanosecondsPerMicrosecond;
+    ts.tv_sec = static_cast<int32_t>(secs);
+    ts.tv_nsec = static_cast<long>(nanos);  // NOLINT (long used in timespec).
+    int result = pthread_cond_timedwait_relative_np(data_.cond(),
+                                                    data_.mutex(),
+                                                    &ts);
     ASSERT((result == 0) || (result == ETIMEDOUT));
     if (result == ETIMEDOUT) {
       retval = kTimedOut;
@@ -348,4 +354,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(TARGET_OS_MACOS)

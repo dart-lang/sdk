@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/globals.h"
+#include "platform/globals.h"  // NOLINT
 #if defined(TARGET_OS_ANDROID)
 
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
@@ -57,15 +57,15 @@ static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
 
 class ThreadStartData {
  public:
-  ThreadStartData(Thread::ThreadStartFunction function,
+  ThreadStartData(OSThread::ThreadStartFunction function,
                   uword parameter)
       : function_(function), parameter_(parameter) {}
 
-  Thread::ThreadStartFunction function() const { return function_; }
+  OSThread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
-  Thread::ThreadStartFunction function_;
+  OSThread::ThreadStartFunction function_;
   uword parameter_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
@@ -78,7 +78,7 @@ class ThreadStartData {
 static void* ThreadStart(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
-  Thread::ThreadStartFunction function = data->function();
+  OSThread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
 
@@ -89,7 +89,7 @@ static void* ThreadStart(void* data_ptr) {
 }
 
 
-int Thread::Start(ThreadStartFunction function, uword parameter) {
+int OSThread::Start(ThreadStartFunction function, uword parameter) {
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);
@@ -97,7 +97,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   RETURN_ON_PTHREAD_FAILURE(result);
 
-  result = pthread_attr_setstacksize(&attr, Thread::GetMaxStackSize());
+  result = pthread_attr_setstacksize(&attr, OSThread::GetMaxStackSize());
   RETURN_ON_PTHREAD_FAILURE(result);
 
   ThreadStartData* data = new ThreadStartData(function, parameter);
@@ -113,10 +113,11 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
+ThreadLocalKey OSThread::kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
 
-ThreadLocalKey Thread::CreateThreadLocal() {
+ThreadLocalKey OSThread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;
   int result = pthread_key_create(&key, NULL);
   VALIDATE_PTHREAD_RESULT(result);
@@ -125,48 +126,48 @@ ThreadLocalKey Thread::CreateThreadLocal() {
 }
 
 
-void Thread::DeleteThreadLocal(ThreadLocalKey key) {
+void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   int result = pthread_key_delete(key);
   VALIDATE_PTHREAD_RESULT(result);
 }
 
 
-void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
+void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   int result = pthread_setspecific(key, reinterpret_cast<void*>(value));
   VALIDATE_PTHREAD_RESULT(result);
 }
 
 
-intptr_t Thread::GetMaxStackSize() {
+intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 
 
-ThreadId Thread::GetCurrentThreadId() {
+ThreadId OSThread::GetCurrentThreadId() {
   return gettid();
 }
 
 
-bool Thread::Join(ThreadId id) {
+bool OSThread::Join(ThreadId id) {
   return false;
 }
 
 
-intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
+intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
 
-bool Thread::Compare(ThreadId a, ThreadId b) {
+bool OSThread::Compare(ThreadId a, ThreadId b) {
   return a == b;
 }
 
 
-void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
+void OSThread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
   ASSERT(thread_id == GetCurrentThreadId());
   ASSERT(cpu_usage != NULL);
   struct timespec ts;

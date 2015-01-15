@@ -10,7 +10,7 @@
 #include "vm/gc_sweeper.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/verified_memory.h"
 #include "vm/virtual_memory.h"
 

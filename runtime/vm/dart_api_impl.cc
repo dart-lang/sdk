@@ -47,7 +47,7 @@ DEFINE_FLAG(bool, check_function_fingerprints, false,
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
 
-ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
+ThreadLocalKey Api::api_native_key_ = OSThread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
 Dart_Handle Api::false_handle_ = NULL;
 Dart_Handle Api::null_handle_ = NULL;
@@ -438,9 +438,9 @@ ApiLocalScope* Api::TopScope(Isolate* isolate) {
 
 
 void Api::InitOnce() {
-  ASSERT(api_native_key_ == Thread::kUnsetThreadLocalKey);
-  api_native_key_ = Thread::CreateThreadLocal();
-  ASSERT(api_native_key_ != Thread::kUnsetThreadLocalKey);
+  ASSERT(api_native_key_ == OSThread::kUnsetThreadLocalKey);
+  api_native_key_ = OSThread::CreateThreadLocal();
+  ASSERT(api_native_key_ != OSThread::kUnsetThreadLocalKey);
 }
 
 

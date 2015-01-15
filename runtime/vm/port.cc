@@ -9,7 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message_handler.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 

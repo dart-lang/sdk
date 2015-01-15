@@ -10,7 +10,7 @@
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 

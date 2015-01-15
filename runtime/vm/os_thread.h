@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_THREAD_H_
-#define VM_THREAD_H_
+#ifndef VM_OS_THREAD_H_
+#define VM_OS_THREAD_H_
 
 #include "platform/globals.h"
+#include "vm/allocation.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
-#include "vm/thread_android.h"
+#include "vm/os_thread_android.h"
 #elif defined(TARGET_OS_LINUX)
-#include "vm/thread_linux.h"
+#include "vm/os_thread_linux.h"
 #elif defined(TARGET_OS_MACOS)
-#include "vm/thread_macos.h"
+#include "vm/os_thread_macos.h"
 #elif defined(TARGET_OS_WINDOWS)
-#include "vm/thread_win.h"
+#include "vm/os_thread_win.h"
 #else
 #error Unknown target os.
 #endif
@@ -24,7 +25,8 @@ namespace dart {
 
 class Isolate;
 
-class Thread {
+// Low-level operations on OS platform threads.
+class OSThread : AllStatic {
  public:
   static ThreadLocalKey kUnsetThreadLocalKey;
   static ThreadId kInvalidThreadId;
@@ -107,4 +109,4 @@ class Monitor {
 }  // namespace dart
 
 
-#endif  // VM_THREAD_H_
+#endif  // VM_OS_THREAD_H_

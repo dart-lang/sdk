@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_THREAD_ANDROID_H_
-#define VM_THREAD_ANDROID_H_
+#ifndef VM_OS_THREAD_LINUX_H_
+#define VM_OS_THREAD_LINUX_H_
 
-#if !defined(VM_THREAD_H_)
-#error Do not include thread_android.h directly; use thread.h instead.
+#if !defined(VM_OS_THREAD_H_)
+#error Do not include os_thread_linux.h directly; use os_thread.h instead.
 #endif
 
 #include <pthread.h>
@@ -30,7 +30,7 @@ class ThreadInlineImpl {
     return reinterpret_cast<uword>(pthread_getspecific(key));
   }
 
-  friend class Thread;
+  friend class OSThread;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
@@ -72,4 +72,4 @@ class MonitorData {
 
 }  // namespace dart
 
-#endif  // VM_THREAD_ANDROID_H_
+#endif  // VM_OS_THREAD_LINUX_H_

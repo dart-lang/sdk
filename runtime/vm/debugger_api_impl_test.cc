@@ -1504,7 +1504,7 @@ TEST_CASE(Debug_InterruptIsolate) {
   sync = new Monitor();
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
   Dart_SetPausedEventHandler(InterruptIsolateHandler);
-  int result = Thread::Start(InterruptIsolateRun, 0);
+  int result = OSThread::Start(InterruptIsolateRun, 0);
   EXPECT_EQ(0, result);
 
   // Wait for the test isolate to be created.

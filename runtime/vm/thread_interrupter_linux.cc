@@ -27,7 +27,7 @@ class ThreadInterrupterLinux : public AllStatic {
       // No interrupter state or callback.
       return;
     }
-    ASSERT(Thread::Compare(state->id, Thread::GetCurrentThreadId()));
+    ASSERT(OSThread::Compare(state->id, OSThread::GetCurrentThreadId()));
     // Extract thread state.
     ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
     mcontext_t mcontext = context->uc_mcontext;

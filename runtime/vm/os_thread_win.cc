@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/globals.h"
+#include "platform/globals.h"  // NOLINT
 #if defined(TARGET_OS_WINDOWS)
 
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 #include <process.h>  // NOLINT
 
@@ -16,14 +16,14 @@ namespace dart {
 
 class ThreadStartData {
  public:
-  ThreadStartData(Thread::ThreadStartFunction function, uword parameter)
+  ThreadStartData(OSThread::ThreadStartFunction function, uword parameter)
       : function_(function), parameter_(parameter) {}
 
-  Thread::ThreadStartFunction function() const { return function_; }
+  OSThread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
-  Thread::ThreadStartFunction function_;
+  OSThread::ThreadStartFunction function_;
   uword parameter_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
@@ -36,7 +36,7 @@ class ThreadStartData {
 static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
-  Thread::ThreadStartFunction function = data->function();
+  OSThread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
 
@@ -52,10 +52,10 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 }
 
 
-int Thread::Start(ThreadStartFunction function, uword parameter) {
+int OSThread::Start(ThreadStartFunction function, uword parameter) {
   ThreadStartData* start_data = new ThreadStartData(function, parameter);
   uint32_t tid;
-  uintptr_t thread = _beginthreadex(NULL, Thread::GetMaxStackSize(),
+  uintptr_t thread = _beginthreadex(NULL, OSThread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);
   if (thread == -1L || thread == 0) {
 #ifdef DEBUG
@@ -70,10 +70,10 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   return 0;
 }
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-ThreadId Thread::kInvalidThreadId = 0;
+ThreadLocalKey OSThread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
+ThreadId OSThread::kInvalidThreadId = 0;
 
-ThreadLocalKey Thread::CreateThreadLocal() {
+ThreadLocalKey OSThread::CreateThreadLocal() {
   ThreadLocalKey key = TlsAlloc();
   if (key == kUnsetThreadLocalKey) {
     FATAL1("TlsAlloc failed %d", GetLastError());
@@ -82,7 +82,7 @@ ThreadLocalKey Thread::CreateThreadLocal() {
 }
 
 
-void Thread::DeleteThreadLocal(ThreadLocalKey key) {
+void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
   if (!result) {
@@ -91,18 +91,18 @@ void Thread::DeleteThreadLocal(ThreadLocalKey key) {
 }
 
 
-intptr_t Thread::GetMaxStackSize() {
+intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 
 
-ThreadId Thread::GetCurrentThreadId() {
+ThreadId OSThread::GetCurrentThreadId() {
   return ::GetCurrentThreadId();
 }
 
 
-bool Thread::Join(ThreadId id) {
+bool OSThread::Join(ThreadId id) {
   HANDLE handle = OpenThread(SYNCHRONIZE, false, id);
   if (handle == INVALID_HANDLE_VALUE) {
     return false;
@@ -113,18 +113,18 @@ bool Thread::Join(ThreadId id) {
 }
 
 
-intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
+intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
 
-bool Thread::Compare(ThreadId a, ThreadId b) {
+bool OSThread::Compare(ThreadId a, ThreadId b) {
   return a == b;
 }
 
 
-void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
+void OSThread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
   static const int64_t kTimeEpoc = 116444736000000000LL;
   static const int64_t kTimeScaler = 10;  // 100 ns to us.
   // Although win32 uses 64-bit integers for representing timestamps,
@@ -156,7 +156,7 @@ void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
 }
 
 
-void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
+void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
   if (!result) {
@@ -231,7 +231,7 @@ void Mutex::Unlock() {
 
 
 ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ =
-    Thread::kUnsetThreadLocalKey;
+    OSThread::kUnsetThreadLocalKey;
 
 
 Monitor::Monitor() {
@@ -260,9 +260,9 @@ void Monitor::Exit() {
 
 void MonitorWaitData::ThreadExit() {
   if (MonitorWaitData::monitor_wait_data_key_ !=
-      Thread::kUnsetThreadLocalKey) {
+      OSThread::kUnsetThreadLocalKey) {
     uword raw_wait_data =
-      Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+      OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
     if (raw_wait_data != 0) {
       MonitorWaitData* wait_data =
           reinterpret_cast<MonitorWaitData*>(raw_wait_data);
@@ -367,17 +367,17 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Ensure that the thread local key for monitor wait data objects is
   // initialized.
   ASSERT(MonitorWaitData::monitor_wait_data_key_ !=
-         Thread::kUnsetThreadLocalKey);
+         OSThread::kUnsetThreadLocalKey);
 
   // Get the MonitorWaitData object containing the event for this
   // thread from thread local storage. Create it if it does not exist.
   uword raw_wait_data =
-    Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+    OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
   MonitorWaitData* wait_data = NULL;
   if (raw_wait_data == 0) {
     HANDLE event = CreateEvent(NULL, FALSE, FALSE, NULL);
     wait_data = new MonitorWaitData(event);
-    Thread::SetThreadLocal(MonitorWaitData::monitor_wait_data_key_,
+    OSThread::SetThreadLocal(MonitorWaitData::monitor_wait_data_key_,
                            reinterpret_cast<uword>(wait_data));
   } else {
     wait_data = reinterpret_cast<MonitorWaitData*>(raw_wait_data);

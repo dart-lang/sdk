@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <setjmp.h>
+#include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
 #include "vm/globals.h"
@@ -19,7 +19,7 @@
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/stack_frame.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 

@@ -16,7 +16,7 @@
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/trace_buffer.h"
 #include "vm/timer.h"
 
@@ -111,7 +111,7 @@ class Isolate : public BaseIsolate {
   ~Isolate();
 
   static inline Isolate* Current() {
-    return reinterpret_cast<Isolate*>(Thread::GetThreadLocal(isolate_key));
+    return reinterpret_cast<Isolate*>(OSThread::GetThreadLocal(isolate_key));
   }
 
   static void SetCurrent(Isolate* isolate);

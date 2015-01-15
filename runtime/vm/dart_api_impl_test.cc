@@ -7339,7 +7339,7 @@ TEST_CASE(IsolateInterrupt) {
   Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
 
   sync = new Monitor();
-  int result = Thread::Start(BusyLoop_start, 0);
+  int result = OSThread::Start(BusyLoop_start, 0);
   EXPECT_EQ(0, result);
 
   {

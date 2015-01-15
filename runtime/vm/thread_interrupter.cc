@@ -51,19 +51,20 @@ DEFINE_FLAG(bool, trace_thread_interrupter, false,
 bool ThreadInterrupter::initialized_ = false;
 bool ThreadInterrupter::shutdown_ = false;
 bool ThreadInterrupter::thread_running_ = false;
-ThreadId ThreadInterrupter::interrupter_thread_id_ = Thread::kInvalidThreadId;
+ThreadId ThreadInterrupter::interrupter_thread_id_ =
+    OSThread::kInvalidThreadId;
 Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 ThreadLocalKey ThreadInterrupter::thread_state_key_ =
-    Thread::kUnsetThreadLocalKey;
+    OSThread::kUnsetThreadLocalKey;
 
 
 void ThreadInterrupter::InitOnce() {
   ASSERT(!initialized_);
-  ASSERT(thread_state_key_ == Thread::kUnsetThreadLocalKey);
-  thread_state_key_ = Thread::CreateThreadLocal();
-  ASSERT(thread_state_key_ != Thread::kUnsetThreadLocalKey);
+  ASSERT(thread_state_key_ == OSThread::kUnsetThreadLocalKey);
+  thread_state_key_ = OSThread::CreateThreadLocal();
+  ASSERT(thread_state_key_ != OSThread::kUnsetThreadLocalKey);
   monitor_ = new Monitor();
   ASSERT(monitor_ != NULL);
   initialized_ = true;
@@ -75,15 +76,15 @@ void ThreadInterrupter::Startup() {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter starting up.\n");
   }
-  ASSERT(interrupter_thread_id_ == Thread::kInvalidThreadId);
+  ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadId);
   {
     MonitorLocker startup_ml(monitor_);
-    Thread::Start(ThreadMain, 0);
+    OSThread::Start(ThreadMain, 0);
     while (!thread_running_) {
       startup_ml.Wait();
     }
   }
-  ASSERT(interrupter_thread_id_ != Thread::kInvalidThreadId);
+  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadId);
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter running.\n");
   }
@@ -109,9 +110,9 @@ void ThreadInterrupter::Shutdown() {
   // On Windows, a thread's exit-code can leak into the process's exit-code,
   // if exiting 'at same time' as the process ends. By joining with the thread
   // here, we avoid this race condition.
-  ASSERT(interrupter_thread_id_ != Thread::kInvalidThreadId);
-  Thread::Join(interrupter_thread_id_);
-  interrupter_thread_id_ = Thread::kInvalidThreadId;
+  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadId);
+  OSThread::Join(interrupter_thread_id_);
+  interrupter_thread_id_ = OSThread::kInvalidThreadId;
 #else
   // On non-Windows platforms, just wait for the thread interrupter to signal
   // that it has exited the loop.
@@ -183,9 +184,9 @@ InterruptableThreadState* ThreadInterrupter::_EnsureThreadStateCreated() {
   InterruptableThreadState* state = CurrentThreadState();
   if (state == NULL) {
     // Create thread state object lazily.
-    ThreadId current_thread = Thread::GetCurrentThreadId();
+    ThreadId current_thread = OSThread::GetCurrentThreadId();
     if (FLAG_trace_thread_interrupter) {
-      intptr_t tid = Thread::ThreadIdToIntPtr(current_thread);
+      intptr_t tid = OSThread::ThreadIdToIntPtr(current_thread);
       OS::Print("ThreadInterrupter Tracking %p\n",
                 reinterpret_cast<void*>(tid));
     }
@@ -204,9 +205,9 @@ InterruptableThreadState* ThreadInterrupter::_EnsureThreadStateCreated() {
 void ThreadInterrupter::UpdateStateObject(ThreadInterruptCallback callback,
                                           void* data) {
   InterruptableThreadState* state = CurrentThreadState();
-  ThreadId current_thread = Thread::GetCurrentThreadId();
+  ThreadId current_thread = OSThread::GetCurrentThreadId();
   ASSERT(state != NULL);
-  ASSERT(Thread::Compare(state->id, Thread::GetCurrentThreadId()));
+  ASSERT(OSThread::Compare(state->id, OSThread::GetCurrentThreadId()));
   SetCurrentThreadState(NULL);
   // It is now safe to modify the state object. If an interrupt occurs,
   // the current thread state will be NULL.
@@ -214,7 +215,7 @@ void ThreadInterrupter::UpdateStateObject(ThreadInterruptCallback callback,
   state->data = data;
   SetCurrentThreadState(state);
   if (FLAG_trace_thread_interrupter) {
-    intptr_t tid = Thread::ThreadIdToIntPtr(current_thread);
+    intptr_t tid = OSThread::ThreadIdToIntPtr(current_thread);
     if (callback == NULL) {
       OS::Print("ThreadInterrupter Cleared %p\n", reinterpret_cast<void*>(tid));
     } else {
@@ -231,13 +232,14 @@ InterruptableThreadState* ThreadInterrupter::GetCurrentThreadState() {
 
 InterruptableThreadState* ThreadInterrupter::CurrentThreadState() {
   InterruptableThreadState* state = reinterpret_cast<InterruptableThreadState*>(
-      Thread::GetThreadLocal(thread_state_key_));
+      OSThread::GetThreadLocal(thread_state_key_));
   return state;
 }
 
 
 void ThreadInterrupter::SetCurrentThreadState(InterruptableThreadState* state) {
-  Thread::SetThreadLocal(thread_state_key_, reinterpret_cast<uword>(state));
+  OSThread::SetThreadLocal(thread_state_key_,
+                              reinterpret_cast<uword>(state));
 }
 
 
@@ -279,7 +281,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
-    interrupter_thread_id_ = Thread::GetCurrentThreadId();
+    interrupter_thread_id_ = OSThread::GetCurrentThreadId();
     thread_running_ = true;
     startup_ml.Notify();
   }

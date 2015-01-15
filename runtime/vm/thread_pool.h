@@ -6,7 +6,7 @@
 #define VM_THREAD_POOL_H_
 
 #include "vm/globals.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 

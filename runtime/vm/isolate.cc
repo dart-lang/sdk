@@ -29,7 +29,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/thread_interrupter.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
@@ -580,7 +580,7 @@ void Isolate::SetCurrent(Isolate* current) {
     old_current->set_thread_state(NULL);
     Profiler::EndExecution(old_current);
   }
-  Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+  OSThread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
   if (current != NULL) {
     ASSERT(current->thread_state() == NULL);
     InterruptableThreadState* thread_state =
@@ -600,13 +600,13 @@ void Isolate::SetCurrent(Isolate* current) {
 // for a thread. Since an Isolate is the central repository for
 // storing all isolate specific information a single thread local key
 // is sufficient.
-ThreadLocalKey Isolate::isolate_key = Thread::kUnsetThreadLocalKey;
+ThreadLocalKey Isolate::isolate_key = OSThread::kUnsetThreadLocalKey;
 
 
 void Isolate::InitOnce() {
-  ASSERT(isolate_key == Thread::kUnsetThreadLocalKey);
-  isolate_key = Thread::CreateThreadLocal();
-  ASSERT(isolate_key != Thread::kUnsetThreadLocalKey);
+  ASSERT(isolate_key == OSThread::kUnsetThreadLocalKey);
+  isolate_key = OSThread::CreateThreadLocal();
+  ASSERT(isolate_key != OSThread::kUnsetThreadLocalKey);
   create_callback_ = NULL;
   isolates_list_monitor_ = new Monitor();
   ASSERT(isolates_list_monitor_ != NULL);
@@ -693,8 +693,8 @@ void Isolate::BuildName(const char* name_prefix) {
 // TODO(5411455): Use flag to override default value and Validate the
 // stack size by querying OS.
 uword Isolate::GetSpecifiedStackSize() {
-  ASSERT(Isolate::kStackSizeBuffer < Thread::GetMaxStackSize());
-  uword stack_size = Thread::GetMaxStackSize() - Isolate::kStackSizeBuffer;
+  ASSERT(Isolate::kStackSizeBuffer < OSThread::GetMaxStackSize());
+  uword stack_size = OSThread::GetMaxStackSize() - Isolate::kStackSizeBuffer;
   return stack_size;
 }
 
@@ -1365,7 +1365,7 @@ intptr_t Isolate::ProfileInterrupt() {
     ProfileIdle();
     return 1;
   }
-  ASSERT(state->id != Thread::kInvalidThreadId);
+  ASSERT(state->id != OSThread::kInvalidThreadId);
   ThreadInterrupter::InterruptThread(state);
   return 1;
 }

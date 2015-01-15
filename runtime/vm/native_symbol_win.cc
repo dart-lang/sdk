@@ -7,7 +7,7 @@
 
 #include "vm/lockers.h"
 #include "vm/native_symbol.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 #include <dbghelp.h>  // NOLINT
 
