@@ -1262,22 +1262,6 @@ class OldEmitter implements Emitter {
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
-  void emitLibraries(Iterable<LibraryElement> libraries) {
-    if (libraries.isEmpty) return;
-
-    // TODO(karlklose): document what kinds of fields this loop adds to the
-    // library class builder.
-    for (LibraryElement element in libraries) {
-      LibraryElement library = element;
-      ClassBuilder builder = new ClassBuilder(library, namer);
-      if (classEmitter.emitFields(library, builder, emitStatics: true)) {
-        jsAst.ObjectInitializer initializer = builder.toObjectInitializer();
-        compiler.dumpInfoTask.registerElementAst(builder.element, initializer);
-        getElementDescriptor(library).properties.addAll(initializer.properties);
-      }
-    }
-  }
-
   void emitTypedefs() {
     OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
 
