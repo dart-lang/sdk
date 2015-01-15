@@ -4987,7 +4987,6 @@ Element lookupInScope(Compiler compiler, Node node,
 }
 
 TreeElements _ensureTreeElements(AnalyzableElementX element) {
-  if (element.isErroneous) return new TreeElementMapping(element);
   if (element._treeElements == null) {
     element._treeElements = new TreeElementMapping(element);
   }

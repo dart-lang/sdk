@@ -2027,7 +2027,8 @@ class SsaBuilder extends ResolvedVisitor {
           if (value == null) {
             // Uninitialized native fields are pre-initialized by the native
             // implementation.
-            assert(isNativeUpgradeFactory);
+            assert(invariant(
+                member, isNativeUpgradeFactory || compiler.compilationFailed));
           } else {
             fields.add(member);
             DartType type = localsHandler.substInContext(member.type);
@@ -3273,12 +3274,17 @@ class SsaBuilder extends ResolvedVisitor {
       }
       stack.add(value);
     } else if (Elements.isErroneousElement(element)) {
-      List<HInstruction> arguments =
-          send == null ? const <HInstruction>[] : <HInstruction>[value];
-      // An erroneous element indicates an unresolved static setter.
-      generateThrowNoSuchMethod(location,
-                                noSuchMethodTargetSymbolString(element, 'set'),
-                                argumentValues: arguments);
+      if (element is ErroneousElement) {
+        List<HInstruction> arguments =
+            send == null ? const <HInstruction>[] : <HInstruction>[value];
+        // An erroneous element indicates an unresolved static setter.
+        generateThrowNoSuchMethod(
+            location, noSuchMethodTargetSymbolString(element, 'set'),
+            argumentValues: arguments);
+      } else {
+        // TODO(ahe): Do something like [generateWrongArgumentCountError].
+        stack.add(graph.addConstantNull(compiler));
+      }
     } else {
       stack.add(value);
       LocalElement local = element;
@@ -4489,11 +4495,16 @@ class SsaBuilder extends ResolvedVisitor {
       return;
     }
     if (element.isErroneous) {
-      // An erroneous element indicates that the funciton could not be resolved
-      // (a warning has been issued).
-      generateThrowNoSuchMethod(node,
-                                noSuchMethodTargetSymbolString(element),
-                                argumentNodes: node.arguments);
+      if (element is ErroneousElement) {
+        // An erroneous element indicates that the funciton could not be
+        // resolved (a warning has been issued).
+        generateThrowNoSuchMethod(node,
+                                  noSuchMethodTargetSymbolString(element),
+                                  argumentNodes: node.arguments);
+      } else {
+        // TODO(ahe): Do something like [generateWrongArgumentCountError].
+        stack.add(graph.addConstantNull(compiler));
+      }
       return;
     }
     invariant(element, !element.isGenerativeConstructor);

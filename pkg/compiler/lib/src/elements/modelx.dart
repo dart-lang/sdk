@@ -330,7 +330,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
 /// A constructor that was synthesized to recover from a compile-time error.
 class ErroneousConstructorElementX extends ErroneousElementX
-    with PatchMixin<FunctionElement>
+    with PatchMixin<FunctionElement>, AnalyzableElementX
     implements ConstructorElementX {
   // TODO(ahe): Instead of subclassing [ErroneousElementX], this class should
   // be more like [ErroneousFieldElementX]. In particular, its kind should be
@@ -553,6 +553,8 @@ class DuplicatedElementX extends AmbiguousElementX {
       Element enclosingElement, Element existingElement, Element newElement)
       : super(messageKind, messageArguments, enclosingElement, existingElement,
               newElement);
+
+  bool get isErroneous => true;
 }
 
 class ScopeX {
