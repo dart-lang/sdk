@@ -23,7 +23,7 @@ import bot
 
 DARTIUM_BUILDER = r'none-dartium-(linux|mac|windows)'
 DART2JS_BUILDER = (
-    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?(-(batch))?-?(\d*)-?(\d*)')
+    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?-?(\d*)-?(\d*)')
 DART2JS_FULL_BUILDER = r'full-(linux|mac|win7|win8)(-(ie10|ie11))?(-checked)?(-minified)?-(\d+)-(\d+)'
 WEB_BUILDER = (
     r'dart2js-(ie9|ie10|ie11|ff|safari|chrome|chromeOnAndroid|safarimobilesim|opera|drt)-(win7|win8|mac10\.7|mac10\.8|mac10\.9|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
@@ -31,7 +31,10 @@ WEB_BUILDER = (
 IE_VERSIONS = ['ie10', 'ie11']
 
 DART2JS_FULL_CONFIGURATIONS = {
-  'linux' : [ ],
+  'linux' : [
+    {'runtime' : 'ff'},
+    {'runtime' : 'chrome'},
+  ],
   'mac' : [ ],
   'windows-ie10' : [
     {'runtime' : 'ie10'},
@@ -123,8 +126,8 @@ def GetBuildInfo(builder_name, is_buildbot):
       minified = True
     if dart2js_pattern.group(12) == 'x64':
       arch = 'x64'
-    shard_index = dart2js_pattern.group(15)
-    total_shards = dart2js_pattern.group(16)
+    shard_index = dart2js_pattern.group(13)
+    total_shards = dart2js_pattern.group(14)
   elif dartium_pattern:
     compiler = 'none'
     runtime = 'dartium'
