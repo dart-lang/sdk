@@ -81,21 +81,18 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 
-  bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
+  bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
   bool InlineSetIndexed(MethodRecognizer::Kind kind,
                         const Function& target,
                         Instruction* call,
                         Definition* receiver,
                         intptr_t token_pos,
-                        const ICData* ic_data,
                         const ICData& value_check,
                         TargetEntryInstr** entry,
                         Definition** last);
-  bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
   bool InlineGetIndexed(MethodRecognizer::Kind kind,
                         Instruction* call,
                         Definition* receiver,
-                        const ICData& ic_data,
                         TargetEntryInstr** entry,
                         Definition** last);
   intptr_t PrepareInlineIndexedOp(Instruction* call,

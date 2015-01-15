@@ -1166,7 +1166,7 @@ static intptr_t MethodKindToCid(MethodRecognizer::Kind kind) {
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
+bool FlowGraphOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   // Check for monomorphic IC data.
   if (!call->HasICData()) return false;
   const ICData& ic_data =
@@ -1174,42 +1174,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   if (ic_data.NumberOfChecks() != 1) {
     return false;
   }
-  ASSERT(ic_data.NumberOfUsedChecks() == 1);
-  ASSERT(ic_data.HasOneTarget());
-
-  const Function& target = Function::Handle(I, ic_data.GetTargetAt(0));
-  TargetEntryInstr* entry;
-  Definition* last;
-  if (!TryInlineRecognizedMethod(ic_data.GetReceiverClassIdAt(0),
-                                 target,
-                                 call,
-                                 call->ArgumentAt(0),
-                                 call->token_pos(),
-                                 *call->ic_data(),
-                                 &entry, &last)) {
-    return false;
-  }
-  // Insert receiver class check.
-  AddReceiverCheck(call);
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-  // Replace all uses of this definition with the result.
-  call->ReplaceUsesWith(last);
-  // Finally insert the sequence other definition in place of this one in the
-  // graph.
-  call->previous()->LinkTo(entry->next());
-  entry->UnuseAllInputs();  // Entry block is not in the graph.
-  last->LinkTo(call);
-  // Remove through the iterator.
-  ASSERT(current_iterator()->Current() == call);
-  current_iterator()->RemoveCurrentFromGraph();
-  call->set_previous(NULL);
-  call->set_next(NULL);
-  return true;
+  return TryReplaceInstanceCallWithInline(call);
 }
 
 
@@ -1219,7 +1184,6 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     Instruction* call,
     Definition* receiver,
     intptr_t token_pos,
-    const ICData* ic_data,
     const ICData& value_check,
     TargetEntryInstr** entry,
     Definition** last) {
@@ -1411,29 +1375,29 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
-      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, entry, last);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, entry, last);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, entry, last);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       if (!CanUnboxInt32()) return false;
-      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, entry, last);
 
     case MethodRecognizer::kInt64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
-      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, entry, last);
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
@@ -1441,7 +1405,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
         value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       }
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
-                              &ic_data, value_check, entry, last);
+                              value_check, entry, last);
     case MethodRecognizer::kInt8ArraySetIndexed:
     case MethodRecognizer::kUint8ArraySetIndexed:
     case MethodRecognizer::kUint8ClampedArraySetIndexed:
@@ -1454,7 +1418,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       }
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
-                              &ic_data, value_check, entry, last);
+                              value_check, entry, last);
     case MethodRecognizer::kInt32ArraySetIndexed:
     case MethodRecognizer::kUint32ArraySetIndexed:
       // Check that value is always smi or mint. We use Int32/Uint32 unboxing
@@ -1464,13 +1428,13 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
         return false;
       }
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
-                              &ic_data, value_check, entry, last);
+                              value_check, entry, last);
     case MethodRecognizer::kInt64ArraySetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
-                              &ic_data, value_check, entry, last);
+                              value_check, entry, last);
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed:
       if (!CanUnboxDouble()) {
@@ -1482,7 +1446,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       }
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
-                              &ic_data, value_check, entry, last);
+                              value_check, entry, last);
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
@@ -1493,7 +1457,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       }
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
-                              &ic_data, value_check, entry, last);
+                              value_check, entry, last);
     case MethodRecognizer::kFloat64x2ArraySetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
@@ -1504,7 +1468,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       }
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
-                              &ic_data, value_check, entry, last);
+                              value_check, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt8:
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataInt8ArrayCid,
@@ -1705,7 +1669,6 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
 bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                           Instruction* call,
                                           Definition* receiver,
-                                          const ICData& ic_data,
                                           TargetEntryInstr** entry,
                                           Definition** last) {
   intptr_t array_cid = MethodKindToCid(kind);
@@ -1752,54 +1715,6 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                            deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
                            FlowGraph::kValue);
   }
-  return true;
-}
-
-
-bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
-  // Check for monomorphic IC data.
-  if (!call->HasICData()) return false;
-  const ICData& ic_data =
-      ICData::Handle(I, call->ic_data()->AsUnaryClassChecks());
-  if (ic_data.NumberOfChecks() != 1) {
-    return false;
-  }
-  ASSERT(ic_data.NumberOfUsedChecks() == 1);
-  ASSERT(ic_data.HasOneTarget());
-
-  const Function& target = Function::Handle(I, ic_data.GetTargetAt(0));
-  TargetEntryInstr* entry;
-  Definition* last;
-  if (!TryInlineRecognizedMethod(ic_data.GetReceiverClassIdAt(0),
-                                 target,
-                                 call,
-                                 call->ArgumentAt(0),
-                                 call->token_pos(),
-                                 *call->ic_data(),
-                                 &entry, &last)) {
-    return false;
-  }
-
-  // Insert receiver class check.
-  AddReceiverCheck(call);
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-  // Replace all uses of this definition with the result.
-  call->ReplaceUsesWith(last);
-  // Finally insert the sequence other definition in place of this one in the
-  // graph.
-  call->previous()->LinkTo(entry->next());
-  entry->UnuseAllInputs();  // Entry block is not in the graph.
-  last->LinkTo(call);
-  // Remove through the iterator.
-  ASSERT(current_iterator()->Current() == call);
-  current_iterator()->RemoveCurrentFromGraph();
-  call->set_previous(NULL);
-  call->set_next(NULL);
   return true;
 }
 
@@ -2709,7 +2624,6 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 
 bool FlowGraphOptimizer::TryReplaceInstanceCallWithInline(
     InstanceCallInstr* call) {
-  ASSERT(call->HasICData());
   Function& target = Function::Handle(I);
   GrowableArray<intptr_t> class_ids;
   call->ic_data()->GetCheckAt(0, &class_ids, &target);
@@ -4275,10 +4189,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithStoreIndexed(instr)) {
+  if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
     return;
   }
-  if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
+  if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
     return;
   }
 
