@@ -31,12 +31,20 @@ def ProcessOptions(options, args):
 def GetPrebuiltDartExecutablePath():
   osdict = {'Darwin':'macos', 'Linux':'linux', 'Windows':'win32'}
   system = platform.system()
+  executable_name = 'dart'
+  if system == 'Windows':
+    executable_name = 'dart.exe'
   try:
     osname = osdict[system]
   except KeyError:
     print >>sys.stderr, ('WARNING: platform "%s" not supported') % (system)
     return None;
-  return os.path.join(DART_ROOT, 'tools', 'testing', 'bin', osname, 'dart')
+  return os.path.join(DART_ROOT,
+                      'tools',
+                      'testing',
+                      'bin',
+                      osname,
+                      executable_name)
 
 def RunPub(dart, pkg_root, args):
   return subprocess.call([dart, '--package-root=' + pkg_root, PUB_PATH] + args)
