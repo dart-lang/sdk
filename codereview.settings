@@ -1,0 +1,3 @@
+CODE_REVIEW_SERVER: https://chromiumcodereview.appspot.com/
+VIEW_VC: https://github.com/dart-lang/dart_lint/commit/
+CC_LIST: reviews@dartlang.org
