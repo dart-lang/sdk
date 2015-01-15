@@ -16,6 +16,11 @@ import 'java_engine.dart';
 import 'sdk.dart' show DartSdk;
 
 /**
+ * A function that is used to handle [ContentCache] entries.
+ */
+typedef void ContentCacheVisitor(Source source, int stamp, String contents);
+
+/**
  * Instances of class `ContentCache` hold content used to override the default content of a
  * [Source].
  */
@@ -31,6 +36,16 @@ class ContentCache {
    * default contents of a source has been overridden.
    */
   HashMap<Source, int> _stampMap = new HashMap<Source, int>();
+
+  /**
+   * Visit all entries of this cache.
+   */
+  void accept(ContentCacheVisitor visitor) {
+    _contentMap.forEach((Source source, String contents) {
+      int stamp = _stampMap[source];
+      visitor(source, stamp, contents);
+    });
+  }
 
   /**
    * Return the contents of the given source, or `null` if this cache does not override the

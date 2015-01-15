@@ -45,6 +45,11 @@ class GetHandler {
   static const String COMPLETION_PATH = '/completion';
 
   /**
+   * The path used to request overlays information.
+   */
+  static const String OVERLAYS_PATH = '/overlays';
+
+  /**
    * Query parameter used to represent the cache state to search for, when
    * accessing [CACHE_STATE_PATH].
    */
@@ -96,6 +101,8 @@ class GetHandler {
       _returnCacheEntry(request);
     } else if (path == COMPLETION_PATH) {
       _returnCompletionInfo(request);
+    } else if (path == OVERLAYS_PATH) {
+      _returnOverlaysInfo(request);
     } else {
       _returnUnknownRequest(request);
     }
@@ -372,6 +379,42 @@ class GetHandler {
   }
 
   /**
+   * Return a response displaying overlays information.
+   */
+  void _returnOverlaysInfo(HttpRequest request) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server is not running');
+    }
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.OK;
+    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.write('<html>');
+    response.write('<head>');
+    response.write('<title>Dart Analysis Server - Overlays</title>');
+    response.write('</head>');
+    response.write('<body>');
+    response.write('<h1>Dart Analysis Server - Overlays</h1>');
+    response.write('<table border="1">');
+    int count = 0;
+    analysisServer.folderMap.forEach((_, AnalysisContextImpl context) {
+      context.visitContentCache((Source source, int stamp, String contents) {
+        count++;
+        response.write('<tr>');
+        response.write('<td><pre>${HTML_ESCAPE.convert('$source')}</pre></td>');
+        response.write(
+            '<td>${new DateTime.fromMillisecondsSinceEpoch(stamp)}</td>');
+        response.write('</tr>');
+      });
+    });
+    response.write('<tr><td colspan="2">Total: $count entries.</td></tr>');
+    response.write('</table>');
+    response.write('</body>');
+    response.write('</html>');
+    response.close();
+  }
+
+  /**
    * Return a response indicating the status of the analysis server.
    */
   void _returnServerStatus(HttpRequest request) {
@@ -546,7 +589,10 @@ class GetHandler {
     response.write('</table>');
     if (handler.performanceList.length > 0) {
       response.write('<table>');
-      _writeRow(response, ['Milliseconds', '', '# Notifications', '', '# Suggestions', '', 'Snippet'], header: true);
+      _writeRow(
+          response,
+          ['Milliseconds', '', '# Notifications', '', '# Suggestions', '', 'Snippet'],
+          header: true);
       handler.performanceList.forEach((CompletionPerformance performance) {
         _writeRow(
             response,
