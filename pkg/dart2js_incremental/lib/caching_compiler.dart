@@ -87,7 +87,7 @@ Future<Compiler> reuseCompiler(
       }
     }
     compiler
-        ..outputProvider = outputProvider
+        ..userOutputProvider = outputProvider
         ..provider = inputProvider
         ..handler = diagnosticHandler
         ..enqueuer.resolution.queueIsClosed = false
