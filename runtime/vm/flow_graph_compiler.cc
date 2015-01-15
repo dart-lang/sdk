@@ -51,6 +51,9 @@ DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
+// Quick access to the locally defined isolate() method.
+#define I (isolate())
+
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
 // environment.
@@ -1125,7 +1128,8 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
-  instr->InitializeLocationSummary(isolate(), false);  // Not optimizing.
+  instr->InitializeLocationSummary(I->current_zone(),
+                                   false);  // Not optimizing.
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];

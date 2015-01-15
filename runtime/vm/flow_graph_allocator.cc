@@ -164,7 +164,8 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       Instruction* current = it.Current();
 
       // Initialize location summary for instruction.
-      current->InitializeLocationSummary(Isolate::Current(), true);  // opt
+      current->InitializeLocationSummary(isolate()->current_zone(),
+                                         true);  // opt
       LocationSummary* locs = current->locs();
 #if DEBUG
       locs->DiscoverWritableInputs();

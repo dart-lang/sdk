@@ -548,7 +548,7 @@ class LocationSummary : public ZoneAllocated {
     kCallOnSlowPath
   };
 
-  LocationSummary(Isolate* isolate,
+  LocationSummary(Zone* zone,
                   intptr_t input_count,
                   intptr_t temp_count,
                   LocationSummary::ContainsCall contains_call);
@@ -645,7 +645,7 @@ class LocationSummary : public ZoneAllocated {
 
   void PrintTo(BufferFormatter* f) const;
 
-  static LocationSummary* Make(Isolate* isolate,
+  static LocationSummary* Make(Zone* zone,
                                intptr_t input_count,
                                Location out,
                                ContainsCall contains_call);

@@ -10,23 +10,29 @@
 
 namespace dart {
 
-static void* Allocate(uword size, BaseIsolate* isolate) {
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->current_zone() != NULL);
+static void* Allocate(uword size, Zone* zone) {
+  ASSERT(zone != NULL);
   if (size > static_cast<uword>(kIntptrMax)) {
     FATAL1("ZoneAllocated object has unexpectedly large size %" Pu "", size);
   }
-  return reinterpret_cast<void*>(isolate->current_zone()->AllocUnsafe(size));
+  return reinterpret_cast<void*>(zone->AllocUnsafe(size));
 }
 
 
 void* ZoneAllocated::operator new(uword size) {
-  return Allocate(size, Isolate::Current());
+  return Allocate(size, Isolate::Current()->current_zone());
 }
 
 
 void* ZoneAllocated::operator new(uword size, BaseIsolate* isolate) {
-  return Allocate(size, isolate);
+  ASSERT(isolate != NULL);
+  return Allocate(size, isolate->current_zone());
+}
+
+
+void* ZoneAllocated::operator new(uword size, Zone* zone) {
+  ASSERT(zone == Isolate::Current()->current_zone());
+  return Allocate(size, zone);
 }
 
 }  // namespace dart

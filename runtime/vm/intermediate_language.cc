@@ -1944,12 +1944,12 @@ Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
+  LocationSummary* locs = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   return locs;
 }
 
@@ -2544,14 +2544,14 @@ bool UnboxInstr::CanConvertSmi() const {
 
 #define __ compiler->assembler()->
 
-LocationSummary* GraphEntryInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* GraphEntryInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
 
 
-LocationSummary* JoinEntryInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* JoinEntryInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
   UNREACHABLE();
   return NULL;
@@ -2571,7 +2571,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* TargetEntryInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* TargetEntryInstr::MakeLocationSummary(Zone* zone,
                                                        bool optimizing) const {
   UNREACHABLE();
   return NULL;
@@ -2633,8 +2633,8 @@ void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
 
 
 LocationSummary* IndirectEntryInstr::MakeLocationSummary(
-    Isolate* isolate, bool optimizing) const {
-  return JoinEntryInstr::MakeLocationSummary(isolate, optimizing);
+    Zone* zone, bool optimizing) const {
+  return JoinEntryInstr::MakeLocationSummary(zone, optimizing);
 }
 
 
@@ -2643,7 +2643,7 @@ void IndirectEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* PhiInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,
                                                bool optimizing) const {
   UNREACHABLE();
   return NULL;
@@ -2655,7 +2655,7 @@ void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* RedefinitionInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* RedefinitionInstr::MakeLocationSummary(Zone* zone,
                                                         bool optimizing) const {
   UNREACHABLE();
   return NULL;
@@ -2667,7 +2667,7 @@ void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ParameterInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* ParameterInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
   UNREACHABLE();
   return NULL;
@@ -2689,7 +2689,7 @@ bool ParallelMoveInstr::IsRedundant() const {
 }
 
 
-LocationSummary* ParallelMoveInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* ParallelMoveInstr::MakeLocationSummary(Zone* zone,
                                                         bool optimizing) const {
   return NULL;
 }
@@ -2700,7 +2700,7 @@ void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ConstraintInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* ConstraintInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
   UNREACHABLE();
   return NULL;
@@ -2713,7 +2713,7 @@ void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MaterializeObjectInstr::MakeLocationSummary(
-    Isolate* isolate, bool optimizing) const {
+    Zone* zone, bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2740,7 +2740,7 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
 }
 
 
-LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* CurrentContextInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   // Only appears in initial definitions, never in normal code.
   UNREACHABLE();
@@ -2754,9 +2754,9 @@ void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* PushTempInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* PushTempInstr::MakeLocationSummary(Zone* zone,
                                                     bool optimizing) const {
-  return LocationSummary::Make(isolate,
+  return LocationSummary::Make(zone,
                                1,
                                Location::NoLocation(),
                                LocationSummary::kNoCall);
@@ -2769,14 +2769,14 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* DropTempsInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* DropTempsInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
   return (InputCount() == 1)
-      ? LocationSummary::Make(isolate,
+      ? LocationSummary::Make(zone,
                               1,
                               Location::SameAsFirstInput(),
                               LocationSummary::kNoCall)
-      : LocationSummary::Make(isolate,
+      : LocationSummary::Make(zone,
                               0,
                               Location::NoLocation(),
                               LocationSummary::kNoCall);
@@ -2806,9 +2806,9 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
 }
 
 
-LocationSummary* InstanceCallInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
                                                         bool optimizing) const {
-  return MakeCallSummary(isolate);
+  return MakeCallSummary(zone);
 }
 
 
@@ -2937,9 +2937,9 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
 }
 
 
-LocationSummary* StaticCallInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
-  return MakeCallSummary(isolate);
+  return MakeCallSummary(zone);
 }
 
 
@@ -2988,9 +2988,9 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* DeoptimizeInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  return new(isolate) LocationSummary(isolate, 0, 0, LocationSummary::kNoCall);
+  return new(zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
 }
 
 
