@@ -1855,7 +1855,8 @@ class TypeResolver {
         visitor.warning(node, messageKind, messageArguments);
       }
       if (erroneousElement == null) {
-         erroneousElement = new ErroneousElementX(
+        registry.registerThrowRuntimeError();
+        erroneousElement = new ErroneousElementX(
             messageKind, messageArguments, typeName.source,
             visitor.enclosingElement);
       }
@@ -4879,6 +4880,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       element = new ErroneousConstructorElementX(
           MessageKind.NOT_A_TYPE, {'node': diagnosticNode},
           element.name, element);
+      registry.registerThrowRuntimeError();
     }
 
     if (type == null) {
@@ -4952,17 +4954,20 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       element = new ErroneousConstructorElementX(
           MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
           {'typedefName': name}, name, resolver.enclosingElement);
+      registry.registerThrowRuntimeError();
     } else if (element.isTypeVariable) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
             {'typeVariableName': name});
       element = new ErroneousConstructorElementX(
           MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
           {'typeVariableName': name}, name, resolver.enclosingElement);
+      registry.registerThrowRuntimeError();
     } else if (!element.isClass && !element.isPrefix) {
       error(node, MessageKind.NOT_A_TYPE, {'node': name});
       element = new ErroneousConstructorElementX(
           MessageKind.NOT_A_TYPE, {'node': name}, name,
           resolver.enclosingElement);
+      registry.registerThrowRuntimeError();
     }
     return element;
   }
