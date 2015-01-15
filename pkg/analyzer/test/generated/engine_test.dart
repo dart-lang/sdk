@@ -4090,18 +4090,49 @@ library lib;
 
     RecordingErrorListener errorListener = new RecordingErrorListener();
 
-    LintGeneratorTest_Verifier verifier = new LintGeneratorTest_Verifier();
+    LintGeneratorTest_Linter linter = new LintGeneratorTest_Linter();
 
     LintGenerator lintGenerator =
-        new LintGenerator(units, errorListener, [verifier]);
+        new LintGenerator(units, errorListener, [linter]);
     lintGenerator.generate();
 
-    verifier.testExpectations();
+    linter.testExpectations();
   }
+
+  void test_generate_null_visitor() {
+
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    ChangeSet changeSet = new ChangeSet();
+    Source librarySource =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    changeSet.addedSource(librarySource);
+    context.applyChanges(changeSet);
+    context.setContents(librarySource, r'''
+library lib;
+''');
+
+    CompilationUnit unit =
+        context.resolveCompilationUnit2(librarySource, librarySource);
+    List<CompilationUnit> units = <CompilationUnit>[];
+    units.add(unit);
+
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+
+    Linter badLinter = new LintGeneratorTest_Linter_Null_Visitor();
+    LintGeneratorTest_Linter goodLinter = new LintGeneratorTest_Linter();
+
+    LintGenerator lintGenerator =
+        new LintGenerator(units, errorListener, [badLinter, goodLinter]);
+    // Test that generate does not fall down with a null visitor
+    lintGenerator.generate();
+    // Well-formed linter should still get called
+    goodLinter.testExpectations();
+  }
+
 }
 
 
-class LintGeneratorTest_Verifier extends LintVerifier {
+class LintGeneratorTest_Linter extends Linter with SimpleAstVisitor<Object> {
 
   bool visited;
 
@@ -4115,6 +4146,14 @@ class LintGeneratorTest_Verifier extends LintVerifier {
     expect(reporter, isNotNull);
     expect(visited, isTrue);
   }
+
+  @override
+  AstVisitor getVisitor() => this;
+}
+
+class LintGeneratorTest_Linter_Null_Visitor extends Linter {
+  @override
+  AstVisitor getVisitor() => null;
 }
 
 
