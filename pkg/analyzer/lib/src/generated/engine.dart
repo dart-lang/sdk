@@ -6517,7 +6517,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * The maximum number of sources for which data should be kept in the cache.
    */
-  static int DEFAULT_CACHE_SIZE = 64;
+  static const int DEFAULT_CACHE_SIZE = 64;
 
   /**
    * The default value for enabling deferred loading.

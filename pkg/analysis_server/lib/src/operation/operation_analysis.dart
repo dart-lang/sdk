@@ -106,6 +106,9 @@ void sendAnalysisNotificationOverrides(AnalysisServer server, String file,
  * Instances of [PerformAnalysisOperation] perform a single analysis task.
  */
 class PerformAnalysisOperation extends ServerOperation {
+  static const int IDLE_CACHE_SIZE = AnalysisOptionsImpl.DEFAULT_CACHE_SIZE;
+  static const int WORKING_CACHE_SIZE = 512;
+
   final AnalysisContext context;
   final bool isContinue;
 
@@ -130,10 +133,14 @@ class PerformAnalysisOperation extends ServerOperation {
     // AnalysisResult result = context.performAnalysisTask((taskDescription) {
     //   sendStatusNotification(context.toString(), taskDescription);
     // });
+    if (!isContinue) {
+      _setCacheSize(WORKING_CACHE_SIZE);
+    }
     // prepare results
     AnalysisResult result = context.performAnalysisTask();
     List<ChangeNotice> notices = result.changeNotices;
     if (notices == null) {
+      _setCacheSize(IDLE_CACHE_SIZE);
       server.sendContextAnalysisDoneNotifications(
           context,
           AnalysisDoneReason.COMPLETE);
@@ -144,6 +151,12 @@ class PerformAnalysisOperation extends ServerOperation {
     updateIndex(server, notices);
     // continue analysis
     server.addOperation(new PerformAnalysisOperation(context, true));
+  }
+
+  void _setCacheSize(int cacheSize) {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(context.analysisOptions);
+    options.cacheSize = cacheSize;
+    context.analysisOptions = options;
   }
 
   /**
