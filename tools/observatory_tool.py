@@ -68,9 +68,9 @@ def Deploy(input_dir, output_dir):
 def ExecuteCommand(options, args):
   cmd = options.command
   if (cmd == 'get'):
-    PubGet(options.dart_executable, options.package_root)
+    return PubGet(options.dart_executable, options.package_root)
   elif (cmd == 'build'):
-    PubBuild(options.dart_executable, options.package_root, args[0])
+    return PubBuild(options.dart_executable, options.package_root, args[0])
   elif (cmd == 'deploy'):
     Deploy('build', 'deployed')
   else:
