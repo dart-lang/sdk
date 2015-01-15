@@ -732,24 +732,25 @@ class OldEmitter implements Emitter {
              cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
 
-  void generateClass(ClassElement classElement, ClassBuilder properties) {
+  void emitClass(Class cls, ClassBuilder enclosingBuilder) {
+    ClassElement classElement = cls.element;
     compiler.withCurrentElement(classElement, () {
       if (compiler.hasIncrementalSupport) {
-        ClassBuilder builder =
+        ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
               ClassBuilder builder = new ClassBuilder(classElement, namer);
-              classEmitter.generateClass(
-                  classElement, builder, additionalProperties[classElement]);
+              classEmitter.emitClass(
+                  cls, builder, additionalProperties[classElement]);
               return builder;
             });
-        invariant(classElement, builder.fields.isEmpty);
-        invariant(classElement, builder.superName == null);
-        invariant(classElement, builder.functionType == null);
-        invariant(classElement, builder.fieldMetadata == null);
-        properties.properties.addAll(builder.properties);
+        invariant(classElement, cachedBuilder.fields.isEmpty);
+        invariant(classElement, cachedBuilder.superName == null);
+        invariant(classElement, cachedBuilder.functionType == null);
+        invariant(classElement, cachedBuilder.fieldMetadata == null);
+        enclosingBuilder.properties.addAll(cachedBuilder.properties);
       } else {
-        classEmitter.generateClass(
-            classElement, properties, additionalProperties[classElement]);
+        classEmitter.emitClass(
+            cls, enclosingBuilder, additionalProperties[classElement]);
       }
     });
   }
@@ -1363,17 +1364,16 @@ class OldEmitter implements Emitter {
   }
 
   void emitLibrary(Library library) {
+    LibraryElement libraryElement = library.element;
+
     emitStaticFunctions(library.statics);
 
-    Iterable<ClassElement> classes =
-        library.classes.map((Class cls) => cls.element);
-    for (ClassElement element in classes) {
-      generateClass(element, getElementDescriptor(element));
+    ClassBuilder libraryBuilder = getElementDescriptor(libraryElement);
+    for (Class cls in library.classes) {
+      emitClass(cls, libraryBuilder);
     }
 
-    LibraryElement libraryElement = library.element;
-    ClassBuilder builder = getElementDescriptor(libraryElement);
-    classEmitter.emitFields(library.element, builder, emitStatics: true);
+    classEmitter.emitFields(libraryElement, libraryBuilder, emitStatics: true);
   }
 
   void emitMainOutputUnit(Program program,
