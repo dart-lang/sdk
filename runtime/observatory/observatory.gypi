@@ -21,6 +21,7 @@
           'action_name': 'get_obsevatory_dependencies',
           'inputs': [
             '../../tools/observatory_tool.py',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             'pubspec.yaml',
           ],
           'outputs': [
@@ -180,6 +181,7 @@
           'inputs': [
             '../../tools/observatory_tool.py',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+            'pubspec.lock',
             '<@(_sources)',
           ],
           'outputs': [
