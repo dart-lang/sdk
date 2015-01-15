@@ -65,9 +65,9 @@ void Stdin::SetLineMode(bool enabled) {
 }
 
 
-bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
+bool Stdout::GetTerminalSize(int size[2]) {
   struct winsize w;
-  if (NO_RETRY_EXPECTED(ioctl(fd, TIOCGWINSZ, &w)) == 0 &&
+  if (NO_RETRY_EXPECTED(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w)) == 0 &&
       (w.ws_col != 0 || w.ws_row != 0)) {
     size[0] = w.ws_col;
     size[1] = w.ws_row;
@@ -80,3 +80,4 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)
+

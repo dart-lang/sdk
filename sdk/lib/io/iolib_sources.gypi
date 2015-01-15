@@ -6,6 +6,7 @@
   'sources': [
     'bytes_builder.dart',
     'common.dart',
+    'console.dart',
     'crypto.dart',
     'data_transformer.dart',
     'directory.dart',
