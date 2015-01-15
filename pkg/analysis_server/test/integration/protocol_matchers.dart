@@ -988,6 +988,7 @@ final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
+ *   "fileReadMode": optional FileReadMode
  * }
  */
 final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
@@ -997,7 +998,8 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
     "enableEnums": isBool,
     "generateDart2jsHints": isBool,
     "generateHints": isBool,
-    "generateLints": isBool
+    "generateLints": isBool,
+    "fileReadMode": isFileReadMode
   }));
 
 /**
@@ -1258,6 +1260,19 @@ final Matcher isExecutionService = new MatchesEnum("ExecutionService", [
  * String
  */
 final Matcher isFilePath = isString;
+
+/**
+ * FileReadMode
+ *
+ * enum {
+ *   AS_IS
+ *   NORMALIZE_EOL
+ * }
+ */
+final Matcher isFileReadMode = new MatchesEnum("FileReadMode", [
+  "AS_IS",
+  "NORMALIZE_EOL"
+]);
 
 /**
  * FoldingKind

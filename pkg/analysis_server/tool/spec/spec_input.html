@@ -1850,6 +1850,12 @@
               errors and warnings.
             </p>
           </field>
+          <field name="fileReadMode" optional="true">
+            <ref>FileReadMode</ref>
+            <p>
+              The mode to read files from disk, by default this value is AS_IS.
+            </p>
+          </field>
         </object>
       </type>
       <type name="AnalysisService">
@@ -2252,6 +2258,28 @@
         <p>
           The absolute path of a file.
         </p>
+      </type>
+      <type name="FileReadMode">
+        <p>
+          An enumeration of the ways files can be read from disk. Some clients
+          normalize end of line characters which would make the file offset and
+          range information incorrect.
+        </p>
+        <enum>
+          <value>
+            <code>AS_IS</code>
+            <p>
+              File contents are read as-is, no file changes occur.
+            </p>
+          </value>
+          <value>
+            <code>NORMALIZE_EOL</code>
+            <p>
+              File contents normalize the end of line characters to the single
+              character new line '\n'.
+            </p>
+          </value>
+        </enum>
       </type>
       <type name="FoldingKind">
         <p>

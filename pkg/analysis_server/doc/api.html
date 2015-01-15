@@ -2007,6 +2007,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2131,6 +2132,11 @@ dt.typeDefinition {
             <p>
               True if lints should be generated as part of generating
               errors and warnings.
+            </p>
+          </dd><dt class="field"><b><i>fileReadMode ( <span style="color:#999999">optional</span> <a href="#type_FileReadMode">FileReadMode</a> )</i></b></dt><dd>
+            
+            <p>
+              The mode to read files from disk, by default this value is AS_IS.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisService">AnalysisService: String</a></dt><dd>
         <p>
@@ -2440,7 +2446,25 @@ dt.typeDefinition {
         <p>
           The absolute path of a file.
         </p>
-      </dd><dt class="typeDefinition"><a name="type_FoldingKind">FoldingKind: String</a></dt><dd>
+      </dd><dt class="typeDefinition"><a name="type_FileReadMode">FileReadMode: String</a></dt><dd>
+        <p>
+          An enumeration of the ways files can be read from disk. Some clients
+          normalize end of line characters which would make the file offset and
+          range information incorrect.
+        </p>
+        
+      <dl><dt class="value">AS_IS</dt><dd>
+            
+            <p>
+              File contents are read as-is, no file changes occur.
+            </p>
+          </dd><dt class="value">NORMALIZE_EOL</dt><dd>
+            
+            <p>
+              File contents normalize the end of line characters to the single
+              character new line '\n'.
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_FoldingKind">FoldingKind: String</a></dt><dd>
         <p>
           An enumeration of the kinds of folding regions.
         </p>
