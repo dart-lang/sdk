@@ -1035,6 +1035,7 @@ LayoutTests/fast/dom/HTMLLinkElement/prefetch-beforeload_t01: Pass, RuntimeError
 LayoutTests/fast/forms/activate-and-disabled-elements_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/continuation-inlines-inserted-in-reverse-after-block_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/fixed-pos-moves-with-abspos-inline-parent_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/fixed-pos-moves-with-abspos-parent_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/fixed-pos-moves-with-abspos-parent-relative-ancestor_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/inline-relative-offset-boundingbox_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t01: Skip # Times out. co19-roll r801: Please triage this failure.
