@@ -2318,7 +2318,7 @@ abstract class PartialFunctionMixin implements FunctionElement {
         p.parseFunction(beginToken, getOrSet);
       }
     }
-    cachedNode = parse(listener, this, parseFunction);
+    cachedNode = parse(listener, this, declarationSite, parseFunction);
     return cachedNode;
   }
 
@@ -2327,6 +2327,8 @@ abstract class PartialFunctionMixin implements FunctionElement {
   void reusePartialFunctionMixin() {
     cachedNode = null;
   }
+
+  DeclarationSite get declarationSite;
 }
 
 class PartialFunctionElement extends FunctionElementX
@@ -2388,13 +2390,8 @@ class PartialFieldList extends VariableList with PartialElement {
     if (definitions != null) return definitions;
     listener.withCurrentElement(element, () {
       definitions = parse(
-          listener, element,
-          (Parser parser) {
-            if (hasParseError) {
-              parser.listener.suppressParseErrors = true;
-            }
-            return parser.parseMember(beginToken);
-          });
+          listener, element, declarationSite,
+          (Parser parser) => parser.parseMember(beginToken));
 
       if (!hasParseError &&
           !definitions.modifiers.isVar &&
@@ -2444,9 +2441,9 @@ class PartialTypedefElement extends TypedefElementX with PartialElement {
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    cachedNode = parse(listener,
-                       this,
-                       (p) => p.parseTopLevelDeclaration(token));
+    cachedNode = parse(
+        listener, this, declarationSite,
+        (p) => p.parseTopLevelDeclaration(token));
     return cachedNode;
   }
 
@@ -2454,12 +2451,21 @@ class PartialTypedefElement extends TypedefElementX with PartialElement {
 }
 
 /// A [MetadataAnnotation] which is constructed on demand.
-class PartialMetadataAnnotation extends MetadataAnnotationX {
-  final Token beginToken;
+class PartialMetadataAnnotation extends MetadataAnnotationX
+    implements PartialElement {
+  Token beginToken; // TODO(ahe): Make this final when issue 22065 is fixed.
+
   final Token tokenAfterEndToken;
+
   Expression cachedNode;
 
+  bool hasParseError = false;
+
   PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
+
+  bool get isErroneous => hasParseError;
+
+  DeclarationSite get declarationSite => this;
 
   Token get endToken {
     Token token = beginToken;
@@ -2471,10 +2477,15 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
     return token;
   }
 
+  void set endToken(_) {
+    throw new UnsupportedError("endToken=");
+  }
+
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     Metadata metadata = parse(listener,
                               annotatedElement,
+                              declarationSite,
                               (p) => p.parseMetadata(beginToken));
     cachedNode = metadata.expression;
     return cachedNode;
@@ -2488,19 +2499,21 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
   }
 }
 
-Node parse(DiagnosticListener diagnosticListener,
-           Element element,
-           doParse(Parser parser)) {
+Node parse(
+    DiagnosticListener diagnosticListener,
+    Element element,
+    PartialElement partial,
+    doParse(Parser parser)) {
   CompilationUnitElement unit = element.compilationUnit;
   NodeListener listener = new NodeListener(diagnosticListener, unit);
   listener.memberErrors = listener.memberErrors.prepend(false);
   try {
+    if (partial.hasParseError) {
+      listener.suppressParseErrors = true;
+    }
     doParse(new Parser(listener));
   } on ParserError catch (e) {
-    if (element is PartialElement) {
-      PartialElement partial = element as PartialElement;
-      partial.hasParseError = true;
-    }
+    partial.hasParseError = true;
     return new ErrorNode(element.position, e.reason);
   }
   Node node = listener.popNode();

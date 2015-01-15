@@ -896,8 +896,13 @@ class Parser {
     token = parseFunctionBody(token, false, externalModifier != null);
     yieldIsKeyword = previousYieldIsKeyword;
     awaitIsKeyword = previousAwaitIsKeyword;
-    listener.endTopLevelMethod(start, getOrSet, token);
-    return token.next;
+    Token endToken = token;
+    token = token.next;
+    if (token.kind == BAD_INPUT_TOKEN) {
+      token = listener.unexpected(token);
+    }
+    listener.endTopLevelMethod(start, getOrSet, endToken);
+    return token;
   }
 
   Link<Token> findMemberName(Token token) {
