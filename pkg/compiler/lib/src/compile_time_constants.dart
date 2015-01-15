@@ -954,6 +954,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * parameters (like [:this.x:]), also updates the [fieldValues] map.
    */
   void assignArgumentsToParameters(List<AstConstant> arguments) {
+    if (constructor.isErroneous) return;
     // Assign arguments to parameters.
     FunctionSignature signature = constructor.functionSignature;
     int index = 0;
@@ -1065,6 +1066,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * native JavaScript constructor.
    */
   void evaluateConstructorFieldValues(List<AstConstant> arguments) {
+    if (constructor.isErroneous) return;
     compiler.withCurrentElement(constructor, () {
       assignArgumentsToParameters(arguments);
       evaluateConstructorInitializers();

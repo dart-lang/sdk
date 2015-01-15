@@ -620,7 +620,7 @@ class ResolverTask extends CompilerTask {
           }
           return registry.mapping;
         } else {
-          assert(element.isDeferredLoaderGetter);
+          assert(element.isDeferredLoaderGetter || element.isErroneous);
           return _ensureTreeElements(element);
         }
       } else {
@@ -771,9 +771,10 @@ class ResolverTask extends CompilerTask {
           message: 'No TreeElements cached for $factory.'));
       FunctionExpression functionNode = factory.parseNode(compiler);
       RedirectingFactoryBody redirectionNode = functionNode.body;
-      InterfaceType factoryType = treeElements.getType(redirectionNode);
-
-      targetType = targetType.substByContext(factoryType);
+      DartType factoryType = treeElements.getType(redirectionNode);
+      if (!factoryType.isDynamic) {
+        targetType = targetType.substByContext(factoryType);
+      }
       factory.effectiveTarget = target;
       factory.effectiveTargetType = targetType;
     }
@@ -4871,7 +4872,12 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
             element, diagnosticNode, element.name, MessageKind.NOT_A_TYPE,
             {'node': diagnosticNode});
       }
+    } else if (element.isErroneous && element is! ErroneousElementX) {
+      element = new ErroneousConstructorElementX(
+          MessageKind.NOT_A_TYPE, {'node': diagnosticNode},
+          element.name, element);
     }
+
     if (type == null) {
       if (Elements.isUnresolved(element)) {
         type = const DynamicType();
@@ -4973,6 +4979,7 @@ Element lookupInScope(Compiler compiler, Node node,
 }
 
 TreeElements _ensureTreeElements(AnalyzableElementX element) {
+  if (element.isErroneous) return new TreeElementMapping(element);
   if (element._treeElements == null) {
     element._treeElements = new TreeElementMapping(element);
   }

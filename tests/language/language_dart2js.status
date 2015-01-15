@@ -15,7 +15,6 @@ await_future_test: CompileTimeError # Issue 21411
 await_nonfuture_test: CompileTimeError # Issue 21411
 await_regression_test: CompileTimeError # Issue 21411
 await_test: CompileTimeError # Issue 21411
-async_test/constructor4: Crash # TODO(ahe): I have CL on its way.
 
 [ $compiler == dart2js && $unchecked ]
 async_test/type-mismatch1: CompileTimeError # Issue 21411
