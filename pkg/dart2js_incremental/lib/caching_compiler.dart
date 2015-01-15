@@ -122,10 +122,6 @@ Future<Compiler> reuseCompiler(
     backend.emitter.oldEmitter.interceptorEmitter
         ..interceptorInvocationNames.clear();
 
-    backend.emitter.oldEmitter.metadataEmitter
-        ..globalMetadata.clear()
-        ..globalMetadataMap.clear();
-
     backend.emitter.nativeEmitter
         ..nativeClasses.clear()
         ..nativeMethods.clear();
