@@ -29,7 +29,7 @@ def ProcessOptions(options, args):
           (options.dart_executable != None))
 
 def GetPrebuiltDartExecutablePath():
-  osdict = {'Darwin':'macos', 'Linux':'linux', 'Windows':'win32'}
+  osdict = {'Darwin':'macos', 'Linux':'linux', 'Windows':'windows'}
   system = platform.system()
   executable_name = 'dart'
   if system == 'Windows':
