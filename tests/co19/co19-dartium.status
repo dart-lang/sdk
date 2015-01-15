@@ -46,6 +46,7 @@ LayoutTests/fast/dom/css-cached-import-rule_t01: Skip # Test reloads itself. Iss
 LayoutTests/fast/dom/cssTarget-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/empty-hash-and-search_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-nonhtml-ancestor_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-nil-value-field-assert_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/textarea-submit-crash_t01: Skip # Test reloads itself. Issue 18558.
 
@@ -781,6 +782,7 @@ LayoutTests/fast/dom/text-api-arguments_t01: RuntimeError # Please triage this f
 
 # co19-roll r801
 LayoutTests/fast/canvas/webgl/canvas-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-strict-mode-wtih-checkbox_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/events/change-overflow-on-overflow-change_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
@@ -1033,12 +1035,15 @@ LayoutTests/fast/dom/HTMLLinkElement/prefetch-beforeload_t01: Pass, RuntimeError
 LayoutTests/fast/forms/activate-and-disabled-elements_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/continuation-inlines-inserted-in-reverse-after-block_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/fixed-pos-moves-with-abspos-inline-parent_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/inline/fixed-pos-moves-with-abspos-parent-relative-ancestor_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/inline-relative-offset-boundingbox_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/negative-scroll-positions_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/sub-pixel/computedstylemargin_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/sub-pixel/float-list-inside_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/sub-pixel/layout-boxes-with-zoom_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/auto-margins-across-boundaries_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Skip # Times out. Please triage this failure.
@@ -1051,6 +1056,7 @@ LayoutTests/fast/writing-mode/overhanging-float-legend-crash_t01: Skip # Times o
 LayoutTests/fast/writing-mode/percentage-margins-absolute_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-padding_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/writing-mode/relative-positioning-percentages_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/writing-mode/table-hit-test_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Skip # Times out. Please triage this failure.
