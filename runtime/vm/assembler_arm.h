@@ -13,6 +13,7 @@
 #include "platform/utils.h"
 #include "vm/constants_arm.h"
 #include "vm/cpu.h"
+#include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
 
@@ -938,6 +939,10 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
+
+  // Hashmap for fast lookup in object pool.
+  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+
   int32_t prologue_offset_;
 
   bool use_far_branches_;

@@ -37,16 +37,15 @@ Assembler::Assembler(bool use_far_branches)
     // at the same index.
     object_pool_.Add(Object::null_object(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
-    // Not adding Object::null() to the index table. It is at index 0 in the
-    // object pool, but the HashMap uses 0 to indicate not found.
+    object_pool_index_table_.Insert(ObjIndexPair(&Object::null_object(), 0));
 
     object_pool_.Add(Bool::True(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
-    object_pool_index_table_.Insert(ObjIndexPair(Bool::True().raw(), 1));
+    object_pool_index_table_.Insert(ObjIndexPair(&Bool::True(), 1));
 
     object_pool_.Add(Bool::False(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
-    object_pool_index_table_.Insert(ObjIndexPair(Bool::False().raw(), 2));
+    object_pool_index_table_.Insert(ObjIndexPair(&Bool::False(), 2));
 
     const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
 
@@ -2772,15 +2771,8 @@ intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
   // If the object is not patchable, check if we've already got it in the
   // object pool.
   if (patchable == kNotPatchable) {
-    // Special case for Object::null(), which is always at object_pool_ index 0
-    // because Lookup() below returns 0 when the object is not mapped in the
-    // table.
-    if (obj.raw() == Object::null()) {
-      return 0;
-    }
-
-    intptr_t idx = object_pool_index_table_.Lookup(obj.raw());
-    if (idx != 0) {
+    intptr_t idx = object_pool_index_table_.Lookup(&obj);
+    if (idx != ObjIndexPair::kNoIndex) {
       ASSERT(patchable_pool_entries_[idx] == kNotPatchable);
       return idx;
     }
@@ -2791,7 +2783,7 @@ intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
   if (patchable == kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.
     object_pool_index_table_.Insert(
-        ObjIndexPair(obj.raw(), object_pool_.Length() - 1));
+        ObjIndexPair(&obj, object_pool_.Length() - 1));
   }
   return object_pool_.Length() - 1;
 }

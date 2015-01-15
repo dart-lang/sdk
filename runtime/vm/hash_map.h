@@ -31,8 +31,8 @@ class DirectChainedHashMap: public ValueObject {
   void Clear() {
     if (!IsEmpty()) {
       count_ = 0;
-      memset(array_, 0, sizeof(HashMapListElement) * array_size_);
-      memset(lists_, 0, sizeof(HashMapListElement) * lists_size_);
+      InitArray(array_, array_size_);
+      InitArray(lists_, lists_size_);
       lists_[0].next = kNil;
       for (intptr_t i = 1; i < lists_size_; ++i) {
         lists_[i].next = i - 1;
@@ -44,10 +44,17 @@ class DirectChainedHashMap: public ValueObject {
  protected:
   // A linked list of T values.  Stored in arrays.
   struct HashMapListElement {
+    HashMapListElement() : kv(), next(kNil) { }
     typename KeyValueTrait::Pair kv;
     intptr_t next;  // Index in the array of the next list element.
   };
   static const intptr_t kNil = -1;  // The end of a linked list
+
+  static void InitArray(HashMapListElement* array, intptr_t size) {
+    for (intptr_t i = 0; i < size; ++i) {
+      array[i] = HashMapListElement();
+    }
+  }
 
   // Must be a power of 2.
   static const intptr_t kInitialSize = 16;
@@ -71,7 +78,7 @@ typename KeyValueTrait::Value
     DirectChainedHashMap<KeyValueTrait>::
         Lookup(typename KeyValueTrait::Key key) const {
   const typename KeyValueTrait::Value kNoValue =
-      static_cast<typename KeyValueTrait::Value>(0);
+      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
   uword hash = static_cast<uword>(KeyValueTrait::Hashcode(key));
   uword pos = Bound(hash);
@@ -112,7 +119,7 @@ DirectChainedHashMap<KeyValueTrait>::
 template <typename KeyValueTrait>
 void DirectChainedHashMap<KeyValueTrait>::Resize(intptr_t new_size) {
   const typename KeyValueTrait::Value kNoValue =
-      static_cast<typename KeyValueTrait::Value>(0);
+      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
   ASSERT(new_size > count_);
   // Hashing the values into the new array has no more collisions than in the
@@ -125,7 +132,7 @@ void DirectChainedHashMap<KeyValueTrait>::Resize(intptr_t new_size) {
 
   HashMapListElement* new_array =
       Isolate::Current()->current_zone()->Alloc<HashMapListElement>(new_size);
-  memset(new_array, 0, sizeof(HashMapListElement) * new_size);
+  InitArray(new_array, new_size);
 
   HashMapListElement* old_array = array_;
   intptr_t old_size = array_size_;
@@ -164,7 +171,7 @@ void DirectChainedHashMap<T>::ResizeLists(intptr_t new_size) {
   HashMapListElement* new_lists =
       Isolate::Current()->current_zone()->
       Alloc<HashMapListElement>(new_size);
-  memset(new_lists, 0, sizeof(HashMapListElement) * new_size);
+  InitArray(new_lists, new_size);
 
   HashMapListElement* old_lists = lists_;
   intptr_t old_size = lists_size_;
@@ -186,7 +193,7 @@ template <typename KeyValueTrait>
 void DirectChainedHashMap<KeyValueTrait>::
     Insert(typename KeyValueTrait::Pair kv) {
   const typename KeyValueTrait::Value kNoValue =
-      static_cast<typename KeyValueTrait::Value>(0);
+      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
   ASSERT(KeyValueTrait::ValueOf(kv) != kNoValue);
   // Resizing when half of the hashtable is filled up.

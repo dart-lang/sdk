@@ -205,6 +205,57 @@ class AssemblerBuffer : public ValueObject {
   friend class AssemblerFixup;
 };
 
+
+// Pair type parameter for DirectChainedHashMap used for the constant pool.
+class ObjIndexPair {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Object* Key;
+  typedef intptr_t Value;
+  typedef ObjIndexPair Pair;
+
+  static const intptr_t kNoIndex = -1;
+
+  ObjIndexPair() : key_(NULL), value_(kNoIndex) { }
+
+  ObjIndexPair(Key key, Value value)
+     : key_(key->IsNotTemporaryScopedHandle()
+         ? key : &Object::ZoneHandle(key->raw())),
+       value_(value) { }
+
+  static Key KeyOf(Pair kv) { return kv.key_; }
+
+  static Value ValueOf(Pair kv) { return kv.value_; }
+
+  static intptr_t Hashcode(Key key) {
+    if (key->IsSmi()) {
+      return Smi::Cast(*key).Value();
+    }
+    if (key->IsDouble()) {
+      return static_cast<intptr_t>(
+          bit_cast<int32_t, float>(
+              static_cast<float>(Double::Cast(*key).value())));
+    }
+    if (key->IsMint()) {
+      return static_cast<intptr_t>(Mint::Cast(*key).value());
+    }
+    if (key->IsString()) {
+      return String::Cast(*key).Hash();
+    }
+    // TODO(fschneider): Add hash function for other classes commonly used as
+    // compile-time constants.
+    return key->GetClassId();
+  }
+
+  static inline bool IsKeyEqual(Pair kv, Key key) {
+    return kv.key_->raw() == key->raw();
+  }
+
+ private:
+  Key key_;
+  Value value_;
+};
+
 }  // namespace dart
 
 
