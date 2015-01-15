@@ -109,8 +109,7 @@ class Expectation {
 final RegExp SplitComment = new RegExp("^([^#]*)(#.*)?\$");
 final RegExp HeaderPattern = new RegExp(r"^\[([^\]]+)\]");
 final RegExp RulePattern = new RegExp(r"\s*([^: ]*)\s*:(.*)");
-final RegExp IssueNumberPattern =
-    new RegExp("Issue ([0-9]+)|dartbug.com/([0-9]+)", caseSensitive: false);
+final RegExp IssueNumberPattern = new RegExp("[Ii]ssue ([0-9]+)");
 
 class StatusFile {
   final Path location;

@@ -5,7 +5,7 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-mirror_in_static_init_test: CompileTimeError, OK
+mirror_in_static_init_test: CompileTimeError, OK # Change this to a multitest. Issue 22071
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
@@ -93,13 +93,13 @@ first_class_types_literals_test: Pass, Fail # Issue 13719: Please triage this fa
 issue13474_test: Pass, Fail # Issue 14651.
 typed_message_test: Crash, Fail # Issue 13921, 14400
 vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
-main_test/01: Fail # http://dartbug.com/20028
-main_test/02: Fail # http://dartbug.com/20028
-main_test/04: Fail # http://dartbug.com/20028
-main_test/05: Fail # http://dartbug.com/20028
-main_test/21: Fail # http://dartbug.com/20028
-main_test/42: Fail # http://dartbug.com/20028
-
+main_test/01: Fail # Issue 20028
+main_test/02: Fail # Issue 20028
+main_test/04: Fail # Issue 20028
+main_test/05: Fail # Issue 20028
+main_test/21: Fail # Issue 20028
+main_test/42: Fail # Issue 20028
+mirror_in_static_init_test: Fail # Issue 22071
 
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122

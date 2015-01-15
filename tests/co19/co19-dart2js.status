@@ -154,7 +154,7 @@ LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/06_Functions/4_External_Functions_A01_t01: CompileTimeError, OK # http://dartbug.com/5021
+Language/06_Functions/4_External_Functions_A01_t01: CompileTimeError, OK # Issue 5021
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 issue 308
 LibTest/typed_data/Int64List/*: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int64List/Int64List_A02_t01: pass # co19-roll r559: Please triage this failure
@@ -241,7 +241,7 @@ LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect
 #
 [ $compiler == dart2js ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: RuntimeError # compiler cancelled: cannot resolve type T
-Language/07_Classes/3_Setters_A04_t03: RuntimeError # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t03: RuntimeError # Issue 5023
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
@@ -314,9 +314,9 @@ Language/16_Reference/1_Lexical_Rules_A02_t06: MissingCompileTimeError # Checks 
 # Unexpected compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/07_Classes/3_Setters_A04_t01: CompileTimeError # http://dartbug.com/5023
-Language/07_Classes/3_Setters_A04_t02: CompileTimeError # http://dartbug.com/5023
-Language/07_Classes/3_Setters_A04_t07: CompileTimeError # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t01: CompileTimeError # Issue 5023
+Language/07_Classes/3_Setters_A04_t02: CompileTimeError # Issue 5023
+Language/07_Classes/3_Setters_A04_t07: CompileTimeError # Issue 5023
 
 Language/12_Expressions/01_Constants_A03_t01: CompileTimeError # Issue 13652
 

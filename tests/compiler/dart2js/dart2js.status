@@ -42,7 +42,7 @@ http_test: Pass, Slow
 check_elements_invariants_test: Skip # Slow and only needs to be run in one
                                      # configuration
 
-mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581
+mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
 
 deferred_mirrors_test: Pass, Slow
 in_user_code_test: Pass, Slow

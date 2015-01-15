@@ -11,11 +11,11 @@ web/*: Skip
 web/end_to_end_test: Fail, Pass # https://code.google.com/p/v8/issues/detail?id=3347
 
 [ $csp ]
-web/end_to_end_test: Fail, OK # http://dartbug.com/17935
+web/end_to_end_test: Fail, OK # Issue 17935
 web/incremental_compilation_update_test: Skip # Test uses eval, not supported in CSP mode.
 
 [ $runtime == safari || $runtime == safarimobilesim ]
-web/cursor_position_test: Fail # http://dartbug.com/19836
+web/cursor_position_test: Fail # Issue 19836
 web/incremental_compilation_update_test: Skip # Safari may crash on this test.
 
 [ $runtime == safari && $checked ]
@@ -34,7 +34,7 @@ poi/poi_find_test: SkipByDesign # Uses dart:io.
 poi/serialize_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js ]
-poi/*: Skip # http://dartbug.com/20031
+poi/*: Skip # Issue 20031
 
 [ $compiler == dart2js ]
 # Compilation is slow, test fails at runtime due to time out, but

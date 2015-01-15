@@ -10,7 +10,7 @@ mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type check
 async/deferred/deferred_in_isolate_test: Skip # Issue 16898
 
 [ $compiler == dart2js ]
-async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
+async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
@@ -89,20 +89,20 @@ mirrors/relation_subtype_test: RuntimeError # Issue 6490
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
 mirrors/symbol_validation_test/01: RuntimeError # Issue 13597
 mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164
-mirrors/typedef_test: RuntimeError # http://dartbug.com/6490
+mirrors/typedef_test: RuntimeError # Issue 6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typedef_reflected_type_test/01: RuntimeError # Issue 12607
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/type_variable_is_static_test: RuntimeError # Issue 6335
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
-mirrors/raw_type_test/01: RuntimeError # http://dartbug.com/6490
+mirrors/raw_type_test/01: RuntimeError # Issue 6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
-mirrors/null_test: Fail # http://dartbug.com/16831
+mirrors/null_test: Fail # Issue 16831
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
@@ -128,12 +128,12 @@ mirrors/invocation_fuzz_test/none: RuntimeError # Issue 15566
 mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
 [ $compiler == dart2js && $runtime == jsshell ]
-async/future_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer2_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer3_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/stream_from_iterable_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/stream_state_nonzero_timer_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/slow_consumer2_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/slow_consumer3_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/slow_consumer_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_from_iterable_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_state_nonzero_timer_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel1_test: RuntimeError,OK # Needs Timer to run.
@@ -141,36 +141,36 @@ async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
 async/timer_isolate_test: Fail, OK # Needs Timer to run.
 async/timer_repeat_test: RuntimeError,OK # Needs Timer to run.
 async/timer_test: RuntimeError,OK # Needs Timer to run.
-async/stream_controller_async_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic2_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic3_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic4_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic5_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
-async/run_zoned7_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/catch_errors22_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/timer_isActive_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/zone_empty_description2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/zone_create_timer2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/stream_iterator_test: RuntimeError, OK # Timer interface not supported: dartbug.com/7728.
-async/catch_errors12_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors13_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors14_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors15_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors18_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors19_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors20_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors28_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors8_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/run_zoned8_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/zone_bind_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/future_timeout_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/stream_timeout_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/stream_asyncmap_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
-async/stream_controller_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/stream_controller_async_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic2_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic3_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic4_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic5_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_iterator_test: RuntimeError, OK # Timer interface not supported: Issue 7728.
+async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors14_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors15_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors18_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors19_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors20_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors28_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
+async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
+async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
+async/future_timeout_test: Fail # Timer interface not supported: Issue 7728.
+async/stream_timeout_test: Fail # Timer interface not supported: Issue 7728.
+async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_asyncmap_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
@@ -193,7 +193,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 js/*: Skip
 
 [ $compiler == dart2dart ]
-mirrors/*: Skip # http://dartbug.com/11511
+mirrors/*: Skip # Issue 11511
 async/schedule_microtask6_test: Fail             # Issue 10957 - may be related to issue 10910
 
 [ $compiler == dart2dart && $minified ]
@@ -248,7 +248,7 @@ async/timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: spawnFunction i
 mirrors/immutable_collections_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/mirrors_reader_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
-mirrors/local_isolate_test: Skip # http://dartbug.com/12188
+mirrors/local_isolate_test: Skip # Issue 12188
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982

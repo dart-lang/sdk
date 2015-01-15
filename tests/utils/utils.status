@@ -7,7 +7,7 @@ dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
 
 [ $compiler == none && $runtime == drt ]
-dummy_compiler_test: Skip # http://dartbug.com/7233
+dummy_compiler_test: Skip # Issue 7233
 
 [ $compiler == dart2js && $browser ]
 *: Skip
@@ -21,6 +21,6 @@ source_mirrors_test: Slow, Pass
 dummy_compiler_test: Slow, Pass
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
-dummy_compiler_test: Pass, RuntimeError # http://dartbug.com/17662
-recursive_import_test: Pass, RuntimeError # http://dartbug.com/17662
-source_mirrors_test: Pass, RuntimeError # http://dartbug.com/17662
+dummy_compiler_test: Pass, RuntimeError # Issue 17662
+recursive_import_test: Pass, RuntimeError # Issue 17662
+source_mirrors_test: Pass, RuntimeError # Issue 17662

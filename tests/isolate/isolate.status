@@ -83,7 +83,7 @@ unresolved_ports_test: Pass, Timeout # Issue 15610
 spawn_uri_nested_vm_test: Skip # Issue 14463
 
 [ $jscl ]
-spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
+spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
 [ ($compiler == none || $compiler == dart2dart) && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 pause_test: Fail         # Not implemented yet
@@ -104,7 +104,7 @@ message3_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 start_paused_test: Fail, OK   # Issue 13921 Dom isolates don't support spawnFunction
 object_leak_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
-spawn_uri_missing_from_isolate_test: RuntimeError # http://dartbug.com/17649
+spawn_uri_missing_from_isolate_test: RuntimeError # Issue 17649
 spawn_uri_missing_test: Skip # Times out.
 isolate_current_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 
