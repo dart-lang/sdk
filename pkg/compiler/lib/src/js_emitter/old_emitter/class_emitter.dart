@@ -11,11 +11,12 @@ class ClassEmitter extends CodeEmitterHelper {
 
   /**
    * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [classElement] must be a declaration element.
    */
-  void emitClass(Class cls,
-                 ClassBuilder enclosingBuilder,
-                 Map<String, jsAst.Expression> additionalProperties) {
-    ClassElement classElement = cls.element;
+  void generateClass(ClassElement classElement,
+                     ClassBuilder properties,
+                     Map<String, jsAst.Expression> additionalProperties) {
     final onlyForRti =
         emitter.typeTestRegistry.rtiNeededClasses.contains(classElement);
 
@@ -31,9 +32,8 @@ class ClassEmitter extends CodeEmitterHelper {
       superName = namer.getNameOfClass(superclass);
     }
 
-    if (cls.isMixinApplication) {
-      MixinApplication mixinApplication = cls;
-      String mixinName = mixinApplication.mixinClass.name;
+    if (classElement.isMixinApplication) {
+      String mixinName = namer.getNameOfClass(computeMixinClass(classElement));
       superName = '$superName+$mixinName';
       emitter.needsMixinSupport = true;
     }
@@ -60,7 +60,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitTypeVariableReaders(classElement, builder);
 
     emitClassBuilderWithReflectionData(
-        className, classElement, builder, enclosingBuilder);
+        className, classElement, builder, properties);
   }
 
   void emitClassConstructor(ClassElement classElement,
