@@ -1200,6 +1200,11 @@ class JavaScriptBackend extends Backend {
 
   void codegen(CodegenWorkItem work) {
     Element element = work.element;
+    if (compiler.elementHasCompileTimeError(element)) {
+      generatedCode[element] = jsAst.js(
+          "function () { throw new Error('Compile time error in $element') }");
+      return;
+    }
     var kind = element.kind;
     if (kind == ElementKind.TYPEDEF) return;
     if (element.isConstructor && element.enclosingClass == jsNullClass) {

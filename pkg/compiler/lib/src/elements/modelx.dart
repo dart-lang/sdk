@@ -513,6 +513,8 @@ abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
   accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
 
   bool get isTopLevel => false;
+
+  DynamicType get type => const DynamicType();
 }
 
 /// Element synthesized to diagnose an ambiguous import.

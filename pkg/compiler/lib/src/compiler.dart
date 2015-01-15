@@ -829,6 +829,9 @@ abstract class Compiler implements DiagnosticListener {
   Element boolEnvironment;
   Element stringEnvironment;
 
+  /// Tracks elements with compile-time errors.
+  final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();
+
   fromEnvironment(String name) => null;
 
   Element get currentElement => _currentElement;
@@ -946,7 +949,16 @@ abstract class Compiler implements DiagnosticListener {
   static const int PHASE_COMPILING = 3;
   int phase;
 
-  bool compilationFailed = false;
+  bool compilationFailedInternal = false;
+
+  bool get compilationFailed => compilationFailedInternal;
+
+  void set compilationFailed(bool value) {
+    if (value) {
+      elementsWithCompileTimeErrors.add(currentElement);
+    }
+    compilationFailedInternal = value;
+  }
 
   bool hasCrashed = false;
 
@@ -1063,7 +1075,9 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get compileAll => false;
 
-  bool get disableTypeInference => disableTypeInferenceFlag;
+  bool get disableTypeInference {
+    return disableTypeInferenceFlag || compilationFailed;
+  }
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -1535,7 +1549,6 @@ abstract class Compiler implements DiagnosticListener {
     processQueue(enqueuer.resolution, mainFunction);
     enqueuer.resolution.logSummary(log);
 
-    if (compilationFailed) return;
     if (!showPackageWarnings && !suppressWarnings) {
       suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
         MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
@@ -1553,9 +1566,11 @@ abstract class Compiler implements DiagnosticListener {
       });
     }
     if (analyzeOnly) {
-      if (!analyzeAll) {
+      if (!analyzeAll && !compilationFailed) {
         // No point in reporting unused code when [analyzeAll] is true: all
         // code is artificially used.
+        // If compilation failed, it is possible that the error prevents the
+        // compiler from analyzing all the code.
         reportUnusedCode();
       }
       return;
@@ -1596,8 +1611,6 @@ abstract class Compiler implements DiagnosticListener {
     }
     processQueue(enqueuer.codegen, mainFunction);
     enqueuer.codegen.logSummary(log);
-
-    if (compilationFailed) return;
 
     int programSize = backend.assembleProgram();
 
@@ -1662,8 +1675,7 @@ abstract class Compiler implements DiagnosticListener {
       withCurrentElement(work.element, () => work.run(this, world));
     });
     world.queueIsClosed = true;
-    if (compilationFailed) return;
-    assert(world.checkNoEnqueuedInvokedInstanceMethods());
+    assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
   }
 
   /**
@@ -2073,6 +2085,10 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     backend.forgetElement(element);
+  }
+
+  bool elementHasCompileTimeError(Element element) {
+    return elementsWithCompileTimeErrors.contains(element);
   }
 }
 

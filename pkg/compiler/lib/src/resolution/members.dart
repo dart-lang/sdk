@@ -743,7 +743,8 @@ class ResolverTask extends CompilerTask {
       Element nextTarget = target.immediateRedirectionTarget;
       if (seen.contains(nextTarget)) {
         error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
-        return;
+        targetType = target.enclosingClass.thisType;
+        break;
       }
       seen.add(target);
       target = nextTarget;
@@ -3150,7 +3151,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       if (redirectionTarget == constructor) {
         compiler.reportError(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
-        return;
       }
     }
 
@@ -4257,6 +4257,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
       FunctionElement constructor =
           new SynthesizedConstructorElementX.forDefault(superMember, element);
+      if (superMember.isErroneous) {
+        compiler.elementsWithCompileTimeErrors.add(constructor);
+      }
       element.setDefaultConstructor(constructor, compiler);
     }
     return element.computeType(compiler);

@@ -755,6 +755,7 @@ class OldEmitter implements Emitter {
   }
 
   void emitStaticFunctions(Iterable<Method> staticFunctions) {
+    if (staticFunctions == null) return;
     // We need to filter out null-elements for the interceptors.
     Iterable<Element> elements = staticFunctions
         .where((Method method) => method.element != null)

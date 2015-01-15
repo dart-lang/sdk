@@ -1218,6 +1218,9 @@ class SsaBuilder extends ResolvedVisitor {
 
     // Ensure that [element] is an implementation element.
     element = element.implementation;
+
+    if (compiler.elementHasCompileTimeError(element)) return false;
+
     FunctionElement function = element;
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
@@ -1840,6 +1843,9 @@ class SsaBuilder extends ResolvedVisitor {
           handleConstantForOptionalParameter,
           compiler.world);
       if (!match) {
+        if (compiler.elementHasCompileTimeError(constructor)) {
+          return;
+        }
         // If this fails, the selector we constructed for the call to a
         // forwarding constructor in a mixin application did not match the
         // constructor (which, for example, may happen when the libraries are
@@ -1935,6 +1941,7 @@ class SsaBuilder extends ResolvedVisitor {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, VariableElement member) {
+          if (compiler.elementHasCompileTimeError(member)) return;
           compiler.withCurrentElement(member, () {
             TreeElements definitions = member.treeElements;
             ast.Node node = member.node;
@@ -3209,10 +3216,17 @@ class SsaBuilder extends ResolvedVisitor {
       // TODO(ahe): This should be registered in codegen.
       registry.registerGetOfStaticFunction(element.declaration);
     } else if (Elements.isErroneousElement(element)) {
-      // An erroneous element indicates an unresolved static getter.
-      generateThrowNoSuchMethod(send,
-                                noSuchMethodTargetSymbolString(element, 'get'),
-                                argumentNodes: const Link<ast.Node>());
+      if (element is ErroneousElement) {
+        // An erroneous element indicates an unresolved static getter.
+        generateThrowNoSuchMethod(
+            send,
+            noSuchMethodTargetSymbolString(element, 'get'),
+            argumentNodes: const Link<ast.Node>());
+      } else {
+        // TODO(ahe): Do something like the above, that is, emit a runtime
+        // error.
+        stack.add(graph.addConstantNull(compiler));
+      }
     } else {
       LocalElement local = element;
       stack.add(localsHandler.readLocal(local));
@@ -4287,6 +4301,11 @@ class SsaBuilder extends ResolvedVisitor {
         constructorDeclaration.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
+    if (compiler.elementHasCompileTimeError(constructor)) {
+      // TODO(ahe): Do something like [generateWrongArgumentCountError].
+      stack.add(graph.addConstantNull(compiler));
+      return;
+    }
     if (checkTypeVariableBounds(node, type)) return;
 
     var inputs = <HInstruction>[];
@@ -4654,6 +4673,11 @@ class SsaBuilder extends ResolvedVisitor {
       element = function.effectiveTarget;
     }
     if (Elements.isErroneousElement(element)) {
+      if (element is !ErroneousElement) {
+        // TODO(ahe): Do something like [generateWrongArgumentCountError].
+        stack.add(graph.addConstantNull(compiler));
+        return;
+      }
       ErroneousElement error = element;
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         generateThrowNoSuchMethod(
