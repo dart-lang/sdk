@@ -78,6 +78,16 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(suggestion.hasNamedParameters, isNull);
   }
 
+  void assertHasParameterInfo(CompletionSuggestion suggestion) {
+    expect(suggestion.parameterNames, isNotNull);
+    expect(suggestion.parameterTypes, isNotNull);
+    expect(suggestion.parameterNames.length, suggestion.parameterTypes.length);
+    expect(
+        suggestion.requiredParameterCount,
+        lessThanOrEqualTo(suggestion.parameterNames.length));
+    expect(suggestion.hasNamedParameters, isNotNull);
+  }
+
   void assertNoSuggestions({CompletionSuggestionKind kind: null}) {
     if (kind == null) {
       if (request.suggestions.length > 0) {
@@ -170,17 +180,21 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     fail(msg.toString());
   }
 
-  CompletionSuggestion assertSuggestClass(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
-      CompletionSuggestionKind.INVOCATION]) {
-    CompletionSuggestion cs =
-        assertSuggest(name, csKind: kind, relevance: relevance);
+  CompletionSuggestion assertSuggestClass(String name, {int relevance:
+      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
+      CompletionSuggestionKind.INVOCATION, bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(
+        name,
+        csKind: kind,
+        relevance: relevance,
+        isDeprecated: isDeprecated);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CLASS));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
@@ -195,6 +209,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
@@ -216,6 +231,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(element.parameters, isNull);
     // The returnType represents the type of a field
     expect(element.returnType, type != null ? type : 'dynamic');
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
@@ -240,6 +256,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
+    assertHasParameterInfo(cs);
     return cs;
   }
 
@@ -263,10 +280,11 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 //    expect(param, isNotNull);
 //    expect(param[0], equals('('));
 //    expect(param[param.length - 1], equals(')'));
-    // TODO (danrubel) Determine why return type is null
-//    expect(
-//        element.returnType,
-//        equals(returnType != null ? returnType : 'dynamic'));
+    expect(
+        element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    // TODO (danrubel) Determine why param info is missing
+//    assertHasParameterInfo(cs);
     return cs;
   }
 
@@ -284,12 +302,11 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.GETTER));
     expect(element.name, equals(name));
-    //TODO (danrubel) getter should have parameters
-    // but not used in code completion
-    //expect(element.parameters, '()');
+    expect(element.parameters, isNull);
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
@@ -306,6 +323,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
@@ -321,6 +339,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       expect(element.kind, equals(protocol.ElementKind.LIBRARY));
       expect(element.parameters, isNull);
       expect(element.returnType, isNull);
+      assertHasNoParameterInfo(cs);
       return cs;
     } else {
       return assertNotSuggested(prefix);
@@ -341,6 +360,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       expect(element.name, equals(name));
       expect(element.parameters, isNull);
       expect(element.returnType, returnType != null ? returnType : 'dynamic');
+      assertHasNoParameterInfo(cs);
       return cs;
     } else {
       return assertNotSuggested(name);
@@ -348,10 +368,14 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestMethod(String name, String declaringType,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    CompletionSuggestion cs =
-        assertSuggest(name, csKind: kind, relevance: relevance);
+      String returnType, {int relevance: COMPLETION_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(
+        name,
+        csKind: kind,
+        relevance: relevance,
+        isDeprecated: isDeprecated);
     expect(cs.declaringType, equals(declaringType));
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
@@ -363,6 +387,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
     expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    assertHasParameterInfo(cs);
     return cs;
   }
 
@@ -381,6 +406,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       expect(param[0], equals('('));
       expect(param[param.length - 1], equals(')'));
       expect(element.returnType, equals(returnType));
+      assertHasParameterInfo(cs);
       return cs;
     } else {
       return assertNotSuggested(name);
@@ -427,6 +453,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     if (element.returnType != null) {
       expect(element.returnType, 'dynamic');
     }
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
@@ -442,6 +469,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
@@ -607,7 +635,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String declaringType, String returnType, [int relevance =
       COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is LocalComputer) {
-      return assertSuggestMethod(name, declaringType, returnType, relevance);
+      return assertSuggestMethod(
+          name,
+          declaringType,
+          returnType,
+          relevance: relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -617,7 +649,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
-      return assertSuggestClass(name, relevance, kind);
+      return assertSuggestClass(name, relevance: relevance, kind: kind);
     } else {
       return assertNotSuggested(name);
     }
@@ -673,7 +705,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String declaringType, String returnType, [int relevance =
       COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is ImportedComputer) {
-      return assertSuggestMethod(name, declaringType, returnType, relevance);
+      return assertSuggestMethod(
+          name,
+          declaringType,
+          returnType,
+          relevance: relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -701,7 +737,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestInvocationClass(String name, [int relevance
       = COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
-      return assertSuggestClass(name, relevance);
+      return assertSuggestClass(name, relevance: relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -730,7 +766,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String declaringType, String returnType, [int relevance =
       COMPLETION_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
-      return assertSuggestMethod(name, declaringType, returnType, relevance);
+      return assertSuggestMethod(
+          name,
+          declaringType,
+          returnType,
+          relevance: relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -754,13 +794,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestLocalClass(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestClass(name, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+  CompletionSuggestion assertSuggestLocalClass(String name, {int relevance:
+      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
@@ -773,7 +809,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalField(String name, String type,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     return assertNotSuggested(name);
   }
 
@@ -802,22 +838,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestGetter(name, returnType, relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalMethod(String name,
-      String declaringType, String returnType, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestMethod(name, declaringType, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String declaringType, String returnType, {int relevance:
+      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalSetter(String name, [int relevance =
@@ -1475,8 +1503,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       A T;''');
     computeFast();
     return computeFull((bool result) {
-      CompletionSuggestion suggestionA =
-          assertSuggestLocalClass('A', COMPLETION_RELEVANCE_LOW);
+      CompletionSuggestion suggestionA = assertSuggestLocalClass(
+          'A',
+          relevance: COMPLETION_RELEVANCE_LOW,
+          isDeprecated: true);
       if (suggestionA != null) {
         expect(suggestionA.element.isDeprecated, isTrue);
         expect(suggestionA.element.isPrivate, isFalse);
@@ -2032,8 +2062,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(methodA.element.isDeprecated, isFalse);
         expect(methodA.element.isPrivate, isFalse);
       }
-      CompletionSuggestion getterF =
-          assertSuggestLocalGetter('f', 'X', COMPLETION_RELEVANCE_LOW);
+      CompletionSuggestion getterF = assertSuggestLocalGetter(
+          'f',
+          'X',
+          relevance: COMPLETION_RELEVANCE_LOW,
+          isDeprecated: true);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
@@ -2056,8 +2089,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(methodA.element.isDeprecated, isFalse);
         expect(methodA.element.isPrivate, isTrue);
       }
-      CompletionSuggestion getterF =
-          assertSuggestLocalField('f', 'X', COMPLETION_RELEVANCE_LOW);
+      CompletionSuggestion getterF = assertSuggestLocalField(
+          'f',
+          'X',
+          relevance: COMPLETION_RELEVANCE_LOW,
+          isDeprecated: true);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
@@ -2078,8 +2114,12 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
     computeFast();
     return computeFull((bool result) {
-      CompletionSuggestion methodA =
-          assertSuggestLocalMethod('a', 'A', 'Z', COMPLETION_RELEVANCE_LOW);
+      CompletionSuggestion methodA = assertSuggestLocalMethod(
+          'a',
+          'A',
+          'Z',
+          relevance: COMPLETION_RELEVANCE_LOW,
+          isDeprecated: true);
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isTrue);
         expect(methodA.element.isPrivate, isFalse);

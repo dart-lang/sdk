@@ -62,16 +62,16 @@ class CombinatorComputerTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       assertSuggestClass(
           'A',
-          COMPLETION_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+          relevance: COMPLETION_RELEVANCE_DEFAULT,
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'B',
-          COMPLETION_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+          relevance: COMPLETION_RELEVANCE_DEFAULT,
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'PB',
-          COMPLETION_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+          relevance: COMPLETION_RELEVANCE_DEFAULT,
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestTopLevelVar(
           'T1',
           null,
@@ -115,16 +115,16 @@ class CombinatorComputerTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       assertSuggestClass(
           'A',
-          COMPLETION_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+          relevance: COMPLETION_RELEVANCE_DEFAULT,
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'B',
-          COMPLETION_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+          relevance: COMPLETION_RELEVANCE_DEFAULT,
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'PB',
-          COMPLETION_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+          relevance: COMPLETION_RELEVANCE_DEFAULT,
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestTopLevelVar(
           'T1',
           null,
@@ -138,8 +138,8 @@ class CombinatorComputerTest extends AbstractCompletionTest {
           CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass(
           'Clz',
-          COMPLETION_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+          relevance: COMPLETION_RELEVANCE_DEFAULT,
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestFunctionTypeAlias(
           'F2',
           null,

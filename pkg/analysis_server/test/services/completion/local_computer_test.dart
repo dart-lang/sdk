@@ -21,9 +21,44 @@ main() {
 class LocalComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
+  CompletionSuggestion assertSuggestLocalClass(String name, {int relevance:
+      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertSuggestClass(
+        name,
+        relevance: relevance,
+        isDeprecated: isDeprecated);
+  }
+
+  @override
   CompletionSuggestion assertSuggestLocalField(String name, String type,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    return assertSuggestField(name, type, relevance: relevance);
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertSuggestField(
+        name,
+        type,
+        relevance: relevance,
+        isDeprecated: isDeprecated);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertSuggestGetter(
+        name,
+        returnType,
+        relevance: relevance,
+        isDeprecated: isDeprecated);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalMethod(String name,
+      String declaringType, String returnType, {int relevance:
+      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertSuggestMethod(
+        name,
+        declaringType,
+        returnType,
+        relevance: relevance,
+        isDeprecated: isDeprecated);
   }
 
   @override
@@ -307,5 +342,227 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     assertSuggestLabel('foo');
+  }
+
+  test_function_parameters_mixed_required_and_named() {
+    addTestSource('''
+void m(x, {int y}) {}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_function_parameters_mixed_required_and_positional() {
+    addTestSource('''
+void m(x, [int y]) {}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_function_parameters_named() {
+    addTestSource('''
+void m({x, int y}) {}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_function_parameters_none() {
+    addTestSource('''
+void m() {}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, isEmpty);
+    expect(suggestion.parameterTypes, isEmpty);
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_function_parameters_positional() {
+    addTestSource('''
+void m([x, int y]) {}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_function_parameters_required() {
+    addTestSource('''
+void m(x, int y) {}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_method_parameters_mixed_required_and_named() {
+    addTestSource('''
+class A {
+  void m(x, {int y}) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_method_parameters_mixed_required_and_positional() {
+    addTestSource('''
+class A {
+  void m(x, [int y]) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_method_parameters_named() {
+    addTestSource('''
+class A {
+  void m({x, int y}) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_method_parameters_none() {
+    addTestSource('''
+class A {
+  void m() {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    expect(suggestion.parameterNames, isEmpty);
+    expect(suggestion.parameterTypes, isEmpty);
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_method_parameters_positional() {
+    addTestSource('''
+class A {
+  void m([x, int y]) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_method_parameters_required() {
+    addTestSource('''
+class A {
+  void m(x, int y) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    expect(computeFast(), isTrue);
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
   }
 }
