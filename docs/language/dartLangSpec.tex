@@ -3507,6 +3507,10 @@ If $f$ is asynchronous then, when $f$ terminates, any open stream subscriptions 
 \LMHash{}
 If $f$ is marked \SYNC* (\ref{functions}), then a fresh instance $i$ implementing the built-in class \code{Iterable} is associated with the invocation and immediately returned. When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()} on it, execution of the body of $f$ will begin. When $f$ terminates, $j$ is positioned after its last element, so that its current value is \NULL{} and the current call to \code{moveNext()} on $j$ returns false, as will all further calls.
 
+% Can we get more than one iterator from this Iterable? I'd say yes. And if so, do they restart the computation or do they iterate over previously computed results. My guess is the latter.
+% I also assume we extend the IterableBase implementation; otherwise one can pre-compute
+% it all
+
 \LMHash{}
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.  When $f$ terminates the current return value is returned to the caller.
 
@@ -7122,14 +7126,12 @@ A {\em multi-line comment} begins with the token \code{/*} and ends with the tok
 \LMHash{}
 {\em Documentation comments} are comments that begin with the tokens  \code{///} or  \code{/**}. Documentation comments are intended to be processed by a tool that produces human readable documentation. 
 
-\LMHash{}
-The scope of a documentation comment  always excludes the imported namespace of the enclosing library. Only names declared in the enclosing library are considered in scope within a documentation comment.
 
 \LMHash{}
-The scope of a documentation comment immediately preceding the declaration of a class $C$ is the instance scope of $C$, excluding any names introduced via the import namespace of the enclosing library.
+The scope of a documentation comment immediately preceding the declaration of a class $C$ is the instance scope of $C$.
 
 \LMHash{}
-The scope of a documentation comment immediately preceding the declaration of a function $f$  is the  scope in force at the very beginning of the body of $f$,  excluding any names introduced via the import namespace of the enclosing library.
+The scope of a documentation comment immediately preceding the declaration of a function $f$  is the  scope in force at the very beginning of the body of $f$.
 
 
 
