@@ -25,6 +25,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/resolver.h"
