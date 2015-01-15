@@ -65,7 +65,12 @@ Iterable<Source> _importsAndExportsOf(Source source, AnalysisContext context) {
   var unit = parseDirectives(source.contents.data, name: source.fullName);
   return unit.directives
       .where((d) => d is ImportDirective || d is ExportDirective)
-      .map((d) => ParseDartTask.resolveDirective(context, source, d, null));
+      .map((d) {
+        var res = ParseDartTask.resolveDirective(context, source, d, null);
+        if (res == null) print('error: couldn\'t resolve $d');
+        return res;
+      })
+      .where((d) => d != null);
 }
 
 /// Returns an ANSII color escape sequence corresponding to [levelName]. Colors
