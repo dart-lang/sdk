@@ -5411,7 +5411,6 @@ class AnalysisErrorType implements Enum {
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
- *   "fileReadMode": optional FileReadMode
  * }
  */
 class AnalysisOptions implements HasToJson {
@@ -5455,12 +5454,7 @@ class AnalysisOptions implements HasToJson {
    */
   bool generateLints;
 
-  /**
-   * The mode to read files from disk, by default this value is AS_IS.
-   */
-  FileReadMode fileReadMode;
-
-  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints, this.generateLints, this.fileReadMode});
+  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints, this.generateLints});
 
   factory AnalysisOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5491,11 +5485,7 @@ class AnalysisOptions implements HasToJson {
       if (json.containsKey("generateLints")) {
         generateLints = jsonDecoder._decodeBool(jsonPath + ".generateLints", json["generateLints"]);
       }
-      FileReadMode fileReadMode;
-      if (json.containsKey("fileReadMode")) {
-        fileReadMode = new FileReadMode.fromJson(jsonDecoder, jsonPath + ".fileReadMode", json["fileReadMode"]);
-      }
-      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints, fileReadMode: fileReadMode);
+      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions");
     }
@@ -5521,9 +5511,6 @@ class AnalysisOptions implements HasToJson {
     if (generateLints != null) {
       result["generateLints"] = generateLints;
     }
-    if (fileReadMode != null) {
-      result["fileReadMode"] = fileReadMode.toJson();
-    }
     return result;
   }
 
@@ -5538,8 +5525,7 @@ class AnalysisOptions implements HasToJson {
           enableEnums == other.enableEnums &&
           generateDart2jsHints == other.generateDart2jsHints &&
           generateHints == other.generateHints &&
-          generateLints == other.generateLints &&
-          fileReadMode == other.fileReadMode;
+          generateLints == other.generateLints;
     }
     return false;
   }
@@ -5553,7 +5539,6 @@ class AnalysisOptions implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateLints.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fileReadMode.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -6657,57 +6642,6 @@ class ExecutionService implements Enum {
 
   @override
   String toString() => "ExecutionService.$name";
-
-  String toJson() => name;
-}
-
-/**
- * FileReadMode
- *
- * enum {
- *   AS_IS
- *   NORMALIZE_EOL
- * }
- */
-class FileReadMode implements Enum {
-  /**
-   * File contents are read as-is, no file changes occur.
-   */
-  static const AS_IS = const FileReadMode._("AS_IS");
-
-  /**
-   * File contents normalize the end of line characters to the single character
-   * new line '\n'.
-   */
-  static const NORMALIZE_EOL = const FileReadMode._("NORMALIZE_EOL");
-
-  final String name;
-
-  const FileReadMode._(this.name);
-
-  factory FileReadMode(String name) {
-    switch (name) {
-      case "AS_IS":
-        return AS_IS;
-      case "NORMALIZE_EOL":
-        return NORMALIZE_EOL;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory FileReadMode.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new FileReadMode(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "FileReadMode");
-  }
-
-  @override
-  String toString() => "FileReadMode.$name";
 
   String toJson() => name;
 }
