@@ -112,10 +112,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitLetCont(cps_ir.LetCont node) {
     if (IR_TRACE_LET_CONT) {
       String dummy = names.name(node);
-      for (cps_ir.Continuation continuation in node.continuations) {
-        String id = names.name(continuation);
-        printStmt(dummy, "LetCont $id = <$id>");
-      }
+      String id = names.name(node.continuation);
+      printStmt(dummy, "LetCont $id = <$id>");
     }
     visit(node.body);
   }
@@ -424,7 +422,7 @@ class BlockCollector extends cps_ir.Visitor {
   }
 
   visitLetCont(cps_ir.LetCont exp) {
-    exp.continuations.forEach(visit);
+    visit(exp.continuation);
     visit(exp.body);
   }
 

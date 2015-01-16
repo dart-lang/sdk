@@ -76,31 +76,20 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitLetCont(LetCont node) {
-    String conts;
-    bool first = true;
-    for (Continuation continuation in node.continuations) {
-      String name = newContinuationName(continuation);
-      if (continuation.isRecursive) name = 'rec $name';
-      // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
-      // should recurse to [visit].  Currently we can't do that, because the
-      // unstringifier_test produces [LetConts] with dummy arguments on them.
-      String parameters = continuation.parameters
-          .map((p) => '${decorator(p, newValueName(p))}')
-          .join(' ');
-      String body =
-          indentBlock(() => indentBlock(() => visit(continuation.body)));
-      if (first) {
-        first = false;
-        conts = '($name ($parameters)\n$body)';
-      } else {
-        // Each subsequent line is indented additional spaces to align it
-        // with the previous continuation.
-        String indent = '$indentation${' ' * '(LetCont ('.length}';
-        conts = '$conts\n$indent($name ($parameters)\n$body)';
-      }
-    }
+    String cont = newContinuationName(node.continuation);
+    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
+    // should recurse to [visit].  Currently we can't do that, because the
+    // unstringifier_test produces [LetConts] with dummy arguments on them.
+    String parameters = node.continuation.parameters
+        .map((p) => '${decorator(p, newValueName(p))}')
+        .join(' ');
+    String contBody =
+        indentBlock(() => indentBlock(() => visit(node.continuation.body)));
     String body = indentBlock(() => visit(node.body));
-    return '$indentation($LetCont ($conts)\n$body)';
+    String op = node.continuation.isRecursive ? 'LetCont*' : 'LetCont';
+    return '$indentation($op ($cont ($parameters)\n'
+           '$contBody)\n'
+           '$body)';
   }
 
   String formatArguments(Invoke node) {
@@ -110,7 +99,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
         node.arguments.getRange(0, positionalArgumentCount).map(access));
     for (int i = 0; i < node.selector.namedArgumentCount; ++i) {
       String name = node.selector.namedArguments[i];
-      String arg = access(node.arguments[positionalArgumentCount + i]);
+      Definition arg = node.arguments[positionalArgumentCount + i].definition;
       args.add("($name: $arg)");
     }
     return '(${args.join(' ')})';

@@ -124,29 +124,20 @@ class LetPrim extends Expression implements InteriorNode {
 }
 
 
-/// Binding continuations.
-///
-/// let cont k0(v0 ...) = E0
-///          k1(v1 ...) = E1
-///          ...
-///   in E
-///
-/// The bound continuations are in scope in the body and the continuation
-/// parameters are in scope in the respective continuation bodies.
-/// During one-pass construction a LetCont whose first continuation has an empty
-/// body is used to represent the one-level context
-/// 'let cont ... k(v) = [] ... in E'.
+/// Binding a continuation: 'let cont k(v) = E in E'.  The bound continuation
+/// is in scope in the body and the continuation parameter is in scope in the
+/// continuation body.
+/// During one-pass construction a LetCont with an empty continuation body is
+/// used to represent the one-level context 'let cont k(v) = [] in E'.
 class LetCont extends Expression implements InteriorNode {
-  List<Continuation> continuations;
+  Continuation continuation;
   Expression body;
 
-  LetCont(this.continuations, this.body);
+  LetCont(this.continuation, this.body);
 
   Expression plug(Expression expr) {
-    assert(continuations != null &&
-           continuations.isNotEmpty &&
-           continuations.first.body == null);
-    return continuations.first.body = expr;
+    assert(continuation != null && continuation.body == null);
+    return continuation.body = expr;
   }
 
   accept(Visitor visitor) => visitor.visitLetCont(this);
@@ -165,7 +156,7 @@ abstract class Invoke {
 ///
 ///     child.parent = parent;
 ///     parent.body  = child;
-abstract class InteriorNode extends Node {
+abstract class InteriorNode implements Node {
   Expression body;
 }
 
@@ -617,11 +608,6 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
   final List<Parameter> parameters;
   Expression body = null;
 
-  // In addition to a parent pointer to the containing LetCont, continuations
-  // have an index into the list of continuations bound by the LetCont.  This
-  // gives constant-time access to the continuation from the parent.
-  int parent_index;
-
   // A continuation is recursive if it has any recursive invocations.
   bool isRecursive = false;
 
@@ -686,9 +672,10 @@ class ClosureVariable extends Definition {
   accept(Visitor v) => v.visitClosureVariable(this);
 }
 
-class RunnableBody extends InteriorNode {
+class RunnableBody implements InteriorNode {
   Expression body;
   final Continuation returnContinuation;
+  Node parent;
   RunnableBody(this.body, this.returnContinuation);
   accept(Visitor visitor) => visitor.visitRunnableBody(this);
 }
@@ -735,18 +722,20 @@ class FunctionDefinition extends Node
 
 abstract class Initializer extends Node {}
 
-class FieldInitializer extends Initializer {
+class FieldInitializer implements Initializer {
   final FieldElement element;
   final RunnableBody body;
+  Node parent;
 
   FieldInitializer(this.element, this.body);
   accept(Visitor visitor) => visitor.visitFieldInitializer(this);
 }
 
-class SuperInitializer extends Initializer {
+class SuperInitializer implements Initializer {
   final ConstructorElement target;
   final List<RunnableBody> arguments;
   final Selector selector;
+  Node parent;
   SuperInitializer(this.target, this.arguments, this.selector);
   accept(Visitor visitor) => visitor.visitSuperInitializer(this);
 }
@@ -914,7 +903,7 @@ abstract class RecursiveVisitor extends Visitor {
   processLetCont(LetCont node) {}
   visitLetCont(LetCont node) {
     processLetCont(node);
-    node.continuations.forEach(visit);
+    visit(node.continuation);
     visit(node.body);
   }
 
@@ -1187,7 +1176,7 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach(visit);
+    node.arguments.forEach((RunnableBody argument) => visit(argument.body));
   }
 
   void visitLetPrim(LetPrim node) {
@@ -1197,7 +1186,7 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitLetCont(LetCont node) {
-    node.continuations.forEach(visit);
+    visit(node.continuation);
     visit(node.body);
   }
 
