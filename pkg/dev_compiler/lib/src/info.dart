@@ -366,17 +366,42 @@ class InvalidRuntimeCheckError extends StaticError {
 
 // Invalid override of an instance member of a class.
 abstract class InvalidOverride extends StaticError {
+  /// Member delaration with the invalid override.
   final ExecutableElement element;
+
+  /// Type (class or interface) that provides the base declaration.
   final InterfaceType base;
+
+  /// Actual type of the overriden member.
   final DartType subType;
+
+  /// Actual type of the base member.
   final DartType baseType;
+
+  /// Whether the error comes from combining a base class and an interface
+  final bool fromBaseClass;
+
+  /// Whether the error comes from a mixin (either overriding a base class or an
+  /// interface declaration).
+  final bool fromMixin;
 
   InvalidOverride(
       AstNode node, this.element, this.base, this.subType, this.baseType)
-      : super(node);
+      : fromBaseClass = node is ExtendsClause,
+        fromMixin = node.parent is WithClause,
+        super(node);
 
   ClassDeclaration get parent =>
       element.enclosingElement.node as ClassDeclaration;
+
+  String _messageHelper(String errorName) {
+    var name = element.name;
+    var lcErrorName = errorName.toLowerCase();
+    var intro = fromBaseClass ? 'Base class introduces an $lcErrorName' :
+        (fromMixin ? 'Mixin introduces an $lcErrorName' : errorName);
+    return '$intro. The type of ${parent.name}.$name ($subType) is not a '
+        'subtype of $base.$name ($baseType).';
+  }
 }
 
 // Invalid override due to incompatible type.  I.e., the overridden signature
@@ -386,10 +411,7 @@ class InvalidMethodOverride extends InvalidOverride {
       InterfaceType base, FunctionType subType, FunctionType baseType)
       : super(node, element, base, subType, baseType);
 
-  String get message {
-    return 'Invalid override for ${element.name} in ${parent.name} '
-        'over $base: $subType does not subtype $baseType';
-  }
+  String get message => _messageHelper('Invalid override');
 }
 
 // TODO(sigmund): delete, if we fix this, this should be part of the type
@@ -401,11 +423,7 @@ class InferableOverride extends InvalidOverride {
       : super(node, element, base, subType, baseType);
 
   Level get level => Level.WARNING;
-
-  String get message {
-    return 'Invalid but inferrable override for ${element.name} in '
-        '${parent.name} over $base: $subType does not subtype $baseType';
-  }
+  String get message => _messageHelper('Invalid but inferable override');
 }
 
 /// Used to mark unexpected situations in our compiler were we couldn't compute

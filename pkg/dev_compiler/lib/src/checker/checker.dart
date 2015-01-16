@@ -18,81 +18,200 @@ CheckerResults checkProgram(
     Uri fileUri, TypeResolver resolver, CheckerReporter reporter,
     {bool checkSdk: false, bool useColors: true, bool covariantGenerics: true,
     bool relaxedCasts: true}) {
-
-  // Invoke the checker on the entry point.
   TypeProvider provider = resolver.context.typeProvider;
+  var libraries = <LibraryInfo>[];
   var rules = new RestrictedRules(provider, reporter,
       covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
-  final visitor =
-      new ProgramChecker(resolver, rules, fileUri, checkSdk, reporter);
-  visitor.check();
-  return new CheckerResults(visitor.libraries, rules, visitor.failure);
+  bool failure = false;
+  var rootSource = resolver.findSource(fileUri);
+  var codeChecker = new _CodeChecker(rules, reporter);
+  for (var source in reachableSources(rootSource, resolver.context)) {
+    var lib = resolver.context.computeLibraryElement(source);
+    if (!checkSdk && lib.isInSdk) continue;
+    var current = new LibraryInfo(lib);
+    reporter.enterLibrary(current);
+    libraries.add(current);
+    rules.currentLibraryInfo = current;
+
+    for (var unit in lib.units) {
+      reporter.enterSource(unit.source);
+      // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
+      failure = resolver.logErrors(unit.source, reporter) || failure;
+      unit.node.visitChildren(codeChecker);
+      failure = failure || codeChecker._failure;
+      reporter.leaveSource();
+    }
+    reporter.leaveLibrary();
+  }
+  return new CheckerResults(libraries, rules, failure);
 }
 
-class ProgramChecker extends RecursiveAstVisitor {
-  final TypeResolver _resolver;
+/// Checks for overriding declarations of fields and methods. This is used to
+/// check overrides between classes and superclasses, interfaces, and mixin
+/// applications.
+class _OverrideChecker {
+  bool _failure = false;
   final TypeRules _rules;
-  final Uri _root;
-  final bool _checkSdk;
   final CheckerReporter _reporter;
-  final List<LibraryInfo> libraries = <LibraryInfo>[];
+  _OverrideChecker(this._rules, this._reporter);
 
-  LibraryInfo _current;
-  bool failure = false;
+  void check(ClassDeclaration node) {
+    var type = node.element.type;
+    _checkSuperOverrides(type);
+    _checkMixinApplicationOverrides(type);
+    _checkAllInterfaceOverrides(type);
+  }
 
-  ProgramChecker(
-      this._resolver, this._rules, this._root, this._checkSdk, this._reporter);
+  /// Check overrides from mixin applications themselves. For example, in:
+  ///
+  ///      A extends B with E, F
+  ///
+  ///  we check:
+  ///
+  ///      B & E against B (equivalently how E overrides B)
+  ///      B & E & F against B & E (equivalently how F overrides both B and E)
+  void _checkMixinApplicationOverrides(InterfaceType type) {
+    var parent = type.superclass;
+    var mixins = type.mixins;
 
-  void check() {
-    var rootSource = _resolver.findSource(_root);
-    for (var source in reachableSources(rootSource, _resolver.context)) {
-      var lib = _resolver.context.computeLibraryElement(source);
-      if (!_checkSdk && lib.isInSdk) continue;
-      _current = new LibraryInfo(lib);
-      _reporter.enterLibrary(_current);
-      libraries.add(_current);
-      _rules.currentLibraryInfo = _current;
-      for (var unit in lib.units) {
-        _reporter.enterSource(unit.source);
-        // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
-        failure = _resolver.logErrors(unit.source, _reporter) || failure;
-        unit.node.visitChildren(this);
-        _reporter.leaveSource();
+    // Check overrides from applying mixins
+    for (int i = 0; i < mixins.length; i++) {
+      var current = mixins[i];
+      var errorLocation = type.element.node.withClause.mixinTypes[i];
+      _checkIndividualOverrides(current, parent, errorLocation);
+      for (int j = 0; j < i; j++) {
+        _checkIndividualOverrides(current, mixins[j], errorLocation);
       }
-      _reporter.leaveLibrary();
     }
   }
 
-  visitComment(Comment node) {
-    // skip, no need to do typechecking inside comments (they may contain
-    // comment references which would require resolution).
+  /// Check overrides between a class and its superclasses and mixins. For
+  /// example, in:
+  ///
+  ///      A extends B with E, F
+  ///
+  ///  we check A against B, B super classes, E, and F.
+  void _checkSuperOverrides(InterfaceType type) {
+    var current = type;
+    do {
+      _checkIndividualOverrides(type, current.superclass);
+      current.mixins.forEach((m) => _checkIndividualOverrides(type, m));
+      current = current.superclass;
+    } while (!current.isObject);
   }
 
-  visitAssignmentExpression(AssignmentExpression node) {
-    var token = node.operator;
-    if (token.type != TokenType.EQ) {
-      _checkCompoundAssignment(node);
-    } else {
-      DartType staticType = _rules.getStaticType(node.leftHandSide);
-      node.rightHandSide = checkAssignment(node.rightHandSide, staticType);
+  /// Checks that implementations correctly override all reachable interfaces.
+  /// In particular, we need to check these overrides for the definitions in in
+  /// the class itself and each its superclasses. If a superclass is not
+  /// abstract, then we can skip its transitive interfaces. For example, in:
+  ///
+  ///     B extends C implements G
+  ///     A extends B with E, F implements H, I
+  ///
+  /// we check:
+  ///
+  ///     C against G, H, and I
+  ///     B against G, H, and I
+  ///     E against H and I // no check against G because B is a concrete class
+  ///     F against H and I
+  ///     A against H and I
+  void _checkAllInterfaceOverrides(InterfaceType type) {
+    // Helper function to collect all reachable interfaces.
+    find(InterfaceType interfaceType, Set result) {
+      if (interfaceType == null || interfaceType.isObject) return;
+      if (result.contains(interfaceType)) return;
+      result.add(interfaceType);
+      find(interfaceType.superclass, result);
+      interfaceType.mixins.forEach((i) => find(i, result));
+      interfaceType.interfaces.forEach((i) => find(i, result));
     }
-    node.visitChildren(this);
+
+    // Check all interfaces reachable from the `implements` clause in the
+    // current class against definitions here and in superclasses.
+    var localIterfaces = new Set();
+    type.interfaces.forEach((i) => find(i, localIterfaces));
+    for (var interfaceType in localIterfaces) {
+      _checkInterfaceOverrides(type, interfaceType, includeParents: true);
+    }
+
+    // Check also how we override locally the interfaces from parent classes if
+    // the parent class is abstract. Otherwise, these will be checked as
+    // overrides on the concrete superclass.
+    var superInterfaces = new Set();
+    var parent = type.superclass;
+    // TODO(sigmund): we don't seem to be reporting the analyzer error that a
+    // non-abstract class is not implementing an interface. See
+    // https://github.com/dart-lang/dart-dev-compiler/issues/25
+    while (parent != null && parent.element.isAbstract) {
+      parent.interfaces.forEach((i) => find(i, superInterfaces));
+      parent = parent.superclass;
+    }
+    for (var interfaceType in superInterfaces) {
+      _checkInterfaceOverrides(type, interfaceType, includeParents: false);
+    }
   }
 
-  // Check that member declarations soundly override any parent declarations.
-  InvalidOverride findInvalidOverride(
-      AstNode node, ExecutableElement element, InterfaceType type) {
-    // FIXME: This can be done a lot more efficiently.
-    assert(!element.isStatic);
+  /// Checks that [type] and its super classes (including mixins) correctly
+  /// override [interfaceType].
+  void _checkInterfaceOverrides(
+      InterfaceType type, InterfaceType interfaceType, {bool includeParents}) {
+    _checkIndividualOverrides(type, interfaceType);
 
-    // TODO(vsm): Move this out.
-    FunctionType subType = _rules.elementType(element);
+    if (includeParents) {
+      var parent = type.superclass;
+      var parentErrorLocation = type.element.node.extendsClause;
+      while (parent != null) {
+        _checkIndividualOverrides(parent, interfaceType, parentErrorLocation);
+        parent = parent.superclass;
+      }
+    }
 
+    for (int i = 0; i < type.mixins.length; i++) {
+      var current = type.mixins[i];
+      var errorLocation = type.element.node.withClause.mixinTypes[i];
+      _checkIndividualOverrides(current, interfaceType, errorLocation);
+    }
+  }
+
+  /// Check that individual methods and fields in [subType] correctly override
+  /// the declarations in [baseType].
+  ///
+  /// The [errorLocation] node indicates where errors are reported, see
+  /// [_checkSingleOverride] for more details.
+  _checkIndividualOverrides(InterfaceType subType, InterfaceType baseType,
+      [AstNode errorLocation]) {
+    void checkHelper(ExecutableElement e) {
+      if (e.isStatic) return;
+      var loc = errorLocation;
+      if (loc == null) {
+        if (e.isSynthetic) {
+          var node = e.variable.node;
+          if (node != null) node = node.parent.parent;
+          loc = node;
+        } else {
+          loc = e.node;
+        }
+        if (loc == null) {
+          print('error: node for $e not found, '
+              'this may be an instance of issue dartbug.com/22078');
+        }
+      }
+      _checkSingleOverride(e, baseType, loc);
+    }
+    subType.methods.forEach(checkHelper);
+    subType.accessors.forEach(checkHelper);
+  }
+
+
+  /// Looks up the declaration that matches [element] in [type] and returns it's
+  /// declared type.
+  FunctionType _getBaseMemberType(FunctionType subType,
+      InterfaceType type, ExecutableElement member) {
     ExecutableElement baseMethod;
-    String memberName = element.name;
+    String memberName = member.name;
 
-    final isGetter = element is PropertyAccessorElement && element.isGetter;
-    final isSetter = element is PropertyAccessorElement && element.isSetter;
+    final isGetter = member is PropertyAccessorElement && member.isGetter;
+    final isSetter = member is PropertyAccessorElement && member.isSetter;
 
     if (isGetter) {
       assert(!isSetter);
@@ -114,9 +233,43 @@ class ProgramChecker extends RecursiveAstVisitor {
         baseMethod = type.getMethod(memberName);
       }
     }
-    if (baseMethod != null) {
-      // TODO(vsm): Test for generic
-      FunctionType baseType = _rules.elementType(baseMethod);
+    if (baseMethod == null) return null;
+    return _rules.elementType(baseMethod);
+  }
+
+  /// Checks that [element] correctly overrides its corresponding member in
+  /// [type].
+  ///
+  /// The [errorLocation] is a node where the error is reported. For example, a
+  /// bad override of a method in a class with respect to its superclass is
+  /// reported directly at the method declaration. However, invalid overrides
+  /// from base classes to interfaces, mixins to the base they are applied to,
+  /// or mixins to interfaces are reported at the class declaration, since the
+  /// base class or members on their own were not incorrect, only combining them
+  /// with the interface was problematic. For example, these are example error
+  /// locations in these cases:
+  ///
+  ///     error: base class introduces an invalid override. The type of B.foo is
+  ///     not a subtype of E.foo:
+  ///       class A extends B implements E { ... }
+  ///               ^^^^^^^^^
+  ///
+  ///     error: mixin introduces an invalid override. The type of C.foo is not
+  ///     a subtype of E.foo:
+  ///       class A extends B with C implements E { ... }
+  ///                              ^
+  void _checkSingleOverride(
+      ExecutableElement element, InterfaceType type, AstNode errorLocation) {
+    assert(!element.isStatic);
+
+    FunctionType subType = _rules.elementType(element);
+    // TODO(vsm): Test for generic
+    final isGetter = element is PropertyAccessorElement && element.isGetter;
+    FunctionType baseType = _getBaseMemberType(subType, type, element);
+
+    if (baseType != null) {
+      //var result = _checkOverride(subType, baseType);
+      //if (result != null) return result;
       if (!_rules.isAssignable(subType, baseType)) {
         // See whether non-assignable cases fit one of our common patterns:
         //
@@ -130,74 +283,70 @@ class ProgramChecker extends RecursiveAstVisitor {
         //     toString() { ... } // no return type specified.
         //   }
         if (isGetter && element.isSynthetic) {
+          var node = element.variable.node.parent.parent;
           if ((node as FieldDeclaration).fields.type == null) {
-            return new InferableOverride(
-                node, element, type, subType.returnType, baseType.returnType);
+            _recordMessage(new InferableOverride(
+                errorLocation, element, type, subType.returnType,
+                baseType.returnType));
+            return;
           }
-        } else if (node is MethodDeclaration &&
-            node.returnType == null &&
+        } else if (element.node is MethodDeclaration &&
+            element.node.returnType == null &&
             _rules.isFunctionSubTypeOf(subType, baseType, ignoreReturn: true)) {
           // node is a MethodDeclaration whenever getters and setters are
           // declared explicitly. Setters declared from a field will have the
           // correct return type, so we don't need to check that separately.
-          return new InferableOverride(
-              node, element, type, subType.returnType, baseType.returnType);
+          _recordMessage(new InferableOverride(
+              errorLocation, element, type, subType.returnType,
+              baseType.returnType));
+          return;
         }
-        return new InvalidMethodOverride(
-            node, element, type, subType, baseType);
+        _recordMessage(new InvalidMethodOverride(
+            errorLocation, element, type, subType, baseType));
+        return;
       }
     }
-
-    if (type.isObject) return null;
-
-    InvalidOverride base = findInvalidOverride(node, element, type.superclass);
-    if (base != null) return base;
-
-    for (final parent in type.interfaces) {
-      base = findInvalidOverride(node, element, parent);
-      if (base != null) return base;
-    }
-
-    for (final parent in type.mixins) {
-      base = findInvalidOverride(node, element, parent);
-      if (base != null) return base;
-    }
-
-    return null;
   }
 
-  void checkInvalidOverride(
-      AstNode node, ExecutableElement element, InterfaceType type) {
-    InvalidOverride invalid = findInvalidOverride(node, element, type);
-    _recordMessage(invalid);
+  void _recordMessage(StaticInfo info) {
+    if (info == null) return;
+    if (info.level >= logger.Level.SEVERE) _failure = true;
+    _reporter.log(info);
+  }
+}
+
+
+/// Checks the body of functions and properties.
+class _CodeChecker extends RecursiveAstVisitor {
+  final TypeRules _rules;
+  final CheckerReporter _reporter;
+  final _OverrideChecker _overrideChecker;
+  bool _failure = false;
+  _CodeChecker(TypeRules rules, CheckerReporter reporter)
+      : _rules = rules,
+        _reporter = reporter,
+        _overrideChecker = new _OverrideChecker(rules, reporter);
+
+  visitComment(Comment node) {
+    // skip, no need to do typechecking inside comments (they may contain
+    // comment references which would require resolution).
   }
 
-  visitMethodDeclaration(MethodDeclaration node) {
+  visitClassDeclaration(ClassDeclaration node) {
+    _overrideChecker.check(node);
+    _failure = _failure || _overrideChecker._failure;
+    super.visitClassDeclaration(node);
+  }
+
+  visitAssignmentExpression(AssignmentExpression node) {
+    var token = node.operator;
+    if (token.type != TokenType.EQ) {
+      _checkCompoundAssignment(node);
+    } else {
+      DartType staticType = _rules.getStaticType(node.leftHandSide);
+      node.rightHandSide = checkAssignment(node.rightHandSide, staticType);
+    }
     node.visitChildren(this);
-    if (node.isStatic) return;
-    final parent = node.parent;
-    if (parent is! ClassDeclaration) {
-      throw 'Unexpected parent: $parent';
-    }
-    ClassDeclaration cls = parent as ClassDeclaration;
-    // TODO(vsm): Check for generic.
-    InterfaceType type = _rules.elementType(cls.element);
-    checkInvalidOverride(node, node.element, type);
-  }
-
-  visitFieldDeclaration(FieldDeclaration node) {
-    node.visitChildren(this);
-    // TODO(vsm): Is there always a corresponding synthetic method?  If not, we need to validate here.
-    final parent = node.parent;
-    if (!node.isStatic && parent is ClassDeclaration) {
-      InterfaceType type = _rules.elementType(parent.element);
-      for (VariableDeclaration decl in node.fields.variables) {
-        final getter = type.getGetter(decl.name.name);
-        if (getter != null) checkInvalidOverride(node, getter, type);
-        final setter = type.getSetter(decl.name.name);
-        if (setter != null) checkInvalidOverride(node, setter, type);
-      }
-    }
   }
 
   /// Check constructor declaration to ensure correct super call placement.
@@ -457,7 +606,7 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   void _recordMessage(StaticInfo info) {
     if (info == null) return;
-    if (info.level >= logger.Level.SEVERE) failure = true;
+    if (info.level >= logger.Level.SEVERE) _failure = true;
     _reporter.log(info);
   }
 }

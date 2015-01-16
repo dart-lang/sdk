@@ -1683,4 +1683,521 @@ main() {
         '''
     });
   });
+
+  group('invalid overrides', () {
+    test('child override', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Base {
+                A f;
+            }
+
+            class T1 extends Base {
+              /*severe:InvalidMethodOverride*/B get f => null;
+            }
+
+            class T2 extends Base {
+              /*severe:InvalidMethodOverride*/set f(B b) => null;
+            }
+
+            class T3 extends Base {
+              /*severe:InvalidMethodOverride*/final B f;
+            }
+            class T4 extends Base {
+              // two: one for the getter one for the setter.
+              /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/B f;
+            }
+         '''
+      });
+
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Base {
+                m(A a) {}
+            }
+
+            class Test extends Base {
+                /*severe:InvalidMethodOverride*/m(B a) {}
+            }
+         '''
+      });
+    });
+    test('grandchild override', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Grandparent {
+                m(A a) {}
+            }
+            class Parent extends Grandparent {
+            }
+
+            class Test extends Parent {
+                /*severe:InvalidMethodOverride*/m(B a) {}
+            }
+         '''
+      });
+    });
+
+    test('double override', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Grandparent {
+                m(A a) {}
+            }
+            class Parent extends Grandparent {
+                /*severe:InvalidMethodOverride*/m(B a) {}
+            }
+
+            class Test extends Parent {
+                // TODO(sigmund): don't report this redundant error?
+                /*severe:InvalidMethodOverride*/m(B a) {}
+            }
+         '''
+      });
+    });
+
+    test('mixin override to base', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Base {
+                m(A a) {}
+            }
+
+            class M1 {
+                m(B a) {}
+            }
+
+            class M2 {}
+
+            class T1 extends Base with /*severe:InvalidMethodOverride*/M1 {}
+            class T2 extends Base with /*severe:InvalidMethodOverride*/M1, M2 {}
+            class T3 extends Base with M2, /*severe:InvalidMethodOverride*/M1 {}
+         '''
+      });
+    });
+
+    test('mixin override to mixin', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Base {
+            }
+
+            class M1 {
+                m(B a) {}
+            }
+
+            class M2 {
+                m(A a) {}
+            }
+
+            class T1 extends Base with M1, /*severe:InvalidMethodOverride*/M2 {}
+         '''
+      });
+    });
+
+    test('class override of interface', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            abstract class I {
+                m(A a);
+            }
+
+            class T1 implements I {
+                /*severe:InvalidMethodOverride*/m(B a) {}
+            }
+         '''
+      });
+    });
+
+    test('base class override to child interface', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            abstract class I {
+                m(A a);
+            }
+
+            class Base {
+                m(B a) {}
+            }
+
+
+            class T1 /*severe:InvalidMethodOverride*/extends Base implements I {
+            }
+         '''
+      });
+    });
+
+    test('mixin override of interface', () {
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            abstract class I {
+                m(A a);
+            }
+
+            class M {
+                m(B a) {}
+            }
+
+            class T1 extends Object with /*severe:InvalidMethodOverride*/M
+               implements I {}
+         '''
+      });
+    });
+
+    group('class override of grand interface', () {
+      test('interface of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class I2 implements I1 {}
+
+              class T1 implements I2 {
+                  /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+           '''
+        });
+      });
+      test('superclass of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class I2 extends I1 {}
+
+              class T1 implements I2 {
+                  /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+           '''
+        });
+      });
+      test('mixin of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class M1 {
+                  m(A a);
+              }
+              abstract class I2 extends Object with M1 {}
+
+              class T1 implements I2 {
+                  /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+           '''
+        });
+      });
+      test('interface of abstract superclass', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class Base implements I1 {}
+
+              class T1 extends Base {
+                  /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+           '''
+        });
+      });
+      test('interface of concrete superclass', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              // See issue #25
+              /*pass should be warning:AnalyzerError*/class Base implements I1 {
+              }
+
+              class T1 extends Base {
+                  // not reported technically because if the class is concrete,
+                  // it should implement all its interfaces and hence it is
+                  // sufficient to check overrides against it.
+                  m(B a) {}
+              }
+           '''
+        });
+      });
+    });
+
+    group('mixin override of grand interface', () {
+      test('interface of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class I2 implements I1 {}
+
+              class M {
+                  m(B a) {}
+              }
+
+              class T1 extends Object with /*severe:InvalidMethodOverride*/M
+                  implements I2 {
+              }
+           '''
+        });
+      });
+      test('superclass of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class I2 extends I1 {}
+
+              class M {
+                  m(B a) {}
+              }
+
+              class T1 extends Object with /*severe:InvalidMethodOverride*/M
+                  implements I2 {
+              }
+           '''
+        });
+      });
+      test('mixin of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class M1 {
+                  m(A a);
+              }
+              abstract class I2 extends Object with M1 {}
+
+              class M {
+                  m(B a) {}
+              }
+
+              class T1 extends Object with /*severe:InvalidMethodOverride*/M
+                  implements I2 {
+              }
+           '''
+        });
+      });
+      test('interface of abstract superclass', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class Base implements I1 {}
+
+              class M {
+                  m(B a) {}
+              }
+
+              class T1 extends Base with /*severe:InvalidMethodOverride*/M {
+              }
+           '''
+        });
+      });
+      test('interface of concrete superclass', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              // See issue #25
+              /*pass should be warning:AnalyzerError*/class Base implements I1 {
+              }
+
+              class M {
+                  m(B a) {}
+              }
+
+              class T1 extends Base with M {
+              }
+           '''
+        });
+      });
+    });
+
+    group('superclass override of grand interface', () {
+      test('interface of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class I2 implements I1 {}
+
+              class Base {
+                  m(B a) {}
+              }
+
+              class T1 /*severe:InvalidMethodOverride*/extends Base
+                  implements I2 {
+              }
+           '''
+        });
+      });
+      test('superclass of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class I2 extends I1 {}
+
+              class Base {
+                  m(B a) {}
+              }
+
+              class T1 /*severe:InvalidMethodOverride*/extends Base
+                  implements I2 {
+              }
+           '''
+        });
+      });
+      test('mixin of interface of child', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class M1 {
+                  m(A a);
+              }
+              abstract class I2 extends Object with M1 {}
+
+              class Base {
+                  m(B a) {}
+              }
+
+              class T1 /*severe:InvalidMethodOverride*/extends Base
+                  implements I2 {
+              }
+           '''
+        });
+      });
+      test('interface of abstract superclass', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              abstract class Base implements I1 {
+                  /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+
+              class T1 extends Base {
+                  // we consider the base class incomplete because it is
+                  // abstract, so we report the error here too.
+                  // TODO(sigmund): consider tracking overrides in a fine-grain
+                  // manner, then this and the double-overrides would not be
+                  // reported.
+                  /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+           '''
+        });
+      });
+      test('interface of concrete superclass', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              class Base implements I1 {
+                  /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+
+              class T1 extends Base {
+                  m(B a) {}
+              }
+           '''
+        });
+      });
+    });
+
+    test('no reporting of overrides with Object twice.', () {
+      // This is a regression test: we used to report it twice because it was
+      // the top super class and top super interface.
+      // TODO(sigmund): maybe we generalize this and don't report again errors
+      // when an interface is also a superclass.
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class T1 implements A {
+                /*warning:InferableOverride*/toString() {}
+            }
+         '''
+      });
+    });
+  });
 }
