@@ -19,8 +19,7 @@ class DartUnitOutlineComputer {
   final CompilationUnit unit;
   final LineInfo lineInfo;
 
-  DartUnitOutlineComputer(Source source, this.lineInfo, this.unit)
-      : file = source.fullName;
+  DartUnitOutlineComputer(this.file, this.lineInfo, this.unit);
 
   /**
    * Returns the computed outline, not `null`.

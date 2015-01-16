@@ -12,7 +12,7 @@ main() {
 
   group('ServerOperationPriority', () {
     test('toString', () {
-      expect(ServerOperationPriority.SEARCH.toString(), 'SEARCH');
+      expect(ServerOperationPriority.ANALYSIS.toString(), 'ANALYSIS');
     });
   });
 }

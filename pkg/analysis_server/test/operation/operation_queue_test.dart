@@ -16,17 +16,15 @@ main() {
   groupSep = ' | ';
 
   group('ServerOperationQueue', () {
-    AnalysisServer server;
     ServerOperationQueue queue;
 
     setUp(() {
-      server = new AnalysisServerMock();
-      queue = new ServerOperationQueue(server);
+      queue = new ServerOperationQueue();
     });
 
     test('clear', () {
-      var operationA = mockOperation(ServerOperationPriority.SEARCH);
-      var operationB = mockOperation(ServerOperationPriority.REFACTORING);
+      var operationA = mockOperation(ServerOperationPriority.ANALYSIS);
+      var operationB = mockOperation(ServerOperationPriority.ANALYSIS_CONTINUE);
       queue.add(operationA);
       queue.add(operationB);
       // there are some operations
@@ -42,7 +40,7 @@ main() {
       });
 
       test('false', () {
-        var operation = mockOperation(ServerOperationPriority.SEARCH);
+        var operation = mockOperation(ServerOperationPriority.ANALYSIS);
         queue.add(operation);
         expect(queue.isEmpty, isFalse);
       });
@@ -54,25 +52,26 @@ main() {
       });
 
       test('use operation priorities', () {
-        when(server.isPriorityContext(anyObject)).thenReturn(false);
-        var analysisContext = new AnalysisContextMock();
-        var operationA = mockOperation(ServerOperationPriority.SEARCH);
-        var operationB = mockOperation(ServerOperationPriority.REFACTORING);
-        var operationC = new PerformAnalysisOperation(analysisContext, false);
+        var operationA = mockOperation(ServerOperationPriority.ANALYSIS);
+        var operationB =
+            mockOperation(ServerOperationPriority.ANALYSIS_CONTINUE);
+        var operationC =
+            mockOperation(ServerOperationPriority.PRIORITY_ANALYSIS);
         queue.add(operationA);
         queue.add(operationB);
         queue.add(operationC);
         expect(queue.take(), operationC);
-        expect(queue.take(), operationA);
         expect(queue.take(), operationB);
+        expect(queue.take(), operationA);
         expect(queue.take(), isNull);
       });
 
       test('continue analysis first', () {
-        when(server.isPriorityContext(anyObject)).thenReturn(false);
         var analysisContext = new AnalysisContextMock();
-        var operationA = new PerformAnalysisOperation(analysisContext, false);
-        var operationB = new PerformAnalysisOperation(analysisContext, true);
+        var operationA =
+            new PerformAnalysisOperation(analysisContext, false, false);
+        var operationB =
+            new PerformAnalysisOperation(analysisContext, false, true);
         queue.add(operationA);
         queue.add(operationB);
         expect(queue.take(), operationB);
@@ -83,12 +82,12 @@ main() {
       test('priority context first', () {
         var analysisContextA = new AnalysisContextMock();
         var analysisContextB = new AnalysisContextMock();
-        var operationA = new PerformAnalysisOperation(analysisContextA, false);
-        var operationB = new PerformAnalysisOperation(analysisContextB, false);
+        var operationA =
+            new PerformAnalysisOperation(analysisContextA, false, false);
+        var operationB =
+            new PerformAnalysisOperation(analysisContextB, true, false);
         queue.add(operationA);
         queue.add(operationB);
-        when(server.isPriorityContext(analysisContextA)).thenReturn(false);
-        when(server.isPriorityContext(analysisContextB)).thenReturn(true);
         expect(queue.take(), operationB);
         expect(queue.take(), operationA);
         expect(queue.take(), isNull);

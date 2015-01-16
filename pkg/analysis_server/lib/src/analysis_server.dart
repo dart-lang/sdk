@@ -198,7 +198,7 @@ class AnalysisServer {
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
       this.instrumentationService, {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
-    operationQueue = new ServerOperationQueue(this);
+    operationQueue = new ServerOperationQueue();
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
     contextDirectoryManager.defaultOptions.incremental = true;
@@ -539,14 +539,6 @@ class AnalysisServer {
   }
 
   /**
-   * Returns `true` if the given [AnalysisContext] is a priority one.
-   */
-  bool isPriorityContext(AnalysisContext context) {
-    // TODO(scheglov) implement support for priority sources/contexts
-    return false;
-  }
-
-  /**
    * Returns a [Future] completing when [file] has been completely analyzed, in
    * particular, all its errors have been computed.  The future is completed
    * with an [AnalysisDoneReason] indicating what caused the file's analysis to
@@ -649,7 +641,8 @@ class AnalysisServer {
    */
   void schedulePerformAnalysisOperation(AnalysisContext context) {
     _onAnalysisStartedController.add(context);
-    scheduleOperation(new PerformAnalysisOperation(context, false));
+    bool isPriority = _isPriorityContext(context);
+    scheduleOperation(new PerformAnalysisOperation(context, isPriority, false));
   }
 
   /**
@@ -785,11 +778,7 @@ class AnalysisServer {
                 break;
               case AnalysisService.OUTLINE:
                 LineInfo lineInfo = context.getLineInfo(source);
-                sendAnalysisNotificationOutline(
-                    this,
-                    source,
-                    lineInfo,
-                    dartUnit);
+                sendAnalysisNotificationOutline(this, file, lineInfo, dartUnit);
                 break;
               case AnalysisService.OVERRIDES:
                 sendAnalysisNotificationOverrides(this, file, dartUnit);
@@ -931,6 +920,14 @@ class AnalysisServer {
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(options);
     });
+  }
+
+  /**
+   * Returns `true` if the given [AnalysisContext] is a priority one.
+   */
+  bool _isPriorityContext(AnalysisContext context) {
+    // TODO(scheglov) implement support for priority sources/contexts
+    return false;
   }
 
   /**
