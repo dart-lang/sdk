@@ -46,6 +46,11 @@ class GetHandler {
   static const String COMPLETION_PATH = '/completion';
 
   /**
+   * The path used to request an overlay contents.
+   */
+  static const String OVERLAY_PATH = '/overlay';
+
+  /**
    * The path used to request overlays information.
    */
   static const String OVERLAYS_PATH = '/overlays';
@@ -85,6 +90,11 @@ class GetHandler {
   List<String> _printBuffer;
 
   /**
+   * Contents of overlay files.
+   */
+  final Map<int, String> _overlayContents = <int, String>{};
+
+  /**
    * Initialize a newly created handler for GET requests.
    */
   GetHandler(this._server, this._printBuffer);
@@ -102,6 +112,8 @@ class GetHandler {
       _returnCacheEntry(request);
     } else if (path == COMPLETION_PATH) {
       _returnCompletionInfo(request);
+    } else if (path == OVERLAY_PATH) {
+      _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
       _returnOverlaysInfo(request);
     } else {
@@ -379,6 +391,24 @@ class GetHandler {
     response.close();
   }
 
+  void _returnOverlayContents(HttpRequest request) {
+    String idString = request.requestedUri.queryParameters['id'];
+    int id = int.parse(idString);
+    String contents = _overlayContents[id];
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.OK;
+    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.write('<html>');
+    response.write('<head>');
+    response.write('<title>Dart Analysis Server - Overlay</title>');
+    response.write('</head>');
+    response.write('<body>');
+    response.write('<pre>${HTML_ESCAPE.convert(contents)}</pre>');
+    response.write('</body>');
+    response.write('</html>');
+    response.close();
+  }
+
   /**
    * Return a response displaying overlays information.
    */
@@ -398,14 +428,18 @@ class GetHandler {
     response.write('<h1>Dart Analysis Server - Overlays</h1>');
     response.write('<table border="1">');
     int count = 0;
+    _overlayContents.clear();
     analysisServer.folderMap.forEach((_, AnalysisContextImpl context) {
       context.visitContentCache((Source source, int stamp, String contents) {
         count++;
         response.write('<tr>');
-        response.write('<td><pre>${HTML_ESCAPE.convert('$source')}</pre></td>');
+        String linkRef = '$OVERLAY_PATH?id=$count';
+        String linkText = HTML_ESCAPE.convert(source.toString());
+        response.write('<td><a href="$linkRef">$linkText</a></td>');
         response.write(
             '<td>${new DateTime.fromMillisecondsSinceEpoch(stamp)}</td>');
         response.write('</tr>');
+        _overlayContents[count] = contents;
       });
     });
     response.write('<tr><td colspan="2">Total: $count entries.</td></tr>');
