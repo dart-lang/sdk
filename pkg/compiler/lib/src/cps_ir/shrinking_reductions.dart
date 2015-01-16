@@ -46,8 +46,27 @@ class ShrinkingReducer extends PassMixin {
     node.parent = _DELETED;
   }
 
+  /// Remove a given continuation from the CPS graph.  The LetCont itself is
+  /// removed if the given continuation is the only binding.
+  void _removeContinuation(Continuation cont) {
+    LetCont parent = cont.parent;
+    if (parent.continuations.length == 1) {
+      assert(cont.parent_index == 0);
+      _removeNode(parent);
+    } else {
+      List<Continuation> continuations = parent.continuations;
+      for (int i = cont.parent_index; i < continuations.length - 1; ++i) {
+        Continuation current = continuations[i + 1];
+        continuations[i] = current;
+        current.parent_index = i;
+      }
+      continuations.removeLast();
+    }
+    cont.parent = _DELETED;
+  }
+
   void _processTask(_ReductionTask task) {
-    // Lazily skip tasks for deleted nodes.
+    // Skip tasks for deleted nodes.
     if (task.node.parent == _DELETED) {
       return;
     }
@@ -89,11 +108,11 @@ class ShrinkingReducer extends PassMixin {
     assert(_isDeadCont(task.node));
 
     // Remove dead continuation.
-    LetCont letCont = task.node;
-    _removeNode(letCont);
+    Continuation cont = task.node;
+    _removeContinuation(cont);
 
     // Perform bookkeeping on removed body and scan for new redexes.
-    new _RemovalRedexVisitor(_worklist).visit(letCont.continuation);
+    new _RemovalRedexVisitor(_worklist).visit(cont);
   }
 
   /// Applies the beta-cont-lin reduction:
@@ -111,9 +130,8 @@ class ShrinkingReducer extends PassMixin {
     }
 
     // Remove the continuation.
-    LetCont letCont = task.node;
-    Continuation cont = letCont.continuation;
-    _removeNode(letCont);
+    Continuation cont = task.node;
+    _removeContinuation(cont);
 
     // Replace its invocation with the continuation body.
     InvokeContinuation invoke = cont.firstRef.parent;
@@ -128,7 +146,7 @@ class ShrinkingReducer extends PassMixin {
       argRef.definition.substituteFor(cont.parameters[i]);
     }
 
-    // Perform bookkeeping on removed body and scan for new redexes.
+    // Perform bookkeeping on substituted body and scan for new redexes.
     new _RemovalRedexVisitor(_worklist).visit(invoke);
   }
 
@@ -147,9 +165,8 @@ class ShrinkingReducer extends PassMixin {
     }
 
     // Remove the continuation.
-    LetCont letCont   = task.node;
-    Continuation cont = letCont.continuation;
-    _removeNode(letCont);
+    Continuation cont = task.node;
+    _removeContinuation(cont);
 
     InvokeContinuation invoke = cont.body;
     Continuation wrappedCont = invoke.continuation.definition;
@@ -165,13 +182,14 @@ class ShrinkingReducer extends PassMixin {
 /// Returns true iff the bound primitive is unused.
 bool _isDeadVal(LetPrim node) => !node.primitive.hasAtLeastOneUse;
 
-/// Returns true iff the bound continuation is unused.
-bool _isDeadCont(LetCont node) => !node.continuation.hasAtLeastOneUse;
+/// Returns true iff the continuation is unused.
+bool _isDeadCont(Continuation cont) {
+  return !cont.hasAtLeastOneUse && !cont.isReturnContinuation;
+}
 
-/// Returns true iff the bound continuation is used exactly once, and that
-/// use is as the receiver of a continuation invocation.
-bool _isBetaContLin(LetCont node) {
-  Continuation cont = node.continuation;
+/// Returns true iff the continuation is used exactly once, and that
+/// use is as the continuation of a continuation invocation.
+bool _isBetaContLin(Continuation cont) {
   if (!cont.hasExactlyOneUse) {
     return false;
   }
@@ -182,14 +200,12 @@ bool _isBetaContLin(LetCont node) {
   }
 
   return false;
-
 }
 
-/// Returns true iff the bound continuation consists of a continuation
+/// Returns true iff the continuation consists of a continuation
 /// invocation, passing on all parameters. Special cases exist (see below).
-bool _isEtaCont(LetCont node) {
-  Continuation cont = node.continuation;
-  if (!(cont.body is InvokeContinuation)) {
+bool _isEtaCont(Continuation cont) {
+  if (cont.body is! InvokeContinuation) {
     return false;
   }
 
@@ -242,12 +258,16 @@ class _RedexVisitor extends RecursiveVisitor {
   void processLetCont(LetCont node) {
     if (node.parent == ShrinkingReducer._DELETED) {
       return;
-    } else if (_isDeadCont(node)) {
-      worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, node));
-    } else if (_isEtaCont(node)) {
-      worklist.add(new _ReductionTask(_ReductionKind.ETA_CONT, node));
-    } else if (_isBetaContLin(node)){
-      worklist.add(new _ReductionTask(_ReductionKind.BETA_CONT_LIN, node));
+    }
+    for (int i = 0; i < node.continuations.length; ++i) {
+      Continuation cont = node.continuations[i];
+      if (_isDeadCont(cont)) {
+        worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, cont));
+      } else if (_isEtaCont(cont)) {
+        worklist.add(new _ReductionTask(_ReductionKind.ETA_CONT, cont));
+      } else if (_isBetaContLin(cont)){
+        worklist.add(new _ReductionTask(_ReductionKind.BETA_CONT_LIN, cont));
+      }
     }
   }
 }
@@ -263,6 +283,10 @@ class _RemovalRedexVisitor extends _RedexVisitor {
   }
 
   void processLetCont(LetCont node) {
+    node.parent = ShrinkingReducer._DELETED;
+  }
+
+  void processContinuation(Continuation node) {
     node.parent = ShrinkingReducer._DELETED;
   }
 
@@ -283,9 +307,8 @@ class _RemovalRedexVisitor extends _RedexVisitor {
         // removed, or it is called nonrecursively outside its body.
         cont.isRecursive = false;
       }
-      Node parent = cont.parent;
-      if (parent is LetCont && _isDeadCont(parent)) {
-        worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, parent));
+      if (_isDeadCont(cont)) {
+        worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, cont));
       }
     }
   }
@@ -293,7 +316,6 @@ class _RemovalRedexVisitor extends _RedexVisitor {
 
 /// Traverses the CPS term and sets node.parent for each visited node.
 class ParentVisitor extends RecursiveVisitor {
-
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
     node.parameters.forEach((Definition p) => p.parent = node);
@@ -326,13 +348,17 @@ class ParentVisitor extends RecursiveVisitor {
   }
 
   processLetCont(LetCont node) {
-    node.continuation.parent = node;
+    for (int i = 0; i < node.continuations.length; ++i) {
+      Continuation cont = node.continuations[i];
+      cont.parent = node;
+      cont.parent_index = i;
+    }
     node.body.parent = node;
   }
 
   processInvokeStatic(InvokeStatic node) {
-    node.continuation.parent = node;
     node.arguments.forEach((Reference ref) => ref.parent = node);
+    node.continuation.parent = node;
   }
 
   processInvokeContinuation(InvokeContinuation node) {

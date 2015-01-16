@@ -397,7 +397,7 @@ abstract class IrBuilder {
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression expression = build(k);
-    add(new ir.LetCont(k, expression));
+    add(new ir.LetCont(<ir.Continuation>[k], expression));
     return v;
   }
 
@@ -541,16 +541,15 @@ abstract class IrBuilder {
     ir.Continuation elseContinuation = new ir.Continuation([]);
     thenContinuation.body = thenBuilder._root;
     elseContinuation.body = elseBuilder._root;
-    add(new ir.LetCont(joinContinuation,
-            new ir.LetCont(thenContinuation,
-                new ir.LetCont(elseContinuation,
-                    new ir.Branch(new ir.IsTrue(condition),
-                                  thenContinuation,
-                                  elseContinuation)))));
+    add(new ir.LetCont(<ir.Continuation>[joinContinuation],
+            new ir.LetCont(<ir.Continuation>[thenContinuation,
+                                             elseContinuation],
+                new ir.Branch(new ir.IsTrue(condition),
+                              thenContinuation,
+                              elseContinuation))));
     return (thenValue == elseValue)
         ? thenValue
         : joinContinuation.parameters.last;
-
   }
 
   /**
@@ -793,13 +792,19 @@ abstract class IrBuilder {
     //              if condition (then, else)
     ir.Continuation thenContinuation = new ir.Continuation([]);
     ir.Continuation elseContinuation = new ir.Continuation([]);
-    ir.Expression letElse =
-        new ir.LetCont(elseContinuation,
-          new ir.Branch(new ir.IsTrue(condition),
-                        thenContinuation,
-                        elseContinuation));
-    ir.Expression letThen = new ir.LetCont(thenContinuation, letElse);
-    ir.Expression result = letThen;
+    // If exactly one of the then and else continuation bodies is open (i.e.,
+    // the other one has an exit on all paths), then Continuation.plug expects
+    // that continuation to be listed first.  Arbitrarily use [then, else]
+    // order otherwise.
+    List<ir.Continuation> arms = !thenBuilder.isOpen && elseBuilder.isOpen
+        ? <ir.Continuation>[elseContinuation, thenContinuation]
+        : <ir.Continuation>[thenContinuation, elseContinuation];
+
+    ir.Expression result =
+        new ir.LetCont(arms,
+            new ir.Branch(new ir.IsTrue(condition),
+                          thenContinuation,
+                          elseContinuation));
 
     ir.Continuation joinContinuation;  // Null if there is no join.
     if (thenBuilder.isOpen && elseBuilder.isOpen) {
@@ -810,7 +815,7 @@ abstract class IrBuilder {
       jumps.addJump(thenBuilder);
       jumps.addJump(elseBuilder);
       joinContinuation = createJoin(environment.length, jumps);
-      result = new ir.LetCont(joinContinuation, result);
+      result = new ir.LetCont(<ir.Continuation>[joinContinuation], result);
     }
 
     // The then or else term root could be null, but not both.  If there is
@@ -827,12 +832,10 @@ abstract class IrBuilder {
     if (joinContinuation == null) {
       // At least one subexpression is closed.
       if (thenBuilder.isOpen) {
-        _current =
-            (thenBuilder._root == null) ? letThen : thenBuilder._current;
+        if (thenBuilder._root != null) _current = thenBuilder._current;
         environment = thenBuilder.environment;
       } else if (elseBuilder.isOpen) {
-        _current =
-            (elseBuilder._root == null) ? letElse : elseBuilder._current;
+        if (elseBuilder._root != null) _current = elseBuilder._current;
         environment = elseBuilder.environment;
       } else {
         _current = null;
@@ -958,12 +961,13 @@ abstract class IrBuilder {
     // Create body entry and loop exit continuations and a branch to them.
     ir.Continuation bodyContinuation = new ir.Continuation([]);
     ir.Continuation exitContinuation = new ir.Continuation([]);
+    // Note the order of continuations: the first one is the one that will
+    // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont(exitContinuation,
-            new ir.LetCont(bodyContinuation,
-                new ir.Branch(new ir.IsTrue(condition),
-                              bodyContinuation,
-                              exitContinuation)));
+        new ir.LetCont(<ir.Continuation>[exitContinuation, bodyContinuation],
+            new ir.Branch(new ir.IsTrue(condition),
+                          bodyContinuation,
+                          exitContinuation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.
     bool hasBreaks = !breakCollector.isEmpty;
@@ -996,20 +1000,22 @@ abstract class IrBuilder {
     if (hasContinues) {
       continueContinuation.body = updateBuilder._root;
       bodyContinuation.body =
-          new ir.LetCont(continueContinuation, bodyBuilder._root);
+          new ir.LetCont(<ir.Continuation>[continueContinuation],
+              bodyBuilder._root);
     } else {
       bodyContinuation.body = bodyBuilder._root;
     }
 
     loopContinuation.body = condBuilder._root;
-    add(new ir.LetCont(loopContinuation,
+    add(new ir.LetCont(<ir.Continuation>[loopContinuation],
             new ir.InvokeContinuation(loopContinuation,
                 environment.index2value)));
     if (hasBreaks) {
       _current = branch;
       environment = condBuilder.environment;
       breakCollector.addJump(this);
-      letJoin.continuation = createJoin(environment.length, breakCollector);
+      letJoin.continuations =
+          <ir.Continuation>[createJoin(environment.length, breakCollector)];
       _current = letJoin;
     } else {
       _current = condBuilder._current;
@@ -1060,14 +1066,14 @@ abstract class IrBuilder {
 
     ir.Parameter iterator = new ir.Parameter(null);
     ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
-    add(new ir.LetCont(iteratorInvoked,
+    add(new ir.LetCont(<ir.Continuation>[iteratorInvoked],
         new ir.InvokeMethod(expressionReceiver,
             new Selector.getter("iterator", null), iteratorInvoked,
             emptyArguments)));
 
     ir.Parameter condition = new ir.Parameter(null);
     ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
-    condBuilder.add(new ir.LetCont(moveNextInvoked,
+    condBuilder.add(new ir.LetCont(<ir.Continuation>[moveNextInvoked],
         new ir.InvokeMethod(iterator,
             new Selector.call("moveNext", null, 0),
             moveNextInvoked, emptyArguments)));
@@ -1085,7 +1091,7 @@ abstract class IrBuilder {
 
     ir.Parameter currentValue = new ir.Parameter(null);
     ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
-    bodyBuilder.add(new ir.LetCont(currentInvoked,
+    bodyBuilder.add(new ir.LetCont(<ir.Continuation>[currentInvoked],
         new ir.InvokeMethod(iterator, new Selector.getter("current", null),
             currentInvoked, emptyArguments)));
     if (Elements.isLocal(variableElement)) {
@@ -1107,12 +1113,13 @@ abstract class IrBuilder {
     // Create body entry and loop exit continuations and a branch to them.
     ir.Continuation bodyContinuation = new ir.Continuation([]);
     ir.Continuation exitContinuation = new ir.Continuation([]);
+    // Note the order of continuations: the first one is the one that will
+    // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont(exitContinuation,
-            new ir.LetCont(bodyContinuation,
-                new ir.Branch(new ir.IsTrue(condition),
-                              bodyContinuation,
-                              exitContinuation)));
+        new ir.LetCont(<ir.Continuation>[exitContinuation, bodyContinuation],
+            new ir.Branch(new ir.IsTrue(condition),
+                          bodyContinuation,
+                          exitContinuation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.
     bool hasBreaks = !breakCollector.isEmpty;
@@ -1132,14 +1139,15 @@ abstract class IrBuilder {
     bodyContinuation.body = bodyBuilder._root;
 
     loopContinuation.body = condBuilder._root;
-    add(new ir.LetCont(loopContinuation,
+    add(new ir.LetCont(<ir.Continuation>[loopContinuation],
             new ir.InvokeContinuation(loopContinuation,
                                       environment.index2value)));
     if (hasBreaks) {
       _current = branch;
       environment = condBuilder.environment;
       breakCollector.addJump(this);
-      letJoin.continuation = createJoin(environment.length, breakCollector);
+      letJoin.continuations =
+          <ir.Continuation>[createJoin(environment.length, breakCollector)];
       _current = letJoin;
     } else {
       _current = condBuilder._current;
@@ -1193,12 +1201,13 @@ abstract class IrBuilder {
     // Create body entry and loop exit continuations and a branch to them.
     ir.Continuation bodyContinuation = new ir.Continuation([]);
     ir.Continuation exitContinuation = new ir.Continuation([]);
+    // Note the order of continuations: the first one is the one that will
+    // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont(exitContinuation,
-            new ir.LetCont(bodyContinuation,
-                new ir.Branch(new ir.IsTrue(condition),
-                              bodyContinuation,
-                              exitContinuation)));
+        new ir.LetCont(<ir.Continuation>[exitContinuation, bodyContinuation],
+            new ir.Branch(new ir.IsTrue(condition),
+                          bodyContinuation,
+                          exitContinuation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.
     bool hasBreaks = !breakCollector.isEmpty;
@@ -1217,14 +1226,15 @@ abstract class IrBuilder {
     bodyContinuation.body = bodyBuilder._root;
 
     loopContinuation.body = condBuilder._root;
-    add(new ir.LetCont(loopContinuation,
+    add(new ir.LetCont(<ir.Continuation>[loopContinuation],
             new ir.InvokeContinuation(loopContinuation,
                                       environment.index2value)));
     if (hasBreaks) {
       _current = branch;
       environment = condBuilder.environment;
       breakCollector.addJump(this);
-      letJoin.continuation = createJoin(environment.length, breakCollector);
+      letJoin.continuations =
+          <ir.Continuation>[createJoin(environment.length, breakCollector)];
       _current = letJoin;
     } else {
       _current = condBuilder._current;
@@ -1323,12 +1333,11 @@ abstract class IrBuilder {
     elseContinuation.body = new ir.LetPrim(trueConstant)
         ..plug(new ir.InvokeContinuation(joinContinuation, [trueConstant]));
 
-    add(new ir.LetCont(joinContinuation,
-          new ir.LetCont(thenContinuation,
-            new ir.LetCont(elseContinuation,
+    add(new ir.LetCont(<ir.Continuation>[joinContinuation],
+          new ir.LetCont(<ir.Continuation>[thenContinuation, elseContinuation],
               new ir.Branch(new ir.IsTrue(condition),
                             thenContinuation,
-                            elseContinuation)))));
+                            elseContinuation))));
     return resultParameter;
   }
 
@@ -1407,11 +1416,11 @@ abstract class IrBuilder {
     rightFalseContinuation.body = rightFalseBuilder._root;
     // The right subexpression has two continuations.
     rightBuilder.add(
-        new ir.LetCont(rightTrueContinuation,
-            new ir.LetCont(rightFalseContinuation,
-                new ir.Branch(new ir.IsTrue(rightValue),
-                              rightTrueContinuation,
-                              rightFalseContinuation))));
+        new ir.LetCont(<ir.Continuation>[rightTrueContinuation,
+                                         rightFalseContinuation],
+            new ir.Branch(new ir.IsTrue(rightValue),
+                          rightTrueContinuation,
+                          rightFalseContinuation)));
     // Depending on the operator, the left subexpression's continuations are
     // either the right subexpression or an invocation of the join-point
     // continuation.
@@ -1423,12 +1432,12 @@ abstract class IrBuilder {
       leftFalseContinuation.body = emptyBuilder._root;
     }
 
-    add(new ir.LetCont(joinContinuation,
-            new ir.LetCont(leftTrueContinuation,
-                new ir.LetCont(leftFalseContinuation,
-                    new ir.Branch(new ir.IsTrue(leftValue),
-                                  leftTrueContinuation,
-                                  leftFalseContinuation)))));
+    add(new ir.LetCont(<ir.Continuation>[joinContinuation],
+            new ir.LetCont(<ir.Continuation>[leftTrueContinuation,
+                                             leftFalseContinuation],
+                new ir.Branch(new ir.IsTrue(leftValue),
+                              leftTrueContinuation,
+                              leftFalseContinuation))));
     // There is always a join parameter for the result value, because it
     // is different on at least two paths.
     return joinContinuation.parameters.last;
