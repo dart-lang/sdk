@@ -232,27 +232,10 @@ class NativeEmitter {
     for (ClassElement classElement in classes) {
       if (!classElement.isNative) continue;
       if (neededClasses.contains(classElement)) {
-        ClassBuilder builder = builders[classElement];
-
-        // In CSP mode [emitClassConstructor] and [emitClassGettersSetters] have
-        // a side-effect on "precompiled" functions in [OldEmitter]. For this
-        // reason, it is important that we don't call these methods before we
-        // are certain that a class is needed.
-
-        // [emitClassConstructor] only affects the generation of constructors
-        // in CSP mode.
-        emitterTask.oldEmitter.classEmitter.emitClassConstructor(
-            classElement, builder);
-
-        // [emitClassGettersSetters] does not affect whether or not a class is
-        // needed. If getters/setters are emitted, the class has fields and
-        // is therefore non-trivial.
-        emitterTask.oldEmitter.classEmitter.emitClassGettersSetters(
-            classElement, builder);
-
         // Define interceptor class for [classElement].
         emitterTask.oldEmitter.classEmitter.emitClassBuilderWithReflectionData(
-            backend.namer.getNameOfClass(classElement), classElement, builder,
+            backend.namer.getNameOfClass(classElement),
+            classElement, builders[classElement],
             emitterTask.oldEmitter.getElementDescriptor(classElement));
         emitterTask.oldEmitter.needsClassSupport = true;
       }
@@ -318,10 +301,13 @@ class NativeEmitter {
     }
     builder.superName = superName;
 
+    emitterTask.oldEmitter.classEmitter.emitClassConstructor(
+        classElement, builder);
     bool hasFields = emitterTask.oldEmitter.classEmitter.emitFields(
         classElement, builder, classIsNative: true);
     int propertyCount = builder.properties.length;
-
+    emitterTask.oldEmitter.classEmitter.emitClassGettersSetters(
+        classElement, builder);
     emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
         classElement, builder);
     emitterTask.oldEmitter.typeTestEmitter.emitIsTests(classElement, builder);

@@ -63,9 +63,6 @@ class ClassEmitter extends CodeEmitterHelper {
         className, classElement, builder, properties);
   }
 
-  /**
-   * [emitClassConstructor] affects the generation of constructors in CSP mode.
-   */
   void emitClassConstructor(ClassElement classElement,
                             ClassBuilder builder,
                             {bool onlyForRti: false}) {
@@ -221,12 +218,6 @@ class ClassEmitter extends CodeEmitterHelper {
     return fieldsAdded;
   }
 
-  /**
-   * Emits getters/setters for fields if necessary.
-   *
-   * They can be needed in CSP mode, or in checked mode, when types need to be
-   * verified.
-   */
   void emitClassGettersSetters(ClassElement classElement,
                                ClassBuilder builder,
                                {bool onlyForRti: false}) {
