@@ -1915,7 +1915,7 @@ abstract class ConstructorElementX extends FunctionElementX
   }
 
   ConstructorElement get effectiveTarget {
-    if (Elements.isErroneousElement(immediateRedirectionTarget)) {
+    if (Elements.isErroneous(immediateRedirectionTarget)) {
       return immediateRedirectionTarget;
     }
     assert(!isRedirectingFactory || internalEffectiveTarget != null);

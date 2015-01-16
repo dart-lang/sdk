@@ -945,7 +945,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
     if (Elements.isLocal(element)) {
       irBuilder.buildLocalSet(element, valueToStore);
-    } else if ((!node.isSuperCall && Elements.isErroneousElement(element)) ||
+    } else if ((!node.isSuperCall && Elements.isErroneous(element)) ||
                 Elements.isStaticOrTopLevel(element)) {
       irBuilder.buildStaticSet(
           element, elements.getSelector(node), valueToStore);

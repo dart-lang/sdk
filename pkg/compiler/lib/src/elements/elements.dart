@@ -428,7 +428,7 @@ class Elements {
   static bool isUnresolved(Element e) {
     return e == null || e.isErroneous;
   }
-  static bool isErroneousElement(Element e) => e != null && e.isErroneous;
+  static bool isErroneous(Element e) => e != null && e.isErroneous;
 
   /// Unwraps [element] reporting any warnings attached to it, if any.
   static Element unwrap(Element element,

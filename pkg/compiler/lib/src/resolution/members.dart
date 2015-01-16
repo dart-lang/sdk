@@ -437,7 +437,7 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolve(Element element) {
     return measure(() {
-      if (Elements.isErroneousElement(element)) return null;
+      if (Elements.isErroneous(element)) return null;
 
       processMetadata([result]) {
         for (MetadataAnnotation metadata in element.metadata) {

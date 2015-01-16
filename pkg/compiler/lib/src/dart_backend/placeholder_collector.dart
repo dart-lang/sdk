@@ -469,7 +469,7 @@ class PlaceholderCollector extends Visitor {
     Element constructor = treeElements[send];
     assert(constructor != null);
     assert(send.receiver == null);
-    if (!Elements.isErroneousElement(constructor)) {
+    if (!Elements.isErroneous(constructor)) {
       tryMakeConstructorPlaceholder(node.send.selector, constructor);
       // TODO(smok): Should this be in visitNamedArgument?
       // Field names can be exposed as names of optional arguments, e.g.
@@ -510,7 +510,7 @@ class PlaceholderCollector extends Visitor {
 
   visitSendSet(SendSet send) {
     Element element = treeElements[send];
-    if (Elements.isErroneousElement(element)) {
+    if (Elements.isErroneous(element)) {
       // Complicated case: constructs like receiver.selector++ can resolve
       // to ErroneousElement.  Fortunately, receiver.selector still
       // can be resoved via treeElements[send.selector], that's all

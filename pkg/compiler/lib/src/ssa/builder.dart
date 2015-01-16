@@ -3216,7 +3216,7 @@ class SsaBuilder extends ResolvedVisitor {
       push(new HStatic(element.declaration, backend.nonNullType));
       // TODO(ahe): This should be registered in codegen.
       registry.registerGetOfStaticFunction(element.declaration);
-    } else if (Elements.isErroneousElement(element)) {
+    } else if (Elements.isErroneous(element)) {
       if (element is ErroneousElement) {
         // An erroneous element indicates an unresolved static getter.
         generateThrowNoSuchMethod(
@@ -3273,7 +3273,7 @@ class SsaBuilder extends ResolvedVisitor {
         addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
-    } else if (Elements.isErroneousElement(element)) {
+    } else if (Elements.isErroneous(element)) {
       if (element is ErroneousElement) {
         List<HInstruction> arguments =
             send == null ? const <HInstruction>[] : <HInstruction>[value];
@@ -4679,11 +4679,11 @@ class SsaBuilder extends ResolvedVisitor {
   visitNewExpression(ast.NewExpression node) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
-    if (!Elements.isErroneousElement(element)) {
+    if (!Elements.isErroneous(element)) {
       ConstructorElement function = element;
       element = function.effectiveTarget;
     }
-    if (Elements.isErroneousElement(element)) {
+    if (Elements.isErroneous(element)) {
       if (element is !ErroneousElement) {
         // TODO(ahe): Do something like [generateWrongArgumentCountError].
         stack.add(graph.addConstantNull(compiler));
