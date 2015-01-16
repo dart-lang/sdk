@@ -20,7 +20,7 @@ import '../elements/modelx.dart'
 import '../helpers/helpers.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
 import '../scanner/scannerlib.dart'
     show PartialFunctionElement, Token, PLUS_TOKEN;
@@ -31,7 +31,6 @@ import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
 import '../universe/universe.dart';
 import '../util/util.dart';
-import '../js_backend/codegen/task.dart';
 
 part 'builder.dart';
 part 'codegen.dart';

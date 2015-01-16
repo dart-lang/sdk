@@ -88,10 +88,12 @@ import '../deferred_load.dart' show
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
 
+import '../native/native.dart' as native;
 part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
 part 'interceptor_stub_generator.dart';
+part 'native_emitter.dart';
 part 'native_generator.dart';
 part 'type_test_generator.dart';
 part 'type_test_registry.dart';

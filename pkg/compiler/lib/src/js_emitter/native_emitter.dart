@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+part of dart2js.js_emitter;
 
 class NativeEmitter {
 
@@ -214,7 +214,7 @@ class NativeEmitter {
           if (encoding != '') {
             Map<String, jsAst.Expression> properties =
                 additionalProperties.putIfAbsent(classElement,
-                    () => new LinkedHashMap<String, jsAst.Expression>());
+                    () => new Map<String, jsAst.Expression>());
             properties[backend.namer.nativeSpecProperty] = js.string(encoding);
           }
         } else {
