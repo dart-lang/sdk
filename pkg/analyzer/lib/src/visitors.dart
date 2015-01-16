@@ -6,6 +6,7 @@ library engine.ast.visitors;
 
 import 'package:analyzer/src/generated/ast.dart';
 
+
 /// An [AstVisitor] that delegates calls to visit methods to all [delegates]
 /// before calling [visitChildren].
 class DelegatingAstVisitor<T> implements AstVisitor<T> {
