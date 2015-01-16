@@ -32,7 +32,7 @@ class Stdin {
 
 class Stdout {
  public:
-  static bool GetTerminalSize(int size[2]);
+  static bool GetTerminalSize(intptr_t fd, int size[2]);
 
  private:
   DISALLOW_ALLOCATION();
@@ -43,4 +43,3 @@ class Stdout {
 }  // namespace dart
 
 #endif  // BIN_STDIO_H_
-
