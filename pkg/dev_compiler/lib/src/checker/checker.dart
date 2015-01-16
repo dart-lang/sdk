@@ -38,11 +38,11 @@ CheckerResults checkProgram(
       // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
       failure = resolver.logErrors(unit.source, reporter) || failure;
       unit.node.visitChildren(codeChecker);
-      failure = failure || codeChecker._failure;
       reporter.leaveSource();
     }
     reporter.leaveLibrary();
   }
+  failure = failure || codeChecker.failure;
   return new CheckerResults(libraries, rules, failure);
 }
 
@@ -101,7 +101,7 @@ class _OverrideChecker {
   }
 
   /// Checks that implementations correctly override all reachable interfaces.
-  /// In particular, we need to check these overrides for the definitions in in
+  /// In particular, we need to check these overrides for the definitions in
   /// the class itself and each its superclasses. If a superclass is not
   /// abstract, then we can skip its transitive interfaces. For example, in:
   ///
@@ -128,9 +128,9 @@ class _OverrideChecker {
 
     // Check all interfaces reachable from the `implements` clause in the
     // current class against definitions here and in superclasses.
-    var localIterfaces = new Set();
-    type.interfaces.forEach((i) => find(i, localIterfaces));
-    for (var interfaceType in localIterfaces) {
+    var localInterfaces = new Set();
+    type.interfaces.forEach((i) => find(i, localInterfaces));
+    for (var interfaceType in localInterfaces) {
       _checkInterfaceOverrides(type, interfaceType, includeParents: true);
     }
 
@@ -186,6 +186,17 @@ class _OverrideChecker {
       if (loc == null) {
         if (e.isSynthetic) {
           var node = e.variable.node;
+          // We'd like to report errors on the actual declaration. Synthetic
+          // getters/setters are derived from fields. `e.variable` denotes the
+          // field, it's node is the variable declaration AST node, the node's
+          // parent is a variable declaration list, but the grandparent is the
+          // actual field declaration. For example, for a getter `get x` that
+          // was declared as:
+          //    class A {
+          //      int x;
+          //    }
+          // e.variable.node is x, e.variable.node.parent is `int x`, and
+          // e.variable.node.parent.parent is `int x;`
           if (node != null) node = node.parent.parent;
           loc = node;
         } else {
@@ -203,10 +214,9 @@ class _OverrideChecker {
   }
 
 
-  /// Looks up the declaration that matches [element] in [type] and returns it's
+  /// Looks up the declaration that matches [member] in [type] and returns it's
   /// declared type.
-  FunctionType _getBaseMemberType(FunctionType subType,
-      InterfaceType type, ExecutableElement member) {
+  FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
     ExecutableElement baseMethod;
     String memberName = member.name;
 
@@ -220,18 +230,7 @@ class _OverrideChecker {
     } else if (isSetter) {
       baseMethod = type.getSetter(memberName);
     } else {
-      if (memberName == '-') {
-        // operator- can be overloaded!
-        final len = subType.parameters.length;
-        for (final method in type.methods) {
-          if (method.name == memberName && method.parameters.length == len) {
-            baseMethod = method;
-            break;
-          }
-        }
-      } else {
-        baseMethod = type.getMethod(memberName);
-      }
+      baseMethod = type.getMethod(memberName);
     }
     if (baseMethod == null) return null;
     return _rules.elementType(baseMethod);
@@ -265,7 +264,7 @@ class _OverrideChecker {
     FunctionType subType = _rules.elementType(element);
     // TODO(vsm): Test for generic
     final isGetter = element is PropertyAccessorElement && element.isGetter;
-    FunctionType baseType = _getBaseMemberType(subType, type, element);
+    FunctionType baseType = _getMemberType(type, element);
 
     if (baseType != null) {
       //var result = _checkOverride(subType, baseType);
@@ -322,6 +321,8 @@ class _CodeChecker extends RecursiveAstVisitor {
   final CheckerReporter _reporter;
   final _OverrideChecker _overrideChecker;
   bool _failure = false;
+  bool get failure => _failure || _overrideChecker._failure;
+
   _CodeChecker(TypeRules rules, CheckerReporter reporter)
       : _rules = rules,
         _reporter = reporter,
@@ -334,7 +335,6 @@ class _CodeChecker extends RecursiveAstVisitor {
 
   visitClassDeclaration(ClassDeclaration node) {
     _overrideChecker.check(node);
-    _failure = _failure || _overrideChecker._failure;
     super.visitClassDeclaration(node);
   }
 
