@@ -363,7 +363,7 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # Issue 12958
 
-[ $compiler == dart2js &&  $runtime == chrome && $system == windows ]
+[ $compiler == dart2js &&  $runtime == chrome && ($system == windows || $system == linux)]
 css_test/functional: Fail # Issue 21710
 css_test/supportsPointConversions: Fail # Issue 21710
 

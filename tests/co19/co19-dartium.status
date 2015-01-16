@@ -1042,6 +1042,7 @@ LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t0
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/negative-scroll-positions_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/sub-pixel/client-and-offset-width_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/computedstylemargin_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/float-list-inside_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/layout-boxes-with-zoom_t01: Skip # Times out. Please triage this failure.

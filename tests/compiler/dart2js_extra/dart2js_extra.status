@@ -52,3 +52,6 @@ bailout8_test: Fail, OK # Mismatch in thrown exception.
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 deferred/*: Skip # Issue 17458
+
+[ $compiler == dart2js && $csp && $runtime != none ]
+deferred_fail_and_retry_test: Fail # Issue 22090
