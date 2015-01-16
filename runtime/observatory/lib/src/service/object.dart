@@ -1834,6 +1834,15 @@ class ScriptLine extends Observable {
   @observable ServiceMap bpt;
   @observable bool possibleBpt = true;
 
+  bool get isBlank {
+    // Compute isBlank on demand.
+    if (_isBlank == null) {
+      _isBlank = text.trim().isEmpty;
+    }
+    return _isBlank;
+  }
+  bool _isBlank;
+
   static bool _isTrivialToken(String token) {
     if (token == 'else') {
       return true;
