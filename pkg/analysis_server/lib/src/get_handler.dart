@@ -12,6 +12,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -567,6 +568,7 @@ class GetHandler {
       response.write('<p>No performance stats yet</p>');
       return;
     }
+    response.write('<h2>Last Completion Performance</h2>');
     response.write('<table>');
     _writeRow(response, ['Elapsed', '', 'Operation'], header: true);
     performance.operations.forEach((OperationPerformance op) {
@@ -588,15 +590,31 @@ class GetHandler {
     }
     response.write('</table>');
     if (handler.performanceList.length > 0) {
+      response.write('<h2>Last Completion Summary</h2>');
       response.write('<table>');
       _writeRow(
           response,
-          ['Milliseconds', '', '# Notifications', '', '# Suggestions', '', 'Snippet'],
+          [
+              'Start Time',
+              '',
+              'First (ms)',
+              '',
+              'Complete (ms)',
+              '',
+              '# Notifications',
+              '',
+              '# Suggestions',
+              '',
+              'Snippet'],
           header: true);
       handler.performanceList.forEach((CompletionPerformance performance) {
         _writeRow(
             response,
             [
+                performance.start,
+                '&nbsp;&nbsp;',
+                performance.firstNotificationInMilliseconds,
+                '&nbsp;&nbsp;',
                 performance.elapsedInMilliseconds,
                 '&nbsp;&nbsp;',
                 performance.notificationCount,

@@ -115,6 +115,7 @@ abstract class CompletionManager {
  * Overall performance of a code completion operation.
  */
 class CompletionPerformance {
+  final DateTime start = new DateTime.now();
   final Map<String, Duration> _startTimes = new Map<String, Duration>();
   final Stopwatch _stopwatch = new Stopwatch();
   final List<OperationPerformance> operations = <OperationPerformance>[];
@@ -124,6 +125,7 @@ class CompletionPerformance {
   String contents;
   int notificationCount = -1;
   int suggestionCount = -1;
+  Duration _firstNotification;
 
   CompletionPerformance() {
     _stopwatch.start();
@@ -131,6 +133,9 @@ class CompletionPerformance {
 
   int get elapsedInMilliseconds =>
       operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
+
+  int get firstNotificationInMilliseconds =>
+      _firstNotification != null ? _firstNotification.inMilliseconds : 0;
 
   String get snippet {
     if (contents == null || offset < 0 || contents.length < offset) {
@@ -179,6 +184,11 @@ class CompletionPerformance {
     }
     _logDuration(tag, end - start);
     return result;
+  }
+
+  void logFirstNotificationComplete(String tag) {
+    _firstNotification = _stopwatch.elapsed;
+    _logDuration(tag, _firstNotification);
   }
 
   void logStartTime(String tag) {

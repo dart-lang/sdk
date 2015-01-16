@@ -175,7 +175,7 @@ class CompletionDomainHandler implements RequestHandler {
     int notificationCount = 0;
     manager.results(completionRequest).listen((CompletionResult result) {
       ++notificationCount;
-      performance.logElapseTime("notification $notificationCount", () {
+      performance.logElapseTime("notification $notificationCount send", () {
         sendCompletionNotification(
             completionId,
             result.replacementOffset,
@@ -183,6 +183,9 @@ class CompletionDomainHandler implements RequestHandler {
             result.suggestions,
             result.last);
       });
+      if (notificationCount == 1) {
+        performance.logFirstNotificationComplete('notification 1 complete');
+      }
       if (result.last) {
         performance.notificationCount = notificationCount;
         performance.suggestionCount = result.suggestions.length;
