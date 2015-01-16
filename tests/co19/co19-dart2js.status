@@ -397,7 +397,7 @@ LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 LibTest/async/DeferredLibrary/*: Skip # Issue 17458
 
-[ $compiler == dart2js && ( $ie || $runtime == drt || $runtime == safari || $runtime == safarimobilesim || $runtime == opera ) ]
+[ $compiler == dart2js && ( $ie || $runtime == drt || $runtime == opera ) ]
 *: Skip
 
 [ $compiler == dart2js && $browser ]
