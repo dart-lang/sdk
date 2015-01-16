@@ -39,7 +39,7 @@ void _initIncrementalLogger(String spec) {
   }
   // create logger
   if (spec == 'console') {
-    logger = new StringSinkLogger(console.log);
+    logger = new StringSinkLogger(stdout);
   }
   if (spec.startsWith('file:')) {
     String fileName = spec.substring('file:'.length);
