@@ -123,7 +123,7 @@ Future<Compiler> reuseCompiler(
         ..interceptorInvocationNames.clear();
 
     backend.emitter.nativeEmitter
-        ..nativeClasses.clear()
+        ..hasNativeClasses = false
         ..nativeMethods.clear();
 
     backend.emitter.readTypeVariables.clear();

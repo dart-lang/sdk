@@ -10,8 +10,8 @@ class NativeEmitter {
 
   final CodeEmitterTask emitterTask;
 
-  // Native classes found in the application.
-  Set<ClassElement> nativeClasses = new Set<ClassElement>();
+  // Whether the application contains native classes.
+  bool hasNativeClasses = false;
 
   // Caches the native subtypes of a native class.
   Map<ClassElement, List<ClassElement>> subtypes;
@@ -278,7 +278,7 @@ class NativeEmitter {
     // TODO(sra): Issue #13731- this is commented out as part of custom element
     // constructor work.
     //assert(!classElement.hasBackendMembers);
-    nativeClasses.add(classElement);
+    hasNativeClasses = true;
 
     ClassElement superclass = classElement.superclass;
     assert(superclass != null);
@@ -447,7 +447,7 @@ class NativeEmitter {
       return prop;
     }
 
-    if (!nativeClasses.isEmpty) {
+    if (hasNativeClasses) {
       // If the native emitter has been asked to take care of the
       // noSuchMethod handlers, we do that now.
       if (handleNoSuchMethod) {
