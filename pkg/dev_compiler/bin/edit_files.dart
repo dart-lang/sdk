@@ -12,7 +12,6 @@ import 'dart:convert';
 
 import 'package:args/args.dart';
 import 'package:ddc/src/report.dart';
-import 'package:path/path.dart' as path;
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 

@@ -153,8 +153,8 @@ class _OverrideChecker {
 
   /// Checks that [type] and its super classes (including mixins) correctly
   /// override [interfaceType].
-  void _checkInterfaceOverrides(
-      InterfaceType type, InterfaceType interfaceType, {bool includeParents}) {
+  void _checkInterfaceOverrides(InterfaceType type, InterfaceType interfaceType,
+      {bool includeParents}) {
     _checkIndividualOverrides(type, interfaceType);
 
     if (includeParents) {
@@ -212,7 +212,6 @@ class _OverrideChecker {
     subType.methods.forEach(checkHelper);
     subType.accessors.forEach(checkHelper);
   }
-
 
   /// Looks up the declaration that matches [member] in [type] and returns it's
   /// declared type.
@@ -284,9 +283,8 @@ class _OverrideChecker {
         if (isGetter && element.isSynthetic) {
           var node = element.variable.node.parent.parent;
           if ((node as FieldDeclaration).fields.type == null) {
-            _recordMessage(new InferableOverride(
-                errorLocation, element, type, subType.returnType,
-                baseType.returnType));
+            _recordMessage(new InferableOverride(errorLocation, element, type,
+                subType.returnType, baseType.returnType));
             return;
           }
         } else if (element.node is MethodDeclaration &&
@@ -295,9 +293,8 @@ class _OverrideChecker {
           // node is a MethodDeclaration whenever getters and setters are
           // declared explicitly. Setters declared from a field will have the
           // correct return type, so we don't need to check that separately.
-          _recordMessage(new InferableOverride(
-              errorLocation, element, type, subType.returnType,
-              baseType.returnType));
+          _recordMessage(new InferableOverride(errorLocation, element, type,
+              subType.returnType, baseType.returnType));
           return;
         }
         _recordMessage(new InvalidMethodOverride(
@@ -313,7 +310,6 @@ class _OverrideChecker {
     _reporter.log(info);
   }
 }
-
 
 /// Checks the body of functions and properties.
 class _CodeChecker extends RecursiveAstVisitor {

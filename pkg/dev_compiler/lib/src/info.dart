@@ -397,8 +397,9 @@ abstract class InvalidOverride extends StaticError {
   String _messageHelper(String errorName) {
     var name = element.name;
     var lcErrorName = errorName.toLowerCase();
-    var intro = fromBaseClass ? 'Base class introduces an $lcErrorName' :
-        (fromMixin ? 'Mixin introduces an $lcErrorName' : errorName);
+    var intro = fromBaseClass
+        ? 'Base class introduces an $lcErrorName'
+        : (fromMixin ? 'Mixin introduces an $lcErrorName' : errorName);
     return '$intro. The type of ${parent.name}.$name ($subType) is not a '
         'subtype of $base.$name ($baseType).';
   }
