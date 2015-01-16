@@ -60,8 +60,6 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
-enum_syntax_test/01: Fail # Issue 21648
-
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
