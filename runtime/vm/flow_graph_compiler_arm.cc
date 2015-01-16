@@ -1220,11 +1220,14 @@ void FlowGraphCompiler::EmitEdgeCounter() {
 
 int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
   // Used by CodePatcher; so must be constant across all code in an isolate.
+  int32_t size = 3 * Instr::kInstrSize;
 #if defined(DEBUG)
-  return (VerifiedMemory::enabled() ? 42 : 19) * Instr::kInstrSize;
-#else
-  return 3 * Instr::kInstrSize;
+  size += 35 * Instr::kInstrSize;
 #endif  // DEBUG
+  if (VerifiedMemory::enabled()) {
+    size += 20 * Instr::kInstrSize;
+  }
+  return size;
 }
 
 

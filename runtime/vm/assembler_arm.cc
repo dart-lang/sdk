@@ -1700,36 +1700,76 @@ Register AllocateRegister(RegList* used) {
 }
 
 
-void Assembler::VerifiedWrite(const Address& address, Register new_value) {
-  if (VerifiedMemory::enabled()) {
-    ASSERT(address.mode() == Address::Offset ||
-           address.mode() == Address::NegOffset);
-    // Allocate temporary registers (and check for register collisions).
-    RegList used = 0;
-    UseRegister(new_value, &used);
-    Register base = UseRegister(address.rn(), &used);
-    if (address.rm() != kNoRegister) UseRegister(address.rm(), &used);
-    Register old_value = AllocateRegister(&used);
-    Register shadow_value = AllocateRegister(&used);
-    PushList(used);
-    // Verify old value.
-    ldr(old_value, address);
-    Operand shadow_offset(GetVerifiedMemoryShadow());
-    add(base, base, shadow_offset);
-    ldr(shadow_value, address);
-    cmp(old_value, Operand(shadow_value));
-    Label ok;
-    b(&ok);
-    Stop("Write barrier verification failed");
-    Bind(&ok);
-    // Write new value.
-    str(new_value, address);
-    sub(base, base, shadow_offset);
-    str(new_value, address);
-    PopList(used);
-  } else {
-    str(new_value, address);
+void Assembler::VerifiedWrite(const Address& address,
+                              Register new_value,
+                              FieldContent old_content) {
+#if defined(DEBUG)
+  ASSERT(address.mode() == Address::Offset ||
+         address.mode() == Address::NegOffset);
+  // Allocate temporary registers (and check for register collisions).
+  RegList used = 0;
+  UseRegister(new_value, &used);
+  Register base = UseRegister(address.rn(), &used);
+  if (address.rm() != kNoRegister) {
+    UseRegister(address.rm(), &used);
   }
+  Register old_value = AllocateRegister(&used);
+  Register temp = AllocateRegister(&used);
+  PushList(used);
+  ldr(old_value, address);
+  // First check that 'old_value' contains 'old_content'.
+  // Smi test.
+  tst(old_value, Operand(kHeapObjectTag));
+  Label ok;
+  switch (old_content) {
+    case kOnlySmi:
+      b(&ok, EQ);  // Smi is OK.
+      Stop("Expected smi.");
+      break;
+    case kHeapObjectOrSmi:
+      b(&ok, EQ);  // Smi is OK.
+      // Non-smi case: Verify object pointer is word-aligned when untagged.
+      COMPILE_ASSERT(kHeapObjectTag == 1);
+      tst(old_value, Operand((kWordSize - 1) - kHeapObjectTag));
+      b(&ok, EQ);
+      Stop("Expected heap object or Smi");
+      break;
+    case kEmptyOrSmiOrNull:
+      b(&ok, EQ);  // Smi is OK.
+      // Non-smi case: Check for the special zap word or null.
+      // Note: Cannot use CompareImmediate, since IP may be in use.
+      LoadImmediate(temp, Heap::kZap32Bits);
+      cmp(old_value, Operand(temp));
+      b(&ok, EQ);
+      LoadImmediate(temp, reinterpret_cast<uint32_t>(Object::null()));
+      cmp(old_value, Operand(temp));
+      b(&ok, EQ);
+      Stop("Expected zapped, Smi or null");
+      break;
+    default:
+      UNREACHABLE();
+  }
+  Bind(&ok);
+  if (VerifiedMemory::enabled()) {
+    Operand shadow_offset(GetVerifiedMemoryShadow());
+    // Adjust the address to shadow.
+    add(base, base, shadow_offset);
+    ldr(temp, address);
+    cmp(old_value, Operand(temp));
+    Label match;
+    b(&match, EQ);
+    Stop("Write barrier verification failed");
+    Bind(&match);
+    // Write new value in shadow.
+    str(new_value, address);
+    // Restore original address.
+    sub(base, base, shadow_offset);
+  }
+  str(new_value, address);
+  PopList(used);
+#else
+  str(new_value, address);
+#endif  // DEBUG
 }
 
 
@@ -1738,7 +1778,7 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(dest, value);
+  VerifiedWrite(dest, value, kHeapObjectOrSmi);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -1778,8 +1818,9 @@ void Assembler::StoreIntoObjectOffset(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value) {
-  VerifiedWrite(dest, value);
+                                         Register value,
+                                         FieldContent old_content) {
+  VerifiedWrite(dest, value, old_content);
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value, &done);
@@ -1792,37 +1833,42 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
-                                               Register value) {
+                                               Register value,
+                                               FieldContent old_content) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             old_content);
   } else {
     AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(IP), value);
+    StoreIntoObjectNoBarrier(object, Address(IP), value, old_content);
   }
 }
 
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         FieldContent old_content) {
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
   LoadObject(IP, value);
-  VerifiedWrite(dest, IP);
+  VerifiedWrite(dest, IP, old_content);
 }
 
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
-                                               const Object& value) {
+                                               const Object& value,
+                                               FieldContent old_content) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             old_content);
   } else {
     AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(IP), value);
+    StoreIntoObjectNoBarrier(object, Address(IP), value, old_content);
   }
 }
 
@@ -1879,15 +1925,14 @@ void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
 
 
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
-  // TODO(koda): Verify previous value was Smi.
-  VerifiedWrite(dest, value);
 #if defined(DEBUG)
   Label done;
   tst(value, Operand(kHeapObjectTag));
   b(&done, EQ);
-  Stop("Smi expected");
+  Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
+  VerifiedWrite(dest, value, kOnlySmi);
 }
 
 

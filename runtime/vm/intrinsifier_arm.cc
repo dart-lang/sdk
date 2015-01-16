@@ -117,7 +117,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
   // R0 is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
+  __ InitializeFieldNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::data_offset()),
       R1);
@@ -125,15 +125,17 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // R0: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreIntoObjectNoBarrier(
+  __ InitializeFieldNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::type_arguments_offset()),
       R1);
 
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
-  __ StoreIntoSmiField(FieldAddress(R0, GrowableObjectArray::length_offset()),
-                       R1);
+  __ InitializeFieldNoBarrier(
+      R0,
+      FieldAddress(R0, GrowableObjectArray::length_offset()),
+      R1);
   __ Ret();  // Returns the newly allocated object in R0.
 
   __ Bind(&fall_through);
@@ -329,7 +331,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* R2: allocation size. */                                                   \
   /* R4: allocation stats address. */                                          \
   __ ldr(R3, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
-  __ StoreIntoObjectNoBarrier(R0,                                              \
+  __ InitializeFieldNoBarrier(R0,                                              \
                               FieldAddress(R0, type_name::length_offset()),    \
                               R3);                                             \
   /* Initialize all array elements to 0. */                                    \
@@ -1816,12 +1818,14 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   }
 
   // Set the length field using the saved length (R6).
-  __ StoreIntoObjectNoBarrier(R0,
+  __ InitializeFieldNoBarrier(R0,
                               FieldAddress(R0, String::length_offset()),
                               R6);
   // Clear hash.
   __ LoadImmediate(TMP, 0);
-  __ StoreIntoSmiField(FieldAddress(R0, String::hash_offset()), TMP);
+  __ InitializeFieldNoBarrier(R0,
+                              FieldAddress(R0, String::hash_offset()),
+                              TMP);
 
   __ IncrementAllocationStatsWithSize(R4, R2, cid, space);
   __ b(ok);

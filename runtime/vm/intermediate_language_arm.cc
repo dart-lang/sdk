@@ -2198,12 +2198,18 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreIntoObjectNoBarrierOffset(
           instance_reg,
           offset_in_bytes_,
-          locs()->in(1).constant());
+          locs()->in(1).constant(),
+          is_object_reference_initialization_ ?
+              Assembler::kEmptyOrSmiOrNull :
+              Assembler::kHeapObjectOrSmi);
     } else {
       const Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrierOffset(instance_reg,
                                         offset_in_bytes_,
-                                        value_reg);
+                                        value_reg,
+                                        is_object_reference_initialization_ ?
+                                            Assembler::kEmptyOrSmiOrNull :
+                                            Assembler::kHeapObjectOrSmi);
     }
   }
   __ Bind(&skip_store);
@@ -2320,12 +2326,12 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
 
   // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(R0,
+  __ InitializeFieldNoBarrier(R0,
                               FieldAddress(R0, Array::type_arguments_offset()),
                               kElemTypeReg);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(R0,
+  __ InitializeFieldNoBarrier(R0,
                               FieldAddress(R0, Array::length_offset()),
                               kLengthReg);
 
