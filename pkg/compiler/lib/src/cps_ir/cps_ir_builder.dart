@@ -179,32 +179,8 @@ abstract class IrBuilderMixin<N> {
   }
 }
 
-/// Shared state between IrBuilders of nested functions.
-class IrBuilderClosureState {
-  /// Maps local variables to their corresponding [ClosureVariable] object.
-  final Map<Local, ir.ClosureVariable> local2closure =
-      <Local, ir.ClosureVariable>{};
-
-  /// Maps functions to the list of closure variables declared in that function.
-  final Map<ExecutableElement, List<ir.ClosureVariable>> function2closures =
-      <ExecutableElement, List<ir.ClosureVariable>>{};
-
-  /// Returns the closure variables declared in the given function.
-  List<ir.ClosureVariable> getClosureList(ExecutableElement element) {
-    return function2closures.putIfAbsent(element, () => <ir.ClosureVariable>[]);
-  }
-
-  /// Creates a closure variable for the given local.
-  void makeClosureVariable(Local local) {
-    ir.ClosureVariable variable =
-        new ir.ClosureVariable(local.executableContext, local);
-    local2closure[local] = variable;
-    getClosureList(local.executableContext).add(variable);
-  }
-}
-
 /// Shared state between delimited IrBuilders within the same function.
-class IrBuilderSharedState {
+class IrBuilderDelimitedState {
   final ConstantSystem constantSystem;
 
   /// A stack of collectors for breaks.
@@ -221,14 +197,7 @@ class IrBuilderSharedState {
 
   final List<ir.Definition> functionParameters = <ir.Definition>[];
 
-  /// Maps boxed locals to their location. These locals are not part of
-  /// the environment.
-  final Map<Local, ClosureLocation> boxedVariables = {};
-
-  /// If non-null, this refers to the receiver (`this`) in the enclosing method.
-  ir.Primitive receiver;
-
-  IrBuilderSharedState(this.constantSystem, this.currentElement);
+  IrBuilderDelimitedState(this.constantSystem, this.currentElement);
 }
 
 /// A factory for building the cps IR.
@@ -246,30 +215,56 @@ abstract class IrBuilder {
   ir.Primitive buildLocalSet(LocalElement element, ir.Primitive value);
 
   /// Called when entering a nested function with free variables.
-  /// The free variables should subsequently be accessible using [buildLocalGet]
+  ///
+  /// The free variables must subsequently be accessible using [buildLocalGet]
   /// and [buildLocalSet].
-  void _buildClosureEnvironmentSetup(ClosureEnvironment env);
+  void _enterClosureEnvironment(ClosureEnvironment env);
 
-  /// Enter a scope that declares boxed variables. The boxed variables must
-  /// subsequently be accessible using [buildLocalGet], [buildLocalSet], etc.
-  void _buildClosureScopeSetup(ClosureScope scope);
+  /// Called when entering a function body or loop body.
+  ///
+  /// This is not called for for-loops, which instead use the methods
+  /// [_enterForLoopInitializer], [_enterForLoopBody], and [_enterForLoopUpdate]
+  /// due to their special scoping rules.
+  ///
+  /// The boxed variables declared in this scope must subsequently be available
+  /// using [buildLocalGet], [buildLocalSet], etc.
+  void _enterScope(ClosureScope scope);
+
+  /// Called before building the initializer of a for-loop.
+  ///
+  /// The loop variables will subsequently be declared using
+  /// [declareLocalVariable].
+  void _enterForLoopInitializer(ClosureScope scope,
+                                List<LocalElement> loopVariables);
+
+  /// Called before building the body of a for-loop.
+  void _enterForLoopBody(ClosureScope scope,
+                         List<LocalElement> loopVariables);
+
+  /// Called before building the update of a for-loop.
+  void _enterForLoopUpdate(ClosureScope scope,
+                           List<LocalElement> loopVariables);
 
   /// Add the given function parameter to the IR, and bind it in the environment
   /// or put it in its box, if necessary.
   void _createFunctionParameter(ParameterElement parameterElement);
 
-  /// Called before the update expression of a for-loop. A new box should be
-  /// created for [scope] and the values from the old box should be copied over.
-  void _migrateLoopVariables(ClosureScope scope);
+  /// Returns the list of closure variables declared in the given function or
+  /// field initializer.
+  List<ir.ClosureVariable> _getDeclaredClosureVariables(ExecutableElement elm);
+
+  /// Creates an access to the receiver from the current (or enclosing) method.
+  ///
+  /// If inside a closure class, [buildThis] will redirect access through
+  /// closure fields in order to access the receiver from the enclosing method.
+  ir.Primitive buildThis();
 
   // TODO(johnniwinther): Make these field final and remove the default values
   // when [IrBuilder] is a property of [IrBuilderVisitor] instead of a mixin.
 
   final List<ir.Parameter> _parameters = <ir.Parameter>[];
 
-  IrBuilderSharedState state;
-
-  IrBuilderClosureState closure;
+  IrBuilderDelimitedState state;
 
   /// A map from variable indexes to their values.
   ///
@@ -306,8 +301,7 @@ abstract class IrBuilder {
 
   /// Initialize a new top-level IR builder.
   void _init(ConstantSystem constantSystem, ExecutableElement currentElement) {
-    state = new IrBuilderSharedState(constantSystem, currentElement);
-    closure = new IrBuilderClosureState();
+    state = new IrBuilderDelimitedState(constantSystem, currentElement);
     environment = new Environment.empty();
   }
 
@@ -320,7 +314,6 @@ abstract class IrBuilder {
   IrBuilder makeDelimitedBuilder() {
     return _makeInstance()
         ..state = state
-        ..closure = closure
         ..environment = new Environment.from(environment);
   }
 
@@ -335,7 +328,6 @@ abstract class IrBuilder {
   IrBuilder makeRecursiveBuilder() {
     IrBuilder inner = _makeInstance()
         ..state = state
-        ..closure = closure
         ..environment = new Environment.empty();
     environment.index2variable.forEach(inner.createLocalParameter);
     return inner;
@@ -344,8 +336,7 @@ abstract class IrBuilder {
   /// Construct a builder for an inner function.
   IrBuilder makeInnerFunctionBuilder(ExecutableElement currentElement) {
     return _makeInstance()
-        ..state = new IrBuilderSharedState(state.constantSystem, currentElement)
-        ..closure = closure
+        ..state = new IrBuilderDelimitedState(state.constantSystem, currentElement)
         ..environment = new Environment.empty();
   }
 
@@ -353,14 +344,14 @@ abstract class IrBuilder {
 
 
   void buildFieldInitializerHeader({ClosureScope closureScope}) {
-    _buildClosureScopeSetup(closureScope);
+    _enterScope(closureScope);
   }
 
   void buildFunctionHeader(Iterable<ParameterElement> parameters,
                           {ClosureScope closureScope,
                            ClosureEnvironment closureEnvironment}) {
-    _buildClosureEnvironmentSetup(closureEnvironment);
-    _buildClosureScopeSetup(closureScope);
+    _enterClosureEnvironment(closureEnvironment);
+    _enterScope(closureScope);
     parameters.forEach(_createFunctionParameter);
   }
 
@@ -615,7 +606,8 @@ abstract class IrBuilder {
       ir.RunnableBody body = makeRunnableBody();
       return new ir.FunctionDefinition(
           element, state.functionParameters, body,
-          state.localConstants, defaults, closure.getClosureList(element));
+          state.localConstants, defaults,
+          _getDeclaredClosureVariables(element));
     }
   }
 
@@ -635,7 +627,7 @@ abstract class IrBuilder {
     return new ir.ConstructorDefinition(
         element, state.functionParameters, body, initializers,
         state.localConstants, defaults,
-        closure.getClosureList(element));
+        _getDeclaredClosureVariables(element));
   }
 
   /// Create a super invocation where the method name and the argument structure
@@ -870,12 +862,16 @@ abstract class IrBuilder {
   /// The [closureScope] identifies variables that should be boxed in this loop.
   /// This includes variables declared inside the body of the loop as well as
   /// in the for-loop initializer.
+  ///
+  /// [loopVariables] is the list of variables declared in the for-loop
+  /// initializer.
   void buildFor({SubbuildFunction buildInitializer,
                  SubbuildFunction buildCondition,
                  SubbuildFunction buildBody,
                  SubbuildFunction buildUpdate,
                  JumpTarget target,
-                 ClosureScope closureScope}) {
+                 ClosureScope closureScope,
+                 List<LocalElement> loopVariables}) {
     assert(isOpen);
 
     // For loops use four named continuations: the entry to the condition,
@@ -900,19 +896,7 @@ abstract class IrBuilder {
     // invocation of the continue continuation (i.e., no continues in the
     // body), the continue continuation is inlined in the body.
 
-    // If the variables declared in the initializer must be boxed, we must
-    // create the box before entering the loop and renew the box at the end
-    // of the loop.
-    bool hasBoxedLoopVariables = closureScope != null &&
-                                 !closureScope.boxedLoopVariables.isEmpty;
-
-    // If a variable declared in the initializer must be boxed, we should
-    // create the box before initializing these variables.
-    // Otherwise, it is best to create the box inside the body so we don't have
-    // to create a box before the loop AND at the end of the loop.
-    if (hasBoxedLoopVariables) {
-      _buildClosureScopeSetup(closureScope);
-    }
+    _enterForLoopInitializer(closureScope, loopVariables);
 
     buildInitializer(this);
 
@@ -930,11 +914,7 @@ abstract class IrBuilder {
 
     IrBuilder bodyBuilder = condBuilder.makeDelimitedBuilder();
 
-    // If we did not yet create a box for the boxed variables, we must create it
-    // here. This saves us from
-    if (!hasBoxedLoopVariables) {
-      bodyBuilder._buildClosureScopeSetup(closureScope);
-    }
+    bodyBuilder._enterForLoopBody(closureScope, loopVariables);
 
     buildBody(bodyBuilder);
     assert(state.breakCollectors.last == breakCollector);
@@ -950,9 +930,7 @@ abstract class IrBuilder {
     IrBuilder updateBuilder = hasContinues
         ? condBuilder.makeRecursiveBuilder()
         : bodyBuilder;
-    if (hasBoxedLoopVariables) {
-      updateBuilder._migrateLoopVariables(closureScope);
-    }
+    updateBuilder._enterForLoopUpdate(closureScope, loopVariables);
     buildUpdate(updateBuilder);
 
     // Create body entry and loop exit continuations and a branch to them.
@@ -1078,7 +1056,7 @@ abstract class IrBuilder {
     state.continueCollectors.add(continueCollector);
 
     IrBuilder bodyBuilder = condBuilder.makeDelimitedBuilder();
-    bodyBuilder._buildClosureScopeSetup(closureScope);
+    bodyBuilder._enterScope(closureScope);
     if (buildVariableDeclaration != null) {
       buildVariableDeclaration(bodyBuilder);
     }
@@ -1183,7 +1161,7 @@ abstract class IrBuilder {
     state.continueCollectors.add(continueCollector);
 
     IrBuilder bodyBuilder = condBuilder.makeDelimitedBuilder();
-    bodyBuilder._buildClosureScopeSetup(closureScope);
+    bodyBuilder._enterScope(closureScope);
     buildBody(bodyBuilder);
     assert(state.breakCollectors.last == breakCollector);
     assert(state.continueCollectors.last == continueCollector);
@@ -1434,17 +1412,6 @@ abstract class IrBuilder {
     return joinContinuation.parameters.last;
   }
 
-  /// Creates an access to the receiver from the current (or enclosing) method.
-  ///
-  /// If inside a closure class, [buildThis] will redirect access through
-  /// closure fields in order to access the receiver from the enclosing method.
-  ir.Primitive buildThis() {
-    if (state.receiver != null) return state.receiver;
-    ir.Primitive thisPrim = new ir.This();
-    add(new ir.LetPrim(thisPrim));
-    return thisPrim;
-  }
-
   /// Create a non-recursive join-point continuation.
   ///
   /// Given the environment length at the join point and a list of
@@ -1551,6 +1518,39 @@ abstract class IrBuilder {
   }
 }
 
+/// Shared state between DartIrBuilders within the same method.
+class DartIrBuilderSharedState {
+  /// Maps local variables to their corresponding [ClosureVariable] object.
+  final Map<Local, ir.ClosureVariable> local2closure =
+      <Local, ir.ClosureVariable>{};
+
+  /// Maps functions to the list of closure variables declared in that function.
+  final Map<ExecutableElement, List<ir.ClosureVariable>> function2closures =
+      <ExecutableElement, List<ir.ClosureVariable>>{};
+
+  final ClosureVariableInfo closureVariables;
+
+  /// Returns the closure variables declared in the given function.
+  List<ir.ClosureVariable> getClosureList(ExecutableElement element) {
+    return function2closures.putIfAbsent(element, () => <ir.ClosureVariable>[]);
+  }
+
+  /// Creates a closure variable for the given local.
+  void makeClosureVariable(Local local) {
+    ir.ClosureVariable variable =
+        new ir.ClosureVariable(local.executableContext, local);
+    local2closure[local] = variable;
+    getClosureList(local.executableContext).add(variable);
+  }
+
+  /// Closure variables that should temporarily be treated as registers.
+  final Set<Local> registerizedClosureVariables = new Set<Local>();
+
+  DartIrBuilderSharedState(this.closureVariables) {
+    closureVariables.capturedVariables.forEach(makeClosureVariable);
+  }
+}
+
 /// Dart-specific subclass of [IrBuilder].
 ///
 /// Inner functions are represented by a [FunctionDefinition] with the
@@ -1559,38 +1559,80 @@ abstract class IrBuilder {
 /// Captured variables are translated to ref cells (see [ClosureVariable])
 /// using [GetClosureVariable] and [SetClosureVariable].
 class DartIrBuilder extends IrBuilder {
-  ClosureVariableInfo closureVariables;
+  final DartIrBuilderSharedState dartState;
 
-  IrBuilder _makeInstance() => new DartIrBuilder._blank(closureVariables);
-  DartIrBuilder._blank(this.closureVariables);
+  IrBuilder _makeInstance() => new DartIrBuilder._blank(dartState);
+  DartIrBuilder._blank(this.dartState);
 
   DartIrBuilder(ConstantSystem constantSystem,
                 ExecutableElement currentElement,
-                this.closureVariables) {
+                ClosureVariableInfo  closureVariables)
+      : dartState = new DartIrBuilderSharedState(closureVariables) {
     _init(constantSystem, currentElement);
-    closureVariables.capturedVariables.forEach(closure.makeClosureVariable);
   }
 
-  /// True if [local] is stored in a [ClosureVariable].
+  /// True if [local] should currently be accessed from a [ClosureVariable].
   bool isInClosureVariable(Local local) {
-    return closure.local2closure.containsKey(local);
+    return dartState.local2closure.containsKey(local) &&
+           !dartState.registerizedClosureVariables.contains(local);
   }
 
   /// Gets the [ClosureVariable] containing the value of [local].
   ir.ClosureVariable getClosureVariable(Local local) {
-    return closure.local2closure[local];
+    return dartState.local2closure[local];
   }
 
-  void _buildClosureScopeSetup(ClosureScope scope) {
+  void _enterScope(ClosureScope scope) {
     assert(scope == null);
   }
 
-  void _buildClosureEnvironmentSetup(ClosureEnvironment env) {
+  void _enterClosureEnvironment(ClosureEnvironment env) {
     assert(env == null);
   }
 
-  void _migrateLoopVariables(ClosureScope scope) {
+  void _enterForLoopInitializer(ClosureScope scope,
+                                List<LocalElement> loopVariables) {
     assert(scope == null);
+    for (LocalElement loopVariable in loopVariables) {
+      if (dartState.local2closure.containsKey(loopVariable)) {
+        // Temporarily keep the loop variable in a primitive.
+        // The loop variable will be added to environment when
+        // [declareLocalVariable] is called.
+        dartState.registerizedClosureVariables.add(loopVariable);
+      }
+    }
+  }
+
+  void _enterForLoopBody(ClosureScope scope,
+                         List<LocalElement> loopVariables) {
+    assert(scope == null);
+    for (LocalElement loopVariable in loopVariables) {
+      if (dartState.local2closure.containsKey(loopVariable)) {
+        // Move from primitive into ClosureVariable.
+        dartState.registerizedClosureVariables.remove(loopVariable);
+        add(new ir.SetClosureVariable(getClosureVariable(loopVariable),
+                                      environment.lookup(loopVariable),
+                                      isDeclaration: true));
+      }
+    }
+  }
+
+  void _enterForLoopUpdate(ClosureScope scope,
+                           List<LocalElement> loopVariables) {
+    assert(scope == null);
+    // Move captured loop variables back into the local environment.
+    // The update expression will use the values we put in the environment,
+    // and then the environments for the initializer and update will be
+    // joined at the head of the body.
+    for (LocalElement loopVariable in loopVariables) {
+      if (isInClosureVariable(loopVariable)) {
+        ir.ClosureVariable closureVariable = getClosureVariable(loopVariable);
+        ir.Primitive get = new ir.GetClosureVariable(closureVariable);
+        add(new ir.LetPrim(get));
+        environment.update(loopVariable, get);
+        dartState.registerizedClosureVariables.add(loopVariable);
+      }
+    }
   }
 
   void _createFunctionParameter(ParameterElement parameterElement) {
@@ -1669,7 +1711,29 @@ class DartIrBuilder extends IrBuilder {
     return value;
   }
 
+  List<ir.ClosureVariable> _getDeclaredClosureVariables(
+      ExecutableElement element) {
+    return dartState.getClosureList(element);
+  }
 
+  ir.Primitive buildThis() {
+    ir.Primitive thisPrim = new ir.This();
+    add(new ir.LetPrim(thisPrim));
+    return thisPrim;
+  }
+
+}
+
+/// State shared between JsIrBuilders within the same function.
+///
+/// Note that this is not shared between builders of nested functions.
+class JsIrBuilderSharedState {
+  /// Maps boxed locals to their location. These locals are not part of
+  /// the environment.
+  final Map<Local, ClosureLocation> boxedVariables = {};
+
+  /// If non-null, this refers to the receiver (`this`) in the enclosing method.
+  ir.Primitive receiver;
 }
 
 /// JS-specific subclass of [IrBuilder].
@@ -1677,14 +1741,17 @@ class DartIrBuilder extends IrBuilder {
 /// Inner functions are represented by a [ClosureClassElement], and captured
 /// variables are boxed as necessary using [CreateBox], [GetField], [SetField].
 class JsIrBuilder extends IrBuilder {
-  IrBuilder _makeInstance() => new JsIrBuilder._blank();
-  JsIrBuilder._blank();
+  final JsIrBuilderSharedState jsState;
 
-  JsIrBuilder(ConstantSystem constantSystem, ExecutableElement currentElement) {
+  IrBuilder _makeInstance() => new JsIrBuilder._blank(jsState);
+  JsIrBuilder._blank(this.jsState);
+
+  JsIrBuilder(ConstantSystem constantSystem, ExecutableElement currentElement)
+      : jsState = new JsIrBuilderSharedState() {
     _init(constantSystem, currentElement);
   }
 
-  void _buildClosureEnvironmentSetup(ClosureEnvironment env) {
+  void _enterClosureEnvironment(ClosureEnvironment env) {
     if (env == null) return;
 
     // Obtain a reference to the function object (this).
@@ -1695,7 +1762,7 @@ class JsIrBuilder extends IrBuilder {
     env.freeVariables.forEach((Local local, ClosureLocation location) {
       if (location.isBox) {
         // Boxed variables are loaded from their box on-demand.
-        state.boxedVariables[local] = location;
+        jsState.boxedVariables[local] = location;
       } else {
         // Unboxed variables are loaded from the function object immediately.
         // This includes BoxLocals which are themselves unboxed variables.
@@ -1708,7 +1775,7 @@ class JsIrBuilder extends IrBuilder {
     // If the function captures a reference to the receiver from the
     // enclosing method, remember which primitive refers to the receiver object.
     if (env.thisLocal != null && env.freeVariables.containsKey(env.thisLocal)) {
-      state.receiver = environment.lookup(env.thisLocal);
+      jsState.receiver = environment.lookup(env.thisLocal);
     }
 
     // If the function has a self-reference, use the value of `this`.
@@ -1717,16 +1784,16 @@ class JsIrBuilder extends IrBuilder {
     }
   }
 
-  void _buildClosureScopeSetup(ClosureScope scope) {
+  void _enterScope(ClosureScope scope) {
     if (scope == null) return;
     ir.CreateBox boxPrim = new ir.CreateBox();
     add(new ir.LetPrim(boxPrim));
     environment.extend(scope.box, boxPrim);
     boxPrim.useElementAsHint(scope.box);
     scope.capturedVariables.forEach((Local local, ClosureLocation location) {
-      assert(!state.boxedVariables.containsKey(local));
+      assert(!jsState.boxedVariables.containsKey(local));
       if (location.isBox) {
-        state.boxedVariables[local] = location;
+        jsState.boxedVariables[local] = location;
       }
     });
   }
@@ -1735,7 +1802,7 @@ class JsIrBuilder extends IrBuilder {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
     state.functionParameters.add(parameter);
-    ClosureLocation location = state.boxedVariables[parameterElement];
+    ClosureLocation location = jsState.boxedVariables[parameterElement];
     if (location != null) {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
@@ -1751,7 +1818,7 @@ class JsIrBuilder extends IrBuilder {
     if (initialValue == null) {
       initialValue = buildNullLiteral();
     }
-    ClosureLocation location = state.boxedVariables[variableElement];
+    ClosureLocation location = jsState.boxedVariables[variableElement];
     if (location != null) {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
@@ -1782,7 +1849,7 @@ class JsIrBuilder extends IrBuilder {
   /// Create a read access of [local].
   ir.Primitive buildLocalGet(LocalElement local) {
     assert(isOpen);
-    ClosureLocation location = state.boxedVariables[local];
+    ClosureLocation location = jsState.boxedVariables[local];
     if (location != null) {
       ir.Primitive result = new ir.GetField(environment.lookup(location.box),
                                             location.field);
@@ -1797,7 +1864,7 @@ class JsIrBuilder extends IrBuilder {
   /// Create a write access to [local] with the provided [value].
   ir.Primitive buildLocalSet(LocalElement local, ir.Primitive value) {
     assert(isOpen);
-    ClosureLocation location = state.boxedVariables[local];
+    ClosureLocation location = jsState.boxedVariables[local];
     if (location != null) {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
@@ -1809,8 +1876,30 @@ class JsIrBuilder extends IrBuilder {
     return value;
   }
 
-  void _migrateLoopVariables(ClosureScope scope) {
+  void _enterForLoopInitializer(ClosureScope scope,
+                                List<LocalElement> loopVariables) {
     if (scope == null) return;
+    // If there are no boxed loop variables, don't create the box here, let
+    // it be created inside the body instead.
+    if (scope.boxedLoopVariables.isEmpty) return;
+    _enterScope(scope);
+  }
+
+  void _enterForLoopBody(ClosureScope scope,
+                         List<LocalElement> loopVariables) {
+    if (scope == null) return;
+    // If there are boxed loop variables, the box has already been created
+    // at the initializer.
+    if (!scope.boxedLoopVariables.isEmpty) return;
+    _enterScope(scope);
+  }
+
+  void _enterForLoopUpdate(ClosureScope scope,
+                           List<LocalElement> loopVariables) {
+    if (scope == null) return;
+    // If there are no boxed loop variables, then the box is created inside the
+    // body, so there is no need to explicitly renew it.
+    if (scope.boxedLoopVariables.isEmpty) return;
     ir.Primitive box = environment.lookup(scope.box);
     ir.Primitive newBox = new ir.CreateBox();
     newBox.useElementAsHint(scope.box);
@@ -1824,6 +1913,17 @@ class JsIrBuilder extends IrBuilder {
     environment.update(scope.box, newBox);
   }
 
+  List<ir.ClosureVariable> _getDeclaredClosureVariables(
+      ExecutableElement element) {
+    return <ir.ClosureVariable>[];
+  }
+
+  ir.Primitive buildThis() {
+    if (jsState.receiver != null) return jsState.receiver;
+    ir.Primitive thisPrim = new ir.This();
+    add(new ir.LetPrim(thisPrim));
+    return thisPrim;
+  }
 }
 
 
@@ -1880,6 +1980,7 @@ class ClosureEnvironment {
 }
 
 /// Information about which variables are captured in a closure.
+///
 /// This is used by the [DartIrBuilder] instead of [ClosureScope] and
 /// [ClosureEnvironment].
 abstract class ClosureVariableInfo {

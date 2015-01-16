@@ -443,16 +443,21 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   @override
   visitForStatement(ForStatement node) {
     // TODO(johnniwinther): Support `for` as a jump target.
+    List<dart2js.LocalElement> loopVariables = <dart2js.LocalElement>[];
     SubbuildFunction buildInitializer;
     if (node.variables != null) {
       buildInitializer = subbuild(node.variables);
+      for (VariableDeclaration variable in node.variables.variables) {
+        loopVariables.add(converter.convertElement(variable.element));
+      }
     } else {
       buildInitializer = subbuild(node.initialization);
     }
     irBuilder.buildFor(buildInitializer: buildInitializer,
                        buildCondition: subbuild(node.condition),
                        buildBody: subbuild(node.body),
-                       buildUpdate: subbuildSequence(node.updaters));
+                       buildUpdate: subbuildSequence(node.updaters),
+                       loopVariables: loopVariables);
   }
 
   @override

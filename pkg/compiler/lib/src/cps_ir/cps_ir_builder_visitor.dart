@@ -410,15 +410,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   visitFor(ast.For node) {
-    // TODO(asgerf): Handle closure variables declared in a for-loop.
-    if (!isJavaScriptBackend && node.initializer is ast.VariableDefinitions) {
+    List<LocalElement> loopVariables = <LocalElement>[];
+    if (node.initializer is ast.VariableDefinitions) {
       ast.VariableDefinitions definitions = node.initializer;
-      for (ast.Node definition in definitions.definitions.nodes) {
-        LocalElement element = elements[definition];
-        DartIrBuilder dartIrBuilder = irBuilder;
-        if (dartIrBuilder.isInClosureVariable(element)) {
-          return giveup(definition, 'Closure variable in for loop initializer');
-        }
+      for (ast.Node node in definitions.definitions.nodes) {
+        LocalElement loopVariable = elements[node];
+        loopVariables.add(loopVariable);
       }
     }
 
@@ -429,6 +426,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         buildBody: subbuild(node.body),
         buildUpdate: subbuildSequence(node.update),
         closureScope: getClosureScope(node),
+        loopVariables: loopVariables,
         target: target);
   }
 
@@ -1045,12 +1043,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     irBuilder.declareLocalFunction(element, inner);
   }
 
-  static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
-
-  dynamic giveup(ast.Node node, [String reason]) {
-    throw ABORT_IRNODE_BUILDER;
-  }
-
   ir.ExecutableDefinition nullIfGiveup(ir.ExecutableDefinition action()) {
     try {
       return action();
@@ -1067,9 +1059,19 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 }
 
-/// Classifies local variables and local functions as 'closure variables'.
-/// A closure variable is one that is accessed from an inner function nested
-/// one or more levels inside the one that declares it.
+final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
+
+dynamic giveup(ast.Node node, [String reason]) {
+  throw ABORT_IRNODE_BUILDER;
+}
+
+/// Classifies local variables and local functions as captured, if they
+/// are accessed from within a nested function.
+///
+/// This class is specific to the [DartIrBuilder], in that it gives up if it
+/// sees a feature that is currently unsupport by that builder. In particular,
+/// loop variables captured in a for-loop initializer, condition, or update
+/// expression are unsupported.
 class DetectClosureVariables extends ast.Visitor
                              implements ClosureVariableInfo {
   final TreeElements elements;
@@ -1087,6 +1089,25 @@ class DetectClosureVariables extends ast.Visitor
 
   visitNode(ast.Node node) {
     node.visitChildren(this);
+  }
+
+  visitFor(ast.For node) {
+    if (node.initializer != null) visit(node.initializer);
+    if (node.condition != null) visit(node.condition);
+    if (node.update != null) visit(node.update);
+
+    // Give up if a variable was captured outside of the loop body.
+    if (node.initializer is ast.VariableDefinitions) {
+      ast.VariableDefinitions definitions = node.initializer;
+      for (ast.Node node in definitions.definitions.nodes) {
+        LocalElement loopVariable = elements[node];
+        if (capturedVariables.contains(loopVariable)) {
+          return giveup(node, 'For-loop variable captured in loop header');
+        }
+      }
+    }
+
+    if (node.body != null) visit(node.body);
   }
 
   void handleSend(ast.Send node) {
