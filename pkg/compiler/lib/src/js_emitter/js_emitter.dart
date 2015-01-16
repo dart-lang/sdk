@@ -4,7 +4,6 @@
 
 library dart2js.js_emitter;
 
-import 'dart:async';
 import 'dart:convert';
 
 import '../common.dart';
@@ -30,7 +29,7 @@ import '../elements/elements.dart' show
     ParameterElement,
     TypeVariableElement;
 
-import '../hash/sha1.dart' show hashOfString;
+import '../hash/sha1.dart' show Hasher;
 
 import '../helpers/helpers.dart';  // Included for debug helpers.
 
@@ -88,8 +87,6 @@ import '../deferred_load.dart' show
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
-
-import '../hash/sha1.dart';
 
 part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
