@@ -11,6 +11,10 @@ LibTest/core/List/List_class_A01_t02: Crash # issue 19953
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
 Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 
+[ $compiler == dart2dart && $host_checked ]
+Language/07_Classes/6_Constructors/2_Factories_A09_t01: Crash # Issue 22085
+Language/07_Classes/6_Constructors/2_Factories_A09_t02: Crash # Issue 22085
+
 [ $compiler == dart2dart && $checked ]
 Language/07_Classes/6_Constructors/2_Factories_A09_t01: Crash # Issue 22085
 Language/07_Classes/6_Constructors/2_Factories_A09_t02: Crash # Issue 22085
