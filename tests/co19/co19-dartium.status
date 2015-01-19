@@ -1046,6 +1046,7 @@ LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801:
 LayoutTests/fast/sub-pixel/block-preferred-widths-with-sub-pixel-floats_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/client-and-offset-width_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/computedstylemargin_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/float-list-inside_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/float-with-margin-in-container_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/layout-boxes-with-zoom_t01: Skip # Times out. Please triage this failure.
