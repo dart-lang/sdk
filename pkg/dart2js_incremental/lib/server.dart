@@ -15,6 +15,8 @@ import 'dart:convert' show
     JSON,
     UTF8;
 
+import 'src/options.dart';
+
 class Conversation {
   HttpRequest request;
   HttpResponse response;
@@ -160,20 +162,16 @@ class Conversation {
 }
 
 main(List<String> arguments) {
-  if (arguments.length > 0) {
-    Conversation.documentRoot = Uri.base.resolve(arguments[0]);
+  Options options = Options.parse(arguments);
+  if (options == null) {
+    exit(1);
   }
-  var host = '127.0.0.1';
-  if (arguments.length > 1) {
-    host = arguments[1];
+  if (!options.arguments.isEmpty) {
+    Conversation.documentRoot = Uri.base.resolve(options.arguments.single);
   }
-  int port = 0;
-  if (arguments.length > 2) {
-    port = int.parse(arguments[2]);
-  }
-  if (arguments.length > 3) {
-    Conversation.packageRoot = Uri.base.resolve(arguments[4]);
-  }
+  Conversation.packageRoot = options.packageRoot;
+  String host = options.host;
+  int port = options.port;
   HttpServer.bind(host, port).then((HttpServer server) {
     print('HTTP server started on http://$host:${server.port}/');
     server.listen(Conversation.onRequest, onError: Conversation.onError);
