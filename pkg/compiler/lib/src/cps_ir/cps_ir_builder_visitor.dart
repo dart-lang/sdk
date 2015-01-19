@@ -466,7 +466,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       });
       joinContinuation = new ir.Continuation(parameters);
       irBuilder.invokeFullJoin(joinContinuation, jumps, recursive: false);
-      irBuilder.add(new ir.LetCont(joinContinuation, innerBuilder._root));
+      irBuilder.add(new ir.LetCont(<ir.Continuation>[joinContinuation],
+          innerBuilder._root));
       for (int i = 0; i < irBuilder.environment.length; ++i) {
         irBuilder.environment.index2value[i] = parameters[i];
       }
@@ -937,7 +938,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       ir.Continuation k = new ir.Continuation([valueToStore]);
       ir.Expression invoke =
           new ir.InvokeMethod(originalValue, operatorSelector, k, [arg]);
-      irBuilder.add(new ir.LetCont(k, invoke));
+      irBuilder.add(new ir.LetCont(<ir.Continuation>[k], invoke));
     }
 
     if (Elements.isLocal(element)) {

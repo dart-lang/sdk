@@ -359,22 +359,34 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   Statement visitLetCont(cps_ir.LetCont node) {
-    Label label;
-    if (node.continuation.hasMultipleUses) {
-      label = new Label();
-      labels[node.continuation] = label;
+    // Introduce labels for continuations that need them.
+    for (cps_ir.Continuation continuation in node.continuations) {
+      if (continuation.hasMultipleUses) {
+        labels[continuation] = new Label();
+      }
     }
     Statement body = visit(node.body);
-    // The continuation's body is not always translated directly here because
-    // it may have been already translated:
+    // Continuations are bound at the same level, but they have to be
+    // translated as if nested.  This is because the body can invoke any
+    // of them from anywhere, so it must be nested inside all of them.
+    //
+    // The continuation bodies are not always translated directly here because
+    // they may have been already translated:
     //   * For singly-used continuations, the continuation's body is
     //     translated at the site of the continuation invocation.
     //   * For recursive continuations, there is a single non-recursive
     //     invocation.  The continuation's body is translated at the site
     //     of the non-recursive continuation invocation.
     // See visitInvokeContinuation for the implementation.
-    if (label == null || node.continuation.isRecursive) return body;
-    return new LabeledStatement(label, body, visit(node.continuation.body));
+    Statement current = body;
+    for (cps_ir.Continuation continuation in node.continuations.reversed) {
+      Label label = labels[continuation];
+      if (label != null && !continuation.isRecursive) {
+        current =
+            new LabeledStatement(label, current, visit(continuation.body));
+      }
+    }
+    return current;
   }
 
   Statement visitInvokeStatic(cps_ir.InvokeStatic node) {

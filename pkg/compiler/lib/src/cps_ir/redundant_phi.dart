@@ -141,7 +141,7 @@ class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
   }
 
   void processLetCont(LetCont node) {
-    workSet.add(node.continuation);
+    node.continuations.forEach(workSet.add);
   }
 }
 

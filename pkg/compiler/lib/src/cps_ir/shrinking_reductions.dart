@@ -9,7 +9,6 @@ part of dart2js.cps_ir.optimizers;
  * in 'Compiling with Continuations, Continued' by Andrew Kennedy.
  */
 class ShrinkingReducer extends PassMixin {
-  _RedexVisitor _redexVisitor;
   Set<_ReductionTask> _worklist;
 
   static final _DeletedNode _DELETED = new _DeletedNode();
@@ -18,13 +17,13 @@ class ShrinkingReducer extends PassMixin {
   @override
   void rewriteExecutableDefinition(ExecutableDefinition root) {
     _worklist = new Set<_ReductionTask>();
-    _redexVisitor = new _RedexVisitor(_worklist);
+    _RedexVisitor redexVisitor = new _RedexVisitor(_worklist);
 
     // Set all parent pointers.
     new ParentVisitor().visit(root);
 
     // Sweep over the term, collecting redexes into the worklist.
-    _redexVisitor.visit(root);
+    redexVisitor.visit(root);
 
     // Process the worklist.
     while (_worklist.isNotEmpty) {
@@ -46,8 +45,27 @@ class ShrinkingReducer extends PassMixin {
     node.parent = _DELETED;
   }
 
+  /// Remove a given continuation from the CPS graph.  The LetCont itself is
+  /// removed if the given continuation is the only binding.
+  void _removeContinuation(Continuation cont) {
+    LetCont parent = cont.parent;
+    if (parent.continuations.length == 1) {
+      assert(cont.parent_index == 0);
+      _removeNode(parent);
+    } else {
+      List<Continuation> continuations = parent.continuations;
+      for (int i = cont.parent_index; i < continuations.length - 1; ++i) {
+        Continuation current = continuations[i + 1];
+        continuations[i] = current;
+        current.parent_index = i;
+      }
+      continuations.removeLast();
+    }
+    cont.parent = _DELETED;
+  }
+
   void _processTask(_ReductionTask task) {
-    // Lazily skip tasks for deleted nodes.
+    // Skip tasks for deleted nodes.
     if (task.node.parent == _DELETED) {
       return;
     }
@@ -80,7 +98,7 @@ class ShrinkingReducer extends PassMixin {
     _removeNode(letPrim);
 
     // Perform bookkeeping on removed body and scan for new redexes.
-    new _RemovalRedexVisitor(_worklist).visit(letPrim.primitive);
+    new _RemovalVisitor(_worklist).visit(letPrim.primitive);
   }
 
   /// Applies the dead-cont reduction:
@@ -89,11 +107,11 @@ class ShrinkingReducer extends PassMixin {
     assert(_isDeadCont(task.node));
 
     // Remove dead continuation.
-    LetCont letCont = task.node;
-    _removeNode(letCont);
+    Continuation cont = task.node;
+    _removeContinuation(cont);
 
     // Perform bookkeeping on removed body and scan for new redexes.
-    new _RemovalRedexVisitor(_worklist).visit(letCont.continuation);
+    new _RemovalVisitor(_worklist).visit(cont);
   }
 
   /// Applies the beta-cont-lin reduction:
@@ -111,9 +129,8 @@ class ShrinkingReducer extends PassMixin {
     }
 
     // Remove the continuation.
-    LetCont letCont = task.node;
-    Continuation cont = letCont.continuation;
-    _removeNode(letCont);
+    Continuation cont = task.node;
+    _removeContinuation(cont);
 
     // Replace its invocation with the continuation body.
     InvokeContinuation invoke = cont.firstRef.parent;
@@ -128,8 +145,8 @@ class ShrinkingReducer extends PassMixin {
       argRef.definition.substituteFor(cont.parameters[i]);
     }
 
-    // Perform bookkeeping on removed body and scan for new redexes.
-    new _RemovalRedexVisitor(_worklist).visit(invoke);
+    // Perform bookkeeping on substituted body and scan for new redexes.
+    new _RemovalVisitor(_worklist).visit(invoke);
   }
 
   /// Applies the eta-cont reduction:
@@ -147,9 +164,8 @@ class ShrinkingReducer extends PassMixin {
     }
 
     // Remove the continuation.
-    LetCont letCont   = task.node;
-    Continuation cont = letCont.continuation;
-    _removeNode(letCont);
+    Continuation cont = task.node;
+    _removeContinuation(cont);
 
     InvokeContinuation invoke = cont.body;
     Continuation wrappedCont = invoke.continuation.definition;
@@ -158,20 +174,22 @@ class ShrinkingReducer extends PassMixin {
     wrappedCont.substituteFor(cont);
 
     // Perform bookkeeping on removed body and scan for new redexes.
-    new _RemovalRedexVisitor(_worklist).visit(cont);
+    new _RemovalVisitor(_worklist).visit(cont);
   }
 }
 
 /// Returns true iff the bound primitive is unused.
 bool _isDeadVal(LetPrim node) => !node.primitive.hasAtLeastOneUse;
 
-/// Returns true iff the bound continuation is unused.
-bool _isDeadCont(LetCont node) => !node.continuation.hasAtLeastOneUse;
+/// Returns true iff the continuation is unused.
+bool _isDeadCont(Continuation cont) {
+  assert(!cont.isReturnContinuation);
+  return !cont.hasAtLeastOneUse;
+}
 
-/// Returns true iff the bound continuation is used exactly once, and that
-/// use is as the receiver of a continuation invocation.
-bool _isBetaContLin(LetCont node) {
-  Continuation cont = node.continuation;
+/// Returns true iff the continuation is used exactly once, and that
+/// use is as the continuation of a continuation invocation.
+bool _isBetaContLin(Continuation cont) {
   if (!cont.hasExactlyOneUse) {
     return false;
   }
@@ -182,14 +200,12 @@ bool _isBetaContLin(LetCont node) {
   }
 
   return false;
-
 }
 
-/// Returns true iff the bound continuation consists of a continuation
+/// Returns true iff the continuation consists of a continuation
 /// invocation, passing on all parameters. Special cases exist (see below).
-bool _isEtaCont(LetCont node) {
-  Continuation cont = node.continuation;
-  if (!(cont.body is InvokeContinuation)) {
+bool _isEtaCont(Continuation cont) {
+  if (cont.body is! InvokeContinuation) {
     return false;
   }
 
@@ -232,17 +248,13 @@ class _RedexVisitor extends RecursiveVisitor {
   _RedexVisitor(this.worklist);
 
   void processLetPrim(LetPrim node) {
-    if (node.parent == ShrinkingReducer._DELETED) {
-      return;
-    } else if (_isDeadVal(node)) {
+    if (_isDeadVal(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.DEAD_VAL, node));
     }
   }
 
-  void processLetCont(LetCont node) {
-    if (node.parent == ShrinkingReducer._DELETED) {
-      return;
-    } else if (_isDeadCont(node)) {
+  void processContinuation(Continuation node) {
+    if (_isDeadCont(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, node));
     } else if (_isEtaCont(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.ETA_CONT, node));
@@ -252,17 +264,22 @@ class _RedexVisitor extends RecursiveVisitor {
   }
 }
 
-/// Traverses a deleted CPS term, marking existing tasks associated with a node
-/// within the term as deleted (which causes them to be skipped lazily when
-/// popped from the worklist), and adding newly created redexes to the worklist.
-class _RemovalRedexVisitor extends _RedexVisitor {
-  _RemovalRedexVisitor(Set<_ReductionTask> worklist) : super(worklist);
+/// Traverses a deleted CPS term, marking nodes that might participate in a
+/// redex as deleted and adding newly created redexes to the worklist.
+///
+/// Deleted nodes that might participate in a reduction task are marked so that
+/// any corresponding tasks can be skipped.  Nodes are marked so by setting
+/// their parent to the deleted sentinel.
+class _RemovalVisitor extends RecursiveVisitor {
+  final Set<_ReductionTask> worklist;
+
+  _RemovalVisitor(this.worklist);
 
   void processLetPrim(LetPrim node) {
     node.parent = ShrinkingReducer._DELETED;
   }
 
-  void processLetCont(LetCont node) {
+  void processContinuation(Continuation node) {
     node.parent = ShrinkingReducer._DELETED;
   }
 
@@ -272,20 +289,26 @@ class _RemovalRedexVisitor extends _RedexVisitor {
     if (reference.definition is Primitive) {
       Primitive primitive = reference.definition;
       Node parent = primitive.parent;
+      // The parent might be the deleted sentinel, or it might be a
+      // Continuation or FunctionDefinition if the primitive is an argument.
       if (parent is LetPrim && _isDeadVal(parent)) {
         worklist.add(new _ReductionTask(_ReductionKind.DEAD_VAL, parent));
       }
     } else if (reference.definition is Continuation) {
       Continuation cont = reference.definition;
-      if (cont.isRecursive && cont.hasAtMostOneUse) {
-        // Convert recursive to nonrecursive continuations.
-        // If the continuation is still in use, it is either dead and will be
-        // removed, or it is called nonrecursively outside its body.
-        cont.isRecursive = false;
-      }
       Node parent = cont.parent;
-      if (parent is LetCont && _isDeadCont(parent)) {
-        worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, parent));
+      // The parent might be the deleted sentinel, or it might be a
+      // FunctionDefinition if the continuation is the return continuation.
+      if (parent is LetCont) {
+        if (cont.isRecursive && cont.hasAtMostOneUse) {
+          // Convert recursive to nonrecursive continuations.  If the
+          // continuation is still in use, it is either dead and will be
+          // removed, or it is called nonrecursively outside its body.
+          cont.isRecursive = false;
+        }
+        if (_isDeadCont(cont)) {
+          worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, cont));
+        }
       }
     }
   }
@@ -293,7 +316,6 @@ class _RemovalRedexVisitor extends _RedexVisitor {
 
 /// Traverses the CPS term and sets node.parent for each visited node.
 class ParentVisitor extends RecursiveVisitor {
-
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
     node.parameters.forEach((Definition p) => p.parent = node);
@@ -326,13 +348,17 @@ class ParentVisitor extends RecursiveVisitor {
   }
 
   processLetCont(LetCont node) {
-    node.continuation.parent = node;
+    for (int i = 0; i < node.continuations.length; ++i) {
+      Continuation cont = node.continuations[i];
+      cont.parent = node;
+      cont.parent_index = i;
+    }
     node.body.parent = node;
   }
 
   processInvokeStatic(InvokeStatic node) {
-    node.continuation.parent = node;
     node.arguments.forEach((Reference ref) => ref.parent = node);
+    node.continuation.parent = node;
   }
 
   processInvokeContinuation(InvokeContinuation node) {
@@ -466,9 +492,7 @@ class _ReductionTask {
   }
 
   _ReductionTask(this.kind, this.node) {
-    // If new node types are added, they must be marked as deleted in
-    // [[_RemovalRedexVisitor]].
-    assert(node is LetCont || node is LetPrim);
+    assert(node is Continuation || node is LetPrim);
   }
 
   bool operator==(_ReductionTask that) {

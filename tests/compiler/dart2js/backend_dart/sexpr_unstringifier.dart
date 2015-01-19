@@ -125,7 +125,6 @@ class SExpressionUnstringifier {
   static const String INVOKE_METHOD = "InvokeMethod";
   static const String LET_PRIM = "LetPrim";
   static const String LET_CONT = "LetCont";
-  static const String LET_CONT_RECURSIVE = "LetCont*";
   static const String SET_CLOSURE_VARIABLE = "SetClosureVariable";
   static const String TYPE_OPERATOR = "TypeOperator";
 
@@ -233,9 +232,7 @@ class SExpressionUnstringifier {
       case LET_PRIM:
         return parseLetPrim();
       case LET_CONT:
-        return parseLetCont(false);
-      case LET_CONT_RECURSIVE:
-        return parseLetCont(true);
+        return parseLetCont();
       case SET_CLOSURE_VARIABLE:
         return parseSetClosureVariable();
       case TYPE_OPERATOR:
@@ -457,13 +454,13 @@ class SExpressionUnstringifier {
     return new InvokeSuperMethod(selector, cont, args);
   }
 
-  /// (LetCont (name (args) cont_body) body)
-  LetCont parseLetCont(bool recursive) {
-    tokens.consumeStart(recursive ? LET_CONT_RECURSIVE : LET_CONT);
-
-    // (name
+  // (rec? name (args) body)
+  Continuation parseContinuation() {
+    // (rec? name
     tokens.consumeStart();
     String name = tokens.read();
+    bool isRecursive = name == "rec";
+    if (isRecursive) name = tokens.read();
 
     // (args)
     tokens.consumeStart();
@@ -479,16 +476,28 @@ class SExpressionUnstringifier {
     Continuation cont = new Continuation(params);
     name2variable[name] = cont;
 
-    cont.isRecursive = recursive;
+    cont.isRecursive = isRecursive;
     // cont_body
     cont.body = parseExpression();
+    tokens.consumeEnd();
+    return cont;
+  }
+
+  /// (LetCont (continuations) body)
+  LetCont parseLetCont() {
+    tokens.consumeStart(LET_CONT);
+    tokens.consumeStart();
+    List<Continuation> continuations = <Continuation>[];
+    while (tokens.current != ")") {
+      continuations.add(parseContinuation());
+    }
     tokens.consumeEnd();
 
     // body)
     Expression body = parseExpression();
     tokens.consumeEnd();
 
-    return new LetCont(cont, body);
+    return new LetCont(continuations, body);
   }
 
   /// (SetClosureVariable name value body)
