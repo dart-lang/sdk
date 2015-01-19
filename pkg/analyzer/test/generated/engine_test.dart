@@ -29,7 +29,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:typed_mock/typed_mock.dart';
@@ -4017,16 +4016,16 @@ class GenerateDartLintsTaskTest extends EngineTestCase {
     GenerateDartLintsTask task = new GenerateDartLintsTask(null, null, null);
     expect(task.exception, isNull);
   }
+  void test_lintMap() {
+    GenerateDartLintsTask task = new GenerateDartLintsTask(null, null, null);
+    expect(task.lintMap, isNull);
+  }
   void test_libraryElement() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElement element = ElementFactory.library(context, "lib");
     GenerateDartLintsTask task =
         new GenerateDartLintsTask(context, null, element);
     expect(task.libraryElement, same(element));
-  }
-  void test_lintMap() {
-    GenerateDartLintsTask task = new GenerateDartLintsTask(null, null, null);
-    expect(task.lintMap, isNull);
   }
 
   void test_perform() {
@@ -4069,6 +4068,94 @@ class GenerateDartLintsTaskTestTV_perform extends TestTaskVisitor<bool> {
     return true;
   }
 }
+
+@reflectiveTest
+class LintGeneratorTest extends EngineTestCase {
+  void test_generate() {
+
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    ChangeSet changeSet = new ChangeSet();
+    Source librarySource =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    changeSet.addedSource(librarySource);
+    context.applyChanges(changeSet);
+    context.setContents(librarySource, r'''
+library lib;
+''');
+
+    CompilationUnit unit =
+        context.resolveCompilationUnit2(librarySource, librarySource);
+    List<CompilationUnit> units = <CompilationUnit>[];
+    units.add(unit);
+
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+
+    LintGeneratorTest_Linter linter = new LintGeneratorTest_Linter();
+
+    LintGenerator lintGenerator =
+        new LintGenerator(units, errorListener, [linter]);
+    lintGenerator.generate();
+
+    linter.testExpectations();
+  }
+
+  void test_generate_null_visitor() {
+
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    ChangeSet changeSet = new ChangeSet();
+    Source librarySource =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    changeSet.addedSource(librarySource);
+    context.applyChanges(changeSet);
+    context.setContents(librarySource, r'''
+library lib;
+''');
+
+    CompilationUnit unit =
+        context.resolveCompilationUnit2(librarySource, librarySource);
+    List<CompilationUnit> units = <CompilationUnit>[];
+    units.add(unit);
+
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+
+    Linter badLinter = new LintGeneratorTest_Linter_Null_Visitor();
+    LintGeneratorTest_Linter goodLinter = new LintGeneratorTest_Linter();
+
+    LintGenerator lintGenerator =
+        new LintGenerator(units, errorListener, [badLinter, goodLinter]);
+    // Test that generate does not fall down with a null visitor
+    lintGenerator.generate();
+    // Well-formed linter should still get called
+    goodLinter.testExpectations();
+  }
+
+}
+
+
+class LintGeneratorTest_Linter extends Linter with SimpleAstVisitor<Object> {
+
+  bool visited;
+
+  @override
+  Object visitCompilationUnit(CompilationUnit node) {
+    visited = true;
+    return null;
+  }
+
+  testExpectations() {
+    expect(reporter, isNotNull);
+    expect(visited, isTrue);
+  }
+
+  @override
+  AstVisitor getVisitor() => this;
+}
+
+class LintGeneratorTest_Linter_Null_Visitor extends Linter {
+  @override
+  AstVisitor getVisitor() => null;
+}
+
 
 @reflectiveTest
 class GetContentTaskTest extends EngineTestCase {
@@ -4119,6 +4206,7 @@ class GetContentTaskTestTV_accept extends TestTaskVisitor<bool> {
   @override
   bool visitGetContentTask(GetContentTask task) => true;
 }
+
 
 class GetContentTaskTestTV_perform_exception extends TestTaskVisitor<bool> {
   @override
@@ -4905,6 +4993,7 @@ class IncrementalAnalysisTaskTestTV_accept extends TestTaskVisitor<bool> {
 }
 
 
+
 class IncrementalAnalysisTaskTestTV_assertTask extends
     TestTaskVisitor<CompilationUnit> {
   IncrementalAnalysisTask task;
@@ -4913,96 +5002,6 @@ class IncrementalAnalysisTaskTestTV_assertTask extends
   CompilationUnit
       visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask) =>
       task.compilationUnit;
-}
-
-
-@reflectiveTest
-class LintGeneratorTest extends EngineTestCase {
-  void test_generate() {
-
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    ChangeSet changeSet = new ChangeSet();
-    Source librarySource =
-        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
-    changeSet.addedSource(librarySource);
-    context.applyChanges(changeSet);
-    context.setContents(librarySource, r'''
-library lib;
-''');
-
-    CompilationUnit unit =
-        context.resolveCompilationUnit2(librarySource, librarySource);
-    List<CompilationUnit> units = <CompilationUnit>[];
-    units.add(unit);
-
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-
-    LintGeneratorTest_Linter linter = new LintGeneratorTest_Linter();
-
-    LintGenerator lintGenerator =
-        new LintGenerator(units, errorListener, [linter]);
-    lintGenerator.generate();
-
-    linter.testExpectations();
-  }
-
-  void test_generate_null_visitor() {
-
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    ChangeSet changeSet = new ChangeSet();
-    Source librarySource =
-        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
-    changeSet.addedSource(librarySource);
-    context.applyChanges(changeSet);
-    context.setContents(librarySource, r'''
-library lib;
-''');
-
-    CompilationUnit unit =
-        context.resolveCompilationUnit2(librarySource, librarySource);
-    List<CompilationUnit> units = <CompilationUnit>[];
-    units.add(unit);
-
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-
-    Linter badLinter = new LintGeneratorTest_Linter_Null_Visitor();
-    LintGeneratorTest_Linter goodLinter = new LintGeneratorTest_Linter();
-
-    LintGenerator lintGenerator =
-        new LintGenerator(units, errorListener, [badLinter, goodLinter]);
-    // Test that generate does not fall down with a null visitor
-    lintGenerator.generate();
-    // Well-formed linter should still get called
-    goodLinter.testExpectations();
-  }
-
-}
-
-
-class LintGeneratorTest_Linter extends Linter with SimpleAstVisitor<Object> {
-
-  bool visited;
-
-  @override
-  AstVisitor getVisitor() => this;
-
-  testExpectations() {
-    expect(reporter, isNotNull);
-    expect(visited, isTrue);
-  }
-
-  @override
-  Object visitCompilationUnit(CompilationUnit node) {
-    visited = true;
-    return null;
-  }
-}
-
-
-
-class LintGeneratorTest_Linter_Null_Visitor extends Linter {
-  @override
-  AstVisitor getVisitor() => null;
 }
 
 
@@ -6845,11 +6844,6 @@ class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
     return null;
   }
   @override
-  E visitGenerateDartLintsTask(GenerateDartLintsTask task) {
-    fail("Unexpectedly invoked visitGenerateDartLintsTask");
-    return null;
-  }
-  @override
   E visitGetContentTask(GetContentTask task) {
     fail("Unexpectedly invoked visitGetContentsTask");
     return null;
@@ -6890,10 +6884,15 @@ class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
     fail("Unexpectedly invoked visitResolveHtmlTask");
     return null;
   }
-
   @override
   E visitScanDartTask(ScanDartTask task) {
     fail("Unexpectedly invoked visitScanDartTask");
+    return null;
+  }
+
+  @override
+  E visitGenerateDartLintsTask(GenerateDartLintsTask task) {
+    fail("Unexpectedly invoked visitGenerateDartLintsTask");
     return null;
   }
 }

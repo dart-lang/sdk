@@ -13,7 +13,6 @@ import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 
 import '../../instrumentation/instrumentation.dart';
