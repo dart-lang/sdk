@@ -53,27 +53,26 @@ class Conversation {
     return response.close();
   }
 
-  Future handleSocket() {
+  Future handleSocket() async {
     if (false && request.uri.path == '/ws/watch') {
-      return WebSocketTransformer.upgrade(request).then((WebSocket socket) {
-        socket.add(JSON.encode({'create': []}));
-        // WatchHandler handler = new WatchHandler(socket, files);
-        // handlers.add(handler);
-        // socket.listen(
-        //     handler.onData, cancelOnError: true, onDone: handler.onDone);
-      });
+      WebSocket socket = await WebSocketTransformer.upgrade(request);
+      socket.add(JSON.encode({'create': []}));
+      // WatchHandler handler = new WatchHandler(socket, files);
+      // handlers.add(handler);
+      // socket.listen(
+      //     handler.onData, cancelOnError: true, onDone: handler.onDone);
     } else {
       response.done
           .then(onClosed)
           .catchError(onError);
-      return notFound(request.uri);
+      return await notFound(request.uri);
     }
   }
 
   Future handle() {
     response.done
-      .then(onClosed)
-      .catchError(onError);
+        .then(onClosed)
+        .catchError(onError);
 
     Uri uri = request.uri;
     if (uri.path.endsWith('/')) {
@@ -99,36 +98,29 @@ class Conversation {
     }
   }
 
-  Future handleGet(Uri uri) {
+  Future handleGet(Uri uri) async {
     String path = uri.path;
     var f = new File.fromUri(uri);
-    return f.exists().then((bool exists) {
-      if (!exists) {
-        if (path.endsWith('.dart.js')) {
-          Uri dartScript = uri.resolve(path.substring(0, path.length - 3));
-          return new File.fromUri(dartScript).exists().then((bool exists) {
-            if (exists) {
-              return compileToJavaScript(dartScript);
-            } else {
-              return notFound(request.uri);
-            }
-          });
+    if (!await f.exists()) {
+      if (path.endsWith('.dart.js')) {
+        Uri dartScript = uri.resolve(path.substring(0, path.length - 3));
+        if (await new File.fromUri(dartScript).exists()) {
+          return await compileToJavaScript(dartScript);
         }
-        return notFound(request.uri);
       }
-      if (path.endsWith('.html')) {
-        response.headers.set(CONTENT_TYPE, 'text/html');
-      } else if (path.endsWith('.dart')) {
-        response.headers.set(CONTENT_TYPE, 'application/dart');
-      } else if (path.endsWith('.js')) {
-        response.headers.set(CONTENT_TYPE, 'application/javascript');
-      } else if (path.endsWith('.ico')) {
-        response.headers.set(CONTENT_TYPE, 'image/x-icon');
-      } else if (path.endsWith('.appcache')) {
-        response.headers.set(CONTENT_TYPE, 'text/cache-manifest');
-      }
-      return f.openRead().pipe(response);
-    });
+      return await notFound(request.uri);
+    } else if (path.endsWith('.html')) {
+      response.headers.set(CONTENT_TYPE, 'text/html');
+    } else if (path.endsWith('.dart')) {
+      response.headers.set(CONTENT_TYPE, 'application/dart');
+    } else if (path.endsWith('.js')) {
+      response.headers.set(CONTENT_TYPE, 'application/javascript');
+    } else if (path.endsWith('.ico')) {
+      response.headers.set(CONTENT_TYPE, 'image/x-icon');
+    } else if (path.endsWith('.appcache')) {
+      response.headers.set(CONTENT_TYPE, 'text/cache-manifest');
+    }
+    return await f.openRead().pipe(response);
   }
 
   Future compileToJavaScript(Uri dartScript) {
@@ -139,28 +131,37 @@ class Conversation {
     return notFound(request.uri);
   }
 
-  Future dispatch() {
-    return new Future.sync(() {
-      return WebSocketTransformer.isUpgradeRequest(request)
+  Future dispatch() async {
+    try {
+      return await WebSocketTransformer.isUpgradeRequest(request)
           ? handleSocket()
           : handle();
-    }).catchError(onError);
+    } catch (e, s) {
+      onError(e, s);
+    }
   }
 
-  static Future onRequest(HttpRequest request) {
+  static Future onRequest(HttpRequest request) async {
     HttpResponse response = request.response;
-    return
-        new Future.sync(() => new Conversation(request, response).dispatch())
-        .catchError((error, [stack]) {
-          onStaticError(error, stack);
-          return
-              new Future.sync(() => response.close()).catchError(onStaticError);
-        });
+    try {
+      return await new Conversation(request, response).dispatch();
+    } catch (e, s) {
+      try {
+        onStaticError(e, s);
+        return await response.close();
+      } catch (e, s) {
+        onStaticError(e, s);
+      }
+    }
   }
 
-  void onError(error, [stack]) {
-    onStaticError(error, stack);
-    new Future.sync(() => response.close()).catchError(onStaticError);
+  Future onError(error, [stack]) async {
+    try {
+      onStaticError(error, stack);
+      return await response.close();
+    } catch (e, s) {
+      onStaticError(e, s);
+    }
   }
 
   static void onStaticError(error, [stack]) {
@@ -193,7 +194,7 @@ class Conversation {
   }
 }
 
-main(List<String> arguments) {
+main(List<String> arguments) async {
   Options options = Options.parse(arguments);
   if (options == null) {
     exit(1);
@@ -204,11 +205,12 @@ main(List<String> arguments) {
   Conversation.packageRoot = options.packageRoot;
   String host = options.host;
   int port = options.port;
-  HttpServer.bind(host, port).then((HttpServer server) {
+  try {
+    HttpServer server = await HttpServer.bind(host, port);
     print('HTTP server started on http://$host:${server.port}/');
     server.listen(Conversation.onRequest, onError: Conversation.onStaticError);
-  }).catchError((e) {
+  } catch (e) {
     print("HttpServer.bind error: $e");
     exit(1);
-  });
+  };
 }
