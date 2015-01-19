@@ -54,6 +54,7 @@ analyzer/test/enum_test: Fail # Issue 21323
 analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/services/index/store/codec_test: Pass, Slow
 analysis_server/test/edit/assists_test: Pass, Slow
+analysis_server/test/edit/form_test: Pass, Slow
 
 # Analysis server integration tests don't make sense to run under
 # dart2js, since the code under test always runs in the Dart vm as a
