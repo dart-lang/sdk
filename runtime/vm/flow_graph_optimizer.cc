@@ -1470,113 +1470,113 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt8:
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt8ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint8:
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataUint8ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt16:
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt16ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint16:
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataUint16ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32:
       if (!CanUnboxInt32()) {
         return false;
       }
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint32:
       if (!CanUnboxInt32()) {
         return false;
       }
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataUint32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat64:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat64ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+      return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt32x4ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt8:
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt8ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint8:
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint8ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt16:
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt16ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint16:
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint16ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32:
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint32:
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat64:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat64ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat32x4ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
+      return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32x4ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kStringBaseCodeUnitAt:
@@ -3008,47 +3008,47 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     switch (recognized_kind) {
       // ByteArray getters.
       case MethodRecognizer::kByteArrayBaseGetInt8:
-        return BuildByteArrayViewLoad(call, kTypedDataInt8ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint8:
-        return BuildByteArrayViewLoad(call, kTypedDataUint8ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt16:
-        return BuildByteArrayViewLoad(call, kTypedDataInt16ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint16:
-        return BuildByteArrayViewLoad(call, kTypedDataUint16ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt32:
-        return BuildByteArrayViewLoad(call, kTypedDataInt32ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint32:
-        return BuildByteArrayViewLoad(call, kTypedDataUint32ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32:
-        return BuildByteArrayViewLoad(call, kTypedDataFloat32ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat64:
-        return BuildByteArrayViewLoad(call, kTypedDataFloat64ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-        return BuildByteArrayViewLoad(call, kTypedDataFloat32x4ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataFloat32x4ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt32x4:
-        return BuildByteArrayViewLoad(call, kTypedDataInt32x4ArrayCid);
+        return BuildByteArrayBaseLoad(call, kTypedDataInt32x4ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
-        return BuildByteArrayViewStore(call, kTypedDataInt8ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint8:
-        return BuildByteArrayViewStore(call, kTypedDataUint8ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetInt16:
-        return BuildByteArrayViewStore(call, kTypedDataInt16ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint16:
-        return BuildByteArrayViewStore(call, kTypedDataUint16ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetInt32:
-        return BuildByteArrayViewStore(call, kTypedDataInt32ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint32:
-        return BuildByteArrayViewStore(call, kTypedDataUint32ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32:
-        return BuildByteArrayViewStore(call, kTypedDataFloat32ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat64:
-        return BuildByteArrayViewStore(call, kTypedDataFloat64ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-        return BuildByteArrayViewStore(call, kTypedDataFloat32x4ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataFloat32x4ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetInt32x4:
-        return BuildByteArrayViewStore(call, kTypedDataInt32x4ArrayCid);
+        return BuildByteArrayBaseStore(call, kTypedDataInt32x4ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -3539,7 +3539,7 @@ bool FlowGraphOptimizer::TryInlineInt32x4Method(
 }
 
 
-bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
+bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
                                                  Definition* receiver,
                                                  intptr_t array_cid,
                                                  intptr_t view_cid,
@@ -3554,7 +3554,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
   (*entry)->InheritDeoptTarget(I, call);
   Instruction* cursor = *entry;
 
-  array_cid = PrepareInlineByteArrayViewOp(call,
+  array_cid = PrepareInlineByteArrayBaseOp(call,
                                            array_cid,
                                            view_cid,
                                            &array,
@@ -3591,7 +3591,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
 }
 
 
-bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
+bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
                                                   Instruction* call,
                                                   Definition* receiver,
                                                   intptr_t array_cid,
@@ -3607,7 +3607,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
   (*entry)->InheritDeoptTarget(I, call);
   Instruction* cursor = *entry;
 
-  array_cid = PrepareInlineByteArrayViewOp(call,
+  array_cid = PrepareInlineByteArrayBaseOp(call,
                                            array_cid,
                                            view_cid,
                                            &array,
@@ -3743,7 +3743,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
 
 
 
-intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
+intptr_t FlowGraphOptimizer::PrepareInlineByteArrayBaseOp(
     Instruction* call,
     intptr_t array_cid,
     intptr_t view_cid,
@@ -3833,7 +3833,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
 }
 
 
-bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
+bool FlowGraphOptimizer::BuildByteArrayBaseLoad(InstanceCallInstr* call,
                                                 intptr_t view_cid) {
   const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
                          (view_cid == kTypedDataInt32x4ArrayCid);
@@ -3849,7 +3849,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
+bool FlowGraphOptimizer::BuildByteArrayBaseStore(InstanceCallInstr* call,
                                                  intptr_t view_cid) {
   const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
                          (view_cid == kTypedDataInt32x4ArrayCid);

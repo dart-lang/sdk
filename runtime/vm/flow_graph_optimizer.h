@@ -152,7 +152,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                       TargetEntryInstr** entry,
                       Definition** last);
 
-  bool InlineByteArrayViewLoad(Instruction* call,
+  bool InlineByteArrayBaseLoad(Instruction* call,
                                Definition* receiver,
                                intptr_t array_cid,
                                intptr_t view_cid,
@@ -160,7 +160,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                TargetEntryInstr** entry,
                                Definition** last);
 
-  bool InlineByteArrayViewStore(const Function& target,
+  bool InlineByteArrayBaseStore(const Function& target,
                                 Instruction* call,
                                 Definition* receiver,
                                 intptr_t array_cid,
@@ -169,16 +169,16 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                 TargetEntryInstr** entry,
                                 Definition** last);
 
-  intptr_t PrepareInlineByteArrayViewOp(Instruction* call,
+  intptr_t PrepareInlineByteArrayBaseOp(Instruction* call,
                                         intptr_t array_cid,
                                         intptr_t view_cid,
                                         Definition** array,
                                         Definition* index,
                                         Instruction** cursor);
 
-  bool BuildByteArrayViewLoad(InstanceCallInstr* call,
+  bool BuildByteArrayBaseLoad(InstanceCallInstr* call,
                               intptr_t view_cid);
-  bool BuildByteArrayViewStore(InstanceCallInstr* call,
+  bool BuildByteArrayBaseStore(InstanceCallInstr* call,
                                intptr_t view_cid);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
