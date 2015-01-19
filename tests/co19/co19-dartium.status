@@ -46,6 +46,7 @@ LayoutTests/fast/dom/css-cached-import-rule_t01: Skip # Test reloads itself. Iss
 LayoutTests/fast/dom/cssTarget-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/empty-hash-and-search_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/formmethod-attribute-input-2_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-nonhtml-ancestor_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-nil-value-field-assert_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/textarea-submit-crash_t01: Skip # Test reloads itself. Issue 18558.
@@ -1042,10 +1043,13 @@ LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t0
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/negative-scroll-positions_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/sub-pixel/block-preferred-widths-with-sub-pixel-floats_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/client-and-offset-width_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/computedstylemargin_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/float-list-inside_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/sub-pixel/float-with-margin-in-container_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/sub-pixel/layout-boxes-with-zoom_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/sub-pixel/table-cells-with-padding-do-not-wrap_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/auto-margins-across-boundaries_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Skip # Times out. Please triage this failure.

@@ -49,6 +49,7 @@ async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
+fileapi_test/getFile: Pass, Fail # Issue 20488
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -63,7 +64,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issu
 element_offset_test/offset: RuntimeError # Issue 17550
 request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
 fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
-fileapi_test/getFile: Pass, RuntimeError # Issue 20488
 indexeddb_5_test: Pass, RuntimeError # Issue 21262
 native_gc_test: Pass, Slow
 
@@ -101,6 +101,7 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 touchevent_test/supported: Pass, Fail # Issue 17061
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
+element_types_test/constructors: Skip # Times out. Issue 22050
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219

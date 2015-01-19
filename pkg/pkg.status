@@ -95,6 +95,7 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
 collection/test/unmodifiable_collection_test: Skip # Times out. Issue 22050
+async/test/stream_zip_test: Skip # Times out. Issue 22050
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 third_party/angular_tests/browser_test: Skip # uses dart:html
