@@ -37,6 +37,7 @@ class Conversation {
   }
 
   notFound(path) {
+    response.headers.set(CONTENT_TYPE, 'text/html');
     response.statusCode = HttpStatus.NOT_FOUND;
     response.write(htmlInfo('Not Found',
                             'The file "$path" could not be found.'));
@@ -44,18 +45,10 @@ class Conversation {
   }
 
   badRequest(String problem) {
+    response.headers.set(CONTENT_TYPE, 'text/html');
     response.statusCode = HttpStatus.BAD_REQUEST;
     response.write(htmlInfo("Bad request",
                             "Bad request '${request.uri}': $problem"));
-    response.close();
-  }
-
-  internalError(error, stack) {
-    print(error);
-    if (stack != null) print(stack);
-    response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    response.write(htmlInfo("Internal Server Error",
-                            "Internal Server Error: $error\n$stack"));
     response.close();
   }
 
@@ -90,30 +83,44 @@ class Conversation {
     }
     String path = uri.path;
     Uri root = documentRoot;
-    String dartType = 'application/dart';
     if (path.startsWith('${PACKAGES_PATH}/')) {
       root = packageRoot;
       path = path.substring(PACKAGES_PATH.length);
     }
 
-    String filePath = root.resolve('.$path').toFilePath();
+    Uri resolvedRequest = root.resolve('.$path');
     switch (request.method) {
       case 'GET':
-        return handleGet(filePath, dartType);
+        return handleGet(resolvedRequest);
       default:
         String method = const HtmlEscape().convert(request.method);
         return badRequest("Unsupported method: '$method'");
     }
   }
 
-  void handleGet(String path, String dartType) {
-    var f = new File(path);
+  void handleGet(Uri uri) {
+    String path = uri.path;
+    var f = new File.fromUri(uri);
     f.exists().then((bool exists) {
-      if (!exists) return notFound(request.uri);
+      if (!exists) {
+        if (path.endsWith('.dart.js')) {
+          Uri dartScript = uri.resolve(path.substring(0, path.length - 3));
+          new File.fromUri(dartScript).exists().then((bool exists) {
+            if (exists) {
+              compileToJavaScript(dartScript);
+            } else {
+              notFound(request.uri);
+            }
+          });
+          return;
+        }
+        notFound(request.uri);
+        return;
+      }
       if (path.endsWith('.html')) {
         response.headers.set(CONTENT_TYPE, 'text/html');
       } else if (path.endsWith('.dart')) {
-        response.headers.set(CONTENT_TYPE, dartType);
+        response.headers.set(CONTENT_TYPE, 'application/dart');
       } else if (path.endsWith('.js')) {
         response.headers.set(CONTENT_TYPE, 'application/javascript');
       } else if (path.endsWith('.ico')) {
@@ -123,6 +130,13 @@ class Conversation {
       }
       f.openRead().pipe(response).catchError(onError);
     });
+  }
+
+  void compileToJavaScript(Uri dartScript) {
+    Uri outputUri = request.uri;
+    print("Compiling $dartScript to $outputUri");
+    // TODO(ahe): Implement this.
+    notFound(request.uri);
   }
 
   static onRequest(HttpRequest request) {
