@@ -36,25 +36,26 @@ class Conversation {
     print('Request for ${request.uri} ${response.statusCode}');
   }
 
-  notFound(path) {
-    response.headers.set(CONTENT_TYPE, 'text/html');
-    response.statusCode = HttpStatus.NOT_FOUND;
-    response.write(htmlInfo('Not Found',
-                            'The file "$path" could not be found.'));
-    response.close();
+  Future notFound(Uri uri) {
+    response
+        ..headers.set(CONTENT_TYPE, 'text/html')
+        ..statusCode = HttpStatus.NOT_FOUND
+        ..write(htmlInfo("Not Found", "The file '$uri' could not be found."));
+    return response.close();
   }
 
-  badRequest(String problem) {
-    response.headers.set(CONTENT_TYPE, 'text/html');
-    response.statusCode = HttpStatus.BAD_REQUEST;
-    response.write(htmlInfo("Bad request",
-                            "Bad request '${request.uri}': $problem"));
-    response.close();
+  Future badRequest(String problem) {
+    response
+        ..headers.set(CONTENT_TYPE, 'text/html')
+        ..statusCode = HttpStatus.BAD_REQUEST
+        ..write(
+            htmlInfo("Bad request", "Bad request '${request.uri}': $problem"));
+    return response.close();
   }
 
-  handleSocket() {
+  Future handleSocket() {
     if (false && request.uri.path == '/ws/watch') {
-      WebSocketTransformer.upgrade(request).then((WebSocket socket) {
+      return WebSocketTransformer.upgrade(request).then((WebSocket socket) {
         socket.add(JSON.encode({'create': []}));
         // WatchHandler handler = new WatchHandler(socket, files);
         // handlers.add(handler);
@@ -65,11 +66,11 @@ class Conversation {
       response.done
           .then(onClosed)
           .catchError(onError);
-      notFound(request.uri.path);
+      return notFound(request.uri);
     }
   }
 
-  handle() {
+  Future handle() {
     response.done
       .then(onClosed)
       .catchError(onError);
@@ -79,7 +80,7 @@ class Conversation {
       uri = uri.resolve('index.html');
     }
     if (uri.path.contains('..') || uri.path.contains('%')) {
-      return notFound(uri.path);
+      return notFound(uri);
     }
     String path = uri.path;
     Uri root = documentRoot;
@@ -98,24 +99,22 @@ class Conversation {
     }
   }
 
-  void handleGet(Uri uri) {
+  Future handleGet(Uri uri) {
     String path = uri.path;
     var f = new File.fromUri(uri);
-    f.exists().then((bool exists) {
+    return f.exists().then((bool exists) {
       if (!exists) {
         if (path.endsWith('.dart.js')) {
           Uri dartScript = uri.resolve(path.substring(0, path.length - 3));
-          new File.fromUri(dartScript).exists().then((bool exists) {
+          return new File.fromUri(dartScript).exists().then((bool exists) {
             if (exists) {
-              compileToJavaScript(dartScript);
+              return compileToJavaScript(dartScript);
             } else {
-              notFound(request.uri);
+              return notFound(request.uri);
             }
           });
-          return;
         }
-        notFound(request.uri);
-        return;
+        return notFound(request.uri);
       }
       if (path.endsWith('.html')) {
         response.headers.set(CONTENT_TYPE, 'text/html');
@@ -128,31 +127,50 @@ class Conversation {
       } else if (path.endsWith('.appcache')) {
         response.headers.set(CONTENT_TYPE, 'text/cache-manifest');
       }
-      f.openRead().pipe(response).catchError(onError);
+      return f.openRead().pipe(response);
     });
   }
 
-  void compileToJavaScript(Uri dartScript) {
+  Future compileToJavaScript(Uri dartScript) {
     Uri outputUri = request.uri;
     print("Compiling $dartScript to $outputUri");
     // TODO(ahe): Implement this.
-    notFound(request.uri);
+    throw new UnimplementedError("compileToJavaScript");
+    return notFound(request.uri);
   }
 
-  static onRequest(HttpRequest request) {
-    Conversation conversation = new Conversation(request, request.response);
-    if (WebSocketTransformer.isUpgradeRequest(request)) {
-      conversation.handleSocket();
-    } else {
-      conversation.handle();
-    }
+  Future dispatch() {
+    return new Future.sync(() {
+      return WebSocketTransformer.isUpgradeRequest(request)
+          ? handleSocket()
+          : handle();
+    }).catchError(onError);
   }
 
-  static onError(error) {
+  static Future onRequest(HttpRequest request) {
+    HttpResponse response = request.response;
+    return
+        new Future.sync(() => new Conversation(request, response).dispatch())
+        .catchError((error, [stack]) {
+          onStaticError(error, stack);
+          return
+              new Future.sync(() => response.close()).catchError(onStaticError);
+        });
+  }
+
+  void onError(error, [stack]) {
+    onStaticError(error, stack);
+    new Future.sync(() => response.close()).catchError(onStaticError);
+  }
+
+  static void onStaticError(error, [stack]) {
     if (error is HttpException) {
       print('Error: ${error.message}');
     } else {
       print('Error: ${error}');
+    }
+    if (stack != null) {
+      print(stack);
     }
   }
 
@@ -188,7 +206,7 @@ main(List<String> arguments) {
   int port = options.port;
   HttpServer.bind(host, port).then((HttpServer server) {
     print('HTTP server started on http://$host:${server.port}/');
-    server.listen(Conversation.onRequest, onError: Conversation.onError);
+    server.listen(Conversation.onRequest, onError: Conversation.onStaticError);
   }).catchError((e) {
     print("HttpServer.bind error: $e");
     exit(1);
