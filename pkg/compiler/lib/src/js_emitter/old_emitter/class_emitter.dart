@@ -32,7 +32,7 @@ class ClassEmitter extends CodeEmitterHelper {
       superName = namer.getNameOfClass(superclass);
     }
 
-    if (classElement.isMixinApplication) {
+    if (classElement.isMixinApplication && !onlyForRti) {
       String mixinName = namer.getNameOfClass(computeMixinClass(classElement));
       superName = '$superName+$mixinName';
       emitter.needsMixinSupport = true;

@@ -88,9 +88,8 @@ class ProgramBuilder {
       if (element.superclass != null) {
         c.setSuperclass(_classes[element.superclass]);
       }
-      if (element.isMixinApplication) {
-        MixinApplication mixinApplication = c;
-        mixinApplication.setMixinClass(_classes[computeMixinClass(element)]);
+      if (c is MixinApplication) {
+        c.setMixinClass(_classes[computeMixinClass(element)]);
       }
     });
 
@@ -299,7 +298,7 @@ class ProgramBuilder {
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
     Class result;
-    if (element.isMixinApplication) {
+    if (element.isMixinApplication && !onlyForRti) {
       result = new MixinApplication(element,
                                     name, holder, methods, fields,
                                     isDirectlyInstantiated: isInstantiated,

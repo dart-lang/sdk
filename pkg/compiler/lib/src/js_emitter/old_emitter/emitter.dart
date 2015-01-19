@@ -430,11 +430,6 @@ class OldEmitter implements Emitter {
           var hasOwnProperty = Object.prototype.hasOwnProperty;
           return function (constructor, superConstructor) {
             if (superConstructor == null) {
-              // TODO(21896): this test shouldn't be necessary. Without it
-              // we have a crash in language/mixin_only_for_rti and
-              // pkg/analysis_server/tool/spec/check_all_test.
-              if (constructor == null) return;
-
               // Fix up the the Dart Object class' prototype.
               var prototype = constructor.prototype;
               prototype.constructor = constructor;
@@ -489,17 +484,12 @@ class OldEmitter implements Emitter {
             var mixinClass = s[1];
             finishClass(mixinClass);
             var mixin = allClasses[mixinClass];
-            // TODO(21896): this test shouldn't be necessary. Without it
-            // we have a crash in language/mixin_only_for_rti and
-            // pkg/analysis_server/tool/spec/check_all_test.
-            if (mixin) {
-              var mixinPrototype = mixin.prototype;
-              var clsPrototype = allClasses[cls].prototype;
-              for (var d in mixinPrototype) {
-                if (hasOwnProperty.call(mixinPrototype, d) &&
-                    !hasOwnProperty.call(clsPrototype, d))
-                  clsPrototype[d] = mixinPrototype[d];
-              }
+            var mixinPrototype = mixin.prototype;
+            var clsPrototype = allClasses[cls].prototype;
+            for (var d in mixinPrototype) {
+              if (hasOwnProperty.call(mixinPrototype, d) &&
+                  !hasOwnProperty.call(clsPrototype, d))
+                clsPrototype[d] = mixinPrototype[d];
             }
           }
         }
