@@ -7,6 +7,7 @@
 
 import "deferred_fail_and_retry_lib.dart" deferred as lib;
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:isolate";
 import "dart:js" as js;
 
@@ -43,8 +44,16 @@ void test(SendPort sendPort) {
 
 main() {
   ReceivePort receivePort = new ReceivePort();
-  receivePort..toList().then((messages) {
-      Expect.listEquals(["failed", "loaded"], messages);
+  asyncStart();
+  bool receivedFailed = false;
+  receivePort.listen((message) {
+    if (!receivedFailed) {
+      Expect.equals("failed", message);
+      receivedFailed = true;
+    } else {
+      Expect.equals("loaded", message);
+      asyncEnd();
+    }
   });
   Isolate.spawn(test, receivePort.sendPort);
 }
