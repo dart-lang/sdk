@@ -4,19 +4,22 @@
 
 // Error in class finalization triggered via mirror in a static initializer.
 // Simply check that we do not crash.
+// This is a regression test for the VM.
 
 library mirror_in_static_init_test;
 
 import 'dart:mirrors';
 
+// This class is only loaded during initialization of `staticField`.
 abstract class C {
   int _a;
-  C([this._a: 0]);
+// This is a syntax error on purpose.
+  C([this._a: 0]); /// 01: compile-time error
 }
 
 final int staticField = () {
   var lib = currentMirrorSystem().findLibrary(#mirror_in_static_init_test);
-  var lst = List.from(lib.declarations.values);
+  var lst = new List.from(lib.declarations.values);
   return 42;
 }();
 

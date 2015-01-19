@@ -5,8 +5,6 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-mirror_in_static_init_test: CompileTimeError, OK # Change this to a multitest. Issue 22071
-
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
 
