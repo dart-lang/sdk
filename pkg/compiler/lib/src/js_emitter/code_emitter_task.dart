@@ -128,7 +128,7 @@ class CodeEmitterTask extends CompilerTask {
     readTypeVariables.add(element);
   }
 
-  Set<ClassElement> interceptorsReferencedFromConstants() {
+  Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
     JavaScriptConstantCompiler handler = backend.constants;
     List<ConstantValue> constants = handler.getConstantsForEmission();
@@ -163,7 +163,7 @@ class CodeEmitterTask extends CompilerTask {
     );
 
     // Add interceptors referenced by constants.
-    needed.addAll(interceptorsReferencedFromConstants());
+    needed.addAll(computeInterceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {

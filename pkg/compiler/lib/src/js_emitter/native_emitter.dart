@@ -105,10 +105,10 @@ class NativeEmitter {
 
     neededClasses.add(compiler.objectClass);
 
-    Set<ClassElement> neededByConstant =
-        emitterTask.interceptorsReferencedFromConstants();
-    Set<ClassElement> modifiedClasses =
-        emitterTask.typeTestRegistry.classesModifiedByEmitRuntimeTypeSupport();
+    Set<ClassElement> neededByConstant = emitterTask
+        .computeInterceptorsReferencedFromConstants();
+    Set<ClassElement> modifiedClasses = emitterTask.typeTestRegistry
+        .computeClassesModifiedByEmitRuntimeTypeSupport();
 
     for (ClassElement classElement in preOrder.reversed) {
       // Post-order traversal ensures we visit the subclasses before their
