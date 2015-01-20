@@ -7,8 +7,10 @@ library dart2js_incremental.server;
 import 'dart:io';
 
 import 'dart:async' show
+    Completer,
     Future,
-    Stream;
+    Stream,
+    StreamSubscription;
 
 import 'dart:convert' show
     HtmlEscape,
@@ -16,6 +18,11 @@ import 'dart:convert' show
     UTF8;
 
 import 'src/options.dart';
+
+import 'compiler.dart' show
+    CompilerEvent,
+    IncrementalKind,
+    compile;
 
 class Conversation {
   HttpRequest request;
@@ -28,6 +35,9 @@ class Conversation {
   static Uri documentRoot = Uri.base;
 
   static Uri packageRoot = Uri.base.resolve('packages/');
+
+  static Map<Uri, Future<String>> generatedFiles =
+      new Map<Uri, Future<String>>();
 
   Conversation(this.request, this.response);
 
@@ -102,14 +112,15 @@ class Conversation {
     String path = uri.path;
     var f = new File.fromUri(uri);
     if (!await f.exists()) {
-      if (path.endsWith('.dart.js')) {
-        Uri dartScript = uri.resolve(path.substring(0, path.length - 3));
-        if (await new File.fromUri(dartScript).exists()) {
-          return await compileToJavaScript(dartScript);
-        }
-      }
-      return await notFound(request.uri);
-    } else if (path.endsWith('.html')) {
+      return await handleNonExistingFile(uri);
+    } else {
+      setContentType(path);
+    }
+    return await f.openRead().pipe(response);
+  }
+
+  void setContentType(String path) {
+    if (path.endsWith('.html')) {
       response.headers.set(CONTENT_TYPE, 'text/html');
     } else if (path.endsWith('.dart')) {
       response.headers.set(CONTENT_TYPE, 'application/dart');
@@ -120,15 +131,65 @@ class Conversation {
     } else if (path.endsWith('.appcache')) {
       response.headers.set(CONTENT_TYPE, 'text/cache-manifest');
     }
-    return await f.openRead().pipe(response);
   }
 
-  Future compileToJavaScript(Uri dartScript) {
+  Future handleNonExistingFile(Uri uri) async {
+    String path = uri.path;
+    String generated = await generatedFiles[request.uri];
+    if (generated != null) {
+      print("Serving ${request.uri} from memory.");
+      setContentType(path);
+      response.write(generated);
+      return await response.close();
+    }
+    if (path.endsWith('.dart.js')) {
+      Uri dartScript = uri.resolve(path.substring(0, path.length - 3));
+      if (await new File.fromUri(dartScript).exists()) {
+        return await compileToJavaScript(dartScript);
+      }
+    }
+    return await notFound(request.uri);
+  }
+
+  compileToJavaScript(Uri dartScript) {
     Uri outputUri = request.uri;
+    Completer<String> completer = new Completer<String>();
+    generatedFiles[outputUri] = completer.future;
     print("Compiling $dartScript to $outputUri");
-    // TODO(ahe): Implement this.
-    throw new UnimplementedError("compileToJavaScript");
-    return notFound(request.uri);
+    StreamSubscription<CompilerEvent> subscription;
+    subscription = compile(dartScript).listen((CompilerEvent event) {
+      subscription.onData(
+          (CompilerEvent event) => onCompilerEvent(completer, event));
+      if (event.kind != IncrementalKind.FULL) {
+        notFound(request.uri);
+        // TODO(ahe): Do something about this situation.
+      } else {
+        completer.complete(event['.js']);
+        setContentType(outputUri.path);
+        response.write(event['.js']);
+        response.close();
+      }
+    });
+  }
+
+  onCompilerEvent(Completer completer, CompilerEvent event) {
+    Uri outputUri = request.uri;
+    print("Got ${event.kind} for $outputUri");
+
+    switch (event.kind) {
+      case IncrementalKind.FULL:
+        generatedFiles[outputUri] = new Future.value(event['.js']);
+        break;
+
+      case IncrementalKind.INCREMENTAL:
+        generatedFiles[outputUri] = completer.future.then(
+            (String full) => '$full\n\n${event.compiler.allUpdates()}');
+        break;
+
+      case IncrementalKind.ERROR:
+        generatedFiles.removeKey(outputUri);
+        break;
+    }
   }
 
   Future dispatch() async {

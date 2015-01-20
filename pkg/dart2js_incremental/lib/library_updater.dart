@@ -15,6 +15,7 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     EnqueueTask,
+    MessageKind,
     Script;
 
 import 'package:compiler/src/elements/elements.dart' show
