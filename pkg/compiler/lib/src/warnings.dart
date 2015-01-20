@@ -2386,9 +2386,8 @@ main() => foo();
 * Your app imports dart:mirrors via:''''''
 $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 *
-* Starting with Dart 1.9, you must use the
-* --enable-experimental-mirrors command-line flag to opt-in.
-* You can begin using this flag now if mirrors support is critical.
+* You can disable this message by using the --enable-experimental-mirrors
+* command-line flag.
 *
 * To learn what to do next, please visit:
 *    http://dartlang.org/dart2js-reflection
