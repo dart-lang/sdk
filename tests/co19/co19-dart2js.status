@@ -4988,6 +4988,7 @@ LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-diamond-margin
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-ellipse-margin-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-ellipse-margin-right_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t02: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-right_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t01: RuntimeError # Please triage this failure
