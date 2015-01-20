@@ -609,7 +609,7 @@ class ClassEmitter extends CodeEmitterHelper {
             cls, element.typeDeclaration, alwaysGenerateFunction: true);
     if (substitution != null) {
       computeTypeVariable =
-          js(r'#(this.$builtinTypeInfo)',
+          js(r'#.apply(null, this.$builtinTypeInfo)',
              substitution.getCodeForVariable(index, backend.rti));
     } else {
       // TODO(ahe): These can be generated dynamically.
