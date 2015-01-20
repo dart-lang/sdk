@@ -1573,10 +1573,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         Source source = sourcesToInvalidate[i];
         SourceEntry entry = _getReadableSourceEntry(source);
         if (entry is DartEntry) {
-          entry.invalidateAllResolutionInformation(false);
+          entry.invalidateParseInformation();
           _workManager.add(source, _computePriority(entry));
         } else if (entry is HtmlEntry) {
-          entry.invalidateAllResolutionInformation(false);
+          entry.invalidateParseInformation();
           _workManager.add(source, SourcePriority.HTML);
         }
       }
@@ -8172,6 +8172,18 @@ class DartEntry extends SourceEntry {
   }
 
   /**
+   * Invalidate all of the parse and resolution information associated with
+   * this source.
+   */
+  void invalidateParseInformation() {
+    setState(SOURCE_KIND, CacheState.INVALID);
+    setState(PARSE_ERRORS, CacheState.INVALID);
+    setState(PARSED_UNIT, CacheState.INVALID);
+    _containingLibraries.clear();
+    _discardCachedResolutionInformation(true);
+  }
+
+  /**
    * Record that an [exception] occurred while attempting to build the element
    * model for the source represented by this entry in the context of the given
    * [library]. This will set the state of all resolution-based information as
@@ -9169,12 +9181,23 @@ class HtmlEntry extends SourceEntry {
    * source files should also be invalidated.
    */
   void invalidateAllResolutionInformation(bool invalidateUris) {
+    setState(RESOLVED_UNIT, CacheState.INVALID);
     setState(ELEMENT, CacheState.INVALID);
     setState(RESOLUTION_ERRORS, CacheState.INVALID);
     setState(HINTS, CacheState.INVALID);
     if (invalidateUris) {
       setState(REFERENCED_LIBRARIES, CacheState.INVALID);
     }
+  }
+
+  /**
+   * Invalidate all of the parse and resolution information associated with
+   * this source.
+   */
+  void invalidateParseInformation() {
+    setState(PARSE_ERRORS, CacheState.INVALID);
+    setState(PARSED_UNIT, CacheState.INVALID);
+    invalidateAllResolutionInformation(true);
   }
 
   @override
