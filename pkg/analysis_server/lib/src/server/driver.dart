@@ -122,9 +122,14 @@ class Driver implements ServerStarter {
   static const String SDK_OPTION = "sdk";
 
   /**
-   * The name of the option used to disable error notifications.
+   * The name of the flag used to disable error notifications.
    */
   static const String NO_ERROR_NOTIFICATION = "no-error-notification";
+
+  /**
+   * The name of the option used to set the file read mode.
+   */
+  static const String FILE_READ_MODE = "file-read-mode";
 
   /**
    * The instrumentation server that is to be used by the analysis server.
@@ -201,6 +206,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
+    analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
@@ -328,6 +334,17 @@ class Driver implements ServerStarter {
         help: "disable sending all analysis error notifications to the server",
         defaultsTo: false,
         negatable: false);
+    parser.addOption(
+        FILE_READ_MODE,
+        help: "an option of the ways files can be read from disk, " +
+            "some clients normalize end of line characters which would make " +
+            "the file offset and range information incorrect.",
+        allowed: ["as-is", "normalize-eol-always"],
+        allowedHelp: {
+      "as-is": "file contents are read as-is, no file changes occur",
+      "normalize-eol-always":
+          "file contents normalize the end of line characters to the single character new line `\n`"
+    }, defaultsTo: "as-is");
 
     return parser;
   }

@@ -9,6 +9,7 @@ library engine.all_the_rest_test;
 
 import 'dart:collection';
 
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -7382,6 +7383,48 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource.con1(file);
     expect(source.shortName, "exist.dart");
+  }
+
+  void test_fileReadMode() {
+    expect(FileBasedSource.fileReadMode('a'), 'a');
+    expect(FileBasedSource.fileReadMode('a\n'), 'a\n');
+    expect(FileBasedSource.fileReadMode('ab'), 'ab');
+    expect(FileBasedSource.fileReadMode('abc'), 'abc');
+    expect(FileBasedSource.fileReadMode('a\nb'), 'a\nb');
+    expect(FileBasedSource.fileReadMode('a\rb'), 'a\rb');
+    expect(FileBasedSource.fileReadMode('a\r\nb'), 'a\r\nb');
+  }
+
+  void test_fileReadMode_changed() {
+    FileBasedSource.fileReadMode = (String s) => s + 'xyz';
+    expect(FileBasedSource.fileReadMode('a'), 'axyz');
+    expect(FileBasedSource.fileReadMode('a\n'), 'a\nxyz');
+    expect(FileBasedSource.fileReadMode('ab'), 'abxyz');
+    expect(FileBasedSource.fileReadMode('abc'), 'abcxyz');
+    FileBasedSource.fileReadMode = (String s) => s;
+  }
+
+  void test_fileReadMode_normalize_eol_always() {
+    FileBasedSource.fileReadMode =
+        PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS;
+    expect(FileBasedSource.fileReadMode('a'), 'a');
+
+    // '\n' -> '\n' as first, last and only character
+    expect(FileBasedSource.fileReadMode('\n'), '\n');
+    expect(FileBasedSource.fileReadMode('a\n'), 'a\n');
+    expect(FileBasedSource.fileReadMode('\na'), '\na');
+
+    // '\r\n' -> '\n' as first, last and only character
+    expect(FileBasedSource.fileReadMode('\r\n'), '\n');
+    expect(FileBasedSource.fileReadMode('a\r\n'), 'a\n');
+    expect(FileBasedSource.fileReadMode('\r\na'), '\na');
+
+    // '\r' -> '\n' as first, last and only character
+    expect(FileBasedSource.fileReadMode('\r'), '\n');
+    expect(FileBasedSource.fileReadMode('a\r'), 'a\n');
+    expect(FileBasedSource.fileReadMode('\ra'), '\na');
+
+    FileBasedSource.fileReadMode = (String s) => s;
   }
 
   void test_hashCode() {

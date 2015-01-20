@@ -62,8 +62,17 @@ class SocketServer {
       });
       return;
     }
-    PhysicalResourceProvider resourceProvider =
-        PhysicalResourceProvider.INSTANCE;
+    PhysicalResourceProvider resourceProvider;
+    if (analysisServerOptions.fileReadMode == 'as-is') {
+      resourceProvider = PhysicalResourceProvider.INSTANCE;
+    } else if (analysisServerOptions.fileReadMode == 'normalize-eol-always') {
+      resourceProvider =
+          new PhysicalResourceProvider(PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
+    } else {
+      throw new Exception(
+          'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
+    }
+
     analysisServer = new AnalysisServer(
         serverChannel,
         resourceProvider,

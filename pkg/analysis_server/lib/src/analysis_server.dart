@@ -951,6 +951,7 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool noErrorNotification = false;
+  String fileReadMode = 'as-is';
 }
 
 /**
