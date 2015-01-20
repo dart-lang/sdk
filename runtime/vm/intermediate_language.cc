@@ -217,7 +217,7 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   ASSERT(IsDenseSwitch());
   intptr_t mask = 0;
   for (intptr_t i = 0; i < cids_.length(); ++i) {
-    mask |= 1 << (cids_[i] - cids_[0]);
+    mask |= static_cast<intptr_t>(1) << (cids_[i] - cids_[0]);
   }
   return mask;
 }
