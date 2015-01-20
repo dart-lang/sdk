@@ -2169,6 +2169,10 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+  // An invisible function is hidden from stack traces, will not be enumerated
+  // by mirrors, and cannot be directly invoked by mirrors. All private
+  // functions in dart:* libraries are marked invisible by the parser.
+
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
   V(Const, is_const)                                                           \

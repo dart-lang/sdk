@@ -15,6 +15,7 @@ javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude o
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
+io/observatory_test: Fail
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.

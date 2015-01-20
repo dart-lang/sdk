@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "lib/mirrors.h"
+
 #include "lib/invocation_mirror.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
@@ -1127,9 +1129,10 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       }
     } else if (entry.IsFunction()) {
       const Function& func = Function::Cast(entry);
-      if (func.kind() == RawFunction::kRegularFunction ||
+      if (func.is_visible() &&
+          (func.kind() == RawFunction::kRegularFunction ||
           func.kind() == RawFunction::kGetterFunction ||
-          func.kind() == RawFunction::kSetterFunction) {
+          func.kind() == RawFunction::kSetterFunction)) {
         member_mirror = CreateMethodMirror(func, owner_mirror);
         member_mirrors.Add(member_mirror);
       }
