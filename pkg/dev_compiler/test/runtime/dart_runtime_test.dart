@@ -129,8 +129,8 @@ void main() {
     // Instance of self
     checkType(m1, m1.runtimeType);
 
-    // No covariance on generics
-    checkType(m1, m2.runtimeType, false);
+    // Covariance on generics
+    checkType(m1, m2.runtimeType);
 
     // No contravariance on generics.
     checkType(m2, m1.runtimeType, false);
@@ -144,18 +144,33 @@ void main() {
   });
 
   test('generic and inheritance', () {
+    AA aaraw = new AA();
+    final aarawtype = aaraw.runtimeType;
+    AA<dynamic, dynamic> aadynamic = new AA<dynamic, dynamic>();
+    final aadynamictype = aadynamic.runtimeType;
     AA<String, List> aa = new AA<String, List>();
     final aatype = aa.runtimeType;
     BB<String, List> bb = new BB<String, List>();
     final bbtype = bb.runtimeType;
     CC cc = new CC();
     final cctype = cc.runtimeType;
+    AA<String> aabad = new AA<String>();
+    final aabadtype = aabad.runtimeType;
 
     expect(isGroundType(aatype), isFalse);
     expect(isGroundType(bbtype), isFalse);
     expect(isGroundType(cctype), isTrue);
     checkType(cc, aatype, false);
     checkType(cc, bbtype);
+    checkType(aa, cctype, false);
+    checkType(aa, bbtype, false);
+    checkType(bb, cctype, false);
+    checkType(aa, aabadtype);
+    checkType(aabad, aatype, false);
+    checkType(aabad, aarawtype);
+    checkType(aaraw, aabadtype);
+    checkType(aaraw, aadynamictype);
+    checkType(aadynamic, aarawtype);
   });
 
   test('Functions', () {

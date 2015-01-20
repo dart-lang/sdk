@@ -152,20 +152,37 @@ bool _isFunctionSubType(TypeMirror t1, TypeMirror t2) {
 bool _isClassSubType(ClassMirror m1, ClassMirror m2) {
   // TODO(vsm): Consider some caching for efficiency here.
 
-  // We are more restrictive than Dart's covariant generics.
-  // Ours are invariant, with the addition that:
-  // - S<T> <: S
-  // - S<dynamic> == S
+  // We support Dart's covariant generics with the caveat that we do not
+  // substitute bottom for dynamic in subtyping rules.
+  // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:
+  // - S !<: S<T1, ..., Tn>
+  // - S<dynamic, ..., dynamic> !<: S<T1, ..., Tn>
   if (m1 == m2) return true;
 
   if (m1.hasReflectedType && m1.reflectedType == Object) return false;
 
-  // Check if m1 is not in raw form.
-  if (m1 != m1.originalDeclaration) {
-    // Raw(m1) <: m2 => m1 <: m2
-    if (_isClassSubType(m1.originalDeclaration, m2)) {
+  // Check if m1 and m2 have the same raw type.  If so, check covariance on
+  // type parameters.
+  if (m1.originalDeclaration == m2.originalDeclaration) {
+    final typeArguments1 = m1.typeArguments;
+    final typeArguments2 = m2.typeArguments;
+    final length = typeArguments1.length;
+    if (typeArguments2.length == 0) {
+      // m2 is the raw form of m1
       return true;
+    } else if (typeArguments1.length == 0) {
+      // m1 is raw, but m2 is not
+      return false;
     }
+    assert(typeArguments2.length == length);
+    for (var i = 0; i < length; ++i) {
+      var typeArgument1 = typeArguments1[i];
+      var typeArgument2 = typeArguments2[i];
+      if (!_isSubType(typeArgument1, typeArgument2)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // Check superclass.
