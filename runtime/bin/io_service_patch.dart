@@ -11,7 +11,7 @@ patch class _IOService {
   static Map<int, Completer> _messageMap = {};
   static int _id = 0;
 
-  /* patch */ static Future _dispatch(int request, List data) {
+  /* patch */ static Future dispatch(int request, List data) {
     int id;
     do {
       id = _getNextId();

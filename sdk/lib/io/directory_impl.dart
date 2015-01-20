@@ -44,7 +44,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<bool> exists() {
-    return _IOService._dispatch(_DIRECTORY_EXISTS, [path]).then((response) {
+    return _IOService.dispatch(_DIRECTORY_EXISTS, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Exists failed");
       }
@@ -103,7 +103,7 @@ class _Directory extends FileSystemEntity implements Directory {
         }
       });
     } else {
-      return _IOService._dispatch(_DIRECTORY_CREATE, [path]).then((response) {
+      return _IOService.dispatch(_DIRECTORY_CREATE, [path]).then((response) {
         if (_isErrorResponse(response)) {
           throw _exceptionOrErrorFromResponse(response, "Creation failed");
         }
@@ -140,7 +140,7 @@ class _Directory extends FileSystemEntity implements Directory {
     } else {
       fullPrefix = "$path${Platform.pathSeparator}$prefix";
     }
-    return _IOService._dispatch(_DIRECTORY_CREATE_TEMP, [fullPrefix])
+    return _IOService.dispatch(_DIRECTORY_CREATE_TEMP, [fullPrefix])
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
@@ -173,7 +173,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> _delete({bool recursive: false}) {
-    return _IOService._dispatch(_DIRECTORY_DELETE, [path, recursive])
+    return _IOService.dispatch(_DIRECTORY_DELETE, [path, recursive])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionOrErrorFromResponse(response, "Deletion failed");
@@ -190,7 +190,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> rename(String newPath) {
-    return _IOService._dispatch(_DIRECTORY_RENAME, [path, newPath])
+    return _IOService.dispatch(_DIRECTORY_RENAME, [path, newPath])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionOrErrorFromResponse(response, "Rename failed");
@@ -281,7 +281,7 @@ class _AsyncDirectoryLister {
   Stream get stream => controller.stream;
 
   void onListen() {
-    _IOService._dispatch(_DIRECTORY_LIST_START, [path, recursive, followLinks])
+    _IOService.dispatch(_DIRECTORY_LIST_START, [path, recursive, followLinks])
         .then((response) {
           if (response is int) {
             id = response;
@@ -319,7 +319,7 @@ class _AsyncDirectoryLister {
     if (controller.isPaused) return;
     if (nextRunning) return;
     nextRunning = true;
-    _IOService._dispatch(_DIRECTORY_LIST_NEXT, [id]).then((result) {
+    _IOService.dispatch(_DIRECTORY_LIST_NEXT, [id]).then((result) {
       nextRunning = false;
       if (result is List) {
         next();
@@ -359,7 +359,7 @@ class _AsyncDirectoryLister {
     }
     closed = true;
     if (id != null) {
-      _IOService._dispatch(_DIRECTORY_LIST_STOP, [id]).whenComplete(cleanup);
+      _IOService.dispatch(_DIRECTORY_LIST_STOP, [id]).whenComplete(cleanup);
     } else {
       cleanup();
     }

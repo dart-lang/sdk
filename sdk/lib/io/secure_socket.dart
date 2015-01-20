@@ -1162,7 +1162,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       args[2 * i + 3] = bufs[i].end;
     }
 
-    return _IOService._dispatch(_SSL_PROCESS_FILTER, args).then((response) {
+    return _IOService.dispatch(_SSL_PROCESS_FILTER, args).then((response) {
       if (response.length == 2) {
         _reportError(new TlsException('${response[1]} error ${response[0]}'),
                      null);

@@ -160,6 +160,98 @@ RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 const double MegamorphicCache::kLoadFactor = 0.75;
 
 
+// The following functions are marked as invisible, meaning they will be hidden
+// in the stack trace and will be hidden from reflective access.
+// All mutators of canonical constants should be hidden from reflective access.
+// Additionally, private functions in dart:* that are native or constructors are
+// marked as invisible by the parser.
+#define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
+  V(AsyncLibrary, _AsyncRun, _scheduleImmediate)                               \
+  V(CoreLibrary, StringBuffer, _addPart)                                       \
+  V(CoreLibrary, _Bigint, _ensureLength)                                       \
+  V(CoreLibrary, _Bigint, _clamp)                                              \
+  V(CoreLibrary, _Bigint, _absAdd)                                             \
+  V(CoreLibrary, _Bigint, _absSub)                                             \
+  V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
+  V(CoreLibrary, _Bigint, _mulAdd)                                             \
+  V(CoreLibrary, _Bigint, _sqrAdd)                                             \
+  V(CoreLibrary, _Double, _addFromInteger)                                     \
+  V(CoreLibrary, _Double, _moduloFromInteger)                                  \
+  V(CoreLibrary, _Double, _mulFromInteger)                                     \
+  V(CoreLibrary, _Double, _remainderFromInteger)                               \
+  V(CoreLibrary, _Double, _subFromInteger)                                     \
+  V(CoreLibrary, _Double, _truncDivFromInteger)                                \
+  V(CoreLibrary, _Montgomery, _mulMod)                                         \
+  V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, int, _throwFormatException)                                   \
+
+
+#define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
+  V(AsyncLibrary, _asyncRunCallback)                                           \
+  V(AsyncLibrary, _rootHandleUncaughtError)                                    \
+  V(AsyncLibrary, _scheduleAsyncCallback)                                      \
+  V(AsyncLibrary, _schedulePriorityAsyncCallback)                              \
+  V(AsyncLibrary, _setScheduleImmediateClosure)                                \
+  V(AsyncLibrary, _setTimerFactoryClosure)                                     \
+  V(IsolateLibrary, _isolateScheduleImmediate)                                 \
+  V(IsolateLibrary, _startIsolate)                                             \
+  V(IsolateLibrary, _startMainIsolate)                                         \
+  V(MirrorsLibrary, _n)                                                        \
+  V(MirrorsLibrary, _s)                                                        \
+  V(TypedDataLibrary, _toInt16)                                                \
+  V(TypedDataLibrary, _toInt32)                                                \
+  V(TypedDataLibrary, _toInt64)                                                \
+  V(TypedDataLibrary, _toInt8)                                                 \
+  V(TypedDataLibrary, _toUint16)                                               \
+  V(TypedDataLibrary, _toUint32)                                               \
+  V(TypedDataLibrary, _toUint64)                                               \
+  V(TypedDataLibrary, _toUint8)                                                \
+
+
+static void MarkClassFunctionAsInvisible(const Library& lib,
+                                         const char* class_name,
+                                         const char* function_name) {
+  ASSERT(!lib.IsNull());
+  const Class& cls = Class::Handle(
+      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
+  ASSERT(!cls.IsNull());
+  const Function& function =
+      Function::Handle(
+          cls.LookupFunctionAllowPrivate(
+              String::Handle(String::New(function_name))));
+  ASSERT(!function.IsNull());
+  function.set_is_visible(false);
+}
+
+static void MarkLibraryFunctionAsInvisible(const Library& lib,
+                                           const char* function_name) {
+  ASSERT(!lib.IsNull());
+  const Function& function =
+      Function::Handle(
+          lib.LookupFunctionAllowPrivate(
+              String::Handle(String::New(function_name))));
+  ASSERT(!function.IsNull());
+  function.set_is_visible(false);
+}
+
+
+static void MarkInvisibleFunctions() {
+#define MARK_FUNCTION(lib, class_name, function_name)                          \
+  MarkClassFunctionAsInvisible(Library::Handle(Library::lib()),                \
+      #class_name, #function_name);                                            \
+
+INVISIBLE_CLASS_FUNCTIONS(MARK_FUNCTION)
+#undef MARK_FUNCTION
+
+#define MARK_FUNCTION(lib, function_name)                                      \
+  MarkLibraryFunctionAsInvisible(Library::Handle(Library::lib()),              \
+      #function_name);                                                         \
+
+INVISIBLE_LIBRARY_FUNCTIONS(MARK_FUNCTION)
+#undef MARK_FUNCTION
+}
+
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -1399,6 +1491,7 @@ RawError* Object::Init(Isolate* isolate) {
   }
 
   ClassFinalizer::VerifyBootstrapClasses();
+  MarkInvisibleFunctions();
 
   // Set up the intrinsic state of all functions (core, math and typed data).
   Intrinsifier::InitializeState();

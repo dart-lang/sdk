@@ -329,7 +329,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
-    return _IOService._dispatch(_SOCKET_LOOKUP, [host, type._value])
+    return _IOService.dispatch(_SOCKET_LOOKUP, [host, type._value])
         .then((response) {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed host lookup: '$host'");
@@ -343,7 +343,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<InternetAddress> reverseLookup(InternetAddress addr) {
-    return _IOService._dispatch(_SOCKET_REVERSE_LOOKUP, [addr._in_addr])
+    return _IOService.dispatch(_SOCKET_REVERSE_LOOKUP, [addr._in_addr])
         .then((response) {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed reverse host lookup", addr);
@@ -357,7 +357,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       bool includeLoopback: false,
       bool includeLinkLocal: false,
       InternetAddressType type: InternetAddressType.ANY}) {
-    return _IOService._dispatch(_SOCKET_LIST_INTERFACES, [type._value])
+    return _IOService.dispatch(_SOCKET_LIST_INTERFACES, [type._value])
         .then((response) {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed listing interfaces");

@@ -29,9 +29,26 @@ var blacklist = [
   // These prevent the test from exiting.
   'dart.io.sleep',
   'dart.io.HttpServer.HttpServer.listenOn',
+  new RegExp('dart\.io\..*'),  /// smi: ok
+  new RegExp('dart\.io\._Timer\..*'),
+  new RegExp('dart\.isolate\..*'),
+
+  // Runtime exceptions we can't catch because they occur too early in event
+  // dispatch to be caught in a zone.
+  'dart.io._Timer._createTimer',  /// smi: ok
+  'dart.async.runZoned',  /// string: ok
+  'dart.async._ScheduleImmediate._closure',
 
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.
+  'dart.io._IOService.dispatch',
+  'dart.io._IOService._initialize',
+  'dart.io._IOService._finalize',
+  'dart.io._StdIOUtils._socketType',
+  'dart.io._StdIOUtils._getStdioOutputStream',
+  'dart.io._Filter.newZLibInflateFilter',
+  'dart.io._Filter.newZLibDeflateFilter',
+  'dart.io._FileSystemWatcher._listenOnSocket',
   'dart.io.SystemEncoding.decode',  // Windows only
   'dart.io.SystemEncoding.encode',  // Windows only
 ];

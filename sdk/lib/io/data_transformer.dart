@@ -457,15 +457,15 @@ class _ZLibEncoderSink extends _FilterSink {
   _ZLibEncoderSink(ByteConversionSink sink, bool gzip, int level,
                    int windowBits, int memLevel, int strategy,
                    List<int> dictionary, bool raw)
-      : super(sink, _Filter._newZLibDeflateFilter(gzip, level, windowBits,
-                                                  memLevel, strategy,
-                                                  dictionary, raw));
+      : super(sink, _Filter.newZLibDeflateFilter(gzip, level, windowBits,
+                                                 memLevel, strategy,
+                                                 dictionary, raw));
 }
 
 class _ZLibDecoderSink extends _FilterSink {
   _ZLibDecoderSink(ByteConversionSink sink, int windowBits,
                    List<int> dictionary, bool raw)
-      : super(sink, _Filter._newZLibInflateFilter(windowBits, dictionary, raw));
+      : super(sink, _Filter.newZLibInflateFilter(windowBits, dictionary, raw));
 }
 
 
@@ -552,13 +552,13 @@ abstract class _Filter {
    */
   void end();
 
-  external static _Filter _newZLibDeflateFilter(bool gzip, int level,
-                                                int windowBits, int memLevel,
-                                                int strategy,
-                                                List<int> dictionary, bool raw);
+  external static _Filter newZLibDeflateFilter(bool gzip, int level,
+                                               int windowBits, int memLevel,
+                                               int strategy,
+                                               List<int> dictionary, bool raw);
 
-  external static _Filter _newZLibInflateFilter(int windowBits,
-                                                List<int> dictionary, bool raw);
+  external static _Filter newZLibInflateFilter(int windowBits,
+                                               List<int> dictionary, bool raw);
 }
 
 void _validateZLibWindowBits(int windowBits) {

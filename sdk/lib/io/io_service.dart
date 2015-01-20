@@ -47,5 +47,5 @@ const int _DIRECTORY_RENAME = 38;
 const int _SSL_PROCESS_FILTER = 39;
 
 class _IOService {
-  external static Future _dispatch(int request, List data);
+  external static Future dispatch(int request, List data);
 }
