@@ -898,6 +898,27 @@ class Substitution {
       }
     }
   }
+
+  jsAst.Expression getCodeForVariable(int index, RuntimeTypes rti) {
+    jsAst.Expression declaration(TypeVariableType variable) {
+      return new jsAst.Parameter(
+          rti.backend.namer.safeVariableName(variable.name));
+    }
+
+    jsAst.Expression use(TypeVariableType variable) {
+      return new jsAst.VariableUse(
+          rti.backend.namer.safeVariableName(variable.name));
+    }
+
+    if (arguments[index].isDynamic) {
+      return rti.backend.emitter.emitter.generateFunctionThatReturnsNull();
+    } else {
+      jsAst.Expression value =
+          rti.getTypeRepresentation(arguments[index], use);
+      Iterable<jsAst.Expression> formals = parameters.map(declaration);
+      return js('function(#) { return # }', [formals, value]);
+    }
+  }
 }
 
 /**

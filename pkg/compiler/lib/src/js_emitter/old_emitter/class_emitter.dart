@@ -601,22 +601,21 @@ class ClassEmitter extends CodeEmitterHelper {
                               ClassBuilder builder,
                               TypeVariableElement element) {
     String name = namer.readTypeVariableName(element);
-    jsAst.Expression index =
-        js.number(RuntimeTypes.getTypeVariableIndex(element));
+    int index = RuntimeTypes.getTypeVariableIndex(element);
     jsAst.Expression computeTypeVariable;
 
     Substitution substitution =
         backend.rti.computeSubstitution(
             cls, element.typeDeclaration, alwaysGenerateFunction: true);
     if (substitution != null) {
-      jsAst.Expression typeArguments =
-          js(r'#.apply(null, this.$builtinTypeInfo)',
-             substitution.getCode(backend.rti));
-      computeTypeVariable = js('#[#]', [typeArguments, index]);
+      computeTypeVariable =
+          js(r'#(this.$builtinTypeInfo)',
+             substitution.getCodeForVariable(index, backend.rti));
     } else {
       // TODO(ahe): These can be generated dynamically.
       computeTypeVariable =
-          js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]', index);
+          js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]',
+              js.number(index));
     }
     jsAst.Expression convertRtiToRuntimeType = emitter
         .staticFunctionAccess(backend.findHelper('convertRtiToRuntimeType'));

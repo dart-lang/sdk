@@ -932,14 +932,14 @@ class OldEmitter implements Emitter {
     output.addBuffer(
         jsAst.prettyPrint(
             js.statement('#.# = function() {}',
-                         [backend.namer.isolateName,
+                         [backend.namer.currentIsolate,
                           backend.rti.getFunctionThatReturnsNullName]),
             compiler, monitor: compiler.dumpInfoTask));
     output.add(N);
   }
 
   jsAst.Expression generateFunctionThatReturnsNull() {
-    return js("#.#", [backend.namer.isolateName,
+    return js("#.#", [backend.namer.currentIsolate,
                       backend.rti.getFunctionThatReturnsNullName]);
   }
 
