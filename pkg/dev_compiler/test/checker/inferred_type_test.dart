@@ -53,6 +53,29 @@ main() {
     });
   });
 
+  test('infer type on var from field', () {
+    testChecker({
+        '/main.dart': '''
+      int x;
+
+      test1() {
+        var a = x;
+        a = /*severe:StaticTypeError*/"hi";
+        a = 3;
+        var b = y;
+        b = /*severe:StaticTypeError*/"hi";
+        b = 4;
+        var c = z;
+        c = /*pass should be severe:StaticTypeError*/"hi";
+        c = 4;
+      }
+
+      int y; // field def after use
+      final z = 42; // should infer `int`
+    '''
+    });
+  });
+
   test('infer types on loop indices', () {
     // foreach loop
     testChecker({
