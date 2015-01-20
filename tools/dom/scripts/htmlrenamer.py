@@ -328,6 +328,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'ParentNode.children',
   'ParentNode.firstElementChild',
   'ParentNode.lastElementChild',
+  'ParentNode.querySelectorAll',
   'RTCPeerConnection.createAnswer',
   'RTCPeerConnection.createOffer',
   'RTCPeerConnection.getStats',
