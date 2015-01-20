@@ -2789,6 +2789,58 @@ bb() {}
 ''', expectedSuccess: false);
   }
 
+  void test_false_unbalancedCurlyBrackets_inNew() {
+    _resolveUnit(r'''
+class A {
+  aaa() {
+    if (true) {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''');
+    _updateAndValidate(r'''
+class A {
+  aaa() {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''', expectedSuccess: false);
+  }
+
+  void test_false_unbalancedCurlyBrackets_inOld() {
+    _resolveUnit(r'''
+class A {
+  aaa() {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''');
+    _updateAndValidate(r'''
+class A {
+  aaa() {
+    if (true) {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''', expectedSuccess: false);
+  }
+
   void test_fieldClassField_propagatedType() {
     _resolveUnit(r'''
 class A {
@@ -3348,17 +3400,19 @@ f3() {
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
+      source = addSource(newCode + ' ');
       source = addSource(newCode);
       _runTasks();
       LibraryElement library = resolve(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
+      // Validate tokens.
+      _assertEqualTokens(newUnit, fullNewUnit);
       // Validate that "incremental" and "full" units have the same resolution.
       try {
         assertSameResolution(newUnit, fullNewUnit, validateTypes: true);
       } on IncrementalResolutionMismatch catch (mismatch) {
         fail(mismatch.message);
       }
-      _assertEqualTokens(newUnit, fullNewUnit);
       List<AnalysisError> newFullErrors =
           analysisContext.getErrors(source).errors;
       _assertEqualErrors(newErrors, newFullErrors);
@@ -3367,6 +3421,7 @@ f3() {
   }
 
   static void _assertEqualToken(Token incrToken, Token fullToken) {
+//    print('[${incrToken.offset}] |$incrToken| vs. [${fullToken.offset}] |$fullToken|');
     expect(incrToken.type, fullToken.type);
     expect(incrToken.offset, fullToken.offset);
     expect(incrToken.length, fullToken.length);

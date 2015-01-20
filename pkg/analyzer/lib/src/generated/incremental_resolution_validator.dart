@@ -781,6 +781,11 @@ class _SameResolutionValidator implements AstVisitor {
     _visitNode(node.expression, other.expression);
   }
 
+  void _assertNode(AstNode a, AstNode b) {
+    _expectEquals(a.offset, b.offset);
+    _expectEquals(a.length, b.length);
+  }
+
   void _expectEquals(actual, expected) {
     if (actual != expected) {
       String message = '';
@@ -863,10 +868,12 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   void _visitExpression(Expression a, Expression b) {
+//    print('[${a.offset}] |$a| vs. [${b.offset}] |$b|');
     _verifyType(a.staticType, b.staticType);
     _verifyType(a.propagatedType, b.propagatedType);
     _verifyElement(a.staticParameterElement, b.staticParameterElement);
     _verifyElement(a.propagatedParameterElement, b.propagatedParameterElement);
+    _assertNode(a, b);
   }
 
   void _visitList(NodeList nodeList, NodeList otherList) {
@@ -882,8 +889,7 @@ class _SameResolutionValidator implements AstVisitor {
       _expectIsNull(other);
     } else {
       this.other = other;
-      _expectEquals(node.offset, other.offset);
-      _expectEquals(node.length, other.length);
+      _assertNode(node, other);
       node.accept(this);
     }
   }

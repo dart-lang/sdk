@@ -1261,9 +1261,20 @@ class PoorMansIncrementalResolver {
   bool resolve(String newCode) {
     logger.enter('diff/resolve $_unitSource');
     try {
+      // prepare old unit
       CompilationUnit oldUnit = _units[_unitSource];
+      if (!_areCurlyBracketsBalanced(oldUnit.beginToken)) {
+        logger.log('Unbalanced number of curly brackets in the old unit.');
+        return false;
+      }
       _unitElement = oldUnit.element;
+      // prepare new unit
       CompilationUnit newUnit = _parseUnit(newCode);
+      if (!_areCurlyBracketsBalanced(newUnit.beginToken)) {
+        logger.log('Unbalanced number of curly brackets in the new unit.');
+        return false;
+      }
+      // find difference
       _TokenPair firstPair =
           _findFirstDifferentToken(oldUnit.beginToken, newUnit.beginToken);
       _TokenPair lastPair =
@@ -1485,6 +1496,17 @@ class PoorMansIncrementalResolver {
     _entry.setValue(DartEntry.PARSE_ERRORS, _newParseErrors);
   }
 
+  /**
+   * Checks if [token] has a balanced number of open and closed curly brackets.
+   */
+  static bool _areCurlyBracketsBalanced(Token token) {
+    int numOpen = _getTokenCount(token, TokenType.OPEN_CURLY_BRACKET);
+    int numOpen2 =
+        _getTokenCount(token, TokenType.STRING_INTERPOLATION_EXPRESSION);
+    int numClosed = _getTokenCount(token, TokenType.CLOSE_CURLY_BRACKET);
+    return numOpen + numOpen2 == numClosed;
+  }
+
   static _TokenDifferenceKind _compareToken(Token oldToken, Token newToken,
       int delta) {
     if (oldToken == null && newToken == null) {
@@ -1580,7 +1602,6 @@ class PoorMansIncrementalResolver {
     return oldBeginToken;
   }
 
-
   static List<AstNode> _getParents(AstNode node) {
     List<AstNode> parents = <AstNode>[];
     while (node != null) {
@@ -1588,6 +1609,21 @@ class PoorMansIncrementalResolver {
       node = node.parent;
     }
     return parents;
+  }
+
+
+  /**
+   * Returns number of tokens with the given [type].
+   */
+  static int _getTokenCount(Token token, TokenType type) {
+    int count = 0;
+    while (token.type != TokenType.EOF) {
+      if (token.type == type) {
+        count++;
+      }
+      token = token.next;
+    }
+    return count;
   }
 
   /**
