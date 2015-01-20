@@ -41,6 +41,7 @@ part 'caching_compiler.dart';
 const List<String> INCREMENTAL_OPTIONS = const <String>[
     '--disable-type-inference',
     '--incremental-support',
+    '--generate-code-with-compile-time-errors',
     '--no-source-maps', // TODO(ahe): Remove this.
 ];
 
