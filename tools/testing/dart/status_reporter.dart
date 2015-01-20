@@ -90,16 +90,18 @@ List<Map> getCombinations() {
   return COMBINATIONS[Platform.operatingSystem];
 }
 
-void ensureBuild() {
+void ensureBuild(Iterable<String> archs) {
   print('Building many platforms. Please be patient.');
-  var archs = Platform.operatingSystem == 'linux'
-    ? '-aia32,x64,simarm,simmips'
-    : '-aia32,x64';
 
-  var result = Process.runSync('python',
-      ['tools/build.py', '-mrelease,debug', archs, 'create_sdk',
-      // We build runtime to be able to list cc tests
-      'runtime']);
+  var archString = '-a${archs.join(',')}';
+
+  var args = ['tools/build.py', '-mrelease,debug', archString, 'create_sdk',
+    // We build runtime to be able to list cc tests
+    'runtime'];
+
+  print('Running: python ${args.join(" ")}');
+
+  var result = Process.runSync('python', args);
 
   if (result.exitCode != 0) {
     print('ERROR');
@@ -130,10 +132,17 @@ void sanityCheck(String output) {
 }
 
 void main(List<String> args) {
-  ensureBuild();
+  var combinations = getCombinations();
+
+  var arches = combinations.fold(new Set<String>(), (set, value) {
+    set.addAll(value['archs']);
+    return set;
+  });
+
+  ensureBuild(arches);
 
   List<String> keys;
-  for (var combination in getCombinations()) {
+  for (var combination in combinations) {
     for (var mode in combination['modes']) {
       for (var arch in combination['archs']) {
         for (var runtime in combination['runtimes']) {
@@ -148,8 +157,9 @@ void main(List<String> args) {
             throw new Exception("Error running: ${args.join(" ")}");
           }
 
-          // Find Total: 15063 tests
-          // Everything after this will be the report.
+          // Find "JSON:"
+          // Everything after will the JSON-formatted output
+          // per --report-in-json flag above
           var totalIndex = result.stdout.indexOf('JSON:');
           var report = result.stdout.substring(totalIndex + 5);
 
