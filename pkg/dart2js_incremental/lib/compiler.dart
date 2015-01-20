@@ -5,9 +5,11 @@
 import 'dart:io';
 
 import 'dart:async' show
-    StreamSubscription,
     EventSink,
-    Future;
+    Future,
+    Stream,
+    StreamController,
+    StreamSubscription;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     IncrementalCompilationFailed,
@@ -18,8 +20,56 @@ import 'package:compiler/src/source_file_provider.dart' show
 
 import 'watcher.dart';
 
-main(List<String> arguments) async {
-  Uri originalInput = Uri.base.resolve(arguments.first);
+main(List<String> arguments) {
+  int updateCount = 0;
+  StreamSubscription<CompilerEvent> subscription =
+      compile(Uri.base.resolve(arguments.first)).listen(null);
+  subscription.onData((CompilerEvent event) {
+    switch (event.kind) {
+      case IncrementalKind.FULL:
+        updateCount = 0;
+        print('// Compiled JavaScript:');
+        print(event['.js']);
+        break;
+
+      case IncrementalKind.INCREMENTAL:
+        Stopwatch sw = event.stopwatch..start();
+        String updates = '${event.compiler.allUpdates()}';
+        sw.stop();
+
+        print('// Patch after ${++updateCount} updates,');
+        print('// computed in ${sw.elapsedMicroseconds/1000000} seconds:');
+        print(updates);
+        break;
+
+      case IncrementalKind.ERROR:
+        updateCount = 0;
+        print("Compilation failed");
+        break;
+
+      default:
+        throw "Unknown kind: ${event.kind}";
+    }
+  });
+  subscription.onError((error, StackTrace trace) {
+    if (error is IncrementalCompilationFailed) {
+      print("Incremental compilation failed due to:\n${error.reason}");
+    } else {
+      throw error;
+    }
+  });
+}
+
+Stream<CompilerEvent> compile(Uri originalInput) {
+  StreamController<CompilerEvent> controller =
+      new StreamController<CompilerEvent>();
+  compileToStream(originalInput, controller);
+  return controller.stream;
+}
+
+compileToStream(
+    Uri originalInput,
+    StreamController<CompilerEvent> controller) async {
   var watcher = new Watcher();
 
   Uri libraryRoot = Uri.base.resolve('sdk/');
@@ -48,6 +98,7 @@ main(List<String> arguments) async {
   }
 
   while (true) {
+    Stopwatch sw = new Stopwatch()..start();
     IncrementalCompiler compiler = new IncrementalCompiler(
         libraryRoot: libraryRoot,
         packageRoot: packageRoot,
@@ -55,29 +106,33 @@ main(List<String> arguments) async {
         diagnosticHandler: resilientDiagnosticHandler,
         outputProvider: outputProvider);
 
-    if (!await compiler.compile(originalInput)) {
-      print("Compilation failed");
+    bool success = await compiler.compile(originalInput);
+    sw.stop();
+    if (success) {
+      controller.add(
+          new CompilerEvent(
+              IncrementalKind.FULL, compiler, outputProvider.output, sw));
     } else {
-      print('// Compiled JavaScript:');
-      print(outputProvider['.js']);
+      controller.add(
+          new CompilerEvent(
+              IncrementalKind.ERROR, compiler, outputProvider.output, sw));
     }
 
-    int updateCount = 0;
     while (await watcher.hasChanges()) {
       try {
         Map<Uri, Uri> changes = watcher.readChanges();
 
-        Stopwatch sw = new Stopwatch()..start();
+        sw = new Stopwatch()..start();
         await compiler.compileUpdates(changes);
-
-        String updates = '${compiler.allUpdates()}';
-
         sw.stop();
-        print('// Patch after ${++updateCount} updates,');
-        print('// computed in ${sw.elapsedMicroseconds/1000000} seconds:');
-        print(updates);
-      } on IncrementalCompilationFailed catch (error) {
-        print("Incremental compilation failed due to:\n${error.reason}");
+
+        controller.add(
+            new CompilerEvent(
+                IncrementalKind.INCREMENTAL, compiler, outputProvider.output,
+                sw));
+
+      } on IncrementalCompilationFailed catch (error, trace) {
+        controller.addError(error, trace);
         break;
       }
     }
@@ -120,4 +175,24 @@ class StringEventSink implements EventSink<String> {
       data = null;
     }
   }
+}
+
+enum IncrementalKind {
+  FULL,
+  INCREMENTAL,
+  ERROR,
+}
+
+class CompilerEvent {
+  final IncrementalKind kind;
+
+  final IncrementalCompiler compiler;
+
+  final Map<String, String> _output;
+
+  final Stopwatch stopwatch;
+
+  CompilerEvent(this.kind, this.compiler, this._output, this.stopwatch);
+
+  String operator[](String key) => _output[key];
 }
