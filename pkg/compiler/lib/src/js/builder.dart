@@ -516,10 +516,11 @@ class MiniJsParser {
       '*': 5, '/': 5, '%': 5
   };
   static final UNARY_OPERATORS =
-      ['++', '--', '+', '-', '~', '!', 'typeof', 'void', 'delete'].toSet();
+      ['++', '--', '+', '-', '~', '!', 'typeof', 'void', 'delete', 'await']
+        .toSet();
 
   static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS =
-      ['typeof', 'void', 'delete', 'in', 'instanceof'].toSet();
+      ['typeof', 'void', 'delete', 'in', 'instanceof', 'await'].toSet();
 
   static int category(int code) {
     if (code >= CATEGORIES.length) return OTHER;
@@ -793,10 +794,22 @@ class MiniJsParser {
         break;
       }
     }
-
+    AsyncModifier asyncModifier;
+    if (acceptString('async')) {
+      if (acceptString('*')) {
+        asyncModifier = const AsyncModifier.asyncStar();
+      } else {
+        asyncModifier = const AsyncModifier.async();
+      }
+    } else if (acceptString('sync')) {
+      if (!acceptString('*')) error("Only sync* is valid - sync is implied");
+      asyncModifier = const AsyncModifier.syncStar();
+    } else {
+      asyncModifier = const AsyncModifier.sync();
+    }
     expectCategory(LBRACE);
     Block block = parseBlock();
-    return new Fun(params, block);
+    return new Fun(params, block, asyncModifier: asyncModifier);
   }
 
   Expression parseObjectInitializer() {
@@ -918,7 +931,8 @@ class MiniJsParser {
   Expression parseUnaryHigh() {
     String operator = lastToken;
     if (lastCategory == SYMBOL && UNARY_OPERATORS.contains(operator) &&
-        (acceptString("++") || acceptString("--"))) {
+        (acceptString("++") || acceptString("--") || acceptString('await'))) {
+      if (operator == "await") return new Await(parsePostfix());
       return new Prefix(operator, parsePostfix());
     }
     return parsePostfix();
@@ -929,6 +943,7 @@ class MiniJsParser {
     if (lastCategory == SYMBOL && UNARY_OPERATORS.contains(operator) &&
         operator != "++" && operator != "--") {
       expectCategory(SYMBOL);
+      if (operator == "await") return new Await(parsePostfix());
       return new Prefix(operator, parseUnaryLow());
     }
     return parseUnaryHigh();
@@ -1091,21 +1106,29 @@ class MiniJsParser {
         return new ExpressionStatement(declarations);
       }
 
-      if (lastToken == 'case' ||
-          lastToken == 'do' ||
-          lastToken == 'while' ||
-          lastToken == 'switch' ||
-          lastToken == 'with') {
+      if (acceptString('while')) return parseWhile();
+
+      if (acceptString('do')) return parseDo();
+
+      if (acceptString('switch')) return parseSwitch();
+
+      if (lastToken == 'case') error("Case outside switch.");
+
+      if (lastToken == 'default') error("Default outside switch.");
+
+      if (lastToken == 'with') {
         error('Not implemented in mini parser');
       }
     }
 
-
-    // TODO:  label: statement
-
     bool checkForInterpolatedStatement = lastCategory == HASH;
 
     Expression expression = parseExpression();
+
+    if (expression is VariableUse && acceptCategory(COLON)) {
+      return new LabeledStatement(expression.name, parseStatement());
+    }
+
     expectSemicolon();
 
     if (checkForInterpolatedStatement) {
@@ -1233,6 +1256,60 @@ class MiniJsParser {
       if (catchPart == null) error("expected 'finally'");
     }
     return new Try(body, catchPart, finallyPart);
+  }
+
+  SwitchClause parseSwitchClause() {
+    Expression expression = null;
+    if (acceptString('case')) {
+      expression = parseExpression();
+      expectCategory(COLON);
+    } else {
+      if (!acceptString('default')) {
+        error('expected case or default');
+      }
+      expectCategory(COLON);
+    }
+    List statements = new List<Statement>();
+    while (lastCategory != RBRACE &&
+           lastToken != 'case' &&
+           lastToken != 'default') {
+      statements.add(parseStatement());
+    }
+    return expression == null
+        ? new Default(new Block(statements))
+        : new Case(expression, new Block(statements));
+  }
+
+  Statement parseWhile() {
+    expectCategory(LPAREN);
+    Expression condition = parseExpression();
+    expectCategory(RPAREN);
+    Statement body = parseStatement();
+    return new While(condition, body);
+  }
+
+  Statement parseDo() {
+    Statement body = parseStatement();
+    if (lastToken != "while") error("Missing while after do body.");
+    getToken();
+    expectCategory(LPAREN);
+    Expression condition = parseExpression();
+    expectCategory(RPAREN);
+    expectSemicolon();
+    return new Do(body, condition);
+  }
+
+  Statement parseSwitch() {
+    expectCategory(LPAREN);
+    Expression key = parseExpression();
+    expectCategory(RPAREN);
+    expectCategory(LBRACE);
+    List<SwitchClause> clauses = new List<SwitchClause>();
+    while(lastCategory != RBRACE) {
+      clauses.add(parseSwitchClause());
+    }
+    expectCategory(RBRACE);
+    return new Switch(key, clauses);
   }
 
   Catch parseCatch() {

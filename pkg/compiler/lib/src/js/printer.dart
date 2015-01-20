@@ -6,7 +6,7 @@ part of js;
 
 class Printer extends Indentation implements NodeVisitor {
   final bool shouldCompressOutput;
-  leg.Compiler compiler;
+  leg.DiagnosticListener diagnosticListener;
   CodeBuffer outBuffer;
   bool inForInit = false;
   bool atStatementBegin = false;
@@ -19,14 +19,14 @@ class Printer extends Indentation implements NodeVisitor {
   static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
   static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
 
-  Printer(leg.Compiler compiler, DumpInfoTask monitor,
-          { allowVariableMinification: true })
-      : shouldCompressOutput = compiler.enableMinification,
+  Printer(leg.DiagnosticListener diagnosticListener, DumpInfoTask monitor,
+          { bool enableMinification: false, allowVariableMinification: true })
+      : shouldCompressOutput = enableMinification,
         monitor = monitor,
-        this.compiler = compiler,
+        diagnosticListener = diagnosticListener,
         outBuffer = new CodeBuffer(),
-        danglingElseVisitor = new DanglingElseVisitor(compiler),
-        localNamer = determineRenamer(compiler.enableMinification,
+        danglingElseVisitor = new DanglingElseVisitor(diagnosticListener),
+        localNamer = determineRenamer(enableMinification,
                                       allowVariableMinification);
 
   static LocalNamer determineRenamer(bool shouldCompressOutput,
@@ -440,6 +440,19 @@ class Printer extends Indentation implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
+    switch (fun.asyncModifier) {
+      case const AsyncModifier.sync():
+        break;
+      case const AsyncModifier.async():
+        out(' async');
+        break;
+      case const AsyncModifier.syncStar():
+        out(' sync*');
+        break;
+      case const AsyncModifier.asyncStar():
+        out(' async*');
+        break;
+    }
     blockBody(fun.body, needsSeparation: false, needsNewline: false);
     localNamer.leaveScope();
   }
@@ -620,7 +633,8 @@ class Printer extends Indentation implements NodeVisitor {
         rightPrecedenceRequirement = UNARY;
         break;
       default:
-        compiler.internalError(NO_LOCATION_SPANNABLE, "Forgot operator: $op");
+        diagnosticListener
+            .internalError(NO_LOCATION_SPANNABLE, "Forgot operator: $op");
     }
 
     visitNestedExpression(left, leftPrecedenceRequirement,
@@ -857,7 +871,7 @@ class Printer extends Indentation implements NodeVisitor {
     List<String> parts = template.split('#');
     int inputsLength = inputs == null ? 0 : inputs.length;
     if (parts.length != inputsLength + 1) {
-      compiler.internalError(NO_LOCATION_SPANNABLE,
+      diagnosticListener.internalError(NO_LOCATION_SPANNABLE,
           'Wrong number of arguments for JS: $template');
     }
     // Code that uses JS must take care of operator precedences, and
@@ -904,6 +918,11 @@ class Printer extends Indentation implements NodeVisitor {
         outIndentLn('// ${line.trim()}');
       }
     }
+  }
+
+  void visitAwait(Await node) {
+    out("await ");
+    visit(node.expression);
   }
 }
 
@@ -980,14 +999,15 @@ class VarCollector extends BaseVisitor {
  * as then-statement in an [If] that has an else branch.
  */
 class DanglingElseVisitor extends BaseVisitor<bool> {
-  leg.Compiler compiler;
+  leg.DiagnosticListener diagnosticListener;
 
-  DanglingElseVisitor(this.compiler);
+  DanglingElseVisitor(this.diagnosticListener);
 
   bool visitProgram(Program node) => false;
 
   bool visitNode(Statement node) {
-    compiler.internalError(NO_LOCATION_SPANNABLE, "Forgot node: $node");
+    diagnosticListener
+        .internalError(NO_LOCATION_SPANNABLE, "Forgot node: $node");
     return null;
   }
 
@@ -1031,6 +1051,7 @@ CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
                         bool allowVariableMinification: true}) {
   Printer printer =
       new Printer(compiler, monitor,
+                  enableMinification: compiler.enableMinification,
                   allowVariableMinification: allowVariableMinification);
   printer.visit(node);
   return printer.outBuffer;
