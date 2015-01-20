@@ -28,7 +28,7 @@ def ProcessOptions(options, args):
   return ((options.package_root != None) and
           (options.dart_executable != None))
 
-def GetPrebuiltDartExecutablePath():
+def GetPrebuiltDartExecutablePath(suffix):
   osdict = {'Darwin':'macos', 'Linux':'linux', 'Windows':'windows'}
   system = platform.system()
   executable_name = 'dart'
@@ -44,15 +44,18 @@ def GetPrebuiltDartExecutablePath():
                       'testing',
                       'bin',
                       osname,
-                      executable_name)
+                      executable_name + suffix)
 
 def RunPub(dart, pkg_root, args):
   return subprocess.call([dart, '--package-root=' + pkg_root, PUB_PATH] + args)
 
 def TryRunningExecutable(dart_executable, pkg_root):
-  return subprocess.call([dart_executable,
-                          '--package-root=' + pkg_root,
-                          CANARY_PATH]) == 42
+  try:
+    return subprocess.call([dart_executable,
+                            '--package-root=' + pkg_root,
+                            CANARY_PATH]) == 42
+  except:
+    return False;
 
 def DisplayBootstrapWarning():
   print """\
@@ -66,6 +69,26 @@ https://code.google.com/p/dart/wiki/ReplacingPrebuiltDartExecutable
 
 """
 
+def FindDartExecutable(fallback_executable, package_root):
+  # If requested, use the bootstrap binary instead of the prebuilt
+  # executable.
+  if os.getenv('DART_USE_BOOTSTRAP_BIN') != None:
+    return fallback_executable
+  # Try to find a working prebuilt dart executable.
+  dart_executable = GetPrebuiltDartExecutablePath('')
+  if TryRunningExecutable(dart_executable, package_root):
+    return dart_executable
+  dart_executable = GetPrebuiltDartExecutablePath('-arm')
+  if TryRunningExecutable(dart_executable, package_root):
+    return dart_executable
+  dart_executable = GetPrebuiltDartExecutablePath('-mips')
+  if TryRunningExecutable(dart_executable, package_root):
+    return dart_executable
+  # If the system cannot execute a prebuilt dart executable, use the bootstrap
+  # executable instead.
+  DisplayBootstrapWarning()
+  return fallback_executable
+
 def main():
   # Parse the options.
   parser = BuildArguments()
@@ -73,16 +96,8 @@ def main():
   if not ProcessOptions(options, args):
     parser.print_help()
     return 1
-  dart_executable = GetPrebuiltDartExecutablePath()
-  # If the system cannot execute the prebuilt dart executable, use the bootstrap
-  # executable instead.
-  if not TryRunningExecutable(dart_executable, options.package_root):
-    DisplayBootstrapWarning()
-    dart_executable = options.dart_executable
-  # If requested, use the bootstrap binary instead of the prebuilt
-  # executable.
-  if os.getenv('DART_USE_BOOTSTRAP_BIN') != None:
-    dart_executable = options.dart_executable
+  dart_executable = FindDartExecutable(options.dart_executable,
+                                       options.package_root)
   return RunPub(dart_executable, options.package_root, args)
 
 
