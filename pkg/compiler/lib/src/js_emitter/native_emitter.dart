@@ -298,11 +298,7 @@ class NativeEmitter {
 
     ClassElement superclass = classElement.superclass;
     assert(superclass != null);
-    // Fix superclass.  TODO(sra): make native classes inherit from Interceptor.
     assert(superclass != compiler.objectClass);
-    if (superclass == compiler.objectClass) {
-      superclass = backend.jsInterceptorClass;
-    }
 
     String superName = backend.namer.getNameOfClass(superclass);
 
