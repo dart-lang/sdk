@@ -40,9 +40,11 @@ class ClassEmitter extends CodeEmitterHelper {
 
     ClassBuilder builder = new ClassBuilder(classElement, namer);
     builder.superName = superName;
-    emitClassConstructor(classElement, builder, onlyForRti: onlyForRti);
+    emitConstructorsForCSP(classElement, onlyForRti: onlyForRti);
     emitFields(classElement, builder, onlyForRti: onlyForRti);
-    emitClassGettersSetters(classElement, builder, onlyForRti: onlyForRti);
+    emitCheckedClassSetters(classElement, builder, onlyForRti: onlyForRti);
+    emitClassGettersSettersForCSP(classElement, builder,
+                                  onlyForRti: onlyForRti);
     emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
     emitter.typeTestEmitter.emitIsTests(classElement, builder);
     if (additionalProperties != null) {
@@ -62,11 +64,15 @@ class ClassEmitter extends CodeEmitterHelper {
     emitClassBuilderWithReflectionData(
         className, classElement, builder, enclosingBuilder);
   }
-
-  void emitClassConstructor(ClassElement classElement,
-                            ClassBuilder builder,
+  /**
+  * Emits the precompiled constructor when in CSP mode.
+  */
+  void emitConstructorsForCSP(ClassElement classElement,
                             {bool onlyForRti: false}) {
     List<String> fields = <String>[];
+
+    if (!compiler.useContentSecurityPolicy) return;
+
     if (!onlyForRti && !classElement.isNative) {
       visitFields(classElement, false,
                   (Element member,
@@ -78,7 +84,6 @@ class ClassEmitter extends CodeEmitterHelper {
         fields.add(name);
       });
     }
-
     jsAst.Expression constructorAst =
         _stubGenerator.generateClassConstructor(classElement, fields);
 
@@ -218,7 +223,8 @@ class ClassEmitter extends CodeEmitterHelper {
     return fieldsAdded;
   }
 
-  void emitClassGettersSetters(ClassElement classElement,
+  /// Emits checked setters for fields.
+  void emitCheckedClassSetters(ClassElement classElement,
                                ClassBuilder builder,
                                {bool onlyForRti: false}) {
     if (onlyForRti) return;
@@ -235,11 +241,30 @@ class ClassEmitter extends CodeEmitterHelper {
           assert(!needsSetter);
           generateCheckedSetter(member, name, accessorName, builder);
         }
+      });
+    });
+  }
+
+  /// Emits getters/setters for fields if compiling in CSP mode.
+  void emitClassGettersSettersForCSP(ClassElement classElement,
+                               ClassBuilder builder,
+                               {bool onlyForRti: false}) {
+
+    if (!compiler.useContentSecurityPolicy || onlyForRti) return;
+
+    visitFields(classElement, false,
+                (VariableElement member,
+                 String name,
+                 String accessorName,
+                 bool needsGetter,
+                 bool needsSetter,
+                 bool needsCheckedSetter) {
+      compiler.withCurrentElement(member, () {
         if (needsGetter) {
-          generateGetter(member, name, accessorName, builder);
+          emitGetterForCSP(member, name, accessorName, builder);
         }
         if (needsSetter) {
-          generateSetter(member, name, accessorName, builder);
+          emitSetterForCSP(member, name, accessorName, builder);
         }
       });
     });
@@ -506,8 +531,8 @@ class ClassEmitter extends CodeEmitterHelper {
         member, setterName, builder, isGetter: false);
   }
 
-  void generateGetter(Element member, String fieldName, String accessorName,
-                      ClassBuilder builder) {
+  void emitGetterForCSP(Element member, String fieldName, String accessorName,
+                        ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
 
@@ -525,8 +550,8 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void generateSetter(Element member, String fieldName, String accessorName,
-                      ClassBuilder builder) {
+  void emitSetterForCSP(Element member, String fieldName, String accessorName,
+                        ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);
 

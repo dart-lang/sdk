@@ -232,6 +232,22 @@ class NativeEmitter {
     for (ClassElement classElement in classes) {
       if (!classElement.isNative) continue;
       if (neededClasses.contains(classElement)) {
+        ClassBuilder builder = builders[classElement];
+
+        // In CSP mode [emitClassConstructor] and [emitClassGettersSetters] have
+        // a side-effect on "precompiled" functions in [OldEmitter]. For this
+        // reason, it is important that we don't call these methods before we
+        // are certain that a class is needed.
+
+        emitterTask.oldEmitter.classEmitter
+            .emitConstructorsForCSP(classElement);
+
+        // [emitClassGettersSettersForCSP] does not affect whether or not a
+        // class is needed. If getters/setters are emitted, the class has fields
+        // and is therefore non-trivial.
+        emitterTask.oldEmitter.classEmitter.emitClassGettersSettersForCSP(
+            classElement, builder);
+
         // Define interceptor class for [classElement].
         emitterTask.oldEmitter.classEmitter.emitClassBuilderWithReflectionData(
             backend.namer.getNameOfClass(classElement),
@@ -301,12 +317,10 @@ class NativeEmitter {
     }
     builder.superName = superName;
 
-    emitterTask.oldEmitter.classEmitter.emitClassConstructor(
-        classElement, builder);
     bool hasFields = emitterTask.oldEmitter.classEmitter.emitFields(
         classElement, builder, classIsNative: true);
     int propertyCount = builder.properties.length;
-    emitterTask.oldEmitter.classEmitter.emitClassGettersSetters(
+    emitterTask.oldEmitter.classEmitter.emitCheckedClassSetters(
         classElement, builder);
     emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
         classElement, builder);
