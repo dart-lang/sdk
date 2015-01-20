@@ -463,6 +463,9 @@ abstract class Emitter {
   /// Returns the JS constructor for the given closure class [e].
   jsAst.Expression closureClassConstructorAccess(ClosureClassElement e);
 
+  /// Returns the JS expression representing a function that returns 'null'
+  jsAst.Expression generateFunctionThatReturnsNull();
+
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 

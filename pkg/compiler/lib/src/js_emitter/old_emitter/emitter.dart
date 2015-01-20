@@ -928,6 +928,20 @@ class OldEmitter implements Emitter {
     output.add(N);
   }
 
+  void emitFunctionThatReturnsNull(CodeOutput output) {
+    output.addBuffer(
+        jsAst.prettyPrint(
+            js.statement('#.# = function() {}',
+                         [backend.namer.isolateName,
+                          backend.rti.getFunctionThatReturnsNullName]),
+            compiler, monitor: compiler.dumpInfoTask));
+  }
+
+  jsAst.Expression generateFunctionThatReturnsNull() {
+    return js("#.#", [backend.namer.isolateName,
+                      backend.rti.getFunctionThatReturnsNullName]);
+  }
+
   /// Returns the code equivalent to:
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
   jsAst.Expression buildIsolateSetupClosure(Element appMain,
@@ -1464,6 +1478,7 @@ class OldEmitter implements Emitter {
     mainOutput.add('init()$N$n');
     mainOutput.add('$isolateProperties$_=$_$isolatePropertiesName$N');
 
+    emitFunctionThatReturnsNull(mainOutput);
     mainFragment.libraries.forEach(emitLibrary);
 
     Iterable<LibraryElement> libraries =

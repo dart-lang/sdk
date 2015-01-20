@@ -73,6 +73,12 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
+  // TODO(herhut): Use a single shared function.
+  js.Expression generateFunctionThatReturnsNull() {
+    return js.js('function() {}');
+  }
+
+  @override
   js.Expression constantReference(ConstantValue value) {
     return _emitter.constantEmitter.reference(value);
   }

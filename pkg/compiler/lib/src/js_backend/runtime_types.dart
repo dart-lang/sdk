@@ -32,6 +32,9 @@ class RuntimeTypes {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  String get getFunctionThatReturnsNullName
+      => backend.namer.getMappedInstanceName('functionThatReturnsNull');
+
   RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
         representationGenerator = new TypeRepresentationGenerator(compiler),
@@ -858,6 +861,7 @@ class FunctionArgumentCollector extends DartTypeVisitor {
  * of the representation consult the documentation of
  * [getSupertypeSubstitution].
  */
+//TODO(floitsch): Remove support for non-function substitutions.
 class Substitution {
   final bool isFunction;
   final List<DartType> arguments;
@@ -881,13 +885,17 @@ class Substitution {
           rti.backend.namer.safeVariableName(variable.name));
     }
 
-    jsAst.Expression value =
-        rti.getSubstitutionRepresentation(arguments, use);
-    if (isFunction) {
-      Iterable<jsAst.Expression> formals = parameters.map(declaration);
-      return js('function(#) { return # }', [formals, value]);
+    if (arguments.every((DartType type) => type.isDynamic)) {
+      return rti.backend.emitter.emitter.generateFunctionThatReturnsNull();
     } else {
-      return js('function() { return # }', value);
+      jsAst.Expression value =
+          rti.getSubstitutionRepresentation(arguments, use);
+      if (isFunction) {
+        Iterable<jsAst.Expression> formals = parameters.map(declaration);
+        return js('function(#) { return # }', [formals, value]);
+      } else {
+        return js('function() { return # }', value);
+      }
     }
   }
 }
