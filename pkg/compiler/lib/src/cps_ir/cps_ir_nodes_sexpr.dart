@@ -131,11 +131,12 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     return '$indentation(InvokeMethod $rcv $name $args $cont)';
   }
 
-  String visitInvokeSuperMethod(InvokeSuperMethod node) {
+  String visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    String receiver = access(node.receiver);
     String name = node.selector.name;
     String cont = access(node.continuation);
     String args = formatArguments(node);
-    return '$indentation(InvokeSuperMethod $name $args $cont)';
+    return '$indentation(InvokeMethodDirectly $receiver $name $args $cont)';
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {

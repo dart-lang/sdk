@@ -197,7 +197,7 @@ class InvokeStatic extends Expression implements Invoke {
 /// Invoke a method, operator, getter, setter, or index getter/setter.
 /// Converting a method to a function object is treated as a getter invocation.
 class InvokeMethod extends Expression implements Invoke {
-  final Reference<Primitive> receiver;
+  Reference<Primitive> receiver;
   final Selector selector;
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
@@ -229,17 +229,37 @@ class InvokeMethod extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
 
-/// Invoke a method, operator, getter, setter, or index getter/setter from the
-/// super class in tail position.
-class InvokeSuperMethod extends Expression implements Invoke {
+/// Invoke [target] on [receiver], bypassing dispatch and override semantics.
+///
+/// That is, if [receiver] is an instance of a class that overrides [target]
+/// with a different implementation, the overriding implementation is bypassed
+/// and [target]'s implementation is invoked.
+///
+/// As with [InvokeMethod], this can be used to invoke a method, operator,
+/// getter, setter, or index getter/setter.
+///
+/// If it is known that [target] does not use its receiver argument, then
+/// [receiver] may refer to a null constant primitive. This happens for direct
+/// invocations to intercepted methods, where the effective receiver is instead
+/// passed as a formal parameter.
+///
+/// When targeting Dart, this instruction is used to represent super calls.
+/// Here, [receiver] must always be a reference to `this`, and [target] must be
+/// a method that is available in the super class.
+class InvokeMethodDirectly extends Expression implements Invoke {
+  Reference<Primitive> receiver;
+  final Element target;
   final Selector selector;
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
 
-  InvokeSuperMethod(this.selector,
-                    Continuation cont,
-                    List<Primitive> args)
-      : continuation = new Reference<Continuation>(cont),
+  InvokeMethodDirectly(Primitive receiver,
+                       this.target,
+                       this.selector,
+                       Continuation cont,
+                       List<Primitive> args)
+      : this.receiver = new Reference<Primitive>(receiver),
+        continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
@@ -250,7 +270,7 @@ class InvokeSuperMethod extends Expression implements Invoke {
            (selector.kind == SelectorKind.INDEX && arguments.length == 2));
   }
 
-  accept(Visitor visitor) => visitor.visitInvokeSuperMethod(this);
+  accept(Visitor visitor) => visitor.visitInvokeMethodDirectly(this);
 }
 
 /// Non-const call to a constructor. The [target] may be a generative
@@ -811,7 +831,7 @@ abstract class Visitor<T> {
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
   T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
-  T visitInvokeSuperMethod(InvokeSuperMethod node) => visitExpression(node);
+  T visitInvokeMethodDirectly(InvokeMethodDirectly node) => visitExpression(node);
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
@@ -940,9 +960,10 @@ abstract class RecursiveVisitor extends Visitor {
     node.arguments.forEach(processReference);
   }
 
-  processInvokeSuperMethod(InvokeSuperMethod node) {}
-  visitInvokeSuperMethod(InvokeSuperMethod node) {
-    processInvokeSuperMethod(node);
+  processInvokeMethodDirectly(InvokeMethodDirectly node) {}
+  visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    processInvokeMethodDirectly(node);
+    processReference(node.receiver);
     processReference(node.continuation);
     node.arguments.forEach(processReference);
   }
@@ -1214,7 +1235,8 @@ class RegisterAllocator extends Visitor {
     node.arguments.forEach(visitReference);
   }
 
-  void visitInvokeSuperMethod(InvokeSuperMethod node) {
+  void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    visitReference(node.receiver);
     node.arguments.forEach(visitReference);
   }
 

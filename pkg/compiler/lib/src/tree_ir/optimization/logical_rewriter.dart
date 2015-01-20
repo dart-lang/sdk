@@ -193,7 +193,8 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
-  Expression visitInvokeSuperMethod(InvokeSuperMethod node) {
+  Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    node.receiver = visitExpression(node.receiver);
     _rewriteList(node.arguments);
     return node;
   }

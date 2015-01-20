@@ -746,7 +746,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.INDEX);
       if (isSuperCall(node)) {
-        result = irBuilder.buildSuperInvocation(selector, arguments);
+        result = irBuilder.buildSuperInvocation(element, selector, arguments);
       } else {
         result =
             irBuilder.buildDynamicInvocation(receiver, selector, arguments);
@@ -847,11 +847,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       return visitGetterSend(node);
     } else {
       Selector selector = elements.getSelector(node);
+      Element target = elements[node];
       List<ir.Primitive> arguments = new List<ir.Primitive>();
       for (ast.Node n in node.arguments) {
         arguments.add(visit(n));
       }
-      return irBuilder.buildSuperInvocation(selector, arguments);
+      return irBuilder.buildSuperInvocation(target, selector, arguments);
     }
   }
 
@@ -954,13 +955,13 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
           selector.kind == SelectorKind.INDEX);
       if (selector.isIndexSet) {
         if (isSuperCall(node)) {
-          irBuilder.buildSuperIndexSet(index, valueToStore);
+          irBuilder.buildSuperIndexSet(element, index, valueToStore);
         } else {
           irBuilder.buildDynamicIndexSet(receiver, index, valueToStore);
         }
       } else {
         if (isSuperCall(node)) {
-          irBuilder.buildSuperSet(selector, valueToStore);
+          irBuilder.buildSuperSet(element, selector, valueToStore);
         } else {
           irBuilder.buildDynamicSet(receiver, selector, valueToStore);
         }

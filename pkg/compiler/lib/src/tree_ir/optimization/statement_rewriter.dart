@@ -192,10 +192,11 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
-  Expression visitInvokeSuperMethod(InvokeSuperMethod node) {
+  Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }
+    node.receiver = visitExpression(node.receiver);
     return node;
   }
 

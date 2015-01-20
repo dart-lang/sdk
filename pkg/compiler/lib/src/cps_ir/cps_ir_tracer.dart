@@ -138,13 +138,14 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         "InvokeMethod $receiver $callName ($args) $kont");
   }
 
-  visitInvokeSuperMethod(cps_ir.InvokeSuperMethod node) {
+  visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly node) {
     String dummy = names.name(node);
+    String receiver = formatReference(node.receiver);
     String callName = node.selector.name;
     String args = node.arguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
     printStmt(dummy,
-        "InvokeSuperMethod $callName ($args) $kont");
+        "InvokeMethodDirectly $receiver $callName ($args) $kont");
   }
 
   visitInvokeConstructor(cps_ir.InvokeConstructor node) {

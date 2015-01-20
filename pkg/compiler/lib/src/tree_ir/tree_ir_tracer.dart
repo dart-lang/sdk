@@ -333,10 +333,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "$receiver.$name($args)";
   }
 
-  String visitInvokeSuperMethod(InvokeSuperMethod node) {
+  String visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    String receiver = visitExpression(node.receiver);
+    String host = node.target.enclosingClass.name;
     String name = node.selector.name;
     String args = formatArguments(node);
-    return "super.$name($args)";
+    return "$receiver.$host::$name($args)";
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {

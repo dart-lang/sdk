@@ -11,14 +11,20 @@ import 'package:compiler/src/apiimpl.dart'
        show Compiler;
 import 'memory_compiler.dart';
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/common.dart' show Element;
+import 'package:compiler/src/common.dart' show Element, ClassElement;
 
 const String TEST_MAIN_FILE = 'test.dart';
 
 class TestEntry {
   final String source;
   final String expectation;
-  const TestEntry(this.source, [this.expectation]);
+  final String elementName;
+
+  const TestEntry(this.source, [this.expectation])
+    : elementName = null;
+
+  const TestEntry.forMethod(this.elementName,
+      this.source, this.expectation);
 }
 
 String formatTest(Map test) {
@@ -31,9 +37,29 @@ String getCodeForMain(Compiler compiler) {
   return js.prettyPrint(ast, compiler).getText();
 }
 
+String getCodeForMethod(Compiler compiler,
+                        String name) {
+  Element foundElement;
+  for (Element element in compiler.enqueuer.codegen.generatedCode.keys) {
+    if (element.toString() == name) {
+      if (foundElement != null) {
+        Expect.fail('Multiple compiled elements are called $name');
+      }
+      foundElement = element;
+    }
+  }
+
+  if (foundElement == null) {
+    Expect.fail('There is no compiled element called $name');
+  }
+
+  js.Node ast = compiler.enqueuer.codegen.generatedCode[foundElement];
+  return js.prettyPrint(ast, compiler).getText();
+}
 
 runTests(List<TestEntry> tests) {
-  Expect.isTrue(const bool.fromEnvironment("USE_CPS_IR"));
+  Expect.isTrue(const bool.fromEnvironment("USE_CPS_IR"),
+      'Run with USE_CPS_IR=true');
 
   for (TestEntry test in tests) {
     Map files = {TEST_MAIN_FILE: test.source};
@@ -45,7 +71,9 @@ runTests(List<TestEntry> tests) {
         String expectation = test.expectation;
         if (expectation != null) {
           String expected = test.expectation;
-          String found = getCodeForMain(compiler);
+          String found = test.elementName == null
+              ? getCodeForMain(compiler)
+              : getCodeForMethod(compiler, test.elementName);
           if (expected != found) {
             Expect.fail('Expected:\n$expected\nbut found\n$found');
           }

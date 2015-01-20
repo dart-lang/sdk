@@ -181,6 +181,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
     if (node.constant != null) return giveup(node);
+    registry.registerInstantiatedClass(node.target.enclosingClass);
     return buildStaticInvoke(node.selector,
                              node.target,
                              visitArguments(node.arguments));
@@ -213,9 +214,13 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   }
 
   @override
-  js.Expression visitInvokeSuperMethod(tree_ir.InvokeSuperMethod node) {
-    return giveup(node);
-    // TODO: implement visitInvokeSuperMethod
+  js.Expression visitInvokeMethodDirectly(tree_ir.InvokeMethodDirectly node) {
+    registry.registerDirectInvocation(node.target.declaration);
+    return js.js('#.#.call(#, #)',
+        [glue.prototypeAccess(node.target.enclosingClass),
+         glue.invocationName(node.selector),
+         visitExpression(node.receiver),
+         visitArguments(node.arguments)]);
   }
 
   @override

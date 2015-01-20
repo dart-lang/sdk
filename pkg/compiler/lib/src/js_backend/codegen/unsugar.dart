@@ -6,7 +6,7 @@ import '../../cps_ir/cps_ir_nodes.dart';
 import '../../cps_ir/optimizers.dart';
 import '../../constants/expressions.dart';
 import '../../constants/values.dart';
-import '../../elements/elements.dart' show ClassElement;
+import '../../elements/elements.dart' show ClassElement, FieldElement;
 import '../../js_backend/codegen/glue.dart';
 import '../../dart2jslib.dart' show Selector;
 
@@ -38,6 +38,15 @@ class UnsugarVisitor extends RecursiveVisitor {
             new TrueConstantValue()));
   }
 
+  void insertLetPrim(Primitive primitive, Expression node) {
+    LetPrim let = new LetPrim(primitive);
+    InteriorNode parent = node.parent;
+    parent.body = let;
+    let.body = node;
+    node.parent = let;
+    let.parent = parent;
+  }
+
   processInvokeMethod(InvokeMethod node) {
     Selector selector = node.selector;
     if (!_glue.isInterceptedSelector(selector)) return;
@@ -50,23 +59,26 @@ class UnsugarVisitor extends RecursiveVisitor {
     Set<ClassElement> interceptedClasses =
         _glue.getInterceptedClassesOn(selector);
     _glue.registerSpecializedGetInterceptor(interceptedClasses);
-    InteriorNode parent = node.parent;
+
     Primitive receiver = node.receiver.definition;
     Primitive intercepted = new Interceptor(receiver, interceptedClasses);
-    List<Reference<Primitive>> arguments =
-        new List<Reference<Primitive>>.generate(node.arguments.length + 1,
-        (int index) {
-          return index == 0 ? new Reference<Primitive>(receiver)
-                            : node.arguments[index - 1];
-    });
-    LetPrim newNode = new LetPrim(intercepted,
-        new InvokeMethod.internal(new Reference<Primitive>(intercepted),
-            selector,
-            new Reference<Continuation>(node.continuation.definition),
-            arguments));
-    node.continuation.unlink();
-    node.receiver.unlink();
-    parent.body = newNode;
+    insertLetPrim(intercepted, node);
+    node.arguments.insert(0, node.receiver);
+    node.receiver = new Reference<Primitive>(intercepted);
+  }
+
+  Primitive makeNull() {
+    NullConstantValue nullConst = new NullConstantValue();
+    return new Constant(new PrimitiveConstantExpression(nullConst));
+  }
+
+  processInvokeMethodDirectly(InvokeMethodDirectly node) {
+    if (_glue.isInterceptedSelector(node.selector)) {
+      Primitive nullPrim = makeNull();
+      insertLetPrim(nullPrim, node);
+      node.arguments.insert(0, node.receiver);
+      node.receiver = new Reference<Primitive>(nullPrim);
+    }
   }
 
   processBranch(Branch node) {

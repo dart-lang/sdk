@@ -539,7 +539,7 @@ class _TypePropagationVisitor<T> extends Visitor {
     }
    }
 
-  void visitInvokeSuperMethod(InvokeSuperMethod node) {
+  void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     Continuation cont = node.continuation.definition;
     setReachable(cont);
 

@@ -372,7 +372,8 @@ class ParentVisitor extends RecursiveVisitor {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 
-  processInvokeSuperMethod(InvokeSuperMethod node) {
+  processInvokeMethodDirectly(InvokeMethodDirectly node) {
+    node.receiver.parent = node;
     node.continuation.parent = node;
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }

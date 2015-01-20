@@ -121,7 +121,7 @@ class SExpressionUnstringifier {
   static const String INVOKE_CONTINUATION = "InvokeContinuation";
   static const String INVOKE_CONTINUATION_RECURSIVE = "InvokeContinuation*";
   static const String INVOKE_STATIC = "InvokeStatic";
-  static const String INVOKE_SUPER_METHOD = "InvokeSuperMethod";
+  static const String INVOKE_METHOD_DIRECTLY = "InvokeMethodDirectly";
   static const String INVOKE_METHOD = "InvokeMethod";
   static const String LET_PRIM = "LetPrim";
   static const String LET_CONT = "LetCont";
@@ -227,8 +227,8 @@ class SExpressionUnstringifier {
         return parseInvokeMethod();
       case INVOKE_STATIC:
         return parseInvokeStatic();
-      case INVOKE_SUPER_METHOD:
-        return parseInvokeSuperMethod();
+      case INVOKE_METHOD_DIRECTLY:
+        return parseInvokeMethodDirectly();
       case LET_PRIM:
         return parseLetPrim();
       case LET_CONT:
@@ -438,9 +438,12 @@ class SExpressionUnstringifier {
     return new InvokeStatic(entity, selector, cont, args);
   }
 
-  /// (InvokeSuperMethod method (args) cont)
-  InvokeSuperMethod parseInvokeSuperMethod() {
-    tokens.consumeStart(INVOKE_SUPER_METHOD);
+  /// (InvokeMethodDirectly receiver method (args) cont)
+  InvokeMethodDirectly parseInvokeMethodDirectly() {
+    tokens.consumeStart(INVOKE_METHOD_DIRECTLY);
+
+    Definition receiver = name2variable[tokens.read()];
+    assert(receiver != null);
 
     String methodName = tokens.read();
 
@@ -450,8 +453,9 @@ class SExpressionUnstringifier {
     assert(cont != null);
 
     tokens.consumeEnd();
+    Element element = new DummyElement(methodName);
     Selector selector = dummySelector(methodName, args.length);
-    return new InvokeSuperMethod(selector, cont, args);
+    return new InvokeMethodDirectly(receiver, element, selector, cont, args);
   }
 
   // (rec? name (args) body)

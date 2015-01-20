@@ -89,4 +89,10 @@ class Glue {
     return _namer.instanceFieldPropertyName(field);
   }
 
+  js.Expression prototypeAccess(ClassElement e,
+                                {bool hasBeenInstantiated: false}) {
+    return _emitter.prototypeAccess(e,
+        hasBeenInstantiated: hasBeenInstantiated);
+  }
+
 }

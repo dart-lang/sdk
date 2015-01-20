@@ -146,7 +146,7 @@ void main() {
           , "InvokeContinuation"
           , "InvokeMethod"
           , "InvokeStatic"
-          , "InvokeSuperMethod"
+          , "InvokeMethodDirectly"
           , "LetCont"
           , "LetPrim"
           , "SetClosureVariable"

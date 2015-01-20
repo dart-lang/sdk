@@ -400,11 +400,13 @@ abstract class IrBuilder {
         (k) => new ir.InvokeStatic(element, selector, k, arguments));
   }
 
-  ir.Primitive _buildInvokeSuper(Selector selector,
-                                 List<ir.Primitive> arguments) {
+  ir.Primitive _buildInvokeDirectly(Element target,
+                                    Selector selector,
+                                    List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.InvokeSuperMethod(selector, k, arguments));
+        (k) => new ir.InvokeMethodDirectly(
+            buildThis(), target, selector, k, arguments));
   }
 
   ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
@@ -632,31 +634,23 @@ abstract class IrBuilder {
   /// Create a super invocation where the method name and the argument structure
   /// are defined by [selector] and the argument values are defined by
   /// [arguments].
-  ir.Primitive buildSuperInvocation(Selector selector,
-                                    List<ir.Primitive> arguments) {
-    return _buildInvokeSuper(selector, arguments);
-  }
-
-  /// Create a getter invocation on the super class where the getter name is
-  /// defined by [selector].
-  ir.Primitive buildSuperGet(Selector selector) {
-    assert(selector.isGetter);
-    return _buildInvokeSuper(selector, const <ir.Primitive>[]);
-  }
+  ir.Primitive buildSuperInvocation(Element target,
+                                    Selector selector,
+                                    List<ir.Primitive> arguments);
 
   /// Create a setter invocation on the super class where the setter name and
   /// argument are defined by [selector] and [value], respectively.
-  ir.Primitive buildSuperSet(Selector selector, ir.Primitive value) {
-    assert(selector.isSetter);
-    _buildInvokeSuper(selector, <ir.Primitive>[value]);
-    return value;
+  void buildSuperSet(Element target, Selector selector, ir.Primitive value) {
+    buildSuperInvocation(target, selector, [value]);
   }
 
   /// Create an index set invocation on the super class with the provided
   /// [index] and [value].
-  ir.Primitive buildSuperIndexSet(ir.Primitive index,
+  ir.Primitive buildSuperIndexSet(Element target,
+                                  ir.Primitive index,
                                   ir.Primitive value) {
-    _buildInvokeSuper(new Selector.indexSet(), <ir.Primitive>[index, value]);
+    _buildInvokeDirectly(target, new Selector.indexSet(),
+        <ir.Primitive>[index, value]);
     return value;
   }
 
@@ -1731,6 +1725,12 @@ class DartIrBuilder extends IrBuilder {
     return thisPrim;
   }
 
+  ir.Primitive buildSuperInvocation(Element target,
+                                    Selector selector,
+                                    List<ir.Primitive> arguments) {
+    return _buildInvokeDirectly(target, selector, arguments);
+  }
+
 }
 
 /// State shared between JsIrBuilders within the same function.
@@ -1932,6 +1932,29 @@ class JsIrBuilder extends IrBuilder {
     ir.Primitive thisPrim = new ir.This();
     add(new ir.LetPrim(thisPrim));
     return thisPrim;
+  }
+
+  ir.Primitive buildSuperInvocation(Element target,
+                                    Selector selector,
+                                    List<ir.Primitive> arguments) {
+    // Direct calls to FieldElements are currently problematic because the
+    // backend will not issue a getter for the field unless it finds a dynamic
+    // access that matches its getter.
+    // As a workaround, we generate GetField for this case, although ideally
+    // this should be the result of inlining the field's getter.
+    if (target is FieldElement) {
+      if (selector.isGetter) {
+        ir.Primitive get = new ir.GetField(buildThis(), target);
+        add(new ir.LetPrim(get));
+        return get;
+      } else {
+        assert(selector.isSetter);
+        add(new ir.SetField(buildThis(), target, arguments.single));
+        return arguments.single;
+      }
+    } else {
+      return _buildInvokeDirectly(target, selector, arguments);
+    }
   }
 }
 

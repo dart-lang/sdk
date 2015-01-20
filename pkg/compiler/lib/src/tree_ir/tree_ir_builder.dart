@@ -403,9 +403,11 @@ class Builder extends cps_ir.Visitor<Node> {
     return continueWithExpression(node.continuation, invoke);
   }
 
-  Statement visitInvokeSuperMethod(cps_ir.InvokeSuperMethod node) {
+  Statement visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly node) {
+    Expression receiver = getVariableReference(node.receiver);
     List<Expression> arguments = translateArguments(node.arguments);
-    Expression invoke = new InvokeSuperMethod(node.selector, arguments);
+    Expression invoke = new InvokeMethodDirectly(receiver, node.target,
+        node.selector, arguments);
     return continueWithExpression(node.continuation, invoke);
   }
 
