@@ -5294,6 +5294,11 @@ class AnalysisErrorSeverity implements Enum {
 
   static const ERROR = const AnalysisErrorSeverity._("ERROR");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<AnalysisErrorSeverity> VALUES = const <AnalysisErrorSeverity>[INFO, WARNING, ERROR];
+
   final String name;
 
   const AnalysisErrorSeverity._(this.name);
@@ -5357,6 +5362,11 @@ class AnalysisErrorType implements Enum {
   static const SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
 
   static const TODO = const AnalysisErrorType._("TODO");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<AnalysisErrorType> VALUES = const <AnalysisErrorType>[CHECKED_MODE_COMPILE_TIME_ERROR, COMPILE_TIME_ERROR, HINT, LINT, STATIC_TYPE_WARNING, STATIC_WARNING, SYNTACTIC_ERROR, TODO];
 
   final String name;
 
@@ -5570,6 +5580,11 @@ class AnalysisService implements Enum {
   static const OUTLINE = const AnalysisService._("OUTLINE");
 
   static const OVERRIDES = const AnalysisService._("OVERRIDES");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<AnalysisService> VALUES = const <AnalysisService>[FOLDING, HIGHLIGHTS, INVALIDATE, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
 
   final String name;
 
@@ -6133,6 +6148,11 @@ class CompletionSuggestionKind implements Enum {
 
   static const PARAMETER = const CompletionSuggestionKind._("PARAMETER");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<CompletionSuggestionKind> VALUES = const <CompletionSuggestionKind>[ARGUMENT_LIST, IMPORT, IDENTIFIER, INVOCATION, KEYWORD, NAMED_ARGUMENT, OPTIONAL_ARGUMENT, PARAMETER];
+
   final String name;
 
   const CompletionSuggestionKind._(this.name);
@@ -6414,6 +6434,11 @@ class ElementKind implements Enum {
 
   static const UNKNOWN = const ElementKind._("UNKNOWN");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, FIELD, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
+
   final String name;
 
   const ElementKind._(this.name);
@@ -6572,6 +6597,11 @@ class ExecutableKind implements Enum {
 
   static const SERVER = const ExecutableKind._("SERVER");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<ExecutableKind> VALUES = const <ExecutableKind>[CLIENT, EITHER, NOT_EXECUTABLE, SERVER];
+
   final String name;
 
   const ExecutableKind._(this.name);
@@ -6616,6 +6646,11 @@ class ExecutableKind implements Enum {
  */
 class ExecutionService implements Enum {
   static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<ExecutionService> VALUES = const <ExecutionService>[LAUNCH_DATA];
 
   final String name;
 
@@ -6667,6 +6702,11 @@ class FoldingKind implements Enum {
   static const DOCUMENTATION_COMMENT = const FoldingKind._("DOCUMENTATION_COMMENT");
 
   static const TOP_LEVEL_DECLARATION = const FoldingKind._("TOP_LEVEL_DECLARATION");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<FoldingKind> VALUES = const <FoldingKind>[COMMENT, CLASS_MEMBER, DIRECTIVES, DOCUMENTATION_COMMENT, TOP_LEVEL_DECLARATION];
 
   final String name;
 
@@ -6999,6 +7039,11 @@ class HighlightRegionType implements Enum {
   static const TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
 
   static const TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[ANNOTATION, BUILT_IN, CLASS, COMMENT_BLOCK, COMMENT_DOCUMENTATION, COMMENT_END_OF_LINE, CONSTRUCTOR, DIRECTIVE, DYNAMIC_TYPE, ENUM, ENUM_CONSTANT, FIELD, FIELD_STATIC, FUNCTION, FUNCTION_DECLARATION, FUNCTION_TYPE_ALIAS, GETTER_DECLARATION, IDENTIFIER_DEFAULT, IMPORT_PREFIX, KEYWORD, LABEL, LITERAL_BOOLEAN, LITERAL_DOUBLE, LITERAL_INTEGER, LITERAL_LIST, LITERAL_MAP, LITERAL_STRING, LOCAL_VARIABLE, LOCAL_VARIABLE_DECLARATION, METHOD, METHOD_DECLARATION, METHOD_DECLARATION_STATIC, METHOD_STATIC, PARAMETER, SETTER_DECLARATION, TOP_LEVEL_VARIABLE, TYPE_NAME_DYNAMIC, TYPE_PARAMETER];
 
   final String name;
 
@@ -7510,6 +7555,11 @@ class LinkedEditSuggestionKind implements Enum {
   static const TYPE = const LinkedEditSuggestionKind._("TYPE");
 
   static const VARIABLE = const LinkedEditSuggestionKind._("VARIABLE");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<LinkedEditSuggestionKind> VALUES = const <LinkedEditSuggestionKind>[METHOD, PARAMETER, TYPE, VARIABLE];
 
   final String name;
 
@@ -8424,6 +8474,11 @@ class RefactoringKind implements Enum {
 
   static const SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<RefactoringKind> VALUES = const <RefactoringKind>[CONVERT_GETTER_TO_METHOD, CONVERT_METHOD_TO_GETTER, EXTRACT_LOCAL_VARIABLE, EXTRACT_METHOD, INLINE_LOCAL_VARIABLE, INLINE_METHOD, MOVE_FILE, RENAME, SORT_MEMBERS];
+
   final String name;
 
   const RefactoringKind._(this.name);
@@ -8678,6 +8733,11 @@ class RefactoringMethodParameterKind implements Enum {
 
   static const NAMED = const RefactoringMethodParameterKind._("NAMED");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<RefactoringMethodParameterKind> VALUES = const <RefactoringMethodParameterKind>[REQUIRED, POSITIONAL, NAMED];
+
   final String name;
 
   const RefactoringMethodParameterKind._(this.name);
@@ -8818,6 +8878,11 @@ class RefactoringProblemSeverity implements Enum {
   static const ERROR = const RefactoringProblemSeverity._("ERROR");
 
   static const FATAL = const RefactoringProblemSeverity._("FATAL");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<RefactoringProblemSeverity> VALUES = const <RefactoringProblemSeverity>[INFO, WARNING, ERROR, FATAL];
 
   final String name;
 
@@ -9105,6 +9170,11 @@ class RequestErrorCode implements Enum {
    */
   static const UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
+
   final String name;
 
   const RequestErrorCode._(this.name);
@@ -9315,6 +9385,11 @@ class SearchResultKind implements Enum {
    */
   static const WRITE = const SearchResultKind._("WRITE");
 
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<SearchResultKind> VALUES = const <SearchResultKind>[DECLARATION, INVOCATION, READ, READ_WRITE, REFERENCE, UNKNOWN, WRITE];
+
   final String name;
 
   const SearchResultKind._(this.name);
@@ -9365,6 +9440,11 @@ class SearchResultKind implements Enum {
  */
 class ServerService implements Enum {
   static const STATUS = const ServerService._("STATUS");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<ServerService> VALUES = const <ServerService>[STATUS];
 
   final String name;
 

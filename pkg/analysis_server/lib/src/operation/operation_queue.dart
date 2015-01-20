@@ -51,6 +51,19 @@ class ServerOperationQueue {
   }
 
   /**
+   * Return the next operation to perform, or `null` if the queue is empty. This
+   * method does not change the queue.
+   */
+  ServerOperation peek() {
+    for (Queue<ServerOperation> queue in _queues) {
+      if (!queue.isEmpty) {
+        return queue.first;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Returns the next operation to perform or `null` if empty.
    */
   ServerOperation take() {

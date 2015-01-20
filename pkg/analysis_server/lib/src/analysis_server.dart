@@ -62,8 +62,10 @@ class AnalysisDoneReason {
  * [CommunicationChannel] for analysis requests and process them.
  */
 class AnalysisServer {
-
-  // Replaced during build with AnalysisServer version
+  /**
+   * The version of the analysis server. The value should be replaced
+   * automatically during the build.
+   */
   static final String VERSION = '0.0.1';
 
   /**

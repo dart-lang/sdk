@@ -254,6 +254,27 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             'static const ${value.value} = const $className._($valueString);');
         writeln();
       }
+
+      writeln('/**');
+      writeln(' * A list containing all of the enum values that are defined.');
+      writeln(' */');
+      write('static const List<');
+      write(className);
+      write('> VALUES = const <');
+      write(className);
+      write('>[');
+      bool first = true;
+      for (TypeEnumValue value in type.values) {
+        if (first) {
+          first = false;
+        } else {
+          write(', ');
+        }
+        write(value.value);
+      }
+      writeln('];');
+      writeln();
+
       writeln('final String name;');
       writeln();
       writeln('const $className._(this.name);');
