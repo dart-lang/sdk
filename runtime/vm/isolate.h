@@ -762,7 +762,10 @@ class StartIsolateScope {
  public:
   explicit StartIsolateScope(Isolate* new_isolate)
       : new_isolate_(new_isolate), saved_isolate_(Isolate::Current()) {
-    ASSERT(new_isolate_ != NULL);
+    if (new_isolate_ == NULL) {
+      // Do nothing.
+      return;
+    }
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       Isolate::SetCurrent(new_isolate_);
@@ -771,6 +774,10 @@ class StartIsolateScope {
   }
 
   ~StartIsolateScope() {
+    if (new_isolate_ == NULL) {
+      // Do nothing.
+      return;
+    }
     if (saved_isolate_ != new_isolate_) {
       new_isolate_->ClearStackLimit();
       Isolate::SetCurrent(saved_isolate_);

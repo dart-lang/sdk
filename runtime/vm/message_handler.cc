@@ -137,6 +137,9 @@ Message* MessageHandler::DequeueMessage(Message::Priority min_priority) {
 
 bool MessageHandler::HandleMessages(bool allow_normal_messages,
                                     bool allow_multiple_normal_messages) {
+  // If isolate() returns NULL StartIsolateScope does nothing.
+  StartIsolateScope start_isolate(isolate());
+
   // TODO(turnidge): Add assert that monitor_ is held here.
   bool result = true;
   Message::Priority min_priority = (allow_normal_messages && !paused()) ?

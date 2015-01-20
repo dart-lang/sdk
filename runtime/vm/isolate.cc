@@ -272,7 +272,6 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 
 
 bool IsolateMessageHandler::HandleMessage(Message* message) {
-  StartIsolateScope start_scope(I);
   StackZone zone(I);
   HandleScope handle_scope(I);
   // TODO(turnidge): Rework collection total dart execution.  This can
