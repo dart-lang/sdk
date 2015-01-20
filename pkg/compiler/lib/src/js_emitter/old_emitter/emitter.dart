@@ -935,6 +935,7 @@ class OldEmitter implements Emitter {
                          [backend.namer.isolateName,
                           backend.rti.getFunctionThatReturnsNullName]),
             compiler, monitor: compiler.dumpInfoTask));
+    output.add(N);
   }
 
   jsAst.Expression generateFunctionThatReturnsNull() {
