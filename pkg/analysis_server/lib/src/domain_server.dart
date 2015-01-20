@@ -27,7 +27,8 @@ class ServerDomainHandler implements RequestHandler {
    * Return the version number of the analysis server.
    */
   Response getVersion(Request request) {
-    return new ServerGetVersionResult('0.0.1').toResponse(request.id);
+    return new ServerGetVersionResult(
+        AnalysisServer.VERSION).toResponse(request.id);
   }
 
   @override

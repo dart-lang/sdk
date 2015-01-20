@@ -62,6 +62,10 @@ class AnalysisDoneReason {
  * [CommunicationChannel] for analysis requests and process them.
  */
 class AnalysisServer {
+
+  // Replaced during build with AnalysisServer version
+  static final String VERSION = '0.0.1';
+
   /**
    * The channel from which requests are received and to which responses should
    * be sent.

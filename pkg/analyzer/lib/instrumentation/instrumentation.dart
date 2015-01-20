@@ -178,6 +178,29 @@ class InstrumentationService {
   }
 
   /**
+   * Signal that the client has started analysis server.
+   * This method should be invoked exactly one time.
+   */
+  void logVersion(String uuid, String clientId, String clientVersion,
+      String serverVersion, String sdkVersion) {
+
+    String normalize(String value) =>
+        value != null && value.length > 0 ? value : 'unknown';
+
+    if (_instrumentationServer != null) {
+      _instrumentationServer.logWithPriority(
+          _join(
+              [
+                  TAG_VERSION,
+                  uuid,
+                  normalize(clientId),
+                  normalize(clientVersion),
+                  serverVersion,
+                  sdkVersion]));
+    }
+  }
+
+  /**
    * Signal that the client is done communicating with the instrumentation
    * server. This method should be invoked exactly one time and no other methods
    * should be invoked on this instance after this method has been invoked.

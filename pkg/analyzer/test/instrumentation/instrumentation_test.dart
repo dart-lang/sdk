@@ -105,6 +105,22 @@ class InstrumentationServiceTest {
     service.logResponse(message);
     assertNormal(server, InstrumentationService.TAG_RESPONSE, message);
   }
+
+  void test_logVersion() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    service.logVersion(
+        'myUuid',
+        'someClientId',
+        'someClientVersion',
+        'aServerVersion',
+        'anSdkVersion');
+    expect(server.normalChannel.toString(), '');
+    expect(
+        server.priorityChannel.toString(),
+        endsWith(
+            ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
+  }
 }
 
 @reflectiveTest
