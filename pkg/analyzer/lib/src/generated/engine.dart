@@ -2371,6 +2371,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           ChangeNoticeImpl notice = _getNotice(source);
           notice.compilationUnit = unit;
+          notice.resolved = true;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -2455,6 +2456,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           ChangeNoticeImpl notice = _getNotice(source);
           notice.compilationUnit = unit;
+          notice.resolved = true;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -4627,6 +4629,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit != null) {
       ChangeNoticeImpl notice = _getNotice(task.source);
       notice.compilationUnit = unit;
+      notice.resolved = true;
       _incrementalAnalysisCache =
           IncrementalAnalysisCache.cacheResult(task.cache, unit);
     }
@@ -4687,6 +4690,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry.setValue(DartEntry.INCLUDED_PARTS, newParts);
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
+    if (notice.compilationUnit == null) {
+      notice.compilationUnit = task.compilationUnit;
+      notice.resolved = false;
+    }
     notice.setErrors(dartEntry.allErrors, task.lineInfo);
     // Verify that the incrementally parsed and resolved unit in the incremental
     // cache is structurally equivalent to the fully parsed unit
@@ -4765,6 +4772,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
     notice.htmlUnit = task.resolvedUnit;
+    notice.resolved = true;
     LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
@@ -5062,6 +5070,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       LineInfo lineInfo = getLineInfo(source);
       ChangeNoticeImpl notice = _getNotice(source);
       notice.compilationUnit = unit;
+      notice.resolved = true;
       notice.setErrors(dartEntry.allErrors, lineInfo);
     });
     // OK
@@ -7232,37 +7241,38 @@ class CacheState extends Enum<CacheState> {
 }
 
 /**
- * The interface `ChangeNotice` defines the behavior of objects that represent a change to the
- * analysis results associated with a given source.
+ * An object that represents a change to the analysis results associated with a
+ * given source.
  */
 abstract class ChangeNotice implements AnalysisErrorInfo {
   /**
-   * Return the fully resolved AST that changed as a result of the analysis, or `null` if the
-   * AST was not changed.
-   *
-   * @return the fully resolved AST that changed as a result of the analysis
+   * Return the AST that changed as a result of the analysis, or `null` if the
+   * AST was not changed. Use the getter [resolved] to determine whether the
+   * AST has been fully resolved.
    */
   CompilationUnit get compilationUnit;
 
   /**
-   * Return the fully resolved HTML that changed as a result of the analysis, or `null` if the
-   * HTML was not changed.
-   *
-   * @return the fully resolved HTML that changed as a result of the analysis
+   * Return the HTML that changed as a result of the analysis, or `null` if the
+   * HTML was not changed. Use the getter [resolved] to determine whether the
+   * HTML has been fully resolved.
    */
   ht.HtmlUnit get htmlUnit;
 
   /**
+   * Return `true` if the [compilationUnit] or [htmlUnit] (whichever is
+   * currently set) has been resolved.
+   */
+  bool get resolved;
+
+  /**
    * Return the source for which the result is being reported.
-   *
-   * @return the source for which the result is being reported
    */
   Source get source;
 }
 
 /**
- * Instances of the class `ChangeNoticeImpl` represent a change to the analysis results
- * associated with a given source.
+ * An implementation of a [ChangeNotice].
  */
 class ChangeNoticeImpl implements ChangeNotice {
   /**
@@ -7276,25 +7286,34 @@ class ChangeNoticeImpl implements ChangeNotice {
   final Source source;
 
   /**
-   * The fully resolved AST that changed as a result of the analysis, or `null` if the AST was
-   * not changed.
+   * The AST that changed as a result of the analysis, or `null` if the AST was
+   * not changed. Use the getter [resolved] to determine whether the AST has
+   * been fully resolved.
    */
   CompilationUnit compilationUnit;
 
   /**
-   * The fully resolved HTML that changed as a result of the analysis, or `null` if the HTML
-   * was not changed.
+   * The HTML that changed as a result of the analysis, or `null` if the HTML
+   * was not changed. Use the getter [resolved] to determine whether the HTML
+   * has been fully resolved.
    */
   ht.HtmlUnit htmlUnit;
 
   /**
-   * The errors that changed as a result of the analysis, or `null` if errors were not
-   * changed.
+   * A flag indicating whether the [compilationUnit] or [htmlUnit] (whichever is
+   * currently set) has been resolved.
+   */
+  bool resolved = false;
+
+  /**
+   * The errors that changed as a result of the analysis, or `null` if errors
+   * were not changed.
    */
   List<AnalysisError> _errors;
 
   /**
-   * The line information associated with the source, or `null` if errors were not changed.
+   * The line information associated with the source, or `null` if errors were
+   * not changed.
    */
   LineInfo _lineInfo;
 
@@ -7312,11 +7331,8 @@ class ChangeNoticeImpl implements ChangeNotice {
   LineInfo get lineInfo => _lineInfo;
 
   /**
-   * Set the errors that changed as a result of the analysis to the given errors and set the line
-   * information to the given line information.
-   *
-   * @param errors the errors that changed as a result of the analysis
-   * @param lineInfo the line information associated with the source
+   * Set the errors that changed as a result of the analysis to the given
+   * [errors] and set the line information to the given [lineInfo].
    */
   void setErrors(List<AnalysisError> errors, LineInfo lineInfo) {
     this._errors = errors;

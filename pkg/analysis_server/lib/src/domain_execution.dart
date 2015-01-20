@@ -142,7 +142,7 @@ class ExecutionDomainHandler implements RequestHandler {
   void _fileAnalyzed(ChangeNotice notice) {
     Source source = notice.source;
     String filePath = source.fullName;
-    if (!_isInAnalysisRoot(filePath)) {
+    if (!notice.resolved || !_isInAnalysisRoot(filePath)) {
       return;
     }
     AnalysisContext context = server.getAnalysisContext(filePath);

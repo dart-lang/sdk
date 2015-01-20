@@ -174,32 +174,35 @@ class PerformAnalysisOperation extends ServerOperation {
       // Dart
       CompilationUnit dartUnit = notice.compilationUnit;
       if (dartUnit != null) {
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.HIGHLIGHTS,
-            file)) {
-          server.addOperation(new _DartHighlightsOperation(file, dartUnit));
-        }
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.NAVIGATION,
-            file)) {
-          server.addOperation(new _DartNavigationOperation(file, dartUnit));
-        }
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.OCCURRENCES,
-            file)) {
-          server.addOperation(new _DartOccurrencesOperation(file, dartUnit));
-        }
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.OUTLINE,
-            file)) {
-          LineInfo lineInfo = notice.lineInfo;
-          server.addOperation(
-              new _DartOutlineOperation(file, lineInfo, dartUnit));
-        }
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.OVERRIDES,
-            file)) {
-          server.addOperation(new _DartOverridesOperation(file, dartUnit));
+        if (notice.resolved) {
+          if (server.hasAnalysisSubscription(
+              protocol.AnalysisService.HIGHLIGHTS,
+              file)) {
+            server.addOperation(new _DartHighlightsOperation(file, dartUnit));
+          }
+          if (server.hasAnalysisSubscription(
+              protocol.AnalysisService.NAVIGATION,
+              file)) {
+            server.addOperation(new _DartNavigationOperation(file, dartUnit));
+          }
+          if (server.hasAnalysisSubscription(
+              protocol.AnalysisService.OCCURRENCES,
+              file)) {
+            server.addOperation(new _DartOccurrencesOperation(file, dartUnit));
+          }
+          if (server.hasAnalysisSubscription(
+              protocol.AnalysisService.OVERRIDES,
+              file)) {
+            server.addOperation(new _DartOverridesOperation(file, dartUnit));
+          }
+        } else {
+          if (server.hasAnalysisSubscription(
+              protocol.AnalysisService.OUTLINE,
+              file)) {
+            LineInfo lineInfo = notice.lineInfo;
+            server.addOperation(
+                new _DartOutlineOperation(file, lineInfo, dartUnit));
+          }
         }
       }
       if (server.shouldSendErrorsNotificationFor(file)) {
@@ -224,22 +227,24 @@ class PerformAnalysisOperation extends ServerOperation {
     }
     for (ChangeNotice notice in notices) {
       // Dart
-      try {
-        CompilationUnit dartUnit = notice.compilationUnit;
-        if (dartUnit != null) {
-          index.indexUnit(context, dartUnit);
+      if (notice.resolved) {
+        try {
+          CompilationUnit dartUnit = notice.compilationUnit;
+          if (dartUnit != null) {
+            index.indexUnit(context, dartUnit);
+          }
+        } catch (exception, stackTrace) {
+          server.sendServerErrorNotification(exception, stackTrace);
         }
-      } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
-      }
-      // HTML
-      try {
-        HtmlUnit htmlUnit = notice.htmlUnit;
-        if (htmlUnit != null) {
-          index.indexHtmlUnit(context, htmlUnit);
+        // HTML
+        try {
+          HtmlUnit htmlUnit = notice.htmlUnit;
+          if (htmlUnit != null) {
+            index.indexHtmlUnit(context, htmlUnit);
+          }
+        } catch (exception, stackTrace) {
+          server.sendServerErrorNotification(exception, stackTrace);
         }
-      } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
       }
     }
   }
