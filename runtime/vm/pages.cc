@@ -733,6 +733,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     set_tasks(1);
   }
 
+  // Perform various cleanup that relies on no tasks interfering.
+  isolate->class_table()->FreeOldTables();
+
   NoHandleScope no_handles(isolate);
 
   if (FLAG_print_free_list_before_gc) {

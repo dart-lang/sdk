@@ -5,6 +5,7 @@
 #include "vm/class_table.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
+#include "vm/growable_array.h"
 #include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -16,6 +17,7 @@ DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 
 ClassTable::ClassTable()
     : top_(kNumPredefinedCids), capacity_(0), table_(NULL),
+      old_tables_(new MallocGrowableArray<RawClass**>()),
       class_heap_stats_table_(NULL),
       predefined_class_heap_stats_table_(NULL) {
   if (Dart::vm_isolate() == NULL) {
@@ -51,20 +53,32 @@ ClassTable::ClassTable()
 ClassTable::ClassTable(ClassTable* original)
     : top_(original->top_),
       capacity_(original->top_),
-      table_(reinterpret_cast<RawClass**>(
-          calloc(original->top_, sizeof(RawClass*)))),
+      table_(original->table_),
+      old_tables_(NULL),
       class_heap_stats_table_(NULL),
       predefined_class_heap_stats_table_(NULL) {
-  for (intptr_t i = 1; i < top_; i++) {
-    table_[i] = original->At(i);
-  }
 }
 
 
 ClassTable::~ClassTable() {
-  free(table_);
-  free(predefined_class_heap_stats_table_);
-  free(class_heap_stats_table_);
+  if (old_tables_ != NULL) {
+    FreeOldTables();
+    delete old_tables_;
+    free(table_);
+    free(predefined_class_heap_stats_table_);
+    free(class_heap_stats_table_);
+  } else {
+    // This instance was a shallow copy. It doesn't own any memory.
+    ASSERT(predefined_class_heap_stats_table_ == NULL);
+    ASSERT(class_heap_stats_table_ == NULL);
+  }
+}
+
+
+void ClassTable::FreeOldTables() {
+  while (old_tables_->length() > 0) {
+    free(old_tables_->RemoveLast());
+  }
 }
 
 
@@ -87,9 +101,11 @@ void ClassTable::Register(const Class& cls) {
   } else {
     if (top_ == capacity_) {
       // Grow the capacity of the class table.
+      // TODO(koda): Add ClassTable::Grow to share code.
       intptr_t new_capacity = capacity_ + capacity_increment_;
       RawClass** new_table = reinterpret_cast<RawClass**>(
-          realloc(table_, new_capacity * sizeof(RawClass*)));  // NOLINT
+          malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
+      memmove(new_table, table_, capacity_ * sizeof(RawClass*));
       ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
           realloc(class_heap_stats_table_,
                   new_capacity * sizeof(ClassHeapStats)));  // NOLINT
@@ -98,7 +114,8 @@ void ClassTable::Register(const Class& cls) {
         new_stats_table[i].Initialize();
       }
       capacity_ = new_capacity;
-      table_ = new_table;
+      old_tables_->Add(table_);
+      table_ = new_table;  // TODO(koda): This should use atomics.
       class_heap_stats_table_ = new_stats_table;
     }
     ASSERT(top_ < capacity_);
@@ -118,13 +135,15 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
   ASSERT(index >= kNumPredefinedCids);
   if (index >= capacity_) {
     // Grow the capacity of the class table.
+    // TODO(koda): Add ClassTable::Grow to share code.
     intptr_t new_capacity = index + capacity_increment_;
     if (!Class::is_valid_id(index) || new_capacity < capacity_) {
       FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",
              index);
     }
     RawClass** new_table = reinterpret_cast<RawClass**>(
-        realloc(table_, new_capacity * sizeof(RawClass*)));  // NOLINT
+        malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
+    memmove(new_table, table_, capacity_ * sizeof(RawClass*));
     ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
         realloc(class_heap_stats_table_,
                 new_capacity * sizeof(ClassHeapStats)));  // NOLINT
@@ -133,7 +152,8 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
       new_stats_table[i].Initialize();
     }
     capacity_ = new_capacity;
-    table_ = new_table;
+    old_tables_->Add(table_);
+    table_ = new_table;  // TODO(koda): This should use atomics.
     class_heap_stats_table_ = new_stats_table;
     ASSERT(capacity_increment_ >= 1);
   }
