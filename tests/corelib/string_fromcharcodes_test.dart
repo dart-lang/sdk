@@ -193,4 +193,10 @@ main() {
   testSubstring("\x00" * 357);
   // length > 128 and non-ASCII.
   testSubstring("\uFFFD\uFFFE\u{10000}\u{10ffff}c\x00" * 37);
+
+  // Large List.
+  var megaList = ("abcde" * 200000).codeUnits.toList();
+  test("abcde" * 199998, megaList, 5, 999995);
+  // Large Uint8List.
+  test("abcde" * 199998, new Uint8List.fromList(megaList), 5, 999995);
 }
