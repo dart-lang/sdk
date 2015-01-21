@@ -78,15 +78,28 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       });
 
       //
+      // addStatusListener(..)
+      //
+      publicMethod('addStatusListener', () {
+        writeln('''/**
+ * Add the given listener to the list of listeners that will receive notification when the server
+ * is not active
+ * 
+ * @param listener the listener to be added
+ */''');
+        writeln(
+            'public void addStatusListener(AnalysisServerStatusListener listener);');
+      });
+
+      //
       // isSocketOpen()
       //
       publicMethod('isSocketOpen', () {
-              writeln('''/**
+        writeln('''/**
  * Return {@code true} if the socket is open.
  */''');
-        writeln(
-          'public boolean isSocketOpen();');
-        });
+        writeln('public boolean isSocketOpen();');
+      });
 
       //
       // start(..)
