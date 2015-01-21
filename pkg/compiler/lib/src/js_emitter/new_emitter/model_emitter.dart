@@ -324,7 +324,7 @@ class ModelEmitter {
     js.Expression fieldName = js.string(field.name);
     js.Expression code = js.js(getterTemplateFor(field.getterFlags), fieldName);
     String getterName = "${namer.getterPrefix}${field.name}";
-    return new StubMethod(getterName, code);
+    return new StubMethod(getterName, code, needsTearOff: false);
   }
 
   Method _generateSetter(InstanceField field) {
@@ -339,7 +339,7 @@ class ModelEmitter {
     js.Expression fieldName = js.string(field.name);
     js.Expression code = js.js(setterTemplateFor(field.setterFlags), fieldName);
     String setterName = "${namer.setterPrefix}${field.name}";
-    return new StubMethod(setterName, code);
+    return new StubMethod(setterName, code, needsTearOff: false);
   }
 
   Iterable<Method> _generateGettersSetters(Class cls) {
