@@ -331,6 +331,13 @@ class Utf8Decoder extends Converter<List<int>, String> {
    * character is discarded.
    */
   String convert(List<int> codeUnits, [int start = 0, int end]) {
+    // Allow the implementation to intercept and specialize based on the type
+    // of codeUnits.
+    String result = _convertIntercepted(_allowMalformed, codeUnits, start, end);
+    if (result != null) {
+      return null;
+    }
+
     int length = codeUnits.length;
     RangeError.checkValidRange(start, end, length);
     if (end == null) end = length;
@@ -361,6 +368,9 @@ class Utf8Decoder extends Converter<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 
   external Converter<List<int>,dynamic> fuse(Converter<String, dynamic> next);
+
+  external static String _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int end);
 }
 
 // UTF-8 constants.
