@@ -3,10 +3,11 @@ library ddc.src.codegen.js_codegen;
 import 'dart:async' show Future;
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/checker/rules.dart';
@@ -30,13 +31,15 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
 
   ClassDeclaration currentClass;
 
-  final _constEval = new ConstantEvaluator();
+  final ConstantVisitor _constVisitor;
   final _exports = <String>[];
 
   UnitGenerator(CompilationUnitElementImpl unit, this.outDir, this.libraryInfo,
-      this.rules)
+      TypeRules rules)
       : unit = unit.node,
-        uri = unit.source.uri;
+        uri = unit.source.uri,
+        rules = rules,
+        _constVisitor = new ConstantVisitor.con1(rules.provider);
 
   String get outputPath => path.join(outDir, '${uri.pathSegments.last}.js');
 
@@ -276,22 +279,14 @@ var $libName;
     for (var declaration in fields) {
       for (var field in declaration.fields.variables) {
         var init = field.initializer;
-        if (init != null) {
-          // TODO(jmesserly): check the performance of using ConstantEvaluator.
-          // We could replace it with a simpler check if needed, since we don't
-          // care about the value itself, only that the expression has no side
-          // effects.
-          var value = init.accept(_constEval);
-          if (identical(value, ConstantEvaluator.NOT_A_CONSTANT)) {
-            field.name.accept(this);
-            out.write(' = ');
-            init.accept(this);
-            out.write(';\n');
-            continue;
-          }
+        if (init != null && !_isConstant(field)) {
+          field.name.accept(this);
+          out.write(' = ');
+          init.accept(this);
+          out.write(';\n');
+        } else {
+          unsetFields[field.name.name] = field.initializer;
         }
-
-        unsetFields[field.name.name] = init;
       }
     }
 
@@ -543,19 +538,18 @@ var $libName;
     var declarations = list.variables;
     for (var declaration in declarations) {
       var name = declaration.name.name;
-      var initializer = declaration.initializer;
-      if (initializer == null) {
-        out.write('let $name');
-      } else {
-        lazy = lazy &&
-            identical(initializer.accept(_constEval),
-                ConstantEvaluator.NOT_A_CONSTANT);
+      out.write('let $name');
 
-        out.write('let $name = ');
+      var initializer = declaration.initializer;
+      if (initializer != null) {
+        out.write(' = ');
 
         // TODO(jmesserly): implement lazy eval. Probably uses the same design
         // as top level getters/setters.
-        if (lazy) out.write('/* Unimplemented lazy eval */');
+        if (lazy && !_isConstant(declaration)) {
+          out.write('/* Unimplemented lazy eval */');
+        }
+
         initializer.accept(this);
       }
     }
@@ -793,6 +787,25 @@ var $libName;
 
   void _unimplemented(AstNode node) {
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
+  }
+
+  bool _isConstant(VariableDeclaration field) =>
+      _computeConstant(field) is ValidResult;
+
+  EvaluationResultImpl _computeConstant(VariableDeclaration field) {
+    // If the constant is already computed by ConstantEvaluator, just return it.
+    VariableElementImpl element = field.element;
+    var result = element.evaluationResult;
+    if (result != null) return result;
+
+    // ConstantEvaluator will not compute constants for non-const fields
+    // at least for cases like `int x = 0;`, so run ConstantVisitor for those.
+    // TODO(jmesserly): ideally we'd only do this if we're sure it was skipped
+    // by ConstantEvaluator.
+    var initializer = field.initializer;
+    if (initializer == null) return null;
+
+    return initializer.accept(_constVisitor);
   }
 
   static const Map<String, String> _builtins = const <String, String>{

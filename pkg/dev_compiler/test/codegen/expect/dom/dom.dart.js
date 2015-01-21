@@ -18,7 +18,7 @@ var dom;
     }
   }
 
-  let overload = /* Unimplemented lazy eval */new Overload();
+  let overload = new Overload();
   let document;
   class Document {
   }

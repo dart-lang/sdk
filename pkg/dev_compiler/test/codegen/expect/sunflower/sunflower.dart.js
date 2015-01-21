@@ -4,10 +4,10 @@ var sunflower;
   let ORANGE = "orange";
   let SEED_RADIUS = 2;
   let SCALE_FACTOR = 4;
-  let TAU = /* Unimplemented lazy eval */PI * 2;
+  let TAU = PI * 2;
   let MAX_D = 300;
-  let centerX = /* Unimplemented lazy eval */MAX_D / 2;
-  let centerY = /* Unimplemented lazy eval */centerX;
+  let centerX = MAX_D / 2;
+  let centerY = centerX;
   // Function querySelector: (String) → Element
   function querySelector(selector) { return document.querySelector(selector); }
 
