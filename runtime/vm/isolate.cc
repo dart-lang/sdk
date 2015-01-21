@@ -1074,7 +1074,8 @@ void Isolate::Shutdown() {
     while (old_space->tasks() > 0) {
       ml.Wait();
     }
-    heap_->Verify(kForbidMarked);
+    // The VM isolate keeps all objects marked.
+    heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }
 #endif  // DEBUG
 
