@@ -145,6 +145,21 @@ class GetHandler {
   GetHandler(this._server, this._printBuffer);
 
   /**
+   * Return the active [CompletionDomainHandler]
+   * or `null` if either analysis server is not running
+   * or there is no completion domain handler.
+   */
+  CompletionDomainHandler get _completionDomainHandler {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return null;
+    }
+    return analysisServer.handlers.firstWhere(
+        (h) => h is CompletionDomainHandler,
+        orElse: () => null);
+  }
+
+  /**
    * Handle a GET request received by the HTTP server.
    */
   void handleGetRequest(HttpRequest request) {
@@ -573,34 +588,14 @@ class GetHandler {
    * Return a response displaying code completion information.
    */
   void _returnCompletionInfo(HttpRequest request) {
-    var refresh = request.requestedUri.queryParameters['refresh'];
-    var maxCount = request.requestedUri.queryParameters['maxCount'];
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Completion Stats</title>');
-    response.write('<style>');
-    response.write('td.right {text-align: right;}');
-    response.write('</style>');
-    if (refresh is String) {
-      int seconds = int.parse(refresh, onError: (_) => 5);
-      response.write('<meta http-equiv="refresh" content="$seconds">');
-    }
-    response.write('</head>');
-    response.write('<body>');
-    _writeCompletionInfo(response, maxCount);
-    response.write('<p>&nbsp</p>');
-    response.write('<p>Try ');
-    response.write('<a href="?refresh=5">?refresh=5</a>');
-    response.write(' to refresh every 5 seconds</p>');
-    response.write('<p>and ');
-    response.write('<a href="?maxCount=50">?maxCount=50</a>');
-    response.write(' to keep the last 50 performance measurements</p>');
-    response.write('</body>');
-    response.write('</html>');
-    response.close();
+    String value = request.requestedUri.queryParameters['index'];
+    int index = value != null ? int.parse(value, onError: (_) => 0) : 0;
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Code Completion - Status', [], (StringBuffer buffer) {
+        _writeCompletionPerformanceDetail(buffer, index);
+        _writeCompletionPerformanceList(buffer);
+      });
+    });
   }
 
   /**
@@ -1088,88 +1083,110 @@ class GetHandler {
   }
 
   /**
-   * Append code completion information.
+   * Write performance information about a specific completion request
+   * to the given [buffer] object.
    */
-  void _writeCompletionInfo(HttpResponse response, maxCount) {
-    response.write('<h1>Code Completion</h1>');
-    AnalysisServer analysisServer = _server.analysisServer;
-    if (analysisServer == null) {
-      response.write('<p>Not running</p>');
-      return;
+  void _writeCompletionPerformanceDetail(StringBuffer buffer, int index) {
+    CompletionDomainHandler handler = _completionDomainHandler;
+    CompletionPerformance performance;
+    if (handler != null) {
+      List<CompletionPerformance> list = handler.performanceList;
+      if (list != null && list.isNotEmpty) {
+        performance = list[max(0, min(list.length - 1, index))];
+      }
     }
-    CompletionDomainHandler handler = analysisServer.handlers.firstWhere(
-        (h) => h is CompletionDomainHandler,
-        orElse: () => null);
-    if (handler == null) {
-      response.write('<p>No code completion</p>');
-      return;
-    }
-    if (maxCount is String) {
-      int count = int.parse(maxCount, onError: (_) => 0);
-      handler.performanceListMaxLength = count;
-    }
-    CompletionPerformance performance = handler.performance;
     if (performance == null) {
-      response.write('<p>No performance stats yet</p>');
+      buffer.write('<h3>Completion Performance Detail</h3>');
+      buffer.write('<p>No completions yet</p>');
       return;
     }
-    response.write('<h2>Last Completion Performance</h2>');
-    response.write('<table>');
-    _writeRow(response, ['Elapsed', '', 'Operation'], header: true);
+    buffer.write(
+        '<h3>Completion Performance Detail - ${performance.startTimeAndMs}</h3>');
+    buffer.write('<table>');
+    _writeRow2(buffer, ['Elapsed', '', 'Operation'], header: true);
     performance.operations.forEach((OperationPerformance op) {
       String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
-      _writeRow(response, [elapsed, '&nbsp;&nbsp;', op.name]);
+      _writeRow2(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
     });
     if (handler.priorityChangedPerformance == null) {
-      response.write('<p>No priorityChanged caching</p>');
+      buffer.write('<p>No priorityChanged caching</p>');
     } else {
       int len = handler.priorityChangedPerformance.operations.length;
       if (len > 0) {
         var op = handler.priorityChangedPerformance.operations[len - 1];
         if (op != null) {
-          _writeRow(response, ['&nbsp;', '&nbsp;', '&nbsp;']);
+          _writeRow2(buffer, ['&nbsp;', '&nbsp;', '&nbsp;']);
           String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
-          _writeRow(response, [elapsed, '&nbsp;&nbsp;', op.name]);
+          _writeRow2(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
         }
       }
     }
-    response.write('</table>');
-    if (handler.performanceList.length > 0) {
-      response.write('<h2>Last Completion Summary</h2>');
-      response.write('<table>');
-      _writeRow(
-          response,
-          [
-              'Start Time',
-              '',
-              'First (ms)',
-              '',
-              'Complete (ms)',
-              '',
-              '# Notifications',
-              '',
-              '# Suggestions',
-              '',
-              'Snippet'],
-          header: true);
-      handler.performanceList.forEach((CompletionPerformance performance) {
-        _writeRow(
-            response,
-            [
-                performance.start,
-                '&nbsp;&nbsp;',
-                performance.firstNotificationInMilliseconds,
-                '&nbsp;&nbsp;',
-                performance.elapsedInMilliseconds,
-                '&nbsp;&nbsp;',
-                performance.notificationCount,
-                '&nbsp;&nbsp;',
-                performance.suggestionCount,
-                '&nbsp;&nbsp;',
-                performance.snippet]);
-      });
-      response.write('</table>');
+    buffer.write('</table>');
+  }
+
+  /**
+   * Write a table showing summary information for the last several
+   * completion requests to the given [buffer] object.
+   */
+  void _writeCompletionPerformanceList(StringBuffer buffer) {
+    CompletionDomainHandler handler = _completionDomainHandler;
+    buffer.write('<h3>Completion Performance</h3>');
+    if (handler == null) {
+      return;
     }
+    buffer.write('<table>');
+    _writeRow2(
+        buffer,
+        [
+            'Start Time',
+            '',
+            'First (ms)',
+            '',
+            'Complete (ms)',
+            '',
+            '# Notifications',
+            '',
+            '# Suggestions',
+            '',
+            'Snippet'],
+        header: true);
+    int index = 0;
+    for (CompletionPerformance performance in handler.performanceList) {
+      String link = _makeLink(COMPLETION_PATH, {
+        'index': '$index'
+      }, '${performance.startTimeAndMs}');
+      _writeRow2(
+          buffer,
+          [
+              link,
+              '&nbsp;&nbsp;',
+              performance.firstNotificationInMilliseconds,
+              '&nbsp;&nbsp;',
+              performance.elapsedInMilliseconds,
+              '&nbsp;&nbsp;',
+              performance.notificationCount,
+              '&nbsp;&nbsp;',
+              performance.suggestionCount,
+              '&nbsp;&nbsp;',
+              HTML_ESCAPE.convert(performance.snippet)]);
+      ++index;
+    }
+    ;
+    buffer.write('</table>');
+    buffer.write('''
+      <p><strong>First (ms)</strong> - the number of milliseconds
+        from when completion received the request until the first notification
+        with completion results was queued for sending back to the client.
+      <p><strong>Complete (ms)</strong> - the number of milliseconds
+        from when completion received the request until the final notification
+        with completion results was queued for sending back to the client.
+      <p><strong># Notifications</strong> - the total number of notifications
+        sent to the client with completion results for this request.
+      <p><strong># Suggestions</strong> - the number of suggestions
+        sent to the client in the first notification, followed by a comma,
+        followed by the number of suggestions send to the client
+        in the last notification. If there is only one notification,
+        then there will be only one number in this column.''');
   }
 
   /**

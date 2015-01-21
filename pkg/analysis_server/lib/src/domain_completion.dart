@@ -57,9 +57,8 @@ class CompletionDomainHandler implements RequestHandler {
 
   /**
    * The maximum number of performance measurements to keep.
-   * This defaults to zero for efficiency, but clients may change this.
    */
-  int performanceListMaxLength = 0;
+  static const int performanceListMaxLength = 50;
 
   /**
    * Performance for the last priority change event.
@@ -185,10 +184,11 @@ class CompletionDomainHandler implements RequestHandler {
       });
       if (notificationCount == 1) {
         performance.logFirstNotificationComplete('notification 1 complete');
+        performance.suggestionCountFirst = result.suggestions.length;
       }
       if (result.last) {
         performance.notificationCount = notificationCount;
-        performance.suggestionCount = result.suggestions.length;
+        performance.suggestionCountLast = result.suggestions.length;
         performance.complete();
       }
     });

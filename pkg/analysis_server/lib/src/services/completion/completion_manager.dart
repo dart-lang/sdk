@@ -124,7 +124,8 @@ class CompletionPerformance {
   int offset;
   String contents;
   int notificationCount = -1;
-  int suggestionCount = -1;
+  int suggestionCountFirst = -1;
+  int suggestionCountLast = -1;
   Duration _firstNotification;
 
   CompletionPerformance() {
@@ -160,6 +161,14 @@ class CompletionPerformance {
     String prefix = contents.substring(start, offset);
     String suffix = contents.substring(offset, end);
     return '$prefix^$suffix';
+  }
+
+  String get startTimeAndMs => '${start.millisecondsSinceEpoch} - $start';
+
+  String get suggestionCount {
+    if (notificationCount < 1) return '';
+    if (notificationCount == 1) return '$suggestionCountFirst';
+    return '$suggestionCountFirst,  $suggestionCountLast';
   }
 
   void complete([String tag = null]) {
