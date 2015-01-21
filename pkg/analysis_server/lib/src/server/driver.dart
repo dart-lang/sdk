@@ -343,7 +343,7 @@ class Driver implements ServerStarter {
         allowedHelp: {
       "as-is": "file contents are read as-is, no file changes occur",
       "normalize-eol-always":
-          "file contents normalize the end of line characters to the single character new line `\n`"
+          r'file contents normalize the end of line characters to the single character new line `\n`'
     }, defaultsTo: "as-is");
 
     return parser;
