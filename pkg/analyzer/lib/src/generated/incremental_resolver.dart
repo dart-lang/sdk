@@ -20,7 +20,6 @@ import 'parser.dart';
 import 'resolver.dart';
 import 'scanner.dart';
 import 'source.dart';
-import 'utilities_collection.dart';
 import 'utilities_dart.dart';
 
 
@@ -841,11 +840,6 @@ class IncrementalResolver {
   List<AnalysisError> _lints = AnalysisError.NO_ERRORS;
 
   /**
-   * The elements that should be resolved because of API changes.
-   */
-  HashSet<Element> _resolutionQueue = new HashSet<Element>();
-
-  /**
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
@@ -886,8 +880,6 @@ class IncrementalResolver {
       _generateLints(rootNode);
       // update entry errors
       _updateEntry();
-      // resolve queue in response of API changes
-      _resolveQueue();
       // OK
       return true;
     } finally {
@@ -934,11 +926,6 @@ class IncrementalResolver {
     if (matchKind == DeclarationMatchKind.MATCH) {
       return true;
     }
-    // try to resolve a simple API change
-    if (_resolveApiChanges && matchKind == DeclarationMatchKind.MISMATCH_OK) {
-      _fillResolutionQueue(matcher);
-      return true;
-    }
     // mismatch that cannot be incrementally fixed
     return false;
   }
@@ -961,22 +948,6 @@ class IncrementalResolver {
           node is FunctionTypeAlias ||
           node is MethodDeclaration ||
           node is TopLevelVariableDeclaration;
-
-  void _fillResolutionQueue(DeclarationMatcher matcher) {
-    HashSet<Element> removedElements = matcher._removedElements;
-    logger.log('${removedElements.length} elements removed');
-    for (Element removedElement in removedElements) {
-      AnalysisContextImpl context = removedElement.context;
-      IntSet users = removedElement.users;
-      while (!users.isEmpty) {
-        int id = users.remove();
-        Element removedElementUser = context.findElementById(id);
-        _resolutionQueue.add(removedElementUser);
-      }
-    }
-    // TODO(scheglov) a method change might also require its class, and
-    // subclasses resolution
-  }
 
   /**
    * Starting at [node], find the smallest AST node that can be resolved
@@ -1054,36 +1025,6 @@ class IncrementalResolver {
     if (_resolutionContext == null) {
       _resolutionContext =
           ResolutionContextBuilder.contextFor(node, errorListener);
-    }
-  }
-
-  /**
-   * Resolves elements [_resolutionQueue].
-   *
-   * TODO(scheglov) work in progress
-  *
-  * TODO(scheglov) revisit later. Each task duration should be kept short.
-   */
-  void _resolveQueue() {
-    logger.log('${_resolutionQueue.length} elements in the resolution queue');
-    for (Element element in _resolutionQueue) {
-      // TODO(scheglov) in general, we should not call Element.node, it
-      // might perform complete unit resolution.
-      logger.enter('resolve $element');
-      try {
-        AstNode node = element.node;
-        CompilationUnitElement unit =
-            element.getAncestor((e) => e is CompilationUnitElement);
-        IncrementalResolver resolver =
-            new IncrementalResolver(_units, unit, node.offset, node.end, node.end);
-        resolver._resolveReferences(node);
-        resolver._verify(node);
-        resolver._generateHints(node);
-        resolver._generateLints(node);
-        resolver._updateEntry();
-      } finally {
-        logger.exit();
-      }
     }
   }
 

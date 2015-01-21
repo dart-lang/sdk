@@ -2089,24 +2089,6 @@ class IncrementalResolverTest extends ResolverTestCase {
     log.logger = log.NULL_LOGGER;
   }
 
-  void test_api_method_edit_returnType() {
-    _resolveUnit(r'''
-class A {
-  int m() {
-    return null;
-  }
-}
-main() {
-  A a = new A();
-  int v = a.m();
-  print(v);
-}
-''');
-    _resolve(_editString('int m', 'String m'), _isDeclaration);
-    // We don't add or fix an error, but we verify that type of "v"
-    // is updated from "int" to "String".
-  }
-
   void test_classMemberAccessor_body() {
     _resolveUnit(r'''
 class A {

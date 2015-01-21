@@ -8,7 +8,6 @@ import "dart:math" as math;
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/utilities_collection.dart';
-import 'package:analyzer/src/generated/visitors.dart';
 
 import 'ast.dart';
 import 'constant.dart';

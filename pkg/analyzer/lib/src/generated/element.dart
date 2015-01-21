@@ -2393,22 +2393,12 @@ abstract class Element {
   CompilationUnit get unit;
 
   /**
-   * Identifiers of the elements that use this elements.
-   */
-  IntSet get users;
-
-  /**
    * Use the given visitor to visit this element.
    *
    * @param visitor the visitor that will visit this element
    * @return the value returned by the visitor as a result of visiting this element
    */
   accept(ElementVisitor visitor);
-
-  /**
-   * Remember the given [element] as a user of this element.
-   */
-  void addUser(Element element);
 
   /**
    * Return the documentation comment for this element as it appears in the original source
@@ -2650,13 +2640,6 @@ abstract class ElementImpl implements Element {
   ElementLocation _cachedLocation;
 
   /**
-   * Identifiers of the elements that use this elements.
-   *
-   * TODO(scheglov) consider this field lazily
-   */
-  final IntSet users = new IntSet();
-
-  /**
    * Initialize a newly created element to have the given name.
    *
    * @param name the name of this element
@@ -2829,16 +2812,6 @@ abstract class ElementImpl implements Element {
     }
     return object.runtimeType == runtimeType &&
         (object as Element).location == location;
-  }
-
-  /**
-   * Remember the given [element] as a user of this element.
-   */
-  @override
-  void addUser(Element element) {
-    if (element != null) {
-      users.add(element.id);
-    }
   }
 
   /**
@@ -7964,20 +7937,6 @@ abstract class Member implements Element {
   @override
   CompilationUnit get unit => _baseElement.unit;
 
-  /**
-   * Identifiers of the elements that use this elements.
-   */
-  @override
-  IntSet get users => _baseElement.users;
-
-  /**
-   * Remember the given [element] as a user of this element.
-   */
-  @override
-  void addUser(Element element) {
-    _baseElement.addUser(element);
-  }
-
   @override
   String computeDocumentationComment() =>
       _baseElement.computeDocumentationComment();
@@ -8522,20 +8481,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   CompilationUnit get unit => null;
 
-  /**
-   * Identifiers of the elements that use this elements.
-   */
-  @override
-  IntSet get users => new IntSet();
-
   @override
   accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
-
-  /**
-   * Remember the given [element] as a user of this element.
-   */
-  void addUser(Element element) {
-  }
 
   @override
   String computeDocumentationComment() => null;
