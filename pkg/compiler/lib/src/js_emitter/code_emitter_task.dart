@@ -415,16 +415,16 @@ class CodeEmitterTask extends CompilerTask {
 
       computeAllNeededEntities();
 
-      Program program =
-          new ProgramBuilder(compiler, namer, this).buildProgram();
-      return emitter.emitProgram(program);
+      ProgramBuilder programBuilder = new ProgramBuilder(compiler, namer, this);
+      return emitter.emitProgram(programBuilder);
     });
   }
 }
 
 abstract class Emitter {
-  /// Emits [program] and returns the size of the generated output.
-  int emitProgram(Program program);
+  /// Uses the [programBuilder] to generate a model of the program, emits
+  /// the program, and returns the size of the generated output.
+  int emitProgram(ProgramBuilder programBuilder);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.

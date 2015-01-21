@@ -1790,7 +1790,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return nativeBuffer;
   }
 
-  int emitProgram(Program program) {
+  int emitProgram(ProgramBuilder programBuilder) {
+    Program program = programBuilder.buildProgram();
+
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;
 
