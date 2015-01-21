@@ -125,7 +125,8 @@ class ClassEmitter extends CodeEmitterHelper {
         // generate the constructor.  For native classes there are no
         // constructors, so we don't need the fields unless we are generating
         // accessors at runtime.
-        if (!classIsNative || needsAccessor) {
+        bool needsFieldsForConstructor = !emitStatics && !classIsNative;
+        if (needsFieldsForConstructor || needsAccessor) {
           var metadata = emitter.metadataEmitter.buildMetadataFunction(field);
           if (metadata != null) {
             hasMetadata = true;
