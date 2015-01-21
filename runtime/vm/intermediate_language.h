@@ -561,6 +561,7 @@ class EmbeddedArray<T, 0> {
   M(BoxInt32)                                                                  \
   M(UnboxInt32)                                                                \
   M(UnboxedIntConverter)                                                       \
+  M(GrowRegExpStack)                                                           \
   M(Deoptimize)
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
@@ -7790,6 +7791,24 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
   bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
+};
+
+
+class GrowRegExpStackInstr : public TemplateDefinition<1, Throws> {
+ public:
+  explicit GrowRegExpStackInstr(Value* typed_data_cell) {
+    SetInputAt(0, typed_data_cell);
+  }
+
+  Value* typed_data_cell() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return MayThrow(); }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  DECLARE_INSTRUCTION(GrowRegExpStack);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GrowRegExpStackInstr);
 };
 
 

@@ -6819,6 +6819,34 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 }
 
+
+LocationSummary* GrowRegExpStackInstr::MakeLocationSummary(
+    Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_out(0, Location::RegisterLocation(EAX));
+  return locs;
+}
+
+
+void GrowRegExpStackInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register typed_data = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ PushObject(Object::null_object());
+  __ pushl(typed_data);
+  compiler->GenerateRuntimeCall(Scanner::kNoSourcePos,  // No token position.
+                                deopt_id(),
+                                kGrowRegExpStackRuntimeEntry,
+                                1,
+                                locs());
+  __ Drop(1);
+  __ popl(result);
+}
+
+
 }  // namespace dart
 
 #undef __
