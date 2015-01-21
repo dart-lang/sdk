@@ -129,7 +129,6 @@ class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
 
   void write(Object o) {
     if (_buffer.isNotEmpty) _flush();
-    String str = o.toString();
     _chunkedSink.add(o.toString());
   }
 
