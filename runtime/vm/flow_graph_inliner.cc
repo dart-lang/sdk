@@ -497,6 +497,9 @@ class CallSiteInliner : public ValueObject {
                       intptr_t instr_count,
                       intptr_t call_site_count,
                       intptr_t const_arg_count) {
+    if (FlowGraphInliner::AlwaysInline(callee)) {
+      return true;
+    }
     if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
       // Prevent methods becoming humongous and thus slow to compile.
       return false;
@@ -517,9 +520,6 @@ class CallSiteInliner : public ValueObject {
     }
     if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
         (instr_count <= FLAG_inlining_constant_arguments_min_size_threshold)) {
-      return true;
-    }
-    if (FlowGraphInliner::AlwaysInline(callee)) {
       return true;
     }
     return false;

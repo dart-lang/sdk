@@ -63,7 +63,7 @@ class FactoryRecognizer : public AllStatic {
 #define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
     if (String::EqualsIgnoringPrivateKey(                                      \
         factory_name, Symbols::test_factory_symbol())) {                       \
-      ASSERT(factory.CheckSourceFingerprint(fp));                              \
+      CHECK_FINGERPRINT2(factory, test_factory_symbol, cid, fp);               \
       return cid;                                                              \
     }                                                                          \
 

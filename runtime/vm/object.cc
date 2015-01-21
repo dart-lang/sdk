@@ -6752,7 +6752,7 @@ void Function::ClearICData() const {
 }
 
 
-bool Function::CheckSourceFingerprint(int32_t fp) const {
+bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
   if (SourceFingerprint() != fp) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
@@ -6760,7 +6760,8 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
-      OS::Print("s/%d/%d/\n", fp, SourceFingerprint());
+      OS::Print("s/V(%s, %d)/V(%s, %d)/\n",
+                prefix, fp, prefix, SourceFingerprint());
     } else {
       OS::Print("FP mismatch while recognizing method %s:"
                 " expecting %d found %d\n",
@@ -10435,14 +10436,6 @@ RawError* Library::CompileAll() {
 }
 
 
-struct FpDiff {
-  FpDiff(int32_t old_, int32_t new_): old_fp(old_), new_fp(new_) {}
-  int32_t old_fp;
-  int32_t new_fp;
-};
-
-
-
 // Return Function::null() if function does not exist in libs.
 RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
                                   const char* class_name,
@@ -10476,7 +10469,6 @@ RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
 
 
 void Library::CheckFunctionFingerprints() {
-  GrowableArray<FpDiff> collected_fp_diffs;
   GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
   bool has_errors = false;
@@ -10486,11 +10478,8 @@ void Library::CheckFunctionFingerprints() {
   if (func.IsNull()) {                                                         \
     has_errors = true;                                                         \
     OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
-  } else if (func.SourceFingerprint() != fp) {                                 \
-    has_errors = true;                                                         \
-    OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
-        func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
-    collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
+  } else {                                                                     \
+    CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
   }                                                                            \
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -10527,11 +10516,8 @@ Class& cls = Class::Handle();
     has_errors = true;                                                         \
     OS::Print("Function not found %s.%s\n", cls.ToCString(),                   \
         Symbols::factory_symbol().ToCString());                                \
-  } else if (func.SourceFingerprint() != fp) {                                 \
-    has_errors = true;                                                         \
-    OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
-        func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
-    collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
+  } else {                                                                     \
+    CHECK_FINGERPRINT2(func, factory_symbol, cid, fp);                         \
   }                                                                            \
 
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
@@ -10539,11 +10525,6 @@ Class& cls = Class::Handle();
 #undef CHECK_FACTORY_FINGERPRINTS
 
   if (has_errors) {
-    for (intptr_t i = 0; i < collected_fp_diffs.length(); i++) {
-      OS::Print("s/%d/%d/\n",
-          collected_fp_diffs[i].old_fp, collected_fp_diffs[i].new_fp);
-    }
-    OS::Print("\n");
     FATAL("Fingerprint mismatch.");
   }
 }

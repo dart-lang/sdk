@@ -2152,7 +2152,7 @@ class Function : public Object {
   int32_t SourceFingerprint() const;
 
   // Return false and report an error if the fingerprint does not match.
-  bool CheckSourceFingerprint(int32_t fp) const;
+  bool CheckSourceFingerprint(const char* prefix, int32_t fp) const;
 
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(

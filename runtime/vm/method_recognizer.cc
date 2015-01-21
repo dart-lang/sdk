@@ -50,7 +50,7 @@ void MethodRecognizer::InitializeState() {
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
     UNREACHABLE();                                                             \
   }                                                                            \
-  ASSERT(func.CheckSourceFingerprint(fp));                                     \
+  CHECK_FINGERPRINT3(func, class_name, function_name, enum_name, fp);          \
   func.set_recognized_kind(k##enum_name);
 
   RECOGNIZED_LIST(SET_RECOGNIZED_KIND);
@@ -61,7 +61,7 @@ void MethodRecognizer::InitializeState() {
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
     UNREACHABLE();                                                             \
   }                                                                            \
-  ASSERT(func.CheckSourceFingerprint(fp));                                     \
+  CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);               \
   func.setter(value);
 
 #define SET_IS_ALWAYS_INLINE(class_name, function_name, dest, fp)              \

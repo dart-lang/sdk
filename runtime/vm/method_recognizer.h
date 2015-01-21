@@ -362,6 +362,26 @@ namespace dart {
   V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 1262816136)                \
   V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 231994143)                    \
   V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 919877023)                   \
+  V(_ByteDataView, setInt8, ByteDataViewSetInt8, 809949404)                    \
+  V(_ByteDataView, setUint8, ByteDataViewSetUint8, 206282345)                  \
+  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 989487799)                  \
+  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 1118155962)               \
+  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 1955213160)                 \
+  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 284405389)                \
+  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 486916661)                  \
+  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 1432663320)               \
+  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 733187060)              \
+  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 1138577739)             \
+  V(_ByteDataView, getInt8, ByteDataViewGetInt8, 1383732403)                   \
+  V(_ByteDataView, getUint8, ByteDataViewGetUint8, 806641537)                  \
+  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 76281079)                   \
+  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 1136415701)               \
+  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 865549439)                  \
+  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 760435927)                \
+  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 364361487)                  \
+  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 565678407)                \
+  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 924006540)              \
+  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 1863927528)             \
   V(::, asin, MathASin, 1651042633)                                            \
   V(::, acos, MathACos, 1139647090)                                            \
   V(::, atan, MathATan, 1668754384)                                            \
@@ -439,6 +459,14 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
   static const char* KindToCString(Kind kind);
   static void InitializeState();
 };
+
+
+#define CHECK_FINGERPRINT2(f, p0, p1, fp) \
+  ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
+
+#define CHECK_FINGERPRINT3(f, p0, p1, p2, fp) \
+  ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
+
 
 }  // namespace dart
 
