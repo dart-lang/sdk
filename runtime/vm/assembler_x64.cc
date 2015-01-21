@@ -3640,7 +3640,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
   if (FLAG_inline_alloc) {
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-    Heap::Space space = heap->SpaceForAllocation(kArrayCid);
+    Heap::Space space = heap->SpaceForAllocation(cid);
     movq(instance, Immediate(heap->TopAddress(space)));
     movq(instance, Address(instance, 0));
     movq(end_address, RAX);
@@ -3660,7 +3660,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     movq(TMP, Immediate(heap->TopAddress(space)));
     movq(Address(TMP, 0), end_address);
     addq(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(kArrayCid, instance_size, space);
+    UpdateAllocationStatsWithSize(cid, instance_size, space);
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
