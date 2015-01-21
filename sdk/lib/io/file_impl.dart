@@ -232,7 +232,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<bool> exists() {
-    return _IOService.dispatch(_FILE_EXISTS, [path]).then((response) {
+    return _IOService._dispatch(_FILE_EXISTS, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot check existence", path);
       }
@@ -258,7 +258,7 @@ class _File extends FileSystemEntity implements File {
     var result = recursive ? parent.create(recursive: true)
                            : new Future.value(null);
     return result
-      .then((_) => _IOService.dispatch(_FILE_CREATE, [path]))
+      .then((_) => _IOService._dispatch(_FILE_CREATE, [path]))
       .then((response) {
         if (_isErrorResponse(response)) {
           throw _exceptionFromResponse(response, "Cannot create file", path);
@@ -285,7 +285,7 @@ class _File extends FileSystemEntity implements File {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    return _IOService.dispatch(_FILE_DELETE, [path]).then((response) {
+    return _IOService._dispatch(_FILE_DELETE, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete file", path);
       }
@@ -306,7 +306,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> rename(String newPath) {
-    return _IOService.dispatch(_FILE_RENAME, [path, newPath]).then((response) {
+    return _IOService._dispatch(_FILE_RENAME, [path, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot rename file to '$newPath'", path);
@@ -326,7 +326,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> copy(String newPath) {
-    return _IOService.dispatch(_FILE_COPY, [path, newPath]).then((response) {
+    return _IOService._dispatch(_FILE_COPY, [path, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot copy file to '$newPath'", path);
@@ -349,7 +349,7 @@ class _File extends FileSystemEntity implements File {
         mode != FileMode.APPEND) {
       return new Future.error(new ArgumentError());
     }
-    return _IOService.dispatch(_FILE_OPEN, [path, mode._mode]).then((response) {
+    return _IOService._dispatch(_FILE_OPEN, [path, mode._mode]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot open file", path);
       }
@@ -358,7 +358,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<int> length() {
-    return _IOService.dispatch(_FILE_LENGTH_FROM_PATH, [path]).then((response) {
+    return _IOService._dispatch(_FILE_LENGTH_FROM_PATH, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Cannot retrieve length of file",
@@ -378,7 +378,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<DateTime> lastModified() {
-    return _IOService.dispatch(_FILE_LAST_MODIFIED, [path]).then((response) {
+    return _IOService._dispatch(_FILE_LAST_MODIFIED, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Cannot retrieve modification time",
@@ -1035,7 +1035,7 @@ class _RandomAccessFile
       _id = 0;
     }
     _asyncDispatched = true;
-    return _IOService.dispatch(request, data)
+    return _IOService._dispatch(request, data)
         .whenComplete(() {
           _asyncDispatched = false;
         });

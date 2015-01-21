@@ -173,7 +173,7 @@ class _Link extends FileSystemEntity implements Link {
     var result = recursive ? parent.create(recursive: true)
                            : new Future.value(null);
     return result
-      .then((_) => _IOService.dispatch(_FILE_CREATE_LINK, [path, target]))
+      .then((_) => _IOService._dispatch(_FILE_CREATE_LINK, [path, target]))
       .then((response) {
         if (_isErrorResponse(response)) {
           throw _exceptionFromResponse(
@@ -230,7 +230,7 @@ class _Link extends FileSystemEntity implements Link {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    return _IOService.dispatch(_FILE_DELETE_LINK, [path]).then((response) {
+    return _IOService._dispatch(_FILE_DELETE_LINK, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete link", path);
       }
@@ -247,7 +247,7 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<Link> rename(String newPath) {
-    return _IOService.dispatch(_FILE_RENAME_LINK, [path, newPath])
+    return _IOService._dispatch(_FILE_RENAME_LINK, [path, newPath])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(
@@ -264,7 +264,7 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<String> target() {
-    return _IOService.dispatch(_FILE_LINK_TARGET, [path]).then((response) {
+    return _IOService._dispatch(_FILE_LINK_TARGET, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot get target of link", path);

@@ -455,16 +455,16 @@ class _WindowsCodePageEncoder {
 @patch
 class _Filter {
   @patch
-  static _Filter newZLibDeflateFilter(bool gzip, int level,
-                                      int windowBits, int memLevel,
-                                      int strategy,
-                                      List<int> dictionary, bool raw) {
-    throw new UnsupportedError("newZLibDeflateFilter");
+  static _Filter _newZLibDeflateFilter(bool gzip, int level,
+                                       int windowBits, int memLevel,
+                                       int strategy,
+                                       List<int> dictionary, bool raw) {
+    throw new UnsupportedError("_newZLibDeflateFilter");
   }
   @patch
-  static _Filter newZLibInflateFilter(int windowBits,
-                                      List<int> dictionary, bool raw) {
-    throw new UnsupportedError("newZLibInflateFilter");
+  static _Filter _newZLibInflateFilter(int windowBits,
+                                       List<int> dictionary, bool raw) {
+    throw new UnsupportedError("_newZLibInflateFilter");
   }
 }
 
@@ -524,7 +524,7 @@ class _FileSystemWatcher {
 @patch
 class _IOService {
   @patch
-  static Future dispatch(int request, List data) {
-    throw new UnsupportedError("_IOService.dispatch");
+  static Future _dispatch(int request, List data) {
+    throw new UnsupportedError("_IOService._dispatch");
   }
 }
