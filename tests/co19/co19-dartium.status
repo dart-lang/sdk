@@ -43,6 +43,7 @@ LibTest/html/Window/postMessage_A01_t02: RuntimeError # Issue 20146
 LibTest/html/Window/moveBy_A01_t01: RuntimeError # Issue 20146
 LayoutTests/fast/css-generated-content/bug91547_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/filesystem/file-after-reload-crash_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/StyleSheet/discarded-sheet-owner-null_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/css-cached-import-rule_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/cssTarget-crash_t01: Skip # Test reloads itself. Issue 18558.

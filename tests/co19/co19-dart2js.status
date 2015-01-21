@@ -403,6 +403,7 @@ LibTest/async/DeferredLibrary/*: Skip # Issue 17458
 [ $compiler == dart2js && $browser ]
 LayoutTests/fast/css-generated-content/bug91547_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/filesystem/file-after-reload-crash_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/StyleSheet/discarded-sheet-owner-null_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/css-cached-import-rule_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/cssTarget-crash_t01: Skip # Test reloads itself. Issue 18558.
@@ -491,6 +492,7 @@ LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triag
 LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Pass, Timeout # Please triage this failure
 LayoutTests/fast/canvas/webgl/copy-tex-image-and-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
@@ -3407,7 +3409,7 @@ LayoutTests/fast/dom/location-missing-arguments_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/object-plugin-hides-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/object-plugin-hides-properties_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
@@ -3693,6 +3695,7 @@ LayoutTests/fast/shapes/shape-outside-floats/shape-outside-big-box-border-radius
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-diamond-margin-polygon_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-ellipse-margin-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-ellipse-margin-right_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t02: Pass, RuntimeError # Fails on 6.2. Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-right_t01: RuntimeError # Please triage this failure
@@ -3729,6 +3732,7 @@ LayoutTests/fast/table/large-shrink-wrapped-width_t01: RuntimeError # Please tri
 LayoutTests/fast/table/margins-perpendicular-containing-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-css-block-table_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-css-inline-table_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/table/min-width-html-block-table_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-html-inline-table_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/nested-tables-with-div-offset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/padding-height-and-override-height_t01: RuntimeError # Please triage this failure
@@ -4576,6 +4580,7 @@ LayoutTests/fast/dom/HTMLImageElement/parse-src_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/HTMLInputElement/input-image-alt-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test-nonexistent_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/dom/HTMLLinkElement/link-beforeload-recursive_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-onerror_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-onload_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Skip # Times out. Please triage this failure
