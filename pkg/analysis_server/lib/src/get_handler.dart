@@ -121,6 +121,9 @@ class GetHandler {
    */
   static const String SOURCE_QUERY_PARAM = 'entry';
 
+  static final ContentType _htmlContent =
+      new ContentType("text", "html", charset: "utf-8");
+
   /**
    * The socket server whose status is to be reported on.
    */
@@ -352,7 +355,7 @@ class GetHandler {
 
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Search result</title>');
@@ -527,7 +530,7 @@ class GetHandler {
     }
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Search result</title>');
@@ -574,7 +577,7 @@ class GetHandler {
     var maxCount = request.requestedUri.queryParameters['maxCount'];
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Completion Stats</title>');
@@ -781,7 +784,7 @@ class GetHandler {
   void _returnFailure(HttpRequest request, String message) {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Failure</title>');
@@ -799,7 +802,7 @@ class GetHandler {
     String contents = _overlayContents[id];
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Overlay</title>');
@@ -821,7 +824,7 @@ class GetHandler {
     }
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Overlays</title>');
@@ -857,7 +860,7 @@ class GetHandler {
   void _returnServerStatus(HttpRequest request) {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Status</title>');
@@ -979,7 +982,7 @@ class GetHandler {
   void _returnUnknownRequest(HttpRequest request) {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.NOT_FOUND;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Page Not Found</title>');
@@ -1366,7 +1369,7 @@ class GetHandler {
   void _writeResponse(HttpRequest request, HtmlGenerator writePage) {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.OK;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.headers.contentType = _htmlContent;
     try {
       StringBuffer buffer = new StringBuffer();
       try {

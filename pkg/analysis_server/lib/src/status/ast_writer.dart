@@ -4,7 +4,8 @@
 
 library analysis_server.src.status.ast_writer;
 
-import 'package:analysis_server/src/status/utilities.dart';
+import 'dart:convert';
+
 import 'package:analyzer/src/generated/ast.dart';
 
 /**
@@ -175,7 +176,7 @@ class AstWriter extends UnifyingAstVisitor {
     if (value != null) {
       _indent(2);
       buffer.write('$name = ');
-      buffer.write(encodeHtml(value.toString()));
+      buffer.write(HTML_ESCAPE.convert(value.toString()));
       buffer.write('<br>');
     }
   }

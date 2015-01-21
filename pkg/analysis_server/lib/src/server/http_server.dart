@@ -118,7 +118,8 @@ class HttpAnalysisServer {
   void _returnUnknownRequest(HttpRequest request) {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.NOT_FOUND;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+    response.headers.contentType =
+        new ContentType("text", "plain", charset: "utf-8");
     response.write('Not found');
     response.close();
   }

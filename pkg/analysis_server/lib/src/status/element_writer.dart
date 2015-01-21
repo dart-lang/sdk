@@ -4,7 +4,8 @@
 
 library analysis_server.src.status.element_writer;
 
-import 'package:analysis_server/src/status/utilities.dart';
+import 'dart:convert';
+
 import 'package:analyzer/src/generated/element.dart';
 
 /**
@@ -35,7 +36,7 @@ class ElementWriter extends GeneralizingElementVisitor {
     if (element.isSynthetic) {
       buffer.write('<i>');
     }
-    buffer.write(encodeHtml(element.toString()));
+    buffer.write(HTML_ESCAPE.convert(element.toString()));
     if (element.isSynthetic) {
       buffer.write('</i>');
     }
