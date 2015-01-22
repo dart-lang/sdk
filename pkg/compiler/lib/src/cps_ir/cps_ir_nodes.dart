@@ -140,7 +140,10 @@ class LetCont extends Expression implements InteriorNode {
   List<Continuation> continuations;
   Expression body;
 
-  LetCont(this.continuations, this.body);
+  LetCont(Continuation continuation, this.body)
+      : continuations = <Continuation>[continuation];
+
+  LetCont.many(this.continuations, this.body);
 
   Expression plug(Expression expr) {
     assert(continuations != null &&

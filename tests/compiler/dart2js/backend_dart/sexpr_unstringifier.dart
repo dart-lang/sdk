@@ -501,7 +501,7 @@ class SExpressionUnstringifier {
     Expression body = parseExpression();
     tokens.consumeEnd();
 
-    return new LetCont(continuations, body);
+    return new LetCont.many(continuations, body);
   }
 
   /// (SetClosureVariable name value body)
