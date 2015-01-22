@@ -58,7 +58,7 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * The maximum number of performance measurements to keep.
    */
-  static const int performanceListMaxLength = 0;
+  static const int performanceListMaxLength = 50;
 
   /**
    * Performance for the last priority change event.
@@ -204,7 +204,6 @@ class CompletionDomainHandler implements RequestHandler {
   void recordRequest(CompletionPerformance performance, AnalysisContext context,
       Source source, int offset) {
     performance.source = source;
-    performance.offset = offset;
     if (priorityChangedPerformance != null &&
         priorityChangedPerformance.source != source) {
       priorityChangedPerformance = null;
@@ -216,7 +215,7 @@ class CompletionDomainHandler implements RequestHandler {
     if (data == null) {
       return;
     }
-    performance.contents = data.data;
+    performance.setContentsAndOffset(data.data, offset);
     while (performanceList.length >= performanceListMaxLength) {
       performanceList.removeAt(0);
     }

@@ -121,8 +121,7 @@ class CompletionPerformance {
   final List<OperationPerformance> operations = <OperationPerformance>[];
 
   Source source;
-  int offset;
-  String contents;
+  String snippet = '';
   int notificationCount = -1;
   int suggestionCountFirst = -1;
   int suggestionCountLast = -1;
@@ -132,36 +131,15 @@ class CompletionPerformance {
     _stopwatch.start();
   }
 
+  void setContentsAndOffset(String contents, int offset) {
+    snippet = _computeSnippet(contents, offset);
+  }
+
   int get elapsedInMilliseconds =>
       operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
 
   int get firstNotificationInMilliseconds =>
       _firstNotification != null ? _firstNotification.inMilliseconds : 0;
-
-  String get snippet {
-    if (contents == null || offset < 0 || contents.length < offset) {
-      return '???';
-    }
-    int start = offset;
-    while (start > 0) {
-      String ch = contents[start - 1];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      --start;
-    }
-    int end = offset;
-    while (end < contents.length) {
-      String ch = contents[end];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      ++end;
-    }
-    String prefix = contents.substring(start, offset);
-    String suffix = contents.substring(offset, end);
-    return '$prefix^$suffix';
-  }
 
   String get startTimeAndMs => '${start.millisecondsSinceEpoch} - $start';
 
@@ -206,6 +184,31 @@ class CompletionPerformance {
 
   void _logDuration(String tag, Duration elapsed) {
     operations.add(new OperationPerformance(tag, elapsed));
+  }
+
+  static String _computeSnippet(String contents, int offset) {
+    if (contents == null || offset == null || offset < 0 || contents.length < offset) {
+      return '???';
+    }
+    int start = offset;
+    while (start > 0) {
+      String ch = contents[start - 1];
+      if (ch == '\r' || ch == '\n') {
+        break;
+      }
+      --start;
+    }
+    int end = offset;
+    while (end < contents.length) {
+      String ch = contents[end];
+      if (ch == '\r' || ch == '\n') {
+        break;
+      }
+      ++end;
+    }
+    String prefix = contents.substring(start, offset);
+    String suffix = contents.substring(offset, end);
+    return '$prefix^$suffix';
   }
 }
 
