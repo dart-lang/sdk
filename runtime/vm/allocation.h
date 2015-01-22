@@ -93,6 +93,7 @@ class ZoneAllocated {
   // Implicitly allocate the object in the current zone.
   void* operator new(uword size);
 
+  // DEPRECATED: Use Zone version.
   // Implicitly allocate the object in the current zone given the current
   // isolate.
   void* operator new(uword size, BaseIsolate* isolate);

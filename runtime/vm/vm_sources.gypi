@@ -422,6 +422,7 @@
     'symbols.h',
     'tags.cc',
     'tags.h',
+    'thread.h',
     'thread_interrupter.cc',
     'thread_interrupter.h',
     'thread_interrupter_android.cc',

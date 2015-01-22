@@ -19,6 +19,7 @@ class BaseIsolate {
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }
 
+  // DEPRECATED: Use Thread::current_zone.
   Zone* current_zone() const { return current_zone_; }
   void set_current_zone(Zone* zone) { current_zone_ = zone; }
 

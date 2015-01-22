@@ -6,11 +6,13 @@
 
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/thread.h"
 
 namespace dart {
 
-// Quick access to the locally defined isolate() method.
-#define I (isolate())
+// Quick access to the current isolate and zone.
+#define I (thread()->isolate())
+#define Z (thread()->zone())
 
 // Nodes that are unreachable from already parsed expressions.
 #define FOR_EACH_UNREACHABLE_NODE(V)                                           \
@@ -50,7 +52,7 @@ AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
       temp_cnt_(0),
       parsed_function_(parsed_function),
       function_top_(function_top),
-      isolate_(Isolate::Current()) {
+      thread_(Thread::Current()) {
   ASSERT(function_top_ != NULL);
 }
 
@@ -71,7 +73,7 @@ LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   LocalVariable* await_tmp = preamble_->scope()->LookupVariable(symbol, false);
   if (await_tmp == NULL) {
     // If we need a new temp variable, we add it to the function's top scope.
-    await_tmp = new (I) LocalVariable(
+    await_tmp = new (Z) LocalVariable(
         Scanner::kNoSourcePos, symbol, Type::ZoneHandle(Type::DynamicType()));
     function_top_->AddVariable(await_tmp);
     // After adding it to the top scope, we can look it up from the preamble.
@@ -92,7 +94,7 @@ LocalVariable* AwaitTransformer::GetVariableInScope(LocalScope* scope,
 
 LocalVariable* AwaitTransformer::AddToPreambleNewTempVar(AstNode* node) {
   LocalVariable* tmp_var = EnsureCurrentTempVar();
-  preamble_->Add(new(I) StoreLocalNode(Scanner::kNoSourcePos, tmp_var, node));
+  preamble_->Add(new(Z) StoreLocalNode(Scanner::kNoSourcePos, tmp_var, node));
   NextTempVar();
   return tmp_var;
 }
@@ -104,7 +106,7 @@ void AwaitTransformer::VisitLiteralNode(LiteralNode* node) {
 
 
 void AwaitTransformer::VisitTypeNode(TypeNode* node) {
-  result_ = new(I) TypeNode(node->token_pos(), node->type());
+  result_ = new(Z) TypeNode(node->token_pos(), node->type());
 }
 
 
@@ -132,10 +134,10 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       preamble_->scope(), Symbols::AsyncOperationErrorParam());
 
   AstNode* transformed_expr = Transform(node->expr());
-  preamble_->Add(new(I) StoreLocalNode(
+  preamble_->Add(new(Z) StoreLocalNode(
       Scanner::kNoSourcePos, result_param, transformed_expr));
 
-  LoadLocalNode* load_result_param = new(I) LoadLocalNode(
+  LoadLocalNode* load_result_param = new(Z) LoadLocalNode(
       Scanner::kNoSourcePos, result_param);
 
   const Class& future_cls =
@@ -147,7 +149,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
 
   LocalScope* is_not_future_scope = ChainNewScope(preamble_->scope());
   SequenceNode* is_not_future_branch =
-      new (I) SequenceNode(Scanner::kNoSourcePos, is_not_future_scope);
+      new (Z) SequenceNode(Scanner::kNoSourcePos, is_not_future_scope);
 
   // if (:result_param is !Future) {
   //   :result_param = Future.value(:result_param);
@@ -155,35 +157,35 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   const Function& value_ctor = Function::ZoneHandle(
       I, future_cls.LookupFunction(Symbols::FutureValue()));
   ASSERT(!value_ctor.IsNull());
-  ArgumentListNode* ctor_args = new (I) ArgumentListNode(Scanner::kNoSourcePos);
-  ctor_args->Add(new (I) LoadLocalNode(Scanner::kNoSourcePos, result_param));
+  ArgumentListNode* ctor_args = new (Z) ArgumentListNode(Scanner::kNoSourcePos);
+  ctor_args->Add(new (Z) LoadLocalNode(Scanner::kNoSourcePos, result_param));
   ConstructorCallNode* ctor_call =
-      new (I) ConstructorCallNode(Scanner::kNoSourcePos,
+      new (Z) ConstructorCallNode(Scanner::kNoSourcePos,
                                   TypeArguments::ZoneHandle(I),
                                   value_ctor,
                                   ctor_args);
-  is_not_future_branch->Add(new (I) StoreLocalNode(
+  is_not_future_branch->Add(new (Z) StoreLocalNode(
       Scanner::kNoSourcePos, result_param, ctor_call));
-  AstNode* is_not_future_test = new (I) ComparisonNode(
+  AstNode* is_not_future_test = new (Z) ComparisonNode(
       Scanner::kNoSourcePos,
       Token::kISNOT,
       load_result_param,
-      new (I) TypeNode(Scanner::kNoSourcePos, future_type));
-  preamble_->Add(new(I) IfNode(Scanner::kNoSourcePos,
+      new (Z) TypeNode(Scanner::kNoSourcePos, future_type));
+  preamble_->Add(new(Z) IfNode(Scanner::kNoSourcePos,
                                is_not_future_test,
                                is_not_future_branch,
                                NULL));
 
-  AwaitMarkerNode* await_marker = new (I) AwaitMarkerNode();
+  AwaitMarkerNode* await_marker = new (Z) AwaitMarkerNode();
   await_marker->set_scope(preamble_->scope());
   preamble_->Add(await_marker);
-  ArgumentListNode* args = new(I) ArgumentListNode(Scanner::kNoSourcePos);
+  ArgumentListNode* args = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
 
-  args->Add(new(I) LoadLocalNode(Scanner::kNoSourcePos, async_op));
-  preamble_->Add(new (I) StoreLocalNode(
+  args->Add(new(Z) LoadLocalNode(Scanner::kNoSourcePos, async_op));
+  preamble_->Add(new (Z) StoreLocalNode(
       Scanner::kNoSourcePos,
       result_param,
-      new(I) InstanceCallNode(Scanner::kNoSourcePos,
+      new(Z) InstanceCallNode(Scanner::kNoSourcePos,
                               load_result_param,
                               Symbols::FutureThen(),
                               args)));
@@ -191,20 +193,20 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   const Function& async_catch_helper = Function::ZoneHandle(
       I, core_lib.LookupFunctionAllowPrivate(Symbols::AsyncCatchHelper()));
   ASSERT(!async_catch_helper.IsNull());
-  ArgumentListNode* catch_helper_args = new (I) ArgumentListNode(
+  ArgumentListNode* catch_helper_args = new (Z) ArgumentListNode(
       Scanner::kNoSourcePos);
-  InstanceGetterNode* catch_error_getter = new (I) InstanceGetterNode(
+  InstanceGetterNode* catch_error_getter = new (Z) InstanceGetterNode(
       Scanner::kNoSourcePos,
       load_result_param,
       Symbols::FutureCatchError());
   catch_helper_args->Add(catch_error_getter);
-  catch_helper_args->Add(new (I) LoadLocalNode(
+  catch_helper_args->Add(new (Z) LoadLocalNode(
       Scanner::kNoSourcePos, async_op));
-  preamble_->Add(new (I) StaticCallNode(
+  preamble_->Add(new (Z) StaticCallNode(
       Scanner::kNoSourcePos,
       async_catch_helper,
       catch_helper_args));
-  ReturnNode* continuation_return = new(I) ReturnNode(Scanner::kNoSourcePos);
+  ReturnNode* continuation_return = new(Z) ReturnNode(Scanner::kNoSourcePos);
   continuation_return->set_return_type(ReturnNode::kContinuationTarget);
   preamble_->Add(continuation_return);
 
@@ -215,34 +217,34 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   if (!async_saved_try_ctx_name.IsNull()) {
     LocalVariable* async_saved_try_ctx =
         GetVariableInScope(preamble_->scope(), async_saved_try_ctx_name);
-    preamble_->Add(new (I) StoreLocalNode(
+    preamble_->Add(new (Z) StoreLocalNode(
         Scanner::kNoSourcePos,
         parsed_function_->saved_try_ctx(),
-        new (I) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
+        new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
   }
 
-  LoadLocalNode* load_error_param = new (I) LoadLocalNode(
+  LoadLocalNode* load_error_param = new (Z) LoadLocalNode(
       Scanner::kNoSourcePos, error_param);
-  SequenceNode* error_ne_null_branch = new (I) SequenceNode(
+  SequenceNode* error_ne_null_branch = new (Z) SequenceNode(
       Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
-  error_ne_null_branch->Add(new (I) ThrowNode(
+  error_ne_null_branch->Add(new (Z) ThrowNode(
       Scanner::kNoSourcePos,
       load_error_param,
       NULL));
-  preamble_->Add(new (I) IfNode(
+  preamble_->Add(new (Z) IfNode(
       Scanner::kNoSourcePos,
-      new (I) ComparisonNode(
+      new (Z) ComparisonNode(
           Scanner::kNoSourcePos,
           Token::kNE,
           load_error_param,
-          new (I) LiteralNode(Scanner::kNoSourcePos,
+          new (Z) LiteralNode(Scanner::kNoSourcePos,
                               Object::null_instance())),
           error_ne_null_branch,
           NULL));
 
-  LocalVariable* result = AddToPreambleNewTempVar(new(I) LoadLocalNode(
+  LocalVariable* result = AddToPreambleNewTempVar(new(Z) LoadLocalNode(
       Scanner::kNoSourcePos, result_param));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -268,19 +270,19 @@ AstNode* AwaitTransformer::LazyTransform(const Token::Kind logical_op,
   AstNode* result = NULL;
   const Token::Kind compare_logical_op = (logical_op == Token::kAND) ?
       Token::kEQ : Token::kNE;
-  SequenceNode* eval = new (I) SequenceNode(
+  SequenceNode* eval = new (Z) SequenceNode(
       Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
   SequenceNode* saved_preamble = preamble_;
   preamble_ = eval;
   result = Transform(right);
   preamble_ = saved_preamble;
-  IfNode* right_body = new(I) IfNode(
+  IfNode* right_body = new(Z) IfNode(
       Scanner::kNoSourcePos,
-      new(I) ComparisonNode(
+      new(Z) ComparisonNode(
           Scanner::kNoSourcePos,
           compare_logical_op,
           new_left,
-          new(I) LiteralNode(Scanner::kNoSourcePos, Bool::True())),
+          new(Z) LiteralNode(Scanner::kNoSourcePos, Bool::True())),
       eval,
       NULL);
   preamble_->Add(right_body);
@@ -289,7 +291,7 @@ AstNode* AwaitTransformer::LazyTransform(const Token::Kind logical_op,
 
 
 LocalScope* AwaitTransformer::ChainNewScope(LocalScope* parent) {
-  return new (I) LocalScope(
+  return new (Z) LocalScope(
       parent, parent->function_level(), parent->loop_level());
 }
 
@@ -304,11 +306,11 @@ void AwaitTransformer::VisitBinaryOpNode(BinaryOpNode* node) {
     new_right = Transform(node->right());
   }
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) BinaryOpNode(node->token_pos(),
+      new(Z) BinaryOpNode(node->token_pos(),
                           node->kind(),
                           new_left,
                           new_right));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -318,12 +320,12 @@ void AwaitTransformer::VisitBinaryOpWithMask32Node(
   AstNode* new_left = Transform(node->left());
   AstNode* new_right = Transform(node->right());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) BinaryOpWithMask32Node(node->token_pos(),
+      new(Z) BinaryOpWithMask32Node(node->token_pos(),
                                     node->kind(),
                                     new_left,
                                     new_right,
                                     node->mask32()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -331,19 +333,19 @@ void AwaitTransformer::VisitComparisonNode(ComparisonNode* node) {
   AstNode* new_left = Transform(node->left());
   AstNode* new_right = Transform(node->right());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) ComparisonNode(node->token_pos(),
+      new(Z) ComparisonNode(node->token_pos(),
                             node->kind(),
                             new_left,
                             new_right));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitUnaryOpNode(UnaryOpNode* node) {
   AstNode* new_operand = Transform(node->operand());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) UnaryOpNode(node->token_pos(), node->kind(), new_operand));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+      new(Z) UnaryOpNode(node->token_pos(), node->kind(), new_operand));
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -351,32 +353,32 @@ void AwaitTransformer::VisitUnaryOpNode(UnaryOpNode* node) {
 //
 void AwaitTransformer::VisitConditionalExprNode(ConditionalExprNode* node) {
   AstNode* new_condition = Transform(node->condition());
-  SequenceNode* new_true = new (I) SequenceNode(
+  SequenceNode* new_true = new (Z) SequenceNode(
       Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
   SequenceNode* saved_preamble = preamble_;
   preamble_ = new_true;
   AstNode* new_true_result = Transform(node->true_expr());
-  SequenceNode* new_false = new (I) SequenceNode(
+  SequenceNode* new_false = new (Z) SequenceNode(
       Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
   preamble_ = new_false;
   AstNode* new_false_result = Transform(node->false_expr());
   preamble_ = saved_preamble;
-  IfNode* new_if = new(I) IfNode(Scanner::kNoSourcePos,
+  IfNode* new_if = new(Z) IfNode(Scanner::kNoSourcePos,
                                  new_condition,
                                  new_true,
                                  new_false);
   preamble_->Add(new_if);
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) ConditionalExprNode(Scanner::kNoSourcePos,
+      new(Z) ConditionalExprNode(Scanner::kNoSourcePos,
                                  new_condition,
                                  new_true_result,
                                  new_false_result));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitArgumentListNode(ArgumentListNode* node) {
-  ArgumentListNode* new_args = new(I) ArgumentListNode(node->token_pos());
+  ArgumentListNode* new_args = new(Z) ArgumentListNode(node->token_pos());
   for (intptr_t i = 0; i < node->length(); i++) {
     new_args->Add(Transform(node->NodeAt(i)));
   }
@@ -390,16 +392,16 @@ void AwaitTransformer::VisitArrayNode(ArrayNode* node) {
   for (intptr_t i = 0; i < node->length(); i++) {
     new_elements.Add(Transform(node->ElementAt(i)));
   }
-  result_ = new(I) ArrayNode(node->token_pos(), node->type(), new_elements);
+  result_ = new(Z) ArrayNode(node->token_pos(), node->type(), new_elements);
 }
 
 
 void AwaitTransformer::VisitStringInterpolateNode(StringInterpolateNode* node) {
   ArrayNode* new_value = Transform(node->value())->AsArrayNode();
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) StringInterpolateNode(node->token_pos(),
+      new(Z) StringInterpolateNode(node->token_pos(),
                                    new_value));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -409,11 +411,11 @@ void AwaitTransformer::VisitClosureNode(ClosureNode* node) {
     new_receiver = Transform(new_receiver);
   }
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) ClosureNode(node->token_pos(),
+      new(Z) ClosureNode(node->token_pos(),
                          node->function(),
                          new_receiver,
                          node->scope()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -422,11 +424,11 @@ void AwaitTransformer::VisitInstanceCallNode(InstanceCallNode* node) {
   ArgumentListNode* new_args =
       Transform(node->arguments())->AsArgumentListNode();
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) InstanceCallNode(node->token_pos(),
+      new(Z) InstanceCallNode(node->token_pos(),
                               new_receiver,
                               node->function_name(),
                               new_args));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -434,10 +436,10 @@ void AwaitTransformer::VisitStaticCallNode(StaticCallNode* node) {
   ArgumentListNode* new_args =
       Transform(node->arguments())->AsArgumentListNode();
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) StaticCallNode(node->token_pos(),
+      new(Z) StaticCallNode(node->token_pos(),
                             node->function(),
                             new_args));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -445,21 +447,21 @@ void AwaitTransformer::VisitConstructorCallNode(ConstructorCallNode* node) {
   ArgumentListNode* new_args =
       Transform(node->arguments())->AsArgumentListNode();
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) ConstructorCallNode(node->token_pos(),
+      new(Z) ConstructorCallNode(node->token_pos(),
                                  node->type_arguments(),
                                  node->constructor(),
                                  new_args));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitInstanceGetterNode(InstanceGetterNode* node) {
   AstNode* new_receiver = Transform(node->receiver());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) InstanceGetterNode(node->token_pos(),
+      new(Z) InstanceGetterNode(node->token_pos(),
                                 new_receiver,
                                 node->field_name()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -470,11 +472,11 @@ void AwaitTransformer::VisitInstanceSetterNode(InstanceSetterNode* node) {
   }
   AstNode* new_value = Transform(node->value());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) InstanceSetterNode(node->token_pos(),
+      new(Z) InstanceSetterNode(node->token_pos(),
                                 new_receiver,
                                 node->field_name(),
                                 new_value));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -484,12 +486,12 @@ void AwaitTransformer::VisitStaticGetterNode(StaticGetterNode* node) {
     new_receiver = Transform(new_receiver);
   }
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) StaticGetterNode(node->token_pos(),
+      new(Z) StaticGetterNode(node->token_pos(),
                               new_receiver,
                               node->is_super_getter(),
                               node->cls(),
                               node->field_name()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -500,47 +502,47 @@ void AwaitTransformer::VisitStaticSetterNode(StaticSetterNode* node) {
   }
   AstNode* new_value = Transform(node->value());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) StaticSetterNode(node->token_pos(),
+      new(Z) StaticSetterNode(node->token_pos(),
                               new_receiver,
                               node->cls(),
                               node->field_name(),
                               new_value));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitLoadLocalNode(LoadLocalNode* node) {
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) LoadLocalNode(node->token_pos(), &node->local()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+      new(Z) LoadLocalNode(node->token_pos(), &node->local()));
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitStoreLocalNode(StoreLocalNode* node) {
   AstNode* new_value = Transform(node->value());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) StoreLocalNode(node->token_pos(),
+      new(Z) StoreLocalNode(node->token_pos(),
                             &node->local(),
                             new_value));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) LoadStaticFieldNode(node->token_pos(),
+      new(Z) LoadStaticFieldNode(node->token_pos(),
                                  node->field()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   AstNode* new_value = Transform(node->value());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) StoreStaticFieldNode(node->token_pos(),
+      new(Z) StoreStaticFieldNode(node->token_pos(),
                                   node->field(),
                                   new_value));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -548,11 +550,11 @@ void AwaitTransformer::VisitLoadIndexedNode(LoadIndexedNode* node) {
   AstNode* new_array = Transform(node->array());
   AstNode* new_index = Transform(node->index_expr());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) LoadIndexedNode(node->token_pos(),
+      new(Z) LoadIndexedNode(node->token_pos(),
                              new_array,
                              new_index,
                              node->super_class()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
@@ -561,29 +563,29 @@ void AwaitTransformer::VisitStoreIndexedNode(StoreIndexedNode* node) {
   AstNode* new_index = Transform(node->index_expr());
   AstNode* new_value = Transform(node->value());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) StoreIndexedNode(node->token_pos(),
+      new(Z) StoreIndexedNode(node->token_pos(),
                               new_array,
                               new_index,
                               new_value,
                               node->super_class()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitAssignableNode(AssignableNode* node) {
   AstNode* new_expr = Transform(node->expr());
   LocalVariable* result = AddToPreambleNewTempVar(
-      new(I) AssignableNode(node->token_pos(),
+      new(Z) AssignableNode(node->token_pos(),
                             new_expr,
                             node->type(),
                             node->dst_name()));
-  result_ = new(I) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
 
 void AwaitTransformer::VisitLetNode(LetNode* node) {
   // TODO(mlippautz): Check initializers and their temps.
-  LetNode* result = new(I) LetNode(node->token_pos());
+  LetNode* result = new(Z) LetNode(node->token_pos());
   for (intptr_t i = 0; i < node->nodes().length(); i++) {
     result->AddNode(Transform(node->nodes()[i]));
   }
@@ -595,7 +597,7 @@ void AwaitTransformer::VisitThrowNode(ThrowNode* node) {
   // TODO(mlippautz): Check if relevant.
   AstNode* new_exception = Transform(node->exception());
   AstNode* new_stacktrace = Transform(node->stacktrace());
-  result_ = new(I) ThrowNode(node->token_pos(),
+  result_ = new(Z) ThrowNode(node->token_pos(),
                              new_exception,
                              new_stacktrace);
 }

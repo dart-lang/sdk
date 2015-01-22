@@ -44,6 +44,14 @@ class BitVector : public ZoneAllocated {
     friend class BitVector;
   };
 
+  BitVector(Zone* zone, intptr_t length)
+      : length_(length),
+        data_length_(SizeFor(length)),
+        data_(zone->Alloc<uword>(data_length_)) {
+    Clear();
+  }
+
+  // DEPRECATED: Use Zone version.
   BitVector(Isolate* isolate, intptr_t length)
       : length_(length),
         data_length_(SizeFor(length)),
