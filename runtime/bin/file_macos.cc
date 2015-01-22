@@ -329,13 +329,20 @@ char* File::LinkTarget(const char* pathname) {
     errno = ENOENT;
     return NULL;
   }
-  size_t target_size = link_stats.st_size;
-  char* target_name = reinterpret_cast<char*>(malloc(target_size + 1));
-  size_t read_size = readlink(pathname, target_name, target_size + 1);
-  if (read_size != target_size) {
-    free(target_name);
+  // Don't rely on the link_stats.st_size for the size of the link
+  // target. The link might have changed before the readlink call.
+  const int kBufferSize = 1024;
+  char target[kBufferSize];
+  size_t target_size = TEMP_FAILURE_RETRY(
+      readlink(pathname, target, kBufferSize));
+  if (target_size <= 0) {
     return NULL;
   }
+  char* target_name = reinterpret_cast<char*>(malloc(target_size + 1));
+  if (target_name == NULL) {
+    return NULL
+  }
+  memmove(target_name, target, target_size);
   target_name[target_size] = '\0';
   return target_name;
 }

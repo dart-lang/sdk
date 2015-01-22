@@ -368,14 +368,21 @@ char* File::LinkTarget(const char* pathname) {
     errno = ENOENT;
     return NULL;
   }
-  size_t target_size = link_stats.st_size;
-  char* target_name = reinterpret_cast<char*>(malloc(target_size + 1));
-  size_t read_size = NO_RETRY_EXPECTED(
-      readlink(pathname, target_name, target_size + 1));
-  if (read_size != target_size) {
-    free(target_name);
+  // Don't rely on the link_stats.st_size for the size of the link
+  // target. For some filesystems, e.g. procfs, this value is always
+  // 0. Also the link might have changed before the readlink call.
+  const int kBufferSize = PATH_MAX + 1;
+  char target[kBufferSize];
+  size_t target_size = TEMP_FAILURE_RETRY(
+      readlink(pathname, target, kBufferSize));
+  if (target_size <= 0) {
     return NULL;
   }
+  char* target_name = reinterpret_cast<char*>(malloc(target_size + 1));
+  if (target_name == NULL) {
+    return NULL;
+  }
+  memmove(target_name, target, target_size);
   target_name[target_size] = '\0';
   return target_name;
 }
