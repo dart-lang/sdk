@@ -155,6 +155,7 @@ class ServeCommand extends BarbackCommand {
                               try {
                                 x5;
                                 trampoline0 = continue0;
+                                do trampoline0(); while (trampoline0 != null);
                               } catch (e1, s1) {
                                 completer0.completeError(e1, s1);
                               }

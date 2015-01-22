@@ -196,6 +196,7 @@ class GitSource extends CachedSource {
                       "${log.bold(package.name)} ${package.version}...");
               join1() {
                 trampoline0 = continue0;
+                do trampoline0(); while (trampoline0 != null);
               }
               catch0(error, stackTrace) {
                 try {

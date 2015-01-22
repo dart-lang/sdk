@@ -97,17 +97,13 @@ class TransformerLoader {
       return new Future.value(new Set());
     }
 
-    // TODO(nweiz): This is currently wrapped in a non-async closure to work
-    // around https://github.com/dart-lang/async_await/issues/51. When that
-    // issue is fixed, make this inline.
-    var transformer = () {
-      try {
-        return new Dart2JSTransformer.withSettings(_environment,
-            new BarbackSettings(config.configuration, _environment.mode));
-      } on FormatException catch (error, stackTrace) {
-        fail(error.message, error, stackTrace);
-      }
-    }();
+    var transformer;
+    try {
+      transformer = new Dart2JSTransformer.withSettings(_environment,
+          new BarbackSettings(config.configuration, _environment.mode));
+    } on FormatException catch (error, stackTrace) {
+      fail(error.message, error, stackTrace);
+    }
 
     // Handle any exclusions.
     _transformers[config] = new Set.from(

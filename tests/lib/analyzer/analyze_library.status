@@ -24,10 +24,6 @@ lib/_internal/pub_generated/bin/async_compile: Skip
 # analyzer bots yet.
 lib/_internal/pub/*: Pass, CompileTimeError
 
-# https://github.com/dart-lang/async_await/issues/77
-lib/_internal/pub_generated/bin/pub: Skip
-lib/_internal/pub_generated/lib/src/command_runner: Skip
-
 [ $compiler == dart2analyzer ]
 lib/web_gl/dartium/web_gl_dartium: CompileTimeError # Issue 21647
 lib/web_sql/dartium/web_sql_dartium: CompileTimeError # Issue 21647

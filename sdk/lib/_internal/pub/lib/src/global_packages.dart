@@ -282,52 +282,46 @@ class GlobalPackages {
   /// Finds the active package with [name].
   ///
   /// Returns an [Entrypoint] loaded with the active package if found.
-  Future<Entrypoint> find(String name) {
-    // TODO(rnystrom): Use async/await here when on __ catch is supported.
-    // See: https://github.com/dart-lang/async_await/issues/27
-    return new Future.sync(() {
-      var lockFilePath = _getLockFilePath(name);
-      var lockFile;
+  Future<Entrypoint> find(String name) async {
+    var lockFilePath = _getLockFilePath(name);
+    var lockFile;
+    try {
+      lockFile = new LockFile.load(lockFilePath, cache.sources);
+    } on IOException catch (error) {
+      var oldLockFilePath = p.join(_directory, '$name.lock');
       try {
-        lockFile = new LockFile.load(lockFilePath, cache.sources);
+        // TODO(nweiz): This looks for Dart 1.6's old lockfile location.
+        // Remove it when Dart 1.6 is old enough that we don't think anyone
+        // will have these lockfiles anymore (issue 20703).
+        lockFile = new LockFile.load(oldLockFilePath, cache.sources);
       } on IOException catch (error) {
-        var oldLockFilePath = p.join(_directory, '$name.lock');
-        try {
-          // TODO(nweiz): This looks for Dart 1.6's old lockfile location.
-          // Remove it when Dart 1.6 is old enough that we don't think anyone
-          // will have these lockfiles anymore (issue 20703).
-          lockFile = new LockFile.load(oldLockFilePath, cache.sources);
-        } on IOException catch (error) {
-          // If we couldn't read the lock file, it's not activated.
-          dataError("No active package ${log.bold(name)}.");
-        }
-
-        // Move the old lockfile to its new location.
-        ensureDir(p.dirname(lockFilePath));
-        new File(oldLockFilePath).renameSync(lockFilePath);
+        // If we couldn't read the lock file, it's not activated.
+        dataError("No active package ${log.bold(name)}.");
       }
 
-      // Load the package from the cache.
-      var id = lockFile.packages[name];
-      lockFile.packages.remove(name);
+      // Move the old lockfile to its new location.
+      ensureDir(p.dirname(lockFilePath));
+      new File(oldLockFilePath).renameSync(lockFilePath);
+    }
 
-      var source = cache.sources[id.source];
-      if (source is CachedSource) {
-        // For cached sources, the package itself is in the cache and the
-        // lockfile is the one we just loaded.
-        return cache.sources[id.source].getDirectory(id)
-            .then((dir) => new Package.load(name, dir, cache.sources))
-            .then((package) {
-          return new Entrypoint.inMemory(package, lockFile, cache);
-        });
-      }
+    // Load the package from the cache.
+    var id = lockFile.packages[name];
+    lockFile.packages.remove(name);
 
-      // For uncached sources (i.e. path), the ID just points to the real
-      // directory for the package.
-      assert(id.source == "path");
-      return new Entrypoint(PathSource.pathFromDescription(id.description),
-          cache);
-    });
+    var source = cache.sources[id.source];
+    if (source is CachedSource) {
+      // For cached sources, the package itself is in the cache and the
+      // lockfile is the one we just loaded.
+      var dir = await cache.sources[id.source].getDirectory(id);
+      var package = new Package.load(name, dir, cache.sources);
+      return new Entrypoint.inMemory(package, lockFile, cache);
+    }
+
+    // For uncached sources (i.e. path), the ID just points to the real
+    // directory for the package.
+    assert(id.source == "path");
+    return new Entrypoint(PathSource.pathFromDescription(id.description),
+        cache);
   }
 
   /// Runs [package]'s [executable] with [args].

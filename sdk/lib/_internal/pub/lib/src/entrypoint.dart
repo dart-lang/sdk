@@ -143,15 +143,14 @@ class Entrypoint {
     var packageGraph = await loadPackageGraph(result);
     packageGraph.loadTransformerCache().clearIfOutdated(result.changedPackages);
 
-    // TODO(nweiz): Use await here when
-    // https://github.com/dart-lang/async_await/issues/51 is fixed.
-    return precompileDependencies(changed: result.changedPackages).then((_) {
-      return precompileExecutables(changed: result.changedPackages);
-    }).catchError((error, stackTrace) {
+    try {
+      await precompileDependencies(changed: result.changedPackages);
+      await precompileExecutables(changed: result.changedPackages);
+    } catch (error, stackTrace) {
       // Just log exceptions here. Since the method is just about acquiring
       // dependencies, it shouldn't fail unless that fails.
       log.exception(error, stackTrace);
-    });
+    }
   }
 
   /// Precompile any transformed dependencies of the entrypoint.
@@ -201,42 +200,43 @@ class Entrypoint {
 
     if (dependenciesToPrecompile.isEmpty) return;
 
-    await log.progress("Precompiling dependencies", () async {
-      var packagesToLoad =
-          unionAll(dependenciesToPrecompile.map(graph.transitiveDependencies))
-          .map((package) => package.name).toSet();
+    try {
+      await log.progress("Precompiling dependencies", () async {
+        var packagesToLoad =
+            unionAll(dependenciesToPrecompile.map(graph.transitiveDependencies))
+            .map((package) => package.name).toSet();
 
-      var environment = await AssetEnvironment.create(this, BarbackMode.DEBUG,
-          packages: packagesToLoad, useDart2JS: false);
+        var environment = await AssetEnvironment.create(this, BarbackMode.DEBUG,
+            packages: packagesToLoad, useDart2JS: false);
 
-      /// Ignore barback errors since they'll be emitted via [getAllAssets]
-      /// below.
-      environment.barback.errors.listen((_) {});
+        /// Ignore barback errors since they'll be emitted via [getAllAssets]
+        /// below.
+        environment.barback.errors.listen((_) {});
 
-      // TODO(nweiz): only get assets from [dependenciesToPrecompile] so as not
-      // to trigger unnecessary lazy transformers.
-      var assets = await environment.barback.getAllAssets();
-      await waitAndPrintErrors(assets.map((asset) async {
-        if (!dependenciesToPrecompile.contains(asset.id.package)) return;
+        // TODO(nweiz): only get assets from [dependenciesToPrecompile] so as
+        // not to trigger unnecessary lazy transformers.
+        var assets = await environment.barback.getAllAssets();
+        await waitAndPrintErrors(assets.map((asset) async {
+          if (!dependenciesToPrecompile.contains(asset.id.package)) return;
 
-        var destPath = path.join(
-            depsDir, asset.id.package, path.fromUri(asset.id.path));
-        ensureDir(path.dirname(destPath));
-        await createFileFromStream(asset.read(), destPath);
-      }));
+          var destPath = path.join(
+              depsDir, asset.id.package, path.fromUri(asset.id.path));
+          ensureDir(path.dirname(destPath));
+          await createFileFromStream(asset.read(), destPath);
+        }));
 
-      log.message("Precompiled " +
-          toSentence(ordered(dependenciesToPrecompile).map(log.bold)) + ".");
-    }).catchError((error) {
-      // TODO(nweiz): Do this in a catch clause when async_await supports
-      // "rethrow" (https://github.com/dart-lang/async_await/issues/46).
+        log.message("Precompiled " +
+            toSentence(ordered(dependenciesToPrecompile).map(log.bold)) + ".");
+      });
+    } catch (_) {
       // TODO(nweiz): When barback does a better job of associating errors with
       // assets (issue 19491), catch and handle compilation errors on a
       // per-package basis.
-      dependenciesToPrecompile.forEach((package) =>
-          deleteEntry(path.join(depsDir, package)));
-      throw error;
-    });
+      for (var package in dependenciesToPrecompile) {
+        deleteEntry(path.join(depsDir, package));
+      }
+      rethrow;
+    }
   }
 
   /// Precompiles all executables from dependencies that don't transitively

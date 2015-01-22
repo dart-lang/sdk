@@ -79,6 +79,7 @@ class TransformerLoader {
                   var id = it0.current;
                   _isolates[id] = isolate;
                   trampoline0 = continue0;
+                  do trampoline0(); while (trampoline0 != null);
                 } else {
                   break0();
                 }
@@ -113,28 +114,42 @@ class TransformerLoader {
       try {
         join0() {
           join1() {
-            var transformer = (() {
+            var transformer;
+            join2() {
+              _transformers[config] =
+                  new Set.from([ExcludingTransformer.wrap(transformer, config)]);
+              completer0.complete(_transformers[config]);
+            }
+            catch0(error, stackTrace) {
               try {
-                return new Dart2JSTransformer.withSettings(
-                    _environment,
-                    new BarbackSettings(config.configuration, _environment.mode));
-              } on FormatException catch (error, stackTrace) {
-                fail(error.message, error, stackTrace);
+                if (error is FormatException) {
+                  fail(error.message, error, stackTrace);
+                  join2();
+                } else {
+                  throw error;
+                }
+              } catch (error, stackTrace) {
+                completer0.completeError(error, stackTrace);
               }
-            })();
-            _transformers[config] =
-                new Set.from([ExcludingTransformer.wrap(transformer, config)]);
-            completer0.complete(_transformers[config]);
+            }
+            try {
+              transformer = new Dart2JSTransformer.withSettings(
+                  _environment,
+                  new BarbackSettings(config.configuration, _environment.mode));
+              join2();
+            } catch (e0, s0) {
+              catch0(e0, s0);
+            }
           }
           if (_isolates.containsKey(config.id)) {
             new Future.value(_isolates[config.id].create(config)).then((x0) {
               try {
                 var transformers = x0;
-                join2() {
+                join3() {
                   var message = "No transformers";
-                  join3() {
+                  join4() {
                     var location;
-                    join4() {
+                    join5() {
                       var users =
                           toSentence(ordered(_transformerUsers[config.id]));
                       fail(
@@ -145,37 +160,37 @@ class TransformerLoader {
                       location =
                           'package:${config.id.package}/transformer.dart or '
                               'package:${config.id.package}/${config.id.package}.dart';
-                      join4();
+                      join5();
                     } else {
                       location = 'package:${config}.dart';
-                      join4();
+                      join5();
                     }
                   }
                   if (config.configuration.isNotEmpty) {
                     message += " that accept configuration";
-                    join3();
+                    join4();
                   } else {
-                    join3();
+                    join4();
                   }
                 }
                 if (transformers.isNotEmpty) {
                   _transformers[config] = transformers;
                   completer0.complete(transformers);
                 } else {
-                  join2();
+                  join3();
                 }
-              } catch (e0, s0) {
-                completer0.completeError(e0, s0);
+              } catch (e1, s1) {
+                completer0.completeError(e1, s1);
               }
             }, onError: completer0.completeError);
           } else {
-            join5() {
+            join6() {
               join1();
             }
             if (config.id.package != '\$dart2js') {
               completer0.complete(new Future.value(new Set()));
             } else {
-              join5();
+              join6();
             }
           }
         }

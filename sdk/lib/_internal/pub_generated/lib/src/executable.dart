@@ -62,71 +62,88 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                       }));
                       var server;
                       join6() {
-                        completer0.complete(
-                            environment.barback.getAssetById(id).then(((_) {
-                          final completer0 = new Completer();
-                          scheduleMicrotask(() {
+                        join7() {
+                          var vmArgs = [];
+                          vmArgs.add("--checked");
+                          var relativePath =
+                              p.url.relative(assetPath, from: p.url.joinAll(p.split(server.rootDirectory)));
+                          vmArgs.add(
+                              server.url.resolve(relativePath).toString());
+                          vmArgs.addAll(args);
+                          new Future.value(
+                              Process.start(Platform.executable, vmArgs)).then((x1) {
                             try {
-                              var vmArgs = [];
-                              vmArgs.add("--checked");
-                              var relativePath =
-                                  p.url.relative(assetPath, from: p.url.joinAll(p.split(server.rootDirectory)));
-                              vmArgs.add(
-                                  server.url.resolve(relativePath).toString());
-                              vmArgs.addAll(args);
-                              new Future.value(
-                                  Process.start(Platform.executable, vmArgs)).then((x0) {
-                                try {
-                                  var process = x0;
-                                  process.stderr.listen(stderr.add);
-                                  process.stdout.listen(stdout.add);
-                                  stdin.listen(process.stdin.add);
-                                  completer0.complete(process.exitCode);
-                                } catch (e0, s0) {
-                                  completer0.completeError(e0, s0);
-                                }
-                              }, onError: completer0.completeError);
-                            } catch (e, s) {
-                              completer0.completeError(e, s);
+                              var process = x1;
+                              process.stderr.listen(stderr.add);
+                              process.stdout.listen(stdout.add);
+                              stdin.listen(process.stdin.add);
+                              completer0.complete(process.exitCode);
+                            } catch (e0, s0) {
+                              completer0.completeError(e0, s0);
                             }
-                          });
-                          return completer0.future;
-                        })).catchError(((error, stackTrace) {
-                          if (error is! AssetNotFoundException) throw error;
-                          var message =
-                              "Could not find ${log.bold(executable + ".dart")}";
-                          if (package != entrypoint.root.name) {
-                            message +=
-                                " in package ${log.bold(server.package)}";
+                          }, onError: completer0.completeError);
+                        }
+                        catch0(error, stackTrace) {
+                          try {
+                            if (error is AssetNotFoundException) {
+                              var message =
+                                  "Could not find ${log.bold(executable + ".dart")}";
+                              join8() {
+                                log.error("${message}.");
+                                log.fine(new Chain.forTrace(stackTrace));
+                                completer0.complete(exit_codes.NO_INPUT);
+                              }
+                              if (package != entrypoint.root.name) {
+                                message +=
+                                    " in package ${log.bold(server.package)}";
+                                join8();
+                              } else {
+                                join8();
+                              }
+                            } else {
+                              throw error;
+                            }
+                          } catch (error, stackTrace) {
+                            completer0.completeError(error, stackTrace);
                           }
-                          log.error("$message.");
-                          log.fine(new Chain.forTrace(stackTrace));
-                          return exit_codes.NO_INPUT;
-                        })));
+                        }
+                        try {
+                          new Future.value(
+                              environment.barback.getAssetById(id)).then((x2) {
+                            try {
+                              x2;
+                              join7();
+                            } catch (e1, s1) {
+                              catch0(e1, s1);
+                            }
+                          }, onError: catch0);
+                        } catch (e2, s2) {
+                          catch0(e2, s2);
+                        }
                       }
                       if (package == entrypoint.root.name) {
                         new Future.value(
-                            environment.serveDirectory(rootDir)).then((x1) {
+                            environment.serveDirectory(rootDir)).then((x3) {
                           try {
-                            server = x1;
+                            server = x3;
                             join6();
-                          } catch (e0, s0) {
-                            completer0.completeError(e0, s0);
+                          } catch (e3, s3) {
+                            completer0.completeError(e3, s3);
                           }
                         }, onError: completer0.completeError);
                       } else {
                         new Future.value(
-                            environment.servePackageBinDirectory(package)).then((x2) {
+                            environment.servePackageBinDirectory(package)).then((x4) {
                           try {
-                            server = x2;
+                            server = x4;
                             join6();
-                          } catch (e1, s1) {
-                            completer0.completeError(e1, s1);
+                          } catch (e4, s4) {
+                            completer0.completeError(e4, s4);
                           }
                         }, onError: completer0.completeError);
                       }
-                    } catch (e2, s2) {
-                      completer0.completeError(e2, s2);
+                    } catch (e5, s5) {
+                      completer0.completeError(e5, s5);
                     }
                   }, onError: completer0.completeError);
                 }
@@ -166,24 +183,24 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
             !entrypoint.root.immediateDependencies.any(((dep) {
           return dep.name == package;
         }))) {
-          new Future.value(entrypoint.loadPackageGraph()).then((x3) {
+          new Future.value(entrypoint.loadPackageGraph()).then((x5) {
             try {
-              var graph = x3;
-              join7() {
+              var graph = x5;
+              join9() {
                 join1();
               }
               if (graph.packages.containsKey(package)) {
                 dataError(
                     'Package "${package}" is not an immediate dependency.\n'
                         'Cannot run executables in transitive dependencies.');
-                join7();
+                join9();
               } else {
                 dataError(
                     'Could not find package "${package}". Did you forget to add a ' 'dependency?');
-                join7();
+                join9();
               }
-            } catch (e3, s3) {
-              completer0.completeError(e3, s3);
+            } catch (e6, s6) {
+              completer0.completeError(e6, s6);
             }
           }, onError: completer0.completeError);
         } else {

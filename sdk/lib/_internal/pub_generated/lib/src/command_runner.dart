@@ -222,15 +222,19 @@ and include the results in a bug report on http://dartbug.com/new.
               case 'normal':
                 log.verbosity = log.Verbosity.NORMAL;
                 break0();
+                break;
               case 'io':
                 log.verbosity = log.Verbosity.IO;
                 break0();
+                break;
               case 'solver':
                 log.verbosity = log.Verbosity.SOLVER;
                 break0();
+                break;
               case 'all':
                 log.verbosity = log.Verbosity.ALL;
                 break0();
+                break;
               default:
                 join5() {
                   break0();
@@ -241,6 +245,7 @@ and include the results in a bug report on http://dartbug.com/new.
                 } else {
                   join5();
                 }
+                break;
             }
           }
           if (options['trace']) {

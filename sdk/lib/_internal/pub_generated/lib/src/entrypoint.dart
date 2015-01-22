@@ -141,15 +141,40 @@ class Entrypoint {
                             var packageGraph = x2;
                             packageGraph.loadTransformerCache().clearIfOutdated(
                                 result.changedPackages);
-                            completer0.complete(
-                                precompileDependencies(changed: result.changedPackages).then(((_) {
-                              return precompileExecutables(
-                                  changed: result.changedPackages);
-                            })).catchError(((error, stackTrace) {
-                              log.exception(error, stackTrace);
-                            })));
-                          } catch (e0, s0) {
-                            completer0.completeError(e0, s0);
+                            join4() {
+                              completer0.complete();
+                            }
+                            catch0(error, stackTrace) {
+                              try {
+                                log.exception(error, stackTrace);
+                                join4();
+                              } catch (error, stackTrace) {
+                                completer0.completeError(error, stackTrace);
+                              }
+                            }
+                            try {
+                              new Future.value(
+                                  precompileDependencies(changed: result.changedPackages)).then((x3) {
+                                try {
+                                  x3;
+                                  new Future.value(
+                                      precompileExecutables(changed: result.changedPackages)).then((x4) {
+                                    try {
+                                      x4;
+                                      join4();
+                                    } catch (e0, s0) {
+                                      catch0(e0, s0);
+                                    }
+                                  }, onError: catch0);
+                                } catch (e1, s1) {
+                                  catch0(e1, s1);
+                                }
+                              }, onError: catch0);
+                            } catch (e2, s2) {
+                              catch0(e2, s2);
+                            }
+                          } catch (e3, s3) {
+                            completer0.completeError(e3, s3);
                           }
                         }, onError: completer0.completeError);
                       }
@@ -159,8 +184,8 @@ class Entrypoint {
                       } else {
                         join3();
                       }
-                    } catch (e1, s1) {
-                      completer0.completeError(e1, s1);
+                    } catch (e4, s4) {
+                      completer0.completeError(e4, s4);
                     }
                   }, onError: completer0.completeError);
                 }
@@ -185,8 +210,8 @@ class Entrypoint {
             } else {
               join0();
             }
-          } catch (e2, s2) {
-            completer0.completeError(e2, s2);
+          } catch (e5, s5) {
+            completer0.completeError(e5, s5);
           }
         }, onError: completer0.completeError);
       } catch (e, s) {
@@ -224,96 +249,123 @@ class Entrypoint {
               })).toSet();
               join1() {
                 join2() {
-                  new Future.value(
-                      log.progress("Precompiling dependencies", (() {
-                    final completer0 = new Completer();
-                    scheduleMicrotask(() {
-                      try {
-                        var packagesToLoad = unionAll(
-                            dependenciesToPrecompile.map(graph.transitiveDependencies)).map(((package) {
-                          return package.name;
-                        })).toSet();
-                        new Future.value(
-                            AssetEnvironment.create(
-                                this,
-                                BarbackMode.DEBUG,
-                                packages: packagesToLoad,
-                                useDart2JS: false)).then((x0) {
-                          try {
-                            var environment = x0;
-                            environment.barback.errors.listen(((_) {
-                            }));
-                            new Future.value(
-                                environment.barback.getAllAssets()).then((x1) {
-                              try {
-                                var assets = x1;
-                                new Future.value(
-                                    waitAndPrintErrors(assets.map(((asset) {
-                                  final completer0 = new Completer();
-                                  scheduleMicrotask(() {
-                                    try {
-                                      join0() {
-                                        var destPath =
-                                            path.join(depsDir, asset.id.package, path.fromUri(asset.id.path));
-                                        ensureDir(path.dirname(destPath));
-                                        new Future.value(
-                                            createFileFromStream(asset.read(), destPath)).then((x0) {
-                                          try {
-                                            x0;
-                                            completer0.complete();
-                                          } catch (e0, s0) {
-                                            completer0.completeError(e0, s0);
-                                          }
-                                        }, onError: completer0.completeError);
-                                      }
-                                      if (!dependenciesToPrecompile.contains(
-                                          asset.id.package)) {
-                                        completer0.complete(null);
-                                      } else {
-                                        join0();
-                                      }
-                                    } catch (e, s) {
-                                      completer0.completeError(e, s);
-                                    }
-                                  });
-                                  return completer0.future;
-                                })))).then((x2) {
-                                  try {
-                                    x2;
-                                    log.message(
-                                        "Precompiled " +
-                                            toSentence(ordered(dependenciesToPrecompile).map(log.bold)) +
-                                            ".");
-                                    completer0.complete();
-                                  } catch (e0, s0) {
-                                    completer0.completeError(e0, s0);
-                                  }
-                                }, onError: completer0.completeError);
-                              } catch (e1, s1) {
-                                completer0.completeError(e1, s1);
-                              }
-                            }, onError: completer0.completeError);
-                          } catch (e2, s2) {
-                            completer0.completeError(e2, s2);
-                          }
-                        }, onError: completer0.completeError);
-                      } catch (e, s) {
-                        completer0.completeError(e, s);
-                      }
-                    });
-                    return completer0.future;
-                  })).catchError(((error) {
-                    dependenciesToPrecompile.forEach(
-                        (package) => deleteEntry(path.join(depsDir, package)));
-                    throw error;
-                  }))).then((x1) {
+                  join3() {
+                    completer0.complete();
+                  }
+                  catch0(_, s0) {
                     try {
-                      x1;
-                      completer0.complete();
-                    } catch (e0, s0) {
-                      completer0.completeError(e0, s0);
+                      var it0 = dependenciesToPrecompile.iterator;
+                      break0() {
+                        completer0.completeError(_, s0);
+                      }
+                      var trampoline0;
+                      continue0() {
+                        trampoline0 = null;
+                        if (it0.moveNext()) {
+                          var package = it0.current;
+                          deleteEntry(path.join(depsDir, package));
+                          trampoline0 = continue0;
+                          do trampoline0(); while (trampoline0 != null);
+                        } else {
+                          break0();
+                        }
+                      }
+                      trampoline0 = continue0;
+                      do trampoline0(); while (trampoline0 != null);
+                    } catch (_, s0) {
+                      completer0.completeError(_, s0);
                     }
-                  }, onError: completer0.completeError);
+                  }
+                  try {
+                    new Future.value(
+                        log.progress("Precompiling dependencies", (() {
+                      final completer0 = new Completer();
+                      scheduleMicrotask(() {
+                        try {
+                          var packagesToLoad = unionAll(
+                              dependenciesToPrecompile.map(graph.transitiveDependencies)).map(((package) {
+                            return package.name;
+                          })).toSet();
+                          new Future.value(
+                              AssetEnvironment.create(
+                                  this,
+                                  BarbackMode.DEBUG,
+                                  packages: packagesToLoad,
+                                  useDart2JS: false)).then((x0) {
+                            try {
+                              var environment = x0;
+                              environment.barback.errors.listen(((_) {
+                              }));
+                              new Future.value(
+                                  environment.barback.getAllAssets()).then((x1) {
+                                try {
+                                  var assets = x1;
+                                  new Future.value(
+                                      waitAndPrintErrors(assets.map(((asset) {
+                                    final completer0 = new Completer();
+                                    scheduleMicrotask(() {
+                                      try {
+                                        join0() {
+                                          var destPath =
+                                              path.join(depsDir, asset.id.package, path.fromUri(asset.id.path));
+                                          ensureDir(path.dirname(destPath));
+                                          new Future.value(
+                                              createFileFromStream(asset.read(), destPath)).then((x0) {
+                                            try {
+                                              x0;
+                                              completer0.complete();
+                                            } catch (e0, s0) {
+                                              completer0.completeError(e0, s0);
+                                            }
+                                          }, onError: completer0.completeError);
+                                        }
+                                        if (!dependenciesToPrecompile.contains(
+                                            asset.id.package)) {
+                                          completer0.complete(null);
+                                        } else {
+                                          join0();
+                                        }
+                                      } catch (e, s) {
+                                        completer0.completeError(e, s);
+                                      }
+                                    });
+                                    return completer0.future;
+                                  })))).then((x2) {
+                                    try {
+                                      x2;
+                                      log.message(
+                                          "Precompiled " +
+                                              toSentence(ordered(dependenciesToPrecompile).map(log.bold)) +
+                                              ".");
+                                      completer0.complete();
+                                    } catch (e0, s0) {
+                                      completer0.completeError(e0, s0);
+                                    }
+                                  }, onError: completer0.completeError);
+                                } catch (e1, s1) {
+                                  completer0.completeError(e1, s1);
+                                }
+                              }, onError: completer0.completeError);
+                            } catch (e2, s2) {
+                              completer0.completeError(e2, s2);
+                            }
+                          }, onError: completer0.completeError);
+                        } catch (e, s) {
+                          completer0.completeError(e, s);
+                        }
+                      });
+                      return completer0.future;
+                    }))).then((x1) {
+                      try {
+                        x1;
+                        join3();
+                      } catch (e0, s1) {
+                        catch0(e0, s1);
+                      }
+                    }, onError: catch0);
+                  } catch (e1, s2) {
+                    catch0(e1, s2);
+                  }
                 }
                 if (dependenciesToPrecompile.isEmpty) {
                   completer0.complete(null);
@@ -322,54 +374,56 @@ class Entrypoint {
                 }
               }
               if (dirExists(depsDir)) {
-                var it0 = dependenciesToPrecompile.iterator;
-                break0() {
-                  var it1 = listDir(depsDir).iterator;
-                  break1() {
+                var it1 = dependenciesToPrecompile.iterator;
+                break1() {
+                  var it2 = listDir(depsDir).iterator;
+                  break2() {
                     join1();
                   }
-                  var trampoline1;
-                  continue1() {
-                    trampoline1 = null;
-                    if (it1.moveNext()) {
-                      var subdir = it1.current;
+                  var trampoline2;
+                  continue2() {
+                    trampoline2 = null;
+                    if (it2.moveNext()) {
+                      var subdir = it2.current;
                       var package = graph.packages[path.basename(subdir)];
-                      join3() {
-                        trampoline1 = continue1;
+                      join4() {
+                        trampoline2 = continue2;
+                        do trampoline2(); while (trampoline2 != null);
                       }
                       if (package == null ||
                           package.pubspec.transformers.isEmpty ||
                           graph.isPackageMutable(package.name)) {
                         deleteEntry(subdir);
-                        join3();
+                        join4();
                       } else {
-                        join3();
+                        join4();
                       }
                     } else {
-                      break1();
+                      break2();
                     }
                   }
-                  trampoline1 = continue1;
-                  do trampoline1(); while (trampoline1 != null);
+                  trampoline2 = continue2;
+                  do trampoline2(); while (trampoline2 != null);
                 }
-                var trampoline0;
-                continue0() {
-                  trampoline0 = null;
-                  if (it0.moveNext()) {
-                    var package = it0.current;
+                var trampoline1;
+                continue1() {
+                  trampoline1 = null;
+                  if (it1.moveNext()) {
+                    var package = it1.current;
                     deleteEntry(path.join(depsDir, package));
-                    trampoline0 = continue0;
+                    trampoline1 = continue1;
+                    do trampoline1(); while (trampoline1 != null);
                   } else {
-                    break0();
+                    break1();
                   }
                 }
-                trampoline0 = continue0;
-                do trampoline0(); while (trampoline0 != null);
+                trampoline1 = continue1;
+                do trampoline1(); while (trampoline1 != null);
               } else {
                 join1();
               }
-            } catch (e1, s1) {
-              completer0.completeError(e1, s1);
+            } catch (e2, s3) {
+              completer0.completeError(e2, s3);
             }
           }, onError: completer0.completeError);
         }
@@ -509,6 +563,7 @@ class Entrypoint {
                     var package = it0.current;
                     join4() {
                       trampoline0 = continue0;
+                      do trampoline0(); while (trampoline0 != null);
                     }
                     if (executables[package].isEmpty) {
                       executables.remove(package);

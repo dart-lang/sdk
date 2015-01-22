@@ -115,6 +115,7 @@ class CacheRepairCommand extends PubCommand {
                     successes += results.first;
                     failures += results.last;
                     trampoline0 = continue0;
+                    do trampoline0(); while (trampoline0 != null);
                   } catch (e2, s2) {
                     completer0.completeError(e2, s2);
                   }
