@@ -547,6 +547,11 @@ class MockContext implements AnalysisContext {
   @override
   Stream<SourcesChangedEvent> get onSourcesChanged => mockStream;
 
+  @override
+  TimestampedData<String> getContents(Source source) {
+    return source.contents;
+  }
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
