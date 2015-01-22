@@ -5,7 +5,6 @@
 library engine.static_warning_code_test;
 
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
 
