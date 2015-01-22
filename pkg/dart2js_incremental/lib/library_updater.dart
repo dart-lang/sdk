@@ -845,7 +845,7 @@ class LibraryUpdater extends JsFeatures {
         jsAst.Node superAccess = emitter.constructorAccess(superclass);
         inherits.add(
             js.statement(
-                r'#.inheritFrom(#, #)', [helper, classAccess, superAccess]));
+                r'this.inheritFrom(#, #)', [classAccess, superAccess]));
       }
     }
 
@@ -862,9 +862,8 @@ class LibraryUpdater extends JsFeatures {
       jsAst.Node classAccess = emitter.constructorAccess(cls);
       updates.add(
           js.statement(
-              r'# = #.schemaChange(#, #, #)',
-              [classAccess, helper,
-               invokeDefineClass(cls), classAccess, superAccess]));
+              r'# = this.schemaChange(#, #, #)',
+              [classAccess, invokeDefineClass(cls), classAccess, superAccess]));
     }
 
     for (RemovalUpdate update in removals) {
@@ -899,11 +898,11 @@ class LibraryUpdater extends JsFeatures {
     }
 
     updates.add(js.statement(r'''
-if (#helper.pendingStubs) {
-  #helper.pendingStubs.map(function(e) { return e(); });
-  #helper.pendingStubs = void 0;
+if (this.pendingStubs) {
+  this.pendingStubs.map(function(e) { return e(); });
+  this.pendingStubs = void 0;
 }
-''', {'helper': helper}));
+'''));
 
     if (updates.length == 1) {
       return prettyPrintJs(updates.single);
@@ -919,10 +918,9 @@ if (#helper.pendingStubs) {
         r'''
 (new Function(
     "$collectedClasses", "$desc",
-    #helper.defineClass(#name, #computeFields) +"\n;return " + #name))(
+    this.defineClass(#name, #computeFields) +"\n;return " + #name))(
         {#name: #descriptor})''',
-        {'helper': helper,
-         'name': js.string(name),
+        {'name': js.string(name),
          'computeFields': js.stringArray(computeFields(cls)),
          'descriptor': descriptor});
   }
@@ -955,8 +953,8 @@ if (#helper.pendingStubs) {
         emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
 
     return js.statement(
-        r'#.addMethod(#, #, #, #, #)',
-        [helper, partialDescriptor, js.string(name), holder,
+        r'this.addMethod(#, #, #, #, #)',
+        [partialDescriptor, js.string(name), holder,
          new jsAst.LiteralBool(isStatic), globalFunctionsAccess]);
   }
 
@@ -1461,8 +1459,6 @@ abstract class JsFeatures {
   ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
 
   EnqueueTask get enqueuer => compiler.enqueuer;
-
-  jsAst.Expression get helper => namer.accessIncrementalHelper;
 }
 
 class EmitterHelper extends JsFeatures {

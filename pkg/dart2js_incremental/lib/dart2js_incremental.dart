@@ -146,12 +146,13 @@ class IncrementalCompiler {
   String allUpdates() {
     jsAst.Node updates = jsAst.js.escapedString(_updates.join(""));
 
+    JavaScriptBackend backend = _compiler.backend;
+
     jsAst.FunctionDeclaration mainRunner = jsAst.js.statement(r"""
 function dartMainRunner(main, args) {
-  $dart_unsafe_eval.patch(#);
+  #helper.patch(#updates);
   return main(args);
-}""", updates);
-
+}""", {'updates': updates, 'helper': backend.namer.accessIncrementalHelper});
 
     jsAst.Printer printer = new jsAst.Printer(_compiler, null);
     printer.blockOutWithoutBraces(mainRunner);

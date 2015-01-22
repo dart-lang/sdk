@@ -993,7 +993,7 @@ class Namer implements ClosureNamer {
     }
   }
 
-  String get incrementalHelperName => r'$dart_unsafe_eval';
+  String get incrementalHelperName => r'$dart_unsafe_incremental_support';
 
   jsAst.Expression get accessIncrementalHelper {
     assert(compiler.hasIncrementalSupport);

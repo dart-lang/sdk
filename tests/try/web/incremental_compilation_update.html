@@ -40,7 +40,7 @@
       script.type = 'application/javascript';
       document.body.appendChild(script);
     } else if (e.data[0] === 'apply-update') {
-      self.$dart_unsafe_eval.patch(e.data[1]);
+      self.$dart_unsafe_incremental_support.patch(e.data[1]);
 
       dartMainClosure();
 
