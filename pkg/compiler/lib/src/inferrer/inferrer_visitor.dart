@@ -150,6 +150,13 @@ class VariableScope<T> {
             ? null
             : new VariableScope<T>.deepCopyOf(other.parent);
 
+  VariableScope.topLevelCopyOf(VariableScope<T> other)
+      : variables = other.variables == null
+            ? null
+            : new Map<Local, T>.from(other.variables),
+        block = other.block,
+        parent = other.parent;
+
   T operator [](Local variable) {
     T result;
     if (variables == null || (result = variables[variable]) == null) {
@@ -393,6 +400,16 @@ class LocalsHandler<T> {
 
   LocalsHandler.deepCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.deepCopyOf(other.locals),
+        fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+        captured = other.captured,
+        capturedAndBoxed = other.capturedAndBoxed,
+        tryBlock = other.tryBlock,
+        types = other.types,
+        inferrer = other.inferrer,
+        compiler = other.compiler;
+
+  LocalsHandler.topLevelCopyOf(LocalsHandler<T> other)
+      : locals = new VariableScope<T>.topLevelCopyOf(other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
         captured = other.captured,
         capturedAndBoxed = other.capturedAndBoxed,
@@ -906,11 +923,26 @@ abstract class InferrerVisitor
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
       updateIsChecks(isChecks, usePositive: true);
-      if (!oldAccumulateIsChecks) {
+      LocalsHandler<T> narrowed;
+      if (oldAccumulateIsChecks) {
+        narrowed = new LocalsHandler<T>.topLevelCopyOf(locals);
+      } else {
         accumulateIsChecks = false;
         isChecks = oldIsChecks;
       }
       visit(node.arguments.head);
+      if (oldAccumulateIsChecks) {
+
+        bool invalidatedInRightHandSide (Send test) {
+          Element receiver = elements[test.receiver];
+          if (receiver is LocalElement) {
+            return narrowed.locals[receiver] != locals.locals[receiver];
+          }
+          return false;
+        }
+
+        isChecks.removeWhere(invalidatedInRightHandSide);
+      }
       saved.mergeDiamondFlow(locals, null);
       locals = saved;
       return types.boolType;

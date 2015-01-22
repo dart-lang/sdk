@@ -44,8 +44,6 @@ Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # Issue 21134
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # Issue 21134 and co19 issue 714
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # Issue 21210
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # Issue 21210
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t16: RuntimeError # Issue 21271
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t17: RuntimeError # Issue 21271
 Language/12_Expressions/22_Equality_A01_t01: fail # Issue 21137
 Language/12_Expressions/22_Equality_A05_t01: fail # Issue 21137
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # Issue 21154
