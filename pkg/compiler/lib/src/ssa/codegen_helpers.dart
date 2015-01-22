@@ -384,9 +384,14 @@ class SsaInstructionMerger extends HBaseVisitor {
     analyzeInputs(instruction, 0);
   }
 
-  // The codegen might use the input multiple times, so it must not be
-  // set generate at use site.
-  void visitIs(HIs instruction) {}
+  void visitIs(HIs instruction) {
+    // In the general case the input might be used multple multiple times, so it
+    // must not be set generate at use site.  If the code will generate
+    // 'instanceof' then we can generate at use site.
+    if (instruction.useInstanceOf) {
+      analyzeInputs(instruction, 0);
+    }
+  }
 
   // A bounds check method must not have its first input generated at use site,
   // because it's using it twice.

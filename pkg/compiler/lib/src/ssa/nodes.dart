@@ -2421,11 +2421,19 @@ class HIs extends HInstruction {
 
   final DartType typeExpression;
   final int kind;
+  final bool useInstanceOf;
 
   HIs.direct(DartType typeExpression,
              HInstruction expression,
              TypeMask type)
       : this.internal(typeExpression, [expression], RAW_CHECK, type);
+
+  // Pre-verified that the check can be done using 'instanceof'.
+  HIs.instanceOf(DartType typeExpression,
+                 HInstruction expression,
+                 TypeMask type)
+      : this.internal(typeExpression, [expression], RAW_CHECK, type,
+          useInstanceOf: true);
 
   HIs.raw(DartType typeExpression,
           HInstruction expression,
@@ -2446,7 +2454,8 @@ class HIs extends HInstruction {
                TypeMask type)
       : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type);
 
-  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind, type)
+  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind,
+      TypeMask type, {bool this.useInstanceOf: false})
       : super(inputs, type) {
     assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();

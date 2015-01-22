@@ -1470,6 +1470,16 @@ class JavaScriptBackend extends Backend {
         element == jsFixedArrayClass;
   }
 
+  bool mayGenerateInstanceofCheck(DartType type) {
+    // We can use an instanceof check for raw types that have no subclass that
+    // is mixed-in or in an implements clause.
+
+    if (!type.isRaw) return false;
+    ClassElement classElement = type.element;
+    if (isInterceptorClass(classElement)) return false;
+    return compiler.world.hasOnlySubclasses(classElement);
+  }
+
   Element getExceptionUnwrapper() {
     return findHelper('unwrapException');
   }

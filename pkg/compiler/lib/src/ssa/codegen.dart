@@ -2304,6 +2304,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (!negative) push(new js.Prefix('!', pop()));
   }
 
+  void checkTypeViaInstanceof(
+      HInstruction input, DartType type, bool negative) {
+    registry.registerIsCheck(type);
+
+    use(input);
+
+    js.Expression jsClassReference =
+        backend.emitter.constructorAccess(type.element);
+    push(js.js('# instanceof #', [pop(), jsClassReference]));
+    if (negative) push(new js.Prefix('!', pop()));
+    registry.registerInstantiatedType(type);
+  }
+
   void handleNumberOrStringSupertypeCheck(HInstruction input,
                                           HInstruction interceptor,
                                           DartType type,
@@ -2421,6 +2434,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         js.Expression numTest = pop();
         checkBigInt(input, relation);
         push(new js.Binary(negative ? '||' : '&&', numTest, pop()), node);
+      } else if (node.useInstanceOf) {
+        assert(interceptor == null);
+        checkTypeViaInstanceof(input, type, negative);
+        attachLocationToLast(node);
       } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
         handleNumberOrStringSupertypeCheck(
             input, interceptor, type, negative: negative);

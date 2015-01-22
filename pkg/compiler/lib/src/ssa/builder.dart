@@ -3442,7 +3442,8 @@ class SsaBuilder extends ResolvedVisitor {
       if (backend.hasDirectCheckFor(type)) {
         return new HIs.direct(type, expression, backend.boolType);
       }
-      // TODO(johnniwinther): Avoid interceptor if unneeded.
+      // The interceptor is not always needed.  It is removed by optimization
+      // when the receiver type or tested type permit.
       return new HIs.raw(
           type, expression, invokeInterceptor(expression), backend.boolType);
     }
