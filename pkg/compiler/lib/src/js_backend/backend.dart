@@ -842,15 +842,16 @@ class JavaScriptBackend extends Backend {
           // The constructor is on the patch class, but dart2js unit tests don't
           // have a patch class.
           ClassElement implementation = cls.patch != null ? cls.patch : cls;
-          return implementation.lookupConstructor(
-            new Selector.callConstructor(
-                name, mapLiteralClass.library, arity),
-            (element) {
-              compiler.internalError(mapLiteralClass,
-                  "Map literal class $mapLiteralClass missing "
-                  "'$name' constructor"
-                  "  ${mapLiteralClass.constructors}");
-            });
+          ConstructorElement ctor = implementation.lookupConstructor(name);
+          if (ctor == null
+              || (isPrivateName(name)
+                  && ctor.library != mapLiteralClass.library)) {
+            compiler.internalError(mapLiteralClass,
+                                   "Map literal class $mapLiteralClass missing "
+                                   "'$name' constructor"
+                                   "  ${mapLiteralClass.constructors}");
+          }
+          return ctor;
         }
         mapLiteralConstructor = getFactory('_literal', 1);
         mapLiteralConstructorEmpty = getFactory('_empty', 0);

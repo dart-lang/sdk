@@ -1374,11 +1374,8 @@ abstract class ClassElement extends TypeDeclarationElement
   Element lookupSuperMemberInLibrary(String memberName,
                                      LibraryElement library);
 
-  Element validateConstructorLookupResults(Selector selector,
-                                           Element result,
-                                           Element noMatch(Element));
-
-  Element lookupConstructor(Selector selector, [Element noMatch(Element)]);
+  ConstructorElement lookupDefaultConstructor();
+  ConstructorElement lookupConstructor(String name);
 
   void forEachMember(void f(ClassElement enclosingClass, Element member),
                      {bool includeBackendMembers: false,

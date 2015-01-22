@@ -651,11 +651,6 @@ class ClassElementY extends TypeDeclarationElementY
   int get supertypeLoadState => unsupported('supertypeLoadState');
 
   @override
-  validateConstructorLookupResults(selector,  result, noMatch) {
-    unsupported('validateConstructorLookupResults');
-  }
-
-  @override
   bool get isEnumClass => unsupported('isEnum');
 }
 

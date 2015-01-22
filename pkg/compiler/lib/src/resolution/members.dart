@@ -1465,7 +1465,7 @@ class InitializerResolver {
     Selector constructorSelector =
         visitor.getRedirectingThisOrSuperConstructorSelector(call);
     FunctionElement calledConstructor =
-        lookupTarget.lookupConstructor(constructorSelector);
+        lookupTarget.lookupConstructor(constructorSelector.name);
 
     final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
@@ -1503,7 +1503,7 @@ class InitializerResolver {
       Selector constructorSelector = new Selector.callDefaultConstructor(
           visitor.enclosingElement.library);
       Element calledConstructor = lookupTarget.lookupConstructor(
-          constructorSelector);
+          constructorSelector.name);
 
       final String className = lookupTarget.name;
       final bool isImplicitSuperCall = true;
@@ -2333,7 +2333,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Selector selector =
           getRedirectingThisOrSuperConstructorSelector(initializers.head);
       final ClassElement classElement = constructor.enclosingClass;
-      return classElement.lookupConstructor(selector);
+      return classElement.lookupConstructor(selector.name);
     }
     return null;
   }
@@ -4829,8 +4829,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                                      Node diagnosticNode,
                                      String constructorName) {
     cls.ensureResolved(compiler);
-    Selector selector = createConstructorSelector(constructorName);
-    Element result = cls.lookupConstructor(selector);
+    Element result = cls.lookupConstructor(constructorName);
     if (result == null) {
       String fullConstructorName = Elements.constructorNameForDiagnostics(
               cls.name,
