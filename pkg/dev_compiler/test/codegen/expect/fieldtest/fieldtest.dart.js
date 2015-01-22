@@ -17,8 +17,8 @@ var fieldtest;
 
   // Function bar: (dynamic) → int
   function bar(a) {
-    dart_core.print(dart_runtime.dload(a, "x"));
-    return /* Unimplemented: DownCast: dynamic to int */ dart_runtime.dload(a, "x");
+    dart_core.print(dart.dload(a, "x"));
+    return /* Unimplemented: DownCast: dynamic to int */ dart.dload(a, "x");
   }
 
 

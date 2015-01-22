@@ -1,5 +1,5 @@
-var dart_runtime;
-(function (dart_runtime) {
+var dart;
+(function (dart) {
   // Adapted from Angular.js
   var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
   var FN_ARG_SPLIT = /,/;
@@ -28,7 +28,7 @@ var dart_runtime;
     }
     return obj[field];
   }
-  dart_runtime.dload = dload;
+  dart.dload = dload;
 
   function dinvokef(f, args) {
     var formals = formalParameterList(f);
@@ -43,43 +43,43 @@ var dart_runtime;
     }
     return f.apply(void 0, args);
   }
-  dart_runtime.dinvokef = dinvokef;
+  dart.dinvokef = dinvokef;
 
   function dextend(sub, _super) {
     sub.prototype = Object.create(_super.prototype);
     sub.prototype.constructor = sub;
   }
-  dart_runtime.dextend = dextend;
+  dart.dextend = dextend;
 
   function cast(obj, type) {
     if (obj == null || instanceOf(obj, type)) return obj;
     throw new dart_core.CastError();
   }
-  dart_runtime.cast = cast;
+  dart.cast = cast;
 
   function instanceOf(obj, type) {
     // TODO(vsm): Implement.
     throw new dart_core.UnimplementedError();
   }
-  dart_runtime.instanceOf = instanceOf;
+  dart.instanceOf = instanceOf;
 
   function isGroundType(type) {
     // TODO(vsm): Implement.
     throw new dart_core.UnimplementedError();
   }
-  dart_runtime.isGroundType = isGroundType;
+  dart.isGroundType = isGroundType;
 
   function arity(f) {
     // TODO(vsm): Implement.
     throw new dart_core.UnimplementedError();
   }
-  dart_runtime.arity = arity;
+  dart.arity = arity;
 
   function equals(x, y) {
     if (x === null || y === null) return x === y;
     var eq = x.__equals;
     return eq ? eq.call(x, y) : x === y;
   }
-  dart_runtime.equals = equals;
+  dart.equals = equals;
 
-})(dart_runtime || (dart_runtime = {}));
+})(dart || (dart = {}));

@@ -57,7 +57,7 @@ var DeltaBlue;
     satisfy(mark) {
       this.chooseMethod(/* Unimplemented: DownCast: dynamic to int */ mark);
       if (!this.isSatisfied()) {
-        if (dart_runtime.equals(this.strength, REQUIRED)) {
+        if (dart.equals(this.strength, REQUIRED)) {
           dart_core.print("Could not satisfy a required constraint!");
         }
         return null;
@@ -260,7 +260,7 @@ var DeltaBlue;
     }
     removeConstraint(c) {
       this.constraints.remove(c);
-      if (dart_runtime.equals(this.determinedBy, c)) this.determinedBy = null;
+      if (dart.equals(this.determinedBy, c)) this.determinedBy = null;
     }
   }
 
@@ -282,11 +282,11 @@ var DeltaBlue;
       do {
         for (let i = 0; i < unsatisfied.length; i++) {
           let u = unsatisfied[i];
-          if (dart_runtime.equals(u.strength, strength)) this.incrementalAdd(u);
+          if (dart.equals(u.strength, strength)) this.incrementalAdd(u);
         }
         strength = strength.nextWeaker();
       }
-      while (!dart_runtime.equals(strength, WEAKEST));
+      while (!dart.equals(strength, WEAKEST));
     }
     newMark() {
       return ++this.currentMark;
@@ -341,7 +341,7 @@ var DeltaBlue;
         let determining = v.determinedBy;
         for (let i = 0; i < v.constraints.length; i++) {
           let next = v.constraints[i];
-          if (!dart_runtime.equals(next, determining) && next.isSatisfied()) {
+          if (!dart.equals(next, determining) && next.isSatisfied()) {
             next.recalculate();
             todo.add(next.output());
           }
@@ -353,7 +353,7 @@ var DeltaBlue;
       let determining = v.determinedBy;
       for (let i = 0; i < v.constraints.length; i++) {
         let c = v.constraints[i];
-        if (!dart_runtime.equals(c, determining) && c.isSatisfied()) coll.add(c);
+        if (!dart.equals(c, determining) && c.isSatisfied()) coll.add(c);
       }
     }
   }

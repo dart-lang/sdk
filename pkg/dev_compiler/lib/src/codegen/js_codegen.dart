@@ -635,7 +635,7 @@ var $libName;
         // TODO(jmesserly): it would be nice to use just "equals", perhaps
         // by importing this name.
         if (op.type == TokenType.BANG_EQ) out.write('!');
-        out.write('dart_runtime.equals(');
+        out.write('dart.equals(');
         lhs.accept(this);
         out.write(', ');
         rhs.accept(this);
@@ -757,7 +757,7 @@ var $libName;
   void _visitGet(Expression target, SimpleIdentifier name) {
     if (rules.isDynamicGet(target)) {
       // TODO(jmesserly): this won't work if we're left hand side of assignment.
-      out.write('dart_runtime.dload(');
+      out.write('dart.dload(');
       target.accept(this);
       out.write(', "${name.name}")');
     } else {

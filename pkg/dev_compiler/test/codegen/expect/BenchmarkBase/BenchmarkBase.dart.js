@@ -3,7 +3,7 @@ var BenchmarkBase;
   'use strict';
   class Expect {
     static equals(expected, actual) {
-      if (!dart_runtime.equals(expected, actual)) {
+      if (!dart.equals(expected, actual)) {
         throw "Values not equal: " + (expected) + " vs " + (actual) + "";
       }
     }
