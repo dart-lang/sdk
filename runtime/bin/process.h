@@ -87,6 +87,7 @@ class Process {
                    const char* working_directory,
                    char* environment[],
                    intptr_t environment_length,
+                   bool detached,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,

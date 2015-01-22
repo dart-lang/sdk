@@ -275,7 +275,8 @@ class Process {
       {String workingDirectory,
        Map<String, String> environment,
        bool includeParentEnvironment: true,
-       bool runInShell: false}) {
+       bool runInShell: false,
+       bool detach: false}) {
     throw new UnsupportedError("Process.start");
   }
 
