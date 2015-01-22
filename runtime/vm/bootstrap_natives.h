@@ -102,6 +102,7 @@ namespace dart {
   V(ImmutableList_from, 4)                                                     \
   V(StringBase_createFromCodePoints, 3)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
+  V(StringBase_joinReplaceAllResult, 4)                                        \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \

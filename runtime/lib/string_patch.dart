@@ -40,6 +40,35 @@ patch class String {
  * implementations, e.g., _OneByteString.
  */
 class _StringBase {
+  // Constants used by replaceAll encoding of string slices between matches.
+  // A string slice (start+length) is encoded in a single Smi to save memory
+  // overhead in the common case.
+  // We use fewer bits for length (11 bits) than for the start index (19+ bits).
+  // For long strings, it's possible to have many large indices,
+  // but it's unlikely to have many long lengths since slices don't overlap.
+  // If there are few matches in a long string, then there are few long slices,
+  // and if there are many matches, there'll likely be many short slices.
+  //
+  // Encoding is: 0((start << _lengthBits) | length)
+
+  // Number of bits used by length.
+  // This is the shift used to encode and decode the start index.
+  static const int _lengthBits = 11;
+  // The maximal allowed length value in an encoded slice.
+  static const int _maxLengthValue = (1 << _lengthBits) - 1;
+  // Mask of length in encoded smi value.
+  static const int _lengthMask = _maxLengthValue;
+  static const int _startBits = _maxUnsignedSmiBits - _lengthBits;
+  // Maximal allowed start index value in an encoded slice.
+  static const int _maxStartValue = (1 << _startBits) - 1;
+  // We pick 30 as a safe lower bound on available bits in a negative smi.
+  // TODO(lrn): Consider allowing more bits for start on 64-bit systems.
+  static const int _maxUnsignedSmiBits = 30;
+
+  // For longer strings, calling into C++ to create the result of a
+  // [replaceAll] is faster than [_joinReplaceAllOneByteResult].
+  // TODO(lrn): See if this limit can be tweaked.
+  static const int _maxJoinReplaceOneByteStringLength = 500;
 
   factory _StringBase._uninstantiable() {
     throw new UnsupportedError(
@@ -487,26 +516,141 @@ class _StringBase {
            "${this.substring(match.end)}";
   }
 
-  String replaceAll(Pattern pattern, String replacement) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
+
+  static int _addReplaceSlice(List matches, int start, int end) {
+    int length = end - start;
+    if (length > 0) {
+      if (length <= _maxLengthValue && start <= _maxStartValue) {
+        matches.add(-((start << _lengthBits) | length));
+      } else {
+        matches.add(start);
+        matches.add(end);
+      }
     }
-    if (replacement is! String) {
-      throw new ArgumentError(
-          "${replacement} is not a String or Match->String function");
-    }
-    StringBuffer buffer = new StringBuffer();
-    int startIndex = 0;
-    for (Match match in pattern.allMatches(this)) {
-      buffer..write(this.substring(startIndex, match.start))
-            ..write(replacement);
-      startIndex = match.end;
-    }
-    return (buffer..write(this.substring(startIndex))).toString();
+    return length;
   }
 
+  String replaceAll(Pattern pattern, String replacement) {
+    if (pattern == null) throw new ArgumentError.notNull("pattern");
+    if (replacement == null) throw new ArgumentError.notNull("replacement");
+    List matches = [];
+    int length = 0;
+    int replacementLength = replacement.length;
+    int startIndex = 0;
+    if (replacementLength == 0) {
+      int count = 0;
+      for (Match match in pattern.allMatches(this)) {
+        length += _addReplaceSlice(matches, startIndex, match.start);
+        startIndex = match.end;
+      }
+    } else {
+      for (Match match in pattern.allMatches(this)) {
+        length += _addReplaceSlice(matches, startIndex, match.start);
+        matches.add(replacement);
+        length += replacementLength;
+        startIndex = match.end;
+      }
+    }
+    length += _addReplaceSlice(matches, startIndex, this.length);
+    bool replacementIsOneByte = (replacement is _OneByteString) ||
+                                (replacement is _ExternalOneByteString);
+    if (replacementIsOneByte && length < _maxJoinReplaceOneByteStringLength) {
+      // TODO(lrn): Is there a cut-off point, or is runtime always faster?
+      bool thisIsOneByte = (this is _OneByteString) ||
+                           (this is _ExternalOneByteString);
+      if (replacementIsOneByte && thisIsOneByte) {
+        return _joinReplaceAllOneByteResult(this, matches, length);
+      }
+    }
+    return _joinReplaceAllResult(this, matches, length,
+                                 replacementIsOneByte);
+  }
+
+  /**
+   * As [_joinReplaceAllResult], but knowing that the result
+   * is always a [_OneByteString].
+   */
+  static String _joinReplaceAllOneByteResult(String base,
+                                             List matches,
+                                             int length) {
+    _OneByteString result = _OneByteString._allocate(length);
+    int writeIndex = 0;
+    for (int i = 0; i < matches.length; i++) {
+      var entry = matches[i];
+      if (entry is _Smi) {
+        int sliceStart = entry;
+        int sliceEnd;
+        if (sliceStart < 0) {
+          int bits = -sliceStart;
+          int sliceLength = bits & _lengthMask;
+          sliceStart = bits >> _lengthBits;
+          sliceEnd = sliceStart + sliceLength;
+        } else {
+          i++;
+          // This function should only be called with valid matches lists.
+          // If the list is short, or sliceEnd is not an integer, one of
+          // the next few lines will throw anyway.
+          assert(i < matches.length);
+          sliceEnd = matches[i];
+        }
+        for (int j = sliceStart; j < sliceEnd; j++) {
+          result._setAt(writeIndex++, base.codeUnitAt(j));
+        }
+      } else {
+        // Replacement is a one-byte string.
+        String replacement = entry;
+        for (int j = 0; j < replacement.length; j++) {
+          result._setAt(writeIndex++, replacement.codeUnitAt(j));
+        }
+      }
+    }
+    assert(writeIndex == length);
+    return result;
+  }
+
+  /**
+   * Combine the results of a [replaceAll] match into a new string.
+   *
+   * The [matches] lists contains Smi index pairs representing slices of
+   * [base] and [String]s to be put in between the slices.
+   *
+   * The total [length] of the resulting string is known, as is
+   * whether the replacement strings are one-byte strings.
+   * If they are, then we have to check the base string slices to know
+   * whether the result must be a one-byte string.
+   */
+  static String _joinReplaceAllResult(String base, List matches, int length,
+                                      bool replacementStringsAreOneByte)
+      native "StringBase_joinReplaceAllResult";
+
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
-    return splitMapJoin(pattern, onMatch: replace);
+    if (pattern == null) throw new ArgumentError.notNull("pattern");
+    if (replace == null) throw new ArgumentError.notNull("replace");
+    List matches = [];
+    int length = 0;
+    int startIndex = 0;
+    bool replacementStringsAreOneByte = true;
+    for (Match match in pattern.allMatches(this)) {
+      length += _addReplaceSlice(matches, startIndex, match.start);
+      String replacement = replace(match).toString();
+      matches.add(replacement);
+      length += replacement.length;
+      replacementStringsAreOneByte = replacementStringsAreOneByte &&
+          (replacement is _OneByteString ||
+           replacement is _ExternalOneByteString);
+      startIndex = match.end;
+    }
+    length += _addReplaceSlice(matches, startIndex, this.length);
+    if (replacementStringsAreOneByte &&
+        length < _maxJoinReplaceOneByteStringLength) {
+      bool thisIsOneByte = (this is _OneByteString) ||
+                           (this is _ExternalOneByteString);
+      if (thisIsOneByte) {
+        return _joinReplaceAllOneByteResult(this, matches, length);
+      }
+    }
+    return _joinReplaceAllResult(this, matches, length,
+                                 replacementStringsAreOneByte);
   }
 
   static String _matchString(Match match) => match[0];

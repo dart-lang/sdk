@@ -103,6 +103,155 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
 }
 
 
+
+// Return the bitwise-or of all characters in the slice from start to end.
+static uint16_t CharacterLimit(const String& string,
+                               intptr_t start, intptr_t end) {
+  ASSERT(string.IsTwoByteString() || string.IsExternalTwoByteString());
+  // Maybe do loop unrolling, and handle two uint16_t in a single uint32_t
+  // operation.
+  NoGCScope no_gc;
+  uint16_t result = 0;
+  if (string.IsTwoByteString()) {
+    for (intptr_t i = start; i < end; i++) {
+      result |= TwoByteString::CharAt(string, i);
+    }
+  } else {
+    for (intptr_t i = start; i < end; i++) {
+      result |= ExternalTwoByteString::CharAt(string, i);
+    }
+  }
+  return result;
+}
+
+static const intptr_t kLengthSize = 11;
+static const intptr_t kLengthMask = (1 << kLengthSize) - 1;
+
+static bool CheckSlicesOneByte(const String& base,
+                               const Array& matches,
+                               const int len) {
+  Instance& object = Instance::Handle();
+  // Check each slice for one-bytedness.
+  for (intptr_t i = 0; i < len; i++) {
+    object ^= matches.At(i);
+    if (object.IsSmi()) {
+      intptr_t slice_start = Smi::Cast(object).Value();
+      intptr_t slice_end;
+      if (slice_start < 0) {
+        intptr_t bits = -slice_start;
+        slice_start = bits >> kLengthSize;
+        slice_end = slice_start + (bits & kLengthMask);
+      } else {
+        i++;
+        if (i >= len) {
+          // Bad format, handled later.
+          return false;
+        }
+        object ^= matches.At(i);
+        if (!object.IsSmi()) {
+          // Bad format, handled later.
+          return false;
+        }
+        slice_end = Smi::Cast(object).Value();
+      }
+      uint16_t char_limit = CharacterLimit(base, slice_start, slice_end);
+      if (char_limit > 0xff) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
+DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
+  const String& base = String::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray,
+                               matches_growable, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, is_onebyte_obj, arguments->NativeArgAt(3));
+
+  intptr_t len = matches_growable.Length();
+  const Array& matches = Array::Handle(isolate, matches_growable.data());
+
+  const intptr_t length = length_obj.Value();
+  if (length < 0) {
+    Exceptions::ThrowArgumentError(length_obj);
+  }
+
+  // Start out assuming result is one-byte if replacements are.
+  bool is_onebyte = is_onebyte_obj.value();
+  if (is_onebyte) {
+    // If any of the base string slices are not one-byte, the result will be
+    // a two-byte string.
+    if (!base.IsOneByteString() && !base.IsExternalOneByteString()) {
+      is_onebyte = CheckSlicesOneByte(base, matches, len);
+    }
+  }
+
+  const intptr_t base_length = base.Length();
+  String& result = String::Handle(isolate);
+  if (is_onebyte) {
+    result ^= OneByteString::New(length, Heap::kNew);
+  } else {
+    result ^= TwoByteString::New(length, Heap::kNew);
+  }
+  Instance& object = Instance::Handle(isolate);
+  intptr_t write_index = 0;
+  for (intptr_t i = 0; i < len; i++) {
+    object ^= matches.At(i);
+    if (object.IsSmi()) {
+      intptr_t slice_start = Smi::Cast(object).Value();
+      intptr_t slice_length = -1;
+      // Slices with limited ranges are stored in a single negative Smi.
+      if (slice_start < 0) {
+        intptr_t bits = -slice_start;
+        slice_start = bits >> kLengthSize;
+        slice_length = bits & kLengthMask;
+      } else {
+        i++;
+        if (i < len) {  // Otherwise slice_length stays at -1.
+          object ^= matches.At(i);
+          if (object.IsSmi()) {
+            intptr_t slice_end = Smi::Cast(object).Value();
+            slice_length = slice_end - slice_start;
+          }
+        }
+      }
+      if (slice_length > 0) {
+        if (0 <= slice_start &&
+            slice_start + slice_length <= base_length &&
+            write_index + slice_length <= length) {
+          String::Copy(result, write_index,
+                       base, slice_start,
+                       slice_length);
+          write_index += slice_length;
+          continue;
+        }
+      }
+      // Either the slice_length was zero,
+      // or the first smi was positive and not followed by another smi,
+      // or the smis were not a valid slice of the base string,
+      // or the slice was too large to fit in the result.
+      // Something is wrong with the matches array!
+      Exceptions::ThrowArgumentError(matches_growable);
+    } else if (object.IsString()) {
+      const String& replacement = String::Cast(object);
+      intptr_t replacement_length = replacement.Length();
+      if (write_index + replacement_length > length) {
+        // Invalid input data, either in matches list or the total length.
+        Exceptions::ThrowArgumentError(matches_growable);
+      }
+      String::Copy(result, write_index, replacement, 0, replacement_length);
+      write_index += replacement_length;
+    }
+  }
+  if (write_index < length) {
+    Exceptions::ThrowArgumentError(matches_growable);
+  }
+  return result.raw();
+}
+
 DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
