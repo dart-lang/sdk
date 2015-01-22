@@ -36,6 +36,9 @@ class ProgramBuilder {
 
   final Registry _registry;
 
+  /// True if the program should store function types in the metadata.
+  bool _storeFunctionTypesInMetadata = false;
+
   ProgramBuilder(Compiler compiler,
                  this.namer,
                  this._task)
@@ -57,7 +60,8 @@ class ProgramBuilder {
   /// update field-initializers to point to the ConstantModel.
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
-  Program buildProgram() {
+  Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
+    this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
     // happens when the deferred code is dead-code eliminated but we still need
     // to check that the library has been loaded.
@@ -284,19 +288,13 @@ class ProgramBuilder {
     emitterTask.TypeTestGenerator generator =
         new emitterTask.TypeTestGenerator(_compiler, _task, namer);
     emitterTask.TypeTestProperties typeTests =
-        generator.generateIsTests(element);
+        generator.generateIsTests(
+            element,
+            storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
-    // At this point a mixin application must not have any methods or fields.
-    // Type-tests might be added to mixin applications, too.
-    assert(!element.isMixinApplication || methods.isEmpty);
-    assert(!element.isMixinApplication || fields.isEmpty);
-
-    // TODO(floitsch): we should not add the code here, but have a list of
-    // is/as classes in the Class object.
-    // The individual emitters should then call the type test generator to
-    // generate the code.
+    List<StubMethod> isChecks = <StubMethod>[];
     typeTests.properties.forEach((String name, js.Node code) {
-      methods.add(_buildStubMethod(name, code));
+      isChecks.add(_buildStubMethod(name, code));
     });
 
     String name = namer.getNameOfClass(element);
@@ -309,13 +307,18 @@ class ProgramBuilder {
     Class result;
     if (element.isMixinApplication && !onlyForRti) {
       assert(!element.isNative);
+      assert(methods.isEmpty);
+      assert(fields.isEmpty);
+
       result = new MixinApplication(element,
-                                    name, holder, methods, fields,
+                                    name, holder, isChecks,
+                                    typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
                                     onlyForRti: onlyForRti);
     } else {
       result = new Class(element,
-                         name, holder, methods, fields,
+                         name, holder, methods, fields, isChecks,
+                         typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
                          onlyForRti: onlyForRti,
                          isNative: element.isNative);

@@ -170,15 +170,23 @@ class Class {
   Class _superclass;
   final List<Method> methods;
   final List<InstanceField> fields;
+  final List<StubMethod> isChecks;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
   final bool isNative;
 
+  // If the class implements a function type, and the type is encoded in the
+  // metatada table, then this field contains the index into that field.
+  final int functionTypeIndex;
+
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
-  Class(this.element,
-        this.name, this.holder, this.methods, this.fields,
+  Class(this.element, this.name, this.holder,
+        this.methods,
+        this.fields,
+        this.isChecks,
+        this.functionTypeIndex,
         {this.onlyForRti,
          this.isDirectlyInstantiated,
          this.isNative}) {
@@ -203,14 +211,15 @@ class Class {
 class MixinApplication extends Class {
   Class _mixinClass;
 
-  MixinApplication(Element element,
-                   String name, Holder holder,
-                   List<Method> methods,
-                   List<InstanceField> fields,
+  MixinApplication(Element element, String name, Holder holder,
+                   List<StubMethod> isChecks,
+                   int functionTypeIndex,
                    {bool onlyForRti,
                     bool isDirectlyInstantiated})
       : super(element,
-              name, holder, methods, fields,
+              name, holder,
+              const <Method>[], const <InstanceField>[],
+              isChecks, functionTypeIndex,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated,
               isNative: false);

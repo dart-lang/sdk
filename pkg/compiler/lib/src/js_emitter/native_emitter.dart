@@ -325,7 +325,8 @@ class NativeEmitter {
         classElement, builder);
     emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
         classElement, builder);
-    emitterTask.oldEmitter.typeTestEmitter.emitIsTests(classElement, builder);
+    emitterTask.oldEmitter.classEmitter
+        .emitRuntimeTypeInformation(cls, builder);
 
     if (!hasFields &&
         builder.properties.length == propertyCount &&

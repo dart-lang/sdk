@@ -108,4 +108,3 @@ part 'old_emitter/interceptor_emitter.dart';
 part 'old_emitter/metadata_emitter.dart';
 part 'old_emitter/nsm_emitter.dart';
 part 'old_emitter/reflection_data_parser.dart';
-part 'old_emitter/type_test_emitter.dart';

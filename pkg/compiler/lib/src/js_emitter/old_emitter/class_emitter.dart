@@ -46,7 +46,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitClassGettersSettersForCSP(classElement, builder,
                                   onlyForRti: onlyForRti);
     emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
-    emitter.typeTestEmitter.emitIsTests(classElement, builder);
+    emitRuntimeTypeInformation(cls, builder);
     if (additionalProperties != null) {
       additionalProperties.forEach(builder.addProperty);
     }
@@ -303,6 +303,18 @@ class ClassEmitter extends CodeEmitterHelper {
       if (!emitter.nativeEmitter.handleNoSuchMethod) {
         emitter.nsmEmitter.emitNoSuchMethodHandlers(builder.addProperty);
       }
+    }
+  }
+
+  /// Emits the members from the model.
+  void emitRuntimeTypeInformation(Class cls, ClassBuilder builder) {
+    assert(builder.functionType == null);
+    if (cls.functionTypeIndex != null) {
+      builder.functionType = '${cls.functionTypeIndex}';
+    }
+
+    for (Method method in cls.isChecks) {
+      builder.addProperty(method.name, method.code);
     }
   }
 

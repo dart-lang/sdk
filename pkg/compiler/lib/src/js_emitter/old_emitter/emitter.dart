@@ -12,7 +12,6 @@ class OldEmitter implements Emitter {
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
-  final TypeTestEmitter typeTestEmitter = new TypeTestEmitter();
   final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
   final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
@@ -106,7 +105,6 @@ class OldEmitter implements Emitter {
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
-    typeTestEmitter.emitter = this;
     interceptorEmitter.emitter = this;
     metadataEmitter.emitter = this;
   }
@@ -1795,7 +1793,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programBuilder.buildProgram();
+    Program program = programBuilder.buildProgram(
+        storeFunctionTypesInMetadata: true);
 
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;

@@ -371,8 +371,10 @@ class ModelEmitter {
       elements.add(_generateConstructor(cls));
     }
     Iterable<Method> methods = cls.methods;
+    Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
-    Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
+    Iterable<Method> allMethods =
+        [methods, isChecks, gettersSetters].expand((x) => x);
     elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
     return unparse(compiler, new js.ArrayInitializer(elements));
   }
