@@ -58,7 +58,7 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * The maximum number of performance measurements to keep.
    */
-  static const int performanceListMaxLength = 50;
+  static const int performanceListMaxLength = 0;
 
   /**
    * Performance for the last priority change event.
