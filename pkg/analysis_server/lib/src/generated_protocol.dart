@@ -1405,13 +1405,43 @@ class AnalysisUpdateContentParams implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+
 /**
  * analysis.updateContent result
+ *
+ * {
+ * }
  */
-class AnalysisUpdateContentResult {
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+class AnalysisUpdateContentResult implements HasToJson {
+  AnalysisUpdateContentResult();
+
+  factory AnalysisUpdateContentResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      return new AnalysisUpdateContentResult();
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.updateContent result");
+    }
   }
+
+  factory AnalysisUpdateContentResult.fromResponse(Response response) {
+    return new AnalysisUpdateContentResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
 
   @override
   bool operator==(other) {
@@ -1423,7 +1453,8 @@ class AnalysisUpdateContentResult {
 
   @override
   int get hashCode {
-    return 468798730;
+    int hash = 0;
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 

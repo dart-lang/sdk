@@ -274,8 +274,12 @@ final Matcher isAnalysisUpdateContentParams = new LazyMatcher(() => new MatchesJ
 
 /**
  * analysis.updateContent result
+ *
+ * {
+ * }
  */
-final Matcher isAnalysisUpdateContentResult = isNull;
+final Matcher isAnalysisUpdateContentResult = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.updateContent result", null));
 
 /**
  * analysis.updateOptions params

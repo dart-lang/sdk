@@ -468,13 +468,15 @@ abstract class IntegrationTestMixin {
    *
    *   A table mapping the files whose content has changed to a description of
    *   the content change.
+   *
+   * Returns
    */
-  Future sendAnalysisUpdateContent(Map<String, dynamic> files) {
+  Future<AnalysisUpdateContentResult> sendAnalysisUpdateContent(Map<String, dynamic> files) {
     var params = new AnalysisUpdateContentParams(files).toJson();
     return server.send("analysis.updateContent", params)
         .then((result) {
-      expect(result, isNull);
-      return null;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
     });
   }
 
