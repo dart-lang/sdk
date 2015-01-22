@@ -708,6 +708,94 @@ class AnalysisGetHoverResult implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+/**
+ * analysis.getLibraryDependencies params
+ */
+class AnalysisGetLibraryDependenciesParams {
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getLibraryDependencies", null);
+  }
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetLibraryDependenciesParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 246577680;
+  }
+}
+
+/**
+ * analysis.getLibraryDependencies result
+ *
+ * {
+ *   "libraries": List<FilePath>
+ * }
+ */
+class AnalysisGetLibraryDependenciesResult implements HasToJson {
+  /**
+   * A list of the paths of library elements referenced by files in existing
+   * analysis roots.
+   */
+  List<String> libraries;
+
+  AnalysisGetLibraryDependenciesResult(this.libraries);
+
+  factory AnalysisGetLibraryDependenciesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> libraries;
+      if (json.containsKey("libraries")) {
+        libraries = jsonDecoder._decodeList(jsonPath + ".libraries", json["libraries"], jsonDecoder._decodeString);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "libraries");
+      }
+      return new AnalysisGetLibraryDependenciesResult(libraries);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getLibraryDependencies result");
+    }
+  }
+
+  factory AnalysisGetLibraryDependenciesResult.fromResponse(Response response) {
+    return new AnalysisGetLibraryDependenciesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["libraries"] = libraries;
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetLibraryDependenciesResult) {
+      return _listEqual(libraries, other.libraries, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, libraries.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
 
 /**
  * analysis.getNavigation params

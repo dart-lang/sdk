@@ -231,6 +231,25 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return a list of all of the libraries referenced by any files in existing
+   * analysis roots.
+   *
+   * Returns
+   *
+   * libraries ( List<FilePath> )
+   *
+   *   A list of the paths of library elements referenced by files in existing
+   *   analysis roots.
+   */
+  Future<AnalysisGetLibraryDependenciesResult> sendAnalysisGetLibraryDependencies() {
+    return server.send("analysis.getLibraryDependencies", null)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetLibraryDependenciesResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
    * Return the navigation information associated with the given region of the
    * given file. If the navigation information for the given file has not yet
    * been computed, or the most recently computed navigation information for

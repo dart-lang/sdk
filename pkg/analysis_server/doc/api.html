@@ -363,6 +363,7 @@ dt.typeDefinition {
       
       
       
+      
     <h3>Requests</h3><dl><dt class="request">analysis.getErrors</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getErrors"
@@ -457,7 +458,28 @@ dt.typeDefinition {
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
             </p>
-          </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request">analysis.getLibraryDependencies</dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "analysis.getLibraryDependencies"
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>libraries</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
+  }
+}</pre></div>
+            <p>
+              Return a list of all of the libraries referenced by any files in
+              existing analysis roots.
+            </p>
+            
+      <h4>Returns</h4><dl><dt class="field"><b><i>libraries ( List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
+                    
+                    <p>
+                      A list of the paths of library elements referenced by
+                      files in existing analysis roots.
+                    </p>
+                </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getNavigation"
   "params": {

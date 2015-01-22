@@ -359,6 +359,21 @@
           </field>
         </result>
       </request>
+      <request method="getLibraryDependencies">
+            <p>
+              Return a list of all of the libraries referenced by any files in
+              existing analysis roots.
+            </p>
+            <result>
+                <field name="libraries">
+                    <list><ref>FilePath</ref></list>
+                    <p>
+                      A list of the paths of library elements referenced by
+                      files in existing analysis roots.
+                    </p>
+                </field>
+            </result>
+      </request>
       <request method="getNavigation">
         <p>
           Return the navigation information associated with the given region of
