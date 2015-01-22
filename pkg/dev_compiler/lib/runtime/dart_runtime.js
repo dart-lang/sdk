@@ -74,4 +74,12 @@ var dart_runtime;
     throw new dart_core.UnimplementedError();
   }
   dart_runtime.arity = arity;
+
+  function equals(x, y) {
+    if (x === null || y === null) return x === y;
+    var eq = x.__equals;
+    return eq ? eq.call(x, y) : x === y;
+  }
+  dart_runtime.equals = equals;
+
 })(dart_runtime || (dart_runtime = {}));

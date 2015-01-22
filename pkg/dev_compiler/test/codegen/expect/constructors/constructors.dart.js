@@ -10,27 +10,27 @@ var constructors;
   }
 
   class C {
+    __init_named() {
+    }
   }
-
-  C.named = function() {
-  };
+  C.named = function() { this.__init_named() };
   C.named.prototype = C.prototype;
 
   class C2 extends C {
+    __init_named() {
+      super.__init_named();
+    }
   }
-
-  C2.named = function() {
-    C.named.call(this);
-  };
+  C2.named = function() { this.__init_named() };
   C2.named.prototype = C2.prototype;
 
   class D {
     constructor() {
     }
+    __init_named() {
+    }
   }
-
-  D.named = function() {
-  };
+  D.named = function() { this.__init_named() };
   D.named.prototype = D.prototype;
 
   class E {
@@ -61,11 +61,11 @@ var constructors;
     constructor() {
       this.name = "default";
     }
+    __init_named(name) {
+      this.name = name;
+    }
   }
-
-  I.named = function(name) {
-    this.name = name;
-  };
+  I.named = function(name) { this.__init_named(name) };
   I.named.prototype = I.prototype;
 
   class J {
@@ -79,12 +79,40 @@ var constructors;
     constructor() {
       this.s = "a";
     }
+    __init_withS(s) {
+      this.s = s;
+    }
+  }
+  K.withS = function(s) { this.__init_withS(s) };
+  K.withS.prototype = K.prototype;
+
+  class L {
+    constructor(foo) {
+      this.foo = foo;
+    }
   }
 
-  K.withS = function(s) {
-    this.s = s;
-  };
-  K.withS.prototype = K.prototype;
+  class M extends L {
+    __init_named(x) {
+      L.call(this, x + 42);
+    }
+  }
+  M.named = function(x) { this.__init_named(x) };
+  M.named.prototype = M.prototype;
+
+  class N extends M {
+    __init_named(y) {
+      super.__init_named(y + 100);
+    }
+  }
+  N.named = function(y) { this.__init_named(y) };
+  N.named.prototype = N.prototype;
+
+  class P extends N {
+    constructor(z) {
+      super.__init_named(z + 9000);
+    }
+  }
 
   // Exports:
   constructors.A = A;
@@ -99,4 +127,8 @@ var constructors;
   constructors.I = I;
   constructors.J = J;
   constructors.K = K;
+  constructors.L = L;
+  constructors.M = M;
+  constructors.N = N;
+  constructors.P = P;
 })(constructors || (constructors = {}));

@@ -1,0 +1,25 @@
+// Messages from compiling DeltaBlue.dart
+warning: line 65, column 7 of test/codegen/BenchmarkBase.dart: f() requires dynamic invoke
+      f();
+      ^^^
+info: line 133, column 18 of test/codegen/DeltaBlue.dart: mark (dynamic) will need runtime check to cast to type int
+    chooseMethod(mark);
+                 ^^^^
+info: line 140, column 16 of test/codegen/DeltaBlue.dart: mark (dynamic) will need runtime check to cast to type int
+    markInputs(mark);
+               ^^^^
+info: line 145, column 37 of test/codegen/DeltaBlue.dart: mark (dynamic) will need runtime check to cast to type int
+    if (!planner.addPropagate(this, mark)) print("Cycle encountered");
+                                    ^^^^
+info: line 146, column 16 of test/codegen/DeltaBlue.dart: mark (dynamic) will need runtime check to cast to type int
+    out.mark = mark;
+               ^^^^
+info: line 435, column 27 of test/codegen/DeltaBlue.dart: WEAKEST (dynamic) will need runtime check to cast to type Strength
+  Strength walkStrength = WEAKEST;
+                          ^^^^^^^
+info: line 499, column 25 of test/codegen/DeltaBlue.dart: REQUIRED (dynamic) will need runtime check to cast to type Strength
+    Strength strength = REQUIRED;
+                        ^^^^^^^^
+info: line 594, column 24 of test/codegen/DeltaBlue.dart: WEAKEST (dynamic) will need runtime check to cast to type Strength
+    out.walkStrength = WEAKEST;
+                       ^^^^^^^

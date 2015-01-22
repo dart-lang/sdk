@@ -47,6 +47,7 @@ var sunflower;
     draw();
   }
 
+
   // Function draw: () → void
   function draw() {
     seeds = int.parse(slider.value);
@@ -60,6 +61,7 @@ var sunflower;
     }
     notes.textContent = "" + (seeds) + " seeds";
   }
+
 
   // Exports:
   sunflower.querySelector = querySelector;

@@ -117,9 +117,7 @@ var $libName;
 
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
-        if (member.name == null) {
-          _generateDefaultConstructor(member, fields);
-        }
+        _generateConstructor(member, name, fields);
       } else if (member is MethodDeclaration) {
         member.accept(this);
       }
@@ -129,22 +127,21 @@ var $libName;
 
     if (isPublic(name)) _exports.add(name);
 
-    // Named constructors don't have syntax, so generate after the class.
-    for (ConstructorDeclaration member in ctors) {
-      if (member.name != null) _generateNamedConstructor(member, name, fields);
+    for (var member in ctors) {
+      if (member.name != null) {
+        var ctorName = member.name.name;
+
+        out.write('$name.$ctorName = function(');
+        _visitNode(member.parameters);
+        out.write(') { this.__init_$ctorName(');
+        _visitNode(member.parameters);
+        out.write(') };\n');
+        out.write('$name.$ctorName.prototype = $name.prototype;\n');
+      }
     }
 
     out.write('\n');
     currentClass = null;
-  }
-
-  void _generateDefaultConstructor(
-      ConstructorDeclaration node, List<FieldDeclaration> fields) {
-    out.write('constructor(');
-    _visitNode(node.parameters);
-    out.write(') {\n', 2);
-    _generateConstructorBody(node, fields);
-    out.write('}\n', -2);
   }
 
   /// Generates the implicit default constructor for class C of the form
@@ -159,14 +156,19 @@ var $libName;
     out.write('}\n', -2);
   }
 
-  void _generateNamedConstructor(ConstructorDeclaration node, String className,
+  void _generateConstructor(ConstructorDeclaration node, String className,
       List<FieldDeclaration> fields) {
-    out.write('\n$className.${node.name} = function(');
+    if (node.name != null) {
+      // We generate named constructors as initializer methods in the class;
+      // this allows use of `super` for instance methods/properties.
+      out.write('__init_${node.name.name}(');
+    } else {
+      out.write('constructor(');
+    }
     _visitNode(node.parameters);
     out.write(') {\n', 2);
     _generateConstructorBody(node, fields);
-    out.write('};\n', -2);
-    out.write('$className.${node.name}.prototype = $className.prototype;\n');
+    out.write('}\n', -2);
   }
 
   void _generateConstructorBody(
@@ -245,19 +247,20 @@ var $libName;
   void _superConstructorCall(ConstructorDeclaration ctor,
       [SimpleIdentifier superName, ArgumentList args]) {
 
-    // If no named constructors are involved we can use ES `super`, otherwise
-    // use ES5 style: TypeName.call(this, arg0, ..., argN)
-    if (ctor.name == null && superName == null) {
-      out.write('super(');
-      if (args != null) {
-        _visitNodeList(args.arguments, separator: ', ');
-      }
-    } else {
+    // If we're calling default super from a named initializer method, we need
+    // to do ES5 style `TypeName.call(this, <args>)`, otherwise we use `super`.
+    if (ctor.name != null && superName == null) {
       var supertype = (ctor.parent as ClassDeclaration).element.supertype;
-      var ctorName = superName != null ? '.${superName.name}' : '';
-      out.write('${_typeName(supertype)}$ctorName.call(this');
+      out.write('${_typeName(supertype)}.call(this');
       if (args != null) {
         _visitNodeList(args.arguments, prefix: ', ', separator: ', ');
+      }
+    } else {
+      out.write('super');
+      if (superName != null) out.write('.__init_${superName.name}');
+      out.write('(');
+      if (args != null) {
+        _visitNodeList(args.arguments, separator: ', ');
       }
     }
     out.write(');\n');
@@ -401,6 +404,10 @@ var $libName;
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is ExpressionStatement) {
+      out.write('/* Unimplemented function expr as statement: $node */');
+      return;
+    }
     out.write("(");
     _visitNode(node.parameters);
     out.write(") => ");
@@ -514,12 +521,17 @@ var $libName;
   void visitBlock(Block node) {
     out.write("{\n", 2);
     node.statements.accept(this);
-    out.write("}", -2);
+    out.write("}\n", -2);
   }
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
     node.expression.accept(this);
+    out.write(';\n');
+  }
+
+  @override
+  void visitEmptyStatement(EmptyStatement node) {
     out.write(';\n');
   }
 
@@ -536,20 +548,17 @@ var $libName;
 
   void _generateVariableList(VariableDeclarationList list, bool lazy) {
     var declarations = list.variables;
-    for (var declaration in declarations) {
-      var name = declaration.name.name;
-      out.write('let $name');
-
-      var initializer = declaration.initializer;
+    for (var node in declarations) {
+      out.write(node == declarations.first ? 'let ' : ', ');
+      out.write(node.name.name);
+      var initializer = node.initializer;
       if (initializer != null) {
         out.write(' = ');
-
         // TODO(jmesserly): implement lazy eval. Probably uses the same design
         // as top level getters/setters.
-        if (lazy && !_isConstant(declaration)) {
+        if (lazy && !_isConstant(node)) {
           out.write('/* Unimplemented lazy eval */');
         }
-
         initializer.accept(this);
       }
     }
@@ -612,16 +621,47 @@ var $libName;
 
     var dispatchType = rules.getStaticType(lhs);
     var otherType = rules.getStaticType(rhs);
-    if (binaryOperationIsPrimitive(dispatchType, otherType)) {
-      // TODO(vsm): When do Dart ops not map to JS?
-      lhs.accept(this);
-      out.write(' $op ');
-      rhs.accept(this);
+
+    if (op.type.isEqualityOperator) {
+      // If we statically know LHS or RHS is null we can generate a clean check.
+      // We can also do this if the left hand side is a primitive type, because
+      // we know then it doesn't have an overridden.
+      if (_isNull(lhs) || _isNull(rhs) || typeIsPrimitiveInJS(dispatchType)) {
+        lhs.accept(this);
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-strict-equality-comparison
+        out.write(op.type == TokenType.EQ_EQ ? ' === ' : ' !== ');
+        rhs.accept(this);
+      } else {
+        // TODO(jmesserly): it would be nice to use just "equals", perhaps
+        // by importing this name.
+        if (op.type == TokenType.BANG_EQ) out.write('!');
+        out.write('dart_runtime.equals(');
+        lhs.accept(this);
+        out.write(', ');
+        rhs.accept(this);
+        out.write(')');
+      }
+    } else if (binaryOperationIsPrimitive(dispatchType, otherType)) {
+      if (op.type == TokenType.TILDE_SLASH) {
+        // `a ~/ b` is equivalent to `(a / b).truncate()`
+        out.write('(');
+        lhs.accept(this);
+        out.write(' / ');
+        rhs.accept(this);
+        out.write(').truncate()');
+      } else {
+        // TODO(vsm): When do Dart ops not map to JS?
+        lhs.accept(this);
+        out.write(' $op ');
+        rhs.accept(this);
+      }
     } else {
       // TODO(vsm): Figure out operator calling convention / dispatch.
       out.write('/* Unimplemented binary operator: $node */');
     }
   }
+
+  bool _isNull(Expression expr) => expr is NullLiteral;
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
@@ -693,6 +733,16 @@ var $libName;
   }
 
   @override
+  void visitThisExpression(ThisExpression node) {
+    out.write('this');
+  }
+
+  @override
+  void visitSuperExpression(SuperExpression node) {
+    out.write('super');
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _visitGet(node.prefix, node.identifier);
   }
@@ -706,12 +756,61 @@ var $libName;
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   void _visitGet(Expression target, SimpleIdentifier name) {
     if (rules.isDynamicGet(target)) {
+      // TODO(jmesserly): this won't work if we're left hand side of assignment.
       out.write('dart_runtime.dload(');
       target.accept(this);
       out.write(', "${name.name}")');
     } else {
       target.accept(this);
       out.write('.${name.name}');
+    }
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    var target = node.isCascaded ? _cascadeTarget : node.target;
+    if (rules.isDynamicGet(target)) {
+      out.write('/* Unimplemented dynamic IndexExpression: $node */');
+    } else {
+      target.accept(this);
+      out.write('[');
+      node.index.accept(this);
+      out.write(']');
+    }
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    node.condition.accept(this);
+    out.write(' ? ');
+    node.thenExpression.accept(this);
+    out.write(' : ');
+    node.elseExpression.accept(this);
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    if (node.parent is ExpressionStatement) {
+      out.write('throw ');
+      node.expression.accept(this);
+    } else {
+      // TODO(jmesserly): move this into runtime helper?
+      out.write('(function(e) { throw e }(');
+      node.expression.accept(this);
+      out.write(')');
+    }
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    out.write('if (');
+    node.condition.accept(this);
+    out.write(') ');
+    node.thenStatement.accept(this);
+    var elseClause = node.elseStatement;
+    if (elseClause != null) {
+      out.write(' else ');
+      elseClause.accept(this);
     }
   }
 
@@ -730,12 +829,51 @@ var $libName;
     _visitNodeList(node.updaters, prefix: " ", separator: ", ");
     out.write(") ");
     _visitNode(node.body);
-    out.write("\n");
+  }
+
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    out.write("while (");
+    _visitNode(node.condition);
+    out.write(") ");
+    _visitNode(node.body);
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    out.write("do ");
+    _visitNode(node.body);
+    if (node.body is! Block) out.write(' ');
+    out.write("while (");
+    _visitNode(node.condition);
+    out.write(");\n");
   }
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
     out.write('${node.value}');
+  }
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    out.write('${node.value}');
+  }
+
+  @override
+  void visitNullLiteral(NullLiteral node) {
+    out.write('null');
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.constKeyword != null) {
+      out.write('/* Unimplemented const */');
+    }
+    // TODO(jmesserly): ES Array does not have Dart's ArrayList methods.
+    out.write('/* Unimplemented ArrayList */[');
+    _visitNodeList(node.elements, separator: ', ');
+    out.write(']');
   }
 
   @override

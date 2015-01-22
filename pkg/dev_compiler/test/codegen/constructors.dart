@@ -60,3 +60,20 @@ class K {
 
   K.withS(this.s);
 }
+
+class L {
+  var foo;
+  L(this.foo);
+}
+
+class M extends L {
+  M.named(int x) : super(x + 42);
+}
+
+class N extends M {
+  N.named(int y) : super.named(y + 100);
+}
+
+class P extends N {
+  P(int z) : super.named(z + 9000);
+}

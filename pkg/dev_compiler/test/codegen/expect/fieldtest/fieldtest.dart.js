@@ -14,11 +14,13 @@ var fieldtest;
     return a.x;
   }
 
+
   // Function bar: (dynamic) → int
   function bar(a) {
     dart_core.print(dart_runtime.dload(a, "x"));
     return /* Unimplemented: DownCast: dynamic to int */ dart_runtime.dload(a, "x");
   }
+
 
   // Function baz: (A) → dynamic
   function baz(a) { return a.x; }
@@ -30,6 +32,7 @@ var fieldtest;
     bar(a);
     dart_core.print(baz(a));
   }
+
 
   // Exports:
   fieldtest.A = A;
