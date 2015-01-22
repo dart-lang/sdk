@@ -1569,31 +1569,46 @@ IsolateSpawnState::~IsolateSpawnState() {
 
 
 RawObject* IsolateSpawnState::ResolveFunction() {
-  // Resolve the library.
-  Library& lib = Library::Handle();
-  if (library_url()) {
-    const String& lib_url = String::Handle(String::New(library_url()));
-    lib = Library::LookupLibrary(lib_url);
-    if (lib.IsNull() || lib.IsError()) {
-      const String& msg = String::Handle(String::NewFormatted(
-          "Unable to find library '%s'.", library_url()));
-      return LanguageError::New(msg);
-    }
-  } else {
-    lib = I->object_store()->root_library();
-  }
-  ASSERT(!lib.IsNull());
-
-  // Resolve the function.
   const String& func_name = String::Handle(String::New(function_name()));
 
+  if (library_url() == NULL) {
+    // Handle spawnUri lookup rules.
+    // Check whether the root library defines a main function.
+    const Library& lib = Library::Handle(I->object_store()->root_library());
+    Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+    if (func.IsNull()) {
+      // Check whether main is reexported from the root library.
+      const Object& obj = Object::Handle(lib.LookupReExport(func_name));
+      if (obj.IsFunction()) {
+        func ^= obj.raw();
+      }
+    }
+    if (func.IsNull()) {
+      const String& msg = String::Handle(String::NewFormatted(
+          "Unable to resolve function '%s' in script '%s'.",
+          function_name(), script_url()));
+      return LanguageError::New(msg);
+    }
+    return func.raw();
+  }
+
+  ASSERT(script_url() == NULL);
+  // Resolve the library.
+  const String& lib_url = String::Handle(String::New(library_url()));
+  const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
+  if (lib.IsNull() || lib.IsError()) {
+    const String& msg = String::Handle(String::NewFormatted(
+        "Unable to find library '%s'.", library_url()));
+    return LanguageError::New(msg);
+  }
+
+  // Resolve the function.
   if (class_name() == NULL) {
     const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
     if (func.IsNull()) {
       const String& msg = String::Handle(String::NewFormatted(
           "Unable to resolve function '%s' in library '%s'.",
-          function_name(),
-          (library_url() != NULL ? library_url() : script_url())));
+          function_name(), library_url()));
       return LanguageError::New(msg);
     }
     return func.raw();
