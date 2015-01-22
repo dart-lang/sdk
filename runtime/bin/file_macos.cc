@@ -340,7 +340,7 @@ char* File::LinkTarget(const char* pathname) {
   }
   char* target_name = reinterpret_cast<char*>(malloc(target_size + 1));
   if (target_name == NULL) {
-    return NULL
+    return NULL;
   }
   memmove(target_name, target, target_size);
   target_name[target_size] = '\0';
