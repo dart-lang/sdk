@@ -1201,7 +1201,10 @@ class ConcreteTypesInferrer
         jsArrayClass.lookupMember('removeLast');
     List<String> typePreservingOps = const ['+', '-', '*'];
     listConstructor =
-        compiler.listClass.lookupDefaultConstructor().implementation;
+        compiler.listClass.lookupConstructor(
+            new Selector.callConstructor(
+                '',
+                compiler.listClass.library)).implementation;
     emptyConcreteType = new ConcreteType.empty(compiler.maxConcreteTypeSize,
                                                baseTypes);
     nullConcreteType = singletonConcreteType(const NullBaseType());

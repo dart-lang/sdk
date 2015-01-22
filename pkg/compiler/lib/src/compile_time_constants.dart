@@ -1043,17 +1043,19 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         assert(superClass != null);
         assert(superClass.resolutionState == STATE_DONE);
 
+        Selector selector =
+            new Selector.callDefaultConstructor(enclosingClass.library);
+
         FunctionElement targetConstructor =
-            superClass.lookupDefaultConstructor();
-        // If we do not find a default constructor, an error was reported
-        // already and compilation will fail anyway. So just ignore that case.
-        if (targetConstructor != null) {
-          Selector selector =
-             new Selector.callDefaultConstructor(enclosingClass.library);
-          List<AstConstant> compiledArguments = evaluateArgumentsToConstructor(
-              functionNode, selector, const Link<Node>(), targetConstructor);
-          evaluateSuperOrRedirectSend(compiledArguments, targetConstructor);
+            superClass.lookupConstructor(selector);
+        if (targetConstructor == null) {
+          compiler.internalError(functionNode,
+              "No default constructor available.");
         }
+        List<AstConstant> compiledArguments =
+            evaluateArgumentsToConstructor(
+                functionNode, selector, const Link<Node>(), targetConstructor);
+        evaluateSuperOrRedirectSend(compiledArguments, targetConstructor);
       }
     }
   }

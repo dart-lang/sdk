@@ -2400,18 +2400,24 @@ abstract class BaseClassElementX extends ElementX
     return false;
   }
 
-  ConstructorElement lookupDefaultConstructor() {
-    ConstructorElement constructor = lookupConstructor("");
-    if (constructor != null
-        && constructor.functionSignature.requiredParameterCount == 0) {
-      return constructor;
+  Element validateConstructorLookupResults(Selector selector,
+                                           Element result,
+                                           Element noMatch(Element)) {
+    if (result == null
+        || !result.isConstructor
+        || (isPrivateName(selector.name)
+            && result.library != selector.library)) {
+      result = noMatch != null ? noMatch(result) : null;
     }
-    return null;
+    return result;
   }
 
-  ConstructorElement lookupConstructor(String name) {
-    Element result = localLookup(name);
-    return result != null && result.isConstructor ? result : null;
+  // TODO(aprelev@gmail.com): Peter believes that it would be great to
+  // make noMatch a required argument. Peter's suspicion is that most
+  // callers of this method would benefit from using the noMatch method.
+  Element lookupConstructor(Selector selector, [Element noMatch(Element)]) {
+    Element result = localLookup(selector.name);
+    return validateConstructorLookupResults(selector, result, noMatch);
   }
 
   Link<Element> get constructors {

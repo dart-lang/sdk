@@ -1908,14 +1908,14 @@ class SsaBuilder extends ResolvedVisitor {
       if (!enclosingClass.isObject) {
         assert(superClass != null);
         assert(superClass.resolutionState == STATE_DONE);
+        Selector selector =
+            new Selector.callDefaultConstructor(enclosingClass.library);
         // TODO(johnniwinther): Should we find injected constructors as well?
-        FunctionElement target = superClass.lookupDefaultConstructor();
+        FunctionElement target = superClass.lookupConstructor(selector);
         if (target == null) {
           compiler.internalError(superClass,
               "No default constructor available.");
         }
-        Selector selector =
-                    new Selector.callDefaultConstructor(enclosingClass.library);
         List<HInstruction> arguments =
             selector.makeArgumentsList2(const Link<ast.Node>(),
                                         target.implementation,
