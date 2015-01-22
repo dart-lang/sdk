@@ -80,22 +80,31 @@ class ProgramBuilder {
     outputs[0] = mainOutput;
     outputs.setAll(1, deferredOutputs);
 
-    Program result =
-        new Program(outputs, _task.outputContainsConstantList, _buildLoadMap());
+    List<Class> nativeClasses = _task.nativeClasses
+        .map((ClassElement classElement) {
+          Class result = _classes[classElement];
+          return (result == null) ? _buildClass(classElement) : result;
+        })
+        .toList();
 
     // Resolve the superclass references after we've processed all the classes.
     _classes.forEach((ClassElement element, Class c) {
       if (element.superclass != null) {
         c.setSuperclass(_classes[element.superclass]);
+        assert(c.superclass != null);
       }
       if (c is MixinApplication) {
         c.setMixinClass(_classes[computeMixinClass(element)]);
+        assert(c.mixinClass != null);
       }
     });
 
     _markEagerClasses();
 
-    return result;
+    return new Program(outputs,
+                       nativeClasses,
+                       _task.outputContainsConstantList,
+                       _buildLoadMap());
   }
 
   void _markEagerClasses() {
@@ -299,6 +308,7 @@ class ProgramBuilder {
 
     Class result;
     if (element.isMixinApplication && !onlyForRti) {
+      assert(!element.isNative);
       result = new MixinApplication(element,
                                     name, holder, methods, fields,
                                     isDirectlyInstantiated: isInstantiated,
@@ -307,7 +317,8 @@ class ProgramBuilder {
       result = new Class(element,
                          name, holder, methods, fields,
                          isDirectlyInstantiated: isInstantiated,
-                         onlyForRti: onlyForRti);
+                         onlyForRti: onlyForRti,
+                         isNative: element.isNative);
     }
     _classes[element] = result;
     return result;

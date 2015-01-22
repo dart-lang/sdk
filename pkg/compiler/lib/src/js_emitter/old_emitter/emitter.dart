@@ -723,6 +723,9 @@ class OldEmitter implements Emitter {
   }
 
   void emitClass(Class cls, ClassBuilder enclosingBuilder) {
+    // Native classes are handled by the native emitter.
+    assert(!cls.isNative || cls.onlyForRti);
+
     ClassElement classElement = cls.element;
     compiler.withCurrentElement(classElement, () {
       if (compiler.hasIncrementalSupport) {
@@ -1772,17 +1775,18 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return emitDeferredCode(program, outputBuffers);
   }
 
-  CodeBuffer buildNativesBuffer() {
+  CodeBuffer buildNativesBuffer(Program program) {
     // Emit native classes on [nativeBuffer].
     // TODO(johnniwinther): Avoid creating a [CodeBuffer].
     final CodeBuffer nativeBuffer = new CodeBuffer();
 
-    if (nativeClasses.isEmpty) return nativeBuffer;
+    if (program.nativeClasses.isEmpty) return nativeBuffer;
 
 
     addComment('Native classes', nativeBuffer);
 
-    nativeEmitter.generateNativeClasses(nativeClasses, additionalProperties);
+    nativeEmitter.generateNativeClasses(program.nativeClasses,
+                                        additionalProperties);
 
     nativeEmitter.finishGenerateNativeClasses();
     nativeEmitter.assembleCode(nativeBuffer);
@@ -1803,7 +1807,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     // itself.
     Map<OutputUnit, String> deferredLoadHashes =
         emitDeferredOutputUnits(program);
-    CodeBuffer nativeBuffer = buildNativesBuffer();
+    CodeBuffer nativeBuffer = buildNativesBuffer(program);
     emitMainOutputUnit(program, deferredLoadHashes, nativeBuffer);
 
     if (backend.requiresPreamble &&

@@ -13,11 +13,15 @@ import '../common.dart';
 
 class Program {
   final List<Fragment> fragments;
+  final List<Class> nativeClasses;
   final bool outputContainsConstantList;
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
 
-  Program(this.fragments, this.outputContainsConstantList, this.loadMap);
+  Program(this.fragments,
+          this.nativeClasses,
+          this.outputContainsConstantList,
+          this.loadMap);
 
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
@@ -168,6 +172,7 @@ class Class {
   final List<InstanceField> fields;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
+  final bool isNative;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
@@ -175,9 +180,11 @@ class Class {
   Class(this.element,
         this.name, this.holder, this.methods, this.fields,
         {this.onlyForRti,
-         this.isDirectlyInstantiated}) {
+         this.isDirectlyInstantiated,
+         this.isNative}) {
     assert(onlyForRti != null);
     assert(isDirectlyInstantiated != null);
+    assert(isNative != null);
   }
 
   bool get isMixinApplication => false;
@@ -205,7 +212,8 @@ class MixinApplication extends Class {
       : super(element,
               name, holder, methods, fields,
               onlyForRti: onlyForRti,
-              isDirectlyInstantiated: isDirectlyInstantiated);
+              isDirectlyInstantiated: isDirectlyInstantiated,
+              isNative: false);
 
   bool get isMixinApplication => true;
   Class get mixinClass => _mixinClass;
