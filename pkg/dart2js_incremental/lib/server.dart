@@ -10,6 +10,7 @@ import 'dart:async' show
     Completer,
     Future,
     Stream,
+    StreamController,
     StreamSubscription;
 
 import 'dart:convert' show
@@ -39,6 +40,9 @@ class Conversation {
   static Map<Uri, Future<String>> generatedFiles =
       new Map<Uri, Future<String>>();
 
+  static Map<Uri, StreamController<String>> updateControllers =
+      new Map<Uri, StreamController<String>>();
+
   Conversation(this.request, this.response);
 
   onClosed(_) {
@@ -64,13 +68,14 @@ class Conversation {
   }
 
   Future handleSocket() async {
-    if (false && request.uri.path == '/ws/watch') {
+    StreamController<String> controller = updateControllers[request.uri];
+    if (controller != null) {
       WebSocket socket = await WebSocketTransformer.upgrade(request);
-      socket.add(JSON.encode({'create': []}));
-      // WatchHandler handler = new WatchHandler(socket, files);
-      // handlers.add(handler);
-      // socket.listen(
-      //     handler.onData, cancelOnError: true, onDone: handler.onDone);
+      print(
+          "Patches to ${request.uri} will be pushed to "
+          "${request.connectionInfo.remoteAddress.host}:"
+          "${request.connectionInfo.remotePort}.");
+      controller.stream.pipe(socket);
     } else {
       response.done
           .then(onClosed)
@@ -130,6 +135,10 @@ class Conversation {
       response.headers.set(CONTENT_TYPE, 'image/x-icon');
     } else if (path.endsWith('.appcache')) {
       response.headers.set(CONTENT_TYPE, 'text/cache-manifest');
+    } else if (path.endsWith('.css')) {
+      response.headers.set(CONTENT_TYPE, 'text/css');
+    } else if (path.endsWith('.png')) {
+      response.headers.set(CONTENT_TYPE, 'image/png');
     }
   }
 
@@ -155,7 +164,12 @@ class Conversation {
     Uri outputUri = request.uri;
     Completer<String> completer = new Completer<String>();
     generatedFiles[outputUri] = completer.future;
-    print("Compiling $dartScript to $outputUri");
+    StreamController controller = updateControllers[outputUri];
+    if (controller != null) {
+      controller.close();
+    }
+    updateControllers[outputUri] = new StreamController<String>.broadcast();
+    print("Compiling $dartScript to $outputUri.");
     StreamSubscription<CompilerEvent> subscription;
     subscription = compile(dartScript).listen((CompilerEvent event) {
       subscription.onData(
@@ -164,6 +178,7 @@ class Conversation {
         notFound(request.uri);
         // TODO(ahe): Do something about this situation.
       } else {
+        print("Done compiling $dartScript to $outputUri.");
         completer.complete(event['.js']);
         setContentType(outputUri.path);
         response.write(event['.js']);
@@ -184,12 +199,21 @@ class Conversation {
       case IncrementalKind.INCREMENTAL:
         generatedFiles[outputUri] = completer.future.then(
             (String full) => '$full\n\n${event.compiler.allUpdates()}');
+        pushUpdates(event.updates);
         break;
 
       case IncrementalKind.ERROR:
         generatedFiles.removeKey(outputUri);
         break;
     }
+  }
+
+  void pushUpdates(String updates) {
+    if (updates == null) return;
+    StreamController<String> controller = updateControllers[request.uri];
+    if (controller == null) return;
+    print("Adding updates to controller");
+    controller.add(updates);
   }
 
   Future dispatch() async {

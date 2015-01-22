@@ -92,7 +92,9 @@ compileToStream(
 
   Future inputProvider(Uri uri) {
     if (uri.scheme == "file") {
-      watcher.watchFile(uri);
+      if (!'$uri'.startsWith('$libraryRoot')) {
+        watcher.watchFile(uri);
+      }
     }
     return diagnosticHandler.provider(uri);
   }
@@ -123,13 +125,13 @@ compileToStream(
         Map<Uri, Uri> changes = watcher.readChanges();
 
         sw = new Stopwatch()..start();
-        await compiler.compileUpdates(changes);
+        String updates = await compiler.compileUpdates(changes);
         sw.stop();
 
         controller.add(
             new CompilerEvent(
                 IncrementalKind.INCREMENTAL, compiler, outputProvider.output,
-                sw));
+                sw, updates: updates));
 
       } on IncrementalCompilationFailed catch (error, trace) {
         controller.addError(error, trace);
@@ -192,7 +194,10 @@ class CompilerEvent {
 
   final Stopwatch stopwatch;
 
-  CompilerEvent(this.kind, this.compiler, this._output, this.stopwatch);
+  final String updates;
+
+  CompilerEvent(
+      this.kind, this.compiler, this._output, this.stopwatch, {this.updates});
 
   String operator[](String key) => _output[key];
 }

@@ -150,7 +150,7 @@ class IncrementalCompiler {
 
     jsAst.FunctionDeclaration mainRunner = jsAst.js.statement(r"""
 function dartMainRunner(main, args) {
-  #helper.patch(#updates);
+  #helper.patch(#updates + "\n//# sourceURL=initial_patch.js\n");
   return main(args);
 }""", {'updates': updates, 'helper': backend.namer.accessIncrementalHelper});
 
