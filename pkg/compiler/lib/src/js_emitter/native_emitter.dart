@@ -96,7 +96,7 @@ class NativeEmitter {
     Map<Class, ClassBuilder> builders = new Map<Class, ClassBuilder>();
     for (Class cls in classes) {
       if (cls.isNative) {
-        ClassBuilder builder = generateNativeClass(cls);
+        ClassBuilder builder = createBuilderAndSetIsTrivial(cls);
         builders[cls] = builder;
       }
     }
@@ -244,19 +244,20 @@ class NativeEmitter {
       if (!cls.isNative) continue;
       if (neededClasses.contains(cls)) {
         ClassBuilder builder = builders[cls];
-
-        // In CSP mode [emitClassConstructor] and [emitClassGettersSetters] have
-        // a side-effect on "precompiled" functions in [OldEmitter]. For this
-        // reason, it is important that we don't call these methods before we
-        // are certain that a class is needed.
+        assert(builder != null);
 
         emitterTask.oldEmitter.classEmitter.emitConstructorsForCSP(cls);
-
-        // [emitClassGettersSettersForCSP] does not affect whether or not a
-        // class is needed. If getters/setters are emitted, the class has fields
-        // and is therefore non-trivial.
+        emitterTask.oldEmitter.classEmitter.emitFields(
+            cls, builder, classIsNative: true);
+        emitterTask.oldEmitter.classEmitter.emitCheckedClassSetters(
+            cls, builder);
         emitterTask.oldEmitter.classEmitter.emitClassGettersSettersForCSP(
             cls, builder);
+        emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
+            classElement, builder);
+        emitterTask.oldEmitter.classEmitter.emitCallStubs(cls, builder);
+        emitterTask.oldEmitter.classEmitter
+            .emitRuntimeTypeInformation(cls, builder);
 
         // Define interceptor class for [classElement].
         emitterTask.oldEmitter.classEmitter.emitClassBuilderWithReflectionData(
@@ -298,7 +299,7 @@ class NativeEmitter {
     return map;
   }
 
-  ClassBuilder generateNativeClass(Class cls) {
+  ClassBuilder createBuilderAndSetIsTrivial(Class cls) {
     ClassElement classElement = cls.element;
 
     // TODO(sra): Issue #13731- this is commented out as part of custom element
@@ -321,21 +322,18 @@ class NativeEmitter {
     }
     builder.superName = superclass.name;
 
-    bool hasFields = emitterTask.oldEmitter.classEmitter.emitFields(
-        cls, builder, classIsNative: true);
-    int propertyCount = builder.properties.length;
-    emitterTask.oldEmitter.classEmitter.emitCheckedClassSetters(cls, builder);
-    emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
-        classElement, builder);
-    emitterTask.oldEmitter.classEmitter.emitCallStubs(cls, builder);
-    emitterTask.oldEmitter.classEmitter
-        .emitRuntimeTypeInformation(cls, builder);
-
-    if (!hasFields &&
-        builder.properties.length == propertyCount &&
-        superclass is! MixinApplicationElement) {
-      builder.isTrivial = true;
+    bool needsAccessor(Field field) {
+      return field.needsGetter ||
+          field.needsUncheckedSetter ||
+          field.needsCheckedSetter;
     }
+
+    builder.isTrivial =
+        cls.methods.isEmpty &&
+        cls.isChecks.isEmpty &&
+        cls.callStubs.isEmpty &&
+        superclass is! MixinApplicationElement &&
+        !cls.fields.any(needsAccessor);
 
     return builder;
   }
