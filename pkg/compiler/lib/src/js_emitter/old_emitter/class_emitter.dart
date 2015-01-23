@@ -16,14 +16,11 @@ class ClassEmitter extends CodeEmitterHelper {
                  ClassBuilder enclosingBuilder,
                  Map<String, jsAst.Expression> additionalProperties) {
     ClassElement classElement = cls.element;
-    final onlyForRti =
-        emitter.typeTestRegistry.rtiNeededClasses.contains(classElement);
 
     assert(invariant(classElement, classElement.isDeclaration));
-    assert(invariant(classElement, !classElement.isNative || onlyForRti));
+    assert(invariant(classElement, !cls.isNative || cls.onlyForRti));
 
     emitter.needsClassSupport = true;
-    String className = namer.getNameOfClass(classElement);
 
     ClassElement superclass = classElement.superclass;
     String superName = "";
@@ -40,12 +37,11 @@ class ClassEmitter extends CodeEmitterHelper {
 
     ClassBuilder builder = new ClassBuilder(classElement, namer);
     builder.superName = superName;
-    emitConstructorsForCSP(classElement, onlyForRti: onlyForRti);
-    emitFields(classElement, builder, onlyForRti: onlyForRti);
-    emitCheckedClassSetters(classElement, builder, onlyForRti: onlyForRti);
-    emitClassGettersSettersForCSP(classElement, builder,
-                                  onlyForRti: onlyForRti);
-    emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
+    emitConstructorsForCSP(cls);
+    emitFields(cls, builder);
+    emitCheckedClassSetters(cls, builder);
+    emitClassGettersSettersForCSP(cls, builder);
+    emitInstanceMembers(classElement, builder, onlyForRti: cls.onlyForRti);
     emitRuntimeTypeInformation(cls, builder);
     if (additionalProperties != null) {
       additionalProperties.forEach(builder.addProperty);
@@ -61,161 +57,125 @@ class ClassEmitter extends CodeEmitterHelper {
 
     emitTypeVariableReaders(classElement, builder);
 
-    emitClassBuilderWithReflectionData(
-        className, classElement, builder, enclosingBuilder);
+    emitClassBuilderWithReflectionData(cls, builder, enclosingBuilder);
   }
   /**
   * Emits the precompiled constructor when in CSP mode.
   */
-  void emitConstructorsForCSP(ClassElement classElement,
-                            {bool onlyForRti: false}) {
-    List<String> fields = <String>[];
+  void emitConstructorsForCSP(Class cls) {
+    List<String> fieldNames = <String>[];
 
     if (!compiler.useContentSecurityPolicy) return;
 
-    if (!onlyForRti && !classElement.isNative) {
-      visitFields(classElement, false,
-                  (Element member,
-                   String name,
-                   String accessorName,
-                   bool needsGetter,
-                   bool needsSetter,
-                   bool needsCheckedSetter) {
-        fields.add(name);
-      });
+    if (!cls.onlyForRti && !cls.isNative) {
+      fieldNames = cls.fields.map((Field field) => field.name).toList();
     }
+
+    ClassElement classElement = cls.element;
+
     jsAst.Expression constructorAst =
-        _stubGenerator.generateClassConstructor(classElement, fields);
+        _stubGenerator.generateClassConstructor(classElement, fieldNames);
 
     String constructorName = namer.getNameOfClass(classElement);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
     emitter.emitPrecompiledConstructor(
-        outputUnit, constructorName, constructorAst, fields);
+        outputUnit, constructorName, constructorAst, fieldNames);
   }
 
   /// Returns `true` if fields added.
-  bool emitFields(Element element,
+  bool emitFields(FieldContainer container,
                   ClassBuilder builder,
                   { bool classIsNative: false,
-                    bool emitStatics: false,
-                    bool onlyForRti: false }) {
-    assert(!emitStatics || !onlyForRti);
-    if (element.isLibrary) {
-      assert(invariant(element, emitStatics));
-    } else if (!element.isClass) {
-      throw new SpannableAssertionFailure(
-          element, 'Must be a ClassElement or a LibraryElement');
+                    bool emitStatics: false }) {
+    Iterable<Field> fields;
+    if (container is Class) {
+      if (emitStatics) {
+        fields = container.staticFieldsForReflection;
+      } else if (container.onlyForRti) {
+        return false;
+      } else {
+        fields = container.fields;
+      }
+    } else {
+      assert(container is Library);
+      assert(emitStatics);
+      fields = container.staticFieldsForReflection;
     }
+
     var fieldMetadata = [];
     bool hasMetadata = false;
     bool fieldsAdded = false;
 
-    if (!onlyForRti) {
-      visitFields(element, emitStatics,
-                  (VariableElement field,
-                   String name,
-                   String accessorName,
-                   bool needsGetter,
-                   bool needsSetter,
-                   bool needsCheckedSetter) {
-        // Ignore needsCheckedSetter - that is handled below.
-        bool needsAccessor = (needsGetter || needsSetter);
-        // We need to output the fields for non-native classes so we can auto-
-        // generate the constructor.  For native classes there are no
-        // constructors, so we don't need the fields unless we are generating
-        // accessors at runtime.
-        bool needsFieldsForConstructor = !emitStatics && !classIsNative;
-        if (needsFieldsForConstructor || needsAccessor) {
-          var metadata = emitter.metadataEmitter.buildMetadataFunction(field);
-          if (metadata != null) {
-            hasMetadata = true;
-          } else {
-            metadata = new jsAst.LiteralNull();
-          }
-          fieldMetadata.add(metadata);
-          recordMangledField(field, accessorName,
-              namer.privateName(field.library, field.name));
-          String fieldName = name;
-          String fieldCode = '';
-          String reflectionMarker = '';
-          if (!needsAccessor) {
-            // Emit field for constructor generation.
-            assert(!classIsNative);
-          } else {
-            // Emit (possibly renaming) field name so we can add accessors at
-            // runtime.
-            if (name != accessorName) {
-              fieldName = '$accessorName:$name';
-            }
+    for (Field field in fields) {
+      VariableElement fieldElement = field.element;
+      String name = field.name;
+      String accessorName = field.accessorName;
+      bool needsGetter = field.needsGetter;
+      bool needsSetter = field.needsUncheckedSetter;
 
-            int getterCode = 0;
-            if (needsAccessor && backend.fieldHasInterceptedGetter(field)) {
-              emitter.interceptorEmitter.interceptorInvocationNames.add(
-                  namer.getterName(field));
-            }
-            if (needsAccessor && backend.fieldHasInterceptedGetter(field)) {
-              emitter.interceptorEmitter.interceptorInvocationNames.add(
-                  namer.setterName(field));
-            }
-            if (needsGetter) {
-              if (field.isInstanceMember) {
-                // 01:  function() { return this.field; }
-                // 10:  function(receiver) { return receiver.field; }
-                // 11:  function(receiver) { return this.field; }
-                bool isIntercepted = backend.fieldHasInterceptedGetter(field);
-                getterCode += isIntercepted ? 2 : 0;
-                getterCode += backend.isInterceptorClass(element) ? 0 : 1;
-                // TODO(sra): 'isInterceptorClass' might not be the correct test
-                // for methods forced to use the interceptor convention because
-                // the method's class was elsewhere mixed-in to an interceptor.
-                assert(!field.isInstanceMember || getterCode != 0);
-                if (isIntercepted) {
-                  emitter.interceptorEmitter.interceptorInvocationNames.add(
-                      namer.getterName(field));
-                }
-              } else {
-                getterCode = 1;
-              }
-            }
-            int setterCode = 0;
-            if (needsSetter) {
-              if (field.isInstanceMember) {
-                // 01:  function(value) { this.field = value; }
-                // 10:  function(receiver, value) { receiver.field = value; }
-                // 11:  function(receiver, value) { this.field = value; }
-                bool isIntercepted = backend.fieldHasInterceptedSetter(field);
-                setterCode += isIntercepted ? 2 : 0;
-                setterCode += backend.isInterceptorClass(element) ? 0 : 1;
-                assert(!field.isInstanceMember || setterCode != 0);
-                if (isIntercepted) {
-                  emitter.interceptorEmitter.interceptorInvocationNames.add(
-                      namer.setterName(field));
-                }
-              } else {
-                setterCode = 1;
-              }
-            }
-            int code = getterCode + (setterCode << 2);
-            if (code == 0) {
-              compiler.internalError(field,
-                  'Field code is 0 ($element/$field).');
-            } else {
-              fieldCode = FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE];
-            }
-          }
-          if (backend.isAccessibleByReflection(field)) {
-            DartType type = field.type;
-            reflectionMarker = '-${emitter.metadataEmitter.reifyType(type)}';
-          }
-          String builtFieldname = '$fieldName$fieldCode$reflectionMarker';
-          builder.addField(builtFieldname);
-          // Add 1 because adding a field to the class also requires a comma
-          compiler.dumpInfoTask.recordFieldNameSize(field,
-              builtFieldname.length + 1);
-          fieldsAdded = true;
+        // Ignore needsCheckedSetter - that is handled below.
+      bool needsAccessor = (needsGetter || needsSetter);
+      // We need to output the fields for non-native classes so we can auto-
+      // generate the constructor.  For native classes there are no
+      // constructors, so we don't need the fields unless we are generating
+      // accessors at runtime.
+      bool needsFieldsForConstructor = !emitStatics && !classIsNative;
+      if (needsFieldsForConstructor || needsAccessor) {
+        var metadata =
+            emitter.metadataEmitter.buildMetadataFunction(fieldElement);
+        if (metadata != null) {
+          hasMetadata = true;
+        } else {
+          metadata = new jsAst.LiteralNull();
         }
-      });
+        fieldMetadata.add(metadata);
+        recordMangledField(fieldElement, accessorName,
+            namer.privateName(fieldElement.library, fieldElement.name));
+        String fieldName = name;
+        String fieldCode = '';
+        String reflectionMarker = '';
+        if (!needsAccessor) {
+          // Emit field for constructor generation.
+          assert(!classIsNative);
+        } else {
+          // Emit (possibly renaming) field name so we can add accessors at
+          // runtime.
+          if (name != accessorName) {
+            fieldName = '$accessorName:$name';
+          }
+
+          if (field.needsInterceptedGetter) {
+            emitter.interceptorEmitter.interceptorInvocationNames.add(
+                namer.getterName(fieldElement));
+          }
+          // TODO(16168): The setter creator only looks at the getter-name.
+          // Even though the setter could avoid the interceptor convention we
+          // currently still need to add the additional argument.
+          if (field.needsInterceptedGetter || field.needsInterceptedSetter) {
+            emitter.interceptorEmitter.interceptorInvocationNames.add(
+                namer.setterName(fieldElement));
+          }
+
+          int code = field.getterFlags + (field.setterFlags << 2);
+          if (code == 0) {
+            compiler.internalError(fieldElement,
+                'Field code is 0 ($fieldElement).');
+          } else {
+            fieldCode = FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE];
+          }
+        }
+        if (backend.isAccessibleByReflection(fieldElement)) {
+          DartType type = fieldElement.type;
+          reflectionMarker = '-${emitter.metadataEmitter.reifyType(type)}';
+        }
+        String builtFieldname = '$fieldName$fieldCode$reflectionMarker';
+        builder.addField(builtFieldname);
+        // Add 1 because adding a field to the class also requires a comma
+        compiler.dumpInfoTask.recordFieldNameSize(fieldElement,
+            builtFieldname.length + 1);
+        fieldsAdded = true;
+      }
     }
 
     if (hasMetadata) {
@@ -225,50 +185,36 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   /// Emits checked setters for fields.
-  void emitCheckedClassSetters(ClassElement classElement,
-                               ClassBuilder builder,
-                               {bool onlyForRti: false}) {
-    if (onlyForRti) return;
+  void emitCheckedClassSetters(Class cls, ClassBuilder builder) {
+    if (cls.onlyForRti) return;
 
-    visitFields(classElement, false,
-                (VariableElement member,
-                 String name,
-                 String accessorName,
-                 bool needsGetter,
-                 bool needsSetter,
-                 bool needsCheckedSetter) {
-      compiler.withCurrentElement(member, () {
-        if (needsCheckedSetter) {
-          assert(!needsSetter);
-          generateCheckedSetter(member, name, accessorName, builder);
-        }
-      });
-    });
+    for (Field field in cls.fields) {
+      if (field.needsCheckedSetter) {
+        assert(!field.needsUncheckedSetter);
+        compiler.withCurrentElement(field.element, () {
+          generateCheckedSetter(
+              field.element, field.name, field.accessorName, builder);
+        });
+      }
+    }
   }
 
   /// Emits getters/setters for fields if compiling in CSP mode.
-  void emitClassGettersSettersForCSP(ClassElement classElement,
-                               ClassBuilder builder,
-                               {bool onlyForRti: false}) {
+  void emitClassGettersSettersForCSP(Class cls, ClassBuilder builder) {
 
-    if (!compiler.useContentSecurityPolicy || onlyForRti) return;
+    if (!compiler.useContentSecurityPolicy || cls.onlyForRti) return;
 
-    visitFields(classElement, false,
-                (VariableElement member,
-                 String name,
-                 String accessorName,
-                 bool needsGetter,
-                 bool needsSetter,
-                 bool needsCheckedSetter) {
+    for (Field field in cls.fields) {
+      Element member = field.element;
       compiler.withCurrentElement(member, () {
-        if (needsGetter) {
-          emitGetterForCSP(member, name, accessorName, builder);
+        if (field.needsGetter) {
+          emitGetterForCSP(member, field.name, field.accessorName, builder);
         }
-        if (needsSetter) {
-          emitSetterForCSP(member, name, accessorName, builder);
+        if (field.needsUncheckedSetter) {
+          emitSetterForCSP(member, field.name, field.accessorName, builder);
         }
       });
-    });
+    }
   }
 
   /**
@@ -318,10 +264,12 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitClassBuilderWithReflectionData(String className,
-                                          ClassElement classElement,
+  void emitClassBuilderWithReflectionData(Class cls,
                                           ClassBuilder classBuilder,
                                           ClassBuilder enclosingBuilder) {
+    ClassElement classElement = cls.element;
+    String className = cls.name;
+
     var metadata = emitter.metadataEmitter.buildMetadataFunction(classElement);
     if (metadata != null) {
       classBuilder.addProperty("@", metadata);
@@ -343,7 +291,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
     ClassBuilder staticsBuilder = new ClassBuilder(classElement, namer);
-    if (emitFields(classElement, staticsBuilder, emitStatics: true)) {
+    if (emitFields(cls, staticsBuilder, emitStatics: true)) {
       jsAst.ObjectInitializer initializer =
         staticsBuilder.toObjectInitializer();
       compiler.dumpInfoTask.registerElementAst(classElement,

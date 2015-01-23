@@ -130,7 +130,11 @@ class Constant {
   Constant(this.name, this.holder, this.value);
 }
 
-class Library {
+abstract class FieldContainer {
+  List<Field> get staticFieldsForReflection;
+}
+
+class Library implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
@@ -139,7 +143,10 @@ class Library {
   final List<StaticMethod> statics;
   final List<Class> classes;
 
-  Library(this.element, this.uri, this.statics, this.classes);
+  final List<Field> staticFieldsForReflection;
+
+  Library(this.element, this.uri, this.statics, this.classes,
+          this.staticFieldsForReflection);
 }
 
 class StaticField {
@@ -160,7 +167,7 @@ class StaticField {
               this.isFinal, this.isLazy);
 }
 
-class Class {
+class Class implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
@@ -169,8 +176,9 @@ class Class {
   final Holder holder;
   Class _superclass;
   final List<Method> methods;
-  final List<InstanceField> fields;
+  final List<Field> fields;
   final List<StubMethod> isChecks;
+  final List<Field> staticFieldsForReflection;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
   final bool isNative;
@@ -185,6 +193,7 @@ class Class {
   Class(this.element, this.name, this.holder,
         this.methods,
         this.fields,
+        this.staticFieldsForReflection,
         this.isChecks,
         this.functionTypeIndex,
         {this.onlyForRti,
@@ -212,13 +221,17 @@ class MixinApplication extends Class {
   Class _mixinClass;
 
   MixinApplication(Element element, String name, Holder holder,
+                   List<Field> instanceFields,
+                   List<Field> staticFieldsForReflection,
                    List<StubMethod> isChecks,
                    int functionTypeIndex,
                    {bool onlyForRti,
                     bool isDirectlyInstantiated})
       : super(element,
               name, holder,
-              const <Method>[], const <InstanceField>[],
+              const <Method>[],
+              instanceFields,
+              staticFieldsForReflection,
               isChecks, functionTypeIndex,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated,
@@ -232,12 +245,17 @@ class MixinApplication extends Class {
   }
 }
 
-class InstanceField {
+/// A field.
+///
+/// In general represents an instance field, but for reflection may also
+/// represent static fields.
+class Field {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
 
   final String name;
+  final String accessorName;
 
   /// 00: Does not need any getter.
   /// 01:  function() { return this.field; }
@@ -251,11 +269,18 @@ class InstanceField {
   /// 11:  function(receiver, value) { this.field = value; }
   final int setterFlags;
 
+  final bool needsCheckedSetter;
+
   // TODO(floitsch): support renamed fields.
-  InstanceField(this.element, this.name, this.getterFlags, this.setterFlags);
+  Field(this.element, this.name, this.accessorName,
+        this.getterFlags, this.setterFlags,
+        this.needsCheckedSetter);
 
   bool get needsGetter => getterFlags != 0;
-  bool get needsSetter => setterFlags != 0;
+  bool get needsUncheckedSetter => setterFlags != 0;
+
+  bool get needsInterceptedGetter => getterFlags > 1;
+  bool get needsInterceptedSetter => setterFlags > 1;
 }
 
 class Method {

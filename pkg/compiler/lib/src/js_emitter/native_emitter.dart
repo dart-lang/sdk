@@ -239,6 +239,7 @@ class NativeEmitter {
 
     // Emit the native class interceptors that were actually used.
     for (Class cls in classes) {
+      assert(!cls.onlyForRti);
       ClassElement classElement = cls.element;
       if (!cls.isNative) continue;
       if (neededClasses.contains(cls)) {
@@ -249,19 +250,18 @@ class NativeEmitter {
         // reason, it is important that we don't call these methods before we
         // are certain that a class is needed.
 
-        emitterTask.oldEmitter.classEmitter
-            .emitConstructorsForCSP(classElement);
+        emitterTask.oldEmitter.classEmitter.emitConstructorsForCSP(cls);
 
         // [emitClassGettersSettersForCSP] does not affect whether or not a
         // class is needed. If getters/setters are emitted, the class has fields
         // and is therefore non-trivial.
         emitterTask.oldEmitter.classEmitter.emitClassGettersSettersForCSP(
-            classElement, builder);
+            cls, builder);
 
         // Define interceptor class for [classElement].
         emitterTask.oldEmitter.classEmitter.emitClassBuilderWithReflectionData(
-            cls.name,
-            classElement, builders[cls],
+            cls,
+            builders[cls],
             emitterTask.oldEmitter.getElementDescriptor(classElement));
         emitterTask.oldEmitter.needsClassSupport = true;
       }
@@ -322,10 +322,9 @@ class NativeEmitter {
     builder.superName = superclass.name;
 
     bool hasFields = emitterTask.oldEmitter.classEmitter.emitFields(
-        classElement, builder, classIsNative: true);
+        cls, builder, classIsNative: true);
     int propertyCount = builder.properties.length;
-    emitterTask.oldEmitter.classEmitter.emitCheckedClassSetters(
-        classElement, builder);
+    emitterTask.oldEmitter.classEmitter.emitCheckedClassSetters(cls, builder);
     emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
         classElement, builder);
     emitterTask.oldEmitter.classEmitter

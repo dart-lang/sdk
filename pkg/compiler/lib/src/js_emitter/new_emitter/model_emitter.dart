@@ -285,25 +285,16 @@ class ModelEmitter {
   }
 
   js.Expression _generateConstructor(Class cls) {
-    List<String> allFieldNames = <String>[];
+    List<String> fieldNames = <String>[];
 
     // If the class is not directly instantiated we only need it for inheritance
     // or RTI. In either case we don't need its fields.
-    if (cls.isDirectlyInstantiated) {
-      Class currentClass = cls;
-      while (currentClass != null) {
-        // Mixins are not allowed to inject fields.
-        assert(!currentClass.isMixinApplication ||
-               (currentClass as MixinApplication).mixinClass.fields.isEmpty);
-
-        allFieldNames.addAll(
-            currentClass.fields.map((InstanceField field) => field.name));
-        currentClass = currentClass.superclass;
-      }
+    if (cls.isDirectlyInstantiated && !cls.isNative) {
+      fieldNames = cls.fields.map((Field field) => field.name).toList();
     }
     String name = cls.name;
-    String parameters = allFieldNames.join(', ');
-    String assignments = allFieldNames
+    String parameters = fieldNames.join(', ');
+    String assignments = fieldNames
         .map((String field) => "this.$field = $field;\n")
         .join();
     String code = 'function $name($parameters) { $assignments }';
@@ -311,7 +302,7 @@ class ModelEmitter {
     return template.instantiate(const []);
   }
 
-  Method _generateGetter(InstanceField field) {
+  Method _generateGetter(Field field) {
     String getterTemplateFor(int flags) {
       switch (flags) {
         case 1: return "function() { return this[#]; }";
@@ -327,7 +318,7 @@ class ModelEmitter {
     return new StubMethod(getterName, code, needsTearOff: false);
   }
 
-  Method _generateSetter(InstanceField field) {
+  Method _generateSetter(Field field) {
     String setterTemplateFor(int flags) {
       switch (flags) {
         case 1: return "function(val) { return this[#] = val; }";
@@ -344,11 +335,11 @@ class ModelEmitter {
 
   Iterable<Method> _generateGettersSetters(Class cls) {
     Iterable<Method> getters = cls.fields
-        .where((InstanceField field) => field.needsGetter)
+        .where((Field field) => field.needsGetter)
         .map(_generateGetter);
 
     Iterable<Method> setters = cls.fields
-        .where((InstanceField field) => field.needsSetter)
+        .where((Field field) => field.needsUncheckedSetter)
         .map(_generateSetter);
 
     return [getters, setters].expand((x) => x);

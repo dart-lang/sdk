@@ -1374,7 +1374,7 @@ class OldEmitter implements Emitter {
       emitClass(cls, libraryBuilder);
     }
 
-    classEmitter.emitFields(libraryElement, libraryBuilder, emitStatics: true);
+    classEmitter.emitFields(library, libraryBuilder, emitStatics: true);
   }
 
   void emitMainOutputUnit(Program program,

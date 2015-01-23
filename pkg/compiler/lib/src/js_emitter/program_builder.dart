@@ -15,8 +15,6 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     JavaScriptConstantCompiler;
 
-import '../closure.dart' show ClosureFieldElement;
-
 import 'js_emitter.dart' as emitterTask show
     CodeEmitterTask,
     Emitter,
@@ -257,12 +255,17 @@ class ProgramBuilder {
         .map(_buildClass)
         .toList(growable: false);
 
-    return new Library(library, uri, statics, classes);
+    bool visitStatics = true;
+    List<Field> staticFieldsForReflection = _buildFields(library, visitStatics);
+
+    return new Library(library, uri, statics, classes,
+                       staticFieldsForReflection);
   }
 
   Class _buildClass(ClassElement element) {
+    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
+
     List<Method> methods = [];
-    List<InstanceField> fields = [];
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
@@ -272,8 +275,6 @@ class ProgramBuilder {
         js.Expression code = backend.generatedCode[member];
         // TODO(kasperl): Figure out under which conditions code is null.
         if (code != null) methods.add(_buildMethod(member, code));
-      } else if (member.isField && !member.isStatic) {
-        fields.add(_buildInstanceField(member, enclosing));
       }
     }
 
@@ -284,6 +285,11 @@ class ProgramBuilder {
     if (!element.isMixinApplication) {
       implementation.forEachMember(visitMember, includeBackendMembers: true);
     }
+
+    List<Field> instanceFields =
+        onlyForRti ? const <Field>[] : _buildFields(element, false);
+    List<Field> staticFieldsForReflection =
+        onlyForRti ? const <Field>[] : _buildFields(element, true);
 
     emitterTask.TypeTestGenerator generator =
         new emitterTask.TypeTestGenerator(_compiler, _task, namer);
@@ -300,7 +306,6 @@ class ProgramBuilder {
     String name = namer.getNameOfClass(element);
     String holderName = namer.globalObjectFor(element);
     Holder holder = _registry.registerHolder(holderName);
-    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
     bool isInstantiated =
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
@@ -308,16 +313,20 @@ class ProgramBuilder {
     if (element.isMixinApplication && !onlyForRti) {
       assert(!element.isNative);
       assert(methods.isEmpty);
-      assert(fields.isEmpty);
 
       result = new MixinApplication(element,
-                                    name, holder, isChecks,
+                                    name, holder,
+                                    instanceFields,
+                                    staticFieldsForReflection,
+                                    isChecks,
                                     typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
                                     onlyForRti: onlyForRti);
     } else {
       result = new Class(element,
-                         name, holder, methods, fields, isChecks,
+                         name, holder, methods, instanceFields,
+                         staticFieldsForReflection,
+                         isChecks,
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
                          onlyForRti: onlyForRti,
@@ -370,60 +379,50 @@ class ProgramBuilder {
     });
   }
 
-  bool _fieldNeedsGetter(VariableElement field) {
-    assert(field.isField);
-    if (_fieldAccessNeverThrows(field)) return false;
-    return backend.shouldRetainGetter(field)
-        || _compiler.codegenWorld.hasInvokedGetter(field, _compiler.world);
-  }
+  List<Field> _buildFields(Element holder, bool visitStatics) {
+    List<Field> fields = <Field>[];
+    _task.oldEmitter.classEmitter.visitFields(
+        holder, visitStatics, (VariableElement field,
+                               String name,
+                               String accessorName,
+                               bool needsGetter,
+                               bool needsSetter,
+                               bool needsCheckedSetter) {
+      assert(invariant(field, field.isDeclaration));
 
-  bool _fieldNeedsSetter(VariableElement field) {
-    assert(field.isField);
-    if (_fieldAccessNeverThrows(field)) return false;
-    return (!field.isFinal && !field.isConst)
-        && (backend.shouldRetainSetter(field)
-            || _compiler.codegenWorld.hasInvokedSetter(field, _compiler.world));
-  }
-
-  // We never access a field in a closure (a captured variable) without knowing
-  // that it is there.  Therefore we don't need to use a getter (that will throw
-  // if the getter method is missing), but can always access the field directly.
-  bool _fieldAccessNeverThrows(VariableElement field) {
-    return field is ClosureFieldElement;
-  }
-
-  InstanceField _buildInstanceField(VariableElement field,
-                                    ClassElement holder) {
-    assert(invariant(field, field.isDeclaration));
-    String name = namer.fieldPropertyName(field);
-
-    int getterFlags = 0;
-    if (_fieldNeedsGetter(field)) {
-      bool isIntercepted = backend.fieldHasInterceptedGetter(field);
-      if (isIntercepted) {
-        getterFlags += 2;
-        if (!backend.isInterceptorClass(holder)) {
-          getterFlags += 1;
+      int getterFlags = 0;
+      if (needsGetter) {
+        if (visitStatics || !backend.fieldHasInterceptedGetter(field)) {
+          getterFlags = 1;
+        } else {
+          getterFlags += 2;
+          // TODO(sra): 'isInterceptorClass' might not be the correct test
+          // for methods forced to use the interceptor convention because
+          // the method's class was elsewhere mixed-in to an interceptor.
+          if (!backend.isInterceptorClass(holder)) {
+            getterFlags += 1;
+          }
         }
-      } else {
-        getterFlags = 1;
       }
-    }
 
-    int setterFlags = 0;
-    if (_fieldNeedsSetter(field)) {
-      bool isIntercepted = backend.fieldHasInterceptedSetter(field);
-      if (isIntercepted) {
-        setterFlags += 2;
-        if (!backend.isInterceptorClass(holder)) {
-          setterFlags += 1;
+      int setterFlags = 0;
+      if (needsSetter) {
+        if (visitStatics || !backend.fieldHasInterceptedSetter(field)) {
+          setterFlags = 1;
+        } else {
+          setterFlags += 2;
+          if (!backend.isInterceptorClass(holder)) {
+            setterFlags += 1;
+          }
         }
-      } else {
-        setterFlags = 1;
       }
-    }
 
-    return new InstanceField(field, name, getterFlags, setterFlags);
+      fields.add(new Field(field, name, accessorName,
+                           getterFlags, setterFlags,
+                           needsCheckedSetter));
+    });
+
+    return fields;
   }
 
   Iterable<StaticMethod> _generateOneShotInterceptors() {
