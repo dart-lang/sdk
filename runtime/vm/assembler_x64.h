@@ -224,6 +224,9 @@ class Address : public Operand {
     return *this;
   }
 
+  static Address AddressRIPRelative(int32_t disp) {
+    return Address(RIPRelativeDisp(disp));
+  }
   static Address AddressBaseImm32(Register base, int32_t disp) {
     return Address(base, disp, true);
   }
@@ -239,6 +242,16 @@ class Address : public Operand {
       SetSIB(TIMES_1, RSP, base);
     }
     SetDisp32(disp);
+  }
+
+  struct RIPRelativeDisp {
+    explicit RIPRelativeDisp(int32_t disp) : disp_(disp) { }
+    const int32_t disp_;
+  };
+
+  explicit Address(const RIPRelativeDisp& disp) {
+    SetModRM(0, static_cast<Register>(0x5));
+    SetDisp32(disp.disp_);
   }
 };
 
@@ -952,7 +965,7 @@ class Assembler : public ValueObject {
   //   movq rbp, rsp      (size is 3 bytes)
   //   call L             (size is 5 bytes)
   //   L:
-  static const intptr_t kEntryPointToPcMarkerOffset = 9;
+  static const intptr_t kEntryPointToPcMarkerOffset = 0;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }

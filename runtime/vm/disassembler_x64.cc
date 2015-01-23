@@ -453,7 +453,7 @@ int DisassemblerX64::PrintRightOperandHelper(
     case 0:
       if ((rm & 7) == 5) {
         int32_t disp = *reinterpret_cast<int32_t*>(modrmp + 1);
-        AppendToBuffer("[%#x]", disp);
+        AppendToBuffer("[rip%s%#x]", disp < 0 ? "-" : "+", Utils::Abs(disp));
         return 5;
       } else if ((rm & 7) == 4) {
         // Codes for SIB byte.

@@ -3417,61 +3417,26 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 
 void Assembler::LoadPoolPointer(Register pp) {
-  Label next;
-  call(&next);
-  Bind(&next);
-
   // Load new pool pointer.
+  const intptr_t kRIPRelativeMovqSize = 7;
+  const intptr_t entry_to_rip_offset = CodeSize() + kRIPRelativeMovqSize;
   const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset() +
-      CodeSize();
-  popq(pp);
-  movq(pp, Address(pp, -object_pool_pc_dist));
-}
-
-
-void Assembler::EnterDartFrame(intptr_t frame_size) {
-  EnterFrame(0);
-
-  Label dart_entry;
-  call(&dart_entry);
-  Bind(&dart_entry);
-  // The runtime system assumes that the code marker address is
-  // kEntryPointToPcMarkerOffset bytes from the entry.  If there is any code
-  // generated before entering the frame, the address needs to be adjusted.
-  const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset() +
-      CodeSize();
-  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
-  if (offset != 0) {
-    addq(Address(RSP, 0), Immediate(offset));
-  }
-  // Save caller's pool pointer
-  pushq(PP);
-
-  // Load callee's pool pointer.
-  movq(PP, Address(RSP, 1 * kWordSize));
-  movq(PP, Address(PP, -object_pool_pc_dist - offset));
-
-  if (frame_size != 0) {
-    subq(RSP, Immediate(frame_size));
-  }
+      Instructions::HeaderSize() - Instructions::object_pool_offset();
+  movq(pp, Address::AddressRIPRelative(
+      -entry_to_rip_offset - object_pool_pc_dist));
+  ASSERT(CodeSize() == entry_to_rip_offset);
 }
 
 
 void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
                                        Register new_pp,
                                        Register pc_marker_override) {
-  if (pc_marker_override == kNoRegister) {
-    EnterDartFrame(frame_size);
-  } else {
-    EnterFrame(0);
-    pushq(pc_marker_override);
-    pushq(PP);
-    movq(PP, new_pp);
-    if (frame_size != 0) {
-      subq(RSP, Immediate(frame_size));
-    }
+  EnterFrame(0);
+  pushq(pc_marker_override);
+  pushq(PP);
+  movq(PP, new_pp);
+  if (frame_size != 0) {
+    subq(RSP, Immediate(frame_size));
   }
 }
 
@@ -3491,30 +3456,8 @@ void Assembler::LeaveDartFrame() {
 void Assembler::EnterOsrFrame(intptr_t extra_size,
                               Register new_pp,
                               Register pc_marker_override) {
-  if (pc_marker_override == kNoRegister) {
-    Label dart_entry;
-    call(&dart_entry);
-    Bind(&dart_entry);
-    // The runtime system assumes that the code marker address is
-    // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
-    // code to set up the frame pointer, the address needs to be adjusted.
-    const intptr_t object_pool_pc_dist =
-        Instructions::HeaderSize() - Instructions::object_pool_offset() +
-        CodeSize();
-    const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
-    if (offset != 0) {
-      addq(Address(RSP, 0), Immediate(offset));
-    }
-
-    // Load callee's pool pointer.
-    movq(PP, Address(RSP, 0));
-    movq(PP, Address(PP, -object_pool_pc_dist - offset));
-
-    popq(Address(RBP, kPcMarkerSlotFromFp * kWordSize));
-  } else {
-    movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
-    movq(PP, new_pp);
-  }
+  movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
+  movq(PP, new_pp);
   if (extra_size != 0) {
     subq(RSP, Immediate(extra_size));
   }
