@@ -10595,7 +10595,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     JSONObject descriptor(&members);
-    descriptor.AddPropertyF("pc_offset", "%" Px "", iter.PcOffset());
+    descriptor.AddPropertyF("pcOffset", "%" Px "", iter.PcOffset());
     descriptor.AddProperty("kind", KindAsStr(iter.Kind()));
     descriptor.AddProperty("deoptId", iter.DeoptId());
     descriptor.AddProperty("tokenPos", iter.TokenPos());

@@ -697,12 +697,12 @@ class HeapSnapshot {
   final ObjectGraph graph;
   final DateTime timeStamp;
   final Isolate isolate;
-  
+
   HeapSnapshot(this.isolate, ByteData data) :
       graph = new ObjectGraph(new ReadStream(data)),
       timeStamp = new DateTime.now() {
   }
-  
+
   List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
     var result = [];
     for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
@@ -715,8 +715,8 @@ class HeapSnapshot {
     }
     return result;
   }
-  
-  
+
+
 }
 
 /// State for a running isolate.
@@ -882,12 +882,12 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable DartError error;
   @observable HeapSnapshot latestSnapshot;
   Completer<HeapSnapshot> _snapshotFetch;
-  
+
   void loadHeapSnapshot(ServiceEvent event) {
     latestSnapshot = new HeapSnapshot(this, event.data);
     _snapshotFetch.complete(latestSnapshot);
   }
-  
+
   Future<HeapSnapshot> fetchHeapSnapshot() {
     if (_snapshotFetch == null || _snapshotFetch.isCompleted) {
       get('graph');
@@ -2026,14 +2026,14 @@ class CodeTick {
 }
 
 class PcDescriptor extends Observable {
-  final int address;
+  final int pcOffset;
   @reflectable final int deoptId;
   @reflectable final int tokenPos;
   @reflectable final int tryIndex;
   @reflectable final String kind;
   @observable Script script;
   @observable String formattedLine;
-  PcDescriptor(this.address, this.deoptId, this.tokenPos, this.tryIndex,
+  PcDescriptor(this.pcOffset, this.deoptId, this.tokenPos, this.tryIndex,
                this.kind);
 
   @reflectable String formattedDeoptId() {
@@ -2074,7 +2074,6 @@ class PcDescriptors extends ServiceObject {
       new ObservableList<PcDescriptor>();
 
   PcDescriptors._empty(ServiceObjectOwner owner) : super._empty(owner) {
-    print('created PcDescriptors.');
   }
 
   void _update(ObservableMap m, bool mapIsRef) {
@@ -2086,13 +2085,13 @@ class PcDescriptors extends ServiceObject {
     size = m['size'];
     descriptors.clear();
     for (var descriptor in m['members']) {
-      var address = int.parse(descriptor['pc'], radix:16);
+      var pcOffset = int.parse(descriptor['pcOffset'], radix:16);
       var deoptId = descriptor['deoptId'];
       var tokenPos = descriptor['tokenPos'];
       var tryIndex = descriptor['tryIndex'];
       var kind = descriptor['kind'].trim();
       descriptors.add(
-          new PcDescriptor(address, deoptId, tokenPos, tryIndex, kind));
+          new PcDescriptor(pcOffset, deoptId, tokenPos, tryIndex, kind));
     }
   }
 }
@@ -2162,6 +2161,7 @@ class TokenStream extends ServiceObject {
 
 class CodeInstruction extends Observable {
   @observable final int address;
+  @observable final int pcOffset;
   @observable final String machine;
   @observable final String human;
   @observable CodeInstruction jumpTarget;
@@ -2173,7 +2173,7 @@ class CodeInstruction extends Observable {
     return '${percent.toStringAsFixed(2)}%';
   }
 
-  CodeInstruction(this.address, this.machine, this.human);
+  CodeInstruction(this.address, this.pcOffset, this.machine, this.human);
 
   @reflectable bool get isComment => address == 0;
   @reflectable bool get hasDescriptors => descriptors.length > 0;
@@ -2460,11 +2460,13 @@ class Code extends ServiceObject {
       var address = 0;  // Assume code comment.
       var machine = disassembly[i + 1];
       var human = disassembly[i + 2];
+      var pcOffset = 0;
       if (disassembly[i] != '') {
         // Not a code comment, extract address.
         address = int.parse(disassembly[i]);
+        pcOffset = address - startAddress;
       }
-      var instruction = new CodeInstruction(address, machine, human);
+      var instruction = new CodeInstruction(address, pcOffset, machine, human);
       instructions.add(instruction);
     }
     for (var instruction in instructions) {
@@ -2473,14 +2475,15 @@ class Code extends ServiceObject {
   }
 
   void _processDescriptor(Map d) {
-    var address = int.parse(d['pc'], radix:16);
+    var pcOffset = int.parse(d['pcOffset'], radix:16);
+    var address = startAddress + pcOffset;
     var deoptId = d['deoptId'];
     var tokenPos = d['tokenPos'];
     var tryIndex = d['tryIndex'];
     var kind = d['kind'].trim();
     for (var instruction in instructions) {
       if (instruction.address == address) {
-        instruction.descriptors.add(new PcDescriptor(address,
+        instruction.descriptors.add(new PcDescriptor(pcOffset,
                                                      deoptId,
                                                      tokenPos,
                                                      tryIndex,
