@@ -125,6 +125,7 @@ class NativeEmitter {
       ClassBuilder builder = builders[cls];
       bool needed = false;
       if (builder == null) {
+        assert(!cls.isNative);
         // Mixin applications (native+mixin) are non-native, so [classElement]
         // has already been emitted as a regular class.  Mark [classElement] as
         // 'needed' to ensure the native superclass is needed.
@@ -230,7 +231,9 @@ class NativeEmitter {
       }
       generateClassInfo(jsInterceptorClass);
       for (Class cls in classes) {
-        generateClassInfo(cls);
+        if (!cls.isNative || neededClasses.contains(cls)) {
+          generateClassInfo(cls);
+        }
       }
     }
 
