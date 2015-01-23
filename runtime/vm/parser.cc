@@ -1082,7 +1082,7 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   // Since they are only executed once, we avoid optimizing
   // and inlining them. After the field is initialized, the
   // compiler can eliminate the call to the static initializer.
-  initializer.set_is_visible(false);
+  initializer.set_is_reflectable(false);
   initializer.set_is_debuggable(false);
   initializer.SetIsOptimizable(false);
   initializer.set_is_inlinable(false);
@@ -3652,7 +3652,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   func.set_is_redirecting(is_redirecting);
   func.set_modifier(async_modifier);
   if (library_.is_dart_scheme() && library_.IsPrivate(*method->name)) {
-    func.set_is_visible(false);
+    func.set_is_reflectable(false);
   }
   if (method->metadata_pos > 0) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
@@ -3778,7 +3778,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         getter.set_result_type(*field->type);
         getter.set_is_debuggable(false);
         if (library_.is_dart_scheme() && library_.IsPrivate(*field->name)) {
-          getter.set_is_visible(false);
+          getter.set_is_reflectable(false);
         }
         members->AddFunction(getter);
       }
@@ -3824,7 +3824,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         setter.set_result_type(Type::Handle(I, Type::VoidType()));
         setter.set_is_debuggable(false);
         if (library_.is_dart_scheme() && library_.IsPrivate(*field->name)) {
-          setter.set_is_visible(false);
+          setter.set_is_reflectable(false);
         }
         AddFormalParamsToFunction(&params, setter);
         members->AddFunction(setter);
@@ -4574,7 +4574,7 @@ void Parser::AddImplicitConstructor(const Class& cls) {
   ctor.set_end_token_pos(ctor.token_pos());
   ctor.set_is_debuggable(false);
   if (library_.is_dart_scheme() && library_.IsPrivate(ctor_name)) {
-    ctor.set_is_visible(false);
+    ctor.set_is_reflectable(false);
   }
 
   ParamList params;
@@ -5153,7 +5153,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
         getter.set_result_type(type);
         getter.set_is_debuggable(false);
         if (library_.is_dart_scheme() && library_.IsPrivate(var_name)) {
-          getter.set_is_visible(false);
+          getter.set_is_reflectable(false);
         }
         top_level->functions.Add(getter);
       }
@@ -5277,11 +5277,8 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
   func.set_modifier(func_modifier);
-  if (is_native) {
-    func.set_is_debuggable(false);
-  }
   if (library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
-    func.set_is_visible(false);
+    func.set_is_reflectable(false);
   }
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
@@ -5424,7 +5421,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     func.set_is_debuggable(false);
   }
   if (library_.is_dart_scheme() && library_.IsPrivate(accessor_name)) {
-    func.set_is_visible(false);
+    func.set_is_reflectable(false);
   }
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);

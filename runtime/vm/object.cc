@@ -73,7 +73,7 @@ DECLARE_FLAG(bool, error_on_bad_override);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
-DECLARE_FLAG(bool, verbose_stacktrace);
+DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, write_protect_code);
 
@@ -2580,7 +2580,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   }
   invocation.set_result_type(Type::Handle(Type::DynamicType()));
   invocation.set_is_debuggable(false);
-  invocation.set_is_visible(false);  // Not visible in stack trace.
+  invocation.set_is_reflectable(false);
   invocation.set_saved_args_desc(args_desc);
 
   return invocation.raw();
@@ -6107,7 +6107,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
   result.set_is_native(is_native);
-  result.set_is_visible(true);  // Will be computed later.
+  result.set_is_reflectable(true);  // Will be computed later.
   result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
@@ -20144,7 +20144,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
       }
-    } else if (function.is_visible() || FLAG_verbose_stacktrace) {
+    } else if (function.is_debuggable() || FLAG_show_invisible_frames) {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
@@ -20153,7 +20153,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         for (InlinedFunctionsIterator it(code, pc);
              !it.Done() && (*frame_index < max_frames); it.Advance()) {
           function = it.function();
-          if (function.is_visible() || FLAG_verbose_stacktrace) {
+          if (function.is_debuggable() || FLAG_show_invisible_frames) {
             code = it.code();
             ASSERT(function.raw() == code.function());
             uword pc = it.pc();

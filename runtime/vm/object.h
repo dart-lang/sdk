@@ -2169,15 +2169,32 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
-  // An invisible function is hidden from stack traces, will not be enumerated
-  // by mirrors, and cannot be directly invoked by mirrors. All private
-  // functions in dart:* libraries are marked invisible by the parser.
+  // static: Considered during class-side or top-level resolution rather than
+  //         instance-side resolution.
+  // const: Valid target of a const constructor call.
+  // abstract: Skipped during instance-side resolution.
+  // reflectable: Enumerated by mirrors, invocable by mirrors. False for private
+  //              functions of dart: libraries.
+  // debuggable: Valid location of a break point. True for functions with source
+  //             code; false for synthetic functions such as dispatchers. Also
+  //             used to decide whether to include a frame in stack traces.
+  // optimizable: Candidate for going through the optimizing compiler. False for
+  //              some functions known to be execute infrequently and functions
+  //              which have been de-optimized too many times.
+  // instrinsic: Has a hand-written assembly prologue.
+  // inlinable: Candidate for inlining. False for functions with features we
+  //            don't support during inlining (e.g., optional parameters),
+  //            functions which are too big, etc.
+  // native: Bridge to C/C++ code.
+  // redirecting: Redirecting generative or factory constructor.
+  // external: Just a declaration that expects to be defined in another patch
+  //           file.
 
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
   V(Const, is_const)                                                           \
   V(Abstract, is_abstract)                                                     \
-  V(Visible, is_visible)                                                       \
+  V(Reflectable, is_reflectable)                                               \
   V(Debuggable, is_debuggable)                                                 \
   V(Optimizable, is_optimizable)                                               \
   V(Inlinable, is_inlinable)                                                   \

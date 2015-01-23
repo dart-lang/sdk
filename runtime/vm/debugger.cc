@@ -906,7 +906,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
 
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
-  if (FLAG_show_invisible_frames || frame->function().is_visible()) {
+  if (FLAG_show_invisible_frames || frame->function().is_debuggable()) {
     trace_.Add(frame);
   }
 }
@@ -1324,7 +1324,7 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
     // pre-allocated trace (such as a stack overflow) or (b) because a stack has
     // fewer frames that the pre-allocated trace (such as memory exhaustion with
     // a shallow stack).
-    if (!function.IsNull() && function.is_visible()) {
+    if (!function.IsNull() && function.is_debuggable()) {
       code = ex_trace.CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(ex_trace.PcOffsetAtFrame(i));

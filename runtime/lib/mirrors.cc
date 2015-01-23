@@ -590,7 +590,7 @@ static RawInstance* InvokeDynamicFunction(
   Object& result = Object::Handle();
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
-      !function.is_visible() ||
+      !function.is_reflectable() ||
       !function.AreValidArguments(args_descriptor, NULL)) {
     result = DartEntry::InvokeNoSuchMethod(receiver,
                                            target_name,
@@ -641,7 +641,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
     getter = klass.LookupStaticFunction(internal_getter_name);
   }
 
-  if (!getter.IsNull() && getter.is_visible()) {
+  if (!getter.IsNull() && getter.is_reflectable()) {
     // Invoke the getter and return the result.
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(getter, Object::empty_array()));
@@ -676,7 +676,7 @@ static RawInstance* InvokeClassGetter(const Class& klass,
     Function& getter = Function::Handle(
         klass.LookupStaticFunction(internal_getter_name));
 
-    if (getter.IsNull() || !getter.is_visible()) {
+    if (getter.IsNull() || !getter.is_reflectable()) {
       if (getter.IsNull()) {
         getter = klass.LookupStaticFunction(getter_name);
         if (!getter.IsNull()) {
@@ -1042,7 +1042,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   Function& func = Function::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.is_visible() &&
+    if (func.is_reflectable() &&
         (func.kind() == RawFunction::kRegularFunction ||
         func.kind() == RawFunction::kGetterFunction ||
         func.kind() == RawFunction::kSetterFunction)) {
@@ -1077,7 +1077,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
   Function& func = Function::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.is_visible() && func.kind() == RawFunction::kConstructor) {
+    if (func.is_reflectable() && func.kind() == RawFunction::kConstructor) {
       constructor_mirror = CreateMethodMirror(func, owner_mirror);
       constructor_mirrors.Add(constructor_mirror);
     }
@@ -1129,7 +1129,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       }
     } else if (entry.IsFunction()) {
       const Function& func = Function::Cast(entry);
-      if (func.is_visible() &&
+      if (func.is_reflectable() &&
           (func.kind() == RawFunction::kRegularFunction ||
           func.kind() == RawFunction::kGetterFunction ||
           func.kind() == RawFunction::kSetterFunction)) {
@@ -1427,7 +1427,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
 
   if (function.IsNull() ||
       !function.AreValidArguments(args_descriptor, NULL) ||
-      !function.is_visible()) {
+      !function.is_reflectable()) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       function_name,
                       function,
@@ -1480,7 +1480,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     const Array& args = Array::Handle(Array::New(kNumArgs));
     args.SetAt(0, value);
 
-    if (setter.IsNull() || !setter.is_visible()) {
+    if (setter.IsNull() || !setter.is_reflectable()) {
       ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                         internal_setter_name,
                         setter,
@@ -1541,7 +1541,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
 
   if (lookup_constructor.IsNull() ||
       !(lookup_constructor.IsConstructor() || lookup_constructor.IsFactory()) ||
-      !lookup_constructor.is_visible()) {
+      !lookup_constructor.is_reflectable()) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
     lookup_constructor = Function::null();
@@ -1619,7 +1619,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (!redirected_constructor.AreValidArguments(args_descriptor, NULL) ||
-      !redirected_constructor.is_visible()) {
+      !redirected_constructor.is_reflectable()) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
     redirected_constructor = Function::null();
@@ -1719,7 +1719,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
 
   if (function.IsNull() ||
       !function.AreValidArguments(args_descriptor, NULL) ||
-      !function.is_visible()) {
+      !function.is_reflectable()) {
     ThrowNoSuchMethod(Instance::null_instance(),
                       function_name,
                       function,
@@ -1775,7 +1775,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     const Array& args = Array::Handle(Array::New(kNumArgs));
     args.SetAt(0, value);
 
-    if (setter.IsNull() || !setter.is_visible()) {
+    if (setter.IsNull() || !setter.is_reflectable()) {
       ThrowNoSuchMethod(Instance::null_instance(),
                         internal_setter_name,
                         setter,
