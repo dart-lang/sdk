@@ -50,6 +50,9 @@ class CpsElementVisitor extends analyzer.SimpleElementVisitor<ir.Node> {
 /// Visitor that converts analyzer AST nodes into CPS ir nodes.
 class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     with IrBuilderMixin<AstNode> {
+  /// Promote the type of [irBuilder] to [DartIrBuilder].
+  /// The JS backend requires closure conversion which we do not support yet.
+  DartIrBuilder get irBuilder => super.irBuilder;
   final analyzer.Element element;
   final ElementConverter converter;
 
@@ -68,7 +71,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         new DartIrBuilder(DART_CONSTANT_SYSTEM,
                           element,
                           // TODO(johnniwinther): Supported closure variables.
-                          new NullClosureVariableInfo()),
+                          new NullCapturedVariableInfo()),
         () {
       irBuilder.buildFieldInitializerHeader();
       ir.Primitive initializer = build(node.initializer);
@@ -83,7 +86,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         new DartIrBuilder(DART_CONSTANT_SYSTEM,
                           element,
                           // TODO(johnniwinther): Supported closure variables.
-                          new NullClosureVariableInfo()),
+                          new NullCapturedVariableInfo()),
         () {
       irBuilder.buildFunctionHeader(
           function.parameters.map(converter.convertElement));
@@ -525,6 +528,6 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 }
 
-class NullClosureVariableInfo extends ClosureVariableInfo {
+class NullCapturedVariableInfo extends DartCapturedVariableInfo {
   Iterable get capturedVariables => const [];
 }

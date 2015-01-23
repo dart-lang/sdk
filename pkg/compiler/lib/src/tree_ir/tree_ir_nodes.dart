@@ -662,15 +662,15 @@ class CreateBox extends Expression implements JsSpecificNode {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitCreateBox(this, arg);
 }
 
-class CreateClosureClass extends Expression implements JsSpecificNode {
-  ClosureClassElement classElement;
+class CreateInstance extends Expression implements JsSpecificNode {
+  ClassElement classElement;
   List<Expression> arguments;
 
-  CreateClosureClass(this.classElement, this.arguments);
+  CreateInstance(this.classElement, this.arguments);
 
-  accept(ExpressionVisitor visitor) => visitor.visitCreateClosureClass(this);
+  accept(ExpressionVisitor visitor) => visitor.visitCreateInstance(this);
   accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitCreateClosureClass(this, arg);
+    return visitor.visitCreateInstance(this, arg);
   }
 }
 
@@ -718,7 +718,7 @@ abstract class ExpressionVisitor<E> {
   E visitSuperInitializer(SuperInitializer node);
   E visitGetField(GetField node);
   E visitCreateBox(CreateBox node);
-  E visitCreateClosureClass(CreateClosureClass node);
+  E visitCreateInstance(CreateInstance node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -743,7 +743,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitSuperInitializer(SuperInitializer node, A arg);
   E visitGetField(GetField node, A arg);
   E visitCreateBox(CreateBox node, A arg);
-  E visitCreateClosureClass(CreateClosureClass node, A arg);
+  E visitCreateInstance(CreateInstance node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -923,7 +923,7 @@ class RecursiveVisitor extends Visitor {
   visitCreateBox(CreateBox node) {
   }
 
-  visitCreateClosureClass(CreateClosureClass node) {
+  visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitExpression);
   }
 }

@@ -73,6 +73,10 @@ class Glue {
     return _backend.isInterceptedSelector(selector);
   }
 
+  bool isInterceptedMethod(Element element) {
+    return _backend.isInterceptedMethod(element);
+  }
+
   Set<ClassElement> getInterceptedClassesOn(Selector selector) {
     return _backend.getInterceptedClassesOn(selector.name);
   }
@@ -81,12 +85,16 @@ class Glue {
     _backend.registerSpecializedGetInterceptor(classes);
   }
 
-  js.Expression closureClassConstructorAccess(ClosureClassElement element) {
-    return _backend.emitter.closureClassConstructorAccess(element);
+  js.Expression constructorAccess(ClassElement element) {
+    return _backend.emitter.constructorAccess(element);
   }
 
   String instanceFieldPropertyName(Element field) {
     return _namer.instanceFieldPropertyName(field);
+  }
+
+  String instanceMethodName(FunctionElement element) {
+    return _namer.instanceMethodName(element);
   }
 
   js.Expression prototypeAccess(ClassElement e,

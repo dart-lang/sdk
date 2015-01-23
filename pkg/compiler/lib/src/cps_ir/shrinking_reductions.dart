@@ -458,7 +458,7 @@ class ParentVisitor extends RecursiveVisitor {
     node.object.parent = node;
   }
 
-  processCreateClosureClass(CreateClosureClass node) {
+  processCreateInstance(CreateInstance node) {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 

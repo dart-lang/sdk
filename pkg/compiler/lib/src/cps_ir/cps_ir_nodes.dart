@@ -528,18 +528,18 @@ class CreateBox extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
 }
 
-/// Instantiates a synthetic class created by closure conversion.
-class CreateClosureClass extends Primitive implements JsSpecificNode {
-  final ClosureClassElement classElement;
+/// Creates an instance of a class and initializes its fields.
+class CreateInstance extends Primitive implements JsSpecificNode {
+  final ClassElement classElement;
 
-  /// Values and boxes for locals captured by the closure.
-  /// The order corresponds to [ClosureClassElement.closureFields].
+  /// Initial values for the fields on the class.
+  /// The order corresponds to the order of fields on the class.
   final List<Reference<Primitive>> arguments;
 
-  CreateClosureClass(this.classElement, List<Primitive> arguments)
+  CreateInstance(this.classElement, List<Primitive> arguments)
       : this.arguments = _referenceList(arguments);
 
-  accept(Visitor visitor) => visitor.visitCreateClosureClass(this);
+  accept(Visitor visitor) => visitor.visitCreateInstance(this);
 }
 
 class Identical extends Primitive implements JsSpecificNode {
@@ -856,7 +856,7 @@ abstract class Visitor<T> {
   T visitClosureVariable(ClosureVariable node) => visitDefinition(node);
   T visitGetField(GetField node) => visitDefinition(node);
   T visitCreateBox(CreateBox node) => visitDefinition(node);
-  T visitCreateClosureClass(CreateClosureClass node) => visitDefinition(node);
+  T visitCreateInstance(CreateInstance node) => visitDefinition(node);
 
   // Conditions.
   T visitIsTrue(IsTrue node) => visitCondition(node);
@@ -1088,9 +1088,9 @@ abstract class RecursiveVisitor extends Visitor {
     processReference(node.input);
   }
 
-  processCreateClosureClass(CreateClosureClass node) {}
-  visitCreateClosureClass(CreateClosureClass node) {
-    processCreateClosureClass(node);
+  processCreateInstance(CreateInstance node) {}
+  visitCreateInstance(CreateInstance node) {
+    processCreateInstance(node);
     node.arguments.forEach(processReference);
   }
 
@@ -1330,7 +1330,7 @@ class RegisterAllocator extends Visitor {
   void visitCreateBox(CreateBox node) {
   }
 
-  void visitCreateClosureClass(CreateClosureClass node) {
+  void visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitReference);
   }
 

@@ -447,10 +447,10 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return 'CreateBox';
   }
 
-  String visitCreateClosureClass(CreateClosureClass node) {
+  String visitCreateInstance(CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(visitExpression).join(', ');
-    return 'CreateClosure $className($arguments)';
+    return 'CreateInstance $className($arguments)';
   }
 
 }

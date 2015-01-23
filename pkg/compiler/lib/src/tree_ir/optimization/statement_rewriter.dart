@@ -424,7 +424,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
-  Expression visitCreateClosureClass(CreateClosureClass node) {
+  Expression visitCreateInstance(CreateInstance node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }

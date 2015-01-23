@@ -273,10 +273,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'CreateBox';
   }
 
-  visitCreateClosureClass(cps_ir.CreateClosureClass node) {
+  visitCreateInstance(cps_ir.CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(formatReference).join(', ');
-    return 'CreateClosureClass $className ($arguments)';
+    return 'CreateInstance $className ($arguments)';
   }
 
   visitIdentical(cps_ir.Identical node) {

@@ -141,10 +141,5 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess closureClassConstructorAccess(ClassElement element) {
-    return _globalPropertyAccess(element);
-  }
-
-  @override
   void invalidateCaches() {}
 }

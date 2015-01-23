@@ -229,11 +229,6 @@ class OldEmitter implements Emitter {
     return globalPropertyAccess(element);
   }
 
-  @override
-  jsAst.PropertyAccess closureClassConstructorAccess(ClosureClassElement e) {
-    return globalPropertyAccess(e);
-  }
-
   List<jsAst.Statement> buildTrivialNsmHandlers(){
     return nsmEmitter.buildTrivialNsmHandlers();
   }

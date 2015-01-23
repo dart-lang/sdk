@@ -14,8 +14,9 @@ import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../universe/universe.dart' show SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
-import '../elements/modelx.dart' show SynthesizedConstructorElementX;
-import '../closure.dart';
+import '../elements/modelx.dart' show SynthesizedConstructorElementX,
+    ConstructorBodyElementX, FunctionSignatureX;
+import '../closure.dart' hide ClosureScope;
 import '../closure.dart' as closurelib;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 
@@ -209,8 +210,6 @@ abstract class IrBuilder {
 
   void declareLocalVariable(LocalVariableElement element,
                             {ir.Primitive initialValue});
-  void declareLocalFunction(LocalFunctionElement element, Object function);
-  ir.Primitive buildFunctionExpression(Object function);
   ir.Primitive buildLocalGet(LocalElement element);
   ir.Primitive buildLocalSet(LocalElement element, ir.Primitive value);
 
@@ -347,12 +346,13 @@ abstract class IrBuilder {
     _enterScope(closureScope);
   }
 
-  void buildFunctionHeader(Iterable<ParameterElement> parameters,
-                          {ClosureScope closureScope,
-                           ClosureEnvironment closureEnvironment}) {
-    _enterClosureEnvironment(closureEnvironment);
+  List<ir.Primitive> buildFunctionHeader(Iterable<ParameterElement> parameters,
+                                        {ClosureScope closureScope,
+                                         ClosureEnvironment env}) {
+    _enterClosureEnvironment(env);
     _enterScope(closureScope);
     parameters.forEach(_createFunctionParameter);
+    return _parameters;
   }
 
   /// Creates a parameter for [local] and adds it to the current environment.
@@ -400,9 +400,9 @@ abstract class IrBuilder {
         (k) => new ir.InvokeStatic(element, selector, k, arguments));
   }
 
-  ir.Primitive _buildInvokeDirectly(Element target,
-                                    Selector selector,
-                                    List<ir.Primitive> arguments) {
+  ir.Primitive _buildInvokeSuper(Element target,
+                                 Selector selector,
+                                 List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
@@ -650,7 +650,7 @@ abstract class IrBuilder {
   ir.Primitive buildSuperIndexSet(Element target,
                                   ir.Primitive index,
                                   ir.Primitive value) {
-    _buildInvokeDirectly(target, new Selector.indexSet(),
+    _buildInvokeSuper(target, new Selector.indexSet(),
         <ir.Primitive>[index, value]);
     return value;
   }
@@ -1537,7 +1537,7 @@ class DartIrBuilderSharedState {
   final Map<ExecutableElement, List<ir.ClosureVariable>> function2closures =
       <ExecutableElement, List<ir.ClosureVariable>>{};
 
-  final ClosureVariableInfo closureVariables;
+  final DartCapturedVariableInfo closureVariables;
 
   /// Returns the closure variables declared in the given function.
   List<ir.ClosureVariable> getClosureList(ExecutableElement element) {
@@ -1575,7 +1575,7 @@ class DartIrBuilder extends IrBuilder {
 
   DartIrBuilder(ConstantSystem constantSystem,
                 ExecutableElement currentElement,
-                ClosureVariableInfo  closureVariables)
+                DartCapturedVariableInfo  closureVariables)
       : dartState = new DartIrBuilderSharedState(closureVariables) {
     _init(constantSystem, currentElement);
   }
@@ -1734,7 +1734,7 @@ class DartIrBuilder extends IrBuilder {
   ir.Primitive buildSuperInvocation(Element target,
                                     Selector selector,
                                     List<ir.Primitive> arguments) {
-    return _buildInvokeDirectly(target, selector, arguments);
+    return _buildInvokeSuper(target, selector, arguments);
   }
 
 }
@@ -1856,7 +1856,7 @@ class JsIrBuilder extends IrBuilder {
     for (ClosureFieldElement field in classElement.closureFields) {
       arguments.add(environment.lookup(field.local));
     }
-    ir.Primitive closure = new ir.CreateClosureClass(classElement, arguments);
+    ir.Primitive closure = new ir.CreateInstance(classElement, arguments);
     add(new ir.LetPrim(closure));
     return closure;
   }
@@ -1959,7 +1959,34 @@ class JsIrBuilder extends IrBuilder {
         return arguments.single;
       }
     } else {
-      return _buildInvokeDirectly(target, selector, arguments);
+      return _buildInvokeSuper(target, selector, arguments);
+    }
+  }
+
+  ir.Primitive buildInvokeDirectly(FunctionElement target,
+                                   ir.Primitive receiver,
+                                   List<ir.Primitive> arguments) {
+    assert(isOpen);
+    Selector selector =
+        new Selector.call(target.name, target.library, arguments.length);
+    return _continueWithExpression(
+        (k) => new ir.InvokeMethodDirectly(
+            receiver, target, selector, k, arguments));
+  }
+
+  /// Loads parameters to a constructor body into the environment.
+  ///
+  /// The header for a constructor body differs from other functions in that
+  /// some parameters are already boxed, and the box is passed as an argument
+  /// instead of being created in the header.
+  void buildConstructorBodyHeader(Iterable<Local> parameters,
+                                  ClosureScope closureScope) {
+    for (Local param in parameters) {
+      ir.Parameter parameter = createLocalParameter(param);
+      state.functionParameters.add(parameter);
+    }
+    if (closureScope != null) {
+      jsState.boxedVariables.addAll(closureScope.capturedVariables);
     }
   }
 }
@@ -2017,10 +2044,10 @@ class ClosureEnvironment {
   ClosureEnvironment(this.selfReference, this.thisLocal, this.freeVariables);
 }
 
-/// Information about which variables are captured in a closure.
+/// Information about which variables are captured by a nested function.
 ///
 /// This is used by the [DartIrBuilder] instead of [ClosureScope] and
 /// [ClosureEnvironment].
-abstract class ClosureVariableInfo {
+abstract class DartCapturedVariableInfo {
   Iterable<Local> get capturedVariables;
 }

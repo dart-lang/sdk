@@ -216,6 +216,15 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   @override
   js.Expression visitInvokeMethodDirectly(tree_ir.InvokeMethodDirectly node) {
     registry.registerDirectInvocation(node.target.declaration);
+    if (node.target is ConstructorBodyElement) {
+      // A constructor body cannot be overriden or intercepted, so we can
+      // use the short form for this invocation.
+      // TODO(asgerf): prevent name clash between constructor bodies.
+      return js.js('#.#(#)',
+          [visitExpression(node.receiver),
+           glue.instanceMethodName(node.target),
+           visitArguments(node.arguments)]);
+    }
     return js.js('#.#.call(#, #)',
         [glue.prototypeAccess(node.target.enclosingClass),
          glue.invocationName(node.selector),
@@ -435,9 +444,9 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   }
 
   @override
-  js.Expression visitCreateClosureClass(tree_ir.CreateClosureClass node) {
+  js.Expression visitCreateInstance(tree_ir.CreateInstance node) {
     registry.registerInstantiatedClass(node.classElement);
-    return new js.New(glue.closureClassConstructorAccess(node.classElement),
+    return new js.New(glue.constructorAccess(node.classElement),
                       node.arguments.map(visitExpression).toList());
   }
 

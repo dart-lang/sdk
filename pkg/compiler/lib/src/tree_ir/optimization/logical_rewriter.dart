@@ -332,7 +332,7 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
-  Expression visitCreateClosureClass(CreateClosureClass node) {
+  Expression visitCreateInstance(CreateInstance node) {
     _rewriteList(node.arguments);
     return node;
   }

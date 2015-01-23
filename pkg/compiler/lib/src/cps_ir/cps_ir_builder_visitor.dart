@@ -42,7 +42,9 @@ class IrBuilderTask extends CompilerTask {
     return compiler.withCurrentElement(element, () {
       SourceFile sourceFile = elementSourceFile(element);
       IrBuilderVisitor builder =
-          new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
+          compiler.backend is JavaScriptBackend
+          ? new JsIrBuilderVisitor(elementsMapping, compiler, sourceFile)
+          : new DartIrBuilderVisitor(elementsMapping, compiler, sourceFile);
       return builder.buildExecutable(element);
     });
   }
@@ -82,13 +84,14 @@ class IrBuilderTask extends CompilerTask {
     return result;
   }
 
-  SourceFile elementSourceFile(Element element) {
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
-      if (functionElement.patch != null) element = functionElement.patch;
-    }
-    return element.compilationUnit.script.file;
+}
+
+SourceFile elementSourceFile(Element element) {
+  if (element is FunctionElement) {
+    FunctionElement functionElement = element;
+    if (functionElement.patch != null) element = functionElement.patch;
   }
+  return element.compilationUnit.script.file;
 }
 
 class _GetterElements {
@@ -104,11 +107,10 @@ class _GetterElements {
  * to the [builder] and return the last added statement for trees that represent
  * an expression.
  */
-class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
+abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     with IrBuilderMixin<ast.Node> {
   final Compiler compiler;
   final SourceFile sourceFile;
-  ClosureClassMap closureMap;
 
   // In SSA terms, join-point continuation parameters are the phis and the
   // continuation invocation arguments are the corresponding phi inputs.  To
@@ -132,119 +134,17 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   IrBuilderVisitor(TreeElements elements, this.compiler, this.sourceFile)
       : super(elements);
 
-  /// True if using the JavaScript backend; we use this to determine how
-  /// closures should be translated.
-  bool get isJavaScriptBackend => compiler.backend is JavaScriptBackend;
-
   /**
    * Builds the [ir.ExecutableDefinition] for an executable element. In case the
    * function uses features that cannot be expressed in the IR, this element
    * returns `null`.
    */
-  ir.ExecutableDefinition buildExecutable(ExecutableElement element) {
-    return nullIfGiveup(() {
-      if (element is FieldElement) {
-        return buildField(element);
-      } else if (element is FunctionElement) {
-        return buildFunction(element);
-      } else {
-        compiler.internalError(element, "Unexpected element type $element");
-      }
-    });
-  }
+  ir.ExecutableDefinition buildExecutable(ExecutableElement element);
 
-  Map mapValues(Map map, dynamic fn(dynamic)) {
-    Map result = {};
-    map.forEach((key,value) {
-      result[key] = fn(value);
-    });
-    return result;
-  }
+  ClosureScope getClosureScopeForNode(ast.Node node);
+  ClosureEnvironment getClosureEnvironment();
 
-  // Converts closure.dart's CapturedVariable into a ClosureLocation.
-  // There is a 1:1 corresponce between these; we do this because the IR builder
-  // should not depend on synthetic elements.
-  ClosureLocation getLocation(CapturedVariable v) {
-    if (v is BoxFieldElement) {
-      return new ClosureLocation(v.box, v);
-    } else {
-      ClosureFieldElement field = v;
-      return new ClosureLocation(null, field);
-    }
-  }
 
-  /// If the current function is a nested function with free variables (or a
-  /// captured reference to `this`), this returns a [ClosureEnvironment]
-  /// indicating how to access these.
-  ClosureEnvironment getClosureEnvironment() {
-    if (closureMap == null) return null; // dart2dart does not use closureMap.
-    if (closureMap.closureElement == null) return null;
-    return new ClosureEnvironment(
-        closureMap.closureElement,
-        closureMap.thisLocal,
-        mapValues(closureMap.freeVariableMap, getLocation));
-  }
-
-  /// If [node] has declarations for variables that should be boxed, this
-  /// returns a [ClosureScope] naming a box to create, and enumerating the
-  /// variables that should be stored in the box.
-  ///
-  /// Also see [ClosureScope].
-  ClosureScope getClosureScope(ast.Node node) {
-    if (closureMap == null) return null; // dart2dart does not use closureMap.
-    closurelib.ClosureScope scope = closureMap.capturingScopes[node];
-    if (scope == null) return null;
-    // We translate a ClosureScope from closure.dart into IR builder's variant
-    // because the IR builder should not depend on the synthetic elements
-    // created in closure.dart.
-    return new ClosureScope(scope.boxElement,
-                            mapValues(scope.capturedVariables, getLocation),
-                            scope.boxedLoopVariables);
-  }
-
-  IrBuilder makeIRBuilder(ast.Node node, ExecutableElement element) {
-    if (isJavaScriptBackend) {
-      closureMap = compiler.closureToClassMapper.computeClosureToClassMapping(
-          element,
-          node,
-          elements);
-      return new JsIrBuilder(compiler.backend.constantSystem, element);
-    } else {
-      DetectClosureVariables closures = new DetectClosureVariables(elements);
-      if (!element.isSynthesized) {
-        closures.visit(node);
-      }
-      return new DartIrBuilder(compiler.backend.constantSystem,
-                               element,
-                               closures);
-    }
-  }
-
-  /// Returns a [ir.FieldDefinition] describing the initializer of [element].
-  ir.FieldDefinition buildField(FieldElement element) {
-    assert(invariant(element, element.isImplementation));
-    ast.VariableDefinitions definitions = element.node;
-    ast.Node fieldDefinition =
-        definitions.definitions.nodes.first;
-    if (definitions.modifiers.isConst) {
-      // TODO(sigurdm): Just return const value.
-    }
-    assert(fieldDefinition != null);
-    assert(elements[fieldDefinition] != null);
-
-    IrBuilder builder = makeIRBuilder(fieldDefinition, element);
-
-    return withBuilder(builder, () {
-      builder.buildFieldInitializerHeader(
-          closureScope: getClosureScope(fieldDefinition));
-      ir.Primitive initializer;
-      if (fieldDefinition is ast.SendSet) {
-        ast.SendSet sendSet = fieldDefinition;
-        initializer = visit(sendSet.arguments.first);
-      }
-      return builder.makeFieldDefinition(initializer);
-    });
-  }
 
   ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
                                           ast.FunctionExpression node) {
@@ -253,8 +153,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     signature.orderedForEachParameter(parameters.add);
 
     irBuilder.buildFunctionHeader(parameters,
-                                  closureScope: getClosureScope(node),
-                                  closureEnvironment: getClosureEnvironment());
+                                  closureScope: getClosureScopeForNode(node),
+                                  env: getClosureEnvironment());
 
     List<ConstantExpression> defaults = new List<ConstantExpression>();
     signature.orderedOptionalParameters.forEach((ParameterElement element) {
@@ -352,28 +252,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return result;
   }
 
-  ir.FunctionDefinition buildFunction(FunctionElement element) {
-    assert(invariant(element, element.isImplementation));
-    ast.FunctionExpression node = element.node;
-
-    Iterable<Entity> usedFromClosure;
-    if (!element.isSynthesized) {
-      assert(node != null);
-      assert(elements[node] != null);
-    } else {
-      SynthesizedConstructorElementX constructor = element;
-      if (!constructor.isDefaultConstructor) {
-        giveup(null, 'cannot handle synthetic forwarding constructors');
-      }
-
-      usedFromClosure = <Entity>[];
-    }
-
-    IrBuilder builder = makeIRBuilder(node, element);
-
-    return withBuilder(builder, () => _makeFunctionBody(element, node));
-  }
-
   ir.Primitive visit(ast.Node node) => node.accept(this);
 
   // ==== Statements ====
@@ -425,7 +303,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         buildCondition: subbuild(node.condition),
         buildBody: subbuild(node.body),
         buildUpdate: subbuildSequence(node.update),
-        closureScope: getClosureScope(node),
+        closureScope: getClosureScopeForNode(node),
         loopVariables: loopVariables,
         target: target);
   }
@@ -486,7 +364,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         buildCondition: subbuild(node.condition),
         buildBody: subbuild(node.body),
         target: elements.getTargetDefinition(node),
-        closureScope: getClosureScope(node));
+        closureScope: getClosureScopeForNode(node));
   }
 
   visitForIn(ast.ForIn node) {
@@ -506,7 +384,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         variableSelector: selector,
         buildBody: subbuild(node.body),
         target: elements.getTargetDefinition(node),
-        closureScope: getClosureScope(node));
+        closureScope: getClosureScopeForNode(node));
   }
 
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
@@ -1018,33 +896,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return irBuilder.buildConstantLiteral(constant);
   }
 
-  /// Returns the backend-specific representation of an inner function.
-  Object makeSubFunction(ast.FunctionExpression node) {
-    if (isJavaScriptBackend) {
-      ClosureClassMap innerMap =
-          compiler.closureToClassMapper.getMappingForNestedFunction(node);
-      ClosureClassElement closureClass = innerMap.closureClassElement;
-      return closureClass;
-    } else {
-      FunctionElement element = elements[node];
-      assert(invariant(element, element.isImplementation));
-
-      IrBuilder builder = irBuilder.makeInnerFunctionBuilder(element);
-
-      return withBuilder(builder, () => _makeFunctionBody(element, node));
-    }
-  }
-
-  ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
-    return irBuilder.buildFunctionExpression(makeSubFunction(node));
-  }
-
-  visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    LocalFunctionElement element = elements[node.function];
-    Object inner = makeSubFunction(node.function);
-    irBuilder.declareLocalFunction(element, inner);
-  }
-
   ir.ExecutableDefinition nullIfGiveup(ir.ExecutableDefinition action()) {
     try {
       return action();
@@ -1074,16 +925,16 @@ dynamic giveup(ast.Node node, [String reason]) {
 /// sees a feature that is currently unsupport by that builder. In particular,
 /// loop variables captured in a for-loop initializer, condition, or update
 /// expression are unsupported.
-class DetectClosureVariables extends ast.Visitor
-                             implements ClosureVariableInfo {
+class DartCapturedVariables extends ast.Visitor
+                             implements DartCapturedVariableInfo {
   final TreeElements elements;
-  DetectClosureVariables(this.elements);
+  DartCapturedVariables(this.elements);
 
   FunctionElement currentFunction;
   bool insideInitializer = false;
   Set<Local> capturedVariables = new Set<Local>();
 
-  void markAsClosureVariable(Local local) {
+  void markAsCaptured(Local local) {
     capturedVariables.add(local);
   }
 
@@ -1118,7 +969,7 @@ class DetectClosureVariables extends ast.Visitor
         !element.isConst &&
         element.enclosingElement != currentFunction) {
       LocalElement local = element;
-      markAsClosureVariable(local);
+      markAsCaptured(local);
     }
   }
 
@@ -1141,7 +992,7 @@ class DetectClosureVariables extends ast.Visitor
       // they still need to be boxed.  As a simplification, we treat them as if
       // they are captured by a closure (i.e., they do outlive the activation of
       // the function).
-      markAsClosureVariable(local);
+      markAsCaptured(local);
     }
     node.visitChildren(this);
   }
@@ -1158,3 +1009,544 @@ class DetectClosureVariables extends ast.Visitor
     currentFunction = oldFunction;
   }
 }
+
+/// IR builder specific to the Dart backend, coupled to the [DartIrBuilder].
+class DartIrBuilderVisitor extends IrBuilderVisitor {
+  /// Promote the type of [irBuilder] to [DartIrBuilder].
+  DartIrBuilder get irBuilder => super.irBuilder;
+
+  DartIrBuilderVisitor(TreeElements elements,
+                   Compiler compiler,
+                   SourceFile sourceFile)
+      : super(elements, compiler, sourceFile);
+
+  DartIrBuilder makeIRBuilder(ast.Node node, ExecutableElement element) {
+    DartCapturedVariables closures = new DartCapturedVariables(elements);
+    if (!element.isSynthesized) {
+      closures.visit(node);
+    }
+    return new DartIrBuilder(compiler.backend.constantSystem,
+                             element,
+                             closures);
+  }
+
+  /// Recursively builds the IR for the given nested function.
+  ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
+    FunctionElement element = elements[node];
+    assert(invariant(element, element.isImplementation));
+
+    IrBuilder builder = irBuilder.makeInnerFunctionBuilder(element);
+
+    return withBuilder(builder, () => _makeFunctionBody(element, node));
+  }
+
+  ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
+    return irBuilder.buildFunctionExpression(makeSubFunction(node));
+  }
+
+  visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    LocalFunctionElement element = elements[node.function];
+    Object inner = makeSubFunction(node.function);
+    irBuilder.declareLocalFunction(element, inner);
+  }
+
+  ClosureScope getClosureScopeForNode(ast.Node node) => null;
+  ClosureEnvironment getClosureEnvironment() => null;
+
+  ir.ExecutableDefinition buildExecutable(ExecutableElement element) {
+    return nullIfGiveup(() {
+      if (element is FieldElement) {
+        return buildField(element);
+      } else if (element is FunctionElement) {
+        return buildFunction(element);
+      } else {
+        compiler.internalError(element, "Unexpected element type $element");
+      }
+    });
+  }
+
+  /// Returns a [ir.FieldDefinition] describing the initializer of [element].
+  ir.FieldDefinition buildField(FieldElement element) {
+    assert(invariant(element, element.isImplementation));
+    ast.VariableDefinitions definitions = element.node;
+    ast.Node fieldDefinition = definitions.definitions.nodes.first;
+    if (definitions.modifiers.isConst) {
+      // TODO(sigurdm): Just return const value.
+    }
+    assert(fieldDefinition != null);
+    assert(elements[fieldDefinition] != null);
+
+    IrBuilder builder = makeIRBuilder(fieldDefinition, element);
+
+    return withBuilder(builder, () {
+      builder.buildFieldInitializerHeader(
+          closureScope: getClosureScopeForNode(fieldDefinition));
+      ir.Primitive initializer;
+      if (fieldDefinition is ast.SendSet) {
+        ast.SendSet sendSet = fieldDefinition;
+        initializer = visit(sendSet.arguments.first);
+      }
+      return builder.makeFieldDefinition(initializer);
+    });
+  }
+
+  ir.FunctionDefinition buildFunction(FunctionElement element) {
+    assert(invariant(element, element.isImplementation));
+    ast.FunctionExpression node = element.node;
+
+    if (!element.isSynthesized) {
+      assert(node != null);
+      assert(elements[node] != null);
+    } else {
+      SynthesizedConstructorElementX constructor = element;
+      if (!constructor.isDefaultConstructor) {
+        giveup(null, 'cannot handle synthetic forwarding constructors');
+      }
+    }
+
+    IrBuilder builder = makeIRBuilder(node, element);
+
+    return withBuilder(builder, () => _makeFunctionBody(element, node));
+  }
+}
+
+/// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
+class JsIrBuilderVisitor extends IrBuilderVisitor {
+  /// Promote the type of [irBuilder] to [JsIrBuilder].
+  JsIrBuilder get irBuilder => super.irBuilder;
+
+  /// Result of closure conversion for the current body of code.
+  ///
+  /// Will be initialized upon entering the body of a function.
+  /// It is computed by the [ClosureTranslator].
+  ClosureClassMap closureMap;
+
+  /// During construction of a constructor factory, [fieldValues] maps fields
+  /// to the primitive containing their initial value.
+  Map<FieldElement, ir.Primitive> fieldValues = <FieldElement, ir.Primitive>{};
+
+  JsIrBuilderVisitor(TreeElements elements,
+                     Compiler compiler,
+                     SourceFile sourceFile)
+      : super(elements, compiler, sourceFile);
+
+  /// Builds the IR for creating an instance of the closure class corresponding
+  /// to the given nested function.
+  ClosureClassElement makeSubFunction(ast.FunctionExpression node) {
+    ClosureClassMap innerMap =
+        compiler.closureToClassMapper.getMappingForNestedFunction(node);
+    ClosureClassElement closureClass = innerMap.closureClassElement;
+    return closureClass;
+  }
+
+  ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
+    return irBuilder.buildFunctionExpression(makeSubFunction(node));
+  }
+
+  visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    LocalFunctionElement element = elements[node.function];
+    Object inner = makeSubFunction(node.function);
+    irBuilder.declareLocalFunction(element, inner);
+  }
+
+  Map mapValues(Map map, dynamic fn(dynamic)) {
+    Map result = {};
+    map.forEach((key, value) {
+      result[key] = fn(value);
+    });
+    return result;
+  }
+
+  /// Converts closure.dart's CapturedVariable into a ClosureLocation.
+  /// There is a 1:1 corresponce between these; we do this because the
+  /// IR builder should not depend on synthetic elements.
+  ClosureLocation getLocation(CapturedVariable v) {
+    if (v is BoxFieldElement) {
+      return new ClosureLocation(v.box, v);
+    } else {
+      ClosureFieldElement field = v;
+      return new ClosureLocation(null, field);
+    }
+  }
+
+  /// If the current function is a nested function with free variables (or a
+  /// captured reference to `this`), returns a [ClosureEnvironment]
+  /// indicating how to access these.
+  ClosureEnvironment getClosureEnvironment() {
+    if (closureMap.closureElement == null) return null;
+    return new ClosureEnvironment(
+        closureMap.closureElement,
+        closureMap.thisLocal,
+        mapValues(closureMap.freeVariableMap, getLocation));
+  }
+
+  /// If [node] has declarations for variables that should be boxed,
+  /// returns a [ClosureScope] naming a box to create, and enumerating the
+  /// variables that should be stored in the box.
+  ///
+  /// Also see [ClosureScope].
+  ClosureScope getClosureScopeForNode(ast.Node node) {
+    closurelib.ClosureScope scope = closureMap.capturingScopes[node];
+    if (scope == null) return null;
+    // We translate a ClosureScope from closure.dart into IR builder's variant
+    // because the IR builder should not depend on the synthetic elements
+    // created in closure.dart.
+    return new ClosureScope(scope.boxElement,
+                            mapValues(scope.capturedVariables, getLocation),
+                            scope.boxedLoopVariables);
+  }
+
+  /// Returns the [ClosureScope] for any function, possibly different from the
+  /// one currently being built.
+  ClosureScope getClosureScopeForFunction(FunctionElement function) {
+    ClosureClassMap map =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            function,
+            function.node,
+            elements);
+    closurelib.ClosureScope scope = map.capturingScopes[function.node];
+    if (scope == null) return null;
+    return new ClosureScope(scope.boxElement,
+                            mapValues(scope.capturedVariables, getLocation),
+                            scope.boxedLoopVariables);
+  }
+
+  ir.ExecutableDefinition buildExecutable(ExecutableElement element) {
+    return nullIfGiveup(() {
+      switch (element.kind) {
+        case ElementKind.GENERATIVE_CONSTRUCTOR:
+          return buildConstructor(element);
+
+        case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
+          return buildConstructorBody(element);
+
+        case ElementKind.FUNCTION:
+        case ElementKind.GETTER:
+        case ElementKind.SETTER:
+          return buildFunction(element);
+
+        default:
+          compiler.internalError(element, "Unexpected element type $element");
+      }
+    });
+  }
+
+  /// Builds the IR for an [expression] taken from a different [context].
+  ///
+  /// Such expressions need to be compiled with a different [sourceFile] and
+  /// [elements] mapping.
+  ir.Primitive inlineExpression(AstElement context, ast.Expression expression) {
+    JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
+        context.resolvedAst.elements,
+        compiler,
+        elementSourceFile(context));
+    return visitor.withBuilder(irBuilder, () => visitor.visit(expression));
+  }
+
+  /// Builds the IR for a given constructor.
+  ///
+  /// 1. Evaluates all own or inherited field initializers.
+  /// 2. Creates the object and assigns its fields.
+  /// 3. Calls constructor body and super constructor bodies.
+  /// 4. Returns the created object.
+  ir.FunctionDefinition buildConstructor(ConstructorElement constructor) {
+    constructor = constructor.implementation;
+    ClassElement classElement = constructor.enclosingClass.implementation;
+
+    JsIrBuilder builder =
+        new JsIrBuilder(compiler.backend.constantSystem, constructor);
+
+    return withBuilder(builder, () {
+      // Setup parameters and create a box if anything is captured.
+      List<ParameterElement> parameters = [];
+      constructor.functionSignature.orderedForEachParameter(parameters.add);
+      builder.buildFunctionHeader(parameters,
+          closureScope: getClosureScopeForFunction(constructor));
+
+      // -- Step 1: evaluate field initializers ---
+      // Evaluate field initializers in constructor and super constructors.
+      List<ConstructorElement> constructorList = <ConstructorElement>[];
+      evaluateConstructorFieldInitializers(constructor, constructorList);
+
+      // All parameters in all constructors are now bound in the environment.
+      // BoxLocals for captured parameters are also in the environment.
+      // The initial value of all fields are now bound in [fieldValues].
+
+      // --- Step 2: create the object ---
+      // Get the initial field values in the canonical order.
+      List<ir.Primitive> instanceArguments = <ir.Primitive>[];
+      classElement.forEachInstanceField((ClassElement c, FieldElement field) {
+        ir.Primitive value = fieldValues[field];
+        if (value != null) {
+          instanceArguments.add(fieldValues[field]);
+        } else {
+          assert(Elements.isNativeOrExtendsNative(c));
+          // Native fields are initialized elsewhere.
+        }
+      }, includeSuperAndInjectedMembers: true);
+      ir.Primitive instance =
+          new ir.CreateInstance(classElement, instanceArguments);
+      irBuilder.add(new ir.LetPrim(instance));
+
+      // --- Step 3: call constructor bodies ---
+      for (ConstructorElement target in constructorList) {
+        ConstructorBodyElement bodyElement = getConstructorBody(target);
+        if (bodyElement == null) continue; // Skip if constructor has no body.
+        List<ir.Primitive> bodyArguments = <ir.Primitive>[];
+        for (Local param in getConstructorBodyParameters(bodyElement)) {
+          bodyArguments.add(irBuilder.environment.lookup(param));
+        }
+        irBuilder.buildInvokeDirectly(bodyElement, instance, bodyArguments);
+      }
+
+      // --- step 4: return the created object ----
+      irBuilder.buildReturn(instance);
+
+      return irBuilder.makeFunctionDefinition([]);
+    });
+  }
+
+  /// Evaluates all field initializers on [constructor] and all constructors
+  /// invoked through `this()` or `super()` ("superconstructors").
+  ///
+  /// The resulting field values will be available in [fieldValues]. The values
+  /// are not stored in any fields.
+  ///
+  /// This procedure assumes that the parameters to [constructor] are available
+  /// in the IR builder's environment.
+  ///
+  /// The parameters to superconstructors are, however, assumed *not* to be in
+  /// the environment, but will be put there by this procedure.
+  ///
+  /// All constructors will be added to [supers], with superconstructors first.
+  void evaluateConstructorFieldInitializers(ConstructorElement constructor,
+                                            List<ConstructorElement> supers) {
+    // Evaluate declaration-site field initializers.
+    ClassElement enclosingClass = constructor.enclosingClass.implementation;
+    enclosingClass.forEachInstanceField((ClassElement c, FieldElement field) {
+      if (field.initializer != null) {
+        fieldValues[field] = inlineExpression(field, field.initializer);
+      } else {
+        if (Elements.isNativeOrExtendsNative(c)) {
+          // Native field is initialized elsewhere.
+        } else {
+          // Fields without an initializer default to null.
+          // This value will be overwritten below if an initializer is found.
+          fieldValues[field] = irBuilder.buildNullLiteral();
+        }
+      }
+    });
+    // Evaluate initializing parameters, e.g. `Foo(this.x)`.
+    constructor.functionSignature.orderedForEachParameter(
+        (ParameterElement parameter) {
+      if (parameter.isInitializingFormal) {
+        InitializingFormalElement fieldParameter = parameter;
+        fieldValues[fieldParameter.fieldElement] =
+            irBuilder.buildLocalGet(parameter);
+      }
+    });
+    // Evaluate constructor initializers, e.g. `Foo() : x = 50`.
+    ast.FunctionExpression node = constructor.node;
+    bool hasConstructorCall = false; // Has this() or super() initializer?
+    if (node != null && node.initializers != null) {
+      for(ast.Node initializer in node.initializers) {
+        if (initializer is ast.SendSet) {
+          // Field initializer.
+          FieldElement field = elements[initializer];
+          fieldValues[field] =
+              inlineExpression(constructor, initializer.arguments.head);
+        } else if (initializer is ast.Send) {
+          // Super or this initializer.
+          ConstructorElement target = elements[initializer].implementation;
+          Selector selector = elements.getSelector(initializer);
+          List<ir.Primitive> arguments = initializer.arguments.mapToList(visit);
+          loadArguments(target, selector, arguments);
+          evaluateConstructorFieldInitializers(target, supers);
+          hasConstructorCall = true;
+        } else {
+          compiler.internalError(initializer,
+                                 "Unexpected initializer type $initializer");
+        }
+      }
+    }
+    // If no super() or this() was found, also call default superconstructor.
+    if (!hasConstructorCall && !enclosingClass.isObject) {
+      ClassElement superClass = enclosingClass.superclass;
+      Selector selector =
+          new Selector.callDefaultConstructor(enclosingClass.library);
+      FunctionElement target = superClass.lookupConstructor(selector);
+      if (target == null) {
+        compiler.internalError(superClass, "No default constructor available.");
+      }
+      evaluateConstructorFieldInitializers(target, supers);
+    }
+    // Add this constructor after the superconstructors.
+    supers.add(constructor);
+  }
+
+  /// In preparation of inlining (part of) [target], the [arguments] are moved
+  /// into the environment bindings for the corresponding parameters.
+  ///
+  /// Defaults for optional arguments are evaluated in order to ensure
+  /// all parameters are available in the environment.
+  void loadArguments(FunctionElement target,
+                     Selector selector,
+                     List<ir.Primitive> arguments) {
+    target = target.implementation;
+    FunctionSignature signature = target.functionSignature;
+
+    // Establish a scope in case parameters are captured.
+    ClosureScope scope = getClosureScopeForFunction(target);
+    irBuilder._enterScope(scope);
+
+    // Load required parameters
+    int index = 0;
+    signature.forEachRequiredParameter((ParameterElement param) {
+      irBuilder.declareLocalVariable(param, initialValue: arguments[index]);
+      index++;
+    });
+
+    // Load optional parameters, evaluating default values for omitted ones.
+    signature.forEachOptionalParameter((ParameterElement param) {
+      ir.Primitive value;
+      // Load argument if provided.
+      if (signature.optionalParametersAreNamed) {
+        int translatedIndex = selector.namedArguments.indexOf(param.name);
+        if (translatedIndex != -1) {
+          value = arguments[translatedIndex];
+        }
+      } else if (index < arguments.length) {
+        value = arguments[index];
+      }
+      // Load default if argument was not provided.
+      if (value == null) {
+        if (param.initializer != null) {
+          value = visit(param.initializer);
+        } else {
+          value = irBuilder.buildNullLiteral();
+        }
+      }
+      irBuilder.declareLocalVariable(param, initialValue: value);
+      index++;
+    });
+  }
+
+  /**
+   * Returns the constructor body associated with the given constructor or
+   * creates a new constructor body, if none can be found.
+   *
+   * Returns `null` if the constructor does not have a body.
+   */
+  ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
+    // TODO(asgerf): This is largely inherited from the SSA builder.
+    // The ConstructorBodyElement has an invalid function signature, but we
+    // cannot add a BoxLocal as parameter, because BoxLocal is not an element.
+    // Instead of forging ParameterElements to forge a FunctionSignature, we
+    // need a way to create backend methods without creating more fake elements.
+
+    assert(constructor.isGenerativeConstructor);
+    assert(invariant(constructor, constructor.isImplementation));
+    if (constructor.isSynthesized) return null;
+    ast.FunctionExpression node = constructor.node;
+    // If we know the body doesn't have any code, we don't generate it.
+    if (!node.hasBody()) return null;
+    if (node.hasEmptyBody()) return null;
+    ClassElement classElement = constructor.enclosingClass;
+    ConstructorBodyElement bodyElement;
+    classElement.forEachBackendMember((Element backendMember) {
+      if (backendMember.isGenerativeConstructorBody) {
+        ConstructorBodyElement body = backendMember;
+        if (body.constructor == constructor) {
+          bodyElement = backendMember;
+        }
+      }
+    });
+    if (bodyElement == null) {
+      bodyElement = new ConstructorBodyElementX(constructor);
+      classElement.addBackendMember(bodyElement);
+
+      if (constructor.isPatch) {
+        // Create origin body element for patched constructors.
+        ConstructorBodyElementX patch = bodyElement;
+        ConstructorBodyElementX origin =
+            new ConstructorBodyElementX(constructor.origin);
+        origin.applyPatch(patch);
+        classElement.origin.addBackendMember(bodyElement.origin);
+      }
+    }
+    assert(bodyElement.isGenerativeConstructorBody);
+    return bodyElement;
+  }
+
+  /// The list of parameters to send from the generative constructor
+  /// to the generative constructor body.
+  ///
+  /// Boxed parameters are not in the list, instead, a [BoxLocal] is passed
+  /// containing the boxed parameters.
+  ///
+  /// For example, given the following constructor,
+  ///
+  ///     Foo(x, y) : field = (() => ++x) { print(x + y) }
+  ///
+  /// the argument `x` would be replaced by a [BoxLocal]:
+  ///
+  ///     Foo_body(box0, y) { print(box0.x + y) }
+  ///
+  List<Local> getConstructorBodyParameters(ConstructorBodyElement body) {
+    List<Local> parameters = <Local>[];
+    ClosureScope scope = getClosureScopeForFunction(body.constructor);
+    if (scope != null) {
+      parameters.add(scope.box);
+    }
+    body.functionSignature.orderedForEachParameter((ParameterElement param) {
+      if (scope != null && scope.capturedVariables.containsKey(param)) {
+        // Do not pass this parameter; the box will carry its value.
+      } else {
+        parameters.add(param);
+      }
+    });
+    return parameters;
+  }
+
+  /// Builds the IR for the body of a constructor.
+  ///
+  /// This function is invoked from one or more "factory" constructors built by
+  /// [buildConstructor].
+  ir.FunctionDefinition buildConstructorBody(ConstructorBodyElement body) {
+    ConstructorElement constructor = body.constructor;
+    ast.FunctionExpression node = constructor.node;
+    closureMap = compiler.closureToClassMapper.computeClosureToClassMapping(
+        constructor,
+        node,
+        elements);
+
+    JsIrBuilder builder =
+        new JsIrBuilder(compiler.backend.constantSystem, body);
+
+    return withBuilder(builder, () {
+      irBuilder.buildConstructorBodyHeader(getConstructorBodyParameters(body),
+                                           getClosureScopeForNode(node));
+      visit(node.body);
+      return irBuilder.makeFunctionDefinition([]);
+    });
+  }
+
+  ir.FunctionDefinition buildFunction(FunctionElement element) {
+    assert(invariant(element, element.isImplementation));
+    ast.FunctionExpression node = element.node;
+
+    assert(!element.isSynthesized);
+    assert(node != null);
+    assert(elements[node] != null);
+
+    closureMap = compiler.closureToClassMapper.computeClosureToClassMapping(
+        element,
+        node,
+        elements);
+    IrBuilder builder =
+        new JsIrBuilder(compiler.backend.constantSystem, element);
+    return withBuilder(builder, () => _makeFunctionBody(element, node));
+  }
+
+}
+

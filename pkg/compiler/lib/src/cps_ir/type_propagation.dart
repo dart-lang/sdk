@@ -799,7 +799,7 @@ class _TypePropagationVisitor<T> extends Visitor {
     setValue(node, nonConst());
   }
 
-  void visitCreateClosureClass(CreateClosureClass node) {
+  void visitCreateInstance(CreateInstance node) {
     setValue(node, nonConst());
   }
 }

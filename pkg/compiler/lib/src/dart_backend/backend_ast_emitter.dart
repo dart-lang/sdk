@@ -909,7 +909,7 @@ class ASTEmitter
   visitCreateBox(tree.CreateBox node, arg) => errorUnsupportedNode(node);
 
   @override
-  visitCreateClosureClass(tree.CreateClosureClass node, arg) {
+  visitCreateInstance(tree.CreateInstance node, arg) {
     return errorUnsupportedNode(node);
   }
 

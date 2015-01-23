@@ -64,8 +64,8 @@ class JsTreeBuilder extends Builder {
     return new CreateBox();
   }
 
-  Expression visitCreateClosureClass(cps_ir.CreateClosureClass node) {
-    return new CreateClosureClass(
+  Expression visitCreateInstance(cps_ir.CreateInstance node) {
+    return new CreateInstance(
         node.classElement,
         node.arguments.map(getVariableReference).toList());
   }

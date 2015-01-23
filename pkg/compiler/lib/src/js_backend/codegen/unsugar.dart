@@ -73,7 +73,7 @@ class UnsugarVisitor extends RecursiveVisitor {
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
-    if (_glue.isInterceptedSelector(node.selector)) {
+    if (_glue.isInterceptedMethod(node.target)) {
       Primitive nullPrim = makeNull();
       insertLetPrim(nullPrim, node);
       node.arguments.insert(0, node.receiver);

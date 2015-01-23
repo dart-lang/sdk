@@ -258,10 +258,10 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     return '(CreateBox)';
   }
 
-  String visitCreateClosureClass(CreateClosureClass node) {
+  String visitCreateInstance(CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(access).join(' ');
-    return '(CreateClosureClass $className ($arguments))';
+    return '(CreateInstance $className ($arguments))';
   }
 
   String visitIdentical(Identical node) {
