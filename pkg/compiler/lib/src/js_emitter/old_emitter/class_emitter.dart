@@ -41,7 +41,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitFields(cls, builder);
     emitCheckedClassSetters(cls, builder);
     emitClassGettersSettersForCSP(cls, builder);
-    emitInstanceMembers(classElement, builder, onlyForRti: cls.onlyForRti);
+    emitInstanceMembers(cls, builder);
     emitCallStubs(cls, builder);
     emitRuntimeTypeInformation(cls, builder);
     if (additionalProperties != null) {
@@ -230,12 +230,12 @@ class ClassEmitter extends CodeEmitterHelper {
    *
    * Invariant: [classElement] must be a declaration element.
    */
-  void emitInstanceMembers(ClassElement classElement,
-                           ClassBuilder builder,
-                           {bool onlyForRti: false}) {
+  void emitInstanceMembers(Class cls,
+                           ClassBuilder builder) {
+    ClassElement classElement = cls.element;
     assert(invariant(classElement, classElement.isDeclaration));
 
-    if (onlyForRti || classElement.isMixinApplication) return;
+    if (cls.onlyForRti || cls.isMixinApplication) return;
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(classElement, member.isDeclaration));

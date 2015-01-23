@@ -254,7 +254,7 @@ class NativeEmitter {
         emitterTask.oldEmitter.classEmitter.emitClassGettersSettersForCSP(
             cls, builder);
         emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
-            classElement, builder);
+            cls, builder);
         emitterTask.oldEmitter.classEmitter.emitCallStubs(cls, builder);
         emitterTask.oldEmitter.classEmitter
             .emitRuntimeTypeInformation(cls, builder);
