@@ -58,15 +58,20 @@
       longer to process than others.
     </p>
     <p>
-      Every request is required to have two fields and may have an
-      optional third field. The first required field is the ‘id’
+      Every request is required to have two fields and may have two
+      additional optional fields. The first required field is the ‘id’
       field, which is only used by the server to associate a response
       with the request that generated the response. The second
       required field is the ‘method’ field, which is used to determine
-      what the server is being requested to do. The optional field is
+      what the server is being requested to do. One optional field is
       the ‘params’ field, whose structure is dependent on the method
       being requested. The structure of this field is described with
-      each request for which it is required.
+      each request for which it is required. The other optional field
+      is the 'clientRequestTime' field, which is a number indicating
+      the time at which the client made the request (milliseconds
+      since epoch). Providing clientRequestTime helps us track
+      how responsive analysis server is to client requests
+      and better address any issues that occur.
     </p>
     <p>
       Every response has up to three fields. The first field is the

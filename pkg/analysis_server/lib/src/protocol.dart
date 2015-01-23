@@ -497,6 +497,12 @@ class Request {
   static const String PARAMS = 'params';
 
   /**
+   * The name of the optional JSON attribute indicating the time
+   * (milliseconds since epoch) at which the client made the request.
+   */
+  static const String CLIENT_REQUEST_TIME = 'clientRequestTime';
+
+  /**
    * The unique identifier used to identify this request.
    */
   final String id;
@@ -512,11 +518,18 @@ class Request {
   final Map<String, Object> _params;
 
   /**
+   * The time (milliseconds since epoch) at which the client made the request
+   * or `null` if this information is not provided by the client.
+   */
+  final int clientRequestTime;
+
+  /**
    * Initialize a newly created [Request] to have the given [id] and [method]
    * name.  If [params] is supplied, it is used as the "params" map for the
    * request.  Otherwise an empty "params" map is allocated.
    */
-  Request(this.id, this.method, [Map<String, Object> params])
+  Request(this.id, this.method, [Map<String, Object> params,
+      this.clientRequestTime])
       : _params = params != null ? params : new HashMap<String, Object>();
 
   /**
@@ -530,10 +543,13 @@ class Request {
    *     'params': {
    *       paramter_name: value
    *     }
+   *     'clientRequestTime': millisecondsSinceEpoch
    *   }
    *
-   * where the parameters are optional and can contain any number of name/value
-   * pairs.
+   * where both the parameters and clientRequestTime are optional.
+   * The parameters can contain any number of name/value pairs.
+   * The clientRequestTime must be an int representing the time at which
+   * the client issued the request (milliseconds since epoch).
    */
   factory Request.fromString(String data) {
     try {
@@ -546,9 +562,13 @@ class Request {
       if (id is! String || method is! String) {
         return null;
       }
+      var time = result[Request.CLIENT_REQUEST_TIME];
+      if (time != null && time is! int) {
+        return null;
+      }
       var params = result[Request.PARAMS];
       if (params is Map || params == null) {
-        return new Request(id, method, params);
+        return new Request(id, method, params, time);
       } else {
         return null;
       }
@@ -567,6 +587,9 @@ class Request {
     jsonObject[METHOD] = method;
     if (_params.isNotEmpty) {
       jsonObject[PARAMS] = _params;
+    }
+    if (clientRequestTime != null) {
+      jsonObject[CLIENT_REQUEST_TIME] = clientRequestTime;
     }
     return jsonObject;
   }
@@ -691,6 +714,17 @@ class Response {
       : _result = result;
 
   /**
+   * Initialize a newly created instance to represent the
+   * FORMAT_INVALID_FILE error condition.
+   */
+  Response.formatInvalidFile(Request request)
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.FORMAT_INVALID_FILE,
+              'Error during `edit.format`: invalid file.'));
+
+  /**
    * Initialize a newly created instance based upon the given JSON data
    */
   factory Response.fromJson(Map<String, Object> json) {
@@ -715,17 +749,6 @@ class Response {
       return null;
     }
   }
-
-  /**
-   * Initialize a newly created instance to represent the
-   * FORMAT_INVALID_FILE error condition.
-   */
-  Response.formatInvalidFile(Request request)
-      : this(
-          request.id,
-          error: new RequestError(
-              RequestErrorCode.FORMAT_INVALID_FILE,
-              'Error during `edit.format`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent the
