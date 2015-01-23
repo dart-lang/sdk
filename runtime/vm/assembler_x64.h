@@ -353,7 +353,6 @@ class Assembler : public ValueObject {
   void call(const ExternalLabel* label);
 
   static const intptr_t kCallExternalLabelSize = 7;
-  static const intptr_t kJmpExternalLabelSize = 10;
 
   void pushq(Register reg);
   void pushq(const Address& address);
@@ -669,6 +668,7 @@ class Assembler : public ValueObject {
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  void jmp(const Address& address);
   // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);

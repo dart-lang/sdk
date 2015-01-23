@@ -1808,6 +1808,20 @@ ASSEMBLER_TEST_RUN(JumpSimpleLeaf, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(JumpIndirect, assembler) {
+  ExternalLabel call1(reinterpret_cast<uword>(LeafReturn42));
+  __ movq(Address(CallingConventions::kArg1Reg, 0), Immediate(call1.address()));
+  __ jmp(Address(CallingConventions::kArg1Reg, 0));
+}
+
+
+ASSEMBLER_TEST_RUN(JumpIndirect, test) {
+  uword temp = 0;
+  typedef int (*JumpIndirect)(uword*);
+  EXPECT_EQ(42, reinterpret_cast<JumpIndirect>(test->entry())(&temp));
+}
+
+
 ASSEMBLER_TEST_GENERATE(SingleFPMoves, assembler) {
   __ movq(RAX, Immediate(bit_cast<int32_t, float>(234.0f)));
   __ movd(XMM0, RAX);

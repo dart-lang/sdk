@@ -37,28 +37,6 @@ bool InstructionPattern::TestBytesWith(const int* data, int num_bytes) const {
 }
 
 
-uword CallPattern::TargetAddress() const {
-  ASSERT(IsValid());
-  return *reinterpret_cast<uword*>(start() + 2);
-}
-
-
-void CallPattern::SetTargetAddress(uword target) const {
-  ASSERT(IsValid());
-  *reinterpret_cast<uword*>(start() + 2) = target;
-  CPU::FlushICache(start() + 2, kWordSize);
-}
-
-
-const int* CallPattern::pattern() const {
-  // movq $target, TMP
-  // callq *TMP
-  static const int kCallPattern[kLengthInBytes] =
-      {0x49, 0xBB, -1, -1, -1, -1, -1, -1, -1, -1, 0x41, 0xFF, 0xD3};
-  return kCallPattern;
-}
-
-
 uword JumpPattern::TargetAddress() const {
   ASSERT(IsValid());
   int index = InstructionPattern::IndexFromPPLoad(start() + 3);
@@ -76,10 +54,9 @@ void JumpPattern::SetTargetAddress(uword target) const {
 
 
 const int* JumpPattern::pattern() const {
-  //  00: 4d 8b 9d imm32  mov R11, [R13 + off]
-  //  07: 41 ff e3        jmpq R11
+  //  07: 41 ff a7 imm32  jmpq [reg + off]
   static const int kJumpPattern[kLengthInBytes] =
-      {0x4D, 0x8B, -1, -1, -1, -1, -1, 0x41, 0xFF, 0xE3};
+      {0x41, 0xFF, -1, -1, -1, -1, -1};
   return kJumpPattern;
 }
 

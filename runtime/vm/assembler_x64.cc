@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/cpu.h"
 #include "vm/heap.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
@@ -2558,6 +2559,14 @@ void Assembler::jmp(Register reg) {
 }
 
 
+void Assembler::jmp(const Address& dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(4, dst, REX_NONE);
+  EmitUint8(0xFF);
+  EmitOperand(4, dst);
+}
+
+
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (VerifiedMemory::enabled()) {
@@ -2599,15 +2608,18 @@ void Assembler::jmp(const ExternalLabel* label) {
 void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
   ASSERT(allow_constant_pool());
   intptr_t call_start = buffer_.GetPosition();
-  LoadExternalLabel(TMP, label, kPatchable, pp);
-  jmp(TMP);
-  ASSERT((buffer_.GetPosition() - call_start) == kJmpExternalLabelSize);
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, kPatchable));
+  // Patchable jumps always use a 32-bit immediate encoding.
+  jmp(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
+  ASSERT((buffer_.GetPosition() - call_start) == JumpPattern::kLengthInBytes);
 }
 
 
 void Assembler::Jmp(const ExternalLabel* label, Register pp) {
-  LoadExternalLabel(TMP, label, kNotPatchable, pp);
-  jmp(TMP);
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, kNotPatchable));
+  jmp(Address(pp, offset - kHeapObjectTag));
 }
 
 

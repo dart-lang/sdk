@@ -21,14 +21,6 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Call, test) {
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  CallPattern call(test->entry(), test->code());
-  EXPECT_EQ(stub_code->InvokeDartCodeLabel().address(),
-            call.TargetAddress());
-}
-
-
 static intptr_t prologue_code_size = -1;
 
 

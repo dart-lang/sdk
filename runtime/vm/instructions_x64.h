@@ -56,29 +56,6 @@ class InstructionPattern : public ValueObject {
 };
 
 
-class CallPattern : public InstructionPattern {
- public:
-  CallPattern(uword pc, const Code& code)
-      : InstructionPattern(pc),
-        code_(code) {}
-  static int InstructionLength() {
-    return kLengthInBytes;
-  }
-  uword TargetAddress() const;
-  void SetTargetAddress(uword new_target) const;
-  virtual int pattern_length_in_bytes() const {
-    return kLengthInBytes;
-  }
-
- private:
-  static const int kLengthInBytes = 13;
-  virtual const int* pattern() const;
-  const Code& code_;
-
-  DISALLOW_COPY_AND_ASSIGN(CallPattern);
-};
-
-
 class JumpPattern : public InstructionPattern {
  public:
   JumpPattern(uword pc, const Code& code)
@@ -93,8 +70,8 @@ class JumpPattern : public InstructionPattern {
     return kLengthInBytes;
   }
 
+  static const int kLengthInBytes = 7;
  private:
-  static const int kLengthInBytes = 10;
   virtual const int* pattern() const;
   const Array& object_pool_;
 
