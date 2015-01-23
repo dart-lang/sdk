@@ -36,7 +36,7 @@ String READ_IN_LOOP_IN = """
                                   (LetPrim (v7 (Constant (Int 1)))
                                     (LetCont
                                         ((k5 (v8)
-                                           (InvokeContinuation* k0 (v2 v8))))
+                                           (InvokeContinuation rec k0 (v2 v8))))
                                       (InvokeMethod v3 + (v7) k5)))))
                              (InvokeStatic print (v5) k4))))
                       (InvokeMethod v2 toString () k3))))
@@ -66,7 +66,7 @@ String READ_IN_LOOP_OUT = """
                                   (LetPrim (v6 (Constant (Int 1)))
                                     (LetCont
                                         ((k5 (v7)
-                                           (InvokeContinuation* k0 (v7))))
+                                           (InvokeContinuation rec k0 (v7))))
                                       (InvokeMethod v2 + (v6) k5)))))
                              (InvokeStatic print (v4) k4))))
                       (InvokeMethod v0 toString () k3))))
@@ -118,7 +118,7 @@ const String INNER_LOOP_IN = """
                                     (LetPrim (v11 (Constant (Int 1)))
                                       (LetCont
                                           ((k7 (v12)
-                                             (InvokeContinuation* k0 (v8 v12))))
+                                             (InvokeContinuation rec k0 (v8 v12))))
                                         (InvokeMethod v9 + (v11) k7))))
                                   (k8 ()
                                     (LetCont
@@ -128,7 +128,7 @@ const String INNER_LOOP_IN = """
                                                   (LetPrim (v15 (Constant (Int 1)))
                                                     (LetCont
                                                         ((k11 (v16)
-                                                           (InvokeContinuation* k5 (v8 v9 v16))))
+                                                           (InvokeContinuation rec k5 (v8 v9 v16))))
                                                       (InvokeMethod v10 + (v15) k11)))))
                                              (InvokeStatic print (v13) k10))))
                                       (InvokeMethod v9 toString () k9))))
@@ -171,7 +171,7 @@ const String INNER_LOOP_OUT = """
                                     (LetPrim (v8 (Constant (Int 1)))
                                       (LetCont
                                           ((k7 (v9)
-                                             (InvokeContinuation* k0 (v9))))
+                                             (InvokeContinuation rec k0 (v9))))
                                         (InvokeMethod v2 + (v8) k7))))
                                   (k8 ()
                                     (LetCont
@@ -181,7 +181,7 @@ const String INNER_LOOP_OUT = """
                                                   (LetPrim (v12 (Constant (Int 1)))
                                                     (LetCont
                                                         ((k11 (v13)
-                                                           (InvokeContinuation* k5 (v13))))
+                                                           (InvokeContinuation rec k5 (v13))))
                                                       (InvokeMethod v7 + (v12) k11)))))
                                              (InvokeStatic print (v10) k10))))
                                       (InvokeMethod v2 toString () k9))))
@@ -226,7 +226,7 @@ String BASIC_LOOP_IN = """
                                (LetPrim (v5 (Constant (Int 1)))
                                  (LetCont
                                      ((k5 (v6)
-                                        (InvokeContinuation* k0 (v6))))
+                                        (InvokeContinuation rec k0 (v6))))
                                    (InvokeMethod v1 + (v5) k5)))))
                           (InvokeStatic print (v3) k4))))
                    (InvokeMethod v1 toString () k3))))

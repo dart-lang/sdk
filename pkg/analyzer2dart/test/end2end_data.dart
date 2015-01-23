@@ -760,7 +760,7 @@ main(a) {
 }
 ''', '''
 main(a) {
-  var i, v0 = a.iterator;
+  var v0 = a.iterator;
   while (v0.moveNext()) {
     print(v0.current);
   }

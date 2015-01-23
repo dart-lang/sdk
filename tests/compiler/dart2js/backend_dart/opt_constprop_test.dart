@@ -100,7 +100,7 @@ String CP2_IN = """
                                                ((k7 ()
                                                   (InvokeContinuation return (v0)))
                                                 (k8 ()
-                                                  (InvokeContinuation* k0 ())))
+                                                  (InvokeContinuation rec k0 ())))
                                              (Branch (IsTrue v5) k7 k8))))
                                       (LetCont
                                           ((k9 ()
@@ -164,7 +164,7 @@ String CP2_OUT = """
                                                ((k7 ()
                                                   (InvokeContinuation return (v0)))
                                                 (k8 ()
-                                                  (InvokeContinuation* k0 ())))
+                                                  (InvokeContinuation rec k0 ())))
                                              (InvokeContinuation k7 ()))))
                                       (LetCont
                                           ((k9 ()
@@ -389,7 +389,7 @@ String CP9_IN = """
                                          (LetPrim (v6 (Constant (Int 1)))
                                            (LetCont
                                                ((k7 (v7)
-                                                  (InvokeContinuation* k0 (v7))))
+                                                  (InvokeContinuation rec k0 (v7))))
                                              (InvokeMethod v1 + (v6) k7)))))
                                     (Branch (IsTrue v4) k5 k6))))
                              (LetCont
@@ -427,7 +427,7 @@ String CP9_OUT = """
                                         (LetPrim (v6 (Constant (Int 1)))
                                           (LetCont
                                               ((k7 (v7)
-                                                 (InvokeContinuation* k0 (v7))))
+                                                 (InvokeContinuation rec k0 (v7))))
                                             (InvokeMethod v1 + (v6) k7)))))
                                    (Branch (IsTrue v4) k5 k6))))
                              (LetCont
@@ -470,7 +470,7 @@ String CP10_IN = """
                                   (LetPrim (v6 (Constant (Int 1)))
                                     (LetCont
                                         ((k5 (v7)
-                                           (InvokeContinuation* k0 (v7))))
+                                           (InvokeContinuation rec k0 (v7))))
                                       (InvokeMethod v1 + (v6) k5)))))
                              (InvokeStatic print (v4) k4))))
                       (InvokeMethod v3 + (v1) k3)))))
