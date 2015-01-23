@@ -209,6 +209,7 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
   }
+  uword pc_offset = pc() - code.EntryPoint();
 
   REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(isolate);
   ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
@@ -224,7 +225,7 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
-    if ((iter.Pc() == pc()) && (current_try_index != -1)) {
+    if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
       RawExceptionHandlers::HandlerInfo handler_info;
       handlers.GetHandlerInfo(current_try_index, &handler_info);
       *handler_pc = handler_info.handler_pc;
@@ -242,12 +243,13 @@ intptr_t StackFrame::GetTokenPos() const {
   if (code.IsNull()) {
     return -1;  // Stub frames do not have token_pos.
   }
+  uword pc_offset = pc() - code.EntryPoint();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    if (iter.Pc() == pc()) {
+    if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
     }
   }

@@ -250,9 +250,7 @@ TEST_CASE(StackmapGC) {
   int call_count = 0;
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
-    stackmap_table_builder->AddEntry(iter.Pc() - code.EntryPoint(),
-                                     stack_bitmap,
-                                     0);
+    stackmap_table_builder->AddEntry(iter.PcOffset(), stack_bitmap, 0);
     ++call_count;
   }
   // We can't easily check that we put the stackmap at the correct pc, but

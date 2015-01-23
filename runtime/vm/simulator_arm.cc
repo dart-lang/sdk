@@ -255,13 +255,14 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
                                                      uword pc) {
   intptr_t token_pos = -1;
+  uword pc_offset = pc - code.EntryPoint();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    if (iter.Pc() == pc) {
+    if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
-    } else if ((token_pos <= 0) && (iter.Pc() > pc)) {
+    } else if ((token_pos <= 0) && (iter.PcOffset() > pc_offset)) {
       token_pos = iter.TokenPos();
     }
   }

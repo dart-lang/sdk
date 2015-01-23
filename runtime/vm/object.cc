@@ -10554,7 +10554,7 @@ const char* PcDescriptors::ToCString() const {
     Iterator iter(*this, RawPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
       len += OS::SNPrint(NULL, 0, kFormat, addr_width,
-                         iter.Pc(),
+                         iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
                          iter.TokenPos(),
@@ -10568,7 +10568,7 @@ const char* PcDescriptors::ToCString() const {
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
-                         iter.Pc(),
+                         iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
                          iter.TokenPos(),
@@ -10595,7 +10595,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     JSONObject descriptor(&members);
-    descriptor.AddPropertyF("pc", "%" Px "", iter.Pc());
+    descriptor.AddPropertyF("pc_offset", "%" Px "", iter.PcOffset());
     descriptor.AddProperty("kind", KindAsStr(iter.Kind()));
     descriptor.AddProperty("deoptId", iter.DeoptId());
     descriptor.AddProperty("tokenPos", iter.TokenPos());
@@ -10647,15 +10647,6 @@ void PcDescriptors::Verify(const Function& function) const {
     }
   }
 #endif  // DEBUG
-}
-
-
-uword PcDescriptors::GetPcForKind(RawPcDescriptors::Kind kind) const {
-  Iterator iter(*this, kind);
-  if (iter.MoveNext()) {
-    return iter.Pc();
-  }
-  return 0;
 }
 
 
@@ -12346,10 +12337,11 @@ RawCode* Code::FindCode(uword pc, int64_t timestamp) {
 
 
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
+  uword pc_offset = pc - EntryPoint();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    if (iter.Pc() == pc) {
+    if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
     }
   }
@@ -12363,7 +12355,8 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
   PcDescriptors::Iterator iter(descriptors, kind);
   while (iter.MoveNext()) {
     if (iter.DeoptId() == deopt_id) {
-      uword pc = iter.Pc();
+      uword pc_offset = iter.PcOffset();
+      uword pc = EntryPoint() + pc_offset;
       ASSERT(ContainsInstructionAt(pc));
       return pc;
     }
@@ -12373,10 +12366,11 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
 
 
 intptr_t Code::GetDeoptIdForOsr(uword pc) const {
+  uword pc_offset = pc - EntryPoint();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kOsrEntry);
   while (iter.MoveNext()) {
-    if (iter.Pc() == pc) {
+    if (iter.PcOffset() == pc_offset) {
       return iter.DeoptId();
     }
   }

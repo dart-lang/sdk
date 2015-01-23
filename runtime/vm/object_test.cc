@@ -2790,7 +2790,7 @@ TEST_CASE(PcDescriptors) {
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(20, iter.TokenPos());
   EXPECT_EQ(1, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(10), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
@@ -2811,7 +2811,7 @@ TEST_CASE(PcDescriptors) {
   EXPECT_EQ(150, iter.TokenPos());
 
   EXPECT_EQ(3, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(80), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
   EXPECT_EQ(150, iter.TokenPos());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
@@ -2844,7 +2844,7 @@ TEST_CASE(PcDescriptorsCompressed) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(static_cast<uword>(10), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(-1, iter.TryIndex());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(20, iter.TokenPos());
@@ -2856,7 +2856,7 @@ TEST_CASE(PcDescriptorsCompressed) {
   EXPECT_EQ(true, iter.MoveNext());
 
   EXPECT_EQ(-1, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(80), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
   EXPECT_EQ(150, iter.TokenPos());
 
   EXPECT_EQ(false, iter.MoveNext());

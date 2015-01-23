@@ -1021,8 +1021,11 @@ class RawPcDescriptors : public RawObject {
 
   // Compressed version assumes try_index is always -1 and does not store it.
   struct PcDescriptorRec {
-    uword pc() const { return pc_; }
-    void set_pc(uword value) { pc_ = value; }
+    uword pc_offset() const { return pc_offset_; }
+    void set_pc_offset(uword value) {
+      ASSERT((sizeof(value) == 4) || Utils::IsUint(32, value));
+      pc_offset_ = value;
+    }
 
     Kind kind() const {
       return static_cast<Kind>(deopt_id_and_kind_ & kAnyKind);
@@ -1057,7 +1060,7 @@ class RawPcDescriptors : public RawObject {
       return (token_pos_ & 0x1) == 1;
     }
 
-    uword pc_;
+    uint32_t pc_offset_;
     int32_t deopt_id_and_kind_;  // Bits 31..8 -> deopt_id, bits 7..0 kind.
     int32_t token_pos_;  // Bits 31..1 -> token_pos, bit 1 -> compressed flag;
     int16_t try_index_;
@@ -1066,7 +1069,7 @@ class RawPcDescriptors : public RawObject {
   // This structure is only used to compute what the size of PcDescriptorRec
   // should be when the try_index_ field is omitted.
   struct CompressedPcDescriptorRec {
-    uword pc_;
+    uint32_t pc_offset_;
     int32_t deopt_id_and_kind_;
     int32_t token_pos_;
   };

@@ -3186,14 +3186,14 @@ class LocalVarDescriptors : public Object {
 class PcDescriptors : public Object {
  public:
   void AddDescriptor(intptr_t index,
-                     uword pc,
+                     uword pc_offset,
                      RawPcDescriptors::Kind kind,
                      int64_t deopt_id,
                      int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
     NoGCScope no_gc;
     RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
-    rec->set_pc(pc);
+    rec->set_pc_offset(pc_offset);
     rec->set_kind(kind);
     ASSERT(Utils::IsInt(32, deopt_id));
     rec->set_deopt_id(static_cast<int32_t>(deopt_id));
@@ -3222,9 +3222,6 @@ class PcDescriptors : public Object {
   }
 
   static RawPcDescriptors* New(intptr_t num_descriptors, bool has_try_index);
-
-  // Returns 0 if not found.
-  uword GetPcForKind(RawPcDescriptors::Kind kind) const;
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
@@ -3257,9 +3254,9 @@ class PcDescriptors : public Object {
       }
     }
 
-    uword Pc() const {
+    uword PcOffset() const {
       NoGCScope no_gc;
-      return descriptors_.recAt(current_ix_)->pc();
+      return descriptors_.recAt(current_ix_)->pc_offset();
     }
     intptr_t DeoptId() const {
       NoGCScope no_gc;
