@@ -30,22 +30,25 @@ abstract class ServerOperation {
  * equates to a higher priority.
  */
 class ServerOperationPriority {
-  static const int COUNT = 5;
+  static const int COUNT = 6;
 
   static const ServerOperationPriority ANALYSIS_NOTIFICATION =
       const ServerOperationPriority._(0, "ANALYSIS_NOTIFICATION");
 
+  static const ServerOperationPriority ANALYSIS_INDEX =
+      const ServerOperationPriority._(1, "ANALYSIS_INDEX");
+
   static const ServerOperationPriority PRIORITY_ANALYSIS_CONTINUE =
-      const ServerOperationPriority._(1, "PRIORITY_ANALYSIS_CONTINUE");
+      const ServerOperationPriority._(2, "PRIORITY_ANALYSIS_CONTINUE");
 
   static const ServerOperationPriority PRIORITY_ANALYSIS =
-      const ServerOperationPriority._(2, "PRIORITY_ANALYSIS");
+      const ServerOperationPriority._(3, "PRIORITY_ANALYSIS");
 
   static const ServerOperationPriority ANALYSIS_CONTINUE =
-      const ServerOperationPriority._(3, "ANALYSIS_CONTINUE");
+      const ServerOperationPriority._(4, "ANALYSIS_CONTINUE");
 
   static const ServerOperationPriority ANALYSIS =
-      const ServerOperationPriority._(4, "ANALYSIS");
+      const ServerOperationPriority._(5, "ANALYSIS");
 
   final int ordinal;
   final String name;

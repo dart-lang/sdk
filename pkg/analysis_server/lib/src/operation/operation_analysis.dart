@@ -231,7 +231,7 @@ class PerformAnalysisOperation extends ServerOperation {
         try {
           CompilationUnit dartUnit = notice.compilationUnit;
           if (dartUnit != null) {
-            index.indexUnit(context, dartUnit);
+            server.addOperation(new _DartIndexOperation(context, dartUnit));
           }
         } catch (exception, stackTrace) {
           server.sendServerErrorNotification(exception, stackTrace);
@@ -240,7 +240,7 @@ class PerformAnalysisOperation extends ServerOperation {
         try {
           HtmlUnit htmlUnit = notice.htmlUnit;
           if (htmlUnit != null) {
-            index.indexHtmlUnit(context, htmlUnit);
+            server.addOperation(new _HtmlIndexOperation(context, htmlUnit));
           }
         } catch (exception, stackTrace) {
           server.sendServerErrorNotification(exception, stackTrace);
@@ -258,6 +258,25 @@ class _DartHighlightsOperation extends _DartNotificationOperation {
   @override
   void perform(AnalysisServer server) {
     sendAnalysisNotificationHighlights(server, file, unit);
+  }
+}
+
+
+class _DartIndexOperation extends ServerOperation {
+  final AnalysisContext context;
+  final CompilationUnit unit;
+
+  _DartIndexOperation(this.context, this.unit);
+
+  @override
+  ServerOperationPriority get priority {
+    return ServerOperationPriority.ANALYSIS_INDEX;
+  }
+
+  @override
+  void perform(AnalysisServer server) {
+    Index index = server.index;
+    index.indexUnit(context, unit);
   }
 }
 
@@ -317,6 +336,25 @@ class _DartOverridesOperation extends _DartNotificationOperation {
   @override
   void perform(AnalysisServer server) {
     sendAnalysisNotificationOverrides(server, file, unit);
+  }
+}
+
+
+class _HtmlIndexOperation extends ServerOperation {
+  final AnalysisContext context;
+  final HtmlUnit unit;
+
+  _HtmlIndexOperation(this.context, this.unit);
+
+  @override
+  ServerOperationPriority get priority {
+    return ServerOperationPriority.ANALYSIS_INDEX;
+  }
+
+  @override
+  void perform(AnalysisServer server) {
+    Index index = server.index;
+    index.indexHtmlUnit(context, unit);
   }
 }
 
