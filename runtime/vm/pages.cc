@@ -133,7 +133,9 @@ void HeapPage::WriteProtect(bool read_only) {
 }
 
 
-PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
+PageSpace::PageSpace(Heap* heap,
+                     intptr_t max_capacity_in_words,
+                     intptr_t max_external_in_words)
     : freelist_(),
       heap_(heap),
       pages_lock_(new Mutex()),
@@ -145,6 +147,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       bump_top_(0),
       bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
+      max_external_in_words_(max_external_in_words),
       tasks_lock_(new Monitor()),
       tasks_(0),
       page_space_controller_(heap,

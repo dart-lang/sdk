@@ -43,7 +43,8 @@ DEFINE_FLAG(bool, pretenure_all, false, "Global pretenuring (for testing).");
 
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
-           intptr_t max_old_gen_words)
+           intptr_t max_old_gen_words,
+           intptr_t max_external_words)
     : isolate_(isolate),
       read_only_(false),
       gc_in_progress_(false),
@@ -57,7 +58,7 @@ Heap::Heap(Isolate* isolate,
   new_space_ = new Scavenger(this,
                              max_new_gen_semi_words,
                              kNewObjectAlignmentOffset);
-  old_space_ = new PageSpace(this, max_old_gen_words);
+  old_space_ = new PageSpace(this, max_old_gen_words, max_external_words);
   stats_.num_ = 0;
 }
 
@@ -434,9 +435,13 @@ Heap::Space Heap::SpaceForAllocation(intptr_t cid) const {
 
 void Heap::Init(Isolate* isolate,
                 intptr_t max_new_gen_words,
-                intptr_t max_old_gen_words) {
+                intptr_t max_old_gen_words,
+                intptr_t max_external_words) {
   ASSERT(isolate->heap() == NULL);
-  Heap* heap = new Heap(isolate, max_new_gen_words, max_old_gen_words);
+  Heap* heap = new Heap(isolate,
+                        max_new_gen_words,
+                        max_old_gen_words,
+                        max_external_words);
   isolate->set_heap(heap);
 }
 
