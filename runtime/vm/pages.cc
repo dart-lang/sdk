@@ -62,8 +62,7 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   VirtualMemory* memory =
       VerifiedMemory::Reserve(size_in_words << kWordSizeLog2);
   if (memory == NULL) {
-    FATAL1("Out of memory while allocating %" Pd " words.\n",
-           size_in_words);
+    return NULL;
   }
   return Initialize(memory, type);
 }
@@ -183,6 +182,9 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type);
+  if (page == NULL) {
+    return NULL;
+  }
 
   bool is_exec = (type == HeapPage::kExecutable);
 
@@ -217,6 +219,9 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
   HeapPage* page = HeapPage::Allocate(page_size_in_words, type);
+  if (page == NULL) {
+    return NULL;
+  }
   page->set_next(large_pages_);
   large_pages_ = page;
   IncreaseCapacityInWords(page_size_in_words);
@@ -312,7 +317,9 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
        !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
       CanIncreaseCapacityInWords(kPageSizeInWords)) {
     HeapPage* page = AllocatePage(type);
-    ASSERT(page != NULL);
+    if (page == NULL) {
+      return 0;
+    }
     // Start of the newly allocated page is the allocated object.
     result = page->object_start();
     // Note: usage_.capacity_in_words is increased by AllocatePage.
