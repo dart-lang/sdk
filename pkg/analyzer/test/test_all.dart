@@ -14,6 +14,7 @@ import 'instrumentation/test_all.dart' as instrumentation;
 import 'options_test.dart' as options;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
+import 'src/test_all.dart' as src;
 import 'task/test_all.dart' as task;
 import 'cancelable_future_test.dart' as cancelable_future_test;
 
@@ -31,6 +32,7 @@ main() {
     options.main();
     parse_compilation_unit.main();
     source.main();
+    src.main();
     task.main();
   });
 }
