@@ -402,7 +402,7 @@ class ProgramBuilder {
       bool isIntercepted = backend.fieldHasInterceptedGetter(field);
       if (isIntercepted) {
         getterFlags += 2;
-        if (backend.isInterceptorClass(holder)) {
+        if (!backend.isInterceptorClass(holder)) {
           getterFlags += 1;
         }
       } else {
@@ -415,7 +415,7 @@ class ProgramBuilder {
       bool isIntercepted = backend.fieldHasInterceptedSetter(field);
       if (isIntercepted) {
         setterFlags += 2;
-        if (backend.isInterceptorClass(holder)) {
+        if (!backend.isInterceptorClass(holder)) {
           setterFlags += 1;
         }
       } else {
