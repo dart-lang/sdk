@@ -15,9 +15,9 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     JavaScriptConstantCompiler;
 
-import 'js_emitter.dart' as emitterTask show
+import 'js_emitter.dart' show
+    ClassStubGenerator,
     CodeEmitterTask,
-    Emitter,
     InterceptorStubGenerator,
     TypeTestGenerator,
     TypeTestProperties;
@@ -30,7 +30,7 @@ part 'registry.dart';
 class ProgramBuilder {
   final Compiler _compiler;
   final Namer namer;
-  final emitterTask.CodeEmitterTask _task;
+  final CodeEmitterTask _task;
 
   final Registry _registry;
 
@@ -266,6 +266,7 @@ class ProgramBuilder {
     bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
 
     List<Method> methods = [];
+    List<StubMethod> callStubs = <StubMethod>[];
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
@@ -276,13 +277,26 @@ class ProgramBuilder {
         // TODO(kasperl): Figure out under which conditions code is null.
         if (code != null) methods.add(_buildMethod(member, code));
       }
+      if (member.isGetter || member.isField) {
+        Set<Selector> selectors =
+            _compiler.codegenWorld.invokedNames[member.name];
+        if (selectors != null && !selectors.isEmpty) {
+          ClassStubGenerator generator =
+              new ClassStubGenerator(_compiler, namer, backend);
+          Map<String, js.Expression> callStubsForMember =
+              generator.generateCallStubsForGetter(member, selectors);
+          callStubsForMember.forEach((String name, js.Expression code) {
+            callStubs.add(_buildStubMethod(name, code, element: member));
+          });
+        }
+      }
     }
 
     ClassElement implementation = element.implementation;
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!element.isMixinApplication) {
+    if (!onlyForRti && !element.isMixinApplication) {
       implementation.forEachMember(visitMember, includeBackendMembers: true);
     }
 
@@ -291,9 +305,9 @@ class ProgramBuilder {
     List<Field> staticFieldsForReflection =
         onlyForRti ? const <Field>[] : _buildFields(element, true);
 
-    emitterTask.TypeTestGenerator generator =
-        new emitterTask.TypeTestGenerator(_compiler, _task, namer);
-    emitterTask.TypeTestProperties typeTests =
+    TypeTestGenerator generator =
+        new TypeTestGenerator(_compiler, _task, namer);
+    TypeTestProperties typeTests =
         generator.generateIsTests(
             element,
             storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
@@ -318,6 +332,7 @@ class ProgramBuilder {
                                     name, holder,
                                     instanceFields,
                                     staticFieldsForReflection,
+                                    callStubs,
                                     isChecks,
                                     typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
@@ -326,6 +341,7 @@ class ProgramBuilder {
       result = new Class(element,
                          name, holder, methods, instanceFields,
                          staticFieldsForReflection,
+                         callStubs,
                          isChecks,
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
@@ -342,9 +358,14 @@ class ProgramBuilder {
     return new Method(element, name, code, needsTearOff: false);
   }
 
-  Method _buildStubMethod(String name, js.Expression code) {
+  /// Builds a stub method.
+  ///
+  /// Stub methods may have an element that can be used for code-size
+  /// attribution.
+  Method _buildStubMethod(String name, js.Expression code,
+                          {Element element}) {
     // TODO(floitsch): compute `needsTearOff`.
-    return new StubMethod(name, code, needsTearOff: false);
+    return new StubMethod(name, code, needsTearOff: false, element: element);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -362,8 +383,8 @@ class ProgramBuilder {
   }
 
   Iterable<StaticMethod> _generateGetInterceptorMethods() {
-    emitterTask.InterceptorStubGenerator stubGenerator =
-        new emitterTask.InterceptorStubGenerator(_compiler, namer, backend);
+    InterceptorStubGenerator stubGenerator =
+        new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
     Holder holder = _registry.registerHolder(holderName);
@@ -426,8 +447,8 @@ class ProgramBuilder {
   }
 
   Iterable<StaticMethod> _generateOneShotInterceptors() {
-    emitterTask.InterceptorStubGenerator stubGenerator =
-        new emitterTask.InterceptorStubGenerator(_compiler, namer, backend);
+    InterceptorStubGenerator stubGenerator =
+        new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
     Holder holder = _registry.registerHolder(holderName);

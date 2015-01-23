@@ -178,6 +178,7 @@ class Class implements FieldContainer {
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
+  final List<StubMethod> callStubs;
   final List<Field> staticFieldsForReflection;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
@@ -194,6 +195,7 @@ class Class implements FieldContainer {
         this.methods,
         this.fields,
         this.staticFieldsForReflection,
+        this.callStubs,
         this.isChecks,
         this.functionTypeIndex,
         {this.onlyForRti,
@@ -223,6 +225,7 @@ class MixinApplication extends Class {
   MixinApplication(Element element, String name, Holder holder,
                    List<Field> instanceFields,
                    List<Field> staticFieldsForReflection,
+                   List<StubMethod> callStubs,
                    List<StubMethod> isChecks,
                    int functionTypeIndex,
                    {bool onlyForRti,
@@ -232,6 +235,7 @@ class MixinApplication extends Class {
               const <Method>[],
               instanceFields,
               staticFieldsForReflection,
+              callStubs,
               isChecks, functionTypeIndex,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated,
@@ -298,8 +302,9 @@ class Method {
 }
 
 class StubMethod extends Method {
-  StubMethod(String name, js.Expression code, {bool needsTearOff})
-      : super(null, name, code, needsTearOff: needsTearOff);
+  StubMethod(String name, js.Expression code,
+             {bool needsTearOff, Element element })
+      : super(element, name, code, needsTearOff: needsTearOff);
 }
 
 class StaticMethod extends Method {

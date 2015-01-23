@@ -327,6 +327,7 @@ class NativeEmitter {
     emitterTask.oldEmitter.classEmitter.emitCheckedClassSetters(cls, builder);
     emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
         classElement, builder);
+    emitterTask.oldEmitter.classEmitter.emitCallStubs(cls, builder);
     emitterTask.oldEmitter.classEmitter
         .emitRuntimeTypeInformation(cls, builder);
 

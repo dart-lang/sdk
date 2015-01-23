@@ -42,6 +42,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitCheckedClassSetters(cls, builder);
     emitClassGettersSettersForCSP(cls, builder);
     emitInstanceMembers(classElement, builder, onlyForRti: cls.onlyForRti);
+    emitCallStubs(cls, builder);
     emitRuntimeTypeInformation(cls, builder);
     if (additionalProperties != null) {
       additionalProperties.forEach(builder.addProperty);
@@ -214,6 +215,13 @@ class ClassEmitter extends CodeEmitterHelper {
           emitSetterForCSP(member, field.name, field.accessorName, builder);
         }
       });
+    }
+  }
+
+  void emitCallStubs(Class cls, ClassBuilder builder) {
+    for (Method method in cls.callStubs) {
+      jsAst.Property property = builder.addProperty(method.name, method.code);
+      compiler.dumpInfoTask.registerElementAst(method.element, property);
     }
   }
 
