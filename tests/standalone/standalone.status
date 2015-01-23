@@ -50,6 +50,8 @@ vmservice/*: Skip # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
 javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
+oom_error_stacktrace_test: Skip
+out_of_memory_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 javascript_int_overflow_literal_test/01: Fail, OK
