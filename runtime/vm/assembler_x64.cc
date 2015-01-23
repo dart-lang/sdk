@@ -2397,6 +2397,17 @@ void Assembler::notq(Register reg) {
   EmitUint8(0xD0 | (reg & 7));
 }
 
+
+void Assembler::bsrq(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xBD);
+  EmitOperand(dst & 7, operand);
+}
+
+
 void Assembler::btq(Register base, Register offset) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(base);

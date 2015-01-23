@@ -641,6 +641,8 @@ class Assembler : public ValueObject {
   void notl(Register reg);
   void notq(Register reg);
 
+  void bsrq(Register dst, Register src);
+
   void btq(Register base, Register offset);
 
   void enter(const Immediate& imm);

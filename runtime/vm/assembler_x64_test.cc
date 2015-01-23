@@ -620,9 +620,9 @@ ASSEMBLER_TEST_RUN(UnsignedDivideLong, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Negate, assembler) {
-  __ movl(RCX, Immediate(42));
-  __ negl(RCX);
-  __ movl(RAX, RCX);
+  __ movq(RCX, Immediate(42));
+  __ negq(RCX);
+  __ movq(RAX, RCX);
   __ ret();
 }
 
@@ -630,6 +630,29 @@ ASSEMBLER_TEST_GENERATE(Negate, assembler) {
 ASSEMBLER_TEST_RUN(Negate, test) {
   typedef int (*Negate)();
   EXPECT_EQ(-42, reinterpret_cast<Negate>(test->entry())());
+}
+
+
+ASSEMBLER_TEST_GENERATE(BitScanReverse, assembler) {
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movq(RCX, Address(RSP, 0));
+  __ movq(RAX, Immediate(666));  // Marker for conditional write.
+  __ bsrq(RAX, RCX);
+  __ popq(RCX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BitScanReverse, test) {
+  typedef int (*Bsr)(int input);
+  Bsr call = reinterpret_cast<Bsr>(test->entry());
+  EXPECT_EQ(666, call(0));
+  EXPECT_EQ(0, call(1));
+  EXPECT_EQ(1, call(2));
+  EXPECT_EQ(1, call(3));
+  EXPECT_EQ(2, call(4));
+  EXPECT_EQ(5, call(42));
+  EXPECT_EQ(31, call(-1));
 }
 
 
