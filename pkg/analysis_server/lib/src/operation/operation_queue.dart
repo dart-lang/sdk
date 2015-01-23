@@ -64,6 +64,20 @@ class ServerOperationQueue {
   }
 
   /**
+   * Reschedules queued operations according their current priorities.
+   */
+  void reschedule() {
+    // prepare all operations
+    List<ServerOperation> operations = <ServerOperation>[];
+    for (Queue<ServerOperation> queue in _queues) {
+      operations.addAll(queue);
+      queue.clear();
+    }
+    // add all operations
+    operations.forEach(add);
+  }
+
+  /**
    * Returns the next operation to perform or `null` if empty.
    */
   ServerOperation take() {

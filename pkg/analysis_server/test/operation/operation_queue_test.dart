@@ -11,6 +11,8 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+import '../mocks.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 main() {
   groupSep = ' | ';
@@ -68,10 +70,8 @@ main() {
 
       test('continue analysis first', () {
         var analysisContext = new AnalysisContextMock();
-        var operationA =
-            new PerformAnalysisOperation(analysisContext, false, false);
-        var operationB =
-            new PerformAnalysisOperation(analysisContext, false, true);
+        var operationA = new PerformAnalysisOperation(analysisContext, false);
+        var operationB = new PerformAnalysisOperation(analysisContext, true);
         queue.add(operationA);
         queue.add(operationB);
         expect(queue.take(), operationB);
@@ -80,14 +80,31 @@ main() {
       });
 
       test('priority context first', () {
+        var prioritySource = new MockSource();
         var analysisContextA = new AnalysisContextMock();
         var analysisContextB = new AnalysisContextMock();
-        var operationA =
-            new PerformAnalysisOperation(analysisContextA, false, false);
-        var operationB =
-            new PerformAnalysisOperation(analysisContextB, true, false);
+        analysisContextB.prioritySources = [prioritySource];
+        var operationA = new PerformAnalysisOperation(analysisContextA, false);
+        var operationB = new PerformAnalysisOperation(analysisContextB, false);
         queue.add(operationA);
         queue.add(operationB);
+        expect(queue.take(), operationB);
+        expect(queue.take(), operationA);
+        expect(queue.take(), isNull);
+      });
+
+      test('reschedule', () {
+        var prioritySource = new MockSource();
+        var analysisContextA = new AnalysisContextMock();
+        var analysisContextB = new AnalysisContextMock();
+        var operationA = new PerformAnalysisOperation(analysisContextA, false);
+        var operationB = new PerformAnalysisOperation(analysisContextB, false);
+        queue.add(operationA);
+        queue.add(operationB);
+        // update priority sources and reschedule
+        analysisContextB.prioritySources = [prioritySource];
+        queue.reschedule();
+        // verify order
         expect(queue.take(), operationB);
         expect(queue.take(), operationA);
         expect(queue.take(), isNull);
@@ -107,7 +124,9 @@ ServerOperation mockOperation(ServerOperationPriority priority) {
 }
 
 
-class AnalysisContextMock extends TypedMock implements AnalysisContext {
+class AnalysisContextMock extends TypedMock implements InternalAnalysisContext {
+  List<Source> prioritySources = <Source>[];
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

@@ -110,14 +110,13 @@ class PerformAnalysisOperation extends ServerOperation {
   static const int WORKING_CACHE_SIZE = 512;
 
   final AnalysisContext context;
-  final bool isPriority;
   final bool isContinue;
 
-  PerformAnalysisOperation(this.context, this.isPriority, this.isContinue);
+  PerformAnalysisOperation(this.context, this.isContinue);
 
   @override
   ServerOperationPriority get priority {
-    if (isPriority) {
+    if (_isPriorityContext) {
       if (isContinue) {
         return ServerOperationPriority.PRIORITY_ANALYSIS_CONTINUE;
       } else {
@@ -131,6 +130,10 @@ class PerformAnalysisOperation extends ServerOperation {
       }
     }
   }
+
+  bool get _isPriorityContext =>
+      context is InternalAnalysisContext &&
+          (context as InternalAnalysisContext).prioritySources.isNotEmpty;
 
   @override
   void perform(AnalysisServer server) {
@@ -159,8 +162,7 @@ class PerformAnalysisOperation extends ServerOperation {
     _sendNotices(server, notices);
     _updateIndex(server, notices);
     // continue analysis
-    server.addOperation(
-        new PerformAnalysisOperation(context, isPriority, true));
+    server.addOperation(new PerformAnalysisOperation(context, true));
   }
 
   /**

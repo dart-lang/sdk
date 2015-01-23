@@ -323,9 +323,6 @@ class MockServerOperation implements PerformAnalysisOperation {
   bool get isContinue => false;
 
   @override
-  bool get isPriority => null;
-
-  @override
   void perform(AnalysisServer server) => this._perform(server);
 }
 

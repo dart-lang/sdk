@@ -647,8 +647,7 @@ class AnalysisServer {
    */
   void schedulePerformAnalysisOperation(AnalysisContext context) {
     _onAnalysisStartedController.add(context);
-    bool isPriority = _isPriorityContext(context);
-    scheduleOperation(new PerformAnalysisOperation(context, isPriority, false));
+    scheduleOperation(new PerformAnalysisOperation(context, false));
   }
 
   /**
@@ -831,6 +830,7 @@ class AnalysisServer {
       }
       context.analysisPriorityOrder = sourceList;
     });
+    operationQueue.reschedule();
     Source firstSource = files.length > 0 ? getSource(files[0]) : null;
     _onPriorityChangeController.add(new PriorityChangeEvent(firstSource));
   }
@@ -926,14 +926,6 @@ class AnalysisServer {
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(options);
     });
-  }
-
-  /**
-   * Returns `true` if the given [AnalysisContext] is a priority one.
-   */
-  bool _isPriorityContext(AnalysisContext context) {
-    // TODO(scheglov) implement support for priority sources/contexts
-    return false;
   }
 
   /**
