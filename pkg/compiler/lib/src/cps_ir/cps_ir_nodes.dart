@@ -630,12 +630,6 @@ class Parameter extends Primitive {
     super.hint = hint;
   }
 
-  // In addition to a parent pointer to the containing Continuation or
-  // FunctionDefinition, parameters have an index into the list of parameters
-  // bound by the parent.  This gives constant-time access to the continuation
-  // from the parent.
-  int parent_index;
-
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
 
@@ -686,7 +680,7 @@ class FieldDefinition extends Node implements ExecutableDefinition {
 
   /// `true` if this field has no initializer.
   ///
-  /// If `true` [body] is `null`.
+  /// If `true` [body] and [returnContinuation] are `null`.
   ///
   /// This is different from a initializer that is `null`. Consider this class:
   ///
@@ -723,7 +717,7 @@ class RunnableBody extends InteriorNode {
 }
 
 /// A function definition, consisting of parameters and a body.  The parameters
-/// include a distinguished continuation parameter (held by the body).
+/// include a distinguished continuation parameter.
 class FunctionDefinition extends Node
     implements ExecutableDefinition {
   final FunctionElement element;
@@ -757,7 +751,8 @@ class FunctionDefinition extends Node
 
   /// Returns `true` if this function is abstract or external.
   ///
-  /// If `true`, [body] is `null` and [localConstants] is empty.
+  /// If `true`, [body] and [returnContinuation] are `null` and [localConstants]
+  /// is empty.
   bool get isAbstract => body == null;
 }
 
@@ -889,7 +884,6 @@ abstract class RecursiveVisitor extends Visitor {
   processRunnableBody(RunnableBody node) {}
   visitRunnableBody(RunnableBody node) {
     processRunnableBody(node);
-    visit(node.returnContinuation);
     visit(node.body);
   }
 
@@ -1069,7 +1063,7 @@ abstract class RecursiveVisitor extends Visitor {
   visitContinuation(Continuation node) {
     processContinuation(node);
     node.parameters.forEach(visitParameter);
-    if (node.body != null) visit(node.body);
+    visit(node.body);
   }
 
   // Conditions.

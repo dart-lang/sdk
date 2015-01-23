@@ -158,10 +158,11 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
-    String name = access(node.continuation);
-    if (node.isRecursive) name = 'rec $name';
+    String cont = access(node.continuation);
     String args = node.arguments.map(access).join(' ');
-    return '$indentation($InvokeContinuation $name ($args))';
+    String op =
+        node.isRecursive ? 'InvokeContinuation*' : 'InvokeContinuation';
+    return '$indentation($op $cont ($args))';
   }
 
   String visitBranch(Branch node) {
