@@ -332,7 +332,7 @@ class NativeEmitter {
         cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
         cls.callStubs.isEmpty &&
-        superclass is! MixinApplicationElement &&
+        !superclass.isMixinApplication &&
         !cls.fields.any(needsAccessor);
 
     return builder;
