@@ -117,10 +117,16 @@ void main() {
 
     expect(isGroundType(Map), isTrue);
     expect(isGroundType(m1.runtimeType), isFalse);
+    expect(isGroundType(type((Map<String, String> _) {})), isFalse);
     expect(isGroundType(m2.runtimeType), isFalse);
+    expect(isGroundType(type((Map<Object, Object> _) {})), isFalse);
     expect(isGroundType(m3.runtimeType), isTrue);
+    expect(isGroundType(type((Map _) {})), isTrue);
     expect(isGroundType(m4.runtimeType), isTrue);
+    expect(isGroundType(type((HashMap<dynamic, dynamic> _) {})), isTrue);
     expect(isGroundType(m5.runtimeType), isTrue);
+    expect(isGroundType(type((LinkedHashMap _) {})), isTrue);
+    expect(isGroundType(LinkedHashMap), isTrue);
 
     // Map<T1,T2> <: Map
     checkType(m1, Map);
@@ -128,12 +134,15 @@ void main() {
 
     // Instance of self
     checkType(m1, m1.runtimeType);
+    checkType(m1, type((Map<String, String> _) {}));
 
     // Covariance on generics
     checkType(m1, m2.runtimeType);
+    checkType(m1, type((Map<Object, Object> _) {}));
 
     // No contravariance on generics.
     checkType(m2, m1.runtimeType, false);
+    checkType(m2, type((Map<String, String> _) {}), false);
 
     // null is! Map
     checkType(null, Map, false);
@@ -158,34 +167,57 @@ void main() {
     final aabadtype = aabad.runtimeType;
 
     expect(isGroundType(aatype), isFalse);
+    expect(isGroundType(type((AA<String, List> _) {})), isFalse);
     expect(isGroundType(bbtype), isFalse);
+    expect(isGroundType(type((BB<String, List> _) {})), isFalse);
     expect(isGroundType(cctype), isTrue);
+    expect(isGroundType(CC), isTrue);
     checkType(cc, aatype, false);
+    checkType(cc, type((AA<String, List> _) {}), false);
     checkType(cc, bbtype);
+    checkType(cc, type((BB<String, List> _) {}));
     checkType(aa, cctype, false);
+    checkType(aa, CC, false);
     checkType(aa, bbtype, false);
+    checkType(aa, type((BB<String, List> _) {}), false);
     checkType(bb, cctype, false);
+    checkType(bb, CC, false);
     checkType(aa, aabadtype);
+    checkType(aa, type((AA<String> _) {}));
     checkType(aabad, aatype, false);
+    checkType(aabad, type((AA<String, List> _) {}), false);
     checkType(aabad, aarawtype);
+    checkType(aabad, AA);
     checkType(aaraw, aabadtype);
+    checkType(aaraw, type((AA<String> _) {}));
     checkType(aaraw, aadynamictype);
+    checkType(aaraw, type((AA<dynamic, dynamic> _) {}));
     checkType(aadynamic, aarawtype);
+    checkType(aadynamic, AA);
   });
 
   test('Functions', () {
     // - return type: Dart is bivariant.  We're covariant.
     // - param types: Dart is bivariant.  We're contravariant.
     expect(isGroundType(Foo), isFalse);
+    expect(isGroundType(type((B _(B _1, String _2)) {})), isFalse);
     checkType(bar1, Foo, false);
+    checkType(bar1, type((B _(B _1, String _2)) {}), false);
     checkType(bar2, Foo, false);
+    checkType(bar2, type((B _(B _1, String _2)) {}), false);
     checkType(bar3, Foo);
+    checkType(bar3, type((B _(B _1, String _2)) {}));
     checkType(bar4, Foo);
+    checkType(bar4, type((B _(B _1, String _2)) {}));
     checkType(bar5, Foo);
+    checkType(bar5, type((B _(B _1, String _2)) {}));
     checkType(bar6, Foo, false);
+    checkType(bar6, type((B _(B _1, String _2)) {}), false);
     checkType(bar7, Foo);
+    checkType(bar7, type((B _(B _1, String _2)) {}));
     checkType(bar7, bar6.runtimeType);
     checkType(bar8, Foo);
+    checkType(bar8, type((B _(B _1, String _2)) {}));
     checkType(bar8, bar6.runtimeType, false);
     checkType(bar7, bar8.runtimeType, false);
     checkType(bar8, bar7.runtimeType, false);

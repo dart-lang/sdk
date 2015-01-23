@@ -16,7 +16,21 @@ dynamic dinvokef(dynamic f, List args) {
   return Function.apply(f, args);
 }
 
-// TODO(vsm): Update with new covariance rules.
+// A workaround to manufacture a generic Type object inline.
+// We use mirrors to extract type T given a TypeFunction<T>.
+// E.g., Map<String, String> is not a valid literal in Dart.
+// Instead, use: type((Map<String, String> _) {});
+// See bug: https://code.google.com/p/dart/issues/detail?id=11923
+typedef TypeFunction<T>(T x);
+
+Type type(TypeFunction f) {
+  ClosureMirror cm = reflect(f);
+  MethodMirror mm = cm.function;
+  ParameterMirror pm = mm.parameters[0];
+  TypeMirror tm = pm.type;
+  return tm.reflectedType;
+}
+
 dynamic cast(dynamic obj, Type staticType) {
   // This is our 'as' equivalent.
   if (obj == null) {
