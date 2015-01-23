@@ -262,6 +262,28 @@ class ProgramBuilder {
                        staticFieldsForReflection);
   }
 
+  /// HACK for Try.
+  ///
+  /// Returns a class that contains the fields of a class.
+  Class buildClassWithFieldsForTry(ClassElement element) {
+    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
+
+    List<Field> instanceFields =
+        onlyForRti ? const <Field>[] : _buildFields(element, false);
+
+    String name = namer.getNameOfClass(element);
+    String holderName = namer.globalObjectFor(element);
+    Holder holder = _registry.registerHolder(holderName);
+    bool isInstantiated =
+        _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
+
+    return new Class(
+        element, name, holder, [], instanceFields, [], [], [], null,
+        isDirectlyInstantiated: isInstantiated,
+        onlyForRti: onlyForRti,
+        isNative: element.isNative);
+  }
+
   Class _buildClass(ClassElement element) {
     bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
 

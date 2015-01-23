@@ -66,6 +66,11 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     MemberInfo,
     computeMixinClass;
 
+import 'package:compiler/src/js_emitter/model.dart' show
+    Class;
+import 'package:compiler/src/js_emitter/program_builder.dart' show
+    ProgramBuilder;
+
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
 
@@ -1468,9 +1473,11 @@ class EmitterHelper extends JsFeatures {
 
   ClassEmitter get classEmitter => backend.emitter.oldEmitter.classEmitter;
 
-  List<String> computeFields(ClassElement cls) {
+  List<String> computeFields(ClassElement classElement) {
+    Class cls = new ProgramBuilder(compiler, namer, emitter)
+        .buildClassWithFieldsForTry(classElement);
     // TODO(ahe): Rewrite for new emitter.
-    ClassBuilder builder = new ClassBuilder(cls, namer);
+    ClassBuilder builder = new ClassBuilder(classElement, namer);
     classEmitter.emitFields(cls, builder);
     return builder.fields;
   }
