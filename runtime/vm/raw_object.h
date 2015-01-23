@@ -1023,8 +1023,9 @@ class RawPcDescriptors : public RawObject {
   struct PcDescriptorRec {
     uword pc_offset() const { return pc_offset_; }
     void set_pc_offset(uword value) {
-      ASSERT((sizeof(value) == 4) ||
-             static_cast<uint64_t>(value) <= static_cast<uint64_t>(kMaxUint32));
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+      ASSERT(value <= static_cast<uword>(kMaxUint32));
+#endif
       pc_offset_ = value;
     }
 
