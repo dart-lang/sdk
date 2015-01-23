@@ -70,6 +70,10 @@ dt.typeDefinition {
       for readability.
     </p>
     <p>
+      It is the client's responsibility to read output from the server to
+      avoid its blocking.
+    </p>
+    <p>
       To ease interoperability with Lisp-based clients (which may not
       be able to easily distinguish between empty lists, empty maps,
       and null), client-to-server communication is allowed to replace
