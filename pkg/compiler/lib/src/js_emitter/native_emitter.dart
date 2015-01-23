@@ -243,7 +243,7 @@ class NativeEmitter {
       ClassElement classElement = cls.element;
       if (!cls.isNative) continue;
       if (neededClasses.contains(cls)) {
-        ClassBuilder builder = builders[classElement];
+        ClassBuilder builder = builders[cls];
 
         // In CSP mode [emitClassConstructor] and [emitClassGettersSetters] have
         // a side-effect on "precompiled" functions in [OldEmitter]. For this
