@@ -12,7 +12,7 @@ import 'codegen_java.dart';
 import 'codegen_tools.dart';
 
 final GeneratedFile target = javaGeneratedFile(
-    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer.java',
+    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/generated/AnalysisServer.java',
     (Api api) => new CodegenAnalysisServer(api));
 
 /**
@@ -35,8 +35,9 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
   @override
   void visitApi() {
     outputHeader(javaStyle: true);
-    writeln('package com.google.dart.server;');
+    writeln('package com.google.dart.server.generated;');
     writeln();
+    writeln('import com.google.dart.server.*;');
     writeln('import com.google.dart.server.generated.types.*;');
     writeln();
     writeln('import java.util.List;');
