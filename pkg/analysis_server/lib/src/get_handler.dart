@@ -1074,6 +1074,9 @@ class GetHandler {
           options.preserveComments,
           last: true);
       buffer.write('</p>');
+      int freq = AnalysisServer.performOperationDelayFreqency;
+      String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
+      buffer.write('<p><b>perform operation delay:</b> $delay</p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionMap(
           buffer,

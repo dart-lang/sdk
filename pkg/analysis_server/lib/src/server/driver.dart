@@ -108,6 +108,12 @@ class Driver implements ServerStarter {
   static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
 
   /**
+   * The name of the option used to specify if [print] should print to the
+   * console instead of being intercepted.
+   */
+  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-freqency';
+
+  /**
    * The name of the option used to specify the port to which the server will
    * connect.
    */
@@ -183,6 +189,13 @@ class Driver implements ServerStarter {
 //        return;
 //      }
 //    }
+
+    // TODO (danrubel) Remove this workaround
+    // once the underlying VM and dart:io issue has been fixed.
+    if (results[INTERNAL_DELAY_FREQUENCY] != null) {
+      AnalysisServer.performOperationDelayFreqency =
+          int.parse(results[INTERNAL_DELAY_FREQUENCY], onError: (_) => 0);
+    }
 
     int port;
     bool serve_http = false;
@@ -327,6 +340,7 @@ class Driver implements ServerStarter {
     parser.addOption(
         PORT_OPTION,
         help: "[port] the port on which the server will listen");
+    parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
     parser.addFlag(
         NO_ERROR_NOTIFICATION,

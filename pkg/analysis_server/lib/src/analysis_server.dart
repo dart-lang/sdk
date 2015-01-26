@@ -69,6 +69,13 @@ class AnalysisServer {
   static final String VERSION = '0.0.1';
 
   /**
+   * The number of milliseconds to perform operations before inserting
+   * a 1 millisecond delay so that the VM and dart:io can deliver content
+   * to stdin. This should be removed once the underlying problem is fixed.
+   */
+  static int performOperationDelayFreqency = 25;
+
+  /**
    * The channel from which requests are received and to which responses should
    * be sent.
    */
@@ -189,6 +196,15 @@ class AnalysisServer {
    * stack.
    */
   bool rethrowExceptions;
+
+  /**
+   * The next time (milliseconds since epoch) after which the analysis server
+   * should pause so that pending requests can be fetched by the system.
+   */
+  // Add 1 sec to prevent delay from impacting short running tests
+  int _nextPerformOperationDelayTime =
+      new DateTime.now().millisecondsSinceEpoch +
+      1000;
 
   /**
    * Initialize a newly created server to receive requests from and send
@@ -933,7 +949,24 @@ class AnalysisServer {
    */
   void _schedulePerformOperation() {
     assert(!performOperationPending);
-    new Future(performOperation);
+    /*
+     * TODO (danrubel) Rip out this workaround once the underlying problem
+     * is fixed. Currently, the VM and dart:io do not deliver content
+     * on stdin in a timely manner if the event loop is busy.
+     * To work around this problem, we delay for 1 millisecond
+     * every 25 milliseconds.
+     *
+     * To disable this workaround and see the underlying problem,
+     * set performOperationDelayFreqency to zero
+     */
+    int now = new DateTime.now().millisecondsSinceEpoch;
+    if (now > _nextPerformOperationDelayTime &&
+        performOperationDelayFreqency > 0) {
+      _nextPerformOperationDelayTime = now + performOperationDelayFreqency;
+      new Future.delayed(new Duration(milliseconds: 1), performOperation);
+    } else {
+      new Future(performOperation);
+    }
     performOperationPending = true;
   }
 }
