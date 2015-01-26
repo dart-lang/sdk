@@ -41,7 +41,6 @@ DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
-DEFINE_FLAG(bool, enable_async, true, "Enable async operations.");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -5184,9 +5183,6 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 
 RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
   if (CurrentLiteral()->raw() == Symbols::Async().raw()) {
-    if (!FLAG_enable_async) {
-      ReportError("use flag --enable-async to enable async/await features");
-    }
     ConsumeToken();
     return RawFunction::kAsync;
   }
