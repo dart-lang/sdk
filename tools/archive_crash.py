@@ -33,7 +33,13 @@ def CopyToGCS(filename):
   archived_filename = '%s%s' % (gs_location, filename.split('/').pop())
   print 'Dump now available in %s' % archived_filename
 
+def TEMPArchiveBuild():
+  d = '/b/build/slave/vm-linux-debug-x64-asan-be/build/dart/out/DebugX64/dart'
+  CopyToGCS(d)
+
 def Main():
+  if 'PWD' in os.environ and 'x64-asan' in os.environ['PWD']:
+    TEMPArchiveBuild()
   if utils.GuessOS() != 'linux':
     print 'Currently only archiving crash dumps on linux'
     return 0
