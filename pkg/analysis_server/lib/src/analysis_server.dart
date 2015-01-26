@@ -207,6 +207,12 @@ class AnalysisServer {
       1000;
 
   /**
+   * The current state of overlays from the client.  This is used as the
+   * content cache for all contexts.
+   */
+  ContentCache _overlayState = new ContentCache();
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -889,42 +895,47 @@ class AnalysisServer {
    */
   void updateContent(String id, Map<String, dynamic> changes) {
     changes.forEach((file, change) {
-      AnalysisContext analysisContext = getAnalysisContext(file);
-      // TODO(paulberry): handle the case where a file is referred to by more
-      // than one context (e.g package A depends on package B using a local
-      // path, user has both packages open for editing in separate contexts,
-      // and user modifies a file in package B).
-      if (analysisContext != null) {
-        Source source = getSource(file);
-        if (change is AddContentOverlay) {
-          analysisContext.setContents(source, change.content);
-        } else if (change is ChangeContentOverlay) {
-          // TODO(paulberry): an error should be generated if source is not
-          // currently in the content cache.
-          TimestampedData<String> oldContents =
-              analysisContext.getContents(source);
-          String newContents;
-          try {
-            newContents =
-                SourceEdit.applySequence(oldContents.data, change.edits);
-          } on RangeError {
-            throw new RequestFailure(
-                new Response(
-                    id,
-                    error: new RequestError(
-                        RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                        'Invalid overlay change')));
-          }
-          // TODO(paulberry): to aid in incremental processing it would be
-          // better to use setChangedContents.
-          analysisContext.setContents(source, newContents);
-        } else if (change is RemoveContentOverlay) {
-          analysisContext.setContents(source, null);
-        } else {
-          // Protocol parsing should have ensured that we never get here.
-          throw new AnalysisException('Illegal change type');
+      Source source = getSource(file);
+      String oldContents = _overlayState.getContents(source);
+      String newContents;
+      if (change is AddContentOverlay) {
+        newContents = change.content;
+      } else if (change is ChangeContentOverlay) {
+        if (oldContents == null) {
+          // The client may only send a ChangeContentOverlay if there is
+          // already an existing overlay for the source.
+          throw new RequestFailure(
+              new Response(
+                  id,
+                  error: new RequestError(
+                      RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                      'Invalid overlay change')));
         }
-        schedulePerformAnalysisOperation(analysisContext);
+        try {
+          newContents = SourceEdit.applySequence(oldContents, change.edits);
+        } on RangeError {
+          throw new RequestFailure(
+              new Response(
+                  id,
+                  error: new RequestError(
+                      RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                      'Invalid overlay change')));
+        }
+      } else if (change is RemoveContentOverlay) {
+        newContents = null;
+      } else {
+        // Protocol parsing should have ensured that we never get here.
+        throw new AnalysisException('Illegal change type');
+      }
+      _overlayState.setContents(source, newContents);
+      for (InternalAnalysisContext context in folderMap.values) {
+        if (context.handleContentsChanged(
+            source,
+            oldContents,
+            newContents,
+            true)) {
+          schedulePerformAnalysisOperation(context);
+        }
       }
     });
   }
@@ -1054,7 +1065,9 @@ class ServerContextManager extends ContextManager {
 
   @override
   void addContext(Folder folder, UriResolver packageUriResolver) {
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    InternalAnalysisContext context =
+        AnalysisEngine.instance.createAnalysisContext();
+    context.contentCache = analysisServer._overlayState;
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);

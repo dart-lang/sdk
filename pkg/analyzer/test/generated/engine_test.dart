@@ -6142,6 +6142,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  bool handleContentsChanged(Source source, String originalContents,
+      String newContents, bool notify) {
+    fail("Unexpected invocation of handleContentsChanged");
+    return false;
+  }
+  @override
   bool isClientLibrary(Source librarySource) {
     fail("Unexpected invocation of isClientLibrary");
     return false;
@@ -6200,7 +6206,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
-
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {

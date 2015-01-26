@@ -1151,6 +1151,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  set contentCache(ContentCache value) {
+    _contentCache = value;
+  }
+
+  @override
   DeclaredVariables get declaredVariables => _declaredVariables;
 
   @override
@@ -1534,7 +1539,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _sourceChanged(source);
     }
     changeSet.changedContents.forEach((Source key, String value) {
-      _contentsChanged(key, value);
+      _contentsChanged(key, value, false);
     });
     changeSet.changedRanges.forEach(
         (Source source, ChangeSet_ContentChange change) {
@@ -2149,6 +2154,64 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  bool handleContentsChanged(Source source, String originalContents,
+      String newContents, bool notify) {
+    SourceEntry sourceEntry = _cache.get(source);
+    if (sourceEntry == null) {
+      return false;
+    }
+    bool changed = newContents != originalContents;
+    if (newContents != null) {
+      if (newContents != originalContents) {
+        _incrementalAnalysisCache =
+            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+        if (!analysisOptions.incremental ||
+            !_tryPoorMansIncrementalResolution(source, newContents)) {
+          _sourceChanged(source);
+        }
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
+          sourceEntry.setValue(SourceEntry.CONTENT, newContents);
+        }
+      } else {
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
+        }
+      }
+    } else if (originalContents != null) {
+      _incrementalAnalysisCache =
+          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+      changed = newContents != originalContents;
+      // We are removing the overlay for the file, check if the file's
+      // contents is the same as it was in the overlay.
+      if (sourceEntry != null) {
+        try {
+          TimestampedData<String> fileContents = getContents(source);
+          String fileContentsData = fileContents.data;
+          if (fileContentsData == originalContents) {
+            sourceEntry.modificationTime = fileContents.modificationTime;
+            sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
+            changed = false;
+          }
+        } catch (e) {
+        }
+      }
+      // If not the same content (e.g. the file is being closed without save),
+      // then force analysis.
+      if (changed) {
+        _sourceChanged(source);
+      }
+    }
+    if (notify && changed) {
+      _onSourcesChangedController.add(
+          new SourcesChangedEvent.changedContent(source, newContents));
+    }
+    return changed;
+  }
+
+  @override
   bool isClientLibrary(Source librarySource) {
     SourceEntry sourceEntry = _getReadableSourceEntry(librarySource);
     if (sourceEntry is DartEntry) {
@@ -2510,10 +2573,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void setContents(Source source, String contents) {
-    if (_contentsChanged(source, contents)) {
-      _onSourcesChangedController.add(
-          new SourcesChangedEvent.changedContent(source, contents));
-    }
+    _contentsChanged(source, contents, true);
   }
 
   @override
@@ -2785,7 +2845,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return dartEntry;
   }
-
 
   /**
    * Given a source for a Dart file and the library that contains it, return a cache entry in which
@@ -3150,62 +3209,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Set the contents of the given source to the given contents and mark the source as having
    * changed. This has the effect of overriding the default contents of the source. If the contents
    * are `null` the override is removed so that the default contents will be returned.
-   * [setContents] triggers a source changed event where as this method does not.
+   *
+   * If [notify] is true, a source changed event is triggered.
    *
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
    */
-  bool _contentsChanged(Source source, String contents) {
-    bool changed = false;
+  void _contentsChanged(Source source, String contents, bool notify) {
     String originalContents = _contentCache.setContents(source, contents);
-    if (contents != null) {
-      if (contents != originalContents) {
-        _incrementalAnalysisCache =
-            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-        if (!analysisOptions.incremental ||
-            !_tryPoorMansIncrementalResolution(source, contents)) {
-          _sourceChanged(source);
-        }
-        changed = true;
-        SourceEntry sourceEntry = _cache.get(source);
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-          sourceEntry.setValue(SourceEntry.CONTENT, contents);
-        }
-      } else {
-        SourceEntry sourceEntry = _cache.get(source);
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-        }
-      }
-    } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-      changed = true;
-      // We are removing the overlay for the file, check if the file's
-      // contents is the same as it was in the overlay.
-      SourceEntry sourceEntry = _cache.get(source);
-      if (sourceEntry != null) {
-        try {
-          TimestampedData<String> fileContents = getContents(source);
-          String fileContentsData = fileContents.data;
-          if (fileContentsData == originalContents) {
-            sourceEntry.modificationTime = fileContents.modificationTime;
-            sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
-            changed = false;
-          }
-        } catch (e) {
-        }
-      }
-      // If not the same content (e.g. the file is being closed without save),
-      // then force analysis.
-      if (changed) {
-        _sourceChanged(source);
-      }
-    }
-    return changed;
+    handleContentsChanged(source, originalContents, contents, notify);
   }
 
 //  /**
@@ -3366,8 +3378,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         new GetContentTask(this, source),
         false);
   }
-
-
 
   /**
    * Create a [ParseDartTask] for the given [source].
@@ -4612,7 +4622,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     sourceEntry.setValue(SourceEntry.CONTENT, task.content);
     return sourceEntry;
   }
-
 
   /**
    * Record the results produced by performing a [IncrementalAnalysisTask].
@@ -9614,6 +9623,13 @@ class IncrementalAnalysisTask extends AnalysisTask {
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
   /**
+   * Allow the client to supply its own content cache.  This will take the
+   * place of the content cache created by default, allowing clients to share
+   * the content cache between contexts.
+   */
+  set contentCache(ContentCache value);
+
+  /**
    * Return an array containing all of the sources that have been marked as priority sources.
    * Clients must not modify the returned array.
    *
@@ -9694,6 +9710,25 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @return the public namespace of the given library
    */
   Namespace getPublicNamespace(LibraryElement library);
+
+  /**
+   * Respond to a change which has been made to the given [source] file.
+   * [originalContents] is the former contents of the file, and [newContents]
+   * is the updated contents.  If [notify] is true, a source changed event is
+   * triggered.
+   *
+   * Normally it should not be necessary for clinets to call this function,
+   * since it will be automatically invoked in response to a call to
+   * [applyChanges] or [setContents].  However, if this analysis context is
+   * sharing its content cache with other contexts, then the client must
+   * manually update the content cache and call this function for each context.
+   *
+   * Return `true` if the change was significant to this context (i.e. [source]
+   * is either implicitly or explicitly analyzed by this context, and a change
+   * actually occurred).
+   */
+  bool handleContentsChanged(Source source, String originalContents,
+      String newContents, bool notify);
 
   /**
    * Given a table mapping the source for the libraries represented by the corresponding elements to
