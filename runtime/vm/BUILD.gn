@@ -4,10 +4,15 @@
 
 config("libdart_vm_config") {
   libs = [
-    "pthread",
-    "rt",
     "dl",
   ]
+
+  if (!is_android) {
+    libs += [
+      "pthread",
+      "rt",
+    ]
+  }
 }
 
 

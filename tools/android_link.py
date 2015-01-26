@@ -108,16 +108,15 @@ def main():
   # Set up the path to the system root directory, which is where we'll find the
   # Android specific system includes and libraries.
   android_ndk_sysroot = os.path.join(android_ndk_root,
-      'platforms', 'android-L', 'arch-arm')
+      'platforms', 'android-14', 'arch-arm')
   if target_arch == 'arm64':
     android_ndk_sysroot = os.path.join(android_ndk_root,
-      'platforms', 'android-L', 'arch-arm64')
+      'platforms', 'android-21', 'arch-arm64')
   if target_arch == 'ia32':
     android_ndk_sysroot = os.path.join(android_ndk_root,
-        'platforms', 'android-L', 'arch-x86')
+        'platforms', 'android-14', 'arch-x86')
   CheckDirExists(android_ndk_sysroot, 'Android sysroot')
   android_ndk_lib = os.path.join(android_ndk_sysroot,'usr','lib')
-  android_ndk_include = os.path.join(android_ndk_sysroot, 'usr', 'include')
   crtend_android = os.path.join(android_ndk_lib, 'crtend_android.o')
 
   if link_target == 'target':

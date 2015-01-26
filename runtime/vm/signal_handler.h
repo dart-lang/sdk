@@ -12,12 +12,10 @@
 #include <signal.h>  // NOLINT
 #include <ucontext.h>  // NOLINT
 #elif defined(TARGET_OS_ANDROID)
-#include <android/api-level.h>  // NOLINT
-/* Android <= 19 doesn't have ucontext.h */
-#if __ANDROID_API__ <= 19
 #include <signal.h>  // NOLINT
+#if !defined(__BIONIC_HAVE_UCONTEXT_T)
 #include <asm/sigcontext.h>  // NOLINT
-// These are not defined on Android, so we have to define them here.
+// If ucontext_t is not defined on Android, define it here.
 typedef struct sigcontext mcontext_t;
 typedef struct ucontext {
   uint32_t uc_flags;
@@ -26,11 +24,7 @@ typedef struct ucontext {
   struct sigcontext uc_mcontext;
   uint32_t uc_sigmask;
 } ucontext_t;
-#else
-// Android > 19 has ucontext.h
-#include <signal.h>  // NOLINT
-#include <ucontext.h>  // NOLINT
-#endif  // __ANDROID_API__ <= 19
+#endif  // !defined(__BIONIC_HAVE_UCONTEXT_T)
 #elif defined(TARGET_OS_MACOS)
 #include <signal.h>  // NOLINT
 #include <sys/ucontext.h>  // NOLINT

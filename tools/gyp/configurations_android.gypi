@@ -209,7 +209,7 @@
       'Dart_Android_arm64_Base': {
         'abstract': 1,
         'variables': {
-          'android_sysroot': '<(android_ndk_root)/platforms/android-L/arch-arm64',
+          'android_sysroot': '<(android_ndk_root)/platforms/android-21/arch-arm64',
           'android_ndk_include': '<(android_sysroot)/usr/include',
           'android_ndk_lib': '<(android_sysroot)/usr/lib',
         },
