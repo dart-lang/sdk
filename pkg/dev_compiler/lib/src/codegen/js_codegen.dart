@@ -33,6 +33,9 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
 
   final ConstantVisitor _constVisitor;
   final _exports = <String>[];
+  final _lazyFields = <VariableDeclaration>[];
+  final _lazyFinalFields = <VariableDeclaration>[];
+  final _properties = <FunctionDeclaration>[];
 
   UnitGenerator(CompilationUnitElementImpl unit, this.outDir, this.libraryInfo,
       TypeRules rules)
@@ -47,6 +50,12 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
 
   Future generate() {
     out = new OutWriter(outputPath);
+    unit.accept(this);
+    return out.close();
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
     var libName = libraryInfo.name;
 
     out.write("""
@@ -54,7 +63,19 @@ var $libName;
 (function ($libName) {
   'use strict';
 """, 2);
-    unit.visitChildren(this);
+
+    _visitNode(unit.scriptTag);
+    _visitNodeList(unit.directives);
+    for (var child in unit.declarations) {
+      // Attempt to group adjacent fields/properties.
+      if (child is! TopLevelVariableDeclaration) _flushLazyFields();
+      if (child is! FunctionDeclaration) _flushLibraryProperties();
+
+      child.accept(this);
+    }
+    // Flush any unwritten fields/properties.
+    _flushLazyFields();
+    _flushLibraryProperties();
 
     if (_exports.isNotEmpty) out.write('// Exports:\n');
 
@@ -65,7 +86,6 @@ var $libName;
     out.write("""
 })($libName || ($libName = {}));
 """, -2);
-    return out.close();
   }
 
   bool isPublic(String name) => !name.startsWith('_');
@@ -228,6 +248,8 @@ var $libName;
     if (body is BlockFunctionBody) {
       body.block.statements.accept(this);
     } else {
+      // constructors cannot have ExpressionFunctionBody because they cannot
+      // return values
       assert(body is EmptyFunctionBody);
     }
   }
@@ -281,11 +303,10 @@ var $libName;
     var unsetFields = new Map<String, Expression>();
     for (var declaration in fields) {
       for (var field in declaration.fields.variables) {
-        var init = field.initializer;
-        if (init != null && !_isConstant(field)) {
+        if (!_isConstantField(field)) {
           field.name.accept(this);
           out.write(' = ');
-          init.accept(this);
+          field.initializer.accept(this);
           out.write(';\n');
         } else {
           unsetFields[field.name.name] = field.initializer;
@@ -330,6 +351,18 @@ var $libName;
     });
   }
 
+  FormalParameterList _parametersOf(node) {
+    if (node is MethodDeclaration) return node.parameters;
+    if (node is FunctionDeclaration) node = node.functionExpression;
+    if (node is FunctionExpression) return node.parameters;
+    return null;
+  }
+
+  bool _hasArgumentInitializers(FormalParameterList parameters) {
+    if (parameters == null) return false;
+    return parameters.parameters.any((p) => p.kind != ParameterKind.REQUIRED);
+  }
+
   void _generateArgumentInitializers(FormalParameterList parameters) {
     if (parameters == null) return;
     for (var param in parameters.parameters) {
@@ -370,36 +403,49 @@ var $libName;
     }
 
     var name = node.name;
-    out.write("$name(");
+    out.write('$name(');
     _visitNode(node.parameters);
-    out.write(") {\n", 2);
-    _generateArgumentInitializers(node.parameters);
-    var body = node.body;
-    if (body is BlockFunctionBody) {
-      body.block.statements.accept(this);
-    } else if (body is ExpressionFunctionBody) {
-      out.write('return ');
-      body.expression.accept(this);
-      out.write(';\n');
-    } else {
-      assert(body is EmptyFunctionBody);
-    }
-    out.write("}\n", -2);
+    out.write(') ');
+    _visitNode(node.body);
+    out.write('\n');
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var name = node.name.name;
     assert(node.parent is CompilationUnit);
-    out.write("// Function $name: ${node.element.type}\n");
-    out.write("function $name(");
+
+    if (node.isGetter || node.isSetter) {
+      // Add these later so we can use getter/setter syntax.
+      _properties.add(node);
+    } else {
+      _flushLibraryProperties();
+      _writeFunctionDeclaration(node);
+    }
+  }
+
+  void _writeFunctionDeclaration(FunctionDeclaration node) {
+    var name = node.name.name;
+
+    if (node.isGetter) {
+      out.write('get ');
+    } else if (node.isSetter) {
+      out.write('set ');
+    } else {
+      out.write("// Function $name: ${node.element.type}\n");
+      out.write('function ');
+    }
+
+    out.write('$name(');
     var function = node.functionExpression;
     _visitNode(function.parameters);
-    out.write(") ");
+    out.write(') ');
     function.body.accept(this);
-    out.write("\n");
-    if (isPublic(name)) _exports.add(name);
-    out.write("\n");
+
+    if (!node.isGetter && !node.isSetter) {
+      out.write('\n');
+      if (isPublic(name)) _exports.add(name);
+      out.write('\n');
+    }
   }
 
   @override
@@ -416,10 +462,15 @@ var $libName;
     body.accept(this);
   }
 
+  /// Writes a simple identifier. This can handle implicit `this` as well as
+  /// going through the qualified library name if necessary.
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var e = node.staticElement;
-    if (currentClass != null && e.enclosingElement == currentClass.element) {
+    if (e.enclosingElement is CompilationUnitElement &&
+        (e.library != libraryInfo.library || _needsModuleGetter(e))) {
+      out.write('${getLibraryId(e.library)}.');
+    } else if (currentClass != null && e.enclosingElement == currentClass.element) {
       if (e is PropertyAccessorElement && !e.variable.isStatic ||
           e is ClassMemberElement && !e.isStatic) {
         out.write('this.');
@@ -443,14 +494,41 @@ var $libName;
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    out.write("{ return ");
+    var parameters = _parametersOf(node.parent);
+    var initArgs = parameters != null && _hasArgumentInitializers(parameters);
+    if (initArgs) {
+      out.write('{\n', 2);
+      _generateArgumentInitializers(parameters);
+    } else {
+      out.write('{ ');
+    }
+    out.write('return ');
     node.expression.accept(this);
-    out.write("; }");
+    if (initArgs) {
+      out.write('\n}', -2);
+    } else {
+      out.write('; }');
+    }
   }
 
   @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     out.write('{}');
+  }
+
+  @override
+  void visitBlockFunctionBody(BlockFunctionBody node) {
+    out.write('{\n', 2);
+    _generateArgumentInitializers(_parametersOf(node.parent));
+    _visitNodeList(node.block.statements);
+    out.write('}', -2);
+  }
+
+  @override
+  void visitBlock(Block node) {
+    out.write("{\n", 2);
+    node.statements.accept(this);
+    out.write("}\n", -2);
   }
 
   @override
@@ -461,7 +539,8 @@ var $libName;
     }
 
     var target = node.isCascaded ? _cascadeTarget : node.target;
-    writeQualifiedName(target, node.methodName);
+    _visitNode(target, suffix: '.');
+    node.methodName.accept(this);
     node.argumentList.accept(this);
   }
 
@@ -513,18 +592,6 @@ var $libName;
   }
 
   @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    node.block.accept(this);
-  }
-
-  @override
-  void visitBlock(Block node) {
-    out.write("{\n", 2);
-    node.statements.accept(this);
-    out.write("}\n", -2);
-  }
-
-  @override
   void visitExpressionStatement(ExpressionStatement node) {
     node.expression.accept(this);
     out.write(';\n');
@@ -537,48 +604,74 @@ var $libName;
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    if (node.expression == null) {
-      out.write('return;\n');
-    } else {
-      out.write('return ');
-      node.expression.accept(this);
-      out.write(';\n');
-    }
-  }
-
-  void _generateVariableList(VariableDeclarationList list, bool lazy) {
-    var declarations = list.variables;
-    for (var node in declarations) {
-      out.write(node == declarations.first ? 'let ' : ', ');
-      out.write(node.name.name);
-      var initializer = node.initializer;
-      if (initializer != null) {
-        out.write(' = ');
-        // TODO(jmesserly): implement lazy eval. Probably uses the same design
-        // as top level getters/setters.
-        if (lazy && !_isConstant(node)) {
-          out.write('/* Unimplemented lazy eval */');
-        }
-        initializer.accept(this);
-      }
-    }
+    out.write('return');
+    _visitNode(node.expression, prefix: ' ');
+    out.write(';\n');
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _generateVariableList(node.variables, true);
-    out.write(';\n');
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    node.variables.accept(this);
-    out.write(';\n');
+    _visitNode(node.variables);
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    _generateVariableList(node, false);
+    var topLevel = node.parent is TopLevelVariableDeclaration;
+
+    var declarations = node.variables;
+
+    var wroteLet = false;
+    for (var node in declarations) {
+      if (topLevel && !_isConstantField(node)) {
+        _lazyFields.add(node);
+        continue;
+      }
+
+      wroteLet = true;
+      out.write(node == declarations.first ? 'let ' : ', ');
+      out.write(node.name.name);
+      _visitNode(node.initializer, prefix: ' = ');
+    }
+
+    if (topLevel && wroteLet) out.write(';\n');
+  }
+
+  void _flushLazyFields() {
+    if (_lazyFields.isEmpty) return;
+
+    var libName = libraryInfo.name;
+    out.write('dart.defineLazyProperties($libName, {\n', 2);
+    for (var node in _lazyFields) {
+      var name = node.name.name;
+      out.write('get $name() { return ');
+      node.initializer.accept(this);
+      out.write(' },\n');
+      // TODO(jmesserly): we're using a dummy setter to indicate writable.
+      if (!node.isFinal) out.write('set $name(x) {},\n');
+    }
+    out.write('});\n\n', -2);
+
+    _lazyFields.clear();
+  }
+
+  void _flushLibraryProperties() {
+    if (_properties.isEmpty) return;
+
+    var libName = libraryInfo.name;
+    out.write('dart.mixin($libName, {\n', 2);
+    for (var node in _properties) {
+      _writeFunctionDeclaration(node);
+      out.write(',\n');
+    }
+    out.write('});\n\n', -2);
+
+    _properties.clear();
+  }
+
+  @override
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _visitNode(node.variables);
+    out.write(';\n');
   }
 
   @override
@@ -597,21 +690,16 @@ var $libName;
     node.argumentList.accept(this);
   }
 
-  bool typeIsPrimitiveInJS(DartType t) {
-    if (rules.isIntType(t) ||
-        rules.isDoubleType(t) ||
-        rules.isBoolType(t) ||
-        rules.isNumType(t)) return true;
-    return false;
-  }
+  bool typeIsPrimitiveInJS(DartType t) =>
+      rules.isIntType(t) ||
+      rules.isDoubleType(t) ||
+      rules.isBoolType(t) ||
+      rules.isNumType(t);
 
-  bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) {
-    return typeIsPrimitiveInJS(leftT) && typeIsPrimitiveInJS(rightT);
-  }
+  bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) =>
+      typeIsPrimitiveInJS(leftT) && typeIsPrimitiveInJS(rightT);
 
-  bool unaryOperationIsPrimitive(DartType t) {
-    return typeIsPrimitiveInJS(t);
-  }
+  bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -927,8 +1015,8 @@ var $libName;
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
   }
 
-  bool _isConstant(VariableDeclaration field) =>
-      _computeConstant(field) is ValidResult;
+  bool _isConstantField(VariableDeclaration field) =>
+      field.initializer == null || _computeConstant(field) is ValidResult;
 
   EvaluationResultImpl _computeConstant(VariableDeclaration field) {
     // If the constant is already computed by ConstantEvaluator, just return it.
@@ -948,30 +1036,25 @@ var $libName;
 
   static const Map<String, String> _builtins = const <String, String>{
     'dart.core': 'dart_core',
+    'dart.math': 'dart_math',
   };
 
   String getLibraryId(LibraryElement element) {
     var libraryName = element.name;
-    return _builtins.containsKey(libraryName)
-        ? _builtins[libraryName]
-        : libraryName;
+    var builtinName = _builtins[libraryName];
+    if (builtinName != null) return builtinName;
+
+    return libraryNameFromLibraryElement(element);
   }
 
-  void writeQualifiedName(Expression target, SimpleIdentifier id) {
-    if (target != null) {
-      target.accept(this);
-      out.write('.');
-    } else {
-      var element = id.staticElement;
-      if (element.enclosingElement is CompilationUnitElement) {
-        var library = element.enclosingElement.enclosingElement;
-        assert(library is LibraryElement);
-        if (library != libraryInfo.library) {
-          out.write('${getLibraryId(library)}.');
-        }
-      }
+  /// Returns true if [element] is a getter in JS, therefore needs
+  /// `lib.topLevel` syntax instead of just `topLevel`.
+  bool _needsModuleGetter(Element element) {
+    if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
     }
-    id.accept(this);
+    return element is TopLevelVariableElement &&
+        !_isConstantField(element.node);
   }
 
   /// Safely visit the given node, with an optional prefix or suffix.

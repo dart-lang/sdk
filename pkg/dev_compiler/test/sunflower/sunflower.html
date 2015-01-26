@@ -36,14 +36,11 @@
 
     <script>
       // TODO(jmesserly): some hacks here to get the output running
-      var PI = Math.PI;
-      var dart = { math: Math };
-      var int = { parse: Number };
+      var dart_math = Math;
+      var dart_core = { int: { parse: Number } };
+      var dom = { document: document };
     </script>
-    <!-- TODO(jmesserly): remove this script tag when Firefox is fixed. -->
-    <script type="application/javascript;version=1.7"
-            src="../codegen/expect/sunflower/sunflower.dart.js"></script>
-
+    <script src="../../lib/runtime/dart_runtime.js"></script>
     <script src="../codegen/expect/sunflower/sunflower.dart.js"></script>
     <script>sunflower.main();</script>
   </body>

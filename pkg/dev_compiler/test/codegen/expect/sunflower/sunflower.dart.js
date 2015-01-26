@@ -4,18 +4,21 @@ var sunflower;
   let ORANGE = "orange";
   let SEED_RADIUS = 2;
   let SCALE_FACTOR = 4;
-  let TAU = PI * 2;
+  let TAU = dart_math.PI * 2;
   let MAX_D = 300;
   let centerX = MAX_D / 2;
   let centerY = centerX;
   // Function querySelector: (String) → Element
-  function querySelector(selector) { return document.querySelector(selector); }
+  function querySelector(selector) { return dom.document.querySelector(selector); }
 
-  let slider = /* Unimplemented lazy eval *//* Unimplemented: DownCast: Element to InputElement */ querySelector("#slider");
-  let notes = /* Unimplemented lazy eval */querySelector("#notes");
-  let PHI = /* Unimplemented lazy eval */(dart.math.sqrt(5) + 1) / 2;
   let seeds = 0;
-  let context = /* Unimplemented lazy eval *//* Unimplemented: DownCast: RenderingContext to CanvasRenderingContext2D */ (/* Unimplemented: as CanvasElement. */querySelector("#canvas")).getContext("2d");
+  dart.defineLazyProperties(sunflower, {
+    get slider() { return /* Unimplemented: DownCast: Element to InputElement */ querySelector("#slider") },
+    get notes() { return querySelector("#notes") },
+    get PHI() { return (dart_math.sqrt(5) + 1) / 2 },
+    get context() { return /* Unimplemented: DownCast: RenderingContext to CanvasRenderingContext2D */ (/* Unimplemented: as CanvasElement. */querySelector("#canvas")).getContext("2d") },
+  });
+
   class Circle {
     constructor(x, y, radius, color) {
       this.x = x;
@@ -24,14 +27,14 @@ var sunflower;
       this.color = color;
     }
     draw() {
-      (context.beginPath(),
-        context.lineWidth = 2,
-        context.fillStyle = this.color,
-        context.strokeStyle = this.color,
-        context.arc(this.x, this.y, this.radius, 0, TAU, false),
-        context.fill(),
-        context.closePath(),
-        context.stroke());
+      (sunflower.context.beginPath(),
+        sunflower.context.lineWidth = 2,
+        sunflower.context.fillStyle = this.color,
+        sunflower.context.strokeStyle = this.color,
+        sunflower.context.arc(this.x, this.y, this.radius, 0, TAU, false),
+        sunflower.context.fill(),
+        sunflower.context.closePath(),
+        sunflower.context.stroke());
     }
   }
 
@@ -43,25 +46,23 @@ var sunflower;
 
   // Function main: () → void
   function main() {
-    slider.addEventListener("change", (e) => draw());
+    sunflower.slider.addEventListener("change", (e) => draw());
     draw();
   }
 
-
   // Function draw: () → void
   function draw() {
-    seeds = int.parse(slider.value);
-    context.clearRect(0, 0, MAX_D, MAX_D);
+    seeds = dart_core.int.parse(sunflower.slider.value);
+    sunflower.context.clearRect(0, 0, MAX_D, MAX_D);
     for (let i = 0; i < seeds; i++) {
-      let theta = i * TAU / PHI;
-      let r = dart.math.sqrt(i) * SCALE_FACTOR;
-      let x = centerX + r * dart.math.cos(theta);
-      let y = centerY - r * dart.math.sin(theta);
+      let theta = i * TAU / sunflower.PHI;
+      let r = dart_math.sqrt(i) * SCALE_FACTOR;
+      let x = centerX + r * dart_math.cos(theta);
+      let y = centerY - r * dart_math.sin(theta);
       new SunflowerSeed(x, y).draw();
     }
-    notes.textContent = "" + (seeds) + " seeds";
+    sunflower.notes.textContent = "" + (seeds) + " seeds";
   }
-
 
   // Exports:
   sunflower.querySelector = querySelector;

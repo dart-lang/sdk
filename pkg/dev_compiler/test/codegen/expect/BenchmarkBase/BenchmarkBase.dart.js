@@ -41,7 +41,7 @@ var BenchmarkBase;
     static measureFor(f, timeMinimum) {
       let time = 0;
       let iter = 0;
-      let watch = new Stopwatch();
+      let watch = new dart_core.Stopwatch();
       watch.start();
       let elapsed = 0;
       while (elapsed < timeMinimum) {
@@ -55,12 +55,10 @@ var BenchmarkBase;
       this.setup();
       measureFor(() => {
         this.this.warmup();
-      }
-      , 100);
+      }, 100);
       let result = measureFor(() => {
         this.this.exercise();
-      }
-      , 2000);
+      }, 2000);
       this.teardown();
       return result;
     }

@@ -6,19 +6,17 @@ var methods;
       this._c = 3;
       super();
     }
-    x() {
-      return 42;
-    }
+    x() { return 42; }
     y(a) {
       return a;
     }
     z(b) {
       if (b === undefined) b = null;
-      return b;
+      return b
     }
     zz(b) {
       if (b === undefined) b = 0;
-      return b;
+      return b
     }
     w(a, opt$) {
       let b = opt$.b === undefined ? null : opt$.b;
@@ -28,14 +26,10 @@ var methods;
       let b = opt$.b === undefined ? 0 : opt$.b;
       return a + b;
     }
-    get a() {
-      return this.x();
-    }
+    get a() { return this.x(); }
     set b(b) {
     }
-    get c() {
-      return this._c;
-    }
+    get c() { return this._c; }
     set c(c) {
       this._c = c;
     }

@@ -1,5 +1,9 @@
 var dart;
 (function (dart) {
+  var defineProperty = Object.defineProperty;
+  var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+  var getOwnPropertyNames = Object.getOwnPropertyNames;
+
   // Adapted from Angular.js
   var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
   var FN_ARG_SPLIT = /,/;
@@ -81,5 +85,54 @@ var dart;
     return eq ? eq.call(x, y) : x === y;
   }
   dart.equals = equals;
+
+  /**
+   * Defines a lazy property.
+   * After initial get or set, it will replace itself with a value property.
+   */
+  // TODO(jmesserly): is this the best implementation for JS engines?
+  // TODO(jmesserly): reusing descriptor objects has been shown to improve
+  // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
+  function defineLazyProperty(to, name, desc) {
+    var init = desc.get;
+    var writable = !!desc.set;
+    function lazySetter(value) {
+      defineProperty(to, name, { value: value, writable: writable });
+    }
+    function lazyGetter() {
+      // Clear the init function to detect circular initialization.
+      var f = init;
+      if (f === null) throw 'circular initialization for field ' + name;
+      init = null;
+
+      // Compute and store the value.
+      var value = f();
+      lazySetter(value);
+      return value;
+    }
+    desc.get = lazyGetter;
+    desc.configurable = true;
+    if (writable) desc.set = lazySetter;
+    defineProperty(to, name, desc);
+  }
+
+  function defineLazyProperties(to, from) {
+    var names = getOwnPropertyNames(from);
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i];
+      defineLazyProperty(to, name, getOwnPropertyDescriptor(from, name));
+    }
+  }
+  dart.defineLazyProperties = defineLazyProperties;
+
+  function mixin(to, from) {
+    var names = getOwnPropertyNames(from);
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i];
+      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
+    }
+    return to;
+  }
+  dart.mixin = mixin;
 
 })(dart || (dart = {}));

@@ -6,7 +6,6 @@ var DeltaBlue;
     new DeltaBlue().report();
   }
 
-
   class DeltaBlue extends BenchmarkBase.BenchmarkBase {
     constructor() {
       super("DeltaBlue");
@@ -22,9 +21,7 @@ var DeltaBlue;
       this.value = value;
       this.name = name;
     }
-    nextWeaker() {
-      return /* Unimplemented const *//* Unimplemented ArrayList */[STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST][this.value];
-    }
+    nextWeaker() { return /* Unimplemented const *//* Unimplemented ArrayList */[STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST][this.value]; }
     static stronger(s1, s2) {
       return s1.value < s2.value;
     }
@@ -75,9 +72,7 @@ var DeltaBlue;
       if (this.isSatisfied()) planner.incrementalRemove(this);
       this.removeFromGraph();
     }
-    isInput() {
-      return false;
-    }
+    isInput() { return false; }
   }
 
   class UnaryConstraint extends Constraint {
@@ -94,14 +89,10 @@ var DeltaBlue;
     chooseMethod(mark) {
       this.satisfied = (this.myOutput.mark !== mark) && Strength.stronger(strength, this.myOutput.walkStrength);
     }
-    isSatisfied() {
-      return this.satisfied;
-    }
+    isSatisfied() { return this.satisfied; }
     markInputs(mark) {
     }
-    output() {
-      return this.myOutput;
-    }
+    output() { return this.myOutput; }
     recalculate() {
       this.myOutput.walkStrength = strength;
       this.myOutput.stay = !isInput();
@@ -110,9 +101,7 @@ var DeltaBlue;
     markUnsatisfied() {
       this.satisfied = false;
     }
-    inputsKnown(mark) {
-      return true;
-    }
+    inputsKnown(mark) { return true; }
     removeFromGraph() {
       if (this.myOutput !== null) this.myOutput.removeConstraint(this);
       this.satisfied = false;
@@ -131,9 +120,7 @@ var DeltaBlue;
     constructor(v, str) {
       super(v, str);
     }
-    isInput() {
-      return true;
-    }
+    isInput() { return true; }
     execute() {
     }
   }
@@ -168,18 +155,12 @@ var DeltaBlue;
       this.v2.addConstraint(this);
       this.direction = NONE;
     }
-    isSatisfied() {
-      return this.direction !== NONE;
-    }
+    isSatisfied() { return this.direction !== NONE; }
     markInputs(mark) {
       this.input().mark = mark;
     }
-    input() {
-      return this.direction === FORWARD ? this.v1 : this.v2;
-    }
-    output() {
-      return this.direction === FORWARD ? this.v2 : this.v1;
-    }
+    input() { return this.direction === FORWARD ? this.v1 : this.v2; }
+    output() { return this.direction === FORWARD ? this.v2 : this.v1; }
     recalculate() {
       let ihn = this.input(), out = this.output();
       out.walkStrength = Strength.weakest(strength, ihn.walkStrength);
@@ -288,9 +269,7 @@ var DeltaBlue;
       }
       while (!dart.equals(strength, WEAKEST));
     }
-    newMark() {
-      return ++this.currentMark;
-    }
+    newMark() { return ++this.currentMark; }
     makePlan(sources) {
       let mark = this.newMark();
       let plan = new Plan();
@@ -366,9 +345,7 @@ var DeltaBlue;
     addConstraint(c) {
       this.list.add(c);
     }
-    size() {
-      return this.list.length;
-    }
+    size() { return this.list.length; }
     execute() {
       for (let i = 0; i < this.list.length; i++) {
         this.list[i].execute();
@@ -400,7 +377,6 @@ var DeltaBlue;
     }
   }
 
-
   // Function projectionTest: (int) → void
   function projectionTest(n) {
     planner = new Planner();
@@ -429,7 +405,6 @@ var DeltaBlue;
     }
   }
 
-
   // Function change: (Variable, int) → void
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
@@ -440,7 +415,6 @@ var DeltaBlue;
     }
     edit.destroyConstraint();
   }
-
 
   let planner;
   // Exports:
