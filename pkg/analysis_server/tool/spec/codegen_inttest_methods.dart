@@ -52,7 +52,10 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
 
   CodegenInttestMethodsVisitor(Api api)
       : super(api),
-        toHtmlVisitor = new ToHtmlVisitor(api);
+        toHtmlVisitor = new ToHtmlVisitor(api) {
+    codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.languageName = 'dart';
+  }
 
   /**
    * Generate a function argument for the given parameter field.

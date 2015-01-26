@@ -81,7 +81,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   CodegenProtocolVisitor(Api api)
       : super(api),
         toHtmlVisitor = new ToHtmlVisitor(api),
-        impliedTypes = computeImpliedTypes(api);
+        impliedTypes = computeImpliedTypes(api) {
+    codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.languageName = 'dart';
+  }
 
   /**
    * Compute the code necessary to compare two objects for equality.

@@ -123,7 +123,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         toHtmlVisitor.write('{@code ${request.longMethod }}');
         toHtmlVisitor.translateHtml(request.html);
         toHtmlVisitor.javadocParams(request.params);
-      }), width: 99, javadocStyle: true);
+      }));
       write('public void $methodName(');
       List<String> arguments = [];
       if (request.params != null) {

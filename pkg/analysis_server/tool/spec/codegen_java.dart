@@ -136,7 +136,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Convenience method for subclasses for calling docComment.
    */
   void javadocComment(List<dom.Node> docs) {
-    docComment(docs, width: 99, javadocStyle: true);
+    docComment(docs);
   }
 
   /**

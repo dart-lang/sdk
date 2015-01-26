@@ -57,6 +57,12 @@ class CodeGenerator {
   _CodeGeneratorState _state;
 
   /**
+   * Settings that specialize code generation behavior for a given
+   * programming language.
+   */
+  CodeGeneratorSettings codeGeneratorSettings = new CodeGeneratorSettings();
+
+  /**
    * Measure the width of the current indentation level.
    */
   int get indentWidth => _state.nextIndent.length;
@@ -82,16 +88,17 @@ class CodeGenerator {
    * If [javadocStyle] is true, then the output is compatable with Javadoc,
    * which understands certain HTML constructs.
    */
-  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle:
-      false}) {
+  void docComment(List<dom.Node> docs) {
     if (containsOnlyWhitespace(docs)) {
       return;
     }
-    writeln('/**');
-    indentBy(' * ', () {
+    writeln(codeGeneratorSettings.docCommentStartMarker);
+    int width = codeGeneratorSettings.commentLineLength;
+    bool javadocStyle = codeGeneratorSettings.languageName == 'java';
+    indentBy(codeGeneratorSettings.docCommentLineLeader, () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle));
     });
-    writeln(' */');
+    writeln(codeGeneratorSettings.docCommentEndMarker);
   }
 
   /**
@@ -124,9 +131,20 @@ class CodeGenerator {
     }
   }
 
+  void lineComment(List<dom.Node> docs) {
+    if (containsOnlyWhitespace(docs)) {
+      return;
+    }
+    write(codeGeneratorSettings.lineCommentLineLeader);
+    int width = codeGeneratorSettings.commentLineLength;
+    indentBy(codeGeneratorSettings.lineCommentLineLeader, () {
+      write(nodesToText(docs, width - _state.indent.length, false));
+    });
+  }
+
   void outputHeader({bool javaStyle: false}) {
     String header;
-    if (javaStyle) {
+    if (codeGeneratorSettings.languageName == 'java') {
       header = '''
 /*
  * Copyright (c) 2014, the Dart project authors.
@@ -144,6 +162,16 @@ class CodeGenerator {
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */''';
+    } else if (codeGeneratorSettings.languageName == 'python') {
+      header = '''
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+#
+# This file has been automatically generated.  Please do not edit it manually.
+# To regenerate the file, use the script
+# "pkg/analysis_server/tool/spec/generate_files".
+''';
     } else {
       header = '''
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
@@ -171,6 +199,47 @@ class CodeGenerator {
   void writeln([Object obj = '']) {
     _state.write('$obj\n');
   }
+}
+
+/**
+ * Controls several settings of [CodeGenerator].
+ *
+ * The default settings are valid for generating Java and Dart code.
+ */
+class CodeGeneratorSettings {
+  /**
+   * Name of the language being generated. Lowercase.
+   */
+  String languageName;
+
+  /**
+   * Marker used in line comments.
+   */
+  String lineCommentLineLeader;
+
+  /**
+   * Start marker for doc comments.
+   */
+  String docCommentStartMarker;
+
+  /**
+   * Line leader for body lines in doc comments.
+   */
+  String docCommentLineLeader;
+
+  /**
+   * End marker for doc comments.
+   */
+  String docCommentEndMarker;
+
+  /**
+   * Line length for doc comment lines.
+   */
+  int commentLineLength;
+
+  CodeGeneratorSettings({this.languageName: 'java', this.lineCommentLineLeader:
+      '// ', this.docCommentStartMarker: '/**', this.docCommentLineLeader: ' * ',
+      this.docCommentEndMarker: ' */', this.commentLineLength: 99});
 }
 
 abstract class GeneratedContent {
