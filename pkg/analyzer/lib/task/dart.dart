@@ -5,11 +5,29 @@
 library analyzer.task.dart;
 
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+
+/**
+ * The compilation unit associated with a [Source] after it has had all
+ * declarations bound to the element defined by the declaration.
+ *
+ * The result is only available for targets representing a Dart compilation unit.
+ */
+final ResultDescriptor<CompilationUnit> BUILT_UNIT =
+    new ResultDescriptor<CompilationUnit>('BUILT_UNIT', null);
+
+/**
+ * The element model associated with a single compilation unit.
+ *
+ * The result is only available for targets representing a Dart compilation unit.
+ */
+final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
+    new ResultDescriptor<CompilationUnitElement>('COMPILATION_UNIT_ELEMENT', null);
 
 /**
  * The sources of the libraries that are exported from a library.
@@ -20,7 +38,7 @@ import 'package:analyzer/task/model.dart';
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<List<Source>> EXPORTED_LIBRARIES =
-    new ResultDescriptor<List<Source>>('EXPORTED_LIBRARIES');
+    new ResultDescriptor<List<Source>>('EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
  * The sources of the libraries that are imported into a library.
@@ -31,7 +49,7 @@ final ResultDescriptor<List<Source>> EXPORTED_LIBRARIES =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<List<Source>> IMPORTED_LIBRARIES =
-    new ResultDescriptor<List<Source>>('IMPORTED_LIBRARIES');
+    new ResultDescriptor<List<Source>>('IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
  * The sources of the parts that are included in a library.
@@ -42,7 +60,7 @@ final ResultDescriptor<List<Source>> IMPORTED_LIBRARIES =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<List<Source>> INCLUDED_PARTS =
-    new ResultDescriptor<List<Source>>('INCLUDED_PARTS');
+    new ResultDescriptor<List<Source>>('INCLUDED_PARTS', Source.EMPTY_ARRAY);
 
 /**
  * The errors produced while parsing a compilation unit.
@@ -54,6 +72,7 @@ final ResultDescriptor<List<Source>> INCLUDED_PARTS =
 final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
         'PARSE_ERRORS',
+        AnalysisError.NO_ERRORS,
         contributesTo: ANALYSIS_ERRORS);
 
 /**
@@ -64,7 +83,7 @@ final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
  * The result is only available for targets representing a Dart compilation unit.
  */
 final ResultDescriptor<CompilationUnit> PARSED_UNIT =
-    new ResultDescriptor<CompilationUnit>('PARSED_UNIT');
+    new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null);
 
 /**
  * The errors produced while scanning a compilation unit.
@@ -76,6 +95,7 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
 final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
         'SCAN_ERRORS',
+        AnalysisError.NO_ERRORS,
         contributesTo: ANALYSIS_ERRORS);
 
 /**
@@ -87,4 +107,4 @@ final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
  * The result is only available for targets representing a Dart compilation unit.
  */
 final ResultDescriptor<Token> TOKEN_STREAM =
-    new ResultDescriptor<Token>('TOKEN_STREAM');
+    new ResultDescriptor<Token>('TOKEN_STREAM', null);

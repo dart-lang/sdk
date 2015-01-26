@@ -5,25 +5,24 @@
 library analyzer.src.task.general;
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-
-/**
- * The description of the task used to get the content of a source.
- */
-final TaskDescriptor GET_CONTENT = new TaskDescriptor(
-    'GET_CONTENT',
-    GetContentTask.createTask,
-    GetContentTask.buildInputs,
-    <ResultDescriptor>[CONTENT, MODIFICATION_TIME]);
 
 /**
  * A task that gets the contents of the source associated with an analysis
  * target.
  */
 class GetContentTask extends AnalysisTask {
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'GET_CONTENT',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[CONTENT, MODIFICATION_TIME]);
+
   /**
    * Initialize a newly created task to access the content of the source
    * associated with the given [target] in the given [context].
@@ -41,12 +40,12 @@ class GetContentTask extends AnalysisTask {
   }
 
   @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
   internalPerform() {
-    Source source = target.source;
-    if (source == null) {
-      throw new AnalysisException(
-          "Could not get contents: no source associated with the target");
-    }
+    Source source = getRequiredSource();
+
     TimestampedData<String> data = context.getContents(source);
     outputs[CONTENT] = data.data;
     outputs[MODIFICATION_TIME] = data.modificationTime;

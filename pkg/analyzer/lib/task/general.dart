@@ -26,22 +26,22 @@ final ContributionPoint<List<AnalysisError>> ANALYSIS_ERRORS =
  * The contents of a single file.
  */
 final ResultDescriptor<String> CONTENT =
-    new ResultDescriptor<String>('CONTENT');
+    new ResultDescriptor<String>('CONTENT', null);
 
 /**
  * The line information for a single file.
  */
 final ResultDescriptor<LineInfo> LINE_INFO =
-    new ResultDescriptor<LineInfo>('LINE_INFO');
+    new ResultDescriptor<LineInfo>('LINE_INFO', null);
 
 /**
  * The modification time of a file.
  */
 final ResultDescriptor<int> MODIFICATION_TIME =
-    new ResultDescriptor<int>('MODIFICATION_TIME');
+    new ResultDescriptor<int>('MODIFICATION_TIME', -1);
 
 /**
  * The kind of a [Source].
  */
 final ResultDescriptor<SourceKind> SOURCE_KIND =
-    new ResultDescriptor<SourceKind>('SOURCE_KIND');
+    new ResultDescriptor<SourceKind>('SOURCE_KIND', SourceKind.UNKNOWN);

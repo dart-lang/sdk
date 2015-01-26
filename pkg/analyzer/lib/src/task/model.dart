@@ -21,7 +21,7 @@ class ContributionPointImpl<V> extends ResultDescriptorImpl<V> implements
   /**
    * Initialize a newly created contribution point to have the given [name].
    */
-  ContributionPointImpl(String name) : super(name);
+  ContributionPointImpl(String name) : super(name, null);
 
   /**
    * Record that the given analysis [result] contibutes to this result.
@@ -41,10 +41,17 @@ class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
   final String name;
 
   /**
-   * Initialize a newly created analysis result to have the given [name]. If a
-   * contribution point is specified, then this result will contribute to it.
+   * Return the default value for results described by this descriptor.
    */
-  ResultDescriptorImpl(this.name, {ContributionPoint contributesTo}) {
+  final V defaultValue;
+
+  /**
+   * Initialize a newly created analysis result to have the given [name] and
+   * [defaultValue]. If a contribution point is specified, then this result will
+   * contribute to it.
+   */
+  ResultDescriptorImpl(this.name, this.defaultValue,
+      {ContributionPoint contributesTo}) {
     if (contributesTo is ContributionPointImpl) {
       contributesTo.recordContributor(this);
     }

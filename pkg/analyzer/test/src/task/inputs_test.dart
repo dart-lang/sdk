@@ -25,10 +25,13 @@ main() {
 @reflectiveTest
 class ListBasedTaskInputBuilderTest extends EngineTestCase {
   static final SourceTarget target1 = new SourceTarget(null);
-  static final ResultDescriptorImpl result1 = new ResultDescriptorImpl('result1');
-  static final ResultDescriptorImpl result2 = new ResultDescriptorImpl('result2');
-  static final ListBasedTaskInput input =
-      new ListBasedTaskInput(result1.inputFor(target1), (element) => result2.inputFor(element));
+  static final ResultDescriptorImpl result1 =
+      new ResultDescriptorImpl('result1', null);
+  static final ResultDescriptorImpl result2 =
+      new ResultDescriptorImpl('result2', null);
+  static final ListBasedTaskInput input = new ListBasedTaskInput(
+      result1.inputFor(target1),
+      (element) => result2.inputFor(element));
 
   test_create() {
     ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
@@ -137,7 +140,8 @@ class ListBasedTaskInputBuilderTest extends EngineTestCase {
 @reflectiveTest
 class ListBasedTaskInputTest extends EngineTestCase {
   static final SourceTarget target = new SourceTarget(null);
-  static final ResultDescriptorImpl result = new ResultDescriptorImpl('result');
+  static final ResultDescriptorImpl result =
+      new ResultDescriptorImpl('result', null);
 
   test_create() {
     SimpleTaskInput baseAccessor = result.inputFor(target);
@@ -159,7 +163,8 @@ class ListBasedTaskInputTest extends EngineTestCase {
 @reflectiveTest
 class SimpleTaskInputBuilderTest extends EngineTestCase {
   static final SourceTarget target = new SourceTarget(null);
-  static final ResultDescriptorImpl result = new ResultDescriptorImpl('result');
+  static final ResultDescriptorImpl result =
+      new ResultDescriptorImpl('result', null);
   static final SimpleTaskInput input = new SimpleTaskInput(target, result);
 
   test_create() {
@@ -257,7 +262,8 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
 @reflectiveTest
 class SimpleTaskInputTest extends EngineTestCase {
   static final SourceTarget target = new SourceTarget(null);
-  static final ResultDescriptorImpl result = new ResultDescriptorImpl('result');
+  static final ResultDescriptorImpl result =
+      new ResultDescriptorImpl('result', null);
 
   test_create() {
     SimpleTaskInput input = new SimpleTaskInput(target, result);
@@ -275,28 +281,38 @@ class SimpleTaskInputTest extends EngineTestCase {
 @reflectiveTest
 class TopLevelTaskInputBuilderTest extends EngineTestCase {
   static final SourceTarget target = new SourceTarget(null);
-  static final ResultDescriptorImpl result1 = new ResultDescriptorImpl('result1');
-  static final ResultDescriptorImpl result2 = new ResultDescriptorImpl('result2');
+  static final ResultDescriptorImpl result1 =
+      new ResultDescriptorImpl('result1', null);
+  static final ResultDescriptorImpl result2 =
+      new ResultDescriptorImpl('result2', null);
   static final SimpleTaskInput input1 = new SimpleTaskInput(target, result1);
   static final SimpleTaskInput input2 = new SimpleTaskInput(target, result2);
 
   test_create() {
     Map<String, TaskInput> inputDescriptors = {};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     expect(builder, isNotNull);
     expect(builder.inputDescriptors, inputDescriptors);
   }
 
   test_currentResult_afterOneMoveNext() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1, 'two' : input2};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1,
+      'two': input2
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     expect(builder.currentResult, result1);
   }
 
   test_currentResult_afterComplete() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     builder.currentValue = 'value1';
     builder.moveNext();
@@ -305,20 +321,27 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
 
   test_currentResult_beforeMoveNext() {
     Map<String, TaskInput> inputDescriptors = {};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     expect(builder.currentResult, null);
   }
 
   test_currentTarget_afterOneMoveNext() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     expect(builder.currentTarget, target);
   }
 
   test_currentTarget_afterComplete() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     builder.currentValue = 'value1';
     builder.moveNext();
@@ -327,28 +350,38 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
 
   test_currentTarget_beforeMoveNext() {
     Map<String, TaskInput> inputDescriptors = {};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     expect(builder.currentTarget, null);
   }
 
   test_currentValue_afterOneMoveNext() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     builder.currentValue = 'value1';
   }
 
   test_currentValue_beforeMoveNext() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     expect(() {
       builder.currentValue = 'value1';
     }, throwsStateError);
   }
 
   test_inputValue_afterOneMoveNext() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     expect(() => builder.inputValue, throwsStateError);
   }
@@ -358,8 +391,12 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
     String key2 = 'two';
     String value1 = 'value1';
     String value2 = 'value2';
-    Map<String, TaskInput> inputDescriptors = {key1 : input1, key2 : input2};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      key1: input1,
+      key2: input2
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext(); // Advance to requesting result1 for target
     builder.currentValue = value1;
     builder.moveNext(); // Advance to requesting result2 for target
@@ -375,20 +412,27 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
 
   test_inputValue_beforeMoveNext() {
     Map<String, TaskInput> inputDescriptors = {};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     expect(() => builder.inputValue, throwsStateError);
   }
 
   test_moveNext_withoutSet() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     expect(builder.moveNext(), true);
     expect(() => builder.moveNext(), throwsStateError);
   }
 
   test_moveNext_withSet() {
-    Map<String, TaskInput> inputDescriptors = {'one' : input1};
-    TopLevelTaskInputBuilder builder = new TopLevelTaskInputBuilder(inputDescriptors);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
     expect(builder.moveNext(), true);
     builder.currentValue = 'value1';
     expect(builder.moveNext(), false);

@@ -5,9 +5,7 @@
 library test.src.task.manager_test;
 
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/targets.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
@@ -22,58 +20,65 @@ main() {
 
 @reflectiveTest
 class TaskManagerTest extends EngineTestCase {
-  static final ResultDescriptor result1 = new ResultDescriptor('result1');
-  static final ResultDescriptor result2 = new ResultDescriptor('result2');
+  static final ResultDescriptor result1 = new ResultDescriptor('result1', null);
+  static final ResultDescriptor result2 = new ResultDescriptor('result2', null);
 
-  void test_create() {
-    TaskManager manager = new TaskManager();
-    expect(manager, isNotNull);
-    expect(manager.generalResults, isEmpty);
-    expect(manager.priorityResults, isEmpty);
-  }
-
-  void test_addGeneralResult() {
+  test_addGeneralResult() {
     TaskManager manager = new TaskManager();
     manager.addGeneralResult(result1);
     Set<ResultDescriptor> results = manager.generalResults;
     expect(results, unorderedEquals([result1]));
   }
 
-  void test_addPriorityResult() {
+  test_addPriorityResult() {
     TaskManager manager = new TaskManager();
     manager.addPriorityResult(result1);
     Set<ResultDescriptor> results = manager.priorityResults;
     expect(results, unorderedEquals([result1]));
   }
 
-  void test_addTaskDescriptor() {
+  test_addTaskDescriptor() {
     TaskManager manager = new TaskManager();
-    TaskDescriptor descriptor = new TaskDescriptor('task', null, null, [result1]);
+    TaskDescriptor descriptor =
+        new TaskDescriptor('task', null, null, [result1]);
     manager.addTaskDescriptor(descriptor);
     expect(manager.taskMap.length, 1);
   }
 
-  void test_findTask_empty() {
+  test_constructor() {
     TaskManager manager = new TaskManager();
-    AnalysisTarget target = new SourceTarget(null);
-    expect(() => manager.findTask(target, result1), throwsA(new isInstanceOf<AnalysisException>()));
+    expect(manager, isNotNull);
+    expect(manager.generalResults, isEmpty);
+    expect(manager.priorityResults, isEmpty);
   }
 
-  void test_findTask_defined() {
+  test_findTask_defined() {
     TaskManager manager = new TaskManager();
-    TaskDescriptor descriptor = new TaskDescriptor('task', null, null, [result1]);
+    TaskDescriptor descriptor =
+        new TaskDescriptor('task', null, null, [result1]);
     manager.addTaskDescriptor(descriptor);
     AnalysisTarget target = new SourceTarget(null);
     expect(manager.findTask(target, result1), descriptor);
   }
 
-  void test_findTask_multiple() {
+  test_findTask_empty() {
     TaskManager manager = new TaskManager();
-    TaskDescriptor descriptor1 = new TaskDescriptor('task1', null, null, [result1]);
+    AnalysisTarget target = new SourceTarget(null);
+    expect(
+        () => manager.findTask(target, result1),
+        throwsA(new isInstanceOf<AnalysisException>()));
+  }
+
+  test_findTask_multiple() {
+    TaskManager manager = new TaskManager();
+    TaskDescriptor descriptor1 =
+        new TaskDescriptor('task1', null, null, [result1]);
     manager.addTaskDescriptor(descriptor1);
-    TaskDescriptor descriptor2 = new TaskDescriptor('task2', null, null, [result1]);
+    TaskDescriptor descriptor2 =
+        new TaskDescriptor('task2', null, null, [result1]);
     manager.addTaskDescriptor(descriptor2);
-    TaskDescriptor descriptor3 = new TaskDescriptor('task3', null, null, [result2]);
+    TaskDescriptor descriptor3 =
+        new TaskDescriptor('task3', null, null, [result2]);
     manager.addTaskDescriptor(descriptor3);
 
     AnalysisTarget target = new SourceTarget(null);
@@ -81,22 +86,25 @@ class TaskManagerTest extends EngineTestCase {
     expect(task == descriptor1 || task == descriptor2, true);
   }
 
-  void test_findTask_undefined() {
+  test_findTask_undefined() {
     TaskManager manager = new TaskManager();
-    TaskDescriptor descriptor = new TaskDescriptor('task', null, null, [result1]);
+    TaskDescriptor descriptor =
+        new TaskDescriptor('task', null, null, [result1]);
     manager.addTaskDescriptor(descriptor);
     AnalysisTarget target = new SourceTarget(null);
-    expect(() => manager.findTask(target, result2), throwsA(new isInstanceOf<AnalysisException>()));
+    expect(
+        () => manager.findTask(target, result2),
+        throwsA(new isInstanceOf<AnalysisException>()));
   }
 
-  void test_removeGeneralResult_absent() {
+  test_removeGeneralResult_absent() {
     TaskManager manager = new TaskManager();
     manager.addGeneralResult(result1);
     Set<ResultDescriptor> results = manager.generalResults;
     expect(results, unorderedEquals([result1]));
   }
 
-  void test_removeGeneralResult_present() {
+  test_removeGeneralResult_present() {
     TaskManager manager = new TaskManager();
     manager.addGeneralResult(result1);
     manager.addGeneralResult(result2);
@@ -106,7 +114,7 @@ class TaskManagerTest extends EngineTestCase {
     expect(results, unorderedEquals([result2]));
   }
 
-  void test_removePriorityResult_absent() {
+  test_removePriorityResult_absent() {
     TaskManager manager = new TaskManager();
     manager.addPriorityResult(result1);
     manager.removePriorityResult(result2);
@@ -114,7 +122,7 @@ class TaskManagerTest extends EngineTestCase {
     expect(results, unorderedEquals([result1]));
   }
 
-  void test_removePriorityResult_present() {
+  test_removePriorityResult_present() {
     TaskManager manager = new TaskManager();
     manager.addPriorityResult(result1);
     manager.addPriorityResult(result2);

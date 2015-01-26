@@ -5,6 +5,8 @@
 library test.src.task.model_test;
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/targets.dart';
 import 'package:analyzer/task/model.dart';
@@ -16,9 +18,50 @@ import 'test_support.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(AnalysisTaskTest);
   runReflectiveTests(ContributionPointImplTest);
   runReflectiveTests(ResultDescriptorImplTest);
   runReflectiveTests(TaskDescriptorImplTest);
+}
+
+@reflectiveTest
+class AnalysisTaskTest extends EngineTestCase {
+  test_getRequiredInput_missingKey() {
+    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTask task = new TestAnalysisTask(null, target);
+    task.inputs = {
+      'a': 'b'
+    };
+    expect(
+        () => task.getRequiredInput('c'),
+        throwsA(new isInstanceOf<AnalysisException>()));
+  }
+
+  test_getRequiredInput_noInputs() {
+    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTask task = new TestAnalysisTask(null, target);
+    expect(
+        () => task.getRequiredInput('x'),
+        throwsA(new isInstanceOf<AnalysisException>()));
+  }
+
+  test_getRequiredInput_valid() {
+    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTask task = new TestAnalysisTask(null, target);
+    String key = 'a';
+    String value = 'b';
+    task.inputs = {
+      key: value
+    };
+    expect(task.getRequiredInput(key), value);
+  }
+
+  test_getRequiredSource() {
+    Source source = new TestSource();
+    SourceTarget target = new SourceTarget(source);
+    AnalysisTask task = new TestAnalysisTask(null, target);
+    expect(task.getRequiredSource(), source);
+  }
 }
 
 @reflectiveTest
@@ -30,8 +73,8 @@ class ContributionPointImplTest extends EngineTestCase {
   }
 
   test_contributors_nonEmpty() {
-    ResultDescriptorImpl result1 = new ResultDescriptorImpl('result1');
-    ResultDescriptorImpl result2 = new ResultDescriptorImpl('result2');
+    ResultDescriptorImpl result1 = new ResultDescriptorImpl('result1', null);
+    ResultDescriptorImpl result2 = new ResultDescriptorImpl('result2', null);
     ContributionPointImpl point = new ContributionPointImpl('point');
     point.recordContributor(result1);
     point.recordContributor(result2);
@@ -60,26 +103,26 @@ class ResultDescriptorImplTest extends EngineTestCase {
   test_create_withContribution() {
     ContributionPointImpl point = new ContributionPointImpl('point');
     ResultDescriptorImpl result =
-        new ResultDescriptorImpl('result', contributesTo: point);
+        new ResultDescriptorImpl('result', null, contributesTo: point);
     expect(result, isNotNull);
     List<ResultDescriptor> contributors = point.contributors;
     expect(contributors, unorderedEquals([result]));
   }
 
   test_create_withoutContribution() {
-    expect(new ResultDescriptorImpl('name'), isNotNull);
+    expect(new ResultDescriptorImpl('name', null), isNotNull);
   }
 
   test_inputFor() {
     SourceTarget target = new SourceTarget(null);
-    ResultDescriptorImpl result = new ResultDescriptorImpl('result');
+    ResultDescriptorImpl result = new ResultDescriptorImpl('result', null);
     TaskInput input = result.inputFor(target);
     expect(input, isNotNull);
   }
 
   test_name() {
     String name = 'result';
-    ResultDescriptorImpl result = new ResultDescriptorImpl(name);
+    ResultDescriptorImpl result = new ResultDescriptorImpl(name, null);
     expect(result.name, name);
   }
 }
@@ -91,7 +134,8 @@ class TaskDescriptorImplTest extends EngineTestCase {
     BuildTask buildTask = (context, target) {};
     CreateTaskInputs createTaskInputs = (target) {};
     List<ResultDescriptor> results = <ResultDescriptor>[];
-    TaskDescriptorImpl descriptor = new TaskDescriptorImpl(name, buildTask, createTaskInputs, results);
+    TaskDescriptorImpl descriptor =
+        new TaskDescriptorImpl(name, buildTask, createTaskInputs, results);
     expect(descriptor, isNotNull);
     expect(descriptor.name, name);
     expect(descriptor.buildTask, equals(buildTask));
@@ -100,10 +144,12 @@ class TaskDescriptorImplTest extends EngineTestCase {
   }
 
   test_createTask() {
-    BuildTask buildTask = (context, target) => new TestAnalysisTask(context, target);
+    BuildTask buildTask =
+        (context, target) => new TestAnalysisTask(context, target);
     CreateTaskInputs createTaskInputs = (target) {};
     List<ResultDescriptor> results = <ResultDescriptor>[];
-    TaskDescriptorImpl descriptor = new TaskDescriptorImpl('name', buildTask, createTaskInputs, results);
+    TaskDescriptorImpl descriptor =
+        new TaskDescriptorImpl('name', buildTask, createTaskInputs, results);
     AnalysisContext context = null;
     SourceTarget target = new SourceTarget(null);
     Map<String, dynamic> inputs = {};

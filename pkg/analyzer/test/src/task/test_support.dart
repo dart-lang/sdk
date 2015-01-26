@@ -8,10 +8,14 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/task/model.dart';
 
 class TestAnalysisTask extends AnalysisTask {
-  TestAnalysisTask(AnalysisContext context, AnalysisTarget target) : super(context, target);
+  TestAnalysisTask(AnalysisContext context, AnalysisTarget target)
+      : super(context, target);
 
   @override
   String get description => 'Test task';
+
+  @override
+  TaskDescriptor get descriptor => null;
 
   @override
   internalPerform() {

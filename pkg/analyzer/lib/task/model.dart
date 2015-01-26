@@ -95,6 +95,34 @@ abstract class AnalysisTask {
   String get description;
 
   /**
+   * Return the descriptor that describes this task.
+   */
+  TaskDescriptor get descriptor;
+
+  /**
+   * Return the value of the input with the given [name]. Throw an exception if
+   * the input value is not defined.
+   */
+  Object getRequiredInput(String name) {
+    if (inputs == null || !inputs.containsKey(name)) {
+      throw new AnalysisException("Could not $description: missing $name");
+    }
+    return inputs[name];
+  }
+
+  /**
+   * Return the source associated with the target. Throw an exception if
+   * the target is not associated with a source.
+   */
+  Source getRequiredSource() {
+    Source source = target.source;
+    if (source == null) {
+      throw new AnalysisException("Could not $description: missing source");
+    }
+    return source;
+  }
+
+  /**
    * Perform this analysis task, protected by an exception handler.
    *
    * This method should throw an [AnalysisException] if an exception occurs
@@ -188,8 +216,13 @@ abstract class ResultDescriptor<V> {
    * Initialize a newly created analysis result to have the given [name]. If a
    * contribution point is specified, then this result will contribute to it.
    */
-  factory ResultDescriptor(String name, {ContributionPoint<V> contributesTo}) =
-      ResultDescriptorImpl;
+  factory ResultDescriptor(String name, V defaultValue,
+      {ContributionPoint<V> contributesTo}) = ResultDescriptorImpl;
+
+  /**
+   * Return the default value for results described by this descriptor.
+   */
+  V get defaultValue;
 
   /**
    * Return a task input that can be used to compute this result for the given
