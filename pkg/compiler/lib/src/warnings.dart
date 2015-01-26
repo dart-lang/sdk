@@ -40,7 +40,7 @@ const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
  *
  * 8. Do not try to be cute or funny. It is extremely frustrating to work on a
  * product that crashes with a "tongue-in-cheek" message, especially if you did
- * not want to use this product to begin with with.
+ * not want to use this product to begin with.
  *
  * 9. Do not lie, that is, do not write error messages containing phrases like
  * "can't happen".  If the user ever saw this message, it would be a
