@@ -9,6 +9,7 @@
 library crypto;
 
 import 'dart:math';
+import 'dart:typed_data';
 
 part 'src/crypto_utils.dart';
 part 'src/hash_utils.dart';

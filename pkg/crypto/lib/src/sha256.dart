@@ -8,10 +8,10 @@ part of crypto;
  * SHA256 hash function implementation.
  */
 class SHA256 extends _HashBase {
-  final List<int> _w;
+  final Uint32List _w;
 
   // Construct a SHA256 hasher object.
-  SHA256() : _w = new List(64), super(16, 8, true) {
+  SHA256() : _w = new Uint32List(64), super(16, 8, true) {
     // Initial value of the hash parts. First 32 bits of the fractional parts
     // of the square roots of the first 8 prime numbers.
     _h[0] = 0x6a09e667;
@@ -57,7 +57,7 @@ class SHA256 extends _HashBase {
 
   // Compute one iteration of the SHA256 algorithm with a chunk of
   // 16 32-bit pieces.
-  void _updateHash(List<int> M) {
+  void _updateHash(Uint32List M) {
     assert(M.length == 16);
 
     // Prepare message schedule.

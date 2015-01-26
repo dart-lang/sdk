@@ -44,7 +44,7 @@ class MD5 extends _HashBase {
 
   // Compute one iteration of the MD5 algorithm with a chunk of
   // 16 32-bit pieces.
-  void _updateHash(List<int> m) {
+  void _updateHash(Uint32List m) {
     assert(m.length == 16);
 
     var a = _h[0];
