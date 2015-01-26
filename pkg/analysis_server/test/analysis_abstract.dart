@@ -258,10 +258,9 @@ class AbstractAnalysisTest {
   }
 
   /**
-   * Returns a [Future] that completes when the [AnalysisServer] finishes
-   * all its scheduled tasks.
+   * Returns a [Future] that completes when the server's analysis is complete.
    */
   Future waitForTasksFinished() {
-    return waitForServerOperationsPerformed(server);
+    return server.onAnalysisComplete;
   }
 }

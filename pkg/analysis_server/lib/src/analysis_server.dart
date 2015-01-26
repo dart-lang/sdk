@@ -172,14 +172,14 @@ class AnalysisServer {
   bool _noErrorNotification;
 
   /**
+   * The [Completer] that completes when analysis is complete.
+   */
+  Completer _onAnalysisCompleteCompleter;
+
+  /**
    * The controller that is notified when analysis is started.
    */
   StreamController<AnalysisContext> _onAnalysisStartedController;
-
-  /**
-   * The controller that is notified when analysis is complete.
-   */
-  StreamController _onAnalysisCompleteController;
 
   /**
    * The controller that is notified when a single file has been analyzed.
@@ -231,7 +231,6 @@ class AnalysisServer {
     _noErrorNotification = analysisServerOptions.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
-    _onAnalysisCompleteController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
     _onPriorityChangeController =
         new StreamController<PriorityChangeEvent>.broadcast();
@@ -242,9 +241,17 @@ class AnalysisServer {
   }
 
   /**
-   * The stream that is notified when analysis is complete.
+   * The [Future] that completes when analysis is complete.
    */
-  Stream get onAnalysisComplete => _onAnalysisCompleteController.stream;
+  Future get onAnalysisComplete {
+    if (isAnalysisComplete()) {
+      return new Future.value();
+    }
+    if (_onAnalysisCompleteCompleter == null) {
+      _onAnalysisCompleteCompleter = new Completer();
+    }
+    return _onAnalysisCompleteCompleter.future;
+  }
 
   /**
    * The stream that is notified when analysis of a context is started.
@@ -632,7 +639,10 @@ class AnalysisServer {
         _schedulePerformOperation();
       } else {
         sendStatusNotification(null);
-        _onAnalysisCompleteController.add(null);
+        if (_onAnalysisCompleteCompleter != null) {
+          _onAnalysisCompleteCompleter.complete();
+          _onAnalysisCompleteCompleter = null;
+        }
       }
     }
   }

@@ -357,11 +357,22 @@ class _RefactoringManager {
   }
 
   /**
-   * Initializes this context to perform a refactoring with the specified
-   * parameters. The existing [Refactoring] is reused or created as needed.
+   * Awaits for analysis to complete and then calls [_init2] to actually
+   * initialize the resfactoring.
    */
   Future<RefactoringStatus> _init(RefactoringKind kind, String file, int offset,
       int length) {
+    return server.onAnalysisComplete.then((_) {
+      return _init2(kind, file, offset, length);
+    });
+  }
+
+  /**
+   * Initializes this context to perform a refactoring with the specified
+   * parameters. The existing [Refactoring] is reused or created as needed.
+   */
+  Future<RefactoringStatus> _init2(RefactoringKind kind, String file,
+      int offset, int length) {
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&

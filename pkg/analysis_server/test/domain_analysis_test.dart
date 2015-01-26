@@ -68,7 +68,7 @@ main() {
           expect(response, isResponseSuccess('0'));
           // unit "a" is resolved eventually
           // unit "b" is not resolved
-          return waitForServerOperationsPerformed(server).then((_) {
+          return server.onAnalysisComplete.then((_) {
             expect(serverRef.getResolvedCompilationUnits(fileA), hasLength(1));
             expect(serverRef.getResolvedCompilationUnits(fileB), isEmpty);
           });
@@ -84,7 +84,7 @@ main() {
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
-          return waitForServerOperationsPerformed(server).then((_) {
+          return server.onAnalysisComplete.then((_) {
             var units = serverRef.getResolvedCompilationUnits(file);
             expect(units, hasLength(1));
           });
@@ -163,7 +163,7 @@ void test_setSubscriptions() {
     // create project
     helper.createSingleFileProject('int V = 42;');
     // wait, there are highlight regions
-    helper.waitForOperationsFinished().then((_) {
+    helper.onAnalysisComplete.then((_) {
       var highlights = helper.getHighlights(helper.testFile);
       expect(highlights, isNotEmpty);
     });
@@ -174,13 +174,13 @@ void test_setSubscriptions() {
     // create project
     helper.createSingleFileProject('int V = 42;');
     // wait, no regions initially
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       var highlights = helper.getHighlights(helper.testFile);
       expect(highlights, isEmpty);
       // subscribe
       helper.addAnalysisSubscriptionHighlights(helper.testFile);
       // wait, has regions
-      return helper.waitForOperationsFinished().then((_) {
+      return helper.onAnalysisComplete.then((_) {
         var highlights = helper.getHighlights(helper.testFile);
         expect(highlights, isNotEmpty);
       });
@@ -190,10 +190,10 @@ void test_setSubscriptions() {
   test('after analysis, no such file', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('int V = 42;');
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       String noFile = '/no-such-file.dart';
       helper.addAnalysisSubscriptionHighlights(noFile);
-      return helper.waitForOperationsFinished().then((_) {
+      return helper.onAnalysisComplete.then((_) {
         var highlights = helper.getHighlights(noFile);
         expect(highlights, isEmpty);
       });
@@ -207,10 +207,10 @@ main() {
   print(42);
 }
 ''');
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       String file = '/lib/core/core.dart';
       helper.addAnalysisSubscriptionNavigation(file);
-      return helper.waitForOperationsFinished().then((_) {
+      return helper.onAnalysisComplete.then((_) {
         var navigationRegions = helper.getNavigation(file);
         expect(navigationRegions, isNotEmpty);
       });
@@ -223,7 +223,7 @@ testUpdateContent() {
   test('bad type', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       Request request = new Request('0', ANALYSIS_UPDATE_CONTENT, {
         'files': {
           helper.testFile: {
@@ -239,14 +239,14 @@ testUpdateContent() {
   test('full content', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       // no errors initially
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
       // update code
       helper.sendContentChange(new AddContentOverlay('library lib'));
       // wait, there is an error
-      return helper.waitForOperationsFinished().then((_) {
+      return helper.onAnalysisComplete.then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
         expect(errors, hasLength(1));
       });
@@ -257,7 +257,7 @@ testUpdateContent() {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     String initialContent = 'library A;';
     helper.createSingleFileProject(initialContent);
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       // no errors initially
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
@@ -268,7 +268,7 @@ testUpdateContent() {
           new ChangeContentOverlay(
               [new SourceEdit('library '.length, 'A;'.length, 'lib')]));
       // wait, there is an error
-      return helper.waitForOperationsFinished().then((_) {
+      return helper.onAnalysisComplete.then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
         expect(errors, hasLength(1));
       });
@@ -278,14 +278,14 @@ testUpdateContent() {
   test('change on disk, normal', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       // There should be no errors
       expect(helper.getTestErrors(), hasLength(0));
       // Change file on disk, adding a syntax error.
       helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
       // There should be errors now.
       return pumpEventQueue().then((_) {
-        return helper.waitForOperationsFinished().then((_) {
+        return helper.onAnalysisComplete.then((_) {
           expect(helper.getTestErrors(), hasLength(1));
         });
       });
@@ -295,22 +295,22 @@ testUpdateContent() {
   test('change on disk, during override', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
-    return helper.waitForOperationsFinished().then((_) {
+    return helper.onAnalysisComplete.then((_) {
       // update code
       helper.sendContentChange(new AddContentOverlay('library B;'));
       // There should be no errors
-      return helper.waitForOperationsFinished().then((_) {
+      return helper.onAnalysisComplete.then((_) {
         expect(helper.getTestErrors(), hasLength(0));
         // Change file on disk, adding a syntax error.
         helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
         // There should still be no errors (file should not have been reread).
-        return helper.waitForOperationsFinished().then((_) {
+        return helper.onAnalysisComplete.then((_) {
           expect(helper.getTestErrors(), hasLength(0));
           // Send a content change with a null content param--file should be
           // reread from disk.
           helper.sendContentChange(new RemoveContentOverlay());
           // There should be errors now.
-          return helper.waitForOperationsFinished().then((_) {
+          return helper.onAnalysisComplete.then((_) {
             expect(helper.getTestErrors(), hasLength(1));
           });
         });
@@ -322,9 +322,9 @@ testUpdateContent() {
     Future outOfRangeTest(SourceEdit edit) {
       AnalysisTestHelper helper = new AnalysisTestHelper();
       helper.createSingleFileProject('library A;');
-      return helper.waitForOperationsFinished().then((_) {
+      return helper.onAnalysisComplete.then((_) {
         helper.sendContentChange(new AddContentOverlay('library B;'));
-        return helper.waitForOperationsFinished().then((_) {
+        return helper.onAnalysisComplete.then((_) {
           ChangeContentOverlay contentChange = new ChangeContentOverlay([edit]);
           Request request = new AnalysisUpdateContentParams({
             helper.testFile: contentChange
@@ -473,6 +473,13 @@ class AnalysisTestHelper {
     });
   }
 
+  /**
+   * Returns a [Future] that completes when the server's analysis is complete.
+   */
+  Future get onAnalysisComplete {
+    return server.onAnalysisComplete;
+  }
+
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
@@ -616,14 +623,6 @@ class AnalysisTestHelper {
    */
   void stopServer() {
     server.done();
-  }
-
-  /**
-   * Returns a [Future] that completes when this this helper finished all its
-   * scheduled tasks.
-   */
-  Future waitForOperationsFinished() {
-    return waitForServerOperationsPerformed(server);
   }
 
   static String _getCodeString(code) {
