@@ -161,7 +161,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'OscillatorNode': 'OscillatorNode,Oscillator',
 
-    'PannerNode': 'PannerNode,AudioPannerNode',
+    'PannerNode': 'PannerNode,AudioPannerNode,webkitAudioPannerNode',
 
     'RTCPeerConnection': 'RTCPeerConnection,mozRTCPeerConnection',
 

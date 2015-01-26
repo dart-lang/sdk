@@ -885,7 +885,7 @@ class OscillatorNode extends AudioSourceNode {
 @DomName('PannerNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#PannerNode
 @Experimental()
-@Native("PannerNode,AudioPannerNode")
+@Native("PannerNode,AudioPannerNode,webkitAudioPannerNode")
 class PannerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory PannerNode._() { throw new UnsupportedError("Not supported"); }
