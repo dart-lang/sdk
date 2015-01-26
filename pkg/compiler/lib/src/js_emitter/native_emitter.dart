@@ -43,7 +43,10 @@ class NativeEmitter {
   }
 
   /**
-   * Writes code to associate dispatch tags with interceptors to [nativeBuffer].
+   * Prepares native classes for emission. Returns the reduced list of classes.
+   *
+   * Removes trivial classes (that can be represented by a super type) and
+   * generates properties that have to be added to classes (native or not).
    *
    * The interceptors are filtered to avoid emitting trivial interceptors.  For
    * example, if the program contains no code that can distinguish between the
@@ -57,22 +60,21 @@ class NativeEmitter {
    * improves performance when more classes can be treated as leaves.
    *
    * [classes] contains native classes, mixin applications, and user subclasses
-   * of native classes.  ONLY the native classes are generated here.  [classes]
-   * is sorted in desired output order.
+   * of native classes.  *Only* the native classes are returned. The order of
+   * the returned classes is unchanged. (That is, the returned output might
+   * just have classes removed).
    *
    * [allAdditionalProperties] is used to collect properties that are pushed up
    * from the above optimizations onto a non-native class, e.g, `Interceptor`.
    */
-  void generateNativeClasses(
+  List<Class> prepareNativeClasses(
       List<Class> classes,
       Map<Class, Map<String, jsAst.Expression>> allAdditionalProperties) {
     // Compute a pre-order traversal of the subclass forest.  We actually want a
     // post-order traversal but it is easier to compute the pre-order and use it
     // in reverse.
 
-    if (classes.isNotEmpty) {
-      hasNativeClasses = true;
-    }
+    hasNativeClasses = classes.isNotEmpty;
 
     List<Class> preOrder = <Class>[];
     Set<Class> seen = new Set<Class>();
@@ -221,21 +223,14 @@ class NativeEmitter {
       }
     }
 
-    // Emit the native class interceptors that were actually used.
-    for (Class cls in classes) {
-      assert(!cls.onlyForRti);
-      ClassElement classElement = cls.element;
-      if (!cls.isNative) continue;
-      if (neededClasses.contains(cls)) {
-        // TODO(sra): Issue #13731- this is commented out as part of custom
-        // element constructor work.
-        //assert(!classElement.hasBackendMembers);
+    // TODO(sra): Issue #13731- this is commented out as part of custom
+    // element constructor work.
+    // (floitsch: was run on every native class.)
+    //assert(!classElement.hasBackendMembers);
 
-        ClassBuilder enclosingBuilder =
-            emitterTask.oldEmitter.getElementDescriptor(classElement);
-        emitterTask.oldEmitter.emitClass(cls, enclosingBuilder);
-      }
-    }
+    return classes
+        .where((Class cls) => cls.isNative && neededClasses.contains(cls))
+        .toList();
   }
 
   /**

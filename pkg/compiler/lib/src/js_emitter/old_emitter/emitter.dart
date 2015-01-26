@@ -1775,8 +1775,15 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
     addComment('Native classes', nativeBuffer);
 
-    nativeEmitter.generateNativeClasses(program.nativeClasses,
-                                        additionalProperties);
+    List<Class> neededClasses =
+        nativeEmitter.prepareNativeClasses(program.nativeClasses,
+                                           additionalProperties);
+
+    for (Class cls in neededClasses) {
+      assert(cls.isNative);
+      ClassBuilder enclosingBuilder = getElementDescriptor(cls.element);
+      emitClass(cls, enclosingBuilder);
+    }
 
     nativeEmitter.finishGenerateNativeClasses();
     nativeEmitter.assembleCode(nativeBuffer);
