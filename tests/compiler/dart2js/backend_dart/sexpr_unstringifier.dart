@@ -119,7 +119,6 @@ class SExpressionUnstringifier {
   static const String DECLARE_FUNCTION = "DeclareFunction";
   static const String INVOKE_CONSTRUCTOR = "InvokeConstructor";
   static const String INVOKE_CONTINUATION = "InvokeContinuation";
-  static const String INVOKE_CONTINUATION_RECURSIVE = "InvokeContinuation*";
   static const String INVOKE_STATIC = "InvokeStatic";
   static const String INVOKE_METHOD_DIRECTLY = "InvokeMethodDirectly";
   static const String INVOKE_METHOD = "InvokeMethod";
@@ -220,9 +219,7 @@ class SExpressionUnstringifier {
       case INVOKE_CONSTRUCTOR:
         return parseInvokeConstructor();
       case INVOKE_CONTINUATION:
-        return parseInvokeContinuation(false);
-      case INVOKE_CONTINUATION_RECURSIVE:
-        return parseInvokeContinuation(true);
+        return parseInvokeContinuation();
       case INVOKE_METHOD:
         return parseInvokeMethod();
       case INVOKE_STATIC:
@@ -387,18 +384,20 @@ class SExpressionUnstringifier {
     return new InvokeConstructor(type, element, selector, cont, args);
   }
 
-  /// (InvokeContinuation name (args))
-  InvokeContinuation parseInvokeContinuation(bool recursive) {
-    tokens.consumeStart(recursive
-        ? INVOKE_CONTINUATION_RECURSIVE : INVOKE_CONTINUATION);
-
-    Continuation cont = name2variable[tokens.read()];
+  /// (InvokeContinuation rec? name (args))
+  InvokeContinuation parseInvokeContinuation() {
+    tokens.consumeStart(INVOKE_CONTINUATION);
+    String name = tokens.read();
+    bool isRecursive = name == "rec";
+    if (isRecursive) name = tokens.read();
+    
+    Continuation cont = name2variable[name];
     assert(cont != null);
 
     List<Primitive> args = parsePrimitiveList();
 
     tokens.consumeEnd();
-    return new InvokeContinuation(cont, args, recursive: recursive);
+    return new InvokeContinuation(cont, args, recursive: isRecursive);
   }
 
   /// (InvokeMethod receiver method (args) cont)
