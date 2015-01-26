@@ -182,8 +182,11 @@ class ElementCodec {
       if (library != null) {
         components = components.toList();
         components[0] = library.source.fullName;
-        if (element.enclosingElement is CompilationUnitElement) {
-          components[1] = library.definingCompilationUnit.source.fullName;
+        for (Element e = element; e != null; e = e.enclosingElement) {
+          if (e is CompilationUnitElement) {
+            components[1] = e.source.fullName;
+            break;
+          }
         }
       }
     }
