@@ -2371,7 +2371,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           ChangeNoticeImpl notice = _getNotice(source);
           notice.compilationUnit = unit;
-          notice.resolved = true;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -2456,7 +2455,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           ChangeNoticeImpl notice = _getNotice(source);
           notice.compilationUnit = unit;
-          notice.resolved = true;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -4629,7 +4627,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit != null) {
       ChangeNoticeImpl notice = _getNotice(task.source);
       notice.compilationUnit = unit;
-      notice.resolved = true;
       _incrementalAnalysisCache =
           IncrementalAnalysisCache.cacheResult(task.cache, unit);
     }
@@ -4691,8 +4688,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
     if (notice.compilationUnit == null) {
-      notice.compilationUnit = task.compilationUnit;
-      notice.resolved = false;
+      notice.parsedDartUnit = task.compilationUnit;
     }
     notice.setErrors(dartEntry.allErrors, task.lineInfo);
     // Verify that the incrementally parsed and resolved unit in the incremental
@@ -4772,7 +4768,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
     notice.htmlUnit = task.resolvedUnit;
-    notice.resolved = true;
     LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
@@ -5070,7 +5065,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       LineInfo lineInfo = getLineInfo(source);
       ChangeNoticeImpl notice = _getNotice(source);
       notice.compilationUnit = unit;
-      notice.resolved = true;
       notice.setErrors(dartEntry.allErrors, lineInfo);
     });
     // OK
@@ -7246,24 +7240,22 @@ class CacheState extends Enum<CacheState> {
  */
 abstract class ChangeNotice implements AnalysisErrorInfo {
   /**
-   * Return the AST that changed as a result of the analysis, or `null` if the
-   * AST was not changed. Use the getter [resolved] to determine whether the
-   * AST has been fully resolved.
+   * The fully resolved Dart AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
    */
   CompilationUnit get compilationUnit;
 
   /**
-   * Return the HTML that changed as a result of the analysis, or `null` if the
-   * HTML was not changed. Use the getter [resolved] to determine whether the
-   * HTML has been fully resolved.
+   * The fully resolved HTML AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
    */
   ht.HtmlUnit get htmlUnit;
 
   /**
-   * Return `true` if the [compilationUnit] or [htmlUnit] (whichever is
-   * currently set) has been resolved.
+   * The parsed, but maybe not resolved Dart AST that changed as a result of
+   * the analysis, or `null` if the AST was not changed.
    */
-  bool get resolved;
+  CompilationUnit get parsedDartUnit;
 
   /**
    * Return the source for which the result is being reported.
@@ -7286,24 +7278,22 @@ class ChangeNoticeImpl implements ChangeNotice {
   final Source source;
 
   /**
-   * The AST that changed as a result of the analysis, or `null` if the AST was
-   * not changed. Use the getter [resolved] to determine whether the AST has
-   * been fully resolved.
+   * The parsed, but maybe not resolved Dart AST that changed as a result of
+   * the analysis, or `null` if the AST was not changed.
+   */
+  CompilationUnit parsedDartUnit;
+
+  /**
+   * The fully resolved Dart AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
    */
   CompilationUnit compilationUnit;
 
   /**
-   * The HTML that changed as a result of the analysis, or `null` if the HTML
-   * was not changed. Use the getter [resolved] to determine whether the HTML
-   * has been fully resolved.
+   * The fully resolved HTML AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
    */
   ht.HtmlUnit htmlUnit;
-
-  /**
-   * A flag indicating whether the [compilationUnit] or [htmlUnit] (whichever is
-   * currently set) has been resolved.
-   */
-  bool resolved = false;
 
   /**
    * The errors that changed as a result of the analysis, or `null` if errors

@@ -174,43 +174,51 @@ class PerformAnalysisOperation extends ServerOperation {
       Source source = notice.source;
       String file = source.fullName;
       // Dart
-      CompilationUnit dartUnit = notice.compilationUnit;
-      if (dartUnit != null) {
-        if (notice.resolved) {
-          if (server.hasAnalysisSubscription(
-              protocol.AnalysisService.HIGHLIGHTS,
-              file)) {
-            server.addOperation(new _DartHighlightsOperation(file, dartUnit));
-          }
-          if (server.hasAnalysisSubscription(
-              protocol.AnalysisService.NAVIGATION,
-              file)) {
-            server.addOperation(new _DartNavigationOperation(file, dartUnit));
-          }
-          if (server.hasAnalysisSubscription(
-              protocol.AnalysisService.OCCURRENCES,
-              file)) {
-            server.addOperation(new _DartOccurrencesOperation(file, dartUnit));
-          }
-          if (server.hasAnalysisSubscription(
-              protocol.AnalysisService.OVERRIDES,
-              file)) {
-            server.addOperation(new _DartOverridesOperation(file, dartUnit));
-          }
-        } else {
-          if (server.hasAnalysisSubscription(
-              protocol.AnalysisService.OUTLINE,
-              file)) {
-            LineInfo lineInfo = notice.lineInfo;
-            server.addOperation(
-                new _DartOutlineOperation(file, lineInfo, dartUnit));
-          }
+      CompilationUnit parsedDartUnit = notice.parsedDartUnit;
+      CompilationUnit resolvedDartUnit = notice.compilationUnit;
+      CompilationUnit dartUnit =
+          resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
+      if (resolvedDartUnit != null) {
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.HIGHLIGHTS,
+            file)) {
+          server.addOperation(
+              new _DartHighlightsOperation(file, resolvedDartUnit));
+        }
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.NAVIGATION,
+            file)) {
+          server.addOperation(
+              new _DartNavigationOperation(file, resolvedDartUnit));
+        }
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.OCCURRENCES,
+            file)) {
+          server.addOperation(
+              new _DartOccurrencesOperation(file, resolvedDartUnit));
+        }
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.OVERRIDES,
+            file)) {
+          server.addOperation(
+              new _DartOverridesOperation(file, resolvedDartUnit));
         }
       }
+      if (dartUnit != null) {
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.OUTLINE,
+            file)) {
+          LineInfo lineInfo = notice.lineInfo;
+          server.addOperation(
+              new _DartOutlineOperation(file, lineInfo, dartUnit));
+        }
+      }
+      // errors
       if (server.shouldSendErrorsNotificationFor(file)) {
         server.addOperation(
             new _NotificationErrorsOperation(file, notice.lineInfo, notice.errors));
       }
+      // done
       server.fileAnalyzed(notice);
     }
   }
@@ -229,24 +237,22 @@ class PerformAnalysisOperation extends ServerOperation {
     }
     for (ChangeNotice notice in notices) {
       // Dart
-      if (notice.resolved) {
-        try {
-          CompilationUnit dartUnit = notice.compilationUnit;
-          if (dartUnit != null) {
-            server.addOperation(new _DartIndexOperation(context, dartUnit));
-          }
-        } catch (exception, stackTrace) {
-          server.sendServerErrorNotification(exception, stackTrace);
+      try {
+        CompilationUnit dartUnit = notice.compilationUnit;
+        if (dartUnit != null) {
+          server.addOperation(new _DartIndexOperation(context, dartUnit));
         }
-        // HTML
-        try {
-          HtmlUnit htmlUnit = notice.htmlUnit;
-          if (htmlUnit != null) {
-            server.addOperation(new _HtmlIndexOperation(context, htmlUnit));
-          }
-        } catch (exception, stackTrace) {
-          server.sendServerErrorNotification(exception, stackTrace);
+      } catch (exception, stackTrace) {
+        server.sendServerErrorNotification(exception, stackTrace);
+      }
+      // HTML
+      try {
+        HtmlUnit htmlUnit = notice.htmlUnit;
+        if (htmlUnit != null) {
+          server.addOperation(new _HtmlIndexOperation(context, htmlUnit));
         }
+      } catch (exception, stackTrace) {
+        server.sendServerErrorNotification(exception, stackTrace);
       }
     }
   }
