@@ -16,7 +16,13 @@ verify(val) {
 }
 
 main() {
-  verify(Foo.BAR);
+  test1(); /// 01: ok
+  test2(); /// 02: ok
+}
+
+test1() => verify(Foo.BAR);
+
+test2() {
   var rp;
   rp = new RawReceivePort((val) {
     verify(val);

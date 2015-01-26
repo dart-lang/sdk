@@ -147,7 +147,7 @@ generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
-enum_const_test: RuntimeError # Issue 21817
+enum_const_test/02: RuntimeError # Issue 21817
 
 # Compilation errors.
 method_override5_test: RuntimeError # Issue 12809
@@ -208,7 +208,9 @@ type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
 regress_13494_test: Fail # Issue 13494
-enum_const_test: Crash # Issue 21681
+enum_const_test/01: Crash # Issue 21681
+enum_const_test/02: Crash # Issue 21681
+
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
