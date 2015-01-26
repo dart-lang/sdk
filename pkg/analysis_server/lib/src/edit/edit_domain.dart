@@ -304,50 +304,45 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(request);
-    runZoned(() {
-      _init(params.kind, params.file, params.offset, params.length).then((_) {
-        if (initStatus.hasFatalError) {
-          feedback = null;
+    runZoned(() async {
+      await _init(params.kind, params.file, params.offset, params.length);
+      if (initStatus.hasFatalError) {
+        feedback = null;
+        return _sendResultResponse();
+      }
+      // set options
+      if (_requiresOptions) {
+        if (params.options == null) {
+          optionsStatus = new RefactoringStatus();
           return _sendResultResponse();
         }
-        // set options
-        if (_requiresOptions) {
-          if (params.options == null) {
-            optionsStatus = new RefactoringStatus();
-            return _sendResultResponse();
-          }
-          optionsStatus = _setOptions(params);
-          if (_hasFatalError) {
-            return _sendResultResponse();
-          }
-        }
-        // done if just validation
-        if (params.validateOnly) {
-          finalStatus = new RefactoringStatus();
+        optionsStatus = _setOptions(params);
+        if (_hasFatalError) {
           return _sendResultResponse();
         }
-        // simulate an exception
-        if (test_simulateRefactoringException_final) {
-          throw 'A simulated refactoring exception - final.';
-        }
-        // validation and create change
-        return refactoring.checkFinalConditions().then((_finalStatus) {
-          finalStatus = _finalStatus;
-          if (_hasFatalError) {
-            return _sendResultResponse();
-          }
-          // simulate an exception
-          if (test_simulateRefactoringException_change) {
-            throw 'A simulated refactoring exception - change.';
-          }
-          // create change
-          return refactoring.createChange().then((change) {
-            result.change = change;
-            result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
-            return _sendResultResponse();
-          });
-        });
-      });
+      }
+      // done if just validation
+      if (params.validateOnly) {
+        finalStatus = new RefactoringStatus();
+        return _sendResultResponse();
+      }
+      // simulate an exception
+      if (test_simulateRefactoringException_final) {
+        throw 'A simulated refactoring exception - final.';
+      }
+      // validation and create change
+      finalStatus = await refactoring.checkFinalConditions();
+      if (_hasFatalError) {
+        return _sendResultResponse();
+      }
+      // simulate an exception
+      if (test_simulateRefactoringException_change) {
+        throw 'A simulated refactoring exception - change.';
+      }
+      // create change
+      result.change = await refactoring.createChange();
+      result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
+      _sendResultResponse();
     }, onError: (exception, stackTrace) {
       server.instrumentationService.logException(exception, stackTrace);
       server.sendResponse(
@@ -357,28 +352,18 @@ class _RefactoringManager {
   }
 
   /**
-   * Awaits for analysis to complete and then calls [_init2] to actually
-   * initialize the resfactoring.
-   */
-  Future<RefactoringStatus> _init(RefactoringKind kind, String file, int offset,
-      int length) {
-    return server.onAnalysisComplete.then((_) {
-      return _init2(kind, file, offset, length);
-    });
-  }
-
-  /**
    * Initializes this context to perform a refactoring with the specified
    * parameters. The existing [Refactoring] is reused or created as needed.
    */
-  Future<RefactoringStatus> _init2(RefactoringKind kind, String file,
-      int offset, int length) {
+  _init(RefactoringKind kind, String file,
+      int offset, int length) async {
+    await server.onAnalysisComplete;
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&
         this.offset == offset &&
         this.length == length) {
-      return new Future.value(initStatus);
+      return;
     }
     _reset();
     this.kind = kind;
@@ -475,53 +460,50 @@ class _RefactoringManager {
     if (refactoring == null) {
       initStatus =
           new RefactoringStatus.fatal('Unable to create a refactoring');
-      return new Future.value(initStatus);
+      return;
     }
     // check initial conditions
-    return refactoring.checkInitialConditions().then((status) {
-      initStatus = status;
-      if (refactoring is ExtractLocalRefactoring) {
-        ExtractLocalRefactoring refactoring = this.refactoring;
-        ExtractLocalVariableFeedback feedback = this.feedback;
-        feedback.names = refactoring.names;
-        feedback.offsets = refactoring.offsets;
-        feedback.lengths = refactoring.lengths;
+    initStatus = await refactoring.checkInitialConditions();
+    if (refactoring is ExtractLocalRefactoring) {
+      ExtractLocalRefactoring refactoring = this.refactoring;
+      ExtractLocalVariableFeedback feedback = this.feedback;
+      feedback.names = refactoring.names;
+      feedback.offsets = refactoring.offsets;
+      feedback.lengths = refactoring.lengths;
+    }
+    if (refactoring is ExtractMethodRefactoring) {
+      ExtractMethodRefactoring refactoring = this.refactoring;
+      ExtractMethodFeedback feedback = this.feedback;
+      feedback.canCreateGetter = refactoring.canCreateGetter;
+      feedback.returnType = refactoring.returnType;
+      feedback.names = refactoring.names;
+      feedback.parameters = refactoring.parameters;
+      feedback.offsets = refactoring.offsets;
+      feedback.lengths = refactoring.lengths;
+    }
+    if (refactoring is InlineLocalRefactoring) {
+      InlineLocalRefactoring refactoring = this.refactoring;
+      if (!initStatus.hasFatalError) {
+        feedback = new InlineLocalVariableFeedback(
+            refactoring.variableName,
+            refactoring.referenceCount);
       }
-      if (refactoring is ExtractMethodRefactoring) {
-        ExtractMethodRefactoring refactoring = this.refactoring;
-        ExtractMethodFeedback feedback = this.feedback;
-        feedback.canCreateGetter = refactoring.canCreateGetter;
-        feedback.returnType = refactoring.returnType;
-        feedback.names = refactoring.names;
-        feedback.parameters = refactoring.parameters;
-        feedback.offsets = refactoring.offsets;
-        feedback.lengths = refactoring.lengths;
+    }
+    if (refactoring is InlineMethodRefactoring) {
+      InlineMethodRefactoring refactoring = this.refactoring;
+      if (!initStatus.hasFatalError) {
+        feedback = new InlineMethodFeedback(
+            refactoring.methodName,
+            refactoring.isDeclaration,
+            className: refactoring.className);
       }
-      if (refactoring is InlineLocalRefactoring) {
-        InlineLocalRefactoring refactoring = this.refactoring;
-        if (!status.hasFatalError) {
-          feedback = new InlineLocalVariableFeedback(
-              refactoring.variableName,
-              refactoring.referenceCount);
-        }
-      }
-      if (refactoring is InlineMethodRefactoring) {
-        InlineMethodRefactoring refactoring = this.refactoring;
-        if (!status.hasFatalError) {
-          feedback = new InlineMethodFeedback(
-              refactoring.methodName,
-              refactoring.isDeclaration,
-              className: refactoring.className);
-        }
-      }
-      if (refactoring is RenameRefactoring) {
-        RenameRefactoring refactoring = this.refactoring;
-        RenameFeedback feedback = this.feedback;
-        feedback.elementKindName = refactoring.elementKindName;
-        feedback.oldName = refactoring.oldName;
-      }
-      return initStatus;
-    });
+    }
+    if (refactoring is RenameRefactoring) {
+      RenameRefactoring refactoring = this.refactoring;
+      RenameFeedback feedback = this.feedback;
+      feedback.elementKindName = refactoring.elementKindName;
+      feedback.oldName = refactoring.oldName;
+    }
   }
 
   void _reset([engine.AnalysisContext context]) {
