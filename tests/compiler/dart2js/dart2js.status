@@ -44,14 +44,21 @@ check_elements_invariants_test: Skip # Slow and only needs to be run in one
 
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
 
-deferred_mirrors_test: Pass, Slow
-in_user_code_test: Pass, Slow
 analyze_unused_dart2js_test: Pass, Slow
-exit_code_test: Pass, Slow
-deferred_load_graph_segmentation_test: Pass, Slow
 check_members_test: Pass, Slow
+dart2js_batch_test: Pass, Slow
+deferred_load_graph_segmentation_test: Pass, Slow
+deferred_load_mapping_test: Pass, Slow
+deferred_mirrors_test: Pass, Slow
 duplicate_library_test: Pass, Slow
+exit_code_test: Pass, Slow
+import_mirrors_test: Pass, Slow
+in_user_code_test: Pass, Slow
+js_backend_cps_ir_basic_test: Pass, Slow
+js_backend_cps_ir_closures_test: Pass, Slow
+message_kind_test: Pass, Slow
 show_package_warnings_test: Pass, Slow
+source_map_pub_build_validity_test: Pass, Slow
 
 # Don't mark these tests as failing. Instead, fix the errors/warnings that they
 # report or update the whitelist in the test-files to temporarily allow
