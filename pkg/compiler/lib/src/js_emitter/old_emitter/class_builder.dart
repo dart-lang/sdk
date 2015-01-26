@@ -18,9 +18,6 @@ class ClassBuilder {
   final Element element;
   final Namer namer;
 
-  /// Set to true by user if class is indistinguishable from its superclass.
-  bool isTrivial = false;
-
   ClassBuilder(this.element, this.namer);
 
   // Has the same signature as [DefineStubFunction].

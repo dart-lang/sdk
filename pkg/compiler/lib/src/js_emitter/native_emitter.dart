@@ -60,15 +60,19 @@ class NativeEmitter {
    * of native classes.  ONLY the native classes are generated here.  [classes]
    * is sorted in desired output order.
    *
-   * [additionalProperties] is used to collect properties that are pushed up
+   * [allAdditionalProperties] is used to collect properties that are pushed up
    * from the above optimizations onto a non-native class, e.g, `Interceptor`.
    */
   void generateNativeClasses(
       List<Class> classes,
-      Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties) {
+      Map<Class, Map<String, jsAst.Expression>> allAdditionalProperties) {
     // Compute a pre-order traversal of the subclass forest.  We actually want a
     // post-order traversal but it is easier to compute the pre-order and use it
     // in reverse.
+
+    if (classes.isNotEmpty) {
+      hasNativeClasses = true;
+    }
 
     List<Class> preOrder = <Class>[];
     Set<Class> seen = new Set<Class>();
@@ -91,16 +95,6 @@ class NativeEmitter {
     }
     classes.forEach(walk);
 
-    // Generate code for each native class into [ClassBuilder]s.
-
-    Map<Class, ClassBuilder> builders = new Map<Class, ClassBuilder>();
-    for (Class cls in classes) {
-      if (cls.isNative) {
-        ClassBuilder builder = createBuilderAndSetIsTrivial(cls);
-        builders[cls] = builder;
-      }
-    }
-
     // Find which classes are needed and which are non-leaf classes.  Any class
     // that is not needed can be treated as a leaf class equivalent to some
     // needed class.
@@ -122,15 +116,13 @@ class NativeEmitter {
       // Post-order traversal ensures we visit the subclasses before their
       // superclass.  This makes it easy to tell if a class is needed because a
       // subclass is needed.
-      ClassBuilder builder = builders[cls];
       bool needed = false;
-      if (builder == null) {
-        assert(!cls.isNative);
+      if (!cls.isNative) {
         // Mixin applications (native+mixin) are non-native, so [classElement]
         // has already been emitted as a regular class.  Mark [classElement] as
         // 'needed' to ensure the native superclass is needed.
         needed = true;
-      } else if (!builder.isTrivial) {
+      } else if (!isTrivialClass(cls)) {
         needed = true;
       } else if (neededByConstant.contains(classElement)) {
         needed = true;
@@ -214,19 +206,11 @@ class NativeEmitter {
         }
         String encoding = sb.toString();
 
-        ClassBuilder builder = builders[cls];
-        if (builder == null) {
-          // No builder because this is an intermediate mixin application or
-          // Interceptor - these are not direct native classes.
-          if (encoding != '') {
-            Map<String, jsAst.Expression> properties =
-                additionalProperties.putIfAbsent(cls.element,
-                    () => new Map<String, jsAst.Expression>());
-            properties[backend.namer.nativeSpecProperty] = js.string(encoding);
-          }
-        } else {
-          builder.addProperty(
-              backend.namer.nativeSpecProperty, js.string(encoding));
+        if (cls.isNative || encoding != '') {
+          Map<String, jsAst.Expression> properties =
+              allAdditionalProperties.putIfAbsent(cls,
+                  () => new Map<String, jsAst.Expression>());
+          properties[backend.namer.nativeSpecProperty] = js.string(encoding);
         }
       }
       generateClassInfo(jsInterceptorClass);
@@ -243,28 +227,13 @@ class NativeEmitter {
       ClassElement classElement = cls.element;
       if (!cls.isNative) continue;
       if (neededClasses.contains(cls)) {
-        ClassBuilder builder = builders[cls];
-        assert(builder != null);
+        // TODO(sra): Issue #13731- this is commented out as part of custom
+        // element constructor work.
+        //assert(!classElement.hasBackendMembers);
 
-        emitterTask.oldEmitter.classEmitter.emitConstructorsForCSP(cls);
-        emitterTask.oldEmitter.classEmitter.emitFields(
-            cls, builder, classIsNative: true);
-        emitterTask.oldEmitter.classEmitter.emitCheckedClassSetters(
-            cls, builder);
-        emitterTask.oldEmitter.classEmitter.emitClassGettersSettersForCSP(
-            cls, builder);
-        emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
-            cls, builder);
-        emitterTask.oldEmitter.classEmitter.emitCallStubs(cls, builder);
-        emitterTask.oldEmitter.classEmitter
-            .emitRuntimeTypeInformation(cls, builder);
-
-        // Define interceptor class for [classElement].
-        emitterTask.oldEmitter.classEmitter.emitClassBuilderWithReflectionData(
-            cls,
-            builders[cls],
-            emitterTask.oldEmitter.getElementDescriptor(classElement));
-        emitterTask.oldEmitter.needsClassSupport = true;
+        ClassBuilder enclosingBuilder =
+            emitterTask.oldEmitter.getElementDescriptor(classElement);
+        emitterTask.oldEmitter.emitClass(cls, enclosingBuilder);
       }
     }
   }
@@ -299,43 +268,19 @@ class NativeEmitter {
     return map;
   }
 
-  ClassBuilder createBuilderAndSetIsTrivial(Class cls) {
-    ClassElement classElement = cls.element;
-
-    // TODO(sra): Issue #13731- this is commented out as part of custom element
-    // constructor work.
-    //assert(!classElement.hasBackendMembers);
-    hasNativeClasses = true;
-
-    Class superclass = cls.superclass;
-    assert(superclass != null);
-    assert(superclass.element != compiler.objectClass);
-
-    ClassBuilder builder;
-    if (compiler.hasIncrementalSupport) {
-      builder = cachedBuilders[classElement];
-      if (builder != null) return builder;
-      builder = new ClassBuilder(classElement, backend.namer);
-      cachedBuilders[classElement] = builder;
-    } else {
-      builder = new ClassBuilder(classElement, backend.namer);
-    }
-    builder.superName = superclass.name;
-
+  bool isTrivialClass(Class cls) {
     bool needsAccessor(Field field) {
       return field.needsGetter ||
           field.needsUncheckedSetter ||
           field.needsCheckedSetter;
     }
 
-    builder.isTrivial =
+    return
         cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
         cls.callStubs.isEmpty &&
-        !superclass.isMixinApplication &&
+        !cls.superclass.isMixinApplication &&
         !cls.fields.any(needsAccessor);
-
-    return builder;
   }
 
   void finishGenerateNativeClasses() {

@@ -52,8 +52,8 @@ class OldEmitter implements Emitter {
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
 
-  final Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties =
-      new Map<ClassElement, Map<String, jsAst.Expression>>();
+  final Map<Class, Map<String, jsAst.Expression>> additionalProperties =
+      new Map<Class, Map<String, jsAst.Expression>>();
 
   List<TypedefElement> get typedefsNeededForReflection =>
       task.typedefsNeededForReflection;
@@ -716,9 +716,6 @@ class OldEmitter implements Emitter {
   }
 
   void emitClass(Class cls, ClassBuilder enclosingBuilder) {
-    // Native classes are handled by the native emitter.
-    assert(!cls.isNative || cls.onlyForRti);
-
     ClassElement classElement = cls.element;
     compiler.withCurrentElement(classElement, () {
       if (compiler.hasIncrementalSupport) {
@@ -726,7 +723,7 @@ class OldEmitter implements Emitter {
             cachedClassBuilders.putIfAbsent(classElement, () {
               ClassBuilder builder = new ClassBuilder(classElement, namer);
               classEmitter.emitClass(
-                  cls, builder, additionalProperties[classElement]);
+                  cls, builder, additionalProperties[cls]);
               return builder;
             });
         invariant(classElement, cachedBuilder.fields.isEmpty);
@@ -736,7 +733,7 @@ class OldEmitter implements Emitter {
         enclosingBuilder.properties.addAll(cachedBuilder.properties);
       } else {
         classEmitter.emitClass(
-            cls, enclosingBuilder, additionalProperties[classElement]);
+            cls, enclosingBuilder, additionalProperties[cls]);
       }
     });
   }

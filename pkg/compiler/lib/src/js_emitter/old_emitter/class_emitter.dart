@@ -18,7 +18,6 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassElement classElement = cls.element;
 
     assert(invariant(classElement, classElement.isDeclaration));
-    assert(invariant(classElement, !cls.isNative || cls.onlyForRti));
 
     emitter.needsClassSupport = true;
 
