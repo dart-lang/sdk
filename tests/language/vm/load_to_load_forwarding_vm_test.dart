@@ -486,6 +486,40 @@ testAliasesRefinement() {
   return b.f;
 }
 
+testViewAliasing1() {
+  final f64 = new Float64List(1);
+  final f32 = new Float32List.view(f64.buffer);
+  f64[0] = 1.0;  // Should not be forwarded.
+  f32[1] = 2.0;  // upper 32bits for 2.0f and 2.0 are the same
+  return f64[0];
+}
+
+testViewAliasing2() {
+  final f64 = new Float64List(2);
+  final f64v = new Float64List.view(f64.buffer, Float64List.BYTES_PER_ELEMENT);
+  f64[1] = 1.0;  // Should not be forwarded.
+  f64v[0] = 2.0;
+  return f64[1];
+}
+
+testViewAliasing3() {
+  final u8 = new Uint8List(Float64List.BYTES_PER_ELEMENT * 2);
+  final f64 = new Float64List.view(u8.buffer, Float64List.BYTES_PER_ELEMENT);
+  f64[0] = 1.0;  // Should not be forwarded.
+  u8[15] = 0x40;
+  u8[14] = 0x00;
+  return f64[0];
+}
+
+testViewAliasing4() {
+  final u8 = new Uint8List(Float64List.BYTES_PER_ELEMENT * 2);
+  final f64 = new Float64List.view(u8.buffer, Float64List.BYTES_PER_ELEMENT);
+  f64[0] = 2.0;  // Not aliased: should be forwarded.
+  u8[0] = 0x40;
+  u8[1] = 0x00;
+  return f64[0];
+}
+
 main() {
   final fixed = new List(10);
   final growable = [];
@@ -551,5 +585,12 @@ main() {
   var test_array = new List(1);
   for (var i = 0; i < 20; i++) {
     Expect.equals(43, testAliasingStoreIndexed(global_array));
+  }
+
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(2.0, testViewAliasing1());
+    Expect.equals(2.0, testViewAliasing2());
+    Expect.equals(2.0, testViewAliasing3());
+    Expect.equals(2.0, testViewAliasing4());
   }
 }

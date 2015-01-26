@@ -445,10 +445,37 @@ class PairLocation : public ZoneAllocated {
 };
 
 
+template<typename T>
+class SmallSet {
+ public:
+  SmallSet() : data_(0) { }
+
+  explicit SmallSet(intptr_t data) : data_(data) { }
+
+  bool Contains(T value) const { return (data_ & ToMask(value)) != 0; }
+
+  void Add(T value) { data_ |= ToMask(value); }
+
+  void Remove(T value) { data_ &= ~ToMask(value); }
+
+  intptr_t data() const { return data_; }
+
+ private:
+  static intptr_t ToMask(T value) {
+    ASSERT(static_cast<intptr_t>(value) < (kWordSize * kBitsPerByte));
+    return 1 << static_cast<intptr_t>(value);
+  }
+
+  intptr_t data_;
+};
+
+
 class RegisterSet : public ValueObject {
  public:
-  RegisterSet() : cpu_registers_(0), untagged_cpu_registers_(0),
-                  fpu_registers_(0) {
+  RegisterSet()
+      : cpu_registers_(),
+        untagged_cpu_registers_(),
+        fpu_registers_() {
     ASSERT(kNumberOfCpuRegisters <= (kWordSize * kBitsPerByte));
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
@@ -456,21 +483,21 @@ class RegisterSet : public ValueObject {
 
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
-      cpu_registers_ |= (1 << loc.reg());
+      cpu_registers_.Add(loc.reg());
       if (rep != kTagged) {
         // CPU register contains an untagged value.
         MarkUntagged(loc);
       }
     } else if (loc.IsFpuRegister()) {
-      fpu_registers_ |= (1 << loc.fpu_reg());
+      fpu_registers_.Add(loc.fpu_reg());
     }
   }
 
   void Remove(Location loc) {
     if (loc.IsRegister()) {
-      cpu_registers_ &= ~(1 << loc.reg());
+      cpu_registers_.Remove(loc.reg());
     } else if (loc.IsFpuRegister()) {
-      fpu_registers_ &= ~(1 << loc.fpu_reg());
+      fpu_registers_.Remove(loc.fpu_reg());
     }
   }
 
@@ -504,36 +531,36 @@ class RegisterSet : public ValueObject {
 
   void MarkUntagged(Location loc) {
     ASSERT(loc.IsRegister());
-    untagged_cpu_registers_ |= (1 << loc.reg());
+    untagged_cpu_registers_.Add(loc.reg());
   }
 
   bool IsTagged(Register reg) const {
-    return (untagged_cpu_registers_ & (1 << reg)) == 0;
+    return !untagged_cpu_registers_.Contains(reg);
   }
 
   bool ContainsRegister(Register reg) const {
-    return Contains(cpu_registers_, reg);
+    return cpu_registers_.Contains(reg);
   }
 
   bool ContainsFpuRegister(FpuRegister fpu_reg) const {
-    return Contains(fpu_registers_, fpu_reg);
+    return fpu_registers_.Contains(fpu_reg);
   }
 
-  intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers_); }
-  intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers_); }
+  intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers()); }
+  intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers()); }
 
   static intptr_t RegisterCount(intptr_t registers);
   static bool Contains(intptr_t register_set, intptr_t reg) {
     return (register_set & (1 << reg)) != 0;
   }
 
-  intptr_t cpu_registers() const { return cpu_registers_; }
-  intptr_t fpu_registers() const { return fpu_registers_; }
+  intptr_t cpu_registers() const { return cpu_registers_.data(); }
+  intptr_t fpu_registers() const { return fpu_registers_.data(); }
 
  private:
-  intptr_t cpu_registers_;
-  intptr_t untagged_cpu_registers_;
-  intptr_t fpu_registers_;
+  SmallSet<Register> cpu_registers_;
+  SmallSet<Register> untagged_cpu_registers_;
+  SmallSet<FpuRegister> fpu_registers_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterSet);
 };

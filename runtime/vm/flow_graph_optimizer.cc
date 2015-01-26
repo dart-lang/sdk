@@ -5088,6 +5088,24 @@ void LICM::Optimize() {
 //     - X[*] - non-constant index inside an allocated object X;
 //     - X[C] - constant index inside an allocated object X.
 //
+// Constant indexed places are divided into two subcategories:
+//
+//   - Access to homogeneous array-like objects: Array, ImmutableArray,
+//     OneByteString, TwoByteString. These objects can only be accessed
+//     on element by element basis with all elements having the same size.
+//     This means X[C] aliases X[K] if and only if C === K.
+//   - TypedData accesses. TypedData allow to read one of the primitive
+//     data types at the given byte offset. When TypedData is accessed through
+//     index operator on a typed array or a typed array view it is guaranteed
+//     that the byte offset is always aligned by the element size. We write
+//     these accesses as X[C|S], where C is constant byte offset and S is size
+//     of the data type. Obviously X[C|S] and X[K|U] alias if and only if either
+//     C = RoundDown(K, S) or K = RoundDown(C, U).
+//     Note that not all accesses to typed data are aligned: e.g. ByteData
+//     allows unanaligned access through it's get*/set* methods.
+//     Check in Place::SetIndex ensures that we never create a place X[C|S]
+//     such that C is not aligned by S.
+//
 // Separating allocations from other objects improves precision of the
 // load forwarding pass because of the following two properties:
 //
@@ -5123,10 +5141,38 @@ class Place : public ValueObject {
     kConstantIndexed,
   };
 
+  // Size of the element accessed by constant index. Size is only important
+  // for TypedData because those accesses can alias even when constant indexes
+  // are not the same: X[0|4] aliases X[0|2] and X[2|2].
+  enum ElementSize {
+    // If indexed access is not a TypedData access then element size is not
+    // important because there is only a single possible access size depending
+    // on the receiver - X[C] aliases X[K] if and only if C == K.
+    // This is the size set for Array, ImmutableArray, OneByteString and
+    // TwoByteString accesses.
+    kNoSize,
+
+    // 1 byte (Int8List, Uint8List, Uint8ClampedList).
+    kInt8,
+
+    // 2 bytes (Int16List, Uint16List).
+    kInt16,
+
+    // 4 bytes (Int32List, Uint32List, Float32List).
+    kInt32,
+
+    // 8 bytes (Int64List, Uint64List, Float64List).
+    kInt64,
+
+    // 16 bytes (Int32x4List, Float32x4List, Float64x2List).
+    kInt128,
+
+    kLargestElementSize = kInt128,
+  };
+
   Place(const Place& other)
       : ValueObject(),
-        kind_(other.kind_),
-        representation_(other.representation_),
+        flags_(other.flags_),
         instance_(other.instance_),
         raw_selector_(other.raw_selector_),
         id_(other.id_) {
@@ -5135,21 +5181,20 @@ class Place : public ValueObject {
   // Construct a place from instruction if instruction accesses any place.
   // Otherwise constructs kNone place.
   Place(Instruction* instr, bool* is_load, bool* is_store)
-      : kind_(kNone),
-        representation_(kNoRepresentation),
+      : flags_(0),
         instance_(NULL),
         raw_selector_(0),
         id_(0) {
     switch (instr->tag()) {
       case Instruction::kLoadField: {
         LoadFieldInstr* load_field = instr->AsLoadField();
-        representation_ = load_field->representation();
+        set_representation(load_field->representation());
         instance_ = load_field->instance()->definition()->OriginalDefinition();
         if (load_field->field() != NULL) {
-          kind_ = kField;
+          set_kind(kField);
           field_ = load_field->field();
         } else {
-          kind_ = kVMField;
+          set_kind(kVMField);
           offset_in_bytes_ = load_field->offset_in_bytes();
         }
         *is_load = true;
@@ -5159,14 +5204,14 @@ class Place : public ValueObject {
       case Instruction::kStoreInstanceField: {
         StoreInstanceFieldInstr* store =
             instr->AsStoreInstanceField();
-        representation_ = store->RequiredInputRepresentation(
-            StoreInstanceFieldInstr::kValuePos);
+        set_representation(store->RequiredInputRepresentation(
+            StoreInstanceFieldInstr::kValuePos));
         instance_ = store->instance()->definition()->OriginalDefinition();
         if (!store->field().IsNull()) {
-          kind_ = kField;
+          set_kind(kField);
           field_ = &store->field();
         } else {
-          kind_ = kVMField;
+          set_kind(kVMField);
           offset_in_bytes_ = store->offset_in_bytes();
         }
         *is_store = true;
@@ -5174,35 +5219,39 @@ class Place : public ValueObject {
       }
 
       case Instruction::kLoadStaticField:
-        kind_ = kField;
-        representation_ = instr->AsLoadStaticField()->representation();
+        set_kind(kField);
+        set_representation(instr->AsLoadStaticField()->representation());
         field_ = &instr->AsLoadStaticField()->StaticField();
         *is_load = true;
         break;
 
       case Instruction::kStoreStaticField:
-        kind_ = kField;
-        representation_ = instr->AsStoreStaticField()->
-            RequiredInputRepresentation(StoreStaticFieldInstr::kValuePos);
+        set_kind(kField);
+        set_representation(instr->AsStoreStaticField()->
+            RequiredInputRepresentation(StoreStaticFieldInstr::kValuePos));
         field_ = &instr->AsStoreStaticField()->field();
         *is_store = true;
         break;
 
       case Instruction::kLoadIndexed: {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
-        representation_ = load_indexed->representation();
+        set_representation(load_indexed->representation());
         instance_ = load_indexed->array()->definition()->OriginalDefinition();
-        SetIndex(load_indexed->index()->definition());
+        SetIndex(load_indexed->index()->definition(),
+                 load_indexed->index_scale(),
+                 load_indexed->class_id());
         *is_load = true;
         break;
       }
 
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
-        representation_ = store_indexed->
-            RequiredInputRepresentation(StoreIndexedInstr::kValuePos);
+        set_representation(store_indexed->
+            RequiredInputRepresentation(StoreIndexedInstr::kValuePos));
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
-        SetIndex(store_indexed->index()->definition());
+        SetIndex(store_indexed->index()->definition(),
+                 store_indexed->index_scale(),
+                 store_indexed->class_id());
         *is_store = true;
         break;
       }
@@ -5215,7 +5264,10 @@ class Place : public ValueObject {
   // Create object representing *[*] alias.
   static Place* CreateAnyInstanceAnyIndexAlias(Zone* zone,
                                                intptr_t id) {
-    return Wrap(zone, Place(kIndexed, NULL, 0), id);
+    return Wrap(zone, Place(
+        EncodeFlags(kIndexed, kNoRepresentation, kNoSize),
+        NULL,
+        0), id);
   }
 
   // Return least generic alias for this place. Given that aliases are
@@ -5230,10 +5282,12 @@ class Place : public ValueObject {
   //      respectively;
   //    - for non-constant indexed places X[i] we drop information about the
   //      index obtaining alias X[*].
+  //    - we drop information about representation, but keep element size
+  //      if any.
   //
   Place ToAlias() const {
     return Place(
-        kind_,
+        RepresentationBits::update(kNoRepresentation, flags_),
         (DependsOnInstance() && IsAllocation(instance())) ? instance() : NULL,
         (kind() == kIndexed) ? 0 : raw_selector_);
   }
@@ -5258,20 +5312,41 @@ class Place : public ValueObject {
   // wild-card dependent alias *.f, *.@offs, *[C] or *[*] respectively.
   Place CopyWithoutInstance() const {
     ASSERT(DependsOnInstance());
-    return Place(kind_, NULL, raw_selector_);
+    return Place(flags_, NULL, raw_selector_);
   }
 
   // Given alias X[C] or *[C] return X[*] and *[*] respectively.
   Place CopyWithoutIndex() const {
-    ASSERT(kind_ == kConstantIndexed);
-    return Place(kIndexed, instance_, 0);
+    ASSERT(kind() == kConstantIndexed);
+    return Place(EncodeFlags(kIndexed, kNoRepresentation, kNoSize),
+                 instance_,
+                 0);
   }
+
+  // Given alias X[ByteOffs|S] and a larger element size S', return
+  // alias X[RoundDown(ByteOffs, S')|S'] - this is the byte offset of a larger
+  // typed array element that contains this typed array element.
+  // In other words this method computes the only possible place with the given
+  // size that can alias this place (due to alignment restrictions).
+  // For example for X[9|kInt8] and target size kInt32 we would return
+  // X[8|kInt32].
+  Place ToLargerElement(ElementSize to) const {
+    ASSERT(kind() == kConstantIndexed);
+    ASSERT(element_size() != kNoSize);
+    ASSERT(element_size() < to);
+    return Place(ElementSizeBits::update(to, flags_),
+                 instance_,
+                 RoundByteOffset(to, index_constant_));
+  }
+
 
   intptr_t id() const { return id_; }
 
-  Kind kind() const { return kind_; }
+  Kind kind() const { return KindBits::decode(flags_); }
 
-  Representation representation() const { return representation_; }
+  Representation representation() const {
+    return RepresentationBits::decode(flags_);
+  }
 
   Definition* instance() const {
     ASSERT(DependsOnInstance());
@@ -5284,22 +5359,26 @@ class Place : public ValueObject {
   }
 
   const Field& field() const {
-    ASSERT(kind_ == kField);
+    ASSERT(kind() == kField);
     return *field_;
   }
 
   intptr_t offset_in_bytes() const {
-    ASSERT(kind_ == kVMField);
+    ASSERT(kind() == kVMField);
     return offset_in_bytes_;
   }
 
   Definition* index() const {
-    ASSERT(kind_ == kIndexed);
+    ASSERT(kind() == kIndexed);
     return index_;
   }
 
+  ElementSize element_size() const {
+    return ElementSizeBits::decode(flags_);
+  }
+
   intptr_t index_constant() const {
-    ASSERT(kind_ == kConstantIndexed);
+    ASSERT(kind() == kConstantIndexed);
     return index_constant_;
   }
 
@@ -5313,7 +5392,7 @@ class Place : public ValueObject {
   }
 
   const char* ToCString() const {
-    switch (kind_) {
+    switch (kind()) {
       case kNone:
         return "<none>";
 
@@ -5341,10 +5420,18 @@ class Place : public ValueObject {
             DefinitionName(index()));
 
       case kConstantIndexed:
-        return Isolate::Current()->current_zone()->PrintToString(
-            "<%s[%" Pd "]>",
-            DefinitionName(instance()),
-            index_constant());
+        if (element_size() == kNoSize) {
+          return Isolate::Current()->current_zone()->PrintToString(
+              "<%s[%" Pd "]>",
+              DefinitionName(instance()),
+              index_constant());
+        } else {
+          return Isolate::Current()->current_zone()->PrintToString(
+              "<%s[%" Pd "|%" Pd "]>",
+              DefinitionName(instance()),
+              index_constant(),
+              ElementSizeMultiplier(element_size()));
+        }
     }
     UNREACHABLE();
     return "<?>";
@@ -5355,13 +5442,12 @@ class Place : public ValueObject {
   }
 
   intptr_t Hashcode() const {
-    return (kind_ * 63 + reinterpret_cast<intptr_t>(instance_)) * 31 +
-        representation_ * 15 + FieldHashcode();
+    return (flags_ * 63 + reinterpret_cast<intptr_t>(instance_)) * 31 +
+        FieldHashcode();
   }
 
   bool Equals(const Place* other) const {
-    return (kind_ == other->kind_) &&
-        (representation_ == other->representation_) &&
+    return (flags_ == other->flags_) &&
         (instance_ == other->instance_) &&
         SameField(other);
   }
@@ -5379,37 +5465,132 @@ class Place : public ValueObject {
   }
 
  private:
-  Place(Kind kind, Definition* instance, intptr_t selector)
-      : kind_(kind),
-        representation_(kNoRepresentation),
+  Place(uword flags, Definition* instance, intptr_t selector)
+      : flags_(flags),
         instance_(instance),
         raw_selector_(selector),
         id_(0) {
   }
 
   bool SameField(const Place* other) const {
-    return (kind_ == kField) ? (field().raw() == other->field().raw())
-                             : (offset_in_bytes_ == other->offset_in_bytes_);
+    return (kind() == kField) ? (field().raw() == other->field().raw())
+                              : (offset_in_bytes_ == other->offset_in_bytes_);
   }
 
   intptr_t FieldHashcode() const {
-    return (kind_ == kField) ? reinterpret_cast<intptr_t>(field().raw())
-                             : offset_in_bytes_;
+    return (kind() == kField) ? reinterpret_cast<intptr_t>(field().raw())
+                              : offset_in_bytes_;
   }
 
-  void SetIndex(Definition* index) {
+  void set_representation(Representation rep) {
+    flags_ = RepresentationBits::update(rep, flags_);
+  }
+
+  void set_kind(Kind kind) {
+    flags_ = KindBits::update(kind, flags_);
+  }
+
+  void set_element_size(ElementSize scale) {
+    flags_ = ElementSizeBits::update(scale, flags_);
+  }
+
+  void SetIndex(Definition* index, intptr_t scale, intptr_t class_id) {
     ConstantInstr* index_constant = index->AsConstant();
     if ((index_constant != NULL) && index_constant->value().IsSmi()) {
-      kind_ = kConstantIndexed;
-      index_constant_ = Smi::Cast(index_constant->value()).Value();
-    } else {
-      kind_ = kIndexed;
-      index_ = index;
+      const intptr_t index_value = Smi::Cast(index_constant->value()).Value();
+      const ElementSize size = ElementSizeFor(class_id);
+      const bool is_typed_data = (size != kNoSize);
+
+      // If we are writing into the typed data scale the index to
+      // get byte offset. Otherwise ignore the scale.
+      if (!is_typed_data) {
+        scale = 1;
+      }
+
+      // Guard against potential multiplication overflow and negative indices.
+      if ((0 <= index_value) && (index_value < (kMaxInt32 / scale))) {
+        const intptr_t scaled_index = index_value * scale;
+
+        // Guard against unaligned byte offsets.
+        if (!is_typed_data ||
+            Utils::IsAligned(scaled_index, ElementSizeMultiplier(size))) {
+          set_kind(kConstantIndexed);
+          set_element_size(size);
+          index_constant_ = scaled_index;
+          return;
+        }
+      }
+
+      // Fallthrough: create generic _[*] place.
+    }
+
+    set_kind(kIndexed);
+    index_ = index;
+  }
+
+  static uword EncodeFlags(Kind kind, Representation rep, ElementSize scale) {
+    ASSERT((kind == kConstantIndexed) || (scale == kNoSize));
+    return KindBits::encode(kind) |
+        RepresentationBits::encode(rep) |
+        ElementSizeBits::encode(scale);
+  }
+
+  static ElementSize ElementSizeFor(intptr_t class_id) {
+    switch (class_id) {
+      case kArrayCid:
+      case kImmutableArrayCid:
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+        // Object arrays and strings do not allow accessing them through
+        // different types. No need to attach scale.
+        return kNoSize;
+
+      case kTypedDataInt8ArrayCid:
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+        return kInt8;
+
+      case kTypedDataInt16ArrayCid:
+      case kTypedDataUint16ArrayCid:
+        return kInt16;
+
+      case kTypedDataInt32ArrayCid:
+      case kTypedDataUint32ArrayCid:
+      case kTypedDataFloat32ArrayCid:
+        return kInt32;
+
+      case kTypedDataInt64ArrayCid:
+      case kTypedDataUint64ArrayCid:
+      case kTypedDataFloat64ArrayCid:
+        return kInt64;
+
+      case kTypedDataInt32x4ArrayCid:
+      case kTypedDataFloat32x4ArrayCid:
+      case kTypedDataFloat64x2ArrayCid:
+        return kInt128;
+
+      default:
+        UNREACHABLE();
+        return kNoSize;
     }
   }
 
-  Kind kind_;
-  Representation representation_;
+  static intptr_t ElementSizeMultiplier(ElementSize size) {
+    return 1 << (static_cast<intptr_t>(size) - static_cast<intptr_t>(kInt8));
+  }
+
+  static intptr_t RoundByteOffset(ElementSize size, intptr_t offset) {
+    return offset & ~(ElementSizeMultiplier(size) - 1);
+  }
+
+  typedef BitField<Kind, 0, 3> KindBits;
+  typedef BitField<Representation, KindBits::kNextBit, 11> RepresentationBits;
+  typedef BitField<
+      ElementSize, RepresentationBits::kNextBit, 3> ElementSizeBits;
+
+  uword flags_;
   Definition* instance_;
   union {
     intptr_t raw_selector_;
@@ -5501,6 +5682,7 @@ class AliasedSet : public ZoneAllocated {
         phi_moves_(phi_moves),
         aliases_(5),
         aliases_map_(),
+        typed_data_access_sizes_(),
         representatives_(),
         killed_(),
         aliased_by_effects_(new(zone) BitVector(zone, places->length())) {
@@ -5609,6 +5791,13 @@ class AliasedSet : public ZoneAllocated {
           EnsureSet(&representatives_, kUnknownInstanceConstantIndexedAlias)->
               Add(place->id());
         }
+
+        // Collect all element sizes used to access TypedData arrays in
+        // the function. This is used to skip sizes without representatives
+        // when computing kill sets.
+        if (alias->element_size() != Place::kNoSize) {
+          typed_data_access_sizes_.Add(alias->element_size());
+        }
       } else if ((alias->kind() == Place::kIndexed) &&
                  CanBeAliased(place->instance())) {
         EnsureSet(&representatives_, kAnyAllocationIndexedAlias)->
@@ -5657,6 +5846,7 @@ class AliasedSet : public ZoneAllocated {
                               kAnyInstanceAnyIndexAlias + aliases_.length());
       InsertAlias(canonical);
     }
+    ASSERT(aliases_map_.Lookup(&alias) == canonical);
     return canonical;
   }
 
@@ -5726,6 +5916,39 @@ class AliasedSet : public ZoneAllocated {
         break;
 
       case Place::kConstantIndexed:  // Either X[C] or *[C] alias.
+        if (alias->element_size() != Place::kNoSize) {
+          const bool has_aliased_instance =
+              (alias->instance() != NULL) && CanBeAliased(alias->instance());
+
+          // If this is a TypedData access then X[C|S] aliases larger elements
+          // covering this one X[RoundDown(C, S')|S'] for all S' > S and
+          // all smaller elements being covered by this one X[C'|S'] for
+          // some S' < S and all C' such that C = RoundDown(C', S).
+          // In the loop below it's enough to only propagate aliasing to
+          // larger aliases because propagation is symmetric: smaller aliases
+          // (if there are any) would update kill set for this alias when they
+          // are visited.
+          for (intptr_t i = static_cast<intptr_t>(alias->element_size()) + 1;
+               i <= Place::kLargestElementSize;
+               i++) {
+            // Skip element sizes that a guaranteed to have no representatives.
+            if (!typed_data_access_sizes_.Contains(alias->element_size())) {
+              continue;
+            }
+
+            // X[C|S] aliases with X[RoundDown(C, S')|S'] and likewise
+            // *[C|S] aliases with *[RoundDown(C, S')|S'].
+            const Place larger_alias =
+                alias->ToLargerElement(static_cast<Place::ElementSize>(i));
+            CrossAlias(alias, larger_alias);
+            if (has_aliased_instance) {
+              // If X is an aliased instance then X[C|S] aliases
+              // with *[RoundDown(C, S')|S'].
+              CrossAlias(alias, larger_alias.CopyWithoutInstance());
+            }
+          }
+        }
+
         if (alias->instance() == NULL) {
           // *[C] aliases with X[C], X[*], *[*].
           AddAllRepresentatives(alias, kAnyAllocationIndexedAlias);
@@ -5917,6 +6140,8 @@ class AliasedSet : public ZoneAllocated {
   // alias object.
   GrowableArray<const Place*> aliases_;
   DirectChainedHashMap<PointerKeyValueTrait<const Place> > aliases_map_;
+
+  SmallSet<Place::ElementSize> typed_data_access_sizes_;
 
   // Maps alias id to set of ids of places representing the alias.
   // Place represents an alias if this alias is least generic alias for
