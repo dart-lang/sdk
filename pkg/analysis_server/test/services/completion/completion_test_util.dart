@@ -514,7 +514,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
       // Update the index
       result.changeNotices.forEach((ChangeNotice notice) {
-        CompilationUnit unit = notice.compilationUnit;
+        CompilationUnit unit = notice.resolvedDartUnit;
         if (unit != null) {
           index.indexUnit(context, unit);
         }

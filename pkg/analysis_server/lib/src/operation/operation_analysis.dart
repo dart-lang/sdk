@@ -175,7 +175,7 @@ class PerformAnalysisOperation extends ServerOperation {
       String file = source.fullName;
       // Dart
       CompilationUnit parsedDartUnit = notice.parsedDartUnit;
-      CompilationUnit resolvedDartUnit = notice.compilationUnit;
+      CompilationUnit resolvedDartUnit = notice.resolvedDartUnit;
       CompilationUnit dartUnit =
           resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
       if (resolvedDartUnit != null) {
@@ -238,7 +238,7 @@ class PerformAnalysisOperation extends ServerOperation {
     for (ChangeNotice notice in notices) {
       // Dart
       try {
-        CompilationUnit dartUnit = notice.compilationUnit;
+        CompilationUnit dartUnit = notice.resolvedDartUnit;
         if (dartUnit != null) {
           server.addOperation(new _DartIndexOperation(context, dartUnit));
         }
@@ -247,7 +247,7 @@ class PerformAnalysisOperation extends ServerOperation {
       }
       // HTML
       try {
-        HtmlUnit htmlUnit = notice.htmlUnit;
+        HtmlUnit htmlUnit = notice.resolvedHtmlUnit;
         if (htmlUnit != null) {
           server.addOperation(new _HtmlIndexOperation(context, htmlUnit));
         }

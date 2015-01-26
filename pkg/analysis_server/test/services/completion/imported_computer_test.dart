@@ -499,7 +499,7 @@ class B extends A {
     var result = context2.performAnalysisTask();
     while (result.hasMoreWork) {
       result.changeNotices.forEach((ChangeNotice notice) {
-        CompilationUnit unit = notice.compilationUnit;
+        CompilationUnit unit = notice.resolvedDartUnit;
         if (unit != null) {
           index.indexUnit(context2, unit);
         }

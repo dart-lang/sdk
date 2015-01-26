@@ -2370,7 +2370,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
           ChangeNoticeImpl notice = _getNotice(source);
-          notice.compilationUnit = unit;
+          notice.resolvedDartUnit = unit;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -2454,7 +2454,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
           ChangeNoticeImpl notice = _getNotice(source);
-          notice.compilationUnit = unit;
+          notice.resolvedDartUnit = unit;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -4626,7 +4626,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CompilationUnit unit = task.compilationUnit;
     if (unit != null) {
       ChangeNoticeImpl notice = _getNotice(task.source);
-      notice.compilationUnit = unit;
+      notice.resolvedDartUnit = unit;
       _incrementalAnalysisCache =
           IncrementalAnalysisCache.cacheResult(task.cache, unit);
     }
@@ -4687,7 +4687,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry.setValue(DartEntry.INCLUDED_PARTS, newParts);
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
-    if (notice.compilationUnit == null) {
+    if (notice.resolvedDartUnit == null) {
       notice.parsedDartUnit = task.compilationUnit;
     }
     notice.setErrors(dartEntry.allErrors, task.lineInfo);
@@ -4767,7 +4767,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     htmlEntry.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
-    notice.htmlUnit = task.resolvedUnit;
+    notice.resolvedHtmlUnit = task.resolvedUnit;
     LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
@@ -4930,8 +4930,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // reset unit in the notification, it is out of date now
     ChangeNoticeImpl notice = _pendingNotices[source];
     if (notice != null) {
-      notice.compilationUnit = null;
-      notice.htmlUnit = null;
+      notice.resolvedDartUnit = null;
+      notice.resolvedHtmlUnit = null;
     }
   }
 
@@ -5064,7 +5064,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       DartEntry dartEntry = _cache.get(source);
       LineInfo lineInfo = getLineInfo(source);
       ChangeNoticeImpl notice = _getNotice(source);
-      notice.compilationUnit = unit;
+      notice.resolvedDartUnit = unit;
       notice.setErrors(dartEntry.allErrors, lineInfo);
     });
     // OK
@@ -7240,22 +7240,22 @@ class CacheState extends Enum<CacheState> {
  */
 abstract class ChangeNotice implements AnalysisErrorInfo {
   /**
+   * The parsed, but maybe not resolved Dart AST that changed as a result of
+   * the analysis, or `null` if the AST was not changed.
+   */
+  CompilationUnit get parsedDartUnit;
+
+  /**
    * The fully resolved Dart AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
-  CompilationUnit get compilationUnit;
+  CompilationUnit get resolvedDartUnit;
 
   /**
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
-  ht.HtmlUnit get htmlUnit;
-
-  /**
-   * The parsed, but maybe not resolved Dart AST that changed as a result of
-   * the analysis, or `null` if the AST was not changed.
-   */
-  CompilationUnit get parsedDartUnit;
+  ht.HtmlUnit get resolvedHtmlUnit;
 
   /**
    * Return the source for which the result is being reported.
@@ -7287,13 +7287,13 @@ class ChangeNoticeImpl implements ChangeNotice {
    * The fully resolved Dart AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
-  CompilationUnit compilationUnit;
+  CompilationUnit resolvedDartUnit;
 
   /**
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
-  ht.HtmlUnit htmlUnit;
+  ht.HtmlUnit resolvedHtmlUnit;
 
   /**
    * The errors that changed as a result of the analysis, or `null` if errors

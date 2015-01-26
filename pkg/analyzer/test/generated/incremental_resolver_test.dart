@@ -3378,7 +3378,7 @@ f3() {
     // "newUnit", so all clients will get it using the usual way.
     AnalysisResult analysisResult = analysisContext.performAnalysisTask();
     ChangeNotice notice = analysisResult.changeNotices[0];
-    expect(notice.compilationUnit, same(newUnit));
+    expect(notice.resolvedDartUnit, same(newUnit));
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
