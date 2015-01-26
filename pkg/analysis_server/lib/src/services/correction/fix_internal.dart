@@ -199,6 +199,7 @@ class FixProcessor {
     }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
       _addFix_createField();
+      _addFix_createGetter();
       _addFix_createFunction_forFunctionType();
       _addFix_importLibrary_withType();
       _addFix_importLibrary_withTopLevelVariable();
@@ -222,6 +223,7 @@ class FixProcessor {
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
       _addFix_createField();
+      _addFix_createGetter();
       _addFix_createFunction_forFunctionType();
     }
     if (errorCode == HintCode.UNDEFINED_METHOD ||
@@ -695,6 +697,83 @@ class FixProcessor {
         _addProposal_createFunction_function(functionType);
       }
     }
+  }
+
+  void _addFix_createGetter() {
+    SimpleIdentifier nameNode = node;
+    String name = nameNode.name;
+    if (!nameNode.inGetterContext()) {
+      return;
+    }
+    // prepare target Expression
+    Expression target;
+    {
+      AstNode nameParent = nameNode.parent;
+      if (nameParent is PrefixedIdentifier) {
+        target = nameParent.prefix;
+      }
+      if (nameParent is PropertyAccess) {
+        target = nameParent.realTarget;
+      }
+    }
+    // prepare target ClassElement
+    bool staticModifier = false;
+    ClassElement targetClassElement;
+    if (target != null) {
+      // prepare target interface type
+      DartType targetType = target.bestType;
+      if (targetType is! InterfaceType) {
+        return;
+      }
+      targetClassElement = targetType.element;
+      // maybe static
+      if (target is Identifier) {
+        Identifier targetIdentifier = target;
+        Element targetElement = targetIdentifier.staticElement;
+        staticModifier = targetElement.kind == ElementKind.CLASS;
+      }
+    } else {
+      targetClassElement = getEnclosingClassElement(node);
+      if (targetClassElement == null) {
+        return;
+      }
+      staticModifier = _inStaticContext();
+    }
+    utils.targetClassElement = targetClassElement;
+    // prepare location
+    ClassDeclaration targetClassNode = targetClassElement.node;
+    _FieldLocation targetLocation = _prepareNewGetterLocation(targetClassNode);
+    // build method source
+    String targetFile = targetClassElement.source.fullName;
+    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
+    {
+      sb.append(targetLocation.prefix);
+      // maybe "static"
+      if (staticModifier) {
+        sb.append('static ');
+      }
+      // append type
+      Expression fieldTypeNode = climbPropertyAccess(nameNode);
+      DartType fieldType = _inferUndefinedExpressionType(fieldTypeNode);
+      _appendType(sb, fieldType, groupId: 'TYPE');
+      sb.append('get ');
+      // append name
+      {
+        sb.startPosition('NAME');
+        sb.append(name);
+        sb.endPosition();
+      }
+      sb.append(' => null;');
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    _insertBuilder(sb);
+    // add linked positions
+    if (targetFile == file) {
+      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
+    }
+    // add proposal
+    _addFixToElement(FixKind.CREATE_GETTER, [name], targetClassElement);
   }
 
   void _addFix_createImportUri() {
@@ -2031,6 +2110,32 @@ class FixProcessor {
           eol + eol + indent,
           lastFieldOrConstructor.end,
           '');
+    }
+    // at the beginning of the class
+    String suffix = members.isEmpty ? '' : eol;
+    return new _FieldLocation(
+        eol + indent,
+        classDeclaration.leftBracket.end,
+        suffix);
+  }
+
+  _FieldLocation _prepareNewGetterLocation(ClassDeclaration classDeclaration) {
+    String indent = utils.getIndent(1);
+    // find an existing target member
+    ClassMember prevMember = null;
+    List<ClassMember> members = classDeclaration.members;
+    for (ClassMember member in members) {
+      if (member is FieldDeclaration ||
+          member is ConstructorDeclaration ||
+          member is MethodDeclaration && member.isGetter) {
+        prevMember = member;
+      } else {
+        break;
+      }
+    }
+    // after the last field/getter
+    if (prevMember != null) {
+      return new _FieldLocation(eol + eol + indent, prevMember.end, '');
     }
     // at the beginning of the class
     String suffix = members.isEmpty ? '' : eol;

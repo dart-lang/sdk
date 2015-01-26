@@ -488,7 +488,7 @@ f(String s) {}
 ''');
   }
 
-  void test_createField_getter_unqualified_instance_assignmentLhs() {
+  void test_createField_getter_unqualified_instance_assignmentRhs() {
     _indexTestUnit('''
 class A {
   main() {
@@ -692,6 +692,160 @@ import 'my_file.dart';
     expect(fileEdit.file, '/my/project/bin/my_file.dart');
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits[0].replacement, contains('library my.file;'));
+  }
+
+  void test_createGetter_multiLevel() {
+    _indexTestUnit('''
+class A {
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+main(C c) {
+  int v = c.b.a.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  int get test => null;
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+main(C c) {
+  int v = c.b.a.test;
+}
+''');
+  }
+
+  void test_createGetter_qualified_instance() {
+    _indexTestUnit('''
+class A {
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  int get test => null;
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+  }
+
+  void test_createGetter_qualified_instance_dynamicType() {
+    _indexTestUnit('''
+class A {
+  B b;
+  void f(Object p) {
+    p == b.test;
+  }
+}
+class B {
+}
+''');
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  B b;
+  void f(Object p) {
+    p == b.test;
+  }
+}
+class B {
+  get test => null;
+}
+''');
+  }
+
+  void test_createGetter_setterContext() {
+    _indexTestUnit('''
+class A {
+}
+main(A a) {
+  a.test = 42;
+}
+''');
+    assertNoFix(FixKind.CREATE_GETTER);
+  }
+
+  void test_createGetter_unqualified_instance_asInvocationArgument() {
+    _indexTestUnit('''
+class A {
+  main() {
+    f(test);
+  }
+}
+f(String s) {}
+''');
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  String get test => null;
+
+  main() {
+    f(test);
+  }
+}
+f(String s) {}
+''');
+  }
+
+  void test_createGetter_unqualified_instance_assignmentLhs() {
+    _indexTestUnit('''
+class A {
+  main() {
+    test = 42;
+  }
+}
+''');
+    assertNoFix(FixKind.CREATE_GETTER);
+  }
+
+  void test_createGetter_unqualified_instance_assignmentRhs() {
+    _indexTestUnit('''
+class A {
+  main() {
+    int v = test;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  int get test => null;
+
+  main() {
+    int v = test;
+  }
+}
+''');
+  }
+
+  void test_createGetter_unqualified_instance_asStatement() {
+    _indexTestUnit('''
+class A {
+  main() {
+    test;
+  }
+}
+''');
+    // TODO
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  get test => null;
+
+  main() {
+    test;
+  }
+}
+''');
   }
 
   void test_createLocalVariable_read_typeAssignment() {
@@ -1092,6 +1246,35 @@ class B extends A {
   existing() {}
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+''');
+  }
+
+  void test_creatGetter_location_afterLastGetter() {
+    _indexTestUnit('''
+class A {
+  int existingField;
+
+  int get existingGetter => null;
+
+  existingMethod() {}
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  int existingField;
+
+  int get existingGetter => null;
+
+  int get test => null;
+
+  existingMethod() {}
+}
+main(A a) {
+  int v = a.test;
 }
 ''');
   }
