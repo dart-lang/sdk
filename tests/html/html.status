@@ -369,6 +369,9 @@ wheelevent_test: Fail # Issue 12958
 css_test/functional: Fail # Issue 21710
 css_test/supportsPointConversions: Fail # Issue 21710
 
+[ $compiler == dart2js &&  $runtime == chrome && $system == windows]
+svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
+
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
 # Desktop operation systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
