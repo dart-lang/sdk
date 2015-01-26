@@ -10941,7 +10941,7 @@ intptr_t ExceptionHandlers::num_entries() const {
 
 void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t outer_try_index,
-                                       intptr_t handler_pc,
+                                       uword handler_pc_offset,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
@@ -10949,7 +10949,11 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
   RawExceptionHandlers::HandlerInfo* info =
       UnsafeMutableNonPointer(&raw_ptr()->data()[try_index]);
   info->outer_try_index = outer_try_index;
-  info->handler_pc = handler_pc;
+  // Some C compilers warn about the comparison always being true when using <=
+  // due to limited range of data type.
+  ASSERT((handler_pc_offset == static_cast<uword>(kMaxUint32)) ||
+         (handler_pc_offset < static_cast<uword>(kMaxUint32)));
+  info->handler_pc_offset = handler_pc_offset;
   info->needs_stacktrace = needs_stacktrace;
   info->has_catch_all = has_catch_all;
 }
@@ -10963,9 +10967,9 @@ void ExceptionHandlers::GetHandlerInfo(
 }
 
 
-intptr_t ExceptionHandlers::HandlerPC(intptr_t try_index) const {
+uword ExceptionHandlers::HandlerPCOffset(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
-  return raw_ptr()->data()[try_index].handler_pc;
+  return raw_ptr()->data()[try_index].handler_pc_offset;
 }
 
 
@@ -11053,7 +11057,7 @@ const char* ExceptionHandlers::ToCString() const {
     const intptr_t num_types = handled_types.Length();
     len += OS::SNPrint(NULL, 0, kFormat,
                        i,
-                       info.handler_pc,
+                       info.handler_pc_offset,
                        num_types,
                        info.outer_try_index);
     for (int k = 0; k < num_types; k++) {
@@ -11074,7 +11078,7 @@ const char* ExceptionHandlers::ToCString() const {
                              (len - num_chars),
                              kFormat,
                              i,
-                             info.handler_pc,
+                             info.handler_pc_offset,
                              num_types,
                              info.outer_try_index);
     for (int k = 0; k < num_types; k++) {

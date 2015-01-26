@@ -1023,9 +1023,10 @@ class RawPcDescriptors : public RawObject {
   struct PcDescriptorRec {
     uword pc_offset() const { return pc_offset_; }
     void set_pc_offset(uword value) {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-      ASSERT(value <= static_cast<uword>(kMaxUint32));
-#endif
+      // Some C compilers warn about the comparison always being true when using
+      // <= due to limited range of data type.
+      ASSERT((value == static_cast<uword>(kMaxUint32)) ||
+             (value < static_cast<uword>(kMaxUint32)));
       pc_offset_ = value;
     }
 
@@ -1200,7 +1201,7 @@ class RawExceptionHandlers : public RawObject {
   // The index into the ExceptionHandlers table corresponds to
   // the try_index of the handler.
   struct HandlerInfo {
-    intptr_t handler_pc;       // PC value of handler.
+    uint32_t handler_pc_offset;  // PC offset value of handler.
     int16_t outer_try_index;   // Try block index of enclosing try block.
     int8_t needs_stacktrace;   // True if a stacktrace is needed.
     int8_t has_catch_all;      // Catches all exceptions.

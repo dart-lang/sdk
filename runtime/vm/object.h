@@ -3446,13 +3446,13 @@ class ExceptionHandlers : public Object {
   void GetHandlerInfo(intptr_t try_index,
                       RawExceptionHandlers::HandlerInfo* info) const;
 
-  intptr_t HandlerPC(intptr_t try_index) const;
+  uword HandlerPCOffset(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
   bool NeedsStacktrace(intptr_t try_index) const;
 
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
-                      intptr_t handler_pc,
+                      uword handler_pc_offset,
                       bool needs_stacktrace,
                       bool has_catch_all) const;
 

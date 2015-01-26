@@ -228,7 +228,7 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
     if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
       RawExceptionHandlers::HandlerInfo handler_info;
       handlers.GetHandlerInfo(current_try_index, &handler_info);
-      *handler_pc = handler_info.handler_pc;
+      *handler_pc = code.EntryPoint() + handler_info.handler_pc_offset;
       *needs_stacktrace = handler_info.needs_stacktrace;
       *has_catch_all = handler_info.has_catch_all;
       return true;
