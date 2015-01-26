@@ -44,7 +44,6 @@ dynamic cast(dynamic obj, Type staticType) {
   throw new CastError();
 }
 
-// TODO(vsm): Update with new covariance rules.
 bool instanceOf(dynamic obj, Type staticType) {
   // This is our 'is' equivalent.
   if (obj == null) {
