@@ -3,6 +3,7 @@ library ddc.src.codegen.code_generator;
 import 'dart:async' show Future;
 import 'dart:io';
 
+import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:path/path.dart' as path;
 
@@ -19,7 +20,7 @@ abstract class CodeGenerator {
       : outDir = path.absolute(outDir);
 
   Future generateUnit(
-      CompilationUnitElementImpl unit, LibraryInfo info, String libraryDir);
+      CompilationUnit unit, LibraryInfo info, String libraryDir);
 
   Future generateLibrary(String name, LibraryInfo info) {
     var done = [];
@@ -27,7 +28,9 @@ abstract class CodeGenerator {
     var libraryDir = path.join(outDir, name);
     new Directory(libraryDir)..createSync(recursive: true);
     for (var unit in library.units) {
-      done.add(generateUnit(unit, info, libraryDir));
+      // TODO(sigmund): remove `.node`, once we change the pipeline to compile
+      // as we check libraries one at a time.
+      done.add(generateUnit(unit.node, info, libraryDir));
     }
     return Future.wait(done);
   }

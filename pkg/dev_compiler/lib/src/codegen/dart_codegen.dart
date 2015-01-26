@@ -383,13 +383,13 @@ class DartGenerator extends codegenerator.CodeGenerator {
         super(outDir, root, libraries, rules);
 
   Future generateUnit(
-      CompilationUnitElementImpl unit, LibraryInfo info, String libraryDir) {
-    var uri = unit.source.uri;
+      CompilationUnit unit, LibraryInfo info, String libraryDir) {
+    var uri = unit.element.source.uri;
     _log.info("Generating unit " + uri.toString());
     FileWriter out = new FileWriter(
         _format, path.join(libraryDir, '${uri.pathSegments.last}'));
-    _reifier.reify(unit.node);
-    var unitGen = new UnitGenerator(unit.node, out, outDir);
+    _reifier.reify(unit);
+    var unitGen = new UnitGenerator(unit, out, outDir);
     unitGen.generate();
     return out.finalize();
   }
@@ -419,12 +419,12 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
       TypeRules rules, this._format) : super(outDir, root, libraries, rules);
 
   Future generateUnit(
-      CompilationUnitElementImpl unit, LibraryInfo info, String libraryDir) {
-    var uri = unit.source.uri;
+      CompilationUnit unit, LibraryInfo info, String libraryDir) {
+    var uri = unit.element.source.uri;
     _log.info("Emitting original unit " + uri.toString());
     FileWriter out = new FileWriter(
         _format, path.join(libraryDir, '${uri.pathSegments.last}'));
-    var unitGen = new EmptyUnitGenerator(unit.node, out);
+    var unitGen = new EmptyUnitGenerator(unit, out);
     unitGen.generate();
     return out.finalize();
   }

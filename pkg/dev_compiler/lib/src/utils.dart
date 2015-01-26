@@ -5,7 +5,7 @@ import 'dart:async' show Future;
 import 'dart:io';
 
 import 'package:analyzer/src/generated/ast.dart'
-    show ImportDirective, ExportDirective;
+    show ImportDirective, ExportDirective, PartDirective, CompilationUnit;
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -67,6 +67,16 @@ Iterable<Source> _importsAndExportsOf(Source source, AnalysisContext context) {
       .where((d) => d is ImportDirective || d is ExportDirective)
       .map((d) {
     var res = ParseDartTask.resolveDirective(context, source, d, null);
+    if (res == null) print('error: couldn\'t resolve $d');
+    return res;
+  }).where((d) => d != null);
+}
+
+/// Returns sources that are included with part directives from [unit].
+Iterable<Source> partsOf(CompilationUnit unit, AnalysisContext context) {
+  return unit.directives.where((d) => d is PartDirective).map((d) {
+    var res =
+        ParseDartTask.resolveDirective(context, unit.element.source, d, null);
     if (res == null) print('error: couldn\'t resolve $d');
     return res;
   }).where((d) => d != null);

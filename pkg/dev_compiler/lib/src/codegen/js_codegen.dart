@@ -37,10 +37,10 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final _lazyFinalFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
 
-  UnitGenerator(CompilationUnitElementImpl unit, this.outDir, this.libraryInfo,
-      TypeRules rules)
-      : unit = unit.node,
-        uri = unit.source.uri,
+  UnitGenerator(
+      CompilationUnit unit, this.outDir, this.libraryInfo, TypeRules rules)
+      : unit = unit,
+        uri = unit.element.source.uri,
         rules = rules,
         _constVisitor = new ConstantVisitor.con1(rules.provider);
 
@@ -470,7 +470,8 @@ var $libName;
     if (e.enclosingElement is CompilationUnitElement &&
         (e.library != libraryInfo.library || _needsModuleGetter(e))) {
       out.write('${getLibraryId(e.library)}.');
-    } else if (currentClass != null && e.enclosingElement == currentClass.element) {
+    } else if (currentClass != null &&
+        e.enclosingElement == currentClass.element) {
       if (e is PropertyAccessorElement && !e.variable.isStatic ||
           e is ClassMemberElement && !e.isStatic) {
         out.write('this.');
@@ -690,8 +691,7 @@ var $libName;
     node.argumentList.accept(this);
   }
 
-  bool typeIsPrimitiveInJS(DartType t) =>
-      rules.isIntType(t) ||
+  bool typeIsPrimitiveInJS(DartType t) => rules.isIntType(t) ||
       rules.isDoubleType(t) ||
       rules.isBoolType(t) ||
       rules.isNumType(t);
@@ -919,7 +919,6 @@ var $libName;
     _visitNode(node.body);
   }
 
-
   @override
   void visitWhileStatement(WhileStatement node) {
     out.write("while (");
@@ -1054,6 +1053,9 @@ var $libName;
       element = (element as PropertyAccessorElement).variable;
     }
     return element is TopLevelVariableElement &&
+        // TODO(sigmund): refactor so we can remove `.node` here. This may
+        // require tracking in our checker for const values, so we can look it
+        // up cheaply here.
         !_isConstantField(element.node);
   }
 
@@ -1098,7 +1100,7 @@ class JSGenerator extends CodeGenerator {
       : super(outDir, root, libraries, rules);
 
   Future generateUnit(
-      CompilationUnitElementImpl unit, LibraryInfo info, String libraryDir) {
+      CompilationUnit unit, LibraryInfo info, String libraryDir) {
     return new UnitGenerator(unit, libraryDir, info, rules).generate();
   }
 }
