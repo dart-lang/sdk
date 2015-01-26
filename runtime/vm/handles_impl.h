@@ -6,6 +6,7 @@
 #define VM_HANDLES_IMPL_H_
 
 #include "vm/heap.h"
+#include "vm/thread.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -85,36 +86,41 @@ void Handles<kHandleSizeInWords,
 }
 
 
-// Figure out the current handle scope using the current Isolate and
+// Figure out the current handle scope using the current Zone and
 // allocate a handle in that scope. The function assumes that a
-// current Isolate, current zone and current handle scope exist. It
-// asserts for this appropriately.
+// current handle scope exists. It asserts for this appropriately.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 uword Handles<kHandleSizeInWords,
               kHandlesPerChunk,
-              kOffsetOfRawPtr>::AllocateHandle(Isolate* isolate) {
+              kOffsetOfRawPtr>::AllocateHandle(Zone* zone) {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->zone() == zone);
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(isolate->current_zone() != NULL);
   ASSERT(isolate->top_handle_scope() != NULL);
   ASSERT(isolate->no_handle_scope_depth() == 0);
-  Handles* handles = isolate->current_zone()->handles();
+#endif  // DEBUG
+  Handles* handles = zone->handles();
   ASSERT(handles != NULL);
   return handles->AllocateScopedHandle();
 }
 
 
-// Figure out the current zone using the current Isolate and
-// allocate a handle in that zone. The function assumes that a
-// current Isolate and current zone exist. It asserts for
+// The function assumes that 'zone' is the current zone and asserts for
 // this appropriately.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 uword Handles<kHandleSizeInWords,
               kHandlesPerChunk,
-              kOffsetOfRawPtr>::AllocateZoneHandle(Isolate* isolate) {
+              kOffsetOfRawPtr>::AllocateZoneHandle(Zone* zone) {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->zone() == zone);
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(isolate->current_zone() != NULL);
   ASSERT(isolate->no_handle_scope_depth() == 0);
-  Handles* handles = isolate->current_zone()->handles();
+#endif  // DEBUG
+  Handles* handles = zone->handles();
   ASSERT(handles != NULL);
   uword address = handles->AllocateHandleInZone();
   return address;

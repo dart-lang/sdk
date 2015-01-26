@@ -19,8 +19,9 @@ DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
     "Print constant propagation and useless code elimination.");
 
-// Quick access to the locally defined isolate() method.
+// Quick access to the current zone and isolate.
 #define I (isolate())
+#define Z (graph_->zone())
 
 
 ConstantPropagator::ConstantPropagator(
@@ -30,10 +31,10 @@ ConstantPropagator::ConstantPropagator(
       graph_(graph),
       unknown_(Object::unknown_constant()),
       non_constant_(Object::non_constant()),
-      reachable_(new(graph->isolate()) BitVector(
-          graph->isolate(), graph->preorder().length())),
-      marked_phis_(new(graph->isolate()) BitVector(
-          graph->isolate(), graph->max_virtual_register_number())),
+      reachable_(new(Z) BitVector(
+          Z, graph->preorder().length())),
+      marked_phis_(new(Z) BitVector(
+          Z, graph->max_virtual_register_number())),
       block_worklist_(),
       definition_worklist_(graph, 10) {}
 
@@ -1430,7 +1431,8 @@ void ConstantPropagator::EliminateRedundantBranches() {
   // Canonicalize branches that have no side-effects and where true- and
   // false-targets are the same.
   bool changed = false;
-  BitVector* empty_blocks = new(I) BitVector(I, graph_->preorder().length());
+  BitVector* empty_blocks = new(Z) BitVector(Z,
+      graph_->preorder().length());
   for (BlockIterator b = graph_->postorder_iterator();
        !b.Done();
        b.Advance()) {

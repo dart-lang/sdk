@@ -40,13 +40,14 @@ struct TopLevel;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
-  ParsedFunction(Isolate* isolate, const Function& function)
-      : function_(function),
-        code_(Code::Handle(isolate, function.unoptimized_code())),
+  ParsedFunction(Thread* thread, const Function& function)
+      : thread_(thread),
+        function_(function),
+        code_(Code::Handle(zone(), function.unoptimized_code())),
         node_sequence_(NULL),
         regexp_compile_data_(NULL),
         instantiator_(NULL),
-        default_parameter_values_(Array::ZoneHandle(isolate, Array::null())),
+        default_parameter_values_(Array::ZoneHandle(zone(), Array::null())),
         current_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
@@ -58,14 +59,13 @@ class ParsedFunction : public ZoneAllocated {
         num_stack_locals_(0),
         have_seen_await_expr_(false),
         saved_try_ctx_(NULL),
-        async_saved_try_ctx_name_(String::ZoneHandle(isolate, String::null())),
-        isolate_(isolate) {
+        async_saved_try_ctx_name_(String::ZoneHandle(zone(), String::null())) {
     ASSERT(function.IsZoneHandle());
     // Every function has a local variable for the current context.
-    LocalVariable* temp = new(isolate) LocalVariable(
+    LocalVariable* temp = new(zone()) LocalVariable(
         function.token_pos(),
         Symbols::CurrentContextVar(),
-        Type::ZoneHandle(isolate, Type::DynamicType()));
+        Type::ZoneHandle(zone(), Type::DynamicType()));
     ASSERT(temp != NULL);
     current_context_var_ = temp;
   }
@@ -170,9 +170,12 @@ class ParsedFunction : public ZoneAllocated {
     async_saved_try_ctx_name_ = String::null();
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return thread()->isolate(); }
+  Zone* zone() const { return thread()->zone(); }
 
  private:
+  Thread* thread_;
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
@@ -192,8 +195,6 @@ class ParsedFunction : public ZoneAllocated {
   bool have_seen_await_expr_;
   LocalVariable* saved_try_ctx_;
   String& async_saved_try_ctx_name_;
-
-  Isolate* isolate_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
@@ -769,9 +770,11 @@ class Parser : public ValueObject {
 
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return thread()->isolate(); }
+  Zone* zone() const { return thread()->zone(); }
 
-  Isolate* isolate_;  // Cached current isolate.
+  Thread* thread_;  // Cached current thread.
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

@@ -10,6 +10,7 @@
 #include "vm/object.h"
 #include "vm/parser.h"
 #include "vm/symbols.h"
+#include "vm/thread.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -31,7 +32,7 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
       Function::ZoneHandle(cls.LookupStaticFunction(funcname));
     EXPECT(!function.IsNull());
     ParsedFunction* parsed_function =
-        new ParsedFunction(Isolate::Current(), function);
+        new ParsedFunction(Thread::Current(), function);
     Parser::ParseFunction(parsed_function);
     EXPECT(parsed_function->node_sequence() != NULL);
     printf("Class %s function %s:\n", cname, fname);

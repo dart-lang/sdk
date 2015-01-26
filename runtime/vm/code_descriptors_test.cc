@@ -13,6 +13,7 @@
 #include "vm/native_entry.h"
 #include "vm/parser.h"
 #include "vm/symbols.h"
+#include "vm/thread.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -22,7 +23,7 @@ static const intptr_t kPos = Scanner::kNoSourcePos;
 
 CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   ParsedFunction* parsed_function =
-      new ParsedFunction(Isolate::Current(), test->function());
+      new ParsedFunction(Thread::Current(), test->function());
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(1)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2)));

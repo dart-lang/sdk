@@ -540,7 +540,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
   const intptr_t block_count = postorder_.length();
   ASSERT(postorder_.Last()->IsGraphEntry());
   BitVector* current_interference_set = NULL;
-  Isolate* isolate = flow_graph_.isolate();
+  Zone* zone = flow_graph_.zone();
   for (intptr_t i = 0; i < (block_count - 1); i++) {
     BlockEntryInstr* block = postorder_[i];
 
@@ -558,8 +558,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
     BlockInfo* loop_header = block_info->loop_header();
     if ((loop_header != NULL) && (loop_header->last_block() == block)) {
-      current_interference_set = new(isolate) BitVector(
-          isolate, flow_graph_.max_virtual_register_number());
+      current_interference_set = new(zone) BitVector(
+          zone, flow_graph_.max_virtual_register_number());
       ASSERT(loop_header->backedge_interference() == NULL);
       // All values flowing into the loop header are live at the back-edge and
       // can interfere with phi moves.
@@ -882,8 +882,7 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
     const intptr_t block_start_pos = block->start_pos();
     const intptr_t use_pos = current->lifetime_position() + 1;
 
-    Location* locations =
-        Isolate::Current()->current_zone()->Alloc<Location>(env->Length());
+    Location* locations = flow_graph_.zone()->Alloc<Location>(env->Length());
 
     for (intptr_t i = 0; i < env->Length(); ++i) {
       Value* value = env->ValueAt(i);
@@ -956,8 +955,7 @@ void FlowGraphAllocator::ProcessMaterializationUses(
   }
 
   // Initialize location for every input of the MaterializeObject instruction.
-  Location* locations =
-      Isolate::Current()->current_zone()->Alloc<Location>(mat->InputCount());
+  Location* locations = flow_graph_.zone()->Alloc<Location>(mat->InputCount());
   mat->set_locations(locations);
 
   for (intptr_t i = 0; i < mat->InputCount(); ++i) {
@@ -2025,9 +2023,9 @@ intptr_t FlowGraphAllocator::FirstIntersectionWithAllocated(
 void ReachingDefs::AddPhi(PhiInstr* phi) {
   // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
   if (phi->reaching_defs() == NULL) {
-    Isolate* isolate = Isolate::Current();
-    phi->set_reaching_defs(new(isolate) BitVector(
-        isolate, flow_graph_.max_virtual_register_number()));
+    Zone* zone = flow_graph_.zone();
+    phi->set_reaching_defs(new(zone) BitVector(
+        zone, flow_graph_.max_virtual_register_number()));
 
     // Compute initial set reaching defs set.
     bool depends_on_phi = false;

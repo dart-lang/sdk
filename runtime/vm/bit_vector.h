@@ -51,14 +51,6 @@ class BitVector : public ZoneAllocated {
     Clear();
   }
 
-  // DEPRECATED: Use Zone version.
-  BitVector(Isolate* isolate, intptr_t length)
-      : length_(length),
-        data_length_(SizeFor(length)),
-        data_(isolate->current_zone()->Alloc<uword>(data_length_)) {
-    Clear();
-  }
-
   void CopyFrom(const BitVector* other) {
     Clear();
     AddAll(other);

@@ -254,6 +254,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
   Isolate* isolate() const { return flow_graph_->isolate(); }
+  Zone* zone() const { return flow_graph_->zone(); }
 
   FlowGraph* flow_graph_;
 
@@ -411,6 +412,7 @@ class AllocationSinking : public ZoneAllocated {
   void EliminateAllocation(Definition* alloc);
 
   Isolate* isolate() const { return flow_graph_->isolate(); }
+  Zone* zone() const { return flow_graph_->zone(); }
 
   FlowGraph* flow_graph_;
 

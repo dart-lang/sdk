@@ -10,8 +10,7 @@
 
 namespace dart {
 
-// Quick access to the current isolate and zone.
-#define I (thread()->isolate())
+// Quick access to the current zone.
 #define Z (thread()->zone())
 
 // Nodes that are unreachable from already parsed expressions.
@@ -66,8 +65,8 @@ AstNode* AwaitTransformer::Transform(AstNode* expr) {
 LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   const char* await_temp_prefix = ":await_temp_var_";
   const String& cnt_str = String::ZoneHandle(
-      I, String::NewFormatted("%s%d", await_temp_prefix, temp_cnt_));
-  const String& symbol = String::ZoneHandle(I, Symbols::New(cnt_str));
+      Z, String::NewFormatted("%s%d", await_temp_prefix, temp_cnt_));
+  const String& symbol = String::ZoneHandle(Z, Symbols::New(cnt_str));
   ASSERT(!symbol.IsNull());
   // Look up the variable through the preamble scope.
   LocalVariable* await_tmp = preamble_->scope()->LookupVariable(symbol, false);
@@ -141,10 +140,10 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       Scanner::kNoSourcePos, result_param);
 
   const Class& future_cls =
-      Class::ZoneHandle(I, I->object_store()->future_class());
+      Class::ZoneHandle(Z, thread()->isolate()->object_store()->future_class());
   ASSERT(!future_cls.IsNull());
   const AbstractType& future_type =
-      AbstractType::ZoneHandle(I, future_cls.RareType());
+      AbstractType::ZoneHandle(Z, future_cls.RareType());
   ASSERT(!future_type.IsNull());
 
   LocalScope* is_not_future_scope = ChainNewScope(preamble_->scope());
@@ -155,13 +154,13 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //   :result_param = Future.value(:result_param);
   // }
   const Function& value_ctor = Function::ZoneHandle(
-      I, future_cls.LookupFunction(Symbols::FutureValue()));
+      Z, future_cls.LookupFunction(Symbols::FutureValue()));
   ASSERT(!value_ctor.IsNull());
   ArgumentListNode* ctor_args = new (Z) ArgumentListNode(Scanner::kNoSourcePos);
   ctor_args->Add(new (Z) LoadLocalNode(Scanner::kNoSourcePos, result_param));
   ConstructorCallNode* ctor_call =
       new (Z) ConstructorCallNode(Scanner::kNoSourcePos,
-                                  TypeArguments::ZoneHandle(I),
+                                  TypeArguments::ZoneHandle(Z),
                                   value_ctor,
                                   ctor_args);
   is_not_future_branch->Add(new (Z) StoreLocalNode(
@@ -191,7 +190,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
                               args)));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Function& async_catch_helper = Function::ZoneHandle(
-      I, core_lib.LookupFunctionAllowPrivate(Symbols::AsyncCatchHelper()));
+      Z, core_lib.LookupFunctionAllowPrivate(Symbols::AsyncCatchHelper()));
   ASSERT(!async_catch_helper.IsNull());
   ArgumentListNode* catch_helper_args = new (Z) ArgumentListNode(
       Scanner::kNoSourcePos);
@@ -213,7 +212,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   // If this expression is part of a try block, also append the code for
   // restoring the saved try context that lives on the stack.
   const String& async_saved_try_ctx_name =
-      String::Handle(I, parsed_function_->async_saved_try_ctx_name());
+      String::Handle(Z, parsed_function_->async_saved_try_ctx_name());
   if (!async_saved_try_ctx_name.IsNull()) {
     LocalVariable* async_saved_try_ctx =
         GetVariableInScope(preamble_->scope(), async_saved_try_ctx_name);
