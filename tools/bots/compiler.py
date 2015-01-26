@@ -38,12 +38,10 @@ DART2JS_FULL_CONFIGURATIONS = {
   'mac' : [ ],
   'windows-ie10' : [
     {'runtime' : 'ie10'},
-    {'runtime' : 'ie10', 'additional_flags' : ['--checked']},
     {'runtime' : 'chrome'},
   ],
   'windows-ie11' : [
     {'runtime' : 'ie11'},
-    {'runtime' : 'ie11', 'additional_flags' : ['--checked']},
     {'runtime' : 'ff'},
   ],
 }
@@ -290,7 +288,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
 
   if compiler == 'dart2js' and runtime in ['ie10', 'ie11']:
     TestStep(compiler, mode, system, compiler, runtime,
-             ['html', 'pkg', 'samples'], flags, arch)
+             ['html', 'pkg', 'samples', 'co19'], flags, arch)
   else:
     # Run the default set of test suites.
     TestStep(compiler, mode, system, compiler,
