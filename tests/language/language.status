@@ -262,5 +262,5 @@ large_class_declaration_test: Skip # Times out. Issue 20352
 gc_test: Skip # Times out flakily. Issue 20956
 
 [ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
-vm/load_to_load_unaligned_forwarding_vm_test: Crash # Unaligned offset. Issue 22151
+vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
