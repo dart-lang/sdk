@@ -56,12 +56,6 @@ class GetHandler {
   static const String CACHE_ENTRY_PATH = '/cache_entry';
 
   /**
-   * The path used to request information about the cache entry corresponding
-   * to a single file.
-   */
-  static const String CACHE_ENTRY2_PATH = '/cache_entry2';
-
-  /**
    * The path used to request the list of source files in a certain cache
    * state.
    */
@@ -166,16 +160,12 @@ class GetHandler {
     String path = request.uri.path;
     if (path == STATUS_PATH) {
       _returnServerStatus(request);
-    } else if (path == '/status2') {
-      _returnServerStatus2(request);
     } else if (path == AST_PATH) {
       _returnAst(request);
     } else if (path == CACHE_STATE_PATH) {
       _returnCacheState(request);
     } else if (path == CACHE_ENTRY_PATH) {
       _returnCacheEntry(request);
-    } else if (path == CACHE_ENTRY2_PATH) {
-      _returnCacheEntry2(request);
     } else if (path == COMPLETION_PATH) {
       _returnCompletionInfo(request);
     } else if (path == CONTEXT_PATH) {
@@ -217,6 +207,10 @@ class GetHandler {
     return hasException;
   }
 
+  /**
+   * Return the folder in the [folderMap] with which the given [context] is
+   * associated.
+   */
   Folder _keyForValue(Map<Folder, AnalysisContext> folderMap,
       AnalysisContext context) {
     for (Folder folder in folderMap.keys) {
@@ -238,55 +232,6 @@ class GetHandler {
     String href = HTML_ESCAPE.convert(uri.toString());
     String classAttribute = hasError ? ' class="error"' : '';
     return '<a href="$href"$classAttribute>$innerHtml</a>';
-  }
-
-  /**
-   * Generate a table showing the cache values corresponding to the given
-   * [descriptors], using [getState] to get the cache state corresponding to
-   * each descriptor, and [getValue] to get the cached value corresponding to
-   * each descriptor.  Append the resulting HTML to [response].
-   */
-  void _outputDescriptorTable(HttpResponse response,
-      List<DataDescriptor> descriptors, CacheState getState(DataDescriptor), dynamic
-      getValue(DataDescriptor)) {
-    response.write('<dl>');
-    for (DataDescriptor descriptor in descriptors) {
-      String descriptorName = HTML_ESCAPE.convert(descriptor.toString());
-      String descriptorState =
-          HTML_ESCAPE.convert(getState(descriptor).toString());
-      response.write('<dt>$descriptorName ($descriptorState)</dt><dd>');
-      try {
-        _outputValueAsHtml(response, getValue(descriptor));
-      } catch (exception) {
-        response.write('(${HTML_ESCAPE.convert(exception.toString())})');
-      }
-      response.write('</dd>');
-    }
-    response.write('</dl>');
-  }
-
-  /**
-   * Render the given [value] as HTML and append it to [response].
-   */
-  void _outputValueAsHtml(HttpResponse response, dynamic value) {
-    if (value == null) {
-      response.write('<i>null</i>');
-    } else if (value is String) {
-      response.write('<pre>${HTML_ESCAPE.convert(value)}</pre>');
-    } else if (value is List) {
-      response.write('${value.length} entries');
-      response.write('<ul>');
-      for (var entry in value) {
-        response.write('<li>');
-        _outputValueAsHtml(response, entry);
-        response.write('</li>');
-      }
-      response.write('</ul>');
-    } else {
-      response.write(HTML_ESCAPE.convert(value.toString()));
-      response.write(
-          ' <i>(${HTML_ESCAPE.convert(value.runtimeType.toString())})</i>');
-    }
   }
 
   /**
@@ -347,85 +292,6 @@ class GetHandler {
    * cache.
    */
   void _returnCacheEntry(HttpRequest request) {
-    // Figure out which context is being searched for.
-    String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
-    if (contextFilter == null) {
-      return _returnFailure(
-          request,
-          'Query parameter $CONTEXT_QUERY_PARAM required');
-    }
-
-    // Figure out which CacheEntry is being searched for.
-    String sourceUri = request.uri.queryParameters[SOURCE_QUERY_PARAM];
-    if (sourceUri == null) {
-      return _returnFailure(
-          request,
-          'Query parameter $SOURCE_QUERY_PARAM required');
-    }
-
-    AnalysisServer analysisServer = _server.analysisServer;
-    if (analysisServer == null) {
-      return _returnFailure(request, 'Analysis server not running');
-    }
-
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Search result</title>');
-    response.write('</head>');
-    response.write('<body>');
-    response.write('<h1>');
-    response.write('File ${HTML_ESCAPE.convert(sourceUri)}');
-    response.write(' in context ${HTML_ESCAPE.convert(contextFilter)}');
-    response.write('</h1>');
-    analysisServer.folderMap.forEach(
-        (Folder folder, AnalysisContextImpl context) {
-      if (folder.path != contextFilter) {
-        return;
-      }
-      Source source = context.sourceFactory.forUri(sourceUri);
-      if (source == null) {
-        response.write('<p>Not found.</p>');
-        return;
-      }
-      SourceEntry entry = context.getReadableSourceEntryOrNull(source);
-      if (entry == null) {
-        response.write('<p>Not found.</p>');
-        return;
-      }
-      response.write('<h2>File info:</h2><dl>');
-      _outputDescriptorTable(
-          response,
-          entry.descriptors,
-          entry.getState,
-          entry.getValue);
-      if (entry is DartEntry) {
-        for (Source librarySource in entry.containingLibraries) {
-          String libraryName = HTML_ESCAPE.convert(librarySource.fullName);
-          response.write('<h2>In library $libraryName:</h2>');
-          _outputDescriptorTable(
-              response,
-              entry.libraryDescriptors,
-              (DataDescriptor descriptor) =>
-                  entry.getStateInLibrary(descriptor, librarySource),
-              (DataDescriptor descriptor) =>
-                  entry.getValueInLibrary(descriptor, librarySource));
-        }
-      }
-    });
-    response.write('</body>');
-    response.write('</html>');
-
-    response.close();
-  }
-
-  /**
-   * Return a response containing information about a single source file in the
-   * cache.
-   */
-  void _returnCacheEntry2(HttpRequest request) {
     AnalysisServer analysisServer = _server.analysisServer;
     if (analysisServer == null) {
       return _returnFailure(request, 'Analysis server not running');
@@ -447,6 +313,19 @@ class GetHandler {
           'Query parameter $SOURCE_QUERY_PARAM required');
     }
 
+    List<Folder> allContexts = <Folder>[];
+    Map<Folder, SourceEntry> entryMap = new HashMap<Folder, SourceEntry>();
+    analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
+      Source source = context.sourceFactory.forUri(sourceUri);
+      if (source != null) {
+        SourceEntry entry = context.getReadableSourceEntryOrNull(source);
+        if (entry != null) {
+          allContexts.add(folder);
+          entryMap[folder] = entry;
+        }
+      }
+    });
+    allContexts.sort((Folder firstFolder, Folder secondFolder) => firstFolder.path.compareTo(secondFolder.path));
     AnalysisContextImpl context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
@@ -455,20 +334,41 @@ class GetHandler {
           'Analysis Server - Cache Entry',
           ['Context: $contextFilter', 'File: $sourceUri'],
           (HttpResponse) {
-        Source source = context.sourceFactory.forUri(sourceUri);
-        if (source == null) {
-          buffer.write('<p>Not found.</p>');
-          return;
-        }
-        SourceEntry entry = context.getReadableSourceEntryOrNull(source);
+        buffer.write('<h3>Analyzing Contexts</h3><p>');
+        bool first = true;
+        allContexts.forEach((Folder folder) {
+          if (first) {
+            first = false;
+          } else {
+            buffer.write('<br>');
+          }
+          AnalysisContextImpl analyzingContext = analysisServer.folderMap[folder];
+          if (analyzingContext == context) {
+            buffer.write(folder.path);
+          } else {
+            buffer.write(_makeLink(CACHE_ENTRY_PATH, {
+              CONTEXT_QUERY_PARAM: folder.path,
+              SOURCE_QUERY_PARAM: sourceUri
+            }, HTML_ESCAPE.convert(folder.path)));
+          }
+          if (entryMap[folder].explicitlyAdded) {
+            buffer.write(' (explicit)');
+          } else {
+            buffer.write(' (implicit)');
+          }
+        });
+        buffer.write('</p>');
+
+        SourceEntry entry = entryMap[folder];
         if (entry == null) {
-          buffer.write('<p>Not found.</p>');
+          buffer.write('<p>Not being analyzed in this context.</p>');
           return;
         }
         Map<String, String> linkParameters = <String, String>{
           CONTEXT_QUERY_PARAM: folder.path,
-          SOURCE_QUERY_PARAM: source.uri.toString()
+          SOURCE_QUERY_PARAM: sourceUri
         };
+
         buffer.write('<h3>Library Independent</h3>');
         _writeDescriptorTable(
             buffer,
@@ -503,6 +403,17 @@ class GetHandler {
    * state.
    */
   void _returnCacheState(HttpRequest request) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server not running');
+    }
+    // Figure out which context is being searched within.
+    String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
+    if (contextFilter == null) {
+      return _returnFailure(
+          request,
+          'Query parameter $CONTEXT_QUERY_PARAM required');
+    }
     // Figure out what CacheState is being searched for.
     String stateQueryParam = request.uri.queryParameters[STATE_QUERY_PARAM];
     if (stateQueryParam == null) {
@@ -521,15 +432,6 @@ class GetHandler {
           request,
           'Query parameter $STATE_QUERY_PARAM is invalid');
     }
-
-    // Figure out which context is being searched for.
-    String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
-    if (contextFilter == null) {
-      return _returnFailure(
-          request,
-          'Query parameter $CONTEXT_QUERY_PARAM required');
-    }
-
     // Figure out which descriptor is being searched for.
     String descriptorFilter =
         request.uri.queryParameters[DESCRIPTOR_QUERY_PARAM];
@@ -539,49 +441,39 @@ class GetHandler {
           'Query parameter $DESCRIPTOR_QUERY_PARAM required');
     }
 
-    AnalysisServer analysisServer = _server.analysisServer;
-    if (analysisServer == null) {
-      return _returnFailure(request, 'Analysis server not running');
-    }
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Search result</title>');
-    response.write('</head>');
-    response.write('<body>');
-    response.write('<h1>');
-    response.write('Files with state ${HTML_ESCAPE.convert(stateQueryParam)}');
-    response.write(' for descriptor ${HTML_ESCAPE.convert(descriptorFilter)}');
-    response.write(' in context ${HTML_ESCAPE.convert(contextFilter)}');
-    response.write('</h1>');
-    response.write('<ul>');
-    int count = 0;
-    analysisServer.folderMap.forEach(
-        (Folder folder, AnalysisContextImpl context) {
-      if (folder.path != contextFilter) {
+    Folder folder = _findFolder(analysisServer, contextFilter);
+    AnalysisContextImpl context = analysisServer.folderMap[folder];
+    List<String> links = <String>[];
+    context.visitCacheItems(
+        (Source source, SourceEntry dartEntry, DataDescriptor rowDesc, CacheState state)
+            {
+      if (state != stateFilter || rowDesc.toString() != descriptorFilter) {
         return;
       }
-      context.visitCacheItems(
-          (Source source, SourceEntry dartEntry, DataDescriptor rowDesc, CacheState state)
-              {
-        if (state != stateFilter || rowDesc.toString() != descriptorFilter) {
-          return;
-        }
-        String link = _makeLink(CACHE_ENTRY_PATH, {
-          CONTEXT_QUERY_PARAM: folder.path,
-          SOURCE_QUERY_PARAM: source.uri.toString()
-        }, HTML_ESCAPE.convert(source.fullName));
-        response.write('<li>$link</li>');
-        count++;
+      String link = _makeLink(CACHE_ENTRY_PATH, {
+        CONTEXT_QUERY_PARAM: folder.path,
+        SOURCE_QUERY_PARAM: source.uri.toString()
+      }, HTML_ESCAPE.convert(source.fullName));
+      links.add(link);
+    });
+
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Cache Search',
+          [
+              'Context: $contextFilter',
+              'Descriptor: ${HTML_ESCAPE.convert(descriptorFilter)}',
+              'State: ${HTML_ESCAPE.convert(stateQueryParam)}'],
+          (StringBuffer buffer) {
+        buffer.write('<p>${links.length} files found</p>');
+        buffer.write('<ul>');
+        links.forEach((String link) {
+          buffer.write('<li>$link</li>');
+        });
+        buffer.write('</ul>');
       });
     });
-    response.write('</ul>');
-    response.write('<p>$count files found</p>');
-    response.write('</body>');
-    response.write('</html>');
-    response.close();
   }
 
   /**
@@ -591,7 +483,7 @@ class GetHandler {
     String value = request.requestedUri.queryParameters['index'];
     int index = value != null ? int.parse(value, onError: (_) => 0) : 0;
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Code Completion - Status', [], (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Completion Stats', [], (StringBuffer buffer) {
         _writeCompletionPerformanceDetail(buffer, index);
         _writeCompletionPerformanceList(buffer);
       });
@@ -636,7 +528,7 @@ class GetHandler {
         if (exception != null) {
           exceptions.add(exception);
         }
-        String link = _makeLink(CACHE_ENTRY2_PATH, {
+        String link = _makeLink(CACHE_ENTRY_PATH, {
           CONTEXT_QUERY_PARAM: folder.path,
           SOURCE_QUERY_PARAM: source.uri.toString()
         }, sourceName, exception != null);
@@ -690,7 +582,7 @@ class GetHandler {
         headerRowText.addAll(CacheState.values);
         buffer.write('<h3>Summary</h3>');
         buffer.write('<table>');
-        _writeRow2(buffer, headerRowText, header: true);
+        _writeRow(buffer, headerRowText, header: true);
         AnalysisContextStatistics statistics = context.statistics;
         statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
           List rowText = [row.name];
@@ -703,7 +595,7 @@ class GetHandler {
             };
             rowText.add(_makeLink(CACHE_STATE_PATH, params, text));
           }
-          _writeRow2(buffer, rowText, classes: [null, "right"]);
+          _writeRow(buffer, rowText, classes: [null, "right"]);
         });
         buffer.write('</table>');
 
@@ -755,7 +647,7 @@ class GetHandler {
           buffer,
           'Analysis Server - Element Model',
           ['Context: $contextFilter', 'File: $sourceUri'],
-          (HttpResponse) {
+          (StringBuffer buffer) {
         Source source = context.sourceFactory.forUri(sourceUri);
         if (source == null) {
           buffer.write('<p>Not found.</p>');
@@ -777,36 +669,34 @@ class GetHandler {
   }
 
   void _returnFailure(HttpRequest request, String message) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Failure</title>');
-    response.write('</head>');
-    response.write('<body>');
-    response.write(HTML_ESCAPE.convert(message));
-    response.write('</body>');
-    response.write('</html>');
-    response.close();
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Failure',
+          [],
+          (StringBuffer buffer) {
+        buffer.write(HTML_ESCAPE.convert(message));
+      });
+    });
   }
 
   void _returnOverlayContents(HttpRequest request) {
     String idString = request.requestedUri.queryParameters[ID_PARAM];
+    if (idString == null) {
+      return _returnFailure(request, 'Query parameter $ID_PARAM required');
+    }
     int id = int.parse(idString);
     String contents = _overlayContents[id];
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Overlay</title>');
-    response.write('</head>');
-    response.write('<body>');
-    response.write('<pre>${HTML_ESCAPE.convert(contents)}</pre>');
-    response.write('</body>');
-    response.write('</html>');
-    response.close();
+
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Overlay',
+          [],
+          (StringBuffer buffer) {
+        buffer.write('<pre>${HTML_ESCAPE.convert(contents)}</pre>');
+      });
+    });
   }
 
   /**
@@ -817,147 +707,40 @@ class GetHandler {
     if (analysisServer == null) {
       return _returnFailure(request, 'Analysis server is not running');
     }
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Overlays</title>');
-    response.write('</head>');
-    response.write('<body>');
-    response.write('<h1>Dart Analysis Server - Overlays</h1>');
-    response.write('<table border="1">');
-    int count = 0;
-    _overlayContents.clear();
-    analysisServer.folderMap.forEach((_, AnalysisContextImpl context) {
-      context.visitContentCache((Source source, int stamp, String contents) {
-        count++;
-        response.write('<tr>');
-        String linkRef = '$OVERLAY_PATH?id=$count';
-        String linkText = HTML_ESCAPE.convert(source.toString());
-        response.write('<td><a href="$linkRef">$linkText</a></td>');
-        response.write(
-            '<td>${new DateTime.fromMillisecondsSinceEpoch(stamp)}</td>');
-        response.write('</tr>');
-        _overlayContents[count] = contents;
+
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Overlays',
+          [],
+          (StringBuffer buffer) {
+        buffer.write('<table border="1">');
+        int count = 0;
+        _overlayContents.clear();
+        analysisServer.folderMap.forEach((_, AnalysisContextImpl context) {
+          context.visitContentCache(
+              (Source source, int stamp, String contents) {
+            count++;
+            buffer.write('<tr>');
+            String linkRef = '$OVERLAY_PATH?id=$count';
+            String linkText = HTML_ESCAPE.convert(source.toString());
+            buffer.write('<td><a href="$linkRef">$linkText</a></td>');
+            buffer.write(
+                '<td>${new DateTime.fromMillisecondsSinceEpoch(stamp)}</td>');
+            buffer.write('</tr>');
+            _overlayContents[count] = contents;
+          });
+        });
+        buffer.write('<tr><td colspan="2">Total: $count entries.</td></tr>');
+        buffer.write('</table>');
       });
     });
-    response.write('<tr><td colspan="2">Total: $count entries.</td></tr>');
-    response.write('</table>');
-    response.write('</body>');
-    response.write('</html>');
-    response.close();
   }
 
   /**
    * Return a response indicating the status of the analysis server.
    */
   void _returnServerStatus(HttpRequest request) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Status</title>');
-    response.write('<style>');
-    response.write('td.right {text-align: right;}');
-    response.write('</style>');
-    response.write('</head>');
-    response.write('<body>');
-    response.write('<h1>Analysis Server</h1>');
-    AnalysisServer analysisServer = _server.analysisServer;
-    if (analysisServer == null) {
-      response.write('<p>Not running</p>');
-    } else {
-      if (analysisServer.statusAnalyzing) {
-        response.write('<p>Running (analyzing)</p>');
-      } else {
-        response.write('<p>Running (not analyzing)</p>');
-      }
-      response.write('<p>Instrumentation status: ');
-      if (AnalysisEngine.instance.instrumentationService.isActive) {
-        response.write('<span style="color:red">active</span>');
-      } else {
-        response.write('inactive');
-      }
-      response.write('</p>');
-      response.write('<h1>Analysis Contexts</h1>');
-      response.write('<h2>Summary</h2>');
-      response.write('<table>');
-      List headerRowText = ['Context'];
-      headerRowText.addAll(CacheState.values);
-      _writeRow(response, headerRowText, header: true);
-      Map<Folder, AnalysisContext> folderMap = analysisServer.folderMap;
-      List<Folder> folders = folderMap.keys.toList();
-      folders.sort(
-          (Folder first, Folder second) => first.shortName.compareTo(second.shortName));
-      folders.forEach((Folder folder) {
-        AnalysisContextImpl context = folderMap[folder];
-        String key = folder.shortName;
-        AnalysisContextStatistics statistics = context.statistics;
-        Map<CacheState, int> totals = <CacheState, int>{};
-        for (CacheState state in CacheState.values) {
-          totals[state] = 0;
-        }
-        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
-          for (CacheState state in CacheState.values) {
-            totals[state] += row.getCount(state);
-          }
-        });
-        List rowText = [
-            '<a href="#context_${HTML_ESCAPE.convert(key)}">$key</a>'];
-        for (CacheState state in CacheState.values) {
-          rowText.add(totals[state]);
-        }
-        _writeRow(response, rowText, classes: [null, "right"]);
-      });
-      response.write('</table>');
-      folders.forEach((Folder folder) {
-        AnalysisContextImpl context = folderMap[folder];
-        String key = folder.shortName;
-        response.write(
-            '<h2><a name="context_${HTML_ESCAPE.convert(key)}">Analysis Context: $key</a></h2>');
-        AnalysisContextStatistics statistics = context.statistics;
-        response.write('<table>');
-        _writeRow(response, headerRowText, header: true);
-        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
-          List rowText = [row.name];
-          for (CacheState state in CacheState.values) {
-            String text = row.getCount(state).toString();
-            Map<String, String> params = <String, String>{
-              STATE_QUERY_PARAM: state.toString(),
-              CONTEXT_QUERY_PARAM: folder.path,
-              DESCRIPTOR_QUERY_PARAM: row.name
-            };
-            rowText.add(_makeLink(CACHE_STATE_PATH, params, text));
-          }
-          _writeRow(response, rowText, classes: [null, "right"]);
-        });
-        response.write('</table>');
-        List<CaughtException> exceptions = statistics.exceptions;
-        if (!exceptions.isEmpty) {
-          response.write('<h2>Exceptions</h2>');
-          exceptions.forEach((CaughtException exception) {
-            StringBuffer buffer = new StringBuffer();
-            _writeException(buffer, exception);
-            response.write(buffer.toString());
-          });
-        }
-      });
-    }
-    response.write('<h1>Most recent strings printed by analysis server</h2>');
-    response.write('<pre>');
-    response.write(HTML_ESCAPE.convert(_printBuffer.join('\n')));
-    response.write('</pre>');
-    response.write('</body>');
-    response.write('</html>');
-    response.close();
-  }
-
-  /**
-   * Return a response indicating the status of the analysis server.
-   */
-  void _returnServerStatus2(HttpRequest request) {
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Status', [], (StringBuffer buffer) {
         if (_writeServerStatus(buffer)) {
@@ -1106,10 +889,10 @@ class GetHandler {
     buffer.write(
         '<h3>Completion Performance Detail - ${performance.startTimeAndMs}</h3>');
     buffer.write('<table>');
-    _writeRow2(buffer, ['Elapsed', '', 'Operation'], header: true);
+    _writeRow(buffer, ['Elapsed', '', 'Operation'], header: true);
     performance.operations.forEach((OperationPerformance op) {
       String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
-      _writeRow2(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
+      _writeRow(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
     });
     if (handler.priorityChangedPerformance == null) {
       buffer.write('<p>No priorityChanged caching</p>');
@@ -1118,9 +901,9 @@ class GetHandler {
       if (len > 0) {
         var op = handler.priorityChangedPerformance.operations[len - 1];
         if (op != null) {
-          _writeRow2(buffer, ['&nbsp;', '&nbsp;', '&nbsp;']);
+          _writeRow(buffer, ['&nbsp;', '&nbsp;', '&nbsp;']);
           String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
-          _writeRow2(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
+          _writeRow(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
         }
       }
     }
@@ -1138,7 +921,7 @@ class GetHandler {
       return;
     }
     buffer.write('<table>');
-    _writeRow2(
+    _writeRow(
         buffer,
         [
             'Start Time',
@@ -1158,7 +941,7 @@ class GetHandler {
       String link = _makeLink(COMPLETION_PATH, {
         'index': '$index'
       }, '${performance.startTimeAndMs}');
-      _writeRow2(
+      _writeRow(
           buffer,
           [
               link,
@@ -1407,45 +1190,11 @@ class GetHandler {
   }
 
   /**
-   * Write a single row within a table to the given [response] object. The row
-   * will have one cell for each of the [columns], and will be a header row if
-   * [header] is `true`.
-   */
-  void _writeRow(HttpResponse response, List<Object> columns, {bool header:
-      false, List<String> classes}) {
-    response.write('<tr>');
-    int count = columns.length;
-    int maxClassIndex = classes == null ? 0 : classes.length - 1;
-    for (int i = 0; i < count; i++) {
-      String classAttribute = '';
-      if (classes != null) {
-        String className = classes[min(i, maxClassIndex)];
-        if (className != null) {
-          classAttribute = ' class="$className"';
-        }
-      }
-      if (header) {
-        response.write('<th$classAttribute>');
-      } else {
-        response.write('<td$classAttribute>');
-      }
-      response.write(columns[i]);
-      if (header) {
-        response.write('</th>');
-      } else {
-        response.write('</td>');
-      }
-    }
-
-    response.write('</tr>');
-  }
-
-  /**
    * Write a single row within a table to the given [buffer]. The row will have
    * one cell for each of the [columns], and will be a header row if [header] is
    * `true`.
    */
-  void _writeRow2(StringBuffer buffer, List<Object> columns, {bool header:
+  void _writeRow(StringBuffer buffer, List<Object> columns, {bool header:
       false, List<String> classes}) {
     buffer.write('<tr>');
     int count = columns.length;
