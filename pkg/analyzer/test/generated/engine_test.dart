@@ -1691,8 +1691,8 @@ void g() { f(null); }''');
         _context.getResolvedCompilationUnit2(libBSource, libBSource),
         isNotNull,
         reason: "libB resolved 2");
-    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
     // TODO (danrubel) commented out to fix red bots
+//    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
 //    expect(
 //        !_hasAnalysisErrorWithErrorSeverity(errors),
 //        isTrue,
