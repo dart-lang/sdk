@@ -399,6 +399,9 @@
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
       ],
+      'defines': [
+        'PLATFORM_DISABLE_SOCKET'
+      ],
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
