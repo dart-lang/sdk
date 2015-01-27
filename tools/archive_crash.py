@@ -18,6 +18,7 @@ import utils
 import uuid
 
 GCS_FOLDER = 'dart-crashes'
+GSUTIL='/b/build/scripts/slave/gsutil'
 
 def CreateTarball(input_dir, tarname):
   print 'Creating tar file: %s' % tarname
@@ -27,7 +28,7 @@ def CreateTarball(input_dir, tarname):
 
 def CopyToGCS(filename):
   gs_location = 'gs://%s/%s/' % (GCS_FOLDER, uuid.uuid4())
-  cmd = ['gsutil', 'cp', filename, gs_location]
+  cmd = [GSUTIL, 'cp', filename, gs_location]
   print 'Running command: %s' % cmd
   subprocess.check_call(cmd)
   archived_filename = '%s%s' % (gs_location, filename.split('/').pop())
