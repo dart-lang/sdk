@@ -33,6 +33,16 @@ class DartUnitNavigationComputer {
     _unit.accept(new _DartUnitNavigationComputerVisitor(this));
   }
 
+  int _addFile(String file) {
+    int index = fileMap[file];
+    if (index == null) {
+      index = files.length;
+      files.add(file);
+      fileMap[file] = index;
+    }
+    return index;
+  }
+
   void _addRegion(int offset, int length, Element element) {
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
@@ -46,28 +56,6 @@ class DartUnitNavigationComputer {
     int targetIndex = _addTarget(element);
     regions.add(
         new protocol.NavigationRegion(offset, length, <int>[targetIndex]));
-  }
-
-  int _addTarget(Element element) {
-    int index = targetMap[element];
-    if (index == null) {
-      index = targets.length;
-      protocol.NavigationTarget target =
-          protocol.newNavigationTarget_fromElement(element, _addFile);
-      targets.add(target);
-      targetMap[element] = index;
-    }
-    return index;
-  }
-
-  int _addFile(String file) {
-    int index = fileMap[file];
-    if (index == null) {
-      index = files.length;
-      files.add(file);
-      fileMap[file] = index;
-    }
-    return index;
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
@@ -92,6 +80,18 @@ class DartUnitNavigationComputer {
     int offset = token.offset;
     int length = token.length;
     _addRegion(offset, length, element);
+  }
+
+  int _addTarget(Element element) {
+    int index = targetMap[element];
+    if (index == null) {
+      index = targets.length;
+      protocol.NavigationTarget target =
+          protocol.newNavigationTarget_fromElement(element, _addFile);
+      targets.add(target);
+      targetMap[element] = index;
+    }
+    return index;
   }
 }
 
@@ -243,6 +243,23 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     }
     Element element = node.bestElement;
     computer._addRegionForNode(node, element);
+  }
+
+  @override
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    Element element = node.staticElement;
+    if (element != null && element.isSynthetic) {
+      element = element.enclosingElement;
+    }
+    // add region
+    SimpleIdentifier name = node.constructorName;
+    if (name != null) {
+      computer._addRegion_nodeStart_nodeEnd(node, name, element);
+    } else {
+      computer._addRegionForToken(node.keyword, element);
+    }
+    // process arguments
+    _safelyVisit(node.argumentList);
   }
 
   void _safelyVisit(AstNode node) {

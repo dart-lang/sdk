@@ -581,6 +581,45 @@ part "test_unit.dart";
     });
   }
 
+  test_superConstructorInvocation() {
+    addTestFile('''
+class A {
+  A() {}
+  A.named() {}
+}
+class B extends A {
+  B() : super();
+  B.named() : super.named();
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        assertHasRegionString('super');
+        assertHasTarget('A() {}', 0);
+      }
+      {
+        assertHasRegionString('super.named');
+        assertHasTarget('named() {}');
+      }
+    });
+  }
+
+  test_superConstructorInvocation_synthetic() {
+    addTestFile('''
+class A {
+}
+class B extends A {
+  B() : super();
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        assertHasRegionString('super');
+        assertHasTarget('A {');
+      }
+    });
+  }
+
   test_targetElement() {
     addTestFile('''
 class AAA {}
