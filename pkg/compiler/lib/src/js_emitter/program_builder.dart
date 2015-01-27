@@ -99,13 +99,8 @@ class ProgramBuilder {
         .map((ClassElement classElement) => _classes[classElement])
         .toList();
 
-    Map<Class, Map<String, js.Expression>> additionalProperties =
-        new Map<Class, Map<String, js.Expression>>();
-
     _unneededNativeClasses =
-        _task.nativeEmitter.prepareNativeClasses(
-            nativeClasses,
-            additionalProperties);
+        _task.nativeEmitter.prepareNativeClasses(nativeClasses);
 
     MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
     Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
@@ -122,7 +117,6 @@ class ProgramBuilder {
 
     return new Program(
         outputs,
-        additionalProperties,
         _buildLoadMap(),
         outputContainsNativeClasses: containsNativeClasses,
         outputContainsConstantList: _task.outputContainsConstantList);

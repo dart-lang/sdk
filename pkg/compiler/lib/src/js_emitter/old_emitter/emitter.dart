@@ -51,8 +51,6 @@ class OldEmitter implements Emitter {
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
 
-  Map<Class, Map<String, jsAst.Expression>> additionalProperties;
-
   List<TypedefElement> get typedefsNeededForReflection =>
       task.typedefsNeededForReflection;
 
@@ -720,8 +718,7 @@ class OldEmitter implements Emitter {
         ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
               ClassBuilder builder = new ClassBuilder(classElement, namer);
-              classEmitter.emitClass(
-                  cls, builder, additionalProperties[cls]);
+              classEmitter.emitClass(cls, builder);
               return builder;
             });
         invariant(classElement, cachedBuilder.fields.isEmpty);
@@ -730,8 +727,7 @@ class OldEmitter implements Emitter {
         invariant(classElement, cachedBuilder.fieldMetadata == null);
         enclosingBuilder.properties.addAll(cachedBuilder.properties);
       } else {
-        classEmitter.emitClass(
-            cls, enclosingBuilder, additionalProperties[cls]);
+        classEmitter.emitClass(cls, enclosingBuilder);
       }
     });
   }
@@ -1765,8 +1761,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram(
         storeFunctionTypesInMetadata: true);
-
-    additionalProperties = program.additionalProperties;
 
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;

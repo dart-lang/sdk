@@ -12,9 +12,7 @@ class ClassEmitter extends CodeEmitterHelper {
   /**
    * Documentation wanted -- johnniwinther
    */
-  void emitClass(Class cls,
-                 ClassBuilder enclosingBuilder,
-                 Map<String, jsAst.Expression> additionalProperties) {
+  void emitClass(Class cls, ClassBuilder enclosingBuilder) {
     ClassElement classElement = cls.element;
 
     assert(invariant(classElement, classElement.isDeclaration));
@@ -43,9 +41,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitInstanceMembers(cls, builder);
     emitCallStubs(cls, builder);
     emitRuntimeTypeInformation(cls, builder);
-    if (additionalProperties != null) {
-      additionalProperties.forEach(builder.addProperty);
-    }
+    emitNativeInfo(cls, builder);
 
     if (classElement == backend.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
@@ -268,6 +264,12 @@ class ClassEmitter extends CodeEmitterHelper {
 
     for (Method method in cls.isChecks) {
       builder.addProperty(method.name, method.code);
+    }
+  }
+
+  void emitNativeInfo(Class cls, ClassBuilder builder) {
+    if (cls.nativeInfo != null) {
+      builder.addProperty(namer.nativeSpecProperty, js.string(cls.nativeInfo));
     }
   }
 

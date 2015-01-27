@@ -48,6 +48,9 @@ class NativeEmitter {
    * Removes trivial classes (that can be represented by a super type) and
    * generates properties that have to be added to classes (native or not).
    *
+   * Updates the `nativeInfo` field of the given classes. This data
+   * must be emitted with the corresponding classes.
+   *
    * The interceptors are filtered to avoid emitting trivial interceptors.  For
    * example, if the program contains no code that can distinguish between the
    * numerous subclasses of `Element` then we can pretend that `Element` is a
@@ -61,13 +64,8 @@ class NativeEmitter {
    *
    * [classes] contains native classes, mixin applications, and user subclasses
    * of native classes.
-   *
-   * [allAdditionalProperties] is used to collect properties that are pushed up
-   * from the above optimizations onto a non-native class, e.g, `Interceptor`.
    */
-  Set<Class> prepareNativeClasses(
-      List<Class> classes,
-      Map<Class, Map<String, jsAst.Expression>> allAdditionalProperties) {
+  Set<Class> prepareNativeClasses(List<Class> classes) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -208,10 +206,8 @@ class NativeEmitter {
         String encoding = sb.toString();
 
         if (cls.isNative || encoding != '') {
-          Map<String, jsAst.Expression> properties =
-              allAdditionalProperties.putIfAbsent(cls,
-                  () => new Map<String, jsAst.Expression>());
-          properties[backend.namer.nativeSpecProperty] = js.string(encoding);
+          assert(cls.nativeInfo == null);
+          cls.nativeInfo = encoding;
         }
       }
       generateClassInfo(jsInterceptorClass);

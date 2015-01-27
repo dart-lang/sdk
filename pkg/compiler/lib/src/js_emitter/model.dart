@@ -18,11 +18,7 @@ class Program {
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
 
-  /// Additional properties that have to be added to classes.
-  final Map<Class, Map<String, js.Expression>> additionalProperties;
-
   Program(this.fragments,
-          this.additionalProperties,
           this.loadMap,
           {this.outputContainsNativeClasses,
            this.outputContainsConstantList}) {
@@ -197,6 +193,9 @@ class Class implements FieldContainer {
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
+
+  /// Data that must be emitted with the class for native interop.
+  String nativeInfo;
 
   Class(this.element, this.name, this.holder,
         this.methods,
