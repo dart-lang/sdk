@@ -12,13 +12,7 @@
   </head>
   <body>
     <h1>drfibonacci's Sunflower Spectacular</h1>
-
     <p>A canvas 2D demo.</p>
-    <p>If it's not working, you may need to enable EcmaScript 6 features in
-    your browser. It should work directly in Firefox (tested 35) and Chrome with
-    these flags (tested 41 canary):
-    <pre>chrome --js-flags="--harmony-arrow-functions --harmony-classes"</pre>
-    </p>
 
     <div id="container">
       <canvas id="canvas" width="300" height="300" class="center"></canvas>
@@ -34,6 +28,7 @@
       <p id="notes"> </p>
     </footer>
 
+    <script src="../../lib/runtime/harmony_feature_check.js"></script>
     <script>
       // TODO(jmesserly): some hacks here to get the output running
       var dart_math = Math;
