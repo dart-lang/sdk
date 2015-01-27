@@ -32,7 +32,6 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final ConstantVisitor _constVisitor;
   final _exports = <String>[];
   final _lazyFields = <VariableDeclaration>[];
-  final _lazyFinalFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
 
   UnitGenerator(
@@ -607,7 +606,6 @@ var $libName;
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    var constFields = <VariableDeclaration>[];
     for (var field in node.variables.variables) {
       var name = field.name.name;
       if (field.isConst) {
@@ -1100,8 +1098,7 @@ class JSGenerator extends CodeGenerator {
       String outDir, Uri root, List<LibraryInfo> libraries, TypeRules rules)
       : super(outDir, root, libraries, rules);
 
-  void generateUnit(
-      CompilationUnit unit, LibraryInfo info, String libraryDir) {
+  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     new UnitGenerator(unit, libraryDir, info, rules).generate();
   }
 }

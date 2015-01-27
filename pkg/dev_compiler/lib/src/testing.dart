@@ -59,7 +59,8 @@ CheckerResults testChecker(Map<String, String> testFiles, {bool mockSdk: true,
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
   var results = compile('/main.dart', resolver,
-      reporter: reporter, covariantGenerics: covariantGenerics,
+      reporter: reporter,
+      covariantGenerics: covariantGenerics,
       relaxedCasts: relaxedCasts);
 
   // Extract expectations from the comments in the test files.

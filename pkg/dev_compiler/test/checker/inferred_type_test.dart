@@ -55,7 +55,7 @@ main() {
 
   test('infer type on var from field', () {
     testChecker({
-        '/main.dart': '''
+      '/main.dart': '''
       int x;
 
       test1() {

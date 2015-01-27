@@ -191,11 +191,6 @@ class CoercionManager {
     return AstBuilder.identifierFromString(s);
   }
 
-  NormalFormalParameter _coercionToFormal(Coercion c, String name, int index) {
-    Identifier v = AstBuilder.identifierFromString(name + index.toString());
-    return _tm.typedFormal(v, c.fromType);
-  }
-
   List<FormalParameter> _wrapperFormalParameters(Wrapper wrapper) {
     var namedParameters = wrapper.namedParameters;
     var normalParameters = wrapper.normalParameters;

@@ -8,6 +8,6 @@ info: line 14, column 10 of test/codegen/fieldtest.dart: a.x (dynamic) will need
 warning: line 14, column 10 of test/codegen/fieldtest.dart: a.x requires dynamic invoke
   return a.x;
          ^^^
-info: line 24, column 24 of test/codegen/fieldtest.dart: value (dynamic) will need runtime check to cast to type int
-int set z(value) { y = value; }
-                       ^^^^^
+info: line 25, column 7 of test/codegen/fieldtest.dart: value (dynamic) will need runtime check to cast to type int
+  y = value;
+      ^^^^^

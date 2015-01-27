@@ -377,8 +377,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
           new reifier.VariableManager()),
         super(outDir, root, libraries, rules);
 
-  void generateUnit(
-      CompilationUnit unit, LibraryInfo info, String libraryDir) {
+  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
     _log.info("Generating unit " + uri.toString());
     FileWriter out = new FileWriter(
@@ -413,8 +412,7 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
   EmptyDartGenerator(String outDir, Uri root, List<LibraryInfo> libraries,
       TypeRules rules, this._format) : super(outDir, root, libraries, rules);
 
-  void generateUnit(
-      CompilationUnit unit, LibraryInfo info, String libraryDir) {
+  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
     _log.info("Emitting original unit " + uri.toString());
     FileWriter out = new FileWriter(

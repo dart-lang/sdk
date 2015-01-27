@@ -17,8 +17,7 @@ abstract class CodeGenerator {
   CodeGenerator(String outDir, this.root, this.libraries, this.rules)
       : outDir = path.absolute(outDir);
 
-  void generateUnit(
-      CompilationUnit unit, LibraryInfo info, String libraryDir);
+  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir);
 
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info) {
     var libraryDir = path.join(outDir, info.name);

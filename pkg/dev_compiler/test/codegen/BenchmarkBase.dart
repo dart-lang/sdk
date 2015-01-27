@@ -2,7 +2,6 @@
 
 library BenchmarkBase;
 
-
 class Expect {
   static void equals(var expected, var actual) {
     if (expected != actual) {
@@ -24,7 +23,6 @@ class Expect {
   }
 }
 
-
 class BenchmarkBase {
   final String name;
 
@@ -33,7 +31,7 @@ class BenchmarkBase {
 
   // The benchmark code.
   // This function is not used, if both [warmup] and [exercise] are overwritten.
-  void run() { }
+  void run() {}
 
   // Runs a short version of the benchmark. By default invokes [run] once.
   void warmup() {
@@ -48,10 +46,10 @@ class BenchmarkBase {
   }
 
   // Not measured setup code executed prior to the benchmark runs.
-  void setup() { }
+  void setup() {}
 
   // Not measures teardown code executed after the benchark runs.
-  void teardown() { }
+  void teardown() {}
 
   // Measures the score for this benchmark by executing it repeately until
   // time minimum has been reached.
@@ -73,9 +71,13 @@ class BenchmarkBase {
   double measure() {
     setup();
     // Warmup for at least 100ms. Discard result.
-    measureFor(() { this.warmup(); }, 100);
+    measureFor(() {
+      this.warmup();
+    }, 100);
     // Run the benchmark for at least 2000ms.
-    double result = measureFor(() { this.exercise(); }, 2000);
+    double result = measureFor(() {
+      this.exercise();
+    }, 2000);
     teardown();
     return result;
   }
@@ -84,5 +86,4 @@ class BenchmarkBase {
     double score = measure();
     print("$name(RunTime): $score us.");
   }
-
 }

@@ -36,15 +36,12 @@
 
 import "BenchmarkBase.dart";
 
-
 main() {
   new DeltaBlue().report();
 }
 
-
 /// Benchmark class required to report results.
 class DeltaBlue extends BenchmarkBase {
-
   const DeltaBlue() : super("DeltaBlue");
 
   void run() {
@@ -53,7 +50,6 @@ class DeltaBlue extends BenchmarkBase {
   }
 }
 
-
 /**
  * Strengths are used to measure the relative importance of constraints.
  * New strengths may be inserted in the strength hierarchy without
@@ -61,15 +57,19 @@ class DeltaBlue extends BenchmarkBase {
  * this class, so == can be used for value comparison.
  */
 class Strength {
-
   final int value;
   final String name;
 
   const Strength(this.value, this.name);
 
-  Strength nextWeaker() =>
-     const <Strength>[STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL,
-                      WEAK_DEFAULT, WEAKEST][value];
+  Strength nextWeaker() => const <Strength>[
+    STRONG_PREFERRED,
+    PREFERRED,
+    STRONG_DEFAULT,
+    NORMAL,
+    WEAK_DEFAULT,
+    WEAKEST
+  ][value];
 
   static bool stronger(Strength s1, Strength s2) {
     return s1.value < s2.value;
@@ -88,19 +88,16 @@ class Strength {
   }
 }
 
-
 // Compile time computed constants.
-const REQUIRED         = const Strength(0, "required");
+const REQUIRED = const Strength(0, "required");
 const STRONG_PREFERRED = const Strength(1, "strongPreferred");
-const PREFERRED        = const Strength(2, "preferred");
-const STRONG_DEFAULT   = const Strength(3, "strongDefault");
-const NORMAL           = const Strength(4, "normal");
-const WEAK_DEFAULT     = const Strength(5, "weakDefault");
-const WEAKEST          = const Strength(6, "weakest");
-
+const PREFERRED = const Strength(2, "preferred");
+const STRONG_DEFAULT = const Strength(3, "strongDefault");
+const NORMAL = const Strength(4, "normal");
+const WEAK_DEFAULT = const Strength(5, "weakDefault");
+const WEAKEST = const Strength(6, "weakest");
 
 abstract class Constraint {
-
   final Strength strength;
 
   const Constraint(this.strength);
@@ -164,7 +161,6 @@ abstract class Constraint {
  * Abstract superclass for constraints having a single possible output variable.
  */
 abstract class UnaryConstraint extends Constraint {
-
   final Variable myOutput;
   bool satisfied = false;
 
@@ -180,8 +176,8 @@ abstract class UnaryConstraint extends Constraint {
 
   /// Decides if this constraint can be satisfied and records that decision.
   void chooseMethod(int mark) {
-    satisfied = (myOutput.mark != mark)
-      && Strength.stronger(strength, myOutput.walkStrength);
+    satisfied = (myOutput.mark != mark) &&
+        Strength.stronger(strength, myOutput.walkStrength);
   }
 
   /// Returns true if this constraint is satisfied in the current solution.
@@ -218,7 +214,6 @@ abstract class UnaryConstraint extends Constraint {
   }
 }
 
-
 /**
  * Variables that should, with some level of preference, stay the same.
  * Planners may exploit the fact that instances, if satisfied, will not
@@ -226,7 +221,6 @@ abstract class UnaryConstraint extends Constraint {
  * optimization".
  */
 class StayConstraint extends UnaryConstraint {
-
   StayConstraint(Variable v, Strength str) : super(v, str);
 
   void execute() {
@@ -234,13 +228,11 @@ class StayConstraint extends UnaryConstraint {
   }
 }
 
-
 /**
  * A unary input constraint used to mark a variable that the client
  * wishes to change.
  */
 class EditConstraint extends UnaryConstraint {
-
   EditConstraint(Variable v, Strength str) : super(v, str);
 
   /// Edits indicate that a variable is to be changed by imperative code.
@@ -251,19 +243,16 @@ class EditConstraint extends UnaryConstraint {
   }
 }
 
-
 // Directions.
 const int NONE = 1;
 const int FORWARD = 2;
 const int BACKWARD = 0;
-
 
 /**
  * Abstract superclass for constraints having two possible output
  * variables.
  */
 abstract class BinaryConstraint extends Constraint {
-
   Variable v1;
   Variable v2;
   int direction = NONE;
@@ -280,20 +269,18 @@ abstract class BinaryConstraint extends Constraint {
   void chooseMethod(int mark) {
     if (v1.mark == mark) {
       direction = (v2.mark != mark &&
-                   Strength.stronger(strength, v2.walkStrength))
-        ? FORWARD : NONE;
+          Strength.stronger(strength, v2.walkStrength)) ? FORWARD : NONE;
     }
     if (v2.mark == mark) {
       direction = (v1.mark != mark &&
-                   Strength.stronger(strength, v1.walkStrength))
-        ? BACKWARD : NONE;
+          Strength.stronger(strength, v1.walkStrength)) ? BACKWARD : NONE;
     }
     if (Strength.weaker(v1.walkStrength, v2.walkStrength)) {
-      direction = Strength.stronger(strength, v1.walkStrength)
-        ? BACKWARD : NONE;
+      direction =
+          Strength.stronger(strength, v1.walkStrength) ? BACKWARD : NONE;
     } else {
-      direction = Strength.stronger(strength, v2.walkStrength)
-        ? FORWARD : BACKWARD;
+      direction =
+          Strength.stronger(strength, v2.walkStrength) ? FORWARD : BACKWARD;
     }
   }
 
@@ -324,7 +311,8 @@ abstract class BinaryConstraint extends Constraint {
    * constraint. Assume this constraint is satisfied.
    */
   void recalculate() {
-    Variable ihn = input(), out = output();
+    Variable ihn = input(),
+        out = output();
     out.walkStrength = Strength.weakest(strength, ihn.walkStrength);
     out.stay = ihn.stay;
     if (out.stay) execute();
@@ -347,7 +335,6 @@ abstract class BinaryConstraint extends Constraint {
   }
 }
 
-
 /**
  * Relates two variables by the linear scaling relationship: "v2 =
  * (v1 * scale) + offset". Either v1 or v2 may be changed to maintain
@@ -356,13 +343,12 @@ abstract class BinaryConstraint extends Constraint {
  */
 
 class ScaleConstraint extends BinaryConstraint {
-
   final Variable scale;
   final Variable offset;
 
-  ScaleConstraint(Variable src, this.scale, this.offset,
-                  Variable dest, Strength strength)
-    : super(src, dest, strength);
+  ScaleConstraint(
+      Variable src, this.scale, this.offset, Variable dest, Strength strength)
+      : super(src, dest, strength);
 
   /// Adds this constraint to the constraint graph.
   void addToGraph() {
@@ -397,29 +383,26 @@ class ScaleConstraint extends BinaryConstraint {
    * this constraint is satisfied.
    */
   void recalculate() {
-    Variable ihn = input(), out = output();
+    Variable ihn = input(),
+        out = output();
     out.walkStrength = Strength.weakest(strength, ihn.walkStrength);
     out.stay = ihn.stay && scale.stay && offset.stay;
     if (out.stay) execute();
   }
-
 }
-
 
 /**
  * Constrains two variables to have the same value.
  */
 class EqualityConstraint extends BinaryConstraint {
-
   EqualityConstraint(Variable v1, Variable v2, Strength strength)
-    : super(v1, v2, strength);
+      : super(v1, v2, strength);
 
   /// Enforce this constraint. Assume that it is satisfied.
   void execute() {
     output().value = input().value;
   }
 }
-
 
 /**
  * A constrained variable. In addition to its value, it maintain the
@@ -428,7 +411,6 @@ class EqualityConstraint extends BinaryConstraint {
  * constraint solver.
  **/
 class Variable {
-
   List<Constraint> constraints = <Constraint>[];
   Constraint determinedBy;
   int mark = 0;
@@ -454,9 +436,7 @@ class Variable {
   }
 }
 
-
 class Planner {
-
   int currentMark = 0;
 
   /**
@@ -475,7 +455,7 @@ class Planner {
    */
   void incrementalAdd(Constraint c) {
     int mark = newMark();
-    for(Constraint overridden = c.satisfy(mark);
+    for (Constraint overridden = c.satisfy(mark);
         overridden != null;
         overridden = overridden.satisfy(mark));
   }
@@ -622,7 +602,6 @@ class Planner {
   }
 }
 
-
 /**
  * A Plan is an ordered list of constraints to be executed in sequence
  * to resatisfy all currently satisfiable constraints in the face of
@@ -644,7 +623,6 @@ class Plan {
   }
 }
 
-
 /**
  * This is the standard DeltaBlue benchmark. A long chain of equality
  * constraints is constructed with a stay constraint on one end. An
@@ -660,7 +638,9 @@ class Plan {
  */
 void chainTest(int n) {
   planner = new Planner();
-  Variable prev = null, first = null, last = null;
+  Variable prev = null,
+      first = null,
+      last = null;
   // Build chain of n equality constraints.
   for (int i = 0; i <= n; i++) {
     Variable v = new Variable("v", 0);
@@ -692,7 +672,8 @@ void projectionTest(int n) {
   planner = new Planner();
   Variable scale = new Variable("scale", 10);
   Variable offset = new Variable("offset", 1000);
-  Variable src = null, dst = null;
+  Variable src = null,
+      dst = null;
 
   List<Variable> dests = <Variable>[];
   for (int i = 0; i < n; i++) {

@@ -31,10 +31,10 @@ StreamSubscription setupLogger(Level level, printFn) {
 /// [dumpInfoFile] will only be used if [dumpInfo] is true.
 CheckerResults compile(String inputFile, TypeResolver resolver,
     {CheckerReporter reporter, bool checkSdk: false, bool formatOutput: false,
-      bool outputDart: false, String outputDir, bool dumpInfo: false,
-      String dumpInfoFile, String dumpSrcTo: null, bool forceCompile: false,
-      bool useColors: true, bool covariantGenerics: true,
-      bool relaxedCasts: true}) {
+    bool outputDart: false, String outputDir, bool dumpInfo: false,
+    String dumpInfoFile, String dumpSrcTo: null, bool forceCompile: false,
+    bool useColors: true, bool covariantGenerics: true,
+    bool relaxedCasts: true}) {
   var uri = new Uri.file(path.absolute(inputFile));
   if (reporter == null) {
     reporter = dumpInfo ? new SummaryReporter() : new LogReporter(useColors);
@@ -46,8 +46,8 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
   var codeChecker = new CodeChecker(rules, reporter);
   var generators = <CodeGenerator>[];
   if (dumpSrcTo != null) {
-    generators.add(new EmptyDartGenerator(
-        dumpSrcTo, uri, libraries, rules, formatOutput));
+    generators.add(
+        new EmptyDartGenerator(dumpSrcTo, uri, libraries, rules, formatOutput));
   }
   if (outputDir != null) {
     var cg = outputDart
@@ -90,7 +90,7 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
     for (var cg in generators) {
       cg.generateLibrary(units, current);
     }
-  };
+  }
 
   if (dumpInfo && reporter is SummaryReporter) {
     print(summaryToString(reporter.result));

@@ -21,7 +21,9 @@ int y = compute() + 444;
 
 String get q => 'life, ' + 'the universe ' + 'and everything';
 int get z => 42;
-int set z(value) { y = value; }
+int set z(value) {
+  y = value;
+}
 
 void main() {
   var a = new A();
