@@ -6,7 +6,7 @@ library _interceptors;
 
 import 'dart:_js_embedded_names' show
     DISPATCH_PROPERTY_NAME,
-    MAP_TYPE_TO_INTERCEPTOR;
+    TYPE_TO_INTERCEPTOR_MAP;
 
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
