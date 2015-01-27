@@ -84,7 +84,8 @@ class Compiler extends leg.Compiler {
             suppressWarnings: hasOption(options, '--suppress-warnings'),
             enableExperimentalMirrors:
                 hasOption(options, '--enable-experimental-mirrors'),
-            enableAsyncAwait: hasOption(options, '--enable-async'),
+            // TODO: remove --enable-async flag.
+            enableAsyncAwait: hasOption(options, '--analyze-only'),
             enableEnums: hasOption(options, '--enable-enum'),
             generateCodeWithCompileTimeErrors:
                 hasOption(options, '--generate-code-with-compile-time-errors'),
