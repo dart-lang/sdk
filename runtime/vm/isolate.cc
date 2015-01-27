@@ -1102,9 +1102,6 @@ void Isolate::Shutdown() {
     // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
 
-    // Write out profiler data if requested.
-    Profiler::WriteProfile(this);
-
     // Write out the coverage data if collection has been enabled.
     CodeCoverage::Write(this);
 
