@@ -13,6 +13,7 @@ import 'notification_navigation_test.dart' as notification_navigation_test;
 import 'notification_occurrences_test.dart' as notification_occurrences_test;
 import 'notification_outline_test.dart' as notification_outline_test;
 import 'notification_overrides_test.dart' as notification_overrides_test;
+import 'update_content_test.dart' as update_content_test;
 
 /**
  * Utility for manually running all tests.
@@ -28,5 +29,6 @@ main() {
     notification_occurrences_test.main();
     notification_outline_test.main();
     notification_overrides_test.main();
+    update_content_test.main();
   });
 }
