@@ -52,8 +52,7 @@ class OldEmitter implements Emitter {
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
 
-  final Map<Class, Map<String, jsAst.Expression>> additionalProperties =
-      new Map<Class, Map<String, jsAst.Expression>>();
+  Map<Class, Map<String, jsAst.Expression>> additionalProperties;
 
   List<TypedefElement> get typedefsNeededForReflection =>
       task.typedefsNeededForReflection;
@@ -1775,11 +1774,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
     addComment('Native classes', nativeBuffer);
 
-    List<Class> neededClasses =
-        nativeEmitter.prepareNativeClasses(program.nativeClasses,
-                                           additionalProperties);
-
-    for (Class cls in neededClasses) {
+    for (Class cls in program.nativeClasses) {
       assert(cls.isNative);
       ClassBuilder enclosingBuilder = getElementDescriptor(cls.element);
       emitClass(cls, enclosingBuilder);
@@ -1794,6 +1789,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram(
         storeFunctionTypesInMetadata: true);
+
+    additionalProperties = program.additionalProperties;
 
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;

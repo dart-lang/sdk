@@ -101,12 +101,23 @@ class ProgramBuilder {
       }
     });
 
+    Map<Class, Map<String, js.Expression>> additionalProperties =
+        new Map<Class, Map<String, js.Expression>>();
+
+    List<Class> neededNativeClasses =
+        _task.nativeEmitter.prepareNativeClasses(
+            nativeClasses,
+            additionalProperties);
+
     _markEagerClasses();
 
-    return new Program(outputs,
-                       nativeClasses,
-                       _task.outputContainsConstantList,
-                       _buildLoadMap());
+    return new Program(
+        outputs,
+        neededNativeClasses,
+        additionalProperties,
+        _buildLoadMap(),
+        outputContainsNativeClasses: neededNativeClasses.isNotEmpty,
+        outputContainsConstantList: _task.outputContainsConstantList);
   }
 
   void _markEagerClasses() {

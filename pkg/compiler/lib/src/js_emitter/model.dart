@@ -15,13 +15,22 @@ class Program {
   final List<Fragment> fragments;
   final List<Class> nativeClasses;
   final bool outputContainsConstantList;
+  final bool outputContainsNativeClasses;
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
 
+  /// Additional properties that have to be added to classes.
+  final Map<Class, Map<String, js.Expression>> additionalProperties;
+
   Program(this.fragments,
           this.nativeClasses,
-          this.outputContainsConstantList,
-          this.loadMap);
+          this.additionalProperties,
+          this.loadMap,
+          {this.outputContainsNativeClasses,
+           this.outputContainsConstantList}) {
+    assert(outputContainsNativeClasses != null);
+    assert(outputContainsConstantList != null);
+  }
 
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
