@@ -308,23 +308,27 @@ class _RefactoringManager {
       await _init(params.kind, params.file, params.offset, params.length);
       if (initStatus.hasFatalError) {
         feedback = null;
-        return _sendResultResponse();
+        _sendResultResponse();
+        return;
       }
       // set options
       if (_requiresOptions) {
         if (params.options == null) {
           optionsStatus = new RefactoringStatus();
-          return _sendResultResponse();
+          _sendResultResponse();
+          return;
         }
         optionsStatus = _setOptions(params);
         if (_hasFatalError) {
-          return _sendResultResponse();
+          _sendResultResponse();
+          return;
         }
       }
       // done if just validation
       if (params.validateOnly) {
         finalStatus = new RefactoringStatus();
-        return _sendResultResponse();
+        _sendResultResponse();
+        return;
       }
       // simulate an exception
       if (test_simulateRefactoringException_final) {
@@ -333,7 +337,8 @@ class _RefactoringManager {
       // validation and create change
       finalStatus = await refactoring.checkFinalConditions();
       if (_hasFatalError) {
-        return _sendResultResponse();
+        _sendResultResponse();
+        return;
       }
       // simulate an exception
       if (test_simulateRefactoringException_change) {
@@ -355,7 +360,7 @@ class _RefactoringManager {
    * Initializes this context to perform a refactoring with the specified
    * parameters. The existing [Refactoring] is reused or created as needed.
    */
-  _init(RefactoringKind kind, String file,
+  Future _init(RefactoringKind kind, String file,
       int offset, int length) async {
     await server.onAnalysisComplete;
     // check if we can continue with the existing Refactoring instance
@@ -363,7 +368,7 @@ class _RefactoringManager {
         this.file == file &&
         this.offset == offset &&
         this.length == length) {
-      return;
+      return null;
     }
     _reset();
     this.kind = kind;
@@ -460,7 +465,7 @@ class _RefactoringManager {
     if (refactoring == null) {
       initStatus =
           new RefactoringStatus.fatal('Unable to create a refactoring');
-      return;
+      return null;
     }
     // check initial conditions
     initStatus = await refactoring.checkInitialConditions();
@@ -504,6 +509,7 @@ class _RefactoringManager {
       feedback.elementKindName = refactoring.elementKindName;
       feedback.oldName = refactoring.oldName;
     }
+    return null;
   }
 
   void _reset([engine.AnalysisContext context]) {
