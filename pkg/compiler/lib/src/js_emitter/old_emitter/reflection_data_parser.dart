@@ -18,12 +18,12 @@ const bool VALIDATE_DATA = false;
 String get parseReflectionDataName => 'parseReflectionData';
 
 jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
-                                         JavaScriptBackend backend) {
+                                         JavaScriptBackend backend,
+                                         bool hasNativeClasses) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   CodeEmitterTask emitter = backend.emitter;
 
-  String metadataField = '"${namer.metadataField}"';
   String reflectableField = namer.reflectableField;
   String reflectionInfoField = namer.reflectionInfoField;
   String reflectionNameField = namer.reflectionNameField;
@@ -414,7 +414,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 }''', {'allClasses': allClassesAccess,
        'debugFastObjects': DEBUG_FAST_OBJECTS,
        'isTreeShakingDisabled': backend.isTreeShakingDisabled,
-       'finishClassFunction': oldEmitter.buildFinishClass(),
+       'finishClassFunction': oldEmitter.buildFinishClass(hasNativeClasses),
        'trivialNsmHandlers': oldEmitter.buildTrivialNsmHandlers(),
        'inCspMode': compiler.useContentSecurityPolicy,
        'notInCspMode': !compiler.useContentSecurityPolicy});

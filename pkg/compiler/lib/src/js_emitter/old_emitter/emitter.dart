@@ -47,7 +47,6 @@ class OldEmitter implements Emitter {
       => task.outputClassLists;
   Map<OutputUnit, List<ConstantValue>> get outputConstantLists
       => task.outputConstantLists;
-  List<ClassElement> get nativeClasses => task.nativeClasses;
   final Map<String, String> mangledFieldNames = <String, String>{};
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
@@ -448,7 +447,7 @@ class OldEmitter implements Emitter {
     return js(r'var inheritFrom = #', [result]);
   }
 
-  jsAst.Statement buildFinishClass() {
+  jsAst.Statement buildFinishClass(bool hasNativeClasses) {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
 
     jsAst.Expression finishedClassesAccess =
@@ -555,7 +554,7 @@ class OldEmitter implements Emitter {
       }
     }''', {'finishedClassesAccess': finishedClassesAccess,
            'needsMixinSupport': needsMixinSupport,
-           'hasNativeClasses': nativeClasses.isNotEmpty,
+           'hasNativeClasses': hasNativeClasses,
            'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
            'interceptorsByTagAccess': interceptorsByTagAccess,
            'leafTagsAccess': leafTagsAccess,
@@ -1374,8 +1373,7 @@ class OldEmitter implements Emitter {
   }
 
   void emitMainOutputUnit(Program program,
-                          Map<OutputUnit, String> deferredLoadHashes,
-                          CodeBuffer nativeBuffer) {
+                          Map<OutputUnit, String> deferredLoadHashes) {
     Fragment mainFragment = program.fragments.first;
     OutputUnit mainOutputUnit = mainFragment.outputUnit;
 
@@ -1488,10 +1486,11 @@ class OldEmitter implements Emitter {
       elementDescriptors.remove(library);
     }
 
+    bool hasNativeClasses = program.outputContainsNativeClasses;
     mainOutput
         ..addBuffer(
             jsAst.prettyPrint(
-                getReflectionDataParser(this, backend),
+                getReflectionDataParser(this, backend, hasNativeClasses),
                 compiler))
         ..add(n);
 
@@ -1530,7 +1529,6 @@ class OldEmitter implements Emitter {
     emitLazilyInitializedStaticFields(mainOutput);
 
     mainOutput.add('\n');
-    mainOutput.addBuffer(nativeBuffer);
 
     metadataEmitter.emitMetadata(mainOutput);
 
@@ -1764,28 +1762,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return emitDeferredCode(program, outputBuffers);
   }
 
-  CodeBuffer buildNativesBuffer(Program program) {
-    // Emit native classes on [nativeBuffer].
-    // TODO(johnniwinther): Avoid creating a [CodeBuffer].
-    final CodeBuffer nativeBuffer = new CodeBuffer();
-
-    if (program.nativeClasses.isEmpty) return nativeBuffer;
-
-
-    addComment('Native classes', nativeBuffer);
-
-    for (Class cls in program.nativeClasses) {
-      assert(cls.isNative);
-      ClassBuilder enclosingBuilder = getElementDescriptor(cls.element);
-      emitClass(cls, enclosingBuilder);
-    }
-
-    nativeEmitter.finishGenerateNativeClasses();
-    nativeEmitter.assembleCode(nativeBuffer);
-
-    return nativeBuffer;
-  }
-
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram(
         storeFunctionTypesInMetadata: true);
@@ -1802,8 +1778,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     // itself.
     Map<OutputUnit, String> deferredLoadHashes =
         emitDeferredOutputUnits(program);
-    CodeBuffer nativeBuffer = buildNativesBuffer(program);
-    emitMainOutputUnit(program, deferredLoadHashes, nativeBuffer);
+    emitMainOutputUnit(program, deferredLoadHashes);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {

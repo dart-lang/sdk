@@ -132,7 +132,6 @@ Future<Compiler> reuseCompiler(
         ..outputBuffers.clear()
         ..isolateProperties = null
         ..classesCollector = null
-        ..nativeClasses.clear()
         ..mangledFieldNames.clear()
         ..mangledGlobalFieldNames.clear()
         ..recordedMangledNames.clear()
@@ -141,6 +140,7 @@ Future<Compiler> reuseCompiler(
         ..elementDescriptors.clear();
 
     backend.emitter
+        ..nativeClassesAndSubclasses.clear()
         ..outputContainsConstantList = false
         ..neededClasses.clear()
         ..outputClassLists.clear()

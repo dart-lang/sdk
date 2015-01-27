@@ -43,7 +43,7 @@ class NativeEmitter {
   }
 
   /**
-   * Prepares native classes for emission. Returns the reduced list of classes.
+   * Prepares native classes for emission. Returns the unneeded classes.
    *
    * Removes trivial classes (that can be represented by a super type) and
    * generates properties that have to be added to classes (native or not).
@@ -60,22 +60,21 @@ class NativeEmitter {
    * improves performance when more classes can be treated as leaves.
    *
    * [classes] contains native classes, mixin applications, and user subclasses
-   * of native classes.  *Only* the native classes are returned. The order of
-   * the returned classes is unchanged. (That is, the returned output might
-   * just have classes removed).
+   * of native classes.
    *
    * [allAdditionalProperties] is used to collect properties that are pushed up
    * from the above optimizations onto a non-native class, e.g, `Interceptor`.
    */
-  List<Class> prepareNativeClasses(
+  Set<Class> prepareNativeClasses(
       List<Class> classes,
       Map<Class, Map<String, jsAst.Expression>> allAdditionalProperties) {
-    // Compute a pre-order traversal of the subclass forest.  We actually want a
-    // post-order traversal but it is easier to compute the pre-order and use it
-    // in reverse.
+    assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
 
+    // Compute a pre-order traversal of the subclass forest.  We actually want a
+    // post-order traversal but it is easier to compute the pre-order and use it
+    // in reverse.
     List<Class> preOrder = <Class>[];
     Set<Class> seen = new Set<Class>();
 
@@ -229,8 +228,8 @@ class NativeEmitter {
     //assert(!classElement.hasBackendMembers);
 
     return classes
-        .where((Class cls) => cls.isNative && neededClasses.contains(cls))
-        .toList();
+        .where((Class cls) => cls.isNative && !neededClasses.contains(cls))
+        .toSet();
   }
 
   /**
@@ -276,12 +275,6 @@ class NativeEmitter {
         cls.callStubs.isEmpty &&
         !cls.superclass.isMixinApplication &&
         !cls.fields.any(needsAccessor);
-  }
-
-  void finishGenerateNativeClasses() {
-    // TODO(sra): Put specialized version of getNativeMethods on
-    // `Object.prototype` to avoid checking in `getInterceptor` and
-    // specializations.
   }
 
   void potentiallyConvertDartClosuresToJs(

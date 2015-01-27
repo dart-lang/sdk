@@ -58,6 +58,8 @@ class ProgramBuilder {
   /// update field-initializers to point to the ConstantModel.
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
+  Set<Class> _unneededNativeClasses;
+
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
@@ -74,20 +76,12 @@ class ProgramBuilder {
     // $ holder so we have to register that. Can we track if we have to?
     _registry.registerHolder(r'$');
 
-    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
-    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
-        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
-
-    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
-    outputs[0] = mainOutput;
-    outputs.setAll(1, deferredOutputs);
-
-    List<Class> nativeClasses = _task.nativeClasses
-        .map((ClassElement classElement) {
-          Class result = _classes[classElement];
-          return (result == null) ? _buildClass(classElement) : result;
-        })
-        .toList();
+    // We need to run the native-preparation before we build the output. The
+    // preparation code, in turn needs the classes to be set up.
+    // We thus build the classes before building their containers.
+    _task.outputClassLists.forEach((OutputUnit _, List<ClassElement> classes) {
+      classes.forEach(_buildClass);
+    });
 
     // Resolve the superclass references after we've processed all the classes.
     _classes.forEach((ClassElement element, Class c) {
@@ -101,22 +95,36 @@ class ProgramBuilder {
       }
     });
 
+    List<Class> nativeClasses = _task.nativeClassesAndSubclasses
+        .map((ClassElement classElement) => _classes[classElement])
+        .toList();
+
     Map<Class, Map<String, js.Expression>> additionalProperties =
         new Map<Class, Map<String, js.Expression>>();
 
-    List<Class> neededNativeClasses =
+    _unneededNativeClasses =
         _task.nativeEmitter.prepareNativeClasses(
             nativeClasses,
             additionalProperties);
 
+    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
+    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
+        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
+
+    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
+    outputs[0] = mainOutput;
+    outputs.setAll(1, deferredOutputs);
+
     _markEagerClasses();
+
+    bool containsNativeClasses =
+        nativeClasses.length != _unneededNativeClasses.length;
 
     return new Program(
         outputs,
-        neededNativeClasses,
         additionalProperties,
         _buildLoadMap(),
-        outputContainsNativeClasses: neededNativeClasses.isNotEmpty,
+        outputContainsNativeClasses: containsNativeClasses,
         outputContainsConstantList: _task.outputContainsConstantList);
   }
 
@@ -126,11 +134,6 @@ class ProgramBuilder {
 
   /// Builds a map from loadId to outputs-to-load.
   Map<String, List<Fragment>> _buildLoadMap() {
-    List<OutputUnit> convertHunks(List<OutputUnit> hunks) {
-      return hunks.map((OutputUnit unit) => _outputs[unit])
-          .toList(growable: false);
-    }
-
     Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
     _compiler.deferredLoadTask.hunksToLoad
         .forEach((String loadId, List<OutputUnit> outputUnits) {
@@ -222,7 +225,6 @@ class ProgramBuilder {
   }
 
   StaticField _buildLazyField(Element element) {
-    JavaScriptConstantCompiler handler = backend.constants;
     js.Expression code = backend.generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -263,7 +265,9 @@ class ProgramBuilder {
 
     List<Class> classes = elements
         .where((e) => e is ClassElement)
-        .map(_buildClass)
+        .map((ClassElement classElement) => _classes[classElement])
+        .where((Class cls) =>
+            !cls.isNative || !_unneededNativeClasses.contains(cls))
         .toList(growable: false);
 
     bool visitStatics = true;

@@ -13,7 +13,6 @@ import '../common.dart';
 
 class Program {
   final List<Fragment> fragments;
-  final List<Class> nativeClasses;
   final bool outputContainsConstantList;
   final bool outputContainsNativeClasses;
   /// A map from load id to the list of fragments that need to be loaded.
@@ -23,7 +22,6 @@ class Program {
   final Map<Class, Map<String, js.Expression>> additionalProperties;
 
   Program(this.fragments,
-          this.nativeClasses,
           this.additionalProperties,
           this.loadMap,
           {this.outputContainsNativeClasses,
