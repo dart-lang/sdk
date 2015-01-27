@@ -980,6 +980,8 @@ class OldEmitter implements Emitter {
     String isolate = namer.currentIsolate;
     jsAst.Expression allClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+    jsAst.Expression getTypeFromNameAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.GET_TYPE_FROM_NAME);
     jsAst.Expression interceptorsByTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
     jsAst.Expression leafTagsAccess =
@@ -995,6 +997,7 @@ class OldEmitter implements Emitter {
       function init() {
         $isolateProperties = Object.create(null);
         #allClasses = Object.create(null);
+        #getTypeFromName = function(name) {return #allClasses[name];};
         #interceptorsByTag = Object.create(null);
         #leafTags = Object.create(null);
         #finishedClasses = Object.create(null);
@@ -1087,6 +1090,7 @@ class OldEmitter implements Emitter {
       }
 
       }''', {'allClasses': allClassesAccess,
+            'getTypeFromName': getTypeFromNameAccess,
             'interceptorsByTag': interceptorsByTagAccess,
             'leafTags': leafTagsAccess,
             'finishedClasses': finishedClassesAccess,

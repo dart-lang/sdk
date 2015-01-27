@@ -14,6 +14,7 @@ import '../../js_backend/js_backend.dart' show
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
+    GET_TYPE_FROM_NAME,
     INITIALIZE_LOADED_HUNK,
     IS_HUNK_INITIALIZED,
     IS_HUNK_LOADED;
@@ -135,7 +136,8 @@ class ModelEmitter {
                     new js.ObjectInitializer(const []))).toList())),
         js.js.statement('var holders = #', new js.ArrayInitializer(
             holders.map((e) => new js.VariableUse(e.name))
-                   .toList(growable: false)))
+                   .toList(growable: false))),
+        js.js.statement('var holdersMap = Object.create(null)')
     ];
     return new js.Block(statements);
   }
@@ -155,6 +157,7 @@ class ModelEmitter {
       globals.add(emitInitializeLoadedHunk());
     }
 
+    globals.add(emitGetTypeFromName());
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
     List<js.Statement> statements =
@@ -214,6 +217,14 @@ class ModelEmitter {
     js.Expression function =
         js.js("function(hash) { eval($deferredInitializersGlobal[hash]); }");
     return new js.Property(js.string(INITIALIZE_LOADED_HUNK), function);
+  }
+
+  js.Property emitGetTypeFromName() {
+    js.Expression function =
+        js.js( """function(name) {
+                    return holdersMap[name][name].ensureResolved();
+                  }""");
+    return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
   }
 
   js.Expression emitDeferredFragment(DeferredFragment fragment,
@@ -406,6 +417,7 @@ class ModelEmitter {
     var classes = library[1];
     for (var i = 0; i < classes.length; i += 3) {
       var holderIndex = classes[i + 1];
+      holdersMap[classes[i]] = holders[holderIndex];
       setupClass(classes[i], holders[holderIndex], classes[i + 2]);
     }
   }

@@ -5,7 +5,7 @@
 library _js_helper;
 
 import 'dart:_js_embedded_names' show
-    ALL_CLASSES,
+    GET_TYPE_FROM_NAME,
     GET_ISOLATE_TAG,
     INTERCEPTED_NAMES,
     INTERCEPTORS_BY_TAG,
@@ -3148,8 +3148,8 @@ class RuntimeTypePlain extends RuntimeType {
   RuntimeTypePlain(this.name);
 
   toRti() {
-    var allClasses = JS_EMBEDDED_GLOBAL('', ALL_CLASSES);
-    var rti = JS('', '#[#]', allClasses, name);
+    var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
+    var rti = JS('', '#(#)', getTypeFromName, name);
     if (rti == null) throw "no type for '$name'";
     return rti;
   }
@@ -3166,8 +3166,8 @@ class RuntimeTypeGeneric extends RuntimeType {
 
   toRti() {
     if (rti != null) return rti;
-    var allClasses = JS_EMBEDDED_GLOBAL('', ALL_CLASSES);
-    var result = JS('JSExtendableArray', '[#[#]]', allClasses, name);
+    var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
+    var result = JS('JSExtendableArray', '[#(#)]', getTypeFromName, name);
     if (result[0] == null) {
       throw "no type for '$name<...>'";
     }

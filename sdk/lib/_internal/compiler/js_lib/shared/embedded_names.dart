@@ -49,4 +49,10 @@ const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
 const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
 
+/**
+ * Returns the type given the name of a class.
+ * This function is called by the runtime when computing rti.
+ */
+const GET_TYPE_FROM_NAME = 'getTypeFromName';
 const TYPE_TO_INTERCEPTOR_MAP = "typeToInterceptorMap";
+
