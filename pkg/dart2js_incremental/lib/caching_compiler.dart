@@ -135,7 +135,6 @@ Future<Compiler> reuseCompiler(
         ..mangledFieldNames.clear()
         ..mangledGlobalFieldNames.clear()
         ..recordedMangledNames.clear()
-        ..additionalProperties.clear()
         ..clearCspPrecompiledNodes()
         ..elementDescriptors.clear();
 
