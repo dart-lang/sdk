@@ -5530,6 +5530,8 @@ Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please tria
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/animation/request-animation-frame-cancel_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/animation/request-animation-frame-cancel2_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/animation/request-animation-frame-prefix_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/backgrounds/background-position-parsing-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/backgrounds/background-repeat-computed-style_t01: RuntimeError # Please triage this failure
@@ -5550,7 +5552,7 @@ LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.verySmall_t01: RuntimeError #
 LayoutTests/fast/canvas/DrawImageSinglePixelStretch_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/alpha_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-arc-negative-radius_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-as-image-incremental-repaint_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-as-image-incremental-repaint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-as-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blend-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blend-solid_t01: RuntimeError # Please triage this failure
@@ -5602,6 +5604,7 @@ LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: Skip # Times out. P
 LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-putImageData_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-resize-after-paint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-strokePath-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
@@ -5834,6 +5837,7 @@ LayoutTests/fast/css/dynamic-class-pseudo-elements_t01: RuntimeError # Please tr
 LayoutTests/fast/css/ex-unit-with-no-x-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
@@ -5964,9 +5968,9 @@ LayoutTests/fast/css/style-scoped/style-scoped-shadow-crash_t01: RuntimeError # 
 LayoutTests/fast/css/style-scoped/style-scoped-with-dom-operation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/style-scoped/style-scoped-with-important-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-first-alternate-link_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-link_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-initial_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-webkit-match-parent-parse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-webkit-match-parent_t01: RuntimeError # Please triage this failure
@@ -6037,7 +6041,8 @@ LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: RuntimeErr
 LayoutTests/fast/dom/HTMLDialogElement/synthetic-click-inert_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/dom/HTMLDocument/activeElement_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDocument/set-focus-on-valid-element_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLElement/attr-dir-auto-change-before-text-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLElement/attr-dir-auto-change-child-node_t01: RuntimeError # Please triage this failure
@@ -6437,7 +6442,7 @@ LayoutTests/fast/events/mutation-during-insert-before_t01: RuntimeError # Please
 LayoutTests/fast/events/mutation-during-replace-child-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/mutation-during-replace-child_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/nested-event-remove-node-crash_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/events/scoped/editing-commands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/selectstart-prevent-selectall_t01: RuntimeError # Please triage this failure
@@ -6533,6 +6538,7 @@ LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Pl
 LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/input-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-rangeOverflow-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
@@ -6613,6 +6619,7 @@ LayoutTests/fast/forms/select-namedItem_t01: RuntimeError # Please triage this f
 LayoutTests/fast/forms/select-reset-multiple-selections-4-single-selection_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-set-length-with-mutation-reorder_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/selection-direction_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/selection-start-end-readonly_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/selection-wrongtype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/setCustomValidity-existence_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/setrangetext_t01: RuntimeError # Please triage this failure
@@ -6712,7 +6719,7 @@ LayoutTests/fast/multicol/inherit-column-values_t01: RuntimeError # Please triag
 LayoutTests/fast/multicol/initial-column-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/inline-getclientrects_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t07: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t08: RuntimeError # Please triage this failure
@@ -7318,8 +7325,8 @@ WebPlatformTest/html-templates/template-element/node-document-changes_t01: Runti
 WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-content-node-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
+WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
@@ -7523,6 +7530,7 @@ WebPlatformTest/webstorage/event_session_oldvalue_t01: RuntimeError # Please tri
 WebPlatformTest/webstorage/event_session_storagearea_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_session_url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage this failure
+WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
@@ -7941,7 +7949,7 @@ LayoutTests/fast/css/style-scoped/style-scoped-with-important-rule_t01: RuntimeE
 LayoutTests/fast/css/stylesheet-enable-first-alternate-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-initial_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-webkit-match-parent-parse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-webkit-match-parent_t01: RuntimeError # Please triage this failure
