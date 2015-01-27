@@ -1483,7 +1483,7 @@ class OldEmitter implements Emitter {
     // Static field initializations require the classes and compile-time
     // constants to be set up.
     emitStaticNonFinalFieldInitializations(mainOutput, mainOutputUnit);
-    interceptorEmitter.emitMapTypeToInterceptor(mainOutput);
+    interceptorEmitter.emitTypeToInterceptorMap(mainOutput);
     emitLazilyInitializedStaticFields(mainOutput);
 
     mainOutput.add('\n');

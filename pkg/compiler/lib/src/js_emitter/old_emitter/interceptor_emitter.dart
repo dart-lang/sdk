@@ -72,7 +72,6 @@ class InterceptorEmitter extends CodeEmitterHelper {
     // (which can easily be identified).
     if (!compiler.enabledInvokeOn) return null;
 
-    int index = 0;
     List<String> invocationNames = interceptorInvocationNames.toList()..sort();
     List<jsAst.Property> properties =
         new List<jsAst.Property>(invocationNames.length);
@@ -84,63 +83,19 @@ class InterceptorEmitter extends CodeEmitterHelper {
   }
 
   /**
-   * Emit initializer for [mapTypeToInterceptor] data structure used by
-   * [findInterceptorForType].  See declaration of [mapTypeToInterceptor] in
+   * Emit initializer for `typeToInterceptorMap` data structure used by
+   * `findInterceptorForType`.  See declaration of `typeToInterceptor` in
    * `interceptors.dart`.
    */
-  void emitMapTypeToInterceptor(CodeOutput output) {
-    // TODO(sra): Perhaps inject a constant instead?
-    CustomElementsAnalysis analysis = backend.customElementsAnalysis;
-    if (!analysis.needsTable) return;
+  void emitTypeToInterceptorMap(CodeOutput output) {
+    InterceptorStubGenerator stubGenerator =
+        new InterceptorStubGenerator(compiler, namer, backend);
+    jsAst.Expression array = stubGenerator.generateTypeToInterceptorMap();
+    if (array == null) return;
 
-    List<jsAst.Expression> elements = <jsAst.Expression>[];
-    JavaScriptConstantCompiler handler = backend.constants;
-    List<ConstantValue> constants =
-        handler.getConstantsForEmission(emitter.compareConstants);
-    for (ConstantValue constant in constants) {
-      if (constant is TypeConstantValue) {
-        TypeConstantValue typeConstant = constant;
-        Element element = typeConstant.representedType.element;
-        if (element is ClassElement) {
-          ClassElement classElement = element;
-          if (!analysis.needsClass(classElement)) continue;
-
-          elements.add(emitter.constantReference(constant));
-          elements.add(backend.emitter.interceptorClassAccess(classElement));
-
-          // Create JavaScript Object map for by-name lookup of generative
-          // constructors.  For example, the class A has three generative
-          // constructors
-          //
-          //     class A {
-          //       A() {}
-          //       A.foo() {}
-          //       A.bar() {}
-          //     }
-          //
-          // Which are described by the map
-          //
-          //     {"": A.A$, "foo": A.A$foo, "bar": A.A$bar}
-          //
-          // We expect most of the time the map will be a singleton.
-          var properties = [];
-          for (Element member in analysis.constructors(classElement)) {
-            properties.add(
-                new jsAst.Property(
-                    js.string(member.name),
-                    backend.emitter.staticFunctionAccess(member)));
-          }
-
-          var map = new jsAst.ObjectInitializer(properties);
-          elements.add(map);
-        }
-      }
-    }
-
-    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
-    jsAst.Expression mapTypeToInterceptor = emitter
-        .generateEmbeddedGlobalAccess(embeddedNames.MAP_TYPE_TO_INTERCEPTOR);
-    jsAst.Expression assignment = js('# = #', [mapTypeToInterceptor, array]);
+    jsAst.Expression typeToInterceptorMap = emitter
+        .generateEmbeddedGlobalAccess(embeddedNames.TYPE_TO_INTERCEPTOR_MAP);
+    jsAst.Expression assignment = js('# = #', [typeToInterceptorMap, array]);
 
     output.addBuffer(jsAst.prettyPrint(assignment, compiler));
     output.add(N);
