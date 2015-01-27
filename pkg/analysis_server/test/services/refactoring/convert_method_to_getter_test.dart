@@ -89,6 +89,36 @@ main(A a, B b, C c, D d) {
 ''');
   }
 
+  test_change_multipleFiles() {
+    indexUnit('/other.dart', r'''
+class A {
+  int test() => 1;
+}
+''');
+    indexTestUnit('''
+import 'other.dart';
+class B extends A {
+  int test() => 2;
+}
+main(A a, B b) {
+  a.test();
+  b.test();
+}
+''');
+    _createRefactoringForString('test() => 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'other.dart';
+class B extends A {
+  int get test => 2;
+}
+main(A a, B b) {
+  a.test;
+  b.test;
+}
+''');
+  }
+
   test_checkInitialConditions_alreadyGetter() {
     indexTestUnit('''
 int get test => 42;

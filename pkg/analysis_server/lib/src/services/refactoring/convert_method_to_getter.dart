@@ -132,7 +132,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
         if (invocation != null) {
           SourceRange range = rangeEndEnd(refRange, invocation);
           SourceEdit edit = newSourceEdit_range(range, '');
-          doSourceChange_addElementEdit(change, element, edit);
+          doSourceChange_addElementEdit(change, refElement, edit);
         }
       }
     });
