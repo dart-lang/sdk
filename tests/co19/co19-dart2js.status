@@ -5530,6 +5530,7 @@ Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please tria
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/animation/request-animation-frame-prefix_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/backgrounds/background-position-parsing-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/backgrounds/background-repeat-computed-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/backgrounds/background-shorthand-with-backgroundSize-style_t01: RuntimeError # Please triage this failure
@@ -5576,6 +5577,7 @@ LayoutTests/fast/canvas/canvas-blending-shadow_t01: RuntimeError # Please triage
 LayoutTests/fast/canvas/canvas-blending-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blending-transforms_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-clip-rule_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-composite-canvas_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-css-crazy_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentColor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Please triage this failure
@@ -5589,15 +5591,15 @@ LayoutTests/fast/canvas/canvas-font-ex-units-crash_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/canvas-getImageData-invalid_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-getImageData-large-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-getImageData-rounding_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-imageSmoothingEnabled-repaint_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-imageSmoothingEnabled-repaint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-imageSmoothingEnabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-large-dimensions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-large-fills_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lineDash-invalid_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lineDash_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-putImageData_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError # Please triage this failure
@@ -5606,11 +5608,13 @@ LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage th
 LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/crash-set-font_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/drawImage-with-bad-canvas_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/drawImage-with-valid-image_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/fallback-content_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/pointInPath_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
@@ -5723,7 +5727,7 @@ LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # Pl
 LayoutTests/fast/canvas/webgl/webgl-viewport-parameters-preserved_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/winding-enumeration_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/block-after_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css-generated-content/malformed-url_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-display_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-element-events_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-transition-event_t01: Skip # Times out. Please triage this failure
@@ -6450,6 +6454,7 @@ LayoutTests/fast/files/blob-close_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/blob-constructor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/blob-parts-slice-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/blob-slice-test_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/files/file-reader-done-reading-abort_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/read-blob-as-array-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/url-null_t01: RuntimeError # Please triage this failure
@@ -6533,6 +6538,7 @@ LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError 
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-typeMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
@@ -6942,9 +6948,10 @@ LayoutTests/fast/xsl/transformToFragment-XML-declaration_t01: RuntimeError # Ple
 LayoutTests/fast/xsl/xslt-fragment-in-empty-doc_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-string-parameters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please triage this failure
-LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # Please triage this failure
+LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/StreamController/StreamController.broadcast_A04_t01: RuntimeError # Please triage this failure
-LibTest/async/Timer/Timer.periodic_A01_t01: RuntimeError # Please triage this failure
+LibTest/async/Timer/Timer.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
+LibTest/async/Timer/Timer_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Please triage this failure
@@ -6963,6 +6970,7 @@ LibTest/core/int/remainder_A01_t03: RuntimeError # Please triage this failure
 LibTest/core/int/toRadixString_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # Please triage this failure
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t04: Pass, RuntimeError # Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t05: Skip # Times out. Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: RuntimeError # Please triage this failure
 LibTest/html/Document/childNodes_A01_t01: RuntimeError # Please triage this failure
@@ -6972,9 +6980,11 @@ LibTest/html/Document/contains_A01_t02: RuntimeError # Please triage this failur
 LibTest/html/Document/importNode_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Document/securityPolicy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/Element.tag_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/addEventListener_A01_t04: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/attributeChanged_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/dataset_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/enteredView_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/focusEvent_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getBoundingClientRect_A01_t01: RuntimeError # Please triage this failure
@@ -6984,6 +6994,7 @@ LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this f
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/loadEvent_A01_t01: Skip # Times out. Please triage this failure
+LibTest/html/Element/onFocus_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/onLoad_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/ownerDocument_A01_t05: RuntimeError # Please triage this failure
 LibTest/html/Element/querySelectorAll_A01_t02: RuntimeError # Please triage this failure
@@ -7008,11 +7019,12 @@ LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Skip # Times out. Please triag
 LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/IFrameElement/addEventListener_A01_t04: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/addEventListener_A01_t04: Pass, RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/appendHtml_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/appendHtml_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributeChanged_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributes_setter_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/blur_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/IFrameElement/clone_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/contains_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/contentEdge_A01_t01: RuntimeError # Please triage this failure
@@ -7049,6 +7061,7 @@ LibTest/html/Node/previousNode_A01_t01: RuntimeError # Please triage this failur
 LibTest/html/Node/removeEventListener_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Node/removeEventListener_A01_t02: Skip # Times out. Please triage this failure
 LibTest/html/Window/animationFrame_A01_t01: Skip # Times out. Please triage this failure
+LibTest/html/Window/close_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Window/document_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/find_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/find_A01_t02: RuntimeError # Please triage this failure
@@ -7502,6 +7515,7 @@ WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage t
 WebPlatformTest/webstorage/event_local_key_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_local_newvalue_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_local_oldvalue_t01: RuntimeError # Please triage this failure
+WebPlatformTest/webstorage/event_local_storageeventinit_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_local_url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_session_newvalue_t01: RuntimeError # Please triage this failure
@@ -7515,6 +7529,7 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 [ $compiler == dart2js && $runtime == ie11 ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
+Language/15_Types/5_Function_Types_A01_t03: Skip # Times out. Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -7578,8 +7593,8 @@ LayoutTests/fast/canvas/canvas-large-dimensions_t01: RuntimeError # Please triag
 LayoutTests/fast/canvas/canvas-large-fills_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lineDash_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-putImageData_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError # Please triage this failure
@@ -7778,6 +7793,7 @@ LayoutTests/fast/css/css-keyframe-style-crash_t01: RuntimeError # Please triage 
 LayoutTests/fast/css/css-keyframe-unexpected-end_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-selector-text_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/css3-nth-tokens-script_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cssom-remove-shorthand-property_t01: RuntimeError # Please triage this failure
@@ -7858,6 +7874,7 @@ LayoutTests/fast/css/link-alternate-stylesheet-5_t01: RuntimeError # Please tria
 LayoutTests/fast/css/link-disabled-attr-parser_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/list-item-text-align_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/margin-start-end_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/max-device-aspect-ratio_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/modify-ua-rules-from-javascript_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/nested-at-rules_t01: RuntimeError # Please triage this failure
@@ -7923,7 +7940,7 @@ LayoutTests/fast/css/style-scoped/style-scoped-with-dom-operation_t01: RuntimeEr
 LayoutTests/fast/css/style-scoped/style-scoped-with-important-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-first-alternate-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-link_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-initial_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/text-align-webkit-match-parent-parse_t01: RuntimeError # Please triage this failure
@@ -7996,7 +8013,7 @@ LayoutTests/fast/dom/HTMLDialogElement/synthetic-click-inert_t01: RuntimeError #
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/dom/HTMLDocument/activeElement_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDocument/activeElement_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDocument/set-focus-on-valid-element_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLElement/attr-dir-auto-change-before-text-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLElement/attr-dir-auto-change-child-node_t01: RuntimeError # Please triage this failure
@@ -8075,6 +8092,7 @@ LayoutTests/fast/dom/HTMLScriptElement/remove-in-beforeload_t01: Skip # Times ou
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/script-async-attr_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/dom/HTMLScriptElement/script-load-events_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLSelectElement/change-multiple-preserve-selection_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLSelectElement/named-options_t01: RuntimeError # Please triage this failure
@@ -8467,12 +8485,13 @@ LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Pl
 LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/input-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-rangeOverflow-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-typeMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
@@ -8667,6 +8686,7 @@ LayoutTests/fast/parser/innerhtml-with-prefixed-elements_t01: RuntimeError # Ple
 LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/parser/residual-style-close-across-n-blocks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/container-width-zero_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/preferred-widths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-height-text-controls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-height_t01: RuntimeError # Please triage this failure
@@ -8876,12 +8896,17 @@ LayoutTests/fast/xsl/transformToFragment-XML-declaration_t01: RuntimeError # Ple
 LayoutTests/fast/xsl/xslt-fragment-in-empty-doc_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-string-parameters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please triage this failure
-LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # Please triage this failure
+LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
+LibTest/async/Timer/Timer.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
+LibTest/async/Timer/Timer_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Please triage this failure
+LibTest/core/Runes/takeWhile_A01_t01: Skip # Times out. Please triage this failure
+LibTest/core/String/toLowerCase_A01_t02: Skip # Times out. Please triage this failure
+LibTest/core/double/operator_remainder_A02_t01: Skip # Times out. Please triage this failure
 LibTest/core/double/roundToDouble_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/double/round_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/double/toStringAsExponential_A01_t04: RuntimeError # Please triage this failure
@@ -8895,7 +8920,7 @@ LibTest/core/int/remainder_A01_t03: RuntimeError # Please triage this failure
 LibTest/core/int/toRadixString_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # Please triage this failure
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t04: RuntimeError # Please triage this failure
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t04: Pass, RuntimeError # Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t05: Skip # Times out. Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: RuntimeError # Please triage this failure
 LibTest/html/Document/childNodes_A01_t01: RuntimeError # Please triage this failure
@@ -8905,6 +8930,7 @@ LibTest/html/Document/contains_A01_t02: RuntimeError # Please triage this failur
 LibTest/html/Document/importNode_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Document/securityPolicy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/Element.tag_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/addEventListener_A01_t04: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/attributeChanged_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/blur_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/borderEdge_A01_t01: RuntimeError # Please triage this failure
@@ -8912,6 +8938,7 @@ LibTest/html/Element/contentEdge_A01_t01: RuntimeError # Please triage this fail
 LibTest/html/Element/dataset_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/enteredView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/errorEvent_A01_t01: Skip # Times out. Please triage this failure
+LibTest/html/Element/focusEvent_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
@@ -8921,7 +8948,7 @@ LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/loadEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/onError_A01_t01: Skip # Times out. Please triage this failure
-LibTest/html/Element/onFocus_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/onFocus_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/onLoad_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/ownerDocument_A01_t05: RuntimeError # Please triage this failure
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Please triage this failure
@@ -8947,10 +8974,12 @@ LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Skip # Times out. Please triag
 LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/addEventListener_A01_t04: Pass, RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/appendHtml_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/appendHtml_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributeChanged_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributes_setter_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/blur_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/IFrameElement/borderEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/clone_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/contains_A01_t01: RuntimeError # Please triage this failure
@@ -8987,7 +9016,7 @@ LibTest/html/Node/previousNode_A01_t01: RuntimeError # Please triage this failur
 LibTest/html/Node/removeEventListener_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Node/removeEventListener_A01_t02: Skip # Times out. Please triage this failure
 LibTest/html/Window/animationFrame_A01_t01: Skip # Times out. Please triage this failure
-LibTest/html/Window/close_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Window/close_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Window/document_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/find_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/find_A01_t02: RuntimeError # Please triage this failure
@@ -9008,10 +9037,14 @@ LibTest/html/Window/requestFileSystem_A01_t02: RuntimeError # Please triage this
 LibTest/html/Window/requestFileSystem_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # Please triage this failure
+LibTest/math/sqrt_A02_t02: Skip # Times out. Please triage this failure
 LibTest/typed_data/ByteData/ByteData.view_A01_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage this failure
+LibTest/typed_data/Float32List/removeWhere_A01_t01: Skip # Times out. Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Please triage this failure
+LibTest/typed_data/Int64List/join_A01_t02: Skip # Times out. Please triage this failure
+LibTest/typed_data/Int8List/addAll_A01_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/DOMEvents/approved/ProcessingInstruction.DOMCharacterDataModified_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/DOMEvents/approved/addEventListener.optional.useCapture_t01: RuntimeError # Please triage this failure
 WebPlatformTest/Utils/test/asyncTestFail_t01: RuntimeError # Please triage this failure
@@ -9312,5 +9345,6 @@ WebPlatformTest/webstorage/event_session_oldvalue_t01: RuntimeError # Please tri
 WebPlatformTest/webstorage/event_session_storagearea_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_session_url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage this failure
+WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure

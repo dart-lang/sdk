@@ -132,6 +132,7 @@ no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 scripts_htmltest: Skip # Times out on IE.  Issue 21537
 two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
+localstorage_test: Pass, RuntimeError # Issue 22166
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -229,6 +230,8 @@ xsltprocessor_test/supported: Fail
 [ $runtime == ie10 ]
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 custom/element_upgrade_test: Fail # Issue 18247
+request_animation_frame_test: Skip # Times out. Issue 22167
+transition_event_test/functional: Skip # Times out. Issue 22167
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
