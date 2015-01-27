@@ -488,9 +488,9 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
 
   // Methods for conversion subtypes:
   R visitDownCastBase(DownCastBase node) => visitConversion(node);
-  R visitDownCast(DownCastDynamic node) => visitDownCastBase(node);
+  R visitDownCast(DownCast node) => visitDownCastBase(node);
   R visitDownCastDynamic(DownCastDynamic node) => visitDownCastBase(node);
-  R visitDownCastExact(DownCastDynamic node) => visitDownCastBase(node);
+  R visitDownCastExact(DownCastExact node) => visitDownCastBase(node);
   R visitClosureWrapBase(ClosureWrapBase node) => visitConversion(node);
   R visitClosureWrap(ClosureWrap node) => visitClosureWrapBase(node);
   R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);

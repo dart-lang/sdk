@@ -47,12 +47,16 @@ class AstBuilder {
     return RawAstBuilder.functionTypeAlias(ret, name, tps, fps);
   }
 
-  static AsExpression asExp(Expression exp, TypeName type) {
-    return RawAstBuilder.asExp(exp, type);
+  static NullLiteral nullLiteral() {
+    return RawAstBuilder.nullLiteral();
   }
 
-  static ParenthesizedExpression parenthesizedExp(Expression exp) {
-    return RawAstBuilder.parenthesizedExp(exp);
+  static AsExpression asExpression(Expression exp, TypeName type) {
+    return RawAstBuilder.asExpression(exp, type);
+  }
+
+  static ParenthesizedExpression parenthesizedExpression(Expression exp) {
+    return RawAstBuilder.parenthesizedExpression(exp);
   }
 
   static Expression parenthesize(Expression exp) {
@@ -60,7 +64,19 @@ class AstBuilder {
         exp is ParenthesizedExpression ||
         exp is FunctionExpressionInvocation ||
         exp is MethodInvocation) return exp;
-    return parenthesizedExp(exp);
+    return parenthesizedExpression(exp);
+  }
+
+  static BinaryExpression binaryExpression(
+      Expression l, String oper, Expression r) {
+    if (oper == "==") return RawAstBuilder.equalityExpression(l, r);
+    assert(false);
+    return null;
+  }
+
+  static ConditionalExpression conditionalExpression(
+      Expression cond, Expression tExp, Expression fExp) {
+    return RawAstBuilder.conditionalExpression(cond, tExp, fExp);
   }
 
   static Expression application(Expression function, List<Expression> es) {
@@ -112,12 +128,13 @@ class AstBuilder {
     return RawAstBuilder.functionDeclarationStatement(fd);
   }
 
-  static Statement returnExp([Expression e]) {
-    return RawAstBuilder.returnExp(e);
+  static Statement returnExpression([Expression e]) {
+    return RawAstBuilder.returnExpression(e);
   }
 
   // let b = e1 in e2 == (\b.e2)(e1)
-  static Expression letExp(FormalParameter b, Expression e1, Expression e2) {
+  static Expression letExpression(
+      FormalParameter b, Expression e1, Expression e2) {
     FunctionExpression l = expressionFunction(<FormalParameter>[b], e2);
     return application(parenthesize(l), <Expression>[e1]);
   }
@@ -196,15 +213,32 @@ class RawAstBuilder {
     return new FunctionTypeAlias(null, null, td, ret, name, tps, fps, semi);
   }
 
-  static AsExpression asExp(Expression exp, TypeName type) {
+  static NullLiteral nullLiteral() {
+    var n = new KeywordToken(Keyword.NULL, 0);
+    return new NullLiteral(n);
+  }
+
+  static AsExpression asExpression(Expression exp, TypeName type) {
     Token token = new KeywordToken(Keyword.AS, 0);
     return new AsExpression(exp, token, type);
   }
 
-  static ParenthesizedExpression parenthesizedExp(Expression exp) {
+  static ParenthesizedExpression parenthesizedExpression(Expression exp) {
     Token lp = new BeginToken(TokenType.OPEN_PAREN, 0);
     Token rp = new Token(TokenType.CLOSE_PAREN, 0);
     return new ParenthesizedExpression(lp, exp, rp);
+  }
+
+  static BinaryExpression equalityExpression(Expression l, Expression r) {
+    var eq = new Token(TokenType.EQ_EQ, 0);
+    return new BinaryExpression(l, eq, r);
+  }
+
+  static ConditionalExpression conditionalExpression(
+      Expression cond, Expression tExp, Expression fExp) {
+    var q = new Token(TokenType.QUESTION, 0);
+    var c = new Token(TokenType.COLON, 0);
+    return new ConditionalExpression(cond, q, tExp, c, fExp);
   }
 
   static Expression functionExpressionInvocation(
@@ -269,7 +303,7 @@ class RawAstBuilder {
     return new FunctionDeclarationStatement(fd);
   }
 
-  static Statement returnExp([Expression e]) {
+  static Statement returnExpression([Expression e]) {
     Token ret = new KeywordToken(Keyword.RETURN, 0);
     Token semi = new Token(TokenType.SEMICOLON, 0);
     return new ReturnStatement(ret, e, semi);

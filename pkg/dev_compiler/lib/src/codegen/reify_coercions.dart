@@ -34,7 +34,7 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   ///////////////// Private //////////////////////////////////
 
   @override
-  Object visitDownCastBase(DownCast node) {
+  Object visitDownCastBase(DownCastBase node) {
     Expression castNode = _cm.coerceExpression(node.node, node.cast);
     if (!NodeReplacer.replace(node, castNode)) {
       _log.severe("Failed to replace node for DownCast");
@@ -161,8 +161,8 @@ class CoercionManager {
 
   Expression _castExpression(Expression e, Cast c) {
     TypeName type = _tm.typeNameFromDartType(c.toType);
-    return AstBuilder
-        .parenthesize(AstBuilder.asExp(AstBuilder.parenthesize(e), type));
+    return AstBuilder.parenthesize(
+        AstBuilder.asExpression(AstBuilder.parenthesize(e), type));
   }
 
   Expression _coerceExpression(Expression e, Coercion c) {
@@ -273,13 +273,16 @@ class CoercionManager {
   // T0 -> T1 functions to S0 -> S1 functions.
   // T0 -> T1 g(S1 f(S0)) {
   //   T1 c(T0 x) => (f(x as T0) as S1);
-  //   return c;
+  //   return (f == null) ? null : c;
   // }
   Declaration _buildCoercion(Identifier q, Wrapper wrapper, bool top) {
     var f = AstBuilder.identifierFromString("f");
     var c = AstBuilder.identifierFromString("c");
     var cDec = _wrapperMkInner(c, f, wrapper);
-    var stmts = <Statement>[cDec, AstBuilder.returnExp(c)];
+    var comp = AstBuilder.binaryExpression(f, "==", AstBuilder.nullLiteral());
+    var n = AstBuilder.nullLiteral();
+    var cond = AstBuilder.conditionalExpression(comp, n, c);
+    var stmts = <Statement>[cDec, AstBuilder.returnExpression(cond)];
     var fp = _tm.typedFormal(f, wrapper.fromType);
     var params = <FormalParameter>[fp];
     TypeName rt = _tm.typeNameFromDartType(wrapper.toType);
