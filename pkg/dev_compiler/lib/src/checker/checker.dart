@@ -20,6 +20,7 @@ class _OverrideChecker {
   _OverrideChecker(this._rules, this._reporter);
 
   void check(ClassDeclaration node) {
+    if (node.element.type.isObject) return;
     _checkSuperOverrides(node);
     _checkMixinApplicationOverrides(node);
     _checkAllInterfaceOverrides(node);

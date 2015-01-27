@@ -80,7 +80,7 @@ void main(List<String> argv) {
       : TypeResolver.sdkResolverFromDir(dartSdkPath));
 
   var filename = args.rest.first;
-  var success = compile(filename, typeResolver,
+  var result = compile(filename, typeResolver,
       checkSdk: args['sdk-check'],
       covariantGenerics: args['covariant-generics'],
       dumpInfo: args['dump-info'],
@@ -92,5 +92,5 @@ void main(List<String> argv) {
       outputDir: args['out'],
       relaxedCasts: args['relaxed-casts'],
       useColors: useColors);
-  exit(success ? 0 : 1);
+  exit(result.failure ? 1 : 0);
 }
