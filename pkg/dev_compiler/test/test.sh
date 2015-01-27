@@ -14,9 +14,7 @@ function show_diff {
     sed -e "s/^\(-.*\)/[31m\1[0m/"
   echo
   echo "You can update these expectations with:"
-  echo "$ pushd $TEST_DIR/codegen"
-  echo "$ cp -a actual/* expect"
-  echo "$ popd"
+  echo "$ pushd $TEST_DIR/codegen && cp -a actual/* expect && popd"
   fail
 }
 
@@ -24,11 +22,11 @@ function show_diff {
 TEST_DIR=$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd )
 
 # Some tests require being run from the package root
-pushd $TEST_DIR/.. &> /dev/null
+cd $TEST_DIR/..
 
 # Remove packages symlinks, and old codegen output
 find test/codegen -name packages -exec rm {} \;
-rm -r test/codegen/actual > /dev/null || true
+rm -r test/codegen/actual 2> /dev/null || true
 dart -c test/all_tests.dart || fail
 
 # validate codegen_test output
@@ -39,7 +37,15 @@ popd &> /dev/null
 # run self host and analyzer after other tests, because they're ~seconds to run.
 dart -c test/checker/self_host_test.dart || fail
 
-ls lib/*.dart bin/*.dart | dartanalyzer -b --fatal-warnings || fail
+# Run analyzer on bin/devc.dart, as it includes most of the code we care about
+# via transitive dependencies. This seems to be the only fast way to avoid
+# repeated analysis of the same code.
+# TODO(jmesserly): ideally we could do test/all_tests.dart, but
+# dart_runtime_test.dart creates invalid generic type instantiation AA.
+echo "Running dartanalyzer to check for errors/warnings/hints..."
+dartanalyzer --fatal-warnings --package-warnings bin/devc.dart | (! grep $PWD) \
+    || fail
+
 {
   fc=`find test -name "*.dart" |\
       xargs grep "/\*\S* should be \S*\*/" | wc -l`

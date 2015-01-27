@@ -1,7 +1,6 @@
 /// Holds a couple utility functions used at various places in the system.
 library ddc.src.utils;
 
-import 'dart:async' show Future;
 import 'dart:io';
 
 import 'package:analyzer/src/generated/ast.dart'
