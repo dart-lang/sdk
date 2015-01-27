@@ -384,45 +384,6 @@ class NativeEmitter {
     return isSupertypeOfNativeClass(element);
   }
 
-  void assembleCode(CodeOutput targetOutput) {
-    List<jsAst.Property> objectProperties = <jsAst.Property>[];
-
-    jsAst.Property addProperty(String name, jsAst.Expression value) {
-      jsAst.Property prop = new jsAst.Property(js.string(name), value);
-      objectProperties.add(prop);
-      return prop;
-    }
-
-    if (hasNativeClasses) {
-      // If the native emitter has been asked to take care of the
-      // noSuchMethod handlers, we do that now.
-      if (handleNoSuchMethod) {
-        emitterTask.oldEmitter.nsmEmitter.emitNoSuchMethodHandlers(addProperty);
-      }
-    }
-
-    // If we have any properties to add to Object.prototype, we run
-    // through them and add them using defineProperty.
-    if (!objectProperties.isEmpty) {
-      jsAst.Expression init = js(r'''
-          (function(table) {
-            for(var key in table)
-              #(Object.prototype, key, table[key]);
-           })(#)''',
-          [ defPropFunction,
-            new jsAst.ObjectInitializer(objectProperties)]);
-
-      if (emitterTask.compiler.enableMinification) {
-        targetOutput.add(';');
-      }
-      targetOutput.addBuffer(jsAst.prettyPrint(
-          new jsAst.ExpressionStatement(init), compiler));
-      targetOutput.add('\n');
-    }
-
-    targetOutput.add('\n');
-  }
-
   /// Returns a JavaScript template that fills the embedded globals referenced
   /// by [interceptorsByTagAccess] and [leafTagsAccess].
   ///
