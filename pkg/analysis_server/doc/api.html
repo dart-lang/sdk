@@ -1694,6 +1694,11 @@ dt.typeDefinition {
         <p>
           Get the changes required to perform a refactoring.
         </p>
+        <p>
+          If another refactoring request is received during the processing
+          of this one, an error of type <tt>REFACTORING_REQUEST_CANCELLED</tt>
+          will be generated.
+        </p>
         
         
       <h4>Parameters</h4><dl><dt class="field"><b><i>kind ( <a href="#type_RefactoringKind">RefactoringKind</a> )</i></b></dt><dd>
@@ -3062,6 +3067,12 @@ dt.typeDefinition {
             
             <p>
               A malformed request was received.
+            </p>
+          </dd><dt class="value">REFACTORING_REQUEST_CANCELLED</dt><dd>
+            
+            <p>
+              Another refactoring request was received during processing of
+              this one.
             </p>
           </dd><dt class="value">SERVER_ALREADY_STARTED</dt><dd>
             

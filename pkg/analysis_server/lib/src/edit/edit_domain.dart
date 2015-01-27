@@ -53,7 +53,7 @@ class EditDomainHandler implements RequestHandler {
    */
   EditDomainHandler(this.server) {
     searchEngine = server.searchEngine;
-    refactoringManager = new _RefactoringManager(server, searchEngine);
+    _newRefactoringManager();
   }
 
   Response format(Request request) {
@@ -192,8 +192,7 @@ class EditDomainHandler implements RequestHandler {
       } else if (requestName == EDIT_GET_FIXES) {
         return getFixes(request);
       } else if (requestName == EDIT_GET_REFACTORING) {
-        refactoringManager.getRefactoring(request);
-        return Response.DELAYED_RESPONSE;
+        return _getRefactoring(request);
       } else if (requestName == EDIT_SORT_MEMBERS) {
         return sortMembers(request);
       }
@@ -239,6 +238,22 @@ class EditDomainHandler implements RequestHandler {
     SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
     return new EditSortMembersResult(fileEdit).toResponse(request.id);
   }
+
+  Response _getRefactoring(Request request) {
+    if (refactoringManager.hasPendingRequest) {
+      refactoringManager.cancel();
+      _newRefactoringManager();
+    }
+    refactoringManager.getRefactoring(request);
+    return Response.DELAYED_RESPONSE;
+  }
+
+  /**
+   * Initializes [refactoringManager] with a new instance.
+   */
+  void _newRefactoringManager() {
+    refactoringManager = new _RefactoringManager(server, searchEngine);
+  }
 }
 
 
@@ -259,6 +274,7 @@ class _RefactoringManager {
 
   final AnalysisServer server;
   final SearchEngine searchEngine;
+  StreamSubscription onAnalysisStartedSubscription;
 
   RefactoringKind kind;
   String file;
@@ -270,13 +286,18 @@ class _RefactoringManager {
   RefactoringStatus optionsStatus;
   RefactoringStatus finalStatus;
 
-  String requestId;
+  Request request;
   EditGetRefactoringResult result;
 
   _RefactoringManager(this.server, this.searchEngine) {
-    server.onAnalysisStarted.listen(_reset);
+    onAnalysisStartedSubscription = server.onAnalysisStarted.listen(_reset);
     _reset();
   }
+
+  /**
+   * Returns `true` if a response for the current request has not yet been sent.
+   */
+  bool get hasPendingRequest => request != null;
 
   bool get _hasFatalError {
     return initStatus.hasFatalError ||
@@ -295,15 +316,24 @@ class _RefactoringManager {
         refactoring is RenameRefactoring;
   }
 
-  void getRefactoring(Request request) {
+  /**
+   * Cancels processing of the current request and cleans up.
+   */
+  void cancel() {
+    onAnalysisStartedSubscription.cancel();
+    server.sendResponse(new Response.refactoringRequestCancelled(request));
+    request = null;
+  }
+
+  void getRefactoring(Request _request) {
     // prepare for processing the request
-    requestId = request.id;
+    request = _request;
     result = new EditGetRefactoringResult(
         EMPTY_PROBLEM_LIST,
         EMPTY_PROBLEM_LIST,
         EMPTY_PROBLEM_LIST);
     // process the request
-    var params = new EditGetRefactoringParams.fromRequest(request);
+    var params = new EditGetRefactoringParams.fromRequest(_request);
     runZoned(() async {
       await _init(params.kind, params.file, params.offset, params.length);
       if (initStatus.hasFatalError) {
@@ -351,7 +381,7 @@ class _RefactoringManager {
     }, onError: (exception, stackTrace) {
       server.instrumentationService.logException(exception, stackTrace);
       server.sendResponse(
-          new Response.serverError(request, exception, stackTrace));
+          new Response.serverError(_request, exception, stackTrace));
       _reset();
     });
   }
@@ -524,15 +554,20 @@ class _RefactoringManager {
   }
 
   void _sendResultResponse() {
+    // ignore if was cancelled
+    if (request == null) {
+      return;
+    }
+    // set feedback
     result.feedback = feedback;
     // set problems
     result.initialProblems = initStatus.problems;
     result.optionsProblems = optionsStatus.problems;
     result.finalProblems = finalStatus.problems;
     // send the response
-    server.sendResponse(result.toResponse(requestId));
+    server.sendResponse(result.toResponse(request.id));
     // done with this request
-    requestId = null;
+    request = null;
     result = null;
   }
 

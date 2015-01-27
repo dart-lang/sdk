@@ -9207,6 +9207,7 @@ class RequestError implements HasToJson {
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
+ *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
@@ -9252,6 +9253,11 @@ class RequestErrorCode implements Enum {
    * A malformed request was received.
    */
   static const INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
+
+  /**
+   * Another refactoring request was received during processing of this one.
+   */
+  static const REFACTORING_REQUEST_CANCELLED = const RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
 
   /**
    * The analysis server has already been started (and hence won't accept new
@@ -9308,7 +9314,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -9328,6 +9334,8 @@ class RequestErrorCode implements Enum {
         return INVALID_PARAMETER;
       case "INVALID_REQUEST":
         return INVALID_REQUEST;
+      case "REFACTORING_REQUEST_CANCELLED":
+        return REFACTORING_REQUEST_CANCELLED;
       case "SERVER_ALREADY_STARTED":
         return SERVER_ALREADY_STARTED;
       case "SERVER_ERROR":

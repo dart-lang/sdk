@@ -1188,6 +1188,9 @@ abstract class IntegrationTestMixin {
   /**
    * Get the changes required to perform a refactoring.
    *
+   * If another refactoring request is received during the processing of this
+   * one, an error of type REFACTORING_REQUEST_CANCELLED will be generated.
+   *
    * Parameters
    *
    * kind ( RefactoringKind )

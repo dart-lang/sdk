@@ -1453,6 +1453,11 @@
         <p>
           Get the changes required to perform a refactoring.
         </p>
+        <p>
+          If another refactoring request is received during the processing
+          of this one, an error of type <tt>REFACTORING_REQUEST_CANCELLED</tt>
+          will be generated.
+        </p>
         <params>
           <field name="kind">
             <ref>RefactoringKind</ref>
@@ -3058,6 +3063,13 @@
             <code>INVALID_REQUEST</code>
             <p>
               A malformed request was received.
+            </p>
+          </value>
+          <value>
+            <code>REFACTORING_REQUEST_CANCELLED</code>
+            <p>
+              Another refactoring request was received during processing of
+              this one.
             </p>
           </value>
           <value>
