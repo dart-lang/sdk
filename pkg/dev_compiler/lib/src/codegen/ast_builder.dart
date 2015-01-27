@@ -117,7 +117,6 @@ class AstBuilder {
   static FunctionExpression expressionFunction(
       List<FormalParameter> params, Expression body, [bool decl = false]) {
     FormalParameterList fl = formalParameterList(params);
-    Token semi = (decl) ? new Token(TokenType.SEMICOLON, 0) : null;
     ExpressionFunctionBody b = RawAstBuilder.expressionFunctionBody(body, decl);
     return RawAstBuilder.functionExpression(fl, b);
   }

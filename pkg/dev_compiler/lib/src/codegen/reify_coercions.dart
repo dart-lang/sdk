@@ -421,7 +421,7 @@ class TypeManager {
       var tpl = alias.typeParameters;
       if (tpl != null) {
         var ltp = tpl.typeParameters;
-        var ts = ltp.map((t) => AstBuilder.typeName(t.name, null));
+        ts = ltp.map((t) => AstBuilder.typeName(t.name, null));
       }
       var name = alias.name;
       return AstBuilder.typeName(name, ts);

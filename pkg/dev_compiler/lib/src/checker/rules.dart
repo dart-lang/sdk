@@ -253,7 +253,7 @@ class RestrictedRules extends TypeRules {
 
     // "Traditional" name-based subtype check.
     if (t1 is InterfaceType && t2 is InterfaceType) {
-      return _isInterfaceSubTypeOf(t1 as InterfaceType, t2 as InterfaceType);
+      return _isInterfaceSubTypeOf(t1, t2);
     }
 
     if (t1 is! FunctionType && t2 is! FunctionType) return false;
@@ -261,7 +261,7 @@ class RestrictedRules extends TypeRules {
     if (t1 is InterfaceType && t2 is FunctionType) {
       var callType = getCallMethodType(t1);
       if (callType == null) return false;
-      return isFunctionSubTypeOf(callType, t2 as FunctionType);
+      return isFunctionSubTypeOf(callType, t2);
     }
 
     if (t1 is FunctionType && t2 is InterfaceType) {

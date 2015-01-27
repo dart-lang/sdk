@@ -297,7 +297,6 @@ var $libName;
   void _initializeFields(List<FieldDeclaration> fields,
       [FormalParameterList parameters,
       NodeList<ConstructorInitializer> initializers]) {
-    var initialized = new Set<String>();
 
     // Run field initializers if they can have side-effects.
     var unsetFields = new Map<String, Expression>();
@@ -1103,9 +1102,4 @@ class JSGenerator extends CodeGenerator {
       CompilationUnit unit, LibraryInfo info, String libraryDir) {
     return new UnitGenerator(unit, libraryDir, info, rules).generate();
   }
-}
-
-class _Property {
-  MethodDeclaration getter;
-  MethodDeclaration setter;
 }
