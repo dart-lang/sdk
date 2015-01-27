@@ -278,6 +278,8 @@ abstract class Backend {
 
   List<CompilerTask> get tasks;
 
+  bool get canHandleCompilationFailed;
+
   void onResolutionComplete() {}
 
   ItemCompilationContext createItemCompilationContext() {
@@ -1574,6 +1576,12 @@ abstract class Compiler implements DiagnosticListener {
             api.Diagnostic.HINT);
       });
     }
+
+    // TODO(sigurdm): The dart backend should handle failed compilations.
+    if (compilationFailed && !backend.canHandleCompilationFailed) {
+      return;
+    }
+
     if (analyzeOnly) {
       if (!analyzeAll && !compilationFailed) {
         // No point in reporting unused code when [analyzeAll] is true: all

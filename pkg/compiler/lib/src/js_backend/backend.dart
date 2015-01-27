@@ -441,6 +441,8 @@ class JavaScriptBackend extends Backend {
 
   PatchResolverTask patchResolverTask;
 
+  bool get canHandleCompilationFailed => true;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
