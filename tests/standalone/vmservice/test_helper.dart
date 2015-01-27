@@ -155,6 +155,7 @@ class TestLauncher {
           first = false;
           print('** Signaled to run test queries on $portNumber');
         }
+        print(line);
       });
       process.stderr.transform(UTF8.decoder)
                     .transform(new LineSplitter()).listen((line) {

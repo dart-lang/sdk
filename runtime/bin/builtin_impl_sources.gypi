@@ -13,7 +13,6 @@
     'crypto_linux.cc',
     'crypto_macos.cc',
     'crypto_win.cc',
-    'builtin_common.cc',
     'dartutils.cc',
     'dartutils.h',
     'dbg_connection.cc',

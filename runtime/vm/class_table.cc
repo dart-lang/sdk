@@ -195,12 +195,6 @@ void ClassTable::Print() {
   String& name = String::Handle();
 
   for (intptr_t i = 1; i < top_; i++) {
-    if (!HasValidClassAt(i)) {
-      continue;
-    }
-    if (i == kFreeListElement) {
-      continue;
-    }
     cls = At(i);
     if (cls.raw() != reinterpret_cast<RawClass*>(0)) {
       name = cls.Name();

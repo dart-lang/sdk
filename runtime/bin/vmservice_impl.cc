@@ -94,32 +94,6 @@ void TriggerResourceLoad(Dart_NativeArguments args) {
 }
 
 
-void NotifyServerState(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  const char* ip_chars;
-  Dart_Handle ip_arg = Dart_GetNativeArgument(args, 0);
-  if (Dart_IsError(ip_arg)) {
-    VmService::SetServerIPAndPort("", 0);
-    Dart_ExitScope();
-    return;
-  }
-  Dart_Handle result = Dart_StringToCString(ip_arg, &ip_chars);
-  if (Dart_IsError(result)) {
-    VmService::SetServerIPAndPort("", 0);
-    Dart_ExitScope();
-    return;
-  }
-  Dart_Handle port_arg = Dart_GetNativeArgument(args, 1);
-  if (Dart_IsError(port_arg)) {
-    VmService::SetServerIPAndPort("", 0);
-    Dart_ExitScope();
-    return;
-  }
-  int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
-  VmService::SetServerIPAndPort(ip_chars, port);
-  Dart_ExitScope();
-}
-
 struct VmServiceIONativeEntry {
   const char* name;
   int num_arguments;
@@ -129,7 +103,6 @@ struct VmServiceIONativeEntry {
 
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
   {"VMServiceIO_TriggerResourceLoad", 0, TriggerResourceLoad},
-  {"VMServiceIO_NotifyServerState", 2, NotifyServerState},
 };
 
 
@@ -155,28 +128,37 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
 
 
 const char* VmService::error_msg_ = NULL;
-char VmService::server_ip_[kServerIpStringBufferSize];
-intptr_t VmService::server_port_ = 0;
 
-bool VmService::Setup(const char* server_ip, intptr_t server_port) {
-  Dart_Isolate isolate = Dart_CurrentIsolate();
-  ASSERT(isolate != NULL);
+bool VmService::Start(const char *server_ip, intptr_t server_port) {
+  bool r = _Start(server_ip, server_port);
+  if (!r) {
+    return r;
+  }
+  // Start processing messages in a new thread.
+  Thread::Start(ThreadMain, static_cast<uword>(NULL));
+  return true;
+}
 
-  SetServerIPAndPort("", 0);
 
-  Dart_Handle result;
-
-  // Load main script.
+bool VmService::_Start(const char *server_ip, intptr_t server_port) {
+  ASSERT(Dart_CurrentIsolate() == NULL);
+  Dart_Isolate isolate = Dart_GetServiceIsolate(NULL);
+  if (isolate == NULL) {
+    error_msg_ = "Dart_GetServiceIsolate failed.";
+    return false;
+  }
+  Dart_EnterIsolate(isolate);
+  Dart_EnterScope();
+  // Install our own library tag handler.
   Dart_SetLibraryTagHandler(LibraryTagHandler);
-  Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
+  Dart_Handle result;
+  Dart_Handle library;
+  library = LoadScript(kVMServiceIOLibraryScriptResourceName);
+  // Expect a library.
   ASSERT(library != Dart_Null());
   SHUTDOWN_ON_ERROR(library);
-  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
-  SHUTDOWN_ON_ERROR(result);
   result = Dart_FinalizeLoading(false);
-  SHUTDOWN_ON_ERROR(result);
-
-  // Make runnable.
+  ASSERT(!Dart_IsError(result));
   Dart_ExitScope();
   Dart_ExitIsolate();
   bool retval = Dart_IsolateMakeRunnable(isolate);
@@ -186,13 +168,13 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
     error_msg_ = "Invalid isolate state - Unable to make it runnable.";
     return false;
   }
+
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
-
   library = Dart_RootLibrary();
-  SHUTDOWN_ON_ERROR(library);
-
-  // Set HTTP server state.
+  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+  ASSERT(!Dart_IsError(result));
+  // Set requested TCP port.
   DartUtils::SetStringField(library, "_ip", server_ip);
   // If we have a port specified, start the server immediately.
   bool auto_start = server_port >= 0;
@@ -201,53 +183,39 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
     // port when the HTTP server is started.
     server_port = 0;
   }
+  // Set initial state.
   DartUtils::SetIntegerField(library, "_port", server_port);
-  result = Dart_SetField(library,
-                         DartUtils::NewString("_autoStart"),
-                         Dart_NewBoolean(auto_start));
-  SHUTDOWN_ON_ERROR(result);
-
-  // Are we running on Windows?
+  Dart_SetField(library,
+                DartUtils::NewString("_autoStart"),
+                Dart_NewBoolean(auto_start));
+  // We cannot register for signals on windows.
 #if defined(TARGET_OS_WINDOWS)
   Dart_Handle is_windows = Dart_True();
 #else
   Dart_Handle is_windows = Dart_False();
 #endif
-  result =
-      Dart_SetField(library, DartUtils::NewString("_isWindows"), is_windows);
-  SHUTDOWN_ON_ERROR(result);
+  Dart_SetField(library, DartUtils::NewString("_isWindows"), is_windows);
+
 
   // Get _getWatchSignalInternal from dart:io.
   Dart_Handle dart_io_str = Dart_NewStringFromCString(DartUtils::kIOLibURL);
-  SHUTDOWN_ON_ERROR(dart_io_str);
   Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
-  SHUTDOWN_ON_ERROR(io_lib);
   Dart_Handle function_name =
       Dart_NewStringFromCString("_getWatchSignalInternal");
-  SHUTDOWN_ON_ERROR(function_name);
   Dart_Handle signal_watch = Dart_Invoke(io_lib, function_name, 0, NULL);
-  SHUTDOWN_ON_ERROR(signal_watch);
-  Dart_Handle field_name = Dart_NewStringFromCString("_signalWatch");
-  SHUTDOWN_ON_ERROR(field_name);
-  result =
-      Dart_SetField(library, field_name, signal_watch);
-  SHUTDOWN_ON_ERROR(field_name);
+  // Invoke main.
+  result = Dart_Invoke(library, DartUtils::NewString("main"), 1, &signal_watch);
+  SHUTDOWN_ON_ERROR(result);
+
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+
   return true;
 }
 
 
 const char* VmService::GetErrorMessage() {
   return error_msg_ == NULL ? "No error." : error_msg_;
-}
-
-
-void VmService::SetServerIPAndPort(const char* ip, intptr_t port) {
-  if (ip == NULL) {
-    ip = "";
-  }
-  strncpy(server_ip_, ip, kServerIpStringBufferSize);
-  server_ip_[kServerIpStringBufferSize - 1] = '\0';
-  server_port_ = port;
 }
 
 
@@ -367,6 +335,21 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
   }
   return Dart_LoadSource(library, url, source, 0, 0);
 }
+
+
+void VmService::ThreadMain(uword parameters) {
+  ASSERT(Dart_CurrentIsolate() == NULL);
+  Dart_Isolate service_isolate = Dart_GetServiceIsolate(NULL);
+  Dart_EnterIsolate(service_isolate);
+  Dart_EnterScope();
+  Dart_Handle result = Dart_RunLoop();
+  if (Dart_IsError(result)) {
+    printf("Service exited with an error:\n%s\n", Dart_GetError(result));
+  }
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+}
+
 
 
 }  // namespace bin

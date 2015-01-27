@@ -80,7 +80,7 @@ class ClassFinalizer : public AllStatic {
 
   // Return whether processing pending classes (ObjectStore::pending_classes_)
   // failed. The function returns true if the processing was successful.
-  // If processing fails, an error message is set in the sticky error field
+  // If processin fails, an error message is set in the sticky error field
   // in the object store.
   static bool ProcessPendingClasses();
 

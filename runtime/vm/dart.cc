@@ -81,7 +81,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                            Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
                            Dart_FileCloseCallback file_close,
-                           Dart_EntropySource entropy_source) {
+                           Dart_EntropySource entropy_source,
+                           Dart_ServiceIsolateCreateCalback service_create) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
@@ -142,12 +143,10 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
 
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
+  Isolate::SetServiceCreateCallback(service_create);
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
-
-  Service::RunService();
-
   return NULL;
 }
 
@@ -261,11 +260,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     isolate->class_table()->Print();
   }
 
-  Service::MaybeInjectVMServiceLibrary(isolate);
-
-  Service::SendIsolateStartupMessage();
   isolate->debugger()->NotifyIsolateCreated();
-
+  Service::SendIsolateStartupMessage();
   // Create tag table.
   isolate->set_tag_table(
       GrowableObjectArray::Handle(GrowableObjectArray::New()));

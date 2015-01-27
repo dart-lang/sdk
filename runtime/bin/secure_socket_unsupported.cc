@@ -98,15 +98,5 @@ void FUNCTION_NAME(SecureSocket_NewServicePort)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
 }
-
-class SSLFilter {
- public:
-  static CObject* ProcessFilterRequest(const CObjectArray& request);
-};
-
-CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
-  return CObject::IllegalArgumentError();
-}
-
 }  // namespace bin
 }  // namespace dart

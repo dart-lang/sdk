@@ -165,17 +165,15 @@ class Server {
     return HttpServer.bind(_ip, _port).then((s) {
       _server = s;
       _server.listen(_requestHandler);
-      var ip = _server.address.address.toString();
       if (_displayMessages) {
+        var ip = _server.address.address.toString();
         var port = _server.port.toString();
         print('Observatory listening on http://$ip:$port');
       }
       // Server is up and running.
-      _notifyServerState(ip, _server.port);
       return this;
     }).catchError((e, st) {
       print('Could not start Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
       return this;
     });
   }
@@ -197,17 +195,12 @@ class Server {
         print('Observatory no longer listening on http://$ip:$port');
       }
       _server = null;
-      _notifyServerState("", 0);
       return this;
     }).catchError((e, st) {
       _server = null;
       print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
       return this;
     });
   }
 
 }
-
-void _notifyServerState(String ip, int port)
-    native "VMServiceIO_NotifyServerState";

@@ -49,8 +49,6 @@ class Builtin {
   // load it.
   static Dart_Handle LoadAndCheckLibrary(BuiltinLibraryId id);
 
-  static void SetLoadPort(Dart_Port port);
-
  private:
   // Map specified URI to an actual file name from 'source_paths' and read
   // the file.
@@ -66,7 +64,6 @@ class Builtin {
   static const char* _builtin_source_paths_[];
   static const char* io_source_paths_[];
   static const char* io_patch_paths_[];
-  static Dart_Port load_port_;
 
   typedef struct {
     const char* url_;

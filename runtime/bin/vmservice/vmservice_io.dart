@@ -10,7 +10,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:vmservice';
 
-part 'loader.dart';
 part 'resources.dart';
 part 'server.dart';
 
@@ -21,8 +20,6 @@ String _ip;
 bool _autoStart;
 
 bool _isWindows = false;
-
-var _signalWatch;
 
 // HTTP servr.
 Server server;
@@ -57,27 +54,18 @@ void _onSignal(ProcessSignal signal) {
   }
 }
 
-void _registerSignalHandler() {
+void _registerSignalHandler(Stream signalWatch(ProcessSignal signal)) {
   if (_isWindows) {
     // Cannot register for signals on Windows.
     return;
   }
-  _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
+  signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
 }
 
-const _shortDelay = const Duration(milliseconds: 10);
-
-main() {
+main(Stream signalWatch(ProcessSignal signal)) {
   if (_autoStart) {
     _bootServer();
     server.startup();
-    // It's just here to push an event on the event loop so that we invoke the
-    // scheduled microtasks.
-    Timer.run(() {});
   }
-  scriptLoadPort.handler = _processLoadRequest;
-  // Register signal handler after a small delay to avoid stalling main
-  // isolate startup.
-  new Timer(_shortDelay, _registerSignalHandler);
-  return scriptLoadPort;
+  _registerSignalHandler(signalWatch);
 }

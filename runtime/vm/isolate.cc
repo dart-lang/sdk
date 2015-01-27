@@ -554,7 +554,7 @@ Isolate::Isolate(Isolate* original)
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
-  free(name_);
+  delete [] name_;
   delete heap_;
   delete object_store_;
   delete api_state_;
@@ -682,13 +682,9 @@ void Isolate::BuildName(const char* name_prefix) {
   if (name_prefix == NULL) {
     name_prefix = "isolate";
   }
-  if (Service::IsServiceIsolateName(name_prefix)) {
-    name_ = strdup(name_prefix);
-    return;
-  }
   const char* kFormat = "%s-%lld";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, name_prefix, main_port()) + 1;
-  name_ = reinterpret_cast<char*>(malloc(len));
+  name_ = new char[len];
   OS::SNPrint(name_, len, kFormat, name_prefix, main_port());
 }
 
@@ -1147,6 +1143,7 @@ Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
+Dart_ServiceIsolateCreateCalback Isolate::service_create_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;

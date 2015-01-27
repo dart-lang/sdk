@@ -10,14 +10,10 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 #include <prinit.h>
 #include <prerror.h>
 #include <prnetdb.h>
 #include <ssl.h>
-#else
-struct PRFileDesc;
-#endif
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"

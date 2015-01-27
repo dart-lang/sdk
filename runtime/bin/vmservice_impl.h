@@ -5,7 +5,7 @@
 #ifndef BIN_VMSERVICE_IMPL_H_
 #define BIN_VMSERVICE_IMPL_H_
 
-#include "include/dart_api.h"
+#include "bin/vmservice.h"
 
 #include "platform/globals.h"
 
@@ -14,27 +14,13 @@ namespace bin {
 
 class VmService {
  public:
-  static bool Setup(const char* server_ip, intptr_t server_port);
-
+  // Returns false if service could not be started.
+  static bool Start(const char *server_ip, intptr_t server_port);
   // Error message if startup failed.
   static const char* GetErrorMessage();
 
-  // HTTP server's IP.
-  static const char* GetServerIP() {
-    return &server_ip_[0];
-  }
-
-  // HTTP server's port.
-  static intptr_t GetServerPort() {
-    return server_port_;
-  }
-
  private:
-  static const intptr_t kServerIpStringBufferSize = 256;
-  friend void TriggerResourceLoad(Dart_NativeArguments args);
-  friend void NotifyServerState(Dart_NativeArguments args);
-
-  static void SetServerIPAndPort(const char* ip, intptr_t port);
+  static bool _Start(const char *server_ip, intptr_t server_port);
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LoadScript(const char* name);
   static Dart_Handle LoadSource(Dart_Handle library, const char* name);
@@ -43,10 +29,10 @@ class VmService {
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
                                        Dart_Handle url);
 
-  static const char* error_msg_;
-  static char server_ip_[kServerIpStringBufferSize];
-  static intptr_t server_port_;
+  friend void TriggerResourceLoad(Dart_NativeArguments args);
 
+  static void ThreadMain(uword parameters);
+  static const char* error_msg_;
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(VmService);
 };

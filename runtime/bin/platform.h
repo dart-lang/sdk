@@ -24,11 +24,6 @@ class Platform {
   // deallocated by the caller.
   static const char* OperatingSystem();
 
-  // Returns a string representing the operating system's shared library
-  // extension (e.g. 'so', 'dll', ...). The returned string should not be
-  // deallocated by the caller.
-  static const char* LibraryExtension();
-
   // Extracts the local hostname.
   static bool LocalHostname(char* buffer, intptr_t buffer_length);
 

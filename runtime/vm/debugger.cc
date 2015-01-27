@@ -1066,9 +1066,7 @@ void Debugger::Shutdown() {
     delete bpt;
   }
   // Signal isolate shutdown event.
-  if (!Service::IsServiceIsolate(isolate_)) {
-    SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
-  }
+  SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
 }
 
 
@@ -2256,9 +2254,8 @@ void Debugger::Initialize(Isolate* isolate) {
     return;
   }
   isolate_ = isolate;
-
   // Use the isolate's control port as the isolate_id for debugging.
-  // This port will be used as a unique ID to represent the isolate in the
+  // This port will be used as a unique ID to represet the isolate in the
   // debugger wire protocol messages.
   isolate_id_ = isolate->main_port();
   initialized_ = true;
@@ -2267,9 +2264,7 @@ void Debugger::Initialize(Isolate* isolate) {
 
 void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
-  if (!Service::IsServiceIsolate(isolate_)) {
-    SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
-  }
+  SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
 }
 
 

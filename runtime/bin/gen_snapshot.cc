@@ -515,7 +515,8 @@ int main(int argc, char** argv) {
                        DartUtils::ReadFile,
                        DartUtils::WriteFile,
                        DartUtils::CloseFile,
-                       DartUtils::EntropySource)) {
+                       DartUtils::EntropySource,
+                       NULL)) {
     Log::PrintErr("VM initialization failed\n");
     return 255;
   }
