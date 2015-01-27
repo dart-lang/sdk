@@ -16,6 +16,7 @@ import 'package:ddc/src/utils.dart';
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/report.dart';
 import 'package:ddc/src/checker/checker.dart';
+import 'package:ddc/devc.dart' show compile;
 
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].
@@ -57,8 +58,9 @@ CheckerResults testChecker(Map<String, String> testFiles, {bool mockSdk: true,
   var mainFile = new Uri.file('/main.dart');
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
-  var results = checkProgram(mainFile, resolver, reporter,
-      covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
+  var results = compile('/main.dart', resolver,
+      reporter: reporter, covariantGenerics: covariantGenerics,
+      relaxedCasts: relaxedCasts);
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};

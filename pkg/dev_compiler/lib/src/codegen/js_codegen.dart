@@ -1,7 +1,5 @@
 library ddc.src.codegen.js_codegen;
 
-import 'dart:async' show Future;
-
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/element.dart';
@@ -48,10 +46,10 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
 
   Element get currentLibrary => libraryInfo.library;
 
-  Future generate() {
+  void generate() {
     out = new OutWriter(outputPath);
     unit.accept(this);
-    return out.close();
+    out.close();
   }
 
   @override
@@ -1102,8 +1100,8 @@ class JSGenerator extends CodeGenerator {
       String outDir, Uri root, List<LibraryInfo> libraries, TypeRules rules)
       : super(outDir, root, libraries, rules);
 
-  Future generateUnit(
+  void generateUnit(
       CompilationUnit unit, LibraryInfo info, String libraryDir) {
-    return new UnitGenerator(unit, libraryDir, info, rules).generate();
+    new UnitGenerator(unit, libraryDir, info, rules).generate();
   }
 }

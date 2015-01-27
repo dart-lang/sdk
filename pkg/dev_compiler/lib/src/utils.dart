@@ -100,18 +100,13 @@ const String _MAGENTA_COLOR = '\u001b[35m';
 const String _CYAN_COLOR = '\u001b[36m';
 
 class OutWriter {
-  IOSink _sink;
+  final String _path;
+  final StringBuffer _sb = new StringBuffer();
   int _indent = 0;
   String _prefix = "";
   bool _needsIndent = true;
 
-  OutWriter(String path) {
-    var file = new File(path);
-    file.createSync();
-    // TODO(jmesserly): not sure the async write here is worth the complexity.
-    // It might be easier to just build a string and then write it to disk.
-    _sink = file.openWrite();
-  }
+  OutWriter(this._path);
 
   void write(String string, [int indent = 0]) {
     if (indent < 0) inc(indent);
@@ -126,17 +121,17 @@ class OutWriter {
   }
 
   void _writeln(String string) {
-    if (_needsIndent && string.isNotEmpty) _sink.write(_prefix);
-    _sink.writeln(string);
+    if (_needsIndent && string.isNotEmpty) _sb.write(_prefix);
+    _sb.writeln(string);
     _needsIndent = true;
   }
 
   void _write(String string) {
     if (_needsIndent && string.isNotEmpty) {
-      _sink.write(_prefix);
+      _sb.write(_prefix);
       _needsIndent = false;
     }
-    _sink.write(string);
+    _sb.write(string);
   }
 
   void inc([int n = 2]) {
@@ -151,5 +146,7 @@ class OutWriter {
     _prefix = "".padRight(_indent);
   }
 
-  Future close() => _sink.close();
+  void close() {
+    new File(_path).writeAsStringSync('$_sb');
+  }
 }

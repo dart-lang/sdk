@@ -3,53 +3,12 @@ library ddc.src.checker.checker;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/report.dart' show CheckerReporter;
-import 'package:ddc/src/utils.dart';
-import 'resolver.dart';
 import 'rules.dart';
-
-/// Runs the program checker using the restricted type rules on [fileUri].
-CheckerResults checkProgram(
-    Uri fileUri, TypeResolver resolver, CheckerReporter reporter,
-    {bool checkSdk: false, bool useColors: true, bool covariantGenerics: true,
-    bool relaxedCasts: true}) {
-  TypeProvider provider = resolver.context.typeProvider;
-  var libraries = <LibraryInfo>[];
-  var rules = new RestrictedRules(provider, reporter,
-      covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
-  bool failure = false;
-  var rootSource = resolver.findSource(fileUri);
-  var codeChecker = new _CodeChecker(rules, reporter);
-  for (var source in reachableSources(rootSource, resolver.context)) {
-    var entryUnit = resolver.context.resolveCompilationUnit2(source, source);
-    var lib = entryUnit.element.enclosingElement;
-    if (!checkSdk && lib.isInSdk) continue;
-    var current = new LibraryInfo(lib);
-    reporter.enterLibrary(current);
-    libraries.add(current);
-    rules.currentLibraryInfo = current;
-
-    var units = [entryUnit]
-      ..addAll(partsOf(entryUnit, resolver.context)
-          .map((p) => resolver.context.resolveCompilationUnit2(p, source)));
-    for (var unit in units) {
-      var unitSource = unit.element.source;
-      reporter.enterSource(unitSource);
-      // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
-      failure = resolver.logErrors(unitSource, reporter) || failure;
-      unit.visitChildren(codeChecker);
-      reporter.leaveSource();
-    }
-    reporter.leaveLibrary();
-  }
-  failure = failure || codeChecker.failure;
-  return new CheckerResults(libraries, rules, failure);
-}
 
 /// Checks for overriding declarations of fields and methods. This is used to
 /// check overrides between classes and superclasses, interfaces, and mixin
@@ -332,14 +291,14 @@ class _OverrideChecker {
 }
 
 /// Checks the body of functions and properties.
-class _CodeChecker extends RecursiveAstVisitor {
+class CodeChecker extends RecursiveAstVisitor {
   final TypeRules _rules;
   final CheckerReporter _reporter;
   final _OverrideChecker _overrideChecker;
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
 
-  _CodeChecker(TypeRules rules, CheckerReporter reporter)
+  CodeChecker(TypeRules rules, CheckerReporter reporter)
       : _rules = rules,
         _reporter = reporter,
         _overrideChecker = new _OverrideChecker(rules, reporter);

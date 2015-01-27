@@ -1,7 +1,6 @@
 library ddc.src.codegen.dart_codegen;
 
-import 'dart:async' show Future;
-import 'dart:io' as io;
+import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/src/generated/ast.dart';
@@ -40,7 +39,7 @@ class FileWriter extends java_core.PrintStringWriter {
   String _path;
   FileWriter(this._format, this._path);
 
-  Future finalize() {
+  void finalize() {
     String s = toString();
     if (_format) {
       DartFormatter d = new DartFormatter();
@@ -52,11 +51,7 @@ class FileWriter extends java_core.PrintStringWriter {
       }
     }
     _log.info("Writing file $_path");
-    var file = new io.File(_path);
-    file.createSync();
-    io.IOSink _sink = file.openWrite();
-    _sink.write(s);
-    return _sink.close();
+    new File(_path).writeAsStringSync(s);
   }
 }
 
@@ -382,7 +377,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
           new reifier.VariableManager()),
         super(outDir, root, libraries, rules);
 
-  Future generateUnit(
+  void generateUnit(
       CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
     _log.info("Generating unit " + uri.toString());
@@ -391,7 +386,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
     _reifier.reify(unit);
     var unitGen = new UnitGenerator(unit, out, outDir);
     unitGen.generate();
-    return out.finalize();
+    out.finalize();
   }
 }
 
@@ -418,7 +413,7 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
   EmptyDartGenerator(String outDir, Uri root, List<LibraryInfo> libraries,
       TypeRules rules, this._format) : super(outDir, root, libraries, rules);
 
-  Future generateUnit(
+  void generateUnit(
       CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
     _log.info("Emitting original unit " + uri.toString());
@@ -426,6 +421,6 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
         _format, path.join(libraryDir, '${uri.pathSegments.last}'));
     var unitGen = new EmptyUnitGenerator(unit, out);
     unitGen.generate();
-    return out.finalize();
+    out.finalize();
   }
 }

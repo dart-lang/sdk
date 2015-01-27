@@ -58,20 +58,20 @@ main(arguments) {
     test('ddc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      return compile(filePath, sdkResolver,
-          outputDir: actualDir, useColors: false).then((success) {
+      var result = compile(filePath, sdkResolver,
+          outputDir: actualDir, useColors: false);
+      var success = !result.failure;
 
-        // Write compiler messages to disk.
-        new File(path.join(actualDir, '$filename.txt'))
-            .writeAsStringSync(compilerMessages.toString());
+      // Write compiler messages to disk.
+      new File(path.join(actualDir, '$filename.txt'))
+          .writeAsStringSync(compilerMessages.toString());
 
-        var outputDir = new Directory(path.join(actualDir, filename));
-        expect(outputDir.existsSync(), success,
-            reason: '${outputDir.path} was created iff compilation succeeds');
+      var outputDir = new Directory(path.join(actualDir, filename));
+      expect(outputDir.existsSync(), success,
+          reason: '${outputDir.path} was created iff compilation succeeds');
 
-        // TODO(jmesserly): ideally we'd diff the output here. For now it
-        // happens in the containing shell script.
-      });
+      // TODO(jmesserly): ideally we'd diff the output here. For now it
+      // happens in the containing shell script.
     });
   }
 }
