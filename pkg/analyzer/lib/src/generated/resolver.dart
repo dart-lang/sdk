@@ -5960,11 +5960,13 @@ class InheritanceManager {
       }
     }
     //
-    // Include the members from the mixins in the resultMap
+    // Include the members from the mixins in the resultMap.  If there are
+    // multiple mixins, visit them in the order listed so that methods in later
+    // mixins will overwrite identically-named methods in earlier mixins.
     //
     List<InterfaceType> mixins = classElt.mixins;
-    for (int i = mixins.length - 1; i >= 0; i--) {
-      ClassElement mixinElement = mixins[i].element;
+    for (InterfaceType mixin in mixins) {
+      ClassElement mixinElement = mixin.element;
       if (mixinElement != null) {
         if (!visitedClasses.contains(mixinElement)) {
           visitedClasses.add(mixinElement);
@@ -5974,11 +5976,11 @@ class InheritanceManager {
             //
             // Substitute the super types down the hierarchy.
             //
-            _substituteTypeParametersDownHierarchy(mixins[i], map);
+            _substituteTypeParametersDownHierarchy(mixin, map);
             //
             // Include the members from the superclass in the resultMap.
             //
-            _recordMapWithClassMembers(map, mixins[i], false);
+            _recordMapWithClassMembers(map, mixin, false);
             //
             // Add the members from map into result map.
             //

@@ -1706,7 +1706,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return getter;
       }
     }
-    for (InterfaceType mixinType in targetType.mixins) {
+    for (InterfaceType mixinType in targetType.mixins.reversed) {
       PropertyAccessorElement getter =
           _lookUpGetterInInterfaces(mixinType, true, getterName, visitedInterfaces);
       if (getter != null) {
@@ -1799,7 +1799,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return member;
       }
     }
-    for (InterfaceType mixinType in targetType.mixins) {
+    for (InterfaceType mixinType in targetType.mixins.reversed) {
       ExecutableElement member = _lookUpGetterOrMethodInInterfaces(
           mixinType,
           true,
@@ -1897,7 +1897,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return method;
       }
     }
-    for (InterfaceType mixinType in targetType.mixins) {
+    for (InterfaceType mixinType in targetType.mixins.reversed) {
       MethodElement method =
           _lookUpMethodInInterfaces(mixinType, true, methodName, visitedInterfaces);
       if (method != null) {
@@ -2018,7 +2018,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return setter;
       }
     }
-    for (InterfaceType mixinType in targetType.mixins) {
+    for (InterfaceType mixinType in targetType.mixins.reversed) {
       PropertyAccessorElement setter =
           _lookUpSetterInInterfaces(mixinType, true, setterName, visitedInterfaces);
       if (setter != null) {

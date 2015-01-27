@@ -61,6 +61,27 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
         isDeprecated: isDeprecated);
   }
 
+  fail_mixin_ordering() {
+    // TODO(paulberry): Duplicates aren't being removed, so we see both M1.m()
+    // and M2.m().
+    addTestSource('''
+class B {}
+class M1 {
+  void m() {}
+}
+class M2 {
+  void m() {}
+}
+class C extends B with M1, M2 {
+  void f() {
+    ^
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestMethod('m', 'M2', 'void');
+  }
+
   @override
   void setUpComputer() {
     computer = new LocalComputer();

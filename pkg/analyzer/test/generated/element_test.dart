@@ -3110,6 +3110,33 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(typeB.lookUpGetter(getterName, library), same(getterG));
   }
 
+  void test_lookUpGetter_mixin_shadowing() {
+    //
+    // class B {}
+    // class M1 { get g {} }
+    // class M2 { get g {} }
+    // class C extends B with M1, M2 {}
+    //
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    String getterName = 'g';
+    ClassElementImpl classB = ElementFactory.classElement2('B');
+    ClassElementImpl classM1 = ElementFactory.classElement2('M1');
+    PropertyAccessorElementImpl getterM1g =
+        ElementFactory.getterElement(getterName, false, typeProvider.dynamicType);
+    classM1.accessors = <PropertyAccessorElement>[getterM1g];
+    ClassElementImpl classM2 = ElementFactory.classElement2('M2');
+    PropertyAccessorElementImpl getterM2g =
+        ElementFactory.getterElement(getterName, false, typeProvider.dynamicType);
+    classM2.accessors = <PropertyAccessorElement>[getterM2g];
+    ClassElementImpl classC = ElementFactory.classElement('C', classB.type);
+    classC.mixins = <InterfaceType>[classM1.type, classM2.type];
+    LibraryElementImpl library =
+        ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElementImpl unit = library.definingCompilationUnit;
+    unit.types = <ClassElement>[classB, classM1, classM2, classC];
+    expect(classC.type.lookUpGetter(getterName, library), getterM2g);
+  }
+
   void test_lookUpGetter_recursive() {
     //
     // class A extends B {}
@@ -3171,6 +3198,32 @@ class InterfaceTypeImplTest extends EngineTestCase {
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).types = <ClassElement>[classA, classB];
     expect(typeB.lookUpMethod(methodName, library), same(methodM));
+  }
+
+  void test_lookUpMethod_mixin_shadowing() {
+    //
+    // class B {}
+    // class M1 { m() {} }
+    // class M2 { m() {} }
+    // class C extends B with M1, M2 {}
+    //
+    String methodName = 'm';
+    ClassElementImpl classB = ElementFactory.classElement2('B');
+    ClassElementImpl classM1 = ElementFactory.classElement2('M1');
+    MethodElementImpl methodM1m =
+        ElementFactory.methodElement(methodName, null);
+    classM1.methods = <MethodElement>[methodM1m];
+    ClassElementImpl classM2 = ElementFactory.classElement2('M2');
+    MethodElementImpl methodM2m =
+        ElementFactory.methodElement(methodName, null);
+    classM2.methods = <MethodElement>[methodM2m];
+    ClassElementImpl classC = ElementFactory.classElement('C', classB.type);
+    classC.mixins = <InterfaceType>[classM1.type, classM2.type];
+    LibraryElementImpl library =
+        ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElementImpl unit = library.definingCompilationUnit;
+    unit.types = <ClassElement>[classB, classM1, classM2, classC];
+    expect(classC.type.lookUpMethod(methodName, library), methodM2m);
   }
 
   void test_lookUpMethod_parameterized() {
@@ -3273,6 +3326,33 @@ class InterfaceTypeImplTest extends EngineTestCase {
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).types = <ClassElement>[classA, classB];
     expect(typeB.lookUpSetter(setterName, library), same(setterS));
+  }
+
+  void test_lookUpSetter_mixin_shadowing() {
+    //
+    // class B {}
+    // class M1 { set s() {} }
+    // class M2 { set s() {} }
+    // class C extends B with M1, M2 {}
+    //
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    String setterName = 's';
+    ClassElementImpl classB = ElementFactory.classElement2('B');
+    ClassElementImpl classM1 = ElementFactory.classElement2('M1');
+    PropertyAccessorElementImpl setterM1g =
+        ElementFactory.setterElement(setterName, false, typeProvider.dynamicType);
+    classM1.accessors = <PropertyAccessorElement>[setterM1g];
+    ClassElementImpl classM2 = ElementFactory.classElement2('M2');
+    PropertyAccessorElementImpl setterM2g =
+        ElementFactory.getterElement(setterName, false, typeProvider.dynamicType);
+    classM2.accessors = <PropertyAccessorElement>[setterM2g];
+    ClassElementImpl classC = ElementFactory.classElement('C', classB.type);
+    classC.mixins = <InterfaceType>[classM1.type, classM2.type];
+    LibraryElementImpl library =
+        ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElementImpl unit = library.definingCompilationUnit;
+    unit.types = <ClassElement>[classB, classM1, classM2, classC];
+    expect(classC.type.lookUpGetter(setterName, library), setterM2g);
   }
 
   void test_lookUpSetter_recursive() {

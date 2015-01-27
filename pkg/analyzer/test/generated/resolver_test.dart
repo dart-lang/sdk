@@ -23,8 +23,8 @@ import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
 
@@ -4606,6 +4606,29 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classB);
   }
 
+  void test_getMapOfMembersInheritedFromClasses_method_with_two_mixins() {
+    // class A1 { int m(); }
+    // class A2 { int m(); }
+    // class B extends Object with A1, A2 {}
+    ClassElementImpl classA1 = ElementFactory.classElement2("A1");
+    String methodName = "m";
+    MethodElement methodA1M =
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
+    classA1.methods = <MethodElement>[methodA1M];
+    ClassElementImpl classA2 = ElementFactory.classElement2("A2");
+    MethodElement methodA2M =
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
+    classA2.methods = <MethodElement>[methodA2M];
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    classB.mixins = <InterfaceType>[classA1.type, classA2.type];
+    MemberMap mapB =
+        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    expect(mapB.get(methodName), same(methodA2M));
+    _assertNoErrors(classA1);
+    _assertNoErrors(classA2);
+    _assertNoErrors(classB);
+  }
+
   void test_getMapOfMembersInheritedFromInterfaces_accessor_extends() {
     // class A { int get g; }
     // class B extends A {}
@@ -6329,6 +6352,24 @@ class MemberMapTest {
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
+  void fail_propagatedFieldType() {
+    // From dartbug.com/20019
+    Source source = addSource(r'''
+class A { }
+class X<T> {
+  final x = new List<T>();
+}
+class Z {
+  final X<A> y = new X<A>();
+  foo() {
+    y.x.add(new A());
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(r'''
 const bool DEBUG = true;
@@ -6551,8 +6592,7 @@ library lib1;
 f() {}''', r'''
 library root;
 import 'lib1.dart' deferred as lib1;
-main() { lib1.f(); }'''],
-          ErrorCode.EMPTY_LIST);
+main() { lib1.f(); }'''], ErrorCode.EMPTY_LIST);
   }
 
   void test_issue20904BuggyTypePromotionAtIfJoin_1() {
@@ -6749,24 +6789,6 @@ class A {
 class B extends A {
   @override
   set m(int x) {}
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void fail_propagatedFieldType() {
-    // From dartbug.com/20019
-    Source source = addSource(r'''
-class A { }
-class X<T> {
-  final x = new List<T>();
-}
-class Z {
-  final X<A> y = new X<A>();
-  foo() {
-    y.x.add(new A());
-  }
 }''');
     resolve(source);
     assertNoErrors(source);
@@ -7880,13 +7902,6 @@ class ResolverTestCase extends EngineTestCase {
     return null;
   }
 
-  void resolveWithErrors(List<String> strSources, List<ErrorCode> codes) {
-    // Analysis and assertions
-    Source source = resolveSources(strSources);
-    assertErrors(source, codes);
-    verify([source]);
-  }
-
   void resolveWithAndWithoutExperimental(List<String> strSources,
       List<ErrorCode> codesWithoutExperimental,
       List<ErrorCode> codesWithExperimental) {
@@ -7903,6 +7918,13 @@ class ResolverTestCase extends EngineTestCase {
     // Analysis and assertions
     source = resolveSources(strSources);
     assertErrors(source, codesWithExperimental);
+    verify([source]);
+  }
+
+  void resolveWithErrors(List<String> strSources, List<ErrorCode> codes) {
+    // Analysis and assertions
+    Source source = resolveSources(strSources);
+    assertErrors(source, codes);
     verify([source]);
   }
 
@@ -8036,6 +8058,44 @@ class ScopeTest_TestScope extends Scope {
 
 @reflectiveTest
 class SimpleResolverTest extends ResolverTestCase {
+  void fail_getter_and_setter_fromMixins_property_access() {
+    // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
+    // a SimpleIdentifier that's inside a property access.  This bug should be
+    // fixed.
+    Source source = addSource('''
+class B {}
+class M1 {
+  get x => null;
+  set x(value) {}
+}
+class M2 {
+  get x => null;
+  set x(value) {}
+}
+class C extends B with M1, M2 {}
+void main() {
+  new C().x += 1;
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that both the getter and setter for "x" in "new C().x" refer to
+    // the accessors defined in M2.
+    FunctionDeclaration main =
+        library.definingCompilationUnit.functions[0].node;
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    AssignmentExpression assignment = stmt.expression;
+    PropertyAccess propertyAccess = assignment.leftHandSide;
+    expect(
+        propertyAccess.propertyName.staticElement.enclosingElement.name,
+        'M2');
+    expect(
+        propertyAccess.propertyName.auxiliaryElements.staticElement.enclosingElement.name,
+        'M2');
+  }
+
   void fail_staticInvocation() {
     Source source = addSource(r'''
 class A {
@@ -8734,6 +8794,97 @@ class A {
     verify([source]);
   }
 
+  void test_getter_and_setter_fromMixins_bare_identifier() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  get x => null;
+  set x(value) {}
+}
+class M2 {
+  get x => null;
+  set x(value) {}
+}
+class C extends B with M1, M2 {
+  void f() {
+    x += 1;
+  }
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that both the getter and setter for "x" in C.f() refer to the
+    // accessors defined in M2.
+    ClassElement classC = library.definingCompilationUnit.types[3];
+    MethodDeclaration f = classC.getMethod('f').node;
+    BlockFunctionBody body = f.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    AssignmentExpression assignment = stmt.expression;
+    SimpleIdentifier leftHandSide = assignment.leftHandSide;
+    expect(leftHandSide.staticElement.enclosingElement.name, 'M2');
+    expect(
+        leftHandSide.auxiliaryElements.staticElement.enclosingElement.name,
+        'M2');
+  }
+
+  void test_getter_fromMixins_bare_identifier() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  get x => null;
+}
+class M2 {
+  get x => null;
+}
+class C extends B with M1, M2 {
+  f() {
+    return x;
+  }
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that the getter for "x" in C.f() refers to the getter defined in
+    // M2.
+    ClassElement classC = library.definingCompilationUnit.types[3];
+    MethodDeclaration f = classC.getMethod('f').node;
+    BlockFunctionBody body = f.body;
+    ReturnStatement stmt = body.block.statements[0];
+    SimpleIdentifier x = stmt.expression;
+    expect(x.staticElement.enclosingElement.name, 'M2');
+  }
+
+  void test_getter_fromMixins_property_access() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  get x => null;
+}
+class M2 {
+  get x => null;
+}
+class C extends B with M1, M2 {}
+void main() {
+  var y = new C().x;
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that the getter for "x" in "new C().x" refers to the getter
+    // defined in M2.
+    FunctionDeclaration main =
+        library.definingCompilationUnit.functions[0].node;
+    BlockFunctionBody body = main.functionExpression.body;
+    VariableDeclarationStatement stmt = body.block.statements[0];
+    PropertyAccess propertyAccess = stmt.variables.variables[0].initializer;
+    expect(
+        propertyAccess.propertyName.staticElement.enclosingElement.name,
+        'M2');
+  }
+
   void test_getterAndSetterWithDifferentTypes() {
     Source source = addSource(r'''
 class A {
@@ -9228,6 +9379,87 @@ class C extends B with A {
     verify([source]);
   }
 
+  void test_method_fromMixins() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  void f() {}
+}
+class M2 {
+  void f() {}
+}
+class C extends B with M1, M2 {}
+void main() {
+  new C().f();
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that the "f" in "new C().f()" refers to the "f" defined in M2.
+    FunctionDeclaration main =
+        library.definingCompilationUnit.functions[0].node;
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    MethodInvocation expr = stmt.expression;
+    expect(expr.methodName.staticElement.enclosingElement.name, 'M2');
+  }
+
+  void test_method_fromMixins_bare_identifier() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  void f() {}
+}
+class M2 {
+  void f() {}
+}
+class C extends B with M1, M2 {
+  void g() {
+    f();
+  }
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that the call to f() in C.g() refers to the method defined in M2.
+    ClassElement classC = library.definingCompilationUnit.types[3];
+    MethodDeclaration g = classC.getMethod('g').node;
+    BlockFunctionBody body = g.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    MethodInvocation invocation = stmt.expression;
+    SimpleIdentifier methodName = invocation.methodName;
+    expect(methodName.staticElement.enclosingElement.name, 'M2');
+  }
+
+  void test_method_fromMixins_invked_from_outside_class() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  void f() {}
+}
+class M2 {
+  void f() {}
+}
+class C extends B with M1, M2 {}
+void main() {
+  new C().f();
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that the call to f() in "new C().f()" refers to the method
+    // defined in M2.
+    FunctionDeclaration main =
+        library.definingCompilationUnit.functions[0].node;
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    MethodInvocation invocation = stmt.expression;
+    expect(invocation.methodName.staticElement.enclosingElement.name, 'M2');
+  }
+
   void test_method_fromSuperclassMixin() {
     Source source = addSource(r'''
 class A {
@@ -9287,6 +9519,65 @@ f(var p) {
 }''');
     resolve(source);
     assertNoErrors(source);
+  }
+
+  void test_setter_fromMixins_bare_identifier() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  set x(value) {}
+}
+class M2 {
+  set x(value) {}
+}
+class C extends B with M1, M2 {
+  void f() {
+    x = 1;
+  }
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that the setter for "x" in C.f() refers to the setter defined in
+    // M2.
+    ClassElement classC = library.definingCompilationUnit.types[3];
+    MethodDeclaration f = classC.getMethod('f').node;
+    BlockFunctionBody body = f.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    AssignmentExpression assignment = stmt.expression;
+    SimpleIdentifier leftHandSide = assignment.leftHandSide;
+    expect(leftHandSide.staticElement.enclosingElement.name, 'M2');
+  }
+
+  void test_setter_fromMixins_property_access() {
+    Source source = addSource('''
+class B {}
+class M1 {
+  set x(value) {}
+}
+class M2 {
+  set x(value) {}
+}
+class C extends B with M1, M2 {}
+void main() {
+  new C().x = 1;
+}
+''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that the setter for "x" in "new C().x" refers to the setter
+    // defined in M2.
+    FunctionDeclaration main =
+        library.definingCompilationUnit.functions[0].node;
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    AssignmentExpression assignment = stmt.expression;
+    PropertyAccess propertyAccess = assignment.leftHandSide;
+    expect(
+        propertyAccess.propertyName.staticElement.enclosingElement.name,
+        'M2');
   }
 
   void test_setter_inherited() {
@@ -11191,6 +11482,101 @@ class TypeOverrideManagerTest extends EngineTestCase {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
+  void fail_finalPropertyInducingVariable_classMember_instance() {
+    addNamedSource("/lib.dart", r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f(A a) {
+  return a.v; // marker
+}''';
+    _assertTypeOfMarkedExpression(
+        code,
+        typeProvider.dynamicType,
+        typeProvider.intType);
+  }
+
+  void fail_finalPropertyInducingVariable_classMember_instance_inherited() {
+    addNamedSource("/lib.dart", r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+class B extends A {
+  m() {
+    return v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code,
+        typeProvider.dynamicType,
+        typeProvider.intType);
+  }
+
+  void
+      fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+    addNamedSource("/lib.dart", r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f(p) {
+  if (p is A) {
+    return p.v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code,
+        typeProvider.dynamicType,
+        typeProvider.intType);
+  }
+
+  void fail_finalPropertyInducingVariable_classMember_static() {
+    addNamedSource("/lib.dart", r'''
+class A {
+  static final V = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f() {
+  return A.V; // marker
+}''';
+    _assertTypeOfMarkedExpression(
+        code,
+        typeProvider.dynamicType,
+        typeProvider.intType);
+  }
+
+  void fail_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = r'''
+import 'lib.dart' as p;
+f() {
+  var v2 = p.V; // marker prefixed
+}''';
+    _assertTypeOfMarkedExpression(
+        code,
+        typeProvider.dynamicType,
+        typeProvider.intType);
+  }
+
+  void fail_finalPropertyInducingVariable_topLevelVaraible_simple() {
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = r'''
+import 'lib.dart';
+f() {
+  return V; // marker simple
+}''';
+    _assertTypeOfMarkedExpression(
+        code,
+        typeProvider.dynamicType,
+        typeProvider.intType);
+  }
+
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(r'''
@@ -11475,101 +11861,6 @@ main(CanvasElement canvas) {
         "context",
         (node) => node is SimpleIdentifier);
     expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_instance() {
-    addNamedSource("/lib.dart", r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(A a) {
-  return a.v; // marker
-}''';
-    _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_instance_inherited() {
-    addNamedSource("/lib.dart", r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-class B extends A {
-  m() {
-    return v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
-  }
-
-  void
-      fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
-    addNamedSource("/lib.dart", r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(p) {
-  if (p is A) {
-    return p.v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_static() {
-    addNamedSource("/lib.dart", r'''
-class A {
-  static final V = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f() {
-  return A.V; // marker
-}''';
-    _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
-    addNamedSource("/lib.dart", "final V = 0;");
-    String code = r'''
-import 'lib.dart' as p;
-f() {
-  var v2 = p.V; // marker prefixed
-}''';
-    _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_topLevelVaraible_simple() {
-    addNamedSource("/lib.dart", "final V = 0;");
-    String code = r'''
-import 'lib.dart';
-f() {
-  return V; // marker simple
-}''';
-    _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
   }
 
   void test_forEach() {

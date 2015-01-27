@@ -1084,7 +1084,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins) {
+      for (InterfaceType mixin in currentElement.mixins.reversed) {
         ClassElement mixinElement = mixin.element;
         if (mixinElement != null) {
           PropertyAccessorElement element = mixinElement.getGetter(getterName);
@@ -1117,7 +1117,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins) {
+      for (InterfaceType mixin in currentElement.mixins.reversed) {
         ClassElement mixinElement = mixin.element;
         if (mixinElement != null) {
           MethodElement element = mixinElement.getMethod(methodName);
@@ -1150,7 +1150,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins) {
+      for (InterfaceType mixin in currentElement.mixins.reversed) {
         ClassElement mixinElement = mixin.element;
         if (mixinElement != null) {
           PropertyAccessorElement element = mixinElement.getSetter(setterName);
@@ -1797,7 +1797,8 @@ class ConstructorElementImpl extends ExecutableElementImpl implements
       String message;
       String name = displayName;
       if (name != null && !name.isEmpty) {
-        message = 'Found constructor element named $name with no enclosing element';
+        message =
+            'Found constructor element named $name with no enclosing element';
       } else {
         message = 'Found unnamed constructor element with no enclosing element';
       }
@@ -6628,7 +6629,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement lookUpGetterInSuperclass(String getterName,
       LibraryElement library) {
-    for (InterfaceType mixin in mixins) {
+    for (InterfaceType mixin in mixins.reversed) {
       PropertyAccessorElement element = mixin.getGetter(getterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -6644,7 +6645,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
-      for (InterfaceType mixin in supertype.mixins) {
+      for (InterfaceType mixin in supertype.mixins.reversed) {
         element = mixin.getGetter(getterName);
         if (element != null && element.isAccessibleIn(library)) {
           return element;
@@ -6668,7 +6669,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   MethodElement lookUpMethodInSuperclass(String methodName,
       LibraryElement library) {
-    for (InterfaceType mixin in mixins) {
+    for (InterfaceType mixin in mixins.reversed) {
       MethodElement element = mixin.getMethod(methodName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -6684,7 +6685,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
-      for (InterfaceType mixin in supertype.mixins) {
+      for (InterfaceType mixin in supertype.mixins.reversed) {
         element = mixin.getMethod(methodName);
         if (element != null && element.isAccessibleIn(library)) {
           return element;
@@ -6709,7 +6710,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement lookUpSetterInSuperclass(String setterName,
       LibraryElement library) {
-    for (InterfaceType mixin in mixins) {
+    for (InterfaceType mixin in mixins.reversed) {
       PropertyAccessorElement element = mixin.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -6725,7 +6726,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
-      for (InterfaceType mixin in supertype.mixins) {
+      for (InterfaceType mixin in supertype.mixins.reversed) {
         element = mixin.getSetter(setterName);
         if (element != null && element.isAccessibleIn(library)) {
           return element;
