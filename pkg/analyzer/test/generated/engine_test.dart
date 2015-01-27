@@ -5909,6 +5909,10 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of setAnalysisPriorityOrder");
   }
   @override
+  set contentCache(ContentCache value) {
+    fail("Unexpected invocation of setContentCache");
+  }
+  @override
   DeclaredVariables get declaredVariables {
     fail("Unexpected invocation of getDeclaredVariables");
     return null;
