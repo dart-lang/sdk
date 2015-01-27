@@ -189,7 +189,6 @@
       'includes': [
         'io_impl_sources.gypi',
         'builtin_impl_sources.gypi',
-        '../platform/platform_sources.gypi',
       ],
       'dependencies': [
         'generate_builtin_cc_file#host',
