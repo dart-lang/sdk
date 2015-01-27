@@ -11,7 +11,7 @@ var sunflower;
   // Function querySelector: (String) → Element
   function querySelector(selector) { return dom.document.querySelector(selector); }
 
-  let seeds = 0;
+  sunflower.seeds = 0;
   dart.defineLazyProperties(sunflower, {
     get slider() { return /* Unimplemented: DownCast: Element to InputElement */ querySelector("#slider") },
     get notes() { return querySelector("#notes") },
@@ -52,19 +52,26 @@ var sunflower;
 
   // Function draw: () → void
   function draw() {
-    seeds = dart_core.int.parse(sunflower.slider.value);
+    sunflower.seeds = dart_core.int.parse(sunflower.slider.value);
     sunflower.context.clearRect(0, 0, MAX_D, MAX_D);
-    for (let i = 0; i < seeds; i++) {
+    for (let i = 0; i < sunflower.seeds; i++) {
       let theta = i * TAU / sunflower.PHI;
       let r = dart_math.sqrt(i) * SCALE_FACTOR;
       let x = centerX + r * dart_math.cos(theta);
       let y = centerY - r * dart_math.sin(theta);
       new SunflowerSeed(x, y).draw();
     }
-    sunflower.notes.textContent = "" + (seeds) + " seeds";
+    sunflower.notes.textContent = "" + (sunflower.seeds) + " seeds";
   }
 
   // Exports:
+  sunflower.ORANGE = ORANGE;
+  sunflower.SEED_RADIUS = SEED_RADIUS;
+  sunflower.SCALE_FACTOR = SCALE_FACTOR;
+  sunflower.TAU = TAU;
+  sunflower.MAX_D = MAX_D;
+  sunflower.centerX = centerX;
+  sunflower.centerY = centerY;
   sunflower.querySelector = querySelector;
   sunflower.Circle = Circle;
   sunflower.SunflowerSeed = SunflowerSeed;

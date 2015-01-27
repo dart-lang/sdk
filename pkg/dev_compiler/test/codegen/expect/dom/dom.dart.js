@@ -19,7 +19,7 @@ var dom;
   }
 
   let overload = new Overload();
-  let document;
+  dom.document = null;
   class Document {
   }
 
@@ -93,6 +93,7 @@ var dom;
   dom.JsType = JsType;
   dom.JsGlobal = JsGlobal;
   dom.Overload = Overload;
+  dom.overload = overload;
   dom.Document = Document;
   dom.Element = Element;
   dom.Event = Event;

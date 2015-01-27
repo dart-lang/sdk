@@ -49,7 +49,7 @@ var DeltaBlue;
     }
     addConstraint() {
       this.addToGraph();
-      planner.incrementalAdd(this);
+      DeltaBlue.planner.incrementalAdd(this);
     }
     satisfy(mark) {
       this.chooseMethod(/* Unimplemented: DownCast: dynamic to int */ mark);
@@ -64,12 +64,12 @@ var DeltaBlue;
       let overridden = out.determinedBy;
       if (overridden !== null) overridden.this.markUnsatisfied();
       out.determinedBy = this;
-      if (!planner.addPropagate(this, /* Unimplemented: DownCast: dynamic to int */ mark)) dart_core.print("Cycle encountered");
+      if (!DeltaBlue.planner.addPropagate(this, /* Unimplemented: DownCast: dynamic to int */ mark)) dart_core.print("Cycle encountered");
       out.mark = /* Unimplemented: DownCast: dynamic to int */ mark;
       return overridden;
     }
     destroyConstraint() {
-      if (this.isSatisfied()) planner.incrementalRemove(this);
+      if (this.isSatisfied()) DeltaBlue.planner.incrementalRemove(this);
       this.removeFromGraph();
     }
     isInput() { return false; }
@@ -355,7 +355,7 @@ var DeltaBlue;
 
   // Function chainTest: (int) → void
   function chainTest(n) {
-    planner = new Planner();
+    DeltaBlue.planner = new Planner();
     let prev = null, first = null, last = null;
     for (let i = 0; i <= n; i++) {
       let v = new Variable("v", 0);
@@ -366,7 +366,7 @@ var DeltaBlue;
     }
     new StayConstraint(last, STRONG_DEFAULT);
     let edit = new EditConstraint(first, PREFERRED);
-    let plan = planner.extractPlanFromConstraints(/* Unimplemented ArrayList */[edit]);
+    let plan = DeltaBlue.planner.extractPlanFromConstraints(/* Unimplemented ArrayList */[edit]);
     for (let i = 0; i < 100; i++) {
       first.value = i;
       plan.execute();
@@ -379,7 +379,7 @@ var DeltaBlue;
 
   // Function projectionTest: (int) → void
   function projectionTest(n) {
-    planner = new Planner();
+    DeltaBlue.planner = new Planner();
     let scale = new Variable("scale", 10);
     let offset = new Variable("offset", 1000);
     let src = null, dst = null;
@@ -408,7 +408,7 @@ var DeltaBlue;
   // Function change: (Variable, int) → void
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
-    let plan = planner.extractPlanFromConstraints(/* Unimplemented ArrayList */[edit]);
+    let plan = DeltaBlue.planner.extractPlanFromConstraints(/* Unimplemented ArrayList */[edit]);
     for (let i = 0; i < 10; i++) {
       v.value = newValue;
       plan.execute();
@@ -416,15 +416,25 @@ var DeltaBlue;
     edit.destroyConstraint();
   }
 
-  let planner;
+  DeltaBlue.planner = null;
   // Exports:
   DeltaBlue.main = main;
   DeltaBlue.DeltaBlue = DeltaBlue;
   DeltaBlue.Strength = Strength;
+  DeltaBlue.REQUIRED = REQUIRED;
+  DeltaBlue.STRONG_PREFERRED = STRONG_PREFERRED;
+  DeltaBlue.PREFERRED = PREFERRED;
+  DeltaBlue.STRONG_DEFAULT = STRONG_DEFAULT;
+  DeltaBlue.NORMAL = NORMAL;
+  DeltaBlue.WEAK_DEFAULT = WEAK_DEFAULT;
+  DeltaBlue.WEAKEST = WEAKEST;
   DeltaBlue.Constraint = Constraint;
   DeltaBlue.UnaryConstraint = UnaryConstraint;
   DeltaBlue.StayConstraint = StayConstraint;
   DeltaBlue.EditConstraint = EditConstraint;
+  DeltaBlue.NONE = NONE;
+  DeltaBlue.FORWARD = FORWARD;
+  DeltaBlue.BACKWARD = BACKWARD;
   DeltaBlue.BinaryConstraint = BinaryConstraint;
   DeltaBlue.ScaleConstraint = ScaleConstraint;
   DeltaBlue.EqualityConstraint = EqualityConstraint;

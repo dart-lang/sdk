@@ -79,6 +79,7 @@ var $libName;
 
     if (_exports.isNotEmpty) out.write('// Exports:\n');
 
+    // TODO(jmesserly): make these immutable?
     for (var name in _exports) {
       out.write('${libraryInfo.name}.$name = $name;\n');
     }
@@ -302,13 +303,10 @@ var $libName;
     var unsetFields = new Map<String, Expression>();
     for (var declaration in fields) {
       for (var field in declaration.fields.variables) {
-        if (!_isConstantField(field)) {
-          field.name.accept(this);
-          out.write(' = ');
-          field.initializer.accept(this);
-          out.write(';\n');
-        } else {
+        if (_isFieldInitConstant(field)) {
           unsetFields[field.name.name] = field.initializer;
+        } else {
+          _visitNode(field, suffix: ';\n');
         }
       }
     }
@@ -611,29 +609,39 @@ var $libName;
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _visitNode(node.variables);
+    var constFields = <VariableDeclaration>[];
+    for (var field in node.variables.variables) {
+      var name = field.name.name;
+      if (field.isConst) {
+        // constant fields don't change, so we can generate them as `let`
+        // but add them to the module's exports
+        _visitNode(field, prefix: 'let ', suffix: ';\n');
+        if (isPublic(name)) _exports.add(name);
+      } else if (_isFieldInitConstant(field)) {
+        _visitNode(field, suffix: ';\n');
+      } else {
+        _lazyFields.add(field);
+      }
+    }
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    var topLevel = node.parent is TopLevelVariableDeclaration;
+    _visitNodeList(node.variables, prefix: 'let ', separator: ', ');
+  }
 
-    var declarations = node.variables;
-
-    var wroteLet = false;
-    for (var node in declarations) {
-      if (topLevel && !_isConstantField(node)) {
-        _lazyFields.add(node);
-        continue;
-      }
-
-      wroteLet = true;
-      out.write(node == declarations.first ? 'let ' : ', ');
-      out.write(node.name.name);
-      _visitNode(node.initializer, prefix: ' = ');
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    node.name.accept(this);
+    out.write(' = ');
+    if (node.initializer != null) {
+      node.initializer.accept(this);
+    } else {
+      // explicitly initialize to null, so we don't need to worry about
+      // `undefined`.
+      // TODO(jmesserly): do this only for vars that aren't definitely assigned.
+      out.write('null');
     }
-
-    if (topLevel && wroteLet) out.write(';\n');
   }
 
   void _flushLazyFields() {
@@ -1013,7 +1021,7 @@ var $libName;
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
   }
 
-  bool _isConstantField(VariableDeclaration field) =>
+  bool _isFieldInitConstant(VariableDeclaration field) =>
       field.initializer == null || _computeConstant(field) is ValidResult;
 
   EvaluationResultImpl _computeConstant(VariableDeclaration field) {
@@ -1051,11 +1059,7 @@ var $libName;
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
-    return element is TopLevelVariableElement &&
-        // TODO(sigmund): refactor so we can remove `.node` here. This may
-        // require tracking in our checker for const values, so we can look it
-        // up cheaply here.
-        !_isConstantField(element.node);
+    return element is TopLevelVariableElement && !element.isConst;
   }
 
   /// Safely visit the given node, with an optional prefix or suffix.
