@@ -450,10 +450,21 @@ class OldEmitter implements Emitter {
 
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
+
+    jsAst.Expression nativeInfoAccess = js('prototype[$specProperty]', []);
+    jsAst.Expression constructorAccess = js('constructor', []);
+    Function subclassReadGenerator =
+        (jsAst.Expression subclass) => js('allClasses[#]', subclass);
     jsAst.Expression interceptorsByTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
     jsAst.Expression leafTagsAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
+    jsAst.Statement nativeInfoHandler = nativeEmitter.buildNativeInfoHandler(
+        nativeInfoAccess,
+        constructorAccess,
+        subclassReadGenerator,
+        interceptorsByTagAccess,
+        leafTagsAccess);
 
     return js.statement('''
     {
@@ -500,63 +511,14 @@ class OldEmitter implements Emitter {
         var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
-        if (#hasNativeClasses) {
-          // The property looks like this:
-          //
-          // HtmlElement: {
-          //     "%": "HTMLDivElement|HTMLAnchorElement;HTMLElement;FancyButton"
-          //
-          // The first two semicolon-separated parts contain dispatch tags, the
-          // third contains the JavaScript names for classes.
-          //
-          // The tags indicate that JavaScript objects with the dispatch tags
-          // (usually constructor names) HTMLDivElement, HTMLAnchorElement and
-          // HTMLElement all map to the Dart native class named HtmlElement.
-          // The first set is for effective leaf nodes in the hierarchy, the
-          // second set is non-leaf nodes.
-          //
-          // The third part contains the JavaScript names of Dart classes that
-          // extend the native class. Here, FancyButton extends HtmlElement, so
-          // the runtime needs to know that window.HTMLElement.prototype is the
-          // prototype that needs to be extended in creating the custom element.
-          //
-          // The information is used to build tables referenced by
-          // getNativeInterceptor and custom element support.
-          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty)) {
-            var nativeSpec = prototype[$specProperty].split(";");
-            if (nativeSpec[0]) {
-              var tags = nativeSpec[0].split("|");
-              for (var i = 0; i < tags.length; i++) {
-                #interceptorsByTagAccess[tags[i]] = constructor;
-                #leafTagsAccess[tags[i]] = true;
-              }
-            }
-            if (nativeSpec[1]) {
-              tags = nativeSpec[1].split("|");
-              if (#allowNativesSubclassing) {
-                if (nativeSpec[2]) {
-                  var subclasses = nativeSpec[2].split("|");
-                  for (var i = 0; i < subclasses.length; i++) {
-                    var subclass = allClasses[subclasses[i]];
-                    subclass.#nativeSuperclassTagName = tags[0];
-                  }
-                }
-                for (i = 0; i < tags.length; i++) {
-                  #interceptorsByTagAccess[tags[i]] = constructor;
-                  #leafTagsAccess[tags[i]] = false;
-                }
-              }
-            }
-          }
-        }
+        if (#hasNativeClasses)
+          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty))
+            #nativeInfoHandler
       }
     }''', {'finishedClassesAccess': finishedClassesAccess,
            'needsMixinSupport': needsMixinSupport,
            'hasNativeClasses': hasNativeClasses,
-           'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
-           'interceptorsByTagAccess': interceptorsByTagAccess,
-           'leafTagsAccess': leafTagsAccess,
-           'allowNativesSubclassing': true});
+           'nativeInfoHandler': nativeInfoHandler});
   }
 
   void emitFinishIsolateConstructorInvocation(CodeOutput output) {
