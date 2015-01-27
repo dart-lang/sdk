@@ -441,6 +441,8 @@ class JavaScriptBackend extends Backend {
 
   PatchResolverTask patchResolverTask;
 
+  bool get canHandleCompilationFailed => true;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -1200,6 +1202,11 @@ class JavaScriptBackend extends Backend {
 
   void codegen(CodegenWorkItem work) {
     Element element = work.element;
+    if (compiler.elementHasCompileTimeError(element)) {
+      generatedCode[element] = jsAst.js(
+          "function () { throw new Error('Compile time error in $element') }");
+      return;
+    }
     var kind = element.kind;
     if (kind == ElementKind.TYPEDEF) return;
     if (element.isConstructor && element.enclosingClass == jsNullClass) {
@@ -1463,6 +1470,16 @@ class JavaScriptBackend extends Backend {
         element == jsMutableArrayClass ||
         element == jsExtendableArrayClass ||
         element == jsFixedArrayClass;
+  }
+
+  bool mayGenerateInstanceofCheck(DartType type) {
+    // We can use an instanceof check for raw types that have no subclass that
+    // is mixed-in or in an implements clause.
+
+    if (!type.isRaw) return false;
+    ClassElement classElement = type.element;
+    if (isInterceptorClass(classElement)) return false;
+    return compiler.world.hasOnlySubclasses(classElement);
   }
 
   Element getExceptionUnwrapper() {

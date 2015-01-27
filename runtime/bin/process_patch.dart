@@ -21,13 +21,15 @@ patch class Process {
       {String workingDirectory,
        Map<String, String> environment,
        bool includeParentEnvironment: true,
-       bool runInShell: false}) {
+       bool runInShell: false,
+       bool detach: false}) {
     _ProcessImpl process = new _ProcessImpl(executable,
                                             arguments,
                                             workingDirectory,
                                             environment,
                                             includeParentEnvironment,
-                                            runInShell);
+                                            runInShell,
+                                            detach);
     return process._start();
   }
 
@@ -173,7 +175,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                String this._workingDirectory,
                Map<String, String> environment,
                bool includeParentEnvironment,
-               bool runInShell) : super() {
+               bool runInShell,
+               bool detach) : super() {
     _processes[_serviceId] = this;
     if (runInShell) {
       arguments = _getShellArguments(path, arguments);
@@ -230,16 +233,24 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
       });
     }
 
-    // stdin going to process.
-    _stdin = new _StdSink(new _Socket._writePipe());
-    _stdin._sink._owner = this;
-    // stdout coming from process.
-    _stdout = new _StdStream(new _Socket._readPipe());
-    _stdout._stream._owner = this;
-    // stderr coming from process.
-    _stderr = new _StdStream(new _Socket._readPipe());
-    _stderr._stream._owner = this;
-    _exitHandler = new _Socket._readPipe();
+    if (detach is !bool) {
+      throw new ArgumentError("Detach is not a boolean: $detach");
+    }
+    _detach = detach;
+
+
+    if (!detach) {
+      // stdin going to process.
+      _stdin = new _StdSink(new _Socket._writePipe());
+      _stdin._sink._owner = this;
+      // stdout coming from process.
+      _stdout = new _StdStream(new _Socket._readPipe());
+      _stdout._stream._owner = this;
+      // stderr coming from process.
+      _stderr = new _StdStream(new _Socket._readPipe());
+      _stderr._stream._owner = this;
+      _exitHandler = new _Socket._readPipe();
+    }
     _ended = false;
     _started = false;
   }
@@ -363,19 +374,24 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
 
   Future<Process> _start() {
     var completer = new Completer();
+    if (!_detach) {
+      _exitCode = new Completer<int>();
+    }
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
     Timer.run(() {
       var status = new _ProcessStartStatus();
-      bool success = _startNative(_path,
-                                  _arguments,
-                                  _workingDirectory,
-                                  _environment,
-                                  _stdin._sink._nativeSocket,
-                                  _stdout._stream._nativeSocket,
-                                  _stderr._stream._nativeSocket,
-                                  _exitHandler._nativeSocket,
-                                  status);
+      bool success =
+          _startNative(_path,
+                       _arguments,
+                       _workingDirectory,
+                       _environment,
+                       _detach,
+                       _detach ? null : _stdin._sink._nativeSocket,
+                       _detach ? null : _stdout._stream._nativeSocket,
+                       _detach ? null : _stderr._stream._nativeSocket,
+                       _detach ? null : _exitHandler._nativeSocket,
+                       status);
       if (!success) {
         completer.completeError(
             new ProcessException(_path,
@@ -389,32 +405,35 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
-      int exitDataRead = 0;
-      final int EXIT_DATA_SIZE = 8;
-      List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
-      _exitHandler.listen((data) {
+      if (!_detach) {
+        int exitDataRead = 0;
+        final int EXIT_DATA_SIZE = 8;
+        List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
+        _exitHandler.listen((data) {
 
-        int exitCode(List<int> ints) {
-          var code = _intFromBytes(ints, 0);
-          var negative = _intFromBytes(ints, 4);
-          assert(negative == 0 || negative == 1);
-          return (negative == 0) ? code : -code;
-        }
+          int exitCode(List<int> ints) {
+            var code = _intFromBytes(ints, 0);
+            var negative = _intFromBytes(ints, 4);
+            assert(negative == 0 || negative == 1);
+            return (negative == 0) ? code : -code;
+          }
 
-        void handleExit() {
-          _ended = true;
-          _exitCode.complete(exitCode(exitDataBuffer));
-          // Kill stdin, helping hand if the user forgot to do it.
-          _stdin._sink.destroy();
-          _processes.remove(_serviceId);
-        }
+          void handleExit() {
+            _ended = true;
+            _exitCode.complete(exitCode(exitDataBuffer));
+            // Kill stdin, helping hand if the user forgot to do it.
+            _stdin._sink.destroy();
+            _processes.remove(_serviceId);
+          }
 
-        exitDataBuffer.setRange(exitDataRead, exitDataRead + data.length, data);
-        exitDataRead += data.length;
-        if (exitDataRead == EXIT_DATA_SIZE) {
-          handleExit();
-        }
-      });
+          exitDataBuffer.setRange(
+              exitDataRead, exitDataRead + data.length, data);
+          exitDataRead += data.length;
+          if (exitDataRead == EXIT_DATA_SIZE) {
+            handleExit();
+          }
+        });
+      }
 
       completer.complete(this);
     });
@@ -424,10 +443,12 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
   ProcessResult _runAndWait(Encoding stdoutEncoding,
                             Encoding stderrEncoding) {
     var status = new _ProcessStartStatus();
+    _exitCode = new Completer<int>();
     bool success = _startNative(_path,
                                 _arguments,
                                 _workingDirectory,
                                 _environment,
+                                false,
                                 _stdin._sink._nativeSocket,
                                 _stdout._stream._nativeSocket,
                                 _stderr._stream._nativeSocket,
@@ -464,6 +485,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                     List<String> arguments,
                     String workingDirectory,
                     List<String> environment,
+                    bool detach,
                     _NativeSocket stdin,
                     _NativeSocket stdout,
                     _NativeSocket stderr,
@@ -487,7 +509,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
     return _stdin;
   }
 
-  Future<int> get exitCode => _exitCode.future;
+  Future<int> get exitCode => _exitCode != null ? _exitCode.future : null;
 
   bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
     if (signal is! ProcessSignal) {
@@ -507,6 +529,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
   List<String> _arguments;
   String _workingDirectory;
   List<String> _environment;
+  bool _detach;
   // Private methods of Socket are used by _in, _out, and _err.
   _StdSink _stdin;
   _StdStream _stdout;
@@ -514,7 +537,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
   Socket _exitHandler;
   bool _ended;
   bool _started;
-  final Completer<int> _exitCode = new Completer<int>();
+  Completer<int> _exitCode;
 }
 
 
@@ -584,7 +607,8 @@ ProcessResult _runNonInteractiveProcessSync(
                                  workingDirectory,
                                  environment,
                                  includeParentEnvironment,
-                                 runInShell);
+                                 runInShell,
+                                 false);
   return process._runAndWait(stdoutEncoding, stderrEncoding);
 }
 

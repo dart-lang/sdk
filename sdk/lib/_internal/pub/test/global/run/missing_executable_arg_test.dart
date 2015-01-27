@@ -13,7 +13,7 @@ main() {
             Must specify an executable to run.
 
             Usage: pub global run <package>:<executable> [args...]
-            -h, --help    Print usage information for this command.
+            -h, --help    Print this usage information.
                 --mode    Mode to run transformers in.
                           (defaults to "release")
 

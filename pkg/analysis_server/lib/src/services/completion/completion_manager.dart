@@ -115,46 +115,38 @@ abstract class CompletionManager {
  * Overall performance of a code completion operation.
  */
 class CompletionPerformance {
+  final DateTime start = new DateTime.now();
   final Map<String, Duration> _startTimes = new Map<String, Duration>();
   final Stopwatch _stopwatch = new Stopwatch();
   final List<OperationPerformance> operations = <OperationPerformance>[];
 
   Source source;
-  int offset;
-  String contents;
+  String snippet = '';
   int notificationCount = -1;
-  int suggestionCount = -1;
+  int suggestionCountFirst = -1;
+  int suggestionCountLast = -1;
+  Duration _firstNotification;
 
   CompletionPerformance() {
     _stopwatch.start();
   }
 
+  void setContentsAndOffset(String contents, int offset) {
+    snippet = _computeSnippet(contents, offset);
+  }
+
   int get elapsedInMilliseconds =>
       operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
 
-  String get snippet {
-    if (contents == null || offset < 0 || contents.length < offset) {
-      return '???';
-    }
-    int start = offset;
-    while (start > 0) {
-      String ch = contents[start - 1];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      --start;
-    }
-    int end = offset;
-    while (end < contents.length) {
-      String ch = contents[end];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      ++end;
-    }
-    String prefix = contents.substring(start, offset);
-    String suffix = contents.substring(offset, end);
-    return '$prefix^$suffix';
+  int get firstNotificationInMilliseconds =>
+      _firstNotification != null ? _firstNotification.inMilliseconds : 0;
+
+  String get startTimeAndMs => '${start.millisecondsSinceEpoch} - $start';
+
+  String get suggestionCount {
+    if (notificationCount < 1) return '';
+    if (notificationCount == 1) return '$suggestionCountFirst';
+    return '$suggestionCountFirst,  $suggestionCountLast';
   }
 
   void complete([String tag = null]) {
@@ -181,12 +173,42 @@ class CompletionPerformance {
     return result;
   }
 
+  void logFirstNotificationComplete(String tag) {
+    _firstNotification = _stopwatch.elapsed;
+    _logDuration(tag, _firstNotification);
+  }
+
   void logStartTime(String tag) {
     _startTimes[tag] = _stopwatch.elapsed;
   }
 
   void _logDuration(String tag, Duration elapsed) {
     operations.add(new OperationPerformance(tag, elapsed));
+  }
+
+  static String _computeSnippet(String contents, int offset) {
+    if (contents == null || offset == null || offset < 0 || contents.length < offset) {
+      return '???';
+    }
+    int start = offset;
+    while (start > 0) {
+      String ch = contents[start - 1];
+      if (ch == '\r' || ch == '\n') {
+        break;
+      }
+      --start;
+    }
+    int end = offset;
+    while (end < contents.length) {
+      String ch = contents[end];
+      if (ch == '\r' || ch == '\n') {
+        break;
+      }
+      ++end;
+    }
+    String prefix = contents.substring(start, offset);
+    String suffix = contents.substring(offset, end);
+    return '$prefix^$suffix';
   }
 }
 

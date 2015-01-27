@@ -22,7 +22,12 @@ class Script {
    */
   final Uri resourceUri;
 
-  Script(this.readableUri, this.resourceUri, this.file);
+  /// This script was synthesized.
+  final bool isSynthesized;
+
+  Script(
+      this.readableUri, this.resourceUri, this.file,
+      {this.isSynthesized: false});
 
   String get text => (file == null) ? null : file.slowText();
   String get name => (file == null) ? null : file.filename;

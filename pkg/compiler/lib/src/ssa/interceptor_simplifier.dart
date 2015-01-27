@@ -10,15 +10,18 @@ part of ssa;
  * 1) If the interceptor is for an object whose type is known, it
  * tries to use a constant interceptor instead.
  *
- * 2) It specializes interceptors based on the selectors it is being
- * called with.
+ * 2) Interceptors are specialized based on the selector it is used with.
  *
- * 3) If we know the object is not intercepted, we just use it
+ * 3) If we know the object is not intercepted, we just use the object
  * instead.
  *
- * 4) It replaces all interceptors that are used only once with
- * one-shot interceptors. It saves code size and makes the receiver of
- * an intercepted call a candidate for being generated at use site.
+ * 4) Single use interceptors at dynamic invoke sites are replaced with 'one
+ * shot interceptors' which are synthesized static helper functions that fetch
+ * the interceptor and then call the method.  This saves code size and makes the
+ * receiver of an intercepted call a candidate for being generated at use site.
+ *
+ * 5) Some HIs operations on an interceptor are replaced with a HIs version that
+ * uses 'instanceof' rather than testing a type flag.
  *
  */
 class SsaSimplifyInterceptors extends HBaseVisitor
@@ -56,6 +59,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     if (!invoke.isInterceptedCall) return false;
     var interceptor = invoke.inputs[0];
     if (interceptor is! HInterceptor) return false;
+
+    // TODO(sra): Move this per-call code to visitInterceptor.
+    //
+    // The interceptor is visited first, so we get here only when the
+    // interceptor was not rewritten to a single shared replacement.  I'm not
+    // sure we should substitute a constant interceptor on a per-call basis if
+    // the interceptor is already available in a local variable, but it is
+    // possible that all uses can be rewritten to use different constants.
+
+    // TODO(sra): Also do self-interceptor rewrites on a per-use basis.
+
     HInstruction constant = tryComputeConstantInterceptor(
         invoke.inputs[1], interceptor.interceptedClasses);
     if (constant != null) {
@@ -238,7 +252,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       }
     }
 
+    node.interceptedClasses = interceptedClasses;
+
     HInstruction receiver = node.receiver;
+
+    // TODO(sra): We should consider each use individually and then all uses
+    // together.  Each use might permit a different rewrite due to a refined
+    // receiver type.  Self-interceptor rewrites are always beneficial since the
+    // receiver is live at a invocation.  Constant-interceptor rewrites are only
+    // guaranteed to be beneficial if they can eliminate the need for the
+    // interceptor or reduce the uses to one that can be simplified with a
+    // one-shot interceptor or optimized is-check.
 
     if (canUseSelfForInterceptor(receiver, interceptedClasses)) {
       return rewriteToUseSelfAsInterceptor(node, receiver);
@@ -252,32 +276,50 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return false;
     }
 
-    node.interceptedClasses = interceptedClasses;
-
-    // Try creating a one-shot interceptor.
+    // Try creating a one-shot interceptor or optimized is-check
     if (compiler.hasIncrementalSupport) return false;
     if (node.usedBy.length != 1) return false;
-    if (node.usedBy[0] is !HInvokeDynamic) return false;
+    HInstruction user = node.usedBy.single;
 
-    HInvokeDynamic user = node.usedBy[0];
-
-    // If [node] was loop hoisted, we keep the interceptor.
+    // If the interceptor [node] was loop hoisted, we keep the interceptor.
     if (!user.hasSameLoopHeaderAs(node)) return false;
 
-    // Replace the user with a [HOneShotInterceptor].
-    HConstant nullConstant = graph.addConstantNull(compiler);
-    List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
-    inputs[0] = nullConstant;
-    HOneShotInterceptor interceptor = new HOneShotInterceptor(
-        user.selector, inputs, user.instructionType, node.interceptedClasses);
-    interceptor.sourcePosition = user.sourcePosition;
-    interceptor.sourceElement = user.sourceElement;
+    bool replaceUserWith(HInstruction replacement) {
+      HBasicBlock block = user.block;
+      block.addAfter(user, replacement);
+      block.rewrite(user, replacement);
+      block.remove(user);
+      return false;
+    }
 
-    HBasicBlock block = user.block;
-    block.addAfter(user, interceptor);
-    block.rewrite(user, interceptor);
-    block.remove(user);
-    return true;
+    if (user is HIs) {
+      // See if we can rewrite the is-check to use 'instanceof', i.e. rewrite
+      // "getInterceptor(x).$isT" to "x instanceof T".
+      if (node == user.interceptor) {
+        JavaScriptBackend backend = compiler.backend;
+        if (backend.mayGenerateInstanceofCheck(user.typeExpression)) {
+          HInstruction instanceofCheck = new HIs.instanceOf(
+              user.typeExpression, user.expression, user.instructionType);
+          instanceofCheck.sourcePosition = user.sourcePosition;
+          instanceofCheck.sourceElement = user.sourceElement;
+          return replaceUserWith(instanceofCheck);
+        }
+      }
+    } else if (user is HInvokeDynamic) {
+      if (node == user.inputs[0]) {
+        // Replace the user with a [HOneShotInterceptor].
+        HConstant nullConstant = graph.addConstantNull(compiler);
+        List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
+        inputs[0] = nullConstant;
+        HOneShotInterceptor oneShotInterceptor = new HOneShotInterceptor(
+            user.selector, inputs, user.instructionType, interceptedClasses);
+        oneShotInterceptor.sourcePosition = user.sourcePosition;
+        oneShotInterceptor.sourceElement = user.sourceElement;
+        return replaceUserWith(oneShotInterceptor);
+      }
+    }
+
+    return false;
   }
 
   bool rewriteToUseSelfAsInterceptor(HInterceptor node, HInstruction receiver) {

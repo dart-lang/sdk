@@ -400,4 +400,11 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
   Converter<List<int>,dynamic> fuse(Converter<String, dynamic> next) {
     return super.fuse(next);
   }
+
+  // Currently not intercepting UTF8 decoding.
+  @patch
+  static String _convertIntercepted(bool allowMalformed, List<int> codeUnits,
+                                    int start, int end) {
+    return null;  // This call was not intercepted.
+  }
 }

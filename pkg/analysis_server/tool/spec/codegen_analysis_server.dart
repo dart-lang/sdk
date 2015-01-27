@@ -12,7 +12,7 @@ import 'codegen_java.dart';
 import 'codegen_tools.dart';
 
 final GeneratedFile target = javaGeneratedFile(
-    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer.java',
+    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/generated/AnalysisServer.java',
     (Api api) => new CodegenAnalysisServer(api));
 
 /**
@@ -35,8 +35,9 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
   @override
   void visitApi() {
     outputHeader(javaStyle: true);
-    writeln('package com.google.dart.server;');
+    writeln('package com.google.dart.server.generated;');
     writeln();
+    writeln('import com.google.dart.server.*;');
     writeln('import com.google.dart.server.generated.types.*;');
     writeln();
     writeln('import java.util.List;');
@@ -78,15 +79,28 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       });
 
       //
+      // addStatusListener(..)
+      //
+      publicMethod('addStatusListener', () {
+        writeln('''/**
+ * Add the given listener to the list of listeners that will receive notification when the server
+ * is not active
+ * 
+ * @param listener the listener to be added
+ */''');
+        writeln(
+            'public void addStatusListener(AnalysisServerStatusListener listener);');
+      });
+
+      //
       // isSocketOpen()
       //
       publicMethod('isSocketOpen', () {
-              writeln('''/**
+        writeln('''/**
  * Return {@code true} if the socket is open.
  */''');
-        writeln(
-          'public boolean isSocketOpen();');
-        });
+        writeln('public boolean isSocketOpen();');
+      });
 
       //
       // start(..)
@@ -109,7 +123,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         toHtmlVisitor.write('{@code ${request.longMethod }}');
         toHtmlVisitor.translateHtml(request.html);
         toHtmlVisitor.javadocParams(request.params);
-      }), width: 99, javadocStyle: true);
+      }));
       write('public void $methodName(');
       List<String> arguments = [];
       if (request.params != null) {

@@ -43,17 +43,17 @@ void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-uword VMHandles::AllocateHandle(Isolate* isolate) {
+uword VMHandles::AllocateHandle(Zone* zone) {
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
-                 kOffsetOfRawPtr>::AllocateHandle(isolate);
+                 kOffsetOfRawPtr>::AllocateHandle(zone);
 }
 
 
-uword VMHandles::AllocateZoneHandle(Isolate* isolate) {
+uword VMHandles::AllocateZoneHandle(Zone* zone) {
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
-                 kOffsetOfRawPtr>::AllocateZoneHandle(isolate);
+                 kOffsetOfRawPtr>::AllocateZoneHandle(zone);
 }
 
 

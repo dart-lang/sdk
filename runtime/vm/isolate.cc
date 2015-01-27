@@ -29,7 +29,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/thread_interrupter.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
@@ -272,7 +272,6 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 
 
 bool IsolateMessageHandler::HandleMessage(Message* message) {
-  StartIsolateScope start_scope(I);
   StackZone zone(I);
   HandleScope handle_scope(I);
   // TODO(turnidge): Rework collection total dart execution.  This can
@@ -436,7 +435,8 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   object##_handle_(NULL),
 
 Isolate::Isolate()
-    : store_buffer_(),
+    : vm_tag_(0),
+      store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
@@ -495,7 +495,8 @@ Isolate::Isolate()
 }
 
 Isolate::Isolate(Isolate* original)
-    : store_buffer_(true),
+    : vm_tag_(0),
+      store_buffer_(true),
       class_table_(original->class_table()),
       message_notify_callback_(NULL),
       name_(NULL),
@@ -578,7 +579,7 @@ void Isolate::SetCurrent(Isolate* current) {
     old_current->set_thread_state(NULL);
     Profiler::EndExecution(old_current);
   }
-  Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+  OSThread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
   if (current != NULL) {
     ASSERT(current->thread_state() == NULL);
     InterruptableThreadState* thread_state =
@@ -598,13 +599,13 @@ void Isolate::SetCurrent(Isolate* current) {
 // for a thread. Since an Isolate is the central repository for
 // storing all isolate specific information a single thread local key
 // is sufficient.
-ThreadLocalKey Isolate::isolate_key = Thread::kUnsetThreadLocalKey;
+ThreadLocalKey Isolate::isolate_key = OSThread::kUnsetThreadLocalKey;
 
 
 void Isolate::InitOnce() {
-  ASSERT(isolate_key == Thread::kUnsetThreadLocalKey);
-  isolate_key = Thread::CreateThreadLocal();
-  ASSERT(isolate_key != Thread::kUnsetThreadLocalKey);
+  ASSERT(isolate_key == OSThread::kUnsetThreadLocalKey);
+  isolate_key = OSThread::CreateThreadLocal();
+  ASSERT(isolate_key != OSThread::kUnsetThreadLocalKey);
   create_callback_ = NULL;
   isolates_list_monitor_ = new Monitor();
   ASSERT(isolates_list_monitor_ != NULL);
@@ -691,8 +692,8 @@ void Isolate::BuildName(const char* name_prefix) {
 // TODO(5411455): Use flag to override default value and Validate the
 // stack size by querying OS.
 uword Isolate::GetSpecifiedStackSize() {
-  ASSERT(Isolate::kStackSizeBuffer < Thread::GetMaxStackSize());
-  uword stack_size = Thread::GetMaxStackSize() - Isolate::kStackSizeBuffer;
+  ASSERT(Isolate::kStackSizeBuffer < OSThread::GetMaxStackSize());
+  uword stack_size = OSThread::GetMaxStackSize() - Isolate::kStackSizeBuffer;
   return stack_size;
 }
 
@@ -1073,7 +1074,8 @@ void Isolate::Shutdown() {
     while (old_space->tasks() > 0) {
       ml.Wait();
     }
-    heap_->Verify(kForbidMarked);
+    // The VM isolate keeps all objects marked.
+    heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }
 #endif  // DEBUG
 
@@ -1363,7 +1365,7 @@ intptr_t Isolate::ProfileInterrupt() {
     ProfileIdle();
     return 1;
   }
-  ASSERT(state->id != Thread::kInvalidThreadId);
+  ASSERT(state->id != OSThread::kInvalidThreadId);
   ThreadInterrupter::InterruptThread(state);
   return 1;
 }
@@ -1567,31 +1569,46 @@ IsolateSpawnState::~IsolateSpawnState() {
 
 
 RawObject* IsolateSpawnState::ResolveFunction() {
-  // Resolve the library.
-  Library& lib = Library::Handle();
-  if (library_url()) {
-    const String& lib_url = String::Handle(String::New(library_url()));
-    lib = Library::LookupLibrary(lib_url);
-    if (lib.IsNull() || lib.IsError()) {
-      const String& msg = String::Handle(String::NewFormatted(
-          "Unable to find library '%s'.", library_url()));
-      return LanguageError::New(msg);
-    }
-  } else {
-    lib = I->object_store()->root_library();
-  }
-  ASSERT(!lib.IsNull());
-
-  // Resolve the function.
   const String& func_name = String::Handle(String::New(function_name()));
 
+  if (library_url() == NULL) {
+    // Handle spawnUri lookup rules.
+    // Check whether the root library defines a main function.
+    const Library& lib = Library::Handle(I->object_store()->root_library());
+    Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+    if (func.IsNull()) {
+      // Check whether main is reexported from the root library.
+      const Object& obj = Object::Handle(lib.LookupReExport(func_name));
+      if (obj.IsFunction()) {
+        func ^= obj.raw();
+      }
+    }
+    if (func.IsNull()) {
+      const String& msg = String::Handle(String::NewFormatted(
+          "Unable to resolve function '%s' in script '%s'.",
+          function_name(), script_url()));
+      return LanguageError::New(msg);
+    }
+    return func.raw();
+  }
+
+  ASSERT(script_url() == NULL);
+  // Resolve the library.
+  const String& lib_url = String::Handle(String::New(library_url()));
+  const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
+  if (lib.IsNull() || lib.IsError()) {
+    const String& msg = String::Handle(String::NewFormatted(
+        "Unable to find library '%s'.", library_url()));
+    return LanguageError::New(msg);
+  }
+
+  // Resolve the function.
   if (class_name() == NULL) {
     const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
     if (func.IsNull()) {
       const String& msg = String::Handle(String::NewFormatted(
           "Unable to resolve function '%s' in library '%s'.",
-          function_name(),
-          (library_url() != NULL ? library_url() : script_url())));
+          function_name(), library_url()));
       return LanguageError::New(msg);
     }
     return func.raw();

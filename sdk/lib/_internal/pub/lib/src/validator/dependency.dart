@@ -37,10 +37,7 @@ class DependencyValidator extends Validator {
   Future validate() async {
     var caretDeps = [];
 
-    // TODO(nweiz): Replace this with a real for/in loop when we update
-    // async_await.
-    await Future.forEach(entrypoint.root.pubspec.dependencies,
-        (dependency) async {
+    for (var dependency in entrypoint.root.pubspec.dependencies) {
       if (dependency.source != "hosted") {
         await _warnAboutSource(dependency);
       } else if (dependency.constraint.isAny) {
@@ -58,7 +55,7 @@ class DependencyValidator extends Validator {
           caretDeps.add(dependency);
         }
       }
-    });
+    }
 
     if (caretDeps.isNotEmpty && !_caretAllowed) {
       _errorAboutCaretConstraints(caretDeps);

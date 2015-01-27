@@ -70,8 +70,8 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
 [ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
-LibTest/isolate/Isolate/spawnUri_A01_t04: Crash, Pass # dartbug.com/17440
-LibTest/isolate/Isolate/spawn_A01_t04: Crash, Pass # dartbug.com/17440
+LibTest/isolate/Isolate/spawnUri_A01_t04: Crash, Pass # Issue 17440
+LibTest/isolate/Isolate/spawn_A01_t04: Crash, Pass # Issue 17440
 
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips || $arch == simarm64) ]
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout

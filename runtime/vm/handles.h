@@ -112,11 +112,11 @@ class Handles {
   // Allocates a handle in the current handle scope. This handle is valid only
   // in the current handle scope and is destroyed when the current handle
   // scope ends.
-  static uword AllocateHandle(Isolate* isolate);
+  static uword AllocateHandle(Zone* zone);
 
   // Allocates a handle in the current zone. This handle will be destroyed
   // when the current zone is destroyed.
-  static uword AllocateZoneHandle(Isolate* isolate);
+  static uword AllocateZoneHandle(Zone* zone);
 
   // Returns true if specified handle is a zone handle.
   static bool IsZoneHandle(uword handle);
@@ -268,14 +268,14 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  // Allocates a handle in the current handle scope. This handle is valid only
-  // in the current handle scope and is destroyed when the current handle
-  // scope ends.
-  static uword AllocateHandle(Isolate* isolate);
+  // Allocates a handle in the current handle scope of 'zone', which must be
+  // the current zone. This handle is valid only in the current handle scope
+  // and is destroyed when the current handle scope ends.
+  static uword AllocateHandle(Zone* zone);
 
-  // Allocates a handle in the current zone. This handle will be destroyed
-  // when the current zone is destroyed.
-  static uword AllocateZoneHandle(Isolate* isolate);
+  // Allocates a handle in 'zone', which must be the current zone. This handle
+  // will be destroyed when the current zone is destroyed.
+  static uword AllocateZoneHandle(Zone* zone);
 
   // Returns true if specified handle is a zone handle.
   static bool IsZoneHandle(uword handle);

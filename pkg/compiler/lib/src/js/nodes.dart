@@ -60,6 +60,8 @@ abstract class NodeVisitor<T> {
   T visitProperty(Property node);
   T visitRegExpLiteral(RegExpLiteral node);
 
+  T visitAwait(Await node);
+
   T visitComment(Comment node);
 
   T visitInterpolatedExpression(InterpolatedExpression node);
@@ -165,6 +167,8 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
   // Ignore comments by default.
   T visitComment(Comment node) => null;
+
+  T visitAwait(Await node) => visitExpression(node);
 }
 
 abstract class Node {
@@ -847,8 +851,9 @@ class NamedFunction extends Expression {
 class Fun extends Expression {
   final List<Parameter> params;
   final Block body;
+  final AsyncModifier asyncModifier;
 
-  Fun(this.params, this.body);
+  Fun(this.params, this.body, {this.asyncModifier: const AsyncModifier.sync()});
 
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
@@ -860,6 +865,16 @@ class Fun extends Expression {
   Fun _clone() => new Fun(params, body);
 
   int get precedenceLevel => CALL;
+}
+
+class AsyncModifier {
+  final bool isAsync;
+  final bool isYielding;
+
+  const AsyncModifier.sync() : isAsync = false, isYielding = false;
+  const AsyncModifier.async() : isAsync = true, isYielding = false;
+  const AsyncModifier.asyncStar() : isAsync = true, isYielding = true;
+  const AsyncModifier.syncStar() : isAsync = false, isYielding = true;
 }
 
 class PropertyAccess extends Expression {
@@ -1088,6 +1103,25 @@ class RegExpLiteral extends Expression {
   RegExpLiteral _clone() => new RegExpLiteral(pattern);
 
   int get precedenceLevel => PRIMARY;
+}
+
+/**
+ * An asynchronous await.
+ *
+ * Not part of javascript. We desugar this expression before outputting.
+ * Should only occur in a [Fun] with `asyncModifier` async or asyncStar.
+ */
+class Await extends Expression {
+  /** The awaited expression. */
+  final Expression expression;
+
+  Await(this.expression);
+
+  int get precedenceLevel => UNARY;
+  accept(NodeVisitor visitor) => visitor.visitAwait(this);
+  void visitChildren(NodeVisitor visitor) => expression.accept(visitor);
+  Await _clone() => new Await(expression);
+
 }
 
 /**

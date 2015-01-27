@@ -14,6 +14,8 @@ static const uword kUwordOne = 1U;
 template<typename T, int position, int size>
 class BitField {
  public:
+  static const intptr_t kNextBit = position + size;
+
   // Tells whether the provided value fits into the bit field.
   static bool is_valid(T value) {
     return (static_cast<uword>(value) & ~((kUwordOne << size) - 1)) == 0;

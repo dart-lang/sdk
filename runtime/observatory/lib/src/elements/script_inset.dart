@@ -27,7 +27,8 @@ class ScriptInsetElement extends ObservatoryElement {
   @observable int endLine;
   @observable bool linesReady = false;
 
-  @observable List<ScriptLine> lines = toObservable([]);
+  // Contents are either ScriptLine or ScriptElipsis.
+  @observable List lines = toObservable([]);
 
   String makeLineId(int line) {
     return 'line-$line';
@@ -112,8 +113,30 @@ class ScriptInsetElement extends ObservatoryElement {
                : script.lines.length);
 
     lines.clear();
+    int blankLineCount = 0;
     for (int i = (startLine - 1); i <= (endLine - 1); i++) {
-      lines.add(script.lines[i]);
+      if (script.lines[i].isBlank) {
+        // Try to introduce elipses if there are 4 or more contiguous blank lines.
+        blankLineCount++;
+      } else {
+        if (blankLineCount > 0) {
+          int firstBlank = i - blankLineCount;
+          int lastBlank = i - 1;
+          if (blankLineCount < 4) {
+            // Too few blank lines for an elipsis.
+            for (int j = firstBlank; j  <= lastBlank; j++) {
+              lines.add(script.lines[j]);
+            }
+          } else {
+            // Add an elipsis for the skipped region.
+            lines.add(script.lines[firstBlank]);
+            lines.add(null);
+            lines.add(script.lines[lastBlank]);
+          }
+          blankLineCount = 0;
+        }
+        lines.add(script.lines[i]);
+      }
     }
     linesReady = true;
   }

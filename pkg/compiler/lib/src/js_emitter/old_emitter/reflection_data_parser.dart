@@ -423,7 +423,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   if (compiler.hasIncrementalSupport) {
     incrementalSupport.add(
         js.statement(
-            r'self.$dart_unsafe_eval.addStubs = addStubs;'));
+            '#.addStubs = addStubs;', [namer.accessIncrementalHelper]));
   }
 
   return js('''

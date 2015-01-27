@@ -12,36 +12,36 @@ import '../solver/version_solver.dart';
 
 /// Handles the `upgrade` pub command.
 class UpgradeCommand extends PubCommand {
+  String get name => "upgrade";
   String get description =>
       "Upgrade the current package's dependencies to latest versions.";
-  String get usage => "pub upgrade [dependencies...]";
+  String get invocation => "pub upgrade [dependencies...]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-upgrade.html";
   List<String> get aliases => const ["update"];
-  bool get takesArguments => true;
 
-  bool get isOffline => commandOptions['offline'];
+  bool get isOffline => argResults['offline'];
 
   UpgradeCommand() {
-    commandParser.addFlag(
+    argParser.addFlag(
         'offline',
         help: 'Use cached packages instead of accessing the network.');
 
-    commandParser.addFlag(
+    argParser.addFlag(
         'dry-run',
         abbr: 'n',
         negatable: false,
         help: "Report what dependencies would change but don't change any.");
   }
 
-  Future onRun() {
+  Future run() {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
-        var dryRun = commandOptions['dry-run'];
+        var dryRun = argResults['dry-run'];
         new Future.value(
             entrypoint.acquireDependencies(
                 SolveType.UPGRADE,
-                useLatest: commandOptions.rest,
+                useLatest: argResults.rest,
                 dryRun: dryRun)).then((x0) {
           try {
             x0;

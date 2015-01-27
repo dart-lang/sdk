@@ -10,6 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 
@@ -87,6 +88,14 @@ class AnalysisDomainHandler implements RequestHandler {
     return new AnalysisGetHoverResult(hovers).toResponse(request.id);
   }
 
+  /// Implement the `analysis.getLibraryDependencies` request.
+  Response getLibraryDependencies(Request request) {
+    Set<String> libraries = new LibraryDependencyCollector(
+        server.getAnalysisContexts()).collectLibraryDependencies();
+    return new AnalysisGetLibraryDependenciesResult(
+        libraries.toList(growable: false)).toResponse(request.id);
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -95,6 +104,8 @@ class AnalysisDomainHandler implements RequestHandler {
         return getErrors(request);
       } else if (requestName == ANALYSIS_GET_HOVER) {
         return getHover(request);
+      } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
+        return getLibraryDependencies(request);
       } else if (requestName == ANALYSIS_REANALYZE) {
         return reanalyze(request);
       } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {

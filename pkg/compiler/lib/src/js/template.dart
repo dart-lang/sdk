@@ -88,7 +88,7 @@ class Template {
     instantiator = generator.compile(ast);
     positionalArgumentCount = generator.analysis.count;
     Set<String> names = generator.analysis.holeNames;
-    holeNames = names.isEmpty ? null : names.toList(growable:false);
+    holeNames = names.toList(growable:false);
   }
 
   /// Instantiates the template with the given [arguments].
@@ -408,8 +408,21 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     throw new UnimplementedError('$this.$name');
   }
 
-  Instantiator visitWhile(While node) => TODO('visitWhile');
-  Instantiator visitDo(Do node) => TODO('visitDo');
+  Instantiator visitWhile(While node) {
+    Instantiator makeCondition = visit(node.condition);
+    Instantiator makeBody = visit(node.body);
+    return (arguments) {
+      return new While(makeCondition(arguments), makeBody(arguments));
+    };
+  }
+
+  Instantiator visitDo(Do node) {
+    Instantiator makeBody = visit(node.body);
+    Instantiator makeCondition = visit(node.condition);
+    return (arguments) {
+      return new Do(makeBody(arguments), makeCondition(arguments));
+    };
+  }
 
   Instantiator visitContinue(Continue node) =>
       (arguments) => new Continue(node.targetLabel);
@@ -427,7 +440,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) => new Throw(makeExpression(arguments));
   }
 
-
   Instantiator visitTry(Try node) {
     Instantiator makeBody = visit(node.body);
     Instantiator makeCatch = visitNullable(node.catchPart);
@@ -443,9 +455,30 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         makeDeclaration(arguments), makeBody(arguments));
   }
 
-  Instantiator visitSwitch(Switch node) => TODO('visitSwitch');
-  Instantiator visitCase(Case node) => TODO('visitCase');
-  Instantiator visitDefault(Default node) => TODO('visitDefault');
+  Instantiator visitSwitch(Switch node) {
+    Instantiator makeKey = visit(node.key);
+    Iterable<Instantiator> makeCases = node.cases.map(visit);
+    return (arguments) {
+      return new Switch(makeKey(arguments),
+          makeCases.map((Instantiator makeCase) => makeCase(arguments))
+                   .toList());
+    };
+  }
+
+  Instantiator visitCase(Case node) {
+    Instantiator makeExpression = visit(node.expression);
+    Instantiator makeBody = visit(node.body);
+    return (arguments) {
+      return new Case(makeExpression(arguments), makeBody(arguments));
+    };
+  }
+
+  Instantiator visitDefault(Default node) {
+    Instantiator makeBody = visit(node.body);
+    return (arguments) {
+      return new Default(makeBody(arguments));
+    };
+  }
 
   Instantiator visitFunctionDeclaration(FunctionDeclaration node) {
     Instantiator makeName = visit(node.name);
@@ -658,6 +691,13 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => new RegExpLiteral(node.pattern);
 
   Instantiator visitComment(Comment node) => TODO('visitComment');
+
+  Instantiator visitAwait(Await node) {
+    Instantiator makeExpression = visit(node.expression);
+    return (arguments) {
+      return new Await(makeExpression(arguments));
+    };
+  }
 }
 
 /**

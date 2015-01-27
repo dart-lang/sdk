@@ -333,10 +333,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "$receiver.$name($args)";
   }
 
-  String visitInvokeSuperMethod(InvokeSuperMethod node) {
+  String visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    String receiver = visitExpression(node.receiver);
+    String host = node.target.enclosingClass.name;
     String name = node.selector.name;
     String args = formatArguments(node);
-    return "super.$name($args)";
+    return "$receiver.$host::$name($args)";
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {
@@ -445,10 +447,10 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return 'CreateBox';
   }
 
-  String visitCreateClosureClass(CreateClosureClass node) {
+  String visitCreateInstance(CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(visitExpression).join(', ');
-    return 'CreateClosure $className($arguments)';
+    return 'CreateInstance $className($arguments)';
   }
 
 }

@@ -119,13 +119,11 @@ class SExpressionUnstringifier {
   static const String DECLARE_FUNCTION = "DeclareFunction";
   static const String INVOKE_CONSTRUCTOR = "InvokeConstructor";
   static const String INVOKE_CONTINUATION = "InvokeContinuation";
-  static const String INVOKE_CONTINUATION_RECURSIVE = "InvokeContinuation*";
   static const String INVOKE_STATIC = "InvokeStatic";
-  static const String INVOKE_SUPER_METHOD = "InvokeSuperMethod";
+  static const String INVOKE_METHOD_DIRECTLY = "InvokeMethodDirectly";
   static const String INVOKE_METHOD = "InvokeMethod";
   static const String LET_PRIM = "LetPrim";
   static const String LET_CONT = "LetCont";
-  static const String LET_CONT_RECURSIVE = "LetCont*";
   static const String SET_CLOSURE_VARIABLE = "SetClosureVariable";
   static const String TYPE_OPERATOR = "TypeOperator";
 
@@ -221,21 +219,17 @@ class SExpressionUnstringifier {
       case INVOKE_CONSTRUCTOR:
         return parseInvokeConstructor();
       case INVOKE_CONTINUATION:
-        return parseInvokeContinuation(false);
-      case INVOKE_CONTINUATION_RECURSIVE:
-        return parseInvokeContinuation(true);
+        return parseInvokeContinuation();
       case INVOKE_METHOD:
         return parseInvokeMethod();
       case INVOKE_STATIC:
         return parseInvokeStatic();
-      case INVOKE_SUPER_METHOD:
-        return parseInvokeSuperMethod();
+      case INVOKE_METHOD_DIRECTLY:
+        return parseInvokeMethodDirectly();
       case LET_PRIM:
         return parseLetPrim();
       case LET_CONT:
-        return parseLetCont(false);
-      case LET_CONT_RECURSIVE:
-        return parseLetCont(true);
+        return parseLetCont();
       case SET_CLOSURE_VARIABLE:
         return parseSetClosureVariable();
       case TYPE_OPERATOR:
@@ -390,18 +384,20 @@ class SExpressionUnstringifier {
     return new InvokeConstructor(type, element, selector, cont, args);
   }
 
-  /// (InvokeContinuation name (args))
-  InvokeContinuation parseInvokeContinuation(bool recursive) {
-    tokens.consumeStart(recursive
-        ? INVOKE_CONTINUATION_RECURSIVE : INVOKE_CONTINUATION);
-
-    Continuation cont = name2variable[tokens.read()];
+  /// (InvokeContinuation rec? name (args))
+  InvokeContinuation parseInvokeContinuation() {
+    tokens.consumeStart(INVOKE_CONTINUATION);
+    String name = tokens.read();
+    bool isRecursive = name == "rec";
+    if (isRecursive) name = tokens.read();
+    
+    Continuation cont = name2variable[name];
     assert(cont != null);
 
     List<Primitive> args = parsePrimitiveList();
 
     tokens.consumeEnd();
-    return new InvokeContinuation(cont, args, recursive: recursive);
+    return new InvokeContinuation(cont, args, recursive: isRecursive);
   }
 
   /// (InvokeMethod receiver method (args) cont)
@@ -441,9 +437,12 @@ class SExpressionUnstringifier {
     return new InvokeStatic(entity, selector, cont, args);
   }
 
-  /// (InvokeSuperMethod method (args) cont)
-  InvokeSuperMethod parseInvokeSuperMethod() {
-    tokens.consumeStart(INVOKE_SUPER_METHOD);
+  /// (InvokeMethodDirectly receiver method (args) cont)
+  InvokeMethodDirectly parseInvokeMethodDirectly() {
+    tokens.consumeStart(INVOKE_METHOD_DIRECTLY);
+
+    Definition receiver = name2variable[tokens.read()];
+    assert(receiver != null);
 
     String methodName = tokens.read();
 
@@ -453,17 +452,18 @@ class SExpressionUnstringifier {
     assert(cont != null);
 
     tokens.consumeEnd();
+    Element element = new DummyElement(methodName);
     Selector selector = dummySelector(methodName, args.length);
-    return new InvokeSuperMethod(selector, cont, args);
+    return new InvokeMethodDirectly(receiver, element, selector, cont, args);
   }
 
-  /// (LetCont (name (args) cont_body) body)
-  LetCont parseLetCont(bool recursive) {
-    tokens.consumeStart(recursive ? LET_CONT_RECURSIVE : LET_CONT);
-
-    // (name
+  // (rec? name (args) body)
+  Continuation parseContinuation() {
+    // (rec? name
     tokens.consumeStart();
     String name = tokens.read();
+    bool isRecursive = name == "rec";
+    if (isRecursive) name = tokens.read();
 
     // (args)
     tokens.consumeStart();
@@ -479,16 +479,28 @@ class SExpressionUnstringifier {
     Continuation cont = new Continuation(params);
     name2variable[name] = cont;
 
-    cont.isRecursive = recursive;
+    cont.isRecursive = isRecursive;
     // cont_body
     cont.body = parseExpression();
+    tokens.consumeEnd();
+    return cont;
+  }
+
+  /// (LetCont (continuations) body)
+  LetCont parseLetCont() {
+    tokens.consumeStart(LET_CONT);
+    tokens.consumeStart();
+    List<Continuation> continuations = <Continuation>[];
+    while (tokens.current != ")") {
+      continuations.add(parseContinuation());
+    }
     tokens.consumeEnd();
 
     // body)
     Expression body = parseExpression();
     tokens.consumeEnd();
 
-    return new LetCont(cont, body);
+    return new LetCont.many(continuations, body);
   }
 
   /// (SetClosureVariable name value body)

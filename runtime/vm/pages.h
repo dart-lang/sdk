@@ -196,7 +196,9 @@ class PageSpace {
     kForceGrowth
   };
 
-  PageSpace(Heap* heap, intptr_t max_capacity_in_words);
+  PageSpace(Heap* heap,
+            intptr_t max_capacity_in_words,
+            intptr_t max_external_in_words);
   ~PageSpace();
 
   uword TryAllocate(intptr_t size,
@@ -269,7 +271,8 @@ class PageSpace {
   }
 
   bool NeedsExternalGC() const {
-    return UsedInWords() + ExternalInWords() > max_capacity_in_words_;
+    return (max_external_in_words_ != 0) &&
+        (ExternalInWords() > max_external_in_words_);
   }
 
   // TODO(koda): Unify protection handling.
@@ -382,6 +385,10 @@ class PageSpace {
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
   bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
+    if (max_capacity_in_words_ == 0) {
+      // Unlimited.
+      return true;
+    }
     ASSERT(CapacityInWords() <= max_capacity_in_words_);
     return increase_in_words <= (max_capacity_in_words_ - CapacityInWords());
   }
@@ -405,6 +412,7 @@ class PageSpace {
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;
+  intptr_t max_external_in_words_;
   // NOTE: The capacity component of usage_ is updated by the concurrent
   // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;

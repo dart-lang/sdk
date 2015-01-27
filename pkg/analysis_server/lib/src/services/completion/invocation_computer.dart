@@ -64,11 +64,8 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
       node = (node as PropertyAccess).realTarget;
     }
     if (node is Expression) {
-      DartType type = node.bestType;
-      if (type != null) {
-        ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
-        return new Future.value(true);
-      }
+      InterfaceTypeSuggestionBuilder.suggestionsFor(request, node.bestType);
+      return new Future.value(true);
     }
     return new Future.value(false);
   }
@@ -161,10 +158,9 @@ class _PrefixedIdentifierSuggestionBuilder extends
     if (element != null) {
       InterfaceType type = element.type;
       if (type != null) {
-        ClassElementSuggestionBuilder.suggestionsFor(
+        StaticClassElementSuggestionBuilder.suggestionsFor(
             request,
-            type.element,
-            staticOnly: true);
+            type.element);
       }
     }
     return new Future.value(false);
@@ -204,10 +200,7 @@ class _PrefixedIdentifierSuggestionBuilder extends
     if (element != null) {
       PropertyInducingElement elemVar = element.variable;
       if (elemVar != null) {
-        DartType type = elemVar.type;
-        if (type != null) {
-          ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
-        }
+        InterfaceTypeSuggestionBuilder.suggestionsFor(request, elemVar.type);
       }
       return new Future.value(true);
     }
@@ -216,10 +209,7 @@ class _PrefixedIdentifierSuggestionBuilder extends
 
   @override
   Future<bool> visitVariableElement(VariableElement element) {
-    DartType type = element.type;
-    if (type != null) {
-      ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
-    }
+    InterfaceTypeSuggestionBuilder.suggestionsFor(request, element.type);
     return new Future.value(true);
   }
 }

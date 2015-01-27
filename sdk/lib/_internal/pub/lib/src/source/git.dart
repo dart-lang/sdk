@@ -116,14 +116,34 @@ class GitSource extends CachedSource {
     return description;
   }
 
+  /// If [description] has a resolved ref, print it out in short-form.
+  ///
+  /// This helps distinguish different git commits with the same pubspec
+  /// version.
+  String formatDescription(String containingPath, description) {
+    if (description is Map && description.containsKey('resolved-ref')) {
+      return "${description['url']} at "
+          "${description['resolved-ref'].substring(0, 6)}";
+    } else {
+      return super.formatDescription(containingPath, description);
+    }
+  }
+
   /// Two Git descriptions are equal if both their URLs and their refs are
   /// equal.
   bool descriptionsEqual(description1, description2) {
     // TODO(nweiz): Do we really want to throw an error if you have two
     // dependencies on some repo, one of which specifies a ref and one of which
     // doesn't? If not, how do we handle that case in the version solver?
-    return _getUrl(description1) == _getUrl(description2) &&
-      _getRef(description1) == _getRef(description2);
+    if (_getUrl(description1) != _getUrl(description2)) return false;
+    if (_getRef(description1) != _getRef(description2)) return false;
+
+    if (description1 is Map && description1.containsKey('resolved-ref') &&
+        description2 is Map && description2.containsKey('resolved-ref')) {
+      return description1['resolved-ref'] == description2['resolved-ref'];
+    }
+
+    return true;
   }
 
   /// Attaches a specific commit to [id] to disambiguate it.
@@ -196,22 +216,22 @@ class GitSource extends CachedSource {
       var path = _repoCachePath(id);
       if (!entryExists(path)) {
         return _clone(_getUrl(id), path, mirror: true)
-            .then((_) => _revParse(id));
+            .then((_) => _getRev(id));
       }
 
       // If [id] didn't come from a lockfile, it may be using a symbolic
       // reference. We want to get the latest version of that reference.
       var description = id.description;
       if (description is! Map || !description.containsKey('resolved-ref')) {
-        return _updateRepoCache(id).then((_) => _revParse(id));
+        return _updateRepoCache(id).then((_) => _getRev(id));
       }
 
       // If [id] did come from a lockfile, then we want to avoid running "git
       // fetch" if possible to avoid networking time and errors. See if the
       // revision exists in the repo cache before updating it.
-      return _revParse(id).catchError((error) {
+      return _getRev(id).catchError((error) {
         if (error is! git.GitException) throw error;
-        return _updateRepoCache(id).then((_) => _revParse(id));
+        return _updateRepoCache(id).then((_) => _getRev(id));
       });
     });
   }
@@ -228,12 +248,12 @@ class GitSource extends CachedSource {
     });
   }
 
-  /// Runs "git rev-parse" in the canonical clone of the repository referred to
+  /// Runs "git rev-list" in the canonical clone of the repository referred to
   /// by [id] on the effective ref of [id].
   ///
   /// This assumes that the canonical clone already exists.
-  Future<String> _revParse(PackageId id) {
-    return git.run(["rev-parse", _getEffectiveRef(id)],
+  Future<String> _getRev(PackageId id) {
+    return git.run(["rev-list", "--max-count=1", _getEffectiveRef(id)],
         workingDir: _repoCachePath(id)).then((result) => result.first);
   }
 

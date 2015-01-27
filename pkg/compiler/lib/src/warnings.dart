@@ -40,7 +40,7 @@ const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
  *
  * 8. Do not try to be cute or funny. It is extremely frustrating to work on a
  * product that crashes with a "tongue-in-cheek" message, especially if you did
- * not want to use this product to begin with with.
+ * not want to use this product to begin with.
  *
  * 9. Do not lie, that is, do not write error messages containing phrases like
  * "can't happen".  If the user ever saw this message, it would be a
@@ -1515,6 +1515,11 @@ import 'foo.dart';
 main() {}
 """]);
 
+  static const MessageKind READ_SELF_ERROR = const MessageKind(
+      "#{exception}",
+      // Don't know how to fix since the underlying error is unknown.
+      howToFix: DONT_KNOW_HOW_TO_FIX);
+
   static const MessageKind EXTRANEOUS_MODIFIER = const MessageKind(
       "Can't have modifier '#{modifier}' here.",
       howToFix: "Try removing '#{modifier}'.",
@@ -2381,9 +2386,8 @@ main() => foo();
 * Your app imports dart:mirrors via:''''''
 $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 *
-* Starting with Dart 1.9, you must use the
-* --enable-experimental-mirrors command-line flag to opt-in.
-* You can begin using this flag now if mirrors support is critical.
+* You can disable this message by using the --enable-experimental-mirrors
+* command-line flag.
 *
 * To learn what to do next, please visit:
 *    http://dartlang.org/dart2js-reflection

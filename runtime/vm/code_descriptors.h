@@ -176,7 +176,7 @@ class ExceptionHandlerList : public ZoneAllocated {
       bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
       handlers.SetHandlerInfo(i,
                               list_[i].outer_try_index,
-                              (entry_point + list_[i].pc_offset),
+                              list_[i].pc_offset,
                               list_[i].needs_stacktrace,
                               has_catch_all);
       handlers.SetHandledTypes(i, *list_[i].handler_types);

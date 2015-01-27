@@ -8,21 +8,15 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart';
 
 
 /**
  * A queue of operations in an [AnalysisServer].
  */
 class ServerOperationQueue {
-  final List<ServerOperationPriority> _analysisPriorities = [
-      ServerOperationPriority.ANALYSIS_CONTINUE,
-      ServerOperationPriority.ANALYSIS];
-
-  final AnalysisServer _server;
   final List<Queue<ServerOperation>> _queues = <Queue<ServerOperation>>[];
 
-  ServerOperationQueue(this._server) {
+  ServerOperationQueue() {
     for (int i = 0; i < ServerOperationPriority.COUNT; i++) {
       var queue = new DoubleLinkedQueue<ServerOperation>();
       _queues.add(queue);
@@ -57,26 +51,41 @@ class ServerOperationQueue {
   }
 
   /**
+   * Return the next operation to perform, or `null` if the queue is empty. This
+   * method does not change the queue.
+   */
+  ServerOperation peek() {
+    for (Queue<ServerOperation> queue in _queues) {
+      if (!queue.isEmpty) {
+        return queue.first;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Reschedules queued operations according their current priorities.
+   */
+  void reschedule() {
+    // prepare all operations
+    List<ServerOperation> operations = <ServerOperation>[];
+    for (Queue<ServerOperation> queue in _queues) {
+      operations.addAll(queue);
+      queue.clear();
+    }
+    // add all operations
+    operations.forEach(add);
+  }
+
+  /**
    * Returns the next operation to perform or `null` if empty.
    */
   ServerOperation take() {
-    // try to find a priority analysis operarion
-    for (ServerOperationPriority priority in _analysisPriorities) {
-      Queue<ServerOperation> queue = _queues[priority.ordinal];
-      for (PerformAnalysisOperation operation in queue) {
-        if (_server.isPriorityContext(operation.context)) {
-          queue.remove(operation);
-          return operation;
-        }
-      }
-    }
-    // non-priority operations
     for (Queue<ServerOperation> queue in _queues) {
       if (!queue.isEmpty) {
         return queue.removeFirst();
       }
     }
-    // empty
     return null;
   }
 }

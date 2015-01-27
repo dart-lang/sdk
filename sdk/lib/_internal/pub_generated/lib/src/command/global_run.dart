@@ -15,32 +15,32 @@ import '../utils.dart';
 
 /// Handles the `global run` pub command.
 class GlobalRunCommand extends PubCommand {
-  bool get takesArguments => true;
-  bool get allowTrailingOptions => false;
+  String get name => "run";
   String get description =>
       "Run an executable from a globally activated package.\n"
           "NOTE: We are currently optimizing this command's startup time.";
-  String get usage => "pub global run <package>:<executable> [args...]";
+  String get invocation => "pub global run <package>:<executable> [args...]";
+  bool get allowTrailingOptions => false;
 
   /// The mode for barback transformers.
-  BarbackMode get mode => new BarbackMode(commandOptions["mode"]);
+  BarbackMode get mode => new BarbackMode(argResults["mode"]);
 
   GlobalRunCommand() {
-    commandParser.addOption(
+    argParser.addOption(
         "mode",
         defaultsTo: "release",
         help: 'Mode to run transformers in.');
   }
 
-  Future onRun() {
+  Future run() {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
         join0() {
           var package;
-          var executable = commandOptions.rest[0];
+          var executable = argResults.rest[0];
           join1() {
-            var args = commandOptions.rest.skip(1).toList();
+            var args = argResults.rest.skip(1).toList();
             join2() {
               new Future.value(
                   globals.runExecutable(package, executable, args, mode: mode)).then((x0) {
@@ -60,7 +60,7 @@ class GlobalRunCommand extends PubCommand {
               }, onError: completer0.completeError);
             }
             if (p.split(executable).length > 1) {
-              usageError(
+              usageException(
                   'Cannot run an executable in a subdirectory of a global ' + 'package.');
               join2();
             } else {
@@ -77,8 +77,8 @@ class GlobalRunCommand extends PubCommand {
             join1();
           }
         }
-        if (commandOptions.rest.isEmpty) {
-          usageError("Must specify an executable to run.");
+        if (argResults.rest.isEmpty) {
+          usageException("Must specify an executable to run.");
           join0();
         } else {
           join0();

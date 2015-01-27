@@ -20,13 +20,14 @@ final _arrow = getSpecial('\u2192', '=>');
 
 /// Handles the `build` pub command.
 class BuildCommand extends BarbackCommand {
+  String get name => "build";
   String get description => "Apply transformers to build a package.";
-  String get usage => "pub build [options] [directories...]";
+  String get invocation => "pub build [options] [directories...]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-build.html";
   List<String> get aliases => const ["deploy", "settle-up"];
 
   /// The path to the application's build output directory.
-  String get outputDirectory => commandOptions["output"];
+  String get outputDirectory => argResults["output"];
 
   List<String> get defaultSourceDirectories => ["web"];
 
@@ -34,11 +35,11 @@ class BuildCommand extends BarbackCommand {
   int builtFiles = 0;
 
   BuildCommand() {
-    commandParser.addOption("format",
+    argParser.addOption("format",
         help: "How output should be displayed.",
         allowed: ["text", "json"], defaultsTo: "text");
 
-    commandParser.addOption("output", abbr: "o",
+    argParser.addOption("output", abbr: "o",
         help: "Directory to write build outputs to.",
         defaultsTo: "build");
   }

@@ -850,6 +850,17 @@ static void DisassembleCode(const Function& function, bool optimized) {
     OS::Print("}\n");
   }
 
+  const Array& object_pool = Array::Handle(
+      Instructions::Handle(code.instructions()).object_pool());
+  if (object_pool.Length() > 0) {
+    OS::Print("Object Pool: {\n");
+    for (intptr_t i = 0; i < object_pool.Length(); i++) {
+      OS::Print("  %" Pd ": %s\n", i,
+          Object::Handle(object_pool.At(i)).ToCString());
+    }
+    OS::Print("}\n");
+  }
+
   OS::Print("Stackmaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
     const Array& stackmap_table = Array::Handle(code.stackmaps());
@@ -931,15 +942,17 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  StackZone stack_zone(isolate);
+  Zone* zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function = new(isolate) ParsedFunction(
-        isolate, Function::ZoneHandle(isolate, function.raw()));
+    ParsedFunction* parsed_function = new(zone) ParsedFunction(
+        thread, Function::ZoneHandle(zone, function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
@@ -1136,7 +1149,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
@@ -1169,7 +1183,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // We compile the function here, even though InvokeFunction() below
     // would compile func automatically. We are checking fewer invariants
     // here.
-    ParsedFunction* parsed_function = new ParsedFunction(isolate, func);
+    ParsedFunction* parsed_function = new ParsedFunction(thread, func);
     parsed_function->SetNodeSequence(fragment);
     parsed_function->set_default_parameter_values(Object::null_array());
     fragment->scope()->AddVariable(parsed_function->EnsureExpressionTemp());

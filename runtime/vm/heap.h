@@ -58,11 +58,6 @@ class Heap {
     kGCTestCase,
   };
 
-  // Default allocation sizes in MB for the old gen and code heaps.
-  static const intptr_t kHeapSizeInMWords = 128;
-  static const intptr_t kHeapSizeInMB = kHeapSizeInMWords * kWordSize;
-  static const intptr_t kCodeHeapSizeInMB = 18;
-
 #if defined(DEBUG)
   // Pattern for unused new space and swept old space.
   static const uint64_t kZap64Bits = 0xf3f3f3f3f3f3f3f3;
@@ -161,7 +156,8 @@ class Heap {
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
                    intptr_t max_new_gen_words,
-                   intptr_t max_old_gen_words);
+                   intptr_t max_old_gen_words,
+                   intptr_t max_external_words);
 
   // Verify that all pointers in the heap point to the heap.
   bool Verify(MarkExpectation mark_expectation = kForbidMarked) const;
@@ -284,7 +280,8 @@ class Heap {
 
   Heap(Isolate* isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
-       intptr_t max_old_gen_words);
+       intptr_t max_old_gen_words,
+       intptr_t max_external_words);
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);

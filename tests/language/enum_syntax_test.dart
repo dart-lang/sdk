@@ -52,6 +52,7 @@ class Rainbow implements Color {}  /// 21: compile-time error
 class Rainbow extends List with Color {}  /// 22: compile-time error
 
 main() {
+  Nada x; /// 01: continued
   var x = ComeAgain.zipfel;  /// 02: continued
   var x = ComeAgain.zipfel;  /// 03: continued
   var x = ComeAgain.zipfel;  /// 04: continued

@@ -189,16 +189,28 @@ class Builder extends cps_ir.Visitor<Node> {
         body, initializers, node.localConstants, node.defaultParameterValues);
   }
 
-
+  /// Returns a list of variables corresponding to the arguments to a method
+  /// call or similar construct.
+  ///
+  /// The `readCount` for these variables will be incremented.
+  ///
+  /// The list will be typed as a list of [Expression] to allow inplace updates
+  /// on the list during the rewrite phases.
   List<Expression> translateArguments(List<cps_ir.Reference> args) {
     return new List<Expression>.generate(args.length,
          (int index) => getVariableReference(args[index]),
          growable: false);
   }
 
+  /// Returns the list of variables corresponding to the arguments to a join
+  /// continuation.
+  ///
+  /// The `readCount` of these variables will not be incremented. Instead,
+  /// [buildPhiAssignments] will handle the increment, if necessary.
   List<Variable> translatePhiArguments(List<cps_ir.Reference> args) {
     return new List<Variable>.generate(args.length,
-         (int index) => getVariableReference(args[index]));
+         (int index) => getVariable(args[index].definition),
+         growable: false);
   }
 
   Statement buildContinuationAssignment(
@@ -247,6 +259,8 @@ class Builder extends cps_ir.Visitor<Node> {
 
     Statement first, current;
     void addAssignment(Variable dst, Variable src) {
+      ++src.readCount;
+      // `dst.writeCount` will be updated by the Assign constructor.
       if (first == null) {
         first = current = new Assign(dst, src, null);
       } else {
@@ -345,22 +359,34 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   Statement visitLetCont(cps_ir.LetCont node) {
-    Label label;
-    if (node.continuation.hasMultipleUses) {
-      label = new Label();
-      labels[node.continuation] = label;
+    // Introduce labels for continuations that need them.
+    for (cps_ir.Continuation continuation in node.continuations) {
+      if (continuation.hasMultipleUses) {
+        labels[continuation] = new Label();
+      }
     }
     Statement body = visit(node.body);
-    // The continuation's body is not always translated directly here because
-    // it may have been already translated:
+    // Continuations are bound at the same level, but they have to be
+    // translated as if nested.  This is because the body can invoke any
+    // of them from anywhere, so it must be nested inside all of them.
+    //
+    // The continuation bodies are not always translated directly here because
+    // they may have been already translated:
     //   * For singly-used continuations, the continuation's body is
     //     translated at the site of the continuation invocation.
     //   * For recursive continuations, there is a single non-recursive
     //     invocation.  The continuation's body is translated at the site
     //     of the non-recursive continuation invocation.
     // See visitInvokeContinuation for the implementation.
-    if (label == null || node.continuation.isRecursive) return body;
-    return new LabeledStatement(label, body, visit(node.continuation.body));
+    Statement current = body;
+    for (cps_ir.Continuation continuation in node.continuations.reversed) {
+      Label label = labels[continuation];
+      if (label != null && !continuation.isRecursive) {
+        current =
+            new LabeledStatement(label, current, visit(continuation.body));
+      }
+    }
+    return current;
   }
 
   Statement visitInvokeStatic(cps_ir.InvokeStatic node) {
@@ -377,9 +403,11 @@ class Builder extends cps_ir.Visitor<Node> {
     return continueWithExpression(node.continuation, invoke);
   }
 
-  Statement visitInvokeSuperMethod(cps_ir.InvokeSuperMethod node) {
+  Statement visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly node) {
+    Expression receiver = getVariableReference(node.receiver);
     List<Expression> arguments = translateArguments(node.arguments);
-    Expression invoke = new InvokeSuperMethod(node.selector, arguments);
+    Expression invoke = new InvokeMethodDirectly(receiver, node.target,
+        node.selector, arguments);
     return continueWithExpression(node.continuation, invoke);
   }
 

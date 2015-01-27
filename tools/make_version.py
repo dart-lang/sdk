@@ -35,9 +35,10 @@ VM_SNAPSHOT_FILES=[
   'symbols.cc',
 ]
 
-def makeVersionString():
+def makeVersionString(quiet):
   version_string = utils.GetVersion()
-  debugLog("Returning version string: %s " % version_string)
+  if not quiet:
+    debugLog("Returning version string: %s " % version_string)
   return version_string
 
 
@@ -50,9 +51,9 @@ def makeSnapshotHashString():
   return vmhash.hexdigest()
 
 
-def makeFile(output_file, input_file):
+def makeFile(quiet, output_file, input_file):
   version_cc_text = open(input_file).read()
-  version_string = makeVersionString()
+  version_string = makeVersionString(quiet)
   version_cc_text = version_cc_text.replace("{{VERSION_STR}}",
                                             version_string)
   version_time = time.ctime(time.time())
@@ -69,6 +70,9 @@ def main(args):
   try:
     # Parse input.
     parser = OptionParser()
+    parser.add_option("-q", "--quiet",
+                      action="store_true", default=False,
+                      help="disable console output")
     parser.add_option("--output",
                       action="store", type="string",
                       help="output file name")
@@ -88,7 +92,7 @@ def main(args):
     for arg in args:
       files.append(arg)
 
-    if not makeFile(options.output, options.input):
+    if not makeFile(options.quiet, options.output, options.input):
       return -1
 
     return 0

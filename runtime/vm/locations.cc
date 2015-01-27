@@ -23,7 +23,7 @@ intptr_t RegisterSet::RegisterCount(intptr_t registers) {
 }
 
 
-LocationSummary::LocationSummary(Isolate* isolate,
+LocationSummary::LocationSummary(Zone* zone,
                                  intptr_t input_count,
                                  intptr_t temp_count,
                                  LocationSummary::ContainsCall contains_call)
@@ -35,18 +35,18 @@ LocationSummary::LocationSummary(Isolate* isolate,
 #if defined(DEBUG)
   writable_inputs_ = 0;
 #endif
-  input_locations_ = isolate->current_zone()->Alloc<Location>(num_inputs_);
-  temp_locations_ = isolate->current_zone()->Alloc<Location>(num_temps_);
+  input_locations_ = zone->Alloc<Location>(num_inputs_);
+  temp_locations_ = zone->Alloc<Location>(num_temps_);
 }
 
 
 LocationSummary* LocationSummary::Make(
-    Isolate* isolate,
+    Zone* zone,
     intptr_t input_count,
     Location out,
     LocationSummary::ContainsCall contains_call) {
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, input_count, 0, contains_call);
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, input_count, 0, contains_call);
   for (intptr_t i = 0; i < input_count; i++) {
     summary->set_in(i, Location::RequiresRegister());
   }

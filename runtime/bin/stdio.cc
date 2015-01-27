@@ -45,8 +45,20 @@ void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
+  if (!Dart_IsInteger(Dart_GetNativeArgument(args, 0))) {
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+    return;
+  }
+  intptr_t fd = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  if (fd != 1 && fd != 2) {
+    Dart_PropagateError(Dart_NewApiError("Terminal fd must be 1 or 2"));
+  }
+
   int size[2];
-  if (Stdout::GetTerminalSize(size)) {
+  if (Stdout::GetTerminalSize(fd, size)) {
     Dart_Handle list = Dart_NewList(2);
     Dart_ListSetAt(list, 0, Dart_NewInteger(size[0]));
     Dart_ListSetAt(list, 1, Dart_NewInteger(size[1]));

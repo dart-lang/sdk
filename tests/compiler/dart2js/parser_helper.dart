@@ -23,10 +23,6 @@ export "package:compiler/src/dart2jslib.dart"
 export "package:compiler/src/scanner/scannerlib.dart";
 
 class LoggerCanceler implements DiagnosticListener {
-  void cancel(String reason, {node, token, instruction, element}) {
-    throw new CompilerCancelledException(reason);
-  }
-
   void log(message) {
     print(message);
   }

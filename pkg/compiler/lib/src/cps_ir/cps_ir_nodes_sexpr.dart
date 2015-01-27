@@ -76,20 +76,31 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitLetCont(LetCont node) {
-    String cont = newContinuationName(node.continuation);
-    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
-    // should recurse to [visit].  Currently we can't do that, because the
-    // unstringifier_test produces [LetConts] with dummy arguments on them.
-    String parameters = node.continuation.parameters
-        .map((p) => '${decorator(p, newValueName(p))}')
-        .join(' ');
-    String contBody =
-        indentBlock(() => indentBlock(() => visit(node.continuation.body)));
+    String conts;
+    bool first = true;
+    for (Continuation continuation in node.continuations) {
+      String name = newContinuationName(continuation);
+      if (continuation.isRecursive) name = 'rec $name';
+      // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
+      // should recurse to [visit].  Currently we can't do that, because the
+      // unstringifier_test produces [LetConts] with dummy arguments on them.
+      String parameters = continuation.parameters
+          .map((p) => '${decorator(p, newValueName(p))}')
+          .join(' ');
+      String body =
+          indentBlock(() => indentBlock(() => visit(continuation.body)));
+      if (first) {
+        first = false;
+        conts = '($name ($parameters)\n$body)';
+      } else {
+        // Each subsequent line is indented additional spaces to align it
+        // with the previous continuation.
+        String indent = '$indentation${' ' * '(LetCont ('.length}';
+        conts = '$conts\n$indent($name ($parameters)\n$body)';
+      }
+    }
     String body = indentBlock(() => visit(node.body));
-    String op = node.continuation.isRecursive ? 'LetCont*' : 'LetCont';
-    return '$indentation($op ($cont ($parameters)\n'
-           '$contBody)\n'
-           '$body)';
+    return '$indentation($LetCont ($conts)\n$body)';
   }
 
   String formatArguments(Invoke node) {
@@ -99,7 +110,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
         node.arguments.getRange(0, positionalArgumentCount).map(access));
     for (int i = 0; i < node.selector.namedArgumentCount; ++i) {
       String name = node.selector.namedArguments[i];
-      Definition arg = node.arguments[positionalArgumentCount + i].definition;
+      String arg = access(node.arguments[positionalArgumentCount + i]);
       args.add("($name: $arg)");
     }
     return '(${args.join(' ')})';
@@ -120,11 +131,12 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     return '$indentation(InvokeMethod $rcv $name $args $cont)';
   }
 
-  String visitInvokeSuperMethod(InvokeSuperMethod node) {
+  String visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    String receiver = access(node.receiver);
     String name = node.selector.name;
     String cont = access(node.continuation);
     String args = formatArguments(node);
-    return '$indentation(InvokeSuperMethod $name $args $cont)';
+    return '$indentation(InvokeMethodDirectly $receiver $name $args $cont)';
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {
@@ -146,11 +158,10 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
-    String cont = access(node.continuation);
+    String name = access(node.continuation);
+    if (node.isRecursive) name = 'rec $name';
     String args = node.arguments.map(access).join(' ');
-    String op =
-        node.isRecursive ? 'InvokeContinuation*' : 'InvokeContinuation';
-    return '$indentation($op $cont ($args))';
+    return '$indentation($InvokeContinuation $name ($args))';
   }
 
   String visitBranch(Branch node) {
@@ -246,10 +257,10 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     return '(CreateBox)';
   }
 
-  String visitCreateClosureClass(CreateClosureClass node) {
+  String visitCreateInstance(CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(access).join(' ');
-    return '(CreateClosureClass $className ($arguments))';
+    return '(CreateInstance $className ($arguments))';
   }
 
   String visitIdentical(Identical node) {

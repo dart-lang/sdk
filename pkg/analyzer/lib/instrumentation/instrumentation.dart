@@ -76,6 +76,12 @@ class InstrumentationService {
   InstrumentationService(this._instrumentationServer);
 
   /**
+   * Return `true` if this [InstrumentationService] was initialized with a
+   * non-`null` server (and hence instrumentation is active).
+   */
+  bool get isActive => _instrumentationServer != null;
+
+  /**
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
@@ -106,7 +112,8 @@ class InstrumentationService {
   void logFileRead(String path, int modificationTime, String content) {
     if (_instrumentationServer != null) {
       String timeStamp = _toString(modificationTime);
-      _instrumentationServer.log(_join([TAG_FILE_READ, path, timeStamp, content]));
+      _instrumentationServer.log(
+          _join([TAG_FILE_READ, path, timeStamp, content]));
     }
   }
 
@@ -117,7 +124,8 @@ class InstrumentationService {
    */
   void logLogEntry(String level, DateTime time, String message) {
     if (_instrumentationServer != null) {
-      String timeStamp = time == null ? 'null' : time.millisecondsSinceEpoch.toString();
+      String timeStamp =
+          time == null ? 'null' : time.millisecondsSinceEpoch.toString();
       _instrumentationServer.log(
           _join([TAG_LOG_ENTRY, level, timeStamp, message]));
     }
@@ -167,6 +175,29 @@ class InstrumentationService {
    */
   void logResponse(String response) {
     _log(TAG_RESPONSE, response);
+  }
+
+  /**
+   * Signal that the client has started analysis server.
+   * This method should be invoked exactly one time.
+   */
+  void logVersion(String uuid, String clientId, String clientVersion,
+      String serverVersion, String sdkVersion) {
+
+    String normalize(String value) =>
+        value != null && value.length > 0 ? value : 'unknown';
+
+    if (_instrumentationServer != null) {
+      _instrumentationServer.logWithPriority(
+          _join(
+              [
+                  TAG_VERSION,
+                  uuid,
+                  normalize(clientId),
+                  normalize(clientVersion),
+                  serverVersion,
+                  sdkVersion]));
+    }
   }
 
   /**

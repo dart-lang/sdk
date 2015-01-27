@@ -1479,8 +1479,9 @@ class Types implements DartTypes {
         return intersection.first;
       }
     }
-    invariant(CURRENT_ELEMENT_SPANNABLE, false,
-        message: 'No least upper bound computed for $a and $b.');
+
+    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+        'No least upper bound computed for $a and $b.');
     return null;
   }
 

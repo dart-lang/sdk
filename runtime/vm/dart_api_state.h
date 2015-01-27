@@ -16,7 +16,7 @@
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/visitor.h"
 
 #include "vm/handles_impl.h"
@@ -617,17 +617,18 @@ class ApiNativeScope {
   ApiNativeScope() {
     // Currently no support for nesting native scopes.
     ASSERT(Current() == NULL);
-    Thread::SetThreadLocal(Api::api_native_key_, reinterpret_cast<uword>(this));
+    OSThread::SetThreadLocal(Api::api_native_key_,
+                                reinterpret_cast<uword>(this));
   }
 
   ~ApiNativeScope() {
     ASSERT(Current() == this);
-    Thread::SetThreadLocal(Api::api_native_key_, 0);
+    OSThread::SetThreadLocal(Api::api_native_key_, 0);
   }
 
   static inline ApiNativeScope* Current() {
     return reinterpret_cast<ApiNativeScope*>(
-        Thread::GetThreadLocal(Api::api_native_key_));
+        OSThread::GetThreadLocal(Api::api_native_key_));
   }
 
   Zone* zone() { return zone_.GetZone(); }

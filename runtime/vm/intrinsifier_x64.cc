@@ -794,7 +794,18 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 
 
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
-  // TODO(sra): Implement using bsrq.
+  ASSERT(kSmiTagShift == 1);
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Index.
+  // XOR with sign bit to complement bits if value is negative.
+  __ movq(RCX, RAX);
+  __ sarq(RCX, Immediate(63));  // All 0 or all 1.
+  __ xorq(RAX, RCX);
+  // BSR does not write the destination register if source is zero.  Put a 1 in
+  // the Smi tag bit to ensure BSR writes to destination register.
+  __ orq(RAX, Immediate(kSmiTagMask));
+  __ bsrq(RAX, RAX);
+  __ SmiTag(RAX);
+  __ ret();
 }
 
 

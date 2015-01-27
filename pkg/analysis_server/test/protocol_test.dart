@@ -149,6 +149,7 @@ class RequestTest {
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
+    expect(request.clientRequestTime, isNull);
   }
 
   void test_fromJson_invalidId() {
@@ -169,6 +170,25 @@ class RequestTest {
     String json = '{"id":"one","method":"aMethod","params":"foobar"}';
     Request request = new Request.fromString(json);
     expect(request, isNull);
+  }
+
+  void test_fromJson_withBadClientTime() {
+    Request original = new Request('one', 'aMethod', null, 347);
+    Map<String, Object> map = original.toJson();
+    // Insert bad value - should be int but client sent string instead
+    map[Request.CLIENT_REQUEST_TIME] = '347';
+    String json = JSON.encode(map);
+    Request request = new Request.fromString(json);
+    expect(request, isNull);
+  }
+
+  void test_fromJson_withClientTime() {
+    Request original = new Request('one', 'aMethod', null, 347);
+    String json = JSON.encode(original.toJson());
+    Request request = new Request.fromString(json);
+    expect(request.id, equals('one'));
+    expect(request.method, equals('aMethod'));
+    expect(request.clientRequestTime, 347);
   }
 
   void test_fromJson_withParams() {
@@ -223,8 +243,7 @@ class ResponseTest {
   }
 
   void test_create_unanalyzedPriorityFiles() {
-    Response response =
-        new Response.unanalyzedPriorityFiles('0', 'file list');
+    Response response = new Response.unanalyzedPriorityFiles('0', 'file list');
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({

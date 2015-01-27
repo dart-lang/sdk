@@ -45,7 +45,7 @@ File::~File() {
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  if (handle_->fd() == _fileno(stdout)) {
+  if (handle_->fd() == _fileno(stdout) || handle_->fd() == _fileno(stderr)) {
     int fd = _open("NUL", _O_WRONLY);
     ASSERT(fd >= 0);
     _dup2(fd, handle_->fd());

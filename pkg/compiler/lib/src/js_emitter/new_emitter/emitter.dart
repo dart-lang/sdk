@@ -4,6 +4,7 @@
 
 library dart2js.new_js_emitter.emitter;
 
+import '../program_builder.dart' show ProgramBuilder;
 import '../model.dart';
 import 'model_emitter.dart';
 import '../../common.dart';
@@ -11,8 +12,7 @@ import '../../elements/elements.dart' show FieldElement;
 import '../../js/js.dart' as js;
 
 import '../../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
-import '../../js_emitter/js_emitter.dart' as emitterTask show
-    CodeEmitterTask,
+import '../js_emitter.dart' as emitterTask show
     Emitter;
 
 class Emitter implements emitterTask.Emitter {
@@ -26,7 +26,8 @@ class Emitter implements emitterTask.Emitter {
         _emitter = new ModelEmitter(compiler, namer);
 
   @override
-  int emitProgram(Program program) {
+  int emitProgram(ProgramBuilder programBuilder) {
+    Program program = programBuilder.buildProgram();
     return _emitter.emitProgram(program);
   }
 
@@ -70,6 +71,12 @@ class Emitter implements emitterTask.Emitter {
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
     return _emitter.generateEmbeddedGlobalAccess(global);
+  }
+
+  @override
+  // TODO(herhut): Use a single shared function.
+  js.Expression generateFunctionThatReturnsNull() {
+    return js.js('function() {}');
   }
 
   @override
@@ -131,11 +138,6 @@ class Emitter implements emitterTask.Emitter {
     // TODO(floitsch): minify 'ensureResolved'.
     // TODO(floitsch): don't emit `ensureResolved` for eager classes.
     return js.js('#.ensureResolved()', _globalPropertyAccess(element));
-  }
-
-  @override
-  js.PropertyAccess closureClassConstructorAccess(ClassElement element) {
-    return _globalPropertyAccess(element);
   }
 
   @override

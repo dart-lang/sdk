@@ -12,6 +12,8 @@
       'type': 'none',
       'dependencies': [
         'dart_bootstrap#host',
+        # We use packages for building
+        '../pkg/pkg.gyp:pkg_packages#target',
       ],
       'toolsets': ['host'],
       'actions': [
@@ -19,6 +21,7 @@
           'action_name': 'get_obsevatory_dependencies',
           'inputs': [
             '../../tools/observatory_tool.py',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             'pubspec.yaml',
           ],
           'outputs': [
@@ -178,6 +181,7 @@
           'inputs': [
             '../../tools/observatory_tool.py',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+            'pubspec.lock',
             '<@(_sources)',
           ],
           'outputs': [

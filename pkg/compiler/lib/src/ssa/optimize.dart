@@ -1843,6 +1843,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerAllocation(instruction);
     int argumentIndex = 0;
     instruction.element.forEachInstanceField((_, Element member) {
+      if (compiler.elementHasCompileTimeError(member)) return;
       memorySet.registerFieldValue(
           member, instruction, instruction.inputs[argumentIndex++]);
     }, includeSuperAndInjectedMembers: true);

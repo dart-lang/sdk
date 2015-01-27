@@ -306,11 +306,31 @@ static void CloseProcessPipes(HANDLE handles1[2],
 
 static int SetOsErrorMessage(char** os_error_message) {
   int error_code = GetLastError();
-  static const int kMaxMessageLength = 256;
+  const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(error_code, message, kMaxMessageLength);
   *os_error_message = StringUtils::WideToUtf8(message);
   return error_code;
+}
+
+
+// Open an inheritable handle to NUL.
+static HANDLE OpenNul() {
+  SECURITY_ATTRIBUTES inherit_handle;
+  inherit_handle.nLength = sizeof(SECURITY_ATTRIBUTES);
+  inherit_handle.bInheritHandle = TRUE;
+  inherit_handle.lpSecurityDescriptor = NULL;
+  HANDLE nul = CreateFile(L"NUL",
+                          GENERIC_READ | GENERIC_WRITE,
+                          0,
+                          &inherit_handle,
+                          OPEN_EXISTING,
+                          0,
+                          NULL);
+  if (nul == INVALID_HANDLE_VALUE) {
+    Log::PrintErr("CloseHandle failed %d\n", GetLastError());
+  }
+  return nul;
 }
 
 
@@ -385,6 +405,7 @@ int Process::Start(const char* path,
                    const char* working_directory,
                    char* environment[],
                    intptr_t environment_length,
+                   bool detach,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
@@ -405,29 +426,56 @@ int Process::Start(const char* path,
     return status;
   }
 
-  if (!CreateProcessPipe(stdin_handles, pipe_names[0], kInheritRead)) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    return error_code;
-  }
-  if (!CreateProcessPipe(stdout_handles, pipe_names[1], kInheritWrite)) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    return error_code;
-  }
-  if (!CreateProcessPipe(stderr_handles, pipe_names[2], kInheritWrite)) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    return error_code;
-  }
-  if (!CreateProcessPipe(exit_handles, pipe_names[3], kInheritNone)) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    return error_code;
+  if (!detach) {
+    // Open pipes for stdin, stdout, stderr and for communicating the exit
+    // code.
+    if (!CreateProcessPipe(stdin_handles, pipe_names[0], kInheritRead)) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
+    if (!CreateProcessPipe(stdout_handles, pipe_names[1], kInheritWrite)) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
+    if (!CreateProcessPipe(stderr_handles, pipe_names[2], kInheritWrite)) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
+    if (!CreateProcessPipe(exit_handles, pipe_names[3], kInheritNone)) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
+  } else {
+    // Open NUL for stdin, stdout and stderr.
+    stdin_handles[kReadHandle] = OpenNul();
+    if (stdin_handles[kReadHandle] == INVALID_HANDLE_VALUE) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
+    stdout_handles[kWriteHandle] = OpenNul();
+    if (stdout_handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
+    stderr_handles[kWriteHandle] = OpenNul();
+    if (stderr_handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
   }
 
   // Setup info structures.
@@ -582,6 +630,9 @@ int Process::Start(const char* path,
   // Create process.
   DWORD creation_flags =
       EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
+  if (detach) {
+    creation_flags |= DETACHED_PROCESS;
+  }
   BOOL result = CreateProcessW(NULL,   // ApplicationName
                                command_line,
                                NULL,   // ProcessAttributes
@@ -592,7 +643,6 @@ int Process::Start(const char* path,
                                system_working_directory,
                                reinterpret_cast<STARTUPINFOW*>(&startup_info),
                                &process_info);
-
   // Deallocate command-line and environment block strings.
   delete[] command_line;
   delete[] environment_block;
@@ -612,22 +662,24 @@ int Process::Start(const char* path,
     return error_code;
   }
 
-  ProcessInfoList::AddProcess(process_info.dwProcessId,
-                              process_info.hProcess,
-                              exit_handles[kWriteHandle]);
-
-  // Connect the three std streams.
-  FileHandle* stdin_handle = new FileHandle(stdin_handles[kWriteHandle]);
   CloseHandle(stdin_handles[kReadHandle]);
-  FileHandle* stdout_handle = new FileHandle(stdout_handles[kReadHandle]);
   CloseHandle(stdout_handles[kWriteHandle]);
-  FileHandle* stderr_handle = new FileHandle(stderr_handles[kReadHandle]);
   CloseHandle(stderr_handles[kWriteHandle]);
-  FileHandle* exit_handle = new FileHandle(exit_handles[kReadHandle]);
-  *in = reinterpret_cast<intptr_t>(stdout_handle);
-  *out = reinterpret_cast<intptr_t>(stdin_handle);
-  *err = reinterpret_cast<intptr_t>(stderr_handle);
-  *exit_handler = reinterpret_cast<intptr_t>(exit_handle);
+  if (!detach) {
+    ProcessInfoList::AddProcess(process_info.dwProcessId,
+                                process_info.hProcess,
+                                exit_handles[kWriteHandle]);
+
+    // Connect the three std streams.
+    FileHandle* stdin_handle = new FileHandle(stdin_handles[kWriteHandle]);
+    FileHandle* stdout_handle = new FileHandle(stdout_handles[kReadHandle]);
+    FileHandle* stderr_handle = new FileHandle(stderr_handles[kReadHandle]);
+    FileHandle* exit_handle = new FileHandle(exit_handles[kReadHandle]);
+    *in = reinterpret_cast<intptr_t>(stdout_handle);
+    *out = reinterpret_cast<intptr_t>(stdin_handle);
+    *err = reinterpret_cast<intptr_t>(stderr_handle);
+    *exit_handler = reinterpret_cast<intptr_t>(exit_handle);
+  }
 
   CloseHandle(process_info.hThread);
 
@@ -833,16 +885,22 @@ bool Process::Wait(intptr_t pid,
 
 
 bool Process::Kill(intptr_t id, int signal) {
-  USE(signal);  // signal is not used on windows.
+  USE(signal);  // signal is not used on Windows.
   HANDLE process_handle;
   HANDLE wait_handle;
   HANDLE exit_pipe;
+  // First check the process info list for the process to get a handle to it.
   bool success = ProcessInfoList::LookupProcess(id,
                                                 &process_handle,
                                                 &wait_handle,
                                                 &exit_pipe);
-  // The process is already dead.
-  if (!success) return false;
+  // For detached processes we don't have the process registered in the
+  // process info list. Try to look it up through the OS.
+  if (!success) {
+    process_handle = OpenProcess(PROCESS_TERMINATE, FALSE, id);
+    // The process is already dead.
+    if (process_handle == INVALID_HANDLE_VALUE) return false;
+  }
   BOOL result = TerminateProcess(process_handle, -1);
   return result ? true : false;
 }

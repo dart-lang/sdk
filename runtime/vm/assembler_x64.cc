@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/cpu.h"
 #include "vm/heap.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
@@ -37,16 +38,15 @@ Assembler::Assembler(bool use_far_branches)
     // at the same index.
     object_pool_.Add(Object::null_object(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
-    // Not adding Object::null() to the index table. It is at index 0 in the
-    // object pool, but the HashMap uses 0 to indicate not found.
+    object_pool_index_table_.Insert(ObjIndexPair(&Object::null_object(), 0));
 
     object_pool_.Add(Bool::True(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
-    object_pool_index_table_.Insert(ObjIndexPair(Bool::True().raw(), 1));
+    object_pool_index_table_.Insert(ObjIndexPair(&Bool::True(), 1));
 
     object_pool_.Add(Bool::False(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
-    object_pool_index_table_.Insert(ObjIndexPair(Bool::False().raw(), 2));
+    object_pool_index_table_.Insert(ObjIndexPair(&Bool::False(), 2));
 
     const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
 
@@ -2397,6 +2397,17 @@ void Assembler::notq(Register reg) {
   EmitUint8(0xD0 | (reg & 7));
 }
 
+
+void Assembler::bsrq(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xBD);
+  EmitOperand(dst & 7, operand);
+}
+
+
 void Assembler::btq(Register base, Register offset) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(base);
@@ -2559,6 +2570,14 @@ void Assembler::jmp(Register reg) {
 }
 
 
+void Assembler::jmp(const Address& dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(4, dst, REX_NONE);
+  EmitUint8(0xFF);
+  EmitOperand(4, dst);
+}
+
+
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (VerifiedMemory::enabled()) {
@@ -2600,15 +2619,18 @@ void Assembler::jmp(const ExternalLabel* label) {
 void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
   ASSERT(allow_constant_pool());
   intptr_t call_start = buffer_.GetPosition();
-  LoadExternalLabel(TMP, label, kPatchable, pp);
-  jmp(TMP);
-  ASSERT((buffer_.GetPosition() - call_start) == kJmpExternalLabelSize);
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, kPatchable));
+  // Patchable jumps always use a 32-bit immediate encoding.
+  jmp(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
+  ASSERT((buffer_.GetPosition() - call_start) == JumpPattern::kLengthInBytes);
 }
 
 
 void Assembler::Jmp(const ExternalLabel* label, Register pp) {
-  LoadExternalLabel(TMP, label, kNotPatchable, pp);
-  jmp(TMP);
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, kNotPatchable));
+  jmp(Address(pp, offset - kHeapObjectTag));
 }
 
 
@@ -2772,15 +2794,8 @@ intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
   // If the object is not patchable, check if we've already got it in the
   // object pool.
   if (patchable == kNotPatchable) {
-    // Special case for Object::null(), which is always at object_pool_ index 0
-    // because Lookup() below returns 0 when the object is not mapped in the
-    // table.
-    if (obj.raw() == Object::null()) {
-      return 0;
-    }
-
-    intptr_t idx = object_pool_index_table_.Lookup(obj.raw());
-    if (idx != 0) {
+    intptr_t idx = object_pool_index_table_.Lookup(&obj);
+    if (idx != ObjIndexPair::kNoIndex) {
       ASSERT(patchable_pool_entries_[idx] == kNotPatchable);
       return idx;
     }
@@ -2791,7 +2806,7 @@ intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
   if (patchable == kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.
     object_pool_index_table_.Insert(
-        ObjIndexPair(obj.raw(), object_pool_.Length() - 1));
+        ObjIndexPair(&obj, object_pool_.Length() - 1));
   }
   return object_pool_.Length() - 1;
 }
@@ -2842,10 +2857,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) {
   }
   ASSERT(object.IsNotTemporaryScopedHandle());
   ASSERT(object.IsOld());
-  return (Isolate::Current() != Dart::vm_isolate()) &&
-         // Not in the VMHeap, OR is one of the VMHeap objects we put in every
-         // object pool.
-         (!object.InVMHeap() || IsAlwaysInConstantPool(object));
+  return (Isolate::Current() != Dart::vm_isolate());
 }
 
 
@@ -3416,61 +3428,26 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 
 void Assembler::LoadPoolPointer(Register pp) {
-  Label next;
-  call(&next);
-  Bind(&next);
-
   // Load new pool pointer.
+  const intptr_t kRIPRelativeMovqSize = 7;
+  const intptr_t entry_to_rip_offset = CodeSize() + kRIPRelativeMovqSize;
   const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset() +
-      CodeSize();
-  popq(pp);
-  movq(pp, Address(pp, -object_pool_pc_dist));
-}
-
-
-void Assembler::EnterDartFrame(intptr_t frame_size) {
-  EnterFrame(0);
-
-  Label dart_entry;
-  call(&dart_entry);
-  Bind(&dart_entry);
-  // The runtime system assumes that the code marker address is
-  // kEntryPointToPcMarkerOffset bytes from the entry.  If there is any code
-  // generated before entering the frame, the address needs to be adjusted.
-  const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset() +
-      CodeSize();
-  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
-  if (offset != 0) {
-    addq(Address(RSP, 0), Immediate(offset));
-  }
-  // Save caller's pool pointer
-  pushq(PP);
-
-  // Load callee's pool pointer.
-  movq(PP, Address(RSP, 1 * kWordSize));
-  movq(PP, Address(PP, -object_pool_pc_dist - offset));
-
-  if (frame_size != 0) {
-    subq(RSP, Immediate(frame_size));
-  }
+      Instructions::HeaderSize() - Instructions::object_pool_offset();
+  movq(pp, Address::AddressRIPRelative(
+      -entry_to_rip_offset - object_pool_pc_dist));
+  ASSERT(CodeSize() == entry_to_rip_offset);
 }
 
 
 void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
                                        Register new_pp,
                                        Register pc_marker_override) {
-  if (pc_marker_override == kNoRegister) {
-    EnterDartFrame(frame_size);
-  } else {
-    EnterFrame(0);
-    pushq(pc_marker_override);
-    pushq(PP);
-    movq(PP, new_pp);
-    if (frame_size != 0) {
-      subq(RSP, Immediate(frame_size));
-    }
+  EnterFrame(0);
+  pushq(pc_marker_override);
+  pushq(PP);
+  movq(PP, new_pp);
+  if (frame_size != 0) {
+    subq(RSP, Immediate(frame_size));
   }
 }
 
@@ -3490,30 +3467,8 @@ void Assembler::LeaveDartFrame() {
 void Assembler::EnterOsrFrame(intptr_t extra_size,
                               Register new_pp,
                               Register pc_marker_override) {
-  if (pc_marker_override == kNoRegister) {
-    Label dart_entry;
-    call(&dart_entry);
-    Bind(&dart_entry);
-    // The runtime system assumes that the code marker address is
-    // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
-    // code to set up the frame pointer, the address needs to be adjusted.
-    const intptr_t object_pool_pc_dist =
-        Instructions::HeaderSize() - Instructions::object_pool_offset() +
-        CodeSize();
-    const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
-    if (offset != 0) {
-      addq(Address(RSP, 0), Immediate(offset));
-    }
-
-    // Load callee's pool pointer.
-    movq(PP, Address(RSP, 0));
-    movq(PP, Address(PP, -object_pool_pc_dist - offset));
-
-    popq(Address(RBP, kPcMarkerSlotFromFp * kWordSize));
-  } else {
-    movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
-    movq(PP, new_pp);
-  }
+  movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
+  movq(PP, new_pp);
   if (extra_size != 0) {
     subq(RSP, Immediate(extra_size));
   }
@@ -3651,7 +3606,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
   if (FLAG_inline_alloc) {
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-    Heap::Space space = heap->SpaceForAllocation(kArrayCid);
+    Heap::Space space = heap->SpaceForAllocation(cid);
     movq(instance, Immediate(heap->TopAddress(space)));
     movq(instance, Address(instance, 0));
     movq(end_address, RAX);
@@ -3671,7 +3626,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     movq(TMP, Immediate(heap->TopAddress(space)));
     movq(Address(TMP, 0), end_address);
     addq(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(kArrayCid, instance_size, space);
+    UpdateAllocationStatsWithSize(cid, instance_size, space);
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

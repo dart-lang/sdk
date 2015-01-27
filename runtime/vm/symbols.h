@@ -339,6 +339,7 @@ class ObjectPointerVisitor;
   V(ClassID, "ClassID")                                                        \
   V(DartIsVM, "dart.isVM")                                                     \
   V(stack, ":stack")                                                           \
+  V(stack_pointer, ":stack_pointer")                                           \
   V(current_character, ":current_character")                                   \
   V(current_position, ":current_position")                                     \
   V(string_param_length, ":string_param_length")                               \

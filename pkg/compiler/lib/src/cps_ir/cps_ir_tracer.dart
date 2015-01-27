@@ -112,8 +112,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitLetCont(cps_ir.LetCont node) {
     if (IR_TRACE_LET_CONT) {
       String dummy = names.name(node);
-      String id = names.name(node.continuation);
-      printStmt(dummy, "LetCont $id = <$id>");
+      for (cps_ir.Continuation continuation in node.continuations) {
+        String id = names.name(continuation);
+        printStmt(dummy, "LetCont $id = <$id>");
+      }
     }
     visit(node.body);
   }
@@ -136,13 +138,14 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         "InvokeMethod $receiver $callName ($args) $kont");
   }
 
-  visitInvokeSuperMethod(cps_ir.InvokeSuperMethod node) {
+  visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly node) {
     String dummy = names.name(node);
+    String receiver = formatReference(node.receiver);
     String callName = node.selector.name;
     String args = node.arguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
     printStmt(dummy,
-        "InvokeSuperMethod $callName ($args) $kont");
+        "InvokeMethodDirectly $receiver $callName ($args) $kont");
   }
 
   visitInvokeConstructor(cps_ir.InvokeConstructor node) {
@@ -270,10 +273,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'CreateBox';
   }
 
-  visitCreateClosureClass(cps_ir.CreateClosureClass node) {
+  visitCreateInstance(cps_ir.CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(formatReference).join(', ');
-    return 'CreateClosureClass $className ($arguments)';
+    return 'CreateInstance $className ($arguments)';
   }
 
   visitIdentical(cps_ir.Identical node) {
@@ -422,7 +425,7 @@ class BlockCollector extends cps_ir.Visitor {
   }
 
   visitLetCont(cps_ir.LetCont exp) {
-    visit(exp.continuation);
+    exp.continuations.forEach(visit);
     visit(exp.body);
   }
 

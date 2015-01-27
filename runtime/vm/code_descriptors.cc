@@ -34,7 +34,7 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
                                                has_try_index_));
   for (intptr_t i = 0; i < num_descriptors; i++) {
     descriptors.AddDescriptor(i,
-                              (entry_point + PcOffset(i)),
+                              PcOffset(i),
                               Kind(i),
                               DeoptId(i),
                               TokenPos(i),

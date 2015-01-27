@@ -96,8 +96,7 @@ class CspFunctionCompiler implements FunctionCompiler {
 
   cps.FunctionDefinition compileToCpsIR(AstElement element) {
     // TODO(sigurdm): Support these constructs.
-    if (element.isGenerativeConstructorBody ||
-        element.isNative ||
+    if (element.isNative ||
         element.isField) {
       giveUp('unsupported element kind: ${element.name}:${element.kind}');
     }

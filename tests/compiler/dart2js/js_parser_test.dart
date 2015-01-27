@@ -137,6 +137,12 @@ void main() {
     testExpression('a * b instanceof c * d'),
     testError('x typeof y', 'Unparsed junk'),
     testExpression('x &= ~mask'),
+    // Await is parsed as an unary prefix operator.
+    testExpression('var foo = await 0'),
+    testExpression('await x++'),
+    testExpression('void (await (x++))', 'void await x++'),
+    testExpression('void (await x)++'),
+    testExpression('++(await x)++'),
     // Adjacent tokens.
     testExpression('foo[x[bar]]'),
     testExpression('foo[[bar]]'),

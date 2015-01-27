@@ -427,51 +427,81 @@ class GlobalPackages {
   ///
   /// Returns an [Entrypoint] loaded with the active package if found.
   Future<Entrypoint> find(String name) {
-    // TODO(rnystrom): Use async/await here when on __ catch is supported.
-    // See: https://github.com/dart-lang/async_await/issues/27
-    return new Future.sync(() {
-      var lockFilePath = _getLockFilePath(name);
-      var lockFile;
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
       try {
-        lockFile = new LockFile.load(lockFilePath, cache.sources);
-      } on IOException catch (error) {
-        var oldLockFilePath = p.join(_directory, '$name.lock');
-        try {
-          // TODO(nweiz): This looks for Dart 1.6's old lockfile location.
-          // Remove it when Dart 1.6 is old enough that we don't think anyone
-          // will have these lockfiles anymore (issue 20703).
-          lockFile = new LockFile.load(oldLockFilePath, cache.sources);
-        } on IOException catch (error) {
-          // If we couldn't read the lock file, it's not activated.
-          dataError("No active package ${log.bold(name)}.");
+        var lockFilePath = _getLockFilePath(name);
+        var lockFile;
+        join0() {
+          var id = lockFile.packages[name];
+          lockFile.packages.remove(name);
+          var source = cache.sources[id.source];
+          join1() {
+            assert(id.source == "path");
+            completer0.complete(
+                new Entrypoint(PathSource.pathFromDescription(id.description), cache));
+          }
+          if (source is CachedSource) {
+            new Future.value(
+                cache.sources[id.source].getDirectory(id)).then((x0) {
+              try {
+                var dir = x0;
+                var package = new Package.load(name, dir, cache.sources);
+                completer0.complete(
+                    new Entrypoint.inMemory(package, lockFile, cache));
+              } catch (e0, s0) {
+                completer0.completeError(e0, s0);
+              }
+            }, onError: completer0.completeError);
+          } else {
+            join1();
+          }
         }
-
-        // Move the old lockfile to its new location.
-        ensureDir(p.dirname(lockFilePath));
-        new File(oldLockFilePath).renameSync(lockFilePath);
+        catch0(error, s1) {
+          try {
+            if (error is IOException) {
+              var oldLockFilePath = p.join(_directory, '${name}.lock');
+              join2() {
+                ensureDir(p.dirname(lockFilePath));
+                new File(oldLockFilePath).renameSync(lockFilePath);
+                join0();
+              }
+              catch1(error, s2) {
+                try {
+                  if (error is IOException) {
+                    dataError("No active package ${log.bold(name)}.");
+                    join2();
+                  } else {
+                    throw error;
+                  }
+                } catch (error, s2) {
+                  completer0.completeError(error, s2);
+                }
+              }
+              try {
+                lockFile = new LockFile.load(oldLockFilePath, cache.sources);
+                join2();
+              } catch (e1, s3) {
+                catch1(e1, s3);
+              }
+            } else {
+              throw error;
+            }
+          } catch (error, s1) {
+            completer0.completeError(error, s1);
+          }
+        }
+        try {
+          lockFile = new LockFile.load(lockFilePath, cache.sources);
+          join0();
+        } catch (e2, s4) {
+          catch0(e2, s4);
+        }
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
-
-      // Load the package from the cache.
-      var id = lockFile.packages[name];
-      lockFile.packages.remove(name);
-
-      var source = cache.sources[id.source];
-      if (source is CachedSource) {
-        // For cached sources, the package itself is in the cache and the
-        // lockfile is the one we just loaded.
-        return cache.sources[id.source].getDirectory(
-            id).then((dir) => new Package.load(name, dir, cache.sources)).then((package) {
-          return new Entrypoint.inMemory(package, lockFile, cache);
-        });
-      }
-
-      // For uncached sources (i.e. path), the ID just points to the real
-      // directory for the package.
-      assert(id.source == "path");
-      return new Entrypoint(
-          PathSource.pathFromDescription(id.description),
-          cache);
     });
+    return completer0.future;
   }
 
   /// Runs [package]'s [executable] with [args].
@@ -612,6 +642,7 @@ class GlobalPackages {
                 var id;
                 join3() {
                   trampoline0 = continue0;
+                  do trampoline0(); while (trampoline0 != null);
                 }
                 catch0(error, stackTrace) {
                   try {
@@ -723,6 +754,7 @@ class GlobalPackages {
               var entry = it1.current;
               join7() {
                 trampoline1 = continue1;
+                do trampoline1(); while (trampoline1 != null);
               }
               catch1(error, stackTrace) {
                 try {

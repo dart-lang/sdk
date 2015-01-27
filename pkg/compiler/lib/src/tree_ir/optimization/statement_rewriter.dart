@@ -192,10 +192,11 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
-  Expression visitInvokeSuperMethod(InvokeSuperMethod node) {
+  Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }
+    node.receiver = visitExpression(node.receiver);
     return node;
   }
 
@@ -409,8 +410,8 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
 
   Statement visitSetField(SetField node) {
     node.next = visitStatement(node.next);
-    node.object = visitExpression(node.object);
     node.value = visitExpression(node.value);
+    node.object = visitExpression(node.object);
     return node;
   }
 
@@ -423,7 +424,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
-  Expression visitCreateClosureClass(CreateClosureClass node) {
+  Expression visitCreateInstance(CreateInstance node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }

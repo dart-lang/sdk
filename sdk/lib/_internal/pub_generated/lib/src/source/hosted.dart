@@ -148,65 +148,65 @@ class HostedSource extends CachedSource {
               var packages =
                   _getCachedPackagesInDirectory(path.basename(serverDir));
               packages.sort(Package.orderByNameAndVersion);
-              new Future.value(Future.forEach(packages, ((package) {
-                final completer0 = new Completer();
-                scheduleMicrotask(() {
-                  try {
-                    join0() {
-                      completer0.complete();
-                    }
-                    catch0(error, stackTrace) {
-                      try {
-                        failures++;
-                        var message =
-                            "Failed to repair ${log.bold(package.name)} " "${package.version}";
-                        join1() {
-                          log.error("${message}. Error:\n${error}");
-                          log.fine(stackTrace);
-                          tryDeleteEntry(package.dir);
-                          join0();
-                        }
-                        if (url != defaultUrl) {
-                          message += " from ${url}";
-                          join1();
-                        } else {
-                          join1();
-                        }
-                      } catch (error, stackTrace) {
-                        completer0.completeError(error, stackTrace);
-                      }
-                    }
+              var it1 = packages.iterator;
+              break1() {
+                trampoline0 = continue0;
+                do trampoline0(); while (trampoline0 != null);
+              }
+              var trampoline1;
+              continue1() {
+                trampoline1 = null;
+                if (it1.moveNext()) {
+                  var package = it1.current;
+                  join1() {
+                    trampoline1 = continue1;
+                    do trampoline1(); while (trampoline1 != null);
+                  }
+                  catch0(error, stackTrace) {
                     try {
-                      new Future.value(
-                          _download(url, package.name, package.version, package.dir)).then((x0) {
+                      failures++;
+                      var message =
+                          "Failed to repair ${log.bold(package.name)} " "${package.version}";
+                      join2() {
+                        log.error("${message}. Error:\n${error}");
+                        log.fine(stackTrace);
+                        tryDeleteEntry(package.dir);
+                        join1();
+                      }
+                      if (url != defaultUrl) {
+                        message += " from ${url}";
+                        join2();
+                      } else {
+                        join2();
+                      }
+                    } catch (error, stackTrace) {
+                      completer0.completeError(error, stackTrace);
+                    }
+                  }
+                  try {
+                    new Future.value(
+                        _download(url, package.name, package.version, package.dir)).then((x0) {
+                      trampoline1 = () {
+                        trampoline1 = null;
                         try {
                           x0;
                           successes++;
-                          join0();
+                          join1();
                         } catch (e0, s0) {
                           catch0(e0, s0);
                         }
-                      }, onError: catch0);
-                    } catch (e1, s1) {
-                      catch0(e1, s1);
-                    }
-                  } catch (e, s) {
-                    completer0.completeError(e, s);
+                      };
+                      do trampoline1(); while (trampoline1 != null);
+                    }, onError: catch0);
+                  } catch (e1, s1) {
+                    catch0(e1, s1);
                   }
-                });
-                return completer0.future;
-              }))).then((x0) {
-                trampoline0 = () {
-                  trampoline0 = null;
-                  try {
-                    x0;
-                    trampoline0 = continue0;
-                  } catch (e0, s0) {
-                    completer0.completeError(e0, s0);
-                  }
-                };
-                do trampoline0(); while (trampoline0 != null);
-              }, onError: completer0.completeError);
+                } else {
+                  break1();
+                }
+              }
+              trampoline1 = continue1;
+              do trampoline1(); while (trampoline1 != null);
             } else {
               break0();
             }

@@ -857,19 +857,32 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         ? compiler.world.allFunctions.filter(typedSelector)
         : targets;
 
+    // Add calls to new targets to the graph.
+    targets.where((target) => !oldTargets.contains(target)).forEach((element) {
+      MemberTypeInformation callee =
+          inferrer.types.getInferredTypeOf(element);
+      callee.addCall(caller, call);
+      callee.addUser(this);
+      inferrer.updateParameterAssignments(
+          this, element, arguments, typedSelector, remove: false,
+          addToQueue: true);
+    });
+
+    // Walk over the old targets, and remove calls that cannot happen
+    // anymore.
+    oldTargets.where((target) => !targets.contains(target)).forEach((element) {
+      MemberTypeInformation callee =
+          inferrer.types.getInferredTypeOf(element);
+      callee.removeCall(caller, call);
+      callee.removeUser(this);
+      inferrer.updateParameterAssignments(
+          this, element, arguments, typedSelector, remove: true,
+          addToQueue: true);
+    });
+
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
-    TypeMask newType = inferrer.types.joinTypeMasks(targets.map((element) {
-      if (!oldTargets.contains(element)) {
-        MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOf(element);
-        callee.addCall(caller, call);
-        callee.addUser(this);
-        inferrer.updateParameterAssignments(
-            this, element, arguments, typedSelector, remove: false,
-            addToQueue: true);
-      }
-
+    return inferrer.types.joinTypeMasks(targets.map((element) {
       // If [canReachAll] is true, then we are iterating over all
       // targets that satisfy the untyped selector. We skip the return
       // type of the targets that can only be reached through
@@ -914,22 +927,6 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return inferrer.typeOfElementWithSelector(element, typedSelector).type;
       }
     }));
-
-    // Walk over the old targets, and remove calls that cannot happen
-    // anymore.
-    oldTargets.forEach((element) {
-      if (!targets.contains(element)) {
-        MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOf(element);
-        callee.removeCall(caller, call);
-        callee.removeUser(this);
-        inferrer.updateParameterAssignments(
-            this, element, arguments, typedSelector, remove: true,
-            addToQueue: true);
-      }
-    });
-
-    return newType;
   }
 
   void giveUp(TypeGraphInferrerEngine inferrer, {bool clearAssignments: true}) {

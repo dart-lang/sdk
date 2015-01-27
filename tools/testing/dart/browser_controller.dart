@@ -1087,6 +1087,9 @@ class BrowserTestRunner {
   }
 
   void restartBrowser(String id) {
+    if (browserName.contains('OnAndroid')) {
+      DebugLogger.info("Restarting browser $id");
+    }
     var browser;
     var new_id = id;
     if (browserName == 'chromeOnAndroid') {
@@ -1189,6 +1192,9 @@ class BrowserTestRunner {
     // browser, since a new test is being started.
     status.browser.resetTestBrowserOutput();
     status.browser.logBrowserInfoToTestBrowserOutput();
+    if (browserName.contains('OnAndroid')) {
+      DebugLogger.info("Browser $browserId getting test ${test.url}");
+    }
 
     return test;
   }

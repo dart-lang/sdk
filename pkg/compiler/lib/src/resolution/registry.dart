@@ -298,10 +298,6 @@ class ResolutionRegistry extends Registry {
     world.registerInstantiatedType(type, this);
   }
 
-  void registerFactoryWithTypeArguments() {
-    world.registerFactoryWithTypeArguments(this);
-  }
-
   void registerAbstractClassInstantiation() {
     backend.resolutionCallbacks.onAbstractClassInstantiation(this);
   }

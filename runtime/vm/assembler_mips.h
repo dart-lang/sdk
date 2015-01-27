@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_mips.h"
+#include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
 
@@ -1613,6 +1614,10 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
+
+  // Hashmap for fast lookup in object pool.
+  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+
   intptr_t prologue_offset_;
 
   bool use_far_branches_;

@@ -73,6 +73,7 @@ action("generate_version_cc_file") {
 
   script = "../tools/make_version.py"
   args = [
+    "--quiet",
     "--output", rebase_path(output, root_build_dir),
     "--input", rebase_path("vm/version_in.cc", root_build_dir),
   ]

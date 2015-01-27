@@ -152,7 +152,12 @@ class _GrowableList<T> extends ListBase<T> {
 
   void addAll(Iterable<T> iterable) {
     var len = length;
-    if (iterable is EfficientLength) {
+    final cid = ClassID.getID(iterable);
+    final isVMList =
+        (cid == ClassID.cidArray) ||
+        (cid == ClassID.cidGrowableObjectArray) ||
+        (cid == ClassID.cidImmutableArray);
+    if (isVMList || (iterable is EfficientLength)) {
       var cap = _capacity;
       // Pregrow if we know iterable.length.
       var iterLen = iterable.length;
@@ -162,6 +167,16 @@ class _GrowableList<T> extends ListBase<T> {
           cap *= 2;
         } while (newLen > cap);
         _grow(cap);
+      }
+      if (isVMList) {
+        if (identical(iterable, this)) {
+          throw new ConcurrentModificationError(this);
+        }
+        this._setLength(newLen);
+        for (int i = 0; i < iterLen; i++) {
+          this[len++] = iterable[i];
+        }
+        return;
       }
     }
     Iterator it = iterable.iterator;

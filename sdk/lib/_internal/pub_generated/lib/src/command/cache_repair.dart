@@ -15,11 +15,13 @@ import '../utils.dart';
 
 /// Handles the `cache repair` pub command.
 class CacheRepairCommand extends PubCommand {
+  String get name => "repair";
   String get description => "Reinstall cached packages.";
-  String get usage => "pub cache repair";
+  String get invocation => "pub cache repair";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-cache.html";
+  bool get takesArguments => false;
 
-  Future onRun() {
+  Future run() {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
@@ -113,6 +115,7 @@ class CacheRepairCommand extends PubCommand {
                     successes += results.first;
                     failures += results.last;
                     trampoline0 = continue0;
+                    do trampoline0(); while (trampoline0 != null);
                   } catch (e2, s2) {
                     completer0.completeError(e2, s2);
                   }

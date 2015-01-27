@@ -32,6 +32,9 @@ class RuntimeTypes {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  String get getFunctionThatReturnsNullName
+      => backend.namer.getMappedInstanceName('functionThatReturnsNull');
+
   RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
         representationGenerator = new TypeRepresentationGenerator(compiler),
@@ -60,7 +63,10 @@ class RuntimeTypes {
     checkedBounds.add(bound);
   }
 
-  bool usingFactoryWithTypeArguments = false;
+  // TODO(21969): remove this and analyze instantiated types and factory calls
+  // instead to find out which types are instantiated, if finitely many, or if
+  // we have to use the more imprecise generic algorithm.
+  bool get cannotDetermineInstantiatedTypesPrecisely => true;
 
   /**
    * Compute type arguments of classes that use one of their type variables in
@@ -77,7 +83,7 @@ class RuntimeTypes {
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
     Set<DartType> instantiatedTypes = universe.instantiatedTypes;
-    if (universe.usingFactoryWithTypeArguments) {
+    if (cannotDetermineInstantiatedTypesPrecisely) {
       for (DartType type in instantiatedTypes) {
         if (type.kind != TypeKind.INTERFACE) continue;
         InterfaceType interface = type;
@@ -855,6 +861,7 @@ class FunctionArgumentCollector extends DartTypeVisitor {
  * of the representation consult the documentation of
  * [getSupertypeSubstitution].
  */
+//TODO(floitsch): Remove support for non-function substitutions.
 class Substitution {
   final bool isFunction;
   final List<DartType> arguments;
@@ -878,13 +885,38 @@ class Substitution {
           rti.backend.namer.safeVariableName(variable.name));
     }
 
-    jsAst.Expression value =
-        rti.getSubstitutionRepresentation(arguments, use);
-    if (isFunction) {
+    if (arguments.every((DartType type) => type.isDynamic)) {
+      return rti.backend.emitter.emitter.generateFunctionThatReturnsNull();
+    } else {
+      jsAst.Expression value =
+          rti.getSubstitutionRepresentation(arguments, use);
+      if (isFunction) {
+        Iterable<jsAst.Expression> formals = parameters.map(declaration);
+        return js('function(#) { return # }', [formals, value]);
+      } else {
+        return js('function() { return # }', value);
+      }
+    }
+  }
+
+  jsAst.Expression getCodeForVariable(int index, RuntimeTypes rti) {
+    jsAst.Expression declaration(TypeVariableType variable) {
+      return new jsAst.Parameter(
+          rti.backend.namer.safeVariableName(variable.name));
+    }
+
+    jsAst.Expression use(TypeVariableType variable) {
+      return new jsAst.VariableUse(
+          rti.backend.namer.safeVariableName(variable.name));
+    }
+
+    if (arguments[index].isDynamic) {
+      return rti.backend.emitter.emitter.generateFunctionThatReturnsNull();
+    } else {
+      jsAst.Expression value =
+          rti.getTypeRepresentation(arguments[index], use);
       Iterable<jsAst.Expression> formals = parameters.map(declaration);
       return js('function(#) { return # }', [formals, value]);
-    } else {
-      return js('function() { return # }', value);
     }
   }
 }

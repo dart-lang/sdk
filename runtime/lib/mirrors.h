@@ -7,12 +7,6 @@
 
 namespace dart {
 
-class Instance;
-
-void HandleMirrorsMessage(Isolate* isolate,
-                          Dart_Port reply_port,
-                          const Instance& message);
-
 }  // namespace dart
 
 #endif  // LIB_MIRRORS_H_

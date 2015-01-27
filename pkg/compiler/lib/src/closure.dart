@@ -731,6 +731,18 @@ class ClosureTranslator extends Visitor {
     node.visitChildren(this);
   }
 
+  visitLiteralList(LiteralList node) {
+    DartType type = elements.getType(node);
+    analyzeType(type);
+    node.visitChildren(this);
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    DartType type = elements.getType(node);
+    analyzeType(type);
+    node.visitChildren(this);
+  }
+
   void analyzeTypeVariables(DartType type) {
     type.forEachTypeVariable((TypeVariableType typeVariable) {
       // Field initializers are inlined and access the type variable as

@@ -4,7 +4,6 @@
 
 library pub.command.cache_list;
 
-import 'dart:async';
 import 'dart:convert';
 
 import '../command.dart';
@@ -13,11 +12,13 @@ import '../source/cached.dart';
 
 /// Handles the `cache list` pub command.
 class CacheListCommand extends PubCommand {
+  String get name => "list";
   String get description => "List packages in the system cache.";
-  String get usage => "pub cache list";
+  String get invocation => "pub cache list";
   bool get hidden => true;
+  bool get takesArguments => false;
 
-  Future onRun() {
+  void run() {
     // TODO(keertip): Add flag to list packages from non default sources.
     var packagesObj = <String, Map>{};
 
@@ -30,6 +31,5 @@ class CacheListCommand extends PubCommand {
     // TODO(keertip): Add support for non-JSON format and check for --format
     // flag.
     log.message(JSON.encode({'packages': packagesObj}));
-    return null;
   }
 }

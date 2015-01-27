@@ -978,78 +978,23 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 
 
 void FlowGraphCompiler::EmitFrameEntry() {
+  ASSERT(Assembler::EntryPointToPcMarkerOffset() == 0);
+
   const Function& function = parsed_function().function();
-  Register new_pp = kNoRegister;
-  Register new_pc = kNoRegister;
-  if (CanOptimizeFunction() &&
-      function.IsOptimizable() &&
-      (!is_optimizing() || may_reoptimize())) {
-    StubCode* stub_code = isolate()->stub_code();
-    const Register function_reg = RDI;
-    new_pp = R13;
-    new_pc = R12;
+  const Register new_pp = R13;
+  const Register new_pc = R12;
 
-    Label next;
-    __ nop(4);  // Need a fixed size sequence on frame entry.
-    __ call(&next);
-    __ Bind(&next);
+  // Load PC marker.
+  const intptr_t kRIPRelativeLeaqSize = 7;
+  const intptr_t entry_to_rip_offset = __ CodeSize() + kRIPRelativeLeaqSize;
+  __ leaq(new_pc, Address::AddressRIPRelative(-entry_to_rip_offset));
+  ASSERT(__ CodeSize() == entry_to_rip_offset);
 
-    const intptr_t object_pool_pc_dist =
-        Instructions::HeaderSize() - Instructions::object_pool_offset() +
-        __ CodeSize();
-    const intptr_t offset =
-        Assembler::EntryPointToPcMarkerOffset() - __ CodeSize();
-    __ popq(new_pc);
-    if (offset != 0) {
-      __ addq(new_pc, Immediate(offset));
-    }
+  // Load pool pointer.
+  const intptr_t object_pool_pc_dist =
+      Instructions::HeaderSize() - Instructions::object_pool_offset();
+  __ movq(new_pp, Address(new_pc, -object_pool_pc_dist));
 
-    // Load callee's pool pointer.
-    __ movq(new_pp, Address(new_pc, -object_pool_pc_dist - offset));
-
-    // Load function object using the callee's pool pointer.
-    __ LoadObject(function_reg, function, new_pp);
-
-    // Patch point is after the eventually inlined function object.
-    entry_patch_pc_offset_ = assembler()->CodeSize();
-
-    // Reoptimization of an optimized function is triggered by counting in
-    // IC stubs, but not at the entry of the function.
-    if (!is_optimizing()) {
-      __ incl(FieldAddress(function_reg, Function::usage_counter_offset()));
-    }
-    __ cmpl(
-        FieldAddress(function_reg, Function::usage_counter_offset()),
-        Immediate(GetOptimizationThreshold()));
-    ASSERT(function_reg == RDI);
-    __ J(GREATER_EQUAL, &stub_code->OptimizeFunctionLabel(), R13);
-  } else if (!flow_graph().IsCompiledForOsr()) {
-    // We have to load the PP here too because a load of an external label
-    // may be patched at the AddCurrentDescriptor below.
-    new_pp = R13;
-    new_pc = R12;
-
-    Label next;
-    __ nop(4);  // Need a fixed size sequence on frame entry.
-    __ call(&next);
-    __ Bind(&next);
-
-    const intptr_t object_pool_pc_dist =
-        Instructions::HeaderSize() - Instructions::object_pool_offset() +
-        __ CodeSize();
-    const intptr_t offset =
-        Assembler::EntryPointToPcMarkerOffset() - __ CodeSize();
-    __ popq(new_pc);
-    if (offset != 0) {
-      __ addq(new_pc, Immediate(offset));
-    }
-
-    // Load callee's pool pointer.
-    __ movq(new_pp, Address(new_pc, -object_pool_pc_dist - offset));
-
-    entry_patch_pc_offset_ = assembler()->CodeSize();
-  }
-  __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
     intptr_t extra_slots = StackSize()
         - flow_graph().num_stack_locals()
@@ -1057,7 +1002,33 @@ void FlowGraphCompiler::EmitFrameEntry() {
     ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize, new_pp, new_pc);
   } else {
+    if (CanOptimizeFunction() &&
+        function.IsOptimizable() &&
+        (!is_optimizing() || may_reoptimize())) {
+      const Register function_reg = RDI;
+      // Load function object using the callee's pool pointer.
+      __ LoadObject(function_reg, function, new_pp);
+
+      // Patch point is after the eventually inlined function object.
+      entry_patch_pc_offset_ = assembler()->CodeSize();
+
+      // Reoptimization of an optimized function is triggered by counting in
+      // IC stubs, but not at the entry of the function.
+      if (!is_optimizing()) {
+        __ incl(FieldAddress(function_reg, Function::usage_counter_offset()));
+      }
+      __ cmpl(
+          FieldAddress(function_reg, Function::usage_counter_offset()),
+          Immediate(GetOptimizationThreshold()));
+      ASSERT(function_reg == RDI);
+      __ J(GREATER_EQUAL,
+           &isolate()->stub_code()->OptimizeFunctionLabel(),
+           new_pp);
+    } else {
+      entry_patch_pc_offset_ = assembler()->CodeSize();
+    }
     ASSERT(StackSize() >= 0);
+    __ Comment("Enter frame");
     __ EnterDartFrameWithInfo(StackSize() * kWordSize, new_pp, new_pc);
   }
 }

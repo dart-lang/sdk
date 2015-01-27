@@ -18,6 +18,7 @@ import utils
 import uuid
 
 GCS_FOLDER = 'dart-crashes'
+GSUTIL='/b/build/scripts/slave/gsutil'
 
 def CreateTarball(input_dir, tarname):
   print 'Creating tar file: %s' % tarname
@@ -27,13 +28,19 @@ def CreateTarball(input_dir, tarname):
 
 def CopyToGCS(filename):
   gs_location = 'gs://%s/%s/' % (GCS_FOLDER, uuid.uuid4())
-  cmd = ['gsutil', 'cp', filename, gs_location]
+  cmd = [GSUTIL, 'cp', filename, gs_location]
   print 'Running command: %s' % cmd
   subprocess.check_call(cmd)
   archived_filename = '%s%s' % (gs_location, filename.split('/').pop())
   print 'Dump now available in %s' % archived_filename
 
+def TEMPArchiveBuild():
+  d = '/b/build/slave/vm-linux-debug-x64-asan-be/build/dart/out/DebugX64/dart'
+  CopyToGCS(d)
+
 def Main():
+  if 'PWD' in os.environ and 'x64-asan' in os.environ['PWD']:
+    TEMPArchiveBuild()
   if utils.GuessOS() != 'linux':
     print 'Currently only archiving crash dumps on linux'
     return 0

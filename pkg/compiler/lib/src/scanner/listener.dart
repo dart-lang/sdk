@@ -805,9 +805,10 @@ class ElementListener extends Listener {
 
   bool suppressParseErrors = false;
 
-  ElementListener(DiagnosticListener listener,
-                  this.compilationUnitElement,
-                  this.idGenerator)
+  ElementListener(
+      DiagnosticListener listener,
+      this.compilationUnitElement,
+      this.idGenerator)
       : this.listener = listener,
         stringValidator = new StringValidator(listener),
         interpolationScope = const Link<StringQuoting>();
@@ -1465,13 +1466,10 @@ class ElementListener extends Listener {
 
   /// Don't call this method. Should only be used as a last resort when there
   /// is no feasible way to recover from a parser error.
-  void reportFatalError(Spannable spannable,
-                        String message) {
-    listener.reportError(
-        spannable, MessageKind.GENERIC, {'text': message});
-    // Some parse errors are infeasible to recover from, so we abort
-    // compilation instead.
-    throw new CompilerCancelledException(message);
+  void reportFatalError(Spannable spannable, String message) {
+    reportError(spannable, MessageKind.GENERIC, {'text': message});
+    // Some parse errors are infeasible to recover from, so we throw an error.
+    throw new ParserError(message);
   }
 
   void reportError(Spannable spannable,
@@ -1487,27 +1485,10 @@ class ElementListener extends Listener {
 }
 
 class NodeListener extends ElementListener {
-  final bool throwOnFatalError;
-
   NodeListener(
       DiagnosticListener listener,
-      CompilationUnitElement element,
-      {bool this.throwOnFatalError: false})
+      CompilationUnitElement element)
     : super(listener, element, null);
-
-  /// Don't call this method. Should only be used as a last resort when there
-  /// is no feasible way to recover from a parser error.
-  void reportFatalError(Spannable spannable,
-                        String message) {
-    if (throwOnFatalError) {
-      if (!currentMemberHasParseError && !suppressParseErrors) {
-        reportError(spannable, MessageKind.GENERIC, {'text': message});
-      }
-      throw new ParserError(message);
-    } else {
-      super.reportFatalError(spannable, message);
-    }
-  }
 
   void addLibraryTag(LibraryTag tag) {
     pushNode(tag);
@@ -2337,7 +2318,7 @@ abstract class PartialFunctionMixin implements FunctionElement {
         p.parseFunction(beginToken, getOrSet);
       }
     }
-    cachedNode = parse(listener, this, parseFunction);
+    cachedNode = parse(listener, this, declarationSite, parseFunction);
     return cachedNode;
   }
 
@@ -2346,6 +2327,8 @@ abstract class PartialFunctionMixin implements FunctionElement {
   void reusePartialFunctionMixin() {
     cachedNode = null;
   }
+
+  DeclarationSite get declarationSite;
 }
 
 class PartialFunctionElement extends FunctionElementX
@@ -2407,13 +2390,8 @@ class PartialFieldList extends VariableList with PartialElement {
     if (definitions != null) return definitions;
     listener.withCurrentElement(element, () {
       definitions = parse(
-          listener, element,
-          (Parser parser) {
-            if (hasParseError) {
-              parser.listener.suppressParseErrors = true;
-            }
-            return parser.parseMember(beginToken);
-          });
+          listener, element, declarationSite,
+          (Parser parser) => parser.parseMember(beginToken));
 
       if (!hasParseError &&
           !definitions.modifiers.isVar &&
@@ -2463,9 +2441,9 @@ class PartialTypedefElement extends TypedefElementX with PartialElement {
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    cachedNode = parse(listener,
-                       this,
-                       (p) => p.parseTopLevelDeclaration(token));
+    cachedNode = parse(
+        listener, this, declarationSite,
+        (p) => p.parseTopLevelDeclaration(token));
     return cachedNode;
   }
 
@@ -2473,12 +2451,21 @@ class PartialTypedefElement extends TypedefElementX with PartialElement {
 }
 
 /// A [MetadataAnnotation] which is constructed on demand.
-class PartialMetadataAnnotation extends MetadataAnnotationX {
-  final Token beginToken;
+class PartialMetadataAnnotation extends MetadataAnnotationX
+    implements PartialElement {
+  Token beginToken; // TODO(ahe): Make this final when issue 22065 is fixed.
+
   final Token tokenAfterEndToken;
+
   Expression cachedNode;
 
+  bool hasParseError = false;
+
   PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
+
+  bool get isErroneous => hasParseError;
+
+  DeclarationSite get declarationSite => this;
 
   Token get endToken {
     Token token = beginToken;
@@ -2490,10 +2477,15 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
     return token;
   }
 
+  void set endToken(_) {
+    throw new UnsupportedError("endToken=");
+  }
+
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     Metadata metadata = parse(listener,
                               annotatedElement,
+                              declarationSite,
                               (p) => p.parseMetadata(beginToken));
     cachedNode = metadata.expression;
     return cachedNode;
@@ -2507,20 +2499,21 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
   }
 }
 
-Node parse(DiagnosticListener diagnosticListener,
-           Element element,
-           doParse(Parser parser)) {
+Node parse(
+    DiagnosticListener diagnosticListener,
+    Element element,
+    PartialElement partial,
+    doParse(Parser parser)) {
   CompilationUnitElement unit = element.compilationUnit;
-  NodeListener listener =
-      new NodeListener(diagnosticListener, unit, throwOnFatalError: true);
+  NodeListener listener = new NodeListener(diagnosticListener, unit);
   listener.memberErrors = listener.memberErrors.prepend(false);
   try {
+    if (partial.hasParseError) {
+      listener.suppressParseErrors = true;
+    }
     doParse(new Parser(listener));
   } on ParserError catch (e) {
-    if (element is PartialElement) {
-      PartialElement partial = element as PartialElement;
-      partial.hasParseError = true;
-    }
+    partial.hasParseError = true;
     return new ErrorNode(element.position, e.reason);
   }
   Node node = listener.popNode();

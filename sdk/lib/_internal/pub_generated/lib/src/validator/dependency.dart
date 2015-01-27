@@ -40,94 +40,96 @@ class DependencyValidator extends Validator {
     scheduleMicrotask(() {
       try {
         var caretDeps = [];
-        new Future.value(
-            Future.forEach(entrypoint.root.pubspec.dependencies, ((dependency) {
-          final completer0 = new Completer();
-          scheduleMicrotask(() {
-            try {
-              join0() {
-                completer0.complete();
-              }
-              if (dependency.source != "hosted") {
-                new Future.value(_warnAboutSource(dependency)).then((x0) {
+        var it0 = entrypoint.root.pubspec.dependencies.iterator;
+        break0() {
+          join0() {
+            completer0.complete();
+          }
+          if (caretDeps.isNotEmpty && !_caretAllowed) {
+            _errorAboutCaretConstraints(caretDeps);
+            join0();
+          } else {
+            join0();
+          }
+        }
+        var trampoline0;
+        continue0() {
+          trampoline0 = null;
+          if (it0.moveNext()) {
+            var dependency = it0.current;
+            join1() {
+              trampoline0 = continue0;
+              do trampoline0(); while (trampoline0 != null);
+            }
+            if (dependency.source != "hosted") {
+              new Future.value(_warnAboutSource(dependency)).then((x0) {
+                trampoline0 = () {
+                  trampoline0 = null;
                   try {
                     x0;
-                    join0();
+                    join1();
                   } catch (e0, s0) {
                     completer0.completeError(e0, s0);
                   }
-                }, onError: completer0.completeError);
+                };
+                do trampoline0(); while (trampoline0 != null);
+              }, onError: completer0.completeError);
+            } else {
+              join2() {
+                join1();
+              }
+              if (dependency.constraint.isAny) {
+                _warnAboutNoConstraint(dependency);
+                join2();
               } else {
-                join1() {
-                  join0();
+                join3() {
+                  join2();
                 }
-                if (dependency.constraint.isAny) {
-                  _warnAboutNoConstraint(dependency);
-                  join1();
+                if (dependency.constraint is Version) {
+                  _warnAboutSingleVersionConstraint(dependency);
+                  join3();
                 } else {
-                  join2() {
-                    join1();
+                  join4() {
+                    join3();
                   }
-                  if (dependency.constraint is Version) {
-                    _warnAboutSingleVersionConstraint(dependency);
-                    join2();
-                  } else {
-                    join3() {
-                      join2();
-                    }
-                    if (dependency.constraint is VersionRange) {
-                      join4() {
-                        join5() {
-                          join3();
-                        }
-                        if (dependency.constraint.toString().startsWith("^")) {
-                          caretDeps.add(dependency);
-                          join5();
-                        } else {
-                          join5();
-                        }
-                      }
-                      if (dependency.constraint.min == null) {
-                        _warnAboutNoConstraintLowerBound(dependency);
+                  if (dependency.constraint is VersionRange) {
+                    join5() {
+                      join6() {
                         join4();
-                      } else {
-                        join6() {
-                          join4();
-                        }
-                        if (dependency.constraint.max == null) {
-                          _warnAboutNoConstraintUpperBound(dependency);
-                          join6();
-                        } else {
-                          join6();
-                        }
                       }
-                    } else {
-                      join3();
+                      if (dependency.constraint.toString().startsWith("^")) {
+                        caretDeps.add(dependency);
+                        join6();
+                      } else {
+                        join6();
+                      }
                     }
+                    if (dependency.constraint.min == null) {
+                      _warnAboutNoConstraintLowerBound(dependency);
+                      join5();
+                    } else {
+                      join7() {
+                        join5();
+                      }
+                      if (dependency.constraint.max == null) {
+                        _warnAboutNoConstraintUpperBound(dependency);
+                        join7();
+                      } else {
+                        join7();
+                      }
+                    }
+                  } else {
+                    join4();
                   }
                 }
               }
-            } catch (e, s) {
-              completer0.completeError(e, s);
             }
-          });
-          return completer0.future;
-        }))).then((x0) {
-          try {
-            x0;
-            join0() {
-              completer0.complete();
-            }
-            if (caretDeps.isNotEmpty && !_caretAllowed) {
-              _errorAboutCaretConstraints(caretDeps);
-              join0();
-            } else {
-              join0();
-            }
-          } catch (e0, s0) {
-            completer0.completeError(e0, s0);
+          } else {
+            break0();
           }
-        }, onError: completer0.completeError);
+        }
+        trampoline0 = continue0;
+        do trampoline0(); while (trampoline0 != null);
       } catch (e, s) {
         completer0.completeError(e, s);
       }

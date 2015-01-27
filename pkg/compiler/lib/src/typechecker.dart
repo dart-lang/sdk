@@ -1118,7 +1118,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         DartType type = analyze(node.selector);
         return analyzeInvocation(node, new TypeAccess(type));
       }
-    } else if (Elements.isErroneousElement(element) && selector == null) {
+    } else if (Elements.isErroneous(element) && selector == null) {
       // exp() where exp is an erroneous construct like `new Unresolved()`.
       DartType type = analyze(node.selector);
       return analyzeInvocation(node, new TypeAccess(type));

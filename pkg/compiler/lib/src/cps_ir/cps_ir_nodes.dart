@@ -124,20 +124,32 @@ class LetPrim extends Expression implements InteriorNode {
 }
 
 
-/// Binding a continuation: 'let cont k(v) = E in E'.  The bound continuation
-/// is in scope in the body and the continuation parameter is in scope in the
-/// continuation body.
-/// During one-pass construction a LetCont with an empty continuation body is
-/// used to represent the one-level context 'let cont k(v) = [] in E'.
+/// Binding continuations.
+///
+/// let cont k0(v0 ...) = E0
+///          k1(v1 ...) = E1
+///          ...
+///   in E
+///
+/// The bound continuations are in scope in the body and the continuation
+/// parameters are in scope in the respective continuation bodies.
+/// During one-pass construction a LetCont whose first continuation has an empty
+/// body is used to represent the one-level context
+/// 'let cont ... k(v) = [] ... in E'.
 class LetCont extends Expression implements InteriorNode {
-  Continuation continuation;
+  List<Continuation> continuations;
   Expression body;
 
-  LetCont(this.continuation, this.body);
+  LetCont(Continuation continuation, this.body)
+      : continuations = <Continuation>[continuation];
+
+  LetCont.many(this.continuations, this.body);
 
   Expression plug(Expression expr) {
-    assert(continuation != null && continuation.body == null);
-    return continuation.body = expr;
+    assert(continuations != null &&
+           continuations.isNotEmpty &&
+           continuations.first.body == null);
+    return continuations.first.body = expr;
   }
 
   accept(Visitor visitor) => visitor.visitLetCont(this);
@@ -156,7 +168,7 @@ abstract class Invoke {
 ///
 ///     child.parent = parent;
 ///     parent.body  = child;
-abstract class InteriorNode implements Node {
+abstract class InteriorNode extends Node {
   Expression body;
 }
 
@@ -188,7 +200,7 @@ class InvokeStatic extends Expression implements Invoke {
 /// Invoke a method, operator, getter, setter, or index getter/setter.
 /// Converting a method to a function object is treated as a getter invocation.
 class InvokeMethod extends Expression implements Invoke {
-  final Reference<Primitive> receiver;
+  Reference<Primitive> receiver;
   final Selector selector;
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
@@ -220,17 +232,37 @@ class InvokeMethod extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
 
-/// Invoke a method, operator, getter, setter, or index getter/setter from the
-/// super class in tail position.
-class InvokeSuperMethod extends Expression implements Invoke {
+/// Invoke [target] on [receiver], bypassing dispatch and override semantics.
+///
+/// That is, if [receiver] is an instance of a class that overrides [target]
+/// with a different implementation, the overriding implementation is bypassed
+/// and [target]'s implementation is invoked.
+///
+/// As with [InvokeMethod], this can be used to invoke a method, operator,
+/// getter, setter, or index getter/setter.
+///
+/// If it is known that [target] does not use its receiver argument, then
+/// [receiver] may refer to a null constant primitive. This happens for direct
+/// invocations to intercepted methods, where the effective receiver is instead
+/// passed as a formal parameter.
+///
+/// When targeting Dart, this instruction is used to represent super calls.
+/// Here, [receiver] must always be a reference to `this`, and [target] must be
+/// a method that is available in the super class.
+class InvokeMethodDirectly extends Expression implements Invoke {
+  Reference<Primitive> receiver;
+  final Element target;
   final Selector selector;
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
 
-  InvokeSuperMethod(this.selector,
-                    Continuation cont,
-                    List<Primitive> args)
-      : continuation = new Reference<Continuation>(cont),
+  InvokeMethodDirectly(Primitive receiver,
+                       this.target,
+                       this.selector,
+                       Continuation cont,
+                       List<Primitive> args)
+      : this.receiver = new Reference<Primitive>(receiver),
+        continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
@@ -241,7 +273,7 @@ class InvokeSuperMethod extends Expression implements Invoke {
            (selector.kind == SelectorKind.INDEX && arguments.length == 2));
   }
 
-  accept(Visitor visitor) => visitor.visitInvokeSuperMethod(this);
+  accept(Visitor visitor) => visitor.visitInvokeMethodDirectly(this);
 }
 
 /// Non-const call to a constructor. The [target] may be a generative
@@ -496,18 +528,18 @@ class CreateBox extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
 }
 
-/// Instantiates a synthetic class created by closure conversion.
-class CreateClosureClass extends Primitive implements JsSpecificNode {
-  final ClosureClassElement classElement;
+/// Creates an instance of a class and initializes its fields.
+class CreateInstance extends Primitive implements JsSpecificNode {
+  final ClassElement classElement;
 
-  /// Values and boxes for locals captured by the closure.
-  /// The order corresponds to [ClosureClassElement.closureFields].
+  /// Initial values for the fields on the class.
+  /// The order corresponds to the order of fields on the class.
   final List<Reference<Primitive>> arguments;
 
-  CreateClosureClass(this.classElement, List<Primitive> arguments)
+  CreateInstance(this.classElement, List<Primitive> arguments)
       : this.arguments = _referenceList(arguments);
 
-  accept(Visitor visitor) => visitor.visitCreateClosureClass(this);
+  accept(Visitor visitor) => visitor.visitCreateInstance(this);
 }
 
 class Identical extends Primitive implements JsSpecificNode {
@@ -598,6 +630,12 @@ class Parameter extends Primitive {
     super.hint = hint;
   }
 
+  // In addition to a parent pointer to the containing Continuation or
+  // FunctionDefinition, parameters have an index into the list of parameters
+  // bound by the parent.  This gives constant-time access to the continuation
+  // from the parent.
+  int parent_index;
+
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
 
@@ -607,6 +645,11 @@ class Parameter extends Primitive {
 class Continuation extends Definition<Continuation> implements InteriorNode {
   final List<Parameter> parameters;
   Expression body = null;
+
+  // In addition to a parent pointer to the containing LetCont, continuations
+  // have an index into the list of continuations bound by the LetCont.  This
+  // gives constant-time access to the continuation from the parent.
+  int parent_index;
 
   // A continuation is recursive if it has any recursive invocations.
   bool isRecursive = false;
@@ -643,7 +686,7 @@ class FieldDefinition extends Node implements ExecutableDefinition {
 
   /// `true` if this field has no initializer.
   ///
-  /// If `true` [body] and [returnContinuation] are `null`.
+  /// If `true` [body] is `null`.
   ///
   /// This is different from a initializer that is `null`. Consider this class:
   ///
@@ -672,16 +715,15 @@ class ClosureVariable extends Definition {
   accept(Visitor v) => v.visitClosureVariable(this);
 }
 
-class RunnableBody implements InteriorNode {
+class RunnableBody extends InteriorNode {
   Expression body;
   final Continuation returnContinuation;
-  Node parent;
   RunnableBody(this.body, this.returnContinuation);
   accept(Visitor visitor) => visitor.visitRunnableBody(this);
 }
 
 /// A function definition, consisting of parameters and a body.  The parameters
-/// include a distinguished continuation parameter.
+/// include a distinguished continuation parameter (held by the body).
 class FunctionDefinition extends Node
     implements ExecutableDefinition {
   final FunctionElement element;
@@ -715,27 +757,24 @@ class FunctionDefinition extends Node
 
   /// Returns `true` if this function is abstract or external.
   ///
-  /// If `true`, [body] and [returnContinuation] are `null` and [localConstants]
-  /// is empty.
+  /// If `true`, [body] is `null` and [localConstants] is empty.
   bool get isAbstract => body == null;
 }
 
 abstract class Initializer extends Node {}
 
-class FieldInitializer implements Initializer {
+class FieldInitializer extends Initializer {
   final FieldElement element;
   final RunnableBody body;
-  Node parent;
 
   FieldInitializer(this.element, this.body);
   accept(Visitor visitor) => visitor.visitFieldInitializer(this);
 }
 
-class SuperInitializer implements Initializer {
+class SuperInitializer extends Initializer {
   final ConstructorElement target;
   final List<RunnableBody> arguments;
   final Selector selector;
-  Node parent;
   SuperInitializer(this.target, this.arguments, this.selector);
   accept(Visitor visitor) => visitor.visitSuperInitializer(this);
 }
@@ -800,7 +839,7 @@ abstract class Visitor<T> {
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
   T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
-  T visitInvokeSuperMethod(InvokeSuperMethod node) => visitExpression(node);
+  T visitInvokeMethodDirectly(InvokeMethodDirectly node) => visitExpression(node);
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
@@ -822,7 +861,7 @@ abstract class Visitor<T> {
   T visitClosureVariable(ClosureVariable node) => visitDefinition(node);
   T visitGetField(GetField node) => visitDefinition(node);
   T visitCreateBox(CreateBox node) => visitDefinition(node);
-  T visitCreateClosureClass(CreateClosureClass node) => visitDefinition(node);
+  T visitCreateInstance(CreateInstance node) => visitDefinition(node);
 
   // Conditions.
   T visitIsTrue(IsTrue node) => visitCondition(node);
@@ -850,6 +889,7 @@ abstract class RecursiveVisitor extends Visitor {
   processRunnableBody(RunnableBody node) {}
   visitRunnableBody(RunnableBody node) {
     processRunnableBody(node);
+    visit(node.returnContinuation);
     visit(node.body);
   }
 
@@ -903,7 +943,7 @@ abstract class RecursiveVisitor extends Visitor {
   processLetCont(LetCont node) {}
   visitLetCont(LetCont node) {
     processLetCont(node);
-    visit(node.continuation);
+    node.continuations.forEach(visit);
     visit(node.body);
   }
 
@@ -929,9 +969,10 @@ abstract class RecursiveVisitor extends Visitor {
     node.arguments.forEach(processReference);
   }
 
-  processInvokeSuperMethod(InvokeSuperMethod node) {}
-  visitInvokeSuperMethod(InvokeSuperMethod node) {
-    processInvokeSuperMethod(node);
+  processInvokeMethodDirectly(InvokeMethodDirectly node) {}
+  visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    processInvokeMethodDirectly(node);
+    processReference(node.receiver);
     processReference(node.continuation);
     node.arguments.forEach(processReference);
   }
@@ -1028,7 +1069,7 @@ abstract class RecursiveVisitor extends Visitor {
   visitContinuation(Continuation node) {
     processContinuation(node);
     node.parameters.forEach(visitParameter);
-    visit(node.body);
+    if (node.body != null) visit(node.body);
   }
 
   // Conditions.
@@ -1053,9 +1094,9 @@ abstract class RecursiveVisitor extends Visitor {
     processReference(node.input);
   }
 
-  processCreateClosureClass(CreateClosureClass node) {}
-  visitCreateClosureClass(CreateClosureClass node) {
-    processCreateClosureClass(node);
+  processCreateInstance(CreateInstance node) {}
+  visitCreateInstance(CreateInstance node) {
+    processCreateInstance(node);
     node.arguments.forEach(processReference);
   }
 
@@ -1176,7 +1217,7 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach((RunnableBody argument) => visit(argument.body));
+    node.arguments.forEach(visit);
   }
 
   void visitLetPrim(LetPrim node) {
@@ -1186,7 +1227,7 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitLetCont(LetCont node) {
-    visit(node.continuation);
+    node.continuations.forEach(visit);
     visit(node.body);
   }
 
@@ -1203,7 +1244,8 @@ class RegisterAllocator extends Visitor {
     node.arguments.forEach(visitReference);
   }
 
-  void visitInvokeSuperMethod(InvokeSuperMethod node) {
+  void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    visitReference(node.receiver);
     node.arguments.forEach(visitReference);
   }
 
@@ -1294,7 +1336,7 @@ class RegisterAllocator extends Visitor {
   void visitCreateBox(CreateBox node) {
   }
 
-  void visitCreateClosureClass(CreateClosureClass node) {
+  void visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitReference);
   }
 

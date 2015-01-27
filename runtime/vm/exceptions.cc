@@ -21,8 +21,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
-DEFINE_FLAG(bool, verbose_stacktrace, false,
-    "Stack traces will include methods marked invisible.");
 
 
 const char* Exceptions::kCastErrorDstName = "type cast";

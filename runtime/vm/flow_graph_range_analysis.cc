@@ -761,9 +761,10 @@ void RangeAnalysis::InferRanges() {
   if (FLAG_trace_range_analysis) {
     FlowGraphPrinter::PrintGraph("Range Analysis (BEFORE)", flow_graph_);
   }
-
+  Zone* zone = flow_graph_->zone();
   // Initialize bitvector for quick filtering of int values.
-  BitVector* set = new(I) BitVector(I, flow_graph_->current_ssa_temp_index());
+  BitVector* set = new(zone) BitVector(zone,
+      flow_graph_->current_ssa_temp_index());
   for (intptr_t i = 0; i < values_.length(); i++) {
     set->Add(values_[i]->ssa_temp_index());
   }
@@ -1657,8 +1658,9 @@ IntegerInstructionSelector::IntegerInstructionSelector(FlowGraph* flow_graph)
   ASSERT(flow_graph_ != NULL);
   isolate_ = flow_graph_->isolate();
   ASSERT(isolate_ != NULL);
+  Zone* zone = flow_graph_->zone();
   selected_uint32_defs_ =
-      new(I) BitVector(I, flow_graph_->current_ssa_temp_index());
+      new(zone) BitVector(zone, flow_graph_->current_ssa_temp_index());
 }
 
 

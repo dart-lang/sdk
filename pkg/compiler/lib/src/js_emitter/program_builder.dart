@@ -15,11 +15,9 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     JavaScriptConstantCompiler;
 
-import '../closure.dart' show ClosureFieldElement;
-
-import 'js_emitter.dart' as emitterTask show
+import 'js_emitter.dart' show
+    ClassStubGenerator,
     CodeEmitterTask,
-    Emitter,
     InterceptorStubGenerator,
     TypeTestGenerator,
     TypeTestProperties;
@@ -32,9 +30,12 @@ part 'registry.dart';
 class ProgramBuilder {
   final Compiler _compiler;
   final Namer namer;
-  final emitterTask.CodeEmitterTask _task;
+  final CodeEmitterTask _task;
 
   final Registry _registry;
+
+  /// True if the program should store function types in the metadata.
+  bool _storeFunctionTypesInMetadata = false;
 
   ProgramBuilder(Compiler compiler,
                  this.namer,
@@ -49,48 +50,63 @@ class ProgramBuilder {
   /// update the superclass in the [Class].
   final Map<ClassElement, Class> _classes = <ClassElement, Class>{};
 
-  /// Mapping from [OutputUnit] to constructed [Output]. We need this to
+  /// Mapping from [OutputUnit] to constructed [Fragment]. We need this to
   /// generate the deferredLoadingMap (to know which hunks to load).
-  final Map<OutputUnit, Output> _outputs = <OutputUnit, Output>{};
+  final Map<OutputUnit, Fragment> _outputs = <OutputUnit, Fragment>{};
 
   /// Mapping from [ConstantValue] to constructed [Constant]. We need this to
   /// update field-initializers to point to the ConstantModel.
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
-  Program buildProgram() {
+  Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
+    this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
+    // Note: In rare cases (mostly tests) output units can be empty. This
+    // happens when the deferred code is dead-code eliminated but we still need
+    // to check that the library has been loaded.
+    _compiler.deferredLoadTask.allOutputUnits.forEach(
+        _registry.registerOutputUnit);
     _task.outputClassLists.forEach(_registry.registerElements);
     _task.outputStaticLists.forEach(_registry.registerElements);
     _task.outputConstantLists.forEach(_registerConstants);
+    _task.outputStaticNonFinalFieldLists.forEach(_registry.registerElements);
 
     // TODO(kasperl): There's code that implicitly needs access to the special
     // $ holder so we have to register that. Can we track if we have to?
     _registry.registerHolder(r'$');
 
-    MainOutput mainOutput = _buildMainOutput(_registry.mainFragment);
-    Iterable<Output> deferredOutputs = _registry.deferredFragments
-        .map((fragment) => _buildDeferredOutput(mainOutput, fragment));
+    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
+    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
+        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
 
-    List<Output> outputs = new List<Output>(_registry.fragmentCount);
+    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
     outputs[0] = mainOutput;
     outputs.setAll(1, deferredOutputs);
 
-    Program result =
-        new Program(outputs, _task.outputContainsConstantList, _buildLoadMap());
+    List<Class> nativeClasses = _task.nativeClasses
+        .map((ClassElement classElement) {
+          Class result = _classes[classElement];
+          return (result == null) ? _buildClass(classElement) : result;
+        })
+        .toList();
 
     // Resolve the superclass references after we've processed all the classes.
     _classes.forEach((ClassElement element, Class c) {
       if (element.superclass != null) {
         c.setSuperclass(_classes[element.superclass]);
+        assert(c.superclass != null);
       }
-      if (element.isMixinApplication) {
-        MixinApplication mixinApplication = c;
-        mixinApplication.setMixinClass(_classes[computeMixinClass(element)]);
+      if (c is MixinApplication) {
+        c.setMixinClass(_classes[computeMixinClass(element)]);
+        assert(c.mixinClass != null);
       }
     });
 
     _markEagerClasses();
 
-    return result;
+    return new Program(outputs,
+                       nativeClasses,
+                       _task.outputContainsConstantList,
+                       _buildLoadMap());
   }
 
   void _markEagerClasses() {
@@ -98,13 +114,13 @@ class ProgramBuilder {
   }
 
   /// Builds a map from loadId to outputs-to-load.
-  Map<String, List<Output>> _buildLoadMap() {
+  Map<String, List<Fragment>> _buildLoadMap() {
     List<OutputUnit> convertHunks(List<OutputUnit> hunks) {
       return hunks.map((OutputUnit unit) => _outputs[unit])
           .toList(growable: false);
     }
 
-    Map<String, List<Output>> loadMap = <String, List<Output>>{};
+    Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
     _compiler.deferredLoadTask.hunksToLoad
         .forEach((String loadId, List<OutputUnit> outputUnits) {
       loadMap[loadId] = outputUnits
@@ -114,46 +130,50 @@ class ProgramBuilder {
     return loadMap;
   }
 
-  MainOutput _buildMainOutput(Fragment fragment) {
+  MainFragment _buildMainOutput(LibrariesMap librariesMap) {
     // Construct the main output from the libraries and the registered holders.
-    MainOutput result = new MainOutput(
+    MainFragment result = new MainFragment(
+        librariesMap.outputUnit,
         "",  // The empty string is the name for the main output file.
         backend.emitter.staticFunctionAccess(_compiler.mainFunction),
-        _buildLibraries(fragment),
-        _buildStaticNonFinalFields(fragment),
-        _buildStaticLazilyInitializedFields(fragment),
-        _buildConstants(fragment),
+        _buildLibraries(librariesMap),
+        _buildStaticNonFinalFields(librariesMap),
+        _buildStaticLazilyInitializedFields(librariesMap),
+        _buildConstants(librariesMap),
         _registry.holders.toList(growable: false));
-    _outputs[fragment.outputUnit] = result;
+    _outputs[librariesMap.outputUnit] = result;
     return result;
   }
 
-  DeferredOutput _buildDeferredOutput(MainOutput mainOutput,
-                                      Fragment fragment) {
-    DeferredOutput result = new DeferredOutput(
-        backend.deferredPartFileName(fragment.name, addExtension: false),
-                                     fragment.name,
+  DeferredFragment _buildDeferredOutput(MainFragment mainOutput,
+                                      LibrariesMap librariesMap) {
+    DeferredFragment result = new DeferredFragment(
+        librariesMap.outputUnit,
+        backend.deferredPartFileName(librariesMap.name, addExtension: false),
+                                     librariesMap.name,
         mainOutput,
-        _buildLibraries(fragment),
-        _buildStaticNonFinalFields(fragment),
-        _buildStaticLazilyInitializedFields(fragment),
-        _buildConstants(fragment));
-    _outputs[fragment.outputUnit] = result;
+        _buildLibraries(librariesMap),
+        _buildStaticNonFinalFields(librariesMap),
+        _buildStaticLazilyInitializedFields(librariesMap),
+        _buildConstants(librariesMap));
+    _outputs[librariesMap.outputUnit] = result;
     return result;
   }
 
-  List<Constant> _buildConstants(Fragment fragment) {
+  List<Constant> _buildConstants(LibrariesMap librariesMap) {
     List<ConstantValue> constantValues =
-        _task.outputConstantLists[fragment.outputUnit];
+        _task.outputConstantLists[librariesMap.outputUnit];
     if (constantValues == null) return const <Constant>[];
     return constantValues.map((ConstantValue value) => _constants[value])
         .toList(growable: false);
   }
 
-  List<StaticField> _buildStaticNonFinalFields(Fragment fragment) {
+  List<StaticField> _buildStaticNonFinalFields(LibrariesMap librariesMap) {
     // TODO(floitsch): handle static non-final fields correctly with deferred
     // libraries.
-    if (fragment != _registry.mainFragment) return const <StaticField>[];
+    if (librariesMap != _registry.mainLibrariesMap) {
+      return const <StaticField>[];
+    }
     Iterable<VariableElement> staticNonFinalFields =
         backend.constants.getStaticNonFinalFieldsForEmission();
     return Elements.sortedByPosition(staticNonFinalFields)
@@ -173,10 +193,13 @@ class ProgramBuilder {
                            isFinal, isLazy);
   }
 
-  List<StaticField> _buildStaticLazilyInitializedFields(Fragment fragment) {
+  List<StaticField> _buildStaticLazilyInitializedFields(
+      LibrariesMap librariesMap) {
     // TODO(floitsch): lazy fields should just be in their respective
     // libraries.
-    if (fragment != _registry.mainFragment) return const <StaticField>[];
+    if (librariesMap != _registry.mainLibrariesMap) {
+      return const <StaticField>[];
+    }
 
     JavaScriptConstantCompiler handler = backend.constants;
     List<VariableElement> lazyFields =
@@ -203,10 +226,10 @@ class ProgramBuilder {
                            isFinal, isLazy);
   }
 
-  List<Library> _buildLibraries(Fragment fragment) {
-    List<Library> libraries = new List<Library>(fragment.length);
+  List<Library> _buildLibraries(LibrariesMap librariesMap) {
+    List<Library> libraries = new List<Library>(librariesMap.length);
     int count = 0;
-    fragment.forEach((LibraryElement library, List<Element> elements) {
+    librariesMap.forEach((LibraryElement library, List<Element> elements) {
       libraries[count++] = _buildLibrary(library, elements);
     });
     return libraries;
@@ -218,12 +241,9 @@ class ProgramBuilder {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = elements
-        .where((e) => e is FunctionElement).map(_buildStaticMethod).toList();
-
-    statics.addAll(elements
         .where((e) => e is FunctionElement)
-        .where((e) => universe.staticFunctionsNeedingGetter.contains(e))
-        .map(_buildStaticMethodTearOff));
+        .map(_buildStaticMethod)
+        .toList();
 
     if (library == backend.interceptorsLibrary) {
       statics.addAll(_generateGetInterceptorMethods());
@@ -235,12 +255,40 @@ class ProgramBuilder {
         .map(_buildClass)
         .toList(growable: false);
 
-    return new Library(library, uri, statics, classes);
+    bool visitStatics = true;
+    List<Field> staticFieldsForReflection = _buildFields(library, visitStatics);
+
+    return new Library(library, uri, statics, classes,
+                       staticFieldsForReflection);
+  }
+
+  /// HACK for Try.
+  ///
+  /// Returns a class that contains the fields of a class.
+  Class buildClassWithFieldsForTry(ClassElement element) {
+    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
+
+    List<Field> instanceFields =
+        onlyForRti ? const <Field>[] : _buildFields(element, false);
+
+    String name = namer.getNameOfClass(element);
+    String holderName = namer.globalObjectFor(element);
+    Holder holder = _registry.registerHolder(holderName);
+    bool isInstantiated =
+        _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
+
+    return new Class(
+        element, name, holder, [], instanceFields, [], [], [], null,
+        isDirectlyInstantiated: isInstantiated,
+        onlyForRti: onlyForRti,
+        isNative: element.isNative);
   }
 
   Class _buildClass(ClassElement element) {
+    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
+
     List<Method> methods = [];
-    List<InstanceField> fields = [];
+    List<StubMethod> callStubs = <StubMethod>[];
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
@@ -250,8 +298,19 @@ class ProgramBuilder {
         js.Expression code = backend.generatedCode[member];
         // TODO(kasperl): Figure out under which conditions code is null.
         if (code != null) methods.add(_buildMethod(member, code));
-      } else if (member.isField && !member.isStatic) {
-        fields.add(_buildInstanceField(member, enclosing));
+      }
+      if (member.isGetter || member.isField) {
+        Set<Selector> selectors =
+            _compiler.codegenWorld.invokedNames[member.name];
+        if (selectors != null && !selectors.isEmpty) {
+          ClassStubGenerator generator =
+              new ClassStubGenerator(_compiler, namer, backend);
+          Map<String, js.Expression> callStubsForMember =
+              generator.generateCallStubsForGetter(member, selectors);
+          callStubsForMember.forEach((String name, js.Expression code) {
+            callStubs.add(_buildStubMethod(name, code, element: member));
+          });
+        }
       }
     }
 
@@ -259,46 +318,57 @@ class ProgramBuilder {
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!element.isMixinApplication) {
+    if (!onlyForRti && !element.isMixinApplication) {
       implementation.forEachMember(visitMember, includeBackendMembers: true);
     }
 
-    emitterTask.TypeTestGenerator generator =
-        new emitterTask.TypeTestGenerator(_compiler, _task, namer);
-    emitterTask.TypeTestProperties typeTests =
-        generator.generateIsTests(element);
+    List<Field> instanceFields =
+        onlyForRti ? const <Field>[] : _buildFields(element, false);
+    List<Field> staticFieldsForReflection =
+        onlyForRti ? const <Field>[] : _buildFields(element, true);
 
-    // At this point a mixin application must not have any methods or fields.
-    // Type-tests might be added to mixin applications, too.
-    assert(!element.isMixinApplication || methods.isEmpty);
-    assert(!element.isMixinApplication || fields.isEmpty);
+    TypeTestGenerator generator =
+        new TypeTestGenerator(_compiler, _task, namer);
+    TypeTestProperties typeTests =
+        generator.generateIsTests(
+            element,
+            storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
-    // TODO(floitsch): we should not add the code here, but have a list of
-    // is/as classes in the Class object.
-    // The individual emitters should then call the type test generator to
-    // generate the code.
+    List<StubMethod> isChecks = <StubMethod>[];
     typeTests.properties.forEach((String name, js.Node code) {
-      methods.add(_buildStubMethod(name, code));
+      isChecks.add(_buildStubMethod(name, code));
     });
 
     String name = namer.getNameOfClass(element);
     String holderName = namer.globalObjectFor(element);
     Holder holder = _registry.registerHolder(holderName);
-    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
     bool isInstantiated =
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
     Class result;
-    if (element.isMixinApplication) {
+    if (element.isMixinApplication && !onlyForRti) {
+      assert(!element.isNative);
+      assert(methods.isEmpty);
+
       result = new MixinApplication(element,
-                                    name, holder, methods, fields,
+                                    name, holder,
+                                    instanceFields,
+                                    staticFieldsForReflection,
+                                    callStubs,
+                                    isChecks,
+                                    typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
                                     onlyForRti: onlyForRti);
     } else {
       result = new Class(element,
-                         name, holder, methods, fields,
+                         name, holder, methods, instanceFields,
+                         staticFieldsForReflection,
+                         callStubs,
+                         isChecks,
+                         typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
-                         onlyForRti: onlyForRti);
+                         onlyForRti: onlyForRti,
+                         isNative: element.isNative);
     }
     _classes[element] = result;
     return result;
@@ -306,11 +376,18 @@ class ProgramBuilder {
 
   Method _buildMethod(FunctionElement element, js.Expression code) {
     String name = namer.getNameOfInstanceMember(element);
-    return new Method(element, name, code);
+    // TODO(floitsch): compute `needsTearOff`.
+    return new Method(element, name, code, needsTearOff: false);
   }
 
-  Method _buildStubMethod(String name, js.Expression code) {
-    return new StubMethod(name, code);
+  /// Builds a stub method.
+  ///
+  /// Stub methods may have an element that can be used for code-size
+  /// attribution.
+  Method _buildStubMethod(String name, js.Expression code,
+                          {Element element}) {
+    // TODO(floitsch): compute `needsTearOff`.
+    return new StubMethod(name, code, needsTearOff: false, element: element);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -328,8 +405,8 @@ class ProgramBuilder {
   }
 
   Iterable<StaticMethod> _generateGetInterceptorMethods() {
-    emitterTask.InterceptorStubGenerator stubGenerator =
-        new emitterTask.InterceptorStubGenerator(_compiler, namer, backend);
+    InterceptorStubGenerator stubGenerator =
+        new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
     Holder holder = _registry.registerHolder(holderName);
@@ -340,69 +417,60 @@ class ProgramBuilder {
     return names.map((String name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
-      return new StaticStubMethod(name, holder, code);
+      // TODO(floitsch): compute `needsTearOff`.
+      return new StaticStubMethod(name, holder, code, needsTearOff: false);
     });
   }
 
-  bool _fieldNeedsGetter(VariableElement field) {
-    assert(field.isField);
-    if (_fieldAccessNeverThrows(field)) return false;
-    return backend.shouldRetainGetter(field)
-        || _compiler.codegenWorld.hasInvokedGetter(field, _compiler.world);
-  }
+  List<Field> _buildFields(Element holder, bool visitStatics) {
+    List<Field> fields = <Field>[];
+    _task.oldEmitter.classEmitter.visitFields(
+        holder, visitStatics, (VariableElement field,
+                               String name,
+                               String accessorName,
+                               bool needsGetter,
+                               bool needsSetter,
+                               bool needsCheckedSetter) {
+      assert(invariant(field, field.isDeclaration));
 
-  bool _fieldNeedsSetter(VariableElement field) {
-    assert(field.isField);
-    if (_fieldAccessNeverThrows(field)) return false;
-    return (!field.isFinal && !field.isConst)
-        && (backend.shouldRetainSetter(field)
-            || _compiler.codegenWorld.hasInvokedSetter(field, _compiler.world));
-  }
-
-  // We never access a field in a closure (a captured variable) without knowing
-  // that it is there.  Therefore we don't need to use a getter (that will throw
-  // if the getter method is missing), but can always access the field directly.
-  bool _fieldAccessNeverThrows(VariableElement field) {
-    return field is ClosureFieldElement;
-  }
-
-  InstanceField _buildInstanceField(VariableElement field,
-                                    ClassElement holder) {
-    assert(invariant(field, field.isDeclaration));
-    String name = namer.fieldPropertyName(field);
-
-    int getterFlags = 0;
-    if (_fieldNeedsGetter(field)) {
-      bool isIntercepted = backend.fieldHasInterceptedGetter(field);
-      if (isIntercepted) {
-        getterFlags += 2;
-        if (backend.isInterceptorClass(holder)) {
-          getterFlags += 1;
+      int getterFlags = 0;
+      if (needsGetter) {
+        if (visitStatics || !backend.fieldHasInterceptedGetter(field)) {
+          getterFlags = 1;
+        } else {
+          getterFlags += 2;
+          // TODO(sra): 'isInterceptorClass' might not be the correct test
+          // for methods forced to use the interceptor convention because
+          // the method's class was elsewhere mixed-in to an interceptor.
+          if (!backend.isInterceptorClass(holder)) {
+            getterFlags += 1;
+          }
         }
-      } else {
-        getterFlags = 1;
       }
-    }
 
-    int setterFlags = 0;
-    if (_fieldNeedsSetter(field)) {
-      bool isIntercepted = backend.fieldHasInterceptedSetter(field);
-      if (isIntercepted) {
-        setterFlags += 2;
-        if (backend.isInterceptorClass(holder)) {
-          setterFlags += 1;
+      int setterFlags = 0;
+      if (needsSetter) {
+        if (visitStatics || !backend.fieldHasInterceptedSetter(field)) {
+          setterFlags = 1;
+        } else {
+          setterFlags += 2;
+          if (!backend.isInterceptorClass(holder)) {
+            setterFlags += 1;
+          }
         }
-      } else {
-        setterFlags = 1;
       }
-    }
 
-    return new InstanceField(field, name, getterFlags, setterFlags);
+      fields.add(new Field(field, name, accessorName,
+                           getterFlags, setterFlags,
+                           needsCheckedSetter));
+    });
+
+    return fields;
   }
 
   Iterable<StaticMethod> _generateOneShotInterceptors() {
-    emitterTask.InterceptorStubGenerator stubGenerator =
-        new emitterTask.InterceptorStubGenerator(_compiler, namer, backend);
+    InterceptorStubGenerator stubGenerator =
+        new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
     Holder holder = _registry.registerHolder(holderName);
@@ -410,7 +478,7 @@ class ProgramBuilder {
     List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
     return names.map((String name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
-      return new StaticStubMethod(name, holder, code);
+      return new StaticStubMethod(name, holder, code, needsTearOff: false);
     });
   }
 
@@ -418,21 +486,17 @@ class ProgramBuilder {
     String name = namer.getNameOfMember(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
+    bool needsTearOff =
+        universe.staticFunctionsNeedingGetter.contains(element);
+    // TODO(floitsch): add tear-off name: namer.getStaticClosureName(element).
     return new StaticMethod(element,
-                            name, _registry.registerHolder(holder), code);
-  }
-
-  StaticMethod _buildStaticMethodTearOff(FunctionElement element) {
-    String name = namer.getStaticClosureName(element);
-    String holder = namer.globalObjectFor(element);
-    // TODO(kasperl): This clearly doesn't work yet.
-    js.Expression code = js.string("<<unimplemented>>");
-    return new StaticMethod(element,
-                            name, _registry.registerHolder(holder), code);
+                            name, _registry.registerHolder(holder), code,
+                            needsTearOff: needsTearOff);
   }
 
   void _registerConstants(OutputUnit outputUnit,
-                          List<ConstantValue> constantValues) {
+                          Iterable<ConstantValue> constantValues) {
+    // `constantValues` is null if an outputUnit doesn't contain any constants.
     if (constantValues == null) return;
     for (ConstantValue constantValue in constantValues) {
       _registry.registerConstant(outputUnit, constantValue);
@@ -442,6 +506,6 @@ class ProgramBuilder {
       Holder holder = _registry.registerHolder(constantObject);
       Constant constant = new Constant(name, holder, constantValue);
       _constants[constantValue] = constant;
-    };
+    }
   }
 }

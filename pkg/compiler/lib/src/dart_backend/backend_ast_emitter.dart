@@ -777,8 +777,12 @@ class ASTEmitter
   }
 
   @override
-  Expression visitInvokeSuperMethod(tree.InvokeSuperMethod exp,
-                                    BuilderContext<Statement> context) {
+  Expression visitInvokeMethodDirectly(tree.InvokeMethodDirectly exp,
+                                       BuilderContext<Statement> context) {
+    // When targeting Dart, InvokeMethodDirectly is only used for super calls.
+    // The receiver is known to be `this`, and the target method is a method
+    // on the super class. So we just translate it as a method call with the
+    // super receiver.
     return emitMethodCall(exp, new SuperReceiver(), context);
   }
 
@@ -905,7 +909,7 @@ class ASTEmitter
   visitCreateBox(tree.CreateBox node, arg) => errorUnsupportedNode(node);
 
   @override
-  visitCreateClosureClass(tree.CreateClosureClass node, arg) {
+  visitCreateInstance(tree.CreateInstance node, arg) {
     return errorUnsupportedNode(node);
   }
 

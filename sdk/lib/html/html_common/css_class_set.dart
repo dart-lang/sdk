@@ -130,7 +130,7 @@ abstract class CssClassSetImpl implements CssClassSet {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  void removeAll(Iterable<String> iterable) {
+  void removeAll(Iterable<Object> iterable) {
     modify((s) => s.removeAll(iterable));
   }
 
@@ -148,7 +148,7 @@ abstract class CssClassSetImpl implements CssClassSet {
     iterable.forEach((e) => toggle(e, shouldAdd));
   }
 
-  void retainAll(Iterable<String> iterable) {
+  void retainAll(Iterable<Object> iterable) {
     modify((s) => s.retainAll(iterable));
   }
 
@@ -160,10 +160,10 @@ abstract class CssClassSetImpl implements CssClassSet {
     modify((s) => s.retainWhere(test));
   }
 
-  bool containsAll(Iterable<String> collection) =>
+  bool containsAll(Iterable<Object> collection) =>
     readClasses().containsAll(collection);
 
-  Set<String> intersection(Set<String> other) =>
+  Set<String> intersection(Set<Object> other) =>
     readClasses().intersection(other);
 
   Set<String> union(Set<String> other) =>

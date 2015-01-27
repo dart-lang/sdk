@@ -11,6 +11,7 @@
 namespace dart {
 
 class ParsedFunction;
+class Thread;
 
 // Translate an AstNode containing an expression (that itself contains one or
 // more awaits) into a sequential representation where subexpressions are
@@ -63,7 +64,7 @@ class AwaitTransformer : public AstNodeVisitor {
 
   void NextTempVar() { temp_cnt_++; }
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
 
   SequenceNode* preamble_;
   int32_t temp_cnt_;
@@ -71,7 +72,7 @@ class AwaitTransformer : public AstNodeVisitor {
   ParsedFunction* const parsed_function_;
   LocalScope* function_top_;
 
-  Isolate* isolate_;
+  Thread* thread_;
 
   DISALLOW_COPY_AND_ASSIGN(AwaitTransformer);
 };

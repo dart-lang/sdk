@@ -6,7 +6,7 @@
 #include "vm/code_observers.h"
 
 #include "vm/os.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 

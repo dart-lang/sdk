@@ -21,6 +21,7 @@
 #include "vm/report.h"
 #include "vm/scanner.h"
 #include "vm/tags.h"
+#include "vm/thread.h"
 #include "vm/verified_memory.h"
 
 namespace dart {
@@ -59,24 +60,32 @@ class Symbols;
  public:  /* NOLINT */                                                         \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
   bool Is##object() const { return true; }                                     \
-  static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
+  static object& Handle(Zone* zone, Raw##object* raw_ptr) {                    \
     object* obj =                                                              \
-        reinterpret_cast<object*>(VMHandles::AllocateHandle(isolate));         \
+      reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));              \
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
-  static object& Handle() {                                                    \
-    return Handle(Isolate::Current(), object::null());                         \
+  /* DEPRECATED: Use Zone version. */                                          \
+  static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
+    return Handle(isolate->current_zone(), raw_ptr);                           \
   }                                                                            \
+  static object& Handle() {                                                    \
+    return Handle(Thread::Current()->zone(), object::null());                  \
+  }                                                                            \
+  static object& Handle(Zone* zone) {                                          \
+    return Handle(zone, object::null());                                       \
+  }                                                                            \
+  /* DEPRECATED: Use Zone version. */                                          \
   static object& Handle(Isolate* isolate) {                                    \
-    return Handle(isolate, object::null());                                    \
+    return Handle(isolate->current_zone(), object::null());                    \
   }                                                                            \
   static object& Handle(Raw##object* raw_ptr) {                                \
-    return Handle(Isolate::Current(), raw_ptr);                                \
+    return Handle(Thread::Current()->zone(), raw_ptr);                         \
   }                                                                            \
-  static object& CheckedHandle(Isolate* isolate, RawObject* raw_ptr) {         \
+  static object& CheckedHandle(Zone* zone, RawObject* raw_ptr) {               \
     object* obj =                                                              \
-        reinterpret_cast<object*>(VMHandles::AllocateHandle(isolate));         \
+        reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));            \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
       FATAL2("Handle check failed: saw %s expected %s",                        \
@@ -84,14 +93,22 @@ class Symbols;
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
-  static object& CheckedHandle(RawObject* raw_ptr) {                           \
-    return CheckedHandle(Isolate::Current(), raw_ptr);                         \
+  /* DEPRECATED: Use Zone version. */                                          \
+  static object& CheckedHandle(Isolate* isolate, RawObject* raw_ptr) {         \
+    return CheckedHandle(isolate->current_zone(), raw_ptr);                    \
   }                                                                            \
-  static object& ZoneHandle(Isolate* isolate, Raw##object* raw_ptr) {          \
+  static object& CheckedHandle(RawObject* raw_ptr) {                           \
+    return CheckedHandle(Thread::Current()->zone(), raw_ptr);                  \
+  }                                                                            \
+  static object& ZoneHandle(Zone* zone, Raw##object* raw_ptr) {                \
     object* obj = reinterpret_cast<object*>(                                   \
-        VMHandles::AllocateZoneHandle(isolate));                               \
+        VMHandles::AllocateZoneHandle(zone));                                  \
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
+  }                                                                            \
+  /* DEPRECATED: Use Zone version. */                                          \
+  static object& ZoneHandle(Isolate* isolate, Raw##object* raw_ptr) {          \
+    return ZoneHandle(isolate->current_zone(), raw_ptr);                       \
   }                                                                            \
   static object* ReadOnlyHandle() {                                            \
     object* obj = reinterpret_cast<object*>(                                   \
@@ -99,18 +116,22 @@ class Symbols;
     initializeHandle(obj, object::null());                                     \
     return obj;                                                                \
   }                                                                            \
+  static object& ZoneHandle(Zone* zone) {                                      \
+    return ZoneHandle(zone, object::null());                                   \
+  }                                                                            \
+  /* DEPRECATED: Use Zone version. */                                          \
   static object& ZoneHandle(Isolate* isolate) {                                \
-    return ZoneHandle(isolate, object::null());                                \
+    return ZoneHandle(isolate->current_zone(), object::null());                \
   }                                                                            \
   static object& ZoneHandle() {                                                \
-    return ZoneHandle(Isolate::Current(), object::null());                     \
+    return ZoneHandle(Thread::Current()->zone(), object::null());              \
   }                                                                            \
   static object& ZoneHandle(Raw##object* raw_ptr) {                            \
-    return ZoneHandle(Isolate::Current(), raw_ptr);                            \
+    return ZoneHandle(Thread::Current()->zone(), raw_ptr);                     \
   }                                                                            \
-  static object& CheckedZoneHandle(Isolate* isolate, RawObject* raw_ptr) {     \
+  static object& CheckedZoneHandle(Zone* zone, RawObject* raw_ptr) {           \
     object* obj = reinterpret_cast<object*>(                                   \
-        VMHandles::AllocateZoneHandle(isolate));                               \
+        VMHandles::AllocateZoneHandle(zone));                                  \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
       FATAL2("Handle check failed: saw %s expected %s",                        \
@@ -119,7 +140,7 @@ class Symbols;
     return *obj;                                                               \
   }                                                                            \
   static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
-    return CheckedZoneHandle(Isolate::Current(), raw_ptr);                     \
+    return CheckedZoneHandle(Thread::Current()->zone(), raw_ptr);              \
   }                                                                            \
   /* T::Cast cannot be applied to a null Object, because the object vtable */  \
   /* is not setup for type T, although some methods are supposed to work   */  \
@@ -321,10 +342,14 @@ class Object {
 
   bool IsNotTemporaryScopedHandle() const;
 
-  static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
-    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(isolate));
+  static Object& Handle(Zone* zone, RawObject* raw_ptr) {
+    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
     initializeHandle(obj, raw_ptr);
     return *obj;
+  }
+  // DEPRECATED: Use Zone version.
+  static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
+    return Handle(isolate->current_zone(), raw_ptr);
   }
   static Object* ReadOnlyHandle() {
     Object* obj = reinterpret_cast<Object*>(
@@ -337,8 +362,12 @@ class Object {
     return Handle(Isolate::Current(), null_);
   }
 
+  static Object& Handle(Zone* zone) {
+    return Handle(zone, null_);
+  }
+  // DEPRECATED: Use Zone version.
   static Object& Handle(Isolate* isolate) {
-    return Handle(isolate, null_);
+    return Handle(isolate->current_zone(), null_);
   }
 
   static Object& Handle(RawObject* raw_ptr) {
@@ -347,7 +376,7 @@ class Object {
 
   static Object& ZoneHandle(Isolate* isolate, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(
-        VMHandles::AllocateZoneHandle(isolate));
+        VMHandles::AllocateZoneHandle(isolate->current_zone()));
     initializeHandle(obj, raw_ptr);
     return *obj;
   }
@@ -805,8 +834,8 @@ class PassiveObject : public Object {
     raw_ = value;
   }
   static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
-    PassiveObject* obj =
-        reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(I));
+    PassiveObject* obj = reinterpret_cast<PassiveObject*>(
+        VMHandles::AllocateHandle(I->current_zone()));
     obj->raw_ = raw_ptr;
     obj->set_vtable(0);
     return *obj;
@@ -817,12 +846,16 @@ class PassiveObject : public Object {
   static PassiveObject& Handle() {
     return Handle(Isolate::Current(), Object::null());
   }
+  // DEPRECATED
+  // TODO(koda): Add Zone version.
   static PassiveObject& Handle(Isolate* I) {
     return Handle(I, Object::null());
   }
+  // DEPRECATED
+  // TODO(koda): Add Zone version.
   static PassiveObject& ZoneHandle(Isolate* I, RawObject* raw_ptr) {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
-        VMHandles::AllocateZoneHandle(I));
+        VMHandles::AllocateZoneHandle(I->current_zone()));
     obj->raw_ = raw_ptr;
     obj->set_vtable(0);
     return *obj;
@@ -833,6 +866,8 @@ class PassiveObject : public Object {
   static PassiveObject& ZoneHandle() {
     return ZoneHandle(Isolate::Current(), Object::null());
   }
+  // DEPRECATED
+  // TODO(koda): Add Zone version.
   static PassiveObject& ZoneHandle(Isolate* I) {
     return ZoneHandle(I, Object::null());
   }
@@ -2152,7 +2187,7 @@ class Function : public Object {
   int32_t SourceFingerprint() const;
 
   // Return false and report an error if the fingerprint does not match.
-  bool CheckSourceFingerprint(int32_t fp) const;
+  bool CheckSourceFingerprint(const char* prefix, int32_t fp) const;
 
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(
@@ -2169,11 +2204,32 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+  // static: Considered during class-side or top-level resolution rather than
+  //         instance-side resolution.
+  // const: Valid target of a const constructor call.
+  // abstract: Skipped during instance-side resolution.
+  // reflectable: Enumerated by mirrors, invocable by mirrors. False for private
+  //              functions of dart: libraries.
+  // debuggable: Valid location of a break point. True for functions with source
+  //             code; false for synthetic functions such as dispatchers. Also
+  //             used to decide whether to include a frame in stack traces.
+  // optimizable: Candidate for going through the optimizing compiler. False for
+  //              some functions known to be execute infrequently and functions
+  //              which have been de-optimized too many times.
+  // instrinsic: Has a hand-written assembly prologue.
+  // inlinable: Candidate for inlining. False for functions with features we
+  //            don't support during inlining (e.g., optional parameters),
+  //            functions which are too big, etc.
+  // native: Bridge to C/C++ code.
+  // redirecting: Redirecting generative or factory constructor.
+  // external: Just a declaration that expects to be defined in another patch
+  //           file.
+
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
   V(Const, is_const)                                                           \
   V(Abstract, is_abstract)                                                     \
-  V(Visible, is_visible)                                                       \
+  V(Reflectable, is_reflectable)                                               \
   V(Debuggable, is_debuggable)                                                 \
   V(Optimizable, is_optimizable)                                               \
   V(Inlinable, is_inlinable)                                                   \
@@ -3182,14 +3238,14 @@ class LocalVarDescriptors : public Object {
 class PcDescriptors : public Object {
  public:
   void AddDescriptor(intptr_t index,
-                     uword pc,
+                     uword pc_offset,
                      RawPcDescriptors::Kind kind,
                      int64_t deopt_id,
                      int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
     NoGCScope no_gc;
     RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
-    rec->set_pc(pc);
+    rec->set_pc_offset(pc_offset);
     rec->set_kind(kind);
     ASSERT(Utils::IsInt(32, deopt_id));
     rec->set_deopt_id(static_cast<int32_t>(deopt_id));
@@ -3218,9 +3274,6 @@ class PcDescriptors : public Object {
   }
 
   static RawPcDescriptors* New(intptr_t num_descriptors, bool has_try_index);
-
-  // Returns 0 if not found.
-  uword GetPcForKind(RawPcDescriptors::Kind kind) const;
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
@@ -3253,9 +3306,9 @@ class PcDescriptors : public Object {
       }
     }
 
-    uword Pc() const {
+    uword PcOffset() const {
       NoGCScope no_gc;
-      return descriptors_.recAt(current_ix_)->pc();
+      return descriptors_.recAt(current_ix_)->pc_offset();
     }
     intptr_t DeoptId() const {
       NoGCScope no_gc;
@@ -3393,13 +3446,13 @@ class ExceptionHandlers : public Object {
   void GetHandlerInfo(intptr_t try_index,
                       RawExceptionHandlers::HandlerInfo* info) const;
 
-  intptr_t HandlerPC(intptr_t try_index) const;
+  uword HandlerPCOffset(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
   bool NeedsStacktrace(intptr_t try_index) const;
 
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
-                      intptr_t handler_pc,
+                      uword handler_pc_offset,
                       bool needs_stacktrace,
                       bool has_catch_all) const;
 

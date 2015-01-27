@@ -241,7 +241,7 @@ abstract class Process {
    * include the parent process's environment, with [environment] taking
    * precedence. Default is `true`.
    *
-   * If [runInShell] is true, the process will be spawned through a system
+   * If [runInShell] is `true`, the process will be spawned through a system
    * shell. On Linux and Mac OS, [:/bin/sh:] is used, while
    * [:%WINDIR%\system32\cmd.exe:] is used on Windows.
    *
@@ -257,6 +257,13 @@ abstract class Process {
    *       stdout.addStream(process.stdout);
    *       stderr.addStream(process.stderr);
    *     });
+   *
+   * If [detach] is `true` a detached process will be created. A
+   * detached process has no connection to its parent, and can
+   * keep running on its own when the parent dies. The only
+   * information available from a detached process is its `pid`. There
+   * is no connection to its `stdin`, `stdout` or `stderr` nor will its
+   * exit code become available when it terminates.
    */
   external static Future<Process> start(
       String executable,
@@ -264,7 +271,8 @@ abstract class Process {
       {String workingDirectory,
        Map<String, String> environment,
        bool includeParentEnvironment: true,
-       bool runInShell: false});
+       bool runInShell: false,
+       bool detach: false});
 
   /**
    * Starts a process and runs it non-interactively to completion. The

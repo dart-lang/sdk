@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <setjmp.h>
+#include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
 #include "vm/globals.h"
@@ -20,7 +20,7 @@
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/stack_frame.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 
@@ -255,13 +255,14 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
                                                      uword pc) {
   intptr_t token_pos = -1;
+  uword pc_offset = pc - code.EntryPoint();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    if (iter.Pc() == pc) {
+    if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
-    } else if ((token_pos <= 0) && (iter.Pc() > pc)) {
+    } else if ((token_pos <= 0) && (iter.PcOffset() > pc_offset)) {
       token_pos = iter.TokenPos();
     }
   }

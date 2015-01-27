@@ -19,8 +19,12 @@ import 'file_system.dart';
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
+
+  static final NORMALIZE_EOL_ALWAYS =
+      (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
+
   static final PhysicalResourceProvider INSTANCE =
-      new PhysicalResourceProvider._();
+      new PhysicalResourceProvider(null);
 
   /**
    * The name of the directory containing plugin specific subfolders used to
@@ -28,7 +32,11 @@ class PhysicalResourceProvider implements ResourceProvider {
    */
   static final String SERVER_DIR = ".dartServer";
 
-  PhysicalResourceProvider._();
+  PhysicalResourceProvider(String fileReadMode(String s)) {
+    if (fileReadMode != null) {
+      FileBasedSource.fileReadMode = fileReadMode;
+    }
+  }
 
   @override
   Context get pathContext => io.Platform.isWindows ? windows : posix;

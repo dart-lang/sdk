@@ -10,6 +10,7 @@
 #include "vm/hash_map.h"
 #include "vm/intermediate_language.h"
 #include "vm/parser.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -149,7 +150,9 @@ class FlowGraph : public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
+  Zone* zone() const { return thread()->zone(); }
+  Isolate* isolate() const { return thread()->isolate(); }
 
   intptr_t max_block_id() const { return max_block_id_; }
   void set_max_block_id(intptr_t id) { max_block_id_ = id; }
@@ -325,7 +328,7 @@ class FlowGraph : public ZoneAllocated {
   // indicates membership in the loop.
   BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const;
 
-  Isolate* isolate_;
+  Thread* thread_;
 
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.
@@ -411,9 +414,9 @@ class LivenessAnalysis : public ValueObject {
   // for blocks until they stop changing.
   void ComputeLiveInAndLiveOutSets();
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
-  Isolate* isolate_;
+  Zone* zone_;
 
   const intptr_t variable_count_;
 
@@ -469,7 +472,7 @@ class DefinitionWorklist : public ValueObject {
                      intptr_t initial_capacity)
       : defs_(initial_capacity),
         contains_vector_(
-            new BitVector(flow_graph->isolate(),
+            new BitVector(flow_graph->zone(),
                           flow_graph->current_ssa_temp_index())) {
   }
 

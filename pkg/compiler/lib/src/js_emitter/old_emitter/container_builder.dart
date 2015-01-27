@@ -240,90 +240,6 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [member] must be a declaration element.
-   */
-  void emitCallStubForGetter(Element member,
-                             Set<Selector> selectors,
-                             AddPropertyFunction addProperty) {
-    assert(invariant(member, member.isDeclaration));
-    LibraryElement memberLibrary = member.library;
-    // If the method is intercepted, the stub gets the
-    // receiver explicitely and we need to pass it to the getter call.
-    bool isInterceptedMethod = backend.isInterceptedMethod(member);
-    bool isInterceptorClass =
-        backend.isInterceptorClass(member.enclosingClass);
-
-    const String receiverArgumentName = r'$receiver';
-
-    jsAst.Expression buildGetter() {
-      jsAst.Expression receiver =
-          js(isInterceptorClass ? receiverArgumentName : 'this');
-      if (member.isGetter) {
-        String getterName = namer.getterName(member);
-        if (isInterceptedMethod) {
-          return js('this.#(#)', [getterName, receiver]);
-        }
-        return js('#.#()', [receiver, getterName]);
-      } else {
-        String fieldName = namer.instanceFieldPropertyName(member);
-        return js('#.#', [receiver, fieldName]);
-      }
-    }
-
-    // Two selectors may match but differ only in type.  To avoid generating
-    // identical stubs for each we track untyped selectors which already have
-    // stubs.
-    Set<Selector> generatedSelectors = new Set<Selector>();
-    for (Selector selector in selectors) {
-      if (selector.applies(member, compiler.world)) {
-        selector = selector.asUntyped;
-        if (generatedSelectors.contains(selector)) continue;
-        generatedSelectors.add(selector);
-
-        String invocationName = namer.invocationName(selector);
-        Selector callSelector = new Selector.callClosureFrom(selector);
-        String closureCallName = namer.invocationName(callSelector);
-
-        List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-        List<jsAst.Expression> arguments = <jsAst.Expression>[];
-        if (isInterceptedMethod) {
-          parameters.add(new jsAst.Parameter(receiverArgumentName));
-        }
-
-        for (int i = 0; i < selector.argumentCount; i++) {
-          String name = 'arg$i';
-          parameters.add(new jsAst.Parameter(name));
-          arguments.add(js('#', name));
-        }
-
-        jsAst.Fun function = js(
-            'function(#) { return #.#(#); }',
-            [ parameters, buildGetter(), closureCallName, arguments]);
-
-        compiler.dumpInfoTask.registerElementAst(member,
-            addProperty(invocationName, function));
-      }
-    }
-  }
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [member] must be a declaration element.
-   */
-  void emitExtraAccessors(Element member, ClassBuilder builder) {
-    assert(invariant(member, member.isDeclaration));
-    if (member.isGetter || member.isField) {
-      Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
-      if (selectors != null && !selectors.isEmpty) {
-        emitCallStubForGetter(member, selectors, builder.addProperty);
-      }
-    }
-  }
-
   void addMember(Element member, ClassBuilder builder) {
     assert(invariant(member, member.isDeclaration));
 
@@ -338,7 +254,6 @@ class ContainerBuilder extends CodeEmitterHelper {
       compiler.internalError(member,
           'Unexpected kind: "${member.kind}".');
     }
-    if (member.isInstanceMember) emitExtraAccessors(member, builder);
   }
 
   void addMemberMethod(FunctionElement member, ClassBuilder builder) {

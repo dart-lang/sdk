@@ -4303,7 +4303,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 void FlowGraphBuilder::PruneUnreachable() {
   ASSERT(osr_id_ != Isolate::kNoDeoptId);
-  BitVector* block_marks = new(I) BitVector(I, last_used_block_id_ + 1);
+  Zone* zone = parsed_function()->zone();
+  BitVector* block_marks = new(zone) BitVector(zone, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);
   ASSERT(found);

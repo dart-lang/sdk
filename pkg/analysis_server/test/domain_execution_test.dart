@@ -196,7 +196,6 @@ main() {
       AnalysisServer server = new AnalysisServerMock();
       when(server.getAnalysisContexts()).thenReturn([context]);
       when(server.contextDirectoryManager).thenReturn(manager);
-      when(server.isAnalysisComplete()).thenReturn(false);
 
       StreamController controller = new StreamController.broadcast(sync: true);
       when(server.onFileAnalyzed).thenReturn(controller.stream);

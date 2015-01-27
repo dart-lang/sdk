@@ -1218,6 +1218,9 @@ class SsaBuilder extends ResolvedVisitor {
 
     // Ensure that [element] is an implementation element.
     element = element.implementation;
+
+    if (compiler.elementHasCompileTimeError(element)) return false;
+
     FunctionElement function = element;
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
@@ -1840,6 +1843,9 @@ class SsaBuilder extends ResolvedVisitor {
           handleConstantForOptionalParameter,
           compiler.world);
       if (!match) {
+        if (compiler.elementHasCompileTimeError(constructor)) {
+          return;
+        }
         // If this fails, the selector we constructed for the call to a
         // forwarding constructor in a mixin application did not match the
         // constructor (which, for example, may happen when the libraries are
@@ -1935,6 +1941,7 @@ class SsaBuilder extends ResolvedVisitor {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, VariableElement member) {
+          if (compiler.elementHasCompileTimeError(member)) return;
           compiler.withCurrentElement(member, () {
             TreeElements definitions = member.treeElements;
             ast.Node node = member.node;
@@ -2020,7 +2027,8 @@ class SsaBuilder extends ResolvedVisitor {
           if (value == null) {
             // Uninitialized native fields are pre-initialized by the native
             // implementation.
-            assert(isNativeUpgradeFactory);
+            assert(invariant(
+                member, isNativeUpgradeFactory || compiler.compilationFailed));
           } else {
             fields.add(member);
             DartType type = localsHandler.substInContext(member.type);
@@ -3208,11 +3216,18 @@ class SsaBuilder extends ResolvedVisitor {
       push(new HStatic(element.declaration, backend.nonNullType));
       // TODO(ahe): This should be registered in codegen.
       registry.registerGetOfStaticFunction(element.declaration);
-    } else if (Elements.isErroneousElement(element)) {
-      // An erroneous element indicates an unresolved static getter.
-      generateThrowNoSuchMethod(send,
-                                noSuchMethodTargetSymbolString(element, 'get'),
-                                argumentNodes: const Link<ast.Node>());
+    } else if (Elements.isErroneous(element)) {
+      if (element is ErroneousElement) {
+        // An erroneous element indicates an unresolved static getter.
+        generateThrowNoSuchMethod(
+            send,
+            noSuchMethodTargetSymbolString(element, 'get'),
+            argumentNodes: const Link<ast.Node>());
+      } else {
+        // TODO(ahe): Do something like the above, that is, emit a runtime
+        // error.
+        stack.add(graph.addConstantNull(compiler));
+      }
     } else {
       LocalElement local = element;
       stack.add(localsHandler.readLocal(local));
@@ -3258,13 +3273,18 @@ class SsaBuilder extends ResolvedVisitor {
         addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
-    } else if (Elements.isErroneousElement(element)) {
-      List<HInstruction> arguments =
-          send == null ? const <HInstruction>[] : <HInstruction>[value];
-      // An erroneous element indicates an unresolved static setter.
-      generateThrowNoSuchMethod(location,
-                                noSuchMethodTargetSymbolString(element, 'set'),
-                                argumentValues: arguments);
+    } else if (Elements.isErroneous(element)) {
+      if (element is ErroneousElement) {
+        List<HInstruction> arguments =
+            send == null ? const <HInstruction>[] : <HInstruction>[value];
+        // An erroneous element indicates an unresolved static setter.
+        generateThrowNoSuchMethod(
+            location, noSuchMethodTargetSymbolString(element, 'set'),
+            argumentValues: arguments);
+      } else {
+        // TODO(ahe): Do something like [generateWrongArgumentCountError].
+        stack.add(graph.addConstantNull(compiler));
+      }
     } else {
       stack.add(value);
       LocalElement local = element;
@@ -3422,7 +3442,8 @@ class SsaBuilder extends ResolvedVisitor {
       if (backend.hasDirectCheckFor(type)) {
         return new HIs.direct(type, expression, backend.boolType);
       }
-      // TODO(johnniwinther): Avoid interceptor if unneeded.
+      // The interceptor is not always needed.  It is removed by optimization
+      // when the receiver type or tested type permit.
       return new HIs.raw(
           type, expression, invokeInterceptor(expression), backend.boolType);
     }
@@ -4287,6 +4308,11 @@ class SsaBuilder extends ResolvedVisitor {
         constructorDeclaration.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
+    if (compiler.elementHasCompileTimeError(constructor)) {
+      // TODO(ahe): Do something like [generateWrongArgumentCountError].
+      stack.add(graph.addConstantNull(compiler));
+      return;
+    }
     if (checkTypeVariableBounds(node, type)) return;
 
     var inputs = <HInstruction>[];
@@ -4304,11 +4330,6 @@ class SsaBuilder extends ResolvedVisitor {
     inputs.addAll(makeStaticArgumentList(selector,
                                          send.arguments,
                                          constructor.implementation));
-
-    if (constructor.isFactoryConstructor &&
-        !expectedType.typeArguments.isEmpty) {
-      registry.registerFactoryWithTypeArguments();
-    }
 
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
@@ -4475,11 +4496,16 @@ class SsaBuilder extends ResolvedVisitor {
       return;
     }
     if (element.isErroneous) {
-      // An erroneous element indicates that the funciton could not be resolved
-      // (a warning has been issued).
-      generateThrowNoSuchMethod(node,
-                                noSuchMethodTargetSymbolString(element),
-                                argumentNodes: node.arguments);
+      if (element is ErroneousElement) {
+        // An erroneous element indicates that the funciton could not be
+        // resolved (a warning has been issued).
+        generateThrowNoSuchMethod(node,
+                                  noSuchMethodTargetSymbolString(element),
+                                  argumentNodes: node.arguments);
+      } else {
+        // TODO(ahe): Do something like [generateWrongArgumentCountError].
+        stack.add(graph.addConstantNull(compiler));
+      }
       return;
     }
     invariant(element, !element.isGenerativeConstructor);
@@ -4654,11 +4680,16 @@ class SsaBuilder extends ResolvedVisitor {
   visitNewExpression(ast.NewExpression node) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
-    if (!Elements.isErroneousElement(element)) {
+    if (!Elements.isErroneous(element)) {
       ConstructorElement function = element;
       element = function.effectiveTarget;
     }
-    if (Elements.isErroneousElement(element)) {
+    if (Elements.isErroneous(element)) {
+      if (element is !ErroneousElement) {
+        // TODO(ahe): Do something like [generateWrongArgumentCountError].
+        stack.add(graph.addConstantNull(compiler));
+        return;
+      }
       ErroneousElement error = element;
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         generateThrowNoSuchMethod(
@@ -5417,10 +5448,6 @@ class SsaBuilder extends ResolvedVisitor {
     InterfaceType expectedType =
         functionElement.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
-
-    if (constructor.isFactoryConstructor) {
-      registry.registerFactoryWithTypeArguments();
-    }
 
     ClassElement cls = constructor.enclosingClass;
 

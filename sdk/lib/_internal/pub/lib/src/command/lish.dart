@@ -20,16 +20,18 @@ import '../validator.dart';
 
 /// Handles the `lish` and `publish` pub commands.
 class LishCommand extends PubCommand {
+  String get name => "publish";
   String get description => "Publish the current package to pub.dartlang.org.";
-  String get usage => "pub publish [options]";
+  String get invocation => "pub publish [options]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-lish.html";
   List<String> get aliases => const ["lish", "lush"];
+  bool get takesArguments => false;
 
   /// The URL of the server to which to upload the package.
   Uri get server {
     // An explicit argument takes precedence.
-    if (commandOptions.wasParsed('server')) {
-      return Uri.parse(commandOptions['server']);
+    if (argResults.wasParsed('server')) {
+      return Uri.parse(argResults['server']);
     }
 
     // Otherwise, use the one specified in the pubspec.
@@ -42,17 +44,17 @@ class LishCommand extends PubCommand {
   }
 
   /// Whether the publish is just a preview.
-  bool get dryRun => commandOptions['dry-run'];
+  bool get dryRun => argResults['dry-run'];
 
   /// Whether the publish requires confirmation.
-  bool get force => commandOptions['force'];
+  bool get force => argResults['force'];
 
   LishCommand() {
-    commandParser.addFlag('dry-run', abbr: 'n', negatable: false,
+    argParser.addFlag('dry-run', abbr: 'n', negatable: false,
         help: 'Validate but do not publish the package.');
-    commandParser.addFlag('force', abbr: 'f', negatable: false,
+    argParser.addFlag('force', abbr: 'f', negatable: false,
         help: 'Publish without confirmation if there are no errors.');
-    commandParser.addOption('server', defaultsTo: HostedSource.defaultUrl,
+    argParser.addOption('server', defaultsTo: HostedSource.defaultUrl,
         help: 'The package server to which to upload this package.');
   }
 
@@ -106,9 +108,9 @@ class LishCommand extends PubCommand {
     });
   }
 
-  Future onRun() {
+  Future run() {
     if (force && dryRun) {
-      usageError('Cannot use both --force and --dry-run.');
+      usageException('Cannot use both --force and --dry-run.');
     }
 
     if (entrypoint.root.pubspec.isPrivate) {

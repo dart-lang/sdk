@@ -12,24 +12,7 @@
 
 namespace dart {
 
-// Return true if the class is private to our internal libraries (not extendable
-// or implementable after startup). Therefore, we don't need to register
-// optimized code for invalidation for those classes.
-// TODO(fschneider): Allow more libraries.
-static bool IsKnownPrivateClass(const Class& type_class) {
-  if (!Library::IsPrivate(String::Handle(type_class.Name()))) return false;
-  const Library& library = Library::Handle(type_class.library());
-  if (library.raw() == Library::CoreLibrary()) return true;
-  if (library.raw() == Library::CollectionLibrary()) return true;
-  if (library.raw() == Library::TypedDataLibrary()) return true;
-  if (library.raw() == Library::MathLibrary()) return true;
-  return false;
-}
-
-
 void CHA::AddToLeafClasses(const Class& cls) {
-  if (IsKnownPrivateClass(cls)) return;
-
   for (intptr_t i = 0; i < leaf_classes_.length(); i++) {
     if (leaf_classes_[i]->raw() == cls.raw()) {
       return;

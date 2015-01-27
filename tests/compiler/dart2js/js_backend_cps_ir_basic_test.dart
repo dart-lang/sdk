@@ -15,21 +15,21 @@ foo(a, [b = "b"]) => b;
 bar(a, {b: "b", c: "c"}) => c;
 main() {
   foo(0);
-  foo(0, 1);
-  bar(0);
-  bar(0, b: 1);
-  bar(0, c: 1);
-  bar(0, b: 1, c: 2);
+  foo(1, 2);
+  bar(3);
+  bar(4, b: 5);
+  bar(6, c: 7);
+  bar(8, b: 9, c: 10);
 }
 """,
 """
 function() {
   V.foo(0, "b");
-  V.foo(0, 1);
-  V.bar(0, "b", "c");
-  V.bar(0, 1, "c");
-  V.bar(0, "b", 1);
-  V.bar(0, 1, 2);
+  V.foo(1, 2);
+  V.bar(3, "b", "c");
+  V.bar(4, 5, "c");
+  V.bar(6, "b", 7);
+  V.bar(8, 9, 10);
   return null;
 }"""),
   const TestEntry(

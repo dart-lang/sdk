@@ -26,6 +26,22 @@ if (!navigator.dartEnabled && (navigator.userAgent.indexOf('(Dart)') === -1)) {
         // than one script.
         document.currentScript = script;
         parent.replaceChild(script, scripts[i]);
+
+        // Support for incremental compilation.
+        script.onload = function (event) {
+          var script = event.target;
+          if (self.$dart_unsafe_incremental_support) {
+            new WebSocket(script.src.replace(/^http/, 'ws')).onmessage =
+              function (event) {
+                var patch = String(event.data);
+                self.$dart_unsafe_incremental_support.patch(patch);
+                script.dispatchEvent(
+                  new CustomEvent(
+                    "dart_program_updated",
+                    { bubbles: true, detail: { patch: patch } }));
+              };
+          }
+        };
       }
     }
   }

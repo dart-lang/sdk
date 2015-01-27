@@ -9,7 +9,7 @@
 #include "vm/allocation.h"
 #include "vm/bit_set.h"
 #include "vm/raw_object.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 

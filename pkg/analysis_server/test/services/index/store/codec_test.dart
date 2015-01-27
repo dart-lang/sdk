@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_single_unit.dart';
@@ -121,6 +122,36 @@ class A {
     }
   }
 
+  void test_filePackage_uriMix() {
+    MethodElement buildMethodElement(Source source) {
+      CompilationUnitElementImpl unitElement = new CompilationUnitElementImpl('file.dart');
+      LibraryElementImpl libraryElement = new LibraryElementImpl(null, 'lib', 0);
+      ClassElementImpl classElement = new ClassElementImpl('A', 0);
+      MethodElementImpl methodElement = new MethodElementImpl('m', 0);
+      unitElement.source = source;
+      libraryElement.definingCompilationUnit = unitElement;
+      unitElement.types = [classElement];
+      classElement.methods = [methodElement];
+      return methodElement;
+    }
+    // file:
+    int fileId;
+    {
+      Source source = new _TestSource('/my/file.dart', 'file:///my/file.dart');
+      var methodElement = buildMethodElement(source);
+      fileId = codec.encode(methodElement, true);
+    }
+    // package:
+    int packageId;
+    {
+      Source source = new _TestSource('/my/file.dart', 'package:my_pkg/file.dart');
+      var methodElement = buildMethodElement(source);
+      packageId = codec.encode(methodElement, true);
+    }
+    // should be the same
+    expect(packageId, fileId);
+  }
+
   void test_localLocalVariable() {
     resolveTestUnit('''
 main() {
@@ -228,4 +259,14 @@ class _StringCodecTest {
     expect(codec.decode(idA), 'aaa');
     expect(codec.decode(idB), 'bbb');
   }
+}
+
+
+class _TestSource implements Source {
+  final String fullName;
+  final String encoding;
+
+  _TestSource(this.fullName, this.encoding);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

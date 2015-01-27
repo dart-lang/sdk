@@ -13,7 +13,7 @@
 
 #include "platform/utils.h"
 #include "platform/assert.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/vtune.h"
 
 namespace dart {
@@ -247,7 +247,7 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   }
   va_list args_copy;
   va_copy(args_copy, args);
-  int written =_vsnprintf(str, size, format, args_copy);
+  int written = _vsnprintf(str, size, format, args_copy);
   va_end(args_copy);
   if (written < 0) {
     // _vsnprintf returns -1 if the number of characters to be written is
@@ -315,7 +315,7 @@ void OS::InitOnce() {
   init_once_called = true;
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
-  MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
+  MonitorWaitData::monitor_wait_data_key_ = OSThread::CreateThreadLocal();
   MonitorData::GetMonitorWaitDataForThread();
 }
 

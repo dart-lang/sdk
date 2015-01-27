@@ -19,31 +19,31 @@ import '../source/hosted.dart';
 
 /// Handles the `uploader` pub command.
 class UploaderCommand extends PubCommand {
+  String get name => "uploader";
   String get description =>
       "Manage uploaders for a package on pub.dartlang.org.";
-  String get usage => "pub uploader [options] {add/remove} <email>";
+  String get invocation => "pub uploader [options] {add/remove} <email>";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-uploader.html";
-  bool get takesArguments => true;
 
   /// The URL of the package hosting server.
-  Uri get server => Uri.parse(commandOptions['server']);
+  Uri get server => Uri.parse(argResults['server']);
 
   UploaderCommand() {
-    commandParser.addOption('server', defaultsTo: HostedSource.defaultUrl,
+    argParser.addOption('server', defaultsTo: HostedSource.defaultUrl,
         help: 'The package server on which the package is hosted.');
-    commandParser.addOption('package',
+    argParser.addOption('package',
         help: 'The package whose uploaders will be modified.\n'
               '(defaults to the current package)');
   }
 
-  Future onRun() {
-    if (commandOptions.rest.isEmpty) {
+  Future run() {
+    if (argResults.rest.isEmpty) {
       log.error('No uploader command given.');
       this.printUsage();
       return flushThenExit(exit_codes.USAGE);
     }
 
-    var rest = commandOptions.rest.toList();
+    var rest = argResults.rest.toList();
 
     // TODO(rnystrom): Use subcommands for these.
     var command = rest.removeAt(0);
@@ -58,7 +58,7 @@ class UploaderCommand extends PubCommand {
     }
 
     return new Future.sync(() {
-      var package = commandOptions['package'];
+      var package = argResults['package'];
       if (package != null) return package;
       return new Entrypoint(path.current, cache).root.name;
     }).then((package) {

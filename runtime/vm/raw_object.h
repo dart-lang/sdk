@@ -1021,8 +1021,14 @@ class RawPcDescriptors : public RawObject {
 
   // Compressed version assumes try_index is always -1 and does not store it.
   struct PcDescriptorRec {
-    uword pc() const { return pc_; }
-    void set_pc(uword value) { pc_ = value; }
+    uword pc_offset() const { return pc_offset_; }
+    void set_pc_offset(uword value) {
+      // Some C compilers warn about the comparison always being true when using
+      // <= due to limited range of data type.
+      ASSERT((value == static_cast<uword>(kMaxUint32)) ||
+             (value < static_cast<uword>(kMaxUint32)));
+      pc_offset_ = value;
+    }
 
     Kind kind() const {
       return static_cast<Kind>(deopt_id_and_kind_ & kAnyKind);
@@ -1057,7 +1063,7 @@ class RawPcDescriptors : public RawObject {
       return (token_pos_ & 0x1) == 1;
     }
 
-    uword pc_;
+    uint32_t pc_offset_;
     int32_t deopt_id_and_kind_;  // Bits 31..8 -> deopt_id, bits 7..0 kind.
     int32_t token_pos_;  // Bits 31..1 -> token_pos, bit 1 -> compressed flag;
     int16_t try_index_;
@@ -1066,7 +1072,7 @@ class RawPcDescriptors : public RawObject {
   // This structure is only used to compute what the size of PcDescriptorRec
   // should be when the try_index_ field is omitted.
   struct CompressedPcDescriptorRec {
-    uword pc_;
+    uint32_t pc_offset_;
     int32_t deopt_id_and_kind_;
     int32_t token_pos_;
   };
@@ -1195,7 +1201,7 @@ class RawExceptionHandlers : public RawObject {
   // The index into the ExceptionHandlers table corresponds to
   // the try_index of the handler.
   struct HandlerInfo {
-    intptr_t handler_pc;       // PC value of handler.
+    uint32_t handler_pc_offset;  // PC offset value of handler.
     int16_t outer_try_index;   // Try block index of enclosing try block.
     int8_t needs_stacktrace;   // True if a stacktrace is needed.
     int8_t has_catch_all;      // Catches all exceptions.

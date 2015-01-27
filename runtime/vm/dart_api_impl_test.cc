@@ -2643,7 +2643,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   EXPECT_EQ(kSmallExternalSize,
             isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
   // Large enough to trigger GC in old space. Not actually allocated.
-  const intptr_t kHugeExternalSize = Heap::kHeapSizeInMB * MB;
+  const intptr_t kHugeExternalSize = (kWordSize == 4) ? 513 * MB : 1025 * MB;
   Dart_NewWeakPersistentHandle(live,
                                NULL,
                                kHugeExternalSize,
@@ -7339,7 +7339,7 @@ TEST_CASE(IsolateInterrupt) {
   Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
 
   sync = new Monitor();
-  int result = Thread::Start(BusyLoop_start, 0);
+  int result = OSThread::Start(BusyLoop_start, 0);
   EXPECT_EQ(0, result);
 
   {

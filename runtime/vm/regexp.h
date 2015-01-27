@@ -7,6 +7,7 @@
 
 #include "vm/assembler.h"
 #include "vm/intermediate_language.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
 

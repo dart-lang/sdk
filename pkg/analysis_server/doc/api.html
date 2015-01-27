@@ -70,6 +70,10 @@ dt.typeDefinition {
       for readability.
     </p>
     <p>
+      It is the client's responsibility to read output from the server to
+      avoid its blocking.
+    </p>
+    <p>
       To ease interoperability with Lisp-based clients (which may not
       be able to easily distinguish between empty lists, empty maps,
       and null), client-to-server communication is allowed to replace
@@ -96,15 +100,20 @@ dt.typeDefinition {
       longer to process than others.
     </p>
     <p>
-      Every request is required to have two fields and may have an
-      optional third field. The first required field is the ‘id’
+      Every request is required to have two fields and may have two
+      additional optional fields. The first required field is the ‘id’
       field, which is only used by the server to associate a response
       with the request that generated the response. The second
       required field is the ‘method’ field, which is used to determine
-      what the server is being requested to do. The optional field is
+      what the server is being requested to do. One optional field is
       the ‘params’ field, whose structure is dependent on the method
       being requested. The structure of this field is described with
-      each request for which it is required.
+      each request for which it is required. The other optional field
+      is the 'clientRequestTime' field, which is a number indicating
+      the time at which the client made the request (milliseconds
+      since epoch). Providing clientRequestTime helps us track
+      how responsive analysis server is to client requests
+      and better address any issues that occur.
     </p>
     <p>
       Every response has up to three fields. The first field is the
@@ -171,6 +180,22 @@ dt.typeDefinition {
       Disable notifications about errors (see analysis.error). If this
       flag is not specified then notifications will be sent for all
       errors produced for all files in the actual analysis roots.
+      </dd>
+    </dl>
+    <dl>
+      <dt>--file-read-mode</dt>
+      <dd>
+      An enumeration of the ways files can be read from disk. Some clients
+      normalize end of line characters which would make the file offset and
+      range information incorrect. The default option is <tt>as-is</tt>, but
+      can also be set to <tt>normalize-eol-always</tt>. The default option
+      (<tt>as-is</tt>) reads files as they are on disk. The
+      <tt>normalize-eol-always</tt> option does the following:
+      <ul>
+        <li>'\r\n' is converted to '\n';</li>
+        <li>'\r' by itself is converted to '\n';</li>
+        <li>this happens regardless of the OS editor is running on.</li>
+      </ul>
       </dd>
     </dl>
     </blockquote>
@@ -347,6 +372,7 @@ dt.typeDefinition {
       
       
       
+      
     <h3>Requests</h3><dl><dt class="request">analysis.getErrors</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getErrors"
@@ -441,7 +467,28 @@ dt.typeDefinition {
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
             </p>
-          </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request">analysis.getLibraryDependencies</dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "analysis.getLibraryDependencies"
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>libraries</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
+  }
+}</pre></div>
+            <p>
+              Return a list of all of the libraries referenced by any files in
+              existing analysis roots.
+            </p>
+            
+      <h4>Returns</h4><dl><dt class="field"><b><i>libraries ( List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
+                    
+                    <p>
+                      A list of the paths of library elements referenced by
+                      files in existing analysis roots.
+                    </p>
+                </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getNavigation"
   "params": {
@@ -700,6 +747,8 @@ dt.typeDefinition {
 }</pre><br><pre>response: {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+  }
 }</pre></div>
         <p>
           Update the content of one or more files. Files that were
@@ -712,13 +761,14 @@ dt.typeDefinition {
           filesystem.
         </p>
         
+        
       <h4>Parameters</h4><dl><dt class="field"><b><i>files ( Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_AddContentOverlay">AddContentOverlay</a> | <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> | <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>&gt; )</i></b></dt><dd>
             
             <p>
               A table mapping the files whose content has changed to a
               description of the content change.
             </p>
-          </dd></dl></dd><dt class="request">analysis.updateOptions</dt><dd><div class="box"><pre>request: {
+          </dd></dl><h4>Returns</h4><dl></dl></dd><dt class="request">analysis.updateOptions</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.updateOptions"
   "params": {

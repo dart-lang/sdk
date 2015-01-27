@@ -37,7 +37,8 @@
  *     subtype check, if the type arguments to be used in the check do not
  *     depend on the type arguments of the object.
  *  3) A function mapping the type variables of the object to be checked to
- *     a list expression.
+ *     a list expression. The function may also return null, which is equivalent
+ *     to an array containing only null values.
  */
 
 part of _js_helper;
@@ -236,7 +237,7 @@ substitute(var substitution, var arguments) {
   assert(arguments == null || isJsArray(arguments));
   if (isJsFunction(substitution)) {
     substitution = invoke(substitution, arguments);
-    if (isJsArray(substitution)) {
+    if (substitution == null || isJsArray(substitution)) {
       arguments = substitution;
     } else if (isJsFunction(substitution)) {
       // TODO(johnniwinther): Check if this is still needed.

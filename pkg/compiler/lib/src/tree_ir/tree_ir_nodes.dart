@@ -159,15 +159,19 @@ class InvokeMethod extends Expression implements Invoke {
   }
 }
 
-class InvokeSuperMethod extends Expression implements Invoke {
+/// Invoke [target] on [receiver], bypassing ordinary dispatch semantics.
+class InvokeMethodDirectly extends Expression implements Invoke {
+  Expression receiver;
+  final Element target;
   final Selector selector;
   final List<Expression> arguments;
 
-  InvokeSuperMethod(this.selector, this.arguments);
+  InvokeMethodDirectly(this.receiver, this.target, this.selector,
+      this.arguments);
 
-  accept(ExpressionVisitor visitor) => visitor.visitInvokeSuperMethod(this);
+  accept(ExpressionVisitor visitor) => visitor.visitInvokeMethodDirectly(this);
   accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitInvokeSuperMethod(this, arg);
+    return visitor.visitInvokeMethodDirectly(this, arg);
   }
 }
 
@@ -658,15 +662,15 @@ class CreateBox extends Expression implements JsSpecificNode {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitCreateBox(this, arg);
 }
 
-class CreateClosureClass extends Expression implements JsSpecificNode {
-  ClosureClassElement classElement;
+class CreateInstance extends Expression implements JsSpecificNode {
+  ClassElement classElement;
   List<Expression> arguments;
 
-  CreateClosureClass(this.classElement, this.arguments);
+  CreateInstance(this.classElement, this.arguments);
 
-  accept(ExpressionVisitor visitor) => visitor.visitCreateClosureClass(this);
+  accept(ExpressionVisitor visitor) => visitor.visitCreateInstance(this);
   accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitCreateClosureClass(this, arg);
+    return visitor.visitCreateInstance(this, arg);
   }
 }
 
@@ -697,7 +701,7 @@ abstract class ExpressionVisitor<E> {
   E visitVariable(Variable node);
   E visitInvokeStatic(InvokeStatic node);
   E visitInvokeMethod(InvokeMethod node);
-  E visitInvokeSuperMethod(InvokeSuperMethod node);
+  E visitInvokeMethodDirectly(InvokeMethodDirectly node);
   E visitInvokeConstructor(InvokeConstructor node);
   E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
@@ -714,7 +718,7 @@ abstract class ExpressionVisitor<E> {
   E visitSuperInitializer(SuperInitializer node);
   E visitGetField(GetField node);
   E visitCreateBox(CreateBox node);
-  E visitCreateClosureClass(CreateClosureClass node);
+  E visitCreateInstance(CreateInstance node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -722,7 +726,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitVariable(Variable node, A arg);
   E visitInvokeStatic(InvokeStatic node, A arg);
   E visitInvokeMethod(InvokeMethod node, A arg);
-  E visitInvokeSuperMethod(InvokeSuperMethod node, A arg);
+  E visitInvokeMethodDirectly(InvokeMethodDirectly node, A arg);
   E visitInvokeConstructor(InvokeConstructor node, A arg);
   E visitConcatenateStrings(ConcatenateStrings node, A arg);
   E visitConstant(Constant node, A arg);
@@ -739,7 +743,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitSuperInitializer(SuperInitializer node, A arg);
   E visitGetField(GetField node, A arg);
   E visitCreateBox(CreateBox node, A arg);
-  E visitCreateClosureClass(CreateClosureClass node, A arg);
+  E visitCreateInstance(CreateInstance node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -800,7 +804,8 @@ class RecursiveVisitor extends Visitor {
     node.arguments.forEach(visitExpression);
   }
 
-  visitInvokeSuperMethod(InvokeSuperMethod node) {
+  visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    visitExpression(node.receiver);
     node.arguments.forEach(visitExpression);
   }
 
@@ -918,7 +923,7 @@ class RecursiveVisitor extends Visitor {
   visitCreateBox(CreateBox node) {
   }
 
-  visitCreateClosureClass(CreateClosureClass node) {
+  visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitExpression);
   }
 }

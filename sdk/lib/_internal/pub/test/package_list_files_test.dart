@@ -116,7 +116,8 @@ main() {
 void scheduleEntrypoint() {
   schedule(() {
     root = path.join(sandboxDir, appPath);
-    entrypoint = new Entrypoint(root, new SystemCache.withSources(root));
+    entrypoint = new Entrypoint(root,
+        new SystemCache.withSources(rootDir: root));
   }, 'initializing entrypoint');
 
   currentSchedule.onComplete.schedule(() {

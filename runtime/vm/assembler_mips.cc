@@ -486,12 +486,15 @@ int32_t Assembler::AddObject(const Object& obj) {
     ASSERT(Isolate::Current() != Dart::vm_isolate());
     object_pool_ = GrowableObjectArray::New(Heap::kOld);
   }
-  for (intptr_t i = 0; i < object_pool_.Length(); i++) {
-    if (object_pool_.At(i) == obj.raw()) {
-      return i;
-    }
+
+  intptr_t index = object_pool_index_table_.Lookup(&obj);
+  if (index != ObjIndexPair::kNoIndex) {
+    return index;
   }
+
   object_pool_.Add(obj, Heap::kOld);
+  object_pool_index_table_.Insert(
+      ObjIndexPair(&obj, object_pool_.Length() - 1));
   return object_pool_.Length() - 1;
 }
 

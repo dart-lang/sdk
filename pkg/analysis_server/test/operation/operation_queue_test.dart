@@ -11,22 +11,22 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+import '../mocks.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 main() {
   groupSep = ' | ';
 
   group('ServerOperationQueue', () {
-    AnalysisServer server;
     ServerOperationQueue queue;
 
     setUp(() {
-      server = new AnalysisServerMock();
-      queue = new ServerOperationQueue(server);
+      queue = new ServerOperationQueue();
     });
 
     test('clear', () {
-      var operationA = mockOperation(ServerOperationPriority.SEARCH);
-      var operationB = mockOperation(ServerOperationPriority.REFACTORING);
+      var operationA = mockOperation(ServerOperationPriority.ANALYSIS);
+      var operationB = mockOperation(ServerOperationPriority.ANALYSIS_CONTINUE);
       queue.add(operationA);
       queue.add(operationB);
       // there are some operations
@@ -42,7 +42,7 @@ main() {
       });
 
       test('false', () {
-        var operation = mockOperation(ServerOperationPriority.SEARCH);
+        var operation = mockOperation(ServerOperationPriority.ANALYSIS);
         queue.add(operation);
         expect(queue.isEmpty, isFalse);
       });
@@ -54,22 +54,21 @@ main() {
       });
 
       test('use operation priorities', () {
-        when(server.isPriorityContext(anyObject)).thenReturn(false);
-        var analysisContext = new AnalysisContextMock();
-        var operationA = mockOperation(ServerOperationPriority.SEARCH);
-        var operationB = mockOperation(ServerOperationPriority.REFACTORING);
-        var operationC = new PerformAnalysisOperation(analysisContext, false);
+        var operationA = mockOperation(ServerOperationPriority.ANALYSIS);
+        var operationB =
+            mockOperation(ServerOperationPriority.ANALYSIS_CONTINUE);
+        var operationC =
+            mockOperation(ServerOperationPriority.PRIORITY_ANALYSIS);
         queue.add(operationA);
         queue.add(operationB);
         queue.add(operationC);
         expect(queue.take(), operationC);
-        expect(queue.take(), operationA);
         expect(queue.take(), operationB);
+        expect(queue.take(), operationA);
         expect(queue.take(), isNull);
       });
 
       test('continue analysis first', () {
-        when(server.isPriorityContext(anyObject)).thenReturn(false);
         var analysisContext = new AnalysisContextMock();
         var operationA = new PerformAnalysisOperation(analysisContext, false);
         var operationB = new PerformAnalysisOperation(analysisContext, true);
@@ -81,14 +80,31 @@ main() {
       });
 
       test('priority context first', () {
+        var prioritySource = new MockSource();
+        var analysisContextA = new AnalysisContextMock();
+        var analysisContextB = new AnalysisContextMock();
+        analysisContextB.prioritySources = [prioritySource];
+        var operationA = new PerformAnalysisOperation(analysisContextA, false);
+        var operationB = new PerformAnalysisOperation(analysisContextB, false);
+        queue.add(operationA);
+        queue.add(operationB);
+        expect(queue.take(), operationB);
+        expect(queue.take(), operationA);
+        expect(queue.take(), isNull);
+      });
+
+      test('reschedule', () {
+        var prioritySource = new MockSource();
         var analysisContextA = new AnalysisContextMock();
         var analysisContextB = new AnalysisContextMock();
         var operationA = new PerformAnalysisOperation(analysisContextA, false);
         var operationB = new PerformAnalysisOperation(analysisContextB, false);
         queue.add(operationA);
         queue.add(operationB);
-        when(server.isPriorityContext(analysisContextA)).thenReturn(false);
-        when(server.isPriorityContext(analysisContextB)).thenReturn(true);
+        // update priority sources and reschedule
+        analysisContextB.prioritySources = [prioritySource];
+        queue.reschedule();
+        // verify order
         expect(queue.take(), operationB);
         expect(queue.take(), operationA);
         expect(queue.take(), isNull);
@@ -108,7 +124,9 @@ ServerOperation mockOperation(ServerOperationPriority priority) {
 }
 
 
-class AnalysisContextMock extends TypedMock implements AnalysisContext {
+class AnalysisContextMock extends TypedMock implements InternalAnalysisContext {
+  List<Source> prioritySources = <Source>[];
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

@@ -7,7 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/signal_handler.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 
 
 namespace dart {

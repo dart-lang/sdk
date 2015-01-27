@@ -6,6 +6,7 @@ library driver;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:analysis_server/plugin/plugin.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -15,6 +16,7 @@ import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
@@ -22,7 +24,6 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
-
 
 /**
  * Initializes incremental logger.
@@ -39,7 +40,7 @@ void _initIncrementalLogger(String spec) {
   }
   // create logger
   if (spec == 'console') {
-    logger = new StringSinkLogger(console.log);
+    logger = new StringSinkLogger(stdout);
   }
   if (spec.startsWith('file:')) {
     String fileName = spec.substring('file:'.length);
@@ -65,6 +66,11 @@ class Driver implements ServerStarter {
    * The name of the option used to set the identifier for the client.
    */
   static const String CLIENT_ID = "client-id";
+
+  /**
+   * The name of the option used to set the version for the client.
+   */
+  static const String CLIENT_VERSION = "client-version";
 
   /**
    * The name of the option used to enable incremental resolution of API
@@ -102,6 +108,12 @@ class Driver implements ServerStarter {
   static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
 
   /**
+   * The name of the option used to specify if [print] should print to the
+   * console instead of being intercepted.
+   */
+  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-freqency';
+
+  /**
    * The name of the option used to specify the port to which the server will
    * connect.
    */
@@ -115,9 +127,14 @@ class Driver implements ServerStarter {
   static const String SDK_OPTION = "sdk";
 
   /**
-   * The name of the option used to disable error notifications.
+   * The name of the flag used to disable error notifications.
    */
   static const String NO_ERROR_NOTIFICATION = "no-error-notification";
+
+  /**
+   * The name of the option used to set the file read mode.
+   */
+  static const String FILE_READ_MODE = "file-read-mode";
 
   /**
    * The instrumentation server that is to be used by the analysis server.
@@ -173,6 +190,13 @@ class Driver implements ServerStarter {
 //      }
 //    }
 
+    // TODO (danrubel) Remove this workaround
+    // once the underlying VM and dart:io issue has been fixed.
+    if (results[INTERNAL_DELAY_FREQUENCY] != null) {
+      AnalysisServer.performOperationDelayFreqency =
+          int.parse(results[INTERNAL_DELAY_FREQUENCY], onError: (_) => 0);
+    }
+
     int port;
     bool serve_http = false;
     if (results[PORT_OPTION] != null) {
@@ -194,6 +218,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
+    analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
@@ -208,7 +233,12 @@ class Driver implements ServerStarter {
 
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
-//    service.logVersion(results[CLIENT_ID], defaultSdk.sdkVersion);
+    service.logVersion(
+        _readUuid(service),
+        results[CLIENT_ID],
+        results[CLIENT_VERSION],
+        AnalysisServer.VERSION,
+        defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
     //
     // Process all of the plugins so that extensions are registered.
@@ -278,6 +308,7 @@ class Driver implements ServerStarter {
     parser.addOption(
         CLIENT_ID,
         help: "an identifier used to identify the client");
+    parser.addOption(CLIENT_VERSION, help: "the version of the client");
     parser.addFlag(
         ENABLE_INCREMENTAL_RESOLUTION_API,
         help: "enable using incremental resolution for API changes",
@@ -309,13 +340,24 @@ class Driver implements ServerStarter {
     parser.addOption(
         PORT_OPTION,
         help: "[port] the port on which the server will listen");
+    parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
     parser.addFlag(
         NO_ERROR_NOTIFICATION,
-        help:
-            "disable sending all analysis error notifications to the server",
+        help: "disable sending all analysis error notifications to the server",
         defaultsTo: false,
         negatable: false);
+    parser.addOption(
+        FILE_READ_MODE,
+        help: "an option of the ways files can be read from disk, " +
+            "some clients normalize end of line characters which would make " +
+            "the file offset and range information incorrect.",
+        allowed: ["as-is", "normalize-eol-always"],
+        allowedHelp: {
+      "as-is": "file contents are read as-is, no file changes occur",
+      "normalize-eol-always":
+          r'file contents normalize the end of line characters to the single character new line `\n`'
+    }, defaultsTo: "as-is");
 
     return parser;
   }
@@ -328,5 +370,36 @@ class Driver implements ServerStarter {
     print('');
     print('Supported flags are:');
     print(parser.usage);
+  }
+
+  /**
+   * Read the UUID from disk, generating and storing a new one if necessary.
+   */
+  String _readUuid(InstrumentationService service) {
+    File uuidFile = new File(
+        PhysicalResourceProvider.INSTANCE.getStateLocation(
+            '.instrumentation').getChild('uuid.txt').path);
+    try {
+      if (uuidFile.existsSync()) {
+        String uuid = uuidFile.readAsStringSync();
+        if (uuid != null && uuid.length > 5) {
+          return uuid;
+        }
+      }
+    } catch (exception, stackTrace) {
+      service.logPriorityException(exception, stackTrace);
+    }
+    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
+    int random = new Random().nextInt(0x3fffffff);
+    String uuid = '$millisecondsSinceEpoch$random';
+    try {
+      uuidFile.parent.createSync(recursive: true);
+      uuidFile.writeAsStringSync(uuid);
+    } catch (exception, stackTrace) {
+      service.logPriorityException(exception, stackTrace);
+      // Slightly alter the uuid to indicate it was not persisted
+      uuid = 'temp-$uuid';
+    }
+    return uuid;
   }
 }

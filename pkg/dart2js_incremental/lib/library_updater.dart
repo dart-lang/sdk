@@ -15,6 +15,7 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     EnqueueTask,
+    MessageKind,
     Script;
 
 import 'package:compiler/src/elements/elements.dart' show
@@ -64,6 +65,11 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     ContainerBuilder,
     MemberInfo,
     computeMixinClass;
+
+import 'package:compiler/src/js_emitter/model.dart' show
+    Class;
+import 'package:compiler/src/js_emitter/program_builder.dart' show
+    ProgramBuilder;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
@@ -844,7 +850,7 @@ class LibraryUpdater extends JsFeatures {
         jsAst.Node superAccess = emitter.constructorAccess(superclass);
         inherits.add(
             js.statement(
-                r'#.inheritFrom(#, #)', [helper, classAccess, superAccess]));
+                r'this.inheritFrom(#, #)', [classAccess, superAccess]));
       }
     }
 
@@ -861,9 +867,8 @@ class LibraryUpdater extends JsFeatures {
       jsAst.Node classAccess = emitter.constructorAccess(cls);
       updates.add(
           js.statement(
-              r'# = #.schemaChange(#, #, #)',
-              [classAccess, helper,
-               invokeDefineClass(cls), classAccess, superAccess]));
+              r'# = this.schemaChange(#, #, #)',
+              [classAccess, invokeDefineClass(cls), classAccess, superAccess]));
     }
 
     for (RemovalUpdate update in removals) {
@@ -898,11 +903,11 @@ class LibraryUpdater extends JsFeatures {
     }
 
     updates.add(js.statement(r'''
-if (#helper.pendingStubs) {
-  #helper.pendingStubs.map(function(e) { return e(); });
-  #helper.pendingStubs = void 0;
+if (this.pendingStubs) {
+  this.pendingStubs.map(function(e) { return e(); });
+  this.pendingStubs = void 0;
 }
-''', {'helper': helper}));
+'''));
 
     if (updates.length == 1) {
       return prettyPrintJs(updates.single);
@@ -918,10 +923,9 @@ if (#helper.pendingStubs) {
         r'''
 (new Function(
     "$collectedClasses", "$desc",
-    #helper.defineClass(#name, #computeFields) +"\n;return " + #name))(
+    this.defineClass(#name, #computeFields) +"\n;return " + #name))(
         {#name: #descriptor})''',
-        {'helper': helper,
-         'name': js.string(name),
+        {'name': js.string(name),
          'computeFields': js.stringArray(computeFields(cls)),
          'descriptor': descriptor});
   }
@@ -954,8 +958,8 @@ if (#helper.pendingStubs) {
         emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
 
     return js.statement(
-        r'#.addMethod(#, #, #, #, #)',
-        [helper, partialDescriptor, js.string(name), holder,
+        r'this.addMethod(#, #, #, #, #)',
+        [partialDescriptor, js.string(name), holder,
          new jsAst.LiteralBool(isStatic), globalFunctionsAccess]);
   }
 
@@ -1460,8 +1464,6 @@ abstract class JsFeatures {
   ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
 
   EnqueueTask get enqueuer => compiler.enqueuer;
-
-  jsAst.Expression get helper => namer.accessIncrementalHelper;
 }
 
 class EmitterHelper extends JsFeatures {
@@ -1471,9 +1473,11 @@ class EmitterHelper extends JsFeatures {
 
   ClassEmitter get classEmitter => backend.emitter.oldEmitter.classEmitter;
 
-  List<String> computeFields(ClassElement cls) {
+  List<String> computeFields(ClassElement classElement) {
+    Class cls = new ProgramBuilder(compiler, namer, emitter)
+        .buildClassWithFieldsForTry(classElement);
     // TODO(ahe): Rewrite for new emitter.
-    ClassBuilder builder = new ClassBuilder(cls, namer);
+    ClassBuilder builder = new ClassBuilder(classElement, namer);
     classEmitter.emitFields(cls, builder);
     return builder.fields;
   }

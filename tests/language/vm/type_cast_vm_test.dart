@@ -5,8 +5,8 @@
 // Dart test program testing type casts.
 import "package:expect/expect.dart";
 
-checkTopFunction(String expected, StackTrace stacktrace) {
-  var topLine = stacktrace.toString().split("\n")[0];
+checkSecondFunction(String expected, StackTrace stacktrace) {
+  var topLine = stacktrace.toString().split("\n")[1];
   int startPos = topLine.lastIndexOf("/");
   int endPos = topLine.lastIndexOf(")");
   String subs = topLine.substring(startPos + 1, endPos);
@@ -28,7 +28,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int"));  // dstType
       Expect.isTrue(msg.contains("String"));  // srcType
-      checkTopFunction("type_cast_vm_test.dart:24:23", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:24:23", error.stackTrace);
     }
     return result;
   }
@@ -63,7 +63,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int"));  // dstType
       Expect.isTrue(msg.contains("String"));  // srcType
-      checkTopFunction("type_cast_vm_test.dart:59:25", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:59:25", error.stackTrace);
     }
     return result;
   }
@@ -81,7 +81,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int"));  // dstType
       Expect.isTrue(msg.contains("String"));  // srcType
-      checkTopFunction("type_cast_vm_test.dart:74:16", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:74:16", error.stackTrace);
     }
     return result;
   }
@@ -98,7 +98,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int"));  // dstType
       Expect.isTrue(msg.contains("String"));  // srcType
-      checkTopFunction("type_cast_vm_test.dart:95:13", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:95:13", error.stackTrace);
     }
     return result;
   }
@@ -116,7 +116,7 @@ class TypeTest {
       var msg = error.toString();
       Expect.isTrue(msg.contains("int"));  // dstType
       Expect.isTrue(msg.contains("() => dynamic"));  // srcType
-      checkTopFunction("type_cast_vm_test.dart:113:17", error.stackTrace);
+      checkSecondFunction("type_cast_vm_test.dart:113:17", error.stackTrace);
     }
     return result;
   }

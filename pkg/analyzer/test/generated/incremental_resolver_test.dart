@@ -2089,24 +2089,6 @@ class IncrementalResolverTest extends ResolverTestCase {
     log.logger = log.NULL_LOGGER;
   }
 
-  void test_api_method_edit_returnType() {
-    _resolveUnit(r'''
-class A {
-  int m() {
-    return null;
-  }
-}
-main() {
-  A a = new A();
-  int v = a.m();
-  print(v);
-}
-''');
-    _resolve(_editString('int m', 'String m'), _isDeclaration);
-    // We don't add or fix an error, but we verify that type of "v"
-    // is updated from "int" to "String".
-  }
-
   void test_classMemberAccessor_body() {
     _resolveUnit(r'''
 class A {
@@ -2789,6 +2771,58 @@ bb() {}
 ''', expectedSuccess: false);
   }
 
+  void test_false_unbalancedCurlyBrackets_inNew() {
+    _resolveUnit(r'''
+class A {
+  aaa() {
+    if (true) {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''');
+    _updateAndValidate(r'''
+class A {
+  aaa() {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''', expectedSuccess: false);
+  }
+
+  void test_false_unbalancedCurlyBrackets_inOld() {
+    _resolveUnit(r'''
+class A {
+  aaa() {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''');
+    _updateAndValidate(r'''
+class A {
+  aaa() {
+    if (true) {
+      1;
+    }
+  }
+
+  bbb() {
+    print(0123456789);
+  }
+}''', expectedSuccess: false);
+  }
+
   void test_fieldClassField_propagatedType() {
     _resolveUnit(r'''
 class A {
@@ -3344,21 +3378,23 @@ f3() {
     // "newUnit", so all clients will get it using the usual way.
     AnalysisResult analysisResult = analysisContext.performAnalysisTask();
     ChangeNotice notice = analysisResult.changeNotices[0];
-    expect(notice.compilationUnit, same(newUnit));
+    expect(notice.resolvedDartUnit, same(newUnit));
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
+      source = addSource(newCode + ' ');
       source = addSource(newCode);
       _runTasks();
       LibraryElement library = resolve(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
+      // Validate tokens.
+      _assertEqualTokens(newUnit, fullNewUnit);
       // Validate that "incremental" and "full" units have the same resolution.
       try {
         assertSameResolution(newUnit, fullNewUnit, validateTypes: true);
       } on IncrementalResolutionMismatch catch (mismatch) {
         fail(mismatch.message);
       }
-      _assertEqualTokens(newUnit, fullNewUnit);
       List<AnalysisError> newFullErrors =
           analysisContext.getErrors(source).errors;
       _assertEqualErrors(newErrors, newFullErrors);
@@ -3367,6 +3403,7 @@ f3() {
   }
 
   static void _assertEqualToken(Token incrToken, Token fullToken) {
+//    print('[${incrToken.offset}] |$incrToken| vs. [${fullToken.offset}] |$fullToken|');
     expect(incrToken.type, fullToken.type);
     expect(incrToken.offset, fullToken.offset);
     expect(incrToken.length, fullToken.length);

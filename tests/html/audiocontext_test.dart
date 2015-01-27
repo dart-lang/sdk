@@ -20,17 +20,20 @@ main() {
   });
 
   group('functional', () {
+    var context;
+    if (AudioContext.supported) {
+      context = new AudioContext();
+    }
+    
     test('constructorTest', () {
       if(AudioContext.supported) {
-        var ctx = new AudioContext();
-        expect(ctx, isNotNull);
-        expect(ctx, isAudioContext);
+        expect(context, isNotNull);
+        expect(context, isAudioContext);
       }
     });
 
     test('audioRenames', () {
       if(AudioContext.supported) {
-        AudioContext context = new AudioContext();
         GainNode gainNode = context.createGain();
         gainNode.connectNode(context.destination);
         expect(gainNode is GainNode, isTrue);
@@ -67,7 +70,6 @@ main() {
 
     test('oscillatorTypes', () {
       if(AudioContext.supported) {
-        AudioContext context = new AudioContext();
         OscillatorNode oscillator = context.createOscillator();
         oscillator.connectNode(context.destination);
 

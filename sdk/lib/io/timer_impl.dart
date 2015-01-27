@@ -132,6 +132,10 @@ class _Timer implements Timer {
   static RawReceivePort _receivePort;
   static SendPort _sendPort;
   static int _scheduledWakeupTime;
+  // Keep track whether at least one message is pending in the event loop. This
+  // way we do not have to notify for every pending _firstZeroTimer.
+  static var _messagePending = false;
+
   static bool _handlingCallbacks = false;
 
   Function _callback;  // Closure to call when timer fires. null if canceled.
@@ -255,7 +259,7 @@ class _Timer implements Timer {
       return;
     }
 
-    if (_firstZeroTimer == null && _heap.isEmpty) {
+    if ((_firstZeroTimer == null) && _heap.isEmpty) {
       // No pending timers: Close the receive port and let the event handler
       // know.
       if (_receivePort != null) {
@@ -269,7 +273,10 @@ class _Timer implements Timer {
         _createTimerHandler();
       }
       if (_firstZeroTimer != null) {
-        _sendPort.send(null);
+        if (!_messagePending) {
+          _sendPort.send(null);
+          _messagePending = true;  // Reset when the port receives a message.
+        }
       } else {
         var wakeupTime = _heap.first._wakeupTime;
         if ((_scheduledWakeupTime == null) ||
@@ -282,56 +289,73 @@ class _Timer implements Timer {
   }
 
   static void _handleTimeout(pendingImmediateCallback) {
-    int currentTime = new DateTime.now().millisecondsSinceEpoch;
+    // Fast exit if no timers have been scheduled.
+    if (_heap.isEmpty && (_firstZeroTimer == null)) {
+      assert(_receivePort == null);
+      return;
+    }
+
     // Collect all pending timers.
     var head = null;
     var tail = null;
-    // Keep track of the lowest wakeup times for both the list and heap. If
-    // the respective queue is empty move its time beyond the current time.
-    var heapTime = _heap.isEmpty ?
-        (currentTime + 1) : _heap.first._wakeupTime;
-    var listTime = (_firstZeroTimer == null) ?
-        (currentTime + 1) : _firstZeroTimer._wakeupTime;
+    if (_heap.isEmpty) {
+      // Only immediate timers are scheduled. Take over the whole list as is.
+      assert(_firstZeroTimer != null);
+      assert(_lastZeroTimer != null);
+      head = _firstZeroTimer;
+      tail = _lastZeroTimer;
+      _firstZeroTimer = null;
+      _lastZeroTimer = null;
+    } else {
+      assert(!_heap.isEmpty);
+      // Keep track of the lowest wakeup times for both the list and heap. If
+      // the respective queue is empty move its time beyond the current time.
+      var currentTime = new DateTime.now().millisecondsSinceEpoch;
+      var heapTime = _heap.first._wakeupTime;
+      var listTime = (_firstZeroTimer == null) ?
+          (currentTime + 1) : _firstZeroTimer._wakeupTime;
 
-    while ((heapTime <= currentTime) || (listTime <= currentTime)) {
-      var timer;
-      // Consume the timers in order by removing from heap or list based on
-      // their wakeup time and update the queue's time.
-      assert((heapTime != listTime) ||
-             ((_heap.first != null) && (_firstZeroTimer != null)));
-      if ((heapTime < listTime) ||
-          ((heapTime == listTime) &&
-           (_heap.first._id < _firstZeroTimer._id))) {
-        timer = _heap.removeFirst();
-        heapTime = _heap.isEmpty ? (currentTime + 1) : _heap.first._wakeupTime;
-      } else {
-        timer = _firstZeroTimer;
-        assert(timer._milliSeconds == 0);
-        _firstZeroTimer = timer._indexOrNext;
-        if (_firstZeroTimer == null) {
-          _lastZeroTimer = null;
-          listTime = currentTime + 1;
+      while ((heapTime <= currentTime) || (listTime <= currentTime)) {
+        var timer;
+        // Consume the timers in order by removing from heap or list based on
+        // their wakeup time and update the queue's time.
+        assert((heapTime != listTime) ||
+               ((_heap.first != null) && (_firstZeroTimer != null)));
+        if ((heapTime < listTime) ||
+            ((heapTime == listTime) &&
+             (_heap.first._id < _firstZeroTimer._id))) {
+          timer = _heap.removeFirst();
+          heapTime = _heap.isEmpty ?
+              (currentTime + 1) : _heap.first._wakeupTime;
         } else {
-          // We want to drain all entries from the list as they should have
-          // been pending for 0 ms. To prevent issues with current time moving
-          // we ensure that the listTime does not go beyond current, unless the
-          // list is empty.
-          listTime = _firstZeroTimer._wakeupTime;
-          if (listTime > currentTime) {
-            listTime = currentTime;
+          timer = _firstZeroTimer;
+          assert(timer._milliSeconds == 0);
+          _firstZeroTimer = timer._indexOrNext;
+          if (_firstZeroTimer == null) {
+            _lastZeroTimer = null;
+            listTime = currentTime + 1;
+          } else {
+            // We want to drain all entries from the list as they should have
+            // been pending for 0 ms. To prevent issues with current time moving
+            // we ensure that the listTime does not go beyond current, unless
+            // the list is empty.
+            listTime = _firstZeroTimer._wakeupTime;
+            if (listTime > currentTime) {
+              listTime = currentTime;
+            }
           }
         }
-      }
 
-      // Append this timer to the pending timer list.
-      timer._indexOrNext = null;
-      if (head == null) {
-        assert(tail == null);
-        head = timer;
-        tail = timer;
-      } else {
-        tail._indexOrNext = timer;
-        tail = timer;
+        // Append this timer to the pending timer list.
+        timer._indexOrNext = null;
+        if (head == null) {
+          assert(tail == null);
+          head = timer;
+          tail = timer;
+        } else {
+          tail._indexOrNext = timer;
+          tail = timer;
+        }
       }
     }
 
@@ -385,13 +409,16 @@ class _Timer implements Timer {
 
   // Creates a receive port and registers an empty handler on that port. Just
   // the triggering of the event loop will ensure that timers are executed.
-  static _ignoreMessage(_) => null;
+  static _ignoreMessage(_) {
+    _messagePending = false;
+  }
 
   static void _createTimerHandler() {
     assert(_receivePort == null);
     _receivePort = new RawReceivePort(_ignoreMessage);
     _sendPort = _receivePort.sendPort;
     _scheduledWakeupTime = null;
+    _messagePending = false;
   }
 
   static void _shutdownTimerHandler() {
@@ -399,6 +426,7 @@ class _Timer implements Timer {
     _receivePort = null;
     _sendPort = null;
     _scheduledWakeupTime = null;
+    _messagePending = false;
   }
 
   // The Timer factory registered with the dart:async library by the embedder.

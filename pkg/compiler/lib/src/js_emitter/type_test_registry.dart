@@ -49,7 +49,7 @@ class TypeTestRegistry {
    * complete.  Not all classes will go away while constructors are referenced
    * from type substitutions.
    */
-  Set<ClassElement> classesModifiedByEmitRuntimeTypeSupport() {
+  Set<ClassElement> computeClassesModifiedByEmitRuntimeTypeSupport() {
     TypeChecks typeChecks = backend.rti.requiredChecks;
     Set<ClassElement> result = new Set<ClassElement>();
     for (ClassElement cls in typeChecks) {

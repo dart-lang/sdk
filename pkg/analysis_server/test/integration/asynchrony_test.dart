@@ -12,7 +12,7 @@ import '../reflective_tests.dart';
 import 'integration_tests.dart';
 
 main() {
-  runReflectiveTests(AsynchronyIntegrationTest);
+//  runReflectiveTests(AsynchronyIntegrationTest);
 }
 
 /**
@@ -23,6 +23,12 @@ main() {
  *
  * Once enough commands have been sent, we begin reading from the server's
  * output buffer, and verify that it responds to the last command.
+ *
+ * NB.
+ *
+ * This test was intentionally disabled, because after r43123 server
+ * writes to stdout synchronously. So, now it is the client's responsibility
+ * to read stdout in a timely manner to avoid blocking the server.
  */
 @reflectiveTest
 class AsynchronyIntegrationTest {

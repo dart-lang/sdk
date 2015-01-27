@@ -81,21 +81,18 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 
-  bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
+  bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
   bool InlineSetIndexed(MethodRecognizer::Kind kind,
                         const Function& target,
                         Instruction* call,
                         Definition* receiver,
                         intptr_t token_pos,
-                        const ICData* ic_data,
                         const ICData& value_check,
                         TargetEntryInstr** entry,
                         Definition** last);
-  bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
   bool InlineGetIndexed(MethodRecognizer::Kind kind,
                         Instruction* call,
                         Definition* receiver,
-                        const ICData& ic_data,
                         TargetEntryInstr** entry,
                         Definition** last);
   intptr_t PrepareInlineIndexedOp(Instruction* call,
@@ -155,7 +152,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                       TargetEntryInstr** entry,
                       Definition** last);
 
-  bool InlineByteArrayViewLoad(Instruction* call,
+  bool InlineByteArrayBaseLoad(Instruction* call,
                                Definition* receiver,
                                intptr_t array_cid,
                                intptr_t view_cid,
@@ -163,7 +160,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                TargetEntryInstr** entry,
                                Definition** last);
 
-  bool InlineByteArrayViewStore(const Function& target,
+  bool InlineByteArrayBaseStore(const Function& target,
                                 Instruction* call,
                                 Definition* receiver,
                                 intptr_t array_cid,
@@ -172,16 +169,16 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                 TargetEntryInstr** entry,
                                 Definition** last);
 
-  intptr_t PrepareInlineByteArrayViewOp(Instruction* call,
+  intptr_t PrepareInlineByteArrayBaseOp(Instruction* call,
                                         intptr_t array_cid,
                                         intptr_t view_cid,
                                         Definition** array,
                                         Definition* index,
                                         Instruction** cursor);
 
-  bool BuildByteArrayViewLoad(InstanceCallInstr* call,
+  bool BuildByteArrayBaseLoad(InstanceCallInstr* call,
                               intptr_t view_cid);
-  bool BuildByteArrayViewStore(InstanceCallInstr* call,
+  bool BuildByteArrayBaseStore(InstanceCallInstr* call,
                                intptr_t view_cid);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
@@ -257,6 +254,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
   Isolate* isolate() const { return flow_graph_->isolate(); }
+  Zone* zone() const { return flow_graph_->zone(); }
 
   FlowGraph* flow_graph_;
 
@@ -414,6 +412,7 @@ class AllocationSinking : public ZoneAllocated {
   void EliminateAllocation(Definition* alloc);
 
   Isolate* isolate() const { return flow_graph_->isolate(); }
+  Zone* zone() const { return flow_graph_->zone(); }
 
   FlowGraph* flow_graph_;
 

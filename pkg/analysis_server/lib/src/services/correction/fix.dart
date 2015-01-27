@@ -67,11 +67,13 @@ class FixKind {
       50,
       "Create constructor to call {0}");
   static const CREATE_FIELD =
-      const FixKind('CREATE_FIELD', 50, "Create field '{0}'");
+      const FixKind('CREATE_FIELD', 51, "Create field '{0}'");
   static const CREATE_FILE =
       const FixKind('CREATE_FILE', 50, "Create file '{0}'");
   static const CREATE_FUNCTION =
       const FixKind('CREATE_FUNCTION', 51, "Create function '{0}'");
+  static const CREATE_GETTER =
+      const FixKind('CREATE_GETTER', 50, "Create getter '{0}'");
   static const CREATE_LOCAL_VARIABLE =
       const FixKind('CREATE_LOCAL_VARIABLE', 50, "Create local variable '{0}'");
   static const CREATE_METHOD =

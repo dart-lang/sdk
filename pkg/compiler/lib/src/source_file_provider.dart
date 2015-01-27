@@ -53,9 +53,13 @@ abstract class SourceFileProvider {
     try {
       source = readAll(resourceUri.toFilePath());
     } on FileSystemException catch (ex) {
+      OSError ose = ex.osError;
+      String detail = (ose != null && ose.message != null)
+          ? ' (${ose.message})'
+          : '';
       return new Future.error(
-          "Error reading '${relativize(cwd, resourceUri, isWindows)}' "
-          "(${ex.osError})");
+          "Error reading '${relativize(cwd, resourceUri, isWindows)}'"
+          "$detail");
     }
     dartCharactersRead += source.length;
     sourceFiles[resourceUri.toString()] =
@@ -203,8 +207,9 @@ class FormattingDiagnosticHandler {
         print(file.getLocationMessage(
           color(message), begin, end, colorize: color));
       } else {
-        print('${provider.relativizeUri(uri)}@$begin+${end - begin}:'
-              ' [$kind] ${color(message)}');
+        String position = end - begin > 0 ? '@$begin+${end - begin}' : '';
+        print('${provider.relativizeUri(uri)}$position:\n'
+              '${color(message)}');
       }
     }
     if (fatal && ++fatalCount >= throwOnErrorCount && throwOnError) {

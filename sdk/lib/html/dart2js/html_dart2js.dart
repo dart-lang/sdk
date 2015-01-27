@@ -10066,7 +10066,12 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 
 }
 
-// Wrapper over an immutable NodeList to make it implement ElementList<Element>.
+// Wrapper over an immutable NodeList to make it implement ElementList.
+//
+// Clients are {`Document`, `DocumentFragment`}.`querySelectorAll` which are
+// declared to return `ElementList`.  This provides all the static analysis
+// benefit so there is no need for this class have a constrained type parameter.
+//
 class _FrozenElementList extends ListBase
     implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
@@ -23008,7 +23013,7 @@ abstract class ParentNode extends Interceptor {
 
   Element querySelector(String selectors);
 
-  List<Node> querySelectorAll(String selectors);
+  List<Node> _querySelectorAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

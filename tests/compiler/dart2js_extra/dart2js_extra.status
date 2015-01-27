@@ -37,6 +37,9 @@ runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 code_motion_exception_test: Skip  # Requires unminified operator names.
 mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
 
+[ $compiler == dart2js && $runtime == safari ]
+deferred_fail_and_retry_worker_test: Timeout  # Issue 22106
+
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == jsshell) ]
 code_motion_exception_test: Skip  # Required V8 specific format of JavaScript errors.
 
@@ -52,3 +55,7 @@ bailout8_test: Fail, OK # Mismatch in thrown exception.
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 deferred/*: Skip # Issue 17458
+
+[ $compiler == dart2js && $csp ]
+deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
+deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.

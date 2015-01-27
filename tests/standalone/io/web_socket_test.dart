@@ -350,6 +350,7 @@ class SecurityConfiguration {
   }
 
   testIndividualUpgrade(int connections) {
+    asyncStart();
     createServer().then((server) {
       server.listen((request) {
           if (WebSocketTransformer.isUpgradeRequest(request)) {
@@ -392,6 +393,7 @@ class SecurityConfiguration {
       Future.wait(futures).then((_) {
         server.close();
         client.close();
+        asyncEnd();
       });
     });
   }
@@ -432,6 +434,40 @@ class SecurityConfiguration {
     });
   }
 
+  void testAdditionalHeaders() {
+    asyncStart();
+    createServer().then((server) {
+      server.listen((request) {
+        Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
+        Expect.equals('my-value', request.headers['My-Header'][0]);
+        var header = request.headers['My-Header-Multiple'];
+        Expect.equals(1, header.length);
+        Expect.equals('my-value-1, my-value-2', header[0]);
+        WebSocketTransformer.upgrade(request).then((webSocket) {
+          webSocket.listen((_) { webSocket.close(); });
+          webSocket.add("Hello");
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+      var headers = {'My-Header': 'my-value',
+                     'My-Header-Multiple': ['my-value-1', 'my-value-2']};
+      print(headers);
+      print(headers['My-Header-Multiple'] is Iterable);
+      print(headers['My-Header-Multiple'].length);
+      WebSocket.connect(url, headers: headers).then((websocket) {
+        return websocket.listen((message) {
+          Expect.equals("Hello", message);
+          websocket.close();
+        }).asFuture();
+      }).then((_) {
+        server.close();
+        asyncEnd();
+      });
+    });
+  }
+
+
   void runTests() {
     testRequestResponseClientCloses(2, null, null, 1);
     testRequestResponseClientCloses(2, 3001, null, 2);
@@ -453,6 +489,7 @@ class SecurityConfiguration {
     testConnections(10, 3002, "Got tired");
     testIndividualUpgrade(5);
     testFromUpgradedSocket();
+    testAdditionalHeaders();
   }
 }
 

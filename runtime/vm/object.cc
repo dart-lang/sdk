@@ -73,7 +73,7 @@ DECLARE_FLAG(bool, error_on_bad_override);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
-DECLARE_FLAG(bool, verbose_stacktrace);
+DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, write_protect_code);
 
@@ -158,98 +158,6 @@ RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 
 
 const double MegamorphicCache::kLoadFactor = 0.75;
-
-
-// The following functions are marked as invisible, meaning they will be hidden
-// in the stack trace and will be hidden from reflective access.
-// All mutators of canonical constants should be hidden from reflective access.
-// Additionally, private functions in dart:* that are native or constructors are
-// marked as invisible by the parser.
-#define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
-  V(AsyncLibrary, _AsyncRun, _scheduleImmediate)                               \
-  V(CoreLibrary, StringBuffer, _addPart)                                       \
-  V(CoreLibrary, _Bigint, _ensureLength)                                       \
-  V(CoreLibrary, _Bigint, _clamp)                                              \
-  V(CoreLibrary, _Bigint, _absAdd)                                             \
-  V(CoreLibrary, _Bigint, _absSub)                                             \
-  V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
-  V(CoreLibrary, _Bigint, _mulAdd)                                             \
-  V(CoreLibrary, _Bigint, _sqrAdd)                                             \
-  V(CoreLibrary, _Double, _addFromInteger)                                     \
-  V(CoreLibrary, _Double, _moduloFromInteger)                                  \
-  V(CoreLibrary, _Double, _mulFromInteger)                                     \
-  V(CoreLibrary, _Double, _remainderFromInteger)                               \
-  V(CoreLibrary, _Double, _subFromInteger)                                     \
-  V(CoreLibrary, _Double, _truncDivFromInteger)                                \
-  V(CoreLibrary, _Montgomery, _mulMod)                                         \
-  V(CoreLibrary, int, _parse)                                                  \
-  V(CoreLibrary, int, _throwFormatException)                                   \
-
-
-#define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
-  V(AsyncLibrary, _asyncRunCallback)                                           \
-  V(AsyncLibrary, _rootHandleUncaughtError)                                    \
-  V(AsyncLibrary, _scheduleAsyncCallback)                                      \
-  V(AsyncLibrary, _schedulePriorityAsyncCallback)                              \
-  V(AsyncLibrary, _setScheduleImmediateClosure)                                \
-  V(AsyncLibrary, _setTimerFactoryClosure)                                     \
-  V(IsolateLibrary, _isolateScheduleImmediate)                                 \
-  V(IsolateLibrary, _startIsolate)                                             \
-  V(IsolateLibrary, _startMainIsolate)                                         \
-  V(MirrorsLibrary, _n)                                                        \
-  V(MirrorsLibrary, _s)                                                        \
-  V(TypedDataLibrary, _toInt16)                                                \
-  V(TypedDataLibrary, _toInt32)                                                \
-  V(TypedDataLibrary, _toInt64)                                                \
-  V(TypedDataLibrary, _toInt8)                                                 \
-  V(TypedDataLibrary, _toUint16)                                               \
-  V(TypedDataLibrary, _toUint32)                                               \
-  V(TypedDataLibrary, _toUint64)                                               \
-  V(TypedDataLibrary, _toUint8)                                                \
-
-
-static void MarkClassFunctionAsInvisible(const Library& lib,
-                                         const char* class_name,
-                                         const char* function_name) {
-  ASSERT(!lib.IsNull());
-  const Class& cls = Class::Handle(
-      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
-  ASSERT(!cls.IsNull());
-  const Function& function =
-      Function::Handle(
-          cls.LookupFunctionAllowPrivate(
-              String::Handle(String::New(function_name))));
-  ASSERT(!function.IsNull());
-  function.set_is_visible(false);
-}
-
-static void MarkLibraryFunctionAsInvisible(const Library& lib,
-                                           const char* function_name) {
-  ASSERT(!lib.IsNull());
-  const Function& function =
-      Function::Handle(
-          lib.LookupFunctionAllowPrivate(
-              String::Handle(String::New(function_name))));
-  ASSERT(!function.IsNull());
-  function.set_is_visible(false);
-}
-
-
-static void MarkInvisibleFunctions() {
-#define MARK_FUNCTION(lib, class_name, function_name)                          \
-  MarkClassFunctionAsInvisible(Library::Handle(Library::lib()),                \
-      #class_name, #function_name);                                            \
-
-INVISIBLE_CLASS_FUNCTIONS(MARK_FUNCTION)
-#undef MARK_FUNCTION
-
-#define MARK_FUNCTION(lib, function_name)                                      \
-  MarkLibraryFunctionAsInvisible(Library::Handle(Library::lib()),              \
-      #function_name);                                                         \
-
-INVISIBLE_LIBRARY_FUNCTIONS(MARK_FUNCTION)
-#undef MARK_FUNCTION
-}
 
 
 // Takes a vm internal name and makes it suitable for external user.
@@ -1491,7 +1399,6 @@ RawError* Object::Init(Isolate* isolate) {
   }
 
   ClassFinalizer::VerifyBootstrapClasses();
-  MarkInvisibleFunctions();
 
   // Set up the intrinsic state of all functions (core, math and typed data).
   Intrinsifier::InitializeState();
@@ -2673,7 +2580,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   }
   invocation.set_result_type(Type::Handle(Type::DynamicType()));
   invocation.set_is_debuggable(false);
-  invocation.set_is_visible(false);  // Not visible in stack trace.
+  invocation.set_is_reflectable(false);
   invocation.set_saved_args_desc(args_desc);
 
   return invocation.raw();
@@ -6200,7 +6107,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
   result.set_is_native(is_native);
-  result.set_is_visible(true);  // Will be computed later.
+  result.set_is_reflectable(true);  // Will be computed later.
   result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
@@ -6752,7 +6659,7 @@ void Function::ClearICData() const {
 }
 
 
-bool Function::CheckSourceFingerprint(int32_t fp) const {
+bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
   if (SourceFingerprint() != fp) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
@@ -6760,7 +6667,8 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
-      OS::Print("s/%d/%d/\n", fp, SourceFingerprint());
+      OS::Print("s/V(%s, %d)/V(%s, %d)/\n",
+                prefix, fp, prefix, SourceFingerprint());
     } else {
       OS::Print("FP mismatch while recognizing method %s:"
                 " expecting %d found %d\n",
@@ -10435,14 +10343,6 @@ RawError* Library::CompileAll() {
 }
 
 
-struct FpDiff {
-  FpDiff(int32_t old_, int32_t new_): old_fp(old_), new_fp(new_) {}
-  int32_t old_fp;
-  int32_t new_fp;
-};
-
-
-
 // Return Function::null() if function does not exist in libs.
 RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
                                   const char* class_name,
@@ -10476,7 +10376,6 @@ RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
 
 
 void Library::CheckFunctionFingerprints() {
-  GrowableArray<FpDiff> collected_fp_diffs;
   GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
   bool has_errors = false;
@@ -10486,11 +10385,8 @@ void Library::CheckFunctionFingerprints() {
   if (func.IsNull()) {                                                         \
     has_errors = true;                                                         \
     OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
-  } else if (func.SourceFingerprint() != fp) {                                 \
-    has_errors = true;                                                         \
-    OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
-        func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
-    collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
+  } else {                                                                     \
+    CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
   }                                                                            \
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -10527,11 +10423,8 @@ Class& cls = Class::Handle();
     has_errors = true;                                                         \
     OS::Print("Function not found %s.%s\n", cls.ToCString(),                   \
         Symbols::factory_symbol().ToCString());                                \
-  } else if (func.SourceFingerprint() != fp) {                                 \
-    has_errors = true;                                                         \
-    OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
-        func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
-    collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
+  } else {                                                                     \
+    CHECK_FINGERPRINT2(func, factory_symbol, cid, fp);                         \
   }                                                                            \
 
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
@@ -10539,11 +10432,6 @@ Class& cls = Class::Handle();
 #undef CHECK_FACTORY_FINGERPRINTS
 
   if (has_errors) {
-    for (intptr_t i = 0; i < collected_fp_diffs.length(); i++) {
-      OS::Print("s/%d/%d/\n",
-          collected_fp_diffs[i].old_fp, collected_fp_diffs[i].new_fp);
-    }
-    OS::Print("\n");
     FATAL("Fingerprint mismatch.");
   }
 }
@@ -10666,7 +10554,7 @@ const char* PcDescriptors::ToCString() const {
     Iterator iter(*this, RawPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
       len += OS::SNPrint(NULL, 0, kFormat, addr_width,
-                         iter.Pc(),
+                         iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
                          iter.TokenPos(),
@@ -10680,7 +10568,7 @@ const char* PcDescriptors::ToCString() const {
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
-                         iter.Pc(),
+                         iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
                          iter.TokenPos(),
@@ -10707,7 +10595,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     JSONObject descriptor(&members);
-    descriptor.AddPropertyF("pc", "%" Px "", iter.Pc());
+    descriptor.AddPropertyF("pcOffset", "%" Px "", iter.PcOffset());
     descriptor.AddProperty("kind", KindAsStr(iter.Kind()));
     descriptor.AddProperty("deoptId", iter.DeoptId());
     descriptor.AddProperty("tokenPos", iter.TokenPos());
@@ -10759,15 +10647,6 @@ void PcDescriptors::Verify(const Function& function) const {
     }
   }
 #endif  // DEBUG
-}
-
-
-uword PcDescriptors::GetPcForKind(RawPcDescriptors::Kind kind) const {
-  Iterator iter(*this, kind);
-  if (iter.MoveNext()) {
-    return iter.Pc();
-  }
-  return 0;
 }
 
 
@@ -11062,7 +10941,7 @@ intptr_t ExceptionHandlers::num_entries() const {
 
 void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t outer_try_index,
-                                       intptr_t handler_pc,
+                                       uword handler_pc_offset,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
@@ -11070,7 +10949,11 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
   RawExceptionHandlers::HandlerInfo* info =
       UnsafeMutableNonPointer(&raw_ptr()->data()[try_index]);
   info->outer_try_index = outer_try_index;
-  info->handler_pc = handler_pc;
+  // Some C compilers warn about the comparison always being true when using <=
+  // due to limited range of data type.
+  ASSERT((handler_pc_offset == static_cast<uword>(kMaxUint32)) ||
+         (handler_pc_offset < static_cast<uword>(kMaxUint32)));
+  info->handler_pc_offset = handler_pc_offset;
   info->needs_stacktrace = needs_stacktrace;
   info->has_catch_all = has_catch_all;
 }
@@ -11084,9 +10967,9 @@ void ExceptionHandlers::GetHandlerInfo(
 }
 
 
-intptr_t ExceptionHandlers::HandlerPC(intptr_t try_index) const {
+uword ExceptionHandlers::HandlerPCOffset(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
-  return raw_ptr()->data()[try_index].handler_pc;
+  return raw_ptr()->data()[try_index].handler_pc_offset;
 }
 
 
@@ -11174,7 +11057,7 @@ const char* ExceptionHandlers::ToCString() const {
     const intptr_t num_types = handled_types.Length();
     len += OS::SNPrint(NULL, 0, kFormat,
                        i,
-                       info.handler_pc,
+                       info.handler_pc_offset,
                        num_types,
                        info.outer_try_index);
     for (int k = 0; k < num_types; k++) {
@@ -11195,7 +11078,7 @@ const char* ExceptionHandlers::ToCString() const {
                              (len - num_chars),
                              kFormat,
                              i,
-                             info.handler_pc,
+                             info.handler_pc_offset,
                              num_types,
                              info.outer_try_index);
     for (int k = 0; k < num_types; k++) {
@@ -12458,10 +12341,11 @@ RawCode* Code::FindCode(uword pc, int64_t timestamp) {
 
 
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
+  uword pc_offset = pc - EntryPoint();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    if (iter.Pc() == pc) {
+    if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
     }
   }
@@ -12475,7 +12359,8 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
   PcDescriptors::Iterator iter(descriptors, kind);
   while (iter.MoveNext()) {
     if (iter.DeoptId() == deopt_id) {
-      uword pc = iter.Pc();
+      uword pc_offset = iter.PcOffset();
+      uword pc = EntryPoint() + pc_offset;
       ASSERT(ContainsInstructionAt(pc));
       return pc;
     }
@@ -12485,10 +12370,11 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
 
 
 intptr_t Code::GetDeoptIdForOsr(uword pc) const {
+  uword pc_offset = pc - EntryPoint();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kOsrEntry);
   while (iter.MoveNext()) {
-    if (iter.Pc() == pc) {
+    if (iter.PcOffset() == pc_offset) {
       return iter.DeoptId();
     }
   }
@@ -20262,7 +20148,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
       }
-    } else if (function.is_visible() || FLAG_verbose_stacktrace) {
+    } else if (function.is_debuggable() || FLAG_show_invisible_frames) {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
@@ -20271,7 +20157,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         for (InlinedFunctionsIterator it(code, pc);
              !it.Done() && (*frame_index < max_frames); it.Advance()) {
           function = it.function();
-          if (function.is_visible() || FLAG_verbose_stacktrace) {
+          if (function.is_debuggable() || FLAG_show_invisible_frames) {
             code = it.code();
             ASSERT(function.raw() == code.function());
             uword pc = it.pc();

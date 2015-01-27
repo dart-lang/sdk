@@ -5,6 +5,7 @@
 event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
+cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
@@ -29,7 +30,7 @@ custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298
 
 [ $compiler == dart2js && $browser ]
-custom/created_callback_test: Fail # Support for created constructor.
+custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
 storage_quota_test: Fail # Support for promises.
 
@@ -49,6 +50,7 @@ async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
+fileapi_test/getFile: Pass, Fail # Issue 20488
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -63,7 +65,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issu
 element_offset_test/offset: RuntimeError # Issue 17550
 request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
 fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
-fileapi_test/getFile: Pass, RuntimeError # Issue 20488
 indexeddb_5_test: Pass, RuntimeError # Issue 21262
 native_gc_test: Pass, Slow
 
@@ -101,6 +102,7 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 touchevent_test/supported: Pass, Fail # Issue 17061
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
+element_types_test/constructors: Skip # Times out. Issue 22050
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -130,6 +132,7 @@ no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 scripts_htmltest: Skip # Times out on IE.  Issue 21537
 two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
+localstorage_test: Pass, RuntimeError # Issue 22166
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -227,6 +230,8 @@ xsltprocessor_test/supported: Fail
 [ $runtime == ie10 ]
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 custom/element_upgrade_test: Fail # Issue 18247
+request_animation_frame_test: Skip # Times out. Issue 22167
+transition_event_test/functional: Skip # Times out. Issue 22167
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
@@ -237,7 +242,6 @@ worker_api_test: Skip # Issue 13221
 webgl_1_test: Pass, Fail # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
-audiocontext_test/functional: Fail # Issue 14354
 element_test: Pass, Fail # Issue 21434
 
 # Safari Feature support statuses-
@@ -361,11 +365,14 @@ js_test: Skip                      # Test cannot run under CSP restrictions (tim
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
-wheelevent_test: Fail # http://dartbug.com/12958
+wheelevent_test: Fail # Issue 12958
 
-[ $compiler == dart2js &&  $runtime == chrome && $system == windows ]
+[ $compiler == dart2js &&  $runtime == chrome && ($system == windows || $system == linux)]
 css_test/functional: Fail # Issue 21710
 css_test/supportsPointConversions: Fail # Issue 21710
+
+[ $compiler == dart2js &&  $runtime == chrome && $system == windows]
+svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
 
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
 # Desktop operation systems do not support touch events on chrome 34 dartium.

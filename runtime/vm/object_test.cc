@@ -2733,10 +2733,10 @@ TEST_CASE(ExceptionHandlers) {
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
   const bool kNeedsStacktrace = true;
   const bool kNoStacktrace = false;
-  exception_handlers.SetHandlerInfo(0, -1, 20, kNeedsStacktrace, false);
-  exception_handlers.SetHandlerInfo(1, 0, 30, kNeedsStacktrace, false);
-  exception_handlers.SetHandlerInfo(2, -1, 40, kNoStacktrace, true);
-  exception_handlers.SetHandlerInfo(3, 1, 150, kNoStacktrace, true);
+  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStacktrace, false);
+  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStacktrace, false);
+  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStacktrace, true);
+  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStacktrace, true);
 
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
@@ -2753,12 +2753,12 @@ TEST_CASE(ExceptionHandlers) {
   handlers.GetHandlerInfo(0, &info);
   EXPECT_EQ(-1, handlers.OuterTryIndex(0));
   EXPECT_EQ(-1, info.outer_try_index);
-  EXPECT_EQ(20, handlers.HandlerPC(0));
+  EXPECT_EQ(20u, handlers.HandlerPCOffset(0));
   EXPECT(handlers.NeedsStacktrace(0));
   EXPECT(!handlers.HasCatchAll(0));
-  EXPECT_EQ(20, info.handler_pc);
+  EXPECT_EQ(20u, info.handler_pc_offset);
   EXPECT_EQ(1, handlers.OuterTryIndex(3));
-  EXPECT_EQ(150, handlers.HandlerPC(3));
+  EXPECT_EQ(150u, handlers.HandlerPCOffset(3));
   EXPECT(!handlers.NeedsStacktrace(3));
   EXPECT(handlers.HasCatchAll(3));
 }
@@ -2790,7 +2790,7 @@ TEST_CASE(PcDescriptors) {
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(20, iter.TokenPos());
   EXPECT_EQ(1, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(10), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
@@ -2811,7 +2811,7 @@ TEST_CASE(PcDescriptors) {
   EXPECT_EQ(150, iter.TokenPos());
 
   EXPECT_EQ(3, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(80), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
   EXPECT_EQ(150, iter.TokenPos());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
@@ -2844,7 +2844,7 @@ TEST_CASE(PcDescriptorsCompressed) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(static_cast<uword>(10), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(-1, iter.TryIndex());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(20, iter.TokenPos());
@@ -2856,7 +2856,7 @@ TEST_CASE(PcDescriptorsCompressed) {
   EXPECT_EQ(true, iter.MoveNext());
 
   EXPECT_EQ(-1, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(80), iter.Pc());
+  EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
   EXPECT_EQ(150, iter.TokenPos());
 
   EXPECT_EQ(false, iter.MoveNext());

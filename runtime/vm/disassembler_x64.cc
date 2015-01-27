@@ -453,7 +453,7 @@ int DisassemblerX64::PrintRightOperandHelper(
     case 0:
       if ((rm & 7) == 5) {
         int32_t disp = *reinterpret_cast<int32_t*>(modrmp + 1);
-        AppendToBuffer("[%#x]", disp);
+        AppendToBuffer("[rip%s%#x]", disp < 0 ? "-" : "+", Utils::Abs(disp));
         return 5;
       } else if ((rm & 7) == 4) {
         // Codes for SIB byte.
@@ -1522,17 +1522,17 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     // SETcc: Set byte on condition. Needs pointer to beginning of instruction.
     current = data + SetCC(data);
 
-  } else if ((opcode & 0xFE) == 0xA4 || (opcode & 0xFE) == 0xAC ||
-             opcode == 0xAB || opcode == 0xA3) {
+  } else if (((opcode & 0xFE) == 0xA4) || ((opcode & 0xFE) == 0xAC) ||
+             (opcode == 0xAB) || (opcode == 0xA3) || (opcode == 0xBD)) {
     // SHLD, SHRD (double-prec. shift), BTS (bit test and set), BT (bit test).
     AppendToBuffer("%s%c ", mnemonic, operand_size_code());
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
     current += PrintRightOperand(current);
     AppendToBuffer(",%s", NameOfCPURegister(regop));
-    if (opcode == 0xAB || opcode == 0xA3) {
+    if ((opcode == 0xAB) || (opcode == 0xA3) || (opcode == 0xBD)) {
       // Done.
-    } else if (opcode == 0xA5 || opcode == 0xAD) {
+    } else if ((opcode == 0xA5) || (opcode == 0xAD)) {
       AppendToBuffer(",cl");
     } else {
       AppendToBuffer(",");
@@ -1586,6 +1586,8 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
       return "movzxw";
     case 0xBE:
       return "movsxb";
+    case 0xBD:
+      return "bsr";
     case 0xBF:
       return "movsxw";
     case 0x12:

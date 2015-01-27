@@ -30,6 +30,9 @@ def BuildOptions():
   result.add_option("--script",
       action="store", type="string",
       help="Dart script for which snapshot is to be generated")
+  result.add_option("--package_root",
+      action="store", type="string",
+      help="path used to resolve package: imports.")
   result.add_option("--url_mapping",
       default=[],
       action="append",
@@ -74,6 +77,10 @@ def Main():
 
   # Setup arguments to the snapshot generator binary.
   script_args = ["--error_on_bad_type", "--error_on_bad_override"]
+
+  # Pass along the package_root if there is one.
+  if options.package_root:
+    script_args.append(''.join([ "--package_root=", options.package_root]))
 
   # First setup the snapshot output filename.
   script_args.append(''.join([ "--snapshot=", options.output_bin ]))

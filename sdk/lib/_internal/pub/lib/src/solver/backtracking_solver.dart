@@ -126,7 +126,7 @@ class BacktrackingSolver {
   ///
   /// Completes with a list of specific package versions if successful or an
   /// error if it failed to find a solution.
-  Future<SolveResult> solve() {
+  Future<SolveResult> solve() async {
     var stopwatch = new Stopwatch();
 
     _logParameters();
@@ -135,35 +135,35 @@ class BacktrackingSolver {
     var overrides = _overrides.values.toList();
     overrides.sort((a, b) => a.name.compareTo(b.name));
 
-    return newFuture(() {
+    try {
       stopwatch.start();
 
       // Pre-cache the root package's known pubspec.
       cache.cache(new PackageId.root(root), root.pubspec);
 
       _validateSdkConstraint(root.pubspec);
-      return _traverseSolution();
-    }).then((packages) {
+      var packages = await _traverseSolution();
       var pubspecs = new Map.fromIterable(packages,
           key: (id) => id.name,
           value: (id) => cache.getCachedPubspec(id));
 
+      packages = await Future.wait(
+          packages.map((id) => sources[id.source].resolveId(id)));
+
       return new SolveResult.success(sources, root, lockFile, packages,
           overrides, pubspecs, _getAvailableVersions(packages),
           attemptedSolutions);
-    }).catchError((error) {
-      if (error is! SolveFailure) throw error;
-
+    } on SolveFailure catch (error) {
       // Wrap a failure in a result so we can attach some other data.
       return new SolveResult.failure(sources, root, lockFile, overrides,
           error, attemptedSolutions);
-    }).whenComplete(() {
+    } finally {
       // Gather some solving metrics.
       var buffer = new StringBuffer();
       buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
       buffer.writeln(cache.describeResults());
       log.solver(buffer);
-    });
+    }
   }
 
   /// Generates a map containing all of the known available versions for each

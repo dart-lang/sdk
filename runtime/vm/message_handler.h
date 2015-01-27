@@ -7,7 +7,7 @@
 
 #include "vm/isolate.h"
 #include "vm/message.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/thread_pool.h"
 
 namespace dart {

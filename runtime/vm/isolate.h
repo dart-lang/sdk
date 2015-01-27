@@ -16,7 +16,7 @@
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
-#include "vm/thread.h"
+#include "vm/os_thread.h"
 #include "vm/trace_buffer.h"
 #include "vm/timer.h"
 
@@ -111,7 +111,7 @@ class Isolate : public BaseIsolate {
   ~Isolate();
 
   static inline Isolate* Current() {
-    return reinterpret_cast<Isolate*>(Thread::GetThreadLocal(isolate_key));
+    return reinterpret_cast<Isolate*>(OSThread::GetThreadLocal(isolate_key));
   }
 
   static void SetCurrent(Isolate* isolate);
@@ -199,6 +199,12 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, top_exit_frame_info_);
   }
 
+  uword vm_tag() const {
+    return vm_tag_;
+  }
+  void set_vm_tag(uword tag) {
+    vm_tag_ = tag;
+  }
   static intptr_t vm_tag_offset() {
     return OFFSET_OF(Isolate, vm_tag_);
   }
@@ -213,10 +219,6 @@ class Isolate : public BaseIsolate {
   void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
 
   TimerList& timer_list() { return timer_list_; }
-
-  static intptr_t current_zone_offset() {
-    return OFFSET_OF(Isolate, current_zone_);
-  }
 
   void set_init_callback_data(void* value) {
     init_callback_data_ = value;
@@ -632,6 +634,7 @@ class Isolate : public BaseIsolate {
 
   static ThreadLocalKey isolate_key;
 
+  uword vm_tag_;
   StoreBuffer store_buffer_;
   ClassTable class_table_;
   MegamorphicCacheTable megamorphic_cache_table_;
@@ -759,7 +762,10 @@ class StartIsolateScope {
  public:
   explicit StartIsolateScope(Isolate* new_isolate)
       : new_isolate_(new_isolate), saved_isolate_(Isolate::Current()) {
-    ASSERT(new_isolate_ != NULL);
+    if (new_isolate_ == NULL) {
+      // Do nothing.
+      return;
+    }
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       Isolate::SetCurrent(new_isolate_);
@@ -768,6 +774,10 @@ class StartIsolateScope {
   }
 
   ~StartIsolateScope() {
+    if (new_isolate_ == NULL) {
+      // Do nothing.
+      return;
+    }
     if (saved_isolate_ != new_isolate_) {
       new_isolate_->ClearStackLimit();
       Isolate::SetCurrent(saved_isolate_);

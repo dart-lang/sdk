@@ -275,7 +275,8 @@ class Process {
       {String workingDirectory,
        Map<String, String> environment,
        bool includeParentEnvironment: true,
-       bool runInShell: false}) {
+       bool runInShell: false,
+       bool detach: false}) {
     throw new UnsupportedError("Process.start");
   }
 
@@ -455,16 +456,16 @@ class _WindowsCodePageEncoder {
 @patch
 class _Filter {
   @patch
-  static _Filter newZLibDeflateFilter(bool gzip, int level,
-                                      int windowBits, int memLevel,
-                                      int strategy,
-                                      List<int> dictionary, bool raw) {
-    throw new UnsupportedError("newZLibDeflateFilter");
+  static _Filter _newZLibDeflateFilter(bool gzip, int level,
+                                       int windowBits, int memLevel,
+                                       int strategy,
+                                       List<int> dictionary, bool raw) {
+    throw new UnsupportedError("_newZLibDeflateFilter");
   }
   @patch
-  static _Filter newZLibInflateFilter(int windowBits,
-                                      List<int> dictionary, bool raw) {
-    throw new UnsupportedError("newZLibInflateFilter");
+  static _Filter _newZLibInflateFilter(int windowBits,
+                                       List<int> dictionary, bool raw) {
+    throw new UnsupportedError("_newZLibInflateFilter");
   }
 }
 
@@ -495,15 +496,15 @@ class Stdin {
 @patch
 class Stdout {
   @patch
-  bool get hasTerminal {
+  bool _hasTerminal(int fd) {
     throw new UnsupportedError("Stdout.hasTerminal");
   }
   @patch
-  int get terminalColumns {
+  int _terminalColumns(int fd) {
     throw new UnsupportedError("Stdout.terminalColumns");
   }
   @patch
-  int get terminalLines {
+  int _terminalLines(int fd) {
     throw new UnsupportedError("Stdout.terminalLines");
   }
 }
@@ -524,7 +525,7 @@ class _FileSystemWatcher {
 @patch
 class _IOService {
   @patch
-  static Future dispatch(int request, List data) {
-    throw new UnsupportedError("_IOService.dispatch");
+  static Future _dispatch(int request, List data) {
+    throw new UnsupportedError("_IOService._dispatch");
   }
 }

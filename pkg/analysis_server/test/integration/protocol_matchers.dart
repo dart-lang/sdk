@@ -146,6 +146,23 @@ final Matcher isAnalysisGetHoverResult = new LazyMatcher(() => new MatchesJsonOb
   }));
 
 /**
+ * analysis.getLibraryDependencies params
+ */
+final Matcher isAnalysisGetLibraryDependenciesParams = isNull;
+
+/**
+ * analysis.getLibraryDependencies result
+ *
+ * {
+ *   "libraries": List<FilePath>
+ * }
+ */
+final Matcher isAnalysisGetLibraryDependenciesResult = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.getLibraryDependencies result", {
+    "libraries": isListOf(isFilePath)
+  }));
+
+/**
  * analysis.getNavigation params
  *
  * {
@@ -257,8 +274,12 @@ final Matcher isAnalysisUpdateContentParams = new LazyMatcher(() => new MatchesJ
 
 /**
  * analysis.updateContent result
+ *
+ * {
+ * }
  */
-final Matcher isAnalysisUpdateContentResult = isNull;
+final Matcher isAnalysisUpdateContentResult = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.updateContent result", null));
 
 /**
  * analysis.updateOptions params

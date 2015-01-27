@@ -387,8 +387,9 @@ intptr_t ActivationFrame::TokenPos() {
     token_pos_ = Scanner::kNoSourcePos;
     GetPcDescriptors();
     PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
+    uword pc_offset = pc_ - code().EntryPoint();
     while (iter.MoveNext()) {
-      if (iter.Pc() == pc_) {
+      if (iter.PcOffset() == pc_offset) {
         try_index_ = iter.TryIndex();
         token_pos_ = iter.TokenPos();
         break;
@@ -905,7 +906,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
 
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
-  if (FLAG_show_invisible_frames || frame->function().is_visible()) {
+  if (FLAG_show_invisible_frames || frame->function().is_debuggable()) {
     trace_.Add(frame);
   }
 }
@@ -1323,7 +1324,7 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
     // pre-allocated trace (such as a stack overflow) or (b) because a stack has
     // fewer frames that the pre-allocated trace (such as memory exhaustion with
     // a shallow stack).
-    if (!function.IsNull() && function.is_visible()) {
+    if (!function.IsNull() && function.is_debuggable()) {
       code = ex_trace.CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
@@ -1470,14 +1471,14 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     const TokenStream& tokens = TokenStream::Handle(script.tokens());
     const intptr_t begin_pos = best_fit_pos;
     const intptr_t end_of_line_pos = LastTokenOnLine(tokens, begin_pos);
-    uword lowest_pc = kUwordMax;
+    uword lowest_pc_offset = kUwordMax;
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
       const intptr_t pos = iter.TokenPos();
       if ((pos != Scanner::kNoSourcePos) &&
           (begin_pos <= pos) && (pos <= end_of_line_pos) &&
-          (iter.Pc() < lowest_pc)) {
-        lowest_pc = iter.Pc();
+          (iter.PcOffset() < lowest_pc_offset)) {
+        lowest_pc_offset = iter.PcOffset();
         best_fit_pos = pos;
       }
     }
@@ -1501,22 +1502,23 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  uword lowest_pc = kUwordMax;
+  uword lowest_pc_offset = kUwordMax;
   RawPcDescriptors::Kind lowest_kind = RawPcDescriptors::kAnyKind;
   // Find the safe point with the lowest compiled code address
   // that maps to the token position of the source breakpoint.
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     if (iter.TokenPos() == bpt->token_pos_) {
-      if (iter.Pc() < lowest_pc) {
-        lowest_pc = iter.Pc();
+      if (iter.PcOffset() < lowest_pc_offset) {
+        lowest_pc_offset = iter.PcOffset();
         lowest_kind = iter.Kind();
       }
     }
   }
-  if (lowest_pc == kUwordMax) {
+  if (lowest_pc_offset == kUwordMax) {
     return;
   }
+  uword lowest_pc = code.EntryPoint() + lowest_pc_offset;
   CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
   if (code_bpt == NULL) {
     // No code breakpoint for this code exists; create one.

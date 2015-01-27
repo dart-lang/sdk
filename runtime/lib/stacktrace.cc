@@ -38,17 +38,13 @@ static void IterateFrames(const GrowableObjectArray& code_list,
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
-  bool catch_frame_skipped = false;  // Tracks if catch frame has been skipped.
+  intptr_t frames_to_skip = 2;  // _setupFullStackTrace and the catch frame.
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       offset = Smi::New(frame->pc() - code.EntryPoint());
-      if (!catch_frame_skipped) {
-        const Function& func = Function::Handle(code.function());
-        // Skip over hidden native, and mark first visible frame as catch frame.
-        if (func.is_visible()) {
-          catch_frame_skipped = true;
-        }
+      if (frames_to_skip > 0) {
+        frames_to_skip--;
       } else {
         code_list.Add(code);
         pc_offset_list.Add(offset);

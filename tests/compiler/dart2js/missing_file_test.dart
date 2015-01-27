@@ -27,7 +27,8 @@ main() {}
 ''',
 };
 
-void runCompiler(Uri main, String expectedMessage) {
+Future runCompiler(Uri main, String expectedMessage) {
+  print("\n\n\n");
   Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
@@ -58,20 +59,24 @@ void runCompiler(Uri main, String expectedMessage) {
                                    [],
                                    {});
 
-  asyncTest(() => compiler.run(main).then((_) {
+  return compiler.run(main).then((_) {
     Expect.equals(1, errors.length);
     Expect.equals(expectedMessage,
                   errors[0]);
-  }));
+  });
 }
 
 void main() {
-  runCompiler(Uri.parse('memory:main.dart'),
-              "Can't read 'memory:foo.dart' "
-              "(Exception: No such file memory:foo.dart).");
-  runCompiler(Uri.parse('memory:foo.dart'),
-              "Can't read 'memory:foo.dart' "
-              "(Exception: No such file memory:foo.dart).");
-  runCompiler(Uri.parse('dart:foo'),
-              "Library not found 'dart:foo'.");
+  asyncTest(() => Future.forEach([
+  () => runCompiler(
+      Uri.parse('memory:main.dart'),
+      "Can't read 'memory:foo.dart' "
+      "(Exception: No such file memory:foo.dart)."),
+  () => runCompiler(
+      Uri.parse('memory:foo.dart'),
+      "Exception: No such file memory:foo.dart"),
+  () => runCompiler(
+      Uri.parse('dart:foo'),
+      "Library not found 'dart:foo'."),
+  ], (f) => f()));
 }

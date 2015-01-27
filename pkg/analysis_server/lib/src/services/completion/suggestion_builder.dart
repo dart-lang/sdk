@@ -5,6 +5,7 @@
 library services.completion.suggestion.builder;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart' hide Element,
@@ -64,11 +65,9 @@ CompletionSuggestion createSuggestion(Element element,
       isDeprecated,
       false);
   suggestion.element = protocol.newElement_fromEngine(element);
-  if (element is ClassMemberElement) {
-    ClassElement enclosingElement = element.enclosingElement;
-    if (enclosingElement != null) {
-      suggestion.declaringType = enclosingElement.displayName;
-    }
+  Element enclosingElement = element.enclosingElement;
+  if (enclosingElement is ClassElement) {
+    suggestion.declaringType = enclosingElement.displayName;
   }
   suggestion.returnType = returnType;
   if (element is ExecutableElement && element is! PropertyAccessorElement) {
@@ -165,77 +164,6 @@ void visitInheritedTypes(ClassDeclaration node, void
 }
 
 /**
- * This class visits elements in a class and provides suggestions based upon
- * the visible members in that class. Clients should call
- * [ClassElementSuggestionBuilder.suggestionsFor].
- */
-class ClassElementSuggestionBuilder extends GeneralizingElementVisitor with
-    ElementSuggestionBuilder {
-  final bool staticOnly;
-  final DartCompletionRequest request;
-
-  ClassElementSuggestionBuilder(this.request, bool staticOnly)
-      : this.staticOnly = staticOnly;
-
-  @override
-  CompletionSuggestionKind get kind => CompletionSuggestionKind.INVOCATION;
-
-  @override
-  visitClassElement(ClassElement element) {
-    element.visitChildren(this);
-    element.allSupertypes.forEach((InterfaceType type) {
-      type.element.visitChildren(this);
-    });
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
-  }
-
-  @override
-  visitFieldElement(FieldElement element) {
-    if (staticOnly && !element.isStatic) {
-      return;
-    }
-    addSuggestion(element);
-  }
-
-  @override
-  visitMethodElement(MethodElement element) {
-    if (staticOnly && !element.isStatic) {
-      return;
-    }
-    if (element.isOperator) {
-      return;
-    }
-    addSuggestion(element);
-  }
-
-  @override
-  visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (staticOnly && !element.isStatic) {
-      return;
-    }
-    addSuggestion(element);
-  }
-
-  /**
-   * Add suggestions for the visible members in the given class
-   */
-  static void suggestionsFor(DartCompletionRequest request, Element element,
-      {bool staticOnly: false}) {
-    if (element == DynamicElementImpl.instance) {
-      element = request.cache.objectClassElement;
-    }
-    if (element is ClassElement) {
-      return element.accept(
-          new ClassElementSuggestionBuilder(request, staticOnly));
-    }
-  }
-}
-
-/**
  * Common mixin for sharing behavior
  */
 abstract class ElementSuggestionBuilder {
@@ -280,6 +208,184 @@ abstract class ElementSuggestionBuilder {
     CompletionSuggestion suggestion = createSuggestion(element, kind: kind);
     if (suggestion != null) {
       request.suggestions.add(suggestion);
+    }
+  }
+}
+
+/**
+ * This class provides suggestions based upon the visible instance members in
+ * an interface type.  Clients should call
+ * [InterfaceTypeSuggestionBuilder.suggestionsFor].
+ */
+class InterfaceTypeSuggestionBuilder {
+  /**
+   * Enumerated value indicating that we have not generated any completions for
+   * a given identifier yet.
+   */
+  static const int _COMPLETION_TYPE_NONE = 0;
+
+  /**
+   * Enumerated value indicating that we have generated a completion for a
+   * getter.
+   */
+  static const int _COMPLETION_TYPE_GETTER = 1;
+
+  /**
+   * Enumerated value indicating that we have generated a completion for a
+   * setter.
+   */
+  static const int _COMPLETION_TYPE_SETTER = 2;
+
+  /**
+   * Enumerated value indicating that we have generated a completion for a
+   * field, a method, or a getter/setter pair.
+   */
+  static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
+
+  final DartCompletionRequest request;
+
+  /**
+   * Map indicating, for each possible completion identifier, whether we have
+   * already generated completions for a getter, setter, or both.  The "both"
+   * case also handles the case where have generated a completion for a method
+   * or a field.
+   *
+   * Note: the enumerated values stored in this map are intended to be bitwise
+   * compared.
+   */
+  Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
+
+  InterfaceTypeSuggestionBuilder(this.request);
+
+  CompletionSuggestionKind get kind => CompletionSuggestionKind.INVOCATION;
+
+  /**
+   * Add a suggestion based upon the given element, provided that it is not
+   * shadowed by a previously added suggestion.
+   */
+  void addSuggestion(Element element) {
+    if (element.isPrivate) {
+      LibraryElement elementLibrary = element.library;
+      LibraryElement unitLibrary = request.unit.element.library;
+      if (elementLibrary != unitLibrary) {
+        return;
+      }
+    }
+    String identifier = element.displayName;
+    int alreadyGenerated =
+        _completionTypesGenerated.putIfAbsent(identifier, () => _COMPLETION_TYPE_NONE);
+    if (element is MethodElement) {
+      // Anything shadows a method.
+      if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
+        return;
+      }
+      _completionTypesGenerated[identifier] =
+          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
+    } else if (element is PropertyAccessorElement) {
+      if (element.isGetter) {
+        // Getters, fields, and methods shadow a getter.
+        if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
+          return;
+        }
+        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_GETTER;
+      } else {
+        // Setters, fields, and methods shadow a setter.
+        if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
+          return;
+        }
+        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
+      }
+    } else if (element is FieldElement) {
+      // Fields and methods shadow a field.  A getter/setter pair shadows a
+      // field, but a getter or setter by itself doesn't.
+      if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
+        return;
+      }
+      _completionTypesGenerated[identifier] =
+          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
+    } else {
+      // Unexpected element type; skip it.
+      assert(false);
+      return;
+    }
+    CompletionSuggestion suggestion = createSuggestion(element, kind: kind);
+    if (suggestion != null) {
+      request.suggestions.add(suggestion);
+    }
+  }
+
+  void _buildSuggestions(InterfaceType type, LibraryElement library) {
+    // Visit all of the types in the class hierarchy, collecting possible
+    // completions.  If multiple elements are found that complete to the same
+    // identifier, addSuggestion will discard all but the first (with a few
+    // exceptions to handle getter/setter pairs).
+    for (InterfaceType targetType in _getTypeOrdering(type)) {
+      for (MethodElement method in targetType.methods) {
+        addSuggestion(method);
+      }
+      for (PropertyAccessorElement propertyAccessor in targetType.accessors) {
+        if (propertyAccessor.isSynthetic) {
+          // Avoid visiting a field twice
+          if (propertyAccessor.isGetter) {
+            addSuggestion(propertyAccessor.variable);
+          }
+        } else {
+          addSuggestion(propertyAccessor);
+        }
+      }
+    }
+  }
+
+  /**
+   * Get a list of [InterfaceType]s that should be searched to find the
+   * possible completions for an object having type [type].
+   */
+  List<InterfaceType> _getTypeOrdering(InterfaceType type) {
+    // Candidate completions can come from [type] as well as any types above it
+    // in the class hierarchy (including mixins, superclasses, and interfaces).
+    // If a given completion identifier shows up in multiple types, we should
+    // use the element that is nearest in the superclass chain, so we will
+    // visit [type] first, then its mixins, then its superclass, then its
+    // superclass's mixins, etc., and only afterwards visit interfaces.
+    //
+    // We short-circuit loops in the class hierarchy by keeping track of the
+    // classes seen (not the interfaces) so that we won't be fooled by nonsense
+    // like "class C<T> extends C<List<T>> {}"
+    List<InterfaceType> result = <InterfaceType>[];
+    Set<ClassElement> classesSeen = new HashSet<ClassElement>();
+    List<InterfaceType> typesToVisit = <InterfaceType>[type];
+    while (typesToVisit.isNotEmpty) {
+      InterfaceType nextType = typesToVisit.removeLast();
+      if (!classesSeen.add(nextType.element)) {
+        // Class had already been seen, so ignore this type.
+        continue;
+      }
+      result.add(nextType);
+      // typesToVisit is a stack, so push on the interfaces first, then the
+      // superclass, then the mixins.  This will ensure that they are visited
+      // in the reverse order.
+      typesToVisit.addAll(nextType.interfaces);
+      if (nextType.superclass != null) {
+        typesToVisit.add(nextType.superclass);
+      }
+      typesToVisit.addAll(nextType.mixins);
+    }
+    return result;
+  }
+
+  /**
+   * Add suggestions for the visible members in the given interface
+   */
+  static void suggestionsFor(DartCompletionRequest request, DartType type) {
+    CompilationUnit compilationUnit =
+        request.node.getAncestor((AstNode node) => node is CompilationUnit);
+    LibraryElement library = compilationUnit.element.library;
+    if (type is DynamicTypeImpl) {
+      type = request.cache.objectClassElement.type;
+    }
+    if (type is InterfaceType) {
+      return new InterfaceTypeSuggestionBuilder(
+          request)._buildSuggestions(type, library);
     }
   }
 }
@@ -388,6 +494,73 @@ class NamedConstructorSuggestionBuilder extends GeneralizingElementVisitor with
   @override
   visitElement(Element element) {
     // ignored
+  }
+}
+
+/**
+ * This class visits elements in a class and provides suggestions based upon
+ * the visible static members in that class. Clients should call
+ * [StaticClassElementSuggestionBuilder.suggestionsFor].
+ */
+class StaticClassElementSuggestionBuilder extends GeneralizingElementVisitor
+    with ElementSuggestionBuilder {
+  final DartCompletionRequest request;
+
+  StaticClassElementSuggestionBuilder(this.request);
+
+  @override
+  CompletionSuggestionKind get kind => CompletionSuggestionKind.INVOCATION;
+
+  @override
+  visitClassElement(ClassElement element) {
+    element.visitChildren(this);
+    element.allSupertypes.forEach((InterfaceType type) {
+      type.element.visitChildren(this);
+    });
+  }
+
+  @override
+  visitElement(Element element) {
+    // ignored
+  }
+
+  @override
+  visitFieldElement(FieldElement element) {
+    if (!element.isStatic) {
+      return;
+    }
+    addSuggestion(element);
+  }
+
+  @override
+  visitMethodElement(MethodElement element) {
+    if (!element.isStatic) {
+      return;
+    }
+    if (element.isOperator) {
+      return;
+    }
+    addSuggestion(element);
+  }
+
+  @override
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (!element.isStatic) {
+      return;
+    }
+    addSuggestion(element);
+  }
+
+  /**
+   * Add suggestions for the visible members in the given class
+   */
+  static void suggestionsFor(DartCompletionRequest request, Element element) {
+    if (element == DynamicElementImpl.instance) {
+      element = request.cache.objectClassElement;
+    }
+    if (element is ClassElement) {
+      return element.accept(new StaticClassElementSuggestionBuilder(request));
+    }
   }
 }
 

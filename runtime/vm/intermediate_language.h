@@ -561,6 +561,7 @@ class EmbeddedArray<T, 0> {
   M(BoxInt32)                                                                  \
   M(UnboxInt32)                                                                \
   M(UnboxedIntConverter)                                                       \
+  M(GrowRegExpStack)                                                           \
   M(Deoptimize)
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
@@ -587,7 +588,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DEFINE_INSTRUCTION_TYPE_CHECK(type)
 
 #define DECLARE_INSTRUCTION_BACKEND()                                          \
-  virtual LocationSummary* MakeLocationSummary(Isolate* isolate,               \
+  virtual LocationSummary* MakeLocationSummary(Zone* zone,                     \
                                                bool optimizing) const;         \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);                    \
 
@@ -725,15 +726,15 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   bool HasLocs() const { return locs_ != NULL; }
 
-  virtual LocationSummary* MakeLocationSummary(Isolate* isolate,
+  virtual LocationSummary* MakeLocationSummary(Zone* zone,
                                                bool is_optimizing) const = 0;
 
-  void InitializeLocationSummary(Isolate* isolate, bool optimizing) {
+  void InitializeLocationSummary(Zone* zone, bool optimizing) {
     ASSERT(locs_ == NULL);
-    locs_ = MakeLocationSummary(isolate, optimizing);
+    locs_ = MakeLocationSummary(zone, optimizing);
   }
 
-  static LocationSummary* MakeCallSummary(Isolate* isolate);
+  static LocationSummary* MakeCallSummary(Zone* zone);
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     UNIMPLEMENTED();
@@ -7793,6 +7794,24 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 
+class GrowRegExpStackInstr : public TemplateDefinition<1, Throws> {
+ public:
+  explicit GrowRegExpStackInstr(Value* typed_data_cell) {
+    SetInputAt(0, typed_data_cell);
+  }
+
+  Value* typed_data_cell() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return MayThrow(); }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  DECLARE_INSTRUCTION(GrowRegExpStack);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GrowRegExpStackInstr);
+};
+
+
 #undef DECLARE_INSTRUCTION
 
 class Environment : public ZoneAllocated {
@@ -8034,8 +8053,7 @@ class FlowGraphVisitor : public ValueObject {
 
 // Helper macros for platform ports.
 #define DEFINE_UNIMPLEMENTED_INSTRUCTION(Name)                                \
-  LocationSummary* Name::MakeLocationSummary(                                 \
-      Isolate* isolate, bool opt) const {                                     \
+  LocationSummary* Name::MakeLocationSummary(Zone* zone, bool opt) const {    \
     UNIMPLEMENTED();                                                          \
     return NULL;                                                              \
   }                                                                           \

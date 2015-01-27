@@ -58,30 +58,13 @@ Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
  * times. By default, this should pump the event queue enough times to allow
  * any code to run, as long as it's not waiting on some external event.
  */
-Future pumpEventQueue([int times = 20]) {
+Future pumpEventQueue([int times = 50]) {
   if (times == 0) return new Future.value();
   // We use a delayed future to allow microtask events to finish. The
   // Future.value or Future() constructors use scheduleMicrotask themselves and
   // would therefore not wait for microtask callbacks that are scheduled after
   // invoking this method.
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
-}
-
-/**
- * Returns a [Future] that completes when the given [AnalysisServer] finished
- * all its scheduled tasks.
- */
-Future waitForServerOperationsPerformed(AnalysisServer server) {
-  if (server.isAnalysisComplete()) {
-    return new Future.value();
-  }
-  // We use a delayed future to allow microtask events to finish. The
-  // Future.value or Future() constructors use scheduleMicrotask themselves and
-  // would therefore not wait for microtask callbacks that are scheduled after
-  // invoking this method.
-  return new Future.delayed(
-      Duration.ZERO,
-      () => waitForServerOperationsPerformed(server));
 }
 
 typedef void MockServerOperationPerformFunction(AnalysisServer server);
@@ -324,14 +307,6 @@ class MockServerOperation implements PerformAnalysisOperation {
 
   @override
   void perform(AnalysisServer server) => this._perform(server);
-
-  @override
-  void sendNotices(AnalysisServer server, List<ChangeNotice> notices) {
-  }
-
-  @override
-  void updateIndex(AnalysisServer server, List<ChangeNotice> notices) {
-  }
 }
 
 

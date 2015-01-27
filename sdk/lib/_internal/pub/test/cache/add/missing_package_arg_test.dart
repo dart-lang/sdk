@@ -15,7 +15,7 @@ main() {
             No package to add given.
             
             Usage: pub cache add <package> [--version <constraint>] [--all]
-            -h, --help       Print usage information for this command.
+            -h, --help       Print this usage information.
                 --all        Install all matching versions.
             -v, --version    Version constraint.
 

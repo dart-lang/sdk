@@ -141,9 +141,9 @@ bool Intrinsifier::GraphIntrinsify(ParsedFunction* parsed_function,
   FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
   const Function& function = parsed_function->function();
   switch (function.recognized_kind()) {
-#define EMIT_CASE(test_class_name, test_function_name, enum_name, fp)          \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
     case MethodRecognizer::k##enum_name:                                       \
-      ASSERT(function.CheckSourceFingerprint(fp));                             \
+      CHECK_FINGERPRINT3(function, class_name, function_name, enum_name, fp);  \
       if (!Build_##enum_name(graph)) return false;                             \
       break;
 
@@ -185,9 +185,9 @@ void Intrinsifier::Intrinsify(ParsedFunction* parsed_function,
     return;
   }
 
-#define EMIT_CASE(test_class_name, test_function_name, enum_name, fp)          \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
     case MethodRecognizer::k##enum_name:                                       \
-      ASSERT(function.CheckSourceFingerprint(fp));                             \
+      CHECK_FINGERPRINT3(function, class_name, function_name, enum_name, fp);  \
       compiler->assembler()->Comment("Intrinsic");                             \
       enum_name(compiler->assembler());                                        \
       break;

@@ -12,6 +12,8 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 
 import '../../instrumentation/instrumentation.dart';
@@ -33,7 +35,6 @@ import 'sdk.dart' show DartSdk;
 import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_general.dart';
-import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 
 /**
  * Type of callback functions used by PendingFuture.  Functions of this type
@@ -1150,6 +1151,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  set contentCache(ContentCache value) {
+    _contentCache = value;
+  }
+
+  @override
   DeclaredVariables get declaredVariables => _declaredVariables;
 
   @override
@@ -1533,7 +1539,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _sourceChanged(source);
     }
     changeSet.changedContents.forEach((Source key, String value) {
-      _contentsChanged(key, value);
+      _contentsChanged(key, value, false);
     });
     changeSet.changedRanges.forEach(
         (Source source, ChangeSet_ContentChange change) {
@@ -1572,10 +1578,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         Source source = sourcesToInvalidate[i];
         SourceEntry entry = _getReadableSourceEntry(source);
         if (entry is DartEntry) {
-          entry.invalidateAllResolutionInformation(false);
+          entry.invalidateParseInformation();
           _workManager.add(source, _computePriority(entry));
         } else if (entry is HtmlEntry) {
-          entry.invalidateAllResolutionInformation(false);
+          entry.invalidateParseInformation();
           _workManager.add(source, SourcePriority.HTML);
         }
       }
@@ -2148,6 +2154,64 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  bool handleContentsChanged(Source source, String originalContents,
+      String newContents, bool notify) {
+    SourceEntry sourceEntry = _cache.get(source);
+    if (sourceEntry == null) {
+      return false;
+    }
+    bool changed = newContents != originalContents;
+    if (newContents != null) {
+      if (newContents != originalContents) {
+        _incrementalAnalysisCache =
+            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+        if (!analysisOptions.incremental ||
+            !_tryPoorMansIncrementalResolution(source, newContents)) {
+          _sourceChanged(source);
+        }
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
+          sourceEntry.setValue(SourceEntry.CONTENT, newContents);
+        }
+      } else {
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
+        }
+      }
+    } else if (originalContents != null) {
+      _incrementalAnalysisCache =
+          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+      changed = newContents != originalContents;
+      // We are removing the overlay for the file, check if the file's
+      // contents is the same as it was in the overlay.
+      if (sourceEntry != null) {
+        try {
+          TimestampedData<String> fileContents = getContents(source);
+          String fileContentsData = fileContents.data;
+          if (fileContentsData == originalContents) {
+            sourceEntry.modificationTime = fileContents.modificationTime;
+            sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
+            changed = false;
+          }
+        } catch (e) {
+        }
+      }
+      // If not the same content (e.g. the file is being closed without save),
+      // then force analysis.
+      if (changed) {
+        _sourceChanged(source);
+      }
+    }
+    if (notify && changed) {
+      _onSourcesChangedController.add(
+          new SourcesChangedEvent.changedContent(source, newContents));
+    }
+    return changed;
+  }
+
+  @override
   bool isClientLibrary(Source librarySource) {
     SourceEntry sourceEntry = _getReadableSourceEntry(librarySource);
     if (sourceEntry is DartEntry) {
@@ -2247,32 +2311,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         getEnd - getStart,
         task.runtimeType.toString(),
         performEnd - performStart);
-  }
-
-  void _validateLastIncrementalResolutionResult() {
-    if (incrementalResolutionValidation_lastUnitSource == null ||
-        incrementalResolutionValidation_lastLibrarySource == null ||
-        incrementalResolutionValidation_lastUnit == null) {
-      return;
-    }
-    CompilationUnit fullUnit = getResolvedCompilationUnit2(
-        incrementalResolutionValidation_lastUnitSource,
-        incrementalResolutionValidation_lastLibrarySource);
-    if (fullUnit != null) {
-      try {
-        assertSameResolution(
-            incrementalResolutionValidation_lastUnit,
-            fullUnit);
-      } on IncrementalResolutionMismatch catch (mismatch, stack) {
-        String failure = mismatch.message;
-        String message =
-            'Incremental resolution mismatch:\n$failure\nat\n$stack';
-        AnalysisEngine.instance.logger.logError(message);
-      }
-    }
-    incrementalResolutionValidation_lastUnitSource = null;
-    incrementalResolutionValidation_lastLibrarySource = null;
-    incrementalResolutionValidation_lastUnit = null;
   }
 
   @override
@@ -2395,7 +2433,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
           ChangeNoticeImpl notice = _getNotice(source);
-          notice.compilationUnit = unit;
+          notice.resolvedDartUnit = unit;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -2479,7 +2517,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
           ChangeNoticeImpl notice = _getNotice(source);
-          notice.compilationUnit = unit;
+          notice.resolvedDartUnit = unit;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
       }
@@ -2535,10 +2573,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void setContents(Source source, String contents) {
-    if (_contentsChanged(source, contents)) {
-      _onSourcesChangedController.add(
-          new SourcesChangedEvent.changedContent(source, contents));
-    }
+    _contentsChanged(source, contents, true);
   }
 
   @override
@@ -2602,6 +2637,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
+  }
+
+  /**
+   * Visit all entries of the content cache.
+   */
+  void visitContentCache(ContentCacheVisitor visitor) {
+    _contentCache.accept(visitor);
   }
 
   /**
@@ -2762,7 +2804,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return dartEntry;
   }
-
 
   /**
    * Given a source for a Dart file, return a cache entry in which the state of the data represented
@@ -3164,6 +3205,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
+  /**
+   * Set the contents of the given source to the given contents and mark the source as having
+   * changed. This has the effect of overriding the default contents of the source. If the contents
+   * are `null` the override is removed so that the default contents will be returned.
+   *
+   * If [notify] is true, a source changed event is triggered.
+   *
+   * @param source the source whose contents are being overridden
+   * @param contents the new contents of the source
+   */
+  void _contentsChanged(Source source, String contents, bool notify) {
+    String originalContents = _contentCache.setContents(source, contents);
+    handleContentsChanged(source, originalContents, contents, notify);
+  }
+
 //  /**
 //   * Create a [BuildUnitElementTask] for the given [source].
 //   */
@@ -3177,68 +3233,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //        new BuildUnitElementTask(this, source, librarySource, unit),
 //        false);
 //  }
-
-  /**
-   * Set the contents of the given source to the given contents and mark the source as having
-   * changed. This has the effect of overriding the default contents of the source. If the contents
-   * are `null` the override is removed so that the default contents will be returned.
-   * [setContents] triggers a source changed event where as this method does not.
-   *
-   * @param source the source whose contents are being overridden
-   * @param contents the new contents of the source
-   */
-  bool _contentsChanged(Source source, String contents) {
-    bool changed = false;
-    String originalContents = _contentCache.setContents(source, contents);
-    if (contents != null) {
-      if (contents != originalContents) {
-        _incrementalAnalysisCache =
-            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-        if (!analysisOptions.incremental ||
-            !_tryPoorMansIncrementalResolution(source, contents)) {
-          _sourceChanged(source);
-        }
-        changed = true;
-        SourceEntry sourceEntry = _cache.get(source);
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-          sourceEntry.setValue(SourceEntry.CONTENT, contents);
-        }
-      } else {
-        SourceEntry sourceEntry = _cache.get(source);
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-        }
-      }
-    } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-      changed = true;
-      // We are removing the overlay for the file, check if the file's
-      // contents is the same as it was in the overlay.
-      SourceEntry sourceEntry = _cache.get(source);
-      if (sourceEntry != null) {
-        try {
-          TimestampedData<String> fileContents = getContents(source);
-          String fileContentsData = fileContents.data;
-          if (fileContentsData == originalContents) {
-            sourceEntry.modificationTime = fileContents.modificationTime;
-            sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
-            changed = false;
-          }
-        } catch (e) {
-        }
-      }
-      // If not the same content (e.g. the file is being closed without save),
-      // then force analysis.
-      if (changed) {
-        _sourceChanged(source);
-      }
-    }
-    return changed;
-  }
 
   /**
    * Create a [GenerateDartErrorsTask] for the given source, marking the verification errors
@@ -3369,8 +3363,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         new GenerateDartLintsTask(this, units, libraryElement),
         false);
   }
-
-
 
   /**
    * Create a [GetContentTask] for the given source, marking the content as being in-process.
@@ -4379,6 +4371,30 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  /**
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
+   */
+  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
+    Source source = task.source;
+    Source library = task.library;
+    DartEntry dartEntry = _cache.get(source);
+    CaughtException thrownException = task.exception;
+    if (thrownException != null) {
+      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
+      throw new AnalysisException('<rethrow>', thrownException);
+    }
+    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
+    dartEntry.setValueInLibrary(
+        DartEntry.BUILT_ELEMENT,
+        library,
+        task.unitElement);
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(dartEntry.allErrors, lineInfo);
+    return dartEntry;
+  }
+
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4456,30 +4472,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
-
-  /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
-  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
-    Source source = task.source;
-    Source library = task.library;
-    DartEntry dartEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
-    dartEntry.setValueInLibrary(
-        DartEntry.BUILT_ELEMENT,
-        library,
-        task.unitElement);
-    ChangeNoticeImpl notice = _getNotice(source);
-    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(dartEntry.allErrors, lineInfo);
-    return dartEntry;
-  }
 
   /**
    * Given a cache entry and a library element, record the library element and other information
@@ -4610,7 +4602,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return libraryEntry;
   }
 
-
   /**
    * Record the results produced by performing a [task] and return the cache
    * entry associated with the results.
@@ -4644,7 +4635,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CompilationUnit unit = task.compilationUnit;
     if (unit != null) {
       ChangeNoticeImpl notice = _getNotice(task.source);
-      notice.compilationUnit = unit;
+      notice.resolvedDartUnit = unit;
       _incrementalAnalysisCache =
           IncrementalAnalysisCache.cacheResult(task.cache, unit);
     }
@@ -4705,6 +4696,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry.setValue(DartEntry.INCLUDED_PARTS, newParts);
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
+    if (notice.resolvedDartUnit == null) {
+      notice.parsedDartUnit = task.compilationUnit;
+    }
     notice.setErrors(dartEntry.allErrors, task.lineInfo);
     // Verify that the incrementally parsed and resolved unit in the incremental
     // cache is structurally equivalent to the fully parsed unit
@@ -4782,7 +4776,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     htmlEntry.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
     _cache.storedAst(source);
     ChangeNoticeImpl notice = _getNotice(source);
-    notice.htmlUnit = task.resolvedUnit;
+    notice.resolvedHtmlUnit = task.resolvedUnit;
     LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
@@ -4945,8 +4939,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // reset unit in the notification, it is out of date now
     ChangeNoticeImpl notice = _pendingNotices[source];
     if (notice != null) {
-      notice.compilationUnit = null;
-      notice.htmlUnit = null;
+      notice.resolvedDartUnit = null;
+      notice.resolvedHtmlUnit = null;
     }
   }
 
@@ -5079,7 +5073,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       DartEntry dartEntry = _cache.get(source);
       LineInfo lineInfo = getLineInfo(source);
       ChangeNoticeImpl notice = _getNotice(source);
-      notice.compilationUnit = unit;
+      notice.resolvedDartUnit = unit;
       notice.setErrors(dartEntry.allErrors, lineInfo);
     });
     // OK
@@ -5136,6 +5130,32 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _logInformation(buffer.toString());
     }
     return changedSources.length > 0;
+  }
+
+  void _validateLastIncrementalResolutionResult() {
+    if (incrementalResolutionValidation_lastUnitSource == null ||
+        incrementalResolutionValidation_lastLibrarySource == null ||
+        incrementalResolutionValidation_lastUnit == null) {
+      return;
+    }
+    CompilationUnit fullUnit = getResolvedCompilationUnit2(
+        incrementalResolutionValidation_lastUnitSource,
+        incrementalResolutionValidation_lastLibrarySource);
+    if (fullUnit != null) {
+      try {
+        assertSameResolution(
+            incrementalResolutionValidation_lastUnit,
+            fullUnit);
+      } on IncrementalResolutionMismatch catch (mismatch, stack) {
+        String failure = mismatch.message;
+        String message =
+            'Incremental resolution mismatch:\n$failure\nat\n$stack';
+        AnalysisEngine.instance.logger.logError(message);
+      }
+    }
+    incrementalResolutionValidation_lastUnitSource = null;
+    incrementalResolutionValidation_lastLibrarySource = null;
+    incrementalResolutionValidation_lastUnit = null;
   }
 }
 
@@ -5833,6 +5853,72 @@ abstract class AnalysisContextStatistics {
 }
 
 /**
+ * Information about single piece of data in the cache.
+ */
+abstract class AnalysisContextStatistics_CacheRow {
+  /**
+   * List of possible states which can be queried.
+   */
+  static const List<CacheState> STATES = const <CacheState>[
+      CacheState.ERROR,
+      CacheState.FLUSHED,
+      CacheState.IN_PROCESS,
+      CacheState.INVALID,
+      CacheState.VALID];
+
+  /**
+   * Return the number of entries whose state is [CacheState.ERROR].
+   */
+  int get errorCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState.FLUSHED].
+   */
+  int get flushedCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState.IN_PROCESS].
+   */
+  int get inProcessCount;
+
+  /**
+   * Return the number of entries whose state is [CacheState.INVALID].
+   */
+  int get invalidCount;
+
+  /**
+   * Return the name of the data represented by this object.
+   */
+  String get name;
+
+  /**
+   * Return the number of entries whose state is [CacheState.VALID].
+   */
+  int get validCount;
+
+  /**
+   * Return the number of entries whose state is [state].
+   */
+  int getCount(CacheState state);
+}
+
+/**
+ * Information about a single partition in the cache.
+ */
+abstract class AnalysisContextStatistics_PartitionData {
+  /**
+   * Return the number of entries in the partition that have an AST structure in one state or
+   * another.
+   */
+  int get astCount;
+
+  /**
+   * Return the total number of entries in the partition.
+   */
+  int get totalCount;
+}
+
+/**
  * Implementation of the [AnalysisContextStatistics].
  */
 class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
@@ -5946,72 +6032,6 @@ class AnalysisContextStatisticsImpl_PartitionDataImpl implements
 
   AnalysisContextStatisticsImpl_PartitionDataImpl(this.astCount,
       this.totalCount);
-}
-
-/**
- * Information about single piece of data in the cache.
- */
-abstract class AnalysisContextStatistics_CacheRow {
-  /**
-   * List of possible states which can be queried.
-   */
-  static const List<CacheState> STATES = const <CacheState>[
-      CacheState.ERROR,
-      CacheState.FLUSHED,
-      CacheState.IN_PROCESS,
-      CacheState.INVALID,
-      CacheState.VALID];
-
-  /**
-   * Return the number of entries whose state is [CacheState.ERROR].
-   */
-  int get errorCount;
-
-  /**
-   * Return the number of entries whose state is [CacheState.FLUSHED].
-   */
-  int get flushedCount;
-
-  /**
-   * Return the number of entries whose state is [CacheState.IN_PROCESS].
-   */
-  int get inProcessCount;
-
-  /**
-   * Return the number of entries whose state is [CacheState.INVALID].
-   */
-  int get invalidCount;
-
-  /**
-   * Return the name of the data represented by this object.
-   */
-  String get name;
-
-  /**
-   * Return the number of entries whose state is [CacheState.VALID].
-   */
-  int get validCount;
-
-  /**
-   * Return the number of entries whose state is [state].
-   */
-  int getCount(CacheState state);
-}
-
-/**
- * Information about a single partition in the cache.
- */
-abstract class AnalysisContextStatistics_PartitionData {
-  /**
-   * Return the number of entries in the partition that have an AST structure in one state or
-   * another.
-   */
-  int get astCount;
-
-  /**
-   * Return the total number of entries in the partition.
-   */
-  int get totalCount;
 }
 
 /**
@@ -6510,7 +6530,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * The maximum number of sources for which data should be kept in the cache.
    */
-  static int DEFAULT_CACHE_SIZE = 64;
+  static const int DEFAULT_CACHE_SIZE = 64;
 
   /**
    * The default value for enabling deferred loading.
@@ -6878,6 +6898,32 @@ abstract class AnalysisTaskVisitor<E> {
 }
 
 /**
+ * A `CachedResult` is a single analysis result that is stored in a
+ * [SourceEntry].
+ */
+class CachedResult<E> {
+  /**
+   * The state of the cached value.
+   */
+  CacheState state;
+
+  /**
+   * The value being cached, or `null` if there is no value (for example, when
+   * the [state] is [CacheState.INVALID].
+   */
+  E value;
+
+  /**
+   * Initialize a newly created result holder to represent the value of data
+   * described by the given [descriptor].
+   */
+  CachedResult(DataDescriptor descriptor) {
+    state = CacheState.INVALID;
+    value = descriptor.defaultValue;
+  }
+}
+
+/**
  * Instances of the class `CachePartition` implement a single partition in an LRU cache of
  * information related to analysis.
  */
@@ -7198,63 +7244,36 @@ class CacheState extends Enum<CacheState> {
 }
 
 /**
- * A `CachedResult` is a single analysis result that is stored in a
- * [SourceEntry].
- */
-class CachedResult<E> {
-  /**
-   * The state of the cached value.
-   */
-  CacheState state;
-
-  /**
-   * The value being cached, or `null` if there is no value (for example, when
-   * the [state] is [CacheState.INVALID].
-   */
-  E value;
-
-  /**
-   * Initialize a newly created result holder to represent the value of data
-   * described by the given [descriptor].
-   */
-  CachedResult(DataDescriptor descriptor) {
-    state = CacheState.INVALID;
-    value = descriptor.defaultValue;
-  }
-}
-
-/**
- * The interface `ChangeNotice` defines the behavior of objects that represent a change to the
- * analysis results associated with a given source.
+ * An object that represents a change to the analysis results associated with a
+ * given source.
  */
 abstract class ChangeNotice implements AnalysisErrorInfo {
   /**
-   * Return the fully resolved AST that changed as a result of the analysis, or `null` if the
-   * AST was not changed.
-   *
-   * @return the fully resolved AST that changed as a result of the analysis
+   * The parsed, but maybe not resolved Dart AST that changed as a result of
+   * the analysis, or `null` if the AST was not changed.
    */
-  CompilationUnit get compilationUnit;
+  CompilationUnit get parsedDartUnit;
 
   /**
-   * Return the fully resolved HTML that changed as a result of the analysis, or `null` if the
-   * HTML was not changed.
-   *
-   * @return the fully resolved HTML that changed as a result of the analysis
+   * The fully resolved Dart AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
    */
-  ht.HtmlUnit get htmlUnit;
+  CompilationUnit get resolvedDartUnit;
+
+  /**
+   * The fully resolved HTML AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
+   */
+  ht.HtmlUnit get resolvedHtmlUnit;
 
   /**
    * Return the source for which the result is being reported.
-   *
-   * @return the source for which the result is being reported
    */
   Source get source;
 }
 
 /**
- * Instances of the class `ChangeNoticeImpl` represent a change to the analysis results
- * associated with a given source.
+ * An implementation of a [ChangeNotice].
  */
 class ChangeNoticeImpl implements ChangeNotice {
   /**
@@ -7268,25 +7287,32 @@ class ChangeNoticeImpl implements ChangeNotice {
   final Source source;
 
   /**
-   * The fully resolved AST that changed as a result of the analysis, or `null` if the AST was
-   * not changed.
+   * The parsed, but maybe not resolved Dart AST that changed as a result of
+   * the analysis, or `null` if the AST was not changed.
    */
-  CompilationUnit compilationUnit;
+  CompilationUnit parsedDartUnit;
 
   /**
-   * The fully resolved HTML that changed as a result of the analysis, or `null` if the HTML
-   * was not changed.
+   * The fully resolved Dart AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
    */
-  ht.HtmlUnit htmlUnit;
+  CompilationUnit resolvedDartUnit;
 
   /**
-   * The errors that changed as a result of the analysis, or `null` if errors were not
-   * changed.
+   * The fully resolved HTML AST that changed as a result of the analysis, or
+   * `null` if the AST was not changed.
+   */
+  ht.HtmlUnit resolvedHtmlUnit;
+
+  /**
+   * The errors that changed as a result of the analysis, or `null` if errors
+   * were not changed.
    */
   List<AnalysisError> _errors;
 
   /**
-   * The line information associated with the source, or `null` if errors were not changed.
+   * The line information associated with the source, or `null` if errors were
+   * not changed.
    */
   LineInfo _lineInfo;
 
@@ -7304,11 +7330,8 @@ class ChangeNoticeImpl implements ChangeNotice {
   LineInfo get lineInfo => _lineInfo;
 
   /**
-   * Set the errors that changed as a result of the analysis to the given errors and set the line
-   * information to the given line information.
-   *
-   * @param errors the errors that changed as a result of the analysis
-   * @param lineInfo the line information associated with the source
+   * Set the errors that changed as a result of the analysis to the given
+   * [errors] and set the line information to the given [lineInfo].
    */
   void setErrors(List<AnalysisError> errors, LineInfo lineInfo) {
     this._errors = errors;
@@ -8148,6 +8171,18 @@ class DartEntry extends SourceEntry {
   }
 
   /**
+   * Invalidate all of the parse and resolution information associated with
+   * this source.
+   */
+  void invalidateParseInformation() {
+    setState(SOURCE_KIND, CacheState.INVALID);
+    setState(PARSE_ERRORS, CacheState.INVALID);
+    setState(PARSED_UNIT, CacheState.INVALID);
+    _containingLibraries.clear();
+    _discardCachedResolutionInformation(true);
+  }
+
+  /**
    * Record that an [exception] occurred while attempting to build the element
    * model for the source represented by this entry in the context of the given
    * [library]. This will set the state of all resolution-based information as
@@ -8886,15 +8921,15 @@ class GenerateDartLintsTask extends AnalysisTask {
   /// The element model for the library being analyzed.
   final LibraryElement libraryElement;
 
-  /// Initialize a newly created task to perform lint checking over these
-  /// [_units] belonging to this [libraryElement] within the given [context].
-  GenerateDartLintsTask(context, this._units, this.libraryElement)
-      : super(context);
-
   /// A mapping of analyzed sources to their associated lint warnings.
   /// May be [null] if the task has not been performed or if analysis did not
   /// complete normally.
   HashMap<Source, List<AnalysisError>> lintMap;
+
+  /// Initialize a newly created task to perform lint checking over these
+  /// [_units] belonging to this [libraryElement] within the given [context].
+  GenerateDartLintsTask(context, this._units, this.libraryElement)
+      : super(context);
 
   @override
   String get taskDescription {
@@ -9005,7 +9040,10 @@ class GetContentTask extends AnalysisTask {
       TimestampedData<String> data = context.getContents(source);
       _content = data.data;
       _modificationTime = data.modificationTime;
-      AnalysisEngine.instance.instrumentationService.logFileRead(source.fullName, _modificationTime, _content);
+      AnalysisEngine.instance.instrumentationService.logFileRead(
+          source.fullName,
+          _modificationTime,
+          _content);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
           "Could not get contents of $source",
@@ -9142,12 +9180,23 @@ class HtmlEntry extends SourceEntry {
    * source files should also be invalidated.
    */
   void invalidateAllResolutionInformation(bool invalidateUris) {
+    setState(RESOLVED_UNIT, CacheState.INVALID);
     setState(ELEMENT, CacheState.INVALID);
     setState(RESOLUTION_ERRORS, CacheState.INVALID);
     setState(HINTS, CacheState.INVALID);
     if (invalidateUris) {
       setState(REFERENCED_LIBRARIES, CacheState.INVALID);
     }
+  }
+
+  /**
+   * Invalidate all of the parse and resolution information associated with
+   * this source.
+   */
+  void invalidateParseInformation() {
+    setState(PARSE_ERRORS, CacheState.INVALID);
+    setState(PARSED_UNIT, CacheState.INVALID);
+    invalidateAllResolutionInformation(true);
   }
 
   @override
@@ -9574,6 +9623,13 @@ class IncrementalAnalysisTask extends AnalysisTask {
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
   /**
+   * Allow the client to supply its own content cache.  This will take the
+   * place of the content cache created by default, allowing clients to share
+   * the content cache between contexts.
+   */
+  set contentCache(ContentCache value);
+
+  /**
    * Return an array containing all of the sources that have been marked as priority sources.
    * Clients must not modify the returned array.
    *
@@ -9654,6 +9710,25 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @return the public namespace of the given library
    */
   Namespace getPublicNamespace(LibraryElement library);
+
+  /**
+   * Respond to a change which has been made to the given [source] file.
+   * [originalContents] is the former contents of the file, and [newContents]
+   * is the updated contents.  If [notify] is true, a source changed event is
+   * triggered.
+   *
+   * Normally it should not be necessary for clinets to call this function,
+   * since it will be automatically invoked in response to a call to
+   * [applyChanges] or [setContents].  However, if this analysis context is
+   * sharing its content cache with other contexts, then the client must
+   * manually update the content cache and call this function for each context.
+   *
+   * Return `true` if the change was significant to this context (i.e. [source]
+   * is either implicitly or explicitly analyzed by this context, and a change
+   * actually occurred).
+   */
+  bool handleContentsChanged(Source source, String originalContents,
+      String newContents, bool notify);
 
   /**
    * Given a table mapping the source for the libraries represented by the corresponding elements to

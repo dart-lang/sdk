@@ -87,6 +87,12 @@ class DirectoryBasedSourceContainer implements SourceContainer {
  * Instances of the class `FileBasedSource` implement a source that represents a file.
  */
 class FileBasedSource implements Source {
+
+  /**
+   * A function that changes the way that files are read off of disk.
+   */
+  static Function fileReadMode = (String s) => s;
+
   /**
    * The URI from which this source was originally derived.
    */
@@ -146,7 +152,7 @@ class FileBasedSource implements Source {
   TimestampedData<String> get contentsFromFile {
     return new TimestampedData<String>(
         file.lastModified(),
-        file.readAsStringSync());
+        fileReadMode(file.readAsStringSync()));
   }
 
   @override

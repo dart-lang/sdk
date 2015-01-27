@@ -224,6 +224,9 @@ class Address : public Operand {
     return *this;
   }
 
+  static Address AddressRIPRelative(int32_t disp) {
+    return Address(RIPRelativeDisp(disp));
+  }
   static Address AddressBaseImm32(Register base, int32_t disp) {
     return Address(base, disp, true);
   }
@@ -239,6 +242,16 @@ class Address : public Operand {
       SetSIB(TIMES_1, RSP, base);
     }
     SetDisp32(disp);
+  }
+
+  struct RIPRelativeDisp {
+    explicit RIPRelativeDisp(int32_t disp) : disp_(disp) { }
+    const int32_t disp_;
+  };
+
+  explicit Address(const RIPRelativeDisp& disp) {
+    SetModRM(0, static_cast<Register>(0x5));
+    SetDisp32(disp.disp_);
   }
 };
 
@@ -353,7 +366,6 @@ class Assembler : public ValueObject {
   void call(const ExternalLabel* label);
 
   static const intptr_t kCallExternalLabelSize = 7;
-  static const intptr_t kJmpExternalLabelSize = 10;
 
   void pushq(Register reg);
   void pushq(const Address& address);
@@ -629,6 +641,8 @@ class Assembler : public ValueObject {
   void notl(Register reg);
   void notq(Register reg);
 
+  void bsrq(Register dst, Register src);
+
   void btq(Register base, Register offset);
 
   void enter(const Immediate& imm);
@@ -669,6 +683,7 @@ class Assembler : public ValueObject {
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  void jmp(const Address& address);
   // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
@@ -952,7 +967,7 @@ class Assembler : public ValueObject {
   //   movq rbp, rsp      (size is 3 bytes)
   //   call L             (size is 5 bytes)
   //   L:
-  static const intptr_t kEntryPointToPcMarkerOffset = 9;
+  static const intptr_t kEntryPointToPcMarkerOffset = 0;
   static intptr_t EntryPointToPcMarkerOffset() {
     return kEntryPointToPcMarkerOffset;
   }
@@ -1022,44 +1037,6 @@ class Assembler : public ValueObject {
 
   // Patchability of pool entries.
   GrowableArray<Patchability> patchable_pool_entries_;
-
-  // Pair type parameter for DirectChainedHashMap.
-  class ObjIndexPair {
-   public:
-    // TODO(zra): A WeakTable should be used here instead, but then it would
-    // also have to be possible to register and de-register WeakTables with the
-    // heap. Also, the Assembler would need to become a StackResource.
-    // Issue 13305. In the meantime...
-    // CAUTION: the RawObject* below is only safe because:
-    // The HashMap that will use this pair type will not contain any RawObject*
-    // keys that are not in the object_pool_ array. Since the keys will be
-    // visited by the GC when it visits the object_pool_, and since all objects
-    // in the object_pool_ are Old (and so will not be moved) the GC does not
-    // also need to visit the keys here in the HashMap.
-
-    // Typedefs needed for the DirectChainedHashMap template.
-    typedef RawObject* Key;
-    typedef intptr_t Value;
-    typedef ObjIndexPair Pair;
-
-    ObjIndexPair(Key key, Value value) : key_(key), value_(value) { }
-
-    static Key KeyOf(Pair kv) { return kv.key_; }
-
-    static Value ValueOf(Pair kv) { return kv.value_; }
-
-    static intptr_t Hashcode(Key key) {
-      return reinterpret_cast<intptr_t>(key) >> kObjectAlignmentLog2;
-    }
-
-    static inline bool IsKeyEqual(Pair kv, Key key) {
-      return kv.key_ == key;
-    }
-
-   private:
-    Key key_;
-    Value value_;
-  };
 
   // Hashmap for fast lookup in object pool.
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;

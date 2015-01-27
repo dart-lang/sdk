@@ -49,6 +49,8 @@ class DartBackend extends Backend {
   final Set<ClassElement> _userImplementedPlatformClasses =
       new Set<ClassElement>();
 
+  bool get canHandleCompilationFailed => false;
+
   /**
    * Tells whether it is safe to remove type declarations from variables,
    * functions parameters. It becomes not safe if:

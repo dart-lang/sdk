@@ -106,32 +106,9 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
     server = await environment.servePackageBinDirectory(package);
   }
 
-  // TODO(rnystrom): Use try/catch here when
-  // https://github.com/dart-lang/async_await/issues/4 is fixed.
-  return environment.barback.getAssetById(id).then((_) async {
-    var vmArgs = [];
-
-    // Run in checked mode.
-    // TODO(rnystrom): Make this configurable.
-    vmArgs.add("--checked");
-
-    // Get the URL of the executable, relative to the server's root directory.
-    var relativePath = p.url.relative(assetPath,
-        from: p.url.joinAll(p.split(server.rootDirectory)));
-    vmArgs.add(server.url.resolve(relativePath).toString());
-    vmArgs.addAll(args);
-
-    var process = await Process.start(Platform.executable, vmArgs);
-    // Note: we're not using process.std___.pipe(std___) here because
-    // that prevents pub from also writing to the output streams.
-    process.stderr.listen(stderr.add);
-    process.stdout.listen(stdout.add);
-    stdin.listen(process.stdin.add);
-
-    return process.exitCode;
-  }).catchError((error, stackTrace) {
-    if (error is! AssetNotFoundException) throw error;
-
+  try {
+    await environment.barback.getAssetById(id);
+  } on AssetNotFoundException catch (error, stackTrace) {
     var message = "Could not find ${log.bold(executable + ".dart")}";
     if (package != entrypoint.root.name) {
       message += " in package ${log.bold(server.package)}";
@@ -140,7 +117,28 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
     log.error("$message.");
     log.fine(new Chain.forTrace(stackTrace));
     return exit_codes.NO_INPUT;
-  });
+  }
+
+  var vmArgs = [];
+
+  // Run in checked mode.
+  // TODO(rnystrom): Make this configurable.
+  vmArgs.add("--checked");
+
+  // Get the URL of the executable, relative to the server's root directory.
+  var relativePath = p.url.relative(assetPath,
+      from: p.url.joinAll(p.split(server.rootDirectory)));
+  vmArgs.add(server.url.resolve(relativePath).toString());
+  vmArgs.addAll(args);
+
+  var process = await Process.start(Platform.executable, vmArgs);
+  // Note: we're not using process.std___.pipe(std___) here because
+  // that prevents pub from also writing to the output streams.
+  process.stderr.listen(stderr.add);
+  process.stdout.listen(stdout.add);
+  stdin.listen(process.stdin.add);
+
+  return process.exitCode;
 }
 
 /// Runs the snapshot at [path] with [args] and hooks its stdout, stderr, and

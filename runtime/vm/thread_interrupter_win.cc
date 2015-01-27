@@ -52,7 +52,7 @@ class ThreadInterrupterWin : public AllStatic {
 
 
   static void Interrupt(InterruptableThreadState* state) {
-    ASSERT(!Thread::Compare(GetCurrentThreadId(), state->id));
+    ASSERT(!OSThread::Compare(GetCurrentThreadId(), state->id));
     HANDLE handle = OpenThread(THREAD_GET_CONTEXT |
                                THREAD_QUERY_INFORMATION |
                                THREAD_SUSPEND_RESUME,

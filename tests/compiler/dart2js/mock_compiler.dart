@@ -212,14 +212,7 @@ class MockCompiler extends Compiler {
     if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
-    try {
-      visitor.visit(tree);
-    } on CompilerCancelledException catch (_) {
-      // Ignored.
-
-      // TODO(ahe): Don't ignore CompilerCancelledException, instead, fix
-      // pkg/compiler/lib/src/resolution/members.dart.
-    }
+    visitor.visit(tree);
     visitor.scope = new LibraryScope(element.library);
     return visitor.registry.mapping;
   }

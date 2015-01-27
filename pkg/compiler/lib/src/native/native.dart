@@ -14,7 +14,7 @@ import '../elements/modelx.dart'
     show ClassElementX, FunctionElementX, LibraryElementX;
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../resolution/resolution.dart' show ResolverVisitor;
 import '../scanner/scannerlib.dart';
 import '../ssa/ssa.dart';

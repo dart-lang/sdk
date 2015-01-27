@@ -104,12 +104,14 @@ Future captureErrors(Future callback(), {bool captureStackChains: false}) {
       } else {
         stackTrace = new Chain([]);
       }
-      completer.completeError(e, stackTrace);
+      if (!completer.isCompleted) completer.completeError(e, stackTrace);
     });
   };
 
   if (captureStackChains) {
-    Chain.capture(wrappedCallback, onError: completer.completeError);
+    Chain.capture(wrappedCallback, onError: (error, stackTrace) {
+      if (!completer.isCompleted) completer.completeError(error, stackTrace);
+    });
   } else {
     runZoned(wrappedCallback, onError: (e, stackTrace) {
       if (stackTrace == null) {
@@ -117,7 +119,7 @@ Future captureErrors(Future callback(), {bool captureStackChains: false}) {
       } else {
         stackTrace = new Chain([new Trace.from(stackTrace)]);
       }
-      completer.completeError(e, stackTrace);
+      if (!completer.isCompleted) completer.completeError(e, stackTrace);
     });
   }
 

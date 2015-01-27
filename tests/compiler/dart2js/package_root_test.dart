@@ -60,9 +60,7 @@ void runCompiler(Uri main) {
 
   asyncTest(() => compiler.run(main).then((_) {
     Expect.equals(1, errors.length);
-    Expect.isTrue(
-        errors[0].startsWith(
-            "Can't read 'package:foo/foo.dart' (Error reading "));
+    Expect.isTrue(errors[0].contains("Error reading "));
   }));
 }
 

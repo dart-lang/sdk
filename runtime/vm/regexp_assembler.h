@@ -539,7 +539,10 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
 
   // Accessors for our local stack_.
   void PushStack(Definition* definition);
-  Value* PopStack();
+  Definition* PopStack();
+  Definition* PeekStack();
+  void CheckStackLimit();
+  void GrowStack();
 
   // Prints the specified argument. Used for debugging.
   void Print(PushArgumentInstr* argument);
@@ -595,6 +598,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // A list, acting as the runtime stack for both backtrack locations and
   // stored positions within the string.
   LocalVariable* stack_;
+  LocalVariable* stack_pointer_;
 
   // Stores the current character within the string.
   LocalVariable* current_character_;
@@ -629,7 +633,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   const intptr_t saved_registers_count_;
 
   // The actual array objects used for the stack and registers.
-  GrowableObjectArray& stack_array_;
+  Array& stack_array_cell_;
   TypedData& registers_array_;
 
   IdAllocator block_id_;

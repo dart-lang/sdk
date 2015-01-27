@@ -63,6 +63,19 @@ class AnalysisDoneReason {
  */
 class AnalysisServer {
   /**
+   * The version of the analysis server. The value should be replaced
+   * automatically during the build.
+   */
+  static final String VERSION = '0.0.1';
+
+  /**
+   * The number of milliseconds to perform operations before inserting
+   * a 1 millisecond delay so that the VM and dart:io can deliver content
+   * to stdin. This should be removed once the underlying problem is fixed.
+   */
+  static int performOperationDelayFreqency = 25;
+
+  /**
    * The channel from which requests are received and to which responses should
    * be sent.
    */
@@ -159,14 +172,14 @@ class AnalysisServer {
   bool _noErrorNotification;
 
   /**
+   * The [Completer] that completes when analysis is complete.
+   */
+  Completer _onAnalysisCompleteCompleter;
+
+  /**
    * The controller that is notified when analysis is started.
    */
   StreamController<AnalysisContext> _onAnalysisStartedController;
-
-  /**
-   * The controller that is notified when analysis is complete.
-   */
-  StreamController _onAnalysisCompleteController;
 
   /**
    * The controller that is notified when a single file has been analyzed.
@@ -185,6 +198,21 @@ class AnalysisServer {
   bool rethrowExceptions;
 
   /**
+   * The next time (milliseconds since epoch) after which the analysis server
+   * should pause so that pending requests can be fetched by the system.
+   */
+  // Add 1 sec to prevent delay from impacting short running tests
+  int _nextPerformOperationDelayTime =
+      new DateTime.now().millisecondsSinceEpoch +
+      1000;
+
+  /**
+   * The current state of overlays from the client.  This is used as the
+   * content cache for all contexts.
+   */
+  ContentCache _overlayState = new ContentCache();
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -198,7 +226,7 @@ class AnalysisServer {
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
       this.instrumentationService, {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
-    operationQueue = new ServerOperationQueue(this);
+    operationQueue = new ServerOperationQueue();
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
     contextDirectoryManager.defaultOptions.incremental = true;
@@ -209,7 +237,6 @@ class AnalysisServer {
     _noErrorNotification = analysisServerOptions.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
-    _onAnalysisCompleteController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
     _onPriorityChangeController =
         new StreamController<PriorityChangeEvent>.broadcast();
@@ -220,9 +247,17 @@ class AnalysisServer {
   }
 
   /**
-   * The stream that is notified when analysis is complete.
+   * The [Future] that completes when analysis is complete.
    */
-  Stream get onAnalysisComplete => _onAnalysisCompleteController.stream;
+  Future get onAnalysisComplete {
+    if (isAnalysisComplete()) {
+      return new Future.value();
+    }
+    if (_onAnalysisCompleteCompleter == null) {
+      _onAnalysisCompleteCompleter = new Completer();
+    }
+    return _onAnalysisCompleteCompleter.future;
+  }
 
   /**
    * The stream that is notified when analysis of a context is started.
@@ -539,14 +574,6 @@ class AnalysisServer {
   }
 
   /**
-   * Returns `true` if the given [AnalysisContext] is a priority one.
-   */
-  bool isPriorityContext(AnalysisContext context) {
-    // TODO(scheglov) implement support for priority sources/contexts
-    return false;
-  }
-
-  /**
    * Returns a [Future] completing when [file] has been completely analyzed, in
    * particular, all its errors have been computed.  The future is completed
    * with an [AnalysisDoneReason] indicating what caused the file's analysis to
@@ -618,7 +645,10 @@ class AnalysisServer {
         _schedulePerformOperation();
       } else {
         sendStatusNotification(null);
-        _onAnalysisCompleteController.add(null);
+        if (_onAnalysisCompleteCompleter != null) {
+          _onAnalysisCompleteCompleter.complete();
+          _onAnalysisCompleteCompleter = null;
+        }
       }
     }
   }
@@ -785,11 +815,7 @@ class AnalysisServer {
                 break;
               case AnalysisService.OUTLINE:
                 LineInfo lineInfo = context.getLineInfo(source);
-                sendAnalysisNotificationOutline(
-                    this,
-                    source,
-                    lineInfo,
-                    dartUnit);
+                sendAnalysisNotificationOutline(this, file, lineInfo, dartUnit);
                 break;
               case AnalysisService.OVERRIDES:
                 sendAnalysisNotificationOverrides(this, file, dartUnit);
@@ -836,6 +862,7 @@ class AnalysisServer {
       }
       context.analysisPriorityOrder = sourceList;
     });
+    operationQueue.reschedule();
     Source firstSource = files.length > 0 ? getSource(files[0]) : null;
     _onPriorityChangeController.add(new PriorityChangeEvent(firstSource));
   }
@@ -868,42 +895,47 @@ class AnalysisServer {
    */
   void updateContent(String id, Map<String, dynamic> changes) {
     changes.forEach((file, change) {
-      AnalysisContext analysisContext = getAnalysisContext(file);
-      // TODO(paulberry): handle the case where a file is referred to by more
-      // than one context (e.g package A depends on package B using a local
-      // path, user has both packages open for editing in separate contexts,
-      // and user modifies a file in package B).
-      if (analysisContext != null) {
-        Source source = getSource(file);
-        if (change is AddContentOverlay) {
-          analysisContext.setContents(source, change.content);
-        } else if (change is ChangeContentOverlay) {
-          // TODO(paulberry): an error should be generated if source is not
-          // currently in the content cache.
-          TimestampedData<String> oldContents =
-              analysisContext.getContents(source);
-          String newContents;
-          try {
-            newContents =
-                SourceEdit.applySequence(oldContents.data, change.edits);
-          } on RangeError {
-            throw new RequestFailure(
-                new Response(
-                    id,
-                    error: new RequestError(
-                        RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                        'Invalid overlay change')));
-          }
-          // TODO(paulberry): to aid in incremental processing it would be
-          // better to use setChangedContents.
-          analysisContext.setContents(source, newContents);
-        } else if (change is RemoveContentOverlay) {
-          analysisContext.setContents(source, null);
-        } else {
-          // Protocol parsing should have ensured that we never get here.
-          throw new AnalysisException('Illegal change type');
+      Source source = getSource(file);
+      String oldContents = _overlayState.getContents(source);
+      String newContents;
+      if (change is AddContentOverlay) {
+        newContents = change.content;
+      } else if (change is ChangeContentOverlay) {
+        if (oldContents == null) {
+          // The client may only send a ChangeContentOverlay if there is
+          // already an existing overlay for the source.
+          throw new RequestFailure(
+              new Response(
+                  id,
+                  error: new RequestError(
+                      RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                      'Invalid overlay change')));
         }
-        schedulePerformAnalysisOperation(analysisContext);
+        try {
+          newContents = SourceEdit.applySequence(oldContents, change.edits);
+        } on RangeError {
+          throw new RequestFailure(
+              new Response(
+                  id,
+                  error: new RequestError(
+                      RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                      'Invalid overlay change')));
+        }
+      } else if (change is RemoveContentOverlay) {
+        newContents = null;
+      } else {
+        // Protocol parsing should have ensured that we never get here.
+        throw new AnalysisException('Illegal change type');
+      }
+      _overlayState.setContents(source, newContents);
+      for (InternalAnalysisContext context in folderMap.values) {
+        if (context.handleContentsChanged(
+            source,
+            oldContents,
+            newContents,
+            true)) {
+          schedulePerformAnalysisOperation(context);
+        }
       }
     });
   }
@@ -938,7 +970,24 @@ class AnalysisServer {
    */
   void _schedulePerformOperation() {
     assert(!performOperationPending);
-    new Future(performOperation);
+    /*
+     * TODO (danrubel) Rip out this workaround once the underlying problem
+     * is fixed. Currently, the VM and dart:io do not deliver content
+     * on stdin in a timely manner if the event loop is busy.
+     * To work around this problem, we delay for 1 millisecond
+     * every 25 milliseconds.
+     *
+     * To disable this workaround and see the underlying problem,
+     * set performOperationDelayFreqency to zero
+     */
+    int now = new DateTime.now().millisecondsSinceEpoch;
+    if (now > _nextPerformOperationDelayTime &&
+        performOperationDelayFreqency > 0) {
+      _nextPerformOperationDelayTime = now + performOperationDelayFreqency;
+      new Future.delayed(new Duration(milliseconds: 1), performOperation);
+    } else {
+      new Future(performOperation);
+    }
     performOperationPending = true;
   }
 }
@@ -948,6 +997,7 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool noErrorNotification = false;
+  String fileReadMode = 'as-is';
 }
 
 /**
@@ -1015,7 +1065,9 @@ class ServerContextManager extends ContextManager {
 
   @override
   void addContext(Folder folder, UriResolver packageUriResolver) {
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    InternalAnalysisContext context =
+        AnalysisEngine.instance.createAnalysisContext();
+    context.contentCache = analysisServer._overlayState;
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);

@@ -13,47 +13,47 @@ import '../utils.dart';
 
 /// Handles the `global activate` pub command.
 class GlobalActivateCommand extends PubCommand {
+  String get name => "activate";
   String get description => "Make a package's executables globally available.";
-  String get usage => "pub global activate <package...>";
-  bool get takesArguments => true;
+  String get invocation => "pub global activate <package...>";
 
   GlobalActivateCommand() {
-    commandParser.addOption("source",
+    argParser.addOption("source",
         abbr: "s",
         help: "The source used to find the package.",
         allowed: ["git", "hosted", "path"],
         defaultsTo: "hosted");
 
-    commandParser.addFlag("no-executables", negatable: false,
+    argParser.addFlag("no-executables", negatable: false,
         help: "Do not put executables on PATH.");
 
-    commandParser.addOption("executable", abbr: "x",
+    argParser.addOption("executable", abbr: "x",
         help: "Executable(s) to place on PATH.",
         allowMultiple: true);
 
-    commandParser.addFlag("overwrite", negatable: false,
+    argParser.addFlag("overwrite", negatable: false,
         help: "Overwrite executables from other packages with the same name.");
   }
 
-  Future onRun() {
+  Future run() {
     // Default to `null`, which means all executables.
     var executables;
-    if (commandOptions.wasParsed("executable")) {
-      if (commandOptions.wasParsed("no-executables")) {
-        usageError("Cannot pass both --no-executables and --executable.");
+    if (argResults.wasParsed("executable")) {
+      if (argResults.wasParsed("no-executables")) {
+        usageException("Cannot pass both --no-executables and --executable.");
       }
 
-      executables = commandOptions["executable"];
-    } else if (commandOptions["no-executables"]) {
+      executables = argResults["executable"];
+    } else if (argResults["no-executables"]) {
       // An empty list means no executables.
       executables = [];
     }
 
-    var overwrite = commandOptions["overwrite"];
-    var args = commandOptions.rest;
+    var overwrite = argResults["overwrite"];
+    var args = argResults.rest;
 
     readArg([String error]) {
-      if (args.isEmpty) usageError(error);
+      if (args.isEmpty) usageException(error);
       var arg = args.first;
       args = args.skip(1);
       return arg;
@@ -63,10 +63,10 @@ class GlobalActivateCommand extends PubCommand {
       if (args.isEmpty) return;
       var unexpected = args.map((arg) => '"$arg"');
       var arguments = pluralize("argument", unexpected.length);
-      usageError("Unexpected $arguments ${toSentence(unexpected)}.");
+      usageException("Unexpected $arguments ${toSentence(unexpected)}.");
     }
 
-    switch (commandOptions["source"]) {
+    switch (argResults["source"]) {
       case "git":
         var repo = readArg("No Git repository given.");
         // TODO(rnystrom): Allow passing in a Git ref too.
@@ -83,7 +83,7 @@ class GlobalActivateCommand extends PubCommand {
           try {
             constraint = new VersionConstraint.parse(readArg());
           } on FormatException catch (error) {
-            usageError(error.message);
+            usageException(error.message);
           }
         }
 

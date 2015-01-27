@@ -5,6 +5,23 @@
 [ $compiler == dart2js && $csp && $browser ]
 deferred_mixin_test: RuntimeError # Issue 21863
 
+[ $compiler == dart2js ]
+async_control_structures_test: CompileTimeError # Issue 21411
+async_test/none: CompileTimeError # Issue 21411
+await_backwards_compatibility_test/none: CompileTimeError # Issue 21411
+await_exceptions_test: CompileTimeError # Issue 21411
+await_for_test: CompileTimeError # Issue 21411
+await_future_test: CompileTimeError # Issue 21411
+await_nonfuture_test: CompileTimeError # Issue 21411
+await_regression_test: CompileTimeError # Issue 21411
+await_test: CompileTimeError # Issue 21411
+
+[ $compiler == dart2js && $unchecked ]
+async_test/type-mismatch1: CompileTimeError # Issue 21411
+async_test/type-mismatch2: CompileTimeError # Issue 21411
+async_test/type-mismatch3: CompileTimeError # Issue 21411
+async_test/type-mismatch4: CompileTimeError # Issue 21411
+
 [ $compiler == dart2js || $compiler == dart2dart ]
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
@@ -43,8 +60,6 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
-enum_syntax_test/01: Fail # Issue 21648
-
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
@@ -80,7 +95,6 @@ positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 generic_field_mixin3_test: Crash # Issue 18651
-generic_instanceof4_test: RuntimeError # Issue 21969
 
 [ $compiler == dart2js && $minified ]
 cyclic_type_test/0*: Fail # Issue 12605
@@ -133,7 +147,7 @@ generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
-enum_const_test: RuntimeError # Issue 21817
+enum_const_test/02: RuntimeError # Issue 21817
 
 # Compilation errors.
 method_override5_test: RuntimeError # Issue 12809
@@ -154,8 +168,11 @@ expect_test: RuntimeError, OK # Issue 13080
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari || $runtime == safarimobilesim)]
+[ $compiler == dart2js && ($runtime == jsshell || $runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
+
+[ $compiler == dart2js && $runtime == ff ]
+round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
@@ -191,7 +208,9 @@ type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
 regress_13494_test: Fail # Issue 13494
-enum_const_test: Crash # Issue 21681
+enum_const_test/01: Crash # Issue 21681
+enum_const_test/02: Crash # Issue 21681
+
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633

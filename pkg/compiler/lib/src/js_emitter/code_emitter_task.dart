@@ -120,15 +120,11 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.typeAccess(e);
   }
 
-  jsAst.Expression closureClassConstructorAccess(ClosureClassElement e) {
-    return emitter.closureClassConstructorAccess(e);
-  }
-
   void registerReadTypeVariable(TypeVariableElement element) {
     readTypeVariables.add(element);
   }
 
-  Set<ClassElement> interceptorsReferencedFromConstants() {
+  Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
     JavaScriptConstantCompiler handler = backend.constants;
     List<ConstantValue> constants = handler.getConstantsForEmission();
@@ -163,7 +159,7 @@ class CodeEmitterTask extends CompilerTask {
     );
 
     // Add interceptors referenced by constants.
-    needed.addAll(interceptorsReferencedFromConstants());
+    needed.addAll(computeInterceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
@@ -415,18 +411,16 @@ class CodeEmitterTask extends CompilerTask {
 
       computeAllNeededEntities();
 
-      Program program;
-      if (USE_NEW_EMITTER) {
-        program = new ProgramBuilder(compiler, namer, this).buildProgram();
-      }
-      return emitter.emitProgram(program);
+      ProgramBuilder programBuilder = new ProgramBuilder(compiler, namer, this);
+      return emitter.emitProgram(programBuilder);
     });
   }
 }
 
 abstract class Emitter {
-  /// Emits [program] and returns the size of the generated output.
-  int emitProgram(Program program);
+  /// Uses the [programBuilder] to generate a model of the program, emits
+  /// the program, and returns the size of the generated output.
+  int emitProgram(ProgramBuilder programBuilder);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
@@ -462,8 +456,8 @@ abstract class Emitter {
   /// Returns the JS expression representing the type [e].
   jsAst.Expression typeAccess(Element e);
 
-  /// Returns the JS constructor for the given closure class [e].
-  jsAst.Expression closureClassConstructorAccess(ClosureClassElement e);
+  /// Returns the JS expression representing a function that returns 'null'
+  jsAst.Expression generateFunctionThatReturnsNull();
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);

@@ -5,6 +5,7 @@
 library pub.system_cache;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
@@ -33,15 +34,27 @@ class SystemCache {
   /// The sources from which to get packages.
   final sources = new SourceRegistry();
 
+  static String defaultDir = (() {
+    if (Platform.environment.containsKey('PUB_CACHE')) {
+      return Platform.environment['PUB_CACHE'];
+    } else if (Platform.operatingSystem == 'windows') {
+      var appData = Platform.environment['APPDATA'];
+      return path.join(appData, 'Pub', 'Cache');
+    } else {
+      return '${Platform.environment['HOME']}/.pub-cache';
+    }
+  })();
+
   /// Creates a new package cache which is backed by the given directory on the
   /// user's file system.
-  SystemCache(this.rootDir);
+  SystemCache([String rootDir])
+      : rootDir = rootDir == null ? SystemCache.defaultDir : rootDir;
 
   /// Creates a system cache and registers the standard set of sources.
   ///
   /// If [isOffline] is `true`, then the offline hosted source will be used.
   /// Defaults to `false`.
-  factory SystemCache.withSources(String rootDir, {bool isOffline: false}) {
+  factory SystemCache.withSources({String rootDir, bool isOffline: false}) {
     var cache = new SystemCache(rootDir);
     cache.register(new GitSource());
 

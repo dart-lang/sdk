@@ -486,4 +486,3 @@ main() {
   testWhere();
   testCreationFromList();
 }
-

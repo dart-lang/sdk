@@ -41,6 +41,7 @@ part 'caching_compiler.dart';
 const List<String> INCREMENTAL_OPTIONS = const <String>[
     '--disable-type-inference',
     '--incremental-support',
+    '--generate-code-with-compile-time-errors',
     '--no-source-maps', // TODO(ahe): Remove this.
 ];
 
@@ -56,8 +57,6 @@ class IncrementalCompiler {
   final IncrementalCompilerContext _context = new IncrementalCompilerContext();
 
   Compiler _compiler;
-
-  bool get compilerWasCancelled => _compiler.compilerWasCancelled;
 
   IncrementalCompiler({
       this.libraryRoot,
@@ -147,12 +146,13 @@ class IncrementalCompiler {
   String allUpdates() {
     jsAst.Node updates = jsAst.js.escapedString(_updates.join(""));
 
+    JavaScriptBackend backend = _compiler.backend;
+
     jsAst.FunctionDeclaration mainRunner = jsAst.js.statement(r"""
 function dartMainRunner(main, args) {
-  $dart_unsafe_eval.patch(#);
+  #helper.patch(#updates + "\n//# sourceURL=initial_patch.js\n");
   return main(args);
-}""", updates);
-
+}""", {'updates': updates, 'helper': backend.namer.accessIncrementalHelper});
 
     jsAst.Printer printer = new jsAst.Printer(_compiler, null);
     printer.blockOutWithoutBraces(mainRunner);

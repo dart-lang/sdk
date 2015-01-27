@@ -202,7 +202,7 @@ DEFINE_NATIVE_ENTRY(ExternalTypedData_##name##_new, 1) {                       \
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
-#define TYPED_DATA_GETTER(getter, object, access_size)                         \
+#define TYPED_DATA_GETTER(getter, object, ctor, access_size)                   \
 DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
@@ -210,13 +210,13 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
     const TypedData& array = TypedData::Cast(instance);                        \
     RangeCheck(offsetInBytes.Value(), access_size,                             \
                array.LengthInBytes(), access_size);                            \
-    return object::New(array.getter(offsetInBytes.Value()));                   \
+    return object::ctor(array.getter(offsetInBytes.Value()));                  \
   }                                                                            \
   if (instance.IsExternalTypedData()) {                                        \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
     RangeCheck(offsetInBytes.Value(), access_size,                             \
                array.LengthInBytes(), access_size);                            \
-    return object::New(array.getter(offsetInBytes.Value()));                   \
+    return object::ctor(array.getter(offsetInBytes.Value()));                  \
   }                                                                            \
   const String& error = String::Handle(String::NewFormatted(                   \
       "Expected a TypedData object but found %s", instance.ToCString()));      \
@@ -254,94 +254,30 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   return Object::null();                                                       \
 }
 
-
-#define TYPED_DATA_UINT64_GETTER(getter, object)                               \
-DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
-  uint64_t value = 0;                                                          \
-  if (instance.IsTypedData()) {                                                \
-    const TypedData& array = TypedData::Cast(instance);                        \
-    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
-    value = array.getter(offsetInBytes.Value());                               \
-  } else if (instance.IsExternalTypedData()) {                                 \
-    const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
-    value = array.getter(offsetInBytes.Value());                               \
-  } else {                                                                     \
-    const String& error = String::Handle(String::NewFormatted(                 \
-        "Expected a TypedData object but found %s", instance.ToCString()));    \
-    Exceptions::ThrowArgumentError(error);                                     \
-  }                                                                            \
-  return Integer::NewFromUint64(value);                                        \
-}                                                                              \
-
-
-// TODO(asiva): Consider truncating the bigint value if it does not fit into
-// a uint64_t value (see ASSERT(BigintOperations::FitsIntoUint64(bigint))).
-// TODO(regis): Shouldn't we throw an argument error if the bigint is too large
-// instead of assert faulting or truncating the bigint as suggested?
-#define TYPED_DATA_UINT64_SETTER(setter, object)                               \
-DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));      \
-  uint64_t object_value;                                                       \
-  if (value.IsBigint()) {                                                      \
-    const Bigint& bigint = Bigint::Cast(value);                                \
-    ASSERT(bigint.FitsIntoUint64());                                           \
-    object_value = bigint.AsUint64Value();                                     \
-  } else {                                                                     \
-    ASSERT(value.IsMint() || value.IsSmi());                                   \
-    object_value = value.AsInt64Value();                                       \
-  }                                                                            \
-  if (instance.IsTypedData()) {                                                \
-    const TypedData& array = TypedData::Cast(instance);                        \
-    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
-    array.setter(offsetInBytes.Value(), object_value);                         \
-  } else if (instance.IsExternalTypedData()) {                                 \
-    const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
-    array.setter(offsetInBytes.Value(), object_value);                         \
-  } else {                                                                     \
-    const String& error = String::Handle(String::NewFormatted(                 \
-        "Expected a TypedData object but found %s", instance.ToCString()));    \
-    Exceptions::ThrowArgumentError(error);                                     \
-  }                                                                            \
-  return Object::null();                                                       \
-}
-
-
-#define TYPED_DATA_NATIVES(getter,                                             \
-                           setter,                                             \
+#define TYPED_DATA_NATIVES(type_name,                                          \
                            object,                                             \
+                           ctor,                                               \
                            get_object_value,                                   \
                            access_size,                                        \
                            access_type)                                        \
-  TYPED_DATA_GETTER(getter, object, access_size)                               \
-  TYPED_DATA_SETTER(setter, object, get_object_value, access_size, access_type)\
+  TYPED_DATA_GETTER(Get##type_name, object, ctor, access_size)                 \
+  TYPED_DATA_SETTER(Set##type_name, object,                                    \
+      get_object_value, access_size, access_type)                              \
 
-
-#define TYPED_DATA_UINT64_NATIVES(getter, setter, object)                      \
-  TYPED_DATA_UINT64_GETTER(getter, object)                                     \
-  TYPED_DATA_UINT64_SETTER(setter, object)                                     \
-
-
-TYPED_DATA_NATIVES(GetInt8, SetInt8, Smi, Value, 1, int8_t)
-TYPED_DATA_NATIVES(GetUint8, SetUint8, Smi, Value, 1, uint8_t)
-TYPED_DATA_NATIVES(GetInt16, SetInt16, Smi, Value, 2, int16_t)
-TYPED_DATA_NATIVES(GetUint16, SetUint16, Smi, Value, 2, uint16_t)
-TYPED_DATA_NATIVES(GetInt32, SetInt32, Integer, AsInt64Value, 4, int32_t)
-TYPED_DATA_NATIVES(GetUint32, SetUint32, Integer, AsInt64Value, 4, uint32_t)
-TYPED_DATA_NATIVES(GetInt64, SetInt64, Integer, AsInt64Value, 8, int64_t)
-TYPED_DATA_UINT64_NATIVES(GetUint64, SetUint64, Integer)
-TYPED_DATA_NATIVES(GetFloat32, SetFloat32, Double, value, 4, float)
-TYPED_DATA_NATIVES(GetFloat64, SetFloat64, Double, value, 8, double)
+TYPED_DATA_NATIVES(Int8, Integer, New, AsTruncatedUint32Value, 1, int8_t)
+TYPED_DATA_NATIVES(Uint8, Integer, New, AsTruncatedUint32Value, 1, uint8_t)
+TYPED_DATA_NATIVES(Int16, Integer, New, AsTruncatedUint32Value, 2, int16_t)
+TYPED_DATA_NATIVES(Uint16, Integer, New, AsTruncatedUint32Value, 2, uint16_t)
+TYPED_DATA_NATIVES(Int32, Integer, New, AsTruncatedUint32Value, 4, int32_t)
+TYPED_DATA_NATIVES(Uint32, Integer, New, AsTruncatedUint32Value, 4, uint32_t)
+TYPED_DATA_NATIVES(Int64, Integer, New, AsTruncatedInt64Value, 8, int64_t)
 TYPED_DATA_NATIVES(
-    GetFloat32x4, SetFloat32x4, Float32x4, value, 16, simd128_value_t)
-TYPED_DATA_NATIVES(GetInt32x4, SetInt32x4, Int32x4, value, 16, simd128_value_t)
-TYPED_DATA_NATIVES(
-    GetFloat64x2, SetFloat64x2, Float64x2, value, 16, simd128_value_t)
+    Uint64, Integer, NewFromUint64, AsTruncatedInt64Value, 8, uint64_t)
+TYPED_DATA_NATIVES(Float32, Double, New, value, 4, float)
+TYPED_DATA_NATIVES(Float64, Double, New, value, 8, double)
+TYPED_DATA_NATIVES(Float32x4, Float32x4, New,  value, 16, simd128_value_t)
+TYPED_DATA_NATIVES(Int32x4, Int32x4, New, value, 16, simd128_value_t)
+TYPED_DATA_NATIVES(Float64x2, Float64x2, New, value, 16, simd128_value_t)
 
 
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {

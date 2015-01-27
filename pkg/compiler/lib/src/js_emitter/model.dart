@@ -7,15 +7,24 @@ library dart2js.new_js_emitter.model;
 import '../js/js.dart' as js show Expression;
 import '../constants/values.dart' show ConstantValue;
 
+import '../deferred_load.dart' show OutputUnit;
+
 import '../common.dart';
 
 class Program {
-  final List<Output> outputs;
+  final List<Fragment> fragments;
+  final List<Class> nativeClasses;
   final bool outputContainsConstantList;
-  /// A map from load id to the list of outputs that need to be loaded.
-  final Map<String, List<Output>> loadMap;
+  /// A map from load id to the list of fragments that need to be loaded.
+  final Map<String, List<Fragment>> loadMap;
 
-  Program(this.outputs, this.outputContainsConstantList, this.loadMap);
+  Program(this.fragments,
+          this.nativeClasses,
+          this.outputContainsConstantList,
+          this.loadMap);
+
+  bool get isSplit => fragments.length > 1;
+  Iterable<Fragment> get deferredFragments => fragments.skip(1);
 }
 
 /**
@@ -31,11 +40,14 @@ class Holder {
 /**
  * This class represents one output file.
  *
- * If no library is deferred, there is only one [Output] of type [MainOutput].
+ * If no library is deferred, there is only one [Fragment] of type
+ * [MainFragment].
  */
-abstract class Output {
-  bool get isMainOutput => mainOutput == this;
-  MainOutput get mainOutput;
+abstract class Fragment {
+  /// The outputUnit should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final OutputUnit outputUnit;
+
   final List<Library> libraries;
   final List<Constant> constants;
   // TODO(floitsch): should we move static fields into libraries or classes?
@@ -46,56 +58,64 @@ abstract class Output {
   /// Output file name without extension.
   final String outputFileName;
 
-  Output(this.outputFileName,
-         this.libraries,
-         this.staticNonFinalFields,
-         this.staticLazilyInitializedFields,
-         this.constants);
+  Fragment(this.outputUnit,
+           this.outputFileName,
+           this.libraries,
+           this.staticNonFinalFields,
+           this.staticLazilyInitializedFields,
+           this.constants);
+
+  bool get isMainFragment => mainFragment == this;
+  MainFragment get mainFragment;
 }
 
 /**
  * The main output file.
  *
- * This code emitted from this [Output] must be loaded first. It can then load
- * other [DeferredOutput]s.
+ * This code emitted from this [Fragment] must be loaded first. It can then load
+ * other [DeferredFragment]s.
  */
-class MainOutput extends Output {
+class MainFragment extends Fragment {
   final js.Expression main;
   final List<Holder> holders;
 
-  MainOutput(String outputFileName,
-             this.main,
-             List<Library> libraries,
-             List<StaticField> staticNonFinalFields,
-             List<StaticField> staticLazilyInitializedFields,
-             List<Constant> constants,
-             this.holders)
-      : super(outputFileName,
+  MainFragment(OutputUnit outputUnit,
+               String outputFileName,
+               this.main,
+               List<Library> libraries,
+               List<StaticField> staticNonFinalFields,
+               List<StaticField> staticLazilyInitializedFields,
+               List<Constant> constants,
+               this.holders)
+      : super(outputUnit,
+              outputFileName,
               libraries,
               staticNonFinalFields,
               staticLazilyInitializedFields,
               constants);
 
-  MainOutput get mainOutput => this;
+  MainFragment get mainFragment => this;
 }
 
 /**
  * An output (file) for deferred code.
  */
-class DeferredOutput extends Output {
-  final MainOutput mainOutput;
+class DeferredFragment extends Fragment {
+  final MainFragment mainFragment;
   final String name;
 
-  List<Holder> get holders => mainOutput.holders;
+  List<Holder> get holders => mainFragment.holders;
 
-  DeferredOutput(String outputFileName,
-                 this.name,
-                 this.mainOutput,
-                 List<Library> libraries,
-                 List<StaticField> staticNonFinalFields,
-                 List<StaticField> staticLazilyInitializedFields,
-                 List<Constant> constants)
-      : super(outputFileName,
+  DeferredFragment(OutputUnit outputUnit,
+                   String outputFileName,
+                   this.name,
+                   this.mainFragment,
+                   List<Library> libraries,
+                   List<StaticField> staticNonFinalFields,
+                   List<StaticField> staticLazilyInitializedFields,
+                   List<Constant> constants)
+      : super(outputUnit,
+              outputFileName,
               libraries,
               staticNonFinalFields,
               staticLazilyInitializedFields,
@@ -110,7 +130,11 @@ class Constant {
   Constant(this.name, this.holder, this.value);
 }
 
-class Library {
+abstract class FieldContainer {
+  List<Field> get staticFieldsForReflection;
+}
+
+class Library implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
@@ -119,7 +143,10 @@ class Library {
   final List<StaticMethod> statics;
   final List<Class> classes;
 
-  Library(this.element, this.uri, this.statics, this.classes);
+  final List<Field> staticFieldsForReflection;
+
+  Library(this.element, this.uri, this.statics, this.classes,
+          this.staticFieldsForReflection);
 }
 
 class StaticField {
@@ -140,7 +167,7 @@ class StaticField {
               this.isFinal, this.isLazy);
 }
 
-class Class {
+class Class implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
@@ -149,19 +176,34 @@ class Class {
   final Holder holder;
   Class _superclass;
   final List<Method> methods;
-  final List<InstanceField> fields;
+  final List<Field> fields;
+  final List<StubMethod> isChecks;
+  final List<StubMethod> callStubs;
+  final List<Field> staticFieldsForReflection;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
+  final bool isNative;
+
+  // If the class implements a function type, and the type is encoded in the
+  // metatada table, then this field contains the index into that field.
+  final int functionTypeIndex;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
-  Class(this.element,
-        this.name, this.holder, this.methods, this.fields,
+  Class(this.element, this.name, this.holder,
+        this.methods,
+        this.fields,
+        this.staticFieldsForReflection,
+        this.callStubs,
+        this.isChecks,
+        this.functionTypeIndex,
         {this.onlyForRti,
-         this.isDirectlyInstantiated}) {
+         this.isDirectlyInstantiated,
+         this.isNative}) {
     assert(onlyForRti != null);
     assert(isDirectlyInstantiated != null);
+    assert(isNative != null);
   }
 
   bool get isMixinApplication => false;
@@ -180,16 +222,24 @@ class Class {
 class MixinApplication extends Class {
   Class _mixinClass;
 
-  MixinApplication(Element element,
-                   String name, Holder holder,
-                   List<Method> methods,
-                   List<InstanceField> fields,
+  MixinApplication(Element element, String name, Holder holder,
+                   List<Field> instanceFields,
+                   List<Field> staticFieldsForReflection,
+                   List<StubMethod> callStubs,
+                   List<StubMethod> isChecks,
+                   int functionTypeIndex,
                    {bool onlyForRti,
                     bool isDirectlyInstantiated})
       : super(element,
-              name, holder, methods, fields,
+              name, holder,
+              const <Method>[],
+              instanceFields,
+              staticFieldsForReflection,
+              callStubs,
+              isChecks, functionTypeIndex,
               onlyForRti: onlyForRti,
-              isDirectlyInstantiated: isDirectlyInstantiated);
+              isDirectlyInstantiated: isDirectlyInstantiated,
+              isNative: false);
 
   bool get isMixinApplication => true;
   Class get mixinClass => _mixinClass;
@@ -199,12 +249,17 @@ class MixinApplication extends Class {
   }
 }
 
-class InstanceField {
+/// A field.
+///
+/// In general represents an instance field, but for reflection may also
+/// represent static fields.
+class Field {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
 
   final String name;
+  final String accessorName;
 
   /// 00: Does not need any getter.
   /// 01:  function() { return this.field; }
@@ -218,11 +273,18 @@ class InstanceField {
   /// 11:  function(receiver, value) { this.field = value; }
   final int setterFlags;
 
+  final bool needsCheckedSetter;
+
   // TODO(floitsch): support renamed fields.
-  InstanceField(this.element, this.name, this.getterFlags, this.setterFlags);
+  Field(this.element, this.name, this.accessorName,
+        this.getterFlags, this.setterFlags,
+        this.needsCheckedSetter);
 
   bool get needsGetter => getterFlags != 0;
-  bool get needsSetter => setterFlags != 0;
+  bool get needsUncheckedSetter => setterFlags != 0;
+
+  bool get needsInterceptedGetter => getterFlags > 1;
+  bool get needsInterceptedSetter => setterFlags > 1;
 }
 
 class Method {
@@ -232,20 +294,28 @@ class Method {
 
   final String name;
   final js.Expression code;
-  Method(this.element, this.name, this.code);
+  final bool needsTearOff;
+
+  Method(this.element, this.name, this.code, {this.needsTearOff}) {
+    assert(needsTearOff != null);
+  }
 }
 
 class StubMethod extends Method {
-  StubMethod(String name, js.Expression code) : super(null, name, code);
+  StubMethod(String name, js.Expression code,
+             {bool needsTearOff, Element element })
+      : super(element, name, code, needsTearOff: needsTearOff);
 }
 
 class StaticMethod extends Method {
   final Holder holder;
-  StaticMethod(Element element, String name, this.holder, js.Expression code)
-      : super(element, name, code);
+  StaticMethod(Element element, String name, this.holder, js.Expression code,
+               {bool needsTearOff})
+      : super(element, name, code, needsTearOff: needsTearOff);
 }
 
 class StaticStubMethod extends StaticMethod {
-  StaticStubMethod(String name, Holder holder, js.Expression code)
-      : super(null, name, holder, code);
+  StaticStubMethod(String name, Holder holder, js.Expression code,
+                   {bool needsTearOff})
+      : super(null, name, holder, code, needsTearOff: needsTearOff);
 }

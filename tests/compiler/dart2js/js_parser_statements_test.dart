@@ -76,9 +76,11 @@ function foo() {
 void main() {
 
   var eOne = js('1');
+  var eTwo = js('2');
   var eTrue = js('true');
   var eVar = js('x');
   var block12 = js.statement('{ 1; 2; }');
+  var stm = js.statement('foo();');
   var seq1 = js('1, 2, 3');
 
   Expect.isTrue(eOne is jsAst.LiteralNumber);
@@ -131,6 +133,62 @@ void main() {
                   {'a': false, 'b': block12},
                   '{\n  1;\n  2;\n}'),
 
+    testStatement('while (#) #', [eOne, block12], 'while (1) {\n  1;\n  2;\n}'),
+    testStatement('while (#) #;', [eTrue, block12],
+        'while (true) {\n  1;\n  2;\n}'),
+    testStatement('while (#) #;', [eVar, block12],
+        'while (x) {\n  1;\n  2;\n}'),
+    testStatement('while (#) #;', ['a', block12],
+        'while (a) {\n  1;\n  2;\n}'),
+    testStatement('while (#) #;', ['a', stm],
+        'while (a)\n  foo();'),
+
+    testStatement(
+        'do { {print(1);} do while(true); while (false) } while ( true )', [],
+        '''
+do {
+  print(1);
+  do
+    while (true)
+      ;
+  while (false);
+} while (true);
+'''),
+    testStatement('do #; while ( # )', [block12, eOne],
+        'do {\n  1;\n  2;\n} while (1); '),
+    testStatement('do #; while ( # )', [block12, eTrue],
+        'do {\n  1;\n  2;\n} while (true); '),
+    testStatement('do #; while ( # );', [block12, eVar],
+        'do {\n  1;\n  2;\n} while (x);'),
+    testStatement('do { # } while ( # )', [block12, 'a'],
+        'do {\n  1;\n  2;\n} while (a);'),
+    testStatement('do #; while ( # )', [stm, 'a'],
+        'do\n  foo();\nwhile (a);'),
+
+    testStatement('switch (#) {}', [eOne], 'switch (1) {\n}'),
+    testStatement('''
+        switch (#) {
+          case #: { # }
+        }''', [eTrue, eOne, block12],
+        'switch (true) {\n  case 1:\n    1;\n    2;\n}'),
+    testStatement('''
+        switch (#) {
+          case #: { # }
+            break;
+          case #: { # }
+          default: { # }
+        }''', [eTrue, eOne, block12, eTwo, block12, stm], '''
+switch (true) {
+  case 1:
+    1;
+    2;
+    break;
+  case 2:
+    1;
+    2;
+  default:
+    foo();
+}'''),
 
     testStatement(NAMED_FUNCTION_1, [eOne], NAMED_FUNCTION_1_ONE),
     testStatement(NAMED_FUNCTION_1_NAMED_HOLE,
@@ -200,6 +258,10 @@ void main() {
                   {'a': ['x', 'y']},
                   'function foo(x, y) {\n}'),
 
+    testStatement('function foo() async {}', [], 'function foo() async {\n}'),
+    testStatement('function foo() sync* {}', [], 'function foo() sync* {\n}'),
+    testStatement('function foo() async* {}', [], 'function foo() async* {\n}'),
+
     testStatement('a = #.#', [eVar,eOne], 'a = x[1];'),
     testStatement('a = #.#', [eVar,'foo'], 'a = x.foo;'),
     testStatement('a = #a.#b', {'a': eVar, 'b': eOne}, 'a = x[1];'),
@@ -259,6 +321,9 @@ void main() {
                   'name1_2.prototype.name1_2 = function(r, y) {\n'
                   '  return name4_5.name4_5;\n'
                   '};'),
+
+    testStatement('label: while (a) { label2: break label;}', [],
+        'label:\n  while (a) {\n    label2:\n      break label;\n  }'),
 
   ]));
 }

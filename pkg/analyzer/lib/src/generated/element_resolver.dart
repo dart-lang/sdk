@@ -623,7 +623,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     methodName.propagatedElement = propagatedElement;
     ArgumentList argumentList = node.argumentList;
     if (staticElement != null) {
-      staticElement.addUser(_resolver.enclosingFunction);
       List<ParameterElement> parameters =
           _computeCorrespondingParameters(argumentList, staticElement);
       if (parameters != null) {
@@ -631,7 +630,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     if (propagatedElement != null) {
-      propagatedElement.addUser(_resolver.enclosingFunction);
       List<ParameterElement> parameters =
           _computeCorrespondingParameters(argumentList, propagatedElement);
       if (parameters != null) {

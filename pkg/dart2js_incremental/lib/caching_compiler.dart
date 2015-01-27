@@ -38,15 +38,12 @@ Future<Compiler> reuseCompiler(
       compiler.libraryRoot != libraryRoot ||
       !compiler.hasIncrementalSupport ||
       compiler.hasCrashed ||
-      compiler.compilerWasCancelled ||
       compiler.enqueuer.resolution.hasEnqueuedReflectiveElements ||
       compiler.deferredLoadTask.isProgramSplit) {
     if (compiler != null && compiler.hasIncrementalSupport) {
       print('***FLUSH***');
       if (compiler.hasCrashed) {
         print('Unable to reuse compiler due to crash.');
-      } else if (compiler.compilerWasCancelled) {
-        print('Unable to reuse compiler due to cancel.');
       } else if (compiler.enqueuer.resolution.hasEnqueuedReflectiveElements) {
         print('Unable to reuse compiler due to dart:mirrors.');
       } else if (compiler.deferredLoadTask.isProgramSplit) {
@@ -90,7 +87,7 @@ Future<Compiler> reuseCompiler(
       }
     }
     compiler
-        ..outputProvider = outputProvider
+        ..userOutputProvider = outputProvider
         ..provider = inputProvider
         ..handler = diagnosticHandler
         ..enqueuer.resolution.queueIsClosed = false
@@ -125,12 +122,8 @@ Future<Compiler> reuseCompiler(
     backend.emitter.oldEmitter.interceptorEmitter
         ..interceptorInvocationNames.clear();
 
-    backend.emitter.oldEmitter.metadataEmitter
-        ..globalMetadata.clear()
-        ..globalMetadataMap.clear();
-
     backend.emitter.nativeEmitter
-        ..nativeClasses.clear()
+        ..hasNativeClasses = false
         ..nativeMethods.clear();
 
     backend.emitter.readTypeVariables.clear();
@@ -139,8 +132,6 @@ Future<Compiler> reuseCompiler(
         ..outputBuffers.clear()
         ..isolateProperties = null
         ..classesCollector = null
-        ..neededClasses.clear()
-        ..outputClassLists.clear()
         ..nativeClasses.clear()
         ..mangledFieldNames.clear()
         ..mangledGlobalFieldNames.clear()
@@ -150,7 +141,13 @@ Future<Compiler> reuseCompiler(
         ..elementDescriptors.clear();
 
     backend.emitter
-        ..outputContainsConstantList = false;
+        ..outputContainsConstantList = false
+        ..neededClasses.clear()
+        ..outputClassLists.clear()
+        ..outputConstantLists.clear()
+        ..outputStaticLists.clear()
+        ..outputStaticNonFinalFieldLists.clear()
+        ..outputLibraryLists.clear();
 
     backend
         ..preMirrorsMethodCount = 0;

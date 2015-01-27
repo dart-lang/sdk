@@ -4470,54 +4470,6 @@ class HintGenerator {
 }
 
 
-/// Traverses a library's worth of dart code at a time to generate lint warnings
-/// over the set of sources.
-///
-/// See [LintCode].
-class LintGenerator {
-
-  /// A global container for contributed verifiers.
-  static final List<LintVerifier> VERIFIERS = <LintVerifier>[];
-
-  final Iterable<CompilationUnit> _compilationUnits;
-  final AnalysisErrorListener _errorListener;
-  final Iterable<LintVerifier> _verifiers;
-
-  LintGenerator(this._compilationUnits, this._errorListener,
-      [Iterable<LintVerifier> verifiers])
-      : _verifiers = verifiers != null ? verifiers : VERIFIERS;
-
-  void generate() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.lint.start();
-    try {
-      _compilationUnits.forEach((cu) {
-        if (cu.element != null) {
-          _generate(cu, cu.element.source);
-        }
-      });
-    } finally {
-      timeCounter.stop();
-    }
-  }
-
-  void _generate(CompilationUnit unit, Source source) {
-    ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
-    _verifiers.forEach((verifier) {
-      verifier.reporter = errorReporter;
-      return unit.accept(verifier);
-    });
-  }
-}
-
-/// Implementers contribute lint warnings via the provided error [reporter].
-abstract class LintVerifier extends RecursiveAstVisitor<Object> {
-  /// Used to report lint warnings.
-  /// NOTE: this is set by the framework before visit begins.
-  ErrorReporter reporter;
-}
-
-
 /**
  * Instances of the class {@code HtmlTagInfo} record information about the tags used in an HTML
  * file.
@@ -9248,6 +9200,7 @@ class LibraryScope extends EnclosedScope {
     }
   }
 }
+
 
 /**
  * This class is used to replace uses of `HashMap<String, ExecutableElement>` which are not as

@@ -60,6 +60,8 @@ import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal' show MappedIterable;
 
+import 'dart:_native_typed_data';
+
 import 'dart:_js_names' show
     extractKeys,
     mangledNames,
@@ -764,19 +766,17 @@ class Primitives {
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
   static String _fromCharCodeApply(List<int> array) {
-    String result = "";
     const kMaxApply = 500;
     int end = array.length;
-    for (var i = 0; i < end; i += kMaxApply) {
-      var subarray;
-      if (end <= kMaxApply) {
-        subarray = array;
-      } else {
-        subarray = JS('JSExtendableArray', r'#.slice(#, #)', array,
-                      i, i + kMaxApply < end ? i + kMaxApply : end);
-      }
-      result = JS('String', '# + String.fromCharCode.apply(#, #)',
-                  result, null, subarray);
+    if (end <= kMaxApply) {
+      return JS('String', r'String.fromCharCode.apply(null, #)', array);
+    }
+    String result = '';
+    for (int i = 0; i < end; i += kMaxApply) {
+      int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
+      result = JS('String',
+          r'# + String.fromCharCode.apply(null, #.slice(#, #))',
+          result, array, i, chunkEnd);
     }
     return result;
   }
@@ -805,6 +805,24 @@ class Primitives {
     }
     return _fromCharCodeApply(charCodes);
   }
+
+  // [start] and [end] are validated.
+  static String stringFromNativeUint8List(
+      NativeUint8List charCodes, int start, int end) {
+    const kMaxApply = 500;
+    if (end <= kMaxApply && start == 0 && end == charCodes.length) {
+      return JS('String', r'String.fromCharCode.apply(null, #)', charCodes);
+    }
+    String result = '';
+    for (int i = start; i < end; i += kMaxApply) {
+      int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
+      result = JS('String',
+          r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
+          result, charCodes, i, chunkEnd);
+    }
+    return result;
+  }
+
 
   static String stringFromCharCode(charCode) {
     if (0 <= charCode) {
@@ -3351,6 +3369,7 @@ Future<Null> _loadHunk(String hunkName) {
         // context.
         JS('void', '(new Function(#))()', 'load("$uri")');
       } catch (error, stackTrace) {
+        _loadingLibraries[hunkName] = null;
         throw new DeferredLoadException("Loading $uri failed.");
       }
       return null;
@@ -3371,6 +3390,7 @@ Future<Null> _loadHunk(String hunkName) {
       JS('void', '#.addEventListener("load", #, false)',
          xhr, convertDartClosureToJS((event) {
         if (JS('int', '#.status', xhr) != 200) {
+          _loadingLibraries[hunkName] = null;
           completer.completeError(
               new DeferredLoadException("Loading $uri failed."));
           return;
@@ -3381,6 +3401,7 @@ Future<Null> _loadHunk(String hunkName) {
           // context.
           JS('void', '(new Function(#))()', code);
         } catch (error, stackTrace) {
+          _loadingLibraries[hunkName] = null;
           completer.completeError(
             new DeferredLoadException("Evaluating $uri failed."));
           return;
@@ -3389,6 +3410,7 @@ Future<Null> _loadHunk(String hunkName) {
       }, 1));
 
       var fail = convertDartClosureToJS((event) {
+        _loadingLibraries[hunkName] = null;
         new DeferredLoadException("Loading $uri failed.");
       }, 1);
       JS('void', '#.addEventListener("error", #, false)', xhr, fail);
@@ -3411,6 +3433,7 @@ Future<Null> _loadHunk(String hunkName) {
     }, 1));
     JS('', '#.addEventListener("error", #, false)',
        script, convertDartClosureToJS((event) {
+      _loadingLibraries[hunkName] = null;
       completer.completeError(
           new DeferredLoadException("Loading $uri failed."));
     }, 1));

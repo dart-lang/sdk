@@ -329,7 +329,9 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 }
 
 /// A constructor that was synthesized to recover from a compile-time error.
-class ErroneousConstructorElementX extends ErroneousElementX {
+class ErroneousConstructorElementX extends ErroneousElementX
+    with PatchMixin<FunctionElement>, AnalyzableElementX
+    implements ConstructorElementX {
   // TODO(ahe): Instead of subclassing [ErroneousElementX], this class should
   // be more like [ErroneousFieldElementX]. In particular, its kind should be
   // [ElementKind.GENERATIVE_CONSTRUCTOR], and it shouldn't throw as much.
@@ -340,6 +342,76 @@ class ErroneousConstructorElementX extends ErroneousElementX {
       String name,
       Element enclosing)
       : super(messageKind, messageArguments, name, enclosing);
+
+  bool get isRedirectingFactory => false;
+
+  get definingElement {
+    throw new UnsupportedError("definingElement");
+  }
+
+  get asyncMarker {
+    throw new UnsupportedError("asyncMarker");
+  }
+
+  set asyncMarker(_) {
+    throw new UnsupportedError("asyncMarker=");
+  }
+
+  get internalEffectiveTarget {
+    throw new UnsupportedError("internalEffectiveTarget");
+  }
+
+  set internalEffectiveTarget(_) {
+    throw new UnsupportedError("internalEffectiveTarget=");
+  }
+
+  get effectiveTargetType {
+    throw new UnsupportedError("effectiveTargetType");
+  }
+
+  set effectiveTargetType(_) {
+    throw new UnsupportedError("effectiveTargetType=");
+  }
+
+  get typeCache {
+    throw new UnsupportedError("typeCache");
+  }
+
+  set typeCache(_) {
+    throw new UnsupportedError("typeCache=");
+  }
+
+  get immediateRedirectionTarget {
+    throw new UnsupportedError("immediateRedirectionTarget");
+  }
+
+  set immediateRedirectionTarget(_) {
+    throw new UnsupportedError("immediateRedirectionTarget=");
+  }
+
+  get functionSignatureCache {
+    throw new UnsupportedError("functionSignatureCache");
+  }
+
+  set functionSignatureCache(_) {
+    throw new UnsupportedError("functionSignatureCache=");
+  }
+
+  get nestedClosures {
+    throw new UnsupportedError("nestedClosures");
+  }
+
+  set nestedClosures(_) {
+    throw new UnsupportedError("nestedClosures=");
+  }
+
+  bool get hasNoBody => false;
+
+  bool get _hasNoBody => false;
+
+  void set effectiveTarget(_) {
+    throw new UnsupportedError("effectiveTarget=");
+  }
 }
 
 /// A message attached to a [WarnOnUseElementX].
@@ -441,6 +513,8 @@ abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
   accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
 
   bool get isTopLevel => false;
+
+  DynamicType get type => const DynamicType();
 }
 
 /// Element synthesized to diagnose an ambiguous import.
@@ -479,6 +553,8 @@ class DuplicatedElementX extends AmbiguousElementX {
       Element enclosingElement, Element existingElement, Element newElement)
       : super(messageKind, messageArguments, enclosingElement, existingElement,
               newElement);
+
+  bool get isErroneous => true;
 }
 
 class ScopeX {
@@ -756,6 +832,10 @@ class LibraryElementX
     extends ElementX with AnalyzableElementX, PatchMixin<LibraryElementX>
     implements LibraryElement {
   final Uri canonicalUri;
+
+  /// True if the constructing script was synthesized.
+  final bool isSynthesized;
+
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const Link<CompilationUnitElement>();
@@ -787,6 +867,7 @@ class LibraryElementX
                   [Uri canonicalUri, LibraryElementX origin])
     : this.canonicalUri =
           ((canonicalUri == null) ? script.readableUri : canonicalUri),
+      this.isSynthesized = script.isSynthesized,
       super(script.name, ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
     if (origin != null) {
@@ -1834,7 +1915,7 @@ abstract class ConstructorElementX extends FunctionElementX
   }
 
   ConstructorElement get effectiveTarget {
-    if (Elements.isErroneousElement(immediateRedirectionTarget)) {
+    if (Elements.isErroneous(immediateRedirectionTarget)) {
       return immediateRedirectionTarget;
     }
     assert(!isRedirectingFactory || internalEffectiveTarget != null);

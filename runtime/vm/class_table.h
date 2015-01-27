@@ -15,6 +15,7 @@ class ClassStats;
 class JSONArray;
 class JSONObject;
 class JSONStream;
+template<typename T> class MallocGrowableArray;
 class ObjectPointerVisitor;
 class RawClass;
 
@@ -121,11 +122,12 @@ class ClassHeapStats {
 class ClassTable {
  public:
   ClassTable();
-  // Create a copy of the original class table only, without copying any of the
-  // stats data.
+  // Creates a shallow copy of the original class table for some read-only
+  // access, without support for stats data.
   explicit ClassTable(ClassTable* original);
   ~ClassTable();
 
+  // Thread-safe.
   RawClass* At(intptr_t index) const {
     ASSERT(IsValidIndex(index));
     return table_[index];
@@ -189,6 +191,9 @@ class ClassTable {
   void AllocationProfilePrintJSON(JSONStream* stream);
   void ResetAllocationAccumulators();
 
+  // Deallocates table copies. Do not call during concurrent access to table.
+  void FreeOldTables();
+
  private:
   friend class MarkingVisitor;
   friend class ScavengerVisitor;
@@ -201,7 +206,10 @@ class ClassTable {
   intptr_t top_;
   intptr_t capacity_;
 
+  // Copy-on-write is used for table_, with old copies stored in old_tables_.
   RawClass** table_;
+  MallocGrowableArray<RawClass**>* old_tables_;
+
   ClassHeapStats* class_heap_stats_table_;
 
   ClassHeapStats* predefined_class_heap_stats_table_;

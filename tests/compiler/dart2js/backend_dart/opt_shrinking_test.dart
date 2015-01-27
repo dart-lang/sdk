@@ -44,9 +44,9 @@ String ITERATIVE_DEAD_VAL1_IN = """
 (FunctionDefinition main () return ()
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1 (Constant (Int 1)))
-      (LetCont (k0 (v2)
-          (LetPrim (v3 (Constant (Int 0)))
-            (InvokeContinuation return (v3))))
+      (LetCont ((k0 (v2)
+                  (LetPrim (v3 (Constant (Int 0)))
+                    (InvokeContinuation return (v3)))))
         (InvokeMethod v0 + (v1) k0)))))
 """;
 String ITERATIVE_DEAD_VAL1_OUT = ITERATIVE_DEAD_VAL1_IN;
@@ -75,23 +75,23 @@ String ITERATIVE_DEAD_VAL2_OUT = """
 String DEAD_CONT_IN = """
 (FunctionDefinition main () return ()
   (LetPrim (v4 (Constant (Int 0)))
-    (LetCont (k0 (v0)
-        (InvokeConstructor List () return))
-      (LetCont (k1 (v1)
-          (LetCont (k2 (v2)
-              (LetPrim (v3 (Constant (Int 0)))
-                (InvokeContinuation return (v3))))
-            (InvokeStatic print (v4) k2)))
+    (LetCont ((k0 (v0)
+                (InvokeConstructor List () return)))
+      (LetCont ((k1 (v1)
+                  (LetCont ((k2 (v2)
+                              (LetPrim (v3 (Constant (Int 0)))
+                                (InvokeContinuation return (v3)))))
+                    (InvokeStatic print (v4) k2))))
         (InvokeStatic print (v4) k1)))))
 """;
 String DEAD_CONT_OUT = """
 (FunctionDefinition main () return ()
   (LetPrim (v0 (Constant (Int 0)))
-    (LetCont (k0 (v1)
-        (LetCont (k1 (v2)
-            (LetPrim (v3 (Constant (Int 0)))
-              (InvokeContinuation return (v3))))
-          (InvokeStatic print (v0) k1)))
+    (LetCont ((k0 (v1)
+                (LetCont ((k1 (v2)
+                            (LetPrim (v3 (Constant (Int 0)))
+                              (InvokeContinuation return (v3)))))
+                  (InvokeStatic print (v0) k1))))
       (InvokeStatic print (v0) k0))))
 """;
 
@@ -100,25 +100,25 @@ String DEAD_CONT_OUT = """
 String ITERATIVE_DEAD_CONT_IN = """
 (FunctionDefinition main () return ()
   (LetPrim (v4 (Constant (Int 0)))
-    (LetCont (k0 (v0)
-      (InvokeConstructor List () return))
-    (LetCont (k3 (v5)
-      (InvokeContinuation k0 (v5)))
-    (LetCont (k1 (v1)
-      (LetCont (k2 (v2)
-        (LetPrim (v3 (Constant (Int 0)))
-          (InvokeContinuation return (v3))))
-      (InvokeStatic print (v4) k2)))
-    (InvokeStatic print (v4) k1))))))
+    (LetCont ((k0 (v0)
+                (InvokeConstructor List () return)))
+      (LetCont ((k3 (v5)
+                  (InvokeContinuation k0 (v5))))
+        (LetCont ((k1 (v1)
+                    (LetCont ((k2 (v2)
+                                (LetPrim (v3 (Constant (Int 0)))
+                                  (InvokeContinuation return (v3)))))
+                      (InvokeStatic print (v4) k2))))
+          (InvokeStatic print (v4) k1))))))
 """;
 String ITERATIVE_DEAD_CONT_OUT = """
 (FunctionDefinition main () return ()
   (LetPrim (v0 (Constant (Int 0)))
-    (LetCont (k0 (v1)
-        (LetCont (k1 (v2)
-            (LetPrim (v3 (Constant (Int 0)))
-              (InvokeContinuation return (v3))))
-          (InvokeStatic print (v0) k1)))
+    (LetCont ((k0 (v1)
+                (LetCont ((k1 (v2)
+                            (LetPrim (v3 (Constant (Int 0)))
+                              (InvokeContinuation return (v3)))))
+                  (InvokeStatic print (v0) k1))))
       (InvokeStatic print (v0) k0))))
 """;
 
@@ -127,24 +127,24 @@ String ITERATIVE_DEAD_CONT_OUT = """
 
 String BETA_CONT_LIN_IN = """
 (FunctionDefinition main () return ()
-  (LetCont (k0 (v0)
-      (LetCont (k1 (v1)
-          (LetCont (k2 (v2)
-              (LetPrim (v3 (Constant (Int 0)))
-                (InvokeContinuation return (v3))))
-            (InvokeStatic print (v0) k2)))
-        (InvokeStatic print (v0) k1)))
+  (LetCont ((k0 (v0)
+              (LetCont ((k1 (v1)
+                          (LetCont ((k2 (v2)
+                                      (LetPrim (v3 (Constant (Int 0)))
+                                        (InvokeContinuation return (v3)))))
+                            (InvokeStatic print (v0) k2))))
+                (InvokeStatic print (v0) k1))))
     (LetPrim (v4 (Constant (Int 0)))
       (InvokeContinuation k0 (v4)))))
 """;
 String BETA_CONT_LIN_OUT = """
 (FunctionDefinition main () return ()
   (LetPrim (v0 (Constant (Int 0)))
-    (LetCont (k0 (v1)
-        (LetCont (k1 (v2)
-            (LetPrim (v3 (Constant (Int 0)))
-              (InvokeContinuation return (v3))))
-          (InvokeStatic print (v0) k1)))
+    (LetCont ((k0 (v1)
+                (LetCont ((k1 (v2)
+                            (LetPrim (v3 (Constant (Int 0)))
+                              (InvokeContinuation return (v3)))))
+                  (InvokeStatic print (v0) k1))))
       (InvokeStatic print (v0) k0))))
 """;
 
@@ -152,8 +152,8 @@ String BETA_CONT_LIN_OUT = """
 
 String RECURSIVE_BETA_CONT_LIN_IN = """
 (FunctionDefinition main () return ()
-  (LetCont* (k0 (v0)
-      (InvokeContinuation* k0 (v0)))
+  (LetCont ((rec k0 (v0)
+              (InvokeContinuation rec k0 (v0))))
     (LetPrim (v1 (Constant (Int 0)))
       (InvokeContinuation k0 (v1)))))
 """;
@@ -164,53 +164,130 @@ String RECURSIVE_BETA_CONT_LIN_OUT = RECURSIVE_BETA_CONT_LIN_IN;
 String USED_BETA_CONT_LIN_IN = """
 (FunctionDefinition main () return ()
   (LetPrim (v0 (Constant (Int 0)))
-    (LetCont (k0 (v1)
-        (LetCont (k1 (v2)
-            (LetCont (k2 (v3)
-                (LetPrim (v4 (Constant (Int 0)))
-                  (InvokeContinuation return (v4))))
-              (InvokeStatic print (v1) k2)))
-          (InvokeStatic print (v1) k1)))
+    (LetCont ((k0 (v1)
+                (LetCont ((k1 (v2)
+                            (LetCont ((k2 (v3)
+                                        (LetPrim (v4 (Constant (Int 0)))
+                                          (InvokeContinuation return (v4)))))
+                              (InvokeStatic print (v1) k2))))
+                  (InvokeStatic print (v1) k1))))
       (LetPrim (v5
-          (CreateFunction
-            (FunctionDefinition f () return ()
-              (InvokeContinuation return (v1)))))
+                 (CreateFunction
+                   (FunctionDefinition f () return ()
+                     (InvokeContinuation return (v1)))))
         (InvokeContinuation k0 (v0))))))
 """;
 String USED_BETA_CONT_LIN_OUT = """
 (FunctionDefinition main () return ()
   (LetPrim (v0 (Constant (Int 0)))
-    (LetCont (k0 (v1)
-        (LetCont (k1 (v2)
-            (LetPrim (v3 (Constant (Int 0)))
-              (InvokeContinuation return (v3))))
-          (InvokeStatic print (v0) k1)))
+    (LetCont ((k0 (v1)
+                (LetCont ((k1 (v2)
+                            (LetPrim (v3 (Constant (Int 0)))
+                              (InvokeContinuation return (v3)))))
+                  (InvokeStatic print (v0) k1))))
       (InvokeStatic print (v0) k0))))
 """;
 
 // Eta-cont: letcont k x = j x in K -> K[j/k].
 // IR written by hand.
-
+//
+// This test is incorrectly named: with the current implementation, there is no
+// eta reduction.  Instead, dead-parameter, beta-cont-lin, and dead-val
+// reductions are performed, which in turn creates a second beta-cont-lin
+// reduction.
+//
+// TODO(kmillikin): To test continuation eta reduction, use eta redexes that are
+// not overlapping beta redexes.
 String ETA_CONT_IN = """
 (FunctionDefinition main () return ()
-  (LetPrim (v3 (Constant (Int 0)))
-    (LetCont* (k1 (v1)
-        (InvokeContinuation return (v3)))
-      (LetCont (k0 (v0)
-          (InvokeContinuation k1 (v0)))
-        (LetPrim (v4
-            (CreateFunction
-              (FunctionDefinition f () return ()
-                (InvokeContinuation k1 (v3)))))
-          (InvokeContinuation k0 (v3)))))))
+  (LetPrim (v0 (Constant (Int 0)))
+    (LetCont ((rec k0 (v1)
+                (InvokeContinuation return (v0))))
+      (LetCont ((k1 (v2)
+                  (InvokeContinuation k0 (v2))))
+        (LetPrim (v3
+                   (CreateFunction
+                     (FunctionDefinition f () return ()
+                       (InvokeContinuation k0 (v0)))))
+          (InvokeContinuation k1 (v0)))))))
 """;
 String ETA_CONT_OUT = """
 (FunctionDefinition main () return ()
   (LetPrim (v0 (Constant (Int 0)))
-    (LetCont (k0 (v1)
-        (InvokeContinuation return (v0)))
-      (InvokeContinuation k0 (v0)))))
+    (InvokeContinuation return (v0))))
 """;
+
+// Dead-parameter:
+// letcont k x = E0 in E1 -> letcont k () = E0 in E1,
+//    if x does not occur free in E0.
+
+// Parameter v1 is unused in k0.
+String DEAD_PARAMETER_IN = """
+(FunctionDefinition main (x) return ()
+  (LetCont ((k0 (v0 v1 v2)
+              (InvokeStatic foo (v0 v2) return)))
+    (LetCont ((k1 ()
+                (LetPrim (v3 (Constant (Int 0)))
+                  (LetPrim (v4 (Constant (Int 1)))
+                    (LetPrim (v5 (Constant (Int 2)))
+                      (InvokeContinuation k0 (v3 v4 v5))))))
+              (k2 ()
+                (LetPrim (v6 (Constant (Int 3)))
+                  (LetPrim (v7 (Constant (Int 4)))
+                    (LetPrim (v8 (Constant (Int 5)))
+                      (InvokeContinuation k0 (v6 v7 v8)))))))
+      (Branch (IsTrue x) k1 k2))))
+""";
+String DEAD_PARAMETER_OUT = """
+(FunctionDefinition main (x) return ()
+  (LetCont ((k0 (v0 v1)
+              (InvokeStatic foo (v0 v1) return)))
+    (LetCont ((k1 ()
+                (LetPrim (v2 (Constant (Int 0)))
+                  (LetPrim (v3 (Constant (Int 2)))
+                    (InvokeContinuation k0 (v2 v3)))))
+              (k2 ()
+                (LetPrim (v4 (Constant (Int 3)))
+                  (LetPrim (v5 (Constant (Int 5)))
+                    (InvokeContinuation k0 (v4 v5))))))
+      (Branch (IsTrue x) k1 k2))))
+""";
+
+// Create an eta-cont redex:
+// Dead parameter reductions can create an eta-cont redex by removing unused
+// continuation parameters and thus creating the eta redex.
+String CREATE_ETA_CONT_IN = """
+(FunctionDefinition main (x) return ()
+  (LetCont ((rec loop (v0)
+              (InvokeContinuation rec loop (v0))))
+    (LetCont ((created (v1 v2 v3)
+                (InvokeContinuation loop (v2))))
+      (LetCont ((then ()
+                  (LetPrim (v4 (Constant (Int 0)))
+                    (LetPrim (v5 (Constant (Int 1)))
+                      (LetPrim (v6 (Constant (Int 2)))
+                        (InvokeContinuation created (v4 v5 v6))))))
+                (else ()
+                  (LetPrim (v6 (Constant (Int 3)))
+                    (LetPrim (v7 (Constant (Int 4)))
+                      (LetPrim (v8 (Constant (Int 5)))
+                        (InvokeContinuation created (v6 v7 v8)))))))
+        (Branch (IsTrue x) then else)))))
+""";
+String CREATE_ETA_CONT_OUT = """
+(FunctionDefinition main (x) return ()
+  (LetCont ((rec k0 (v0)
+              (InvokeContinuation rec k0 (v0))))
+    (LetCont ((k1 ()
+                (LetPrim (v1 (Constant (Int 1)))
+                  (InvokeContinuation k0 (v1))))
+              (k2 ()
+                (LetPrim (v2 (Constant (Int 4)))
+                  (InvokeContinuation k0 (v2)))))
+      (Branch (IsTrue x) k1 k2))))
+""";
+
+
 
 // Beta-fun-lin and eta-fun might not apply to us, since
 // a. in (InvokeMethod v0 call k0), v0 might carry state, and
@@ -234,7 +311,7 @@ void testShrinkingReducer(String input, String expectedOutput) {
   optimizer.rewrite(f);
 
   String expected = normalizeSExpr(expectedOutput);
-  String actual   = normalizeSExpr(stringifier.visit(f));
+  String actual = normalizeSExpr(stringifier.visit(f));
 
   Expect.equals(expected, actual);
 }
@@ -249,4 +326,6 @@ void main() {
   testShrinkingReducer(RECURSIVE_BETA_CONT_LIN_IN, RECURSIVE_BETA_CONT_LIN_OUT);
   testShrinkingReducer(USED_BETA_CONT_LIN_IN, USED_BETA_CONT_LIN_OUT);
   testShrinkingReducer(ETA_CONT_IN, ETA_CONT_OUT);
+  testShrinkingReducer(DEAD_PARAMETER_IN, DEAD_PARAMETER_OUT);
+  testShrinkingReducer(CREATE_ETA_CONT_IN, CREATE_ETA_CONT_OUT);
 }
