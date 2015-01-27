@@ -155,11 +155,13 @@ final Matcher isAnalysisGetLibraryDependenciesParams = isNull;
  *
  * {
  *   "libraries": List<FilePath>
+ *   "packageMap": Map<String, Map<String, List<FilePath>>>
  * }
  */
 final Matcher isAnalysisGetLibraryDependenciesResult = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.getLibraryDependencies result", {
-    "libraries": isListOf(isFilePath)
+    "libraries": isListOf(isFilePath),
+    "packageMap": isMapOf(isString, isMapOf(isString, isListOf(isFilePath)))
   }));
 
 /**

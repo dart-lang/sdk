@@ -10,6 +10,9 @@ library engine.source;
 import "dart:math" as math;
 import 'dart:collection';
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+
 import 'engine.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -593,6 +596,14 @@ class SourceFactory {
    */
   void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
     this._localSourcePredicate = localSourcePredicate;
+  }
+
+  /// A table mapping package names to paths of directories containing
+  /// the package (or [null] if there is no registered package URI resolver).
+  Map<String, List<Folder>> get packageMap {
+    PackageMapUriResolver resolver =
+        _resolvers.firstWhere((r) => r is PackageMapUriResolver, orElse: null);
+    return resolver != null ? resolver.packageMap : null;
   }
 
   /**

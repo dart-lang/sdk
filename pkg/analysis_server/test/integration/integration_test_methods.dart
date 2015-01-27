@@ -231,8 +231,8 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Return a list of all of the libraries referenced by any files in existing
-   * analysis roots.
+   * Return library dependency information for use in client-side indexing and
+   * package URI resolution.
    *
    * Returns
    *
@@ -240,6 +240,12 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the paths of library elements referenced by files in existing
    *   analysis roots.
+   *
+   * packageMap ( Map<String, Map<String, List<FilePath>>> )
+   *
+   *   A mapping from context source roots to package maps which map package
+   *   names to source directories for use in client-side package URI
+   *   resolution.
    */
   Future<AnalysisGetLibraryDependenciesResult> sendAnalysisGetLibraryDependencies() {
     return server.send("analysis.getLibraryDependencies", null)

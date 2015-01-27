@@ -4,9 +4,11 @@
 
 library services.dependencies.library;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 
 class LibraryDependencyCollector {
 
@@ -17,12 +19,37 @@ class LibraryDependencyCollector {
 
   LibraryDependencyCollector(this._contexts);
 
+  Map<String, Map<String, List<String>>> calculatePackageMap(Map<Folder,
+      AnalysisContext> folderMap) {
+
+    Map<AnalysisContext, Folder> contextMap = _reverse(folderMap);
+    Map<String, Map<String, List<String>>> result =
+        new Map<String, Map<String, List<String>>>();
+    for (AnalysisContext context in _contexts) {
+      Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
+      if (packageMap != null) {
+        Map<String, List<String>> map = new Map<String, List<String>>();
+        packageMap.forEach((String name, List<Folder> folders) => map[name] =
+            new List.from(folders.map((Folder f) => f.path)));
+        result[contextMap[context].path] = map;
+      }
+    }
+    return result;
+  }
+
   Set<String> collectLibraryDependencies() {
     _contexts.forEach(
         (AnalysisContext context) =>
             context.librarySources.forEach(
                 (Source source) => _addDependencies(context.getLibraryElement(source))));
     return _dependencies;
+  }
+
+  Map<AnalysisContext, Folder> _reverse(Map<Folder, AnalysisContext> map) {
+    Map<AnalysisContext, Folder> reverseMap =
+        new Map<AnalysisContext, Folder>();
+    map.forEach((Folder f, AnalysisContext c) => reverseMap[c] = f);
+    return reverseMap;
   }
 
   void _addDependencies(LibraryElement libraryElement) {

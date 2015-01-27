@@ -90,10 +90,12 @@ class AnalysisDomainHandler implements RequestHandler {
 
   /// Implement the `analysis.getLibraryDependencies` request.
   Response getLibraryDependencies(Request request) {
-    Set<String> libraries = new LibraryDependencyCollector(
-        server.getAnalysisContexts()).collectLibraryDependencies();
+    LibraryDependencyCollector collector = new LibraryDependencyCollector(
+            server.getAnalysisContexts());
+    Set<String> libraries = collector.collectLibraryDependencies();
+    Map<String, Map<String, List<String>>> packageMap = collector.calculatePackageMap(server.folderMap);
     return new AnalysisGetLibraryDependenciesResult(
-        libraries.toList(growable: false)).toResponse(request.id);
+        libraries.toList(growable: false), packageMap).toResponse(request.id);
   }
 
   @override

@@ -735,6 +735,7 @@ class AnalysisGetLibraryDependenciesParams {
  *
  * {
  *   "libraries": List<FilePath>
+ *   "packageMap": Map<String, Map<String, List<FilePath>>>
  * }
  */
 class AnalysisGetLibraryDependenciesResult implements HasToJson {
@@ -744,7 +745,13 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
    */
   List<String> libraries;
 
-  AnalysisGetLibraryDependenciesResult(this.libraries);
+  /**
+   * A mapping from context source roots to package maps which map package
+   * names to source directories for use in client-side package URI resolution.
+   */
+  Map<String, Map<String, List<String>>> packageMap;
+
+  AnalysisGetLibraryDependenciesResult(this.libraries, this.packageMap);
 
   factory AnalysisGetLibraryDependenciesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -757,7 +764,13 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "libraries");
       }
-      return new AnalysisGetLibraryDependenciesResult(libraries);
+      Map<String, Map<String, List<String>>> packageMap;
+      if (json.containsKey("packageMap")) {
+        packageMap = jsonDecoder._decodeMap(jsonPath + ".packageMap", json["packageMap"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeMap(jsonPath, json, valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString)));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "packageMap");
+      }
+      return new AnalysisGetLibraryDependenciesResult(libraries, packageMap);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.getLibraryDependencies result");
     }
@@ -771,6 +784,7 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["libraries"] = libraries;
+    result["packageMap"] = packageMap;
     return result;
   }
 
@@ -784,7 +798,8 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetLibraryDependenciesResult) {
-      return _listEqual(libraries, other.libraries, (String a, String b) => a == b);
+      return _listEqual(libraries, other.libraries, (String a, String b) => a == b) &&
+          _mapEqual(packageMap, other.packageMap, (Map<String, List<String>> a, Map<String, List<String>> b) => _mapEqual(a, b, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b)));
     }
     return false;
   }
@@ -793,6 +808,7 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, libraries.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, packageMap.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
