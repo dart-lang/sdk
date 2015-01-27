@@ -24,6 +24,9 @@ TEST_DIR=$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd )
 # Some tests require being run from the package root
 cd $TEST_DIR/..
 
+# Check minimum SDK version
+./tool/sdk_version_check.dart 1.9.0-dev.4.0 || fail
+
 # Remove packages symlinks, and old codegen output
 find test/codegen -name packages -exec rm {} \;
 rm -r test/codegen/actual 2> /dev/null || true
