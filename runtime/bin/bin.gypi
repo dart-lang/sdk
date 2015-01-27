@@ -222,6 +222,11 @@
         ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
+        ['dart_io_support==1 and dart_io_secure_socket==1', {
+          'dependencies': [
+            'bin/net/ssl.gyp:libssl_dart',
+          ],
+        }],
         ['dart_io_secure_socket==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
