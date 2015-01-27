@@ -14,6 +14,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
@@ -247,6 +248,29 @@ static void SendRootServiceMessage(Dart_NativeArguments args) {
 }
 
 
+Dart_Port Service::WaitForLoadPort() {
+  MonitorLocker ml(monitor_);
+
+  while (initializing_ && (load_port_ == ILLEGAL_PORT)) {
+    ml.Wait();
+  }
+
+  return load_port_;
+}
+
+
+Dart_Port Service::LoadPort() {
+  MonitorLocker ml(monitor_);
+  return load_port_;
+}
+
+
+void Service::SetLoadPort(Dart_Port port) {
+  MonitorLocker ml(monitor_);
+  load_port_ = port;
+}
+
+
 void Service::SetEventMask(uint32_t mask) {
   event_mask_ = mask;
 }
@@ -324,6 +348,11 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     args.SetAt(2, name);
     Object& r = Object::Handle(service_isolate_);
     r = DartEntry::InvokeFunction(register_function_, args);
+    if (FLAG_trace_service) {
+      OS::Print("Isolate %s %" Pd64 " registered with service \n",
+                name.ToCString(),
+                port_id);
+    }
     ASSERT(!r.IsError());
   }
 
@@ -348,6 +377,9 @@ static void OnStart(Dart_NativeArguments args) {
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
   {
+    if (FLAG_trace_service) {
+      OS::Print("Booting dart:vmservice library\n");
+    }
     // Boot the dart:vmservice library.
     Dart_EnterScope();
     Dart_Handle url_str =
@@ -362,7 +394,11 @@ static void OnStart(Dart_NativeArguments args) {
     Service::set_port(port);
     Dart_ExitScope();
   }
+
   {
+    if (FLAG_trace_service) {
+      OS::Print("Registering running isolates\n");
+    }
     // Register running isolates with service.
     RegisterRunningIsolatesVisitor register_isolates(isolate);
     Isolate::VisitIsolates(&register_isolates);
@@ -408,77 +444,20 @@ static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
   return NULL;
 }
 
-
+const char* Service::kServiceIsolateName = "vm-service";
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 Isolate* Service::service_isolate_ = NULL;
-Dart_LibraryTagHandler Service::embedder_provided_handler_ = NULL;
 Dart_Port Service::port_ = ILLEGAL_PORT;
+Dart_Port Service::load_port_ = ILLEGAL_PORT;
+Monitor* Service::monitor_ = NULL;
+bool Service::initializing_ = true;
 uint32_t Service::event_mask_ = 0;
 
-Isolate* Service::GetServiceIsolate(void* callback_data) {
-  if (service_isolate_ != NULL) {
-    // Already initialized, return service isolate.
-    return service_isolate_;
-  }
-  Dart_ServiceIsolateCreateCalback create_callback =
-    Isolate::ServiceCreateCallback();
-  if (create_callback == NULL) {
-    return NULL;
-  }
-  Isolate::SetCurrent(NULL);
-  char* error = NULL;
-  Isolate* isolate =
-      reinterpret_cast<Isolate*>(create_callback(callback_data, &error));
-  if (isolate == NULL) {
-    return NULL;
-  }
-  StartIsolateScope isolate_scope(isolate);
-  {
-    // Install the dart:vmservice library.
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
-    Library& library =
-        Library::Handle(isolate, isolate->object_store()->root_library());
-    // Isolate is empty.
-    ASSERT(library.IsNull());
-    // Grab embedder tag handler.
-    embedder_provided_handler_ = isolate->library_tag_handler();
-    // Temporarily install our own.
-    isolate->set_library_tag_handler(LibraryTagHandler);
-    // Get script resource.
-    const char* resource = NULL;
-    const char* path = "/vmservice.dart";
-    intptr_t r = Resources::ResourceLookup(path, &resource);
-    ASSERT(r != Resources::kNoSuchInstance);
-    ASSERT(resource != NULL);
-    const String& source_str = String::Handle(
-        String::FromUTF8(reinterpret_cast<const uint8_t*>(resource), r));
-    ASSERT(!source_str.IsNull());
-    const String& url_str = String::Handle(Symbols::DartVMService().raw());
-    library ^= Library::LookupLibrary(url_str);
-    ASSERT(library.IsNull());
-    // Setup library.
-    library = Library::New(url_str);
-    library.Register();
-    const Script& script = Script::Handle(
-      isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
-    library.SetLoadInProgress();
-    Dart_EnterScope();  // Need to enter scope for tag handler.
-    const Error& error = Error::Handle(isolate,
-                                       Compiler::Compile(library, script));
-    ASSERT(error.IsNull());
-    Dart_Handle result = Dart_FinalizeLoading(false);
-    ASSERT(!Dart_IsError(result));
-    Dart_ExitScope();
 
-    // Install embedder default library tag handler again.
-    isolate->set_library_tag_handler(embedder_provided_handler_);
-    embedder_provided_handler_ = NULL;
-    library.set_native_entry_resolver(VmServiceNativeResolver);
-  }
-  service_isolate_ = reinterpret_cast<Isolate*>(isolate);
-  return service_isolate_;
+bool Service::IsServiceIsolateName(const char* name) {
+  ASSERT(name != NULL);
+  return strcmp(name, kServiceIsolateName) == 0;
 }
 
 
@@ -487,6 +466,9 @@ bool Service::SendIsolateStartupMessage() {
     return false;
   }
   Isolate* isolate = Isolate::Current();
+  if (IsServiceIsolate(isolate)) {
+    return false;
+  }
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
   const String& name = String::Handle(String::New(isolate->name()));
@@ -515,6 +497,9 @@ bool Service::SendIsolateShutdownMessage() {
     return false;
   }
   Isolate* isolate = Isolate::Current();
+  if (IsServiceIsolate(isolate)) {
+    return false;
+  }
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
   const String& name = String::Handle(String::New(isolate->name()));
@@ -560,7 +545,8 @@ Dart_Handle Service::GetSource(const char* name) {
 }
 
 
-Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
+Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag,
+                                       Dart_Handle library,
                                        Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
     return Dart_NewApiError("not a library");
@@ -574,12 +560,9 @@ Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
     return result;
   }
   if (tag == Dart_kImportTag) {
-    // Embedder handles all requests for external libraries.
-    if (embedder_provided_handler_ == NULL) {
-      return Dart_NewApiError("Unable to import module as no library tag "
-                              "handler has been provided by embedder");
-    }
-    return embedder_provided_handler_(tag, library, url);
+    OS::Print("Attempting to import %s\n", url_string);
+    return Dart_NewApiError("Unable to import module as no library tag "
+                            "is available");
   }
   ASSERT((tag == Dart_kSourceTag) || (tag == Dart_kCanonicalizeUrl));
   if (tag == Dart_kCanonicalizeUrl) {
@@ -593,6 +576,177 @@ Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
   return Dart_LoadSource(library, url, source, 0, 0);
 }
 
+
+void Service::MaybeInjectVMServiceLibrary(Isolate* isolate) {
+  if (service_isolate_ != NULL) {
+    // Service isolate already exists.
+    return;
+  }
+  if (!Service::IsServiceIsolateName(isolate->name())) {
+    // Not service isolate.
+    return;
+  }
+  service_isolate_ = isolate;
+  ASSERT(isolate != NULL);
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+
+  // Verify that isolate has no root library.
+  Library& library =
+      Library::Handle(isolate, isolate->object_store()->root_library());
+  ASSERT(library.IsNull());
+
+  // Verify that isolate doesn't have the dart:vmservice library.
+  const String& url_str = String::Handle(Symbols::DartVMService().raw());
+  library ^= Library::LookupLibrary(url_str);
+  ASSERT(library.IsNull());
+
+  // Register dart:vmservice library.
+  library = Library::New(url_str);
+  library.Register();
+  library.set_native_entry_resolver(VmServiceNativeResolver);
+
+  // Temporarily install our library tag handler.
+  isolate->set_library_tag_handler(LibraryTagHandler);
+
+  // Get script source.
+  const char* resource = NULL;
+  const char* path = "/vmservice.dart";
+  intptr_t r = Resources::ResourceLookup(path, &resource);
+  ASSERT(r != Resources::kNoSuchInstance);
+  ASSERT(resource != NULL);
+  const String& source_str = String::Handle(
+      String::FromUTF8(reinterpret_cast<const uint8_t*>(resource), r));
+  ASSERT(!source_str.IsNull());
+  const Script& script = Script::Handle(
+    isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
+
+  // Compile script.
+  Dart_EnterScope();  // Need to enter scope for tag handler.
+  library.SetLoadInProgress();
+  const Error& error = Error::Handle(isolate,
+                                     Compiler::Compile(library, script));
+  ASSERT(error.IsNull());
+  Dart_Handle result = Dart_FinalizeLoading(false);
+  ASSERT(!Dart_IsError(result));
+  Dart_ExitScope();
+
+  // Uninstall our library tag handler.
+  isolate->set_library_tag_handler(NULL);
+}
+
+
+void Service::FinishedInitializing() {
+  MonitorLocker ml(monitor_);
+  initializing_ = false;
+  ml.NotifyAll();
+}
+
+
+static void ShutdownIsolate(uword parameter) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  {
+    // Print the error if there is one.  This may execute dart code to
+    // print the exception object, so we need to use a StartIsolateScope.
+    StartIsolateScope start_scope(isolate);
+    StackZone zone(isolate);
+    HandleScope handle_scope(isolate);
+    Error& error = Error::Handle();
+    error = isolate->object_store()->sticky_error();
+    if (!error.IsNull()) {
+      OS::PrintErr("Service shutting down: %s\n", error.ToErrorCString());
+    }
+    Dart::RunShutdownCallback();
+  }
+  {
+    // Shut the isolate down.
+    SwitchIsolateScope switch_scope(isolate);
+    Dart::ShutdownIsolate();
+  }
+}
+
+
+class RunServiceTask : public ThreadPool::Task {
+ public:
+  virtual void Run() {
+    ASSERT(Isolate::Current() == NULL);
+
+    Dart_IsolateCreateCallback create_callback = Isolate::CreateCallback();
+    if (create_callback == NULL) {
+      Service::FinishedInitializing();
+      return;
+    }
+
+    char* error = NULL;
+    Isolate* isolate =
+        reinterpret_cast<Isolate*>(create_callback(Service::kServiceIsolateName,
+                                                   NULL,
+                                                   NULL,
+                                                   NULL,
+                                                   &error));
+    Isolate::SetCurrent(NULL);
+
+    if (isolate == NULL) {
+      OS::PrintErr("Service startup error: %s\n", error);
+      Service::FinishedInitializing();
+      return;
+    }
+
+    RunMain(isolate);
+
+    Service::FinishedInitializing();
+
+    isolate->message_handler()->Run(Dart::thread_pool(),
+                                    NULL,
+                                    ShutdownIsolate,
+                                    reinterpret_cast<uword>(isolate));
+  }
+
+ protected:
+  void RunMain(Isolate* isolate) {
+    StartIsolateScope iso_scope(isolate);
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    // Invoke main which will return the loadScriptPort.
+    const Library& root_library =
+        Library::Handle(isolate, isolate->object_store()->root_library());
+    if (root_library.IsNull()) {
+      // Service isolate is not supported by embedder.
+      return;
+    }
+    ASSERT(!root_library.IsNull());
+    const String& entry_name = String::Handle(isolate, String::New("main"));
+    ASSERT(!entry_name.IsNull());
+    const Function& entry =
+        Function::Handle(isolate,
+                         root_library.LookupFunctionAllowPrivate(entry_name));
+    if (entry.IsNull()) {
+      // Service isolate is not supported by embedder.
+      return;
+    }
+    ASSERT(!entry.IsNull());
+    const Object& result =
+        Object::Handle(isolate,
+                       DartEntry::InvokeFunction(entry,
+                                                 Object::empty_array()));
+    ASSERT(!result.IsNull());
+    if (result.IsError()) {
+      // Service isolate did not initialize properly.
+      return;
+    }
+    ASSERT(result.IsReceivePort());
+    const ReceivePort& rp = ReceivePort::Cast(result);
+    Service::SetLoadPort(rp.Id());
+  }
+};
+
+
+void Service::RunService() {
+  ASSERT(monitor_ == NULL);
+  monitor_ = new Monitor();
+  ASSERT(monitor_ != NULL);
+  Dart::thread_pool()->Run(new RunServiceTask());
+}
 
 // A handler for a per-isolate request.
 //

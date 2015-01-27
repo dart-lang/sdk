@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 
 #include "vm/allocation.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 
@@ -24,6 +25,9 @@ class String;
 
 class Service : public AllStatic {
  public:
+  static const char* kServiceIsolateName;
+  static bool IsServiceIsolateName(const char* name);
+
   // Handles a message which is not directed to an isolate.
   static void HandleRootMessage(const Instance& message);
 
@@ -41,6 +45,14 @@ class Service : public AllStatic {
   static void set_port(Dart_Port port) {
     port_ = port;
   }
+
+  static Dart_Port WaitForLoadPort();
+  static bool IsServicePort(Dart_Port port) {
+    return (port == port_) || (port == load_port_);
+  }
+  static Dart_Port LoadPort();
+
+  static void SetLoadPort(Dart_Port port);
 
   static void SetEventMask(uint32_t mask);
 
@@ -73,6 +85,12 @@ class Service : public AllStatic {
   static void SendEchoEvent(Isolate* isolate);
   static void SendGraphEvent(Isolate* isolate);
 
+  static void MaybeInjectVMServiceLibrary(Isolate* isolate);
+
+  static void RunService();
+
+  static void FinishedInitializing();
+
  private:
   // These must be kept in sync with service/constants.dart
   static const int kEventFamilyDebug = 0;
@@ -82,11 +100,13 @@ class Service : public AllStatic {
 
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);
+
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
                                        Dart_Handle url);
+
   static void SendEvent(intptr_t eventId, const Object& eventMessage);
   // Does not take ownership of 'data'.
   static void SendEvent(intptr_t eventId,
@@ -98,8 +118,10 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* root_service_handler_head_;
 
   static Isolate* service_isolate_;
-  static Dart_LibraryTagHandler embedder_provided_handler_;
   static Dart_Port port_;
+  static Monitor* monitor_;
+  static bool initializing_;
+  static Dart_Port load_port_;
   static uint32_t event_mask_;
 };
 

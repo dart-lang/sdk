@@ -3,9 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
+
+
+/* See Dart_LibraryTag in dart_api.h */
+const Dart_kScriptTag = null;
+const Dart_kImportTag = 0;
+const Dart_kSourceTag = 1;
+const Dart_kCanonicalizeUrl = 2;
+
+// Dart native extension scheme.
+const _DART_EXT = 'dart-ext:';
+
 // import 'root_library'; happens here from C Code
 
 // The root library (aka the script) is imported into this library. The
@@ -13,27 +24,28 @@ import 'dart:convert';
 // root library's namespace.
 Function _getMainClosure() => main;
 
+// A port for communicating with the service isolate for I/O.
+SendPort _loadPort;
+
+const _logBuiltin = false;
 
 // Corelib 'print' implementation.
 void _print(arg) {
   _Logger._printString(arg.toString());
 }
 
-
 class _Logger {
   static void _printString(String s) native "Logger_PrintString";
 }
 
-
 _getPrintClosure() => _print;
 
-const _logBuiltin = false;
+_getCurrentDirectoryPath() native "Directory_Current";
 
 // Corelib 'Uri.base' implementation.
 Uri _uriBase() {
-  return new Uri.file(Directory.current.path + "/");
+  return new Uri.file(_getCurrentDirectoryPath() + "/");
 }
-
 
 _getUriBaseClosure() => _uriBase;
 
@@ -126,6 +138,26 @@ _setPackageRoot(String packageRoot) {
 }
 
 
+// Given a uri with a 'package' scheme, return a Uri that is prefixed with
+// the package root.
+Uri _resolvePackageUri(Uri uri) {
+  if (!uri.host.isEmpty) {
+    var path = '${uri.host}${uri.path}';
+    var right = 'package:$path';
+    var wrong = 'package://$path';
+
+    throw "URIs using the 'package:' scheme should look like "
+          "'$right', not '$wrong'.";
+  }
+
+  var packageRoot = _packageRoot == null ?
+                    _entryPointScript.resolve('packages/') :
+                    _packageRoot;
+  return packageRoot.resolve(uri.path);
+}
+
+
+
 String _resolveScriptUri(String scriptName) {
   if (_workingDirectoryUri == null) {
     throw 'No current working directory set.';
@@ -147,8 +179,8 @@ String _resolveScriptUri(String scriptName) {
   return _entryPointScript.toString();
 }
 
-const _DART_EXT = 'dart-ext:';
 
+// Function called by standalone embedder to resolve uris.
 String _resolveUri(String base, String userString) {
   if (_logBuiltin) {
     _print('# Resolving: $userString from $base');
@@ -162,6 +194,114 @@ String _resolveUri(String base, String userString) {
   }
 }
 
+Uri _createUri(String userUri) {
+  var uri = Uri.parse(userUri);
+  switch (uri.scheme) {
+    case '':
+    case 'file':
+    case 'http':
+    case 'https':
+      return uri;
+    case 'package':
+      return _resolvePackageUri(uri);
+    default:
+      // Only handling file, http[s], and package URIs
+      // in standalone binary.
+      if (_logBuiltin) {
+        _print('# Unknown scheme (${uri.scheme}) in $uri.');
+      }
+      throw 'Not a known scheme: $uri';
+  }
+}
+
+int _numOutstandingLoadRequests = 0;
+void _finishedOneLoadRequest(String uri) {
+  assert(_numOutstandingLoadRequests > 0);
+  _numOutstandingLoadRequests--;
+  if (_logBuiltin) {
+    _print("Loading of $uri finished, "
+           "${_numOutstandingLoadRequests} requests remaining");
+  }
+  if (_numOutstandingLoadRequests == 0) {
+    _signalDoneLoading();
+  }
+}
+
+void _startingOneLoadRequest(String uri) {
+  assert(_numOutstandingLoadRequests >= 0);
+  _numOutstandingLoadRequests++;
+  if (_logBuiltin) {
+    _print("Loading of $uri started, "
+           "${_numOutstandingLoadRequests} requests outstanding");
+  }
+}
+
+class LoadError extends Error {
+  final String message;
+  LoadError(this.message);
+
+  String toString() => 'Load Error: $message';
+}
+
+void _signalDoneLoading() native "Builtin_DoneLoading";
+void _loadScriptCallback(int tag, String uri, String libraryUri, List<int> data)
+    native "Builtin_LoadScript";
+void _asyncLoadErrorCallback(uri, libraryUri, error)
+    native "Builtin_AsyncLoadError";
+
+void _loadScript(int tag, String uri, String libraryUri, List<int> data) {
+  // TODO: Currently a compilation error while loading the script is
+  // fatal for the isolate. _loadScriptCallback() does not return and
+  // the _numOutstandingLoadRequests counter remains out of sync.
+  _loadScriptCallback(tag, uri, libraryUri, data);
+  _finishedOneLoadRequest(uri);
+}
+
+void _asyncLoadError(tag, uri, libraryUri, error) {
+  if (_logBuiltin) {
+    _print("_asyncLoadError($uri), error: $error");
+  }
+  if (tag == Dart_kImportTag) {
+    // When importing a library, the libraryUri is the imported
+    // uri.
+    libraryUri = uri;
+  }
+  _asyncLoadErrorCallback(uri, libraryUri, new LoadError(error));
+  _finishedOneLoadRequest(uri);
+}
+
+
+// Asynchronously loads script data through a http[s] or file uri.
+_loadDataAsync(int tag, String uri, String libraryUri) {
+  if (tag == Dart_kScriptTag) {
+    uri = _resolveScriptUri(uri);
+  }
+
+  Uri resourceUri = _createUri(uri);
+
+  var receivePort = new ReceivePort();
+  receivePort.first.then((dataOrError) {
+    if (dataOrError is List<int>) {
+      _loadScript(tag, uri, libraryUri, dataOrError);
+    } else {
+      _asyncLoadError(tag, uri, libraryUri, dataOrError);
+    }
+  }).catchError((e) {
+    _asyncLoadError(tag, uri, libraryUri, e.toString());
+  });
+
+  try {
+    var msg = [receivePort.sendPort, resourceUri.toString()];
+    _loadPort.send(msg);
+    _startingOneLoadRequest(uri);
+  } catch (e) {
+    if (_logBuiltin) {
+      _print("Exception when communicating with service isolate: $e");
+    }
+    _asyncLoadError(tag, uri, libraryUri, e.toString());
+    receivePort.close();
+  }
+}
 
 // Returns either a file path or a URI starting with http[s]:, as a String.
 String _filePathFromUri(String userUri) {
@@ -190,156 +330,15 @@ String _filePathFromUri(String userUri) {
   }
 }
 
+String _nativeLibraryExtension() native "Builtin_NativeLibraryExtension";
 
-Uri _resolvePackageUri(Uri uri) {
-  if (!uri.host.isEmpty) {
-    var path = '${uri.host}${uri.path}';
-    var right = 'package:$path';
-    var wrong = 'package://$path';
+String _platformExtensionFileName(String name) {
+  var extension = _nativeLibraryExtension();
 
-    throw "URIs using the 'package:' scheme should look like "
-          "'$right', not '$wrong'.";
-  }
-
-  var packageRoot = _packageRoot == null ?
-                    _entryPointScript.resolve('packages/') :
-                    _packageRoot;
-  return packageRoot.resolve(uri.path);
-}
-
-
-int _numOutstandingLoadRequests = 0;
-var _httpClient;
-
-void _httpGet(Uri uri, String libraryUri, loadCallback(List<int> data)) {
-  if (_httpClient == null) {
-    _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
-  }
-  _httpClient.getUrl(uri)
-    .then((HttpClientRequest request) => request.close())
-    .then((HttpClientResponse response) {
-      var builder = new BytesBuilder(copy: false);
-      response.listen(
-          builder.add,
-          onDone: () {
-            if (response.statusCode != 200) {
-              var msg = 'Failure getting $uri: '
-                        '${response.statusCode} ${response.reasonPhrase}';
-              _asyncLoadError(uri.toString(), libraryUri, msg);
-            }
-            loadCallback(builder.takeBytes());
-          },
-          onError: (error) {
-            _asyncLoadError(uri.toString(), libraryUri, error);
-          });
-    })
-    .catchError((error) {
-      _asyncLoadError(uri.toString(), libraryUri, error);
-    });
-  // TODO(floitsch): remove this line. It's just here to push an event on the
-  // event loop so that we invoke the scheduled microtasks. Also remove the
-  // import of dart:async when this line is not needed anymore.
-  Timer.run(() {});
-}
-
-
-void _signalDoneLoading() native "Builtin_DoneLoading";
-
-void _cleanup() {
-  if (_httpClient != null) {
-    _httpClient.close();
-    _httpClient = null;
-  }
-}
-
-void _loadScriptCallback(int tag, String uri, String libraryUri, List<int> data)
-    native "Builtin_LoadScript";
-
-void _loadScript(int tag, String uri, String libraryUri, List<int> data) {
-  // TODO: Currently a compilation error while loading the script is
-  // fatal for the isolate. _loadScriptCallback() does not return and
-  // the _numOutstandingLoadRequests counter remains out of sync.
-  _loadScriptCallback(tag, uri, libraryUri, data);
-  assert(_numOutstandingLoadRequests > 0);
-  _numOutstandingLoadRequests--;
-  if (_logBuiltin) {
-    _print("native Builtin_LoadScript($uri) completed, "
-           "${_numOutstandingLoadRequests} requests remaining");
-  }
-  if (_numOutstandingLoadRequests == 0) {
-    _signalDoneLoading();
-    _cleanup();
-  }
-}
-
-
-void _asyncLoadErrorCallback(uri, libraryUri, error)
-    native "Builtin_AsyncLoadError";
-
-void _asyncLoadError(uri, libraryUri, error) {
-  assert(_numOutstandingLoadRequests > 0);
-  if (_logBuiltin) {
-    _print("_asyncLoadError($uri), error: $error");
-  }
-  _numOutstandingLoadRequests--;
-  _asyncLoadErrorCallback(uri, libraryUri, error);
-  if (_numOutstandingLoadRequests == 0) {
-    _signalDoneLoading();
-    _cleanup();
-  }
-}
-
-
-// Create a Uri of 'userUri'. If the input uri is a package uri, then the
-// package uri is resolved.
-Uri _createUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  if (_logBuiltin) {
-    _print('# Creating uri for: $uri');
-  }
-
-  switch (uri.scheme) {
-    case '':
-    case 'file':
-    case 'http':
-    case 'https':
-      return uri;
-    case 'package':
-      return _resolvePackageUri(uri);
-    default:
-      // Only handling file, http[s], and package URIs
-      // in standalone binary.
-      if (_logBuiltin) {
-        _print('# Unknown scheme (${uri.scheme}) in $uri.');
-      }
-      throw 'Not a known scheme: $uri';
-  }
-}
-
-
-// Asynchronously loads script data through a http[s] or file uri.
-_loadDataAsync(int tag, String uri, String libraryUri) {
-  if (tag == null) {
-    uri = _resolveScriptUri(uri);
-  }
-  Uri resourceUri = _createUri(uri);
-  _numOutstandingLoadRequests++;
-  if (_logBuiltin) {
-    _print("_loadDataAsync($uri), "
-           "${_numOutstandingLoadRequests} requests outstanding");
-  }
-  if ((resourceUri.scheme == 'http') || (resourceUri.scheme == 'https')) {
-    _httpGet(resourceUri, libraryUri, (data) {
-      _loadScript(tag, uri, libraryUri, data);
-    });
+  if (_isWindows) {
+    return '$name.$extension';
   } else {
-    var sourceFile = new File(resourceUri.toFilePath());
-    sourceFile.readAsBytes().then((data) {
-      _loadScript(tag, uri, libraryUri, data);
-    },
-    onError: (e) {
-      _asyncLoadError(uri, libraryUri, e);
-    });
+    return 'lib$name.$extension';
   }
 }
 
@@ -358,7 +357,7 @@ _extensionPathFromUri(String userUri) {
     throw 'Unexpected internal error: Extension URI $userUri contains \\';
   }
 
-  String filename;
+
   String name;
   String path;  // Will end in '/'.
   int index = userUri.lastIndexOf('/');
@@ -373,19 +372,7 @@ _extensionPathFromUri(String userUri) {
   }
 
   path = _filePathFromUri(path);
-
-  if (Platform.isLinux || Platform.isAndroid) {
-    filename = 'lib$name.so';
-  } else if (Platform.isMacOS) {
-    filename = 'lib$name.dylib';
-  } else if (Platform.isWindows) {
-    filename = '$name.dll';
-  } else {
-    if (_logBuiltin) {
-      _print('Native extensions not supported on ${Platform.operatingSystem}');
-    }
-    throw 'Native extensions not supported on ${Platform.operatingSystem}';
-  }
+  var filename = _platformExtensionFileName(name);
 
   return [path, filename, name];
 }

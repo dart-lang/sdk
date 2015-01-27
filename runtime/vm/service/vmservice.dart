@@ -106,8 +106,13 @@ class VMService extends MessageRouter {
     }
   }
 
+  void _notSupported(_) {
+    throw new UnimplementedError('Service script loading not supported.');
+  }
+
   VMService._internal()
       : eventPort = isolateLifecyclePort {
+    scriptLoadPort.handler = _notSupported;
     eventPort.handler = messageHandler;
   }
 

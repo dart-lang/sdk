@@ -124,8 +124,14 @@ class DartUtils {
                                        Dart_Handle url);
   static Dart_Handle LoadScript(const char* script_uri,
                                 Dart_Handle builtin_lib);
+  static void PrepareBuiltinLibrary(Dart_Handle builtin_lib,
+                                    const char* package_root);
+  static void PrepareCoreLibrary(Dart_Handle builtin_lib);
+  static void PrepareAsyncLibrary(Dart_Handle async_lib,
+                                  Dart_Handle io_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
                                              Dart_Handle builtin_lib);
+  static void SetupIOLibrary(const char* script_uri);
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
@@ -145,6 +151,7 @@ class DartUtils {
                                                  const char* exception_name,
                                                  const char* message);
   static Dart_Handle NewDartArgumentError(const char* message);
+  static Dart_Handle NewDartUnsupportedError(const char* message);
   static Dart_Handle NewDartIOException(const char* exception_name,
                                         const char* message,
                                         Dart_Handle os_error);

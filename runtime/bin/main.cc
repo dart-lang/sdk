@@ -589,6 +589,19 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
   CHECK_RESULT(result);
 
+
+  if (Dart_IsServiceIsolate(isolate)) {
+    // If this is the service isolate, load embedder specific bits and return.
+    if (!VmService::Setup(vm_service_server_ip, vm_service_server_port)) {
+      *error = strdup(VmService::GetErrorMessage());
+      return NULL;
+    }
+    Dart_ExitScope();
+    Dart_ExitIsolate();
+    return isolate;
+  }
+
+  // Load the script.
   result = DartUtils::LoadScript(script_uri, builtin_lib);
   CHECK_RESULT(result);
 
@@ -597,20 +610,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   CHECK_RESULT(result);
 
   Platform::SetPackageRoot(package_root);
-  Dart_Handle io_lib_url = DartUtils::NewString(DartUtils::kIOLibURL);
-  CHECK_RESULT(io_lib_url);
-  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
-  CHECK_RESULT(io_lib);
-  Dart_Handle platform_type = DartUtils::GetDartType(DartUtils::kIOLibURL,
-                                                     "_Platform");
-  CHECK_RESULT(platform_type);
-  Dart_Handle script_name = DartUtils::NewString("_nativeScript");
-  CHECK_RESULT(script_name);
-  Dart_Handle dart_script = DartUtils::NewString(script_uri);
-  CHECK_RESULT(dart_script);
-  Dart_Handle set_script_name =
-      Dart_SetField(platform_type, script_name, dart_script);
-  CHECK_RESULT(set_script_name);
+
+  DartUtils::SetupIOLibrary(script_uri);
 
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
@@ -646,7 +647,11 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     }
   }
   if (package_root == NULL) {
-    package_root = parent_isolate_data->package_root;
+    if (parent_isolate_data != NULL) {
+      package_root = parent_isolate_data->package_root;
+    } else {
+      package_root = ".";
+    }
   }
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
@@ -655,50 +660,6 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                      &is_compile_error);
 }
 
-
-#define CHECK_RESULT(result)                                                   \
-  if (Dart_IsError(result)) {                                                  \
-    *error = strdup(Dart_GetError(result));                                    \
-    Dart_ExitScope();                                                          \
-    Dart_ShutdownIsolate();                                                    \
-    return NULL;                                                               \
-  }                                                                            \
-
-static Dart_Isolate CreateServiceIsolate(void* data, char** error) {
-  const char* script_uri = DartUtils::kVMServiceLibURL;
-  IsolateData* isolate_data = new IsolateData(script_uri, NULL);
-  Dart_Isolate isolate =
-      Dart_CreateIsolate(script_uri, "main", snapshot_buffer, isolate_data,
-                         error);
-  if (isolate == NULL) {
-    return NULL;
-  }
-  Dart_EnterScope();
-  if (snapshot_buffer != NULL) {
-    // Setup the native resolver as the snapshot does not carry it.
-    Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-    Builtin::SetNativeResolver(Builtin::kIOLibrary);
-  }
-  // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
-  CHECK_RESULT(result);
-  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
-  CHECK_RESULT(result);
-  // Prepare builtin and its dependent libraries for use to resolve URIs.
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  CHECK_RESULT(builtin_lib);
-  // Prepare for script loading by setting up the 'print' and 'timer'
-  // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(NULL, builtin_lib);
-  CHECK_RESULT(result);
-
-  Dart_ExitScope();
-  Dart_ExitIsolate();
-  return isolate;
-}
-
-#undef CHECK_RESULT
 
 static void PrintVersion() {
   Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
@@ -980,21 +941,22 @@ void main(int argc, char** argv) {
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
+  // Start event handler.
+  EventHandler::Start();
+
   // Initialize the Dart VM.
   if (!Dart_Initialize(CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,
                        DartUtils::WriteFile,
                        DartUtils::CloseFile,
-                       DartUtils::EntropySource,
-                       CreateServiceIsolate)) {
+                       DartUtils::EntropySource)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
     exit(kErrorExitCode);
   }
 
-  // Start event handler.
-  EventHandler::Start();
+
 
   // Start the debugger wire protocol handler if necessary.
   if (start_debugger) {
@@ -1004,23 +966,12 @@ void main(int argc, char** argv) {
     if (print_msg) {
       Log::Print("Debugger listening on port %d\n", debug_port);
     }
+  } else {
+    DebuggerConnectionHandler::InitForVmService();
   }
 
-  ASSERT(Dart_CurrentIsolate() == NULL);
-  // Start the VM service isolate, if necessary.
-  if (start_vm_service) {
-    if (!start_debugger) {
-      DebuggerConnectionHandler::InitForVmService();
-    }
-    bool r = VmService::Start(vm_service_server_ip, vm_service_server_port);
-    if (!r) {
-      Log::PrintErr("Could not start VM Service isolate %s\n",
-                    VmService::GetErrorMessage());
-    }
-    Dart_RegisterIsolateServiceRequestCallback(
+  Dart_RegisterIsolateServiceRequestCallback(
         "io", &ServiceRequestHandler, NULL);
-  }
-  ASSERT(Dart_CurrentIsolate() == NULL);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.

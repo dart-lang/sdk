@@ -264,11 +264,12 @@ class TestCase : TestCaseBase {
                                         Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
   static const char* url() { return USER_TEST_URI; }
-  static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer) {
-    return CreateIsolate(buffer);
+  static Dart_Isolate CreateTestIsolateFromSnapshot(
+      uint8_t* buffer, const char* name = NULL) {
+    return CreateIsolate(buffer, name);
   }
-  static Dart_Isolate CreateTestIsolate() {
-    return CreateIsolate(bin::snapshot_buffer);
+  static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
+    return CreateIsolate(bin::snapshot_buffer, name);
   }
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
@@ -278,9 +279,10 @@ class TestCase : TestCaseBase {
   virtual void Run();
 
  private:
-  static Dart_Isolate CreateIsolate(const uint8_t* buffer) {
+  static Dart_Isolate CreateIsolate(const uint8_t* buffer,
+                                    const char* name) {
     char* err;
-    Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, buffer, NULL, &err);
+    Dart_Isolate isolate = Dart_CreateIsolate(name, NULL, buffer, NULL, &err);
     if (isolate == NULL) {
       OS::Print("Creation of isolate failed '%s'\n", err);
       free(err);

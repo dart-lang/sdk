@@ -32,6 +32,11 @@ const char* Platform::OperatingSystem() {
 }
 
 
+const char* Platform::LibraryExtension() {
+  return "dll";
+}
+
+
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
   if (!Socket::Initialize()) return false;
   return gethostname(buffer, buffer_length) == 0;

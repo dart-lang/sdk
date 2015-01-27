@@ -176,6 +176,101 @@
         }],
       ],
     },
+    # This is a combination of libdart_io, libdart_builtin, and vmservice bits.
+    # The dart_io is built without support for secure sockets.
+    {
+      'target_name': 'libvmservice_io',
+      'type': 'static_library',
+      'toolsets': ['host', 'target'],
+      'include_dirs': [
+        '..',
+        '../include',
+      ],
+      'includes': [
+        'io_impl_sources.gypi',
+        'builtin_impl_sources.gypi',
+        '../platform/platform_sources.gypi',
+      ],
+      'dependencies': [
+        'generate_builtin_cc_file#host',
+        'generate_io_cc_file#host',
+        'generate_io_patch_cc_file#host',
+        'generate_snapshot_file#host',
+        'generate_resources_cc_file#host',
+      ],
+      'sources': [
+        'builtin_common.cc',
+        'builtin_natives.cc',
+        'builtin_nolib.cc',
+        'builtin.h',
+        'dartutils.cc',
+        'dartutils.h',
+        'io_natives.cc',
+        'io_natives.h',
+        'log_android.cc',
+        'log_linux.cc',
+        'log_macos.cc',
+        'log_win.cc',
+        'vmservice_dartium.h',
+        'vmservice_dartium.cc',
+        'vmservice_impl.cc',
+        'vmservice_impl.h',
+        '<(resources_cc_file)',
+        '<(snapshot_cc_file)',
+      ],
+      'sources/': [
+        ['exclude', '_test\\.(cc|h)$'],
+      ],
+      'conditions': [
+        ['dart_io_secure_socket==0', {
+          'defines': [
+            'DART_IO_SECURE_SOCKET_DISABLED'
+          ],
+        }],
+        ['OS=="win"', {
+          'sources/' : [
+            ['exclude', 'fdutils.h'],
+          ],
+          # TODO(antonm): fix the implementation.
+          # Current implementation accepts char* strings
+          # and therefore fails to compile once _UNICODE is
+          # enabled.  That should be addressed using -A
+          # versions of functions and adding necessary conversions.
+          'configurations': {
+            'Common_Base': {
+              'msvs_configuration_attributes': {
+                'CharacterSet': '0',
+              },
+            },
+          },
+          'link_settings': {
+            'libraries': [ '-liphlpapi.lib' ],
+          },
+        }],
+        ['OS=="mac"', {
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
+              '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
+            ],
+          },
+        }],
+        ['OS=="linux"', {
+          'link_settings': {
+            'libraries': [
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="android"', {
+          'link_settings': {
+            'libraries': [
+              '-ldl',
+            ],
+          },
+        }],
+      ],
+    },
     {
       'target_name': 'libdart_io',
       'type': 'static_library',
@@ -191,9 +286,19 @@
         'io_natives.cc',
       ],
       'conditions': [
-        ['dart_io_support==1', {
+        ['dart_io_support==1 and dart_io_secure_socket==1', {
           'dependencies': [
             'bin/net/ssl.gyp:libssl_dart',
+          ],
+        }],
+        ['dart_io_support==1 and dart_io_secure_socket==0', {
+          'dependencies': [
+            'bin/net/zlib.gyp:zlib_dart',
+          ],
+        }],
+        ['dart_io_secure_socket==0', {
+          'defines': [
+            'DART_IO_SECURE_SOCKET_DISABLED'
           ],
         }],
         ['OS=="win"', {
@@ -281,8 +386,14 @@
         'gen_snapshot.cc',
         # Very limited native resolver provided.
         'builtin_gen_snapshot.cc',
+        'builtin_common.cc',
         'builtin.cc',
         'builtin.h',
+        'platform_android.cc',
+        'platform_linux.cc',
+        'platform_macos.cc',
+        'platform_win.cc',
+        'platform.h',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',
@@ -443,6 +554,7 @@
       ],
       'sources': [
         'main.cc',
+        'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
         'builtin.h',
@@ -494,8 +606,9 @@
       ],
       'sources': [
         'main.cc',
-        'builtin.cc',
+        'builtin_common.cc',
         'builtin_natives.cc',
+        'builtin.cc',
         'builtin.h',
         'io_natives.h',
         'vmservice.h',
@@ -547,8 +660,9 @@
       ],
       'sources': [
         'main.cc',
-        'builtin.cc',
+        'builtin_common.cc',
         'builtin_natives.cc',
+        'builtin.cc',
         'builtin.h',
         'io_natives.h',
         'vmservice.h',
@@ -608,6 +722,7 @@
       ],
       'sources': [
         'run_vm_tests.cc',
+        'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
         'builtin.h',
