@@ -507,6 +507,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitBlockFunctionBody(BlockFunctionBody node) {
+    token(node.keyword, followedBy: nonBreakingSpace);
     visit(node.block);
   }
 
@@ -782,6 +783,7 @@ class SourceVisitor implements AstVisitor {
 
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
     int weight = lastSpaceWeight++;
+    token(node.keyword, followedBy: nonBreakingSpace);
     token(node.functionDefinition);
     levelSpace(weight);
     visit(node.expression);
