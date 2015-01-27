@@ -1005,7 +1005,7 @@ void EffectGraphVisitor::Bailout(const char* reason) const {
 
 
 void EffectGraphVisitor::InlineBailout(const char* reason) const {
-  owner()->parsed_function()->function().set_is_inlinable(false);
+  owner()->function().set_is_inlinable(false);
   if (owner()->IsInlining()) owner()->Bailout(reason);
 }
 
@@ -1039,7 +1039,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // unchained so that captured variables can be inspected.
   // No debugger check is done in native functions or for return
   // statements for which there is no associated source position.
-  const Function& function = owner()->parsed_function()->function();
+  const Function& function = owner()->function();
   if ((node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
     AddInstruction(new(I) DebugStepCheckInstr(node->token_pos(),
                                               RawPcDescriptors::kRuntimeCall));
@@ -1143,7 +1143,7 @@ void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
     ReturnDefinition(new(I) ConstantInstr(type));
   } else {
     const Class& instantiator_class = Class::ZoneHandle(
-        I, owner()->parsed_function()->function().Owner());
+        I, owner()->function().Owner());
     Value* instantiator_value = BuildInstantiatorTypeArguments(
         node->token_pos(), instantiator_class, NULL);
     ReturnDefinition(new(I) InstantiateTypeInstr(
@@ -1396,7 +1396,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
     PushArgumentInstr** push_instantiator_result,
     PushArgumentInstr** push_instantiator_type_arguments_result) {
   const Class& instantiator_class = Class::Handle(
-      I, owner()->parsed_function()->function().Owner());
+      I, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   Value* instantiator_type_arguments = NULL;
@@ -1426,7 +1426,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
   const Class& instantiator_class = Class::Handle(
-      I, owner()->parsed_function()->function().Owner());
+      I, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   instantiator = BuildInstantiator(instantiator_class);
@@ -2449,7 +2449,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     ASSERT(function.context_scope() == ContextScope::null());
     function.set_context_scope(context_scope);
     const Class& cls = Class::Handle(
-        I, owner()->parsed_function()->function().Owner());
+        I, owner()->function().Owner());
     // The closure is now properly setup, add it to the lookup table.
     // It is possible that the compiler creates more than one function
     // object for the same closure, e.g. when inlining nodes from
@@ -2485,7 +2485,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
            Closure::type_arguments_offset());
     ASSERT(cls.instance_size() == Closure::InstanceSize());
     const Class& instantiator_class = Class::Handle(
-        I, owner()->parsed_function()->function().Owner());
+        I, owner()->function().Owner());
     type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
                                                     instantiator_class,
                                                     NULL);
@@ -2807,8 +2807,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
   ASSERT(instantiator_class.NumTypeParameters() > 0);
-  Function& outer_function =
-      Function::Handle(I, owner()->parsed_function()->function().raw());
+  Function& outer_function = Function::Handle(I, owner()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
@@ -2844,8 +2843,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     type_arguments = type_arguments.Canonicalize();
     return Bind(new(I) ConstantInstr(type_arguments));
   }
-  Function& outer_function =
-      Function::Handle(I, owner()->parsed_function()->function().raw());
+  Function& outer_function = Function::Handle(I, owner()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
@@ -2884,7 +2882,7 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   }
   // The type arguments are uninstantiated.
   const Class& instantiator_class = Class::ZoneHandle(
-      I, owner()->parsed_function()->function().Owner());
+      I, owner()->function().Owner());
   Value* instantiator_value =
       BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   const bool use_instantiator_type_args =
@@ -3190,7 +3188,7 @@ LoadLocalInstr* EffectGraphVisitor::BuildLoadThisVar(LocalScope* scope) {
 
 
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
-  const Function& function = owner()->parsed_function()->function();
+  const Function& function = owner()->function();
   if (!function.IsClosureFunction()) {
     MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
     switch (kind) {
@@ -3711,7 +3709,7 @@ void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 bool EffectGraphVisitor::HasContextScope() const {
   const ContextScope& context_scope = ContextScope::Handle(
-      owner()->parsed_function()->function().context_scope());
+      owner()->function().context_scope());
   return !context_scope.IsNull() && (context_scope.num_variables() > 0);
 }
 
@@ -3769,7 +3767,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // the captured parameters from the frame into the context.
     if (is_top_level_sequence) {
       ASSERT(scope->context_level() == 1);
-      const Function& function = owner()->parsed_function()->function();
+      const Function& function = owner()->function();
       const int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
           (kParamEndSlotFromFp + num_params) : kFirstLocalSlotFromFp;
@@ -3807,7 +3805,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   // This check may be deleted if the generated code is leaf.
   // Native functions don't need a stack check at entry.
-  const Function& function = owner()->parsed_function()->function();
+  const Function& function = owner()->function();
   if (is_top_level_sequence && !function.is_native()) {
     // Always allocate CheckOverflowInstr so that deopt-ids match regardless
     // if we inline or not.
@@ -3824,7 +3822,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   }
 
   if (FLAG_enable_type_checks && is_top_level_sequence) {
-    const Function& function = owner()->parsed_function()->function();
+    const Function& function = owner()->function();
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsConstructor()) {
@@ -3856,8 +3854,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // If this node sequence is the body of an async closure leave room for a
   // preamble. The preamble is generated after visiting the body.
   GotoInstr* preamble_start = NULL;
-  if (is_top_level_sequence &&
-      (owner()->parsed_function()->function().is_async_closure())) {
+  if (is_top_level_sequence && (owner()->function().is_async_closure())) {
     JoinEntryInstr* preamble_end = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
     ASSERT(exit() != NULL);
@@ -3882,8 +3879,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // Continuation part:
   // After generating the CFG for the body we can create the preamble because we
   // know exactly how many continuation states we need.
-  if (is_top_level_sequence &&
-      (owner()->parsed_function()->function().is_async_closure())) {
+  if (is_top_level_sequence && (owner()->function().is_async_closure())) {
     ASSERT(preamble_start != NULL);
     // We are at the top level. Fetch the corresponding scope.
     LocalScope* top_scope = node->scope();

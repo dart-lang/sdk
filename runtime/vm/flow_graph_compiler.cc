@@ -135,7 +135,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       (*deopt_id_to_ic_data_)[i] = NULL;
     }
     const Array& old_saved_icdata = Array::Handle(isolate(),
-        flow_graph->parsed_function()->function().ic_data_array());
+        flow_graph->function().ic_data_array());
     const intptr_t saved_len =
         old_saved_icdata.IsNull() ? 0 : old_saved_icdata.Length();
     for (intptr_t i = 0; i < saved_len; i++) {

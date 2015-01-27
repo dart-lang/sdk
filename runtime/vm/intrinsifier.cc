@@ -250,7 +250,7 @@ class BlockBuilder : public ValueObject {
   }
 
   intptr_t TokenPos() {
-    return flow_graph_->parsed_function()->function().token_pos();
+    return flow_graph_->function().token_pos();
   }
 
  private:
@@ -438,13 +438,12 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
   PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
 
   const ICData& value_check = ICData::ZoneHandle(ICData::New(
-      flow_graph->parsed_function()->function(),
-      String::Handle(flow_graph->parsed_function()->function().name()),
+      flow_graph->function(),
+      String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Isolate::kNoDeoptId,
       1));
-  value_check.AddReceiverCheck(kDoubleCid,
-                               flow_graph->parsed_function()->function());
+  value_check.AddReceiverCheck(kDoubleCid, flow_graph->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(value),
                           Isolate::kNoDeoptId,

@@ -92,6 +92,9 @@ class FlowGraph : public ZoneAllocated {
   ParsedFunction* parsed_function() const {
     return parsed_function_;
   }
+  const Function& function() const {
+    return parsed_function_->function();
+  }
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
   }
@@ -108,7 +111,7 @@ class FlowGraph : public ZoneAllocated {
     return num_non_copied_params_;
   }
   bool IsIrregexpFunction() const {
-    return parsed_function()->function().IsIrregexpFunction();
+    return function().IsIrregexpFunction();
   }
 
   LocalVariable* CurrentContextVar() const {

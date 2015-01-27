@@ -151,6 +151,7 @@ class FlowGraphBuilder: public ValueObject {
   FlowGraph* BuildGraph();
 
   ParsedFunction* parsed_function() const { return parsed_function_; }
+  const Function& function() const { return parsed_function_->function(); }
   const ZoneGrowableArray<const ICData*>& ic_data_array() const {
     return ic_data_array_;
   }

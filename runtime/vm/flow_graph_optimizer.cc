@@ -196,7 +196,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   // TODO(srdjan): Prevent modification of ICData object that is
   // referenced in assembly code.
   ICData& ic_data = ICData::ZoneHandle(Z, ICData::New(
-      flow_graph_->parsed_function()->function(),
+      flow_graph_->function(),
       call->function_name(),
       args_desc_array,
       call->deopt_id(),
@@ -2263,7 +2263,7 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   if (!FLAG_use_cha) return true;
   Definition* callee_receiver = call->ArgumentAt(0);
   ASSERT(callee_receiver != NULL);
-  const Function& function = flow_graph_->parsed_function()->function();
+  const Function& function = flow_graph_->function();
   if (function.IsDynamicFunction() &&
       callee_receiver->IsParameter() &&
       (callee_receiver->AsParameter()->index() == 0)) {
@@ -3635,7 +3635,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       // Check that value is always smi.
-      value_check = ICData::New(flow_graph_->parsed_function()->function(),
+      value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -3647,7 +3647,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
     case kTypedDataUint32ArrayCid:
       // On 64-bit platforms assume that stored value is always a smi.
       if (kSmiBits >= 32) {
-        value_check = ICData::New(flow_graph_->parsed_function()->function(),
+        value_check = ICData::New(flow_graph_->function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
                                   Isolate::kNoDeoptId,
@@ -3658,7 +3658,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
-      value_check = ICData::New(flow_graph_->parsed_function()->function(),
+      value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -3668,7 +3668,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
     }
     case kTypedDataInt32x4ArrayCid: {
       // Check that value is always Int32x4.
-      value_check = ICData::New(flow_graph_->parsed_function()->function(),
+      value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -3678,7 +3678,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
     }
     case kTypedDataFloat32x4ArrayCid: {
       // Check that value is always Float32x4.
-      value_check = ICData::New(flow_graph_->parsed_function()->function(),
+      value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -4994,8 +4994,7 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
 
 
 void LICM::OptimisticallySpecializeSmiPhis() {
-  if (!flow_graph()->parsed_function()->function().
-          allows_hoisting_check_class()) {
+  if (!flow_graph()->function().allows_hoisting_check_class()) {
     // Do not hoist any.
     return;
   }
@@ -5017,8 +5016,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
 
 
 void LICM::Optimize() {
-  if (!flow_graph()->parsed_function()->function().
-          allows_hoisting_check_class()) {
+  if (!flow_graph()->function().allows_hoisting_check_class()) {
     // Do not hoist any.
     return;
   }

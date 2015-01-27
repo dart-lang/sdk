@@ -87,7 +87,7 @@ bool FlowGraph::ShouldReorderBlocks(const Function& function,
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
     bool is_optimized) {
-  return ShouldReorderBlocks(parsed_function()->function(), is_optimized)
+  return ShouldReorderBlocks(function(), is_optimized)
       ? &optimized_block_order_
       : &reverse_postorder_;
 }
@@ -855,7 +855,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   if (!IsCompiledForOsr()) {
     for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
       if (i == CurrentContextEnvIndex()) {
-        if (parsed_function()->function().IsClosureFunction()) {
+        if (function().IsClosureFunction()) {
           CurrentContextInstr* context = new CurrentContextInstr();
           context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
           AddToInitialDefinitions(context);
