@@ -59,11 +59,7 @@ testSisp() {
 // LaTeX source 'addlatexhash_test_src.tex' are identical in groups
 // of eight (so we get 8 identical hash values, then another hash
 // value 8 times, etc.)
-testSameHash() {
-  // set up temporary directory to hold output
-  final tmpDir = Directory.systemTemp.createTempSync("addlatexhash_test");
-  final tmpDirPath = tmpDir.path;
-
+testSameHash(String tmpDirPath) {
   // file names/paths for file containing groups of 8 variants of a paragraph
   const par8timesName = "addlatexhash_test_src";
   const par8timesFileName = "$par8timesName.tex";
@@ -120,11 +116,7 @@ testSameHash() {
 // does not affect the generated output, as seen via dvi2tty and diff.
 // NB: Not part of normal testing (only local): latex and dvi2tty are
 // not installed in the standard test environment.
-testSameDVI() {
-  // set up /tmp directory to hold output
-  final tmpDir = Directory.systemTemp.createTempSync("addlatexhash_test");
-  final tmpDirPath = tmpDir.path;
-
+testSameDVI(String tmpDirPath) {
   // file names/paths for original spec
   const specName = "dartLangSpec";
   const specFileName = "$specName.tex";
@@ -189,10 +181,24 @@ testSameDVI() {
   }
 }
 
+runWithTempDir(void test(String tempDir)) {
+  final tempDir = Directory.systemTemp.createTempSync("addlatexhash_test");
+  try {
+    test(tempDir.path);
+  }
+  finally {
+    tempDir.delete(recursive: true);
+  }
+}
+
+
 main([args]) {
   testCutMatch();
   testSisp();
-  testSameHash();
+
+  runWithTempDir(testSameHash);
   // latex and dvi2tty are not installed in the standard test environment
-  if (args.length > 0 && args[0] == "local") testSameDVI();
+  if (args.length > 0 && args[0] == "local") {
+    runWithTempDir(testSameDVI);
+  }
 }
