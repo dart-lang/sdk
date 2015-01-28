@@ -68,6 +68,7 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
 
 import 'package:compiler/src/js_emitter/model.dart' show
     Class;
+
 import 'package:compiler/src/js_emitter/program_builder.dart' show
     ProgramBuilder;
 
@@ -1475,7 +1476,7 @@ class EmitterHelper extends JsFeatures {
 
   List<String> computeFields(ClassElement classElement) {
     Class cls = new ProgramBuilder(compiler, namer, emitter)
-        .buildClassWithFieldsForTry(classElement);
+        .buildClassWithFieldsForIncrementalCompilation(classElement);
     // TODO(ahe): Rewrite for new emitter.
     ClassBuilder builder = new ClassBuilder(classElement, namer);
     classEmitter.emitFields(cls, builder);
