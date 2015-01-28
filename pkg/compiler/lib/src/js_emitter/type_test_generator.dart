@@ -57,12 +57,16 @@ class TypeTestGenerator {
 
     TypeTestProperties result = new TypeTestProperties();
 
+    /// Generates an is-test if the test is not inherited from a superclass
+    /// This assumes that for every class an is-tests is generated
+    /// dynamically at runtime. We also always generate tests against
+    /// native classes.
+    /// TODO(herhut): Generate tests for native classes dynamically, as well.
     void generateIsTest(Element other) {
-      if (other == compiler.objectClass && other != classElement) {
-        // Avoid emitting `$isObject` on all classes but [Object].
-        return;
+      if (classElement.isNative ||
+          !compiler.world.isSubclassOf(classElement, other)) {
+        result.properties[namer.operatorIs(other)] = js('1');
       }
-      result.properties[namer.operatorIs(other)] = js('true');
     }
 
     void generateFunctionTypeSignature(FunctionElement method,
@@ -108,8 +112,7 @@ class TypeTestGenerator {
 
     void generateTypeCheck(TypeCheck check) {
       ClassElement checkedClass = check.cls;
-      // We must not call [generateIsTest] since we also want is$Object.
-      result.properties[namer.operatorIs(checkedClass)] = js('true');
+      generateIsTest(checkedClass);
       Substitution substitution = check.substitution;
       if (substitution != null) {
         jsAst.Expression body = substitution.getCode(backend.rti);

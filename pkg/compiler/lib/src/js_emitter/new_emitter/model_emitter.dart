@@ -110,8 +110,10 @@ class ModelEmitter {
          'outputContainsConstantList': program.outputContainsConstantList,
          'embeddedGlobals': emitEmbeddedGlobals(program.loadMap),
          'constants': emitConstants(fragment.constants),
-         'staticNonFinals': emitStaticNonFinalFields(fragment.staticNonFinalFields),
+         'staticNonFinals':
+           emitStaticNonFinalFields(fragment.staticNonFinalFields),
          'nativeBoilerplate': nativeBoilerplate,
+         'operatorIsPrefix': js.string(namer.operatorIsPrefix),
          'eagerClasses': emitEagerClassInitializations(fragment.libraries),
          'main': fragment.main,
          'code': code});
@@ -503,6 +505,7 @@ class ModelEmitter {
     }
     constructor.builtin\$cls = name;  // Needed for RTI.
     constructor.prototype = prototype;
+    prototype[#operatorIsPrefix + name] = constructor;
     prototype.constructor = constructor;
     return constructor;
   }

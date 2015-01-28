@@ -320,7 +320,7 @@ class OldEmitter implements Emitter {
     bool hasIsolateSupport = compiler.hasIsolateSupport;
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
 
-    jsAst.Expression defineClass = js('''
+    jsAst.Expression defineClass = js(r'''
         function(name, fields) {
           var accessors = [];
 
@@ -335,23 +335,25 @@ class OldEmitter implements Emitter {
             if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
             var parameter = "parameter_" + field;
             str += parameter;
-            body += ("this." + field + " = " + parameter + ";\\n");
+            body += ("this." + field + " = " + parameter + ";\n");
           }
-          str += ") {\\n" + body + "}\\n";
-          str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
-          str += "\$desc=\$collectedClasses." + name + ";\\n";
-          str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n";
-          str += name + ".prototype = \$desc;\\n";
+          str += ") {\n" + body + "}\n";
+          str += name + ".builtin$cls=\"" + name + "\";\n";
+          str += "$desc=$collectedClasses." + name + ";\n";
+          str += "if($desc instanceof Array) $desc = \$desc[1];\n";
+          str += name + ".prototype = $desc;\n";
           if (typeof defineClass.name != "string") {
-            str += name + ".name=\\"" + name + "\\";\\n";
+            str += name + ".name=\"" + name + "\";\n";
           }
           if (#hasIsolateSupport) {
-            str += name + ".$fieldNamesProperty=[" + fieldNames + "];\\n";
+            str += name + "." + #fieldNamesProperty + "=[" + fieldNames
+                   + "];\n";
           }
           str += accessors.join("");
 
           return str;
-        }''', { 'hasIsolateSupport': hasIsolateSupport });
+        }''', { 'hasIsolateSupport': hasIsolateSupport,
+                'fieldNamesProperty': js.string(fieldNamesProperty)});
 
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction.
@@ -422,6 +424,7 @@ class OldEmitter implements Emitter {
               // Fix up the the Dart Object class' prototype.
               var prototype = constructor.prototype;
               prototype.constructor = constructor;
+              prototype.#isObject = constructor;
               return prototype;
             }
             tmp.prototype = superConstructor.prototype;
@@ -432,12 +435,16 @@ class OldEmitter implements Emitter {
                 object[member] = properties[member];
               }
             }
+            // Use a function for `true` here, as functions are stored in the
+            // hidden class and not as properties in the object.
+            object[#operatorIsPrefix + constructor.name] = constructor;
             object.constructor = constructor;
             constructor.prototype = object;
             return object;
           };
         }()
-      ''');
+      ''', { 'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
+             'isObject' : namer.operatorIs(compiler.objectClass) });
     if (compiler.hasIncrementalSupport) {
       result = js(
           r'#.inheritFrom = #', [namer.accessIncrementalHelper, result]);
