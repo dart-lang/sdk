@@ -87,10 +87,8 @@ class InterceptorEmitter extends CodeEmitterHelper {
    * `findInterceptorForType`.  See declaration of `typeToInterceptor` in
    * `interceptors.dart`.
    */
-  void emitTypeToInterceptorMap(CodeOutput output) {
-    InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(compiler, namer, backend);
-    jsAst.Expression array = stubGenerator.generateTypeToInterceptorMap();
+  void emitTypeToInterceptorMap(Program program, CodeOutput output) {
+    jsAst.Expression array = program.typeToInterceptorMap;
     if (array == null) return;
 
     jsAst.Expression typeToInterceptorMap = emitter

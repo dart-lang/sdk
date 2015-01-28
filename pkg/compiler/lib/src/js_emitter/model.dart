@@ -18,8 +18,13 @@ class Program {
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
 
+  // If this field is not `null` then its value must be emitted in the embedded
+  // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
+  final js.Expression typeToInterceptorMap;
+
   Program(this.fragments,
           this.loadMap,
+          this.typeToInterceptorMap,
           {this.outputContainsNativeClasses,
            this.outputContainsConstantList}) {
     assert(outputContainsNativeClasses != null);

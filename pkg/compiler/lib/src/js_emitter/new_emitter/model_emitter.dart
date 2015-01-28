@@ -18,7 +18,8 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     INITIALIZE_LOADED_HUNK,
     IS_HUNK_INITIALIZED,
     IS_HUNK_LOADED,
-    MANGLED_GLOBAL_NAMES;
+    MANGLED_GLOBAL_NAMES,
+    TYPE_TO_INTERCEPTOR_MAP;
 
 import '../js_emitter.dart' show NativeGenerator;
 import '../model.dart';
@@ -109,7 +110,7 @@ class ModelEmitter {
          'cyclicThrow':
            backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
          'outputContainsConstantList': program.outputContainsConstantList,
-         'embeddedGlobals': emitEmbeddedGlobals(program.loadMap),
+         'embeddedGlobals': emitEmbeddedGlobals(program),
          'constants': emitConstants(fragment.constants),
          'staticNonFinals':
            emitStaticNonFinalFields(fragment.staticNonFinalFields),
@@ -151,19 +152,25 @@ class ModelEmitter {
     return js.js.uncachedExpressionTemplate('makeConstList(#)');
   }
 
-  js.Block emitEmbeddedGlobals(Map<String, List<Fragment>> loadMap) {
+  js.Block emitEmbeddedGlobals(Program program) {
     List<js.Property> globals = <js.Property>[];
 
-    if (loadMap.isNotEmpty) {
-      globals.addAll(emitLoadUrisAndHashes(loadMap));
+    if (program.loadMap.isNotEmpty) {
+      globals.addAll(emitLoadUrisAndHashes(program.loadMap));
       globals.add(emitIsHunkLoadedFunction());
       globals.add(emitInitializeLoadedHunk());
+    }
+
+    if (program.typeToInterceptorMap != null) {
+      globals.add(new js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP),
+                                  program.typeToInterceptorMap));
     }
 
     globals.add(new js.Property(js.string(MANGLED_GLOBAL_NAMES),
                                 js.js('Object.create(null)', [])));
 
     globals.add(emitGetTypeFromName());
+
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
     List<js.Statement> statements =
@@ -567,11 +574,11 @@ class ModelEmitter {
 
   setupProgram();
 
-  // Initialize globals.
-  #embeddedGlobals;
-
   // Initialize constants.
   #constants;
+
+  // Initialize globals.
+  #embeddedGlobals;
 
   // Initialize static non-final fields.
   #staticNonFinals;

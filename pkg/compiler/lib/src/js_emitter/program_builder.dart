@@ -118,6 +118,7 @@ class ProgramBuilder {
     return new Program(
         outputs,
         _buildLoadMap(),
+        _buildTypeToInterceptorMap(),
         outputContainsNativeClasses: containsNativeClasses,
         outputContainsConstantList: _task.outputContainsConstantList);
   }
@@ -136,6 +137,12 @@ class ProgramBuilder {
           .toList(growable: false);
     });
     return loadMap;
+  }
+
+  js.Expression _buildTypeToInterceptorMap() {
+    InterceptorStubGenerator stubGenerator =
+        new InterceptorStubGenerator(_compiler, namer, backend);
+    return stubGenerator.generateTypeToInterceptorMap();
   }
 
   MainFragment _buildMainOutput(LibrariesMap librariesMap) {
