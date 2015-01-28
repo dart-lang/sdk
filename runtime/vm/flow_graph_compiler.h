@@ -268,6 +268,7 @@ class FlowGraphCompiler : public ValueObject {
   FlowGraphCompiler(
       Assembler* assembler,
       FlowGraph* flow_graph,
+      const ParsedFunction& parsed_function,
       bool is_optimizing,
       const GrowableArray<const Function*>& inline_id_to_function);
 
@@ -280,7 +281,7 @@ class FlowGraphCompiler : public ValueObject {
 
   // Accessors.
   Assembler* assembler() const { return assembler_; }
-  ParsedFunction& parsed_function() const { return parsed_function_; }
+  const ParsedFunction& parsed_function() const { return parsed_function_; }
   const GrowableArray<BlockEntryInstr*>& block_order() const {
     return block_order_;
   }
@@ -634,7 +635,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Isolate* isolate_;
   Assembler* assembler_;
-  ParsedFunction& parsed_function_;
+  const ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
 

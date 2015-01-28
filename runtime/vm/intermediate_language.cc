@@ -470,7 +470,7 @@ const Object& Value::BoundConstant() const {
 }
 
 
-GraphEntryInstr::GraphEntryInstr(const ParsedFunction* parsed_function,
+GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
     : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
@@ -3002,7 +3002,7 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 Environment* Environment::From(Isolate* isolate,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
-                               const ParsedFunction* parsed_function) {
+                               const ParsedFunction& parsed_function) {
   Environment* env =
       new(isolate) Environment(definitions.length(),
                                fixed_parameter_count,

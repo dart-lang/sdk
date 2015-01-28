@@ -21,11 +21,11 @@ class FlowGraph;
 
 class Intrinsifier : public AllStatic {
  public:
-  static void Intrinsify(ParsedFunction* parsed_function,
+  static void Intrinsify(const ParsedFunction& parsed_function,
                          FlowGraphCompiler* compiler);
   static void InitializeState();
 
-  static bool GraphIntrinsify(ParsedFunction* parsed_function,
+  static bool GraphIntrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler);
 
   static intptr_t ParameterSlotFromSp();

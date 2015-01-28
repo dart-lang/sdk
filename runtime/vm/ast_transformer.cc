@@ -45,7 +45,7 @@ FOR_EACH_UNREACHABLE_NODE(DEFINE_UNREACHABLE)
 #undef DEFINE_UNREACHABLE
 
 AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
-                                   ParsedFunction* const parsed_function,
+                                   const ParsedFunction& parsed_function,
                                    LocalScope* function_top)
     : preamble_(preamble),
       temp_cnt_(0),
@@ -212,13 +212,13 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   // If this expression is part of a try block, also append the code for
   // restoring the saved try context that lives on the stack.
   const String& async_saved_try_ctx_name =
-      String::Handle(Z, parsed_function_->async_saved_try_ctx_name());
+      String::Handle(Z, parsed_function_.async_saved_try_ctx_name());
   if (!async_saved_try_ctx_name.IsNull()) {
     LocalVariable* async_saved_try_ctx =
         GetVariableInScope(preamble_->scope(), async_saved_try_ctx_name);
     preamble_->Add(new (Z) StoreLocalNode(
         Scanner::kNoSourcePos,
-        parsed_function_->saved_try_ctx(),
+        parsed_function_.saved_try_ctx(),
         new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
   }
 

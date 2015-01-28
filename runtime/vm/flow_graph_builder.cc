@@ -237,18 +237,18 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
 
 
 FlowGraphBuilder::FlowGraphBuilder(
-    ParsedFunction* parsed_function,
+    const ParsedFunction& parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     InlineExitCollector* exit_collector,
     intptr_t osr_id) :
         parsed_function_(parsed_function),
         ic_data_array_(ic_data_array),
-        num_copied_params_(parsed_function->num_copied_params()),
+        num_copied_params_(parsed_function.num_copied_params()),
         // All parameters are copied if any parameter is.
         num_non_copied_params_((num_copied_params_ == 0)
-            ? parsed_function->function().num_fixed_parameters()
+            ? parsed_function.function().num_fixed_parameters()
             : 0),
-        num_stack_locals_(parsed_function->num_stack_locals()),
+        num_stack_locals_(parsed_function.num_stack_locals()),
         exit_collector_(exit_collector),
         last_used_block_id_(0),  // 0 is used for the graph entry.
         try_index_(CatchClauseNode::kInvalidTryIndex),
@@ -748,13 +748,13 @@ Definition* EffectGraphVisitor::BuildStoreTemp(const LocalVariable& local,
 
 
 Definition* EffectGraphVisitor::BuildStoreExprTemp(Value* value) {
-  return BuildStoreTemp(*owner()->parsed_function()->expression_temp_var(),
+  return BuildStoreTemp(*owner()->parsed_function().expression_temp_var(),
                         value);
 }
 
 
 Definition* EffectGraphVisitor::BuildLoadExprTemp() {
-  return BuildLoadLocal(*owner()->parsed_function()->expression_temp_var());
+  return BuildLoadLocal(*owner()->parsed_function().expression_temp_var());
 }
 
 
@@ -825,13 +825,13 @@ void EffectGraphVisitor::BuildRestoreContext(const LocalVariable& variable) {
 
 Definition* EffectGraphVisitor::BuildStoreContext(Value* value) {
   return new(I) StoreLocalInstr(
-      *owner()->parsed_function()->current_context_var(), value);
+      *owner()->parsed_function().current_context_var(), value);
 }
 
 
 Definition* EffectGraphVisitor::BuildCurrentContext() {
   return new(I) LoadLocalInstr(
-      *owner()->parsed_function()->current_context_var());
+      *owner()->parsed_function().current_context_var());
 }
 
 
@@ -1019,7 +1019,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   Value* return_value = for_value.value();
 
   if (node->inlined_finally_list_length() > 0) {
-    LocalVariable* temp = owner()->parsed_function()->finally_return_temp_var();
+    LocalVariable* temp = owner()->parsed_function().finally_return_temp_var();
     ASSERT(temp != NULL);
     Do(BuildStoreLocal(*temp, return_value));
     for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
@@ -1187,7 +1187,7 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 
   const bool eliminated = value->Type()->IsAssignableTo(dst_type);
   if (FLAG_trace_type_check_elimination) {
-    FlowGraphPrinter::PrintTypeCheck(*owner()->parsed_function(),
+    FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
                                      token_pos,
                                      value,
                                      dst_type,
@@ -2448,8 +2448,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     ASSERT(!function.HasCode());
     ASSERT(function.context_scope() == ContextScope::null());
     function.set_context_scope(context_scope);
-    const Class& cls = Class::Handle(
-        I, owner()->function().Owner());
+    const Class& cls = Class::Handle(I, owner()->function().Owner());
     // The closure is now properly setup, add it to the lookup table.
     // It is possible that the compiler creates more than one function
     // object for the same closure, e.g. when inlining nodes from
@@ -2815,7 +2814,7 @@ Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
     return NULL;
   }
 
-  LocalVariable* instantiator = owner()->parsed_function()->instantiator();
+  LocalVariable* instantiator = owner()->parsed_function().instantiator();
   ASSERT(instantiator != NULL);
   Value* result = Bind(BuildLoadLocal(*instantiator));
   return result;
@@ -2851,7 +2850,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     // No instantiator for factories.
     ASSERT(instantiator == NULL);
     LocalVariable* instantiator_var =
-        owner()->parsed_function()->instantiator();
+        owner()->parsed_function().instantiator();
     ASSERT(instantiator_var != NULL);
     return Bind(BuildLoadLocal(*instantiator_var));
   }
@@ -3738,7 +3737,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
   const bool is_top_level_sequence =
-      node == owner()->parsed_function()->node_sequence();
+      node == owner()->parsed_function().node_sequence();
   // The outermost function sequence cannot contain a label.
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
@@ -4094,7 +4093,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   intptr_t args_pos = method_arguments->token_pos();
   LocalVariable* temp = NULL;
   if (save_last_arg) {
-    temp = owner()->parsed_function()->EnsureExpressionTemp();
+    temp = owner()->parsed_function().expression_temp_var();
   }
   ArgumentListNode* args =
       Parser::BuildNoSuchMethodArguments(args_pos,
@@ -4268,10 +4267,10 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
-    AstPrinter::PrintFunctionNodes(*parsed_function());
+    AstPrinter::PrintFunctionNodes(parsed_function());
   }
   if (FLAG_print_scopes) {
-    AstPrinter::PrintFunctionScope(*parsed_function());
+    AstPrinter::PrintFunctionScope(parsed_function());
   }
   TargetEntryInstr* normal_entry =
       new(I) TargetEntryInstr(AllocateBlockId(),
@@ -4279,7 +4278,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   graph_entry_ =
       new(I) GraphEntryInstr(parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this);
-  parsed_function()->node_sequence()->Visit(&for_effect);
+  parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
@@ -4299,7 +4298,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 void FlowGraphBuilder::PruneUnreachable() {
   ASSERT(osr_id_ != Isolate::kNoDeoptId);
-  Zone* zone = parsed_function()->zone();
+  Zone* zone = parsed_function().zone();
   BitVector* block_marks = new(zone) BitVector(zone, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);
@@ -4308,7 +4307,7 @@ void FlowGraphBuilder::PruneUnreachable() {
 
 
 void FlowGraphBuilder::Bailout(const char* reason) const {
-  const Function& function = parsed_function_->function();
+  const Function& function = parsed_function_.function();
   Report::MessageF(Report::kBailout,
                    Script::Handle(function.script()),
                    function.token_pos(),

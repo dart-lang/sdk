@@ -123,7 +123,7 @@ static void EmitCodeFor(FlowGraphCompiler* compiler,
 }
 
 
-bool Intrinsifier::GraphIntrinsify(ParsedFunction* parsed_function,
+bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                                    FlowGraphCompiler* compiler) {
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new ZoneGrowableArray<const ICData*>();
@@ -139,7 +139,7 @@ bool Intrinsifier::GraphIntrinsify(ParsedFunction* parsed_function,
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
       parsed_function, normal_entry, Isolate::kNoDeoptId);  // No OSR id.
   FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
-  const Function& function = parsed_function->function();
+  const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
 #define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
     case MethodRecognizer::k##enum_name:                                       \
@@ -173,9 +173,9 @@ bool Intrinsifier::GraphIntrinsify(ParsedFunction* parsed_function,
 }
 
 
-void Intrinsifier::Intrinsify(ParsedFunction* parsed_function,
+void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler) {
-  const Function& function = parsed_function->function();
+  const Function& function = parsed_function.function();
   if (!CanIntrinsify(function)) {
     return;
   }

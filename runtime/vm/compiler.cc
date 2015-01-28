@@ -96,7 +96,7 @@ class DartCompilationPipeline : public CompilationPipeline {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) {
     // Build the flow graph.
-    FlowGraphBuilder builder(parsed_function,
+    FlowGraphBuilder builder(*parsed_function,
                              ic_data_array,
                              NULL,  // NULL = not inlining.
                              osr_id);
@@ -134,12 +134,12 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
     parsed_function->AllocateIrregexpVariables(result.num_stack_locals);
 
     // Build the flow graph.
-    FlowGraphBuilder builder(parsed_function,
+    FlowGraphBuilder builder(*parsed_function,
                              ic_data_array,
                              NULL,  // NULL = not inlining.
                              osr_id);
 
-    return new(isolate_) FlowGraph(parsed_function,
+    return new(isolate_) FlowGraph(*parsed_function,
                                    result.graph_entry,
                                    result.num_blocks);
   }
@@ -686,8 +686,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       }
 
       Assembler assembler(use_far_branches);
-      FlowGraphCompiler graph_compiler(
-          &assembler, flow_graph, optimized, inline_id_to_function);
+      FlowGraphCompiler graph_compiler(&assembler, flow_graph,
+                                       *parsed_function, optimized,
+                                       inline_id_to_function);
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphcompiler_timer,

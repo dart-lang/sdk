@@ -686,7 +686,7 @@ class CallSiteInliner : public ValueObject {
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new(Z) InlineExitCollector(caller_graph_, call);
-      FlowGraphBuilder builder(parsed_function,
+      FlowGraphBuilder builder(*parsed_function,
                                *ic_data_array,
                                exit_collector,
                                Isolate::kNoDeoptId);
@@ -1472,10 +1472,12 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
         FlowGraph::kEffect);
     entry->set_last_instruction(result);
     exit_collector->AddExit(result);
+    ParsedFunction* temp_parsed_function =
+        new ParsedFunction(Thread::Current(), target);
     GraphEntryInstr* graph_entry =
-        new(Z) GraphEntryInstr(NULL,  // No parsed function.
-                                       entry,
-                                       Isolate::kNoDeoptId);  // No OSR id.
+        new(Z) GraphEntryInstr(*temp_parsed_function,
+                               entry,
+                               Isolate::kNoDeoptId);  // No OSR id.
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);

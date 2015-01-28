@@ -84,25 +84,25 @@ struct ConstantPoolTrait {
 // Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
-  FlowGraph(ParsedFunction* parsed_function,
+  FlowGraph(const ParsedFunction& parsed_function,
             GraphEntryInstr* graph_entry,
             intptr_t max_block_id);
 
   // Function properties.
-  ParsedFunction* parsed_function() const {
+  const ParsedFunction& parsed_function() const {
     return parsed_function_;
   }
   const Function& function() const {
-    return parsed_function_->function();
+    return parsed_function_.function();
   }
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
   }
   intptr_t variable_count() const {
-    return parameter_count() + parsed_function_->num_stack_locals();
+    return parameter_count() + parsed_function_.num_stack_locals();
   }
   intptr_t num_stack_locals() const {
-    return parsed_function_->num_stack_locals();
+    return parsed_function_.num_stack_locals();
   }
   intptr_t num_copied_params() const {
     return num_copied_params_;
@@ -115,11 +115,11 @@ class FlowGraph : public ZoneAllocated {
   }
 
   LocalVariable* CurrentContextVar() const {
-    return parsed_function()->current_context_var();
+    return parsed_function().current_context_var();
   }
 
   intptr_t CurrentContextEnvIndex() const {
-    return parsed_function()->current_context_var()->BitIndexIn(
+    return parsed_function().current_context_var()->BitIndexIn(
         num_non_copied_params_);
   }
 
@@ -342,7 +342,7 @@ class FlowGraph : public ZoneAllocated {
   intptr_t max_block_id_;
 
   // Flow graph fields.
-  ParsedFunction* parsed_function_;
+  const ParsedFunction& parsed_function_;
   const intptr_t num_copied_params_;
   const intptr_t num_non_copied_params_;
   GraphEntryInstr* graph_entry_;

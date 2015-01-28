@@ -2920,7 +2920,6 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   if (FLAG_print_ssa_liveranges) {
     const Function& function = flow_graph_.function();
-
     OS::Print("-- [before ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());
     PrintLiveRanges();

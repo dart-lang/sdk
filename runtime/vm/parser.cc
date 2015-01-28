@@ -361,9 +361,7 @@ Parser::Parser(const Script& script,
       async_temp_scope_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
-  if (FLAG_enable_type_checks) {
-    EnsureExpressionTemp();
-  }
+  EnsureExpressionTemp();
 }
 
 
@@ -7593,7 +7591,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   AstNode* await_moveNext = new (Z) AwaitNode(stream_pos, iterator_moveNext);
   OpenBlock();
   AwaitTransformer at(current_block_->statements,
-                      parsed_function(),
+                      *parsed_function(),
                       async_temp_scope_);
   AstNode* transformed_await = at.Transform(await_moveNext);
   SequenceNode* await_preamble = CloseBlock();
@@ -9287,7 +9285,7 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
     // are created.
     OpenBlock();
     AwaitTransformer at(current_block_->statements,
-                        parsed_function(),
+                        *parsed_function(),
                         async_temp_scope_);
     AstNode* result = at.Transform(expr);
     SequenceNode* preamble = CloseBlock();

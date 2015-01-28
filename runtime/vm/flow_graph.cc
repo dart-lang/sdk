@@ -19,7 +19,7 @@ DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
 
 
-FlowGraph::FlowGraph(ParsedFunction* parsed_function,
+FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id)
   : thread_(Thread::Current()),
@@ -27,8 +27,8 @@ FlowGraph::FlowGraph(ParsedFunction* parsed_function,
     current_ssa_temp_index_(0),
     max_block_id_(max_block_id),
     parsed_function_(parsed_function),
-    num_copied_params_(parsed_function->num_copied_params()),
-    num_non_copied_params_(parsed_function->num_non_copied_params()),
+    num_copied_params_(parsed_function.num_copied_params()),
+    num_non_copied_params_(parsed_function.num_non_copied_params()),
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
@@ -41,8 +41,8 @@ FlowGraph::FlowGraph(ParsedFunction* parsed_function,
     licm_allowed_(true),
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
-    guarded_fields_(parsed_function->guarded_fields()),
-    deferred_prefixes_(parsed_function->deferred_prefixes()),
+    guarded_fields_(parsed_function.guarded_fields()),
+    deferred_prefixes_(parsed_function.deferred_prefixes()),
     captured_parameters_(new(zone()) BitVector(zone(), variable_count())) {
   DiscoverBlocks();
 }

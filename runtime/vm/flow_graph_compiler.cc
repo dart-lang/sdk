@@ -87,11 +87,12 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     FlowGraph* flow_graph,
+    const ParsedFunction& parsed_function,
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function)
       : isolate_(Isolate::Current()),
         assembler_(assembler),
-        parsed_function_(*flow_graph->parsed_function()),
+        parsed_function_(parsed_function),
         flow_graph_(*flow_graph),
         block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
         current_block_(NULL),
@@ -127,6 +128,8 @@ FlowGraphCompiler::FlowGraphCompiler(
         deopt_id_to_ic_data_(NULL),
         inlined_code_intervals_(NULL),
         inline_id_to_function_(inline_id_to_function) {
+  ASSERT(flow_graph->parsed_function().function().raw() ==
+         parsed_function.function().raw());
   if (!is_optimizing) {
     const intptr_t len = isolate()->deopt_id();
     deopt_id_to_ic_data_ = new(isolate()) ZoneGrowableArray<const ICData*>(len);
@@ -936,7 +939,7 @@ void FlowGraphCompiler::TryIntrinsify() {
 
   EnterIntrinsicMode();
 
-  Intrinsifier::Intrinsify(&parsed_function(), this);
+  Intrinsifier::Intrinsify(parsed_function(), this);
 
   ExitIntrinsicMode();
   // "Deoptimization" from intrinsic continues here. All deoptimization
