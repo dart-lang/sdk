@@ -146,8 +146,7 @@ main() {
    */
   Future _assertSuccessfulRefactoring(String expectedCode) {
     return assertRefactoringConditionsOK().then((_) {
-      var f = refactoring.createChange();
-      return f.then((SourceChange refactoringChange) {
+      return refactoring.createChange().then((SourceChange refactoringChange) {
         this.refactoringChange = refactoringChange;
         assertTestChangeResult(expectedCode);
       });
