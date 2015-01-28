@@ -116,7 +116,9 @@ class Universe {
   Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
 
   /// Returns `true` if [cls] is considered to be instantiated, either directly,
-  /// through subclasses or throught subtypes.
+  /// through subclasses or through subtypes. The latter case only contains
+  /// spurious information from instatiations through factory constructors and
+  /// mixins.
   // TODO(johnniwinther): Improve semantic precision.
   bool isInstantiated(ClassElement cls) {
     return _allInstantiatedClasses.contains(cls);
