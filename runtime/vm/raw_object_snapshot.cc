@@ -1903,9 +1903,14 @@ void String::ReadFromImpl(SnapshotReader* reader,
     *str_obj = StringType::New(len, HEAP_SPACE(kind));
     str_obj->set_tags(tags);
     str_obj->SetHash(0);  // Will get computed when needed.
+    if (len == 0) {
+      return;
+    }
     NoGCScope no_gc;
+    CharacterType* str_addr = StringType::CharAddr(*str_obj, 0);
     for (intptr_t i = 0; i < len; i++) {
-      *StringType::CharAddr(*str_obj, i) = reader->Read<CharacterType>();
+      *str_addr = reader->Read<CharacterType>();
+      str_addr++;
     }
   }
 }

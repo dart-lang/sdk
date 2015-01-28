@@ -17169,10 +17169,15 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(begin_index >= 0);
   ASSERT(len >= 0);
   ASSERT((begin_index + len) <= str.Length());
+  if (len == 0) {
+    return;
+  }
   if (str.IsOneByteString()) {
+    NoGCScope no_gc;
+    uint8_t* str_addr = OneByteString::CharAddr(str, begin_index);
     for (intptr_t i = 0; i < len; i++) {
-      NoGCScope no_gc;
-      Add(*OneByteString::CharAddr(str, i + begin_index));
+      Add(*str_addr);
+      str_addr++;
     }
   } else {
     String::CodePointIterator it(str, begin_index, len);
