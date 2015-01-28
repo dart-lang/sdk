@@ -1085,7 +1085,7 @@ var $libName;
 
   /// Safely visit the given node, printing the suffix after the node if it is
   /// non-`null`.
-  void _visitToken(Token token, {String prefix: '', String suffix: ''}) {
+  void visitToken(Token token, {String prefix: '', String suffix: ''}) {
     if (token == null) return;
     out.write(prefix);
     out.write(token.lexeme);
