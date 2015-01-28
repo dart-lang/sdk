@@ -64,7 +64,7 @@ class TypeTestGenerator {
     /// TODO(herhut): Generate tests for native classes dynamically, as well.
     void generateIsTest(Element other) {
       if (classElement.isNative ||
-          !compiler.world.isSubclassOf(classElement, other)) {
+          !classElement.isSubclassOf(other)) {
         result.properties[namer.operatorIs(other)] = js('1');
       }
     }
