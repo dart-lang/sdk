@@ -8723,4 +8723,100 @@ TEST_CASE(ExternalStringIndexOf) {
   EXPECT_EQ(6, value);
 }
 
+TEST_CASE(StringFromExternalTypedData) {
+  const char* kScriptChars =
+    "test(external) {\n"
+    "  var str1 = new String.fromCharCodes(external);\n"
+    "  var str2 = new String.fromCharCodes(new List.from(external));\n"
+    "  if (str2 != str1) throw 'FAIL';\n"
+    "  return str1;\n"
+    "}\n"
+    "testView8(external) {\n"
+    "  return test(external.buffer.asUint8List());\n"
+    "}\n"
+    "testView16(external) {\n"
+    "  return test(external.buffer.asUint16List());\n"
+    "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, NULL);
+
+  {
+    uint8_t data[64];
+    for (int i = 0; i < 64; i++) {
+      data[i] = i * 4;
+    }
+    // LATIN-1 in external Uint8List.
+    Dart_Handle external = Dart_NewExternalTypedData(
+        Dart_TypedData_kUint8, data, 64);
+    EXPECT_VALID(external);
+    Dart_Handle dart_args[1];
+    dart_args[0] = external;
+    Dart_Handle result = Dart_Invoke(lib,
+                                     NewString("test"),
+                                     1,
+                                     dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+
+    result = Dart_Invoke(lib,
+                         NewString("testView8"),
+                         1,
+                         dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+  }
+
+  {
+    uint16_t data[64];
+    for (int i = 0; i < 64; i++) {
+      data[i] = i * 4;
+    }
+    // LATIN-1 in external Uint16List.
+    Dart_Handle external = Dart_NewExternalTypedData(
+        Dart_TypedData_kUint16, data, 64);
+    EXPECT_VALID(external);
+    Dart_Handle dart_args[1];
+    dart_args[0] = external;
+    Dart_Handle result = Dart_Invoke(lib,
+                                     NewString("test"),
+                                     1,
+                                     dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+
+    result = Dart_Invoke(lib,
+                         NewString("testView16"),
+                         1,
+                         dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+  }
+
+  {
+    uint16_t data[64];
+    for (int i = 0; i < 64; i++) {
+      data[i] = 0x2000 + i * 4;
+    }
+    // Non-LATIN-1 in external Uint16List.
+    Dart_Handle external = Dart_NewExternalTypedData(
+        Dart_TypedData_kUint16, data, 64);
+    EXPECT_VALID(external);
+    Dart_Handle dart_args[1];
+    dart_args[0] = external;
+    Dart_Handle result = Dart_Invoke(lib,
+                                     NewString("test"),
+                                     1,
+                                     dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+
+    result = Dart_Invoke(lib,
+                         NewString("testView16"),
+                         1,
+                         dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+  }
+}
+
 }  // namespace dart

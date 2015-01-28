@@ -18665,6 +18665,36 @@ RawTwoByteString* TwoByteString::New(const String& str,
 }
 
 
+RawTwoByteString* TwoByteString::New(const TypedData& other_typed_data,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(TwoByteString::New(other_len, space));
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(TwoByteString::CharAddr(result, 0),
+            other_typed_data.DataAddr(other_start_index),
+            other_len * sizeof(uint16_t));
+  }
+  return TwoByteString::raw(result);
+}
+
+
+RawTwoByteString* TwoByteString::New(const ExternalTypedData& other_typed_data,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(TwoByteString::New(other_len, space));
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(TwoByteString::CharAddr(result, 0),
+            other_typed_data.DataAddr(other_start_index),
+            other_len * sizeof(uint16_t));
+  }
+  return TwoByteString::raw(result);
+}
+
+
 RawTwoByteString* TwoByteString::Concat(const String& str1,
                                         const String& str2,
                                         Heap::Space space) {

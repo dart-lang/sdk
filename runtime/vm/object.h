@@ -6177,6 +6177,16 @@ class TwoByteString : public AllStatic {
   static RawTwoByteString* New(const String& str,
                                Heap::Space space);
 
+  static RawTwoByteString* New(const TypedData& other_typed_data,
+                               intptr_t other_start_index,
+                               intptr_t other_len,
+                               Heap::Space space = Heap::kNew);
+
+  static RawTwoByteString* New(const ExternalTypedData& other_typed_data,
+                               intptr_t other_start_index,
+                               intptr_t other_len,
+                               Heap::Space space = Heap::kNew);
+
   static RawTwoByteString* Concat(const String& str1,
                                   const String& str2,
                                   Heap::Space space);

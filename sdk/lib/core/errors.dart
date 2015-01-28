@@ -300,18 +300,25 @@ class RangeError extends ArgumentError {
    *
    * The [startName] and [endName] defaults to `"start"` and `"end"`,
    * respectively.
+   *
+   * Returns the actual `end` value, which is `length` if `end` is `null`,
+   * and `end` otherwise.
    */
-  static void checkValidRange(int start, int end, int length,
+  static int checkValidRange(int start, int end, int length,
                               [String startName, String endName,
                                String message]) {
     if (start < 0 || start > length) {
       if (startName == null) startName = "start";
       throw new RangeError.range(start, 0, length, startName, message);
     }
-    if (end != null && (end < start || end > length)) {
-      if (endName == null) endName = "end";
-      throw new RangeError.range(end, start, length, endName, message);
+    if (end != null) {
+      if (end < start || end > length) {
+        if (endName == null) endName = "end";
+        throw new RangeError.range(end, start, length, endName, message);
+      }
+      return end;
     }
+    return length;
   }
 
   /**

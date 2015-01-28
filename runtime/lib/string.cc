@@ -407,6 +407,92 @@ DEFINE_NATIVE_ENTRY(ExternalOneByteString_getCid, 0) {
 }
 
 
+DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
+  Instance& list = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
+
+  intptr_t start = start_obj.Value();
+  intptr_t end = end_obj.Value();
+  if (start < 0) {
+    Exceptions::ThrowArgumentError(start_obj);
+  }
+  intptr_t length = end - start;
+  if (length < 0) {
+    Exceptions::ThrowArgumentError(end_obj);
+  }
+
+  Heap::Space space = isolate->heap()->SpaceForAllocation(kTwoByteStringCid);
+  if (list.IsTypedData()) {
+    const TypedData& array = TypedData::Cast(list);
+    if (array.ElementType() != kUint16ArrayElement) {
+      Exceptions::ThrowArgumentError(list);
+    }
+    if (end > array.Length()) {
+      Exceptions::ThrowArgumentError(end_obj);
+    }
+    return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
+  } else if (list.IsExternalTypedData()) {
+    const ExternalTypedData& array = ExternalTypedData::Cast(list);
+    if (array.ElementType() != kUint16ArrayElement) {
+      Exceptions::ThrowArgumentError(list);
+    }
+    if (end > array.Length()) {
+      Exceptions::ThrowArgumentError(end_obj);
+    }
+    return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
+  } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
+    const intptr_t cid = list.GetClassId();
+    if (cid != kTypedDataUint16ArrayViewCid) {
+      Exceptions::ThrowArgumentError(list);
+    }
+    if (end > Smi::Value(TypedDataView::Length(list))) {
+      Exceptions::ThrowArgumentError(end_obj);
+    }
+    const Instance& data_obj = Instance::Handle(isolate,
+                                                TypedDataView::Data(list));
+    intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(list));
+    if (data_obj.IsTypedData()) {
+      const TypedData& array = TypedData::Cast(data_obj);
+      return TwoByteString::New(array, data_offset + start * sizeof(uint16_t),
+                                length, space);
+    } else if (data_obj.IsExternalTypedData()) {
+      const ExternalTypedData& array = ExternalTypedData::Cast(data_obj);
+      return TwoByteString::New(array, data_offset + start * sizeof(uint16_t),
+                                length, space);
+    }
+  } else if (list.IsArray()) {
+    const Array& array = Array::Cast(list);
+    if (end > array.Length()) {
+      Exceptions::ThrowArgumentError(end_obj);
+    }
+    const String& string = String::Handle(isolate,
+                                          TwoByteString::New(length, space));
+    for (int i = 0; i < length; i++) {
+      intptr_t value =
+          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      TwoByteString::SetCharAt(string, i, value);
+    }
+    return string.raw();
+  } else if (list.IsGrowableObjectArray()) {
+    const GrowableObjectArray& array = GrowableObjectArray::Cast(list);
+    if (end > array.Length()) {
+      Exceptions::ThrowArgumentError(end_obj);
+    }
+    const String& string = String::Handle(isolate,
+                                          TwoByteString::New(length, space));
+    for (int i = 0; i < length; i++) {
+      intptr_t value =
+          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      TwoByteString::SetCharAt(string, i, value);
+    }
+    return string.raw();
+  }
+  UNREACHABLE();
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();

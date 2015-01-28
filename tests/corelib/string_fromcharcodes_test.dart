@@ -10,7 +10,8 @@ main() {
                                ? new Iterable.generate(count, (x) => values[x])
                                : new Iterable.generate(count, (x) => values);
   test(expect, iter, [start = 0, end]) {
-    Expect.equals(expect, new String.fromCharCodes(iter, start, end));
+    var actual = new String.fromCharCodes(iter, start, end);
+    Expect.equals(expect, actual);
   }
   testThrows(iterable, [start = 0, end]) {
     Expect.throws(() { new String.fromCharCodes(iterable, start, end); });
@@ -199,4 +200,83 @@ main() {
   test("abcde" * 199998, megaList, 5, 999995);
   // Large Uint8List.
   test("abcde" * 199998, new Uint8List.fromList(megaList), 5, 999995);
+
+  const cLatin1       = const [0x00, 0xff];
+  const cUtf16        = const [0x00, 0xffff, 0xdfff, 0xdbff, 0xdfff, 0xdbff];
+  const cCodepoints   = const [0x00, 0xffff, 0xdfff, 0x10ffff, 0xdbff];
+  List  gLatin1       = cLatin1.toList(growable: true);
+  List  gUtf16        = cUtf16.toList(growable: true);
+  List  gCodepoints   = cCodepoints.toList(growable: true);
+  List  fLatin1       = cLatin1.toList(growable: false);
+  List  fUtf16        = cUtf16.toList(growable: false);
+  List  fCodepoints   = cCodepoints.toList(growable: false);
+  Uint8List  bLatin1  = new Uint8List(2)..setRange(0, 2, cLatin1);
+  Uint16List wLatin1  = new Uint16List(2)..setRange(0, 2, cLatin1);
+  Uint16List wUtf16   = new Uint16List(6)..setRange(0, 6, cUtf16);
+  Uint32List lLatin1  = new Uint32List(2)..setRange(0, 2, cLatin1);
+  Uint32List lUtf16   = new Uint32List(6)..setRange(0, 6, cUtf16);
+  Uint32List lCodepoints = new Uint32List(5)..setRange(0, 5, cCodepoints);
+  Uint8List bvLatin1  = new Uint8List.view(bLatin1.buffer);
+  Uint16List wvLatin1 = new Uint16List.view(wLatin1.buffer);
+  Uint16List wvUtf16  = new Uint16List.view(wUtf16.buffer);
+  Uint32List lvLatin1 = new Uint32List.view(lLatin1.buffer);
+  Uint32List lvUtf16  = new Uint32List.view(lUtf16.buffer);
+  Uint32List lvCodepoints = new Uint32List.view(lCodepoints.buffer);
+  var buffer = new Uint8List(200).buffer;
+  Uint8List bbLatin1  =
+      new Uint8List.view(buffer, 3, 2)..setAll(0, bLatin1);
+  Uint16List wbLatin1 =
+      new Uint16List.view(buffer, 8, 2)..setAll(0, wLatin1);
+  Uint16List wbUtf16  =
+      new Uint16List.view(buffer, 16, 6)..setAll(0, wUtf16);
+  Uint32List lbLatin1 =
+      new Uint32List.view(buffer, 32, 2)..setAll(0, lLatin1);
+  Uint32List lbUtf16  =
+      new Uint32List.view(buffer, 64, 6)..setAll(0, lUtf16);
+  Uint32List lbCodepoints =
+      new Uint32List.view(buffer, 128, 5)..setAll(0, lCodepoints);
+
+  String sLatin1     = "\x00\xff";
+  String sUnicode    =
+      "\x00\uffff$tailSurrogate$leadSurrogate$tailSurrogate$leadSurrogate";
+  for (int i = 0; i < 2; i++) {
+    for (int j = i + 1; j < 2; j++) {
+      test(sLatin1.substring(i, j), cLatin1, i, j);
+      test(sLatin1.substring(i, j), gLatin1, i, j);
+      test(sLatin1.substring(i, j), fLatin1, i, j);
+      test(sLatin1.substring(i, j), bLatin1, i, j);
+      test(sLatin1.substring(i, j), wLatin1, i, j);
+      test(sLatin1.substring(i, j), lLatin1, i, j);
+      test(sLatin1.substring(i, j), bvLatin1, i, j);
+      test(sLatin1.substring(i, j), wvLatin1, i, j);
+      test(sLatin1.substring(i, j), lvLatin1, i, j);
+      test(sLatin1.substring(i, j), bbLatin1, i, j);
+      test(sLatin1.substring(i, j), wbLatin1, i, j);
+      test(sLatin1.substring(i, j), lbLatin1, i, j);
+    }
+  }
+  for (int i = 0; i < 6; i++) {
+    for (int j = i + 1; j < 6; j++) {
+      test(sUnicode.substring(i, j), cUtf16, i, j);
+      test(sUnicode.substring(i, j), gUtf16, i, j);
+      test(sUnicode.substring(i, j), fUtf16, i, j);
+      test(sUnicode.substring(i, j), wUtf16, i, j);
+      test(sUnicode.substring(i, j), lUtf16, i, j);
+      test(sUnicode.substring(i, j), wvUtf16, i, j);
+      test(sUnicode.substring(i, j), lvUtf16, i, j);
+      test(sUnicode.substring(i, j), wbUtf16, i, j);
+      test(sUnicode.substring(i, j), lbUtf16, i, j);
+    }
+  }
+  for (int i = 0; i < 5; i++) {
+    for (int j = i + 1; j < 5; j++) {
+      int stringEnd = j < 4 ? j : j + 1;
+      test(sUnicode.substring(i, stringEnd), cCodepoints, i, j);
+      test(sUnicode.substring(i, stringEnd), gCodepoints, i, j);
+      test(sUnicode.substring(i, stringEnd), fCodepoints, i, j);
+      test(sUnicode.substring(i, stringEnd), lCodepoints, i, j);
+      test(sUnicode.substring(i, stringEnd), lvCodepoints, i, j);
+      test(sUnicode.substring(i, stringEnd), lbCodepoints, i, j);
+    }
+  }
 }

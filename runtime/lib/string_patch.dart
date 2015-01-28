@@ -2,10 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+const int _maxAscii = 0x7f;
+const int _maxLatin1 = 0xff;
+const int _maxUtf16 = 0xffff;
+const int _maxUnicode = 0x10ffff;
+
 patch class String {
   /* patch */ factory String.fromCharCodes(Iterable<int> charCodes,
                                            [int start = 0, int end]) {
-    return _StringBase.createFromCharCodes(charCodes, start, end);
+    if (charCodes is! Iterable) throw new ArgumentError.value(charCodes, "charCodes");
+    if (start is! int) throw new ArgumentError.value(start, "start");
+    if (end != null && end is! int) throw new ArgumentError.value(end, "end");
+    return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
   /* patch */ factory String.fromCharCode(int charCode) {
@@ -80,11 +88,19 @@ class _StringBase {
   int get hashCode native "String_getHashCode";
 
   /**
-   *  Create the most efficient string representation for specified
-   *  [codePoints].
+   * Create the most efficient string representation for specified
+   * [charCodes].
+   *
+   * Only uses the character codes betwen index [start] and index [end] of
+   * `charCodes`. They must satisfy `0 <= start <= end <= charCodes.length`.
+   *
+   * The [limit] is an upper limit on the character codes in the iterable.
+   * It's `null` if unknown.
    */
   static String createFromCharCodes(Iterable<int> charCodes,
-                                    int start, int end) {
+                                    int start, int end,
+                                    int limit) {
+    if (start == null) throw new ArgumentError.notNull("start");
     if (charCodes == null) throw new ArgumentError(charCodes);
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
@@ -93,73 +109,113 @@ class _StringBase {
         (ccid != ClassID.cidGrowableObjectArray) &&
         (ccid != ClassID.cidImmutableArray)) {
       if (charCodes is Uint8List) {
-        isOneByteString = true;
-      } else {
-        // Treat charCodes as Iterable.
-        if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
-        if (end != null && end < start) {
-          throw new RangeError.range(end, start, charCodes.length);
-        }
-        var it = charCodes.iterator;
-        for (int i = 0; i < start; i++) {
-          if (!it.moveNext()) {
-            throw new RangeError.range(start, 0, i);
-          }
-        }
-        int bits = 0;  // Bitwise or of all char codes in list.
-        var list = [];
-        if (end == null) {
-          while (it.moveNext()) {
-            int code = it.current;
-            bits |= code;
-            list.add(code);
-          }
-        } else {
-          for (int i = start; i < end; i++) {
-            if (!it.moveNext()) {
-              throw new RangeError.range(end, start, i);
-            }
-            int code = it.current;
-            bits |= code;
-            list.add(code);
-          }
-        }
-        charCodes = list;
-        isOneByteString = (bits >= 0 && bits <= 0xff);
-        start = 0;
-        end = list.length;
+        end = RangeError.checkValidRange(start, end, charCodes.length);
+        return _createOneByteString(charCodes, start, end - start);
+      } else if (charCodes is! Uint16List) {
+        return _createStringFromIterable(charCodes, start, end);
       }
     }
     int codeCount = charCodes.length;
-    if (start < 0 || start > codeCount) {
-      throw new RangeError.range(start, 0, codeCount);
-    }
-    if (end == null) {
-      end = codeCount;
-    } else if (end < start || end > codeCount) {
-      throw new RangeError.range(end, start, codeCount);
-    }
+    end = RangeError.checkValidRange(start, end, codeCount);
     final len = end - start;
-    if (!isOneByteString) {
-      for (int i = start; i < end; i++) {
-        int e = charCodes[i];
-        if (e is! _Smi) throw new ArgumentError(e);
-        // Is e Latin1?
-        if ((e < 0) || (e > 0xFF)) {
-          return _createFromCodePoints(charCodes, start, end);
-        }
+    if (len == 0) return "";
+    if (limit == null) {
+      limit = _scanCodeUnits(charCodes, start, end);
+    }
+    if (limit < 0) {
+      throw new ArgumentError(charCodes);
+    }
+    if (limit <= _maxLatin1) {
+      return _createOneByteString(charCodes, start, len);
+    }
+    if (limit <= _maxUtf16) {
+      return _TwoByteString._allocateFromTwoByteList(charCodes, start, end);
+    }
+    // TODO(lrn): Consider passing limit to _createFromCodePoints, because
+    // the function is currently fully generic and doesn't know that its
+    // charCodes are not all Latin-1 or Utf-16.
+    return _createFromCodePoints(charCodes, start, end);
+  }
+
+  static int _scanCodeUnits(List<int> charCodes, int start, int end) {
+    int bits = 0;
+    for (int i = start; i < end; i++) {
+      int code = charCodes[i];
+      if (code is! _Smi) throw new ArgumentError(charCodes);
+      bits |= code;
+    }
+    return bits;
+  }
+
+  static String _createStringFromIterable(Iterable<int> charCodes,
+                                          int start, int end) {
+    // Treat charCodes as Iterable.
+    if (charCodes is EfficientLength) {
+      int length = charCodes.length;
+      end = RangeError.checkValidRange(start, end, length);
+      List charCodeList = new List.from(charCodes.take(end).skip(start),
+                                        growable: false);
+      return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
+    }
+    // Don't know length of iterable, so iterate and see if all the values
+    // are there.
+    if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
+    var it = charCodes.iterator;
+    for (int i = 0; i < start; i++) {
+      if (!it.moveNext()) {
+        throw new RangeError.range(start, 0, i);
       }
     }
-    // Allocate a one byte string. When the list is 128 entries or longer,
-    // it's faster to perform a runtime-call.
-    if (len >= 128) {
-      return _OneByteString._allocateFromOneByteList(charCodes, start, end);
+    List charCodeList;
+    int bits = 0;  // Bitwise-or of all char codes in list.
+    if (end == null) {
+      var list = [];
+      while (it.moveNext()) {
+        int code = it.current;
+        bits |= code;
+        list.add(code);
+      }
+      charCodeList = makeListFixedLength(list);
+    } else {
+      if (end < start) {
+        throw new RangeError.range(end, start, charCodes.length);
+      }
+      int len = end - start;
+      var list = new List(len);
+      for (int i = 0; i < len; i++) {
+        if (!it.moveNext()) {
+          throw new RangeError.range(end, start, start + i);
+        }
+        int code = it.current;
+        bits |= code;
+        list[i] = code;
+      }
+      charCodeList = list;
     }
+    int length = charCodeList.length;
+    if (bits < 0) {
+      throw new ArgumentError(charCodes);
+    }
+    bool isOneByteString = (bits <= _maxLatin1);
+    if (isOneByteString) {
+      return _createOneByteString(charCodeList, 0, length);
+    }
+    return createFromCharCodes(charCodeList, 0, length, bits);
+  }
+
+  static String _createOneByteString(List<int> charCodes, int start, int len) {
+    // It's always faster to do this in Dart than to call into the runtime.
     var s = _OneByteString._allocate(len);
     for (int i = 0; i < len; i++) {
       s._setAt(i, charCodes[start + i]);
     }
     return s;
+  }
+
+  static String _createTwoByteString(List<int> charCodes, int start, int len) {
+    // TODO(lrn): Create string without scanning charCodes again - all values
+    // in the [start..end] range are uint16 values.
+    return _createFromCodePoints(charCodes, start, end);
   }
 
   static String _createFromCodePoints(List<int> codePoints, int start, int end)
@@ -1139,6 +1195,9 @@ class _TwoByteString extends _StringBase implements String {
     throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
   }
+
+  static String _allocateFromTwoByteList(List list, int start, int end)
+      native "TwoByteString_allocateFromTwoByteList";
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isTwoByteWhitespace(codeUnit);
