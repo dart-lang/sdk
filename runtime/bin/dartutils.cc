@@ -597,7 +597,17 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   DART_CHECK_VALID(url);
   Dart_Handle async_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(async_lib);
+  url = NewString(kIsolateLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(isolate_lib);
+  url = NewString(kInternalLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle internal_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(internal_lib);
+
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  DART_CHECK_VALID(io_lib);
 
   // We need to ensure that all the scripts loaded so far are finalized
   // as we are about to invoke some Dart code below to setup closures.
@@ -607,31 +617,20 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  url = NewString(kInternalLibURL);
-  DART_CHECK_VALID(url);
-  Dart_Handle internal_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(internal_lib);
   result = Dart_SetField(internal_lib,
                          NewString("_printClosure"),
                          print);
   DART_CHECK_VALID(result);
 
-  // Setup the 'timer' factory.
-  Dart_Handle timer_closure =
-      Dart_Invoke(io_lib, NewString("_getTimerFactoryClosure"), 0, NULL);
-  Dart_Handle args[1];
-  args[0] = timer_closure;
-  DART_CHECK_VALID(Dart_Invoke(
-      async_lib, NewString("_setTimerFactoryClosure"), 1, args));
+  DART_CHECK_VALID(Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, NULL));
+  DART_CHECK_VALID(Dart_Invoke(io_lib, NewString("_setupHooks"), 0, NULL));
+
 
   // Setup the 'scheduleImmediate' closure.
-  url = NewString(kIsolateLibURL);
-  DART_CHECK_VALID(url);
-  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(isolate_lib);
   Dart_Handle schedule_immediate_closure =
       Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
                   0, NULL);
+  Dart_Handle args[1];
   args[0] = schedule_immediate_closure;
   DART_CHECK_VALID(Dart_Invoke(
       async_lib, NewString("_setScheduleImmediateClosure"), 1, args));

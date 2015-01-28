@@ -30,7 +30,6 @@
     'socket.dart',
     'stdio.dart',
     'string_transformer.dart',
-    'timer_impl.dart',
     'secure_socket.dart',
     'secure_server_socket.dart',
     'websocket.dart',

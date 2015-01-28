@@ -5,6 +5,7 @@
 # This file contains all sources for the dart:async library.
 {
   'sources': [
+    'async_patch.dart',
     'deferred_load_patch.dart',
     'schedule_microtask_patch.dart',
     'timer_patch.dart',

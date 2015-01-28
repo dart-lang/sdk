@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
-
 // Timer heap implemented as a array-based binary heap[0].
 // This allows for O(1) `first`, O(log(n)) `remove`/`removeFirst` and O(log(n))
 // `add`.
@@ -263,7 +261,7 @@ class _Timer implements Timer {
       // No pending timers: Close the receive port and let the event handler
       // know.
       if (_receivePort != null) {
-        _EventHandler._sendData(null, _sendPort, _NO_TIMER);
+        VMLibraryHooks.eventHandlerSendData(null, _sendPort, _NO_TIMER);
         _shutdownTimerHandler();
       }
     } else {
@@ -281,14 +279,14 @@ class _Timer implements Timer {
         var wakeupTime = _heap.first._wakeupTime;
         if ((_scheduledWakeupTime == null) ||
             (wakeupTime != _scheduledWakeupTime)) {
-          _EventHandler._sendData(null, _sendPort, wakeupTime);
+          VMLibraryHooks.eventHandlerSendData(null, _sendPort, wakeupTime);
           _scheduledWakeupTime = wakeupTime;
         }
       }
     }
   }
 
-  static void _handleTimeout(pendingImmediateCallback) {
+  static void _handleTimeout() {
     // Fast exit if no timers have been scheduled.
     if (_heap.isEmpty && (_firstZeroTimer == null)) {
       assert(_receivePort == null);
@@ -398,7 +396,7 @@ class _Timer implements Timer {
             timer._addTimerToHeap();
           }
           // Execute pending micro tasks.
-          pendingImmediateCallback();
+          _runPendingImmediateCallback();
         }
       }
     } finally {
@@ -438,4 +436,8 @@ class _Timer implements Timer {
     }
     return new _Timer(milliSeconds, callback);
   }
+}
+
+_setupHooks() {
+  VMLibraryHooks.timerFactory = _Timer._factory;
 }
