@@ -233,7 +233,7 @@ class DartBackend extends Backend {
         computeElementAst: computeElementAst,
         shouldOutput: shouldOutput,
         isSafeToRemoveTypeDeclarations: isSafeToRemoveTypeDeclarations,
-        sortElements: sortElements,
+        sortElements: Elements.sortedByPosition,
         mirrorRenamer: mirrorRenamer,
         mainFunction: compiler.mainFunction,
         outputUri: compiler.outputUri);
@@ -467,9 +467,6 @@ compareElements(e0, e1) {
   if (result != 0) return result;
   return compareBy((e) => e.position.charOffset)(e0, e1);
 }
-
-List<Element> sortElements(Iterable<Element> elements) =>
-    sorted(elements, compareElements);
 
 /// [ConstantCompilerTask] for compilation of constants for the Dart backend.
 ///

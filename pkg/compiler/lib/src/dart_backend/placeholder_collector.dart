@@ -345,6 +345,14 @@ class PlaceholderCollector extends Visitor {
     if (library.isPlatformLibrary && !element.isTopLevel) {
       return;
     }
+
+    ClassElement cls = element.enclosingClass;
+    if (cls != null && cls.isEnumClass) {
+      // Enums and enum values cannot be changed, since the semantics of
+      // `toString` is defined by the names of the declarations.
+      return;
+    }
+
     if (element.isGetter || element.isSetter) {
       element = (element as FunctionElement).abstractField;
     }

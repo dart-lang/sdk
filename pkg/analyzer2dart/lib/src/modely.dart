@@ -340,6 +340,9 @@ abstract class TopLevelElementMixin implements ElementY {
   // TODO(johnniwinther): Ensure the correct semantics of this.
   @override
   bool get isAbstract => false;
+
+  @override
+  dart2js.ClassElement get enclosingClass => null;
 }
 
 abstract class FunctionElementMixin

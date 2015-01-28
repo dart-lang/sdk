@@ -139,6 +139,7 @@ class TreePrinter {
   final Token withToken = makeIdToken('with');
   final Token implementsToken = makeIdToken('implements');
   final Token typedefToken = makeIdToken('typedef');
+  final Token enumToken = makeIdToken('enum');
 
   static tree.Identifier makeIdentifier(String name) {
     return new tree.Identifier(
@@ -1060,6 +1061,8 @@ class TreePrinter {
   tree.Node makeNodeForClassElement(elements.ClassElement cls) {
     if (cls.isMixinApplication) {
       return makeNamedMixinApplication(cls);
+    } else if (cls.isEnumClass) {
+      return makeEnum(cls);
     } else {
       return makeClassNode(cls);
     }
@@ -1179,6 +1182,14 @@ class TreePrinter {
     return new tree.NamedMixinApplication(
         name, typeParameters, modifiers, supernode,
         interfaces, classToken, semicolon);
+  }
+
+  tree.Enum makeEnum(elements.EnumClassElement cls) {
+    return new tree.Enum(
+        enumToken,
+        makeIdentifier(cls.name),
+        makeList(',', cls.enumValues.map((e) => makeIdentifier(e.name)),
+                 open: openBrace, close: closeBrace));
   }
 
   /// Creates a [tree.ClassNode] node for [cls].

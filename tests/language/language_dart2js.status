@@ -208,9 +208,8 @@ type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
 regress_13494_test: Fail # Issue 13494
-enum_const_test/01: Crash # Issue 21681
-enum_const_test/02: Crash # Issue 21681
 
+enum_duplicate_test/01: CompileTimeError # Issue 22169
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633

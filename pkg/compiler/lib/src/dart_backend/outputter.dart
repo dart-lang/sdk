@@ -96,7 +96,8 @@ class DartOutputter {
       };
     }
 
-    libraryInfo = LibraryInfo.processLibraries(libraries, resolvedElements);
+    libraryInfo = LibraryInfo.processLibraries(
+        listener, libraries, resolvedElements);
 
     elementInfo = ElementInfoProcessor.createElementInfo(
         instantiatedClasses,
@@ -162,7 +163,7 @@ class DartOutputter {
     makePlaceholders(element) {
       collector.collect(element);
 
-      if (element.isClass) {
+      if (element.isClass && !element.isEnumClass) {
         elementInfo.classMembers[element].forEach(makePlaceholders);
       }
     }
@@ -228,6 +229,7 @@ class LibraryInfo {
               this.userLibraries);
 
   static LibraryInfo processLibraries(
+      DiagnosticListener listener,
       Iterable<LibraryElement> libraries,
       Iterable<AstElement> resolvedElements) {
     Set<String> fixedStaticNames = new Set<String>();
@@ -276,6 +278,11 @@ class LibraryInfo {
         }
       }
     }
+
+    // Map to keep track of names of enum classes. Since these cannot be renamed
+    // we ensure that they are unique.
+    Map<String, ClassElement> enumClassMap = <String, ClassElement>{};
+
     // As of now names of named optionals are not renamed. Therefore add all
     // field names used as named optionals into [fixedMemberNames].
     for (final element in resolvedElements) {
@@ -286,7 +293,23 @@ class LibraryInfo {
         if (!optional.isInitializingFormal) continue;
         fixedDynamicNames.add(optional.name);
       }
+      ClassElement cls = element.enclosingClass;
+      if (cls != null && cls.isEnumClass) {
+        fixedDynamicNames.add('index');
+
+        ClassElement existingEnumClass =
+            enumClassMap.putIfAbsent(cls.name, () => cls);
+        if (existingEnumClass != cls) {
+          listener.reportError(cls, MessageKind.GENERIC,
+              {'text': "Duplicate enum names are not supported in dart2dart."});
+          listener.reportInfo(existingEnumClass, MessageKind.GENERIC,
+              {'text': "This is the other declaration of '${cls.name}'."});
+        }
+      }
     }
+
+    fixedStaticNames.addAll(enumClassMap.keys);
+
     // The VM will automatically invoke the call method of objects
     // that are invoked as functions. Make sure to not rename that.
     fixedDynamicNames.add('call');
@@ -409,7 +432,6 @@ class ElementInfoProcessor implements ElementInfo {
   }
 
   void addMember(element) {
-    ElementAst elementAst = parseElementAst(element);
     if (element.isClassMember) {
       ClassElement enclosingClass = element.enclosingClass;
       assert(enclosingClass.isClass);
@@ -417,10 +439,11 @@ class ElementInfoProcessor implements ElementInfo {
       assert(shouldOutput(enclosingClass));
       addClass(enclosingClass);
       classMembers[enclosingClass].add(element);
-      processElement(element, elementAst);
+      if (enclosingClass.isEnumClass) return;
+      processElement(element, parseElementAst(element));
     } else {
       if (element.isTopLevel) {
-        addTopLevel(element, elementAst);
+        addTopLevel(element, parseElementAst(element));
       }
     }
   }
@@ -448,12 +471,16 @@ class MainOutputGenerator {
        bool enableMinification: false}) {
     for (Element element in elementInfo.topLevelElements) {
       topLevelNodes.add(elementInfo.elementAsts[element].ast);
-      if (element.isClass && !element.isMixinApplication) {
+      if (element.isClass) {
+        ClassElement cls = element;
+        if (cls.isMixinApplication || cls.isEnumClass) {
+          continue;
+        }
         final members = <Node>[];
-        for (Element member in elementInfo.classMembers[element]) {
+        for (Element member in elementInfo.classMembers[cls]) {
           members.add(elementInfo.elementAsts[member].ast);
         }
-        memberNodes[elementInfo.elementAsts[element].ast] = members;
+        memberNodes[elementInfo.elementAsts[cls].ast] = members;
       }
     }
 
