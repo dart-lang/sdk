@@ -128,9 +128,10 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess interceptorClassAccess(ClassElement element) {
-    // Interceptors are eagerly constructed. It's safe to just access them.
-    return _globalPropertyAccess(element);
+  js.Expression interceptorClassAccess(ClassElement element) {
+    // Some interceptors are eagerly constructed. However, native interceptors
+    // aren't.
+    return js.js('#.ensureResolved()', _globalPropertyAccess(element));
   }
 
   @override
