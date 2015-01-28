@@ -17,7 +17,8 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     GET_TYPE_FROM_NAME,
     INITIALIZE_LOADED_HUNK,
     IS_HUNK_INITIALIZED,
-    IS_HUNK_LOADED;
+    IS_HUNK_LOADED,
+    MANGLED_GLOBAL_NAMES;
 
 import '../js_emitter.dart' show NativeGenerator;
 import '../model.dart';
@@ -158,6 +159,9 @@ class ModelEmitter {
       globals.add(emitIsHunkLoadedFunction());
       globals.add(emitInitializeLoadedHunk());
     }
+
+    globals.add(new js.Property(js.string(MANGLED_GLOBAL_NAMES),
+                                js.js('Object.create(null)', [])));
 
     globals.add(emitGetTypeFromName());
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);

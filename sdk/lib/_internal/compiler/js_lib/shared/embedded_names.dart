@@ -16,14 +16,17 @@ const TYPE_INFORMATION = 'typeInformation';
 const GLOBAL_FUNCTIONS = 'globalFunctions';
 const STATICS = 'statics';
 
-/**
- * If [JSInvocationMirror._invokeOn] is being used, this embedded global
- * contains a JavaScript map with the names of methods that are
- * intercepted.
- */
+/// If [JSInvocationMirror._invokeOn] is being used, this embedded global
+/// contains a JavaScript map with the names of methods that are
+/// intercepted.
 const INTERCEPTED_NAMES = 'interceptedNames';
 
+/// A JS map from mangled global names to their unmangled names.
+///
+/// If the program does not use reflection may be empty (but not null or
+/// undefined).
 const MANGLED_GLOBAL_NAMES = 'mangledGlobalNames';
+
 const MANGLED_NAMES = 'mangledNames';
 const LIBRARIES = 'libraries';
 const FINISHED_CLASSES = 'finishedClasses';
@@ -49,10 +52,8 @@ const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
 const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
 
-/**
- * Returns the type given the name of a class.
- * This function is called by the runtime when computing rti.
- */
+/// Returns the type given the name of a class.
+/// This function is called by the runtime when computing rti.
 const GET_TYPE_FROM_NAME = 'getTypeFromName';
 const TYPE_TO_INTERCEPTOR_MAP = "typeToInterceptorMap";
 
