@@ -117,7 +117,7 @@ var $libName;
     var supertype = node.element.supertype;
 
     out.write('class $name');
-    if (!supertype.isObject) {
+    if (supertype != null && !supertype.isObject) {
       out.write(' extends ${_typeName(supertype)}');
     }
     out.write(' {\n', 2);
@@ -213,7 +213,6 @@ var $libName;
 
     if (redirectCall != null) {
       redirectCall.accept(this);
-      out.write("}\n", -2);
       return;
     }
 
@@ -245,9 +244,9 @@ var $libName;
     var body = node.body;
     if (body is BlockFunctionBody) {
       body.block.statements.accept(this);
+    } else if (body is ExpressionFunctionBody) {
+      _visitNode(body.expression, prefix: 'return ', suffix: ';\n');
     } else {
-      // constructors cannot have ExpressionFunctionBody because they cannot
-      // return values
       assert(body is EmptyFunctionBody);
     }
   }
@@ -255,7 +254,13 @@ var $libName;
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var name = (node.parent as ConstructorDeclaration).name.name;
+    var parent = node.parent as ConstructorDeclaration;
+    String name;
+    if (parent.name != null) {
+      name = parent.name.name;
+    } else {
+      name = _typeName((parent.parent as ClassDeclaration).element.type);
+    }
     out.write('$name.call(this');
     var args = node.argumentList;
     if (args != null) {
@@ -835,7 +840,11 @@ var $libName;
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _visitGet(node.prefix, node.identifier);
+    if (node.prefix.staticElement is PrefixElement) {
+      node.identifier.accept(this);
+    } else {
+      _visitGet(node.prefix, node.identifier);
+    }
   }
 
   @override

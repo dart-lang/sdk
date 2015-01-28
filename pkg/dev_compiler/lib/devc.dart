@@ -88,7 +88,7 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
       if (!forceCompile) continue;
     }
     for (var cg in generators) {
-      cg.generateLibrary(units, current);
+      cg.generateLibrary(units, current, reporter);
     }
   }
 

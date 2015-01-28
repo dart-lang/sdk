@@ -6,6 +6,7 @@ import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/report.dart';
 import 'package:ddc/src/checker/rules.dart';
 
 abstract class CodeGenerator {
@@ -19,11 +20,15 @@ abstract class CodeGenerator {
 
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir);
 
-  void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info) {
+  void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
+      CheckerReporter reporter) {
     var libraryDir = path.join(outDir, info.name);
     new Directory(libraryDir)..createSync(recursive: true);
     for (var unit in units) {
+      var unitSource = unit.element.source;
+      reporter.enterSource(unitSource);
       generateUnit(unit, info, libraryDir);
+      reporter.leaveSource();
     }
   }
 }
