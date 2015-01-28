@@ -55,7 +55,7 @@ main(arguments) {
   for (var filePath in paths) {
     var filename = path.basenameWithoutExtension(filePath);
 
-    test('ddc $filename.dart', () {
+    test('devc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
       var result = compile(filePath, sdkResolver,
@@ -74,4 +74,16 @@ main(arguments) {
       // happens in the containing shell script.
     });
   }
+
+  test('devc dart:core', () {
+    // TODO(jmesserly): eventually we should track compiler messages.
+    // For now we're just trying to get decent code generation.
+
+    var result = compile('dart:core', sdkResolver,
+        outputDir: actualDir, checkSdk: true, forceCompile: true);
+
+    var outputDir = new Directory(path.join(actualDir, 'core'));
+    expect(outputDir.existsSync(), true,
+        reason: '${outputDir.path} was created for dart:core');
+  });
 }
