@@ -11,12 +11,14 @@ import 'package:analyzer/src/generated/source.dart' show UriKind;
 import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart' show SourceFile;
 
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/checker/rules.dart';
 import 'package:ddc/src/utils.dart' as utils;
-import 'reify_coercions.dart' as reifier;
+import 'ast_builder.dart';
 import 'code_generator.dart' as codegenerator;
+import 'reify_coercions.dart' as reifier;
 
 final _log = new logger.Logger('ddc.dartgenerator');
 
@@ -31,6 +33,53 @@ DartType _inferredTypeForVariableDeclarationList(VariableDeclarationList node) {
     if (variables.length == 1) return variables[0].element.type;
   }
   return null;
+}
+
+class DdcRuntime {
+  Identifier _ddcRuntimeId = AstBuilder.identifierFromString("DDC\$RT");
+
+  Identifier _castId;
+  Identifier _typeToTypeId;
+
+  DdcRuntime() {
+    _castId = _prefixId(AstBuilder.identifierFromString("cast"));
+    _typeToTypeId = _prefixId(AstBuilder.identifierFromString("type"));
+  }
+
+  String get importString {
+    var name = _ddcRuntimeId;
+    var uri = "package:ddc/runtime/dart_logging_runtime.dart";
+    return "import '$uri' as $name;";
+  }
+
+  Identifier _prefixId(Identifier id) =>
+      AstBuilder.prefixedIdentifier(_ddcRuntimeId, id);
+
+  Expression cast(Expression e, TypeName t, [SourceFile file]) {
+    var args = <Expression>[e, typeToType(t)];
+    if (file != null) {
+      final begin = e is AnnotatedNode
+          ? (e as AnnotatedNode).firstTokenAfterCommentAndMetadata.offset
+          : e.offset;
+      if (begin != 0) {
+        var loc = file.location(begin).toolString;
+        var s = "Cast failed: $loc";
+        var msg = AstBuilder.stringLiteral(s);
+        args.add(AstBuilder.namedParameter("key", msg));
+      }
+    }
+    return AstBuilder.application(_castId, args);
+  }
+
+  Expression typeToType(TypeName t) {
+    if (t.typeArguments != null && t.typeArguments.length > 0) {
+      var w = AstBuilder.identifierFromString("_");
+      var fp = AstBuilder.simpleFormal(w, t);
+      var f = AstBuilder.blockFunction(<FormalParameter>[fp], <Statement>[]);
+      return AstBuilder.application(_typeToTypeId, <Expression>[f]);
+    }
+    return t.name;
+  }
 }
 
 // TODO(leafp) This is kind of a hack, but it works for now.
@@ -183,12 +232,16 @@ class UnitGenerator extends UnitGeneratorCommon {
   final java_core.PrintWriter _out;
   final String outDir;
   List<LibraryElement> extraImports = null;
+  final ddc = new DdcRuntime();
+  SourceFile _file;
 
   UnitGenerator(this.unit, java_core.PrintWriter out, String this.outDir)
       : _out = out,
         super(out) {
     UnitImportResolver r = new UnitImportResolver(unit);
     extraImports = r.compute();
+    _file = new SourceFile(unit.element.source.contents.data,
+        url: unit.element.source.uri);
   }
 
   void output(String s) => _out.print(s);
@@ -257,6 +310,7 @@ class UnitGenerator extends UnitGeneratorCommon {
   void _visitDirectives(String prefix, List<Directive> directives) {
     var ds = splitDirectives(directives);
     var es = buildExtraImportDirectives();
+    es.add(ddc.importString);
     visitListWithSeparatorAndPrefix(prefix, ds['library'], " ");
     if (ds['partof'].length == 0) {
       es.forEach((e) => outputln(e));
@@ -270,6 +324,13 @@ class UnitGenerator extends UnitGeneratorCommon {
     visitListWithSeparatorAndPrefix(prefix, ds['import'], " ");
     visitListWithSeparatorAndPrefix(prefix, ds['export'], " ");
     visitListWithSeparatorAndPrefix(prefix, ds['part'], " ");
+  }
+
+  @override
+  Object visitAsExpression(AsExpression node) {
+    var call = ddc.cast(node.expression, node.type, _file);
+    call.accept(this);
+    return null;
   }
 
   @override

@@ -17,6 +17,10 @@ class AstBuilder {
     return RawAstBuilder.identifierFromString(name);
   }
 
+  static PrefixedIdentifier prefixedIdentifier(Identifier pre, Identifier id) {
+    return RawAstBuilder.prefixedIdentifier(pre, id);
+  }
+
   static TypeParameter typeParameter(Identifier name, [TypeName bound = null]) {
     return RawAstBuilder.typeParameter(name, bound);
   }
@@ -49,6 +53,10 @@ class AstBuilder {
 
   static NullLiteral nullLiteral() {
     return RawAstBuilder.nullLiteral();
+  }
+
+  static StringLiteral stringLiteral(String s) {
+    return RawAstBuilder.simpleStringLiteral(s);
   }
 
   static AsExpression asExpression(Expression exp, TypeName type) {
@@ -177,6 +185,11 @@ class RawAstBuilder {
     return new SimpleIdentifier(token);
   }
 
+  static PrefixedIdentifier prefixedIdentifier(Identifier pre, Identifier id) {
+    Token period = new Token(TokenType.PERIOD, 0);
+    return new PrefixedIdentifier(pre, period, id);
+  }
+
   static TypeParameter typeParameter(Identifier name, [TypeName bound = null]) {
     Token keyword =
         (bound == null) ? null : new KeywordToken(Keyword.EXTENDS, 0);
@@ -217,14 +230,19 @@ class RawAstBuilder {
     return new NullLiteral(n);
   }
 
+  static SimpleStringLiteral simpleStringLiteral(String s) {
+    StringToken token = new StringToken(TokenType.STRING, "\"" + s + "\"", 0);
+    return new SimpleStringLiteral(token, s);
+  }
+
   static AsExpression asExpression(Expression exp, TypeName type) {
     Token token = new KeywordToken(Keyword.AS, 0);
     return new AsExpression(exp, token, type);
   }
 
   static ParenthesizedExpression parenthesizedExpression(Expression exp) {
-    Token lp = new BeginToken(TokenType.OPEN_PAREN, 0);
-    Token rp = new Token(TokenType.CLOSE_PAREN, 0);
+    Token lp = new BeginToken(TokenType.OPEN_PAREN, exp.offset);
+    Token rp = new Token(TokenType.CLOSE_PAREN, exp.end);
     return new ParenthesizedExpression(lp, exp, rp);
   }
 
