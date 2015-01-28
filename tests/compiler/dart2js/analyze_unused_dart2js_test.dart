@@ -19,7 +19,7 @@ const Map<String, List<String>> WHITE_LIST = const {
 
   // Hack to give try private access:
   "lib/src/js_emitter/program_builder.dart": const [
-      "The method 'buildClassWithFieldsForTry' is never called"],
+      "The method 'buildClassWithFieldsForIncrementalCompilation' is never called"],
 
   // Node.asLiteralBool is never used.
   "lib/src/tree/nodes.dart": const [
