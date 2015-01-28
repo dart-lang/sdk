@@ -164,9 +164,7 @@ class ElementFactory {
     // Finish building the enum.
     //
     enumElement.fields = fields;
-
-
-        // Client code isn't allowed to invoke the constructor, so we do not model it.
+    // Client code isn't allowed to invoke the constructor, so we do not model it.
     return enumElement;
   }
 
@@ -497,7 +495,7 @@ class ElementFactory {
     variable.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
-    if (!isFinal) {
+    if (!isConst && !isFinal) {
       PropertyAccessorElementImpl setter =
           new PropertyAccessorElementImpl.forVariable(variable);
       setter.setter = true;

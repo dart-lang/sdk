@@ -185,12 +185,14 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.classElement2("Iterable", ["E"]);
       _iterableType = iterableElement.type;
       DartType eType = iterableElement.typeParameters[0].type;
-      iterableElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement(
-              "iterator",
-              false,
-              iteratorType.substitute4(<DartType>[eType])),
-          ElementFactory.getterElement("last", false, eType)];
+      _setAccessors(
+          iterableElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement(
+                  "iterator",
+                  false,
+                  iteratorType.substitute4(<DartType>[eType])),
+              ElementFactory.getterElement("last", false, eType)]);
       _propagateTypeArguments(iterableElement);
     }
     return _iterableType;
@@ -202,8 +204,10 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.classElement2("Iterator", ["E"]);
       _iteratorType = iteratorElement.type;
       DartType eType = iteratorElement.typeParameters[0].type;
-      iteratorElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("current", false, eType)];
+      _setAccessors(
+          iteratorElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("current", false, eType)]);
       _propagateTypeArguments(iteratorElement);
     }
     return _iteratorType;
@@ -221,8 +225,10 @@ class TestTypeProvider implements TypeProvider {
       InterfaceType iterableType =
           this.iterableType.substitute4(<DartType>[eType]);
       listElement.interfaces = <InterfaceType>[iterableType];
-      listElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("length", false, intType)];
+      _setAccessors(
+          listElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("length", false, intType)]);
       listElement.methods = <MethodElement>[
           ElementFactory.methodElement("[]", eType, [intType]),
           ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
@@ -240,8 +246,10 @@ class TestTypeProvider implements TypeProvider {
       _mapType = mapElement.type;
       DartType kType = mapElement.typeParameters[0].type;
       DartType vType = mapElement.typeParameters[1].type;
-      mapElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("length", false, intType)];
+      _setAccessors(
+          mapElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("length", false, intType)]);
       mapElement.methods = <MethodElement>[
           ElementFactory.methodElement("[]", vType, [objectType]),
           ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [kType, vType])];
@@ -277,9 +285,11 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.methodElement("toString", stringType),
           ElementFactory.methodElement("==", boolType, [_objectType]),
           ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])];
-      objectElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("hashCode", false, intType),
-          ElementFactory.getterElement("runtimeType", false, typeType)];
+      _setAccessors(
+          objectElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("hashCode", false, intType),
+              ElementFactory.getterElement("runtimeType", false, typeType)]);
     }
     return _objectType;
   }
@@ -297,13 +307,15 @@ class TestTypeProvider implements TypeProvider {
     if (_stringType == null) {
       _stringType = ElementFactory.classElement2("String").type;
       ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
-      stringElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("isEmpty", false, boolType),
-          ElementFactory.getterElement("length", false, intType),
-          ElementFactory.getterElement(
-              "codeUnits",
-              false,
-              listType.substitute4(<DartType>[intType]))];
+      _setAccessors(
+          stringElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("isEmpty", false, boolType),
+              ElementFactory.getterElement("length", false, intType),
+              ElementFactory.getterElement(
+                  "codeUnits",
+                  false,
+                  listType.substitute4(<DartType>[intType]))]);
       stringElement.methods = <MethodElement>[
           ElementFactory.methodElement("+", _stringType, [_stringType]),
           ElementFactory.methodElement("toLowerCase", _stringType),
@@ -478,5 +490,16 @@ class TestTypeProvider implements TypeProvider {
       FunctionTypeImpl functionType = constructor.type as FunctionTypeImpl;
       functionType.typeArguments = typeArguments;
     }
+  }
+
+  /**
+   * Set the accessors for the given class [element] to the given [accessors]
+   * and also set the fields to those that correspond to the accessors.
+   */
+  void _setAccessors(ClassElementImpl element,
+      List<PropertyAccessorElement> accessors) {
+    element.accessors = accessors;
+    element.fields = accessors.map(
+        (PropertyAccessorElement accessor) => accessor.variable).toList();
   }
 }

@@ -126,6 +126,8 @@ class AnalysisContextFactory {
         provider.doubleType.element,
         provider.functionType.element,
         provider.intType.element,
+        provider.iterableType.element,
+        provider.iteratorType.element,
         provider.listType.element,
         provider.mapType.element,
         provider.nullType.element,
@@ -161,9 +163,7 @@ class AnalysisContextFactory {
             provider.deprecatedType);
     coreUnit.accessors = <PropertyAccessorElement>[
         proxyTopLevelVariableElt.getter,
-        proxyTopLevelVariableElt.setter,
-        deprecatedTopLevelVariableElt.getter,
-        deprecatedTopLevelVariableElt.setter];
+        deprecatedTopLevelVariableElt.getter];
     coreUnit.topLevelVariables = <TopLevelVariableElement>[
         proxyTopLevelVariableElt,
         deprecatedTopLevelVariableElt];
@@ -200,8 +200,9 @@ class AnalysisContextFactory {
     FunctionTypeAliasElementImpl aliasElement =
         new FunctionTypeAliasElementImpl.forNode(null);
     aliasElement.synthetic = true;
-    aliasElement.shareParameters(parameters);
+    aliasElement.parameters = parameters;
     aliasElement.returnType = provider.dynamicType;
+    aliasElement.enclosingElement = asyncUnit;
     FunctionTypeImpl aliasType = new FunctionTypeImpl.con2(aliasElement);
     aliasElement.shareTypeParameters(futureElement.typeParameters);
     aliasType.typeArguments = futureElement.type.typeArguments;
@@ -253,6 +254,8 @@ class AnalysisContextFactory {
             [provider.stringType])];
     canvasElement.accessors = <PropertyAccessorElement>[
         ElementFactory.getterElement("context2D", false, context2dElement.type)];
+    canvasElement.fields = canvasElement.accessors.map(
+        (PropertyAccessorElement accessor) => accessor.variable).toList();
     ClassElementImpl documentElement =
         ElementFactory.classElement("Document", elementType);
     ClassElementImpl htmlDocumentElement =
