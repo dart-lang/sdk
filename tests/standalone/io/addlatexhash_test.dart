@@ -157,7 +157,7 @@ testSameDVI(String tmpDirPath) {
                        listPath]);
 
   runDvi2tty(dviFile) =>
-      Process.runSync("dvi2tty", [dviFile], workingDirectory: tmpDir.path);
+      Process.runSync("dvi2tty", [dviFile], workingDirectory: tmpDirPath);
 
   chkDvi2tty(file, subject) =>
       checkAction(runDvi2tty(file), "dvitty on $subject failed");
