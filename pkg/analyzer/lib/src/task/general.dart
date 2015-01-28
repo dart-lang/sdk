@@ -13,7 +13,7 @@ import 'package:analyzer/task/model.dart';
  * A task that gets the contents of the source associated with an analysis
  * target.
  */
-class GetContentTask extends AnalysisTask {
+class GetContentTask extends SourceBasedAnalysisTask {
   /**
    * The task descriptor describing this kind of task.
    */
@@ -29,15 +29,6 @@ class GetContentTask extends AnalysisTask {
    */
   GetContentTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
-
-  @override
-  String get description {
-    Source source = target.source;
-    if (source == null) {
-      return "get contents of <unknown source>";
-    }
-    return "get contents of ${source.fullName}";
-  }
 
   @override
   TaskDescriptor get descriptor => DESCRIPTOR;
@@ -66,5 +57,25 @@ class GetContentTask extends AnalysisTask {
   static GetContentTask createTask(AnalysisContext context,
       AnalysisTarget target) {
     return new GetContentTask(context, target);
+  }
+}
+
+/**
+ * A base class for analysis tasks whose target is expected to be a source.
+ */
+abstract class SourceBasedAnalysisTask extends AnalysisTask {
+  /**
+   * Initialize a newly created task to perform analysis within the given
+   * [context] in order to produce results for the given [target].
+   */
+  SourceBasedAnalysisTask(AnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  String get description {
+    Source source = target.source;
+    String sourceName =
+        target.source == null ? '<unknown source>' : source.fullName;
+    return '${descriptor.name} for source $sourceName';
   }
 }
