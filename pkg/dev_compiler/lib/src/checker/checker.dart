@@ -508,12 +508,12 @@ class CodeChecker extends RecursiveAstVisitor {
     switch (op) {
       case TokenType.PLUS:
       case TokenType.MINUS:
-      case TokenType.AMPERSAND:
+      case TokenType.STAR:
       case TokenType.TILDE_SLASH:
       case TokenType.PERCENT:
       case TokenType.PLUS_EQ:
       case TokenType.MINUS_EQ:
-      case TokenType.AMPERSAND_EQ:
+      case TokenType.STAR_EQ:
       case TokenType.TILDE_SLASH_EQ:
       case TokenType.PERCENT_EQ:
         if (_rules.isIntType(t1) && _rules.isIntType(t2)) return t1;
