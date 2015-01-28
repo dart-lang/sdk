@@ -352,8 +352,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   jsAst.Expression allClassesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
 
-  String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
-
   // Class descriptions are collected in a JS object.
   // 'finishClasses' takes all collected descriptions and sets up
   // the prototype.
