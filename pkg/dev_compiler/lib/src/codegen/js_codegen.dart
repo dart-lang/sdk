@@ -1,5 +1,7 @@
 library ddc.src.codegen.js_codegen;
 
+import 'dart:io' show Directory;
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/element.dart';
@@ -10,19 +12,17 @@ import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/checker/rules.dart';
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/report.dart';
 import 'package:ddc/src/utils.dart';
 import 'code_generator.dart';
 
 // This must match the optional parameter name used in runtime.js
 const String optionalParameters = r'opt$';
 
-class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
-  final Uri uri;
-  final String outDir;
-  final CompilationUnit unit;
+class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
-  OutWriter out = null;
+  final OutWriter out;
 
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
@@ -34,25 +34,14 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
 
-  UnitGenerator(
-      CompilationUnit unit, this.outDir, this.libraryInfo, TypeRules rules)
-      : unit = unit,
-        uri = unit.element.source.uri,
-        rules = rules,
+  JSCodegenVisitor(this.libraryInfo, TypeRules rules, this.out)
+      : rules = rules,
         _constVisitor = new ConstantVisitor.con1(rules.provider);
-
-  String get outputPath => path.join(outDir, '${uri.pathSegments.last}.js');
 
   Element get currentLibrary => libraryInfo.library;
 
-  void generate() {
-    out = new OutWriter(outputPath);
-    unit.accept(this);
-    out.close();
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
+  void generateLibrary(
+      Iterable<CompilationUnit> units, CheckerReporter reporter) {
     var libName = libraryInfo.name;
 
     out.write("""
@@ -61,9 +50,32 @@ var $libName;
   'use strict';
 """, 2);
 
-    _visitNode(unit.scriptTag);
-    _visitNodeList(unit.directives);
-    for (var child in unit.declarations) {
+    for (var unit in units) {
+      // TODO(jmesserly): this is needed because RestrictedTypeRules can send
+      // messages to CheckerReporter, for things like missing types.
+      // We should probably refactor so this can't happen.
+      reporter.enterSource(unit.element.source);
+      unit.accept(this);
+      reporter.leaveSource();
+    }
+
+    if (_exports.isNotEmpty) out.write('// Exports:\n');
+
+    // TODO(jmesserly): make these immutable in JS?
+    for (var name in _exports) {
+      out.write('${libraryInfo.name}.$name = $name;\n');
+    }
+
+    out.write("""
+})($libName || ($libName = {}));
+""", -2);
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    _visitNode(node.scriptTag);
+    _visitNodeList(node.directives);
+    for (var child in node.declarations) {
       // Attempt to group adjacent fields/properties.
       if (child is! TopLevelVariableDeclaration) _flushLazyFields();
       if (child is! FunctionDeclaration) _flushLibraryProperties();
@@ -73,17 +85,6 @@ var $libName;
     // Flush any unwritten fields/properties.
     _flushLazyFields();
     _flushLibraryProperties();
-
-    if (_exports.isNotEmpty) out.write('// Exports:\n');
-
-    // TODO(jmesserly): make these immutable?
-    for (var name in _exports) {
-      out.write('${libraryInfo.name}.$name = $name;\n');
-    }
-
-    out.write("""
-})($libName || ($libName = {}));
-""", -2);
   }
 
   bool isPublic(String name) => !name.startsWith('_');
@@ -1103,11 +1104,24 @@ var $libName;
 }
 
 class JSGenerator extends CodeGenerator {
-  JSGenerator(
-      String outDir, Uri root, List<LibraryInfo> libraries, TypeRules rules)
-      : super(outDir, root, libraries, rules);
+  JSGenerator(String outDir, Uri root, TypeRules rules)
+      : super(outDir, root, rules);
 
-  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
-    new UnitGenerator(unit, libraryDir, info, rules).generate();
+  void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
+      CheckerReporter reporter) {
+    var uri = info.library.source.uri;
+    // TODO(jmesserly): library directory should be relative to its package
+    // root. For example, "package:ddc/src/codegen/js_codegen.dart" would be:
+    // "ddc/src/codegen/js_codegen.js" under the output directory.
+    var libraryName = path.basenameWithoutExtension(uri.pathSegments.last);
+    var libraryDir = path.join(outDir, libraryName);
+    new Directory(libraryDir).createSync(recursive: true);
+    String outputPath = path.join(libraryDir, '$libraryName.js');
+
+    var out = new OutWriter(outputPath);
+
+    new JSCodegenVisitor(info, rules, out).generateLibrary(units, reporter);
+
+    out.close();
   }
 }

@@ -46,13 +46,12 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
   var codeChecker = new CodeChecker(rules, reporter);
   var generators = <CodeGenerator>[];
   if (dumpSrcTo != null) {
-    generators.add(
-        new EmptyDartGenerator(dumpSrcTo, uri, libraries, rules, formatOutput));
+    generators.add(new EmptyDartGenerator(dumpSrcTo, uri, rules, formatOutput));
   }
   if (outputDir != null) {
     var cg = outputDart
-        ? new DartGenerator(outputDir, uri, libraries, rules, formatOutput)
-        : new JSGenerator(outputDir, uri, libraries, rules);
+        ? new DartGenerator(outputDir, uri, rules, formatOutput)
+        : new JSGenerator(outputDir, uri, rules);
     generators.add(cg);
   }
 

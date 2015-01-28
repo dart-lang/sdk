@@ -12,21 +12,22 @@ import 'package:ddc/src/checker/rules.dart';
 abstract class CodeGenerator {
   final String outDir;
   final Uri root;
-  final List<LibraryInfo> libraries;
   final TypeRules rules;
 
-  CodeGenerator(String outDir, this.root, this.libraries, this.rules)
+  CodeGenerator(String outDir, this.root, this.rules)
       : outDir = path.absolute(outDir);
 
-  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir);
+  // TODO(jmesserly): JS generates per library outputs, so it does not use this
+  // method and instead overrides generateLibrary.
+  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
+  }
 
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
     var libraryDir = path.join(outDir, info.name);
     new Directory(libraryDir)..createSync(recursive: true);
     for (var unit in units) {
-      var unitSource = unit.element.source;
-      reporter.enterSource(unitSource);
+      reporter.enterSource(unit.element.source);
       generateUnit(unit, info, libraryDir);
       reporter.leaveSource();
     }

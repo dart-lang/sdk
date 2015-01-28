@@ -371,11 +371,10 @@ class DartGenerator extends codegenerator.CodeGenerator {
   bool _format;
   reifier.UnitCoercionReifier _reifier;
 
-  DartGenerator(String outDir, Uri root, List<LibraryInfo> libraries,
-      TypeRules rules, this._format)
+  DartGenerator(String outDir, Uri root, TypeRules rules, this._format)
       : _reifier = new reifier.UnitCoercionReifier(
           new reifier.VariableManager()),
-        super(outDir, root, libraries, rules);
+        super(outDir, root, rules);
 
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
@@ -409,8 +408,8 @@ class EmptyUnitGenerator extends UnitGeneratorCommon {
 class EmptyDartGenerator extends codegenerator.CodeGenerator {
   bool _format;
 
-  EmptyDartGenerator(String outDir, Uri root, List<LibraryInfo> libraries,
-      TypeRules rules, this._format) : super(outDir, root, libraries, rules);
+  EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this._format)
+      : super(outDir, root, rules);
 
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
