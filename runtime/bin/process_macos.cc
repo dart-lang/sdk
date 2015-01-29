@@ -458,7 +458,7 @@ class ProcessStarter {
       // On MacOS you have to do a bit of magic to get to the
       // environment strings.
       char*** environ = _NSGetEnviron();
-      *environ = program_environment;
+      *environ = program_environment_;
     }
 
     VOID_TEMP_FAILURE_RETRY(
