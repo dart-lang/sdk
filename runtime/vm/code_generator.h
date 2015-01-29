@@ -54,7 +54,7 @@ DECLARE_RUNTIME_ENTRY(GrowRegExpStack);
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
 void DeoptimizeAt(const Code& optimized_code, uword pc);
-void DeoptimizeAll();
+void DeoptimizeFunctionsOnStack();
 
 double DartModulo(double a, double b);
 void SinCos(double arg, double* sin_res, double* cos_res);

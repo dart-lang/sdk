@@ -1169,7 +1169,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
   if (do_deopt) {
     // TODO(turnidge): Consider using DeoptimizeAt instead.
-    DeoptimizeAll();
+    DeoptimizeFunctionsOnStack();
   }
   if (do_stacktrace) {
     String& var_name = String::Handle();
@@ -1468,7 +1468,7 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
 
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
-void DeoptimizeAll() {
+void DeoptimizeFunctionsOnStack() {
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   Code& optimized_code = Code::Handle();
