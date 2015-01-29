@@ -287,11 +287,10 @@ class LibraryInfo {
     // field names used as named optionals into [fixedMemberNames].
     for (final element in resolvedElements) {
       if (!element.isConstructor) continue;
-      Link<Element> optionalParameters =
-          element.functionSignature.optionalParameters;
-      for (final optional in optionalParameters) {
-        if (!optional.isInitializingFormal) continue;
-        fixedDynamicNames.add(optional.name);
+      for (ParameterElement parameter in element.parameters) {
+        if (parameter.isInitializingFormal && parameter.isNamed) {
+          fixedDynamicNames.add(parameter.name);
+        }
       }
       ClassElement cls = element.enclosingClass;
       if (cls != null && cls.isEnumClass) {
@@ -435,7 +434,6 @@ class ElementInfoProcessor implements ElementInfo {
     if (element.isClassMember) {
       ClassElement enclosingClass = element.enclosingClass;
       assert(enclosingClass.isClass);
-      assert(enclosingClass.isTopLevel);
       assert(shouldOutput(enclosingClass));
       addClass(enclosingClass);
       classMembers[enclosingClass].add(element);

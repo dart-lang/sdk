@@ -1383,4 +1383,27 @@ main(x,foo) {
     (InvokeStatic print (x) k0)))
 ''', skipInAnalyzerFrontend: true)
   ]),
+
+  const Group('Constructors', const <TestSpec>[
+    const TestSpec('''
+class C {
+  C() {}
+}
+main() {
+  return new C();
+}
+''',
+    const {
+'main': '''
+(FunctionDefinition main () return ()
+  (LetCont ((k0 (v0)
+      (InvokeContinuation return (v0))))
+    (InvokeConstructor C () k0)))
+''',
+'C.': '''
+(FunctionDefinition  () return ()
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
+'''}),
+  ]),
 ];

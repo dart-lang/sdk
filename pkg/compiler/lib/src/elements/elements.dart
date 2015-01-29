@@ -349,6 +349,8 @@ abstract class Element implements Entity {
   Element get enclosingClassOrCompilationUnit;
   Element get outermostEnclosingMemberOrTopLevel;
 
+  // TODO(johnniwinther): Replace uses of this with [enclosingClass] when
+  // [ClosureClassElement] has been removed.
   /// The enclosing class that defines the type environment for this element.
   ClassElement get contextClass;
 
@@ -1053,6 +1055,12 @@ abstract class ParameterElement extends Element
 
   /// The function on which this parameter is declared.
   FunctionElement get functionDeclaration;
+
+  /// `true` if this parameter is named.
+  bool get isNamed;
+
+  /// `true` if this parameter is optional.
+  bool get isOptional;
 }
 
 /// A formal parameter on a function or constructor that introduces a local
@@ -1132,6 +1140,9 @@ abstract class FunctionElement extends Element
   @deprecated FunctionSignature computeSignature(Compiler compiler);
 
   bool get hasFunctionSignature;
+
+  /// The parameters of this functions.
+  List<ParameterElement> get parameters;
 
   /// The type of this function.
   FunctionType get type;

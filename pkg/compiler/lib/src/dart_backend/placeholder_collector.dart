@@ -189,7 +189,6 @@ class PlaceholderCollector extends Visitor {
       FunctionElement element, FunctionExpression node) {
     if (element.isConstructor) {
       ConstructorElement constructor = element;
-      DartType type = element.enclosingClass.thisType.asRaw();
       tryMakeConstructorPlaceholder(node.name, element);
       RedirectingFactoryBody bodyAsRedirectingFactoryBody =
           node.body.asRedirectingFactoryBody();
@@ -197,7 +196,6 @@ class PlaceholderCollector extends Visitor {
         // Factory redirection.
         FunctionElement redirectTarget = constructor.immediateRedirectionTarget;
         assert(redirectTarget != null && redirectTarget != element);
-        type = redirectTarget.enclosingClass.thisType.asRaw();
         tryMakeConstructorPlaceholder(
             bodyAsRedirectingFactoryBody.constructorReference,
             redirectTarget);

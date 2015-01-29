@@ -77,13 +77,6 @@ class Listener implements DiagnosticListener {
   }
 
   @override
-  void reportFatalError(Spannable node,
-                        MessageKind errorCode,
-                        [Map arguments = const {}]) {
-    // TODO: implement reportFatalError
-  }
-
-  @override
   void reportHint(Spannable node,
                   MessageKind errorCode,
                   [Map arguments = const {}]) {

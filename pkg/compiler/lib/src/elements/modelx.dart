@@ -299,6 +299,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
+  get parameters => unsupported();
   get patch => null;
   get origin => this;
   get immediateRedirectionTarget => unsupported();
@@ -1532,12 +1533,16 @@ class FormalElementX extends ElementX
 abstract class ParameterElementX extends FormalElementX
   with PatchMixin<ParameterElement> implements ParameterElement {
   final Expression initializer;
+  final bool isOptional;
+  final bool isNamed;
 
   ParameterElementX(ElementKind elementKind,
                     FunctionElement functionDeclaration,
                     VariableDefinitions definitions,
                     Identifier identifier,
-                    this.initializer)
+                    this.initializer,
+                    {this.isOptional: false,
+                     this.isNamed: false})
       : super(elementKind, functionDeclaration, definitions, identifier);
 
   FunctionElement get functionDeclaration => enclosingElement;
@@ -1553,12 +1558,17 @@ abstract class ParameterElementX extends FormalElementX
 
 class LocalParameterElementX extends ParameterElementX
     implements LocalParameterElement {
+
+
   LocalParameterElementX(FunctionElement functionDeclaration,
                          VariableDefinitions definitions,
                          Identifier identifier,
-                         Expression initializer)
+                         Expression initializer,
+                         {bool isOptional: false,
+                          bool isNamed: false})
       : super(ElementKind.PARAMETER, functionDeclaration,
-              definitions, identifier, initializer);
+              definitions, identifier, initializer,
+              isOptional: isOptional, isNamed: isNamed);
 }
 
 /// Parameters in constructors that directly initialize fields. For example:
@@ -1571,9 +1581,12 @@ class InitializingFormalElementX extends ParameterElementX
                              VariableDefinitions variables,
                              Identifier identifier,
                              Expression initializer,
-                             this.fieldElement)
+                             this.fieldElement,
+                             {bool isOptional: false,
+                              bool isNamed: false})
       : super(ElementKind.INITIALIZING_FORMAL, constructorDeclaration,
-              variables, identifier, initializer);
+              variables, identifier, initializer,
+              isOptional: isOptional, isNamed: isNamed);
 
   accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
 
@@ -1804,6 +1817,14 @@ abstract class BaseFunctionElementX
     assert(invariant(this, functionSignatureCache != null,
         message: "Function signature has not been computed for $this."));
     return functionSignatureCache;
+  }
+
+  List<ParameterElement> get parameters {
+    // TODO(johnniwinther): Store the list directly, possibly by using List
+    // instead of Link in FunctionSignature.
+    List<ParameterElement> list = <ParameterElement>[];
+    functionSignature.forEachParameter((e) => list.add(e));
+    return list;
   }
 
   FunctionType computeType(Compiler compiler) {

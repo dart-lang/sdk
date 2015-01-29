@@ -18,22 +18,33 @@ import 'test_helper.dart';
 main() {
   performTests(TEST_DATA, asyncTester, (TestSpec result) {
     return compilerFor(result.input).then((Compiler compiler) {
-      void checkOutput(Element element, String expectedOutput) {
+      void checkOutput(String elementName,
+                       Element element,
+                       String expectedOutput) {
         expectedOutput = expectedOutput.trim();
         String output = compiler.irBuilder.getIr(element)
             .accept(new SExpressionStringifier()).trim();
         Expect.equals(expectedOutput, output,
-            '\nInput:\n${result.input}\n'
-            'Expected:\n$expectedOutput\n'
-            'Actual:\n$output\n');
+            "\nInput:\n${result.input}\n"
+            "Expected for '$elementName':\n$expectedOutput\n"
+            "Actual for '$elementName':\n$output\n");
       }
 
       if (result.output is String) {
-        checkOutput(compiler.mainFunction, result.output);
+        checkOutput('main', compiler.mainFunction, result.output);
       } else {
         assert(result.output is Map<String, String>);
         result.output.forEach((String elementName, String output) {
-          checkOutput(compiler.mainApp.localLookup(elementName), output);
+          Element element;
+          if (elementName.contains('.')) {
+            ClassElement cls = compiler.mainApp.localLookup(
+                elementName.substring(0, elementName.indexOf('.')));
+            element = cls.localLookup(
+                elementName.substring(elementName.indexOf('.') + 1));
+          } else {
+            element = compiler.mainApp.localLookup(elementName);
+          }
+          checkOutput(elementName, element, output);
         });
       }
     });

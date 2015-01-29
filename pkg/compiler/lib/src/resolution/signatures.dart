@@ -160,7 +160,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     FormalElementX parameter;
     if (createRealParameters) {
       parameter = new LocalParameterElementX(
-        enclosingElement, currentDefinitions, name, initializer);
+        enclosingElement, currentDefinitions, name, initializer,
+        isOptional: isOptionalParameter, isNamed: optionalParametersAreNamed);
     } else {
       parameter = new FormalElementX(
         ElementKind.PARAMETER, enclosingElement, currentDefinitions, name);
@@ -198,7 +199,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
             name, enclosingElement.enclosingClass);
       }
       element = new InitializingFormalElementX(enclosingElement,
-          currentDefinitions, name, initializer, fieldElement);
+          currentDefinitions, name, initializer, fieldElement,
+          isOptional: isOptionalParameter, isNamed: optionalParametersAreNamed);
       computeParameterType(element, fieldElement);
     }
     return element;

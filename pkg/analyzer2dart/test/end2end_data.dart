@@ -817,4 +817,15 @@ main(a) {
 }
 '''),
   ]),
+
+  const Group('Constructors', const <TestSpec>[
+    const TestSpec('''
+class C {
+  C() {}
+}
+main() {
+  return new C();
+}
+'''),
+  ]),
 ];

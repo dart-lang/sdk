@@ -237,9 +237,6 @@ class LibraryElementY extends ElementY with AnalyzableElementY
   void addToScope(element, listener) => unsupported('addToScope');
 
   @override
-  void set canUseNative(bool value) => unsupported('canUseNative');
-
-  @override
   bool get canUseNative => unsupported('canUseNative');
 
   @override
@@ -347,6 +344,7 @@ abstract class TopLevelElementMixin implements ElementY {
 
 abstract class FunctionElementMixin
     implements ElementY, dart2js.FunctionElement {
+  analyzer.ExecutableElement get element;
 
   // TODO(johnniwinther): Ensure the correct semantics of this.
   @override
@@ -372,6 +370,14 @@ abstract class FunctionElementMixin
 
   @override
   get asyncMarker => unsupported('asyncMarker');
+
+  @override
+  List<dart2js.ParameterElement> get parameters {
+    return element.parameters.map(converter.convertElement).toList();
+  }
+
+  @override
+  dart2js.FunctionType get type => converter.convertType(element.type);
 }
 
 class TopLevelFunctionElementY extends ElementY
@@ -384,9 +390,6 @@ class TopLevelFunctionElementY extends ElementY
 
   @override
   dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
-
-  @override
-  dart2js.FunctionType get type => converter.convertType(element.type);
 
   TopLevelFunctionElementY(ElementConverter converter,
                            analyzer.FunctionElement element)
@@ -403,9 +406,6 @@ class LocalFunctionElementY extends ElementY
 
   @override
   dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
-
-  @override
-  dart2js.FunctionType get type => converter.convertType(element.type);
 
   @override
   bool get isAbstract => false;
@@ -438,6 +438,12 @@ class ParameterElementY extends ElementY
 
   @override
   bool get isConst => false;
+
+  @override
+  bool get isNamed => element.parameterKind == ParameterKind.NAMED;
+
+  @override
+  bool get isOptional => element.parameterKind.isOptional;
 
   ParameterElementY(ElementConverter converter,
                     analyzer.ParameterElement element)
@@ -486,7 +492,6 @@ class TypeDeclarationElementY extends ElementY
 
   @override
   get typeVariables => unsupported('typeVariables');
-
 }
 
 class ClassElementY extends TypeDeclarationElementY
@@ -498,6 +503,50 @@ class ClassElementY extends TypeDeclarationElementY
 
   @override
   bool get isObject => element.type.isObject;
+
+  // TODO(johnniwinther): Ensure the correct semantics.
+  // TODO(paulberry,brianwilkerson): [ClassElement.isTypedef] should probably
+  // be renamed to [ClassElement.isNamedMixinApplication].
+  @override
+  bool get isMixinApplication => element.isTypedef;
+
+  @override
+  bool get isUnnamedMixinApplication => false;
+
+  @override
+  bool get isEnumClass => element.isEnum;
+
+  @override
+  bool get isAbstract => element.isAbstract;
+
+  // TODO(johnniwinther): Semantic difference: Dart2js points to unnamed
+  // mixin applications, analyzer points to the type in the extends clause or
+  // Object if omitted.
+  @override
+  dart2js.DartType get supertype {
+    return element.supertype != null
+        ? converter.convertType(element.supertype)
+        : null;
+  }
+
+  @override
+  util.Link<dart2js.DartType> get interfaces {
+    // TODO(johnniwinther): Support interfaces.
+    return const util.Link<dart2js.DartType>();
+  }
+
+  // TODO(johnniwinther): Support generic classes.
+  @override
+  List<dart2js.DartType> get typeVariables => const [];
+
+  @override
+  bool get isStatic => false;
+
+  @override
+  bool get isTopLevel => true;
+
+  @override
+  dart2js.ClassElement get enclosingClass => this;
 
   ClassElementY(ElementConverter converter, analyzer.ClassElement element)
       : super(converter, element);
@@ -584,16 +633,10 @@ class ClassElementY extends TypeDeclarationElementY
   bool implementsInterface(intrface) => unsupported('implementsInterface');
 
   @override
-  get interfaces => unsupported('interfaces');
-
-  @override
   bool get isProxy => unsupported('isProxy');
 
   @override
   bool isSubclassOf(cls) => unsupported('isSubclassOf');
-
-  @override
-  get isUnnamedMixinApplication => unsupported('isUnnamedMixinApplication');
 
   @override
   localLookup(String elementName) => unsupported('localLookup');
@@ -637,18 +680,7 @@ class ClassElementY extends TypeDeclarationElementY
   void reverseBackendMembers() => unsupported('reverseBackendMembers');
 
   @override
-  void setDefaultConstructor(constructor, compiler) {
-    unsupported('setDefaultConstructor');
-  }
-
-  @override
   dart2js.ClassElement get superclass => unsupported('superclass');
-
-  // TODO(johnniwinther): Semantic difference: Dart2js points to unnamed
-  // mixin applications, analyzer points to the type in the extends clause or
-  // Object if omitted.
-  @override
-  dart2js.DartType get supertype => unsupported('supertype');
 
   @override
   int get supertypeLoadState => unsupported('supertypeLoadState');
@@ -657,9 +689,6 @@ class ClassElementY extends TypeDeclarationElementY
   validateConstructorLookupResults(selector,  result, noMatch) {
     unsupported('validateConstructorLookupResults');
   }
-
-  @override
-  bool get isEnumClass => unsupported('isEnum');
 }
 
 class TypedefElementY extends TypeDeclarationElementY
@@ -758,22 +787,44 @@ class LocalVariableElementY extends ElementY
   dart2js.DartType get type => unsupported('type');
 }
 
-class ConstructorElementY extends ElementY
-    with AnalyzableElementY,
-         AstElementY,
-         FunctionElementMixin
-    implements dart2js.ConstructorElement {
+abstract class ClassMemberMixin implements ElementY {
+  analyzer.ClassMemberElement get element;
 
-  analyzer.ConstructorElement get element => super.element;
+  @override
+  dart2js.ClassElement get contextClass => enclosingClass;
 
   @override
   dart2js.ClassElement get enclosingClass {
     return converter.convertElement(element.enclosingElement);
   }
 
+  @override
+  bool get isClassMember => true;
+}
+
+class ConstructorElementY extends ElementY
+    with AnalyzableElementY,
+         AstElementY,
+         FunctionElementMixin,
+         ClassMemberMixin
+    implements dart2js.ConstructorElement {
+
+  analyzer.ConstructorElement get element => super.element;
+
   // TODO(johnniwinther): Support redirecting/factory constructors.
   @override
   dart2js.ElementKind get kind => dart2js.ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  // TODO(johnniwinther): Support factory constructors.
+  @override
+  bool get isFactoryConstructor => false;
+
+  // TODO(johnniwinther): Support redirecting factory constructors.
+  @override
+  bool get isRedirectingFactory => false;
+
+  @override
+  bool get isStatic => false;
 
   ConstructorElementY(ElementConverter converter,
                       analyzer.ConstructorElement element)
@@ -792,11 +843,5 @@ class ConstructorElementY extends ElementY
   get immediateRedirectionTarget => unsupported('immediateRedirectionTarget');
 
   @override
-  bool get isRedirectingFactory => unsupported('isRedirectingFactory');
-
-  @override
   get nestedClosures => unsupported('nestedClosures');
-
-  @override
-  get type => unsupported('type');
 }

@@ -38,28 +38,40 @@ checkResult(TestSpec result) {
   ClosedWorld world = driver.computeWorld(entryPoint);
   ConvertedWorld convertedWorld = convertWorld(world);
 
-  void checkOutput(dart2js.Element element, String expectedOutput) {
+  void checkOutput(String elementName,
+                   dart2js.Element element,
+                   String expectedOutput) {
     expectedOutput = expectedOutput.trim();
     String output = convertedWorld.getIr(element)
         .accept(new SExpressionStringifier());
     expect(output, equals(expectedOutput),
-        reason: 'Input:\n$input\n'
-                'Expected:\n$expectedOutput\n'
-                'Actual:\n$output');
+        reason: "\nInput:\n${result.input}\n"
+                "Expected for '$elementName':\n$expectedOutput\n"
+                "Actual for '$elementName':\n$output\n");
   }
 
   if (result.output is String) {
-    checkOutput(convertedWorld.mainFunction, result.output);
+    checkOutput('main', convertedWorld.mainFunction, result.output);
   } else {
     assert(result.output is Map<String, String>);
     dart2js.LibraryElement mainLibrary = convertedWorld.mainFunction.library;
     result.output.forEach((String elementName, String output) {
+      bool found = false;
+      List<String> names = <String>[];
       convertedWorld.resolvedElements.forEach((dart2js.Element element) {
-        if (element.name == elementName &&
-            element.library == mainLibrary) {
-          checkOutput(element, output);
+        if (element.library == mainLibrary) {
+          String name = element.name;
+          if (element.enclosingClass != null) {
+            name = '${element.enclosingClass.name}.$name';
+          }
+          if (name == elementName) {
+            checkOutput(elementName, element, output);
+            found = true;
+          }
+          names.add(name);
         }
       });
+      expect(found, isTrue, reason: "'$elementName' not found in $names.");
     });
   }
 }

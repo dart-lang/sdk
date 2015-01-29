@@ -480,9 +480,9 @@ class ParentVisitor extends RecursiveVisitor {
   processConstructorDefinition(ConstructorDefinition node) {
     node.body.parent = node;
     int index = 0;
-    node.parameters.forEach((Parameter parameter) {
+    node.parameters.forEach((Definition parameter) {
       parameter.parent = node;
-      parameter.parent_index = index++;
+      if (parameter is Parameter) parameter.parent_index = index++;
     });
     node.initializers.forEach((Initializer i) => i.parent = node);
   }
