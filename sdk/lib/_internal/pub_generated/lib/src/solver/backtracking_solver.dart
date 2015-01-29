@@ -127,94 +127,59 @@ class BacktrackingSolver {
   /// Completes with a list of specific package versions if successful or an
   /// error if it failed to find a solution.
   Future<SolveResult> solve() {
-    final completer0 = new Completer();
-    scheduleMicrotask(() {
-      try {
-        var stopwatch = new Stopwatch();
-        _logParameters();
-        var overrides = _overrides.values.toList();
-        overrides.sort(((a, b) {
-          return a.name.compareTo(b.name);
-        }));
-        join0() {
-          completer0.complete();
-        }
-        finally0(cont0) {
-          try {
-            var buffer = new StringBuffer();
-            buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
-            buffer.writeln(cache.describeResults());
-            log.solver(buffer);
-            cont0();
-          } catch (e0, s0) {
-            completer0.completeError(e0, s0);
-          }
-        }
-        catch0(error, s1) {
-          try {
-            if (error is SolveFailure) {
-              final v0 = new SolveResult.failure(
-                  sources,
-                  root,
-                  lockFile,
-                  overrides,
-                  error,
-                  attemptedSolutions);
-              finally0(() {
-                completer0.complete(v0);
-              });
-            } else {
-              throw error;
-            }
-          } catch (error, s1) {
-            finally0(() => completer0.completeError(error, s1));
-          }
-        }
-        try {
-          stopwatch.start();
-          cache.cache(new PackageId.root(root), root.pubspec);
-          _validateSdkConstraint(root.pubspec);
-          new Future.value(_traverseSolution()).then((x0) {
-            try {
-              var packages = x0;
-              var pubspecs = new Map.fromIterable(packages, key: ((id) {
-                return id.name;
-              }), value: ((id) {
-                return cache.getCachedPubspec(id);
-              }));
-              new Future.value(Future.wait(packages.map(((id) {
-                return sources[id.source].resolveId(id);
-              })))).then((x1) {
-                try {
-                  packages = x1;
-                  final v1 = new SolveResult.success(
-                      sources,
-                      root,
-                      lockFile,
-                      packages,
-                      overrides,
-                      pubspecs,
-                      _getAvailableVersions(packages),
-                      attemptedSolutions);
-                  finally0(() {
-                    completer0.complete(v1);
-                  });
-                } catch (e1, s2) {
-                  catch0(e1, s2);
-                }
-              }, onError: catch0);
-            } catch (e2, s3) {
-              catch0(e2, s3);
-            }
-          }, onError: catch0);
-        } catch (e3, s4) {
-          catch0(e3, s4);
-        }
-      } catch (e, s) {
-        completer0.completeError(e, s);
-      }
+    var stopwatch = new Stopwatch();
+
+    _logParameters();
+
+    // Sort the overrides by package name to make sure they're deterministic.
+    var overrides = _overrides.values.toList();
+    overrides.sort((a, b) => a.name.compareTo(b.name));
+
+    // TODO(nweiz): Use async/await here once
+    // https://github.com/dart-lang/async_await/issues/79 is fixed.
+    return new Future.sync(() {
+      stopwatch.start();
+
+      // Pre-cache the root package's known pubspec.
+      cache.cache(new PackageId.root(root), root.pubspec);
+
+      _validateSdkConstraint(root.pubspec);
+      return _traverseSolution();
+    }).then((packages) {
+      var pubspecs = new Map.fromIterable(
+          packages,
+          key: (id) => id.name,
+          value: (id) => cache.getCachedPubspec(id));
+
+      return Future.wait(
+          packages.map((id) => sources[id.source].resolveId(id))).then((packages) {
+        return new SolveResult.success(
+            sources,
+            root,
+            lockFile,
+            packages,
+            overrides,
+            pubspecs,
+            _getAvailableVersions(packages),
+            attemptedSolutions);
+      });
+    }).catchError((error) {
+      if (error is! SolveFailure) throw error;
+      // Wrap a failure in a result so we can attach some other data.
+      return new SolveResult.failure(
+          sources,
+          root,
+          lockFile,
+          overrides,
+          error,
+          attemptedSolutions);
+    }).whenComplete(() {
+      // Gather some solving metrics.
+      var buffer = new StringBuffer();
+      buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
+      buffer.writeln(cache.describeResults());
+      log.solver(buffer);
     });
-    return completer0.future;
   }
 
   /// Generates a map containing all of the known available versions for each
