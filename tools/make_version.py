@@ -35,8 +35,8 @@ VM_SNAPSHOT_FILES=[
   'symbols.cc',
 ]
 
-def makeVersionString(quiet):
-  version_string = utils.GetVersion()
+def makeVersionString(quiet, no_svn):
+  version_string = utils.GetSemanticSDKVersion(ignore_svn_revision=no_svn)
   if not quiet:
     debugLog("Returning version string: %s " % version_string)
   return version_string
@@ -51,9 +51,9 @@ def makeSnapshotHashString():
   return vmhash.hexdigest()
 
 
-def makeFile(quiet, output_file, input_file):
+def makeFile(quiet, output_file, input_file, ignore_svn_revision):
   version_cc_text = open(input_file).read()
-  version_string = makeVersionString(quiet)
+  version_string = makeVersionString(quiet, ignore_svn_revision)
   version_cc_text = version_cc_text.replace("{{VERSION_STR}}",
                                             version_string)
   version_time = time.ctime(time.time())
@@ -73,6 +73,9 @@ def main(args):
     parser.add_option("-q", "--quiet",
                       action="store_true", default=False,
                       help="disable console output")
+    parser.add_option("--ignore_svn_revision",
+                      action="store_true", default=False,
+                      help="Don't try to determine svn revision")
     parser.add_option("--output",
                       action="store", type="string",
                       help="output file name")
@@ -92,7 +95,8 @@ def main(args):
     for arg in args:
       files.append(arg)
 
-    if not makeFile(options.quiet, options.output, options.input):
+    if not makeFile(options.quiet, options.output, options.input,
+                    options.ignore_svn_revision):
       return -1
 
     return 0

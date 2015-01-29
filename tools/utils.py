@@ -278,13 +278,13 @@ def GetShortVersion():
       version.major, version.minor, version.patch, version.prerelease,
       version.prerelease_patch))
 
-def GetSemanticSDKVersion():
+def GetSemanticSDKVersion(ignore_svn_revision=False):
   version = ReadVersionFile()
   if not version:
     return None
 
   if version.channel == 'be':
-    postfix = '-edge.%s' % GetSVNRevision()
+    postfix = '-edge' if ignore_svn_revision else '-edge.%s' % GetSVNRevision()
   elif version.channel == 'dev':
     postfix = '-dev.%s.%s' % (version.prerelease, version.prerelease_patch)
   else:
