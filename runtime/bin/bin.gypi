@@ -248,7 +248,7 @@
             },
           },
           'link_settings': {
-            'libraries': [ '-liphlpapi.lib' ],
+            'libraries': [ '-liphlpapi.lib', '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
         }],
         ['OS=="mac"', {
