@@ -41,7 +41,7 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  var sdkResolver =
+  var realSdk =
       new TypeResolver(TypeResolver.sdkResolverFromDir(dartSdkDirectory));
 
   // Validate that old output is gone before running.
@@ -58,8 +58,8 @@ main(arguments) {
     test('devc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      var result = compile(filePath, sdkResolver,
-          outputDir: actualDir, useColors: false);
+      var result =
+          compile(filePath, realSdk, outputDir: actualDir, useColors: false);
       var success = !result.failure;
 
       // Write compiler messages to disk.
@@ -78,8 +78,10 @@ main(arguments) {
   test('devc dart:core', () {
     // TODO(jmesserly): eventually we should track compiler messages.
     // For now we're just trying to get decent code generation.
+    var testSdk = new TypeResolver(
+        TypeResolver.sdkResolverFromDir(path.join(testDir, 'sdk')));
 
-    var result = compile('dart:core', sdkResolver,
+    var result = compile('dart:core', testSdk,
         outputDir: actualDir, checkSdk: true, forceCompile: true);
 
     var outputDir = new Directory(path.join(actualDir, 'core'));

@@ -35,7 +35,6 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
     String dumpInfoFile, String dumpSrcTo: null, bool forceCompile: false,
     bool useColors: true, bool covariantGenerics: true,
     bool relaxedCasts: true}) {
-
   Uri uri;
   if (inputFile.startsWith('dart:') || inputFile.startsWith('package:')) {
     uri = Uri.parse(inputFile);

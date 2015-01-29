@@ -58,7 +58,7 @@ dartanalyzer --fatal-warnings --package-warnings bin/devc.dart | (! grep $PWD) \
 # Run formatter on all files that are part of the project. This checks that all
 # files are commited first. This also ignores local files that have never been
 # added to the git repo.
-(files=`git ls-files "*.dart"`; git status -s $files | grep -q . \
+(files=`git ls-files "*.dart" | grep -v test/sdk/lib/`; git status -s $files | grep -q . \
   && echo "Did not run the formatter, please commit edited files first." \
   || (echo "Running dart formatter" ; pub run dart_style:format -w $files))
 popd &> /dev/null
