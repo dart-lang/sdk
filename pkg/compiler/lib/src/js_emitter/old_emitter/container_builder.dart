@@ -373,7 +373,7 @@ class ContainerBuilder extends CodeEmitterHelper {
             backend.rti.getSignatureEncoding(memberType, thisAccess);
       } else {
         memberTypeExpression =
-            js.number(emitter.metadataEmitter.reifyType(memberType));
+            js.number(task.metadataEmitter.reifyType(memberType));
       }
     } else {
       memberTypeExpression = js('null');
@@ -386,20 +386,20 @@ class ContainerBuilder extends CodeEmitterHelper {
         ..add(js.number(requiredParameterCount))
         ..add(js.number(optionalParameterCount))
         ..add(memberTypeExpression)
-        ..addAll(emitter.metadataEmitter
+        ..addAll(task.metadataEmitter
             .reifyDefaultArguments(member).map(js.number));
 
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
         expressions.add(
-            js.number(emitter.metadataEmitter.reifyName(parameter.name)));
+            js.number(task.metadataEmitter.reifyName(parameter.name)));
         if (backend.mustRetainMetadata) {
           Iterable<int> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             ConstantValue constant =
                 backend.constants.getConstantForMetadata(annotation).value;
             backend.constants.addCompileTimeConstantForEmission(constant);
-            return emitter.metadataEmitter.reifyMetadata(annotation);
+            return task.metadataEmitter.reifyMetadata(annotation);
           });
           expressions.add(new jsAst.ArrayInitializer(
               metadataIndices.map(js.number).toList()));
@@ -419,8 +419,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       expressions
           ..add(reflectionName)
-          ..addAll(emitter.metadataEmitter
-              .computeMetadata(member).map(js.number));
+          ..addAll(task.metadataEmitter.computeMetadata(member).map(js.number));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(member.library,
                                                   member.name)));

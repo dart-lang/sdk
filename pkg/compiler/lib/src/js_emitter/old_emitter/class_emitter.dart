@@ -118,8 +118,7 @@ class ClassEmitter extends CodeEmitterHelper {
       // accessors at runtime.
       bool needsFieldsForConstructor = !emitStatics && !classIsNative;
       if (needsFieldsForConstructor || needsAccessor) {
-        var metadata =
-            emitter.metadataEmitter.buildMetadataFunction(fieldElement);
+        var metadata = task.metadataEmitter.buildMetadataFunction(fieldElement);
         if (metadata != null) {
           hasMetadata = true;
         } else {
@@ -163,7 +162,7 @@ class ClassEmitter extends CodeEmitterHelper {
         }
         if (backend.isAccessibleByReflection(fieldElement)) {
           DartType type = fieldElement.type;
-          reflectionMarker = '-${emitter.metadataEmitter.reifyType(type)}';
+          reflectionMarker = '-${task.metadataEmitter.reifyType(type)}';
         }
         String builtFieldname = '$fieldName$fieldCode$reflectionMarker';
         builder.addField(builtFieldname);
@@ -279,7 +278,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassElement classElement = cls.element;
     String className = cls.name;
 
-    var metadata = emitter.metadataEmitter.buildMetadataFunction(classElement);
+    var metadata = task.metadataEmitter.buildMetadataFunction(classElement);
     if (metadata != null) {
       classBuilder.addProperty("@", metadata);
     }
@@ -332,10 +331,10 @@ class ClassEmitter extends CodeEmitterHelper {
       } else {
         List<int> types = <int>[];
         if (classElement.supertype != null) {
-          types.add(emitter.metadataEmitter.reifyType(classElement.supertype));
+          types.add(task.metadataEmitter.reifyType(classElement.supertype));
         }
         for (DartType interface in classElement.interfaces) {
-          types.add(emitter.metadataEmitter.reifyType(interface));
+          types.add(task.metadataEmitter.reifyType(interface));
         }
         enclosingBuilder.addProperty("+$reflectionName",
             new jsAst.ArrayInitializer(types.map(js.number).toList()));

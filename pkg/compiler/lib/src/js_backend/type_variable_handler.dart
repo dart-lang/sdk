@@ -36,7 +36,7 @@ class TypeVariableHandler {
 
   ClassElement get typeVariableClass => backend.typeVariableClass;
   CodeEmitterTask get task => backend.emitter;
-  MetadataEmitter get emitter => task.oldEmitter.metadataEmitter;
+  MetadataEmitter get emitter => task.metadataEmitter;
   Compiler get compiler => backend.compiler;
 
   void registerClassWithTypeVariables(ClassElement cls) {

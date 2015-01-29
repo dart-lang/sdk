@@ -44,7 +44,6 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     JavaScriptConstantCompiler,
     Namer,
-    NativeEmitter,
     RuntimeTypes,
     Substitution,
     TypeCheck,
@@ -93,6 +92,7 @@ part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
 part 'interceptor_stub_generator.dart';
+part 'metadata_emitter.dart';
 part 'native_emitter.dart';
 part 'native_generator.dart';
 part 'type_test_generator.dart';
@@ -105,6 +105,5 @@ part 'old_emitter/container_builder.dart';
 part 'old_emitter/declarations.dart';
 part 'old_emitter/emitter.dart';
 part 'old_emitter/interceptor_emitter.dart';
-part 'old_emitter/metadata_emitter.dart';
 part 'old_emitter/nsm_emitter.dart';
 part 'old_emitter/reflection_data_parser.dart';

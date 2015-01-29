@@ -13,7 +13,6 @@ class OldEmitter implements Emitter {
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
   final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
-  final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
   final Set<ConstantValue> cachedEmittedConstants;
@@ -102,7 +101,6 @@ class OldEmitter implements Emitter {
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
     interceptorEmitter.emitter = this;
-    metadataEmitter.emitter = this;
   }
 
   List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
@@ -796,6 +794,23 @@ class OldEmitter implements Emitter {
             code]);
   }
 
+  void emitMetadata(List<String> globalMetadata, CodeOutput output) {
+    String metadataAccess =
+        generateEmbeddedGlobalAccessString(embeddedNames.METADATA);
+    output.add('$metadataAccess$_=$_[');
+    for (String metadata in globalMetadata) {
+      if (metadata is String) {
+        if (metadata != 'null') {
+          output.add(metadata);
+        }
+      } else {
+        throw 'Unexpected value in metadata: ${Error.safeToString(metadata)}';
+      }
+      output.add(',$n');
+    }
+    output.add('];$n');
+  }
+
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     if (constant.isFunction) return true;    // Already emitted.
     if (constant.isPrimitive) return true;   // Inlined.
@@ -1169,7 +1184,7 @@ class OldEmitter implements Emitter {
         library.getLibraryName() :
         "";
 
-    jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
+    jsAst.Fun metadata = task.metadataEmitter.buildMetadataFunction(library);
 
     jsAst.ObjectInitializer initializers = descriptor.toObjectInitializer();
 
@@ -1238,7 +1253,7 @@ class OldEmitter implements Emitter {
       LibraryElement library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
       DartType type = typedef.alias;
-      int typeIndex = metadataEmitter.reifyType(type);
+      int typeIndex = task.metadataEmitter.reifyType(type);
       ClassBuilder builder = new ClassBuilder(typedef, namer);
       builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
                           js.number(typeIndex));
@@ -1499,7 +1514,7 @@ class OldEmitter implements Emitter {
 
     mainOutput.add('\n');
 
-    metadataEmitter.emitMetadata(mainOutput);
+    emitMetadata(task.metadataEmitter.globalMetadata, mainOutput);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the

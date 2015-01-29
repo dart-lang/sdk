@@ -28,7 +28,6 @@ class TypeTestGenerator {
   TypeTestGenerator(this.compiler, this.emitterTask, this.namer);
 
   JavaScriptBackend get backend => compiler.backend;
-  OldEmitter get oldEmitter => emitterTask.oldEmitter;
   TypeTestRegistry get typeTestRegistry => emitterTask.typeTestRegistry;
 
   Set<ClassElement> get checkedClasses =>
@@ -86,7 +85,7 @@ class TypeTestGenerator {
       }
 
       if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
-        result.functionTypeIndex = oldEmitter.metadataEmitter.reifyType(type);
+        result.functionTypeIndex = emitterTask.metadataEmitter.reifyType(type);
       } else {
         RuntimeTypes rti = backend.rti;
         jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
@@ -100,7 +99,7 @@ class TypeTestGenerator {
       RuntimeTypes rti = backend.rti;
       jsAst.Expression expression;
       bool needsNativeCheck =
-          oldEmitter.nativeEmitter.requiresNativeIsCheck(cls);
+          emitterTask.nativeEmitter.requiresNativeIsCheck(cls);
       expression = rti.getSupertypeSubstitution(classElement, cls);
       if (expression == null && (emitNull || needsNativeCheck)) {
         expression = new jsAst.LiteralNull();

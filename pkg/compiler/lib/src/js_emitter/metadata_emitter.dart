@@ -103,23 +103,6 @@ class MetadataEmitter extends CodeEmitterHelper {
     });
   }
 
-  void emitMetadata(CodeOutput output) {
-    String metadataAccess = emitter.generateEmbeddedGlobalAccessString(
-          embeddedNames.METADATA);
-    output.add('$metadataAccess$_=$_[');
-    for (String metadata in globalMetadata) {
-      if (metadata is String) {
-        if (metadata != 'null') {
-          output.add(metadata);
-        }
-      } else {
-        throw 'Unexpected value in metadata: ${Error.safeToString(metadata)}';
-      }
-      output.add(',$n');
-    }
-    output.add('];$n');
-  }
-
   List<int> computeMetadata(FunctionElement element) {
     return compiler.withCurrentElement(element, () {
       if (!mustEmitMetadataFor(element)) return const <int>[];
