@@ -319,8 +319,11 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [AnalysisContext] that is used to analyze the given [path].
-   * Return `null` if there is no such context.
+   * Return the preferred [AnalysisContext] for analyzing the given [path].
+   * This will be the context that explicitly contains the path, if any such
+   * context exists, otherwise it will be the first analysis context that
+   * implicitly analyzes it.  Return `null` if no context is analyzing the
+   * path.
    */
   AnalysisContext getAnalysisContext(String path) {
     // try to find a containing context
@@ -334,8 +337,8 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [AnalysisContext] that is used to analyze the given [source].
-   * Return `null` if there is no such context.
+   * Return any [AnalysisContext] that is analyzing the given [source], either
+   * explicitly or implicitly.  Return `null` if there is no such context.
    */
   AnalysisContext getAnalysisContextForSource(Source source) {
     for (AnalysisContext context in folderMap.values) {

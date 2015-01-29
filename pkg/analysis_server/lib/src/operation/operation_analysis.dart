@@ -173,6 +173,16 @@ class PerformAnalysisOperation extends ServerOperation {
       ChangeNotice notice = notices[i];
       Source source = notice.source;
       String file = source.fullName;
+      // Only send notifications if the current context is the preferred
+      // context for the file.  This avoids redundant notification messages
+      // being sent to the client (see dartbug.com/22210).
+      // TODO(paulberry): note that there is a small risk that this will cause
+      // notifications to be lost if the preferred context for a file changes
+      // while analysis is in progress (e.g. because the client sent an
+      // analysis.setAnalysisRoots message).
+      if (server.getAnalysisContext(file) != context) {
+        continue;
+      }
       // Dart
       CompilationUnit parsedDartUnit = notice.parsedDartUnit;
       CompilationUnit resolvedDartUnit = notice.resolvedDartUnit;

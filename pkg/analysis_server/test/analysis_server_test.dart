@@ -225,6 +225,55 @@ import "../foo/foo.dart";
     });
   }
 
+  /**
+   * Test that having multiple analysis contexts analyze the same file doesn't
+   * cause that file to receive duplicate notifications when it's modified.
+   */
+  Future test_no_duplicate_notifications() async {
+    // Subscribe to STATUS so we'll know when analysis is done.
+    server.serverServices = [ServerService.STATUS].toSet();
+    resourceProvider.newFolder('/foo');
+    resourceProvider.newFolder('/bar');
+    resourceProvider.newFile('/foo/foo.dart', 'import "../bar/bar.dart";');
+    File bar = resourceProvider.newFile('/bar/bar.dart', 'library bar;');
+    server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
+    Map<AnalysisService, Set<String>> subscriptions = <AnalysisService,
+        Set<String>>{};
+    for (AnalysisService service in AnalysisService.VALUES) {
+      subscriptions[service] = <String>[bar.path].toSet();
+    }
+    server.setAnalysisSubscriptions(subscriptions);
+    await pumpEventQueue(100);
+    expect(server.statusAnalyzing, isFalse);
+    channel.notificationsReceived.clear();
+    server.updateContent('0', {
+      bar.path: new AddContentOverlay('library bar; void f() {}')
+    });
+    await pumpEventQueue(100);
+    expect(server.statusAnalyzing, isFalse);
+    expect(channel.notificationsReceived, isNotEmpty);
+    Set<String> notificationTypesReceived = new Set<String>();
+    for (Notification notification in channel.notificationsReceived) {
+      String notificationType = notification.event;
+      switch (notificationType) {
+        case 'server.status':
+        case 'analysis.errors':
+          // It's normal for these notifications to be sent multiple times.
+          break;
+        case 'analysis.outline':
+          // It's normal for this notification to be sent twice.
+          // TODO(paulberry): why?
+          break;
+        default:
+          if (!notificationTypesReceived.add(notificationType)) {
+            fail('Notification type $notificationType received more than once');
+          }
+          break;
+      }
+    }
+    return null; // Work around dartbug.com/22091
+  }
+
   Future test_prioritySourcesChangedEvent() {
     resourceProvider.newFolder('/foo');
 
