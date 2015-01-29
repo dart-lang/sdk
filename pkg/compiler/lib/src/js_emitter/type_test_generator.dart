@@ -85,7 +85,8 @@ class TypeTestGenerator {
       }
 
       if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
-        result.functionTypeIndex = emitterTask.metadataEmitter.reifyType(type);
+        result.functionTypeIndex =
+            emitterTask.metadataCollector.reifyType(type);
       } else {
         RuntimeTypes rti = backend.rti;
         jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);

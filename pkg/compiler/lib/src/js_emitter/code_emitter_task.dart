@@ -17,7 +17,7 @@ class CodeEmitterTask extends CompilerTask {
   final Namer namer;
   final TypeTestRegistry typeTestRegistry;
   NativeEmitter nativeEmitter;
-  MetadataEmitter metadataEmitter;
+  MetadataCollector metadataCollector;
   OldEmitter oldEmitter;
   Emitter emitter;
 
@@ -57,8 +57,7 @@ class CodeEmitterTask extends CompilerTask {
         ? new new_js_emitter.Emitter(compiler, namer)
         : oldEmitter;
     nativeEmitter = new NativeEmitter(this);
-    metadataEmitter = new MetadataEmitter();
-    metadataEmitter.emitter = oldEmitter;
+    metadataCollector = new MetadataCollector(compiler, emitter);
   }
 
   String get name => 'Code emitter';

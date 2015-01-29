@@ -1184,7 +1184,7 @@ class OldEmitter implements Emitter {
         library.getLibraryName() :
         "";
 
-    jsAst.Fun metadata = task.metadataEmitter.buildMetadataFunction(library);
+    jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
     jsAst.ObjectInitializer initializers = descriptor.toObjectInitializer();
 
@@ -1253,7 +1253,7 @@ class OldEmitter implements Emitter {
       LibraryElement library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
       DartType type = typedef.alias;
-      int typeIndex = task.metadataEmitter.reifyType(type);
+      int typeIndex = task.metadataCollector.reifyType(type);
       ClassBuilder builder = new ClassBuilder(typedef, namer);
       builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
                           js.number(typeIndex));
@@ -1514,7 +1514,7 @@ class OldEmitter implements Emitter {
 
     mainOutput.add('\n');
 
-    emitMetadata(task.metadataEmitter.globalMetadata, mainOutput);
+    emitMetadata(task.metadataCollector.globalMetadata, mainOutput);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the

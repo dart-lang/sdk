@@ -373,7 +373,7 @@ class ContainerBuilder extends CodeEmitterHelper {
             backend.rti.getSignatureEncoding(memberType, thisAccess);
       } else {
         memberTypeExpression =
-            js.number(task.metadataEmitter.reifyType(memberType));
+            js.number(task.metadataCollector.reifyType(memberType));
       }
     } else {
       memberTypeExpression = js('null');
@@ -386,20 +386,20 @@ class ContainerBuilder extends CodeEmitterHelper {
         ..add(js.number(requiredParameterCount))
         ..add(js.number(optionalParameterCount))
         ..add(memberTypeExpression)
-        ..addAll(task.metadataEmitter
+        ..addAll(task.metadataCollector
             .reifyDefaultArguments(member).map(js.number));
 
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
         expressions.add(
-            js.number(task.metadataEmitter.reifyName(parameter.name)));
+            js.number(task.metadataCollector.reifyName(parameter.name)));
         if (backend.mustRetainMetadata) {
           Iterable<int> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             ConstantValue constant =
                 backend.constants.getConstantForMetadata(annotation).value;
             backend.constants.addCompileTimeConstantForEmission(constant);
-            return task.metadataEmitter.reifyMetadata(annotation);
+            return task.metadataCollector.reifyMetadata(annotation);
           });
           expressions.add(new jsAst.ArrayInitializer(
               metadataIndices.map(js.number).toList()));
@@ -419,7 +419,8 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       expressions
           ..add(reflectionName)
-          ..addAll(task.metadataEmitter.computeMetadata(member).map(js.number));
+          ..addAll(task.metadataCollector
+              .computeMetadata(member).map(js.number));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(member.library,
                                                   member.name)));

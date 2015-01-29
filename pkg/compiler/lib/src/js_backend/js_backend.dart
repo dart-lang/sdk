@@ -22,8 +22,9 @@ import '../js_emitter/js_emitter.dart'
     show Emitter,
          CodeEmitterTask,
          ClassBuilder,
-         MetadataEmitter,
+         MetadataCollector,
          USE_NEW_EMITTER;
+
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart';
@@ -35,6 +36,7 @@ import '../util/util.dart';
 
 import '../elements/visitor.dart' show
     ElementVisitor;
+
 import '../js_backend/codegen/task.dart';
 import 'patch_resolver.dart';
 

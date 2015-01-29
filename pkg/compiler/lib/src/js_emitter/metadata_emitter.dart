@@ -4,17 +4,25 @@
 
 part of dart2js.js_emitter;
 
-class MetadataEmitter extends CodeEmitterHelper {
+class MetadataCollector {
+  final Compiler _compiler;
+  final Emitter _emitter;
+
   /// A list of JS expressions that represent metadata, parameter names and
   /// type, and return types.
   final List<String> globalMetadata = [];
 
   /// A map used to canonicalize the entries of globalMetadata.
-  final Map<String, int> globalMetadataMap = <String, int>{};
+  final Map<String, int> _globalMetadataMap = <String, int>{};
 
-  bool mustEmitMetadataFor(Element element) {
-    return backend.mustRetainMetadata &&
-        backend.referencedFromMirrorSystem(element);
+  MetadataCollector(this._compiler, this._emitter);
+
+  JavaScriptBackend get _backend => _compiler.backend;
+  TypeVariableHandler get _typeVariableHandler => _backend.typeVariableHandler;
+
+  bool _mustEmitMetadataFor(Element element) {
+    return _backend.mustRetainMetadata &&
+        _backend.referencedFromMirrorSystem(element);
   }
 
   /// The metadata function returns the metadata associated with
@@ -24,8 +32,8 @@ class MetadataEmitter extends CodeEmitterHelper {
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
-    if (!mustEmitMetadataFor(element)) return null;
-    return compiler.withCurrentElement(element, () {
+    if (!_mustEmitMetadataFor(element)) return null;
+    return _compiler.withCurrentElement(element, () {
       List<jsAst.Expression> metadata = <jsAst.Expression>[];
       Link link = element.metadata;
       // TODO(ahe): Why is metadata sometimes null?
@@ -33,11 +41,11 @@ class MetadataEmitter extends CodeEmitterHelper {
         for (; !link.isEmpty; link = link.tail) {
           MetadataAnnotation annotation = link.head;
           ConstantExpression constant =
-              backend.constants.getConstantForMetadata(annotation);
+              _backend.constants.getConstantForMetadata(annotation);
           if (constant == null) {
-            compiler.internalError(annotation, 'Annotation value is null.');
+            _compiler.internalError(annotation, 'Annotation value is null.');
           } else {
-            metadata.add(emitter.constantReference(constant.value));
+            metadata.add(_emitter.constantReference(constant.value));
           }
         }
       }
@@ -53,11 +61,11 @@ class MetadataEmitter extends CodeEmitterHelper {
     List<int> defaultValues = <int>[];
     for (ParameterElement element in signature.optionalParameters) {
       ConstantExpression constant =
-          backend.constants.getConstantForVariable(element);
+          _backend.constants.getConstantForVariable(element);
       String stringRepresentation = (constant == null)
           ? "null"
           : jsAst.prettyPrint(
-              emitter.constantReference(constant.value), compiler).getText();
+              _emitter.constantReference(constant.value), _compiler).getText();
       defaultValues.add(addGlobalMetadata(stringRepresentation));
     }
     return defaultValues;
@@ -65,31 +73,31 @@ class MetadataEmitter extends CodeEmitterHelper {
 
   int reifyMetadata(MetadataAnnotation annotation) {
     ConstantExpression constant =
-        backend.constants.getConstantForMetadata(annotation);
+        _backend.constants.getConstantForMetadata(annotation);
     if (constant == null) {
-      compiler.internalError(annotation, 'Annotation value is null.');
+      _compiler.internalError(annotation, 'Annotation value is null.');
       return -1;
     }
     return addGlobalMetadata(
         jsAst.prettyPrint(
-            emitter.constantReference(constant.value), compiler).getText());
+            _emitter.constantReference(constant.value), _compiler).getText());
   }
 
   int reifyType(DartType type) {
     jsAst.Expression representation =
-        backend.rti.getTypeRepresentation(
+        _backend.rti.getTypeRepresentation(
             type,
             (variable) {
               return js.number(
-                  emitter.typeVariableHandler.reifyTypeVariable(
+                  _typeVariableHandler.reifyTypeVariable(
                       variable.element));
             },
             (TypedefType typedef) {
-              return backend.isAccessibleByReflection(typedef.element);
+              return _backend.isAccessibleByReflection(typedef.element);
             });
 
     return addGlobalMetadata(
-        jsAst.prettyPrint(representation, compiler).getText());
+        jsAst.prettyPrint(representation, _compiler).getText());
   }
 
   int reifyName(String name) {
@@ -97,15 +105,15 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   int addGlobalMetadata(String string) {
-    return globalMetadataMap.putIfAbsent(string, () {
+    return _globalMetadataMap.putIfAbsent(string, () {
       globalMetadata.add(string);
       return globalMetadata.length - 1;
     });
   }
 
   List<int> computeMetadata(FunctionElement element) {
-    return compiler.withCurrentElement(element, () {
-      if (!mustEmitMetadataFor(element)) return const <int>[];
+    return _compiler.withCurrentElement(element, () {
+      if (!_mustEmitMetadataFor(element)) return const <int>[];
       List<int> metadata = <int>[];
       Link link = element.metadata;
       // TODO(ahe): Why is metadata sometimes null?

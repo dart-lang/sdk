@@ -154,13 +154,14 @@ class IncrementalCompilerContext extends _IncrementalCompilerContext {
   }
 
   void _captureState(Compiler compiler) {
-    _emittedClasses = new Set.from(compiler.backend.emitter.neededClasses);
+    JavaScriptBackend backend = compiler.backend;
+    _emittedClasses = new Set.from(backend.emitter.neededClasses);
 
     _directlyInstantiatedClasses =
         new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
 
     List<ConstantValue> constants =
-        compiler.backend.emitter.outputConstantLists[
+        backend.emitter.outputConstantLists[
             compiler.deferredLoadTask.mainOutputUnit];
     if (constants == null) constants = <ConstantValue>[];
     _compiledConstants = new Set<ConstantValue>.identity()..addAll(constants);
