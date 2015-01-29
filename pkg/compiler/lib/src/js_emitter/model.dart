@@ -318,16 +318,13 @@ class DartMethod extends Method {
   final bool needsStubs;
   // TODO(herhut): Directly store aliases instead.
   final bool canBeApplied;
-  final bool canBeReflected;
 
   DartMethod(Element element, String name, js.Expression code,
-      {this.needsTearOff, this.tearOffName, this.needsStubs, this.canBeApplied,
-       this.canBeReflected})
+      {this.needsTearOff, this.tearOffName, this.needsStubs, this.canBeApplied})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
     assert(canBeApplied != null);
-    assert(canBeReflected != null);
     assert(needsStubs != null);
   }
 }
@@ -342,14 +339,12 @@ class InstanceMethod extends DartMethod {
        String tearOffName,
        this.hasSuperAlias,
        bool canBeApplied,
-       bool canBeReflected,
        this.isClosure,
        bool needsStubs})
       : super(element, name, code,
               needsTearOff: needsTearOff,
               tearOffName: tearOffName,
               canBeApplied: canBeApplied,
-              canBeReflected: canBeReflected,
               needsStubs: needsStubs) {
     assert(hasSuperAlias != null);
     assert(isClosure != null);
@@ -371,12 +366,11 @@ class StaticMethod extends DartMethod {
   final Holder holder;
   StaticMethod(Element element, String name, this.holder, js.Expression code,
                {bool needsTearOff, String tearOffName, bool canBeApplied,
-                bool canBeReflected, bool needsStubs})
+                bool needsStubs})
       : super(element, name, code,
               needsTearOff: needsTearOff,
               tearOffName : tearOffName,
               canBeApplied : canBeApplied,
-              canBeReflected : canBeReflected,
               needsStubs : needsStubs);
 }
 

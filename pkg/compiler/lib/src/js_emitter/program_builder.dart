@@ -389,13 +389,6 @@ class ProgramBuilder {
     return !method.functionSignature.optionalParameters.isEmpty;
   }
 
-  bool _methodCanBeReflected(FunctionElement method) {
-    return backend.isAccessibleByReflection(method) ||
-        // During incremental compilation, we have to assume that reflection
-        // *might* get enabled.
-        _compiler.hasIncrementalSupport;
-  }
-
   bool _methodCanBeApplied(FunctionElement method) {
     return _compiler.enabledFunctionApply &&
         _compiler.world.getMightBePassedToApply(method);
@@ -424,7 +417,6 @@ class ProgramBuilder {
     bool isNotApplyTarget = !element.isFunction || element.isAccessor;
 
     final bool needsStubs = _methodNeedsStubs(element);
-    final bool canBeReflected = _methodCanBeReflected(element);
     final bool canBeApplied = _methodCanBeApplied(element);
     final bool hasSuperAlias = backend.isAliasedSuperMember(element);
 
@@ -436,8 +428,7 @@ class ProgramBuilder {
         isClosure = true;
       } else {
         // Careful with operators.
-        canTearOff = universe.hasInvokedGetter(element, _compiler.world) ||
-            (canBeReflected && !element.isOperator);
+        canTearOff = universe.hasInvokedGetter(element, _compiler.world);
         assert(canTearOff ||
                !universe.methodsNeedingSuperGetter.contains(element));
         tearOffName = namer.getterName(element);
@@ -453,7 +444,7 @@ class ProgramBuilder {
     return new InstanceMethod(element, name, code, needsTearOff: canTearOff,
         tearOffName: tearOffName, isClosure: isClosure,
         hasSuperAlias: hasSuperAlias, canBeApplied: canBeApplied,
-        canBeReflected: canBeReflected, needsStubs: needsStubs);
+        needsStubs: needsStubs);
   }
 
   /// Builds a stub method.
@@ -561,13 +552,12 @@ class ProgramBuilder {
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
 
-    final bool isNotApplyTarget = !element.isConstructor && !element.isAccessor;
     final bool needsStubs = _methodNeedsStubs(element);
     final bool canBeApplied = _methodCanBeApplied(element);
-    final bool canBeReflected = _methodCanBeReflected(element);
 
-    final bool needsTearOff = isNotApplyTarget && (canBeReflected ||
-         universe.staticFunctionsNeedingGetter.contains(element));
+    final bool isApplyTarget = !element.isConstructor && !element.isAccessor;
+    final bool needsTearOff = isApplyTarget &&
+         universe.staticFunctionsNeedingGetter.contains(element);
 
     final String tearOffName =
         needsTearOff ? namer.getStaticClosureName(element) : null;
@@ -577,7 +567,6 @@ class ProgramBuilder {
                             needsTearOff: needsTearOff,
                             tearOffName: tearOffName,
                             canBeApplied: canBeApplied,
-                            canBeReflected: canBeReflected,
                             needsStubs: needsStubs);
   }
 
