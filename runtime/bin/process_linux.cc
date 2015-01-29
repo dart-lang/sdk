@@ -466,7 +466,8 @@ int Process::Start(const char* path,
       }
       VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
 
-      if (working_directory != NULL && chdir(working_directory) == -1) {
+      if (working_directory != NULL &&
+          TEMP_FAILURE_RETRY(chdir(working_directory)) == -1) {
         ReportChildError(exec_control[1]);
       }
 
@@ -491,7 +492,7 @@ int Process::Start(const char* path,
 
   if (!detach) {
     int event_fds[2];
-    result = pipe(event_fds);
+    result = TEMP_FAILURE_RETRY(pipe(event_fds));
     if (result < 0) {
       SetChildOsErrorMessage(os_error_message);
       VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
@@ -711,7 +712,7 @@ bool Process::Wait(intptr_t pid,
 
 
 bool Process::Kill(intptr_t id, int signal) {
-  return kill(id, signal) != -1;
+  return (TEMP_FAILURE_RETRY(kill(id, signal)) != -1);
 }
 
 

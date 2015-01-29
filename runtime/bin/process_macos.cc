@@ -376,7 +376,7 @@ int Process::Start(const char* path,
     VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
     VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
     VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-    if (detach) {
+    if (!detach) {
       VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
       VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
       VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
@@ -521,9 +521,6 @@ int Process::Start(const char* path,
     perror("Failed sending notification message");
   }
 
-  // Read exec result from child. If no data is returned the exec was
-  // successful and the exec call closed the pipe. Otherwise the errno
-  // is written to the pipe.
   VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
   bool failed = false;
   int child_errno;
