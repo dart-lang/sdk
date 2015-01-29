@@ -119,6 +119,7 @@ class ProgramBuilder {
         outputs,
         _buildLoadMap(),
         _buildTypeToInterceptorMap(),
+        _task.metadataCollector,
         outputContainsNativeClasses: containsNativeClasses,
         outputContainsConstantList: _task.outputContainsConstantList);
   }

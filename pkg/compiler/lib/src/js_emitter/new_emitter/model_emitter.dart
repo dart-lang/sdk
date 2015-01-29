@@ -19,6 +19,7 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     IS_HUNK_INITIALIZED,
     IS_HUNK_LOADED,
     MANGLED_GLOBAL_NAMES,
+    METADATA,
     TYPE_TO_INTERCEPTOR_MAP;
 
 import '../js_emitter.dart' show NativeGenerator;
@@ -171,6 +172,8 @@ class ModelEmitter {
 
     globals.add(emitGetTypeFromName());
 
+    globals.add(emitMetadata(program));
+
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
     List<js.Statement> statements =
@@ -238,6 +241,14 @@ class ModelEmitter {
                     return holdersMap[name][name].ensureResolved();
                   }""");
     return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
+  }
+
+  js.Property emitMetadata(Program program) {
+    String metadataList = "[${program.metadata.join(",")}]";
+    js.Expression metadata =
+        js.js.uncachedExpressionTemplate(metadataList).instantiate([]);
+
+    return new js.Property(js.string(METADATA), metadata);
   }
 
   js.Expression emitDeferredFragment(DeferredFragment fragment,

@@ -9,6 +9,8 @@ import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
 
+import 'js_emitter.dart' show MetadataCollector;
+
 import '../common.dart';
 
 class Program {
@@ -22,14 +24,31 @@ class Program {
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
   final js.Expression typeToInterceptorMap;
 
+  // TODO(floitsch): we should store the metadata directly instead of storing
+  // the collector. However, the old emitter still updates the data.
+  final MetadataCollector _metadataCollector;
+
   Program(this.fragments,
           this.loadMap,
           this.typeToInterceptorMap,
+          this._metadataCollector,
           {this.outputContainsNativeClasses,
            this.outputContainsConstantList}) {
     assert(outputContainsNativeClasses != null);
     assert(outputContainsConstantList != null);
   }
+
+  /// A list of pretty-printed JavaScript expressions.
+  ///
+  /// This list must be emitted in the `METADATA` embedded global.
+  /// The list references constants and must hence be emitted after constants
+  /// have been initialized.
+  ///
+  /// Note: the metadata is derived from the task's `metadataCollector`. The
+  /// list must not be emitted before all operations on it are done. For
+  /// example, the old emitter generates metadata when emitting reflection
+  /// data.
+  List<String> get metadata => _metadataCollector.globalMetadata;
 
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
