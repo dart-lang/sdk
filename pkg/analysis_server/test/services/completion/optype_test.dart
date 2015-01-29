@@ -153,7 +153,7 @@ class OpTypeTest {
 
   test_AwaitExpression() {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
-    addTestSource('main(){A a; await ^}');
+    addTestSource('main() async {A a; await ^}');
     assertOpType(returnValue: true, typeNames: true);
   }
 

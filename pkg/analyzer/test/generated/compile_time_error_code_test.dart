@@ -20,6 +20,32 @@ main() {
 
 @reflectiveTest
 class CompileTimeErrorCodeTest extends ResolverTestCase {
+  void fail_awaitInWrongContext_sync() {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) {
+  return await x;
+}''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
+  void fail_awaitInWrongContext_syncStar() {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) sync* {
+  yield await x;
+}''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
   void fail_compileTimeConstantRaisesException() {
     Source source = addSource(r'''
 ''');
@@ -228,26 +254,6 @@ f(list) {
 }''');
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT]);
-    verify([source]);
-  }
-
-  void test_awaitInWrongContext_sync() {
-    Source source = addSource(r'''
-f(x) {
-  return await x;
-}''');
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
-    verify([source]);
-  }
-
-  void test_awaitInWrongContext_syncStar() {
-    Source source = addSource(r'''
-f(x) sync* {
-  yield await x;
-}''');
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
     verify([source]);
   }
 

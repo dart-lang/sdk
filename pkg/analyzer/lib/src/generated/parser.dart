@@ -8612,7 +8612,7 @@ class Parser {
     } else if (_matches(TokenType.PLUS)) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return _createSyntheticIdentifier();
-    } else if (_matchesString(_AWAIT)) {
+    } else if (_inAsync && _matchesString(_AWAIT)) {
       return _parseAwaitExpression();
     }
     return _parsePostfixExpression();

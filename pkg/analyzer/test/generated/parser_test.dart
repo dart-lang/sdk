@@ -5165,6 +5165,39 @@ class ResolutionCopierTest extends EngineTestCase {
  */
 @reflectiveTest
 class SimpleParserTest extends ParserTestCase {
+  void fail_parseAwaitExpression_inSync() {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    MethodDeclaration method = ParserTestCase.parse(
+        "parseClassMember",
+        <Object>["C"],
+        "m() { return await x + await y; }");
+    FunctionBody body = method.body;
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is BlockFunctionBody,
+        BlockFunctionBody,
+        body);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ReturnStatement,
+        ReturnStatement,
+        statement);
+    Expression expression = (statement as ReturnStatement).expression;
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is BinaryExpression,
+        BinaryExpression,
+        expression);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AwaitExpression,
+        AwaitExpression,
+        (expression as BinaryExpression).leftOperand);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AwaitExpression,
+        AwaitExpression,
+        (expression as BinaryExpression).rightOperand);
+  }
+
   void fail_parseCommentReference_this() {
     // This fails because we are returning null from the method and asserting
     // that the return value is not null.
@@ -5760,36 +5793,6 @@ class SimpleParserTest extends ParserTestCase {
         (obj) => obj is VariableDeclarationStatement,
         VariableDeclarationStatement,
         statement);
-  }
-
-  void test_parseAwaitExpression_inSync() {
-    MethodDeclaration method = ParserTestCase.parse(
-        "parseClassMember",
-        <Object>["C"],
-        "m() { return await x + await y; }");
-    FunctionBody body = method.body;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is BlockFunctionBody,
-        BlockFunctionBody,
-        body);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ReturnStatement,
-        ReturnStatement,
-        statement);
-    Expression expression = (statement as ReturnStatement).expression;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is BinaryExpression,
-        BinaryExpression,
-        expression);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AwaitExpression,
-        AwaitExpression,
-        (expression as BinaryExpression).leftOperand);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AwaitExpression,
-        AwaitExpression,
-        (expression as BinaryExpression).rightOperand);
   }
 
   void test_parseBitwiseAndExpression_normal() {
@@ -7842,6 +7845,11 @@ void''');
     ArgumentList list = invocation.argumentList;
     expect(list, isNotNull);
     expect(list.arguments, hasLength(1));
+  }
+
+  void test_parseExpression_nonAwait() {
+    MethodInvocation expression = ParserTestCase.parseExpression("await()");
+    expect(expression.methodName.name, 'await');
   }
 
   void test_parseExpression_superMethodInvocation() {

@@ -1142,7 +1142,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
     addTestSource('''
       class A {int x; int y() => 0;}
-      main(){A a; await ^}''');
+      main() async {A a; await ^}''');
     computeFast();
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);

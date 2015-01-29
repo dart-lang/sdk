@@ -11,21 +11,21 @@ import 'dart:async';
 int globalVariable = 1;
 int topLevelFoo(int param) => 1;
 int get topLevelGetter => globalVariable;
-int set topLevelSetter(val) {
+void set topLevelSetter(val) {
   globalVariable = val;
 }
 
 class C {
   static int staticField = 1;
   static int get staticGetter => staticField;
-  static int set staticSetter(val) {
+  static void set staticSetter(val) {
     staticField = val;
   }
   static int staticFoo(int param) => param;
 
   int field = 1;
   int get getter => field;
-  int set setter(val) {
+  void set setter(val) {
     field = val;
   }
   int foo(int param) => param;
@@ -95,7 +95,7 @@ others() async {
   Expect.equals(a, "1 1 someString");
   try {
     var c = new C();
-    var d = c.nooooo() + await bar();
+    var d = c.nooooo() + await dummy();
   } catch (e) {}
   var cnt = 2;
   var b = [1,2,3];
@@ -116,7 +116,7 @@ conditionals() async {
   var e = (a is int) ? await dummy() : 2;
   Expect.equals(e, 2);
   try {
-    var f = (a is intt) ? await dummy() : 2;
+    var f = (a is int) ? await dummy() : 2;
   } catch(e) {}
 }
 
