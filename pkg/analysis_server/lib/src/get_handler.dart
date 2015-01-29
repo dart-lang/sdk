@@ -315,7 +315,8 @@ class GetHandler {
 
     List<Folder> allContexts = <Folder>[];
     Map<Folder, SourceEntry> entryMap = new HashMap<Folder, SourceEntry>();
-    analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
+    analysisServer.folderMap.forEach(
+        (Folder folder, AnalysisContextImpl context) {
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source != null) {
         SourceEntry entry = context.getReadableSourceEntryOrNull(source);
@@ -325,7 +326,9 @@ class GetHandler {
         }
       }
     });
-    allContexts.sort((Folder firstFolder, Folder secondFolder) => firstFolder.path.compareTo(secondFolder.path));
+    allContexts.sort(
+        (Folder firstFolder, Folder secondFolder) =>
+            firstFolder.path.compareTo(secondFolder.path));
     AnalysisContextImpl context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
@@ -342,7 +345,8 @@ class GetHandler {
           } else {
             buffer.write('<br>');
           }
-          AnalysisContextImpl analyzingContext = analysisServer.folderMap[folder];
+          AnalysisContextImpl analyzingContext =
+              analysisServer.folderMap[folder];
           if (analyzingContext == context) {
             buffer.write(folder.path);
           } else {
@@ -483,7 +487,11 @@ class GetHandler {
     String value = request.requestedUri.queryParameters['index'];
     int index = value != null ? int.parse(value, onError: (_) => 0) : 0;
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Completion Stats', [], (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Completion Stats',
+          [],
+          (StringBuffer buffer) {
         _writeCompletionPerformanceDetail(buffer, index);
         _writeCompletionPerformanceList(buffer);
       });
@@ -886,28 +894,24 @@ class GetHandler {
       buffer.write('<p>No completions yet</p>');
       return;
     }
-    buffer.write(
-        '<h3>Completion Performance Detail - ${performance.startTimeAndMs}</h3>');
+    buffer.write('<h3>Completion Performance Detail</h3>');
+    buffer.write('<p>${performance.startTimeAndMs} for ${performance.source}');
     buffer.write('<table>');
     _writeRow(buffer, ['Elapsed', '', 'Operation'], header: true);
     performance.operations.forEach((OperationPerformance op) {
       String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
       _writeRow(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
     });
-    if (handler.priorityChangedPerformance == null) {
-      buffer.write('<p>No priorityChanged caching</p>');
-    } else {
-      int len = handler.priorityChangedPerformance.operations.length;
-      if (len > 0) {
-        var op = handler.priorityChangedPerformance.operations[len - 1];
-        if (op != null) {
-          _writeRow(buffer, ['&nbsp;', '&nbsp;', '&nbsp;']);
-          String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
-          _writeRow(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
-        }
-      }
-    }
     buffer.write('</table>');
+    buffer.write('<p><b>Compute Cache Performance</b>: ');
+    if (handler.computeCachePerformance == null) {
+      buffer.write('none');
+    } else {
+      int elapsed = handler.computeCachePerformance.elapsedInMilliseconds;
+      Source source = handler.computeCachePerformance.source;
+      buffer.write(' $elapsed ms for $source');
+    }
+    buffer.write('</p>');
   }
 
   /**
@@ -916,7 +920,7 @@ class GetHandler {
    */
   void _writeCompletionPerformanceList(StringBuffer buffer) {
     CompletionDomainHandler handler = _completionDomainHandler;
-    buffer.write('<h3>Completion Performance</h3>');
+    buffer.write('<h3>Completion Performance List</h3>');
     if (handler == null) {
       return;
     }
@@ -1194,8 +1198,8 @@ class GetHandler {
    * one cell for each of the [columns], and will be a header row if [header] is
    * `true`.
    */
-  void _writeRow(StringBuffer buffer, List<Object> columns, {bool header:
-      false, List<String> classes}) {
+  void _writeRow(StringBuffer buffer, List<Object> columns, {bool header: false,
+      List<String> classes}) {
     buffer.write('<tr>');
     int count = columns.length;
     int maxClassIndex = classes == null ? 0 : classes.length - 1;
