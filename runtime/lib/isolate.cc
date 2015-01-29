@@ -16,6 +16,7 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
+#include "vm/service.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
@@ -102,12 +103,15 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   uint8_t* data = NULL;
-  bool can_send_any_object = (isolate->origin_id() == port.origin_id());
+
+  const Dart_Port destination_port_id = port.Id();
+  const bool can_send_any_object = isolate->origin_id() == port.origin_id();
+
   MessageWriter writer(&data, &allocator, can_send_any_object);
   writer.WriteMessage(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(port.Id(),
+  PortMap::PostMessage(new Message(destination_port_id,
                                    data, writer.BytesWritten(),
                                    Message::kNormalPriority));
   return Object::null();

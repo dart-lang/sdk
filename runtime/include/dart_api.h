@@ -737,34 +737,6 @@ typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    void* callback_data,
                                                    char** error);
 
-
-/**
- * The service isolate creation and initialization callback function.
- *
- * This callback, provided by the embedder, is called when the vm
- * needs to create the service isolate. The callback should create an isolate
- * by calling Dart_CreateIsolate and prepare the isolate to be used as
- * the service isolate.
- *
- * When the function returns NULL, it is the responsibility of this
- * function to ensure that Dart_ShutdownIsolate has been called if
- * required.
- *
- * When the function returns NULL, the function should set *error to
- * a malloc-allocated buffer containing a useful error message.  The
- * caller of this function (the vm) will make sure that the buffer is
- * freed.
- *
- *
- * \param error A structure into which the embedder can place a
- *   C string containing an error message in the case of failures.
- *
- * \return The embedder returns NULL if the creation and
- *   initialization was not successful and the isolate if successful.
- */
-typedef Dart_Isolate (*Dart_ServiceIsolateCreateCalback)(void* callback_data,
-                                                         char** error);
-
 /**
  * An isolate interrupt callback function.
  *
@@ -873,8 +845,7 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source,
-    Dart_ServiceIsolateCreateCalback service_create);
+    Dart_EntropySource entropy_source);
 
 /**
  * Cleanup state in the VM before process termination.
@@ -2757,29 +2728,26 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
  * =======
  */
 
+
+#define DART_VM_SERVICE_ISOLATE_NAME "vm-service"
+
 /**
- * Returns the Service isolate initialized and with the dart:vmservice library
- * loaded and booted.
+ * Returns true if isolate is the service isolate.
  *
- * This will call the embedder provided Dart_ServiceIsolateCreateCalback to
- * create the isolate.
+ * \param isolate An isolate
  *
- * After obtaining the service isolate the embedder specific glue code can
- * be loaded in and the isolate can be run by the embedder.
- *
- * NOTE: It is not safe to call this from multiple threads concurrently.
- *
- * \return Returns NULL if an error occurred.
+ * \return Returns true if 'isolate' is the service isolate.
  */
-DART_EXPORT Dart_Isolate Dart_GetServiceIsolate(void* callback_data);
+DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
 
 
 /**
- * Returns true if the service is enabled. False otherwise.
+ * Returns the port that script load requests should be sent on.
  *
- *  \return Returns true if service is running.
+ * \return Returns the port for load requests or ILLEGAL_PORT if the service
+ * isolate failed to startup or does not support load requests.
  */
-DART_EXPORT bool Dart_IsServiceRunning();
+DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
 
 
 /**

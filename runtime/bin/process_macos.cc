@@ -7,6 +7,7 @@
 
 #include "bin/process.h"
 
+#include <crt_externs.h>  // NOLINT
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 #include <poll.h>  // NOLINT
@@ -23,8 +24,6 @@
 
 #include "platform/signal_blocker.h"
 
-
-extern char **environ;
 
 
 namespace dart {
@@ -456,7 +455,10 @@ class ProcessStarter {
     }
 
     if (program_environment_ != NULL) {
-      environ = program_environment_;
+      // On MacOS you have to do a bit of magic to get to the
+      // environment strings.
+      char*** environ = _NSGetEnviron();
+      *environ = program_environment;
     }
 
     VOID_TEMP_FAILURE_RETRY(

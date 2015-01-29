@@ -7,7 +7,6 @@ library vmservice;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
-import 'dart:typed_data';
 
 part 'client.dart';
 part 'constants.dart';
@@ -106,8 +105,13 @@ class VMService extends MessageRouter {
     }
   }
 
+  void _notSupported(_) {
+    throw new UnimplementedError('Service script loading not supported.');
+  }
+
   VMService._internal()
       : eventPort = isolateLifecyclePort {
+    scriptLoadPort.handler = _notSupported;
     eventPort.handler = messageHandler;
   }
 

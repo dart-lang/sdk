@@ -7127,8 +7127,11 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   if (Dart_CurrentIsolate() != NULL) {
     Dart_ExitIsolate();
   }
-  Dart_Isolate isolate = TestCase::CreateTestIsolate();
+  Dart_Isolate isolate = TestCase::CreateTestIsolate(script_name);
   ASSERT(isolate != NULL);
+  if (Dart_IsServiceIsolate(isolate)) {
+    return isolate;
+  }
   Dart_EnterScope();
   Dart_Handle url = NewString(TestCase::url());
   Dart_Handle source = NewString(kScriptChars);

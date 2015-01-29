@@ -8,6 +8,7 @@
     # If we have not set dart_io_support to 1 in Dart's all.gypi or common.gypi,
     # then do not build the native libraries supporting  dart:io.
     'dart_io_support%': 0,
+    'dart_io_secure_socket%': 1,
     # Intel VTune related variables.
     'dart_vtune_support%': 0,
     'conditions': [

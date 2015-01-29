@@ -43,6 +43,11 @@ const char* Platform::OperatingSystem() {
 }
 
 
+const char* Platform::LibraryExtension() {
+  return "dylib";
+}
+
+
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }

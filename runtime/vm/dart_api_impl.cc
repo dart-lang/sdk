@@ -1204,12 +1204,10 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source,
-    Dart_ServiceIsolateCreateCalback service_create) {
+    Dart_EntropySource entropy_source) {
   const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown,
                                        file_open, file_read, file_write,
-                                       file_close, entropy_source,
-                                       service_create);
+                                       file_close, entropy_source);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;
@@ -1250,6 +1248,10 @@ static char* BuildIsolateName(const char* script_uri,
     } else {
       return strdup(main);
     }
+  }
+
+  if (Service::IsServiceIsolateName(script_uri)) {
+    return strdup(script_uri);
   }
 
   // Skip past any slashes and backslashes in the script uri.
@@ -1521,6 +1523,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     return error;
   }
   if (FLAG_print_class_table) {
+    HANDLESCOPE(isolate);
     isolate->class_table()->Print();
   }
   return Api::Success();
@@ -5406,13 +5409,14 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
 
 // --- Service support ---
 
-DART_EXPORT Dart_Isolate Dart_GetServiceIsolate(void* callback_data) {
-  return Api::CastIsolate(Service::GetServiceIsolate(callback_data));
+DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  return Service::IsServiceIsolate(iso);
 }
 
 
-DART_EXPORT bool Dart_IsServiceRunning() {
-  return Service::IsRunning();
+DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort() {
+  return Service::WaitForLoadPort();
 }
 
 
