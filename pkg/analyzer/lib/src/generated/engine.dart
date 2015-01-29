@@ -1117,6 +1117,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
     this._options.incrementalValidation = options.incrementalValidation;
+    this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
