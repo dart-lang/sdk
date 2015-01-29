@@ -22,8 +22,7 @@ class ContainerBuilder extends CodeEmitterHelper {
    */
   void addParameterStub(FunctionElement member,
                         Selector selector,
-                        AddStubFunction addStub,
-                        Set<String> alreadyGenerated) {
+                        AddStubFunction addStub) {
     FunctionSignature parameters = member.functionSignature;
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
@@ -39,10 +38,6 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
     JavaScriptConstantCompiler handler = backend.constants;
     List<String> names = selector.getOrderedNamedArguments();
-
-    String invocationName = namer.invocationName(selector);
-    if (alreadyGenerated.contains(invocationName)) return;
-    alreadyGenerated.add(invocationName);
 
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
 
@@ -60,6 +55,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     List<jsAst.Expression> argumentsBuffer =
         new List<jsAst.Expression>(
             parameters.parameterCount + extraArgumentCount);
+    String invocationName = namer.invocationName(selector);
 
     int count = 0;
     if (isInterceptedMethod) {
@@ -217,8 +213,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       for (Selector selector in selectors) {
         if (!selector.appliesUnnamed(member, compiler.world)) continue;
         if (untypedSelectors.add(selector.asUntyped)) {
-          // TODO(ahe): Is the last argument to [addParameterStub] needed?
-          addParameterStub(member, selector, defineStub, new Set<String>());
+          addParameterStub(member, selector, defineStub);
         }
       }
     }
@@ -232,8 +227,7 @@ class ContainerBuilder extends CodeEmitterHelper {
               selector.argumentCount, selector.namedArguments);
           if (!selector.appliesUnnamed(member, compiler.world)) continue;
           if (untypedSelectors.add(selector)) {
-            // TODO(ahe): Is the last argument to [addParameterStub] needed?
-            addParameterStub(member, selector, defineStub, new Set<String>());
+            addParameterStub(member, selector, defineStub);
           }
         }
       }
