@@ -99,16 +99,16 @@ class PartialClassElement extends ClassElementX with PartialElement {
 }
 
 class MemberListener extends NodeListener {
-  final ClassElement enclosingElement;
+  final ClassElement enclosingClass;
 
   MemberListener(DiagnosticListener listener,
-                 Element enclosingElement)
-      : this.enclosingElement = enclosingElement,
+                 ClassElement enclosingElement)
+      : this.enclosingClass = enclosingElement,
         super(listener, enclosingElement.compilationUnit);
 
   bool isConstructorName(Node nameNode) {
-    if (enclosingElement == null ||
-        enclosingElement.kind != ElementKind.CLASS) {
+    if (enclosingClass == null ||
+        enclosingClass.kind != ElementKind.CLASS) {
       return false;
     }
     String name;
@@ -118,7 +118,7 @@ class MemberListener extends NodeListener {
       Send send = nameNode.asSend();
       name = send.receiver.asIdentifier().source;
     }
-    return enclosingElement.name == name;
+    return enclosingClass.name == name;
   }
 
   // TODO(johnniwinther): Remove this method.
@@ -138,10 +138,10 @@ class MemberListener extends NodeListener {
       bool isUnary = identical(operator.token.next.next.stringValue, ')');
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
-      if (receiver == null || receiver.source != enclosingElement.name) {
+      if (receiver == null || receiver.source != enclosingClass.name) {
         listener.reportError(send.receiver,
                                  MessageKind.INVALID_CONSTRUCTOR_NAME,
-                                 {'name': enclosingElement.name});
+                                 {'name': enclosingClass.name});
       }
       return selector.source;
     }
@@ -162,7 +162,7 @@ class MemberListener extends NodeListener {
           name, beginToken, endToken,
           ElementKind.GENERATIVE_CONSTRUCTOR,
           method.modifiers,
-          enclosingElement);
+          enclosingClass);
     } else {
       ElementKind kind = ElementKind.FUNCTION;
       if (getOrSet != null) {
@@ -171,7 +171,7 @@ class MemberListener extends NodeListener {
       }
       memberElement =
           new PartialFunctionElement(name, beginToken, getOrSet, endToken,
-                                     kind, method.modifiers, enclosingElement,
+                                     kind, method.modifiers, enclosingClass,
                                      !method.hasBody());
     }
     addMember(memberElement);
@@ -184,10 +184,10 @@ class MemberListener extends NodeListener {
     String name = getMethodNameHack(method.name);
     Identifier singleIdentifierName = method.name.asIdentifier();
     if (singleIdentifierName != null && singleIdentifierName.source == name) {
-      if (name != enclosingElement.name) {
+      if (name != enclosingClass.name) {
         listener.reportError(singleIdentifierName,
                                  MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
-                                 {'name': enclosingElement.name});
+                                 {'name': enclosingClass.name});
       }
     }
     ElementKind kind = ElementKind.FUNCTION;
@@ -195,7 +195,7 @@ class MemberListener extends NodeListener {
         name, beginToken, endToken,
         ElementKind.FUNCTION,
         method.modifiers,
-        enclosingElement);
+        enclosingClass);
     addMember(memberElement);
   }
 
@@ -207,11 +207,11 @@ class MemberListener extends NodeListener {
     pushNode(null);
     void buildFieldElement(Identifier name, VariableList fields) {
       Element element =
-          new FieldElementX(name, enclosingElement, fields);
+          new FieldElementX(name, enclosingClass, fields);
       addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
-                       enclosingElement,
+                       enclosingClass,
                        buildFieldElement, beginToken, endToken,
                        hasParseError);
   }
@@ -226,12 +226,16 @@ class MemberListener extends NodeListener {
     pushNode(null);
   }
 
-  void addMember(Element memberElement) {
+  void addMetadata(Element memberElement) {
     for (Link link = metadata; !link.isEmpty; link = link.tail) {
       memberElement.addMetadata(link.head);
     }
     metadata = const Link<MetadataAnnotation>();
-    enclosingElement.addMember(memberElement, listener);
+  }
+
+  void addMember(Element memberElement) {
+    addMetadata(memberElement);
+    enclosingClass.addMember(memberElement, listener);
   }
 
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {

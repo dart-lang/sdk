@@ -251,6 +251,9 @@ abstract class Backend {
   /// Backend callback methods for the resolution phase.
   ResolutionCallbacks get resolutionCallbacks;
 
+  // TODO(johnniwinther): Move this to the JavaScriptBackend.
+  String get patchVersion => null;
+
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
   Iterable<ClassElement> classesRequiredForReflection = const [];
@@ -800,8 +803,8 @@ abstract class Compiler implements DiagnosticListener {
   ConstantValue proxyConstant;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  /// The constant for the [patch] variable defined in dart:_js_helper.
-  ConstantValue patchConstant;
+  /// The class for patch annotation defined in dart:_js_helper.
+  ClassElement patchAnnotationClass;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   ClassElement nativeAnnotationClass;
@@ -1244,6 +1247,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (uri == DART_NATIVE_TYPED_DATA) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
     } else if (uri == js_backend.JavaScriptBackend.DART_JS_HELPER) {
+      patchAnnotationClass = findRequiredElement(library, '_Patch');
       nativeAnnotationClass = findRequiredElement(library, 'Native');
     }
     return backend.onLibraryScanned(library, loader);
@@ -1326,14 +1330,6 @@ abstract class Compiler implements DiagnosticListener {
           resolver.constantCompiler.compileConstant(
               coreLibrary.find('proxy')).value;
 
-      // TODO(johnniwinther): Move this to the JavaScript backend.
-      LibraryElement jsHelperLibrary = loadedLibraries.getLibrary(
-              js_backend.JavaScriptBackend.DART_JS_HELPER);
-      if (jsHelperLibrary != null) {
-        patchConstant = resolver.constantCompiler.compileConstant(
-            jsHelperLibrary.find('patch')).value;
-      }
-
       if (preserveComments) {
         return libraryLoader.loadLibrary(DART_MIRRORS)
             .then((LibraryElement libraryElement) {
@@ -1352,6 +1348,10 @@ abstract class Compiler implements DiagnosticListener {
       }
     return element;
   }
+
+  // TODO(johnniwinther): Move this to [PatchParser] when it is moved to the
+  // [JavaScriptBackend]. Currently needed for testing.
+  String get patchVersion => backend.patchVersion;
 
   void onClassResolved(ClassElement cls) {
     if (mirrorSystemClass == cls) {

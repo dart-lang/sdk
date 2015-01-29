@@ -57,6 +57,7 @@ class MockCompiler extends Compiler {
   final int expectedErrors;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
+  final String testedPatchVersion;
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
@@ -76,8 +77,10 @@ class MockCompiler extends Compiler {
        bool enableEnums: false,
        int this.expectedWarnings,
        int this.expectedErrors,
-       api.CompilerOutputProvider outputProvider})
+       api.CompilerOutputProvider outputProvider,
+       String patchVersion})
       : sourceFiles = new Map<String, SourceFile>(),
+        testedPatchVersion = patchVersion,
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
@@ -113,6 +116,10 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
     registerSource(Compiler.DART_ASYNC,
                    buildLibrarySource(DEFAULT_ASYNC_LIBRARY));
+  }
+
+  String get patchVersion {
+    return testedPatchVersion != null ? testedPatchVersion : super.patchVersion;
   }
 
   /// Initialize the mock compiler with an empty main library.

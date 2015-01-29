@@ -91,6 +91,8 @@ class JavaScriptBackend extends Backend {
     'IterableMixinWorkaround': const <String>['forEach'],
   };
 
+  String get patchVersion => USE_NEW_EMITTER ? 'new' : 'old';
+
   /// List of [FunctionElement]s that we want to inline always.  This list is
   /// filled when resolution is complete by looking up in [internalLibrary].
   List<FunctionElement> functionsToAlwaysInline;
