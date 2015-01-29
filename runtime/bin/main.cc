@@ -575,6 +575,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
 
+  // Set up the library tag handler for this isolate.
+  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  CHECK_RESULT(result);
+
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
     if (!VmService::Setup(vm_service_server_ip, vm_service_server_port)) {
@@ -587,10 +591,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   }
 
   // Load the specified application script into the newly created isolate.
-
-  // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
-  CHECK_RESULT(result);
 
   // Prepare builtin and its dependent libraries for use to resolve URIs.
   // The builtin library is part of the core snapshot and would already be
