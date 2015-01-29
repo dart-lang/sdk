@@ -234,41 +234,18 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
   }
 
-  String _tearOffNameForMember(FunctionElement member) {
-    if (member.isInstanceMember) {
-      return namer.getterName(member);
-    } else {
-      return namer.getStaticClosureName(member);
-    }
-  }
-
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
     final FunctionElement member = method.element;
     String name = method.name;
     final FunctionSignature parameters = member.functionSignature;
     jsAst.Expression code = method.code;
     final bool needsStubs = method.needsStubs;
+    final bool canTearOff = method.needsTearOff;
+    final String tearOffName = method.tearOffName;
+    final bool canBeReflected = method.canBeReflected;
     final bool canBeApplied = method.canBeApplied;
-    bool canTearOff = method.needsTearOff;
-    String tearOffName = method.tearOffName;
     final bool isClosure = method is InstanceMethod && method.isClosure;
     final bool hasSuperAlias = method is InstanceMethod && method.hasSuperAlias;
-
-    bool canBeReflected = backend.isAccessibleByReflection(member);
-    // During incremental compilation, we have to assume that reflection
-    // *might* get enabled.
-    if (compiler.hasIncrementalSupport) canBeReflected = true;
-
-    if (canBeReflected) {
-      // Patch the effects of reflection into the received information.
-      bool isNotApplyTarget = member.isConstructor ||
-                              member.isAccessor ||
-                              member.isOperator ||
-                              isClosure;
-      canTearOff = canTearOff || (canBeReflected && !isNotApplyTarget);
-      tearOffName = tearOffName != null ? tearOffName
-                                        : _tearOffNameForMember(member);
-    }
 
     final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
