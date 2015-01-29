@@ -684,6 +684,9 @@ class ClassElementY extends TypeDeclarationElementY
 
   @override
   int get supertypeLoadState => unsupported('supertypeLoadState');
+
+  @override
+  dart2js.ConstructorElement lookupDefaultConstructor() => unsupported('lookupDefaultConstructor');
 }
 
 class TypedefElementY extends TypeDeclarationElementY
