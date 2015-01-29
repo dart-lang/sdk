@@ -922,6 +922,7 @@ abstract class Compiler implements DiagnosticListener {
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
   static const String CREATE_INVOCATION_MIRROR =
       'createInvocationMirror';
+  static const String FROM_ENVIRONMENT = 'fromEnvironment';
 
   static const String RUNTIME_TYPE = 'runtimeType';
 
@@ -938,8 +939,6 @@ abstract class Compiler implements DiagnosticListener {
       Compiler.NO_SUCH_METHOD, null, Compiler.NO_SUCH_METHOD_ARG_COUNT);
   final Selector symbolValidatedConstructorSelector = new Selector.call(
       'validated', null, 1);
-  final Selector fromEnvironmentSelector = new Selector.callConstructor(
-      'fromEnvironment', null, 2);
 
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
@@ -1362,16 +1361,17 @@ abstract class Compiler implements DiagnosticListener {
       symbolConstructor = cls.constructors.head;
     } else if (symbolImplementationClass == cls) {
       symbolValidatedConstructor = symbolImplementationClass.lookupConstructor(
-          symbolValidatedConstructorSelector);
+          symbolValidatedConstructorSelector.name);
     } else if (mirrorsUsedClass == cls) {
       mirrorsUsedConstructor = cls.constructors.head;
     } else if (intClass == cls) {
-      intEnvironment = intClass.lookupConstructor(fromEnvironmentSelector);
+      intEnvironment = intClass.lookupConstructor(FROM_ENVIRONMENT);
     } else if (stringClass == cls) {
       stringEnvironment =
-          stringClass.lookupConstructor(fromEnvironmentSelector);
+          stringClass.lookupConstructor(FROM_ENVIRONMENT);
     } else if (boolClass == cls) {
-      boolEnvironment = boolClass.lookupConstructor(fromEnvironmentSelector);
+      boolEnvironment =
+          boolClass.lookupConstructor(FROM_ENVIRONMENT);
     }
   }
 
@@ -1409,19 +1409,13 @@ abstract class Compiler implements DiagnosticListener {
   Element _unnamedListConstructor;
   Element get unnamedListConstructor {
     if (_unnamedListConstructor != null) return _unnamedListConstructor;
-    Selector callConstructor = new Selector.callConstructor(
-        "", listClass.library);
-    return _unnamedListConstructor =
-        listClass.lookupConstructor(callConstructor);
+    return _unnamedListConstructor = listClass.lookupDefaultConstructor();
   }
 
   Element _filledListConstructor;
   Element get filledListConstructor {
     if (_filledListConstructor != null) return _filledListConstructor;
-    Selector callConstructor = new Selector.callConstructor(
-        "filled", listClass.library);
-    return _filledListConstructor =
-        listClass.lookupConstructor(callConstructor);
+    return _filledListConstructor = listClass.lookupConstructor("filled");
   }
 
   /**

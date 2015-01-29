@@ -684,11 +684,6 @@ class ClassElementY extends TypeDeclarationElementY
 
   @override
   int get supertypeLoadState => unsupported('supertypeLoadState');
-
-  @override
-  validateConstructorLookupResults(selector,  result, noMatch) {
-    unsupported('validateConstructorLookupResults');
-  }
 }
 
 class TypedefElementY extends TypeDeclarationElementY
