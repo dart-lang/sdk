@@ -1154,7 +1154,8 @@ class BrowserTestRunner {
     // running for longer than RESTART_BROWSER_INTERVAL. The tests have
     // had flaky timeouts, and this may help.
     if ((browserName == 'ContentShellOnAndroid' ||
-         browserName == 'DartiumOnAndroid' ) &&
+         browserName == 'DartiumOnAndroid' ||
+         browserName == 'ie10') &&
         status.timeSinceRestart.elapsed > RESTART_BROWSER_INTERVAL) {
       var id = status.browser.id;
       // Reset stopwatch so we don't trigger again before restarting.
