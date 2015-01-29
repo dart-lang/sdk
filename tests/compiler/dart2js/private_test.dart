@@ -131,7 +131,7 @@ void main() {
   analyze('publicClass = new PublicClass.publicConstructor();');
   // Call private constructor on public class.
   analyze('publicClass = new PublicClass._privateConstructor();',
-      MessageKind.CANNOT_FIND_CONSTRUCTOR);
+      MessageKind.PRIVATE_ACCESS);
   // Read from private field on public class.
   analyze('var value = publicClass._privateField;',
       MessageKind.PRIVATE_ACCESS);
