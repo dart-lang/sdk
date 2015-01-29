@@ -17,8 +17,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Issue 20540
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: Fail # Issue 22007
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: Fail # Issue 22007
 Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
 LayoutTests/fast/speechsynthesis/*: Skip # Times out on Dartium. Fails elsewhere. Issue 22017
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Issue 22111
@@ -543,11 +541,9 @@ WebPlatformTest/html/semantics/forms/the-input-element/datetime_t01: RuntimeErro
 WebPlatformTest/html/semantics/forms/the-input-element/datetime_t02: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/email_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/email_t02: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/html/semantics/forms/the-input-element/hidden_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/input-textselection_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/month_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/range_t01: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/html/semantics/forms/the-input-element/text_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/time_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/time_t02: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/type-change-state_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -580,7 +576,6 @@ WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-obje
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t03: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t05: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t06: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol_t00: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/event_local_key_t01: RuntimeError # co19-roll r761: Please triage this failure.
