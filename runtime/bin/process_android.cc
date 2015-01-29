@@ -230,56 +230,465 @@ bool ExitCodeHandler::terminate_done_ = false;
 Monitor* ExitCodeHandler::monitor_ = new Monitor();
 
 
-static void SetChildOsErrorMessage(char** os_error_message) {
-  const int kBufferSize = 1024;
-  char error_message[kBufferSize];
-  strerror_r(errno, error_message, kBufferSize);
-  *os_error_message = strdup(error_message);
-}
+class ProcessStarter {
+ public:
+  ProcessStarter(const char* path,
+                 char* arguments[],
+                 intptr_t arguments_length,
+                 const char* working_directory,
+                 char* environment[],
+                 intptr_t environment_length,
+                 bool detach,
+                 intptr_t* in,
+                 intptr_t* out,
+                 intptr_t* err,
+                 intptr_t* id,
+                 intptr_t* exit_event,
+                 char** os_error_message)
+      : path_(path),
+        working_directory_(working_directory),
+        detach_(detach),
+        in_(in),
+        out_(out),
+        err_(err),
+        id_(id),
+        exit_event_(exit_event),
+        os_error_message_(os_error_message) {
+    read_in_[0] = -1;
+    read_in_[1] = -1;
+    read_err_[0] = -1;
+    read_err_[1] = -1;
+    write_out_[0] = -1;
+    write_out_[1] = -1;
+    exec_control_[0] = -1;
+    exec_control_[1] = -1;
+
+    program_arguments_ = new char*[arguments_length + 2];
+    program_arguments_[0] = const_cast<char*>(path_);
+    for (int i = 0; i < arguments_length; i++) {
+      program_arguments_[i + 1] = arguments[i];
+    }
+    program_arguments_[arguments_length + 1] = NULL;
+
+    program_environment_ = NULL;
+    if (environment != NULL) {
+      program_environment_ = new char*[environment_length + 1];
+      for (int i = 0; i < environment_length; i++) {
+        program_environment_[i] = environment[i];
+      }
+      program_environment_[environment_length] = NULL;
+    }
+  }
 
 
-static void ReportChildError(int exec_control_fd) {
-  // In the case of failure in the child process write the errno and
-  // the OS error message to the exec control pipe and exit.
-  int child_errno = errno;
-  const int kBufferSize = 1024;
-  char os_error_message[kBufferSize];
-  strerror_r(errno, os_error_message, kBufferSize);
-  ASSERT(sizeof(child_errno) == sizeof(errno));
-  int bytes_written =
+  ~ProcessStarter() {
+    delete[] program_arguments_;
+    delete[] program_environment_;
+  }
+
+
+  int Start() {
+    // Create pipes required.
+    int err = CreatePipes();
+    if (err != 0) return err;
+
+    // Fork to create the new process.
+    pid_t pid = TEMP_FAILURE_RETRY(fork());
+    if (pid < 0) {
+      // Failed to fork.
+      return CleanupAndReturnError();
+    } else if (pid == 0) {
+      // This runs in the new process.
+      NewProcess();
+    }
+
+    // This runs in the original process.
+
+    // Be sure to listen for exit-codes, now we have a child-process.
+    ExitCodeHandler::ProcessStarted();
+
+    // Register the child process if not detached.
+    if (!detach_) {
+      err = RegisterProcess(pid);
+      if (err != 0) return err;
+    }
+
+    // Notify child process to start. This is done to delay the call to exec
+    // until the process is registered above, and we are ready to receive the
+    // exit code.
+    char msg = '1';
+    int bytes_written =
+        FDUtils::WriteToBlocking(read_in_[1], &msg, sizeof(msg));
+    if (bytes_written != sizeof(msg)) {
+      return CleanupAndReturnError();
+    }
+
+    // Read the result of executing the child process.
+    VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
+    exec_control_[1] = -1;
+    if (!detach_) {
+      err = ReadExecResult();
+    } else {
+      err = ReadDetachedExecResult(&pid);
+    }
+    VOID_TEMP_FAILURE_RETRY(close(exec_control_[0]));
+    exec_control_[0] = -1;
+
+    // Return error code if any failures.
+    if (err != 0) {
+      if (!detach_) {
+        // Since exec() failed, we're not interested in the exit code.
+        // We close the reading side of the exit code pipe here.
+        // GetProcessExitCodes will get a broken pipe error when it
+        // tries to write to the writing side of the pipe and it will
+        // ignore the error.
+        VOID_TEMP_FAILURE_RETRY(close(*exit_event_));
+        *exit_event_ = -1;
+      }
+      CloseAllPipes();
+      return err;
+    }
+
+    if (!detach_) {
+      // Connect stdio, stdout and stderr.
+      FDUtils::SetNonBlocking(read_in_[0]);
+      *in_ = read_in_[0];
+      VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+      FDUtils::SetNonBlocking(write_out_[1]);
+      *out_ = write_out_[1];
+      VOID_TEMP_FAILURE_RETRY(close(write_out_[0]));
+      FDUtils::SetNonBlocking(read_err_[0]);
+      *err_ = read_err_[0];
+      VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
+    } else {
+      // Close all fds.
+      VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
+      VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+      ASSERT(write_out_[0] == -1);
+      ASSERT(write_out_[1] == -1);
+      ASSERT(read_err_[0] == -1);
+      ASSERT(read_err_[1] == -1);
+    }
+    ASSERT(exec_control_[0] == -1);
+    ASSERT(exec_control_[1] == -1);
+
+    *id_ = pid;
+    return 0;
+  }
+
+ private:
+  int CreatePipes() {
+    int result;
+    result = TEMP_FAILURE_RETRY(pipe(exec_control_));
+    if (result < 0) {
+      return CleanupAndReturnError();
+    }
+    FDUtils::SetCloseOnExec(exec_control_[0]);
+    FDUtils::SetCloseOnExec(exec_control_[1]);
+
+    // For a detached process the pipe to connect stdout is still used for
+    // signaling when to do the first fork.
+    result = TEMP_FAILURE_RETRY(pipe(read_in_));
+    if (result < 0) {
+      return CleanupAndReturnError();
+    }
+    FDUtils::SetCloseOnExec(read_in_[0]);
+
+    // For detached processes the pipe to connect stderr and stdin are not used.
+    if (!detach_) {
+      result = TEMP_FAILURE_RETRY(pipe(read_err_));
+      if (result < 0) {
+        return CleanupAndReturnError();
+      }
+      FDUtils::SetCloseOnExec(read_err_[0]);
+
+      result = TEMP_FAILURE_RETRY(pipe(write_out_));
+      if (result < 0) {
+        return CleanupAndReturnError();
+      }
+      FDUtils::SetCloseOnExec(write_out_[1]);
+    }
+
+    return 0;
+  }
+
+
+  void NewProcess() {
+    // Wait for parent process before setting up the child process.
+    char msg;
+    int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
+    if (bytes_read != sizeof(msg)) {
+      perror("Failed receiving notification message");
+      exit(1);
+    }
+    if (detach_) {
+      ExecDetachedProcess();
+    } else {
+      ExecProcess();
+    }
+  }
+
+
+  void ExecProcess() {
+    VOID_TEMP_FAILURE_RETRY(close(write_out_[1]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_err_[0]));
+    VOID_TEMP_FAILURE_RETRY(close(exec_control_[0]));
+
+    if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
+      ReportChildError();
+    }
+    VOID_TEMP_FAILURE_RETRY(close(write_out_[0]));
+
+    if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
+      ReportChildError();
+    }
+    VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+
+    if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
+      ReportChildError();
+    }
+    VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
+
+    if (working_directory_ != NULL &&
+        TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
+      ReportChildError();
+    }
+
+    if (program_environment_ != NULL) {
+      environ = program_environment_;
+    }
+
+    VOID_TEMP_FAILURE_RETRY(
+        execvp(path_, const_cast<char* const*>(program_arguments_)));
+
+    ReportChildError();
+  }
+
+
+  void ExecDetachedProcess() {
+    ASSERT(write_out_[0] == -1);
+    ASSERT(write_out_[1] == -1);
+    ASSERT(read_err_[0] == -1);
+    ASSERT(read_err_[1] == -1);
+    // For a detached process the pipe to connect stdout is only used for
+    // signaling when to do the first fork.
+    VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
+    VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+    // Fork once more to start a new session.
+    pid_t pid = TEMP_FAILURE_RETRY(fork());
+    if (pid < 0) {
+      ReportChildError();
+    } else if (pid == 0) {
+      // Start a new session.
+      if (TEMP_FAILURE_RETRY(setsid()) == -1) {
+        ReportChildError();
+      } else {
+        // Do a final fork to not be the session leader.
+        pid = TEMP_FAILURE_RETRY(fork());
+        if (pid < 0) {
+          ReportChildError();
+        } else if (pid == 0) {
+          // Close all open file descriptors except for exec_control_[1].
+          int max_fds = sysconf(_SC_OPEN_MAX);
+          if (max_fds == -1) max_fds = _POSIX_OPEN_MAX;
+          for (int fd = 0; fd < max_fds; fd++) {
+            if (fd != exec_control_[1]) {
+              VOID_TEMP_FAILURE_RETRY(close(fd));
+            }
+          }
+
+          // Re-open stdin, stdout and stderr and connect them to /dev/null.
+          // The loop above should already have closed all of them, so
+          // creating new file descriptors should start at STDIN_FILENO.
+          int fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDWR));
+          if (fd != STDIN_FILENO) {
+            ReportChildError();
+          }
+          if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDOUT_FILENO)) !=
+              STDOUT_FILENO) {
+            ReportChildError();
+          }
+          if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDERR_FILENO)) !=
+              STDERR_FILENO) {
+            ReportChildError();
+          }
+
+          // Report the final PID and do the exec.
+          ReportPid(getpid());  // getpid cannot fail.
+          VOID_TEMP_FAILURE_RETRY(
+              execvp(path_, const_cast<char* const*>(program_arguments_)));
+          ReportChildError();
+        } else {
+          // Exit the intermeiate process.
+          exit(0);
+        }
+      }
+    } else {
+      // Exit the intermeiate process.
+      exit(0);
+    }
+  }
+
+
+  int RegisterProcess(pid_t pid) {
+    int result;
+    int event_fds[2];
+    result = TEMP_FAILURE_RETRY(pipe(event_fds));
+    if (result < 0) {
+      return CleanupAndReturnError();
+    }
+    FDUtils::SetCloseOnExec(event_fds[0]);
+    FDUtils::SetCloseOnExec(event_fds[1]);
+
+    ProcessInfoList::AddProcess(pid, event_fds[1]);
+    *exit_event_ = event_fds[0];
+    FDUtils::SetNonBlocking(event_fds[0]);
+    return 0;
+  }
+
+
+  int ReadExecResult() {
+    int child_errno;
+    int bytes_read = -1;
+    // Read exec result from child. If no data is returned the exec was
+    // successful and the exec call closed the pipe. Otherwise the errno
+    // is written to the pipe.
+    bytes_read =
+        FDUtils::ReadFromBlocking(
+            exec_control_[0], &child_errno, sizeof(child_errno));
+    if (bytes_read == sizeof(child_errno)) {
+      ReadChildError();
+      return child_errno;
+    } else if (bytes_read == -1) {
+      return errno;
+    }
+    return 0;
+  }
+
+
+  int ReadDetachedExecResult(pid_t *pid) {
+    int child_errno;
+    int bytes_read = -1;
+    // Read exec result from child. If only pid data is returned the exec was
+    // successful and the exec call closed the pipe. Otherwise the errno
+    // is written to the pipe as well.
+    int result[2];
+    bytes_read =
+        FDUtils::ReadFromBlocking(
+            exec_control_[0], result, sizeof(result));
+    if (bytes_read == sizeof(int)) {
+      *pid = result[0];
+    } else if (bytes_read == 2 * sizeof(int)) {
+      *pid = result[0];
+      child_errno = result[1];
+      ReadChildError();
+      return child_errno;
+    } else if (bytes_read == -1) {
+      return errno;
+    }
+    return 0;
+  }
+
+
+  int CleanupAndReturnError() {
+    int actual_errno = errno;
+    // If CleanupAndReturnError is called without an actual errno make
+    // sure to return an error anyway.
+    if (actual_errno == 0) actual_errno = EPERM;
+    SetChildOsErrorMessage();
+    CloseAllPipes();
+    return actual_errno;
+  }
+
+
+  void SetChildOsErrorMessage() {
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(errno, error_message, kBufferSize);
+    *os_error_message_ = strdup(error_message);
+  }
+
+
+  void ReportChildError() {
+    // In the case of failure in the child process write the errno and
+    // the OS error message to the exec control pipe and exit.
+    int child_errno = errno;
+    const int kBufferSize = 1024;
+    char os_error_message[kBufferSize];
+    strerror_r(errno, os_error_message, kBufferSize);
+    int bytes_written =
+        FDUtils::WriteToBlocking(
+            exec_control_[1], &child_errno, sizeof(child_errno));
+    if (bytes_written == sizeof(child_errno)) {
       FDUtils::WriteToBlocking(
-          exec_control_fd, &child_errno, sizeof(child_errno));
-  if (bytes_written == sizeof(child_errno)) {
-    FDUtils::WriteToBlocking(
-        exec_control_fd, os_error_message, strlen(os_error_message) + 1);
+          exec_control_[1], os_error_message, strlen(os_error_message) + 1);
+    }
+    VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
+    exit(1);
   }
-  VOID_TEMP_FAILURE_RETRY(close(exec_control_fd));
-  exit(1);
-}
 
 
-static void ReportPid(int exec_control_fd, int pid) {
-  // In the case of starting a detached process the actual pid of that process
-  // is communicated using the exec control pipe.
-  int bytes_written =
-      FDUtils::WriteToBlocking(exec_control_fd, &pid, sizeof(pid));
-  ASSERT(bytes_written == sizeof(int));
-  USE(bytes_written);
-}
-
-
-static void ReadChildError(int exec_control_fd, char** error_message) {
-  const int kMaxMessageSize = 256;
-  char* message = static_cast<char*>(malloc(kMaxMessageSize));
-  if (message != NULL) {
-    FDUtils::ReadFromBlocking(exec_control_fd, message, kMaxMessageSize);
-    message[kMaxMessageSize - 1] = '\0';
-    *error_message = message;
-  } else {
-    static const char* no_message = "Cannot get error message, out of memory";
-    *error_message = const_cast<char*>(no_message);
+  void ReportPid(int pid) {
+    // In the case of starting a detached process the actual pid of that process
+    // is communicated using the exec control pipe.
+    int bytes_written =
+        FDUtils::WriteToBlocking(exec_control_[1], &pid, sizeof(pid));
+    ASSERT(bytes_written == sizeof(int));
+    USE(bytes_written);
   }
-}
+
+
+  void ReadChildError() {
+    const int kMaxMessageSize = 256;
+    char* message = static_cast<char*>(malloc(kMaxMessageSize));
+    if (message != NULL) {
+      FDUtils::ReadFromBlocking(exec_control_[0], message, kMaxMessageSize);
+      message[kMaxMessageSize - 1] = '\0';
+      *os_error_message_ = message;
+    } else {
+      // Could not get error message. It will be NULL.
+      ASSERT(*os_error_message_ == NULL);
+    }
+  }
+
+
+  void ClosePipe(int* fds) {
+    for (int i = 0; i < 2; i++) {
+      if (fds[i] != -1) {
+        VOID_TEMP_FAILURE_RETRY(close(fds[i]));
+        fds[i] = -1;
+      }
+    }
+  }
+
+
+  void CloseAllPipes() {
+    ClosePipe(exec_control_);
+    ClosePipe(read_in_);
+    ClosePipe(read_err_);
+    ClosePipe(write_out_);
+  }
+
+
+  int read_in_[2];  // Pipe for stdout to child process.
+  int read_err_[2];  // Pipe for stderr to child process.
+  int write_out_[2];  // Pipe for stdin to child process.
+  int exec_control_[2];  // Pipe to get the result from exec.
+
+  char** program_arguments_;
+  char** program_environment_;
+
+  const char* path_;
+  const char* working_directory_;
+  bool detach_;
+  intptr_t* in_;
+  intptr_t* out_;
+  intptr_t* err_;
+  intptr_t* id_;
+  intptr_t* exit_event_;
+  char** os_error_message_;
+};
 
 
 int Process::Start(const char* path,
@@ -295,304 +704,20 @@ int Process::Start(const char* path,
                    intptr_t* id,
                    intptr_t* exit_event,
                    char** os_error_message) {
-  pid_t pid;
-  int read_in[2] = {-1, -1};  // Pipe for stdout to child process.
-  int read_err[2] = {-1, -1};  // Pipe for stderr to child process.
-  int write_out[2] = {-1, -1};  // Pipe for stdin to child process.
-  int exec_control[2] = {-1, -1};  // Pipe to get the result from exec.
-  int result;
-
-  result = TEMP_FAILURE_RETRY(pipe(exec_control));
-  if (result < 0) {
-    SetChildOsErrorMessage(os_error_message);
-    Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
-    return errno;
-  }
-  FDUtils::SetCloseOnExec(exec_control[0]);
-  FDUtils::SetCloseOnExec(exec_control[1]);
-
-  // For a detached process the pipe to connect stdout is still used for
-  // signaling when to do the first fork.
-  result = TEMP_FAILURE_RETRY(pipe(read_in));
-  if (result < 0) {
-    SetChildOsErrorMessage(os_error_message);
-    VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
-    VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
-    Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
-    return errno;
-  }
-  FDUtils::SetCloseOnExec(read_in[0]);
-
-  // For detached processes the pipe to connect stderr and stdin are not used.
-  if (!detach) {
-    result = TEMP_FAILURE_RETRY(pipe(read_err));
-    if (result < 0) {
-      SetChildOsErrorMessage(os_error_message);
-      VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
-      VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-      Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
-      return errno;
-    }
-    FDUtils::SetCloseOnExec(read_err[0]);
-
-    result = TEMP_FAILURE_RETRY(pipe(write_out));
-    if (result < 0) {
-      SetChildOsErrorMessage(os_error_message);
-      VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
-      VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
-      Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
-      return errno;
-    }
-    FDUtils::SetCloseOnExec(write_out[1]);
-  }
-
-  char** program_arguments = new char*[arguments_length + 2];
-  program_arguments[0] = const_cast<char*>(path);
-  for (int i = 0; i < arguments_length; i++) {
-    program_arguments[i + 1] = arguments[i];
-  }
-  program_arguments[arguments_length + 1] = NULL;
-
-  char** program_environment = NULL;
-  if (environment != NULL) {
-    program_environment = new char*[environment_length + 1];
-    for (int i = 0; i < environment_length; i++) {
-      program_environment[i] = environment[i];
-    }
-    program_environment[environment_length] = NULL;
-  }
-
-  pid = TEMP_FAILURE_RETRY(fork());
-  if (pid < 0) {
-    SetChildOsErrorMessage(os_error_message);
-    delete[] program_arguments;
-    VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
-    VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
-    VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
-    VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-    if (!detach) {
-      VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
-      VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
-      VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
-    }
-    return errno;
-  } else if (pid == 0) {
-    // Wait for parent process before setting up the child process.
-    char msg;
-    int bytes_read = FDUtils::ReadFromBlocking(read_in[0], &msg, sizeof(msg));
-    if (bytes_read != sizeof(msg)) {
-      perror("Failed receiving notification message");
-      exit(1);
-    }
-    if (detach) {
-      // For a detached process the pipe to connect stdout is only used for
-      // signaling when to do the first fork.
-      VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-      // Fork once more to start a new session.
-      pid = TEMP_FAILURE_RETRY(fork());
-      if (pid < 0) {
-        ReportChildError(exec_control[1]);
-      } else if (pid == 0) {
-        // Start a new session.
-        if (TEMP_FAILURE_RETRY(setsid()) == -1) {
-          ReportChildError(exec_control[1]);
-        } else {
-          // Do a final fork to not be the session leader.
-          pid = TEMP_FAILURE_RETRY(fork());
-          if (pid < 0) {
-            ReportChildError(exec_control[1]);
-          } else if (pid == 0) {
-            // Close all open file descriptors except for exec_control[1].
-            int max_fds = sysconf(_SC_OPEN_MAX);
-            if (max_fds == -1) max_fds = _POSIX_OPEN_MAX;
-            for (int fd = 0; fd < max_fds; fd++) {
-              if (fd != exec_control[1]) {
-                VOID_TEMP_FAILURE_RETRY(close(fd));
-              }
-            }
-
-            // Re-open stdin, stdout and stderr and connect them to /dev/null.
-            // The loop above should already have closed all of them, so
-            // creating new file descriptors should start at STDIN_FILENO.
-            int fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDWR));
-            if (fd != STDIN_FILENO) {
-              ReportChildError(exec_control[1]);
-            }
-            if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDOUT_FILENO)) !=
-                STDOUT_FILENO) {
-              ReportChildError(exec_control[1]);
-            }
-            if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDERR_FILENO)) !=
-                STDERR_FILENO) {
-              ReportChildError(exec_control[1]);
-            }
-
-            // Report the final PID and do the exec.
-            ReportPid(exec_control[1], getpid());  // getpid cannot fail.
-            VOID_TEMP_FAILURE_RETRY(
-                execvp(path, const_cast<char* const*>(program_arguments)));
-            ReportChildError(exec_control[1]);
-          } else {
-            exit(0);
-          }
-        }
-      } else {
-        exit(0);
-      }
-    } else {
-      VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
-      VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
-
-      if (TEMP_FAILURE_RETRY(dup2(write_out[0], STDIN_FILENO)) == -1) {
-        ReportChildError(exec_control[1]);
-      }
-      VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
-
-      if (TEMP_FAILURE_RETRY(dup2(read_in[1], STDOUT_FILENO)) == -1) {
-        ReportChildError(exec_control[1]);
-      }
-      VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-
-      if (TEMP_FAILURE_RETRY(dup2(read_err[1], STDERR_FILENO)) == -1) {
-        ReportChildError(exec_control[1]);
-      }
-      VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
-
-      if (working_directory != NULL &&
-          TEMP_FAILURE_RETRY(chdir(working_directory)) == -1) {
-        ReportChildError(exec_control[1]);
-      }
-
-      if (program_environment != NULL) {
-        environ = program_environment;
-      }
-
-      VOID_TEMP_FAILURE_RETRY(
-          execvp(path, const_cast<char* const*>(program_arguments)));
-
-      ReportChildError(exec_control[1]);
-    }
-  }
-
-  // Be sure to listen for exit-codes, now we have a child-process.
-  ExitCodeHandler::ProcessStarted();
-
-  // The arguments and environment for the spawned process are not needed
-  // any longer.
-  delete[] program_arguments;
-  delete[] program_environment;
-
-  if (!detach) {
-    int event_fds[2];
-    result = TEMP_FAILURE_RETRY(pipe(event_fds));
-    if (result < 0) {
-      SetChildOsErrorMessage(os_error_message);
-      VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
-      VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
-      VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
-      Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
-      return errno;
-    }
-    FDUtils::SetCloseOnExec(event_fds[0]);
-    FDUtils::SetCloseOnExec(event_fds[1]);
-
-    ProcessInfoList::AddProcess(pid, event_fds[1]);
-    *exit_event = event_fds[0];
-    FDUtils::SetNonBlocking(event_fds[0]);
-  }
-
-  // Notify child process to start.
-  char msg = '1';
-  result = FDUtils::WriteToBlocking(read_in[1], &msg, sizeof(msg));
-  if (result != sizeof(msg)) {
-    perror("Failed sending notification message");
-  }
-
-  VOID_TEMP_FAILURE_RETRY(close(exec_control[1]));
-  bool failed = false;
-  int child_errno;
-  int bytes_read = -1;
-  ASSERT(sizeof(child_errno) == sizeof(errno));
-  if (!detach) {
-    // Read exec result from child. If no data is returned the exec was
-    // successful and the exec call closed the pipe. Otherwise the errno
-    // is written to the pipe.
-    bytes_read =
-        FDUtils::ReadFromBlocking(
-            exec_control[0], &child_errno, sizeof(child_errno));
-    if (bytes_read == sizeof(child_errno)) {
-      ReadChildError(exec_control[0], os_error_message);
-      failed = true;
-    }
-  } else {
-    // Read exec result from child. If only pid data is returned the exec was
-    // successful and the exec call closed the pipe. Otherwise the errno
-    // is written to the pipe as well.
-    int result[2];
-    ASSERT(sizeof(int) == sizeof(child_errno));
-    bytes_read =
-        FDUtils::ReadFromBlocking(
-            exec_control[0], result, sizeof(result));
-    if (bytes_read == sizeof(int)) {
-      pid = result[0];
-    } else if (bytes_read == 2 * sizeof(int)) {
-      pid = result[0];
-      child_errno = result[1];
-      ReadChildError(exec_control[0], os_error_message);
-      failed = true;
-    }
-  }
-  VOID_TEMP_FAILURE_RETRY(close(exec_control[0]));
-
-  // Return error code if any failures.
-  if (failed) {
-    if (!detach) {
-      VOID_TEMP_FAILURE_RETRY(close(read_in[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
-      VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
-      VOID_TEMP_FAILURE_RETRY(close(write_out[1]));
-
-      // Since exec() failed, we're not interested in the exit code.
-      // We close the reading side of the exit code pipe here.
-      // GetProcessExitCodes will get a broken pipe error when it tries to write
-      // to the writing side of the pipe and it will ignore the error.
-      VOID_TEMP_FAILURE_RETRY(close(*exit_event));
-      *exit_event = -1;
-    }
-    if (bytes_read == -1) {
-      return errno;  // Read failed.
-    } else {
-      return child_errno;  // Exec failed.
-    }
-  }
-
-  FDUtils::SetNonBlocking(read_in[0]);
-  *in = read_in[0];
-  VOID_TEMP_FAILURE_RETRY(close(read_in[1]));
-  FDUtils::SetNonBlocking(write_out[1]);
-  *out = write_out[1];
-  VOID_TEMP_FAILURE_RETRY(close(write_out[0]));
-  FDUtils::SetNonBlocking(read_err[0]);
-  *err = read_err[0];
-  VOID_TEMP_FAILURE_RETRY(close(read_err[1]));
-
-  *id = pid;
-  return 0;
+  ProcessStarter starter(path,
+                         arguments,
+                         arguments_length,
+                         working_directory,
+                         environment,
+                         environment_length,
+                         detach,
+                         in,
+                         out,
+                         err,
+                         id,
+                         exit_event,
+                         os_error_message);
+  return starter.Start();
 }
 
 

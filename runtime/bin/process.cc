@@ -151,7 +151,10 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     DartUtils::SetIntegerField(
         status_handle, "_errorCode", error_code);
     DartUtils::SetStringField(
-        status_handle, "_errorMessage", os_error_message);
+        status_handle,
+        "_errorMessage",
+        os_error_message != NULL ? os_error_message
+                                 : "Cannot get error message");
   }
   delete[] string_args;
   delete[] string_environment;
