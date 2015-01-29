@@ -58,6 +58,8 @@ class CodeEmitterTask extends CompilerTask {
     nativeEmitter = new NativeEmitter(this);
   }
 
+  String get name => 'Code emitter';
+
   /// Returns the closure expression of a static function.
   jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
     return emitter.isolateStaticClosureAccess(element);

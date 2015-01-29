@@ -2123,7 +2123,7 @@ class CompilerTask {
       : this.compiler = compiler,
         watch = (compiler.verbose) ? new Stopwatch() : null;
 
-  String get name => 'Unknown task';
+  String get name => "Unknown task '${this.runtimeType}'";
   int get timing => (watch != null) ? watch.elapsedMilliseconds : 0;
 
   int get timingMicroseconds => (watch != null) ? watch.elapsedMicroseconds : 0;
