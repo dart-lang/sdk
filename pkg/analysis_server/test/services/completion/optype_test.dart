@@ -473,6 +473,24 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_InstanceCreationExpression_keyword() {
+    // InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource('class C {foo(){var f; {var x;} new^ }}');
+    assertOpType(
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true);
+  }
+
+  test_InstanceCreationExpression_keyword2() {
+    // InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource('class C {foo(){var f; {var x;} new^ C();}}');
+    assertOpType(
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true);
+  }
+
   test_InterpolationExpression() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \$^");}');

@@ -492,9 +492,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         cache,
         [computer]);
     var result = _completionManager.computeFast(request);
-    if (request.replacementOffset == null) {
-      fail('expected non null');
-    }
+    expect(request.replacementOffset, isNotNull);
+    expect(request.replacementLength, isNotNull);
     return result.isEmpty;
   }
 
@@ -2134,6 +2133,35 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('main');
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_keyword() {
+    addSource('/testB.dart', '''
+      lib B;
+      int newT1;
+      int T1;
+      nowIsIt() { }
+      class X {factory X.c(); factory X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      String newer() {}
+      var m;
+      main() {new^ X.c();}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 3);
+      expect(request.replacementLength, 3);
+      assertNotSuggested('c');
+      assertNotSuggested('_d');
+      // Imported suggestion are filtered by 1st character
+      assertSuggestImportedFunction('nowIsIt', null);
+      assertNotSuggested('T1');
+      // TODO (danrubel) this really should be TopLevelVar not getter/setter
+      assertSuggestTopLevelVarGetterSetter('newT1', 'int');
+      assertNotSuggested('z');
+      assertSuggestLocalTopLevelVar('m', 'dynamic');
+      assertSuggestLocalFunction('newer', 'String');
     });
   }
 
