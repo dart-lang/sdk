@@ -1432,11 +1432,18 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   ArgumentListNode* no_args = new ArgumentListNode(token_pos);
   LoadLocalNode* receiver = new LoadLocalNode(token_pos, scope->VariableAt(0));
 
+  const Class& owner = Class::Handle(Z, func.Owner());
+  ASSERT(!owner.IsNull());
   const String& name = String::Handle(Z, func.name());
-  const String& getter_name = String::ZoneHandle(Z,
-      Symbols::New(String::Handle(Z, Field::GetterName(name))));
-  InstanceCallNode* getter_call = new(Z) InstanceCallNode(
-      token_pos, receiver, getter_name, no_args);
+  AstNode* function_object = NULL;
+  if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
+    function_object = receiver;
+  } else {
+    const String& getter_name = String::ZoneHandle(Z,
+        Symbols::New(String::Handle(Z, Field::GetterName(name))));
+    function_object = new(Z) InstanceCallNode(
+        token_pos, receiver, getter_name, no_args);
+  }
 
   // Pass arguments 1..n to the closure call.
   ArgumentListNode* args = new(Z) ArgumentListNode(token_pos);
@@ -1455,13 +1462,11 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   }
   args->set_names(names);
 
-  const Class& owner = Class::Handle(Z, func.Owner());
-  ASSERT(!owner.IsNull());
   AstNode* result = NULL;
   if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
-    result = new ClosureCallNode(token_pos, getter_call, args);
+    result = new ClosureCallNode(token_pos, function_object, args);
   } else {
-    result = BuildClosureCall(token_pos, getter_call, args);
+    result = BuildClosureCall(token_pos, function_object, args);
   }
 
   ReturnNode* return_node = new ReturnNode(token_pos, result);
