@@ -703,14 +703,14 @@ class OldEmitter implements Emitter {
 
   void emitStaticFunctions(Iterable<Method> staticFunctions) {
     if (staticFunctions == null) return;
-    // We need to filter out null-elements for the interceptors.
-    Iterable<Element> elements = staticFunctions
-        .where((Method method) => method.element != null)
-        .map((Method method) => method.element);
 
-    for (Element element in elements) {
+    for (Method method in staticFunctions) {
+      Element element = method.element;
+      // We need to filter out null-elements for the interceptors.
+      // TODO(floitsch): use the precomputed interceptors here.
+      if (element == null) continue;
       ClassBuilder builder = new ClassBuilder(element, namer);
-      containerBuilder.addMember(element, builder);
+      containerBuilder.addMemberMethod(method, builder);
       getElementDescriptor(element).properties.addAll(builder.properties);
     }
   }

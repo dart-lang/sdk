@@ -27,6 +27,7 @@ import 'io/code_output.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
+import 'js_emitter/program_builder.dart' as program_builder;
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/ssa.dart' as ssa;
 import 'tree/tree.dart' as tree;
@@ -67,6 +68,7 @@ void main(List<String> arguments) {
   useTypes();
   useCodeEmitterTask(null);
   useScript(null);
+  useProgramBuilder(null);
 }
 
 useApi() {
@@ -279,4 +281,9 @@ useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
 
 useScript(dart2jslib.Script script) {
   script.copyWithFile(null);
+}
+
+useProgramBuilder(program_builder.ProgramBuilder builder) {
+  builder.buildMethodHackForIncrementalCompilation(null);
+  builder.buildClassWithFieldsForIncrementalCompilation(null);
 }

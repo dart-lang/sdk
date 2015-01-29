@@ -865,7 +865,7 @@ class Namer implements ClosureNamer {
   }
 
   String getStaticClosureName(Element element) {
-    assert(Elements.isStaticOrTopLevelFunction(element));
+    assert(invariant(element, Elements.isStaticOrTopLevelFunction(element)));
     return getMappedGlobalName("${getNameX(element)}\$closure");
   }
 

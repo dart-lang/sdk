@@ -285,7 +285,6 @@ class ProgramBuilder {
     assert(_compiler.hasIncrementalSupport);
 
     List<Field> instanceFields = _buildFields(element, false);
-
     String name = namer.getNameOfClass(element);
 
     return new Class(
@@ -307,8 +306,9 @@ class ProgramBuilder {
 
       if (Elements.isNonAbstractInstanceMember(member)) {
         js.Expression code = backend.generatedCode[member];
-        // TODO(kasperl): Figure out under which conditions code is null.
-        if (code != null) methods.add(_buildMethod(member, code));
+        // TODO(herhut): Remove once _buildMethod can no longer return null.
+        Method method = _buildMethod(member);
+        if (method != null) methods.add(method);
       }
       if (member.isGetter || member.isField) {
         Set<Selector> selectors =
@@ -385,10 +385,75 @@ class ProgramBuilder {
     return result;
   }
 
-  Method _buildMethod(FunctionElement element, js.Expression code) {
+  bool _methodNeedsStubs(FunctionElement method) {
+    return !method.functionSignature.optionalParameters.isEmpty;
+  }
+
+  bool _methodCanBeReflected(FunctionElement method) {
+    return backend.isAccessibleByReflection(method) ||
+        // During incremental compilation, we have to assume that reflection
+        // *might* get enabled.
+        _compiler.hasIncrementalSupport;
+  }
+
+  bool _methodCanBeApplied(FunctionElement method) {
+    return _compiler.enabledFunctionApply &&
+        _compiler.world.getMightBePassedToApply(method);
+  }
+
+  // TODO(herhut): Refactor incremental compilation and remove method.
+  Method buildMethodHackForIncrementalCompilation(FunctionElement element) {
+    assert(_compiler.hasIncrementalSupport);
+    if (element.isInstanceMember) {
+      return _buildMethod(element);
+    } else {
+      return _buildStaticMethod(element);
+    }
+  }
+
+  DartMethod _buildMethod(FunctionElement element) {
     String name = namer.getNameOfInstanceMember(element);
-    // TODO(floitsch): compute `needsTearOff`.
-    return new Method(element, name, code, needsTearOff: false);
+    js.Expression code = backend.generatedCode[element];
+
+    // TODO(kasperl): Figure out under which conditions code is null.
+    if (code == null) return null;
+
+    bool canTearOff = false;
+    String tearOffName;
+    bool isClosure = false;
+    bool isNotApplyTarget = !element.isFunction || element.isAccessor;
+
+    final bool needsStubs = _methodNeedsStubs(element);
+    final bool canBeReflected = _methodCanBeReflected(element);
+    final bool canBeApplied = _methodCanBeApplied(element);
+    final bool hasSuperAlias = backend.isAliasedSuperMember(element);
+
+    if (isNotApplyTarget) {
+      canTearOff = false;
+    } else {
+      if (element.enclosingClass.isClosure) {
+        canTearOff = false;
+        isClosure = true;
+      } else {
+        // Careful with operators.
+        canTearOff = universe.hasInvokedGetter(element, _compiler.world) ||
+            (canBeReflected && !element.isOperator);
+        assert(canTearOff ||
+               !universe.methodsNeedingSuperGetter.contains(element));
+        tearOffName = namer.getterName(element);
+      }
+    }
+
+    if (canTearOff) {
+      assert(invariant(element, !element.isGenerativeConstructor));
+      assert(invariant(element, !element.isGenerativeConstructorBody));
+      assert(invariant(element, !element.isConstructor));
+    }
+
+    return new InstanceMethod(element, name, code, needsTearOff: canTearOff,
+        tearOffName: tearOffName, isClosure: isClosure,
+        hasSuperAlias: hasSuperAlias, canBeApplied: canBeApplied,
+        canBeReflected: canBeReflected, needsStubs: needsStubs);
   }
 
   /// Builds a stub method.
@@ -397,8 +462,7 @@ class ProgramBuilder {
   /// attribution.
   Method _buildStubMethod(String name, js.Expression code,
                           {Element element}) {
-    // TODO(floitsch): compute `needsTearOff`.
-    return new StubMethod(name, code, needsTearOff: false, element: element);
+    return new StubMethod(name, code, element: element);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -428,8 +492,7 @@ class ProgramBuilder {
     return names.map((String name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
-      // TODO(floitsch): compute `needsTearOff`.
-      return new StaticStubMethod(name, holder, code, needsTearOff: false);
+      return new StaticStubMethod(name, holder, code);
     });
   }
 
@@ -489,7 +552,7 @@ class ProgramBuilder {
     List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
     return names.map((String name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
-      return new StaticStubMethod(name, holder, code, needsTearOff: false);
+      return new StaticStubMethod(name, holder, code);
     });
   }
 
@@ -497,12 +560,25 @@ class ProgramBuilder {
     String name = namer.getNameOfMember(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
-    bool needsTearOff =
-        universe.staticFunctionsNeedingGetter.contains(element);
-    // TODO(floitsch): add tear-off name: namer.getStaticClosureName(element).
+
+    final bool isNotApplyTarget = !element.isConstructor && !element.isAccessor;
+    final bool needsStubs = _methodNeedsStubs(element);
+    final bool canBeApplied = _methodCanBeApplied(element);
+    final bool canBeReflected = _methodCanBeReflected(element);
+
+    final bool needsTearOff = isNotApplyTarget && (canBeReflected ||
+         universe.staticFunctionsNeedingGetter.contains(element));
+
+    final String tearOffName =
+        needsTearOff ? namer.getStaticClosureName(element) : null;
+
     return new StaticMethod(element,
                             name, _registry.registerHolder(holder), code,
-                            needsTearOff: needsTearOff);
+                            needsTearOff: needsTearOff,
+                            tearOffName: tearOffName,
+                            canBeApplied: canBeApplied,
+                            canBeReflected: canBeReflected,
+                            needsStubs: needsStubs);
   }
 
   void _registerConstants(OutputUnit outputUnit,

@@ -67,7 +67,8 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     computeMixinClass;
 
 import 'package:compiler/src/js_emitter/model.dart' show
-    Class;
+    Class,
+    Member;
 
 import 'package:compiler/src/js_emitter/program_builder.dart' show
     ProgramBuilder;
@@ -932,17 +933,18 @@ if (this.pendingStubs) {
   }
 
   jsAst.Node computeMethodUpdateJs(Element element) {
-    MemberInfo info = containerBuilder.analyzeMemberMethod(element);
-    if (info == null) {
+    Member member = new ProgramBuilder(compiler, namer, emitter)
+        .buildMethodHackForIncrementalCompilation(element);
+    if (member == null) {
       compiler.internalError(element, '${element.runtimeType}');
     }
     ClassBuilder builder = new ClassBuilder(element, namer);
-    containerBuilder.addMemberMethodFromInfo(info, builder);
+    containerBuilder.addMemberMethod(member, builder);
     jsAst.Node partialDescriptor =
         builder.toObjectInitializer(emitClassDescriptor: false);
 
-    String name = info.name;
-    jsAst.Node function = info.code;
+    String name = member.name;
+    jsAst.Node function = member.code;
     bool isStatic = !element.isInstanceMember;
 
     /// Either a global object (non-instance members) or a prototype (instance

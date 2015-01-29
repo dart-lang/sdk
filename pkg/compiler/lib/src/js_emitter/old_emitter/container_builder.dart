@@ -234,114 +234,21 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
   }
 
-  void addMember(Element member, ClassBuilder builder) {
-    assert(invariant(member, member.isDeclaration));
-
-    if (member.isField) {
-      addMemberField(member, builder);
-    } else if (member.isFunction ||
-               member.isGenerativeConstructorBody ||
-               member.isGenerativeConstructor ||
-               member.isAccessor) {
-      addMemberMethod(member, builder);
-    } else {
-      compiler.internalError(member,
-          'Unexpected kind: "${member.kind}".');
-    }
-  }
-
-  void addMemberMethod(FunctionElement member, ClassBuilder builder) {
-    MemberInfo info = analyzeMemberMethod(member);
-    if (info != null) {
-      addMemberMethodFromInfo(info, builder);
-    }
-  }
-
-  MemberInfo analyzeMemberMethod(FunctionElement member) {
-    if (member.isAbstract) return null;
-    jsAst.Expression code = backend.generatedCode[member];
-    if (code == null) return null;
-    String name = namer.getNameOfMember(member);
-
-    FunctionSignature parameters = member.functionSignature;
-    bool needsStubs = !parameters.optionalParameters.isEmpty;
-    bool canTearOff = false;
-    bool isClosure = false;
-    bool isNotApplyTarget = !member.isFunction ||
-                            member.isConstructor ||
-                            member.isAccessor;
-    String tearOffName;
-
-
-    final bool canBeReflected = backend.isAccessibleByReflection(member) ||
-        // During incremental compilation, we have to assume that reflection
-        // *might* get enabled.
-        compiler.hasIncrementalSupport;
-
-    if (isNotApplyTarget) {
-      canTearOff = false;
-    } else if (member.isInstanceMember) {
-      if (member.enclosingClass.isClosure) {
-        canTearOff = false;
-        isClosure = true;
-      } else {
-        // Careful with operators.
-        canTearOff =
-            compiler.codegenWorld.hasInvokedGetter(member, compiler.world) ||
-            (canBeReflected && !member.isOperator);
-        assert(!needsSuperGetter(member) || canTearOff);
-        tearOffName = namer.getterName(member);
-      }
-    } else {
-      canTearOff =
-          compiler.codegenWorld.staticFunctionsNeedingGetter.contains(member) ||
-          canBeReflected;
-      tearOffName = namer.getStaticClosureName(member);
-    }
-    final bool canBeApplied = compiler.enabledFunctionApply &&
-                              compiler.world.getMightBePassedToApply(member);
-
-    final bool hasSuperAlias = backend.isAliasedSuperMember(member);
+  void addMemberMethod(DartMethod method, ClassBuilder builder) {
+    final FunctionElement member = method.element;
+    String name = method.name;
+    final FunctionSignature parameters = member.functionSignature;
+    jsAst.Expression code = method.code;
+    final bool needsStubs = method.needsStubs;
+    final bool canTearOff = method.needsTearOff;
+    final String tearOffName = method.tearOffName;
+    final bool canBeReflected = method.canBeReflected;
+    final bool canBeApplied = method.canBeApplied;
+    final bool isClosure = method is InstanceMethod && method.isClosure;
+    final bool hasSuperAlias = method is InstanceMethod && method.hasSuperAlias;
 
     final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
-
-
-    if (canTearOff) {
-      assert(invariant(member, !member.isGenerativeConstructor));
-      assert(invariant(member, !member.isGenerativeConstructorBody));
-      assert(invariant(member, !member.isConstructor));
-    }
-
-    return new MemberInfo(
-        member,
-        name,
-        parameters,
-        code,
-        needsStubs: needsStubs,
-        canTearOff: canTearOff,
-        isClosure: isClosure,
-        tearOffName: tearOffName,
-        canBeReflected: canBeReflected,
-        canBeApplied: canBeApplied,
-        hasSuperAlias: hasSuperAlias,
-        needStructuredInfo: needStructuredInfo
-    );
-  }
-
-  void addMemberMethodFromInfo(MemberInfo info, ClassBuilder builder) {
-    final FunctionElement member = info.member;
-    String name = info.name;
-    final FunctionSignature parameters = info.parameters;
-    jsAst.Expression code = info.code;
-    final bool needsStubs = info.needsStubs;
-    final bool canTearOff = info.canTearOff;
-    final bool isClosure = info.isClosure;
-    final String tearOffName = info.tearOffName;
-    final bool canBeReflected = info.canBeReflected;
-    final bool canBeApplied = info.canBeApplied;
-    final bool needStructuredInfo = info.needStructuredInfo;
-    final bool hasSuperAlias = info.hasSuperAlias;
 
     emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
 
@@ -525,60 +432,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         builder.addProperty(name, arrayInit));
   }
 
-  void addMemberField(VariableElement member, ClassBuilder builder) {
+  void addMemberField(Field field, ClassBuilder builder) {
     // For now, do nothing.
-  }
-}
-
-class MemberInfo {
-  final FunctionElement member;
-
-  final String name;
-
-  final FunctionSignature parameters;
-
-  final jsAst.Expression code;
-
-  final bool needsStubs;
-
-  final bool canTearOff;
-
-  final bool isClosure;
-
-  final String tearOffName;
-
-  final bool canBeReflected;
-
-  final bool canBeApplied;
-
-  final bool needStructuredInfo;
-
-  final bool hasSuperAlias;
-
-  MemberInfo(
-      this.member,
-      this.name,
-      this.parameters,
-      this.code,
-      {this.needsStubs,
-       this.canTearOff,
-       this.isClosure,
-       this.tearOffName,
-       this.canBeReflected,
-       this.canBeApplied,
-       this.hasSuperAlias,
-       this.needStructuredInfo}) {
-    assert(member != null);
-    assert(name != null);
-    assert(parameters != null);
-    assert(code != null);
-    assert(needsStubs != null);
-    assert(canTearOff != null);
-    assert(isClosure != null);
-    assert(tearOffName != null || !canTearOff);
-    assert(canBeReflected != null);
-    assert(canBeApplied != null);
-    assert(hasSuperAlias != null);
-    assert(needStructuredInfo != null);
   }
 }

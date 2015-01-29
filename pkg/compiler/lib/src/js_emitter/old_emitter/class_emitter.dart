@@ -232,16 +232,16 @@ class ClassEmitter extends CodeEmitterHelper {
 
     if (cls.onlyForRti || cls.isMixinApplication) return;
 
-    void visitMember(ClassElement enclosing, Element member) {
-      assert(invariant(classElement, member.isDeclaration));
-      if (member.isInstanceMember) {
-        emitter.containerBuilder.addMember(member, builder);
-      }
+    // TODO(herhut): This is a no-op. Should it be removed?
+    for (Field field in cls.fields) {
+      emitter.containerBuilder.addMemberField(field, builder);
     }
 
-    classElement.implementation.forEachMember(
-        visitMember,
-        includeBackendMembers: true);
+    for (Method method in cls.methods) {
+      assert(invariant(classElement, method.element.isDeclaration));
+      assert(invariant(classElement, method.element.isInstanceMember));
+      emitter.containerBuilder.addMemberMethod(method, builder);
+    }
 
     if (identical(classElement, compiler.objectClass)
         && compiler.enabledNoSuchMethod) {
