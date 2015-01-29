@@ -285,5 +285,5 @@ useScript(dart2jslib.Script script) {
 
 useProgramBuilder(program_builder.ProgramBuilder builder) {
   builder.buildMethodHackForIncrementalCompilation(null);
-  builder.buildClassWithFieldsForIncrementalCompilation(null);
+  builder.buildFieldsHackForIncrementalCompilation(null);
 }

@@ -1478,7 +1478,7 @@ class EmitterHelper extends JsFeatures {
 
   List<String> computeFields(ClassElement classElement) {
     Class cls = new ProgramBuilder(compiler, namer, emitter)
-        .buildClassWithFieldsForIncrementalCompilation(classElement);
+        .buildFieldsHackForIncrementalCompilation(classElement);
     // TODO(ahe): Rewrite for new emitter.
     ClassBuilder builder = new ClassBuilder(classElement, namer);
     classEmitter.emitFields(cls, builder);

@@ -281,7 +281,7 @@ class ProgramBuilder {
   /// HACK for Incremental Compilation.
   ///
   /// Returns a class that contains the fields of a class.
-  Class buildClassWithFieldsForIncrementalCompilation(ClassElement element) {
+  Class buildFieldsHackForIncrementalCompilation(ClassElement element) {
     assert(_compiler.hasIncrementalSupport);
 
     List<Field> instanceFields = _buildFields(element, false);
