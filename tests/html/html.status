@@ -37,9 +37,6 @@ storage_quota_test: Fail # Support for promises.
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
-audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
-
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
 
@@ -116,9 +113,6 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 native_gc_test: Pass, Slow
-
-[ $compiler == dart2js && $runtime == drt && $system == macos]
-audiobuffersourcenode_test: Pass, Fail
 
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
