@@ -237,13 +237,12 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       ClassElement enclosingClass = element.enclosingClass;
       if (!enclosingClass.isObject) {
         ClassElement superClass = enclosingClass.superclass;
-        Selector selector =
-            new Selector.callDefaultConstructor(enclosingClass.library);
-        FunctionElement target = superClass.lookupConstructor(selector);
+        FunctionElement target = superClass.lookupDefaultConstructor();
         if (target == null) {
           compiler.internalError(superClass,
               "No default constructor available.");
         }
+        Selector selector = new Selector.fromElement(target);
         result.add(irBuilder.makeSuperInitializer(target,
                                                   <ir.RunnableBody>[],
                                                   selector));
@@ -1372,9 +1371,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // If no super() or this() was found, also call default superconstructor.
     if (!hasConstructorCall && !enclosingClass.isObject) {
       ClassElement superClass = enclosingClass.superclass;
-      Selector selector =
-          new Selector.callDefaultConstructor(enclosingClass.library);
-      FunctionElement target = superClass.lookupConstructor(selector);
+      FunctionElement target = superClass.lookupDefaultConstructor();
       if (target == null) {
         compiler.internalError(superClass, "No default constructor available.");
       }

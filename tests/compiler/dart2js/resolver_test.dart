@@ -686,11 +686,9 @@ Future resolveConstructor(
     ClassElement classElement = compiler.mainApp.find(className);
     Element element;
     if (constructor != '') {
-      element = classElement.lookupConstructor(
-          new Selector.callConstructor(constructor, classElement.library));
+      element = classElement.lookupConstructor(constructor);
     } else {
-      element = classElement.lookupConstructor(
-          new Selector.callDefaultConstructor(classElement.library));
+      element = classElement.lookupDefaultConstructor();
     }
 
     FunctionExpression tree = (element as FunctionElement).node;

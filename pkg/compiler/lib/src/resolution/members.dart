@@ -4816,15 +4816,6 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     return new ErroneousElementX(kind, arguments, targetName, enclosing);
   }
 
-  Selector createConstructorSelector(String constructorName) {
-    return constructorName == ''
-        ? new Selector.callDefaultConstructor(
-            resolver.enclosingElement.library)
-        : new Selector.callConstructor(
-            constructorName,
-            resolver.enclosingElement.library);
-  }
-
   FunctionElement resolveConstructor(ClassElement cls,
                                      Node diagnosticNode,
                                      String constructorName) {
