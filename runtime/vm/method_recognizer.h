@@ -179,10 +179,6 @@ namespace dart {
   V(_Double, .fromInteger, DoubleFromInteger, 803258435)                       \
   V(_List, []=, ObjectArraySetIndexed, 1768442583)                             \
   V(_GrowableList, .withData, GrowableArray_Allocate, 536409567)               \
-  V(_GrowableList, [], GrowableArrayGetIndexed, 514434920)                     \
-  V(_GrowableList, []=, GrowableArraySetIndexed, 1698264861)                   \
-  V(_GrowableList, _setLength, GrowableArraySetLength, 1832199634)             \
-  V(_GrowableList, _setData, GrowableArraySetData, 1722254196)                 \
   V(_GrowableList, add, GrowableArray_add, 422087403)                          \
   V(_JSSyntaxRegExp, _ExecuteMatch, JSRegExp_ExecuteMatch, 1654250896)         \
   V(Object, ==, ObjectEquals, 1955975370)                                      \
@@ -288,6 +284,10 @@ namespace dart {
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 1585504028)                  \
   V(_GrowableList, get:length, GrowableArrayLength, 778534898)                 \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 555169866)            \
+  V(_GrowableList, _setData, GrowableArraySetData, 1722254196)                 \
+  V(_GrowableList, _setLength, GrowableArraySetLength, 1832199634)             \
+  V(_GrowableList, [], GrowableArrayGetIndexed, 514434920)                     \
+  V(_GrowableList, []=, GrowableArraySetIndexed, 1698264861)                   \
   V(_StringBase, get:length, StringBaseLength, 784429419)                      \
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \

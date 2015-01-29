@@ -1366,12 +1366,8 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
 
   // Allocate context object.
   int32_t num_vars = reader->Read<int32_t>();
-  Context& context = Context::ZoneHandle(reader->isolate(), Context::null());
-  if (kind == Snapshot::kFull) {
-    context = reader->NewContext(num_vars);
-  } else {
-    context = Context::New(num_vars, HEAP_SPACE(kind));
-  }
+  Context& context = Context::ZoneHandle(
+      reader->isolate(), NEW_OBJECT_WITH_LEN(Context, num_vars));
   reader->AddBackRef(object_id, &context, kIsDeserialized);
 
   // Set the object tags.
@@ -1405,8 +1401,6 @@ void RawContext::WriteTo(SnapshotWriter* writer,
 
   // Write out num of variables in the context.
   writer->Write<int32_t>(ptr()->num_variables_);
-
-  // Can't serialize the isolate pointer, we set it implicitly on read.
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

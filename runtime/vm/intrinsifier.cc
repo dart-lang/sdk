@@ -24,6 +24,7 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+DECLARE_FLAG(bool, enable_type_checks);
 
 bool Intrinsifier::CanIntrinsify(const Function& function) {
   if (!FLAG_intrinsify) return false;
@@ -205,7 +206,6 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     switch (function.recognized_kind()) {
       ALL_INTRINSICS_LIST(EMIT_CASE);
       default:
-        UNREACHABLE();
         break;
     }
   }
@@ -251,6 +251,11 @@ class BlockBuilder : public ValueObject {
 
   intptr_t TokenPos() {
     return flow_graph_->function().token_pos();
+  }
+
+  Definition* AddNullDefinition() {
+    return AddDefinition(
+        new ConstantInstr(Object::ZoneHandle(Object::null())));
   }
 
  private:
@@ -382,8 +387,7 @@ bool Intrinsifier::Build_Uint8ArraySetIndexed(FlowGraph* flow_graph) {
                             Isolate::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
-  Definition* null_def = builder.AddDefinition(
-      new ConstantInstr(Object::ZoneHandle(Object::null())));
+  Definition* null_def = builder.AddNullDefinition();
   builder.AddIntrinsicReturn(new Value(null_def));
   return true;
 }
@@ -417,8 +421,7 @@ bool Intrinsifier::Build_ExternalUint8ArraySetIndexed(FlowGraph* flow_graph) {
                             Isolate::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
-  Definition* null_def = builder.AddDefinition(
-      new ConstantInstr(Object::ZoneHandle(Object::null())));
+  Definition* null_def = builder.AddNullDefinition();
   builder.AddIntrinsicReturn(new Value(null_def));
   return true;
 }
@@ -468,8 +471,7 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
                             Isolate::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
-  Definition* null_def = builder.AddDefinition(
-      new ConstantInstr(Object::ZoneHandle(Object::null())));
+  Definition* null_def = builder.AddNullDefinition();
   builder.AddIntrinsicReturn(new Value(null_def));
   return true;
 }
@@ -564,5 +566,126 @@ bool Intrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   return true;
 }
 
+
+bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* index = builder.AddParameter(1);
+  Definition* growable_array = builder.AddParameter(2);
+
+  PrepareIndexedOp(
+      &builder, growable_array, index, GrowableObjectArray::length_offset());
+
+  Definition* backing_store = builder.AddDefinition(
+      new LoadFieldInstr(new Value(growable_array),
+                         GrowableObjectArray::data_offset(),
+                         Type::ZoneHandle(),
+                         builder.TokenPos()));
+  Definition* result = builder.AddDefinition(
+      new LoadIndexedInstr(new Value(backing_store),
+                           new Value(index),
+                           Instance::ElementSizeFor(kArrayCid),  // index scale
+                           kArrayCid,
+                           Isolate::kNoDeoptId,
+                           builder.TokenPos()));
+  builder.AddIntrinsicReturn(new Value(result));
+  return true;
+}
+
+
+bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
+  if (FLAG_enable_type_checks) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* value = builder.AddParameter(1);
+  Definition* index = builder.AddParameter(2);
+  Definition* array = builder.AddParameter(3);
+
+  PrepareIndexedOp(
+      &builder, array, index, GrowableObjectArray::length_offset());
+
+  Definition* backing_store = builder.AddDefinition(
+      new LoadFieldInstr(new Value(array),
+                         GrowableObjectArray::data_offset(),
+                         Type::ZoneHandle(),
+                         builder.TokenPos()));
+
+  builder.AddInstruction(
+      new StoreIndexedInstr(new Value(backing_store),
+                            new Value(index),
+                            new Value(value),
+                            kEmitStoreBarrier,
+                            Instance::ElementSizeFor(kArrayCid),  // index scale
+                            kArrayCid,
+                            Isolate::kNoDeoptId,
+                            builder.TokenPos()));
+  // Return null.
+  Definition* null_def = builder.AddNullDefinition();
+  builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
+}
+
+
+bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* data = builder.AddParameter(1);
+  Definition* growable_array = builder.AddParameter(2);
+
+  const ICData& value_check = ICData::ZoneHandle(ICData::New(
+      flow_graph->function(),
+      String::Handle(flow_graph->function().name()),
+      Object::empty_array(),  // Dummy args. descr.
+      Isolate::kNoDeoptId,
+      1));
+  value_check.AddReceiverCheck(kArrayCid, flow_graph->function());
+  builder.AddInstruction(
+      new CheckClassInstr(new Value(data),
+                          Isolate::kNoDeoptId,
+                          value_check,
+                          builder.TokenPos()));
+
+  builder.AddInstruction(
+      new StoreInstanceFieldInstr(GrowableObjectArray::data_offset(),
+                                  new Value(growable_array),
+                                  new Value(data),
+                                  kEmitStoreBarrier,
+                                  builder.TokenPos()));
+  // Return null.
+  Definition* null_def = builder.AddNullDefinition();
+  builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
+}
+
+
+bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* length = builder.AddParameter(1);
+  Definition* growable_array = builder.AddParameter(2);
+
+  builder.AddInstruction(
+      new CheckSmiInstr(new Value(length),
+                        Isolate::kNoDeoptId,
+                        builder.TokenPos()));
+  builder.AddInstruction(
+      new StoreInstanceFieldInstr(GrowableObjectArray::length_offset(),
+                                  new Value(growable_array),
+                                  new Value(length),
+                                  kNoStoreBarrier,
+                                  builder.TokenPos()));
+  Definition* null_def = builder.AddNullDefinition();
+  builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
+}
 
 }  // namespace dart
