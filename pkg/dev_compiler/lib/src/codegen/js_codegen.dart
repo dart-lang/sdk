@@ -23,6 +23,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
   final OutWriter out;
+  final String _libraryName;
 
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
@@ -34,19 +35,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
 
-  JSCodegenVisitor(this.libraryInfo, TypeRules rules, this.out)
-      : rules = rules,
-        _constVisitor = new ConstantVisitor.con1(rules.provider);
+  JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules, this.out)
+      : libraryInfo = libraryInfo,
+        rules = rules,
+        _constVisitor = new ConstantVisitor.con1(rules.provider),
+        _libraryName = _jsLibraryName(libraryInfo.library);
 
   Element get currentLibrary => libraryInfo.library;
 
+
   void generateLibrary(
       Iterable<CompilationUnit> units, CheckerReporter reporter) {
-    var libName = libraryInfo.name;
 
     out.write("""
-var $libName;
-(function ($libName) {
+var $_libraryName;
+(function ($_libraryName) {
   'use strict';
 """, 2);
 
@@ -63,11 +66,11 @@ var $libName;
 
     // TODO(jmesserly): make these immutable in JS?
     for (var name in _exports) {
-      out.write('${libraryInfo.name}.$name = $name;\n');
+      out.write('${_libraryName}.$name = $name;\n');
     }
 
     out.write("""
-})($libName || ($libName = {}));
+})($_libraryName || ($_libraryName = {}));
 """, -2);
   }
 
@@ -649,8 +652,7 @@ var $libName;
   void _flushLazyFields() {
     if (_lazyFields.isEmpty) return;
 
-    var libName = libraryInfo.name;
-    out.write('dart.defineLazyProperties($libName, {\n', 2);
+    out.write('dart.defineLazyProperties($_libraryName, {\n', 2);
     for (var node in _lazyFields) {
       var name = node.name.name;
       out.write('get $name() { return ');
@@ -667,8 +669,7 @@ var $libName;
   void _flushLibraryProperties() {
     if (_properties.isEmpty) return;
 
-    var libName = libraryInfo.name;
-    out.write('dart.mixin($libName, {\n', 2);
+    out.write('dart.mixin($_libraryName, {\n', 2);
     for (var node in _properties) {
       _writeFunctionDeclaration(node);
       out.write(',\n');
@@ -1056,7 +1057,7 @@ var $libName;
     var builtinName = _builtins[libraryName];
     if (builtinName != null) return builtinName;
 
-    return libraryNameFromLibraryElement(element);
+    return _jsLibraryName(element);
   }
 
   /// Returns true if [element] is a getter in JS, therefore needs
@@ -1109,11 +1110,10 @@ class JSGenerator extends CodeGenerator {
 
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
-    var uri = info.library.source.uri;
     // TODO(jmesserly): library directory should be relative to its package
     // root. For example, "package:ddc/src/codegen/js_codegen.dart" would be:
     // "ddc/src/codegen/js_codegen.js" under the output directory.
-    var libraryName = path.basenameWithoutExtension(uri.pathSegments.last);
+    var libraryName = _jsLibraryName(info.library);
     var libraryDir = path.join(outDir, libraryName);
     new Directory(libraryDir).createSync(recursive: true);
     String outputPath = path.join(libraryDir, '$libraryName.js');
@@ -1124,4 +1124,15 @@ class JSGenerator extends CodeGenerator {
 
     out.close();
   }
+}
+
+/// Choose a canonical name from the library element
+/// This never uses the library's name (the identifier in the `library`
+/// declaration) as it doesn't have any meaningful rules enforced.
+// TODO(jmesserly): library directory should be relative to its package
+// root. For example, "package:ddc/src/codegen/js_codegen.dart" would be:
+// "ddc/src/codegen/js_codegen.js" under the output directory.
+String _jsLibraryName(LibraryElement library) {
+  var uri = library.source.uri;
+  return path.basenameWithoutExtension(uri.pathSegments.last);
 }

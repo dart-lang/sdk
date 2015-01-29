@@ -1,5 +1,5 @@
-var dart.typed_data;
-(function (dart.typed_data) {
+var typed_data;
+(function (typed_data) {
   'use strict';
   class ByteBuffer {
   }
@@ -306,25 +306,25 @@ var dart.typed_data;
   Float64x2.fromFloat32x4.prototype = Float64x2.prototype;
 
   // Exports:
-  dart.typed_data.ByteBuffer = ByteBuffer;
-  dart.typed_data.TypedData = TypedData;
-  dart.typed_data.Endianness = Endianness;
-  dart.typed_data.ByteData = ByteData;
-  dart.typed_data.Int8List = Int8List;
-  dart.typed_data.Uint8List = Uint8List;
-  dart.typed_data.Uint8ClampedList = Uint8ClampedList;
-  dart.typed_data.Int16List = Int16List;
-  dart.typed_data.Uint16List = Uint16List;
-  dart.typed_data.Int32List = Int32List;
-  dart.typed_data.Uint32List = Uint32List;
-  dart.typed_data.Int64List = Int64List;
-  dart.typed_data.Uint64List = Uint64List;
-  dart.typed_data.Float32List = Float32List;
-  dart.typed_data.Float64List = Float64List;
-  dart.typed_data.Float32x4List = Float32x4List;
-  dart.typed_data.Int32x4List = Int32x4List;
-  dart.typed_data.Float64x2List = Float64x2List;
-  dart.typed_data.Float32x4 = Float32x4;
-  dart.typed_data.Int32x4 = Int32x4;
-  dart.typed_data.Float64x2 = Float64x2;
-})(dart.typed_data || (dart.typed_data = {}));
+  typed_data.ByteBuffer = ByteBuffer;
+  typed_data.TypedData = TypedData;
+  typed_data.Endianness = Endianness;
+  typed_data.ByteData = ByteData;
+  typed_data.Int8List = Int8List;
+  typed_data.Uint8List = Uint8List;
+  typed_data.Uint8ClampedList = Uint8ClampedList;
+  typed_data.Int16List = Int16List;
+  typed_data.Uint16List = Uint16List;
+  typed_data.Int32List = Int32List;
+  typed_data.Uint32List = Uint32List;
+  typed_data.Int64List = Int64List;
+  typed_data.Uint64List = Uint64List;
+  typed_data.Float32List = Float32List;
+  typed_data.Float64List = Float64List;
+  typed_data.Float32x4List = Float32x4List;
+  typed_data.Int32x4List = Int32x4List;
+  typed_data.Float64x2List = Float64x2List;
+  typed_data.Float32x4 = Float32x4;
+  typed_data.Int32x4 = Int32x4;
+  typed_data.Float64x2 = Float64x2;
+})(typed_data || (typed_data = {}));

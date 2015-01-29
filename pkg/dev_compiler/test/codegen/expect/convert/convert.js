@@ -1,5 +1,5 @@
-var dart.convert;
-(function (dart.convert) {
+var convert;
+(function (convert) {
   'use strict';
   let ASCII = new AsciiCodec();
   let _ASCII_MASK = 127;
@@ -36,7 +36,7 @@ var dart.convert;
       dart_core.RangeError.checkValidRange(start, end, stringLength);
       if (end === null) end = stringLength;
       let length = end - start;
-      let result = new dart.typed_data.Uint8List(length);
+      let result = new typed_data.Uint8List(length);
       for (let i = 0; i < length; i++) {
         let codeUnit = string.codeUnitAt(start + i);
         if ((codeUnit & ~this._subsetMask) !== 0) {
@@ -235,7 +235,7 @@ var dart.convert;
 
   class _ByteCallbackSink extends ByteConversionSinkBase {
     constructor(/* Unimplemented FunctionTypedFormalParameter: void callback(List<int> accumulated) */) {
-      this._buffer = new dart.typed_data.Uint8List(_INITIAL_BUFFER_SIZE);
+      this._buffer = new typed_data.Uint8List(_INITIAL_BUFFER_SIZE);
       this._callback = callback;
       this._INITIAL_BUFFER_SIZE = 1024;
       this._bufferIndex = 0;
@@ -246,7 +246,7 @@ var dart.convert;
       if (chunk.length > freeCount) {
         let oldLength = this._buffer.length;
         let newLength = _roundToPowerOf2(chunk.length + oldLength) * 2;
-        let grown = new dart.typed_data.Uint8List(newLength);
+        let grown = new typed_data.Uint8List(newLength);
         grown.setRange(0, this._buffer.length, this._buffer);
         this._buffer = grown;
       }
@@ -354,7 +354,7 @@ var dart.convert;
       throw new dart_core.UnsupportedError("This converter does not support chunked conversions: " + (this) + "");
     }
     bind(source) {
-      return new dart.async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
+      return new async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
     }
   }
 
@@ -562,7 +562,7 @@ var dart.convert;
     }
     static _utf8Encode(string) {
       if (string === null) return null;
-      if (string.isEmpty) return new dart.typed_data.Uint8List(0);
+      if (string.isEmpty) return new typed_data.Uint8List(0);
       /* Unimplemented LabeledStatement: checkAscii: {for (int i = 0; i < string.length; i++) {if (string.codeUnitAt(i) >= 0x80) break checkAscii;} return string.codeUnits;} */return UTF8.encode(string);
     }
     convert(object) {
@@ -573,7 +573,7 @@ var dart.convert;
       for (let i = 0; i < bytes.length; i++) {
         length = bytes[i].length;
       }
-      let result = new dart.typed_data.Uint8List(length);
+      let result = new typed_data.Uint8List(length);
       for (let i = 0, offset = 0; i < bytes.length; i++) {
         let byteList = bytes[i];
         let end = offset + byteList.length;
@@ -896,7 +896,7 @@ var dart.convert;
     constructor(toEncodable, bufferSize, addChunk) {
       this.addChunk = addChunk;
       this.bufferSize = bufferSize;
-      this.buffer = new dart.typed_data.Uint8List(bufferSize);
+      this.buffer = new typed_data.Uint8List(bufferSize);
       this.index = 0;
       super(/* Unimplemented: DownCast: dynamic to (Object) → Object */ toEncodable);
     }
@@ -979,7 +979,7 @@ var dart.convert;
     writeByte(byte) {
       /* Unimplemented AssertStatement: assert (byte <= 0xff); */if (this.index === this.buffer.length) {
         /* Unimplemented MethodInvocation: addChunk(buffer, 0, index) */;
-        this.buffer = new dart.typed_data.Uint8List(this.bufferSize);
+        this.buffer = new typed_data.Uint8List(this.bufferSize);
         this.index = 0;
       }
       this.buffer[this.index++] = byte;
@@ -1458,7 +1458,7 @@ var dart.convert;
       dart_core.RangeError.checkValidRange(start, end, stringLength);
       if (end === null) end = stringLength;
       let length = end - start;
-      if (length === 0) return new dart.typed_data.Uint8List(0);
+      if (length === 0) return new typed_data.Uint8List(0);
       let encoder = new _Utf8Encoder.withBufferSize(length * 3);
       let endPosition = encoder._fillBuffer(string, start, end);
       /* Unimplemented AssertStatement: assert (endPosition >= end - 1); */if (endPosition !== end) {
@@ -1486,7 +1486,7 @@ var dart.convert;
       this._bufferIndex = 0;
       this._DEFAULT_BYTE_BUFFER_SIZE = 1024;
     }
-    static _createBuffer(size) { return new dart.typed_data.Uint8List(size); }
+    static _createBuffer(size) { return new typed_data.Uint8List(size); }
     _writeSurrogate(leadingSurrogate, nextCodeUnit) {
       if (_isTailSurrogate(nextCodeUnit)) {
         let rune = _combineSurrogatePair(leadingSurrogate, nextCodeUnit);
@@ -1680,39 +1680,39 @@ var dart.convert;
   }
 
   // Exports:
-  dart.convert.ASCII = ASCII;
-  dart.convert.AsciiCodec = AsciiCodec;
-  dart.convert.AsciiEncoder = AsciiEncoder;
-  dart.convert.AsciiDecoder = AsciiDecoder;
-  dart.convert.ByteConversionSink = ByteConversionSink;
-  dart.convert.ByteConversionSinkBase = ByteConversionSinkBase;
-  dart.convert.ChunkedConversionSink = ChunkedConversionSink;
-  dart.convert.Codec = Codec;
-  dart.convert.Converter = Converter;
-  dart.convert.Encoding = Encoding;
-  dart.convert.HTML_ESCAPE = HTML_ESCAPE;
-  dart.convert.HtmlEscapeMode = HtmlEscapeMode;
-  dart.convert.HtmlEscape = HtmlEscape;
-  dart.convert.JsonUnsupportedObjectError = JsonUnsupportedObjectError;
-  dart.convert.JsonCyclicError = JsonCyclicError;
-  dart.convert.JSON = JSON;
-  dart.convert.JsonCodec = JsonCodec;
-  dart.convert.JsonEncoder = JsonEncoder;
-  dart.convert.JsonUtf8Encoder = JsonUtf8Encoder;
-  dart.convert.JsonDecoder = JsonDecoder;
-  dart.convert.LATIN1 = LATIN1;
-  dart.convert.Latin1Codec = Latin1Codec;
-  dart.convert.Latin1Encoder = Latin1Encoder;
-  dart.convert.Latin1Decoder = Latin1Decoder;
-  dart.convert.LineSplitter = LineSplitter;
-  dart.convert.StringConversionSink = StringConversionSink;
-  dart.convert.ClosableStringSink = ClosableStringSink;
-  dart.convert.StringConversionSinkBase = StringConversionSinkBase;
-  dart.convert.StringConversionSinkMixin = StringConversionSinkMixin;
-  dart.convert.UNICODE_REPLACEMENT_CHARACTER_RUNE = UNICODE_REPLACEMENT_CHARACTER_RUNE;
-  dart.convert.UNICODE_BOM_CHARACTER_RUNE = UNICODE_BOM_CHARACTER_RUNE;
-  dart.convert.UTF8 = UTF8;
-  dart.convert.Utf8Codec = Utf8Codec;
-  dart.convert.Utf8Encoder = Utf8Encoder;
-  dart.convert.Utf8Decoder = Utf8Decoder;
-})(dart.convert || (dart.convert = {}));
+  convert.ASCII = ASCII;
+  convert.AsciiCodec = AsciiCodec;
+  convert.AsciiEncoder = AsciiEncoder;
+  convert.AsciiDecoder = AsciiDecoder;
+  convert.ByteConversionSink = ByteConversionSink;
+  convert.ByteConversionSinkBase = ByteConversionSinkBase;
+  convert.ChunkedConversionSink = ChunkedConversionSink;
+  convert.Codec = Codec;
+  convert.Converter = Converter;
+  convert.Encoding = Encoding;
+  convert.HTML_ESCAPE = HTML_ESCAPE;
+  convert.HtmlEscapeMode = HtmlEscapeMode;
+  convert.HtmlEscape = HtmlEscape;
+  convert.JsonUnsupportedObjectError = JsonUnsupportedObjectError;
+  convert.JsonCyclicError = JsonCyclicError;
+  convert.JSON = JSON;
+  convert.JsonCodec = JsonCodec;
+  convert.JsonEncoder = JsonEncoder;
+  convert.JsonUtf8Encoder = JsonUtf8Encoder;
+  convert.JsonDecoder = JsonDecoder;
+  convert.LATIN1 = LATIN1;
+  convert.Latin1Codec = Latin1Codec;
+  convert.Latin1Encoder = Latin1Encoder;
+  convert.Latin1Decoder = Latin1Decoder;
+  convert.LineSplitter = LineSplitter;
+  convert.StringConversionSink = StringConversionSink;
+  convert.ClosableStringSink = ClosableStringSink;
+  convert.StringConversionSinkBase = StringConversionSinkBase;
+  convert.StringConversionSinkMixin = StringConversionSinkMixin;
+  convert.UNICODE_REPLACEMENT_CHARACTER_RUNE = UNICODE_REPLACEMENT_CHARACTER_RUNE;
+  convert.UNICODE_BOM_CHARACTER_RUNE = UNICODE_BOM_CHARACTER_RUNE;
+  convert.UTF8 = UTF8;
+  convert.Utf8Codec = Utf8Codec;
+  convert.Utf8Encoder = Utf8Encoder;
+  convert.Utf8Decoder = Utf8Decoder;
+})(convert || (convert = {}));

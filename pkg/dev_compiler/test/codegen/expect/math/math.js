@@ -1,5 +1,5 @@
-var dart.math;
-(function (dart.math) {
+var math;
+(function (math) {
   'use strict';
   let E = 2.718281828459045;
   let LN10 = 2.302585092994046;
@@ -234,29 +234,29 @@ var dart.math;
   }
 
   // Exports:
-  dart.math.E = E;
-  dart.math.LN10 = LN10;
-  dart.math.LN2 = LN2;
-  dart.math.LOG2E = LOG2E;
-  dart.math.LOG10E = LOG10E;
-  dart.math.PI = PI;
-  dart.math.SQRT1_2 = SQRT1_2;
-  dart.math.SQRT2 = SQRT2;
-  dart.math.min = min;
-  dart.math.max = max;
-  dart.math.atan2 = atan2;
-  dart.math.pow = pow;
-  dart.math.sin = sin;
-  dart.math.cos = cos;
-  dart.math.tan = tan;
-  dart.math.acos = acos;
-  dart.math.asin = asin;
-  dart.math.atan = atan;
-  dart.math.sqrt = sqrt;
-  dart.math.exp = exp;
-  dart.math.log = log;
-  dart.math.Point = Point;
-  dart.math.Random = Random;
-  dart.math.Rectangle = Rectangle;
-  dart.math.MutableRectangle = MutableRectangle;
-})(dart.math || (dart.math = {}));
+  math.E = E;
+  math.LN10 = LN10;
+  math.LN2 = LN2;
+  math.LOG2E = LOG2E;
+  math.LOG10E = LOG10E;
+  math.PI = PI;
+  math.SQRT1_2 = SQRT1_2;
+  math.SQRT2 = SQRT2;
+  math.min = min;
+  math.max = max;
+  math.atan2 = atan2;
+  math.pow = pow;
+  math.sin = sin;
+  math.cos = cos;
+  math.tan = tan;
+  math.acos = acos;
+  math.asin = asin;
+  math.atan = atan;
+  math.sqrt = sqrt;
+  math.exp = exp;
+  math.log = log;
+  math.Point = Point;
+  math.Random = Random;
+  math.Rectangle = Rectangle;
+  math.MutableRectangle = MutableRectangle;
+})(math || (math = {}));

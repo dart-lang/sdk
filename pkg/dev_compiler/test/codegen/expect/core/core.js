@@ -1,5 +1,5 @@
-var dart.core;
-(function (dart.core) {
+var core;
+(function (core) {
   'use strict';
   class Deprecated {
     constructor(expires) {
@@ -806,7 +806,7 @@ var dart.core;
     }
     __init_generate(count, generator) {
       if (generator === undefined) generator = null;
-      if (count <= 0) return new dart._internal.EmptyIterable();
+      if (count <= 0) return new _internal.EmptyIterable();
       return new _GeneratorIterable(count, generator);
     }
     join(separator) {
@@ -819,7 +819,7 @@ var dart.core;
   Iterable.generate = function(count, generator) { this.__init_generate(count, generator) };
   Iterable.generate.prototype = Iterable.prototype;
 
-  class _GeneratorIterable extends dart.collection.IterableBase {
+  class _GeneratorIterable extends collection.IterableBase {
     constructor(_end, /* Unimplemented FunctionTypedFormalParameter: E generator(int n) */) {
       this._end = _end;
       this._start = 0;
@@ -830,7 +830,7 @@ var dart.core;
       this._start = _start;
       this._end = _end;
       this._generator = _generator;
-      dart.collection.IterableBase.call(this);
+      collection.IterableBase.call(this);
     }
     get iterator() { return new _GeneratorIterator(this._start, this._end, this._generator); }
     get length() { return this._end - this._start; }
@@ -838,12 +838,12 @@ var dart.core;
       RangeError.checkNotNegative(count, "count");
       if (count === 0) return this;
       let newStart = this._start + count;
-      if (newStart >= this._end) return new dart._internal.EmptyIterable();
+      if (newStart >= this._end) return new _internal.EmptyIterable();
       return new _GeneratorIterable.this.slice(newStart, this._end, this._generator);
     }
     take(count) {
       RangeError.checkNotNegative(count, "count");
-      if (count === 0) return new dart._internal.EmptyIterable();
+      if (count === 0) return new _internal.EmptyIterable();
       let newEnd = this._start + count;
       if (newEnd >= this._end) return this;
       return new _GeneratorIterable.this.slice(this._start, newEnd, this._generator);
@@ -913,19 +913,19 @@ var dart.core;
 
   class Map {
     constructor() {
-      return new dart.collection.LinkedHashMap();
+      return new collection.LinkedHashMap();
     }
     __init_from(other) {
-      return new dart.collection.LinkedHashMap.from(other);
+      return new collection.LinkedHashMap.from(other);
     }
     __init_identity() {
-      return new dart.collection.LinkedHashMap.identity();
+      return new collection.LinkedHashMap.identity();
     }
     __init_fromIterable(iterable, opt$) {
-      return new dart.collection.LinkedHashMap.fromIterable(iterable, opt$);
+      return new collection.LinkedHashMap.fromIterable(iterable, opt$);
     }
     __init_fromIterables(keys, values) {
-      return new dart.collection.LinkedHashMap.fromIterables(keys, values);
+      return new collection.LinkedHashMap.fromIterables(keys, values);
     }
   }
   Map.from = function(other) { this.__init_from(other) };
@@ -976,8 +976,8 @@ var dart.core;
   // Function print: (Object) → void
   function print(object) {
     let line = "" + (object) + "";
-    if (dart._internal.printToZone === null) {
-      dart._internal.printToConsole(line);
+    if (_internal.printToZone === null) {
+      _internal.printToConsole(line);
     }
      else {
       /* Unimplemented MethodInvocation: printToZone(line) */;
@@ -994,15 +994,15 @@ var dart.core;
     }
   }
 
-  class Set extends dart.collection.IterableBase {
+  class Set extends collection.IterableBase {
     constructor() {
-      return new dart.collection.LinkedHashSet();
+      return new collection.LinkedHashSet();
     }
     __init_identity() {
-      return new dart.collection.LinkedHashSet.identity();
+      return new collection.LinkedHashSet.identity();
     }
     __init_from(elements) {
-      return new dart.collection.LinkedHashSet.from(elements);
+      return new collection.LinkedHashSet.from(elements);
     }
   }
   Set.identity = function() { this.__init_identity() };
@@ -1083,7 +1083,7 @@ var dart.core;
   String.fromEnvironment = function(name, opt$) { this.__init_fromEnvironment(name, opt$) };
   String.fromEnvironment.prototype = String.prototype;
 
-  class Runes extends dart.collection.IterableBase {
+  class Runes extends collection.IterableBase {
     constructor(string) {
       this.string = string;
       super();
@@ -1242,7 +1242,7 @@ var dart.core;
 
   class Symbol {
     constructor(name) {
-      return new dart._internal.Symbol(name);
+      return new _internal.Symbol(name);
     }
   }
 
@@ -1665,13 +1665,13 @@ var dart.core;
     get pathSegments() {
       if (this._pathSegments === null) {
         let pathToSplit = !this.path.isEmpty && this.path.codeUnitAt(0) === _SLASH ? this.path.substring(1) : this.path;
-        this._pathSegments = /* Unimplemented: DownCastExact: UnmodifiableListView<dynamic> to List<String> */ new dart.collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const *//* Unimplemented ArrayList */[] : pathToSplit.split("/").map(Uri.decodeComponent).toList(/* Unimplemented NamedExpression: growable: false */));
+        this._pathSegments = /* Unimplemented: DownCastExact: UnmodifiableListView<dynamic> to List<String> */ new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const *//* Unimplemented ArrayList */[] : pathToSplit.split("/").map(Uri.decodeComponent).toList(/* Unimplemented NamedExpression: growable: false */));
       }
       return this._pathSegments;
     }
     get queryParameters() {
       if (this._queryParameters === null) {
-        this._queryParameters = /* Unimplemented: DownCastExact: UnmodifiableMapView<dynamic, dynamic> to Map<String, String> */ new dart.collection.UnmodifiableMapView(splitQueryString(this.query));
+        this._queryParameters = /* Unimplemented: DownCastExact: UnmodifiableMapView<dynamic, dynamic> to Map<String, String> */ new collection.UnmodifiableMapView(splitQueryString(this.query));
       }
       return this._queryParameters;
     }
@@ -2173,14 +2173,14 @@ var dart.core;
       return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _unreserved2396Table, component);
     }
     static encodeQueryComponent(component, opt$) {
-      let encoding = opt$.encoding === undefined ? dart.convert.UTF8 : opt$.encoding;
+      let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
       return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _unreservedTable, component, /* Unimplemented NamedExpression: encoding: encoding */, /* Unimplemented NamedExpression: spaceToPlus: true */);
     }
     static decodeComponent(encodedComponent) {
       return _uriDecode(encodedComponent);
     }
     static decodeQueryComponent(encodedComponent, opt$) {
-      let encoding = opt$.encoding === undefined ? dart.convert.UTF8 : opt$.encoding;
+      let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
       return _uriDecode(encodedComponent, /* Unimplemented NamedExpression: plusToSpace: true */, /* Unimplemented NamedExpression: encoding: encoding */);
     }
     static encodeFull(uri) {
@@ -2190,7 +2190,7 @@ var dart.core;
       return _uriDecode(uri);
     }
     static splitQueryString(query, opt$) {
-      let encoding = opt$.encoding === undefined ? dart.convert.UTF8 : opt$.encoding;
+      let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
       return /* Unimplemented: DownCast: dynamic to Map<String, String> */ query.split("&").fold(/* Unimplemented MapLiteral: {} */, (map, element) => {
         let index = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented MethodInvocation: element.indexOf("=") */;
         if (index === -1) {
@@ -2285,7 +2285,7 @@ var dart.core;
       return /* Unimplemented: DownCastDynamic: List<dynamic> to List<int> */ bytes;
     }
     static _uriEncode(canonicalTable, text, opt$) {
-      let encoding = opt$.encoding === undefined ? dart.convert.UTF8 : opt$.encoding;
+      let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
       let spaceToPlus = opt$.spaceToPlus === undefined ? false : opt$.spaceToPlus;
       /* Unimplemented FunctionDeclarationStatement: byteToHex(byte, buffer) {const String hex = '0123456789ABCDEF'; buffer.writeCharCode(hex.codeUnitAt(byte >> 4)); buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f));} */let result = new StringBuffer();
       let bytes = encoding.encode(text);
@@ -2325,7 +2325,7 @@ var dart.core;
     }
     static _uriDecode(text, opt$) {
       let plusToSpace = opt$.plusToSpace === undefined ? false : opt$.plusToSpace;
-      let encoding = opt$.encoding === undefined ? dart.convert.UTF8 : opt$.encoding;
+      let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
       let simple = true;
       for (let i = 0; i < text.length && simple; i++) {
         let codeUnit = text.codeUnitAt(i);
@@ -2333,7 +2333,7 @@ var dart.core;
       }
       let bytes = null;
       if (simple) {
-        if (dart.equals(encoding, dart.convert.UTF8) || dart.equals(encoding, dart.convert.LATIN1)) {
+        if (dart.equals(encoding, convert.UTF8) || dart.equals(encoding, convert.LATIN1)) {
           return text;
         }
          else {
@@ -2376,64 +2376,64 @@ var dart.core;
   Uri.file.prototype = Uri.prototype;
 
   // Exports:
-  dart.core.Deprecated = Deprecated;
-  dart.core.deprecated = deprecated;
-  dart.core.override = override;
-  dart.core.proxy = proxy;
-  dart.core.bool = bool;
-  dart.core.Comparable = Comparable;
-  dart.core.DateTime = DateTime;
-  dart.core.double = double;
-  dart.core.Duration = Duration;
-  dart.core.Error = Error;
-  dart.core.AssertionError = AssertionError;
-  dart.core.TypeError = TypeError;
-  dart.core.CastError = CastError;
-  dart.core.NullThrownError = NullThrownError;
-  dart.core.ArgumentError = ArgumentError;
-  dart.core.RangeError = RangeError;
-  dart.core.IndexError = IndexError;
-  dart.core.FallThroughError = FallThroughError;
-  dart.core.AbstractClassInstantiationError = AbstractClassInstantiationError;
-  dart.core.NoSuchMethodError = NoSuchMethodError;
-  dart.core.UnsupportedError = UnsupportedError;
-  dart.core.UnimplementedError = UnimplementedError;
-  dart.core.StateError = StateError;
-  dart.core.ConcurrentModificationError = ConcurrentModificationError;
-  dart.core.OutOfMemoryError = OutOfMemoryError;
-  dart.core.StackOverflowError = StackOverflowError;
-  dart.core.CyclicInitializationError = CyclicInitializationError;
-  dart.core.Exception = Exception;
-  dart.core.FormatException = FormatException;
-  dart.core.IntegerDivisionByZeroException = IntegerDivisionByZeroException;
-  dart.core.Expando = Expando;
-  dart.core.Function = Function;
-  dart.core.identical = identical;
-  dart.core.identityHashCode = identityHashCode;
-  dart.core.int = int;
-  dart.core.Invocation = Invocation;
-  dart.core.Iterable = Iterable;
-  dart.core.BidirectionalIterator = BidirectionalIterator;
-  dart.core.Iterator = Iterator;
-  dart.core.List = List;
-  dart.core.Map = Map;
-  dart.core.Null = Null;
-  dart.core.num = num;
-  dart.core.Object = Object;
-  dart.core.Pattern = Pattern;
-  dart.core.print = print;
-  dart.core.Match = Match;
-  dart.core.RegExp = RegExp;
-  dart.core.Set = Set;
-  dart.core.Sink = Sink;
-  dart.core.StackTrace = StackTrace;
-  dart.core.Stopwatch = Stopwatch;
-  dart.core.String = String;
-  dart.core.Runes = Runes;
-  dart.core.RuneIterator = RuneIterator;
-  dart.core.StringBuffer = StringBuffer;
-  dart.core.StringSink = StringSink;
-  dart.core.Symbol = Symbol;
-  dart.core.Type = Type;
-  dart.core.Uri = Uri;
-})(dart.core || (dart.core = {}));
+  core.Deprecated = Deprecated;
+  core.deprecated = deprecated;
+  core.override = override;
+  core.proxy = proxy;
+  core.bool = bool;
+  core.Comparable = Comparable;
+  core.DateTime = DateTime;
+  core.double = double;
+  core.Duration = Duration;
+  core.Error = Error;
+  core.AssertionError = AssertionError;
+  core.TypeError = TypeError;
+  core.CastError = CastError;
+  core.NullThrownError = NullThrownError;
+  core.ArgumentError = ArgumentError;
+  core.RangeError = RangeError;
+  core.IndexError = IndexError;
+  core.FallThroughError = FallThroughError;
+  core.AbstractClassInstantiationError = AbstractClassInstantiationError;
+  core.NoSuchMethodError = NoSuchMethodError;
+  core.UnsupportedError = UnsupportedError;
+  core.UnimplementedError = UnimplementedError;
+  core.StateError = StateError;
+  core.ConcurrentModificationError = ConcurrentModificationError;
+  core.OutOfMemoryError = OutOfMemoryError;
+  core.StackOverflowError = StackOverflowError;
+  core.CyclicInitializationError = CyclicInitializationError;
+  core.Exception = Exception;
+  core.FormatException = FormatException;
+  core.IntegerDivisionByZeroException = IntegerDivisionByZeroException;
+  core.Expando = Expando;
+  core.Function = Function;
+  core.identical = identical;
+  core.identityHashCode = identityHashCode;
+  core.int = int;
+  core.Invocation = Invocation;
+  core.Iterable = Iterable;
+  core.BidirectionalIterator = BidirectionalIterator;
+  core.Iterator = Iterator;
+  core.List = List;
+  core.Map = Map;
+  core.Null = Null;
+  core.num = num;
+  core.Object = Object;
+  core.Pattern = Pattern;
+  core.print = print;
+  core.Match = Match;
+  core.RegExp = RegExp;
+  core.Set = Set;
+  core.Sink = Sink;
+  core.StackTrace = StackTrace;
+  core.Stopwatch = Stopwatch;
+  core.String = String;
+  core.Runes = Runes;
+  core.RuneIterator = RuneIterator;
+  core.StringBuffer = StringBuffer;
+  core.StringSink = StringSink;
+  core.Symbol = Symbol;
+  core.Type = Type;
+  core.Uri = Uri;
+})(core || (core = {}));

@@ -1,5 +1,5 @@
-var dart.async;
-(function (dart.async) {
+var async;
+(function (async) {
   'use strict';
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
@@ -986,58 +986,58 @@ var dart.async;
     }
   }
 
-  dart.async._nextCallback = null;
-  dart.async._lastCallback = null;
-  dart.async._lastPriorityCallback = null;
-  dart.async._isInCallbackLoop = false;
+  async._nextCallback = null;
+  async._lastCallback = null;
+  async._lastPriorityCallback = null;
+  async._isInCallbackLoop = false;
   // Function _asyncRunCallbackLoop: () → void
   function _asyncRunCallbackLoop() {
-    while (dart.async._nextCallback !== null) {
-      dart.async._lastPriorityCallback = null;
-      let entry = dart.async._nextCallback;
-      dart.async._nextCallback = entry.next;
-      if (dart.async._nextCallback === null) dart.async._lastCallback = null;
+    while (async._nextCallback !== null) {
+      async._lastPriorityCallback = null;
+      let entry = async._nextCallback;
+      async._nextCallback = entry.next;
+      if (async._nextCallback === null) async._lastCallback = null;
       entry.callback();
     }
   }
 
   // Function _asyncRunCallback: () → void
   function _asyncRunCallback() {
-    dart.async._isInCallbackLoop = true;
+    async._isInCallbackLoop = true;
     /* Unimplemented TryStatement: try {_asyncRunCallbackLoop();} finally {_lastPriorityCallback = null; _isInCallbackLoop = false; if (_nextCallback != null) _AsyncRun._scheduleImmediate(_asyncRunCallback);} */}
 
   // Function _scheduleAsyncCallback: (dynamic) → void
   function _scheduleAsyncCallback(callback) {
-    if (dart.async._nextCallback === null) {
-      dart.async._nextCallback = dart.async._lastCallback = new _AsyncCallbackEntry(callback);
-      if (!dart.async._isInCallbackLoop) {
+    if (async._nextCallback === null) {
+      async._nextCallback = async._lastCallback = new _AsyncCallbackEntry(callback);
+      if (!async._isInCallbackLoop) {
         _AsyncRun._scheduleImmediate(_asyncRunCallback);
       }
     }
      else {
       let newEntry = new _AsyncCallbackEntry(callback);
-      dart.async._lastCallback.next = newEntry;
-      dart.async._lastCallback = newEntry;
+      async._lastCallback.next = newEntry;
+      async._lastCallback = newEntry;
     }
   }
 
   // Function _schedulePriorityAsyncCallback: (dynamic) → void
   function _schedulePriorityAsyncCallback(callback) {
     let entry = new _AsyncCallbackEntry(callback);
-    if (dart.async._nextCallback === null) {
+    if (async._nextCallback === null) {
       _scheduleAsyncCallback(callback);
-      dart.async._lastPriorityCallback = dart.async._lastCallback;
+      async._lastPriorityCallback = async._lastCallback;
     }
-     else if (dart.async._lastPriorityCallback === null) {
-      entry.next = dart.async._nextCallback;
-      dart.async._nextCallback = dart.async._lastPriorityCallback = entry;
+     else if (async._lastPriorityCallback === null) {
+      entry.next = async._nextCallback;
+      async._nextCallback = async._lastPriorityCallback = entry;
     }
      else {
-      entry.next = dart.async._lastPriorityCallback.next;
-      dart.async._lastPriorityCallback.next = entry;
-      dart.async._lastPriorityCallback = entry;
+      entry.next = async._lastPriorityCallback.next;
+      async._lastPriorityCallback.next = entry;
+      async._lastPriorityCallback = entry;
       if (entry.next === null) {
-        dart.async._lastCallback = entry;
+        async._lastCallback = entry;
       }
     }
   }
@@ -3315,7 +3315,7 @@ var dart.async;
 
   // Function _rootPrint: (Zone, ZoneDelegate, Zone, String) → void
   function _rootPrint(self, parent, zone, line) {
-    dart._internal.printToConsole(line);
+    _internal.printToConsole(line);
   }
 
   // Function _printToZone: (String) → void
@@ -3325,7 +3325,7 @@ var dart.async;
 
   // Function _rootFork: (Zone, ZoneDelegate, Zone, ZoneSpecification, Map<dynamic, dynamic>) → Zone
   function _rootFork(self, parent, zone, specification, zoneValues) {
-    dart._internal.printToZone = _printToZone;
+    _internal.printToZone = _printToZone;
     if (specification === null) {
       specification = new ZoneSpecification();
     }
@@ -3338,11 +3338,11 @@ var dart.async;
         valueMap = /* Unimplemented: DownCast: dynamic to Map<dynamic, dynamic> */ zone._map;
       }
        else {
-        valueMap = new dart.collection.HashMap();
+        valueMap = new collection.HashMap();
       }
     }
      else {
-      valueMap = new dart.collection.HashMap.from(zoneValues);
+      valueMap = new collection.HashMap.from(zoneValues);
     }
     return new _CustomZone(zone, specification, valueMap);
   }
@@ -3365,7 +3365,7 @@ var dart.async;
 
   class _RootZone extends _Zone {
     constructor() {
-      _rootMap = new dart.collection.HashMap();
+      _rootMap = new collection.HashMap();
       this._rootDelegate = null;
       super();
     }
@@ -3457,7 +3457,7 @@ var dart.async;
       return Timer._createPeriodicTimer(duration, f);
     }
     print(line) {
-      dart._internal.printToConsole(line);
+      _internal.printToConsole(line);
     }
   }
 
@@ -3488,25 +3488,25 @@ var dart.async;
   }
 
   // Exports:
-  dart.async.DeferredLibrary = DeferredLibrary;
-  dart.async.DeferredLoadException = DeferredLoadException;
-  dart.async.Future = Future;
-  dart.async.TimeoutException = TimeoutException;
-  dart.async.Completer = Completer;
-  dart.async.scheduleMicrotask = scheduleMicrotask;
-  dart.async.Stream = Stream;
-  dart.async.StreamSubscription = StreamSubscription;
-  dart.async.EventSink = EventSink;
-  dart.async.StreamView = StreamView;
-  dart.async.StreamConsumer = StreamConsumer;
-  dart.async.StreamSink = StreamSink;
-  dart.async.StreamTransformer = StreamTransformer;
-  dart.async.StreamIterator = StreamIterator;
-  dart.async.StreamController = StreamController;
-  dart.async.Timer = Timer;
-  dart.async.AsyncError = AsyncError;
-  dart.async.ZoneSpecification = ZoneSpecification;
-  dart.async.ZoneDelegate = ZoneDelegate;
-  dart.async.Zone = Zone;
-  dart.async.runZoned = runZoned;
-})(dart.async || (dart.async = {}));
+  async.DeferredLibrary = DeferredLibrary;
+  async.DeferredLoadException = DeferredLoadException;
+  async.Future = Future;
+  async.TimeoutException = TimeoutException;
+  async.Completer = Completer;
+  async.scheduleMicrotask = scheduleMicrotask;
+  async.Stream = Stream;
+  async.StreamSubscription = StreamSubscription;
+  async.EventSink = EventSink;
+  async.StreamView = StreamView;
+  async.StreamConsumer = StreamConsumer;
+  async.StreamSink = StreamSink;
+  async.StreamTransformer = StreamTransformer;
+  async.StreamIterator = StreamIterator;
+  async.StreamController = StreamController;
+  async.Timer = Timer;
+  async.AsyncError = AsyncError;
+  async.ZoneSpecification = ZoneSpecification;
+  async.ZoneDelegate = ZoneDelegate;
+  async.Zone = Zone;
+  async.runZoned = runZoned;
+})(async || (async = {}));
