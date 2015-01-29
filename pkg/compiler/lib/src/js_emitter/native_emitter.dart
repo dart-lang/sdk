@@ -333,10 +333,17 @@ class NativeEmitter {
     // arguments up until the last one provided.
     target = member.fixedBackendName;
 
-    assert(invariant(member, isInterceptedMethod));
-    receiver = argumentsBuffer[0];
-    arguments = argumentsBuffer.sublist(1,
-        indexOfLastOptionalArgumentInParameters + 1);
+    if (isInterceptedMethod) {
+      receiver = argumentsBuffer[0];
+      arguments = argumentsBuffer.sublist(1,
+          indexOfLastOptionalArgumentInParameters + 1);
+    } else {
+      // Native methods that are not intercepted must be static.
+      assert(invariant(member, member.isStatic));
+      receiver = js('this');
+      arguments = argumentsBuffer.sublist(0,
+          indexOfLastOptionalArgumentInParameters + 1);
+    }
     statements.add(
         js.statement('return #.#(#)', [receiver, target, arguments]));
 
