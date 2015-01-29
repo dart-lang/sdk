@@ -367,11 +367,17 @@ class StubMethod extends Method {
       : super(element, name, code);
 }
 
-class StaticMethod extends DartMethod {
+abstract class StaticMethod implements Method {
+  Holder get holder;
+}
+
+class StaticDartMethod extends DartMethod implements StaticMethod {
   final Holder holder;
-  StaticMethod(Element element, String name, this.holder, js.Expression code,
-               {bool needsTearOff, String tearOffName, bool canBeApplied,
-                bool canBeReflected, bool needsStubs})
+
+  StaticDartMethod(Element element, String name, this.holder,
+                   js.Expression code,
+                   {bool needsTearOff, String tearOffName, bool canBeApplied,
+                    bool canBeReflected, bool needsStubs})
       : super(element, name, code,
               needsTearOff: needsTearOff,
               tearOffName : tearOffName,
@@ -380,7 +386,7 @@ class StaticMethod extends DartMethod {
               needsStubs : needsStubs);
 }
 
-class StaticStubMethod extends StubMethod {
+class StaticStubMethod extends StubMethod implements StaticMethod {
   Holder holder;
   StaticStubMethod(String name, this.holder, js.Expression code)
       : super(name, code);

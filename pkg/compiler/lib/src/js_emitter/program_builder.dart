@@ -479,7 +479,7 @@ class ProgramBuilder {
     }
   }
 
-  Iterable<StaticMethod> _generateGetInterceptorMethods() {
+  Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
@@ -542,7 +542,7 @@ class ProgramBuilder {
     return fields;
   }
 
-  Iterable<StaticMethod> _generateOneShotInterceptors() {
+  Iterable<StaticStubMethod> _generateOneShotInterceptors() {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
@@ -556,7 +556,7 @@ class ProgramBuilder {
     });
   }
 
-  StaticMethod _buildStaticMethod(FunctionElement element) {
+  StaticDartMethod _buildStaticMethod(FunctionElement element) {
     String name = namer.getNameOfMember(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
@@ -572,13 +572,13 @@ class ProgramBuilder {
     final String tearOffName =
         needsTearOff ? namer.getStaticClosureName(element) : null;
 
-    return new StaticMethod(element,
-                            name, _registry.registerHolder(holder), code,
-                            needsTearOff: needsTearOff,
-                            tearOffName: tearOffName,
-                            canBeApplied: canBeApplied,
-                            canBeReflected: canBeReflected,
-                            needsStubs: needsStubs);
+    return new StaticDartMethod(element,
+                                name, _registry.registerHolder(holder), code,
+                                needsTearOff: needsTearOff,
+                                tearOffName: tearOffName,
+                                canBeApplied: canBeApplied,
+                                canBeReflected: canBeReflected,
+                                needsStubs: needsStubs);
   }
 
   void _registerConstants(OutputUnit outputUnit,

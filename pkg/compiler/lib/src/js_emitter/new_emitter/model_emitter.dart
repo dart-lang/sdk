@@ -295,9 +295,9 @@ class ModelEmitter {
   }
 
   js.Expression emitLibrary(Library library) {
-    Iterable staticDescriptors = library.statics.expand((e) =>
+    Iterable staticDescriptors = library.statics.expand((StaticMethod e) =>
         [ js.string(e.name), js.number(e.holder.index), emitStaticMethod(e) ]);
-    Iterable classDescriptors = library.classes.expand((e) =>
+    Iterable classDescriptors = library.classes.expand((Class e) =>
         [ js.string(e.name), js.number(e.holder.index), emitClass(e) ]);
 
     js.Expression staticArray =
