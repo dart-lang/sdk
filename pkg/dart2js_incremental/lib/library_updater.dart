@@ -68,7 +68,7 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
 
 import 'package:compiler/src/js_emitter/model.dart' show
     Class,
-    Member;
+    Method;
 
 import 'package:compiler/src/js_emitter/program_builder.dart' show
     ProgramBuilder;
@@ -933,7 +933,7 @@ if (this.pendingStubs) {
   }
 
   jsAst.Node computeMethodUpdateJs(Element element) {
-    Member member = new ProgramBuilder(compiler, namer, emitter)
+    Method member = new ProgramBuilder(compiler, namer, emitter)
         .buildMethodHackForIncrementalCompilation(element);
     if (member == null) {
       compiler.internalError(element, '${element.runtimeType}');
