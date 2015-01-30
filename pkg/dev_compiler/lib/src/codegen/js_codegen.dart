@@ -43,10 +43,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   Element get currentLibrary => libraryInfo.library;
 
-
   void generateLibrary(
       Iterable<CompilationUnit> units, CheckerReporter reporter) {
-
     out.write("""
 var $_libraryName;
 (function ($_libraryName) {
@@ -92,11 +90,11 @@ var $_libraryName;
 
   bool isPublic(String name) => !name.startsWith('_');
 
-
   /// Conversions that we don't handle end up here.
   @override
   void visitConversion(Conversion node) {
-    var from = node.baseType, to = node.convertedType;
+    var from = node.baseType;
+    var to = node.convertedType;
 
     // num to int or num to double is just a null check.
     if (rules.isNumType(from) &&
@@ -159,8 +157,6 @@ var $_libraryName;
     currentClass = node;
 
     var name = node.name.name;
-    var supertype = node.element.supertype;
-
     out.write('class $name');
     _visitNode(node.typeParameters);
 
@@ -1105,7 +1101,6 @@ var $_libraryName;
 
   void _visitMapLiteralEntries(NodeList<MapLiteralEntry> nodes,
       {String separator}) {
-
     if (nodes == null) return;
     int size = nodes.length;
     if (size == 0) return;
