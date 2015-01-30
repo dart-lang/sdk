@@ -80,7 +80,6 @@ LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this f
 LibTest/core/Function/Function_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Function/apply_A01_t01: RuntimeError # Issue 21673
 LibTest/core/Invocation/memberName_A01_t01: Pass, RuntimeError # co18-roll r607: Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail

@@ -51,6 +51,7 @@ LibTest/core/Expando/Expando_A03_t04: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t05: RuntimeError # Issue 17735
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Co19 issue 740
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # Co19 issue 741
 
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493 (not fixed in r672)
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495 (not fixed in r672)
