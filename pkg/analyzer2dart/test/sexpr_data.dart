@@ -23,7 +23,7 @@ const List<Group> TEST_DATA = const [
     const TestSpec('''
 main() {}
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''),
@@ -34,7 +34,7 @@ main() {
   foo();
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetCont ((k0 (v0)
       (LetPrim (v1 (Constant (Null)))
         (InvokeContinuation return (v1)))))
@@ -48,7 +48,7 @@ main() {
   return 0;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (InvokeContinuation return (v0))))
 '''),
@@ -58,7 +58,7 @@ main() {
   return 1.5;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Double 1.5)))
     (InvokeContinuation return (v0))))
 '''),
@@ -68,7 +68,7 @@ main() {
   return true;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Bool true)))
     (InvokeContinuation return (v0))))
 '''),
@@ -78,7 +78,7 @@ main() {
   return false;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Bool false)))
     (InvokeContinuation return (v0))))
 '''),
@@ -88,7 +88,7 @@ main() {
   return "a";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (String "a")))
     (InvokeContinuation return (v0))))
 '''),
@@ -98,7 +98,7 @@ main() {
     const TestSpec('''
 main(args) {}
 ''', '''
-(FunctionDefinition main (args) return ()
+(FunctionDefinition main (args) return
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''),
@@ -106,7 +106,7 @@ main(args) {}
     const TestSpec('''
 main(a, b) {}
 ''', '''
-(FunctionDefinition main (a b) return ()
+(FunctionDefinition main (a b) return
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''),
@@ -119,7 +119,7 @@ main() {
   foo(null);
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Null)))
     (LetCont ((k0 (v1)
         (LetPrim (v2 (Constant (Null)))
@@ -135,7 +135,7 @@ main() {
   bar(0, "");
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Null)))
     (LetCont ((k0 (v1)
         (LetPrim (v2 (Constant (Int 0)))
@@ -153,7 +153,7 @@ main() {
   return foo(null);
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Null)))
     (LetCont ((k0 (v1)
         (InvokeContinuation return (v1))))
@@ -168,7 +168,7 @@ main() {
   return a;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''),
@@ -179,7 +179,7 @@ main() {
   return a;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (InvokeContinuation return (v0))))
 '''),
@@ -189,7 +189,7 @@ main(a) {
   return a;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (InvokeContinuation return (a)))
 '''),
     ]),
@@ -202,7 +202,7 @@ main() {
   return a;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Null)))
     (LetPrim (v1 (Constant (Int 10)))
       (InvokeContinuation return (v1)))))
@@ -215,7 +215,7 @@ main() {
   return a;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (Int 10)))
       (InvokeContinuation return (v1)))))
@@ -230,7 +230,7 @@ main() {
   return a;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
         (LetPrim (v2 (Constant (String "")))
@@ -248,7 +248,7 @@ main(a) {
   return a;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (LetPrim (v1 (Constant (String "")))
         (LetCont ((k1 (v2)
@@ -266,7 +266,7 @@ main(a) {
   return a;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (LetCont ((k1 (v1)
           (InvokeContinuation return (v0))))
@@ -286,7 +286,7 @@ main(a) {
   return a.foo;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (InvokeMethod a foo () k0)))
@@ -298,7 +298,7 @@ main() {
   return a.foo;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (String "")))
     (LetCont ((k0 (v1)
         (InvokeContinuation return (v1))))
@@ -312,7 +312,7 @@ main(a) {
   return a.foo(0);
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
         (InvokeContinuation return (v1))))
@@ -325,7 +325,7 @@ main() {
   return a.foo(0, 1);
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (String "")))
     (LetPrim (v1 (Constant (Int 0)))
       (LetPrim (v2 (Constant (Int 1)))
@@ -341,7 +341,7 @@ main() {
   return 0 + "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -354,7 +354,7 @@ main() {
   return 0 - "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -367,7 +367,7 @@ main() {
   return 0 * "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -380,7 +380,7 @@ main() {
   return 0 / "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -393,7 +393,7 @@ main() {
   return 0 ~/ "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -406,7 +406,7 @@ main() {
   return 0 < "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -419,7 +419,7 @@ main() {
   return 0 <= "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -432,7 +432,7 @@ main() {
   return 0 > "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -445,7 +445,7 @@ main() {
   return 0 >= "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -458,7 +458,7 @@ main() {
   return 0 << "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -471,7 +471,7 @@ main() {
   return 0 >> "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -484,7 +484,7 @@ main() {
   return 0 & "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -497,7 +497,7 @@ main() {
   return 0 | "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -510,7 +510,7 @@ main() {
   return 0 ^ "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -523,7 +523,7 @@ main() {
   return 0 == "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -536,7 +536,7 @@ main() {
   return 0 != "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -557,7 +557,7 @@ main() {
   return 0 && "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
         (InvokeContinuation return (v1))))
@@ -581,7 +581,7 @@ main() {
   return 0 || "";
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
         (InvokeContinuation return (v1))))
@@ -605,7 +605,7 @@ main() {
   return 0 + "" * 2;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetPrim (v2 (Constant (Int 2)))
@@ -621,7 +621,7 @@ main() {
   return 0 * "" + 2;
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "")))
       (LetCont ((k0 (v2)
@@ -641,7 +641,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 ()
       (LetPrim (v0 (Constant (Null)))
         (InvokeContinuation return (v0)))))
@@ -664,7 +664,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 ()
       (LetPrim (v0 (Constant (Null)))
         (InvokeContinuation return (v0)))))
@@ -691,7 +691,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 ()
       (LetPrim (v0 (Constant (Null)))
         (InvokeContinuation return (v0)))))
@@ -718,7 +718,7 @@ main(a) {
   return a ? print(0) : print(1);
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (LetCont ((k1 ()
@@ -744,7 +744,7 @@ main(a) {
   return 1;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (Int 0)))
     (InvokeContinuation return (v0))))
 '''),
@@ -760,7 +760,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 ()
       (LetPrim (v0 (Constant (Int 0)))
         (InvokeContinuation return (v0))))
@@ -783,7 +783,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 ()
       (LetPrim (v0 (Constant (Int 0)))
         (LetCont ((k1 (v1)
@@ -806,7 +806,7 @@ main(a) {
   new Object();
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (LetPrim (v1 (Constant (Null)))
         (InvokeContinuation return (v1)))))
@@ -818,7 +818,7 @@ main(a) {
   new Deprecated("");
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (String "")))
     (LetCont ((k0 (v1)
         (LetPrim (v2 (Constant (Null)))
@@ -833,7 +833,7 @@ main() {
   return [];
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (LiteralList ()))
     (InvokeContinuation return (v0))))
 '''),
@@ -843,7 +843,7 @@ main() {
   return [0];
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (LiteralList (v0)))
       (InvokeContinuation return (v1)))))
@@ -854,7 +854,7 @@ main(a) {
   return [0, 1, a];
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (Int 1)))
       (LetPrim (v2 (LiteralList (v0 v1 a)))
@@ -866,7 +866,7 @@ main(a) {
   return [0, [1], [a, [3]]];
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (Int 1)))
       (LetPrim (v2 (LiteralList (v1)))
@@ -884,7 +884,7 @@ main() {
   return {};
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (LiteralMap () ()))
     (InvokeContinuation return (v0))))
 '''),
@@ -894,7 +894,7 @@ main() {
   return {"a": 0};
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (String "a")))
     (LetPrim (v1 (Constant (Int 0)))
       (LetPrim (v2 (LiteralMap (v0) (v1)))
@@ -906,7 +906,7 @@ main(a) {
   return {"a": 0, "b": 1, "c": a};
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (String "a")))
     (LetPrim (v1 (Constant (Int 0)))
       (LetPrim (v2 (Constant (String "b")))
@@ -921,7 +921,7 @@ main(a) {
   return {0: "a", 1: {2: "b"}, a: {3: "c"}};
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (Int 0)))
     (LetPrim (v1 (Constant (String "a")))
       (LetPrim (v2 (Constant (Int 1)))
@@ -942,7 +942,7 @@ main() {
   for (;;) {}
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetCont ((rec k0 ()
       (LetPrim (v0 (Constant (Bool true)))
         (LetCont ((k1 ()
@@ -961,7 +961,7 @@ main() {
   }
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((rec k0 (v1)
         (LetPrim (v2 (Constant (Int 10)))
@@ -988,7 +988,7 @@ main(i) {
   }
 }
 ''', '''
-(FunctionDefinition main (i) return ()
+(FunctionDefinition main (i) return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((rec k0 (v1)
         (LetPrim (v2 (Constant (Int 10)))
@@ -1015,7 +1015,7 @@ main() {
   while (true) {}
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetCont ((rec k0 ()
       (LetPrim (v0 (Constant (Bool true)))
         (LetCont ((k1 ()
@@ -1036,7 +1036,7 @@ main() {
   }
 }
 ''', '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((rec k0 (v1)
         (LetPrim (v2 (Constant (Int 10)))
@@ -1063,7 +1063,7 @@ main(a) {
   return a is String;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (TypeOperator is a String k0)))
@@ -1074,7 +1074,7 @@ main(a) {
   return a is List<String>;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (TypeOperator is a List<String> k0)))
@@ -1085,7 +1085,7 @@ main(a) {
   return a is Comparator<String>;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (TypeOperator is a Comparator<String> k0)))
@@ -1096,7 +1096,7 @@ main(a) {
   return a is! String;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (LetCont ((k1 (v1)
           (InvokeContinuation return (v1))))
@@ -1115,7 +1115,7 @@ main(a) {
   return a as String;
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (TypeOperator as a String k0)))
@@ -1132,7 +1132,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (LetCont ((rec k1 (v1)
           (LetCont ((k2 (v2)
@@ -1161,7 +1161,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (LetCont ((rec k1 (v1)
           (LetCont ((k2 (v2)
@@ -1192,7 +1192,7 @@ main(a) {
   }
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (Constant (Null)))
     (LetCont ((k0 (v1)
         (LetCont ((rec k1 (v2 v3)
@@ -1220,9 +1220,9 @@ main(a) {
   return local();
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (CreateFunction
-      (FunctionDefinition local () return ()
+      (FunctionDefinition local () return
         (LetPrim (v1 (Constant (Null)))
           (InvokeContinuation return (v1))))))
     (LetCont ((k0 (v2)
@@ -1237,9 +1237,9 @@ main(a) {
   return l();
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (CreateFunction
-      (FunctionDefinition local () return ()
+      (FunctionDefinition local () return
         (LetPrim (v1 (Constant (Null)))
           (InvokeContinuation return (v1))))))
     (LetCont ((k0 (v2)
@@ -1252,9 +1252,9 @@ main(a) {
   return () {}();
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetPrim (v0 (CreateFunction
-      (FunctionDefinition  () return ()
+      (FunctionDefinition  () return
         (LetPrim (v1 (Constant (Null)))
           (InvokeContinuation return (v1))))))
     (LetCont ((k0 (v2)
@@ -1268,20 +1268,20 @@ main(a) {
   return c();
 }
 ''', '''
-(FunctionDefinition main (a) return ()
+(FunctionDefinition main (a) return
   (LetCont ((k0 (v0)
       (LetCont ((k1 (v1)
           (InvokeContinuation return (v1))))
         (InvokeMethod v0 call () k1))))
     (LetCont ((k2 ()
         (LetPrim (v2 (CreateFunction
-            (FunctionDefinition  () return ()
+            (FunctionDefinition  () return
               (LetPrim (v3 (Constant (Int 0)))
                 (InvokeContinuation return (v3))))))
           (InvokeContinuation k0 (v2))))
               (k3 ()
         (LetPrim (v4 (CreateFunction
-            (FunctionDefinition  () return ()
+            (FunctionDefinition  () return
               (LetPrim (v5 (Constant (Int 1)))
                 (InvokeContinuation return (v5))))))
           (InvokeContinuation k0 (v4)))))
@@ -1297,7 +1297,7 @@ main(args) {
 }
 ''', const {
       'main': '''
-(FunctionDefinition main (args) return ()
+(FunctionDefinition main (args) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (InvokeStatic field () k0)))
@@ -1313,7 +1313,7 @@ main(args) {
 }
 ''', const {
       'main': '''
-(FunctionDefinition main (args) return ()
+(FunctionDefinition main (args) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (InvokeStatic field () k0)))
@@ -1331,7 +1331,7 @@ main(args) {
 }
 ''', const {
       'main': '''
-(FunctionDefinition main (args) return ()
+(FunctionDefinition main (args) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (InvokeStatic field () k0)))
@@ -1349,7 +1349,7 @@ main(args) {
   return field;
 }
 ''', '''
-(FunctionDefinition main (args) return ()
+(FunctionDefinition main (args) return
   (LetCont ((k0 (v0)
       (LetCont ((k1 (v1)
           (LetCont ((k2 (v2)
@@ -1368,10 +1368,10 @@ main(x,foo) {
   print(getFoo());
 }
 ''', '''
-(FunctionDefinition main (x foo) return (foo)
+(FunctionDefinition main (x foo) return
   (LetCont ((k0 (v0)
       (LetPrim (v1 (CreateFunction
-          (FunctionDefinition getFoo () return ()
+          (FunctionDefinition getFoo () return
             (LetPrim (v2 (GetClosureVariable foo))
               (InvokeContinuation return (v2))))))
         (LetCont ((k1 (v3)
@@ -1395,13 +1395,13 @@ main() {
 ''',
     const {
 'main': '''
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
     (InvokeConstructor C () k0)))
 ''',
 'C.': '''
-(FunctionDefinition  () return ()
+(FunctionDefinition  () return
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''}),

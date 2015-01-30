@@ -735,22 +735,17 @@ class FunctionDefinition extends Node
   /// Values for optional parameters.
   final List<ConstantExpression> defaultParameterValues;
 
-  /// Closure variables declared by this function.
-  final List<ClosureVariable> closureVariables;
-
   FunctionDefinition(this.element,
       this.parameters,
       this.body,
       this.localConstants,
-      this.defaultParameterValues,
-      this.closureVariables);
+      this.defaultParameterValues);
 
   FunctionDefinition.abstract(this.element,
                               this.parameters,
                               this.defaultParameterValues)
       : body = null,
-        localConstants = const <ConstDeclaration>[],
-        closureVariables = const <ClosureVariable>[];
+        localConstants = const <ConstDeclaration>[];
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
   applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
@@ -787,10 +782,9 @@ class ConstructorDefinition extends FunctionDefinition {
                         RunnableBody body,
                         this.initializers,
                         List<ConstDeclaration> localConstants,
-                        List<ConstantExpression> defaultParameterValues,
-                        List<ClosureVariable> closureVariables)
+                        List<ConstantExpression> defaultParameterValues)
       : super(element, parameters, body, localConstants,
-              defaultParameterValues, closureVariables);
+              defaultParameterValues);
 
   // 'Abstract' here means "has no body" and is used to represent external
   // constructors.

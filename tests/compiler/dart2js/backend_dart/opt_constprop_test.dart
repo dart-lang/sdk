@@ -28,7 +28,7 @@ import 'package:compiler/src/dart2jslib.dart' as dart2js;
 //  }
 
 String CP1_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 1)))
       (LetCont
@@ -44,7 +44,7 @@ String CP1_IN = """
         (InvokeMethod v0 == (v1) k0)))))
 """;
 String CP1_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 1)))
       (LetCont
@@ -77,7 +77,7 @@ String CP1_OUT = """
 //  }
 
 String CP2_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetCont
         ((rec k0 ()
@@ -141,7 +141,7 @@ String CP2_IN = """
       (InvokeContinuation k0 ()))))
 """;
 String CP2_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetCont
         ((rec k0 ()
@@ -218,7 +218,7 @@ String CP2_OUT = """
 //  }
 
 String CP3_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetCont
         ((k0 (v1)
@@ -240,7 +240,7 @@ String CP3_OUT = CP3_IN;
 // Addition.
 
 String CP4_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 2)))
       (LetCont
@@ -249,7 +249,7 @@ String CP4_IN = """
         (InvokeMethod v0 + (v1) k0)))))
 """;
 String CP4_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 2)))
       (LetCont
@@ -262,7 +262,7 @@ String CP4_OUT = """
 // Array access operator (no optimization).
 
 String CP5_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 2)))
       (LetCont
@@ -275,7 +275,7 @@ String CP5_OUT = CP5_IN;
 // Division by 0.
 
 String CP6_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 0)))
       (LetCont
@@ -284,7 +284,7 @@ String CP6_IN = """
         (InvokeMethod v0 / (v1) k0)))))
 """;
 String CP6_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 0)))
       (LetCont
@@ -297,7 +297,7 @@ String CP6_OUT = """
 // Concatenate strings.
 
 String CP7_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (String "b")))
     (LetPrim (v1 (Constant (String "d")))
       (LetPrim (v2 (Constant (String "a")))
@@ -312,7 +312,7 @@ String CP7_IN = """
               (ConcatenateStrings (v2 v0 v3 v1 v4) k0))))))))
 """;
 String CP7_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (String "b")))
     (LetPrim (v1 (Constant (String "d")))
       (LetPrim (v2 (Constant (String "a")))
@@ -334,7 +334,7 @@ String CP7_OUT = """
 // Simple branch removal.
 
 String CP8_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 1)))
       (LetCont
@@ -349,7 +349,7 @@ String CP8_IN = """
         (InvokeMethod v0 == (v1) k0)))))
 """;
 String CP8_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetPrim (v1 (Constant (Int 1)))
       (LetCont
@@ -368,7 +368,7 @@ String CP8_OUT = """
 // While loop.
 
 String CP9_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetCont
         ((rec k0 (v1)
@@ -406,7 +406,7 @@ String CP9_IN = """
       (InvokeContinuation k0 (v0)))))
 """;
 String CP9_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 1)))
     (LetCont
         ((rec k0 (v1)
@@ -453,7 +453,7 @@ String CP9_OUT = """
 //  }
 
 String CP10_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont
         ((rec k0 (v1)

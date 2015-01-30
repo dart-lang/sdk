@@ -248,10 +248,6 @@ abstract class IrBuilder {
   /// or put it in its box, if necessary.
   void _createFunctionParameter(ParameterElement parameterElement);
 
-  /// Returns the list of closure variables declared in the given function or
-  /// field initializer.
-  List<ir.ClosureVariable> _getDeclaredClosureVariables(ExecutableElement elm);
-
   /// Creates an access to the receiver from the current (or enclosing) method.
   ///
   /// If inside a closure class, [buildThis] will redirect access through
@@ -608,8 +604,7 @@ abstract class IrBuilder {
       ir.RunnableBody body = makeRunnableBody();
       return new ir.FunctionDefinition(
           element, state.functionParameters, body,
-          state.localConstants, defaults,
-          _getDeclaredClosureVariables(element));
+          state.localConstants, defaults);
     }
   }
 
@@ -628,8 +623,7 @@ abstract class IrBuilder {
     ir.RunnableBody body = makeRunnableBody();
     return new ir.ConstructorDefinition(
         element, state.functionParameters, body, initializers,
-        state.localConstants, defaults,
-        _getDeclaredClosureVariables(element));
+        state.localConstants, defaults);
   }
 
   /// Create a super invocation where the method name and the argument structure
@@ -1575,7 +1569,7 @@ class DartIrBuilder extends IrBuilder {
 
   DartIrBuilder(ConstantSystem constantSystem,
                 ExecutableElement currentElement,
-                DartCapturedVariableInfo  closureVariables)
+                DartCapturedVariableInfo closureVariables)
       : dartState = new DartIrBuilderSharedState(closureVariables) {
     _init(constantSystem, currentElement);
   }
@@ -1718,11 +1712,6 @@ class DartIrBuilder extends IrBuilder {
       environment.update(local, value);
     }
     return value;
-  }
-
-  List<ir.ClosureVariable> _getDeclaredClosureVariables(
-      ExecutableElement element) {
-    return dartState.getClosureList(element);
   }
 
   ir.Primitive buildThis() {
@@ -1926,11 +1915,6 @@ class JsIrBuilder extends IrBuilder {
       add(new ir.SetField(newBox, location.field, get));
     }
     environment.update(scope.box, newBox);
-  }
-
-  List<ir.ClosureVariable> _getDeclaredClosureVariables(
-      ExecutableElement element) {
-    return <ir.ClosureVariable>[];
   }
 
   ir.Primitive buildThis() {

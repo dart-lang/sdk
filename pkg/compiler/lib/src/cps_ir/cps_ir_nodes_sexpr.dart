@@ -35,7 +35,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitClosureVariable(ClosureVariable node) {
-    return namer.getName(node);
+    return namer.nameClosureVariable(node);
   }
 
   /// Main entry point for creating a [String] from a [Node].  All recursive
@@ -48,12 +48,10 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
     namer.setReturnContinuation(node.body.returnContinuation);
-    String closureVariables =
-        node.closureVariables.map(namer.nameClosureVariable).join(' ');
     String parameters = node.parameters.map(visit).join(' ');
     String body = indentBlock(() => visit(node.body.body));
-    return '$indentation(FunctionDefinition $name ($parameters) return'
-        ' ($closureVariables)\n$body)';
+    return '$indentation(FunctionDefinition $name ($parameters) return\n'
+        '$body)';
   }
 
   String visitFieldDefinition(FieldDefinition node) {
@@ -197,13 +195,15 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitGetClosureVariable(GetClosureVariable node) {
-    return '(GetClosureVariable ${visit(node.variable.definition)})';
+    namer.nameClosureVariableIfAbsent(node.variable.definition);
+    return '(GetClosureVariable ${access(node.variable)})';
   }
 
   String visitSetClosureVariable(SetClosureVariable node) {
+    namer.nameClosureVariableIfAbsent(node.variable.definition);
     String value = access(node.value);
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(SetClosureVariable ${visit(node.variable.definition)} '
+    return '$indentation(SetClosureVariable ${access(node.variable)} '
            '$value\n$body)';
   }
 
@@ -249,7 +249,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
 
   String visitGetField(GetField node) {
     String object = access(node.object);
-    String field = node.field.toString();
+    String field = node.field.name;
     return '(GetField $object $field)';
   }
 
@@ -270,7 +270,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitInterceptor(Interceptor node) {
-    return '(Interceptor ${node.input})';
+    return '(Interceptor ${access(node.input)})';
   }
 }
 
@@ -351,6 +351,12 @@ class _Namer {
   String nameClosureVariable(ClosureVariable variable) {
     assert(!_names.containsKey(variable));
     return _names[variable] = variable.hint.name;
+  }
+
+  String nameClosureVariableIfAbsent(ClosureVariable variable) {
+    if (!_names.containsKey(variable)) {
+      _names[variable] = variable.hint.name;
+    }
   }
 
   String nameContinuation(Continuation node) {
