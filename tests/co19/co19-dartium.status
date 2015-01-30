@@ -53,6 +53,7 @@ LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-requir
 LayoutTests/fast/forms/form-submission-create-crash_t01.dart: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/formmethod-attribute-input-2_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/missing-action_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-ancestor-dir-attribute_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-nonhtml-ancestor_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-nil-value-field-assert_t01: Skip # Test reloads itself. Issue 18558.
