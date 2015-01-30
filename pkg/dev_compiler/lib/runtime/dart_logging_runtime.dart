@@ -38,8 +38,7 @@ dynamic cast(dynamic obj, Type staticType, {String key}) {
     ddcSuccess = false;
   }
   if (obj == null) {
-    dartSuccess =
-        staticType == Object || staticType == dynamic || staticType == Null;
+    dartSuccess = true;
   } else {
     // TODO(vsm): We could avoid mirror code by requiring the caller to pass
     // in obj is TypeLiteral as a parameter.  We can't do that once we have a
@@ -70,7 +69,16 @@ String summary({bool clear: true}) {
     int mismatch = 0;
     int error = 0;
     int failure = 0;
+    Type staticType = null;
+    var runtimeTypes = new Set<Type>();
     for (var record in records) {
+      if (staticType == null) {
+        staticType = record.staticType;
+      } else {
+        // Are these canonicalized?
+        // assert(staticType == record.staticType);
+      }
+      runtimeTypes.add(record.runtimeType);
       if (record.ddcSuccess) {
         if (record.dartSuccess) {
           success++;
@@ -84,6 +92,12 @@ String summary({bool clear: true}) {
           failure++;
         }
       }
+    }
+    buffer.writeln(' - static type: $staticType');
+    if (runtimeTypes.length > 10) {
+      buffer.writeln(' - runtime types: (${runtimeTypes.length} types)');
+    } else {
+      buffer.writeln(' - runtime types: $runtimeTypes');
     }
     final total = success + mismatch + error + failure;
     assert(total != 0);
