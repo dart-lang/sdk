@@ -78,7 +78,7 @@ abstract class _StringDecoder
     }
   }
 
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(error, [StackTrace stackTrace]) {
     _outSink.addError(error, stackTrace);
   }
 
@@ -189,7 +189,7 @@ abstract class _StringEncoder
     _outSink.add(_processString(data));
   }
 
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(error, [StackTrace stackTrace]) {
     _outSink.addError(error, stackTrace);
   }
 
@@ -203,7 +203,7 @@ abstract class _StringEncoder
  */
 class Utf8EncoderTransformer extends _StringEncoder {
   List<int> _processString(String string) {
-    var bytes = [];
+    var bytes = <int>[];
     int pos = 0;
     List<int> codepoints = utf16CodeUnitsToCodepoints(string.codeUnits);
     int length = codepoints.length;
