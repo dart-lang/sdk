@@ -297,6 +297,12 @@ class _FrozenElementList extends ListBase
       new _CssStyleDeclarationSet(this);
 
   void set classes(Iterable<String> value) {
+    // TODO(sra): This might be faster for Sets:
+    //
+    //     new _MultiElementCssClassSet(this).writeClasses(value)
+    //
+    // as the code below converts the Iterable[value] to a string multiple
+    // times.  Maybe compute the string and set className here.
     _nodeList.forEach((e) => e.classes = value);
   }
 
@@ -623,6 +629,8 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
   CssClassSet get classes => new _ElementCssClassSet(this);
 
   void set classes(Iterable<String> value) {
+    // TODO(sra): Do this without reading the classes in clear() and addAll(),
+    // or writing the classes in clear().
     CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);

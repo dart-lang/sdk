@@ -80,7 +80,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   static Future<String> getString(String url,
       {bool withCredentials, void onProgress(ProgressEvent e)}) {
     return request(url, withCredentials: withCredentials,
-        onProgress: onProgress).then((xhr) => xhr.responseText);
+        onProgress: onProgress).then((HttpRequest xhr) => xhr.responseText);
   }
 
   /**

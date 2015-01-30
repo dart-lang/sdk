@@ -11133,6 +11133,12 @@ class _FrozenElementList extends ListBase
       new _CssStyleDeclarationSet(this);
 
   void set classes(Iterable<String> value) {
+    // TODO(sra): This might be faster for Sets:
+    //
+    //     new _MultiElementCssClassSet(this).writeClasses(value)
+    //
+    // as the code below converts the Iterable[value] to a string multiple
+    // times.  Maybe compute the string and set className here.
     _nodeList.forEach((e) => e.classes = value);
   }
 
@@ -11929,6 +11935,8 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   CssClassSet get classes => new _ElementCssClassSet(this);
 
   void set classes(Iterable<String> value) {
+    // TODO(sra): Do this without reading the classes in clear() and addAll(),
+    // or writing the classes in clear().
     CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
@@ -18116,7 +18124,7 @@ class HttpRequest extends HttpRequestEventTarget {
   static Future<String> getString(String url,
       {bool withCredentials, void onProgress(ProgressEvent e)}) {
     return request(url, withCredentials: withCredentials,
-        onProgress: onProgress).then((xhr) => xhr.responseText);
+        onProgress: onProgress).then((HttpRequest xhr) => xhr.responseText);
   }
 
   /**
@@ -31424,10 +31432,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -36966,12 +36974,13 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
 
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
-    _elementCssClassSetIterable.forEach((e) => s.addAll(e.readClasses()));
+    _elementCssClassSetIterable.forEach(
+        (_ElementCssClassSet e) => s.addAll(e.readClasses()));
     return s;
   }
 
   void writeClasses(Set<String> s) {
-    var classes = new List.from(s).join(' ');
+    var classes = s.join(' ');
     for (Element e in _elementIterable) {
       e.className = classes;
     }
@@ -36987,7 +36996,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *       className property of this element.
    */
   modify( f(Set<String> s)) {
-    _elementCssClassSetIterable.forEach((e) => e.modify(f));
+    _elementCssClassSetIterable.forEach((_ElementCssClassSet e) => e.modify(f));
   }
 
   /**
@@ -36995,7 +37004,9 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * is.
    */
   bool toggle(String value, [bool shouldAdd]) =>
-      _modifyWithReturnValue((e) => e.toggle(value, shouldAdd));
+      _elementCssClassSetIterable.fold(false,
+          (bool changed, _ElementCssClassSet e) =>
+              e.toggle(value, shouldAdd) || changed);
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -37004,10 +37015,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) => _modifyWithReturnValue((e) => e.remove(value));
-
-  bool _modifyWithReturnValue(f) => _elementCssClassSetIterable.fold(
-      false, (prevValue, element) => f(element) || prevValue);
+  bool remove(Object value) => _elementCssClassSetIterable.fold(false,
+      (bool changed, _ElementCssClassSet e) => e.remove(value) || changed);
 }
 
 class _ElementCssClassSet extends CssClassSetImpl {
@@ -37030,7 +37039,6 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   void writeClasses(Set<String> s) {
-    List list = new List.from(s);
     _element.className = s.join(' ');
   }
 }
