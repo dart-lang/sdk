@@ -132,6 +132,7 @@ localstorage_test: Pass, RuntimeError # Issue 22166
 storage_test: Pass, RuntimeError # Issue 22166
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
+postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
