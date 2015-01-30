@@ -230,7 +230,8 @@ var math;
 
   // Function _clampToZero: (num) → num
   function _clampToZero(value) {
-    /* Unimplemented AssertStatement: assert (value < 0); */return -value * 0;
+    dart.assert(value < 0);
+    return -value * 0;
   }
 
   // Exports:

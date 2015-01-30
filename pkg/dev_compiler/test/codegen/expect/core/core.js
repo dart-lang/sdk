@@ -62,7 +62,17 @@ var core;
       let re = new RegExp("^([+-]?\d{4,6})-?(\d\d)-?(\d\d)" + "(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)?" + "( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$");
       let match = re.firstMatch(formattedString);
       if (match !== null) {
-        /* Unimplemented FunctionDeclarationStatement: int parseIntOrZero(String matched) {if (matched == null) return 0; return int.parse(matched);} *//* Unimplemented FunctionDeclarationStatement: double parseDoubleOrZero(String matched) {if (matched == null) return 0.0; return double.parse(matched);} */let years = int.parse(match[1]);
+        // Function parseIntOrZero: (String) → int
+        function parseIntOrZero(matched) {
+          if (matched === null) return 0;
+          return int.parse(matched);
+        }
+        // Function parseDoubleOrZero: (String) → double
+        function parseDoubleOrZero(matched) {
+          if (matched === null) return 0.0;
+          return double.parse(matched);
+        }
+        let years = int.parse(match[1]);
         let month = int.parse(match[2]);
         let day = int.parse(match[3]);
         let hour = parseIntOrZero(match[4]);
@@ -161,7 +171,8 @@ var core;
       return "" + (sign) + "000" + (absN) + "";
     }
     static _sixDigits(n) {
-      /* Unimplemented AssertStatement: assert (n < -9999 || n > 9999); */let absN = n.abs();
+      dart.assert(n < -9999 || n > 9999);
+      let absN = n.abs();
       let sign = n < 0 ? "-" : "+";
       if (absN >= 100000) return "" + (sign) + "" + (absN) + "";
       return "" + (sign) + "0" + (absN) + "";
@@ -364,7 +375,21 @@ var core;
     get hashCode() { return this._duration.hashCode; }
     compareTo(other) { return this._duration.compareTo(other._duration); }
     toString() {
-      /* Unimplemented FunctionDeclarationStatement: String sixDigits(int n) {if (n >= 100000) return "$n"; if (n >= 10000) return "0$n"; if (n >= 1000) return "00$n"; if (n >= 100) return "000$n"; if (n >= 10) return "0000$n"; return "00000$n";} *//* Unimplemented FunctionDeclarationStatement: String twoDigits(int n) {if (n >= 10) return "$n"; return "0$n";} */if (this.inMicroseconds < 0) {
+      // Function sixDigits: (int) → String
+      function sixDigits(n) {
+        if (n >= 100000) return "" + (n) + "";
+        if (n >= 10000) return "0" + (n) + "";
+        if (n >= 1000) return "00" + (n) + "";
+        if (n >= 100) return "000" + (n) + "";
+        if (n >= 10) return "0000" + (n) + "";
+        return "00000" + (n) + "";
+      }
+      // Function twoDigits: (int) → String
+      function twoDigits(n) {
+        if (n >= 10) return "" + (n) + "";
+        return "0" + (n) + "";
+      }
+      if (this.inMicroseconds < 0) {
         return "-" + (/* Unimplemented postfix operator: -this */) + "";
       }
       let twoDigitMinutes = twoDigits(dart.notNull(this.inMinutes.remainder(MINUTES_PER_HOUR)));
@@ -552,7 +577,8 @@ var core;
     get start() { return 0; }
     get end() { return this.length - 1; }
     toString() {
-      /* Unimplemented AssertStatement: assert (_hasValue); */let target = Error.safeToString(this.indexable);
+      dart.assert(_hasValue);
+      let target = Error.safeToString(this.indexable);
       let explanation = "index should be less than " + (this.length) + "";
       if (/* Unimplemented binary operator: invalidValue < 0 */) {
         explanation = "index must not be negative";
@@ -704,7 +730,7 @@ var core;
       let lineStart = 0;
       let lastWasCR = null;
       for (let i = 0; i < offset; i++) {
-        let char = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented MethodInvocation: source.codeUnitAt(i) */;
+        let char = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: source.codeUnitAt(i) */;
         if (char === 10) {
           if (lineStart !== i || !lastWasCR) {
             lineNum++;
@@ -728,7 +754,7 @@ var core;
       }
       let lineEnd = /* Unimplemented: DownCast: dynamic to int */ dart.dload(this.source, "length");
       for (let i = offset; /* Unimplemented binary operator: i < source.length */; i++) {
-        let char = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented MethodInvocation: source.codeUnitAt(i) */;
+        let char = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: source.codeUnitAt(i) */;
         if (char === 10 || char === 13) {
           lineEnd = i;
           /* Unimplemented BreakStatement: break; */}
@@ -754,7 +780,7 @@ var core;
           prefix = postfix = "...";
         }
       }
-      let slice = /* Unimplemented: DownCast: dynamic to String */ /* Unimplemented MethodInvocation: source.substring(start, end) */;
+      let slice = /* Unimplemented: DownCast: dynamic to String */ /* Unimplemented dynamic method call: source.substring(start, end) */;
       let markOffset = offset - start + prefix.length;
       return "" + (report) + "" + (prefix) + "" + (slice) + "" + (postfix) + "
       " + (/* Unimplemented binary operator: " " * markOffset */) + "^
@@ -893,7 +919,7 @@ var core;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = null;
       if (growable) {
-        result = /* Unimplemented CascadeExpression: <E> []..length = length */;
+        result = /* Unimplemented cascade on non-simple identifier: <E> []..length = length */;
       }
        else {
         result = new List(length);
@@ -980,7 +1006,7 @@ var core;
       _internal.printToConsole(line);
     }
      else {
-      /* Unimplemented MethodInvocation: printToZone(line) */;
+      /* Unimplemented dynamic method call: printToZone(line) */;
     }
   }
 
@@ -1277,7 +1303,11 @@ var core;
     get query() { return (this._query === null) ? "" : this._query; }
     get fragment() { return (this._fragment === null) ? "" : this._fragment; }
     static parse(uri) {
-      /* Unimplemented FunctionDeclarationStatement: bool isRegName(int ch) {return ch < 128 && ((_regNameTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);} */let EOI = -1;
+      // Function isRegName: (int) → bool
+      function isRegName(ch) {
+        return ch < 128 && (!dart.equals((/* Unimplemented binary operator: _regNameTable[ch >> 4] & (1 << (ch & 0x0f)) */), 0));
+      }
+      let EOI = -1;
       let scheme = "";
       let userinfo = "";
       let host = null;
@@ -1288,7 +1318,68 @@ var core;
       let index = 0;
       let pathStart = 0;
       let char = EOI;
-      /* Unimplemented FunctionDeclarationStatement: void parseAuth() {if (index == uri.length) {char = EOI; return;} int authStart = index; int lastColon = -1; int lastAt = -1; char = uri.codeUnitAt(index); while (index < uri.length) {char = uri.codeUnitAt(index); if (char == _SLASH || char == _QUESTION || char == _NUMBER_SIGN) {break;} if (char == _AT_SIGN) {lastAt = index; lastColon = -1;} else if (char == _COLON) {lastColon = index;} else if (char == _LEFT_BRACKET) {lastColon = -1; int endBracket = uri.indexOf(']', index + 1); if (endBracket == -1) {index = uri.length; char = EOI; break;} else {index = endBracket;}} index++; char = EOI;} int hostStart = authStart; int hostEnd = index; if (lastAt >= 0) {userinfo = _makeUserInfo(uri, authStart, lastAt); hostStart = lastAt + 1;} if (lastColon >= 0) {int portNumber; if (lastColon + 1 < index) {portNumber = 0; for (int i = lastColon + 1; i < index; i++) {int digit = uri.codeUnitAt(i); if (_ZERO > digit || _NINE < digit) {_fail(uri, i, "Invalid port number");} portNumber = portNumber * 10 + (digit - _ZERO);}} port = _makePort(portNumber, scheme); hostEnd = lastColon;} host = _makeHost(uri, hostStart, hostEnd, true); if (index < uri.length) {char = uri.codeUnitAt(index);}} */let NOT_IN_PATH = 0;
+      // Function parseAuth: () → void
+      function parseAuth() {
+        if (index === uri.length) {
+          char = EOI;
+          return;
+        }
+        let authStart = index;
+        let lastColon = -1;
+        let lastAt = -1;
+        char = uri.codeUnitAt(index);
+        while (index < uri.length) {
+          char = uri.codeUnitAt(index);
+          if (char === _SLASH || char === _QUESTION || char === _NUMBER_SIGN) {
+            /* Unimplemented BreakStatement: break; */}
+          if (char === _AT_SIGN) {
+            lastAt = index;
+            lastColon = -1;
+          }
+           else if (char === _COLON) {
+            lastColon = index;
+          }
+           else if (char === _LEFT_BRACKET) {
+            lastColon = -1;
+            let endBracket = uri.indexOf("]", index + 1);
+            if (endBracket === -1) {
+              index = uri.length;
+              char = EOI;
+              /* Unimplemented BreakStatement: break; */}
+             else {
+              index = endBracket;
+            }
+          }
+          index++;
+          char = EOI;
+        }
+        let hostStart = authStart;
+        let hostEnd = index;
+        if (lastAt >= 0) {
+          userinfo = _makeUserInfo(uri, authStart, lastAt);
+          hostStart = lastAt + 1;
+        }
+        if (lastColon >= 0) {
+          let portNumber = null;
+          if (lastColon + 1 < index) {
+            portNumber = 0;
+            for (let i = lastColon + 1; i < index; i++) {
+              let digit = uri.codeUnitAt(i);
+              if (_ZERO > digit || _NINE < digit) {
+                _fail(uri, i, "Invalid port number");
+              }
+              portNumber = portNumber * 10 + (digit - _ZERO);
+            }
+          }
+          port = _makePort(portNumber, scheme);
+          hostEnd = lastColon;
+        }
+        host = _makeHost(uri, hostStart, hostEnd, true);
+        if (index < uri.length) {
+          char = uri.codeUnitAt(index);
+        }
+      }
+      let NOT_IN_PATH = 0;
       let IN_PATH = 1;
       let ALLOW_AUTH = 2;
       let state = NOT_IN_PATH;
@@ -1328,7 +1419,8 @@ var core;
       }
       index = i;
       if (state === ALLOW_AUTH) {
-        /* Unimplemented AssertStatement: assert (char == _SLASH); */index++;
+        dart.assert(char === _SLASH);
+        index++;
         if (index === uri.length) {
           char = EOI;
           state = NOT_IN_PATH;
@@ -1348,7 +1440,8 @@ var core;
           }
         }
       }
-      /* Unimplemented AssertStatement: assert (state == IN_PATH || state == NOT_IN_PATH); */if (state === IN_PATH) {
+      dart.assert(state === IN_PATH || state === NOT_IN_PATH);
+      if (state === IN_PATH) {
         while (++index < uri.length) {
           char = uri.codeUnitAt(index);
           if (char === _QUESTION || char === _NUMBER_SIGN) {
@@ -1357,7 +1450,8 @@ var core;
         }
         state = NOT_IN_PATH;
       }
-      /* Unimplemented AssertStatement: assert (state == NOT_IN_PATH); */let isFile = (dart.equals(scheme, "file"));
+      dart.assert(state === NOT_IN_PATH);
+      let isFile = (dart.equals(scheme, "file"));
       let ensureLeadingSlash = host !== null;
       path = _makePath(uri, pathStart, index, null, ensureLeadingSlash, isFile);
       if (char === _QUESTION) {
@@ -1506,7 +1600,7 @@ var core;
     static get _isWindows() {}
     static _checkNonWindowsPathReservedCharacters(segments, argumentError) {
       segments.forEach((segment) => {
-        if (/* Unimplemented MethodInvocation: segment.contains("/") */) {
+        if (/* Unimplemented dynamic method call: segment.contains("/") */) {
           if (argumentError) {
             throw new ArgumentError("Illegal path character " + (segment) + "");
           }
@@ -1519,7 +1613,7 @@ var core;
     static _checkWindowsPathReservedCharacters(segments, argumentError, firstSegment) {
       if (firstSegment === undefined) firstSegment = 0;
       segments.skip(firstSegment).forEach((segment) => {
-        if (/* Unimplemented MethodInvocation: segment.contains(new RegExp(r'["*/:<>?\\|]')) */) {
+        if (/* Unimplemented dynamic method call: segment.contains(new RegExp(r'["*/:<>?\\|]')) */) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
           }
@@ -1810,7 +1904,7 @@ var core;
       if (dart.dload(result, "isEmpty")) {
         if (isFile) return "/";
       }
-       else if ((isFile || ensureLeadingSlash) && !dart.equals(/* Unimplemented MethodInvocation: result.codeUnitAt(0) */, _SLASH)) {
+       else if ((isFile || ensureLeadingSlash) && !dart.equals(/* Unimplemented dynamic method call: result.codeUnitAt(0) */, _SLASH)) {
         return "/" + (result) + "";
       }
       return /* Unimplemented: DownCast: dynamic to String */ result;
@@ -1847,12 +1941,14 @@ var core;
       return _LOWER_CASE_A <= char && _LOWER_CASE_F >= char;
     }
     static _hexValue(char) {
-      /* Unimplemented AssertStatement: assert (_isHexDigit(char)); */if (_NINE >= char) return char - _ZERO;
+      dart.assert(_isHexDigit(char));
+      if (_NINE >= char) return char - _ZERO;
       char = 32;
       return char - (_LOWER_CASE_A - 10);
     }
     static _normalizeEscape(source, index, lowerCase) {
-      /* Unimplemented AssertStatement: assert (source.codeUnitAt(index) == _PERCENT); */if (index + 2 >= source.length) {
+      dart.assert(source.codeUnitAt(index) === _PERCENT);
+      if (index + 2 >= source.length) {
         return "%";
       }
       let firstDigit = source.codeUnitAt(index + 1);
@@ -1876,7 +1972,8 @@ var core;
       return ch < 127 && (!dart.equals((/* Unimplemented binary operator: _unreservedTable[ch >> 4] & (1 << (ch & 0x0f)) */), 0));
     }
     static _escapeChar(char) {
-      /* Unimplemented AssertStatement: assert (char <= 0x10ffff); */let hexDigits = "0123456789ABCDEF";
+      dart.assert(/* Unimplemented binary operator: char <= 0x10ffff */);
+      let hexDigits = "0123456789ABCDEF";
       let codeUnits = null;
       if (/* Unimplemented binary operator: char < 0x80 */) {
         codeUnits = new List(3);
@@ -2161,7 +2258,11 @@ var core;
       return dart.equals(this.scheme, uri.scheme) && this.hasAuthority === uri.hasAuthority && dart.equals(this.userInfo, uri.userInfo) && dart.equals(this.host, uri.host) && this.port === uri.port && dart.equals(this.path, uri.path) && this.hasQuery === uri.hasQuery && dart.equals(this.query, uri.query) && this.hasFragment === uri.hasFragment && dart.equals(this.fragment, uri.fragment);
     }
     get hashCode() {
-      /* Unimplemented FunctionDeclarationStatement: int combine(part, current) {return (current * 31 + part.hashCode) & 0x3FFFFFFF;} */return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
+      // Function combine: (dynamic, dynamic) → int
+      function combine(part, current) {
+        return /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented binary operator: (current * 31 + part.hashCode) & 0x3FFFFFFF */;
+      }
+      return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
     static _addIfNonEmpty(sb, test, first, second) {
       if (!dart.equals("", test)) {
@@ -2192,22 +2293,26 @@ var core;
     static splitQueryString(query, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
       return /* Unimplemented: DownCast: dynamic to Map<String, String> */ query.split("&").fold(/* Unimplemented MapLiteral: {} */, (map, element) => {
-        let index = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented MethodInvocation: element.indexOf("=") */;
+        let index = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: element.indexOf("=") */;
         if (index === -1) {
           if (!dart.equals(element, "")) {
             /* Unimplemented dynamic IndexExpression: map[decodeQueryComponent(element, encoding: encoding)] */ = "";
           }
         }
          else if (index !== 0) {
-          let key = /* Unimplemented MethodInvocation: element.substring(0, index) */;
-          let value = /* Unimplemented MethodInvocation: element.substring(index + 1) */;
+          let key = /* Unimplemented dynamic method call: element.substring(0, index) */;
+          let value = /* Unimplemented dynamic method call: element.substring(index + 1) */;
           /* Unimplemented dynamic IndexExpression: map[Uri.decodeQueryComponent(key, encoding: encoding)] */ = decodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ value, /* Unimplemented NamedExpression: encoding: encoding */);
         }
         return map;
       });
     }
     static parseIPv4Address(host) {
-      /* Unimplemented FunctionDeclarationStatement: void error(String msg) {throw new FormatException('Illegal IPv4 address, $msg');} */let bytes = host.split(".");
+      // Function error: (String) → void
+      function error(msg) {
+        throw new FormatException("Illegal IPv4 address, " + (msg) + "");
+      }
+      let bytes = host.split(".");
       if (bytes.length !== 4) {
         error("IPv4 address should contain exactly 4 parts");
       }
@@ -2223,7 +2328,23 @@ var core;
       if (start === undefined) start = 0;
       if (end === undefined) end = null;
       if (end === null) end = host.length;
-      /* Unimplemented FunctionDeclarationStatement: void error(String msg, [position]) {throw new FormatException('Illegal IPv6 address, $msg', host, position);} *//* Unimplemented FunctionDeclarationStatement: int parseHex(int start, int end) {if (end - start > 4) {error('an IPv6 part can only contain a maximum of 4 hex digits', start);} int value = int.parse(host.substring(start, end), radix: 16); if (value < 0 || value > (1 << 16) - 1) {error('each part must be in the range of `0x0..0xFFFF`', start);} return value;} */if (host.length < 2) error("address is too short");
+      // Function error: (String, [dynamic]) → void
+      function error(msg, position) {
+        if (position === undefined) position = null;
+        throw new FormatException("Illegal IPv6 address, " + (msg) + "", host, position);
+      }
+      // Function parseHex: (int, int) → int
+      function parseHex(start, end) {
+        if (end - start > 4) {
+          error("an IPv6 part can only contain a maximum of 4 hex digits", start);
+        }
+        let value = int.parse(host.substring(start, end), /* Unimplemented NamedExpression: radix: 16 */);
+        if (value < 0 || value > (1 << 16) - 1) {
+          error("each part must be in the range of `0x0..0xFFFF`", start);
+        }
+        return value;
+      }
+      if (host.length < 2) error("address is too short");
       let parts = /* Unimplemented: DownCastLiteral: List<dynamic> to List<int> */ /* Unimplemented ArrayList */[];
       let wildcardSeen = false;
       let partStart = start;
@@ -2287,7 +2408,13 @@ var core;
     static _uriEncode(canonicalTable, text, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
       let spaceToPlus = opt$.spaceToPlus === undefined ? false : opt$.spaceToPlus;
-      /* Unimplemented FunctionDeclarationStatement: byteToHex(byte, buffer) {const String hex = '0123456789ABCDEF'; buffer.writeCharCode(hex.codeUnitAt(byte >> 4)); buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f));} */let result = new StringBuffer();
+      // Function byteToHex: (dynamic, dynamic) → dynamic
+      function byteToHex(byte, buffer) {
+        let hex = "0123456789ABCDEF";
+        /* Unimplemented dynamic method call: buffer.writeCharCode(hex.codeUnitAt(byte >> 4)) */;
+        /* Unimplemented dynamic method call: buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f)) */;
+      }
+      let result = new StringBuffer();
       let bytes = encoding.encode(text);
       for (let i = 0; i < bytes.length; i++) {
         let byte = bytes[i];

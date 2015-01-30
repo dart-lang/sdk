@@ -142,4 +142,10 @@ var dart;
   }
   dart.mixin = mixin;
 
+  function assert(condition) {
+    // TODO(jmesserly): throw assertion error.
+    if (!condition) throw 'assertion failed';
+  }
+  dart.assert = assert;
+
 })(dart || (dart = {}));

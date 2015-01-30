@@ -45,7 +45,7 @@ var BenchmarkBase;
       watch.start();
       let elapsed = 0;
       while (elapsed < timeMinimum) {
-        /* Unimplemented MethodInvocation: f() */;
+        /* Unimplemented dynamic method call: f() */;
         elapsed = watch.elapsedMilliseconds;
         iter++;
       }

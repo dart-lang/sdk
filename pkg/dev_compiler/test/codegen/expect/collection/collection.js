@@ -62,7 +62,7 @@ var collection;
       let result = this._newSet();
       /* Unimplemented ForEachStatement: for (var element in this) {if (other.contains(element)) result.add(element);} */return result;
     }
-    toSet() { return /* Unimplemented CascadeExpression: _newSet()..addAll(this) */; }
+    toSet() { return /* Unimplemented cascade on non-simple identifier: _newSet()..addAll(this) */; }
   }
 
   class HashSet {
@@ -139,7 +139,8 @@ var collection;
     }
     toSet() { return new dart_core.Set.from(this); }
     get length() {
-      /* Unimplemented AssertStatement: assert (this is! EfficientLength); */let count = 0;
+      dart.assert(/* Unimplemented IsExpression: this is! EfficientLength */);
+      let count = 0;
       let it = iterator;
       while (it.moveNext()) {
         count++;
@@ -273,7 +274,8 @@ var collection;
     }
     toSet() { return new dart_core.Set.from(this); }
     get length() {
-      /* Unimplemented AssertStatement: assert (this is! EfficientLength); */let count = 0;
+      dart.assert(/* Unimplemented IsExpression: this is! EfficientLength */);
+      let count = 0;
       let it = iterator;
       while (it.moveNext()) {
         count++;
@@ -357,7 +359,7 @@ var collection;
       }
       let parts = /* Unimplemented ArrayList */[];
       _toStringVisiting.add(iterable);
-      /* Unimplemented TryStatement: try {_iterablePartsToStrings(iterable, parts);} finally {assert (identical(_toStringVisiting.last, iterable)); _toStringVisiting.removeLast();} */return (/* Unimplemented CascadeExpression: new StringBuffer(leftDelimiter)..writeAll(parts, ", ")..write(rightDelimiter) */).toString();
+      /* Unimplemented TryStatement: try {_iterablePartsToStrings(iterable, parts);} finally {assert (identical(_toStringVisiting.last, iterable)); _toStringVisiting.removeLast();} */return (/* Unimplemented cascade on non-simple identifier: new StringBuffer(leftDelimiter)..writeAll(parts, ", ")..write(rightDelimiter) */).toString();
     }
     static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
       if (leftDelimiter === undefined) leftDelimiter = "(";
@@ -417,7 +419,8 @@ var collection;
          else {
           ultimate = it.current;
           count++;
-          /* Unimplemented AssertStatement: assert (count < MAX_COUNT); */while (it.moveNext()) {
+          dart.assert(count < MAX_COUNT);
+          while (it.moveNext()) {
             penultimate = ultimate;
             ultimate = it.current;
             count++;
@@ -469,7 +472,8 @@ var collection;
     }
     next() {
       if (!this.hasNext) throw new dart_core.StateError("No more elements");
-      /* Unimplemented AssertStatement: assert (_state == _HAS_NEXT_AND_NEXT_IN_CURRENT); */let result = /* Unimplemented: DownCast: dynamic to E */ this._iterator.current;
+      dart.assert(this._state === _HAS_NEXT_AND_NEXT_IN_CURRENT);
+      let result = /* Unimplemented: DownCast: dynamic to E */ this._iterator.current;
       this._move();
       return result;
     }
@@ -798,7 +802,7 @@ var collection;
     join(separator) {
       if (separator === undefined) separator = "";
       if (length === 0) return "";
-      let buffer = /* Unimplemented CascadeExpression: new StringBuffer()..writeAll(this, separator) */;
+      let buffer = /* Unimplemented cascade on non-simple identifier: new StringBuffer()..writeAll(this, separator) */;
       return buffer.toString();
     }
     where(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) { return new _internal.WhereIterable(this, test); }
@@ -839,7 +843,7 @@ var collection;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = null;
       if (growable) {
-        result = /* Unimplemented CascadeExpression: new List<E>()..length = length */;
+        result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
       }
        else {
         result = new dart_core.List(length);
@@ -934,7 +938,7 @@ var collection;
       if (end === null) end = listLength;
       dart_core.RangeError.checkValidRange(start, end, listLength);
       let length = end - start;
-      let result = /* Unimplemented CascadeExpression: new List<E>()..length = length */;
+      let result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
       for (let i = 0; i < length; i++) {
         result[i] = this[start + i];
       }
@@ -1304,7 +1308,8 @@ var collection;
       return null;
     }
     set element(e) {
-      /* Unimplemented AssertStatement: assert (false); */}
+      dart.assert(false);
+    }
     get element() {
       throw _internal.IterableElementError.noElement();
     }
@@ -1451,13 +1456,15 @@ var collection;
        else if (!_isPowerOf2(initialCapacity)) {
         initialCapacity = _nextPowerOf2(initialCapacity);
       }
-      /* Unimplemented AssertStatement: assert (_isPowerOf2(initialCapacity)); */this._table = new dart_core.List(initialCapacity);
+      dart.assert(_isPowerOf2(initialCapacity));
+      this._table = new dart_core.List(initialCapacity);
     }
     __init_from(elements) {
       if (/* Unimplemented IsExpression: elements is List */) {
         let length = elements.length;
         let queue = /* Unimplemented: DownCastExact: ListQueue<dynamic> to ListQueue<E> */ new ListQueue(length + 1);
-        /* Unimplemented AssertStatement: assert (queue._table.length > length); */let sourceList = /* Unimplemented: DownCast: Iterable<dynamic> to List<dynamic> */ elements;
+        dart.assert(queue._table.length > length);
+        let sourceList = /* Unimplemented: DownCast: Iterable<dynamic> to List<dynamic> */ elements;
         queue._table.setRange(0, length, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ sourceList, 0);
         queue._tail = length;
         return queue;
@@ -1502,7 +1509,7 @@ var collection;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let list = null;
       if (growable) {
-        list = /* Unimplemented CascadeExpression: new List<E>()..length = length */;
+        list = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
       }
        else {
         list = new dart_core.List(this.length);
@@ -1612,7 +1619,8 @@ var collection;
     }
     static _isPowerOf2(number) { return (number & (number - 1)) === 0; }
     static _nextPowerOf2(number) {
-      /* Unimplemented AssertStatement: assert (number > 0); */number = (number << 1) - 1;
+      dart.assert(number > 0);
+      number = (number << 1) - 1;
       for (;;) {
         let nextNumber = number & (number - 1);
         if (nextNumber === 0) return number;
@@ -1667,7 +1675,8 @@ var collection;
       this._table = newTable;
     }
     _writeToList(target) {
-      /* Unimplemented AssertStatement: assert (target.length >= length); */if (this._head <= this._tail) {
+      dart.assert(target.length >= this.length);
+      if (this._head <= this._tail) {
         let length = this._tail - this._head;
         target.setRange(0, length, this._table, this._head);
         return length;
@@ -1680,7 +1689,8 @@ var collection;
       }
     }
     _preGrow(newElementCount) {
-      /* Unimplemented AssertStatement: assert (newElementCount >= length); */newElementCount = newElementCount >> 1;
+      dart.assert(newElementCount >= this.length);
+      newElementCount = newElementCount >> 1;
       let newCapacity = _nextPowerOf2(newElementCount);
       let newTable = new dart_core.List(newCapacity);
       this._tail = this._writeToList(newTable);
@@ -1738,7 +1748,7 @@ var collection;
       /* Unimplemented ForEachStatement: for (Object o in other) {if (!contains(o)) return false;} */return true;
     }
     union(other) {
-      return /* Unimplemented CascadeExpression: toSet()..addAll(other) */;
+      return /* Unimplemented cascade on non-simple identifier: toSet()..addAll(other) */;
     }
     intersection(other) {
       let result = this.toSet();
@@ -1750,7 +1760,7 @@ var collection;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
-      let result = growable ? (/* Unimplemented CascadeExpression: new List<E>()..length = length */) : new dart_core.List(this.length);
+      let result = growable ? (/* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */) : new dart_core.List(this.length);
       let i = 0;
       /* Unimplemented ForEachStatement: for (E element in this) result[i++] = element; */return result;
     }
@@ -2098,7 +2108,8 @@ var collection;
       }
       if (splayCount !== _splayCount) {
         comp = _splay(key);
-        /* Unimplemented AssertStatement: assert (comp != 0); */}
+        dart.assert(comp !== 0);
+      }
       _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeMapNode<dynamic, dynamic> to _SplayTreeNode<K> */ new _SplayTreeMapNode(key, value), comp);
       return value;
     }
@@ -2130,7 +2141,19 @@ var collection;
     containsValue(value) {
       let found = false;
       let initialSplayCount = _splayCount;
-      /* Unimplemented FunctionDeclarationStatement: bool visit(_SplayTreeMapNode node) {while (node != null) {if (node.value == value) return true; if (initialSplayCount != _splayCount) {throw new ConcurrentModificationError(this);} if (node.right != null && visit(node.right)) return true; node = node.left;} return false;} */return visit(/* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root);
+      // Function visit: (_SplayTreeMapNode<dynamic, dynamic>) → bool
+      function visit(node) {
+        while (node !== null) {
+          if (dart.equals(node.value, value)) return true;
+          if (initialSplayCount !== _splayCount) {
+            throw new dart_core.ConcurrentModificationError(this);
+          }
+          if (node.right !== null && visit(/* Unimplemented: DownCast: _SplayTreeNode<dynamic> to _SplayTreeMapNode<dynamic, dynamic> */ node.right)) return true;
+          node = /* Unimplemented: DownCast: _SplayTreeNode<dynamic> to _SplayTreeMapNode<dynamic, dynamic> */ node.left;
+        }
+        return false;
+      }
+      return visit(/* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root);
     }
     get keys() { return new _SplayTreeKeyIterable(this); }
     get values() { return new _SplayTreeValueIterable(this); }
@@ -2215,14 +2238,16 @@ var collection;
       }
     }
     _rebuildWorkList(currentNode) {
-      /* Unimplemented AssertStatement: assert (!_workList.isEmpty); */this._workList.clear();
+      dart.assert(!this._workList.isEmpty);
+      this._workList.clear();
       if (currentNode === null) {
         this._findLeftMostDescendent(this._tree._root);
       }
        else {
         this._tree._splay(currentNode.key);
         this._findLeftMostDescendent(this._tree._root.right);
-        /* Unimplemented AssertStatement: assert (!_workList.isEmpty); */}
+        dart.assert(!this._workList.isEmpty);
+      }
     }
     moveNext() {
       if (this._modificationCount !== this._tree._modificationCount) {
@@ -2369,7 +2394,7 @@ var collection;
       /* Unimplemented ForEachStatement: for (E element in this) {if (!other.contains(element)) result.add(element);} */return result;
     }
     union(other) {
-      return /* Unimplemented CascadeExpression: _clone()..addAll(other) */;
+      return /* Unimplemented cascade on non-simple identifier: _clone()..addAll(other) */;
     }
     _clone() {
       let set = new SplayTreeSet(this._comparator, this._validKey);
@@ -2379,7 +2404,7 @@ var collection;
     }
     _copyNode(node) {
       if (node === null) return null;
-      return /* Unimplemented CascadeExpression: new _SplayTreeNode<E>(node.key)..left = _copyNode(node.left)..right = _copyNode(node.right) */;
+      return /* Unimplemented cascade on non-simple identifier: new _SplayTreeNode<E>(node.key)..left = _copyNode(node.left)..right = _copyNode(node.right) */;
     }
     clear() {
       _clear();

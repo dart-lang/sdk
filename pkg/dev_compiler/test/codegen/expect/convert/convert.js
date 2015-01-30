@@ -254,7 +254,8 @@ var convert;
       this._bufferIndex = chunk.length;
     }
     static _roundToPowerOf2(v) {
-      /* Unimplemented AssertStatement: assert (v > 0); */v--;
+      dart.assert(v > 0);
+      v--;
       v = v >> 1;
       v = v >> 2;
       v = v >> 4;
@@ -376,8 +377,8 @@ var convert;
       super();
     }
     decodeStream(byteStream) {
-      return /* Unimplemented: DownCastDynamic: Future<dynamic> to Future<String> */ byteStream.transform(/* Unimplemented: DownCastDynamic: Converter<List<int>, String> to StreamTransformer<List<int>, dynamic> */ decoder).fold(new dart_core.StringBuffer(), (buffer, string) => (/* Unimplemented MethodInvocation: ..write(string) */,
-        buffer)).then((buffer) => /* Unimplemented MethodInvocation: buffer.toString() */);
+      return /* Unimplemented: DownCastDynamic: Future<dynamic> to Future<String> */ byteStream.transform(/* Unimplemented: DownCastDynamic: Converter<List<int>, String> to StreamTransformer<List<int>, dynamic> */ decoder).fold(new dart_core.StringBuffer(), (buffer, string) => (/* Unimplemented dynamic method call: ..write(string) */,
+        buffer)).then((buffer) => /* Unimplemented dynamic method call: buffer.toString() */);
     }
     static getByName(name) {
       if (name === null) return null;
@@ -567,7 +568,15 @@ var convert;
     }
     convert(object) {
       let bytes = /* Unimplemented: DownCastLiteral: List<dynamic> to List<List<int>> */ /* Unimplemented ArrayList */[];
-      /* Unimplemented FunctionDeclarationStatement: void addChunk(Uint8List chunk, int start, int end) {if (start > 0 || end < chunk.length) {int length = end - start; chunk = new Uint8List.view(chunk.buffer, chunk.offsetInBytes + start, length);} bytes.add(chunk);} */_JsonUtf8Stringifier.stringify(object, this._indent, /* Unimplemented: DownCast: Function to (Object) → dynamic */ this._toEncodable, this._bufferSize, addChunk);
+      // Function addChunk: (Uint8List, int, int) → void
+      function addChunk(chunk, start, end) {
+        if (start > 0 || end < chunk.length) {
+          let length = end - start;
+          chunk = new typed_data.Uint8List.view(chunk.buffer, chunk.offsetInBytes + start, length);
+        }
+        bytes.add(chunk);
+      }
+      _JsonUtf8Stringifier.stringify(object, this._indent, /* Unimplemented: DownCast: Function to (Object) → dynamic */ this._toEncodable, this._bufferSize, addChunk);
       if (bytes.length === 1) return bytes[0];
       let length = 0;
       for (let i = 0; i < bytes.length; i++) {
@@ -664,7 +673,7 @@ var convert;
   function _parseJson(source, /* Unimplemented FunctionTypedFormalParameter: reviver(key, value) */) {}
 
   // Function _defaultToEncodable: (dynamic) → Object
-  function _defaultToEncodable(object) { return /* Unimplemented MethodInvocation: object.toJson() */; }
+  function _defaultToEncodable(object) { return /* Unimplemented dynamic method call: object.toJson() */; }
 
   class _JsonStringifier {
     constructor(/* Unimplemented FunctionTypedFormalParameter: Object _toEncodable(Object o) */) {
@@ -719,7 +728,9 @@ var convert;
       this._seen.add(object);
     }
     _removeSeen(object) {
-      /* Unimplemented AssertStatement: assert (!_seen.isEmpty); *//* Unimplemented AssertStatement: assert (identical(_seen.last, object)); */this._seen.removeLast();
+      dart.assert(!this._seen.isEmpty);
+      dart.assert(dart_core.identical(this._seen.last, object));
+      this._seen.removeLast();
     }
     writeObject(object) {
       if (this.writeJsonValue(object)) return;
@@ -866,7 +877,7 @@ var convert;
        else {
         stringifier = new _JsonStringStringifierPretty(output, toEncodable, indent);
       }
-      /* Unimplemented MethodInvocation: stringifier.writeObject(object) */;
+      /* Unimplemented dynamic method call: stringifier.writeObject(object) */;
     }
     writeNumber(number) {
       this._sink.write(number.toString());
@@ -913,7 +924,7 @@ var convert;
     }
     flush() {
       if (this.index > 0) {
-        /* Unimplemented MethodInvocation: addChunk(buffer, 0, index) */;
+        /* Unimplemented dynamic method call: addChunk(buffer, 0, index) */;
       }
       this.buffer = null;
       this.index = 0;
@@ -924,7 +935,8 @@ var convert;
     writeAsciiString(string) {
       for (let i = 0; i < string.length; i++) {
         let char = string.codeUnitAt(i);
-        /* Unimplemented AssertStatement: assert (char <= 0x7f); */this.writeByte(char);
+        dart.assert(char <= 127);
+        this.writeByte(char);
       }
     }
     writeString(string) {
@@ -971,14 +983,16 @@ var convert;
       this.writeFourByteCharCode(charCode);
     }
     writeFourByteCharCode(charCode) {
-      /* Unimplemented AssertStatement: assert (charCode <= 0x10ffff); */this.writeByte(240 | (charCode >> 18));
+      dart.assert(charCode <= 1114111);
+      this.writeByte(240 | (charCode >> 18));
       this.writeByte(128 | ((charCode >> 12) & 63));
       this.writeByte(128 | ((charCode >> 6) & 63));
       this.writeByte(128 | (charCode & 63));
     }
     writeByte(byte) {
-      /* Unimplemented AssertStatement: assert (byte <= 0xff); */if (this.index === this.buffer.length) {
-        /* Unimplemented MethodInvocation: addChunk(buffer, 0, index) */;
+      dart.assert(byte <= 255);
+      if (this.index === this.buffer.length) {
+        /* Unimplemented dynamic method call: addChunk(buffer, 0, index) */;
         this.buffer = new typed_data.Uint8List(this.bufferSize);
         this.index = 0;
       }
@@ -1276,15 +1290,15 @@ var convert;
       if (!iterator.moveNext()) return;
       if (separator.isEmpty) {
         do {
-          this._chunkedSink.add(/* Unimplemented: DownCast: dynamic to String */ /* Unimplemented MethodInvocation: iterator.current.toString() */);
+          this._chunkedSink.add(/* Unimplemented: DownCast: dynamic to String */ /* Unimplemented dynamic method call: iterator.current.toString() */);
         }
         while (iterator.moveNext());
       }
        else {
-        this._chunkedSink.add(/* Unimplemented: DownCast: dynamic to String */ /* Unimplemented MethodInvocation: iterator.current.toString() */);
+        this._chunkedSink.add(/* Unimplemented: DownCast: dynamic to String */ /* Unimplemented dynamic method call: iterator.current.toString() */);
         while (iterator.moveNext()) {
           this.write(separator);
-          this._chunkedSink.add(/* Unimplemented: DownCast: dynamic to String */ /* Unimplemented MethodInvocation: iterator.current.toString() */);
+          this._chunkedSink.add(/* Unimplemented: DownCast: dynamic to String */ /* Unimplemented dynamic method call: iterator.current.toString() */);
         }
       }
     }
@@ -1461,10 +1475,13 @@ var convert;
       if (length === 0) return new typed_data.Uint8List(0);
       let encoder = new _Utf8Encoder.withBufferSize(length * 3);
       let endPosition = encoder._fillBuffer(string, start, end);
-      /* Unimplemented AssertStatement: assert (endPosition >= end - 1); */if (endPosition !== end) {
+      dart.assert(endPosition >= end - 1);
+      if (endPosition !== end) {
         let lastCodeUnit = string.codeUnitAt(end - 1);
-        /* Unimplemented AssertStatement: assert (_isLeadSurrogate(lastCodeUnit)); */let wasCombined = encoder._writeSurrogate(lastCodeUnit, 0);
-        /* Unimplemented AssertStatement: assert (!wasCombined); */}
+        dart.assert(_isLeadSurrogate(lastCodeUnit));
+        let wasCombined = encoder._writeSurrogate(lastCodeUnit, 0);
+        dart.assert(!wasCombined);
+      }
       return encoder._buffer.sublist(0, encoder._bufferIndex);
     }
     startChunkedConversion(sink) {
@@ -1490,7 +1507,9 @@ var convert;
     _writeSurrogate(leadingSurrogate, nextCodeUnit) {
       if (_isTailSurrogate(nextCodeUnit)) {
         let rune = _combineSurrogatePair(leadingSurrogate, nextCodeUnit);
-        /* Unimplemented AssertStatement: assert (rune > _THREE_BYTE_LIMIT); *//* Unimplemented AssertStatement: assert (rune <= _FOUR_BYTE_LIMIT); */this._buffer[this._bufferIndex++] = 240 | (rune >> 18);
+        dart.assert(rune > _THREE_BYTE_LIMIT);
+        dart.assert(rune <= _FOUR_BYTE_LIMIT);
+        this._buffer[this._bufferIndex++] = 240 | (rune >> 18);
         this._buffer[this._bufferIndex++] = 128 | ((rune >> 12) & 63);
         this._buffer[this._bufferIndex++] = 128 | ((rune >> 6) & 63);
         this._buffer[this._bufferIndex++] = 128 | (rune & 63);
@@ -1525,7 +1544,8 @@ var convert;
             this._buffer[this._bufferIndex++] = 128 | (rune & 63);
           }
            else {
-            /* Unimplemented AssertStatement: assert (rune <= _THREE_BYTE_LIMIT); */if (this._bufferIndex + 2 >= this._buffer.length) /* Unimplemented BreakStatement: break; */this._buffer[this._bufferIndex++] = 224 | (rune >> 12);
+            dart.assert(rune <= _THREE_BYTE_LIMIT);
+            if (this._bufferIndex + 2 >= this._buffer.length) /* Unimplemented BreakStatement: break; */this._buffer[this._bufferIndex++] = 224 | (rune >> 12);
             this._buffer[this._bufferIndex++] = 128 | ((rune >> 6) & 63);
             this._buffer[this._bufferIndex++] = 128 | (rune & 63);
           }
@@ -1560,9 +1580,11 @@ var convert;
           nextCodeUnit = str.codeUnitAt(start);
         }
          else {
-          /* Unimplemented AssertStatement: assert (isLast); */}
+          dart.assert(isLast);
+        }
         let wasCombined = _writeSurrogate(_carry, nextCodeUnit);
-        /* Unimplemented AssertStatement: assert (!wasCombined || start != end); */if (wasCombined) start++;
+        dart.assert(!wasCombined || start !== end);
+        if (wasCombined) start++;
         _carry = 0;
       }
       do {
@@ -1571,7 +1593,8 @@ var convert;
         if (start === end - 1 && _isLeadSurrogate(str.codeUnitAt(start))) {
           if (isLast && _bufferIndex < _buffer.length - 3) {
             let hasBeenCombined = _writeSurrogate(str.codeUnitAt(start), 0);
-            /* Unimplemented AssertStatement: assert (!hasBeenCombined); */}
+            dart.assert(!hasBeenCombined);
+          }
            else {
             _carry = str.codeUnitAt(start);
           }
@@ -1670,7 +1693,23 @@ var convert;
       this._value = 0;
       this._expectedUnits = 0;
       this._extraUnits = 0;
-      /* Unimplemented FunctionDeclarationStatement: int scanOneByteCharacters(units, int from) {final to = endIndex; final mask = _ONE_BYTE_LIMIT; for (var i = from; i < to; i++) {final unit = units[i]; if ((unit & mask) != unit) return i - from;} return to - from;} *//* Unimplemented FunctionDeclarationStatement: void addSingleBytes(int from, int to) {assert (from >= startIndex && from <= endIndex); assert (to >= startIndex && to <= endIndex); _stringSink.write(new String.fromCharCodes(codeUnits, from, to));} */let i = startIndex;
+      // Function scanOneByteCharacters: (dynamic, int) → int
+      function scanOneByteCharacters(units, from) {
+        let to = endIndex;
+        let mask = _ONE_BYTE_LIMIT;
+        for (let i = from; i < to; i++) {
+          let unit = /* Unimplemented dynamic IndexExpression: units[i] */;
+          if (!dart.equals((/* Unimplemented binary operator: unit & mask */), unit)) return i - from;
+        }
+        return to - from;
+      }
+      // Function addSingleBytes: (int, int) → void
+      function addSingleBytes(from, to) {
+        dart.assert(from >= startIndex && from <= endIndex);
+        dart.assert(to >= startIndex && to <= endIndex);
+        this._stringSink.write(new dart_core.String.fromCharCodes(codeUnits, from, to));
+      }
+      let i = startIndex;
       /* Unimplemented LabeledStatement: loop: while (true) {multibyte: if (expectedUnits > 0) {do {if (i == endIndex) {break loop;} int unit = codeUnits[i]; if ((unit & 0xC0) != 0x80) {expectedUnits = 0; if (!_allowMalformed) {throw new FormatException("Bad UTF-8 encoding 0x${unit.toRadixString(16)}");} _isFirstCharacter = false; _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE); break multibyte;} else {value = (value << 6) | (unit & 0x3f); expectedUnits--; i++;}} while (expectedUnits > 0); if (value <= _LIMITS[extraUnits - 1]) {if (!_allowMalformed) {throw new FormatException("Overlong encoding of 0x${value.toRadixString(16)}");} expectedUnits = extraUnits = 0; value = UNICODE_REPLACEMENT_CHARACTER_RUNE;} if (value > _FOUR_BYTE_LIMIT) {if (!_allowMalformed) {throw new FormatException("Character outside valid Unicode range: " "0x${value.toRadixString(16)}");} value = UNICODE_REPLACEMENT_CHARACTER_RUNE;} if (!_isFirstCharacter || value != UNICODE_BOM_CHARACTER_RUNE) {_stringSink.writeCharCode(value);} _isFirstCharacter = false;} while (i < endIndex) {int oneBytes = scanOneByteCharacters(codeUnits, i); if (oneBytes > 0) {_isFirstCharacter = false; addSingleBytes(i, i + oneBytes); i += oneBytes; if (i == endIndex) break;} int unit = codeUnits[i++]; if (unit < 0) {if (!_allowMalformed) {throw new FormatException("Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}");} _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);} else {assert (unit > _ONE_BYTE_LIMIT); if ((unit & 0xE0) == 0xC0) {value = unit & 0x1F; expectedUnits = extraUnits = 1; continue loop;} if ((unit & 0xF0) == 0xE0) {value = unit & 0x0F; expectedUnits = extraUnits = 2; continue loop;} if ((unit & 0xF8) == 0xF0 && unit < 0xF5) {value = unit & 0x07; expectedUnits = extraUnits = 3; continue loop;} if (!_allowMalformed) {throw new FormatException("Bad UTF-8 encoding 0x${unit.toRadixString(16)}");} value = UNICODE_REPLACEMENT_CHARACTER_RUNE; expectedUnits = extraUnits = 0; _isFirstCharacter = false; _stringSink.writeCharCode(value);}} break loop;} */if (expectedUnits > 0) {
         this._value = value;
         this._expectedUnits = expectedUnits;

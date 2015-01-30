@@ -172,7 +172,7 @@ var _internal;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = null;
       if (growable) {
-        result = /* Unimplemented CascadeExpression: new List<E>()..length = length */;
+        result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
       }
        else {
         result = new dart_core.List(this.length);
@@ -256,7 +256,7 @@ var _internal;
       if (this._endOrLength !== null && this._endOrLength < end) end = this._endOrLength;
       let length = end - start;
       if (length < 0) length = 0;
-      let result = growable ? (/* Unimplemented CascadeExpression: new List<E>()..length = length */) : new dart_core.List(length);
+      let result = growable ? (/* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */) : new dart_core.List(length);
       for (let i = 0; i < length; i++) {
         result[i] = this._iterable.elementAt(start + i);
         if (this._iterable.length < end) throw new dart_core.ConcurrentModificationError(this);
@@ -445,7 +445,8 @@ var _internal;
       this._iterator = _iterator;
       this._remaining = _remaining;
       super();
-      /* Unimplemented AssertStatement: assert (_remaining is int && _remaining >= 0); */}
+      dart.assert(/* Unimplemented IsExpression: _remaining is int */ && this._remaining >= 0);
+    }
     moveNext() {
       this._remaining--;
       if (this._remaining >= 0) {
@@ -538,7 +539,8 @@ var _internal;
       this._iterator = _iterator;
       this._skipCount = _skipCount;
       super();
-      /* Unimplemented AssertStatement: assert (_skipCount is int && _skipCount >= 0); */}
+      dart.assert(/* Unimplemented IsExpression: _skipCount is int */ && this._skipCount >= 0);
+    }
     moveNext() {
       for (let i = 0; i < this._skipCount; i++) this._iterator.moveNext();
       this._skipCount = 0;
@@ -1221,7 +1223,8 @@ var _internal;
       }
     }
     static _dualPivotQuicksort(a, left, right, /* Unimplemented FunctionTypedFormalParameter: int compare(a, b) */) {
-      /* Unimplemented AssertStatement: assert (right - left > _INSERTION_SORT_THRESHOLD); */let sixth = ((right - left + 1) / 6).truncate();
+      dart.assert(right - left > _INSERTION_SORT_THRESHOLD);
+      let sixth = ((right - left + 1) / 6).truncate();
       let index1 = left + sixth;
       let index5 = right - sixth;
       let index3 = ((left + right) / 2).truncate();

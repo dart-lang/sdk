@@ -92,6 +92,7 @@ var $_libraryName;
 
   bool isPublic(String name) => !name.startsWith('_');
 
+
   /// Conversions that we don't handle end up here.
   @override
   void visitConversion(Conversion node) {
@@ -453,11 +454,8 @@ var $_libraryName;
       out.write('function ');
     }
 
-    out.write('$name(');
-    var function = node.functionExpression;
-    _visitNode(function.parameters);
-    out.write(') ');
-    function.body.accept(this);
+    out.write('$name');
+    node.functionExpression.accept(this);
 
     if (!node.isGetter && !node.isSetter) {
       out.write('\n');
@@ -468,16 +466,34 @@ var $_libraryName;
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is ExpressionStatement) {
-      out.write('/* Unimplemented function expr as statement: $node */');
+    if (node.parent is FunctionDeclaration) {
+      out.write('(');
+      _visitNode(node.parameters);
+      out.write(') ');
+      node.body.accept(this);
+    } else {
+      out.write("(");
+      _visitNode(node.parameters);
+      out.write(") => ");
+      var body = node.body;
+      if (body is ExpressionFunctionBody) body = body.expression;
+      body.accept(this);
+    }
+  }
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    var func = node.functionDeclaration;
+    if (func.isGetter || func.isSetter) {
+      out.write('/* Unimplemented function get/set statement: $node */');
       return;
     }
-    out.write("(");
-    _visitNode(node.parameters);
-    out.write(") => ");
-    var body = node.body;
-    if (body is ExpressionFunctionBody) body = body.expression;
-    body.accept(this);
+
+    var name = func.name.name;
+    out.write("// Function $name: ${func.element.type}\n");
+    out.write('function $name');
+    func.functionExpression.accept(this);
+    out.write('\n');
   }
 
   /// Writes a simple identifier. This can handle implicit `this` as well as
@@ -553,7 +569,7 @@ var $_libraryName;
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (rules.isDynamicCall(node.methodName)) {
-      _unimplemented(node);
+      out.write('/* Unimplemented dynamic method call: $node */');
       return;
     }
 
@@ -619,6 +635,12 @@ var $_libraryName;
   @override
   void visitEmptyStatement(EmptyStatement node) {
     out.write(';\n');
+  }
+
+  @override
+  void visitAssertStatement(AssertStatement node) {
+    // TODO(jmesserly): only emit in checked mode.
+    _visitNode(node.condition, prefix: 'dart.assert(', suffix: ');\n');
   }
 
   @override
@@ -817,7 +839,7 @@ var $_libraryName;
     // it should be assigned to a temp. Note that even simple identifier isn't
     // safe in the face of getters.
     if (node.target is! SimpleIdentifier) {
-      _unimplemented(node);
+      out.write('/* Unimplemented cascade on non-simple identifier: $node */');
       return;
     }
 
@@ -1037,9 +1059,7 @@ var $_libraryName;
   void visitDirective(Directive node) {}
 
   @override
-  void visitNode(AstNode node) => _unimplemented(node);
-
-  void _unimplemented(AstNode node) {
+  void visitNode(AstNode node) {
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
   }
 
