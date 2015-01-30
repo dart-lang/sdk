@@ -5611,7 +5611,7 @@ LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage 
 LayoutTests/fast/canvas/canvas-resize-after-paint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-save-restore-with-path_t01: Pass, RuntimeError # Issue 22216
 LayoutTests/fast/canvas/canvas-save-restore_t01: Pass, RuntimeError # Issue 22216
-LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01 Expected: RuntimeError  Actual: Pass
+LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-shadowBlur_t01: Pass, RuntimeError # Issue 22216
 LayoutTests/fast/canvas/canvas-scale-strokePath-shadow_t01: RuntimeError # Please triage this failure
