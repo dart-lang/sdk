@@ -684,6 +684,12 @@ class Parser {
     if (identifiers.isEmpty) {
       return listener.expectedDeclaration(start);
     }
+    Token afterName = identifiers.head;
+    identifiers = identifiers.tail;
+
+    if (identifiers.isEmpty) {
+      return listener.expectedDeclaration(start);
+    }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
     Token getOrSet;
@@ -702,7 +708,7 @@ class Parser {
       }
     }
 
-    token = name.next;
+    token = afterName;
     bool isField;
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
@@ -866,6 +872,7 @@ class Parser {
                             Token type,
                             Token getOrSet,
                             Token name) {
+
     Token externalModifier;
     for (Token modifier in modifiers) {
       if (externalModifier == null && optional('external', modifier)) {
@@ -905,19 +912,68 @@ class Parser {
     return token;
   }
 
+  /// Looks ahead to find the name of a member. Returns a link of the modifiers,
+  /// set/get, (operator) name, and either the start of the method body or the
+  /// end of the declaration.
+  ///
+  /// Examples:
+  ///
+  ///     int get foo;
+  /// results in
+  ///     [';', 'foo', 'get', 'int']
+  ///
+  ///
+  ///     static const List<int> foo = null;
+  /// results in
+  ///     ['=', 'foo', 'List', 'const', 'static']
+  ///
+  ///
+  ///     get foo async* { return null }
+  /// results in
+  ///     ['{', 'foo', 'get']
+  ///
+  ///
+  ///     operator *(arg) => null;
+  /// results in
+  ///     ['(', '*', 'operator']
+  ///
   Link<Token> findMemberName(Token token) {
     Token start = token;
     Link<Token> identifiers = const Link<Token>();
-    while (!identical(token.kind, EOF_TOKEN)) {
+
+    // `true` if 'get' has been seen.
+    bool isGetter = false;
+    // `true` if an identifier has been seen after 'get'.
+    bool hasName = false;
+
+    while (token.kind != EOF_TOKEN) {
       String value = token.stringValue;
-      if ((identical(value, '(')) || (identical(value, '{'))
-          || (identical(value, '=>'))) {
+      if (value == 'get') {
+        isGetter = true;
+      } else if (hasName &&
+                 (value == 'sync' || value == 'async')) {
+        // Skip.
+        token = token.next;
+        value = token.stringValue;
+        if (value == '*') {
+          // Skip.
+          token = token.next;
+        }
+        continue;
+      } else if (value == '(' ||
+                 value == '{' ||
+                 value == '=>') {
         // A method.
+        identifiers = identifiers.prepend(token);
         return identifiers;
-      } else if ((identical(value, '=')) || (identical(value, ';'))
-          || (identical(value, ','))) {
+      } else if (value == '=' ||
+                 value == ';' ||
+                 value == ',') {
         // A field or abstract getter.
+        identifiers = identifiers.prepend(token);
         return identifiers;
+      } else if (isGetter) {
+        hasName = true;
       }
       identifiers = identifiers.prepend(token);
       if (isValidTypeReference(token)) {
@@ -1114,8 +1170,13 @@ class Parser {
     if (identifiers.isEmpty) {
       return listener.expectedDeclaration(start);
     }
+    Token afterName = identifiers.head;
+    identifiers = identifiers.tail;
+
+    if (identifiers.isEmpty) {
+      return listener.expectedDeclaration(start);
+    }
     Token name = identifiers.head;
-    Token afterName = name.next;
     identifiers = identifiers.tail;
     if (!identifiers.isEmpty) {
       if (optional('operator', identifiers.head)) {
@@ -1302,14 +1363,27 @@ class Parser {
   Token parseFunction(Token token, Token getOrSet) {
     listener.beginFunction(token);
     token = parseModifiers(token);
-    if (identical(getOrSet, token)) token = token.next;
-    if (optional('operator', token)) {
+    if (identical(getOrSet, token)) {
+      // get <name>  => ...
+      token = token.next;
+      listener.handleNoType(token);
+      listener.beginFunctionName(token);
+      if (optional('operator', token)) {
+        token = parseOperatorName(token);
+      } else {
+        token = parseIdentifier(token);
+      }
+    } else if (optional('operator', token)) {
+      // operator <op> (...
       listener.handleNoType(token);
       listener.beginFunctionName(token);
       token = parseOperatorName(token);
     } else {
+      // <type>? <get>? <name>
       token = parseReturnTypeOpt(token);
-      if (identical(getOrSet, token)) token = token.next;
+      if (identical(getOrSet, token)) {
+        token = token.next;
+      }
       listener.beginFunctionName(token);
       if (optional('operator', token)) {
         token = parseOperatorName(token);

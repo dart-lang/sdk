@@ -4798,9 +4798,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     throw 'not supported';
   }
 
-  failOrReturnErroneousElement(Element enclosing, Node diagnosticNode,
-                               String targetName, MessageKind kind,
-                               Map arguments) {
+  failOrReturnErroneousConstructorElement(
+      Element enclosing, Node diagnosticNode,
+      String targetName, MessageKind kind,
+      Map arguments) {
     if (kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
       registry.registerThrowNoSuchMethod();
     } else {
@@ -4811,7 +4812,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else {
       compiler.reportWarning(diagnosticNode, kind, arguments);
     }
-    return new ErroneousElementX(kind, arguments, targetName, enclosing);
+    return new ErroneousConstructorElementX(
+        kind, arguments, targetName, enclosing);
   }
 
   FunctionElement resolveConstructor(ClassElement cls,
@@ -4823,7 +4825,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       String fullConstructorName = Elements.constructorNameForDiagnostics(
               cls.name,
               constructorName);
-      return failOrReturnErroneousElement(
+      return failOrReturnErroneousConstructorElement(
           cls,
           diagnosticNode,
           fullConstructorName,
@@ -4860,7 +4862,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         // The unnamed constructor may not exist, so [e] may become unresolved.
         element = resolveConstructor(cls, diagnosticNode, '');
       } else {
-        element = failOrReturnErroneousElement(
+        element = failOrReturnErroneousConstructorElement(
             element, diagnosticNode, element.name, MessageKind.NOT_A_TYPE,
             {'node': diagnosticNode});
       }
@@ -4910,7 +4912,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       element = prefix.lookupLocalMember(name.source);
       element = Elements.unwrap(element, compiler, node);
       if (element == null) {
-        return failOrReturnErroneousElement(
+        return failOrReturnErroneousConstructorElement(
             resolver.enclosingElement, name,
             name.source,
             MessageKind.CANNOT_RESOLVE,
@@ -4931,9 +4933,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     registry.useElement(node, element);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (element == null) {
-      return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
-                                          MessageKind.CANNOT_RESOLVE,
-                                          {'name': name});
+      return failOrReturnErroneousConstructorElement(
+          resolver.enclosingElement, node, name,
+          MessageKind.CANNOT_RESOLVE,
+          {'name': name});
     } else if (element.isErroneous) {
       return element;
     } else if (element.isTypedef) {

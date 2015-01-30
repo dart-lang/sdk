@@ -46,6 +46,31 @@ a08b() sync { yield 0; }                     /// a08b: compile-time error
 a09a() async* { yield 0; }                   /// a09a: ok
 a10a() async* { yield* []; }                 /// a10a: ok
 
+get sync sync {}                             /// a11a: compile-time error
+get sync sync* {}                            /// a11b: ok
+get async async {}                           /// a11c: ok
+get async async* {}                          /// a11d: ok
+
+get sync {}                                  /// a12a: ok
+get sync* {}                                 /// a12b: compile-time error
+get async {}                                 /// a12c: ok
+get async* {}                                /// a12d: compile-time error
+
+int sync;                                    /// a13a: ok
+int sync*;                                   /// a13b: compile-time error
+int async;                                   /// a13c: ok
+int async*;                                  /// a13d: compile-time error
+
+var sync;                                    /// a14a: ok
+var sync*;                                   /// a14b: compile-time error
+var async;                                   /// a14c: ok
+var async*;                                  /// a14d: compile-time error
+
+sync() {}                                    /// a15a: ok
+sync*() {}                                   /// a15b: compile-time error
+async() {}                                   /// a15c: ok
+async*() {}                                  /// a15d: compile-time error
+
 abstract class B {
   b00a() async;   /// b00a: compile-time error
   b00b() async*;  /// b00b: compile-time error
@@ -85,6 +110,31 @@ class C extends B {
   b08a() sync* { yield* []; }                  /// b08a: ok
   b09a() async* { yield 0; }                   /// b09a: ok
   b10a() async* { yield* []; }                 /// b10a: ok
+
+  get sync sync {}                             /// b11a: compile-time error
+  get sync sync* {}                            /// b11b: ok
+  get async async {}                           /// b11c: ok
+  get async async* {}                          /// b11d: ok
+
+  get sync {}                                  /// b12a: ok
+  get sync* {}                                 /// b12b: compile-time error
+  get async {}                                 /// b12c: ok
+  get async* {}                                /// b12d: compile-time error
+
+  int sync;                                    /// b13a: ok
+  int sync*;                                   /// b13b: compile-time error
+  int async;                                   /// b13c: ok
+  int async*;                                  /// b13d: compile-time error
+
+  var sync;                                    /// b14a: ok
+  var sync*;                                   /// b14b: compile-time error
+  var async;                                   /// b14c: ok
+  var async*;                                  /// b14d: compile-time error
+
+  sync() {}                                    /// b15a: ok
+  sync*() {}                                   /// b15b: compile-time error
+  async() {}                                   /// b15c: ok
+  async*() {}                                  /// b15d: compile-time error
 }
 
 method1() {
@@ -123,6 +173,7 @@ method2() {
 
 
 void main() {
+  var a;
   var c = new C();
   c = new C.e1(); /// e1: continued
   c = new C.e2(); /// e2: continued
@@ -157,6 +208,26 @@ void main() {
   a08b();     /// a08b: continued
   a09a();     /// a09a: continued
   a10a();     /// a10a: continued
+  a = sync;   /// a11a: continued
+  a = sync;   /// a11b: continued
+  a = async;  /// a11c: continued
+  a = async;  /// a11d: continued
+  a = sync;   /// a12a: continued
+  a = sync;   /// a12b: continued
+  a = async;  /// a12c: continued
+  a = async;  /// a12d: continued
+  a = sync;   /// a13a: continued
+  a = sync;   /// a13b: continued
+  a = async;  /// a13c: continued
+  a = async;  /// a13d: continued
+  a = sync;   /// a14a: continued
+  a = sync;   /// a14b: continued
+  a = async;  /// a14c: continued
+  a = async;  /// a14d: continued
+  sync();     /// a15a: continued
+  sync();     /// a15b: continued
+  async();    /// a15c: continued
+  async();    /// a15d: continued
 
   c.b00a();   /// b00a: continued
   c.b00b();   /// b00b: continued
@@ -176,6 +247,26 @@ void main() {
   c.b08a();   /// b08a: continued
   c.b09a();   /// b09a: continued
   c.b10a();   /// b10a: continued
+  a = c.sync;   /// b11a: continued
+  a = c.sync;   /// b11b: continued
+  a = c.async;  /// b11c: continued
+  a = c.async;  /// b11d: continued
+  a = c.sync;   /// b12a: continued
+  a = c.sync;   /// b12b: continued
+  a = c.async;  /// b12c: continued
+  a = c.async;  /// b12d: continued
+  a = c.sync;   /// b13a: continued
+  a = c.sync;   /// b13b: continued
+  a = c.async;  /// b13c: continued
+  a = c.async;  /// b13d: continued
+  a = c.sync;   /// b14a: continued
+  a = c.sync;   /// b14b: continued
+  a = c.async;  /// b14c: continued
+  a = c.async;  /// b14d: continued
+  c.sync();     /// b15a: continued
+  c.sync();     /// b15b: continued
+  c.async();    /// b15c: continued
+  c.async();    /// b15d: continued
 
   method1();
   method2();
