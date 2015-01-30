@@ -52,12 +52,7 @@ dynamic cast(dynamic obj, Type staticType, {String key}) {
   var record =
       new CastRecord(obj.runtimeType, staticType, ddcSuccess, dartSuccess);
   castRecordHandler(key, record);
-  if (dartSuccess) {
-    return obj;
-  } else {
-    // The public API doesn't let us set a message or configure.
-    throw new CastError();
-  }
+  return obj;
 }
 
 // The default handler simply records all CastRecords and prints a summary
