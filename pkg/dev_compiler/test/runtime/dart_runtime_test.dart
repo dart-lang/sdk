@@ -79,7 +79,7 @@ void main() {
     checkType(5, String, false);
 
     expect(cast(5, int), equals(5));
-    expect(() => cast(null, int), throws);
+    expect(cast(null, int), equals(null));
   });
 
   test('dynamic', () {

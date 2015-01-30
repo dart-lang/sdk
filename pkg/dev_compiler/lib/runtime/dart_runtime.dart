@@ -34,8 +34,8 @@ Type type(TypeFunction f) {
 dynamic cast(dynamic obj, Type staticType) {
   // This is our 'as' equivalent.
   if (obj == null) {
-    // A null can be cast only to non-primitive types.
-    if (!isPrimitiveType(staticType)) return null;
+    // A null can be cast any type.
+    return null;
   } else {
     // For non-null values, val is T => val as T succeeds.
     if (instanceOf(obj, staticType)) return obj;
@@ -72,11 +72,6 @@ bool isGroundType(Type type) {
   // It's not particularly useful.
   assert(mirror.reflectedType == dynamic);
   return true;
-}
-
-bool isPrimitiveType(Type t) {
-  if (t == int || t == double || t == bool) return true;
-  return false;
 }
 
 class Arity {
