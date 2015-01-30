@@ -30,6 +30,9 @@ analyzer/test/generated/parser_test: Skip  # Times out
 docgen/test/*: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
 
+[ $runtime == vm && $system == windows]
+analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
+
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 docgen/test/*: Skip # Too slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
