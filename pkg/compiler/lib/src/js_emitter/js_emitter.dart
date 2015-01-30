@@ -95,6 +95,7 @@ part 'interceptor_stub_generator.dart';
 part 'metadata_collector.dart';
 part 'native_emitter.dart';
 part 'native_generator.dart';
+part 'parameter_stub_generator.dart';
 part 'type_test_generator.dart';
 part 'type_test_registry.dart';
 

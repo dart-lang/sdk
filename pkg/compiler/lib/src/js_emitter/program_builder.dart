@@ -19,6 +19,7 @@ import 'js_emitter.dart' show
     ClassStubGenerator,
     CodeEmitterTask,
     InterceptorStubGenerator,
+    ParameterStubGenerator,
     TypeTestGenerator,
     TypeTestProperties;
 
@@ -424,7 +425,6 @@ class ProgramBuilder {
     bool isClosure = false;
     bool isNotApplyTarget = !element.isFunction || element.isAccessor;
 
-    final bool needsStubs = _methodNeedsStubs(element);
     final bool canBeReflected = _methodCanBeReflected(element);
     final bool canBeApplied = _methodCanBeApplied(element);
     final bool hasSuperAlias = backend.isAliasedSuperMember(element);
@@ -451,10 +451,30 @@ class ProgramBuilder {
       assert(invariant(element, !element.isConstructor));
     }
 
-    return new InstanceMethod(element, name, code, needsTearOff: canTearOff,
-        tearOffName: tearOffName, isClosure: isClosure,
-        hasSuperAlias: hasSuperAlias, canBeApplied: canBeApplied,
-        canBeReflected: canBeReflected, needsStubs: needsStubs);
+    return new InstanceMethod(element, name, code,
+        _generateParameterStubs(element, canTearOff),
+        needsTearOff: canTearOff, tearOffName: tearOffName,
+        isClosure: isClosure, hasSuperAlias: hasSuperAlias,
+        canBeApplied: canBeApplied, canBeReflected: canBeReflected);
+  }
+
+  List<ParameterStubMethod> _generateParameterStubs(FunctionElement element,
+                                           bool canTearOff) {
+
+    if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
+
+    List<ParameterStubMethod> parameterStubs = <ParameterStubMethod>[];
+    ParameterStubGenerator generator =
+        new ParameterStubGenerator(_compiler, namer, backend);
+    Map<Selector, js.Expression> parameterStubsForElement =
+        generator.generateParameterStubs(element, canTearOff);
+    parameterStubsForElement.forEach((Selector selector, js.Expression code) {
+      String name = namer.invocationName(selector);
+      parameterStubs.add(
+          _buildParameterStubMethod(name, code, selector, element: element));
+    });
+
+    return parameterStubs;
   }
 
   /// Builds a stub method.
@@ -464,6 +484,12 @@ class ProgramBuilder {
   Method _buildStubMethod(String name, js.Expression code,
                           {Element element}) {
     return new StubMethod(name, code, element: element);
+  }
+
+  Method _buildParameterStubMethod(String name, js.Expression code,
+                                   Selector selector,
+                                   {Element element}) {
+    return new ParameterStubMethod(name, code, selector, element: element);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -563,7 +589,6 @@ class ProgramBuilder {
     js.Expression code = backend.generatedCode[element];
 
     final bool isNotApplyTarget = !element.isConstructor && !element.isAccessor;
-    final bool needsStubs = _methodNeedsStubs(element);
     final bool canBeApplied = _methodCanBeApplied(element);
     final bool canBeReflected = _methodCanBeReflected(element);
 
@@ -575,11 +600,11 @@ class ProgramBuilder {
 
     return new StaticDartMethod(element,
                                 name, _registry.registerHolder(holder), code,
+                                _generateParameterStubs(element, needsTearOff),
                                 needsTearOff: needsTearOff,
                                 tearOffName: tearOffName,
                                 canBeApplied: canBeApplied,
-                                canBeReflected: canBeReflected,
-                                needsStubs: needsStubs);
+                                canBeReflected: canBeReflected);
   }
 
   void _registerConstants(OutputUnit outputUnit,

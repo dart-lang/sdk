@@ -8,11 +8,6 @@ part of dart2js.js_emitter;
 const DEBUG_FAST_OBJECTS = false;
 
 /**
- * Call-back for adding stub [function] for [selector].
- */
-typedef void AddStubFunction(Selector selector, jsAst.Fun function);
-
-/**
  * Call-back for adding property with [name] and [value].
  */
 typedef jsAst.Property AddPropertyFunction(String name, jsAst.Expression value);

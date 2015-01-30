@@ -333,21 +333,21 @@ abstract class Method {
 class DartMethod extends Method {
   final bool needsTearOff;
   final String tearOffName;
-  // TODO(herhut): Directly store stubs instead/
-  final bool needsStubs;
+  final List<ParameterStubMethod> parameterStubs;
   // TODO(herhut): Directly store aliases instead.
   final bool canBeApplied;
   final bool canBeReflected;
 
   DartMethod(Element element, String name, js.Expression code,
-      {this.needsTearOff, this.tearOffName, this.needsStubs, this.canBeApplied,
-       this.canBeReflected})
+             this.parameterStubs,
+             {this.needsTearOff, this.tearOffName, this.canBeApplied,
+             this.canBeReflected})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
     assert(canBeApplied != null);
+    assert(parameterStubs != null);
     assert(canBeReflected != null);
-    assert(needsStubs != null);
   }
 }
 
@@ -356,20 +356,18 @@ class InstanceMethod extends DartMethod {
   final bool hasSuperAlias;
   final bool isClosure;
 
-  InstanceMethod(element, name, code,
+  InstanceMethod(element, name, code, List<ParameterStubMethod> parameterStubs,
       {bool needsTearOff,
        String tearOffName,
        this.hasSuperAlias,
        bool canBeApplied,
        bool canBeReflected,
-       this.isClosure,
-       bool needsStubs})
-      : super(element, name, code,
+       this.isClosure})
+      : super(element, name, code, parameterStubs,
               needsTearOff: needsTearOff,
               tearOffName: tearOffName,
               canBeApplied: canBeApplied,
-              canBeReflected: canBeReflected,
-              needsStubs: needsStubs) {
+              canBeReflected: canBeReflected) {
     assert(hasSuperAlias != null);
     assert(isClosure != null);
   }
@@ -386,6 +384,19 @@ class StubMethod extends Method {
       : super(element, name, code);
 }
 
+ /// A method that is generated for the different versions of method calls of
+ /// methods with named parameters,
+ ///
+ /// For example, for a method foo(a, b, {c, d}) that is called as
+ /// foo(1, 2, c: 3), we have the stub
+ /// foo$3$c(a, b, c) => foo$4$c$d(a, b, c, null);
+class ParameterStubMethod extends StubMethod {
+  final Selector selector;
+  ParameterStubMethod(String name, js.Expression code, this.selector,
+                     {Element element})
+       : super(name, code, element: element);
+}
+
 abstract class StaticMethod implements Method {
   Holder get holder;
 }
@@ -394,15 +405,14 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
   final Holder holder;
 
   StaticDartMethod(Element element, String name, this.holder,
-                   js.Expression code,
+                   js.Expression code, parameterStubs,
                    {bool needsTearOff, String tearOffName, bool canBeApplied,
-                    bool canBeReflected, bool needsStubs})
-      : super(element, name, code,
+                    bool canBeReflected})
+      : super(element, name, code, parameterStubs,
               needsTearOff: needsTearOff,
               tearOffName : tearOffName,
               canBeApplied : canBeApplied,
-              canBeReflected : canBeReflected,
-              needsStubs : needsStubs);
+              canBeReflected : canBeReflected);
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {
