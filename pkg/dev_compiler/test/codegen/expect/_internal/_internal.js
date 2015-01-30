@@ -5,7 +5,7 @@ var _internal;
   class EfficientLength {
   }
 
-  class ListIterable extends collection.IterableBase {
+  class ListIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor() {
       super();
     }
@@ -191,7 +191,7 @@ var _internal;
     }
   }
 
-  class SubListIterable extends ListIterable {
+  class SubListIterable/* Unimplemented <E> */ extends ListIterable/* Unimplemented <E> */ {
     constructor(_iterable, _start, _endOrLength) {
       this._iterable = _iterable;
       this._start = _start;
@@ -265,7 +265,7 @@ var _internal;
     }
   }
 
-  class ListIterator {
+  class ListIterator/* Unimplemented <E> */ {
     constructor(iterable) {
       this._iterable = iterable;
       this._length = iterable.length;
@@ -288,7 +288,7 @@ var _internal;
     }
   }
 
-  class MappedIterable extends collection.IterableBase {
+  class MappedIterable/* Unimplemented <S, T> */ extends collection.IterableBase/* Unimplemented <T> */ {
     constructor(iterable, /* Unimplemented FunctionTypedFormalParameter: T function(S value) */) {
       if (/* Unimplemented IsExpression: iterable is EfficientLength */) {
         return new EfficientLengthMappedIterable(iterable, function);
@@ -311,13 +311,13 @@ var _internal;
   MappedIterable._ = function(_iterable, _f) { this.__init__(_iterable, _f) };
   MappedIterable._.prototype = MappedIterable.prototype;
 
-  class EfficientLengthMappedIterable extends MappedIterable {
+  class EfficientLengthMappedIterable/* Unimplemented <S, T> */ extends MappedIterable/* Unimplemented <S, T> */ {
     constructor(iterable, /* Unimplemented FunctionTypedFormalParameter: T function(S value) */) {
       super.__init__(/* Unimplemented: DownCastDynamic: Iterable<dynamic> to Iterable<S> */ iterable, function);
     }
   }
 
-  class MappedIterator extends dart_core.Iterator {
+  class MappedIterator/* Unimplemented <S, T> */ extends dart_core.Iterator/* Unimplemented <T> */ {
     constructor(_iterator, _f) {
       this._iterator = _iterator;
       this._f = _f;
@@ -335,7 +335,7 @@ var _internal;
     get current() { return this._current; }
   }
 
-  class MappedListIterable extends ListIterable {
+  class MappedListIterable/* Unimplemented <S, T> */ extends ListIterable/* Unimplemented <T> */ {
     constructor(_source, _f) {
       this._source = _source;
       this._f = _f;
@@ -345,7 +345,7 @@ var _internal;
     elementAt(index) { return this._f(this._source.elementAt(index)); }
   }
 
-  class WhereIterable extends collection.IterableBase {
+  class WhereIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(_iterable, _f) {
       this._iterable = _iterable;
       this._f = _f;
@@ -354,7 +354,7 @@ var _internal;
     get iterator() { return new WhereIterator(this._iterable.iterator, this._f); }
   }
 
-  class WhereIterator extends dart_core.Iterator {
+  class WhereIterator/* Unimplemented <E> */ extends dart_core.Iterator/* Unimplemented <E> */ {
     constructor(_iterator, _f) {
       this._iterator = _iterator;
       this._f = _f;
@@ -371,7 +371,7 @@ var _internal;
     get current() { return this._iterator.current; }
   }
 
-  class ExpandIterable extends collection.IterableBase {
+  class ExpandIterable/* Unimplemented <S, T> */ extends collection.IterableBase/* Unimplemented <T> */ {
     constructor(_iterable, _f) {
       this._iterable = _iterable;
       this._f = _f;
@@ -380,7 +380,7 @@ var _internal;
     get iterator() { return new ExpandIterator(this._iterable.iterator, this._f); }
   }
 
-  class ExpandIterator {
+  class ExpandIterator/* Unimplemented <S, T> */ {
     constructor(_iterator, _f) {
       this._iterator = _iterator;
       this._f = _f;
@@ -407,7 +407,7 @@ var _internal;
     }
   }
 
-  class TakeIterable extends collection.IterableBase {
+  class TakeIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(iterable, takeCount) {
       if (/* Unimplemented IsExpression: takeCount is! int */ || takeCount < 0) {
         throw new dart_core.ArgumentError(takeCount);
@@ -429,7 +429,7 @@ var _internal;
   TakeIterable._ = function(_iterable, _takeCount) { this.__init__(_iterable, _takeCount) };
   TakeIterable._.prototype = TakeIterable.prototype;
 
-  class EfficientLengthTakeIterable extends TakeIterable {
+  class EfficientLengthTakeIterable/* Unimplemented <E> */ extends TakeIterable/* Unimplemented <E> */ {
     constructor(iterable, takeCount) {
       super.__init__(iterable, takeCount);
     }
@@ -440,7 +440,7 @@ var _internal;
     }
   }
 
-  class TakeIterator extends dart_core.Iterator {
+  class TakeIterator/* Unimplemented <E> */ extends dart_core.Iterator/* Unimplemented <E> */ {
     constructor(_iterator, _remaining) {
       this._iterator = _iterator;
       this._remaining = _remaining;
@@ -461,7 +461,7 @@ var _internal;
     }
   }
 
-  class TakeWhileIterable extends collection.IterableBase {
+  class TakeWhileIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(_iterable, _f) {
       this._iterable = _iterable;
       this._f = _f;
@@ -472,7 +472,7 @@ var _internal;
     }
   }
 
-  class TakeWhileIterator extends dart_core.Iterator {
+  class TakeWhileIterator/* Unimplemented <E> */ extends dart_core.Iterator/* Unimplemented <E> */ {
     constructor(_iterator, _f) {
       this._iterator = _iterator;
       this._f = _f;
@@ -493,7 +493,7 @@ var _internal;
     }
   }
 
-  class SkipIterable extends collection.IterableBase {
+  class SkipIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(iterable, count) {
       if (/* Unimplemented IsExpression: iterable is EfficientLength */) {
         return new EfficientLengthSkipIterable(iterable, count);
@@ -523,7 +523,7 @@ var _internal;
   SkipIterable._ = function(_iterable, _skipCount) { this.__init__(_iterable, _skipCount) };
   SkipIterable._.prototype = SkipIterable.prototype;
 
-  class EfficientLengthSkipIterable extends SkipIterable {
+  class EfficientLengthSkipIterable/* Unimplemented <E> */ extends SkipIterable/* Unimplemented <E> */ {
     constructor(iterable, skipCount) {
       super.__init__(iterable, skipCount);
     }
@@ -534,7 +534,7 @@ var _internal;
     }
   }
 
-  class SkipIterator extends dart_core.Iterator {
+  class SkipIterator/* Unimplemented <E> */ extends dart_core.Iterator/* Unimplemented <E> */ {
     constructor(_iterator, _skipCount) {
       this._iterator = _iterator;
       this._skipCount = _skipCount;
@@ -549,7 +549,7 @@ var _internal;
     get current() { return this._iterator.current; }
   }
 
-  class SkipWhileIterable extends collection.IterableBase {
+  class SkipWhileIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(_iterable, _f) {
       this._iterable = _iterable;
       this._f = _f;
@@ -560,7 +560,7 @@ var _internal;
     }
   }
 
-  class SkipWhileIterator extends dart_core.Iterator {
+  class SkipWhileIterator/* Unimplemented <E> */ extends dart_core.Iterator/* Unimplemented <E> */ {
     constructor(_iterator, _f) {
       this._iterator = _iterator;
       this._f = _f;
@@ -579,7 +579,7 @@ var _internal;
     get current() { return this._iterator.current; }
   }
 
-  class EmptyIterable extends collection.IterableBase {
+  class EmptyIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor() {
       super();
     }
@@ -647,17 +647,17 @@ var _internal;
     toSet() { return new dart_core.Set(); }
   }
 
-  class EmptyIterator {
+  class EmptyIterator/* Unimplemented <E> */ {
     constructor() {
     }
     moveNext() { return false; }
     get current() { return null; }
   }
 
-  class BidirectionalIterator {
+  class BidirectionalIterator/* Unimplemented <T> */ {
   }
 
-  class IterableMixinWorkaround {
+  class IterableMixinWorkaround/* Unimplemented <T> */ {
     static contains(iterable, element) {
       /* Unimplemented ForEachStatement: for (final e in iterable) {if (e == element) return true;} */return false;
     }
@@ -939,7 +939,7 @@ var _internal;
     static tooFew() { return new dart_core.StateError("Too few elements"); }
   }
 
-  class FixedLengthListMixin {
+  class FixedLengthListMixin/* Unimplemented <E> */ {
     set length(newLength) {
       throw new dart_core.UnsupportedError("Cannot change the length of a fixed-length list");
     }
@@ -981,7 +981,7 @@ var _internal;
     }
   }
 
-  class UnmodifiableListMixin {
+  class UnmodifiableListMixin/* Unimplemented <E> */ {
     []=(index, value) {
       throw new dart_core.UnsupportedError("Cannot modify an unmodifiable list");
     }
@@ -1045,7 +1045,11 @@ var _internal;
     }
   }
 
-  /* Unimplemented ClassTypeAlias: abstract class FixedLengthListBase<E> = ListBase<E> with FixedLengthListMixin<E>; *//* Unimplemented ClassTypeAlias: abstract class UnmodifiableListBase<E> = ListBase<E> with UnmodifiableListMixin<E>; */class _ListIndicesIterable extends ListIterable {
+  class FixedLengthListBase extends dart.mixin(FixedLengthListMixin/* Unimplemented <E> */) {}
+
+  class UnmodifiableListBase extends dart.mixin(UnmodifiableListMixin/* Unimplemented <E> */) {}
+
+  class _ListIndicesIterable extends ListIterable/* Unimplemented <int> */ {
     constructor(_backedList) {
       this._backedList = _backedList;
       super();
@@ -1057,7 +1061,7 @@ var _internal;
     }
   }
 
-  class ListMapView {
+  class ListMapView/* Unimplemented <E> */ {
     constructor(_values) {
       this._values = _values;
     }
@@ -1096,7 +1100,7 @@ var _internal;
     toString() { return collection.Maps.mapToString(this); }
   }
 
-  class ReversedListIterable extends ListIterable {
+  class ReversedListIterable/* Unimplemented <E> */ extends ListIterable/* Unimplemented <E> */ {
     constructor(_source) {
       this._source = _source;
       super();
@@ -1497,6 +1501,8 @@ var _internal;
   _internal.IterableElementError = IterableElementError;
   _internal.FixedLengthListMixin = FixedLengthListMixin;
   _internal.UnmodifiableListMixin = UnmodifiableListMixin;
+  _internal.FixedLengthListBase = FixedLengthListBase;
+  _internal.UnmodifiableListBase = UnmodifiableListBase;
   _internal.ListMapView = ListMapView;
   _internal.ReversedListIterable = ReversedListIterable;
   _internal.UnmodifiableListError = UnmodifiableListError;

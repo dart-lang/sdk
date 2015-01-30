@@ -132,13 +132,43 @@ var dart;
   }
   dart.defineLazyProperties = defineLazyProperties;
 
-  function mixin(to, from) {
+  /**
+   * Copy properties from source to destination object.
+   * This operation is commonly called `mixin` in JS.
+   */
+  function copyProperties(to, from) {
     var names = getOwnPropertyNames(from);
     for (var i = 0; i < names.length; i++) {
       var name = names[i];
       defineProperty(to, name, getOwnPropertyDescriptor(from, name));
     }
     return to;
+  }
+  dart.copyProperties = copyProperties;
+
+  /**
+   * Returns a new type that mixes members from base and all mixins.
+   *
+   * Each mixin applies in sequence, with further to the right ones overriding
+   * previous entries.
+   *
+   * For each mixin, we only take its own properties, not anything from its
+   * superclass (prototype).
+   */
+  function mixin(base/*, ...mixins*/) {
+    // Inherit statics from Base to simulate ES6 class inheritance
+    // Conceptually this is: `class Mixin extends base {}`
+    function Mixin() {
+      base.apply(this, arguments);
+    }
+    Mixin.__proto__ = base;
+    Mixin.prototype = Object.create(base.prototype);
+    // Copy each mixin, with later ones overwriting earlier entires.
+    for (var i = 1; i < arguments.length; i++) {
+      var from = arguments[i];
+      copyProperties(Mixin.prototype, from.prototype);
+    }
+    return Mixin;
   }
   dart.mixin = mixin;
 

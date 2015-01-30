@@ -32,7 +32,7 @@ var core;
   bool.fromEnvironment = function(name, opt$) { this.__init_fromEnvironment(name, opt$) };
   bool.fromEnvironment.prototype = bool.prototype;
 
-  class Comparable {
+  class Comparable/* Unimplemented <T> */ {
     static compare(a, b) { return a.this.compareTo(b); }
   }
 
@@ -794,7 +794,7 @@ var core;
     toString() { return "IntegerDivisionByZeroException"; }
   }
 
-  class Expando {
+  class Expando/* Unimplemented <T> */ {
     constructor(name) {
       if (name === undefined) name = null;
       this.name = null;
@@ -827,7 +827,7 @@ var core;
     get isAccessor() { return this.isGetter || this.isSetter; }
   }
 
-  class Iterable {
+  class Iterable/* Unimplemented <E> */ {
     constructor() {
     }
     __init_generate(count, generator) {
@@ -845,7 +845,7 @@ var core;
   Iterable.generate = function(count, generator) { this.__init_generate(count, generator) };
   Iterable.generate.prototype = Iterable.prototype;
 
-  class _GeneratorIterable extends collection.IterableBase {
+  class _GeneratorIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(_end, /* Unimplemented FunctionTypedFormalParameter: E generator(int n) */) {
       this._end = _end;
       this._start = 0;
@@ -879,7 +879,7 @@ var core;
   _GeneratorIterable.slice = function(_start, _end, _generator) { this.__init_slice(_start, _end, _generator) };
   _GeneratorIterable.slice.prototype = _GeneratorIterable.prototype;
 
-  class _GeneratorIterator {
+  class _GeneratorIterator/* Unimplemented <E> */ {
     constructor(_index, _end, _generator) {
       this._index = _index;
       this._end = _end;
@@ -900,13 +900,13 @@ var core;
     get current() { return this._current; }
   }
 
-  class BidirectionalIterator {
+  class BidirectionalIterator/* Unimplemented <E> */ {
   }
 
-  class Iterator {
+  class Iterator/* Unimplemented <E> */ {
   }
 
-  class List {
+  class List/* Unimplemented <E> */ {
     constructor(length) {
       if (length === undefined) length = null;
     }
@@ -937,7 +937,7 @@ var core;
   List.generate = function(length, /* Unimplemented FunctionTypedFormalParameter: E generator(int index) */, opt$) { this.__init_generate(length, /* Unimplemented FunctionTypedFormalParameter: E generator(int index) */, opt$) };
   List.generate.prototype = List.prototype;
 
-  class Map {
+  class Map/* Unimplemented <K, V> */ {
     constructor() {
       return new collection.LinkedHashMap();
     }
@@ -1020,7 +1020,7 @@ var core;
     }
   }
 
-  class Set extends collection.IterableBase {
+  class Set/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor() {
       return new collection.LinkedHashSet();
     }
@@ -1036,7 +1036,7 @@ var core;
   Set.from = function(elements) { this.__init_from(elements) };
   Set.from.prototype = Set.prototype;
 
-  class Sink {
+  class Sink/* Unimplemented <T> */ {
   }
 
   class StackTrace {
@@ -1109,7 +1109,7 @@ var core;
   String.fromEnvironment = function(name, opt$) { this.__init_fromEnvironment(name, opt$) };
   String.fromEnvironment.prototype = String.prototype;
 
-  class Runes extends collection.IterableBase {
+  class Runes extends collection.IterableBase/* Unimplemented <int> */ {
     constructor(string) {
       this.string = string;
       super();

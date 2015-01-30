@@ -94,7 +94,7 @@ var math;
     static hash4(a, b, c, d) { return finish(combine(combine(combine(combine(0, /* Unimplemented: DownCast: dynamic to int */ a), /* Unimplemented: DownCast: dynamic to int */ b), /* Unimplemented: DownCast: dynamic to int */ c), /* Unimplemented: DownCast: dynamic to int */ d)); }
   }
 
-  class Point {
+  class Point/* Unimplemented <T extends num> */ {
     constructor(x, y) {
       this.x = x;
       this.y = y;
@@ -133,7 +133,7 @@ var math;
     }
   }
 
-  class _RectangleBase {
+  class _RectangleBase/* Unimplemented <T extends num> */ {
     constructor() {
     }
     get right() { return /* Unimplemented: DownCast: num to T */ /* Unimplemented binary operator: left + width */; }
@@ -180,7 +180,7 @@ var math;
     get bottomLeft() { return new Point(this.left, /* Unimplemented binary operator: this.top + this.height */); }
   }
 
-  class Rectangle extends _RectangleBase {
+  class Rectangle/* Unimplemented <T extends num> */ extends _RectangleBase/* Unimplemented <T> */ {
     constructor(left, top, width, height) {
       this.left = left;
       this.top = top;
@@ -199,7 +199,7 @@ var math;
   Rectangle.fromPoints = function(a, b) { this.__init_fromPoints(a, b) };
   Rectangle.fromPoints.prototype = Rectangle.prototype;
 
-  class MutableRectangle extends _RectangleBase {
+  class MutableRectangle/* Unimplemented <T extends num> */ extends _RectangleBase/* Unimplemented <T> */ {
     constructor(left, top, width, height) {
       this.left = left;
       this.top = top;

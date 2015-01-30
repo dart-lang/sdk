@@ -31,7 +31,7 @@ var fieldtest;
     set y(x) {},
   });
 
-  dart.mixin(fieldtest, {
+  dart.copyProperties(fieldtest, {
     get q() { return /* Unimplemented binary operator: 'life, ' + 'the universe ' + 'and everything' */; },
     get z() { return 42; },
     set z(value) {

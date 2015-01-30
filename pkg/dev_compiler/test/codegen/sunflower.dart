@@ -24,12 +24,19 @@ int seeds = 0;
 final CanvasRenderingContext2D context =
     (querySelector("#canvas") as CanvasElement).getContext('2d');
 
-// TODO(jmesserly): modified this example to use classes.
+// TODO(jmesserly): modified this example to use classes and mixins.
 class Circle {
   final num x, y, radius;
   final String color;
 
   Circle(this.x, this.y, this.radius, this.color);
+}
+
+abstract class SunflowerSeedPainter {
+  num get x;
+  num get y;
+  num get radius;
+  String get color;
 
   /// Draw a small circle representing a seed centered at (x,y).
   void draw() {
@@ -45,7 +52,7 @@ class Circle {
   }
 }
 
-class SunflowerSeed extends Circle {
+class SunflowerSeed extends Circle with SunflowerSeedPainter {
   SunflowerSeed(num x, num y) : super(x, y, SEED_RADIUS, ORANGE);
 }
 

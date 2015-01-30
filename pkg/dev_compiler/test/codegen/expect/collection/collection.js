@@ -1,7 +1,7 @@
 var collection;
 (function (collection) {
   'use strict';
-  class UnmodifiableListView extends _internal.UnmodifiableListBase {
+  class UnmodifiableListView/* Unimplemented <E> */ extends _internal.UnmodifiableListBase/* Unimplemented <E> */ {
     constructor(source) {
       this._source = source;
       super();
@@ -16,7 +16,7 @@ var collection;
   // Function _defaultHashCode: (dynamic) → int
   function _defaultHashCode(a) { return /* Unimplemented: DownCast: dynamic to int */ dart.dload(a, "hashCode"); }
 
-  class HashMap {
+  class HashMap/* Unimplemented <K, V> */ {
     constructor(opt$) {
       let equals = opt$.equals === undefined ? null : opt$.equals;
       let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
@@ -53,7 +53,7 @@ var collection;
   HashMap.fromIterables = function(keys, values) { this.__init_fromIterables(keys, values) };
   HashMap.fromIterables.prototype = HashMap.prototype;
 
-  class _HashSetBase extends SetBase {
+  class _HashSetBase/* Unimplemented <E> */ extends SetBase/* Unimplemented <E> */ {
     difference(other) {
       let result = this._newSet();
       /* Unimplemented ForEachStatement: for (var element in this) {if (!other.contains(element)) result.add(element);} */return result;
@@ -65,7 +65,7 @@ var collection;
     toSet() { return /* Unimplemented cascade on non-simple identifier: _newSet()..addAll(this) */; }
   }
 
-  class HashSet {
+  class HashSet/* Unimplemented <E> */ {
     constructor(opt$) {
       let equals = opt$.equals === undefined ? null : opt$.equals;
       let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
@@ -83,7 +83,7 @@ var collection;
   HashSet.from = function(elements) { this.__init_from(elements) };
   HashSet.from.prototype = HashSet.prototype;
 
-  class IterableMixin {
+  class IterableMixin/* Unimplemented <E> */ {
     map(/* Unimplemented FunctionTypedFormalParameter: f(E element) */) { return new _internal.MappedIterable(this, f); }
     where(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) { return new _internal.WhereIterable(this, f); }
     expand(/* Unimplemented FunctionTypedFormalParameter: Iterable f(E element) */) { return new _internal.ExpandIterable(this, f); }
@@ -215,7 +215,7 @@ var collection;
     toString() { return IterableBase.iterableToShortString(this, "(", ")"); }
   }
 
-  class IterableBase {
+  class IterableBase/* Unimplemented <E> */ {
     constructor() {
       _toStringVisiting = /* Unimplemented ArrayList */[];
     }
@@ -458,7 +458,7 @@ var collection;
     }
   }
 
-  class HasNextIterator {
+  class HasNextIterator/* Unimplemented <E> */ {
     constructor(_iterator) {
       this._iterator = _iterator;
       this._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
@@ -487,7 +487,7 @@ var collection;
     }
   }
 
-  class LinkedHashMap {
+  class LinkedHashMap/* Unimplemented <K, V> */ {
     constructor(opt$) {
       let equals = opt$.equals === undefined ? null : opt$.equals;
       let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
@@ -524,7 +524,7 @@ var collection;
   LinkedHashMap.fromIterables = function(keys, values) { this.__init_fromIterables(keys, values) };
   LinkedHashMap.fromIterables.prototype = LinkedHashMap.prototype;
 
-  class LinkedHashSet {
+  class LinkedHashSet/* Unimplemented <E> */ {
     constructor(opt$) {
       let equals = opt$.equals === undefined ? null : opt$.equals;
       let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
@@ -542,7 +542,7 @@ var collection;
   LinkedHashSet.from = function(elements) { this.__init_from(elements) };
   LinkedHashSet.from.prototype = LinkedHashSet.prototype;
 
-  class LinkedList extends IterableBase {
+  class LinkedList/* Unimplemented <E extends LinkedListEntry<E>> */ extends IterableBase/* Unimplemented <E> */ {
     constructor() {
       this._modificationCount = 0;
       this._length = 0;
@@ -634,7 +634,7 @@ var collection;
     }
   }
 
-  class _LinkedListIterator {
+  class _LinkedListIterator/* Unimplemented <E extends LinkedListEntry<E>> */ {
     constructor(list) {
       this._list = list;
       this._modificationCount = list._modificationCount;
@@ -664,7 +664,7 @@ var collection;
     }
   }
 
-  class LinkedListEntry {
+  class LinkedListEntry/* Unimplemented <E extends LinkedListEntry<E>> */ {
     constructor() {
       this._list = null;
       this._next = null;
@@ -692,11 +692,11 @@ var collection;
     }
   }
 
-  class ListBase {
+  class ListBase/* Unimplemented <E> */ extends dart.mixin(dart_core.Object, ListMixin/* Unimplemented <E> */) {
     static listToString(list) { return IterableBase.iterableToFullString(list, "[", "]"); }
   }
 
-  class ListMixin {
+  class ListMixin/* Unimplemented <E> */ {
     get iterator() { return new _internal.ListIterator(this); }
     elementAt(index) { return this[index]; }
     forEach(/* Unimplemented FunctionTypedFormalParameter: void action(E element) */) {
@@ -1090,7 +1090,9 @@ var collection;
     toString() { return IterableBase.iterableToFullString(this, "[", "]"); }
   }
 
-  /* Unimplemented ClassTypeAlias: abstract class MapBase<K, V> = Object with MapMixin<K, V>; */class MapMixin {
+  class MapBase extends dart.mixin(MapMixin/* Unimplemented <K, V> */) {}
+
+  class MapMixin/* Unimplemented <K, V> */ {
     forEach(/* Unimplemented FunctionTypedFormalParameter: void action(K key, V value) */) {
       /* Unimplemented ForEachStatement: for (K key in keys) {action(key, this[key]);} */}
     addAll(other) {
@@ -1112,7 +1114,9 @@ var collection;
     toString() { return Maps.mapToString(this); }
   }
 
-  /* Unimplemented ClassTypeAlias: abstract class UnmodifiableMapBase<K, V> = MapBase<K, V> with _UnmodifiableMapMixin<K, V>; */class _MapBaseValueIterable extends IterableBase {
+  class UnmodifiableMapBase extends dart.mixin(_UnmodifiableMapMixin/* Unimplemented <K, V> */) {}
+
+  class _MapBaseValueIterable/* Unimplemented <V> */ extends IterableBase/* Unimplemented <V> */ {
     constructor(_map) {
       this._map = _map;
       super();
@@ -1126,7 +1130,7 @@ var collection;
     get iterator() { return new _MapBaseValueIterator(this._map); }
   }
 
-  class _MapBaseValueIterator {
+  class _MapBaseValueIterator/* Unimplemented <V> */ {
     constructor(map) {
       this._map = map;
       this._keys = map.keys.iterator;
@@ -1143,7 +1147,7 @@ var collection;
     get current() { return this._current; }
   }
 
-  class _UnmodifiableMapMixin {
+  class _UnmodifiableMapMixin/* Unimplemented <K, V> */ {
     []=(key, value) {
       throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
     }
@@ -1161,7 +1165,7 @@ var collection;
     }
   }
 
-  class MapView {
+  class MapView/* Unimplemented <K, V> */ {
     constructor(map) {
       this._map = map;
     }
@@ -1190,7 +1194,9 @@ var collection;
     get values() { return this._map.values; }
   }
 
-  /* Unimplemented ClassTypeAlias: class UnmodifiableMapView<K, V> = MapView<K, V> with _UnmodifiableMapMixin<K, V>; */class Maps {
+  class UnmodifiableMapView extends dart.mixin(_UnmodifiableMapMixin/* Unimplemented <K, V> */) {}
+
+  class Maps {
     static containsValue(map, value) {
       /* Unimplemented ForEachStatement: for (final v in map.values) {if (value == v) {return true;}} */return false;
     }
@@ -1243,7 +1249,7 @@ var collection;
     }
   }
 
-  class Queue {
+  class Queue/* Unimplemented <E> */ {
     constructor() {
       return new ListQueue();
     }
@@ -1254,7 +1260,7 @@ var collection;
   Queue.from = function(elements) { this.__init_from(elements) };
   Queue.from.prototype = Queue.prototype;
 
-  class DoubleLinkedQueueEntry {
+  class DoubleLinkedQueueEntry/* Unimplemented <E> */ {
     constructor(e) {
       this._element = e;
       this._previous = null;
@@ -1296,7 +1302,7 @@ var collection;
     }
   }
 
-  class _DoubleLinkedQueueEntrySentinel extends DoubleLinkedQueueEntry {
+  class _DoubleLinkedQueueEntrySentinel/* Unimplemented <E> */ extends DoubleLinkedQueueEntry/* Unimplemented <E> */ {
     constructor() {
       super(null);
       _link(this, this);
@@ -1315,7 +1321,7 @@ var collection;
     }
   }
 
-  class DoubleLinkedQueue extends IterableBase {
+  class DoubleLinkedQueue/* Unimplemented <E> */ extends IterableBase/* Unimplemented <E> */ {
     constructor() {
       this._sentinel = null;
       this._elementCount = 0;
@@ -1422,7 +1428,7 @@ var collection;
   DoubleLinkedQueue.from = function(elements) { this.__init_from(elements) };
   DoubleLinkedQueue.from.prototype = DoubleLinkedQueue.prototype;
 
-  class _DoubleLinkedQueueIterator {
+  class _DoubleLinkedQueueIterator/* Unimplemented <E> */ {
     constructor(sentinel) {
       this._sentinel = sentinel;
       this._nextEntry = sentinel._next;
@@ -1441,7 +1447,7 @@ var collection;
     get current() { return this._current; }
   }
 
-  class ListQueue extends IterableBase {
+  class ListQueue/* Unimplemented <E> */ extends IterableBase/* Unimplemented <E> */ {
     constructor(initialCapacity) {
       if (initialCapacity === undefined) initialCapacity = null;
       this._head = 0;
@@ -1701,7 +1707,7 @@ var collection;
   ListQueue.from = function(elements) { this.__init_from(elements) };
   ListQueue.from.prototype = ListQueue.prototype;
 
-  class _ListQueueIterator {
+  class _ListQueueIterator/* Unimplemented <E> */ {
     constructor(queue) {
       this._queue = queue;
       this._end = queue._tail;
@@ -1722,7 +1728,7 @@ var collection;
     }
   }
 
-  class SetMixin {
+  class SetMixin/* Unimplemented <E> */ {
     get isEmpty() { return this.length === 0; }
     get isNotEmpty() { return this.length !== 0; }
     clear() {
@@ -1876,11 +1882,11 @@ var collection;
     }
   }
 
-  class SetBase extends SetMixin {
+  class SetBase/* Unimplemented <E> */ extends SetMixin/* Unimplemented <E> */ {
     static setToString(set) { return IterableBase.iterableToFullString(set, "{", "}"); }
   }
 
-  class _SplayTreeNode {
+  class _SplayTreeNode/* Unimplemented <K> */ {
     constructor(key) {
       this.key = key;
       this.left = null;
@@ -1888,14 +1894,14 @@ var collection;
     }
   }
 
-  class _SplayTreeMapNode extends _SplayTreeNode {
+  class _SplayTreeMapNode/* Unimplemented <K, V> */ extends _SplayTreeNode/* Unimplemented <K> */ {
     constructor(key, value) {
       this.value = value;
       super(key);
     }
   }
 
-  class _SplayTree {
+  class _SplayTree/* Unimplemented <K> */ {
     constructor() {
       this._dummy = new _SplayTreeNode(null);
       this._root = null;
@@ -2022,11 +2028,11 @@ var collection;
     }
   }
 
-  class _TypeTest {
+  class _TypeTest/* Unimplemented <T> */ {
     test(v) { return /* Unimplemented IsExpression: v is T */; }
   }
 
-  class SplayTreeMap extends _SplayTree {
+  class SplayTreeMap/* Unimplemented <K, V> */ extends _SplayTree/* Unimplemented <K> */ {
     constructor(compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
@@ -2202,7 +2208,7 @@ var collection;
   SplayTreeMap._internal = function() { this.__init__internal() };
   SplayTreeMap._internal.prototype = SplayTreeMap.prototype;
 
-  class _SplayTreeIterator {
+  class _SplayTreeIterator/* Unimplemented <T> */ {
     constructor(tree) {
       this._workList = /* Unimplemented ArrayList */[];
       this._tree = tree;
@@ -2268,7 +2274,7 @@ var collection;
   _SplayTreeIterator.startAt = function(tree, startKey) { this.__init_startAt(tree, startKey) };
   _SplayTreeIterator.startAt.prototype = _SplayTreeIterator.prototype;
 
-  class _SplayTreeKeyIterable extends IterableBase {
+  class _SplayTreeKeyIterable/* Unimplemented <K> */ extends IterableBase/* Unimplemented <K> */ {
     constructor(_tree) {
       this._tree = _tree;
       super();
@@ -2285,7 +2291,7 @@ var collection;
     }
   }
 
-  class _SplayTreeValueIterable extends IterableBase {
+  class _SplayTreeValueIterable/* Unimplemented <K, V> */ extends IterableBase/* Unimplemented <V> */ {
     constructor(_map) {
       this._map = _map;
       super();
@@ -2295,21 +2301,21 @@ var collection;
     get iterator() { return new _SplayTreeValueIterator(this._map); }
   }
 
-  class _SplayTreeKeyIterator extends _SplayTreeIterator {
+  class _SplayTreeKeyIterator/* Unimplemented <K> */ extends _SplayTreeIterator/* Unimplemented <K> */ {
     constructor(map) {
       super(map);
     }
     _getValue(node) { return /* Unimplemented: DownCast: dynamic to K */ node.key; }
   }
 
-  class _SplayTreeValueIterator extends _SplayTreeIterator {
+  class _SplayTreeValueIterator/* Unimplemented <K, V> */ extends _SplayTreeIterator/* Unimplemented <V> */ {
     constructor(map) {
       super(map);
     }
     _getValue(node) { return /* Unimplemented: DownCast: dynamic to V */ node.value; }
   }
 
-  class _SplayTreeNodeIterator extends _SplayTreeIterator {
+  class _SplayTreeNodeIterator/* Unimplemented <K> */ extends _SplayTreeIterator/* Unimplemented <_SplayTreeNode<K>> */ {
     constructor(tree) {
       super(tree);
     }
@@ -2321,7 +2327,7 @@ var collection;
   _SplayTreeNodeIterator.startAt = function(tree, startKey) { this.__init_startAt(tree, startKey) };
   _SplayTreeNodeIterator.startAt.prototype = _SplayTreeNodeIterator.prototype;
 
-  class SplayTreeSet extends _SplayTree {
+  class SplayTreeSet/* Unimplemented <E> */ extends dart.mixin(_SplayTree/* Unimplemented <E> */, IterableMixin/* Unimplemented <E> */, SetMixin/* Unimplemented <E> */) {
     constructor(compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
@@ -2428,8 +2434,11 @@ var collection;
   collection.LinkedListEntry = LinkedListEntry;
   collection.ListBase = ListBase;
   collection.ListMixin = ListMixin;
+  collection.MapBase = MapBase;
   collection.MapMixin = MapMixin;
+  collection.UnmodifiableMapBase = UnmodifiableMapBase;
   collection.MapView = MapView;
+  collection.UnmodifiableMapView = UnmodifiableMapView;
   collection.Maps = Maps;
   collection.Queue = Queue;
   collection.DoubleLinkedQueueEntry = DoubleLinkedQueueEntry;

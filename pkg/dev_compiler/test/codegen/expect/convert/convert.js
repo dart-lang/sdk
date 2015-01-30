@@ -24,7 +24,7 @@ var convert;
     get decoder() { return this._allowInvalid ? new AsciiDecoder(/* Unimplemented NamedExpression: allowInvalid: true */) : new AsciiDecoder(/* Unimplemented NamedExpression: allowInvalid: false */); }
   }
 
-  class _UnicodeSubsetEncoder extends Converter {
+  class _UnicodeSubsetEncoder extends Converter/* Unimplemented <String, List<int>> */ {
     constructor(_subsetMask) {
       this._subsetMask = _subsetMask;
       super();
@@ -85,7 +85,7 @@ var convert;
     }
   }
 
-  class _UnicodeSubsetDecoder extends Converter {
+  class _UnicodeSubsetDecoder extends Converter/* Unimplemented <List<int>, String> */ {
     constructor(_allowInvalid, _subsetMask) {
       this._allowInvalid = _allowInvalid;
       this._subsetMask = _subsetMask;
@@ -201,7 +201,7 @@ var convert;
     }
   }
 
-  class ByteConversionSink extends ChunkedConversionSink {
+  class ByteConversionSink extends ChunkedConversionSink/* Unimplemented <List<int>> */ {
     constructor() {
       super();
     }
@@ -269,7 +269,7 @@ var convert;
     }
   }
 
-  class ChunkedConversionSink {
+  class ChunkedConversionSink/* Unimplemented <T> */ {
     constructor() {
     }
     __init_withCallback(/* Unimplemented FunctionTypedFormalParameter: void callback(List<T> accumulated) */) {
@@ -279,7 +279,7 @@ var convert;
   ChunkedConversionSink.withCallback = function(/* Unimplemented FunctionTypedFormalParameter: void callback(List<T> accumulated) */) { this.__init_withCallback(/* Unimplemented FunctionTypedFormalParameter: void callback(List<T> accumulated) */) };
   ChunkedConversionSink.withCallback.prototype = ChunkedConversionSink.prototype;
 
-  class _SimpleCallbackSink extends ChunkedConversionSink {
+  class _SimpleCallbackSink/* Unimplemented <T> */ extends ChunkedConversionSink/* Unimplemented <T> */ {
     constructor(_callback) {
       this._accumulated = /* Unimplemented ArrayList */[];
       this._callback = _callback;
@@ -293,7 +293,7 @@ var convert;
     }
   }
 
-  class _EventSinkAdapter {
+  class _EventSinkAdapter/* Unimplemented <T> */ {
     constructor(_sink) {
       this._sink = _sink;
     }
@@ -301,7 +301,7 @@ var convert;
     close() { return this._sink.close(); }
   }
 
-  class _ConverterStreamEventSink {
+  class _ConverterStreamEventSink/* Unimplemented <S, T> */ {
     constructor(converter, sink) {
       this._eventSink = sink;
       this._chunkedSink = converter.startChunkedConversion(sink);
@@ -314,7 +314,7 @@ var convert;
     close() { return this._chunkedSink.close(); }
   }
 
-  class Codec {
+  class Codec/* Unimplemented <S, T> */ {
     constructor() {
     }
     encode(input) { return this.encoder.convert(input); }
@@ -325,7 +325,7 @@ var convert;
     get inverted() { return new _InvertedCodec(this); }
   }
 
-  class _FusedCodec extends Codec {
+  class _FusedCodec/* Unimplemented <S, M, T> */ extends Codec/* Unimplemented <S, T> */ {
     get encoder() { return /* Unimplemented: DownCastDynamic: Converter<S, dynamic> to Converter<S, T> */ this._first.encoder.fuse(this._second.encoder); }
     get decoder() { return /* Unimplemented: DownCastDynamic: Converter<T, dynamic> to Converter<T, S> */ this._second.decoder.fuse(this._first.decoder); }
     constructor(_first, _second) {
@@ -335,7 +335,7 @@ var convert;
     }
   }
 
-  class _InvertedCodec extends Codec {
+  class _InvertedCodec/* Unimplemented <T, S> */ extends Codec/* Unimplemented <T, S> */ {
     constructor(codec) {
       this._codec = codec;
       super();
@@ -345,7 +345,7 @@ var convert;
     get inverted() { return this._codec; }
   }
 
-  class Converter {
+  class Converter/* Unimplemented <S, T> */ {
     constructor() {
     }
     fuse(other) {
@@ -359,7 +359,7 @@ var convert;
     }
   }
 
-  class _FusedConverter extends Converter {
+  class _FusedConverter/* Unimplemented <S, M, T> */ extends Converter/* Unimplemented <S, T> */ {
     constructor(_first, _second) {
       this._first = _first;
       this._second = _second;
@@ -371,7 +371,7 @@ var convert;
     }
   }
 
-  class Encoding extends Codec {
+  class Encoding extends Codec/* Unimplemented <String, List<int>> */ {
     constructor() {
       _nameToEncoding = /* Unimplemented MapLiteral: <String, Encoding> {"iso_8859-1:1987" : LATIN1, "iso-ir-100" : LATIN1, "iso_8859-1" : LATIN1, "iso-8859-1" : LATIN1, "latin1" : LATIN1, "l1" : LATIN1, "ibm819" : LATIN1, "cp819" : LATIN1, "csisolatin1" : LATIN1, "iso-ir-6" : ASCII, "ansi_x3.4-1968" : ASCII, "ansi_x3.4-1986" : ASCII, "iso_646.irv:1991" : ASCII, "iso646-us" : ASCII, "us-ascii" : ASCII, "us" : ASCII, "ibm367" : ASCII, "cp367" : ASCII, "csascii" : ASCII, "ascii" : ASCII, "csutf8" : UTF8, "utf-8" : UTF8} */;
       super();
@@ -404,7 +404,7 @@ var convert;
   HtmlEscapeMode._ = function(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) { this.__init__(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) };
   HtmlEscapeMode._.prototype = HtmlEscapeMode.prototype;
 
-  class HtmlEscape extends Converter {
+  class HtmlEscape extends Converter/* Unimplemented <String, String> */ {
     constructor(mode) {
       if (mode === undefined) mode = HtmlEscapeMode.UNKNOWN;
       this.mode = mode;
@@ -481,7 +481,7 @@ var convert;
   }
 
   let JSON = new JsonCodec();
-  class JsonCodec extends Codec {
+  class JsonCodec extends Codec/* Unimplemented <Object, String> */ {
     constructor(opt$) {
       let reviver = opt$.reviver === undefined ? null : opt$.reviver;
       let toEncodable = opt$.toEncodable === undefined ? null : opt$.toEncodable;
@@ -516,7 +516,7 @@ var convert;
   JsonCodec.withReviver = function(/* Unimplemented FunctionTypedFormalParameter: reviver(var key, var value) */) { this.__init_withReviver(/* Unimplemented FunctionTypedFormalParameter: reviver(var key, var value) */) };
   JsonCodec.withReviver.prototype = JsonCodec.prototype;
 
-  class JsonEncoder extends Converter {
+  class JsonEncoder extends Converter/* Unimplemented <Object, String> */ {
     constructor(toEncodable) {
       if (toEncodable === undefined) toEncodable = null;
       this.indent = null;
@@ -550,7 +550,7 @@ var convert;
   JsonEncoder.withIndent = function(indent, toEncodable) { this.__init_withIndent(indent, toEncodable) };
   JsonEncoder.withIndent.prototype = JsonEncoder.prototype;
 
-  class JsonUtf8Encoder extends Converter {
+  class JsonUtf8Encoder extends Converter/* Unimplemented <Object, List<int>> */ {
     constructor(indent, toEncodable, bufferSize) {
       if (indent === undefined) indent = null;
       if (toEncodable === undefined) toEncodable = null;
@@ -609,7 +609,7 @@ var convert;
     }
   }
 
-  class _JsonEncoderSink extends ChunkedConversionSink {
+  class _JsonEncoderSink extends ChunkedConversionSink/* Unimplemented <Object> */ {
     constructor(_sink, _toEncodable, _indent) {
       this._sink = _sink;
       this._toEncodable = _toEncodable;
@@ -630,7 +630,7 @@ var convert;
     }
   }
 
-  class _JsonUtf8EncoderSink extends ChunkedConversionSink {
+  class _JsonUtf8EncoderSink extends ChunkedConversionSink/* Unimplemented <Object> */ {
     constructor(_sink, _toEncodable, _indent, _bufferSize) {
       this._sink = _sink;
       this._toEncodable = _toEncodable;
@@ -658,7 +658,7 @@ var convert;
     }
   }
 
-  class JsonDecoder extends Converter {
+  class JsonDecoder extends Converter/* Unimplemented <String, Object> */ {
     constructor(reviver) {
       if (reviver === undefined) reviver = null;
       this._reviver = reviver;
@@ -893,7 +893,7 @@ var convert;
     }
   }
 
-  class _JsonStringStringifierPretty extends _JsonStringStringifier {
+  class _JsonStringStringifierPretty extends dart.mixin(_JsonStringStringifier, _JsonPrettyPrintMixin) {
     constructor(sink, toEncodable, _indent) {
       this._indent = _indent;
       super(sink, toEncodable);
@@ -1000,7 +1000,7 @@ var convert;
     }
   }
 
-  class _JsonUtf8StringifierPretty extends _JsonUtf8Stringifier {
+  class _JsonUtf8StringifierPretty extends dart.mixin(_JsonUtf8Stringifier, _JsonPrettyPrintMixin) {
     constructor(toEncodableFunction, indent, bufferSize, addChunk) {
       this.indent = indent;
       super(toEncodableFunction, /* Unimplemented: DownCast: dynamic to int */ bufferSize, /* Unimplemented: DownCast: dynamic to Function */ addChunk);
@@ -1134,7 +1134,7 @@ var convert;
     }
   }
 
-  class LineSplitter extends Converter {
+  class LineSplitter extends Converter/* Unimplemented <String, List<String>> */ {
     constructor() {
       super();
     }
@@ -1212,7 +1212,7 @@ var convert;
     }
   }
 
-  class StringConversionSink extends ChunkedConversionSink {
+  class StringConversionSink extends ChunkedConversionSink/* Unimplemented <String> */ {
     constructor() {
       super();
     }
@@ -1461,7 +1461,7 @@ var convert;
     }
   }
 
-  class Utf8Encoder extends Converter {
+  class Utf8Encoder extends Converter/* Unimplemented <String, List<int>> */ {
     constructor() {
       super();
     }
@@ -1557,7 +1557,7 @@ var convert;
   _Utf8Encoder.withBufferSize = function(bufferSize) { this.__init_withBufferSize(bufferSize) };
   _Utf8Encoder.withBufferSize.prototype = _Utf8Encoder.prototype;
 
-  class _Utf8EncoderSink extends _Utf8Encoder {
+  class _Utf8EncoderSink extends dart.mixin(_Utf8Encoder, StringConversionSinkMixin) {
     constructor(_sink) {
       this._sink = _sink;
       super();
@@ -1608,7 +1608,7 @@ var convert;
     }
   }
 
-  class Utf8Decoder extends Converter {
+  class Utf8Decoder extends Converter/* Unimplemented <List<int>, String> */ {
     constructor(opt$) {
       let allowMalformed = opt$.allowMalformed === undefined ? false : opt$.allowMalformed;
       this._allowMalformed = allowMalformed;

@@ -43,7 +43,7 @@ var async;
     }
   }
 
-  class _BroadcastStream extends _ControllerStream {
+  class _BroadcastStream/* Unimplemented <T> */ extends _ControllerStream/* Unimplemented <T> */ {
     constructor(controller) {
       super(/* Unimplemented: DownCastDynamic: _StreamControllerLifecycle<dynamic> to _StreamControllerLifecycle<T> */ controller);
     }
@@ -58,7 +58,7 @@ var async;
     }
   }
 
-  class _BroadcastSubscription extends _ControllerSubscription {
+  class _BroadcastSubscription/* Unimplemented <T> */ extends _ControllerSubscription/* Unimplemented <T> */ {
     constructor(controller, /* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, onError, /* Unimplemented FunctionTypedFormalParameter: void onDone() */, cancelOnError) {
       this._STATE_EVENT_ID = 1;
       this._STATE_FIRING = 2;
@@ -86,7 +86,7 @@ var async;
     }
   }
 
-  class _BroadcastStreamController {
+  class _BroadcastStreamController/* Unimplemented <T> */ {
     constructor(_onListen, _onCancel) {
       this._onListen = _onListen;
       this._onCancel = _onCancel;
@@ -259,7 +259,7 @@ var async;
     }
   }
 
-  class _SyncBroadcastStreamController extends _BroadcastStreamController {
+  class _SyncBroadcastStreamController/* Unimplemented <T> */ extends _BroadcastStreamController/* Unimplemented <T> */ {
     constructor(/* Unimplemented FunctionTypedFormalParameter: void onListen() */, /* Unimplemented FunctionTypedFormalParameter: void onCancel() */) {
       super(onListen, onCancel);
     }
@@ -299,7 +299,7 @@ var async;
     }
   }
 
-  class _AsyncBroadcastStreamController extends _BroadcastStreamController {
+  class _AsyncBroadcastStreamController/* Unimplemented <T> */ extends _BroadcastStreamController/* Unimplemented <T> */ {
     constructor(/* Unimplemented FunctionTypedFormalParameter: void onListen() */, /* Unimplemented FunctionTypedFormalParameter: void onCancel() */) {
       super(onListen, onCancel);
     }
@@ -330,7 +330,7 @@ var async;
     }
   }
 
-  class _AsBroadcastStreamController extends _SyncBroadcastStreamController {
+  class _AsBroadcastStreamController/* Unimplemented <T> */ extends _SyncBroadcastStreamController/* Unimplemented <T> */ {
     constructor(/* Unimplemented FunctionTypedFormalParameter: void onListen() */, /* Unimplemented FunctionTypedFormalParameter: void onCancel() */) {
       this._pending = null;
       super(onListen, onCancel);
@@ -383,7 +383,7 @@ var async;
     }
   }
 
-  class _DoneSubscription {
+  class _DoneSubscription/* Unimplemented <T> */ {
     constructor() {
       this._pauseCount = 0;
       super();
@@ -431,7 +431,7 @@ var async;
     toString() { return "DeferredLoadException: '" + (this._s) + "'"; }
   }
 
-  class Future {
+  class Future/* Unimplemented <T> */ {
     constructor(/* Unimplemented FunctionTypedFormalParameter: computation() */) {
       let result = new _Future();
       Timer.run(() => {
@@ -549,7 +549,7 @@ var async;
     }
   }
 
-  class Completer {
+  class Completer/* Unimplemented <T> */ {
     constructor() {
       return new _AsyncCompleter();
     }
@@ -573,7 +573,7 @@ var async;
   // Function _nonNullError: (Object) → Object
   function _nonNullError(error) { return (error !== null) ? error : new dart_core.NullThrownError(); }
 
-  class _Completer {
+  class _Completer/* Unimplemented <T> */ {
     constructor() {
       this.future = new _Future();
       super();
@@ -592,7 +592,7 @@ var async;
     get isCompleted() { return !this.future._mayComplete; }
   }
 
-  class _AsyncCompleter extends _Completer {
+  class _AsyncCompleter/* Unimplemented <T> */ extends _Completer/* Unimplemented <T> */ {
     complete(value) {
       if (value === undefined) value = null;
       if (!future._mayComplete) throw new dart_core.StateError("Future already completed");
@@ -603,7 +603,7 @@ var async;
     }
   }
 
-  class _SyncCompleter extends _Completer {
+  class _SyncCompleter/* Unimplemented <T> */ extends _Completer/* Unimplemented <T> */ {
     complete(value) {
       if (value === undefined) value = null;
       if (!future._mayComplete) throw new dart_core.StateError("Future already completed");
@@ -711,7 +711,7 @@ var async;
   _FutureListener.chain = function(result) { this.__init_chain(result) };
   _FutureListener.chain.prototype = _FutureListener.prototype;
 
-  class _Future {
+  class _Future/* Unimplemented <T> */ {
     constructor() {
       this._zone = Zone.current;
       this._INCOMPLETE = 0;
@@ -1142,7 +1142,7 @@ var async;
     static _scheduleImmediate(/* Unimplemented FunctionTypedFormalParameter: void callback() */) {}
   }
 
-  class Stream {
+  class Stream/* Unimplemented <T> */ {
     constructor() {
     }
     __init_fromFuture(future) {
@@ -1564,13 +1564,13 @@ var async;
   Stream.eventTransformed = function(source, /* Unimplemented FunctionTypedFormalParameter: EventSink mapSink(EventSink<T> sink) */) { this.__init_eventTransformed(source, /* Unimplemented FunctionTypedFormalParameter: EventSink mapSink(EventSink<T> sink) */) };
   Stream.eventTransformed.prototype = Stream.prototype;
 
-  class StreamSubscription {
+  class StreamSubscription/* Unimplemented <T> */ {
   }
 
-  class EventSink {
+  class EventSink/* Unimplemented <T> */ {
   }
 
-  class StreamView extends Stream {
+  class StreamView/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
     constructor(_stream) {
       this._stream = _stream;
       super();
@@ -1589,13 +1589,13 @@ var async;
     }
   }
 
-  class StreamConsumer {
+  class StreamConsumer/* Unimplemented <S> */ {
   }
 
-  class StreamSink {
+  class StreamSink/* Unimplemented <S> */ {
   }
 
-  class StreamTransformer {
+  class StreamTransformer/* Unimplemented <S, T> */ {
     constructor(/* Unimplemented FunctionTypedFormalParameter: StreamSubscription<T> transformer(Stream<S> stream, bool cancelOnError) */) {
       return new _StreamSubscriptionTransformer(/* Unimplemented FunctionTypedFormalParameter: StreamSubscription<T> transformer(Stream<S> stream, bool cancelOnError) */);
     }
@@ -1606,13 +1606,13 @@ var async;
   StreamTransformer.fromHandlers = function(opt$) { this.__init_fromHandlers(opt$) };
   StreamTransformer.fromHandlers.prototype = StreamTransformer.prototype;
 
-  class StreamIterator {
+  class StreamIterator/* Unimplemented <T> */ {
     constructor(stream) {
       return new _StreamIteratorImpl(stream);
     }
   }
 
-  class _ControllerEventSinkWrapper {
+  class _ControllerEventSinkWrapper/* Unimplemented <T> */ {
     constructor(_sink) {
       this._sink = _sink;
     }
@@ -1628,7 +1628,7 @@ var async;
     }
   }
 
-  class StreamController {
+  class StreamController/* Unimplemented <T> */ {
     constructor(opt$) {
       let onListen = opt$.onListen === undefined ? null : opt$.onListen;
       let onPause = opt$.onPause === undefined ? null : opt$.onPause;
@@ -1650,7 +1650,7 @@ var async;
   StreamController.broadcast = function(opt$) { this.__init_broadcast(opt$) };
   StreamController.broadcast.prototype = StreamController.prototype;
 
-  class _StreamControllerLifecycle {
+  class _StreamControllerLifecycle/* Unimplemented <T> */ {
     _recordPause(subscription) {
     }
     _recordResume(subscription) {
@@ -1658,7 +1658,7 @@ var async;
     _recordCancel(subscription) { return null; }
   }
 
-  class _StreamController {
+  class _StreamController/* Unimplemented <T> */ {
     constructor() {
       this._STATE_INITIAL = 0;
       this._STATE_SUBSCRIBED = 1;
@@ -1849,7 +1849,7 @@ var async;
     }
   }
 
-  class _SyncStreamControllerDispatch {
+  class _SyncStreamControllerDispatch/* Unimplemented <T> */ {
     _sendData(data) {
       _subscription._add(data);
     }
@@ -1861,7 +1861,7 @@ var async;
     }
   }
 
-  class _AsyncStreamControllerDispatch {
+  class _AsyncStreamControllerDispatch/* Unimplemented <T> */ {
     _sendData(data) {
       _subscription._addPending(new _DelayedData(data));
     }
@@ -1873,7 +1873,7 @@ var async;
     }
   }
 
-  class _AsyncStreamController extends _StreamController {
+  class _AsyncStreamController/* Unimplemented <T> */ extends dart.mixin(_StreamController/* Unimplemented <T> */, _AsyncStreamControllerDispatch/* Unimplemented <T> */) {
     constructor(_onListen, _onPause, _onResume, _onCancel) {
       this._onListen = _onListen;
       this._onPause = _onPause;
@@ -1883,7 +1883,7 @@ var async;
     }
   }
 
-  class _SyncStreamController extends _StreamController {
+  class _SyncStreamController/* Unimplemented <T> */ extends dart.mixin(_StreamController/* Unimplemented <T> */, _SyncStreamControllerDispatch/* Unimplemented <T> */) {
     constructor(_onListen, _onPause, _onResume, _onCancel) {
       this._onListen = _onListen;
       this._onPause = _onPause;
@@ -1900,12 +1900,16 @@ var async;
     get _onCancel() { return null; }
   }
 
-  /* Unimplemented ClassTypeAlias: class _NoCallbackAsyncStreamController = _StreamController with _AsyncStreamControllerDispatch, _NoCallbacks; *//* Unimplemented ClassTypeAlias: class _NoCallbackSyncStreamController = _StreamController with _SyncStreamControllerDispatch, _NoCallbacks; */// Function _runGuarded: (() → dynamic) → Future<dynamic>
+  class _NoCallbackAsyncStreamController extends dart.mixin(_AsyncStreamControllerDispatch, _NoCallbacks) {}
+
+  class _NoCallbackSyncStreamController extends dart.mixin(_SyncStreamControllerDispatch, _NoCallbacks) {}
+
+  // Function _runGuarded: (() → dynamic) → Future<dynamic>
   function _runGuarded(notificationHandler) {
     if (notificationHandler === null) return null;
     /* Unimplemented TryStatement: try {var result = notificationHandler(); if (result is Future) return result; return null;} catch (e, s) {Zone.current.handleUncaughtError(e, s);} */}
 
-  class _ControllerStream extends _StreamImpl {
+  class _ControllerStream/* Unimplemented <T> */ extends _StreamImpl/* Unimplemented <T> */ {
     constructor(_controller) {
       this._controller = _controller;
       super();
@@ -1920,7 +1924,7 @@ var async;
     }
   }
 
-  class _ControllerSubscription extends _BufferingStreamSubscription {
+  class _ControllerSubscription/* Unimplemented <T> */ extends _BufferingStreamSubscription/* Unimplemented <T> */ {
     constructor(_controller, /* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, onError, /* Unimplemented FunctionTypedFormalParameter: void onDone() */, cancelOnError) {
       this._controller = _controller;
       super(onData, onError, onDone, cancelOnError);
@@ -1936,7 +1940,7 @@ var async;
     }
   }
 
-  class _StreamSinkWrapper {
+  class _StreamSinkWrapper/* Unimplemented <T> */ {
     constructor(_target) {
       this._target = _target;
     }
@@ -1955,7 +1959,7 @@ var async;
     get done() { return this._target.done; }
   }
 
-  class _AddStreamState {
+  class _AddStreamState/* Unimplemented <T> */ {
     constructor(controller, source, cancelOnError) {
       this.addStreamFuture = new _Future();
       this.addSubscription = source.listen(/* Unimplemented: ClosureWrap: (T) → void to (dynamic) → void */ controller._add, /* Unimplemented: DownCast: dynamic to Function */ /* Unimplemented NamedExpression: onError: cancelOnError ? makeErrorHandler(controller) : controller._addError */, /* Unimplemented NamedExpression: onDone: controller._close */, /* Unimplemented NamedExpression: cancelOnError: cancelOnError */);
@@ -1985,7 +1989,7 @@ var async;
     }
   }
 
-  class _StreamControllerAddStreamState extends _AddStreamState {
+  class _StreamControllerAddStreamState/* Unimplemented <T> */ extends _AddStreamState/* Unimplemented <T> */ {
     constructor(controller, varData, source, cancelOnError) {
       this.varData = varData;
       super(/* Unimplemented: DownCastDynamic: _StreamController<dynamic> to _EventSink<T> */ controller, source, cancelOnError);
@@ -1995,13 +1999,13 @@ var async;
     }
   }
 
-  class _EventSink {
+  class _EventSink/* Unimplemented <T> */ {
   }
 
-  class _EventDispatch {
+  class _EventDispatch/* Unimplemented <T> */ {
   }
 
-  class _BufferingStreamSubscription {
+  class _BufferingStreamSubscription/* Unimplemented <T> */ {
     constructor(/* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, onError, /* Unimplemented FunctionTypedFormalParameter: void onDone() */, cancelOnError) {
       this._zone = Zone.current;
       this._state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0);
@@ -2271,7 +2275,7 @@ var async;
     }
   }
 
-  class _StreamImpl extends Stream {
+  class _StreamImpl/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
     listen(/* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, opt$) {
       let onError = opt$.onError === undefined ? null : opt$.onError;
       let onDone = opt$.onDone === undefined ? null : opt$.onDone;
@@ -2288,7 +2292,7 @@ var async;
     }
   }
 
-  class _GeneratedStreamImpl extends _StreamImpl {
+  class _GeneratedStreamImpl/* Unimplemented <T> */ extends _StreamImpl/* Unimplemented <T> */ {
     constructor(_pending) {
       this._pending = _pending;
       this._isUsed = false;
@@ -2301,7 +2305,7 @@ var async;
     }
   }
 
-  class _IterablePendingEvents extends _PendingEvents {
+  class _IterablePendingEvents/* Unimplemented <T> */ extends _PendingEvents {
     constructor(data) {
       this._iterator = data.iterator;
       super();
@@ -2347,7 +2351,7 @@ var async;
     }
   }
 
-  class _DelayedData extends _DelayedEvent {
+  class _DelayedData/* Unimplemented <T> */ extends _DelayedEvent {
     constructor(value) {
       this.value = value;
       super();
@@ -2461,7 +2465,7 @@ var async;
     }
   }
 
-  class _DoneStreamSubscription {
+  class _DoneStreamSubscription/* Unimplemented <T> */ {
     constructor(_onDone) {
       this._onDone = _onDone;
       this._zone = Zone.current;
@@ -2516,7 +2520,7 @@ var async;
     }
   }
 
-  class _AsBroadcastStream extends Stream {
+  class _AsBroadcastStream/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
     constructor(_source, /* Unimplemented FunctionTypedFormalParameter: void onListenHandler(StreamSubscription subscription) */, /* Unimplemented FunctionTypedFormalParameter: void onCancelHandler(StreamSubscription subscription) */) {
       this._source = _source;
       this._onListenHandler = Zone.current.registerUnaryCallback(/* Unimplemented: ClosureWrap: (StreamSubscription<dynamic>) → void to (dynamic) → dynamic */ onListenHandler);
@@ -2579,7 +2583,7 @@ var async;
     }
   }
 
-  class _BroadcastSubscriptionWrapper {
+  class _BroadcastSubscriptionWrapper/* Unimplemented <T> */ {
     constructor(_stream) {
       this._stream = _stream;
     }
@@ -2612,7 +2616,7 @@ var async;
     }
   }
 
-  class _StreamIteratorImpl {
+  class _StreamIteratorImpl/* Unimplemented <T> */ {
     constructor(stream) {
       this._STATE_FOUND = 0;
       this._STATE_DONE = 1;
@@ -2741,7 +2745,7 @@ var async;
     }
   }
 
-  class _ForwardingStream extends Stream {
+  class _ForwardingStream/* Unimplemented <S, T> */ extends Stream/* Unimplemented <T> */ {
     constructor(_source) {
       this._source = _source;
       super();
@@ -2769,7 +2773,7 @@ var async;
     }
   }
 
-  class _ForwardingStreamSubscription extends _BufferingStreamSubscription {
+  class _ForwardingStreamSubscription/* Unimplemented <S, T> */ extends _BufferingStreamSubscription/* Unimplemented <T> */ {
     constructor(_stream, /* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, onError, /* Unimplemented FunctionTypedFormalParameter: void onDone() */, cancelOnError) {
       this._stream = _stream;
       this._subscription = null;
@@ -2821,7 +2825,7 @@ var async;
     sink._addError(error, /* Unimplemented: DownCast: dynamic to StackTrace */ stackTrace);
   }
 
-  class _WhereStream extends _ForwardingStream {
+  class _WhereStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, /* Unimplemented FunctionTypedFormalParameter: bool test(T value) */) {
       this._test = test;
       super(source);
@@ -2834,7 +2838,7 @@ var async;
     }
   }
 
-  class _MapStream extends _ForwardingStream {
+  class _MapStream/* Unimplemented <S, T> */ extends _ForwardingStream/* Unimplemented <S, T> */ {
     constructor(source, /* Unimplemented FunctionTypedFormalParameter: T transform(S event) */) {
       this._transform = transform;
       super(source);
@@ -2845,7 +2849,7 @@ var async;
     }
   }
 
-  class _ExpandStream extends _ForwardingStream {
+  class _ExpandStream/* Unimplemented <S, T> */ extends _ForwardingStream/* Unimplemented <S, T> */ {
     constructor(source, /* Unimplemented FunctionTypedFormalParameter: Iterable<T> expand(S event) */) {
       this._expand = expand;
       super(source);
@@ -2854,7 +2858,7 @@ var async;
       /* Unimplemented TryStatement: try {for (T value in _expand(inputEvent)) {sink._add(value);}} catch (e, s) {_addErrorWithReplacement(sink, e, s);} */}
   }
 
-  class _HandleErrorStream extends _ForwardingStream {
+  class _HandleErrorStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, onError, /* Unimplemented FunctionTypedFormalParameter: bool test(error) */) {
       this._transform = onError;
       this._test = test;
@@ -2872,7 +2876,7 @@ var async;
     }
   }
 
-  class _TakeStream extends _ForwardingStream {
+  class _TakeStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, count) {
       this._remaining = count;
       super(source);
@@ -2889,7 +2893,7 @@ var async;
     }
   }
 
-  class _TakeWhileStream extends _ForwardingStream {
+  class _TakeWhileStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, /* Unimplemented FunctionTypedFormalParameter: bool test(T value) */) {
       this._test = test;
       super(source);
@@ -2905,7 +2909,7 @@ var async;
     }
   }
 
-  class _SkipStream extends _ForwardingStream {
+  class _SkipStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, count) {
       this._remaining = count;
       super(source);
@@ -2920,7 +2924,7 @@ var async;
     }
   }
 
-  class _SkipWhileStream extends _ForwardingStream {
+  class _SkipWhileStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, /* Unimplemented FunctionTypedFormalParameter: bool test(T value) */) {
       this._test = test;
       this._hasFailed = false;
@@ -2939,7 +2943,7 @@ var async;
     }
   }
 
-  class _DistinctStream extends _ForwardingStream {
+  class _DistinctStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, /* Unimplemented FunctionTypedFormalParameter: bool equals(T a, T b) */) {
       _SENTINEL = new dart_core.Object();
       this._previous = _SENTINEL;
@@ -2961,7 +2965,7 @@ var async;
     }
   }
 
-  class _EventSinkWrapper {
+  class _EventSinkWrapper/* Unimplemented <T> */ {
     constructor(_sink) {
       this._sink = _sink;
     }
@@ -2977,7 +2981,7 @@ var async;
     }
   }
 
-  class _SinkTransformerStreamSubscription extends _BufferingStreamSubscription {
+  class _SinkTransformerStreamSubscription/* Unimplemented <S, T> */ extends _BufferingStreamSubscription/* Unimplemented <T> */ {
     constructor(source, mapper, /* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, onError, /* Unimplemented FunctionTypedFormalParameter: void onDone() */, cancelOnError) {
       this._transformerSink = null;
       this._subscription = null;
@@ -3028,14 +3032,14 @@ var async;
       /* Unimplemented TryStatement: try {_subscription = null; _transformerSink.close();} catch (e, s) {_addError(e, s);} */}
   }
 
-  class _StreamSinkTransformer {
+  class _StreamSinkTransformer/* Unimplemented <S, T> */ {
     constructor(_sinkMapper) {
       this._sinkMapper = _sinkMapper;
     }
     bind(stream) { return new _BoundSinkStream(stream, this._sinkMapper); }
   }
 
-  class _BoundSinkStream extends Stream {
+  class _BoundSinkStream/* Unimplemented <S, T> */ extends Stream/* Unimplemented <T> */ {
     get isBroadcast() { return this._stream.isBroadcast; }
     constructor(_stream, _sinkMapper) {
       this._stream = _stream;
@@ -3052,7 +3056,7 @@ var async;
     }
   }
 
-  class _HandlerEventSink {
+  class _HandlerEventSink/* Unimplemented <S, T> */ {
     constructor(_handleData, _handleError, _handleDone, _sink) {
       this._handleData = _handleData;
       this._handleError = _handleError;
@@ -3067,7 +3071,7 @@ var async;
     close() { return this._handleDone(this._sink); }
   }
 
-  class _StreamHandlerTransformer extends _StreamSinkTransformer {
+  class _StreamHandlerTransformer/* Unimplemented <S, T> */ extends _StreamSinkTransformer/* Unimplemented <S, T> */ {
     constructor(opt$) {
       let handleData = opt$.handleData === undefined ? null : opt$.handleData;
       let handleError = opt$.handleError === undefined ? null : opt$.handleError;
@@ -3093,14 +3097,14 @@ var async;
     }
   }
 
-  class _StreamSubscriptionTransformer {
+  class _StreamSubscriptionTransformer/* Unimplemented <S, T> */ {
     constructor(_transformer) {
       this._transformer = _transformer;
     }
     bind(stream) { return new _BoundSubscriptionStream(stream, this._transformer); }
   }
 
-  class _BoundSubscriptionStream extends Stream {
+  class _BoundSubscriptionStream/* Unimplemented <S, T> */ extends Stream/* Unimplemented <T> */ {
     constructor(_stream, _transformer) {
       this._stream = _stream;
       this._transformer = _transformer;

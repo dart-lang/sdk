@@ -26,6 +26,9 @@ var sunflower;
       this.radius = radius;
       this.color = color;
     }
+  }
+
+  class SunflowerSeedPainter {
     draw() {
       (sunflower.context.beginPath(),
         sunflower.context.lineWidth = 2,
@@ -38,7 +41,7 @@ var sunflower;
     }
   }
 
-  class SunflowerSeed extends Circle {
+  class SunflowerSeed extends dart.mixin(Circle, SunflowerSeedPainter) {
     constructor(x, y) {
       super(x, y, SEED_RADIUS, ORANGE);
     }
@@ -74,6 +77,7 @@ var sunflower;
   sunflower.centerY = centerY;
   sunflower.querySelector = querySelector;
   sunflower.Circle = Circle;
+  sunflower.SunflowerSeedPainter = SunflowerSeedPainter;
   sunflower.SunflowerSeed = SunflowerSeed;
   sunflower.main = main;
   sunflower.draw = draw;

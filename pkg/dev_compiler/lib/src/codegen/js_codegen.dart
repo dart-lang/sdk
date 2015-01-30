@@ -130,6 +130,31 @@ var $_libraryName;
   }
 
   @override
+  void visitTypeName(TypeName node) {
+    _visitNode(node.name);
+    _visitNode(node.typeArguments);
+  }
+
+  @override
+  void visitTypeParameterList(TypeParameterList node) {
+    out.write('/* Unimplemented $node */');
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    out.write('/* Unimplemented $node */');
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    var name = node.name.name;
+    out.write('class $name extends dart.mixin(');
+    _visitNodeList(node.withClause.mixinTypes, separator: ', ');
+    out.write(') {}\n\n');
+    if (isPublic(name)) _exports.add(name);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     currentClass = node;
 
@@ -137,9 +162,22 @@ var $_libraryName;
     var supertype = node.element.supertype;
 
     out.write('class $name');
-    if (supertype != null && !supertype.isObject) {
-      out.write(' extends ${_typeName(supertype)}');
+    _visitNode(node.typeParameters);
+
+    if (node.withClause != null) {
+      out.write(' extends dart.mixin(');
+      if (node.extendsClause != null) {
+        _visitNode(node.extendsClause.superclass);
+      } else {
+        out.write('Object');
+      }
+      _visitNodeList(node.withClause.mixinTypes, prefix: ', ', separator: ', ');
+      out.write(')');
+    } else if (node.extendsClause != null) {
+      out.write(' extends ');
+      _visitNode(node.extendsClause.superclass);
     }
+
     out.write(' {\n', 2);
 
     var ctors = new List<ConstructorDeclaration>.from(
@@ -706,7 +744,7 @@ var $_libraryName;
   void _flushLibraryProperties() {
     if (_properties.isEmpty) return;
 
-    out.write('dart.mixin($_libraryName, {\n', 2);
+    out.write('dart.copyProperties($_libraryName, {\n', 2);
     for (var node in _properties) {
       _writeFunctionDeclaration(node);
       out.write(',\n');
