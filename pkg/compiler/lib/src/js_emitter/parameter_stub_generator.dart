@@ -5,6 +5,8 @@
 part of dart2js.js_emitter;
 
 class ParameterStubGenerator {
+  static final Set<Selector> emptySelectorSet = new Set<Selector>();
+
   final Namer namer;
   final Compiler compiler;
   final JavaScriptBackend backend;
@@ -18,15 +20,24 @@ class ParameterStubGenerator {
     compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
 
   /**
-   * Generate stubs to handle invocation of methods with optional
+   * Generates stubs to handle invocation of methods with optional
    * arguments.
    *
-   * A method like [: foo([x]) :] may be invoked by the following
-   * calls: [: foo(), foo(1), foo(x: 1) :]. See the sources of this
-   * function for detailed examples.
+   * A method like `foo([x])` may be invoked by the following
+   * calls: `foo(), foo(1), foo(x: 1)`. This method generates the stub for the
+   * given [selector] and returns the generated [ParameterStubMethod].
+   *
+   * Returns null if no stub is needed.
+   *
+   * Members may be invoked in two ways: directly, or through a closure. In the
+   * latter case the caller invokes the closure's `call` method. This method
+   * accepts two selectors. The returned stub method has the corresponding
+   * name [ParameterStubMethod.name] and [ParameterStubMethod.callName] set if
+   * the input selector is non-null (and the member needs a stub).
    */
-  jsAst.Expression generateParameterStub(FunctionElement member,
-                                         Selector selector) {
+  ParameterStubMethod generateParameterStub(FunctionElement member,
+                                            Selector selector,
+                                            Selector callSelector) {
     FunctionSignature parameters = member.functionSignature;
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
@@ -42,8 +53,6 @@ class ParameterStubGenerator {
     }
     JavaScriptConstantCompiler handler = backend.constants;
     List<String> names = selector.getOrderedNamedArguments();
-
-    String invocationName = namer.invocationName(selector);
 
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
 
@@ -111,7 +120,7 @@ class ParameterStubGenerator {
     var body;  // List or jsAst.Statement.
     if (member.hasFixedBackendName) {
       body = emitterTask.nativeEmitter.generateParameterStubStatements(
-          member, isInterceptedMethod, invocationName,
+          member, isInterceptedMethod, namer.invocationName(selector),
           parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember) {
@@ -140,14 +149,45 @@ class ParameterStubGenerator {
 
     jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
 
-    return function;
+    String name = namer.invocationName(selector);
+    String callName =
+        (callSelector != null) ? namer.invocationName(callSelector) : null;
+    return new ParameterStubMethod(name, callName, function);
   }
 
-  Map<Selector, jsAst.Expression> generateParameterStubs(FunctionElement member,
-                                          [bool canTearOff = false]) {
-    Map<Selector, jsAst.Expression> generatedStubs
-        = <Selector, jsAst.Expression>{};
-
+  // We fill the lists depending on possible/invoked selectors. For example,
+  // take method foo:
+  //    foo(a, b, {c, d});
+  //
+  // We may have multiple ways of calling foo:
+  // (1) foo(1, 2);
+  // (2) foo(1, 2, c: 3);
+  // (3) foo(1, 2, d: 4);
+  // (4) foo(1, 2, c: 3, d: 4);
+  // (5) foo(1, 2, d: 4, c: 3);
+  //
+  // What we generate at the call sites are:
+  // (1) foo$2(1, 2);
+  // (2) foo$3$c(1, 2, 3);
+  // (3) foo$3$d(1, 2, 4);
+  // (4) foo$4$c$d(1, 2, 3, 4);
+  // (5) foo$4$c$d(1, 2, 3, 4);
+  //
+  // The stubs we generate are (expressed in Dart):
+  // (1) foo$2(a, b) => foo$4$c$d(a, b, null, null)
+  // (2) foo$3$c(a, b, c) => foo$4$c$d(a, b, c, null);
+  // (3) foo$3$d(a, b, d) => foo$4$c$d(a, b, null, d);
+  // (4) No stub generated, call is direct.
+  // (5) No stub generated, call is direct.
+  //
+  // We need to pay attention if this stub is for a function that has been
+  // invoked from a subclass. Then we cannot just redirect, since that
+  // would invoke the methods of the subclass. We have to compile to:
+  // (1) foo$2(a, b) => MyClass.foo$4$c$d.call(this, a, b, null, null)
+  // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
+  // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
+  List<ParameterStubMethod> generateParameterStubs(FunctionElement member,
+                                                 {bool canTearOff: true}) {
     if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == backend.boundClosureClass) {
@@ -158,93 +198,83 @@ class ParameterStubGenerator {
       }
     }
 
-    // We fill the lists depending on the selector. For example,
-    // take method foo:
-    //    foo(a, b, {c, d});
-    //
-    // We may have multiple ways of calling foo:
-    // (1) foo(1, 2);
-    // (2) foo(1, 2, c: 3);
-    // (3) foo(1, 2, d: 4);
-    // (4) foo(1, 2, c: 3, d: 4);
-    // (5) foo(1, 2, d: 4, c: 3);
-    //
-    // What we generate at the call sites are:
-    // (1) foo$2(1, 2);
-    // (2) foo$3$c(1, 2, 3);
-    // (3) foo$3$d(1, 2, 4);
-    // (4) foo$4$c$d(1, 2, 3, 4);
-    // (5) foo$4$c$d(1, 2, 3, 4);
-    //
-    // The stubs we generate are (expressed in Dart):
-    // (1) foo$2(a, b) => foo$4$c$d(a, b, null, null)
-    // (2) foo$3$c(a, b, c) => foo$4$c$d(a, b, c, null);
-    // (3) foo$3$d(a, b, d) => foo$4$c$d(a, b, null, d);
-    // (4) No stub generated, call is direct.
-    // (5) No stub generated, call is direct.
-    //
-    // We need to pay attention if this stub is for a function that has been
-    // invoked from a subclass. Then we cannot just redirect, since that
-    // would invoke the methods of the subclass. We have to compile to:
-    // (1) foo$2(a, b) => MyClass.foo$4$c$d.call(this, a, b, null, null)
-    // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
-    // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
+    // The set of selectors that apply to `member`. For example, for
+    // a member `foo(x, [y])` the following selectors may apply:
+    // `foo(x)`, and `foo(x, y)`.
+    Set<Selector> selectors;
+    // The set of selectors that apply to `member` if it's name was `call`.
+    // This happens when a member is torn off. In that case calls to the
+    // function use the name `call`, and we must be able to handle every
+    // `call` invocation that matches the signature. For example, for
+    // a member `foo(x, [y])` the following selectors would be possible
+    // call-selectors: `call(x)`, and `call(x, y)`.
+    Set<Selector> callSelectors;
 
-    Set<Selector> selectors = member.isInstanceMember
-        ? compiler.codegenWorld.invokedNames[member.name]
-        : null; // No stubs needed for static methods.
+    // Only instance members (not static methods) need stubs.
+    if (member.isInstanceMember) {
+        selectors = compiler.codegenWorld.invokedNames[member.name];
+    }
 
-    /// Returns all closure call selectors renamed to match this member.
-    Set<Selector> callSelectorsAsNamed() {
-      if (!canTearOff) return null;
-      Set<Selector> callSelectors = compiler.codegenWorld.invokedNames[
-          namer.closureInvocationSelectorName];
-      if (callSelectors == null) return null;
-      return callSelectors.map((Selector callSelector) {
-        return new Selector.call(
-            member.name, member.library,
-            callSelector.argumentCount, callSelector.namedArguments);
-      }).toSet();
-    }
-    if (selectors == null) {
-      selectors = callSelectorsAsNamed();
-      if (selectors == null) return generatedStubs;
-    } else {
-      Set<Selector> callSelectors = callSelectorsAsNamed();
-      if (callSelectors != null) {
-        selectors = selectors.union(callSelectors);
-      }
-    }
-    Set<Selector> untypedSelectors = new Set<Selector>();
-    if (selectors != null) {
-      for (Selector selector in selectors) {
-        if (!selector.appliesUnnamed(member, compiler.world)) continue;
-        if (untypedSelectors.add(selector.asUntyped)) {
-          jsAst.Expression stub = generateParameterStub(member, selector);
-          if (stub != null) {
-            generatedStubs[selector] = stub;
-          }
-        }
-      }
-    }
     if (canTearOff) {
-      selectors = compiler.codegenWorld.invokedNames[
-          namer.closureInvocationSelectorName];
-      if (selectors != null) {
-        for (Selector selector in selectors) {
-          selector = new Selector.call(
-              member.name, member.library,
-              selector.argumentCount, selector.namedArguments);
-          if (!selector.appliesUnnamed(member, compiler.world)) continue;
-          if (untypedSelectors.add(selector)) {
-            jsAst.Expression stub = generateParameterStub(member, selector);
-            if (stub != null) {
-              generatedStubs[selector] = stub;
-            }
-          }
+      String call = namer.closureInvocationSelectorName;
+      callSelectors = compiler.codegenWorld.invokedNames[call];
+    }
+
+    assert(emptySelectorSet.isEmpty);
+    if (selectors == null) selectors = emptySelectorSet;
+    if (callSelectors == null) callSelectors = emptySelectorSet;
+
+    List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
+
+    if (selectors.isEmpty && callSelectors.isEmpty) {
+      return stubs;
+    }
+
+    // For every call-selector the corresponding selector with the name of the
+    // member.
+    //
+    // For example, for the call-selector `call(x, y)` the renamed selector
+    // for member `foo` would be `foo(x, y)`.
+    Set<Selector> renamedCallSelectors =
+        callSelectors.isEmpty ? emptySelectorSet : new Set<Selector>();
+
+    Set<Selector> untypedSelectors = new Set<Selector>();
+
+    // Start with the callSelectors since they imply the generation of the
+    // non-call version.
+    for (Selector selector in callSelectors) {
+      Selector renamedSelector = new Selector.call(
+          member.name, member.library,
+          selector.argumentCount, selector.namedArguments);
+      renamedCallSelectors.add(renamedSelector);
+
+      if (!renamedSelector.appliesUnnamed(member, compiler.world)) continue;
+
+      if (untypedSelectors.add(renamedSelector.asUntyped)) {
+        ParameterStubMethod stub =
+            generateParameterStub(member, renamedSelector, selector);
+        if (stub != null) {
+          stubs.add(stub);
         }
       }
     }
-    return generatedStubs;
+
+    // Now run through the actual member selectors (eg. `foo$2(x, y)` and not
+    // `call$2(x, y)`. Some of them have already been generated because of the
+    // call-selectors (and they are in the renamedCallSelectors set.
+    for (Selector selector in selectors) {
+      if (renamedCallSelectors.contains(selector)) continue;
+      if (!selector.appliesUnnamed(member, compiler.world)) continue;
+
+      if (untypedSelectors.add(selector.asUntyped)) {
+        ParameterStubMethod stub =
+            generateParameterStub(member, selector, null);
+        if (stub != null) {
+          stubs.add(stub);
+        }
+      }
+    }
+
+    return stubs;
   }
 }

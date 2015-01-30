@@ -451,30 +451,28 @@ class ProgramBuilder {
       assert(invariant(element, !element.isConstructor));
     }
 
+    String callName = null;
+    if (canTearOff) {
+      Selector callSelector =
+          new Selector.fromElement(element).toCallSelector();
+      callName = namer.invocationName(callSelector);
+    }
+
     return new InstanceMethod(element, name, code,
-        _generateParameterStubs(element, canTearOff),
+        _generateParameterStubs(element, canTearOff), callName,
         needsTearOff: canTearOff, tearOffName: tearOffName,
         isClosure: isClosure, hasSuperAlias: hasSuperAlias,
         canBeApplied: canBeApplied, canBeReflected: canBeReflected);
   }
 
   List<ParameterStubMethod> _generateParameterStubs(FunctionElement element,
-                                           bool canTearOff) {
+                                                    bool canTearOff) {
 
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
-    List<ParameterStubMethod> parameterStubs = <ParameterStubMethod>[];
     ParameterStubGenerator generator =
         new ParameterStubGenerator(_compiler, namer, backend);
-    Map<Selector, js.Expression> parameterStubsForElement =
-        generator.generateParameterStubs(element, canTearOff);
-    parameterStubsForElement.forEach((Selector selector, js.Expression code) {
-      String name = namer.invocationName(selector);
-      parameterStubs.add(
-          _buildParameterStubMethod(name, code, selector, element: element));
-    });
-
-    return parameterStubs;
+    return generator.generateParameterStubs(element, canTearOff: canTearOff);
   }
 
   /// Builds a stub method.
@@ -484,12 +482,6 @@ class ProgramBuilder {
   Method _buildStubMethod(String name, js.Expression code,
                           {Element element}) {
     return new StubMethod(name, code, element: element);
-  }
-
-  Method _buildParameterStubMethod(String name, js.Expression code,
-                                   Selector selector,
-                                   {Element element}) {
-    return new ParameterStubMethod(name, code, selector, element: element);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -588,19 +580,28 @@ class ProgramBuilder {
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
 
-    final bool isNotApplyTarget = !element.isConstructor && !element.isAccessor;
+    final bool isApplyTarget = !element.isConstructor && !element.isAccessor;
     final bool canBeApplied = _methodCanBeApplied(element);
     final bool canBeReflected = _methodCanBeReflected(element);
 
-    final bool needsTearOff = isNotApplyTarget && (canBeReflected ||
-         universe.staticFunctionsNeedingGetter.contains(element));
+    final bool needsTearOff = isApplyTarget &&
+        (canBeReflected ||
+            universe.staticFunctionsNeedingGetter.contains(element));
 
     final String tearOffName =
         needsTearOff ? namer.getStaticClosureName(element) : null;
 
+    String callName = null;
+    if (needsTearOff) {
+      Selector callSelector =
+          new Selector.fromElement(element).toCallSelector();
+      callName = namer.invocationName(callSelector);
+    }
+
     return new StaticDartMethod(element,
                                 name, _registry.registerHolder(holder), code,
                                 _generateParameterStubs(element, needsTearOff),
+                                callName,
                                 needsTearOff: needsTearOff,
                                 tearOffName: tearOffName,
                                 canBeApplied: canBeApplied,

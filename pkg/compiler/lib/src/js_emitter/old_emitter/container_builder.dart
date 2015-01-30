@@ -32,11 +32,12 @@ class ContainerBuilder extends CodeEmitterHelper {
       compiler.dumpInfoTask.registerElementAst(member,
           builder.addProperty(name, code));
 
-      for (ParameterStubMethod method in method.parameterStubs) {
-        jsAst.Property property = builder.addProperty(method.name, method.code);
+      for (ParameterStubMethod stub in method.parameterStubs) {
+        assert(stub.callName == null);
+        jsAst.Property property = builder.addProperty(stub.name, stub.code);
         compiler.dumpInfoTask.registerElementAst(member, property);
         emitter.interceptorEmitter
-            .recordMangledNameOfMemberMethod(member, method.name);
+            .recordMangledNameOfMemberMethod(member, stub.name);
       }
       return;
     }
@@ -92,9 +93,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
 
     String callSelectorString = 'null';
-    if (member.isFunction) {
-      Selector callSelector = new Selector.fromElement(member).toCallSelector();
-      callSelectorString = '"${namer.invocationName(callSelector)}"';
+    if (method.callName != null) {
+      callSelectorString = '"${method.callName}"';
     }
 
     // On [requiredParameterCount], the lower bit is set if this method can be
@@ -108,31 +108,22 @@ class ContainerBuilder extends CodeEmitterHelper {
     // TODO(sra): Don't use LiteralString for non-strings.
     List tearOffInfo = [new jsAst.LiteralString(callSelectorString)];
 
-    if (needsStubs || canTearOff) {
+    for (ParameterStubMethod stub in method.parameterStubs) {
+      String invocationName = stub.name;
+      emitter.interceptorEmitter
+          .recordMangledNameOfMemberMethod(member, invocationName);
 
-      for (ParameterStubMethod method in method.parameterStubs) {
-        String invocationName = method.name;
-        emitter.interceptorEmitter
-            .recordMangledNameOfMemberMethod(member, invocationName);
-        expressions.add(method.code);
-        if (member.isInstanceMember) {
-          expressions.add(js.string(invocationName));
-        } else {
-          expressions.add(js('null'));
-          // TOOD(ahe): Since we know when reading static data versus instance
-          // data, we can eliminate this element.
-        }
-
-        Set<Selector> callSelectors = compiler.codegenWorld.invokedNames[
-            namer.closureInvocationSelectorName];
-        Selector callSelector = method.selector.toCallSelector();
-        String callSelectorString = 'null';
-        if (canTearOff && callSelectors != null &&
-            callSelectors.contains(callSelector)) {
-          callSelectorString = '"${namer.invocationName(callSelector)}"';
-        }
-        tearOffInfo.add(new jsAst.LiteralString(callSelectorString));
+      expressions.add(stub.code);
+      if (member.isInstanceMember) {
+        expressions.add(js.string(invocationName));
+      } else {
+        // TOOD(floitsch): Since we know when reading static data versus
+        // instance data, we can eliminate this element.
+        expressions.add(js('null'));
       }
+      String callName = stub.callName;
+      String callSelectorString = (callName == null) ? 'null' : '"$callName"';
+      tearOffInfo.add(new jsAst.LiteralString(callSelectorString));
     }
 
     jsAst.Expression memberTypeExpression;
