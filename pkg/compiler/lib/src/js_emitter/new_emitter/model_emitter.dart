@@ -306,8 +306,7 @@ class ModelEmitter {
   }
 
   js.Expression emitLibrary(Library library) {
-    Iterable staticDescriptors = library.statics.expand((StaticMethod e) =>
-        [ js.string(e.name), js.number(e.holder.index), emitStaticMethod(e) ]);
+    Iterable staticDescriptors = library.statics.expand(emitStaticMethod);
     Iterable classDescriptors = library.classes.expand((Class e) =>
         [ js.string(e.name), js.number(e.holder.index), emitClass(e) ]);
 
@@ -396,7 +395,14 @@ class ModelEmitter {
     } else {
       elements.add(_generateConstructor(cls));
     }
-    Iterable<Method> methods = cls.methods;
+    Iterable<Method> methods = cls.methods.expand((Method method) {
+      // TODO(floitsch): can there be anything else than a DartMethod?
+      if (method is DartMethod) {
+        return [method]..addAll(method.parameterStubs);
+      } else {
+        return [method];
+      }
+    });
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods =
@@ -410,8 +416,23 @@ class ModelEmitter {
     return unparse(compiler, field.code);
   }
 
-  js.Expression emitStaticMethod(StaticMethod method) {
-    return unparse(compiler, method.code);
+  Iterable<js.Expression> emitStaticMethod(StaticMethod method) {
+    js.Expression holderIndex = js.number(method.holder.index);
+    List<js.Expression> output = <js.Expression>[];
+
+    void _addMethod(Method method) {
+      js.Expression unparsed = unparse(compiler, method.code);
+      output.add(js.string(method.name));
+      output.add(holderIndex);
+      output.add(unparsed);
+    }
+
+    _addMethod(method);
+    // TODO(floitsch): can there be anything else than a StaticDartMethod?
+    if (method is StaticDartMethod) {
+      method.parameterStubs.forEach(_addMethod);
+    }
+    return output;
   }
 
   static final String boilerplate = """
