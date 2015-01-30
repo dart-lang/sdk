@@ -163,7 +163,7 @@ var dart;
     }
     Mixin.__proto__ = base;
     Mixin.prototype = Object.create(base.prototype);
-    // Copy each mixin, with later ones overwriting earlier entires.
+    // Copy each mixin, with later ones overwriting earlier entries.
     for (var i = 1; i < arguments.length; i++) {
       var from = arguments[i];
       copyProperties(Mixin.prototype, from.prototype);
