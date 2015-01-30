@@ -836,20 +836,26 @@ class AnalysisServer {
    * Set the priority files to the given [files].
    */
   void setPriorityFiles(String requestId, List<String> files) {
+    // Note: when a file is a priority file, that information needs to be
+    // propagated to all contexts that analyze the file, so that all contexts
+    // will be able to do incremental resolution of the file.  See
+    // dartbug.com/22209.
     Map<AnalysisContext, List<Source>> sourceMap =
         new HashMap<AnalysisContext, List<Source>>();
     List<String> unanalyzed = new List<String>();
     files.forEach((file) {
-      AnalysisContext analysisContext = getAnalysisContext(file);
-      if (analysisContext == null) {
-        unanalyzed.add(file);
-      } else {
-        List<Source> sourceList = sourceMap[analysisContext];
-        if (sourceList == null) {
-          sourceList = <Source>[];
-          sourceMap[analysisContext] = sourceList;
+      AnalysisContext preferredContext = getAnalysisContext(file);
+      Source source = getSource(file);
+      bool contextFound = false;
+      for (AnalysisContext context in folderMap.values) {
+        if (context == preferredContext ||
+            context.getKindOf(source) != SourceKind.UNKNOWN) {
+          sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
+          contextFound = true;
         }
-        sourceList.add(getSource(file));
+      }
+      if (!contextFound) {
+        unanalyzed.add(file);
       }
     });
     if (unanalyzed.isNotEmpty) {
@@ -864,6 +870,9 @@ class AnalysisServer {
         sourceList = Source.EMPTY_ARRAY;
       }
       context.analysisPriorityOrder = sourceList;
+      // Schedule the context for analysis so that it has the opportunity to
+      // cache the AST's for the priority sources as soon as possible.
+      schedulePerformAnalysisOperation(context);
     });
     operationQueue.reschedule();
     Source firstSource = files.length > 0 ? getSource(files[0]) : null;
