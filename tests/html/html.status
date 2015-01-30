@@ -43,6 +43,8 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+# Dartium seems to lose the data from the dispatchEvent. 
+postmessage_structured_test/more_primitives: Fail
 async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
