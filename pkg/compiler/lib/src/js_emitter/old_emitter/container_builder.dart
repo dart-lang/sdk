@@ -62,7 +62,6 @@ class ContainerBuilder extends CodeEmitterHelper {
       count++;
       parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
       argumentsBuffer[0] = js('#', receiverArgumentName);
-      emitter.interceptorEmitter.interceptorInvocationNames.add(invocationName);
     }
 
     int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
@@ -259,9 +258,11 @@ class ContainerBuilder extends CodeEmitterHelper {
         addParameterStubs(
             member,
             (Selector selector, jsAst.Fun function) {
+              String invocationName = namer.invocationName(selector);
+              emitter.interceptorEmitter
+                  .recordMangledNameOfMemberMethod(member, invocationName);
               compiler.dumpInfoTask.registerElementAst(member,
-                  builder.addProperty(namer.invocationName(selector),
-                                      function));
+                  builder.addProperty(invocationName, function));
             });
       }
       return;
@@ -336,11 +337,15 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     if (needsStubs || canTearOff) {
       addParameterStubs(member, (Selector selector, jsAst.Fun function) {
+
+        String invocationName = namer.invocationName(selector);
+        emitter.interceptorEmitter.
+            recordMangledNameOfMemberMethod(member, invocationName);
         expressions.add(function);
         if (member.isInstanceMember) {
           Set invokedSelectors =
               compiler.codegenWorld.invokedNames[member.name];
-            expressions.add(js.string(namer.invocationName(selector)));
+            expressions.add(js.string(invocationName));
         } else {
           expressions.add(js('null'));
           // TOOD(ahe): Since we know when reading static data versus instance
