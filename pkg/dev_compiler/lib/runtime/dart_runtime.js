@@ -172,6 +172,39 @@ var dart;
   }
   dart.mixin = mixin;
 
+  /**
+   * Creates a dart:collection LinkedHashMap.
+   *
+   * For a map with string keys an object literal can be used, for example
+   * `map({'hi': 1, 'there': 2})`.
+   *
+   * Otherwise an array should be used, for example `map([1, 2, 3, 4])` will
+   * create a map with keys [1, 3] and values [2, 4]. Each key-value pair
+   * should be adjacent entries in the array.
+   *
+   * For a map with no keys the function can be called with no arguments, for
+   * example `map()`.
+   */
+  // TODO(jmesserly): this could be faster
+  function map(values) {
+    var map = new collection.LinkedHashMap();
+    if (Array.isArray(values)) {
+      for (var i = 0, end = values.length - 1; i < end; i += 2) {
+        var key = values[i];
+        var value = values[i + 1];
+        map.__set(key, value);
+      }
+    } else if (typeof values === 'object') {
+      var keys = Object.getOwnPropertyNames(values);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var value = values[key];
+        map.__set(key, value);
+      }
+    }
+    return map;
+  }
+
   function assert(condition) {
     // TODO(jmesserly): throw assertion error.
     if (!condition) throw 'assertion failed';

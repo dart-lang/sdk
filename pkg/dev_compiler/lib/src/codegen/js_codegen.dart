@@ -180,10 +180,16 @@ var $_libraryName;
 
     out.write(' {\n', 2);
 
-    var ctors = new List<ConstructorDeclaration>.from(
-        node.members.where((m) => m is ConstructorDeclaration));
-    var fields = new List<FieldDeclaration>.from(
-        node.members.where((m) => m is FieldDeclaration));
+    var ctors = new List<ConstructorDeclaration>();
+    var fields = new List<FieldDeclaration>();
+    var staticFields = new List<FieldDeclaration>();
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration) {
+        ctors.add(member);
+      } else if (member is FieldDeclaration) {
+        (member.isStatic ? staticFields : fields).add(member);
+      }
+    }
 
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
@@ -203,7 +209,8 @@ var $_libraryName;
 
     if (isPublic(name)) _exports.add(name);
 
-    for (var member in ctors) {
+    // Named constructors
+    for (ConstructorDeclaration member in ctors) {
       if (member.name != null) {
         var ctorName = member.name.name;
 
@@ -215,6 +222,24 @@ var $_libraryName;
         out.write('$name.$ctorName.prototype = $name.prototype;\n');
       }
     }
+
+    // Static fields
+    var lazyStatics = <VariableDeclaration>[];
+    for (FieldDeclaration member in staticFields) {
+      for (VariableDeclaration field in member.fields.variables) {
+        var prefix = '$name.${field.name.name}';
+        if (field.initializer == null) {
+          out.write('$prefix = null;\n');
+        } else if (field.isConst || _isFieldInitConstant(field)) {
+          out.write('$prefix = ');
+          field.initializer.accept(this);
+          out.write(';\n');
+        } else {
+          lazyStatics.add(field);
+        }
+      }
+    }
+    _writeLazyFields(name, lazyStatics);
 
     out.write('\n');
     currentClass = null;
@@ -727,8 +752,17 @@ var $_libraryName;
   void _flushLazyFields() {
     if (_lazyFields.isEmpty) return;
 
-    out.write('dart.defineLazyProperties($_libraryName, {\n', 2);
-    for (var node in _lazyFields) {
+    _writeLazyFields(_libraryName, _lazyFields);
+    out.write('\n');
+
+    _lazyFields.clear();
+  }
+
+  void _writeLazyFields(String objExpr, List<VariableDeclaration> fields) {
+    if (fields.isEmpty) return;
+
+    out.write('dart.defineLazyProperties($objExpr, {\n', 2);
+    for (var node in fields) {
       var name = node.name.name;
       out.write('get $name() { return ');
       node.initializer.accept(this);
@@ -736,9 +770,7 @@ var $_libraryName;
       // TODO(jmesserly): we're using a dummy setter to indicate writable.
       if (!node.isFinal) out.write('set $name(x) {},\n');
     }
-    out.write('});\n\n', -2);
-
-    _lazyFields.clear();
+    out.write('});\n', -2);
   }
 
   void _flushLibraryProperties() {
@@ -1053,6 +1085,41 @@ var $_libraryName;
   }
 
   @override
+  void visitMapLiteral(MapLiteral node) {
+    out.write('dart.map(');
+    var entries = node.entries;
+    if (entries != null && entries.isNotEmpty) {
+      // Use JS object literal notation if possible, otherwise use an array.
+      if (entries.every((e) => e.key is SimpleStringLiteral)) {
+        out.write('{\n', 2);
+        _visitMapLiteralEntries(entries, separator: ': ');
+        out.write('\n}', -2);
+      } else {
+        out.write('[\n', 2);
+        _visitMapLiteralEntries(entries, separator: ', ');
+        out.write('\n]', -2);
+      }
+    }
+    out.write(')');
+  }
+
+  void _visitMapLiteralEntries(NodeList<MapLiteralEntry> nodes,
+      {String separator}) {
+
+    if (nodes == null) return;
+    int size = nodes.length;
+    if (size == 0) return;
+
+    for (int i = 0; i < size; i++) {
+      if (i > 0) out.write(',\n');
+      var node = nodes[i];
+      node.key.accept(this);
+      out.write(separator);
+      node.value.accept(this);
+    }
+  }
+
+  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     // TODO(jmesserly): does this work for other quote styles?
     out.write('"${node.stringValue}"');
@@ -1101,6 +1168,10 @@ var $_libraryName;
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
   }
 
+  // TODO(jmesserly): this is used to determine if the field initialization is
+  // side effect free. We should make the check more general, as things like
+  // list/map literals/regexp are also side effect free and fairly common
+  // to use as field initializers.
   bool _isFieldInitConstant(VariableDeclaration field) =>
       field.initializer == null || _computeConstant(field) is ValidResult;
 

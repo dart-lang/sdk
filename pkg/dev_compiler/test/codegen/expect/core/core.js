@@ -110,28 +110,6 @@ var core;
       let isUtc = opt$.isUtc === undefined ? false : opt$.isUtc;
       this.millisecondsSinceEpoch = millisecondsSinceEpoch;
       this.isUtc = isUtc;
-      this.MONDAY = 1;
-      this.TUESDAY = 2;
-      this.WEDNESDAY = 3;
-      this.THURSDAY = 4;
-      this.FRIDAY = 5;
-      this.SATURDAY = 6;
-      this.SUNDAY = 7;
-      this.DAYS_PER_WEEK = 7;
-      this.JANUARY = 1;
-      this.FEBRUARY = 2;
-      this.MARCH = 3;
-      this.APRIL = 4;
-      this.MAY = 5;
-      this.JUNE = 6;
-      this.JULY = 7;
-      this.AUGUST = 8;
-      this.SEPTEMBER = 9;
-      this.OCTOBER = 10;
-      this.NOVEMBER = 11;
-      this.DECEMBER = 12;
-      this.MONTHS_PER_YEAR = 12;
-      this._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
       if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
         throw new ArgumentError(millisecondsSinceEpoch);
       }
@@ -230,56 +208,12 @@ var core;
       return new Duration(/* Unimplemented NamedExpression: milliseconds: ms - otherMs */);
     }
     __init__internal(year, month, day, hour, minute, second, millisecond, isUtc) {
-      this.MONDAY = 1;
-      this.TUESDAY = 2;
-      this.WEDNESDAY = 3;
-      this.THURSDAY = 4;
-      this.FRIDAY = 5;
-      this.SATURDAY = 6;
-      this.SUNDAY = 7;
-      this.DAYS_PER_WEEK = 7;
-      this.JANUARY = 1;
-      this.FEBRUARY = 2;
-      this.MARCH = 3;
-      this.APRIL = 4;
-      this.MAY = 5;
-      this.JUNE = 6;
-      this.JULY = 7;
-      this.AUGUST = 8;
-      this.SEPTEMBER = 9;
-      this.OCTOBER = 10;
-      this.NOVEMBER = 11;
-      this.DECEMBER = 12;
-      this.MONTHS_PER_YEAR = 12;
       this.millisecondsSinceEpoch = null;
       this.isUtc = null;
-      this._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     }
     __init__now() {
-      this.MONDAY = 1;
-      this.TUESDAY = 2;
-      this.WEDNESDAY = 3;
-      this.THURSDAY = 4;
-      this.FRIDAY = 5;
-      this.SATURDAY = 6;
-      this.SUNDAY = 7;
-      this.DAYS_PER_WEEK = 7;
-      this.JANUARY = 1;
-      this.FEBRUARY = 2;
-      this.MARCH = 3;
-      this.APRIL = 4;
-      this.MAY = 5;
-      this.JUNE = 6;
-      this.JULY = 7;
-      this.AUGUST = 8;
-      this.SEPTEMBER = 9;
-      this.OCTOBER = 10;
-      this.NOVEMBER = 11;
-      this.DECEMBER = 12;
-      this.MONTHS_PER_YEAR = 12;
       this.millisecondsSinceEpoch = null;
       this.isUtc = null;
-      this._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     }
     static _brokenDownDateToMillisecondsSinceEpoch(year, month, day, hour, minute, second, millisecond, isUtc) {}
     get timeZoneName() {}
@@ -303,18 +237,37 @@ var core;
   DateTime._internal.prototype = DateTime.prototype;
   DateTime._now = function() { this.__init__now() };
   DateTime._now.prototype = DateTime.prototype;
+  DateTime.MONDAY = 1;
+  DateTime.TUESDAY = 2;
+  DateTime.WEDNESDAY = 3;
+  DateTime.THURSDAY = 4;
+  DateTime.FRIDAY = 5;
+  DateTime.SATURDAY = 6;
+  DateTime.SUNDAY = 7;
+  DateTime.DAYS_PER_WEEK = 7;
+  DateTime.JANUARY = 1;
+  DateTime.FEBRUARY = 2;
+  DateTime.MARCH = 3;
+  DateTime.APRIL = 4;
+  DateTime.MAY = 5;
+  DateTime.JUNE = 6;
+  DateTime.JULY = 7;
+  DateTime.AUGUST = 8;
+  DateTime.SEPTEMBER = 9;
+  DateTime.OCTOBER = 10;
+  DateTime.NOVEMBER = 11;
+  DateTime.DECEMBER = 12;
+  DateTime.MONTHS_PER_YEAR = 12;
+  DateTime._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 
   class double extends num {
-    constructor() {
-      this.NAN = 0.0 / 0.0;
-      this.INFINITY = 1.0 / 0.0;
-      this.NEGATIVE_INFINITY = -INFINITY;
-      this.MIN_POSITIVE = 5e-324;
-      this.MAX_FINITE = 1.7976931348623157e+308;
-      super();
-    }
     static parse(source, onError) {}
   }
+  double.NAN = 0.0 / 0.0;
+  double.INFINITY = 1.0 / 0.0;
+  double.NEGATIVE_INFINITY = -INFINITY;
+  double.MIN_POSITIVE = 5e-324;
+  double.MAX_FINITE = 1.7976931348623157e+308;
 
   class Duration {
     constructor(opt$) {
@@ -328,22 +281,6 @@ var core;
     }
     __init__microseconds(_duration) {
       this._duration = _duration;
-      this.MICROSECONDS_PER_MILLISECOND = 1000;
-      this.MILLISECONDS_PER_SECOND = 1000;
-      this.SECONDS_PER_MINUTE = 60;
-      this.MINUTES_PER_HOUR = 60;
-      this.HOURS_PER_DAY = 24;
-      this.MICROSECONDS_PER_SECOND = MICROSECONDS_PER_MILLISECOND * MILLISECONDS_PER_SECOND;
-      this.MICROSECONDS_PER_MINUTE = MICROSECONDS_PER_SECOND * SECONDS_PER_MINUTE;
-      this.MICROSECONDS_PER_HOUR = MICROSECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-      this.MICROSECONDS_PER_DAY = MICROSECONDS_PER_HOUR * HOURS_PER_DAY;
-      this.MILLISECONDS_PER_MINUTE = MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE;
-      this.MILLISECONDS_PER_HOUR = MILLISECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-      this.MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * HOURS_PER_DAY;
-      this.SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-      this.SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
-      this.MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
-      this.ZERO = new Duration(/* Unimplemented NamedExpression: seconds: 0 */);
     }
     +(other) {
       return new Duration.this._microseconds(this._duration + other._duration);
@@ -403,6 +340,22 @@ var core;
   }
   Duration._microseconds = function(_duration) { this.__init__microseconds(_duration) };
   Duration._microseconds.prototype = Duration.prototype;
+  Duration.MICROSECONDS_PER_MILLISECOND = 1000;
+  Duration.MILLISECONDS_PER_SECOND = 1000;
+  Duration.SECONDS_PER_MINUTE = 60;
+  Duration.MINUTES_PER_HOUR = 60;
+  Duration.HOURS_PER_DAY = 24;
+  Duration.MICROSECONDS_PER_SECOND = MICROSECONDS_PER_MILLISECOND * MILLISECONDS_PER_SECOND;
+  Duration.MICROSECONDS_PER_MINUTE = MICROSECONDS_PER_SECOND * SECONDS_PER_MINUTE;
+  Duration.MICROSECONDS_PER_HOUR = MICROSECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  Duration.MICROSECONDS_PER_DAY = MICROSECONDS_PER_HOUR * HOURS_PER_DAY;
+  Duration.MILLISECONDS_PER_MINUTE = MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE;
+  Duration.MILLISECONDS_PER_HOUR = MILLISECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  Duration.MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * HOURS_PER_DAY;
+  Duration.SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  Duration.SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
+  Duration.MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
+  Duration.ZERO = new Duration(/* Unimplemented NamedExpression: seconds: 0 */);
 
   class Error {
     constructor() {
@@ -1047,7 +1000,6 @@ var core;
     constructor() {
       this._start = null;
       this._stop = null;
-      this._frequency = null;
       _initTicker();
     }
     start() {
@@ -1090,6 +1042,7 @@ var core;
     static _initTicker() {}
     static _now() {}
   }
+  Stopwatch._frequency = null;
 
   class String {
     __init_fromCharCodes(charCodes, start, end) {
@@ -1482,43 +1435,6 @@ var core;
       this._fragment = _fragment;
       this._pathSegments = null;
       this._queryParameters = null;
-      this._SPACE = 32;
-      this._DOUBLE_QUOTE = 34;
-      this._NUMBER_SIGN = 35;
-      this._PERCENT = 37;
-      this._ASTERISK = 42;
-      this._PLUS = 43;
-      this._DOT = 46;
-      this._SLASH = 47;
-      this._ZERO = 48;
-      this._NINE = 57;
-      this._COLON = 58;
-      this._LESS = 60;
-      this._GREATER = 62;
-      this._QUESTION = 63;
-      this._AT_SIGN = 64;
-      this._UPPER_CASE_A = 65;
-      this._UPPER_CASE_F = 70;
-      this._UPPER_CASE_Z = 90;
-      this._LEFT_BRACKET = 91;
-      this._BACKSLASH = 92;
-      this._RIGHT_BRACKET = 93;
-      this._LOWER_CASE_A = 97;
-      this._LOWER_CASE_F = 102;
-      this._LOWER_CASE_Z = 122;
-      this._BAR = 124;
-      this._unreservedTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 24576, 1023, 65534, 34815, 65534, 18431];
-      this._unreserved2396Table = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 26498, 1023, 65534, 34815, 65534, 18431];
-      this._encodeFullTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 65498, 45055, 65535, 34815, 65534, 18431];
-      this._schemeTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 26624, 1023, 65534, 2047, 65534, 2047];
-      this._schemeLowerTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 26624, 1023, 0, 0, 65534, 2047];
-      this._subDelimitersTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32722, 11263, 65534, 34815, 65534, 18431];
-      this._genDelimitersTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32776, 33792, 1, 10240, 0, 0];
-      this._userinfoTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32722, 12287, 65534, 34815, 65534, 18431];
-      this._regNameTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32754, 11263, 65534, 34815, 65534, 18431];
-      this._pathCharTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32722, 12287, 65535, 34815, 65534, 18431];
-      this._pathCharOrSlashTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 65490, 12287, 65535, 34815, 65534, 18431];
-      this._queryCharTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 65490, 45055, 65535, 34815, 65534, 18431];
     }
     constructor(opt$) {
       let scheme = opt$.scheme === undefined ? "" : opt$.scheme;
@@ -2292,7 +2208,7 @@ var core;
     }
     static splitQueryString(query, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
-      return /* Unimplemented: DownCast: dynamic to Map<String, String> */ query.split("&").fold(/* Unimplemented MapLiteral: {} */, (map, element) => {
+      return /* Unimplemented: DownCast: dynamic to Map<String, String> */ query.split("&").fold(dart.map(), (map, element) => {
         let index = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: element.indexOf("=") */;
         if (index === -1) {
           if (!dart.equals(element, "")) {
@@ -2501,6 +2417,43 @@ var core;
   Uri.https.prototype = Uri.prototype;
   Uri.file = function(path, opt$) { this.__init_file(path, opt$) };
   Uri.file.prototype = Uri.prototype;
+  Uri._SPACE = 32;
+  Uri._DOUBLE_QUOTE = 34;
+  Uri._NUMBER_SIGN = 35;
+  Uri._PERCENT = 37;
+  Uri._ASTERISK = 42;
+  Uri._PLUS = 43;
+  Uri._DOT = 46;
+  Uri._SLASH = 47;
+  Uri._ZERO = 48;
+  Uri._NINE = 57;
+  Uri._COLON = 58;
+  Uri._LESS = 60;
+  Uri._GREATER = 62;
+  Uri._QUESTION = 63;
+  Uri._AT_SIGN = 64;
+  Uri._UPPER_CASE_A = 65;
+  Uri._UPPER_CASE_F = 70;
+  Uri._UPPER_CASE_Z = 90;
+  Uri._LEFT_BRACKET = 91;
+  Uri._BACKSLASH = 92;
+  Uri._RIGHT_BRACKET = 93;
+  Uri._LOWER_CASE_A = 97;
+  Uri._LOWER_CASE_F = 102;
+  Uri._LOWER_CASE_Z = 122;
+  Uri._BAR = 124;
+  Uri._unreservedTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 24576, 1023, 65534, 34815, 65534, 18431];
+  Uri._unreserved2396Table = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 26498, 1023, 65534, 34815, 65534, 18431];
+  Uri._encodeFullTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 65498, 45055, 65535, 34815, 65534, 18431];
+  Uri._schemeTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 26624, 1023, 65534, 2047, 65534, 2047];
+  Uri._schemeLowerTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 26624, 1023, 0, 0, 65534, 2047];
+  Uri._subDelimitersTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32722, 11263, 65534, 34815, 65534, 18431];
+  Uri._genDelimitersTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32776, 33792, 1, 10240, 0, 0];
+  Uri._userinfoTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32722, 12287, 65534, 34815, 65534, 18431];
+  Uri._regNameTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32754, 11263, 65534, 34815, 65534, 18431];
+  Uri._pathCharTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 32722, 12287, 65535, 34815, 65534, 18431];
+  Uri._pathCharOrSlashTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 65490, 12287, 65535, 34815, 65534, 18431];
+  Uri._queryCharTable = /* Unimplemented const *//* Unimplemented ArrayList */[0, 0, 65490, 45055, 65535, 34815, 65534, 18431];
 
   // Exports:
   core.Deprecated = Deprecated;

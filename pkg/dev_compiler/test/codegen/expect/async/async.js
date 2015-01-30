@@ -60,9 +60,6 @@ var async;
 
   class _BroadcastSubscription/* Unimplemented <T> */ extends _ControllerSubscription/* Unimplemented <T> */ {
     constructor(controller, /* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, onError, /* Unimplemented FunctionTypedFormalParameter: void onDone() */, cancelOnError) {
-      this._STATE_EVENT_ID = 1;
-      this._STATE_FIRING = 2;
-      this._STATE_REMOVE_AFTER_FIRING = 4;
       this._eventState = null;
       this._next = null;
       this._previous = null;
@@ -85,17 +82,15 @@ var async;
     _onResume() {
     }
   }
+  _BroadcastSubscription._STATE_EVENT_ID = 1;
+  _BroadcastSubscription._STATE_FIRING = 2;
+  _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING = 4;
 
   class _BroadcastStreamController/* Unimplemented <T> */ {
     constructor(_onListen, _onCancel) {
       this._onListen = _onListen;
       this._onCancel = _onCancel;
       this._state = _STATE_INITIAL;
-      this._STATE_INITIAL = 0;
-      this._STATE_EVENT_ID = 1;
-      this._STATE_FIRING = 2;
-      this._STATE_CLOSED = 4;
-      this._STATE_ADDSTREAM = 8;
       this._next = null;
       this._previous = null;
       this._addStreamState = null;
@@ -258,6 +253,11 @@ var async;
       _runGuarded(this._onCancel);
     }
   }
+  _BroadcastStreamController._STATE_INITIAL = 0;
+  _BroadcastStreamController._STATE_EVENT_ID = 1;
+  _BroadcastStreamController._STATE_FIRING = 2;
+  _BroadcastStreamController._STATE_CLOSED = 4;
+  _BroadcastStreamController._STATE_ADDSTREAM = 8;
 
   class _SyncBroadcastStreamController/* Unimplemented <T> */ extends _BroadcastStreamController/* Unimplemented <T> */ {
     constructor(/* Unimplemented FunctionTypedFormalParameter: void onListen() */, /* Unimplemented FunctionTypedFormalParameter: void onCancel() */) {
@@ -534,6 +534,9 @@ var async;
   Future.error.prototype = Future.prototype;
   Future.delayed = function(duration, computation) { this.__init_delayed(duration, computation) };
   Future.delayed.prototype = Future.prototype;
+  dart.defineLazyProperties(Future, {
+    get _nullFuture() { return /* Unimplemented: DownCastExact: Future<dynamic> to _Future<dynamic> */ new Future.this.value(null) },
+  });
 
   class TimeoutException {
     constructor(message, duration) {
@@ -620,16 +623,6 @@ var async;
       this.callback = onValue;
       this.errorCallback = errorCallback;
       this.state = (errorCallback === null) ? STATE_THEN : STATE_THEN_ONERROR;
-      this.MASK_VALUE = 1;
-      this.MASK_ERROR = 2;
-      this.MASK_TEST_ERROR = 4;
-      this.MASK_WHENCOMPLETE = 8;
-      this.STATE_CHAIN = 0;
-      this.STATE_THEN = MASK_VALUE;
-      this.STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
-      this.STATE_CATCHERROR = MASK_ERROR;
-      this.STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
-      this.STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
       this._nextListener = null;
     }
     __init_catchError(result, errorCallback, test) {
@@ -637,16 +630,6 @@ var async;
       this.errorCallback = errorCallback;
       this.callback = test;
       this.state = (test === null) ? STATE_CATCHERROR : STATE_CATCHERROR_TEST;
-      this.MASK_VALUE = 1;
-      this.MASK_ERROR = 2;
-      this.MASK_TEST_ERROR = 4;
-      this.MASK_WHENCOMPLETE = 8;
-      this.STATE_CHAIN = 0;
-      this.STATE_THEN = MASK_VALUE;
-      this.STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
-      this.STATE_CATCHERROR = MASK_ERROR;
-      this.STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
-      this.STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
       this._nextListener = null;
     }
     __init_whenComplete(result, onComplete) {
@@ -654,16 +637,6 @@ var async;
       this.callback = onComplete;
       this.errorCallback = null;
       this.state = STATE_WHENCOMPLETE;
-      this.MASK_VALUE = 1;
-      this.MASK_ERROR = 2;
-      this.MASK_TEST_ERROR = 4;
-      this.MASK_WHENCOMPLETE = 8;
-      this.STATE_CHAIN = 0;
-      this.STATE_THEN = MASK_VALUE;
-      this.STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
-      this.STATE_CATCHERROR = MASK_ERROR;
-      this.STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
-      this.STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
       this._nextListener = null;
     }
     __init_chain(result) {
@@ -671,16 +644,6 @@ var async;
       this.callback = null;
       this.errorCallback = null;
       this.state = STATE_CHAIN;
-      this.MASK_VALUE = 1;
-      this.MASK_ERROR = 2;
-      this.MASK_TEST_ERROR = 4;
-      this.MASK_WHENCOMPLETE = 8;
-      this.STATE_CHAIN = 0;
-      this.STATE_THEN = MASK_VALUE;
-      this.STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
-      this.STATE_CATCHERROR = MASK_ERROR;
-      this.STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
-      this.STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
       this._nextListener = null;
     }
     get _zone() { return this.result._zone; }
@@ -710,25 +673,25 @@ var async;
   _FutureListener.whenComplete.prototype = _FutureListener.prototype;
   _FutureListener.chain = function(result) { this.__init_chain(result) };
   _FutureListener.chain.prototype = _FutureListener.prototype;
+  _FutureListener.MASK_VALUE = 1;
+  _FutureListener.MASK_ERROR = 2;
+  _FutureListener.MASK_TEST_ERROR = 4;
+  _FutureListener.MASK_WHENCOMPLETE = 8;
+  _FutureListener.STATE_CHAIN = 0;
+  _FutureListener.STATE_THEN = MASK_VALUE;
+  _FutureListener.STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
+  _FutureListener.STATE_CATCHERROR = MASK_ERROR;
+  _FutureListener.STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
+  _FutureListener.STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
 
   class _Future/* Unimplemented <T> */ {
     constructor() {
       this._zone = Zone.current;
-      this._INCOMPLETE = 0;
-      this._PENDING_COMPLETE = 1;
-      this._CHAINED = 2;
-      this._VALUE = 4;
-      this._ERROR = 8;
       this._state = _INCOMPLETE;
       this._resultOrListeners = null;
     }
     __init_immediate(value) {
       this._zone = Zone.current;
-      this._INCOMPLETE = 0;
-      this._PENDING_COMPLETE = 1;
-      this._CHAINED = 2;
-      this._VALUE = 4;
-      this._ERROR = 8;
       this._state = _INCOMPLETE;
       this._resultOrListeners = null;
       this._asyncComplete(value);
@@ -736,11 +699,6 @@ var async;
     __init_immediateError(error, stackTrace) {
       if (stackTrace === undefined) stackTrace = null;
       this._zone = Zone.current;
-      this._INCOMPLETE = 0;
-      this._PENDING_COMPLETE = 1;
-      this._CHAINED = 2;
-      this._VALUE = 4;
-      this._ERROR = 8;
       this._state = _INCOMPLETE;
       this._resultOrListeners = null;
       this._asyncCompleteError(error, stackTrace);
@@ -1065,6 +1023,11 @@ var async;
   _Future.immediate.prototype = _Future.prototype;
   _Future.immediateError = function(error, stackTrace) { this.__init_immediateError(error, stackTrace) };
   _Future.immediateError.prototype = _Future.prototype;
+  _Future._INCOMPLETE = 0;
+  _Future._PENDING_COMPLETE = 1;
+  _Future._CHAINED = 2;
+  _Future._VALUE = 4;
+  _Future._ERROR = 8;
 
   class _AsyncCallbackEntry {
     constructor(callback) {
@@ -1660,12 +1623,6 @@ var async;
 
   class _StreamController/* Unimplemented <T> */ {
     constructor() {
-      this._STATE_INITIAL = 0;
-      this._STATE_SUBSCRIBED = 1;
-      this._STATE_CANCELED = 2;
-      this._STATE_SUBSCRIPTION_MASK = 3;
-      this._STATE_CLOSED = 4;
-      this._STATE_ADDSTREAM = 8;
       this._varData = null;
       this._state = _STATE_INITIAL;
       this._doneFuture = null;
@@ -1848,6 +1805,12 @@ var async;
       _runGuarded(this._onResume);
     }
   }
+  _StreamController._STATE_INITIAL = 0;
+  _StreamController._STATE_SUBSCRIBED = 1;
+  _StreamController._STATE_CANCELED = 2;
+  _StreamController._STATE_SUBSCRIPTION_MASK = 3;
+  _StreamController._STATE_CLOSED = 4;
+  _StreamController._STATE_ADDSTREAM = 8;
 
   class _SyncStreamControllerDispatch/* Unimplemented <T> */ {
     _sendData(data) {
@@ -2009,15 +1972,6 @@ var async;
     constructor(/* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, onError, /* Unimplemented FunctionTypedFormalParameter: void onDone() */, cancelOnError) {
       this._zone = Zone.current;
       this._state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0);
-      this._STATE_CANCEL_ON_ERROR = 1;
-      this._STATE_CLOSED = 2;
-      this._STATE_INPUT_PAUSED = 4;
-      this._STATE_CANCELED = 8;
-      this._STATE_WAIT_FOR_CANCEL = 16;
-      this._STATE_IN_CALLBACK = 32;
-      this._STATE_HAS_PENDING = 64;
-      this._STATE_PAUSE_COUNT = 128;
-      this._STATE_PAUSE_COUNT_SHIFT = 7;
       this._onData = null;
       this._onError = null;
       this._onDone = null;
@@ -2274,6 +2228,15 @@ var async;
       }
     }
   }
+  _BufferingStreamSubscription._STATE_CANCEL_ON_ERROR = 1;
+  _BufferingStreamSubscription._STATE_CLOSED = 2;
+  _BufferingStreamSubscription._STATE_INPUT_PAUSED = 4;
+  _BufferingStreamSubscription._STATE_CANCELED = 8;
+  _BufferingStreamSubscription._STATE_WAIT_FOR_CANCEL = 16;
+  _BufferingStreamSubscription._STATE_IN_CALLBACK = 32;
+  _BufferingStreamSubscription._STATE_HAS_PENDING = 64;
+  _BufferingStreamSubscription._STATE_PAUSE_COUNT = 128;
+  _BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
 
   class _StreamImpl/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
     listen(/* Unimplemented FunctionTypedFormalParameter: void onData(T data) */, opt$) {
@@ -2386,9 +2349,6 @@ var async;
 
   class _PendingEvents {
     constructor() {
-      this._STATE_UNSCHEDULED = 0;
-      this._STATE_SCHEDULED = 1;
-      this._STATE_CANCELED = 3;
       this._state = _STATE_UNSCHEDULED;
       super();
     }
@@ -2414,6 +2374,9 @@ var async;
       if (this.isScheduled) this._state = _STATE_CANCELED;
     }
   }
+  _PendingEvents._STATE_UNSCHEDULED = 0;
+  _PendingEvents._STATE_SCHEDULED = 1;
+  _PendingEvents._STATE_CANCELED = 3;
 
   class _StreamImplEvents extends _PendingEvents {
     constructor() {
@@ -2469,9 +2432,6 @@ var async;
     constructor(_onDone) {
       this._onDone = _onDone;
       this._zone = Zone.current;
-      this._DONE_SENT = 1;
-      this._SCHEDULED = 2;
-      this._PAUSED = 4;
       this._state = 0;
       this._schedule();
     }
@@ -2519,6 +2479,9 @@ var async;
       if (this._onDone !== null) this._zone.runGuarded(this._onDone);
     }
   }
+  _DoneStreamSubscription._DONE_SENT = 1;
+  _DoneStreamSubscription._SCHEDULED = 2;
+  _DoneStreamSubscription._PAUSED = 4;
 
   class _AsBroadcastStream/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
     constructor(_source, /* Unimplemented FunctionTypedFormalParameter: void onListenHandler(StreamSubscription subscription) */, /* Unimplemented FunctionTypedFormalParameter: void onCancelHandler(StreamSubscription subscription) */) {
@@ -2618,12 +2581,6 @@ var async;
 
   class _StreamIteratorImpl/* Unimplemented <T> */ {
     constructor(stream) {
-      this._STATE_FOUND = 0;
-      this._STATE_DONE = 1;
-      this._STATE_MOVING = 2;
-      this._STATE_EXTRA_DATA = 3;
-      this._STATE_EXTRA_ERROR = 4;
-      this._STATE_EXTRA_DONE = 5;
       this._subscription = null;
       this._current = null;
       this._futureOrPrefetch = null;
@@ -2705,6 +2662,12 @@ var async;
       this._state = _STATE_EXTRA_DONE;
     }
   }
+  _StreamIteratorImpl._STATE_FOUND = 0;
+  _StreamIteratorImpl._STATE_DONE = 1;
+  _StreamIteratorImpl._STATE_MOVING = 2;
+  _StreamIteratorImpl._STATE_EXTRA_DATA = 3;
+  _StreamIteratorImpl._STATE_EXTRA_ERROR = 4;
+  _StreamIteratorImpl._STATE_EXTRA_DONE = 5;
 
   // Function _runUserCode: (() → dynamic, (dynamic) → dynamic, (dynamic, StackTrace) → dynamic) → dynamic
   function _runUserCode(/* Unimplemented FunctionTypedFormalParameter: userCode() */, /* Unimplemented FunctionTypedFormalParameter: onSuccess(value) */, /* Unimplemented FunctionTypedFormalParameter: onError(error, StackTrace stackTrace) */) {
@@ -2945,7 +2908,6 @@ var async;
 
   class _DistinctStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
     constructor(source, /* Unimplemented FunctionTypedFormalParameter: bool equals(T a, T b) */) {
-      _SENTINEL = new dart_core.Object();
       this._previous = _SENTINEL;
       this._equals = equals;
       super(source);
@@ -2964,6 +2926,10 @@ var async;
       }
     }
   }
+  dart.defineLazyProperties(_DistinctStream, {
+    get _SENTINEL() { return new dart_core.Object() },
+    set _SENTINEL(x) {},
+  });
 
   class _EventSinkWrapper/* Unimplemented <T> */ {
     constructor(_sink) {
@@ -3220,8 +3186,6 @@ var async;
 
   class Zone {
     __init__() {
-      this.ROOT = /* Unimplemented: DownCast: dynamic to Zone */ _ROOT_ZONE;
-      this._current = /* Unimplemented: DownCast: dynamic to Zone */ _ROOT_ZONE;
     }
     static get current() { return _current; }
     static _enter(zone) {
@@ -3238,6 +3202,8 @@ var async;
   }
   Zone._ = function() { this.__init__() };
   Zone._.prototype = Zone.prototype;
+  Zone.ROOT = /* Unimplemented: DownCast: dynamic to Zone */ _ROOT_ZONE;
+  Zone._current = /* Unimplemented: DownCast: dynamic to Zone */ _ROOT_ZONE;
 
   // Function _parentDelegate: (_Zone) → ZoneDelegate
   function _parentDelegate(zone) {
@@ -3617,8 +3583,6 @@ var async;
 
   class _RootZone extends _Zone {
     constructor() {
-      _rootMap = new collection.HashMap();
-      this._rootDelegate = null;
       super();
     }
     get _run() { return new _ZoneFunction(_ROOT_ZONE, _rootRun); }
@@ -3712,6 +3676,11 @@ var async;
       _internal.printToConsole(line);
     }
   }
+  _RootZone._rootDelegate = null;
+  dart.defineLazyProperties(_RootZone, {
+    get _rootMap() { return new collection.HashMap() },
+    set _rootMap(x) {},
+  });
 
   let _ROOT_ZONE = new _RootZone();
   // Function runZoned: (() → dynamic, {zoneValues: Map<dynamic, dynamic>, zoneSpecification: ZoneSpecification, onError: Function}) → dynamic

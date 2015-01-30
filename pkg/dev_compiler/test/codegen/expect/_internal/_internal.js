@@ -1194,10 +1194,6 @@ var _internal;
   function printToConsole(line) {}
 
   class Sort {
-    constructor() {
-      this._INSERTION_SORT_THRESHOLD = 32;
-      super();
-    }
     static sort(a, /* Unimplemented FunctionTypedFormalParameter: int compare(a, b) */) {
       _doSort(a, 0, a.length - 1, compare);
     }
@@ -1418,34 +1414,17 @@ var _internal;
       }
     }
   }
+  Sort._INSERTION_SORT_THRESHOLD = 32;
 
   class Symbol {
     constructor(name) {
-      publicSymbolPattern = new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (publicIdentifierRE) + "(?:=?$|[.](?!$)))+?$");
-      symbolPattern = new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (identifierRE) + "(?:=?$|[.](?!$)))+?$");
       this._name = null;
-      this.reservedWordRE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|" + "e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|" + "ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|" + "v(?:ar|oid)|w(?:hile|ith))";
-      this.publicIdentifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$][\w$]*";
-      this.identifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$_][\w$]*";
-      this.operatorRE = "(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
     }
     __init_unvalidated(_name) {
-      publicSymbolPattern = new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (publicIdentifierRE) + "(?:=?$|[.](?!$)))+?$");
-      symbolPattern = new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (identifierRE) + "(?:=?$|[.](?!$)))+?$");
       this._name = _name;
-      this.reservedWordRE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|" + "e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|" + "ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|" + "v(?:ar|oid)|w(?:hile|ith))";
-      this.publicIdentifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$][\w$]*";
-      this.identifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$_][\w$]*";
-      this.operatorRE = "(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
     }
     __init_validated(name) {
-      publicSymbolPattern = new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (publicIdentifierRE) + "(?:=?$|[.](?!$)))+?$");
-      symbolPattern = new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (identifierRE) + "(?:=?$|[.](?!$)))+?$");
       this._name = validatePublicSymbol(name);
-      this.reservedWordRE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|" + "e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|" + "ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|" + "v(?:ar|oid)|w(?:hile|ith))";
-      this.publicIdentifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$][\w$]*";
-      this.identifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$_][\w$]*";
-      this.operatorRE = "(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
     }
     ==(other) { return /* Unimplemented IsExpression: other is Symbol */ && dart.equals(this._name, dart.dload(other, "_name")); }
     get hashCode() {
@@ -1469,6 +1448,14 @@ var _internal;
   Symbol.unvalidated.prototype = Symbol.prototype;
   Symbol.validated = function(name) { this.__init_validated(name) };
   Symbol.validated.prototype = Symbol.prototype;
+  Symbol.reservedWordRE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|" + "e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|" + "ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|" + "v(?:ar|oid)|w(?:hile|ith))";
+  Symbol.publicIdentifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$][\w$]*";
+  Symbol.identifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$_][\w$]*";
+  Symbol.operatorRE = "(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+  dart.defineLazyProperties(Symbol, {
+    get publicSymbolPattern() { return new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (publicIdentifierRE) + "(?:=?$|[.](?!$)))+?$") },
+    get symbolPattern() { return new dart_core.RegExp("^(?:" + (operatorRE) + "$|" + (identifierRE) + "(?:=?$|[.](?!$)))+?$") },
+  });
 
   // Exports:
   _internal.POWERS_OF_TEN = POWERS_OF_TEN;

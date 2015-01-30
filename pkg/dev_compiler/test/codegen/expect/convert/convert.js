@@ -237,7 +237,6 @@ var convert;
     constructor(/* Unimplemented FunctionTypedFormalParameter: void callback(List<int> accumulated) */) {
       this._buffer = new typed_data.Uint8List(_INITIAL_BUFFER_SIZE);
       this._callback = callback;
-      this._INITIAL_BUFFER_SIZE = 1024;
       this._bufferIndex = 0;
       super();
     }
@@ -268,6 +267,7 @@ var convert;
       this._callback(this._buffer.sublist(0, this._bufferIndex));
     }
   }
+  _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
 
   class ChunkedConversionSink/* Unimplemented <T> */ {
     constructor() {
@@ -373,7 +373,6 @@ var convert;
 
   class Encoding extends Codec/* Unimplemented <String, List<int>> */ {
     constructor() {
-      _nameToEncoding = /* Unimplemented MapLiteral: <String, Encoding> {"iso_8859-1:1987" : LATIN1, "iso-ir-100" : LATIN1, "iso_8859-1" : LATIN1, "iso-8859-1" : LATIN1, "latin1" : LATIN1, "l1" : LATIN1, "ibm819" : LATIN1, "cp819" : LATIN1, "csisolatin1" : LATIN1, "iso-ir-6" : ASCII, "ansi_x3.4-1968" : ASCII, "ansi_x3.4-1986" : ASCII, "iso_646.irv:1991" : ASCII, "iso646-us" : ASCII, "us-ascii" : ASCII, "us" : ASCII, "ibm367" : ASCII, "cp367" : ASCII, "csascii" : ASCII, "ascii" : ASCII, "csutf8" : UTF8, "utf-8" : UTF8} */;
       super();
     }
     decodeStream(byteStream) {
@@ -386,6 +385,33 @@ var convert;
       return _nameToEncoding[name];
     }
   }
+  dart.defineLazyProperties(Encoding, {
+    get _nameToEncoding() { return dart.map({
+      "iso_8859-1:1987": LATIN1,
+      "iso-ir-100": LATIN1,
+      "iso_8859-1": LATIN1,
+      "iso-8859-1": LATIN1,
+      "latin1": LATIN1,
+      "l1": LATIN1,
+      "ibm819": LATIN1,
+      "cp819": LATIN1,
+      "csisolatin1": LATIN1,
+      "iso-ir-6": ASCII,
+      "ansi_x3.4-1968": ASCII,
+      "ansi_x3.4-1986": ASCII,
+      "iso_646.irv:1991": ASCII,
+      "iso646-us": ASCII,
+      "us-ascii": ASCII,
+      "us": ASCII,
+      "ibm367": ASCII,
+      "cp367": ASCII,
+      "csascii": ASCII,
+      "ascii": ASCII,
+      "csutf8": UTF8,
+      "utf-8": UTF8
+    }) },
+    set _nameToEncoding(x) {},
+  });
 
   let HTML_ESCAPE = new HtmlEscape();
   class HtmlEscapeMode {
@@ -395,14 +421,14 @@ var convert;
       this.escapeQuot = escapeQuot;
       this.escapeApos = escapeApos;
       this.escapeSlash = escapeSlash;
-      this.UNKNOWN = new HtmlEscapeMode.this._("unknown", true, true, true, true);
-      this.ATTRIBUTE = new HtmlEscapeMode.this._("attribute", false, true, false, false);
-      this.ELEMENT = new HtmlEscapeMode.this._("element", true, false, false, true);
     }
     toString() { return this._name; }
   }
   HtmlEscapeMode._ = function(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) { this.__init__(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) };
   HtmlEscapeMode._.prototype = HtmlEscapeMode.prototype;
+  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode.this._("unknown", true, true, true, true);
+  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode.this._("attribute", false, true, false, false);
+  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode.this._("element", true, false, false, true);
 
   class HtmlEscape extends Converter/* Unimplemented <String, String> */ {
     constructor(mode) {
@@ -558,7 +584,6 @@ var convert;
       this._indent = _utf8Encode(indent);
       this._toEncodable = toEncodable;
       this._bufferSize = bufferSize;
-      this.DEFAULT_BUFFER_SIZE = 256;
       super();
     }
     static _utf8Encode(string) {
@@ -608,6 +633,7 @@ var convert;
       return super.fuse(other);
     }
   }
+  JsonUtf8Encoder.DEFAULT_BUFFER_SIZE = 256;
 
   class _JsonEncoderSink extends ChunkedConversionSink/* Unimplemented <Object> */ {
     constructor(_sink, _toEncodable, _indent) {
@@ -679,20 +705,6 @@ var convert;
     constructor(/* Unimplemented FunctionTypedFormalParameter: Object _toEncodable(Object o) */) {
       this._seen = new dart_core.List();
       this._toEncodable = (_toEncodable !== null) ? _toEncodable : _defaultToEncodable;
-      this.BACKSPACE = 8;
-      this.TAB = 9;
-      this.NEWLINE = 10;
-      this.CARRIAGE_RETURN = 13;
-      this.FORM_FEED = 12;
-      this.QUOTE = 34;
-      this.CHAR_0 = 48;
-      this.BACKSLASH = 92;
-      this.CHAR_b = 98;
-      this.CHAR_f = 102;
-      this.CHAR_n = 110;
-      this.CHAR_r = 114;
-      this.CHAR_t = 116;
-      this.CHAR_u = 117;
     }
     static hexDigit(x) { return x < 10 ? 48 + x : 87 + x; }
     writeStringContent(s) {
@@ -800,6 +812,20 @@ var convert;
       this.writeString("}");
     }
   }
+  _JsonStringifier.BACKSPACE = 8;
+  _JsonStringifier.TAB = 9;
+  _JsonStringifier.NEWLINE = 10;
+  _JsonStringifier.CARRIAGE_RETURN = 13;
+  _JsonStringifier.FORM_FEED = 12;
+  _JsonStringifier.QUOTE = 34;
+  _JsonStringifier.CHAR_0 = 48;
+  _JsonStringifier.BACKSLASH = 92;
+  _JsonStringifier.CHAR_b = 98;
+  _JsonStringifier.CHAR_f = 102;
+  _JsonStringifier.CHAR_n = 110;
+  _JsonStringifier.CHAR_r = 114;
+  _JsonStringifier.CHAR_t = 116;
+  _JsonStringifier.CHAR_u = 117;
 
   class _JsonPrettyPrintMixin {
     constructor() {
@@ -1154,8 +1180,6 @@ var convert;
   class _LineSplitterSink extends StringConversionSinkBase {
     constructor(_sink) {
       this._sink = _sink;
-      this._LF = 10;
-      this._CR = 13;
       this._carry = null;
       super();
     }
@@ -1211,6 +1235,8 @@ var convert;
       return null;
     }
   }
+  _LineSplitterSink._LF = 10;
+  _LineSplitterSink._CR = 13;
 
   class StringConversionSink extends ChunkedConversionSink/* Unimplemented <String> */ {
     constructor() {
@@ -1263,7 +1289,6 @@ var convert;
     constructor(_chunkedSink) {
       this._chunkedSink = _chunkedSink;
       this._buffer = new dart_core.StringBuffer();
-      this._MIN_STRING_SIZE = 16;
     }
     close() {
       if (this._buffer.isNotEmpty) this._flush();
@@ -1308,6 +1333,7 @@ var convert;
       this._chunkedSink.add(accumulated);
     }
   }
+  _StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE = 16;
 
   class StringConversionSinkBase extends StringConversionSinkMixin {
   }
@@ -1501,7 +1527,6 @@ var convert;
       this._buffer = _createBuffer(bufferSize);
       this._carry = 0;
       this._bufferIndex = 0;
-      this._DEFAULT_BYTE_BUFFER_SIZE = 1024;
     }
     static _createBuffer(size) { return new typed_data.Uint8List(size); }
     _writeSurrogate(leadingSurrogate, nextCodeUnit) {
@@ -1556,6 +1581,7 @@ var convert;
   }
   _Utf8Encoder.withBufferSize = function(bufferSize) { this.__init_withBufferSize(bufferSize) };
   _Utf8Encoder.withBufferSize.prototype = _Utf8Encoder.prototype;
+  _Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE = 1024;
 
   class _Utf8EncoderSink extends dart.mixin(_Utf8Encoder, StringConversionSinkMixin) {
     constructor(_sink) {
@@ -1669,7 +1695,6 @@ var convert;
       this._value = 0;
       this._expectedUnits = 0;
       this._extraUnits = 0;
-      this._LIMITS = /* Unimplemented const *//* Unimplemented ArrayList */[_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT];
     }
     get hasPartialInput() { return this._expectedUnits > 0; }
     close() {
@@ -1717,6 +1742,7 @@ var convert;
       }
     }
   }
+  _Utf8Decoder._LIMITS = /* Unimplemented const *//* Unimplemented ArrayList */[_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT];
 
   // Exports:
   convert.ASCII = ASCII;

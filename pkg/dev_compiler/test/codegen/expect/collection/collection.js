@@ -217,7 +217,6 @@ var collection;
 
   class IterableBase/* Unimplemented <E> */ {
     constructor() {
-      _toStringVisiting = /* Unimplemented ArrayList */[];
     }
     map(/* Unimplemented FunctionTypedFormalParameter: f(E element) */) { return new _internal.MappedIterable(this, f); }
     where(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) { return new _internal.WhereIterable(this, f); }
@@ -457,13 +456,13 @@ var collection;
       parts.add(ultimateString);
     }
   }
+  dart.defineLazyProperties(IterableBase, {
+    get _toStringVisiting() { return /* Unimplemented ArrayList */[] },
+  });
 
   class HasNextIterator/* Unimplemented <E> */ {
     constructor(_iterator) {
       this._iterator = _iterator;
-      this._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
-      this._NO_NEXT = 1;
-      this._NOT_MOVED_YET = 2;
       this._state = _NOT_MOVED_YET;
     }
     get hasNext() {
@@ -486,6 +485,9 @@ var collection;
       }
     }
   }
+  HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
+  HasNextIterator._NO_NEXT = 1;
+  HasNextIterator._NOT_MOVED_YET = 2;
 
   class LinkedHashMap/* Unimplemented <K, V> */ {
     constructor(opt$) {
@@ -1452,7 +1454,6 @@ var collection;
       if (initialCapacity === undefined) initialCapacity = null;
       this._head = 0;
       this._tail = 0;
-      this._INITIAL_CAPACITY = 8;
       this._table = null;
       this._modificationCount = 0;
       super();
@@ -1706,6 +1707,7 @@ var collection;
   }
   ListQueue.from = function(elements) { this.__init_from(elements) };
   ListQueue.from.prototype = ListQueue.prototype;
+  ListQueue._INITIAL_CAPACITY = 8;
 
   class _ListQueueIterator/* Unimplemented <E> */ {
     constructor(queue) {
