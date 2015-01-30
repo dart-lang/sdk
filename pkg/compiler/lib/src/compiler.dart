@@ -743,9 +743,6 @@ abstract class Compiler implements DiagnosticListener {
   /// `true` if async/await features are supported.
   final bool enableAsyncAwait;
 
-  /// `true` if enum declarations are supported.
-  final bool enableEnums;
-
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
   final bool hasIncrementalSupport;
@@ -1008,7 +1005,6 @@ abstract class Compiler implements DiagnosticListener {
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
             this.enableAsyncAwait: false,
-            this.enableEnums: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             api.CompilerOutputProvider outputProvider,

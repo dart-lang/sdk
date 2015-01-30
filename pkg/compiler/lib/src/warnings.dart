@@ -812,7 +812,6 @@ main() => new C();
   static const MessageKind CANNOT_EXTEND_ENUM = const MessageKind(
       "Class '#{className}' can't extend the type '#{enumType}' because "
       "it is declared by an enum.",
-      options: const ['--enable-enum'],
       howToFix: "Try making '#{enumType}' a normal class or removing the "
         "'extends' clause.",
       examples: const ["""
@@ -823,7 +822,6 @@ main() => new B();"""]);
   static const MessageKind CANNOT_IMPLEMENT_ENUM = const MessageKind(
       "Class '#{className}' can't implement the type '#{enumType}' "
       "because it is declared by an enum.",
-      options: const ['--enable-enum'],
       howToFix: "Try making '#{enumType}' a normal class or removing the "
         "type from the 'implements' clause.",
       examples: const ["""
@@ -834,7 +832,6 @@ main() => new B();"""]);
   static const MessageKind CANNOT_MIXIN_ENUM = const MessageKind(
       "Class '#{className}' can't mixin the type '#{enumType}' because it "
       "is declared by an enum.",
-      options: const ['--enable-enum'],
       howToFix: "Try making '#{enumType}' a normal class or removing the "
         "type from the 'with' clause.",
       examples: const ["""
@@ -844,7 +841,6 @@ main() => new B();"""]);
 
   static const MessageKind CANNOT_INSTANTIATE_ENUM = const MessageKind(
       "Enum type '#{enumName}' cannot be instantiated.",
-      options: const ['--enable-enum'],
       howToFix: "Try making '#{enumType}' a normal class or use an enum "
                 "constant.",
       examples: const ["""
@@ -855,7 +851,6 @@ main() => const Enum(0);"""]);
 
   static const MessageKind EMPTY_ENUM_DECLARATION = const MessageKind(
       "Enum '#{enumName}' must contain at least one value.",
-      options: const ['--enable-enum'],
       howToFix: "Try adding an enum constant or making #{enumName} a "
                 "normal class.",
       examples: const ["""
@@ -864,7 +859,6 @@ main() { Enum e; }"""]);
 
   static const MessageKind MISSING_ENUM_CASES = const MessageKind(
       "Missing enum constants in switch statement: #{enumValues}.",
-      options: const ['--enable-enum'],
       howToFix: "Try adding the missing constants or a default case.",
       examples: const ["""
 enum Enum { A, B }
@@ -2080,15 +2074,6 @@ Please include the following information:
     "When run on the command-line, the compiled output might"
     " require a preamble file located in:\n"
     "  <sdk>/lib/_internal/compiler/js_lib/preambles.");
-
-
-  static const MessageKind EXPERIMENTAL_ENUMS = const MessageKind(
-      "Experimental language feature 'enums' is not supported.",
-      howToFix: "Use option '--enable-enum' to use enum declarations.",
-      examples: const ["""
-enum Enum { A, B, C }
-main() => print(Enum.A);
-"""]);
 
   static const MessageKind EXPERIMENTAL_ASYNC_AWAIT = const MessageKind(
       "Experimental language feature 'async/await' is not supported.");

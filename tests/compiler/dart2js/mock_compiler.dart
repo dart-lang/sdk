@@ -74,7 +74,6 @@ class MockCompiler extends Compiler {
        // affected by inlining support.
        bool disableInlining: true,
        bool trustTypeAnnotations: false,
-       bool enableEnums: false,
        int this.expectedWarnings,
        int this.expectedErrors,
        api.CompilerOutputProvider outputProvider,
@@ -92,7 +91,6 @@ class MockCompiler extends Compiler {
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true,
-              enableEnums: enableEnums,
               outputProvider: outputProvider) {
     this.disableInlining = disableInlining;
 
@@ -274,10 +272,8 @@ class MockCompiler extends Compiler {
   }
 
   /// Create a new [MockCompiler] and apply it asynchronously to [f].
-  static Future create(f(MockCompiler compiler),
-                       {bool enableEnums: false}) {
-    MockCompiler compiler = new MockCompiler.internal(
-        enableEnums: enableEnums);
+  static Future create(f(MockCompiler compiler)) {
+    MockCompiler compiler = new MockCompiler.internal();
     return compiler.init().then((_) => f(compiler));
   }
 }

@@ -4266,10 +4266,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   @override
   DartType visitEnum(Enum node) {
-    if (!compiler.enableEnums) {
-      compiler.reportError(node, MessageKind.EXPERIMENTAL_ENUMS);
-    }
-
     if (element == null) {
       throw compiler.internalError(node, 'element is null');
     }

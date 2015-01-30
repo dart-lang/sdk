@@ -176,7 +176,7 @@ enum Enum { A, B, C }
 """;
 
   check(String code, {warnings}) {
-    MockCompiler compiler = new MockCompiler.internal(enableEnums: true);
+    MockCompiler compiler = new MockCompiler.internal();
     return compiler.init(DECLARATIONS).then((_) {
       analyze(compiler, code, warnings: warnings, flushDeferred: true);
     });

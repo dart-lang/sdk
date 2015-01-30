@@ -85,7 +85,6 @@ class Compiler extends leg.Compiler {
             enableExperimentalMirrors:
                 hasOption(options, '--enable-experimental-mirrors'),
             enableAsyncAwait: hasOption(options, '--enable-async'),
-            enableEnums: hasOption(options, '--enable-enum'),
             generateCodeWithCompileTimeErrors:
                 hasOption(options, '--generate-code-with-compile-time-errors'),
             allowNativeExtensions:
