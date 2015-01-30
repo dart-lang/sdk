@@ -78,6 +78,33 @@ main() {
       injectSource(JS_CODE);
     });
 
+    test('js-to-dart--null-prototype-eventdata', () {
+      // Pass an object with a null prototype from JavaScript.
+      // It should be seen as a Dart Map.
+      final JS_CODE = """
+         // Call anonymous function to create a local scope.
+         (function() {
+            var o = Object.create(null);
+            o.eggs = 3;
+            var foo = new MessageEvent('stuff', {data: o});
+            window.dispatchEvent(foo);
+          })();
+        """;
+      var completed = false;
+      var subscription = null;
+      subscription = window.on['stuff'].listen(expectAsyncUntil(
+        (MessageEvent e) {
+          var data = e.data;
+          if (data is String) return;    // Messages from unit test protocol.
+          completed = true;
+          subscription.cancel();
+          expect(data, isMap);
+          expect(data['eggs'], equals(3));
+        },
+        () => completed));
+      injectSource(JS_CODE);
+    });
+
     test('dart-to-js-to-dart-postmessage', () {
       // Pass dictionaries between Dart and JavaScript.
 
