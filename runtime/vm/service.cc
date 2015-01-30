@@ -272,6 +272,35 @@ class ScopeStopwatch : public ValueObject {
 };
 
 
+bool Service::IsRunning() {
+  MonitorLocker ml(monitor_);
+  return (service_port_ != ILLEGAL_PORT) && (service_isolate_ != NULL);
+}
+
+
+void Service::SetServicePort(Dart_Port port) {
+  MonitorLocker ml(monitor_);
+  service_port_ = port;
+}
+
+
+void Service::SetServiceIsolate(Isolate* isolate) {
+  MonitorLocker ml(monitor_);
+  service_isolate_ = isolate;
+}
+
+
+bool Service::HasServiceIsolate() {
+  MonitorLocker ml(monitor_);
+  return service_isolate_ != NULL;
+}
+
+
+bool Service::IsServiceIsolate(Isolate* isolate) {
+  MonitorLocker ml(monitor_);
+  return isolate == service_isolate_;
+}
+
 Dart_Port Service::WaitForLoadPort() {
   MonitorLocker ml(monitor_);
 
@@ -336,7 +365,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
       : IsolateVisitor(),
         register_function_(Function::Handle(service_isolate)),
         service_isolate_(service_isolate) {
-    ASSERT(Isolate::Current() == service_isolate_);
+    ASSERT(Service::IsServiceIsolate(Isolate::Current()));
     // Get library.
     const String& library_url = Symbols::DartVMService();
     ASSERT(!library_url.IsNull());
@@ -352,8 +381,8 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
   }
 
   virtual void VisitIsolate(Isolate* isolate) {
-    ASSERT(Isolate::Current() == service_isolate_);
-    if ((isolate == service_isolate_) ||
+    ASSERT(Service::IsServiceIsolate(Isolate::Current()));
+    if (Service::IsServiceIsolate(isolate) ||
         (isolate == Dart::vm_isolate())) {
       // We do not register the service or vm isolate.
       return;
@@ -373,7 +402,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     Object& r = Object::Handle(service_isolate_);
     r = DartEntry::InvokeFunction(register_function_, args);
     if (FLAG_trace_service) {
-      OS::Print("Isolate %s %" Pd64 " registered with service \n",
+      OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
                 name.ToCString(),
                 port_id);
     }
@@ -402,7 +431,7 @@ static void OnStart(Dart_NativeArguments args) {
   HANDLESCOPE(isolate);
   {
     if (FLAG_trace_service) {
-      OS::Print("Booting dart:vmservice library\n");
+      OS::Print("vm-service: Booting dart:vmservice library.\n");
     }
     // Boot the dart:vmservice library.
     Dart_EnterScope();
@@ -415,13 +444,13 @@ static void OnStart(Dart_NativeArguments args) {
     ASSERT(!Dart_IsError(result));
     Dart_Port port = ExtractPort(isolate, result);
     ASSERT(port != ILLEGAL_PORT);
-    Service::set_port(port);
+    Service::SetServicePort(port);
     Dart_ExitScope();
   }
 
   {
     if (FLAG_trace_service) {
-      OS::Print("Registering running isolates\n");
+      OS::Print("vm-service: Registering running isolates.\n");
     }
     // Register running isolates with service.
     RegisterRunningIsolatesVisitor register_isolates(isolate);
@@ -472,7 +501,7 @@ const char* Service::kServiceIsolateName = "vm-service";
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 Isolate* Service::service_isolate_ = NULL;
-Dart_Port Service::port_ = ILLEGAL_PORT;
+Dart_Port Service::service_port_ = ILLEGAL_PORT;
 Dart_Port Service::load_port_ = ILLEGAL_PORT;
 Monitor* Service::monitor_ = NULL;
 bool Service::initializing_ = true;
@@ -507,12 +536,12 @@ bool Service::SendIsolateStartupMessage() {
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print("Isolate %s %" Pd64 " registered with service \n",
+    OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
               name.ToCString(),
               Dart_GetMainPortId());
   }
   return PortMap::PostMessage(
-      new Message(port_, data, len, Message::kNormalPriority));
+      new Message(service_port_, data, len, Message::kNormalPriority));
 }
 
 
@@ -538,12 +567,12 @@ bool Service::SendIsolateShutdownMessage() {
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print("Isolate %s %" Pd64 " deregistered with service \n",
+    OS::Print("vm-service: Isolate %s %" Pd64 " deregistered.\n",
               name.ToCString(),
               Dart_GetMainPortId());
   }
   return PortMap::PostMessage(
-      new Message(port_, data, len, Message::kNormalPriority));
+      new Message(service_port_, data, len, Message::kNormalPriority));
 }
 
 
@@ -594,16 +623,17 @@ Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag,
 
 
 void Service::MaybeInjectVMServiceLibrary(Isolate* isolate) {
-  if (service_isolate_ != NULL) {
-    // Service isolate already exists.
-    return;
-  }
+  ASSERT(isolate != NULL);
+  ASSERT(isolate->name() != NULL);
   if (!Service::IsServiceIsolateName(isolate->name())) {
     // Not service isolate.
     return;
   }
-  service_isolate_ = isolate;
-  ASSERT(isolate != NULL);
+  if (HasServiceIsolate()) {
+    // Service isolate already exists.
+    return;
+  }
+  SetServiceIsolate(isolate);
 
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
@@ -653,6 +683,7 @@ void Service::FinishedInitializing() {
 
 static void ShutdownIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  ASSERT(Service::IsServiceIsolate(isolate));
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
@@ -662,7 +693,7 @@ static void ShutdownIsolate(uword parameter) {
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     if (!error.IsNull()) {
-      OS::PrintErr("Service shutting down: %s\n", error.ToErrorCString());
+      OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
     }
     Dart::RunShutdownCallback();
   }
@@ -670,6 +701,11 @@ static void ShutdownIsolate(uword parameter) {
     // Shut the isolate down.
     SwitchIsolateScope switch_scope(isolate);
     Dart::ShutdownIsolate();
+  }
+  Service::SetServiceIsolate(NULL);
+  Service::SetServicePort(ILLEGAL_PORT);
+  if (FLAG_trace_service) {
+    OS::Print("vm-service: Shutdown.\n");
   }
 }
 
@@ -696,7 +732,7 @@ class RunServiceTask : public ThreadPool::Task {
     Isolate::SetCurrent(NULL);
 
     if (isolate == NULL) {
-      OS::PrintErr("Service startup error: %s\n", error);
+      OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
       Service::FinishedInitializing();
       return;
     }
@@ -720,6 +756,9 @@ class RunServiceTask : public ThreadPool::Task {
     const Library& root_library =
         Library::Handle(isolate, isolate->object_store()->root_library());
     if (root_library.IsNull()) {
+      if (FLAG_trace_service) {
+        OS::Print("vm-service: Embedder did not install a script.");
+      }
       // Service isolate is not supported by embedder.
       return;
     }
@@ -731,6 +770,9 @@ class RunServiceTask : public ThreadPool::Task {
                          root_library.LookupFunctionAllowPrivate(entry_name));
     if (entry.IsNull()) {
       // Service isolate is not supported by embedder.
+      if (FLAG_trace_service) {
+        OS::Print("vm-service: Embedder did not provide a main function.");
+      }
       return;
     }
     ASSERT(!entry.IsNull());
@@ -741,6 +783,11 @@ class RunServiceTask : public ThreadPool::Task {
     ASSERT(!result.IsNull());
     if (result.IsError()) {
       // Service isolate did not initialize properly.
+      if (FLAG_trace_service) {
+        const Error& error = Error::Cast(result);
+        OS::Print("vm-service: Calling main resulted in an error: %s",
+                  error.ToErrorCString());
+      }
       return;
     }
     ASSERT(result.IsReceivePort());
@@ -2585,7 +2632,7 @@ static IsolateMessageHandler FindIsolateMessageHandler(const char* command) {
     }
   }
   if (FLAG_trace_service) {
-    OS::Print("Service has no isolate message handler for <%s>\n", command);
+    OS::Print("vm-service: No isolate message handler for <%s>.\n", command);
   }
   return NULL;
 }
@@ -2774,7 +2821,7 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
     }
   }
   if (FLAG_trace_service) {
-    OS::Print("Service has no root message handler for <%s>\n", command);
+    OS::Print("vm-service: No root message handler for <%s>.\n", command);
   }
   return NULL;
 }
@@ -2800,11 +2847,12 @@ void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print("Pushing event of type %" Pd ", len %" Pd "\n", eventId, len);
+    OS::Print("vm-service: Pushing event of type %" Pd ", len %" Pd "\n",
+              eventId, len);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
-      new Message(port_, data, len, Message::kNormalPriority));
+      new Message(service_port_, data, len, Message::kNormalPriority));
 }
 
 

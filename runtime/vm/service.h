@@ -38,20 +38,14 @@ class Service : public AllStatic {
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();
 
-  static bool IsRunning() {
-    return port_ != ILLEGAL_PORT;
-  }
-
-  static void set_port(Dart_Port port) {
-    port_ = port;
-  }
+  static bool IsRunning();
+  static void SetServicePort(Dart_Port port);
+  static void SetServiceIsolate(Isolate* isolate);
+  static bool HasServiceIsolate();
+  static bool IsServiceIsolate(Isolate* isolate);
 
   static Dart_Port WaitForLoadPort();
-  static bool IsServicePort(Dart_Port port) {
-    return (port == port_) || (port == load_port_);
-  }
   static Dart_Port LoadPort();
-
   static void SetLoadPort(Dart_Port port);
 
   static void SetEventMask(uint32_t mask);
@@ -77,10 +71,6 @@ class Service : public AllStatic {
       const char* name,
       Dart_ServiceRequestCallback callback,
       void* user_data);
-
-  static bool IsServiceIsolate(Isolate* isolate) {
-    return isolate == service_isolate_;
-  }
 
   static void SendEchoEvent(Isolate* isolate);
   static void SendGraphEvent(Isolate* isolate);
@@ -117,10 +107,11 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;
 
-  static Isolate* service_isolate_;
-  static Dart_Port port_;
+
   static Monitor* monitor_;
   static bool initializing_;
+  static Isolate* service_isolate_;
+  static Dart_Port service_port_;
   static Dart_Port load_port_;
   static uint32_t event_mask_;
 };
