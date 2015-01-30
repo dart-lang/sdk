@@ -237,6 +237,26 @@ var $_libraryName;
     }
     _writeLazyFields(name, lazyStatics);
 
+    // Support for adapting dart:core Iterator/Iterable to ES6 versions.
+    // This lets them use for-of loops transparently.
+    // https://github.com/lukehoban/es6features#iterators--forof
+    // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-iterable-interface
+    // TODO(jmesserly): put this straight in the class as an instance method,
+    // once V8 supports symbols for method names: `[Symbol.iterator]() { ... }`.
+    if (node.element.library.isDartCore && node.element.name == 'Iterable') {
+      out.write('''
+$name.prototype[Symbol.iterator] = function() {
+  var iterator = this.iterator;
+  return {
+    next: function() {
+      var done = iterator.moveNext();
+      return { done: done, current: done ? void 0 : iterator.current };
+    }
+  };
+};
+''');
+    }
+
     out.write('\n');
     currentClass = null;
   }
@@ -934,6 +954,11 @@ var $_libraryName;
   }
 
   @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    node.identifier.accept(this);
+  }
+
+  @override
   void visitThisExpression(ThisExpression node) {
     out.write('this');
   }
@@ -1011,11 +1036,20 @@ var $_libraryName;
     out.write('if (');
     node.condition.accept(this);
     out.write(') ');
-    node.thenStatement.accept(this);
+    var then = node.thenStatement;
+    if (then is Block) {
+      out.write('{\n', 2);
+      _visitNodeList((then as Block).statements);
+      out.write('}', -2);
+    } else {
+      _visitNode(then);
+    }
     var elseClause = node.elseStatement;
     if (elseClause != null) {
       out.write(' else ');
       elseClause.accept(this);
+    } else if (then is Block) {
+      out.write('\n');
     }
   }
 
@@ -1052,6 +1086,46 @@ var $_libraryName;
     out.write("while (");
     _visitNode(node.condition);
     out.write(");\n");
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    out.write('for (');
+    if (node.loopVariable != null) {
+      _visitNode(node.loopVariable.identifier, prefix: 'let ');
+    } else {
+      _visitNode(node.identifier);
+    }
+    out.write(' of ');
+    _visitNode(node.iterator);
+    out.write(') ');
+    _visitNode(node.body);
+  }
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    out.write("break");
+    _visitNode(node.label, prefix: " ");
+    out.write(";\n");
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    out.write("continue");
+    _visitNode(node.label, prefix: " ");
+    out.write(";\n");
+  }
+
+  @override
+  void visitLabel(Label node) {
+    _visitNode(node.label);
+    out.write(':');
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    _visitNodeList(node.labels, separator: " ", suffix: " ");
+    _visitNode(node.statement);
   }
 
   @override

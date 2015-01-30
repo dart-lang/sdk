@@ -56,11 +56,17 @@ var collection;
   class _HashSetBase/* Unimplemented <E> */ extends SetBase/* Unimplemented <E> */ {
     difference(other) {
       let result = this._newSet();
-      /* Unimplemented ForEachStatement: for (var element in this) {if (!other.contains(element)) result.add(element);} */return result;
+      for (let element of this) {
+        if (!other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */ element);
+      }
+      return result;
     }
     intersection(other) {
       let result = this._newSet();
-      /* Unimplemented ForEachStatement: for (var element in this) {if (other.contains(element)) result.add(element);} */return result;
+      for (let element of this) {
+        if (other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */ element);
+      }
+      return result;
     }
     toSet() { return /* Unimplemented cascade on non-simple identifier: _newSet()..addAll(this) */; }
   }
@@ -75,7 +81,8 @@ var collection;
     }
     __init_from(elements) {
       let result = new HashSet();
-      /* Unimplemented ForEachStatement: for (E e in elements) result.add(e); */return result;
+      for (let e of elements) result.add(e);
+      return result;
     }
   }
   HashSet.identity = function() { this.__init_identity() };
@@ -84,15 +91,19 @@ var collection;
   HashSet.from.prototype = HashSet.prototype;
 
   class IterableMixin/* Unimplemented <E> */ {
-    map(/* Unimplemented FunctionTypedFormalParameter: f(E element) */) { return new _internal.MappedIterable(this, f); }
-    where(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) { return new _internal.WhereIterable(this, f); }
-    expand(/* Unimplemented FunctionTypedFormalParameter: Iterable f(E element) */) { return new _internal.ExpandIterable(this, f); }
+    map(f) { return new _internal.MappedIterable(this, f); }
+    where(f) { return new _internal.WhereIterable(this, f); }
+    expand(f) { return new _internal.ExpandIterable(this, f); }
     contains(element) {
-      /* Unimplemented ForEachStatement: for (E e in this) {if (e == element) return true;} */return false;
+      for (let e of this) {
+        if (dart.equals(e, element)) return true;
+      }
+      return false;
     }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) f(element); */}
-    reduce(/* Unimplemented FunctionTypedFormalParameter: E combine(E value, E element) */) {
+    forEach(f) {
+      for (let element of this) f(element);
+    }
+    reduce(combine) {
       let iterator = this.iterator;
       if (!iterator.moveNext()) {
         throw _internal.IterableElementError.noElement();
@@ -103,12 +114,16 @@ var collection;
       }
       return value;
     }
-    fold(initialValue, /* Unimplemented FunctionTypedFormalParameter: dynamic combine(var previousValue, E element) */) {
+    fold(initialValue, combine) {
       let value = initialValue;
-      /* Unimplemented ForEachStatement: for (E element in this) value = combine(value, element); */return value;
+      for (let element of this) value = combine(value, element);
+      return value;
     }
-    every(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) {if (!f(element)) return false;} */return true;
+    every(f) {
+      for (let element of this) {
+        if (!f(element)) return false;
+      }
+      return true;
     }
     join(separator) {
       if (separator === undefined) separator = "";
@@ -120,8 +135,7 @@ var collection;
           buffer.write("" + (iterator.current) + "");
         }
         while (iterator.moveNext());
-      }
-       else {
+      } else {
         buffer.write("" + (iterator.current) + "");
         while (iterator.moveNext()) {
           buffer.write(separator);
@@ -130,8 +144,11 @@ var collection;
       }
       return buffer.toString();
     }
-    any(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) {if (f(element)) return true;} */return false;
+    any(f) {
+      for (let element of this) {
+        if (f(element)) return true;
+      }
+      return false;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
@@ -152,13 +169,13 @@ var collection;
     take(n) {
       return new _internal.TakeIterable(this, n);
     }
-    takeWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    takeWhile(test) {
       return new _internal.TakeWhileIterable(this, test);
     }
     skip(n) {
       return new _internal.SkipIterable(this, n);
     }
-    skipWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    skipWhile(test) {
       return new _internal.SkipWhileIterable(this, test);
     }
     get first() {
@@ -187,30 +204,52 @@ var collection;
       if (it.moveNext()) throw _internal.IterableElementError.tooMany();
       return result;
     }
-    firstWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */, opt$) {
+    firstWhere(test, opt$) {
       let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) return element;} */if (orElse !== null) return orElse();
-      throw _internal.IterableElementError.noElement();
-    }
-    lastWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      let result = null;
-      let foundMatching = false;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) {result = element; foundMatching = true;}} */if (foundMatching) return result;
+      for (let element of this) {
+        if (test(element)) return element;
+      }
       if (orElse !== null) return orElse();
       throw _internal.IterableElementError.noElement();
     }
-    singleWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    lastWhere(test, opt$) {
+      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
       let result = null;
       let foundMatching = false;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) {if (foundMatching) {throw IterableElementError.tooMany();} result = element; foundMatching = true;}} */if (foundMatching) return result;
+      for (let element of this) {
+        if (test(element)) {
+          result = element;
+          foundMatching = true;
+        }
+      }
+      if (foundMatching) return result;
+      if (orElse !== null) return orElse();
+      throw _internal.IterableElementError.noElement();
+    }
+    singleWhere(test) {
+      let result = null;
+      let foundMatching = false;
+      for (let element of this) {
+        if (test(element)) {
+          if (foundMatching) {
+            throw _internal.IterableElementError.tooMany();
+          }
+          result = element;
+          foundMatching = true;
+        }
+      }
+      if (foundMatching) return result;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
       if (/* Unimplemented IsExpression: index is! int */) throw new dart_core.ArgumentError.notNull("index");
       dart_core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (index == elementIndex) return element; elementIndex++;} */throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
+      for (let element of this) {
+        if (index === elementIndex) return element;
+        elementIndex++;
+      }
+      throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
     }
     toString() { return IterableBase.iterableToShortString(this, "(", ")"); }
   }
@@ -218,15 +257,19 @@ var collection;
   class IterableBase/* Unimplemented <E> */ {
     constructor() {
     }
-    map(/* Unimplemented FunctionTypedFormalParameter: f(E element) */) { return new _internal.MappedIterable(this, f); }
-    where(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) { return new _internal.WhereIterable(this, f); }
-    expand(/* Unimplemented FunctionTypedFormalParameter: Iterable f(E element) */) { return new _internal.ExpandIterable(this, f); }
+    map(f) { return new _internal.MappedIterable(this, f); }
+    where(f) { return new _internal.WhereIterable(this, f); }
+    expand(f) { return new _internal.ExpandIterable(this, f); }
     contains(element) {
-      /* Unimplemented ForEachStatement: for (E e in this) {if (e == element) return true;} */return false;
+      for (let e of this) {
+        if (dart.equals(e, element)) return true;
+      }
+      return false;
     }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) f(element); */}
-    reduce(/* Unimplemented FunctionTypedFormalParameter: E combine(E value, E element) */) {
+    forEach(f) {
+      for (let element of this) f(element);
+    }
+    reduce(combine) {
       let iterator = this.iterator;
       if (!iterator.moveNext()) {
         throw _internal.IterableElementError.noElement();
@@ -237,12 +280,16 @@ var collection;
       }
       return value;
     }
-    fold(initialValue, /* Unimplemented FunctionTypedFormalParameter: dynamic combine(var previousValue, E element) */) {
+    fold(initialValue, combine) {
       let value = initialValue;
-      /* Unimplemented ForEachStatement: for (E element in this) value = combine(value, element); */return value;
+      for (let element of this) value = combine(value, element);
+      return value;
     }
-    every(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) {if (!f(element)) return false;} */return true;
+    every(f) {
+      for (let element of this) {
+        if (!f(element)) return false;
+      }
+      return true;
     }
     join(separator) {
       if (separator === undefined) separator = "";
@@ -254,8 +301,7 @@ var collection;
           buffer.write("" + (iterator.current) + "");
         }
         while (iterator.moveNext());
-      }
-       else {
+      } else {
         buffer.write("" + (iterator.current) + "");
         while (iterator.moveNext()) {
           buffer.write(separator);
@@ -264,8 +310,11 @@ var collection;
       }
       return buffer.toString();
     }
-    any(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) {if (f(element)) return true;} */return false;
+    any(f) {
+      for (let element of this) {
+        if (f(element)) return true;
+      }
+      return false;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
@@ -286,13 +335,13 @@ var collection;
     take(n) {
       return new _internal.TakeIterable(this, n);
     }
-    takeWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    takeWhile(test) {
       return new _internal.TakeWhileIterable(this, test);
     }
     skip(n) {
       return new _internal.SkipIterable(this, n);
     }
-    skipWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    skipWhile(test) {
       return new _internal.SkipWhileIterable(this, test);
     }
     get first() {
@@ -321,30 +370,52 @@ var collection;
       if (it.moveNext()) throw _internal.IterableElementError.tooMany();
       return result;
     }
-    firstWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */, opt$) {
+    firstWhere(test, opt$) {
       let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) return element;} */if (orElse !== null) return orElse();
-      throw _internal.IterableElementError.noElement();
-    }
-    lastWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      let result = null;
-      let foundMatching = false;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) {result = element; foundMatching = true;}} */if (foundMatching) return result;
+      for (let element of this) {
+        if (test(element)) return element;
+      }
       if (orElse !== null) return orElse();
       throw _internal.IterableElementError.noElement();
     }
-    singleWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    lastWhere(test, opt$) {
+      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
       let result = null;
       let foundMatching = false;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) {if (foundMatching) {throw IterableElementError.tooMany();} result = element; foundMatching = true;}} */if (foundMatching) return result;
+      for (let element of this) {
+        if (test(element)) {
+          result = element;
+          foundMatching = true;
+        }
+      }
+      if (foundMatching) return result;
+      if (orElse !== null) return orElse();
+      throw _internal.IterableElementError.noElement();
+    }
+    singleWhere(test) {
+      let result = null;
+      let foundMatching = false;
+      for (let element of this) {
+        if (test(element)) {
+          if (foundMatching) {
+            throw _internal.IterableElementError.tooMany();
+          }
+          result = element;
+          foundMatching = true;
+        }
+      }
+      if (foundMatching) return result;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
       if (/* Unimplemented IsExpression: index is! int */) throw new dart_core.ArgumentError.notNull("index");
       dart_core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (index == elementIndex) return element; elementIndex++;} */throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
+      for (let element of this) {
+        if (index === elementIndex) return element;
+        elementIndex++;
+      }
+      throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
     }
     toString() { return iterableToShortString(this, "(", ")"); }
     static iterableToShortString(iterable, leftDelimiter, rightDelimiter) {
@@ -402,8 +473,7 @@ var collection;
         if (count <= HEAD_COUNT + TAIL_COUNT) return;
         ultimateString = /* Unimplemented: DownCast: dynamic to String */ parts.removeLast();
         penultimateString = /* Unimplemented: DownCast: dynamic to String */ parts.removeLast();
-      }
-       else {
+      } else {
         penultimate = it.current;
         count++;
         if (!it.moveNext()) {
@@ -414,8 +484,7 @@ var collection;
           ultimateString = "" + (penultimate) + "";
           penultimateString = /* Unimplemented: DownCast: dynamic to String */ parts.removeLast();
           length = ultimateString.length + OVERHEAD;
-        }
-         else {
+        } else {
           ultimate = it.current;
           count++;
           dart.assert(count < MAX_COUNT);
@@ -479,8 +548,7 @@ var collection;
     _move() {
       if (this._iterator.moveNext()) {
         this._state = _HAS_NEXT_AND_NEXT_IN_CURRENT;
-      }
-       else {
+      } else {
         this._state = _NO_NEXT;
       }
     }
@@ -536,7 +604,10 @@ var collection;
     }
     __init_from(elements) {
       let result = new LinkedHashSet();
-      /* Unimplemented ForEachStatement: for (final E element in elements) {result.add(element);} */return result;
+      for (let element of elements) {
+        result.add(element);
+      }
+      return result;
     }
   }
   LinkedHashSet.identity = function() { this.__init_identity() };
@@ -601,7 +672,7 @@ var collection;
       }
       return /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
     }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void action(E entry) */) {
+    forEach(action) {
       let modificationCount = this._modificationCount;
       let current = this._next;
       while (!dart_core.identical(current, this)) {
@@ -701,7 +772,7 @@ var collection;
   class ListMixin/* Unimplemented <E> */ {
     get iterator() { return new _internal.ListIterator(this); }
     elementAt(index) { return this[index]; }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void action(E element) */) {
+    forEach(action) {
       let length = this.length;
       for (let i = 0; i < length; i++) {
         action(this[i]);
@@ -735,7 +806,7 @@ var collection;
       }
       return false;
     }
-    every(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    every(test) {
       let length = this.length;
       for (let i = 0; i < length; i++) {
         if (!test(this[i])) return false;
@@ -745,7 +816,7 @@ var collection;
       }
       return true;
     }
-    any(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    any(test) {
       let length = this.length;
       for (let i = 0; i < length; i++) {
         if (test(this[i])) return true;
@@ -755,7 +826,7 @@ var collection;
       }
       return false;
     }
-    firstWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */, opt$) {
+    firstWhere(test, opt$) {
       let orElse = opt$.orElse === undefined ? null : opt$.orElse;
       let length = this.length;
       for (let i = 0; i < length; i++) {
@@ -768,7 +839,7 @@ var collection;
       if (orElse !== null) return orElse();
       throw _internal.IterableElementError.noElement();
     }
-    lastWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */, opt$) {
+    lastWhere(test, opt$) {
       let orElse = opt$.orElse === undefined ? null : opt$.orElse;
       let length = this.length;
       for (let i = length - 1; i >= 0; i--) {
@@ -781,7 +852,7 @@ var collection;
       if (orElse !== null) return orElse();
       throw _internal.IterableElementError.noElement();
     }
-    singleWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    singleWhere(test) {
       let length = this.length;
       let match = null;
       let matchFound = false;
@@ -807,10 +878,10 @@ var collection;
       let buffer = /* Unimplemented cascade on non-simple identifier: new StringBuffer()..writeAll(this, separator) */;
       return buffer.toString();
     }
-    where(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) { return new _internal.WhereIterable(this, test); }
-    map(/* Unimplemented FunctionTypedFormalParameter: f(E element) */) { return new _internal.MappedListIterable(this, f); }
-    expand(/* Unimplemented FunctionTypedFormalParameter: Iterable f(E element) */) { return new _internal.ExpandIterable(this, f); }
-    reduce(/* Unimplemented FunctionTypedFormalParameter: E combine(E previousValue, E element) */) {
+    where(test) { return new _internal.WhereIterable(this, test); }
+    map(f) { return new _internal.MappedListIterable(this, f); }
+    expand(f) { return new _internal.ExpandIterable(this, f); }
+    reduce(combine) {
       let length = this.length;
       if (length === 0) throw _internal.IterableElementError.noElement();
       let value = this[0];
@@ -822,7 +893,7 @@ var collection;
       }
       return value;
     }
-    fold(initialValue, /* Unimplemented FunctionTypedFormalParameter: combine(var previousValue, E element) */) {
+    fold(initialValue, combine) {
       let value = initialValue;
       let length = this.length;
       for (let i = 0; i < length; i++) {
@@ -834,11 +905,11 @@ var collection;
       return value;
     }
     skip(count) { return new _internal.SubListIterable(this, count, null); }
-    skipWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    skipWhile(test) {
       return new _internal.SkipWhileIterable(this, test);
     }
     take(count) { return new _internal.SubListIterable(this, 0, count); }
-    takeWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    takeWhile(test) {
       return new _internal.TakeWhileIterable(this, test);
     }
     toList(opt$) {
@@ -846,8 +917,7 @@ var collection;
       let result = null;
       if (growable) {
         result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
-      }
-       else {
+      } else {
         result = new dart_core.List(length);
       }
       for (let i = 0; i < length; i++) {
@@ -866,7 +936,10 @@ var collection;
       this[this.length++] = element;
     }
     addAll(iterable) {
-      /* Unimplemented ForEachStatement: for (E element in iterable) {this[this.length++] = element;} */}
+      for (let element of iterable) {
+        this[this.length++] = element;
+      }
+    }
     remove(element) {
       for (let i = 0; i < this.length; i++) {
         if (dart.equals(this[i], element)) {
@@ -877,13 +950,13 @@ var collection;
       }
       return false;
     }
-    removeWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    removeWhere(test) {
       _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */ test, false);
     }
-    retainWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    retainWhere(test) {
       _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */ test, true);
     }
-    static _filter(source, /* Unimplemented FunctionTypedFormalParameter: bool test(var element) */, retainMatching) {
+    static _filter(source, test, retainMatching) {
       let retained = /* Unimplemented ArrayList */[];
       let length = source.length;
       for (let i = 0; i < length; i++) {
@@ -974,8 +1047,7 @@ var collection;
       if (/* Unimplemented IsExpression: iterable is List */) {
         otherList = /* Unimplemented: DownCast: Iterable<E> to List<dynamic> */ iterable;
         otherStart = skipCount;
-      }
-       else {
+      } else {
         otherList = iterable.skip(skipCount).toList(/* Unimplemented NamedExpression: growable: false */);
         otherStart = 0;
       }
@@ -986,8 +1058,7 @@ var collection;
         for (let i = length - 1; i >= 0; i--) {
           this[start + i] = /* Unimplemented: DownCast: dynamic to E */ otherList[otherStart + i];
         }
-      }
-       else {
+      } else {
         for (let i = 0; i < length; i++) {
           this[start + i] = /* Unimplemented: DownCast: dynamic to E */ otherList[otherStart + i];
         }
@@ -1009,8 +1080,7 @@ var collection;
           this.this.setRange(insertEnd, newLength, this, end);
           this.length = newLength;
         }
-      }
-       else {
+      } else {
         let delta = insertLength - removeLength;
         let newLength = this.length + delta;
         let insertEnd = start + insertLength;
@@ -1038,8 +1108,7 @@ var collection;
       if (startIndex === undefined) startIndex = null;
       if (startIndex === null) {
         startIndex = this.length - 1;
-      }
-       else {
+      } else {
         if (startIndex < 0) {
           return -1;
         }
@@ -1084,9 +1153,11 @@ var collection;
     setAll(index, iterable) {
       if (/* Unimplemented IsExpression: iterable is List */) {
         this.setRange(index, index + iterable.length, iterable);
+      } else {
+        for (let element of iterable) {
+          this[index++] = element;
+        }
       }
-       else {
-        /* Unimplemented ForEachStatement: for (E element in iterable) {this[index++] = element;} */}
     }
     get reversed() { return new _internal.ReversedListIterable(this); }
     toString() { return IterableBase.iterableToFullString(this, "[", "]"); }
@@ -1095,14 +1166,23 @@ var collection;
   class MapBase extends dart.mixin(MapMixin/* Unimplemented <K, V> */) {}
 
   class MapMixin/* Unimplemented <K, V> */ {
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void action(K key, V value) */) {
-      /* Unimplemented ForEachStatement: for (K key in keys) {action(key, this[key]);} */}
-    addAll(other) {
-      /* Unimplemented ForEachStatement: for (K key in other.keys) {this[key] = other[key];} */}
-    containsValue(value) {
-      /* Unimplemented ForEachStatement: for (K key in keys) {if (this[key] == value) return true;} */return false;
+    forEach(action) {
+      for (let key of this.keys) {
+        action(key, this[key]);
+      }
     }
-    putIfAbsent(key, /* Unimplemented FunctionTypedFormalParameter: V ifAbsent() */) {
+    addAll(other) {
+      for (let key of other.keys) {
+        this[key] = other[key];
+      }
+    }
+    containsValue(value) {
+      for (let key of this.keys) {
+        if (dart.equals(this[key], value)) return true;
+      }
+      return false;
+    }
+    putIfAbsent(key, ifAbsent) {
       if (this.keys.contains(key)) {
         return this[key];
       }
@@ -1162,7 +1242,7 @@ var collection;
     remove(key) {
       throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
     }
-    putIfAbsent(key, /* Unimplemented FunctionTypedFormalParameter: V ifAbsent() */) {
+    putIfAbsent(key, ifAbsent) {
       throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
     }
   }
@@ -1181,10 +1261,10 @@ var collection;
     clear() {
       this._map.clear();
     }
-    putIfAbsent(key, /* Unimplemented FunctionTypedFormalParameter: V ifAbsent() */) { return this._map.putIfAbsent(key, ifAbsent); }
+    putIfAbsent(key, ifAbsent) { return this._map.putIfAbsent(key, ifAbsent); }
     containsKey(key) { return this._map.containsKey(key); }
     containsValue(value) { return this._map.containsValue(value); }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void action(K key, V value) */) {
+    forEach(action) {
       this._map.forEach(action);
     }
     get isEmpty() { return this._map.isEmpty; }
@@ -1200,12 +1280,22 @@ var collection;
 
   class Maps {
     static containsValue(map, value) {
-      /* Unimplemented ForEachStatement: for (final v in map.values) {if (value == v) {return true;}} */return false;
+      for (let v of map.values) {
+        if (dart.equals(value, v)) {
+          return true;
+        }
+      }
+      return false;
     }
     static containsKey(map, key) {
-      /* Unimplemented ForEachStatement: for (final k in map.keys) {if (key == k) {return true;}} */return false;
+      for (let k of map.keys) {
+        if (dart.equals(key, k)) {
+          return true;
+        }
+      }
+      return false;
     }
-    static putIfAbsent(map, key, /* Unimplemented FunctionTypedFormalParameter: ifAbsent() */) {
+    static putIfAbsent(map, key, ifAbsent) {
       if (map.containsKey(key)) {
         return map[key];
       }
@@ -1214,9 +1304,15 @@ var collection;
       return v;
     }
     static clear(map) {
-      /* Unimplemented ForEachStatement: for (final k in map.keys.toList()) {map.remove(k);} */}
-    static forEach(map, /* Unimplemented FunctionTypedFormalParameter: void f(key, value) */) {
-      /* Unimplemented ForEachStatement: for (final k in map.keys) {f(k, map[k]);} */}
+      for (let k of map.keys.toList()) {
+        map.remove(k);
+      }
+    }
+    static forEach(map, f) {
+      for (let k of map.keys) {
+        f(k, map[k]);
+      }
+    }
     static getValues(map) {
       return map.keys.map((key) => map[key]);
     }
@@ -1231,10 +1327,13 @@ var collection;
       /* Unimplemented TryStatement: try {IterableBase._toStringVisiting.add(m); result.write('{'); bool first = true; m.forEach((k, v) {if (!first) {result.write(', ');} first = false; result.write(k); result.write(': '); result.write(v);}); result.write('}');} finally {assert (identical(IterableBase._toStringVisiting.last, m)); IterableBase._toStringVisiting.removeLast();} */return result.toString();
     }
     static _id(x) { return x; }
-    static _fillMapWithMappedIterable(map, iterable, /* Unimplemented FunctionTypedFormalParameter: key(element) */, /* Unimplemented FunctionTypedFormalParameter: value(element) */) {
+    static _fillMapWithMappedIterable(map, iterable, key, value) {
       if (key === null) key = _id;
       if (value === null) value = _id;
-      /* Unimplemented ForEachStatement: for (var element in iterable) {map[key(element)] = value(element);} */}
+      for (let element of iterable) {
+        map[key(element)] = value(element);
+      }
+    }
     static _fillMapWithIterables(map, keys, values) {
       let keyIterator = keys.iterator;
       let valueIterator = values.iterator;
@@ -1332,7 +1431,10 @@ var collection;
     }
     __init_from(elements) {
       let list = /* Unimplemented: DownCastExact: DoubleLinkedQueue<dynamic> to Queue<E> */ new DoubleLinkedQueue();
-      /* Unimplemented ForEachStatement: for (final E e in elements) {list.addLast(e);} */return /* Unimplemented: DownCast: Queue<E> to DoubleLinkedQueue<E> */ list;
+      for (let e of elements) {
+        list.addLast(e);
+      }
+      return /* Unimplemented: DownCast: Queue<E> to DoubleLinkedQueue<E> */ list;
     }
     get length() { return this._elementCount; }
     addLast(value) {
@@ -1348,7 +1450,11 @@ var collection;
       this._elementCount++;
     }
     addAll(iterable) {
-      /* Unimplemented ForEachStatement: for (final E value in iterable) {_sentinel.prepend(value); _elementCount++;} */}
+      for (let value of iterable) {
+        this._sentinel.prepend(value);
+        this._elementCount++;
+      }
+    }
     removeLast() {
       let result = this._sentinel._previous.remove();
       this._elementCount--;
@@ -1371,7 +1477,7 @@ var collection;
       }
       return false;
     }
-    _filter(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */, removeMatching) {
+    _filter(test, removeMatching) {
       let entry = this._sentinel._next;
       while (!dart_core.identical(entry, this._sentinel)) {
         let next = entry._next;
@@ -1382,10 +1488,10 @@ var collection;
         entry = next;
       }
     }
-    removeWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    removeWhere(test) {
       this._filter(test, true);
     }
-    retainWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    retainWhere(test) {
       this._filter(test, false);
     }
     get first() {
@@ -1414,7 +1520,7 @@ var collection;
       this._sentinel._previous = this._sentinel;
       this._elementCount = 0;
     }
-    forEachEntry(/* Unimplemented FunctionTypedFormalParameter: void f(DoubleLinkedQueueEntry<E> element) */) {
+    forEachEntry(f) {
       let entry = this._sentinel._next;
       while (!dart_core.identical(entry, this._sentinel)) {
         let nextEntry = entry._next;
@@ -1459,8 +1565,7 @@ var collection;
       super();
       if (initialCapacity === null || initialCapacity < _INITIAL_CAPACITY) {
         initialCapacity = _INITIAL_CAPACITY;
-      }
-       else if (!_isPowerOf2(initialCapacity)) {
+      } else if (!_isPowerOf2(initialCapacity)) {
         initialCapacity = _nextPowerOf2(initialCapacity);
       }
       dart.assert(_isPowerOf2(initialCapacity));
@@ -1475,18 +1580,20 @@ var collection;
         queue._table.setRange(0, length, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ sourceList, 0);
         queue._tail = length;
         return queue;
-      }
-       else {
+      } else {
         let capacity = _INITIAL_CAPACITY;
         if (/* Unimplemented IsExpression: elements is EfficientLength */) {
           capacity = elements.length;
         }
         let result = new ListQueue(capacity);
-        /* Unimplemented ForEachStatement: for (final E element in elements) {result.addLast(element);} */return result;
+        for (let element of elements) {
+          result.this.addLast(element);
+        }
+        return result;
       }
     }
     get iterator() { return new _ListQueueIterator(this); }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void action(E element) */) {
+    forEach(action) {
       let modificationCount = this._modificationCount;
       for (let i = this._head; i !== this._tail; i = (i + 1) & (this._table.length - 1)) {
         action(this._table[i]);
@@ -1517,8 +1624,7 @@ var collection;
       let list = null;
       if (growable) {
         list = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
-      }
-       else {
+      } else {
         list = new dart_core.List(this.length);
       }
       this._writeToList(list);
@@ -1536,14 +1642,12 @@ var collection;
           this._preGrow(length + addCount);
           this._table.setRange(length, length + addCount, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, 0);
           this._tail = addCount;
-        }
-         else {
+        } else {
           let endSpace = this._table.length - this._tail;
           if (addCount < endSpace) {
             this._table.setRange(this._tail, this._tail + addCount, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, 0);
             this._tail = addCount;
-          }
-           else {
+          } else {
             let preSpace = addCount - endSpace;
             this._table.setRange(this._tail, this._tail + endSpace, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, 0);
             this._table.setRange(0, preSpace, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, endSpace);
@@ -1551,9 +1655,9 @@ var collection;
           }
         }
         this._modificationCount++;
+      } else {
+        for (let element of elements) this._add(element);
       }
-       else {
-        /* Unimplemented ForEachStatement: for (E element in elements) _add(element); */}
     }
     remove(object) {
       for (let i = this._head; i !== this._tail; i = (i + 1) & (this._table.length - 1)) {
@@ -1566,7 +1670,7 @@ var collection;
       }
       return false;
     }
-    _filterWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */, removeMatching) {
+    _filterWhere(test, removeMatching) {
       let index = this._head;
       let modificationCount = this._modificationCount;
       let i = this._head;
@@ -1577,16 +1681,15 @@ var collection;
         if (remove) {
           i = this._remove(i);
           modificationCount = ++this._modificationCount;
-        }
-         else {
+        } else {
           i = (i + 1) & (this._table.length - 1);
         }
       }
     }
-    removeWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    removeWhere(test) {
       this._filterWhere(test, true);
     }
-    retainWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    retainWhere(test) {
       this._filterWhere(test, false);
     }
     clear() {
@@ -1659,8 +1762,7 @@ var collection;
         this._table[this._head] = null;
         this._head = (this._head + 1) & mask;
         return (offset + 1) & mask;
-      }
-       else {
+      } else {
         this._tail = (this._tail - 1) & mask;
         let i = offset;
         while (i !== this._tail) {
@@ -1687,8 +1789,7 @@ var collection;
         let length = this._tail - this._head;
         target.setRange(0, length, this._table, this._head);
         return length;
-      }
-       else {
+      } else {
         let firstPartSize = this._table.length - this._head;
         target.setRange(0, firstPartSize, this._table, this._head);
         target.setRange(firstPartSize, firstPartSize + this._tail, this._table, 0);
@@ -1737,42 +1838,63 @@ var collection;
       this.removeAll(this.toList());
     }
     addAll(elements) {
-      /* Unimplemented ForEachStatement: for (E element in elements) add(element); */}
+      for (let element of elements) this.add(element);
+    }
     removeAll(elements) {
-      /* Unimplemented ForEachStatement: for (Object element in elements) remove(element); */}
+      for (let element of elements) this.remove(element);
+    }
     retainAll(elements) {
       let toRemove = this.toSet();
-      /* Unimplemented ForEachStatement: for (Object o in elements) {toRemove.remove(o);} */this.removeAll(toRemove);
+      for (let o of elements) {
+        toRemove.remove(o);
+      }
+      this.removeAll(toRemove);
     }
-    removeWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    removeWhere(test) {
       let toRemove = /* Unimplemented ArrayList */[];
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) toRemove.add(element);} */this.removeAll(/* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<Object> */ toRemove);
+      for (let element of this) {
+        if (test(element)) toRemove.add(element);
+      }
+      this.removeAll(/* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<Object> */ toRemove);
     }
-    retainWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
+    retainWhere(test) {
       let toRemove = /* Unimplemented ArrayList */[];
-      /* Unimplemented ForEachStatement: for (E element in this) {if (!test(element)) toRemove.add(element);} */this.removeAll(/* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<Object> */ toRemove);
+      for (let element of this) {
+        if (!test(element)) toRemove.add(element);
+      }
+      this.removeAll(/* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<Object> */ toRemove);
     }
     containsAll(other) {
-      /* Unimplemented ForEachStatement: for (Object o in other) {if (!contains(o)) return false;} */return true;
+      for (let o of other) {
+        if (!this.contains(o)) return false;
+      }
+      return true;
     }
     union(other) {
       return /* Unimplemented cascade on non-simple identifier: toSet()..addAll(other) */;
     }
     intersection(other) {
       let result = this.toSet();
-      /* Unimplemented ForEachStatement: for (E element in this) {if (!other.contains(element)) result.remove(element);} */return result;
+      for (let element of this) {
+        if (!other.contains(element)) result.remove(element);
+      }
+      return result;
     }
     difference(other) {
       let result = this.toSet();
-      /* Unimplemented ForEachStatement: for (E element in this) {if (other.contains(element)) result.remove(element);} */return result;
+      for (let element of this) {
+        if (other.contains(element)) result.remove(element);
+      }
+      return result;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = growable ? (/* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */) : new dart_core.List(this.length);
       let i = 0;
-      /* Unimplemented ForEachStatement: for (E element in this) result[i++] = element; */return result;
+      for (let element of this) result[i++] = element;
+      return result;
     }
-    map(/* Unimplemented FunctionTypedFormalParameter: f(E element) */) { return new _internal.EfficientLengthMappedIterable(this, f); }
+    map(f) { return new _internal.EfficientLengthMappedIterable(this, f); }
     get single() {
       if (this.length > 1) throw _internal.IterableElementError.tooMany();
       let it = this.iterator;
@@ -1781,11 +1903,12 @@ var collection;
       return result;
     }
     toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
-    where(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) { return new _internal.WhereIterable(this, f); }
-    expand(/* Unimplemented FunctionTypedFormalParameter: Iterable f(E element) */) { return new _internal.ExpandIterable(this, f); }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) f(element); */}
-    reduce(/* Unimplemented FunctionTypedFormalParameter: E combine(E value, E element) */) {
+    where(f) { return new _internal.WhereIterable(this, f); }
+    expand(f) { return new _internal.ExpandIterable(this, f); }
+    forEach(f) {
+      for (let element of this) f(element);
+    }
+    reduce(combine) {
       let iterator = this.iterator;
       if (!iterator.moveNext()) {
         throw _internal.IterableElementError.noElement();
@@ -1796,12 +1919,16 @@ var collection;
       }
       return value;
     }
-    fold(initialValue, /* Unimplemented FunctionTypedFormalParameter: dynamic combine(var previousValue, E element) */) {
+    fold(initialValue, combine) {
       let value = initialValue;
-      /* Unimplemented ForEachStatement: for (E element in this) value = combine(value, element); */return value;
+      for (let element of this) value = combine(value, element);
+      return value;
     }
-    every(/* Unimplemented FunctionTypedFormalParameter: bool f(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) {if (!f(element)) return false;} */return true;
+    every(f) {
+      for (let element of this) {
+        if (!f(element)) return false;
+      }
+      return true;
     }
     join(separator) {
       if (separator === undefined) separator = "";
@@ -1813,8 +1940,7 @@ var collection;
           buffer.write("" + (iterator.current) + "");
         }
         while (iterator.moveNext());
-      }
-       else {
+      } else {
         buffer.write("" + (iterator.current) + "");
         while (iterator.moveNext()) {
           buffer.write(separator);
@@ -1823,19 +1949,22 @@ var collection;
       }
       return buffer.toString();
     }
-    any(/* Unimplemented FunctionTypedFormalParameter: bool test(E element) */) {
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) return true;} */return false;
+    any(test) {
+      for (let element of this) {
+        if (test(element)) return true;
+      }
+      return false;
     }
     take(n) {
       return new _internal.TakeIterable(this, n);
     }
-    takeWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    takeWhile(test) {
       return new _internal.TakeWhileIterable(this, test);
     }
     skip(n) {
       return new _internal.SkipIterable(this, n);
     }
-    skipWhile(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    skipWhile(test) {
       return new _internal.SkipWhileIterable(this, test);
     }
     get first() {
@@ -1857,30 +1986,52 @@ var collection;
       while (it.moveNext());
       return result;
     }
-    firstWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */, opt$) {
+    firstWhere(test, opt$) {
       let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) return element;} */if (orElse !== null) return orElse();
-      throw _internal.IterableElementError.noElement();
-    }
-    lastWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      let result = null;
-      let foundMatching = false;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) {result = element; foundMatching = true;}} */if (foundMatching) return result;
+      for (let element of this) {
+        if (test(element)) return element;
+      }
       if (orElse !== null) return orElse();
       throw _internal.IterableElementError.noElement();
     }
-    singleWhere(/* Unimplemented FunctionTypedFormalParameter: bool test(E value) */) {
+    lastWhere(test, opt$) {
+      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
       let result = null;
       let foundMatching = false;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (test(element)) {if (foundMatching) {throw IterableElementError.tooMany();} result = element; foundMatching = true;}} */if (foundMatching) return result;
+      for (let element of this) {
+        if (test(element)) {
+          result = element;
+          foundMatching = true;
+        }
+      }
+      if (foundMatching) return result;
+      if (orElse !== null) return orElse();
+      throw _internal.IterableElementError.noElement();
+    }
+    singleWhere(test) {
+      let result = null;
+      let foundMatching = false;
+      for (let element of this) {
+        if (test(element)) {
+          if (foundMatching) {
+            throw _internal.IterableElementError.tooMany();
+          }
+          result = element;
+          foundMatching = true;
+        }
+      }
+      if (foundMatching) return result;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
       if (/* Unimplemented IsExpression: index is! int */) throw new dart_core.ArgumentError.notNull("index");
       dart_core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
-      /* Unimplemented ForEachStatement: for (E element in this) {if (index == elementIndex) return element; elementIndex++;} */throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
+      for (let element of this) {
+        if (index === elementIndex) return element;
+        elementIndex++;
+      }
+      throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
     }
   }
 
@@ -1921,31 +2072,34 @@ var collection;
       while (true) {
         comp = this._compare(current.key, key);
         if (comp > 0) {
-          if (current.left === null) /* Unimplemented BreakStatement: break; */comp = this._compare(current.left.key, key);
+          if (current.left === null) break;
+          comp = this._compare(current.left.key, key);
           if (comp > 0) {
             let tmp = current.left;
             current.left = tmp.right;
             tmp.right = current;
             current = tmp;
-            if (current.left === null) /* Unimplemented BreakStatement: break; */}
+            if (current.left === null) break;
+          }
           right.left = current;
           right = current;
           current = current.left;
-        }
-         else if (comp < 0) {
-          if (current.right === null) /* Unimplemented BreakStatement: break; */comp = this._compare(current.right.key, key);
+        } else if (comp < 0) {
+          if (current.right === null) break;
+          comp = this._compare(current.right.key, key);
           if (comp < 0) {
             let tmp = current.right;
             current.right = tmp.left;
             tmp.left = current;
             current = tmp;
-            if (current.right === null) /* Unimplemented BreakStatement: break; */}
+            if (current.right === null) break;
+          }
           left.right = current;
           left = current;
           current = current.right;
+        } else {
+          break;
         }
-         else {
-          /* Unimplemented BreakStatement: break; */}
       }
       left.right = current.left;
       right.left = current.right;
@@ -1985,8 +2139,7 @@ var collection;
       this._count--;
       if (this._root.left === null) {
         this._root = this._root.right;
-      }
-       else {
+      } else {
         let right = this._root.right;
         this._root = this._splayMax(this._root.left);
         this._root.right = right;
@@ -2005,8 +2158,7 @@ var collection;
         node.left = this._root;
         node.right = this._root.right;
         this._root.right = null;
-      }
-       else {
+      } else {
         node.right = this._root;
         node.left = this._root.left;
         this._root.left = null;
@@ -2101,7 +2253,7 @@ var collection;
       }
       _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeMapNode<dynamic, dynamic> to _SplayTreeNode<K> */ new _SplayTreeMapNode(key, value), comp);
     }
-    putIfAbsent(key, /* Unimplemented FunctionTypedFormalParameter: V ifAbsent() */) {
+    putIfAbsent(key, ifAbsent) {
       if (key === null) throw new dart_core.ArgumentError(key);
       let comp = _splay(key);
       if (comp === 0) {
@@ -2130,7 +2282,7 @@ var collection;
       return (_root === null);
     }
     get isNotEmpty() { return !this.isEmpty; }
-    forEach(/* Unimplemented FunctionTypedFormalParameter: void f(K key, V value) */) {
+    forEach(f) {
       let nodes = new _SplayTreeNodeIterator(this);
       while (nodes.moveNext()) {
         let node = /* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<K, V> */ nodes.current;
@@ -2230,8 +2382,7 @@ var collection;
       this._splayCount = tree._splayCount;
       if (compare < 0) {
         this._findLeftMostDescendent(tree._root.right);
-      }
-       else {
+      } else {
         this._workList.add(tree._root);
       }
     }
@@ -2250,8 +2401,7 @@ var collection;
       this._workList.clear();
       if (currentNode === null) {
         this._findLeftMostDescendent(this._tree._root);
-      }
-       else {
+      } else {
         this._tree._splay(currentNode.key);
         this._findLeftMostDescendent(this._tree._root.right);
         dart.assert(!this._workList.isEmpty);
@@ -2341,7 +2491,10 @@ var collection;
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       let result = new SplayTreeSet(compare, isValidKey);
-      /* Unimplemented ForEachStatement: for (final E element in elements) {result.add(element);} */return result;
+      for (let element of elements) {
+        result.this.add(element);
+      }
+      return result;
     }
     _compare(e1, e2) { return this._comparator(e1, e2); }
     get iterator() { return new _SplayTreeKeyIterator(this); }
@@ -2375,13 +2528,28 @@ var collection;
       return _remove(/* Unimplemented: DownCast: Object to E */ object) !== null;
     }
     addAll(elements) {
-      /* Unimplemented ForEachStatement: for (E element in elements) {int compare = _splay(element); if (compare != 0) {_addNewRoot(new _SplayTreeNode(element), compare);}} */}
+      for (let element of elements) {
+        let compare = _splay(element);
+        if (compare !== 0) {
+          _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeNode<dynamic> to _SplayTreeNode<E> */ new _SplayTreeNode(element), compare);
+        }
+      }
+    }
     removeAll(elements) {
-      /* Unimplemented ForEachStatement: for (Object element in elements) {if (_validKey(element)) _remove(element);} */}
+      for (let element of elements) {
+        if (this._validKey(element)) _remove(/* Unimplemented: DownCast: Object to E */ element);
+      }
+    }
     retainAll(elements) {
       let retainSet = new SplayTreeSet(this._comparator, this._validKey);
       let modificationCount = _modificationCount;
-      /* Unimplemented ForEachStatement: for (Object object in elements) {if (modificationCount != _modificationCount) {throw new ConcurrentModificationError(this);} if (_validKey(object) && _splay(object) == 0) retainSet.add(_root.key);} */if (retainSet._count !== _count) {
+      for (let object of elements) {
+        if (modificationCount !== _modificationCount) {
+          throw new dart_core.ConcurrentModificationError(this);
+        }
+        if (this._validKey(object) && _splay(/* Unimplemented: DownCast: Object to E */ object) === 0) retainSet.this.add(_root.key);
+      }
+      if (retainSet._count !== _count) {
         _root = retainSet._root;
         _count = retainSet._count;
         _modificationCount++;
@@ -2395,11 +2563,17 @@ var collection;
     }
     intersection(other) {
       let result = new SplayTreeSet(this._comparator, this._validKey);
-      /* Unimplemented ForEachStatement: for (E element in this) {if (other.contains(element)) result.add(element);} */return result;
+      for (let element of this) {
+        if (other.contains(element)) result.add(element);
+      }
+      return result;
     }
     difference(other) {
       let result = new SplayTreeSet(this._comparator, this._validKey);
-      /* Unimplemented ForEachStatement: for (E element in this) {if (!other.contains(element)) result.add(element);} */return result;
+      for (let element of this) {
+        if (!other.contains(element)) result.add(element);
+      }
+      return result;
     }
     union(other) {
       return /* Unimplemented cascade on non-simple identifier: _clone()..addAll(other) */;

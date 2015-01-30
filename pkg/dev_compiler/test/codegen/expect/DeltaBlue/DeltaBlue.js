@@ -145,8 +145,7 @@ var DeltaBlue;
       }
       if (Strength.weaker(this.v1.walkStrength, this.v2.walkStrength)) {
         this.direction = Strength.stronger(strength, this.v1.walkStrength) ? BACKWARD : NONE;
-      }
-       else {
+      } else {
         this.direction = Strength.stronger(strength, this.v2.walkStrength) ? FORWARD : BACKWARD;
       }
     }
@@ -204,8 +203,7 @@ var DeltaBlue;
     execute() {
       if (direction === FORWARD) {
         v2.value = v1.value * this.scale.value + this.offset.value;
-      }
-       else {
+      } else {
         v1.value = ((v2.value - this.offset.value) / this.scale.value).truncate();
       }
     }

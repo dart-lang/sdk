@@ -101,8 +101,7 @@ var core;
         }
         if (addOneMillisecond) millisecondsSinceEpoch++;
         return new DateTime.this.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, /* Unimplemented NamedExpression: isUtc: isUtc */);
-      }
-       else {
+      } else {
         throw new FormatException("Invalid date format", formattedString);
       }
     }
@@ -174,8 +173,7 @@ var core;
       let ms = _threeDigits(this.millisecond);
       if (this.isUtc) {
         return "" + (y) + "-" + (m) + "-" + (d) + " " + (h) + ":" + (min) + ":" + (sec) + "." + (ms) + "Z";
-      }
-       else {
+      } else {
         return "" + (y) + "-" + (m) + "-" + (d) + " " + (h) + ":" + (min) + ":" + (sec) + "." + (ms) + "";
       }
     }
@@ -189,8 +187,7 @@ var core;
       let ms = _threeDigits(this.millisecond);
       if (this.isUtc) {
         return "" + (y) + "-" + (m) + "-" + (d) + "T" + (h) + ":" + (min) + ":" + (sec) + "." + (ms) + "Z";
-      }
-       else {
+      } else {
         return "" + (y) + "-" + (m) + "-" + (d) + "T" + (h) + ":" + (min) + ":" + (sec) + "." + (ms) + "";
       }
     }
@@ -495,17 +492,13 @@ var core;
         if (this.end !== null) {
           explanation = ": Not less than or equal to " + (this.end) + "";
         }
-      }
-       else if (this.end === null) {
+      } else if (this.end === null) {
         explanation = ": Not greater than or equal to " + (this.start) + "";
-      }
-       else if (this.end > this.start) {
+      } else if (this.end > this.start) {
         explanation = ": Not in range " + (this.start) + ".." + (this.end) + ", inclusive.";
-      }
-       else if (this.end < this.start) {
+      } else if (this.end < this.start) {
         explanation = ": Valid value range is empty";
-      }
-       else {
+      } else {
         explanation = ": Only valid value is " + (this.start) + "";
       }
       return "RangeError: " + (message) + " (" + (value) + ")" + (explanation) + "";
@@ -690,8 +683,7 @@ var core;
           }
           lineStart = i + 1;
           lastWasCR = false;
-        }
-         else if (char === 13) {
+        } else if (char === 13) {
           lineNum++;
           lineStart = i + 1;
           lastWasCR = true;
@@ -700,8 +692,7 @@ var core;
       if (lineNum > 1) {
         report = " (at line " + (lineNum) + ", character " + (offset - lineStart + 1) + ")
         ";
-      }
-       else {
+      } else {
         report = " (at character " + (offset + 1) + ")
         ";
       }
@@ -710,7 +701,8 @@ var core;
         let char = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: source.codeUnitAt(i) */;
         if (char === 10 || char === 13) {
           lineEnd = i;
-          /* Unimplemented BreakStatement: break; */}
+          break;
+        }
       }
       let length = lineEnd - lineStart;
       let start = lineStart;
@@ -722,12 +714,10 @@ var core;
         if (index < 75) {
           end = start + 75;
           postfix = "...";
-        }
-         else if (end - offset < 75) {
+        } else if (end - offset < 75) {
           start = end - 75;
           prefix = "...";
-        }
-         else {
+        } else {
           start = offset - 36;
           end = offset + 36;
           prefix = postfix = "...";
@@ -797,9 +787,18 @@ var core;
   }
   Iterable.generate = function(count, generator) { this.__init_generate(count, generator) };
   Iterable.generate.prototype = Iterable.prototype;
+  Iterable.prototype[Symbol.iterator] = function() {
+    var iterator = this.iterator;
+    return {
+      next: function() {
+        var done = iterator.moveNext();
+        return { done: done, current: done ? void 0 : iterator.current };
+      }
+    };
+  };
 
   class _GeneratorIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
-    constructor(_end, /* Unimplemented FunctionTypedFormalParameter: E generator(int n) */) {
+    constructor(_end, generator) {
       this._end = _end;
       this._start = 0;
       this._generator = (generator !== null) ? generator : _id;
@@ -844,8 +843,7 @@ var core;
         this._current = this._generator(this._index);
         this._index++;
         return true;
-      }
-       else {
+      } else {
         this._current = null;
         return false;
       }
@@ -868,13 +866,12 @@ var core;
     __init_from(elements, opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
     }
-    __init_generate(length, /* Unimplemented FunctionTypedFormalParameter: E generator(int index) */, opt$) {
+    __init_generate(length, generator, opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = null;
       if (growable) {
         result = /* Unimplemented cascade on non-simple identifier: <E> []..length = length */;
-      }
-       else {
+      } else {
         result = new List(length);
       }
       for (let i = 0; i < length; i++) {
@@ -887,7 +884,7 @@ var core;
   List.filled.prototype = List.prototype;
   List.from = function(elements, opt$) { this.__init_from(elements, opt$) };
   List.from.prototype = List.prototype;
-  List.generate = function(length, /* Unimplemented FunctionTypedFormalParameter: E generator(int index) */, opt$) { this.__init_generate(length, /* Unimplemented FunctionTypedFormalParameter: E generator(int index) */, opt$) };
+  List.generate = function(length, generator, opt$) { this.__init_generate(length, generator, opt$) };
   List.generate.prototype = List.prototype;
 
   class Map/* Unimplemented <K, V> */ {
@@ -957,8 +954,7 @@ var core;
     let line = "" + (object) + "";
     if (_internal.printToZone === null) {
       _internal.printToConsole(line);
-    }
-     else {
+    } else {
       /* Unimplemented dynamic method call: printToZone(line) */;
     }
   }
@@ -1006,8 +1002,7 @@ var core;
       if (this.isRunning) return;
       if (this._start === null) {
         this._start = _now();
-      }
-       else {
+      } else {
         this._start = _now() - (this._stop - this._start);
         this._stop = null;
       }
@@ -1197,8 +1192,7 @@ var core;
           this.write(iterator.current);
         }
         while (iterator.moveNext());
-      }
-       else {
+      } else {
         this.write(iterator.current);
         while (iterator.moveNext()) {
           this.write(separator);
@@ -1284,22 +1278,21 @@ var core;
         while (index < uri.length) {
           char = uri.codeUnitAt(index);
           if (char === _SLASH || char === _QUESTION || char === _NUMBER_SIGN) {
-            /* Unimplemented BreakStatement: break; */}
+            break;
+          }
           if (char === _AT_SIGN) {
             lastAt = index;
             lastColon = -1;
-          }
-           else if (char === _COLON) {
+          } else if (char === _COLON) {
             lastColon = index;
-          }
-           else if (char === _LEFT_BRACKET) {
+          } else if (char === _LEFT_BRACKET) {
             lastColon = -1;
             let endBracket = uri.indexOf("]", index + 1);
             if (endBracket === -1) {
               index = uri.length;
               char = EOI;
-              /* Unimplemented BreakStatement: break; */}
-             else {
+              break;
+            } else {
               index = endBracket;
             }
           }
@@ -1341,10 +1334,12 @@ var core;
         char = uri.codeUnitAt(i);
         if (char === _QUESTION || char === _NUMBER_SIGN) {
           state = NOT_IN_PATH;
-          /* Unimplemented BreakStatement: break; */}
+          break;
+        }
         if (char === _SLASH) {
           state = (i === 0) ? ALLOW_AUTH : IN_PATH;
-          /* Unimplemented BreakStatement: break; */}
+          break;
+        }
         if (char === _COLON) {
           if (i === 0) _fail(uri, 0, "Invalid empty scheme");
           scheme = _makeScheme(uri, i);
@@ -1353,20 +1348,18 @@ var core;
           if (i === uri.length) {
             char = EOI;
             state = NOT_IN_PATH;
-          }
-           else {
+          } else {
             char = uri.codeUnitAt(i);
             if (char === _QUESTION || char === _NUMBER_SIGN) {
               state = NOT_IN_PATH;
-            }
-             else if (char === _SLASH) {
+            } else if (char === _SLASH) {
               state = ALLOW_AUTH;
-            }
-             else {
+            } else {
               state = IN_PATH;
             }
           }
-          /* Unimplemented BreakStatement: break; */}
+          break;
+        }
         i++;
         char = EOI;
       }
@@ -1377,8 +1370,7 @@ var core;
         if (index === uri.length) {
           char = EOI;
           state = NOT_IN_PATH;
-        }
-         else {
+        } else {
           char = uri.codeUnitAt(index);
           if (char === _SLASH) {
             index++;
@@ -1387,8 +1379,7 @@ var core;
           }
           if (char === _QUESTION || char === _NUMBER_SIGN || char === EOI) {
             state = NOT_IN_PATH;
-          }
-           else {
+          } else {
             state = IN_PATH;
           }
         }
@@ -1398,7 +1389,8 @@ var core;
         while (++index < uri.length) {
           char = uri.codeUnitAt(index);
           if (char === _QUESTION || char === _NUMBER_SIGN) {
-            /* Unimplemented BreakStatement: break; */}
+            break;
+          }
           char = EOI;
         }
         state = NOT_IN_PATH;
@@ -1411,13 +1403,11 @@ var core;
         let numberSignIndex = uri.indexOf("#", index + 1);
         if (numberSignIndex < 0) {
           query = _makeQuery(uri, index + 1, uri.length, null);
-        }
-         else {
+        } else {
           query = _makeQuery(uri, index + 1, numberSignIndex, null);
           fragment = _makeFragment(uri, numberSignIndex + 1, uri.length);
         }
-      }
-       else if (char === _NUMBER_SIGN) {
+      } else if (char === _NUMBER_SIGN) {
         fragment = _makeFragment(uri, index + 1, uri.length);
       }
       return new Uri.this._internal(scheme, userinfo, host, port, path, query, fragment);
@@ -1481,12 +1471,14 @@ var core;
             hasUserInfo = true;
             userInfo = authority.substring(0, i);
             hostStart = i + 1;
-            /* Unimplemented BreakStatement: break; */}
+            break;
+          }
         }
         let hostEnd = hostStart;
         if (hostStart < authority.length && authority.codeUnitAt(hostStart) === _LEFT_BRACKET) {
           for (; hostEnd < authority.length; hostEnd++) {
-            if (authority.codeUnitAt(hostEnd) === _RIGHT_BRACKET) /* Unimplemented BreakStatement: break; */}
+            if (authority.codeUnitAt(hostEnd) === _RIGHT_BRACKET) break;
+          }
           if (hostEnd === authority.length) {
             throw new FormatException("Invalid IPv6 host entry.", authority, hostStart);
           }
@@ -1501,7 +1493,8 @@ var core;
           if (authority.codeUnitAt(hostEnd) === _COLON) {
             let portString = authority.substring(hostEnd + 1);
             if (portString.isNotEmpty) port = int.parse(portString);
-            /* Unimplemented BreakStatement: break; */}
+            break;
+          }
         }
         host = authority.substring(hostStart, hostEnd);
       }
@@ -1519,8 +1512,7 @@ var core;
         if (/* Unimplemented dynamic method call: segment.contains("/") */) {
           if (argumentError) {
             throw new ArgumentError("Illegal path character " + (segment) + "");
-          }
-           else {
+          } else {
             throw new UnsupportedError("Illegal path character " + (segment) + "");
           }
         }
@@ -1532,8 +1524,7 @@ var core;
         if (/* Unimplemented dynamic method call: segment.contains(new RegExp(r'["*/:<>?\\|]')) */) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
-          }
-           else {
+          } else {
             throw new UnsupportedError("Illegal character in path");
           }
         }
@@ -1545,8 +1536,7 @@ var core;
       }
       if (argumentError) {
         throw new ArgumentError(/* Unimplemented binary operator: "Illegal drive letter " + new String.fromCharCode(charCode) */);
-      }
-       else {
+      } else {
         throw new UnsupportedError(/* Unimplemented binary operator: "Illegal drive letter " + new String.fromCharCode(charCode) */);
       }
     }
@@ -1554,8 +1544,7 @@ var core;
       let sep = "/";
       if (path.startsWith(sep)) {
         return new Uri(/* Unimplemented NamedExpression: scheme: "file" */, /* Unimplemented NamedExpression: pathSegments: path.split(sep) */);
-      }
-       else {
+      } else {
         return new Uri(/* Unimplemented NamedExpression: pathSegments: path.split(sep) */);
       }
     }
@@ -1563,15 +1552,13 @@ var core;
       if (path.startsWith("\\?\")) {
         if (path.startsWith("\\?\UNC\")) {
           path = "\" + (path.substring(7)) + "";
-        }
-         else {
+        } else {
           path = path.substring(4);
           if (path.length < 3 || path.codeUnitAt(1) !== _COLON || path.codeUnitAt(2) !== _BACKSLASH) {
             throw new ArgumentError("Windows paths with \\?\ prefix must be absolute");
           }
         }
-      }
-       else {
+      } else {
         path = path.replaceAll("/", "\");
       }
       let sep = "\";
@@ -1592,14 +1579,12 @@ var core;
           let pathSegments = pathPart.split(sep);
           _checkWindowsPathReservedCharacters(pathSegments, true);
           return new Uri(/* Unimplemented NamedExpression: scheme: "file" */, /* Unimplemented NamedExpression: host: hostPart */, /* Unimplemented NamedExpression: pathSegments: pathSegments */);
-        }
-         else {
+        } else {
           let pathSegments = path.split(sep);
           _checkWindowsPathReservedCharacters(pathSegments, true);
           return new Uri(/* Unimplemented NamedExpression: scheme: "file" */, /* Unimplemented NamedExpression: pathSegments: pathSegments */);
         }
-      }
-       else {
+      } else {
         let pathSegments = path.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
         return new Uri(/* Unimplemented NamedExpression: pathSegments: pathSegments */);
@@ -1619,21 +1604,18 @@ var core;
       if (scheme !== null) {
         scheme = _makeScheme(scheme, scheme.length);
         schemeChanged = true;
-      }
-       else {
+      } else {
         scheme = this.scheme;
       }
       let isFile = (dart.equals(scheme, "file"));
       if (userInfo !== null) {
         userInfo = _makeUserInfo(userInfo, 0, userInfo.length);
-      }
-       else {
+      } else {
         userInfo = this.userInfo;
       }
       if (port !== null) {
         port = _makePort(port, scheme);
-      }
-       else {
+      } else {
         port = this._port;
         if (schemeChanged) {
           port = _makePort(port, scheme);
@@ -1641,18 +1623,15 @@ var core;
       }
       if (host !== null) {
         host = _makeHost(host, 0, host.length, false);
-      }
-       else if (this.hasAuthority) {
+      } else if (this.hasAuthority) {
         host = this.host;
-      }
-       else if (userInfo.isNotEmpty || port !== null || isFile) {
+      } else if (userInfo.isNotEmpty || port !== null || isFile) {
         host = "";
       }
       let ensureLeadingSlash = (host !== null);
       if (path !== null || pathSegments !== null) {
         path = _makePath(path, 0, _stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
-      }
-       else {
+      } else {
         path = this.path;
         if ((isFile || (ensureLeadingSlash && !path.isEmpty)) && !path.startsWith("/")) {
           path = "/" + (path) + "";
@@ -1660,14 +1639,12 @@ var core;
       }
       if (query !== null || queryParameters !== null) {
         query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
-      }
-       else if (this.hasQuery) {
+      } else if (this.hasQuery) {
         query = this.query;
       }
       if (fragment !== null) {
         fragment = _makeFragment(fragment, 0, fragment.length);
-      }
-       else if (this.hasFragment) {
+      } else if (this.hasFragment) {
         fragment = this.fragment;
       }
       return new Uri.this._internal(scheme, userInfo, host, port, path, query, fragment);
@@ -1723,7 +1700,8 @@ var core;
           let replacement = _normalizeEscape(host, index, true);
           if (replacement === null && isNormalized) {
             index = 3;
-            /* Unimplemented ContinueStatement: continue; */}
+            continue;
+          }
           if (buffer === null) buffer = new StringBuffer();
           let slice = host.substring(sectionStart, index);
           if (!isNormalized) slice = slice.toLowerCase();
@@ -1731,8 +1709,7 @@ var core;
           let sourceLength = 3;
           if (replacement === null) {
             replacement = host.substring(index, index + 3);
-          }
-           else if (dart.equals(replacement, "%")) {
+          } else if (dart.equals(replacement, "%")) {
             replacement = "%25";
             sourceLength = 1;
           }
@@ -1740,8 +1717,7 @@ var core;
           index = sourceLength;
           sectionStart = index;
           isNormalized = true;
-        }
-         else if (_isRegNameChar(char)) {
+        } else if (_isRegNameChar(char)) {
           if (isNormalized && _UPPER_CASE_A <= char && _UPPER_CASE_Z >= char) {
             if (buffer === null) buffer = new StringBuffer();
             if (sectionStart < index) {
@@ -1751,11 +1727,9 @@ var core;
             isNormalized = false;
           }
           index++;
-        }
-         else if (_isGeneralDelimiter(char)) {
+        } else if (_isGeneralDelimiter(char)) {
           _fail(host, index, "Invalid character");
-        }
-         else {
+        } else {
           let sourceLength = 1;
           if ((char & 64512) === 55296 && (index + 1) < end) {
             let tail = host.codeUnitAt(index + 1);
@@ -1813,14 +1787,12 @@ var core;
       let result = null;
       if (path !== null) {
         result = _normalize(path, start, end, /* Unimplemented: DownCast: dynamic to List<int> */ _pathCharOrSlashTable);
-      }
-       else {
+      } else {
         result = pathSegments.map((s) => _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _pathCharTable, /* Unimplemented: DownCast: dynamic to String */ s)).join("/");
       }
       if (dart.dload(result, "isEmpty")) {
         if (isFile) return "/";
-      }
-       else if ((isFile || ensureLeadingSlash) && !dart.equals(/* Unimplemented dynamic method call: result.codeUnitAt(0) */, _SLASH)) {
+      } else if ((isFile || ensureLeadingSlash) && !dart.equals(/* Unimplemented dynamic method call: result.codeUnitAt(0) */, _SLASH)) {
         return "/" + (result) + "";
       }
       return /* Unimplemented: DownCast: dynamic to String */ result;
@@ -1896,8 +1868,7 @@ var core;
         codeUnits[0] = _PERCENT;
         codeUnits[1] = hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ /* Unimplemented binary operator: char >> 4 */);
         codeUnits[2] = hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ /* Unimplemented binary operator: char & 0xf */);
-      }
-       else {
+      } else {
         let flag = 192;
         let encodedBytes = 2;
         if (/* Unimplemented binary operator: char > 0x7ff */) {
@@ -1929,27 +1900,24 @@ var core;
         let char = component.codeUnitAt(index);
         if (char < 127 && (charTable[char >> 4] & (1 << (char & 15))) !== 0) {
           index++;
-        }
-         else {
+        } else {
           let replacement = null;
           let sourceLength = null;
           if (char === _PERCENT) {
             replacement = _normalizeEscape(component, index, false);
             if (replacement === null) {
               index = 3;
-              /* Unimplemented ContinueStatement: continue; */}
+              continue;
+            }
             if (dart.equals("%", replacement)) {
               replacement = "%25";
               sourceLength = 1;
-            }
-             else {
+            } else {
               sourceLength = 3;
             }
-          }
-           else if (_isGeneralDelimiter(char)) {
+          } else if (_isGeneralDelimiter(char)) {
             _fail(component, index, "Invalid character");
-          }
-           else {
+          } else {
             sourceLength = 1;
             if ((char & 64512) === 55296) {
               if (index + 1 < end) {
@@ -1996,10 +1964,12 @@ var core;
       while (baseEnd > 0 && backCount > 0) {
         let newEnd = base.lastIndexOf("/", baseEnd - 1);
         if (newEnd < 0) {
-          /* Unimplemented BreakStatement: break; */}
+          break;
+        }
         let delta = baseEnd - newEnd;
         if ((delta === 2 || delta === 3) && base.codeUnitAt(newEnd + 1) === _DOT && (delta === 2 || base.codeUnitAt(newEnd + 2) === _DOT)) {
-          /* Unimplemented BreakStatement: break; */}
+          break;
+        }
         baseEnd = newEnd;
         backCount--;
       }
@@ -2014,7 +1984,18 @@ var core;
       if (!this._hasDotSegments(path)) return path;
       let output = /* Unimplemented: DownCastLiteral: List<dynamic> to List<String> */ /* Unimplemented ArrayList */[];
       let appendSlash = false;
-      /* Unimplemented ForEachStatement: for (String segment in path.split("/")) {appendSlash = false; if (segment == "..") {if (!output.isEmpty && ((output.length != 1) || (output[0] != ""))) output.removeLast(); appendSlash = true;} else if ("." == segment) {appendSlash = true;} else {output.add(segment);}} */if (appendSlash) output.add("");
+      for (let segment of path.split("/")) {
+        appendSlash = false;
+        if (dart.equals(segment, "..")) {
+          if (!output.isEmpty && ((output.length !== 1) || (!dart.equals(output[0], "")))) output.removeLast();
+          appendSlash = true;
+        } else if (dart.equals(".", segment)) {
+          appendSlash = true;
+        } else {
+          output.add(segment);
+        }
+      }
+      if (appendSlash) output.add("");
       return output.join("/");
     }
     resolve(reference) {
@@ -2038,8 +2019,7 @@ var core;
         if (reference.hasQuery) {
           targetQuery = reference.query;
         }
-      }
-       else {
+      } else {
         targetScheme = this.scheme;
         if (reference.hasAuthority) {
           targetUserInfo = reference.userInfo;
@@ -2047,22 +2027,18 @@ var core;
           targetPort = _makePort(/* Unimplemented: DownCast: dynamic to int */ reference.hasPort ? reference.port : null, targetScheme);
           targetPath = this._removeDotSegments(reference.path);
           if (reference.hasQuery) targetQuery = reference.query;
-        }
-         else {
+        } else {
           if (dart.equals(reference.path, "")) {
             targetPath = this._path;
             if (reference.hasQuery) {
               targetQuery = reference.query;
-            }
-             else {
+            } else {
               targetQuery = this._query;
             }
-          }
-           else {
+          } else {
             if (reference.path.startsWith("/")) {
               targetPath = this._removeDotSegments(reference.path);
-            }
-             else {
+            } else {
               targetPath = this._removeDotSegments(this._merge(this._path, reference.path));
             }
             if (reference.hasQuery) targetQuery = reference.query;
@@ -2120,8 +2096,7 @@ var core;
         _checkWindowsDriveLetter(segments[0].codeUnitAt(0), false);
         _checkWindowsPathReservedCharacters(segments, false, 1);
         hasDriveLetter = true;
-      }
-       else {
+      } else {
         _checkWindowsPathReservedCharacters(segments, false);
       }
       let result = new StringBuffer();
@@ -2214,8 +2189,7 @@ var core;
           if (!dart.equals(element, "")) {
             /* Unimplemented dynamic IndexExpression: map[decodeQueryComponent(element, encoding: encoding)] */ = "";
           }
-        }
-         else if (index !== 0) {
+        } else if (index !== 0) {
           let key = /* Unimplemented dynamic method call: element.substring(0, index) */;
           let value = /* Unimplemented dynamic method call: element.substring(index + 1) */;
           /* Unimplemented dynamic IndexExpression: map[Uri.decodeQueryComponent(key, encoding: encoding)] */ = decodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ value, /* Unimplemented NamedExpression: encoding: encoding */);
@@ -2279,8 +2253,7 @@ var core;
             }
             wildcardSeen = true;
             parts.add(-1);
-          }
-           else {
+          } else {
             parts.add(parseHex(partStart, i));
           }
           partStart = i + 1;
@@ -2298,8 +2271,7 @@ var core;
         if (parts.length > 7) {
           error("an address with a wildcard must have less than 7 parts");
         }
-      }
-       else if (parts.length !== 8) {
+      } else if (parts.length !== 8) {
         error("an address without a wildcard must contain exactly 8 parts");
       }
       let bytes = new List(16);
@@ -2312,8 +2284,7 @@ var core;
             bytes[index + 1] = 0;
             index = 2;
           }
-        }
-         else {
+        } else {
           bytes[index] = value >> 8;
           bytes[index + 1] = value & 255;
           index = 2;
@@ -2336,11 +2307,9 @@ var core;
         let byte = bytes[i];
         if (byte < 128 && ((canonicalTable[byte >> 4] & (1 << (byte & 15))) !== 0)) {
           result.writeCharCode(byte);
-        }
-         else if (spaceToPlus && byte === _SPACE) {
+        } else if (spaceToPlus && byte === _SPACE) {
           result.writeCharCode(_PLUS);
-        }
-         else {
+        } else {
           result.writeCharCode(_PERCENT);
           byteToHex(byte, result);
         }
@@ -2353,13 +2322,11 @@ var core;
         let charCode = s.codeUnitAt(pos + i);
         if (48 <= charCode && charCode <= 57) {
           byte = byte * 16 + charCode - 48;
-        }
-         else {
+        } else {
           charCode = 32;
           if (97 <= charCode && charCode <= 102) {
             byte = byte * 16 + charCode - 87;
-          }
-           else {
+          } else {
             throw new ArgumentError("Invalid URL encoding");
           }
         }
@@ -2378,12 +2345,10 @@ var core;
       if (simple) {
         if (dart.equals(encoding, convert.UTF8) || dart.equals(encoding, convert.LATIN1)) {
           return text;
-        }
-         else {
+        } else {
           bytes = text.codeUnits;
         }
-      }
-       else {
+      } else {
         bytes = /* Unimplemented: DownCastExact: List<dynamic> to List<int> */ new List();
         for (let i = 0; i < text.length; i++) {
           let codeUnit = text.codeUnitAt(i);
@@ -2396,11 +2361,9 @@ var core;
             }
             bytes.add(_hexCharPairToByte(text, i + 1));
             i = 2;
-          }
-           else if (plusToSpace && codeUnit === _PLUS) {
+          } else if (plusToSpace && codeUnit === _PLUS) {
             bytes.add(_SPACE);
-          }
-           else {
+          } else {
             bytes.add(codeUnit);
           }
         }
