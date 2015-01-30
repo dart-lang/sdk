@@ -86,6 +86,13 @@ var dart;
   }
   dart.equals = equals;
 
+  /** Checks that `x` is not null or undefined. */
+  function notNull(x) {
+    if (x == null) throw 'expected not-null value';
+    return x;
+  }
+  dart.notNull = notNull;
+
   /**
    * Defines a lazy property.
    * After initial get or set, it will replace itself with a value property.

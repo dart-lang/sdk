@@ -25,7 +25,7 @@ abstract class TypeRules {
   bool isBoolType(DartType t) => t == provider.boolType;
   bool isDoubleType(DartType t) => t == provider.doubleType;
   bool isIntType(DartType t) => t == provider.intType;
-  bool isNumType(DartType t) => t.name == "num";
+  bool isNumType(DartType t) => t == provider.intType.superclass;
 
   StaticInfo checkAssignment(Expression expr, DartType t);
 

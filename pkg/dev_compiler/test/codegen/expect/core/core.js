@@ -367,9 +367,9 @@ var core;
       /* Unimplemented FunctionDeclarationStatement: String sixDigits(int n) {if (n >= 100000) return "$n"; if (n >= 10000) return "0$n"; if (n >= 1000) return "00$n"; if (n >= 100) return "000$n"; if (n >= 10) return "0000$n"; return "00000$n";} *//* Unimplemented FunctionDeclarationStatement: String twoDigits(int n) {if (n >= 10) return "$n"; return "0$n";} */if (this.inMicroseconds < 0) {
         return "-" + (/* Unimplemented postfix operator: -this */) + "";
       }
-      let twoDigitMinutes = twoDigits(/* Unimplemented: DownCast: num to int */ this.inMinutes.remainder(MINUTES_PER_HOUR));
-      let twoDigitSeconds = twoDigits(/* Unimplemented: DownCast: num to int */ this.inSeconds.remainder(SECONDS_PER_MINUTE));
-      let sixDigitUs = sixDigits(/* Unimplemented: DownCast: num to int */ this.inMicroseconds.remainder(MICROSECONDS_PER_SECOND));
+      let twoDigitMinutes = twoDigits(dart.notNull(this.inMinutes.remainder(MINUTES_PER_HOUR)));
+      let twoDigitSeconds = twoDigits(dart.notNull(this.inSeconds.remainder(SECONDS_PER_MINUTE)));
+      let sixDigitUs = sixDigits(dart.notNull(this.inMicroseconds.remainder(MICROSECONDS_PER_SECOND)));
       return "" + (this.inHours) + ":" + (twoDigitMinutes) + ":" + (twoDigitSeconds) + "." + (sixDigitUs) + "";
     }
     get isNegative() { return this._duration < 0; }

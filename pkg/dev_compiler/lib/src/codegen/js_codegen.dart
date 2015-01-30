@@ -95,6 +95,21 @@ var $_libraryName;
   /// Conversions that we don't handle end up here.
   @override
   void visitConversion(Conversion node) {
+    var from = node.baseType, to = node.convertedType;
+
+    // num to int or num to double is just a null check.
+    if (rules.isNumType(from) &&
+        (rules.isIntType(to) || rules.isDoubleType(to))) {
+      // TODO(jmesserly): a lot of these checks are meaningless, as people use
+      // `num` to mean "any kind of number" rather than "could be null".
+      // The core libraries especially suffer from this problem, with many of
+      // the `num` methods returning `num`.
+      out.write('dart.notNull(');
+      node.expression.accept(this);
+      out.write(')');
+      return;
+    }
+
     out.write('/* Unimplemented: ');
     out.write('${node.description}');
     out.write(' */ ');
