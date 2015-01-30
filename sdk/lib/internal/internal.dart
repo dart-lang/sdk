@@ -45,3 +45,18 @@ const POWERS_OF_TEN = const [
    1000000000000000000000.0,
   10000000000000000000000.0,
 ];
+
+/**
+ * An [Iterable] of the UTF-16 code units of a [String] in index order.
+ */
+class CodeUnits extends UnmodifiableListBase<int> {
+  /** The string that this is the code units of. */
+  final String _string;
+
+  CodeUnits(this._string);
+
+  int get length => _string.length;
+  int operator[](int i) => _string.codeUnitAt(i);
+
+  static String stringOf(CodeUnits u) => u._string;
+}

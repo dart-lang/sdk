@@ -11,3 +11,7 @@ class VMLibraryHooks {
   // Example: "dart:io _EventHandler._sendData"
   static var eventHandlerSendData;
 }
+
+patch class CodeUnits {
+  static final int cid = ClassID.getID(new CodeUnits(""));
+}

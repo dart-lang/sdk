@@ -829,6 +829,24 @@ abstract class _TypedList extends _TypedListBase {
   Float64x2 _getFloat64x2(int offsetInBytes) native "TypedData_GetFloat64x2";
   void _setFloat64x2(int offsetInBytes, Float64x2 value)
       native "TypedData_SetFloat64x2";
+
+  /**
+   * Stores the [CodeUnits] as UTF-16 units into this TypedData at
+   * positions [start]..[end] (uint16 indices).
+   */
+  void _setCodeUnits(CodeUnits units,
+                     int byteStart, int length, int skipCount) {
+    assert(byteStart + length * Uint16List.BYTES_PER_ELEMENT <= lengthInBytes);
+    String string = CodeUnits.stringOf(units);
+    int sliceEnd = skipCount + length;
+    RangeError.checkValidRange(skipCount, sliceEnd,
+                               string.length,
+                               "skipCount", "skipCount + length");
+    for (int i = 0; i < length; i++) {
+      _setUint16(byteStart + i * Uint16List.BYTES_PER_ELEMENT,
+                 string.codeUnitAt(skipCount + i));
+    }
+  }
 }
 
 
@@ -979,6 +997,16 @@ class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
     _setIndexedInt16(index, _toInt16(value));
   }
 
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+    if (ClassID.getID(iterable) == CodeUnits.cid) {
+      end = RangeError.checkValidRange(start, end, this.length);
+      int length = end - start;
+      int byteStart = this.offsetInBytes + start * Int16List.BYTES_PER_ELEMENT;
+      _setCodeUnits(iterable, byteStart, length, skipCount);
+    } else {
+      super.setRange(start, end, iterable, skipCount);
+    }
+  }
 
   // Method(s) implementing TypedData interface.
 
@@ -1029,6 +1057,16 @@ class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
     _setIndexedUint16(index, _toUint16(value));
   }
 
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+    if (ClassID.getID(iterable) == CodeUnits.cid) {
+      end = RangeError.checkValidRange(start, end, this.length);
+      int length = end - start;
+      int byteStart = this.offsetInBytes + start * Uint16List.BYTES_PER_ELEMENT;
+      _setCodeUnits(iterable, byteStart, length, skipCount);
+    } else {
+      super.setRange(start, end, iterable, skipCount);
+    }
+  }
 
   // Method(s) implementing the TypedData interface.
 
@@ -2453,7 +2491,7 @@ class _TypedListView extends _TypedListBase implements TypedData {
     return _typedData.buffer;
   }
 
-  final TypedData _typedData;
+  final _TypedList _typedData;
   final int offsetInBytes;
   final int length;
 }
@@ -2633,6 +2671,16 @@ class _Int16ArrayView extends _TypedListView with _IntListMixin implements Int16
                          _toInt16(value));
   }
 
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+    if (ClassID.getID(iterable) == CodeUnits.cid) {
+      end = RangeError.checkValidRange(start, end, this.length);
+      int length = end - start;
+      int byteStart = this.offsetInBytes + start * Int16List.BYTES_PER_ELEMENT;
+      _typedData._setCodeUnits(iterable, byteStart, length, skipCount);
+    } else {
+      super.setRange(start, end, iterable, skipCount);
+    }
+  }
 
   // Method(s) implementing TypedData interface.
 
@@ -2681,13 +2729,22 @@ class _Uint16ArrayView extends _TypedListView with _IntListMixin implements Uint
                           _toUint16(value));
   }
 
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+    if (ClassID.getID(iterable) == CodeUnits.cid) {
+      end = RangeError.checkValidRange(start, end, this.length);
+      int length = end - start;
+      int byteStart = this.offsetInBytes + start * Uint16List.BYTES_PER_ELEMENT;
+      _typedData._setCodeUnits(iterable, byteStart, length, skipCount);
+    } else {
+      super.setRange(start, end, iterable, skipCount);
+    }
+  }
 
   // Method(s) implementing TypedData interface.
 
   int get elementSizeInBytes {
     return Uint16List.BYTES_PER_ELEMENT;
   }
-
 
   // Internal utility methods.
 

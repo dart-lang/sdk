@@ -884,7 +884,7 @@ class _StringBase {
     return result;
   }
 
-  List<int> get codeUnits => new _CodeUnits(this);
+  List<int> get codeUnits => new CodeUnits(this);
 
   Runes get runes => new Runes(this);
 
@@ -1270,18 +1270,4 @@ class _StringMatch implements Match {
   final int start;
   final String input;
   final String pattern;
-}
-
-/**
- * An [Iterable] of the UTF-16 code units of a [String] in index order.
- */
-class _CodeUnits extends Object with ListMixin<int>,
-                                     UnmodifiableListMixin<int> {
-  /** The string that this is the code units of. */
-  String _string;
-
-  _CodeUnits(this._string);
-
-  int get length => _string.length;
-  int operator[](int i) => _string.codeUnitAt(i);
 }
