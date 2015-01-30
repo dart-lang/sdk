@@ -111,7 +111,7 @@ class Driver implements ServerStarter {
    * The name of the option used to specify if [print] should print to the
    * console instead of being intercepted.
    */
-  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-freqency';
+  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-frequency';
 
   /**
    * The name of the option used to specify the port to which the server will
