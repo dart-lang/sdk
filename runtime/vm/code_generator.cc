@@ -739,9 +739,15 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
-
+  const Class& cache_class = Class::Handle(receiver_class.IsSignatureClass()
+      ? receiver_class.SuperClass()
+      : receiver_class.raw());
+  ASSERT(
+      !receiver_class.IsSignatureClass() ||
+      (receiver_class.SuperClass() == Type::Handle(
+       Isolate::Current()->object_store()->function_impl_type()).type_class()));
   const Function& target_function =
-      Function::Handle(receiver_class.GetInvocationDispatcher(
+      Function::Handle(cache_class.GetInvocationDispatcher(
           target_name,
           arguments_descriptor,
           RawFunction::kInvokeFieldDispatcher));

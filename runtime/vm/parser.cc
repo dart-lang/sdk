@@ -1432,11 +1432,14 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   ArgumentListNode* no_args = new ArgumentListNode(token_pos);
   LoadLocalNode* receiver = new LoadLocalNode(token_pos, scope->VariableAt(0));
 
+  const Class& function_impl = Class::Handle(Type::Handle(
+      Isolate::Current()->object_store()->function_impl_type()).type_class());
+
   const Class& owner = Class::Handle(Z, func.Owner());
   ASSERT(!owner.IsNull());
   const String& name = String::Handle(Z, func.name());
   AstNode* function_object = NULL;
-  if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
+  if (owner.raw() == function_impl.raw() && name.Equals(Symbols::Call())) {
     function_object = receiver;
   } else {
     const String& getter_name = String::ZoneHandle(Z,
@@ -1463,7 +1466,7 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   args->set_names(names);
 
   AstNode* result = NULL;
-  if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
+  if (owner.raw() == function_impl.raw() && name.Equals(Symbols::Call())) {
     result = new ClosureCallNode(token_pos, function_object, args);
   } else {
     result = BuildClosureCall(token_pos, function_object, args);
