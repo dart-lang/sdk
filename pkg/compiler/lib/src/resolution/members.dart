@@ -1500,8 +1500,7 @@ class InitializerResolver {
       ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
                                                              isSuperCall,
                                                              functionNode);
-      Selector constructorSelector = new Selector.callDefaultConstructor(
-          visitor.enclosingElement.library);
+      Selector constructorSelector = new Selector.callDefaultConstructor();
       Element calledConstructor = lookupTarget.lookupConstructor(
           constructorSelector.name);
 
@@ -2316,8 +2315,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           constructorName,
           enclosingElement.library);
     } else {
-      return new Selector.callDefaultConstructor(
-          enclosingElement.library);
+      return new Selector.callDefaultConstructor();
     }
   }
 

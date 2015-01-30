@@ -1048,8 +1048,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         // If we do not find a default constructor, an error was reported
         // already and compilation will fail anyway. So just ignore that case.
         if (targetConstructor != null) {
-          Selector selector =
-             new Selector.callDefaultConstructor(enclosingClass.library);
+          Selector selector = new Selector.callDefaultConstructor();
           List<AstConstant> compiledArguments = evaluateArgumentsToConstructor(
               functionNode, selector, const Link<Node>(), targetConstructor);
           evaluateSuperOrRedirectSend(compiledArguments, targetConstructor);

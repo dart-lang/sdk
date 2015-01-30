@@ -242,7 +242,7 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
           compiler.internalError(superClass,
               "No default constructor available.");
         }
-        Selector selector = new Selector.fromElement(target);
+        Selector selector = new Selector.callDefaultConstructor();
         result.add(irBuilder.makeSuperInitializer(target,
                                                   <ir.RunnableBody>[],
                                                   selector));

@@ -1914,8 +1914,7 @@ class SsaBuilder extends ResolvedVisitor {
           compiler.internalError(superClass,
               "No default constructor available.");
         }
-        Selector selector =
-                    new Selector.callDefaultConstructor(enclosingClass.library);
+        Selector selector = new Selector.callDefaultConstructor();
         List<HInstruction> arguments =
             selector.makeArgumentsList2(const Link<ast.Node>(),
                                         target.implementation,

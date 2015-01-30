@@ -326,6 +326,8 @@ class Selector {
       return new Selector.getter(name, element.library);
     } else if (element.isField) {
       return new Selector.getter(name, element.library);
+    } else if (element.isConstructor) {
+      return new Selector.callConstructor(name, element.library);
     } else {
       throw new SpannableAssertionFailure(
           element, "Can't get selector from $element");
@@ -381,8 +383,8 @@ class Selector {
       => new Selector(SelectorKind.CALL, name, library,
                       arity, namedArguments);
 
-  factory Selector.callDefaultConstructor(LibraryElement library)
-      => new Selector(SelectorKind.CALL, "", library, 0);
+  factory Selector.callDefaultConstructor()
+      => new Selector(SelectorKind.CALL, "", null, 0);
 
   bool get isGetter => identical(kind, SelectorKind.GETTER);
   bool get isSetter => identical(kind, SelectorKind.SETTER);
