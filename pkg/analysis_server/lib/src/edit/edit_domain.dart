@@ -73,14 +73,24 @@ class EditDomainHandler implements RequestHandler {
     } catch (e) {
       return new Response.formatInvalidFile(request);
     }
+
     String unformattedSource = contents.data;
+
+    int start = params.selectionOffset;
+    int length = params.selectionLength;
+
+    // No need to preserve 0,0 selection
+    if (start == 0 && length == 0) {
+      start = null;
+      length = null;
+    }
 
     SourceCode code = new SourceCode(
         unformattedSource,
         uri: null,
         isCompilationUnit: true,
-        selectionStart: params.selectionOffset,
-        selectionLength: params.selectionLength);
+        selectionStart: start,
+        selectionLength: length);
     DartFormatter formatter = new DartFormatter();
     SourceCode formattedResult = formatter.formatSource(code);
     String formattedSource = formattedResult.text;

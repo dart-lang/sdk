@@ -1301,13 +1301,17 @@
           <field name="selectionOffset">
             <ref>int</ref>
             <p>
-              The offset of the current selection in the file.
+              The offset of the current selection in the file. In case 
+              preserving, selection information is not required, 0 can be
+              specified for both selection offset and length. 
             </p>
           </field>
           <field name="selectionLength">
             <ref>int</ref>
             <p>
-              The length of the current selection in the file.
+              The length of the current selection in the file. In case 
+              preserving, selection information is not required, 0 can be
+              specified for both selection offset and length.
             </p>
           </field>
           <!--

@@ -1058,11 +1058,15 @@ abstract class IntegrationTestMixin {
    *
    * selectionOffset ( int )
    *
-   *   The offset of the current selection in the file.
+   *   The offset of the current selection in the file. In case preserving,
+   *   selection information is not required, 0 can be specified for both
+   *   selection offset and length.
    *
    * selectionLength ( int )
    *
-   *   The length of the current selection in the file.
+   *   The length of the current selection in the file. In case preserving,
+   *   selection information is not required, 0 can be specified for both
+   *   selection offset and length.
    *
    * Returns
    *

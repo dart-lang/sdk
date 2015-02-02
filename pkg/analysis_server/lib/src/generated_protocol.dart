@@ -3483,12 +3483,16 @@ class EditFormatParams implements HasToJson {
   String file;
 
   /**
-   * The offset of the current selection in the file.
+   * The offset of the current selection in the file. In case preserving,
+   * selection information is not required, 0 can be specified for both
+   * selection offset and length.
    */
   int selectionOffset;
 
   /**
-   * The length of the current selection in the file.
+   * The length of the current selection in the file. In case preserving,
+   * selection information is not required, 0 can be specified for both
+   * selection offset and length.
    */
   int selectionLength;
 
