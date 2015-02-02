@@ -272,6 +272,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     _assertCompatibleParameters(
         node.functionExpression.parameters,
         element.parameters);
+    _assertBodyModifiers(node.functionExpression.body, element);
     // matches, update the existing element
     ExecutableElement newElement = node.element;
     node.name.staticElement = element;
@@ -345,6 +346,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertEquals(node.isStatic, element.isStatic);
       _assertSameType(node.returnType, element.returnType);
       _assertCompatibleParameters(node.parameters, element.parameters);
+      _assertBodyModifiers(node.body, element);
       _removedElements.remove(element);
       // matches, update the existing element
       node.name.staticElement = element;
@@ -420,6 +422,15 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     List<TypeName> nodes = node.mixinTypes;
     List<InterfaceType> types = _enclosingClass.mixins;
     _assertSameTypes(nodes, types);
+  }
+
+  /**
+   * Asserts that [body] has async / generator modifiers compatible with the
+   * given [element].
+   */
+  void _assertBodyModifiers(FunctionBody body, ExecutableElementImpl element) {
+    _assertEquals(body.isSynchronous, element.isSynchronous);
+    _assertEquals(body.isGenerator, element.isGenerator);
   }
 
   void _assertCombinators(List<Combinator> nodeCombinators,
