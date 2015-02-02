@@ -2,3 +2,5 @@
 .pub
 packages
 build
+.project
+pubspec.lock
