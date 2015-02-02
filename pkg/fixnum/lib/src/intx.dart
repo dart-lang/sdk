@@ -7,7 +7,7 @@ part of fixnum;
 /**
  * A fixed-precision integer.
  */
-abstract class IntX implements Comparable {
+abstract class IntX implements Comparable<IntX> {
 
   /** Addition operator. */
   IntX operator +(other);
@@ -79,8 +79,6 @@ abstract class IntX implements Comparable {
    * bits to the right. High-order bits are filled with zeros.
    */
   IntX shiftRightUnsigned(int shiftAmount);
-
-  int compareTo(Comparable other);
 
   /**
    * Returns `true` if and only if [other] is an int or IntX equal in
