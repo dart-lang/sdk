@@ -13,7 +13,8 @@ Future<int> topLevelWithParameter(int a) async {
   return 7 + a;
 }
 
-int topLevelWithParameterWrongType(int a) async {
+int /// type-mismatch2: static type warning, dynamic type error
+topLevelWithParameterWrongType(int a) async {
   return 7 + a;
 }
 
@@ -34,8 +35,8 @@ class A {
   A.fail() async;  /// constructor2: compile-time error
   factory A.create() async {return null; } /// constructor3: compile-time error
 
-  int someMethod(int param1, int param2, int param3) async => _x + param2;
-  int get getter async { return 5 + _x; }
+  int someMethod(int param1, int param2, int param3) async => _x + param2; /// type-mismatch3: static type warning, dynamic type error
+  int get getter async { return 5 + _x; } /// type-mismatch4: static type warning, dynamic type error
   operator+(A other) async {
     return new A(_x + other._x);
   }
@@ -61,7 +62,7 @@ main() {
   Expect.isTrue(asyncReturn is Future);
 
   int a1 = topLevelWithParameter(2);  /// type-mismatch1: static type warning, dynamic type error
-  int a2 = topLevelWithParameterWrongType(2);  /// type-mismatch2: static type warning, dynamic type error
+  int a2 = topLevelWithParameterWrongType(2);  /// type-mismatch2: continued
   asyncReturn = topLevelWithParameter(4);
   Expect.isTrue(asyncReturn is Future);
   asyncReturn.then((int result) => Expect.equals(result, 11));
@@ -81,11 +82,11 @@ main() {
 
   A a = new A(13);
 
-  asyncReturn = a.someMethod(1,2,3);  /// type-mismatch3: static type warning, dynamic type error
+  asyncReturn = a.someMethod(1,2,3);  /// type-mismatch3: continued
   Expect.isTrue(asyncReturn is Future);  /// type-mismatch3: continued
   asyncReturn.then((int result) => Expect.equals(result, 15));  /// type-mismatch3: continued
 
-  asyncReturn = a.getter;  /// type-mismatch4: static type warning, dynamic type error
+  asyncReturn = a.getter;  /// type-mismatch4: continued
   Expect.isTrue(asyncReturn is Future);  /// type-mismatch4: continued
   asyncReturn.then((int result) => Expect.equals(result, 18));  /// type-mismatch4: continued
 

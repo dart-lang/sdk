@@ -5,10 +5,6 @@
 [ $compiler == dart2analyzer ]
 await_backwards_compatibility_test/await1: MissingCompileTimeError # Issue 22206
 
-async_test/type-mismatch2: MissingStaticWarning # Issue 22053
-async_test/type-mismatch3: MissingStaticWarning # Issue 22053
-async_test/type-mismatch4: MissingStaticWarning # Issue 22053
-
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 

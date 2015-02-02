@@ -3075,6 +3075,16 @@ main() {
     verify([source]);
   }
 
+  void test_missingReturn_async() {
+    Source source = addSource('''
+import 'dart:async';
+Future<int> f() async {}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
   void test_missingReturn_function() {
     Source source = addSource("int f() {}");
     resolve(source);
@@ -6071,12 +6081,16 @@ class LibraryResolver2Test extends ResolverTestCase {
 
   Source _coreLibrarySource;
 
+  Source _asyncLibrarySource;
+
   @override
   void setUp() {
     super.setUp();
     _resolver = new LibraryResolver2(analysisContext2);
     _coreLibrarySource =
         analysisContext2.sourceFactory.forUri(DartSdk.DART_CORE);
+    _asyncLibrarySource =
+        analysisContext2.sourceFactory.forUri(DartSdk.DART_ASYNC);
   }
 
   void test_imports_relative() {
@@ -6092,10 +6106,13 @@ class B {}''');
     ResolvableLibrary coreLib = _createResolvableLibrary(_coreLibrarySource);
     coreLib.libraryElement = analysisContext2.computeLibraryElement(
         _coreLibrarySource) as LibraryElementImpl;
+    ResolvableLibrary asyncLib = _createResolvableLibrary(_asyncLibrarySource);
+    asyncLib.libraryElement = analysisContext2.computeLibraryElement(
+        _asyncLibrarySource) as LibraryElementImpl;
     ResolvableLibrary libA = _createResolvableLibrary(sourceA);
     ResolvableLibrary libB = _createResolvableLibrary(sourceB);
-    libA.importedLibraries = <ResolvableLibrary>[coreLib, libB];
-    libB.importedLibraries = <ResolvableLibrary>[coreLib, libA];
+    libA.importedLibraries = <ResolvableLibrary>[coreLib, asyncLib, libB];
+    libB.importedLibraries = <ResolvableLibrary>[coreLib, asyncLib, libA];
     cycle.add(libA);
     cycle.add(libB);
     LibraryElement library = _resolver.resolveLibrary(sourceA, cycle);
@@ -12973,6 +12990,7 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType numType = _classElement("num", objectType).type;
     InterfaceType doubleType = _classElement("double", numType).type;
     InterfaceType functionType = _classElement("Function", objectType).type;
+    InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
     InterfaceType intType = _classElement("int", numType).type;
     InterfaceType listType = _classElement("List", objectType, ["E"]).type;
     InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
@@ -12994,19 +13012,28 @@ class TypeProviderImplTest extends EngineTestCase {
         stringType.element,
         symbolType.element,
         typeType.element];
+    CompilationUnitElementImpl asyncUnit =
+        new CompilationUnitElementImpl("async.dart");
+    asyncUnit.types = <ClassElement>[futureType.element];
+    AnalysisContextImpl context = new AnalysisContextImpl();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        new AnalysisContextImpl(),
+        context,
         AstFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+        context,
+        AstFactory.libraryIdentifier2(["dart.async"]));
+    asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
     //
-    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary);
+    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary, asyncLibrary);
     expect(provider.boolType, same(boolType));
     expect(provider.bottomType, isNotNull);
     expect(provider.doubleType, same(doubleType));
     expect(provider.dynamicType, isNotNull);
     expect(provider.functionType, same(functionType));
+    expect(provider.futureType, same(futureType));
     expect(provider.intType, same(intType));
     expect(provider.listType, same(listType));
     expect(provider.mapType, same(mapType));

@@ -567,6 +567,41 @@ f(A a, B b) {
     verify([source]);
   }
 
+  void test_returnOfInvalidType_async_future_int_mismatches_future_null() {
+    Source source = addSource('''
+import 'dart:async';
+Future<Null> f() async {
+  return 5;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_returnOfInvalidType_async_future_int_mismatches_future_string() {
+    Source source = addSource('''
+import 'dart:async';
+Future<String> f() async {
+  return 5;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_returnOfInvalidType_async_future_int_mismatches_int() {
+    Source source = addSource('''
+int f() async {
+  return 5;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
   void test_returnOfInvalidType_expressionFunctionBody_function() {
     Source source = addSource("int f() => '0';");
     resolve(source);

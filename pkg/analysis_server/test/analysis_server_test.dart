@@ -271,7 +271,6 @@ import "../foo/foo.dart";
           break;
       }
     }
-    return null; // Work around dartbug.com/22091
   }
 
   Future test_prioritySourcesChangedEvent() {

@@ -47,6 +47,11 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType _functionType;
 
   /**
+   * THe type representing the built-in type 'Future'
+   */
+  InterfaceType _futureType;
+
+  /**
    * The type representing the built-in type 'int'.
    */
   InterfaceType _intType;
@@ -169,6 +174,14 @@ class TestTypeProvider implements TypeProvider {
       _functionType = ElementFactory.classElement2("Function").type;
     }
     return _functionType;
+  }
+
+  @override
+  InterfaceType get futureType {
+    if (_futureType == null) {
+      _futureType = ElementFactory.classElement2("Future", ["T"]).type;
+    }
+    return _futureType;
   }
 
   @override

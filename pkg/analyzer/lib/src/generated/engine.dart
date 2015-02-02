@@ -968,6 +968,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   Source _coreLibrarySource;
 
   /**
+   * A source representing the async library.
+   */
+  Source _asyncLibrarySource;
+
+  /**
    * The partition that contains analysis results that are not shared with other contexts.
    */
   CachePartition _privatePartition;
@@ -1403,6 +1408,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     factory.context = this;
     _sourceFactory = factory;
     _coreLibrarySource = _sourceFactory.forUri(DartSdk.DART_CORE);
+    _asyncLibrarySource = _sourceFactory.forUri(DartSdk.DART_ASYNC);
     _cache = createCacheFromSourceFactory(factory);
     _invalidateAllLocalResolutionInformation(true);
   }
@@ -1477,7 +1483,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (coreElement == null) {
       throw new AnalysisException("Could not create an element for dart:core");
     }
-    return new TypeProviderImpl(coreElement);
+    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+    if (asyncSource == null) {
+      throw new AnalysisException("Could not create a source for dart:async");
+    }
+    LibraryElement asyncElement = computeLibraryElement(asyncSource);
+    if (asyncElement == null) {
+      throw new AnalysisException("Could not create an element for dart:async");
+    }
+    return new TypeProviderImpl(coreElement, asyncElement);
   }
 
   @override
@@ -5357,6 +5371,31 @@ class AnalysisContextImpl_CycleBuilder {
     AnalysisContextImpl_this._neededForResolution = null;
   }
 
+  bool _addDependency(ResolvableLibrary dependant, Source dependency,
+      List<ResolvableLibrary> dependencyList) {
+    if (dependant.librarySource == dependency) {
+      // Don't add a dependency of a library on itself; there's no point.
+      return true;
+    }
+    ResolvableLibrary importedLibrary = _libraryMap[dependency];
+    if (importedLibrary == null) {
+      importedLibrary = _createLibraryOrNull(dependency);
+      if (importedLibrary != null) {
+        _computeLibraryDependencies(importedLibrary);
+        if (_taskData != null) {
+          return false;
+        }
+      }
+    }
+    if (importedLibrary != null) {
+      if (dependencyList != null) {
+        dependencyList.add(importedLibrary);
+      }
+      _dependencyGraph.addEdge(dependant, importedLibrary);
+    }
+    return true;
+  }
+
   /**
    * Recursively traverse the libraries reachable from the given library, creating instances of
    * the class [Library] to represent them, and record the references in the library
@@ -5399,87 +5438,55 @@ class AnalysisContextImpl_CycleBuilder {
   void _computeLibraryDependenciesFromDirectives(ResolvableLibrary library,
       List<Source> importedSources, List<Source> exportedSources) {
     int importCount = importedSources.length;
-    if (importCount > 0) {
-      List<ResolvableLibrary> importedLibraries = new List<ResolvableLibrary>();
-      bool explicitlyImportsCore = false;
-      for (int i = 0; i < importCount; i++) {
-        Source importedSource = importedSources[i];
-        if (importedSource == AnalysisContextImpl_this._coreLibrarySource) {
-          explicitlyImportsCore = true;
-        }
-        ResolvableLibrary importedLibrary = _libraryMap[importedSource];
-        if (importedLibrary == null) {
-          importedLibrary = _createLibraryOrNull(importedSource);
-          if (importedLibrary != null) {
-            _computeLibraryDependencies(importedLibrary);
-            if (_taskData != null) {
-              return;
-            }
-          }
-        }
-        if (importedLibrary != null) {
-          importedLibraries.add(importedLibrary);
-          _dependencyGraph.addEdge(library, importedLibrary);
-        }
+    List<ResolvableLibrary> importedLibraries = new List<ResolvableLibrary>();
+    bool explicitlyImportsCore = false;
+    bool importsAsync = false;
+    for (int i = 0; i < importCount; i++) {
+      Source importedSource = importedSources[i];
+      if (importedSource == AnalysisContextImpl_this._coreLibrarySource) {
+        explicitlyImportsCore = true;
+      } else if (importedSource ==
+          AnalysisContextImpl_this._asyncLibrarySource) {
+        importsAsync = true;
       }
-      library.explicitlyImportsCore = explicitlyImportsCore;
-      if (!explicitlyImportsCore &&
-          AnalysisContextImpl_this._coreLibrarySource != library.librarySource) {
-        ResolvableLibrary importedLibrary =
-            _libraryMap[AnalysisContextImpl_this._coreLibrarySource];
-        if (importedLibrary == null) {
-          importedLibrary =
-              _createLibraryOrNull(AnalysisContextImpl_this._coreLibrarySource);
-          if (importedLibrary != null) {
-            _computeLibraryDependencies(importedLibrary);
-            if (_taskData != null) {
-              return;
-            }
-          }
-        }
-        if (importedLibrary != null) {
-          importedLibraries.add(importedLibrary);
-          _dependencyGraph.addEdge(library, importedLibrary);
-        }
-      }
-      library.importedLibraries = importedLibraries;
-    } else {
-      library.explicitlyImportsCore = false;
-      ResolvableLibrary importedLibrary =
-          _libraryMap[AnalysisContextImpl_this._coreLibrarySource];
-      if (importedLibrary == null) {
-        importedLibrary =
-            _createLibraryOrNull(AnalysisContextImpl_this._coreLibrarySource);
-        if (importedLibrary != null) {
-          _computeLibraryDependencies(importedLibrary);
-          if (_taskData != null) {
-            return;
-          }
-        }
-      }
-      if (importedLibrary != null) {
-        _dependencyGraph.addEdge(library, importedLibrary);
-        library.importedLibraries = <ResolvableLibrary>[importedLibrary];
+      if (!_addDependency(library, importedSource, importedLibraries)) {
+        return;
       }
     }
+    library.explicitlyImportsCore = explicitlyImportsCore;
+    if (!explicitlyImportsCore) {
+      if (!_addDependency(
+          library,
+          AnalysisContextImpl_this._coreLibrarySource,
+          importedLibraries)) {
+        return;
+      }
+    }
+    if (!importsAsync) {
+      // Add a dependency on async to ensure that the Future element will be
+      // built before we generate errors and warnings for async methods.  Also
+      // include it in importedLibraries, so that it will be picked up by
+      // LibraryResolver2._buildLibraryMap().
+      // TODO(paulberry): this is a bit of a hack, since the async library
+      // isn't actually being imported.  Also, it's not clear whether it should
+      // be necessary: in theory, dart:core already (indirectly) imports
+      // dart:async, so if core has been built, async should have been built
+      // too.  However, removing this code causes unit test failures.
+      if (!_addDependency(
+          library,
+          AnalysisContextImpl_this._asyncLibrarySource,
+          importedLibraries)) {
+        return;
+      }
+    }
+    library.importedLibraries = importedLibraries;
     int exportCount = exportedSources.length;
     if (exportCount > 0) {
       List<ResolvableLibrary> exportedLibraries = new List<ResolvableLibrary>();
       for (int i = 0; i < exportCount; i++) {
         Source exportedSource = exportedSources[i];
-        ResolvableLibrary exportedLibrary = _libraryMap[exportedSource];
-        if (exportedLibrary == null) {
-          exportedLibrary = _createLibraryOrNull(exportedSource);
-          if (exportedLibrary != null) {
-            _computeLibraryDependencies(exportedLibrary);
-            if (_taskData != null) {
-              return;
-            }
-          }
-        }
-        if (exportedLibrary != null) {
-          exportedLibraries.add(exportedLibrary);
-          _dependencyGraph.addEdge(library, exportedLibrary);
+        if (!_addDependency(library, exportedSource, exportedLibraries)) {
+          return;
         }
       }
       library.exportedLibraries = exportedLibraries;

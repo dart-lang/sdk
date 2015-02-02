@@ -1793,7 +1793,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // RETURN_WITHOUT_VALUE
     if (returnExpression == null) {
-      if (VoidTypeImpl.instance.isAssignableTo(expectedReturnType)) {
+      if (_computeReturnTypeForMethod(
+          null).isAssignableTo(expectedReturnType)) {
         return false;
       }
       _hasReturnWithoutValue = true;
@@ -5171,7 +5172,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_enclosingFunction == null) {
       return false;
     }
-    DartType staticReturnType = getStaticType(returnExpression);
+    DartType staticReturnType = _computeReturnTypeForMethod(returnExpression);
     if (expectedReturnType.isVoid) {
       if (staticReturnType.isVoid ||
           staticReturnType.isDynamic ||
@@ -5183,22 +5184,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           returnExpression,
           [staticReturnType, expectedReturnType, _enclosingFunction.displayName]);
       return true;
-    }
-    if (_enclosingFunction.isAsynchronous && !_enclosingFunction.isGenerator) {
-      // TODO(brianwilkerson) Figure out how to get the type "Future" so that we
-      // can build the type we need to test against.
-//            InterfaceType impliedType = "Future<" + flatten(staticReturnType) + ">"
-//            if (impliedType.isAssignableTo(expectedReturnType)) {
-//              return false;
-//            }
-//            errorReporter.reportTypeErrorForNode(
-//                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-//                returnExpression,
-//                impliedType,
-//                expectedReturnType.getDisplayName(),
-//                enclosingFunction.getDisplayName());
-//            return true;
-      return false;
     }
     if (staticReturnType.isAssignableTo(expectedReturnType)) {
       return false;
@@ -5787,6 +5772,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // done
     return hasProblem;
+  }
+
+  DartType _computeReturnTypeForMethod(Expression returnExpression) {
+    // TODO(paulberry): do the right thing for generators.
+    if (returnExpression == null) {
+      if (_enclosingFunction.isAsynchronous) {
+        return _typeProvider.futureType.substitute4(
+            <DartType>[_typeProvider.nullType]);
+      } else {
+        return VoidTypeImpl.instance;
+      }
+    }
+    DartType staticReturnType = getStaticType(returnExpression);
+    if (staticReturnType != null &&
+        _enclosingFunction.isAsynchronous &&
+        staticReturnType.element != _typeProvider.futureType.element) {
+      return _typeProvider.futureType.substitute4(<DartType>[staticReturnType]);
+    }
+    return staticReturnType;
   }
 
   /**

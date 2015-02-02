@@ -1407,8 +1407,7 @@ part of lib;
 class A {}''', r'''
 library lib;
 import 'lib1.dart' deferred as p;
-var a = new p.A();'''],
-          <ErrorCode>[StaticWarningCode.IMPORT_OF_NON_LIBRARY]);
+var a = new p.A();'''], <ErrorCode>[StaticWarningCode.IMPORT_OF_NON_LIBRARY]);
   }
 
   void test_inconsistentMethodInheritanceGetterAndMethod() {
@@ -2945,6 +2944,18 @@ class B {
     verify([source]);
   }
 
+  void test_returnWithoutValue_async() {
+    Source source = addSource('''
+import 'dart:async';
+Future<int> f() async {
+  return;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    verify([source]);
+  }
+
   void test_returnWithoutValue_factoryConstructor() {
     Source source = addSource("class A { factory A() { return; } }");
     resolve(source);
@@ -3066,8 +3077,7 @@ library root;
 import 'lib1.dart' deferred as a;
 f(var v) {
   v as a.A;
-}'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+}'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_catchClause() {
@@ -3080,8 +3090,7 @@ f(var v) {
   try {
   } on a.A {
   }
-}'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+}'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_fieldFormalParameter() {
@@ -3093,8 +3102,7 @@ import 'lib1.dart' deferred as a;
 class C {
   var v;
   C(a.A this.v);
-}'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+}'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_functionDeclaration_returnType() {
@@ -3126,8 +3134,7 @@ library root;
 import 'lib1.dart' deferred as a;
 f(var v) {
   bool b = v is a.A;
-}'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+}'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_methodDeclaration_returnType() {
@@ -3138,8 +3145,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class C {
   a.A m() { return null; }
-}'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+}'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_simpleFormalParameter() {
@@ -3148,8 +3154,7 @@ library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-f(a.A v) {}'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+f(a.A v) {}'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_typeArgumentList() {
@@ -3159,8 +3164,7 @@ class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C<E> {}
-C<a.A> c;'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+C<a.A> c;'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeAnnotationDeferredClass_typeArgumentList2() {
@@ -3192,8 +3196,7 @@ library lib1;
 class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-a.A v;'''],
-          <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+a.A v;'''], <ErrorCode>[StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
   }
 
   void test_typeParameterReferencedByStatic_field() {

@@ -398,7 +398,7 @@ class _RefactoringManager {
         this.file == file &&
         this.offset == offset &&
         this.length == length) {
-      return null;
+      return;
     }
     _reset();
     this.kind = kind;
@@ -495,7 +495,7 @@ class _RefactoringManager {
     if (refactoring == null) {
       initStatus =
           new RefactoringStatus.fatal('Unable to create a refactoring');
-      return null;
+      return;
     }
     // check initial conditions
     initStatus = await refactoring.checkInitialConditions();
@@ -539,7 +539,6 @@ class _RefactoringManager {
       feedback.elementKindName = refactoring.elementKindName;
       feedback.oldName = refactoring.oldName;
     }
-    return null;
   }
 
   void _reset([engine.AnalysisContext context]) {
