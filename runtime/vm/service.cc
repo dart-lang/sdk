@@ -497,12 +497,13 @@ static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
   return NULL;
 }
 
-const char* Service::kServiceIsolateName = "vm-service";
+const char* Service::kIsolateName = "vm-service";
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 Isolate* Service::service_isolate_ = NULL;
 Dart_Port Service::service_port_ = ILLEGAL_PORT;
 Dart_Port Service::load_port_ = ILLEGAL_PORT;
+Dart_IsolateCreateCallback Service::create_callback_ = NULL;
 Monitor* Service::monitor_ = NULL;
 bool Service::initializing_ = true;
 uint32_t Service::event_mask_ = 0;
@@ -510,7 +511,7 @@ uint32_t Service::event_mask_ = 0;
 
 bool Service::IsServiceIsolateName(const char* name) {
   ASSERT(name != NULL);
-  return strcmp(name, kServiceIsolateName) == 0;
+  return strcmp(name, kIsolateName) == 0;
 }
 
 
@@ -717,25 +718,27 @@ class RunServiceTask : public ThreadPool::Task {
     char* error = NULL;
     Isolate* isolate = NULL;
 
-    Dart_IsolateCreateCallback create_callback = Isolate::CreateCallback();
+    Dart_IsolateCreateCallback create_callback = Service::create_callback();
+    // TODO(johnmccutchan): Support starting up service isolate without embedder
+    // provided isolate creation callback.
     if (create_callback == NULL) {
       Service::FinishedInitializing();
       return;
     }
 
     isolate =
-        reinterpret_cast<Isolate*>(create_callback(Service::kServiceIsolateName,
+        reinterpret_cast<Isolate*>(create_callback(Service::kIsolateName,
                                                    NULL,
                                                    NULL,
                                                    NULL,
                                                    &error));
-    Isolate::SetCurrent(NULL);
-
     if (isolate == NULL) {
       OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
       Service::FinishedInitializing();
       return;
     }
+
+    Isolate::SetCurrent(NULL);
 
     RunMain(isolate);
 
@@ -801,6 +804,9 @@ void Service::RunService() {
   ASSERT(monitor_ == NULL);
   monitor_ = new Monitor();
   ASSERT(monitor_ != NULL);
+  // Grab the isolate create callback here to avoid race conditions with tests
+  // that change this after Dart_Initialize returns.
+  create_callback_ = Isolate::CreateCallback();
   Dart::thread_pool()->Run(new RunServiceTask());
 }
 

@@ -25,7 +25,7 @@ class String;
 
 class Service : public AllStatic {
  public:
-  static const char* kServiceIsolateName;
+  static const char* kIsolateName;
   static bool IsServiceIsolateName(const char* name);
 
   // Handles a message which is not directed to an isolate.
@@ -81,6 +81,10 @@ class Service : public AllStatic {
 
   static void FinishedInitializing();
 
+  static Dart_IsolateCreateCallback create_callback() {
+    return create_callback_;
+  }
+
  private:
   // These must be kept in sync with service/constants.dart
   static const int kEventFamilyDebug = 0;
@@ -108,6 +112,7 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* root_service_handler_head_;
 
 
+  static Dart_IsolateCreateCallback create_callback_;
   static Monitor* monitor_;
   static bool initializing_;
   static Isolate* service_isolate_;
