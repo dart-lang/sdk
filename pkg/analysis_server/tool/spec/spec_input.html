@@ -394,8 +394,8 @@
                 </value>
               </map>
               <p>
-                A mapping from context source roots to package maps which map 
-                package names to source directories for use in client-side 
+                A mapping from context source roots to package maps which map
+                package names to source directories for use in client-side
                 package URI resolution.
               </p>
             </field>
@@ -1656,6 +1656,24 @@
         </p>
         <p>
           Exactly one of the file and uri fields must be provided.
+        </p>
+        <p>
+          If the file field is provided and the value is not the path of a file
+          (either the file does not exist or the path references something other
+          than a file), then an error of type <tt>MAP_URI_INVALID_FILE</tt> will
+          be generated.
+        </p>
+        <p>
+          If the uri field is provided and the value is not a valid URI or if
+          the URI references something that is not a file (either a file that
+          does not exist or something other than a file), then an error of type
+          <tt>MAP_URI_INVALID_URI</tt> will be generated.
+        </p>
+        <p>
+          If the contextRoot used to create the execution context is not a file
+          (either the file does not exist or the path references something other
+          than a file), then an error of type <tt>INVALID_EXECUTION_CONTEXT</tt>
+          will be generated.
         </p>
         <params>
           <field name="id">

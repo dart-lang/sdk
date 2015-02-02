@@ -1360,6 +1360,21 @@ abstract class IntegrationTestMixin {
    *
    * Exactly one of the file and uri fields must be provided.
    *
+   * If the file field is provided and the value is not the path of a file
+   * (either the file does not exist or the path references something other
+   * than a file), then an error of type MAP_URI_INVALID_FILE will be
+   * generated.
+   *
+   * If the uri field is provided and the value is not a valid URI or if the
+   * URI references something that is not a file (either a file that does not
+   * exist or something other than a file), then an error of type
+   * MAP_URI_INVALID_URI will be generated.
+   *
+   * If the contextRoot used to create the execution context is not a file
+   * (either the file does not exist or the path references something other
+   * than a file), then an error of type INVALID_EXECUTION_CONTEXT will be
+   * generated.
+   *
    * Parameters
    *
    * id ( ExecutionContextId )
