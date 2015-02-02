@@ -35,11 +35,6 @@ import 'package:grinder/grinder.dart' as grinder;
 /// Still very much a WIP.
 class AnalysisDriver {
 
-  /// The maximum number of sources for which AST structures should be kept
-  /// in the cache.
-  // TODO: move to DriverOptions
-  static const _MAX_CACHE_SIZE = 512;
-
   final DriverOptions _options;
 
   final int _startTime;
@@ -356,7 +351,7 @@ class AnalysisDriver {
   }
 
   void _setOptions(AnalysisOptionsImpl analysisOptions) {
-    analysisOptions.cacheSize = _MAX_CACHE_SIZE;
+    analysisOptions.cacheSize = _options.cacheSize;
     analysisOptions.hint = !_options.disableHints;
     analysisOptions.lint = _options.enableLints;
   }
@@ -447,6 +442,10 @@ class AnalysisDriver {
 
 
 class DriverOptions {
+
+  /// The maximum number of sources for which AST structures should be kept
+  /// in the cache.  The default is 512.
+  int cacheSize = 512;
 
   /// The path to the dart SDK.
   String dartSdkPath;
