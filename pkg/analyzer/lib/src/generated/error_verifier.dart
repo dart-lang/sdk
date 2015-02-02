@@ -5778,8 +5778,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // TODO(paulberry): do the right thing for generators.
     if (returnExpression == null) {
       if (_enclosingFunction.isAsynchronous) {
-        return _typeProvider.futureType.substitute4(
-            <DartType>[_typeProvider.nullType]);
+        return _typeProvider.futureNullType;
       } else {
         return VoidTypeImpl.instance;
       }

@@ -72,8 +72,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param errorReporter the error reporter
    */
   BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider)
-      : _futureNullType = typeProvider.futureType.substitute4(
-          <DartType>[typeProvider.nullType]);
+      : _futureNullType = typeProvider.futureNullType;
 
   @override
   Object visitArgumentList(ArgumentList node) {
@@ -13407,6 +13406,11 @@ abstract class TypeProvider {
   InterfaceType get functionType;
 
   /**
+   * Return the type representing 'Future<Null>'.
+   */
+  InterfaceType get futureNullType;
+
+  /**
    * Return the type representing the built-in type 'Future'.
    */
   InterfaceType get futureType;
@@ -13523,6 +13527,11 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _functionType;
 
   /**
+   * The type representing 'Future<Null>'.
+   */
+  InterfaceType _futureNullType;
+
+  /**
    * The type representing the built-in type 'Future'.
    */
   InterfaceType _futureType;
@@ -13610,6 +13619,9 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType get functionType => _functionType;
 
   @override
+  InterfaceType get futureNullType => _futureNullType;
+
+  @override
   InterfaceType get futureType => _futureType;
 
   @override
@@ -13692,6 +13704,7 @@ class TypeProviderImpl implements TypeProvider {
     _symbolType = _getType(coreNamespace, "Symbol");
     _typeType = _getType(coreNamespace, "Type");
     _undefinedType = UndefinedTypeImpl.instance;
+    _futureNullType = _futureType.substitute4(<DartType>[_nullType]);
   }
 }
 
