@@ -13,18 +13,23 @@ import 'package:compiler/compiler.dart';
 import 'source_map_validator_helper.dart';
 
 void main() {
+  String mainFile =
+      'tests/compiler/dart2js/source_map_validator_test_file.dart';
   asyncTest(() => createTempDir().then((Directory tmpDir) {
     print(
         'Compiling tests/compiler/dart2js/source_map_validator_test_file.dart');
     Future<CompilationResult> result = entry.internalMain(
-        ['tests/compiler/dart2js/source_map_validator_test_file.dart',
+        [mainFile,
          '-o${tmpDir.path}/out.js',
          '--library-root=sdk']);
       return result.then((CompilationResult result) {
         Compiler compiler = result.compiler;
         Uri uri =
             new Uri.file('${tmpDir.path}/out.js', windows: Platform.isWindows);
-        validateSourceMap(uri, compiler);
+        validateSourceMap(uri,
+                          mainUri: Uri.base.resolve(mainFile),
+                          mainPosition: const Position(13, 1),
+                          compiler: compiler);
 
         print("Deleting '${tmpDir.path}'.");
         tmpDir.deleteSync(recursive: true);

@@ -27,8 +27,12 @@ void main() {
                                    windows: Platform.isWindows);
         Uri deferredUri = new Uri.file('${tmpDir.path}/out.js_1.part.js',
                                        windows: Platform.isWindows);
-        validateSourceMap(mainUri, compiler);
-        validateSourceMap(deferredUri, compiler);
+        validateSourceMap(mainUri,
+                          mainUri: Uri.base.resolve(file),
+                          mainPosition: const Position(7, 1),
+                          compiler: compiler);
+        validateSourceMap(deferredUri,
+                          compiler: compiler);
 
         print("Deleting '${tmpDir.path}'.");
         tmpDir.deleteSync(recursive: true);

@@ -17,20 +17,27 @@ import 'package:compiler/src/elements/elements.dart'
          AstElement;
 import 'package:compiler/src/io/source_file.dart' show SourceFile;
 
-validateSourceMap(Uri targetUri, [Compiler compiler]) {
+validateSourceMap(Uri targetUri,
+                  {Uri mainUri,
+                   Position mainPosition,
+                   Compiler compiler}) {
   Uri mapUri = getMapUri(targetUri);
+  List<String> targetLines = new File.fromUri(targetUri).readAsLinesSync();
   SingleMapping sourceMap = getSourceMap(mapUri);
   checkFileReferences(targetUri, mapUri, sourceMap);
-  checkIndexReferences(targetUri, mapUri, sourceMap);
+  checkIndexReferences(targetLines, mapUri, sourceMap);
   checkRedundancy(sourceMap);
   if (compiler != null) {
     checkNames(targetUri, mapUri, sourceMap, compiler);
   }
+  if (mainUri != null && mainPosition != null) {
+    checkMainPosition(targetUri, targetLines ,sourceMap, mainUri, mainPosition);
+  }
 }
 
-checkIndexReferences(Uri targetUri, Uri mapUri, SingleMapping sourceMap) {
-  List<String> target =
-      new File.fromUri(targetUri).readAsStringSync().split('\n');
+checkIndexReferences(List<String> targetLines,
+                     Uri mapUri,
+                     SingleMapping sourceMap) {
   int urlsLength = sourceMap.urls.length;
   List<List<String>> sources = new List(urlsLength);
   print('Reading sources');
@@ -41,7 +48,7 @@ checkIndexReferences(Uri targetUri, Uri mapUri, SingleMapping sourceMap) {
 
   sourceMap.lines.forEach((TargetLineEntry line) {
     Expect.isTrue(line.line >= 0);
-    Expect.isTrue(line.line < target.length);
+    Expect.isTrue(line.line < targetLines.length);
     for (TargetEntry entry in line.entries) {
       int urlIndex = entry.sourceUrlId;
 
@@ -163,6 +170,42 @@ checkNames(Uri targetUri, Uri mapUri,
   });
 }
 
+RegExp mainSignaturePrefix = new RegExp(r'main: \[?function\(');
+
+// Check that the line pointing to by [mainPosition] in [mainUri] contains
+// the main function signature.
+checkMainPosition(Uri targetUri,
+                  List<String> targetLines,
+                  SingleMapping sourceMap,
+                  Uri mainUri,
+                  Position mainPosition) {
+  bool mainPositionFound = false;
+  sourceMap.lines.forEach((TargetLineEntry lineEntry) {
+    lineEntry.entries.forEach((TargetEntry entry) {
+      if (entry.sourceLine == null || entry.sourceUrlId == null) return;
+      Uri sourceUri = targetUri.resolve(sourceMap.urls[entry.sourceUrlId]);
+      if (sourceUri != mainUri) return;
+      if (entry.sourceLine + 1 == mainPosition.line &&
+          entry.sourceColumn + 1 == mainPosition.column) {
+        Expect.isNotNull(entry.sourceNameId,
+                         "Main position has no name.");
+        String name = sourceMap.names[entry.sourceNameId];
+        Expect.equals('main', name,
+                      "Main position name is not '$name', not 'main'.");
+        String line = targetLines[lineEntry.line];
+        Expect.isTrue(line.contains(mainSignaturePrefix),
+            "Line mapped to main position "
+            "([${lineEntry.line + 1},${entry.column + 1}]) "
+            "expected to contain '${mainSignaturePrefix.pattern}':\n$line\n");
+        mainPositionFound = true;
+      }
+    });
+  });
+  Expect.isTrue(mainPositionFound,
+                'No main position $mainPosition found in $mainUri');
+}
+
+
 sameSourcePoint(TargetEntry entry, TargetEntry otherEntry) {
   return
       (entry.sourceUrlId == otherEntry.sourceUrlId) &&
@@ -216,7 +259,7 @@ class Position {
   final int line;
   final int column;
 
-  Position(this.line, this.column);
+  const Position(this.line, this.column);
 
   bool operator <=(Position other) {
     return line < other.line ||
