@@ -103,6 +103,7 @@ class ErrorFormatter {
     int errorCount = 0;
     int warnCount = 0;
     int hintCount = 0;
+    int lintCount = 0;
     for (AnalysisError error in errors) {
       ErrorSeverity severity =
           AnalyzerImpl.computeSeverity(error, options.enableTypeChecks);
@@ -118,6 +119,8 @@ class ErrorFormatter {
             warnCount++;
           }
         }
+      } else if (error.errorCode.type == ErrorType.LINT) {
+        lintCount++;
       }
       formatError(errorToLine, error);
     }
@@ -126,6 +129,7 @@ class ErrorFormatter {
       var hasErrors = errorCount != 0;
       var hasWarns = warnCount != 0;
       var hasHints = hintCount != 0;
+      var hasLints = lintCount != 0;
       bool hasContent = false;
       if (hasErrors) {
         out.write(errorCount);
@@ -135,7 +139,7 @@ class ErrorFormatter {
       }
       if (hasWarns) {
         if (hasContent) {
-          if (!hasHints) {
+          if (!hasHints && !hasLints) {
             out.write(' and ');
           } else {
             out.write(", ");
@@ -148,11 +152,24 @@ class ErrorFormatter {
       }
       if (hasHints) {
         if (hasContent) {
-          out.write(" and ");
+          if (!hasLints) {
+            out.write(' and ');
+          } else {
+            out.write(", ");
+          }
         }
         out.write(hintCount);
         out.write(' ');
         out.write(pluralize("hint", hintCount));
+        hasContent = true;
+      }
+      if (hasLints) {
+        if (hasContent) {
+          out.write(" and ");
+        }
+        out.write(lintCount);
+        out.write(' ');
+        out.write(pluralize("lint", lintCount));
         hasContent = true;
       }
       if (hasContent) {
