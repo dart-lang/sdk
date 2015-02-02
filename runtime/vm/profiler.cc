@@ -539,7 +539,6 @@ class CodeRegion : public ZoneAllocated {
 
   void PrintToJSONArray(Isolate* isolate, JSONArray* events, bool full) {
     JSONObject obj(events);
-    obj.AddProperty("type", "CodeRegion");
     obj.AddProperty("kind", KindToCString(kind()));
     obj.AddPropertyF("inclusive_ticks", "%" Pd "", inclusive_ticks());
     obj.AddPropertyF("exclusive_ticks", "%" Pd "", exclusive_ticks());
@@ -1504,7 +1503,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
         ScopeStopwatch sw("CodeTableStream");
         // Serialize to JSON.
         JSONObject obj(stream);
-        obj.AddProperty("type", "Profile");
+        obj.AddProperty("type", "CpuProfile");
         obj.AddProperty("id", "profile");
         obj.AddProperty("samples", samples);
         obj.AddProperty("depth", static_cast<intptr_t>(FLAG_profile_depth));

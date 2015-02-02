@@ -15,9 +15,8 @@ class InstanceViewElement extends ObservatoryElement {
 
   InstanceViewElement.created() : super.created();
 
-  Future<ServiceObject> eval(String text) {
-    return instance.isolate.get(
-        instance.id + "/eval?expr=${Uri.encodeComponent(text)}");
+  Future<ServiceObject> eval(String expression) {
+    return instance.isolate.eval(instance, expression);
   }
 
   void refresh(Function onDone) {

@@ -17,15 +17,14 @@ class ClassViewElement extends ObservatoryElement {
   @observable ObservableList mostRetained;
   ClassViewElement.created() : super.created();
 
-  Future<ServiceObject> eval(String text) {
-    return cls.get("eval?expr=${Uri.encodeComponent(text)}");
+  Future<ServiceObject> eval(String expression) {
+    return cls.isolate.eval(cls, expression);
   }
 
   Future<ServiceObject> reachable(var limit) {
-    return cls.get("instances?limit=$limit")
-        .then((ServiceMap obj) {
-          instances = obj;
-        });
+    return cls.isolate.getInstances(cls, limit).then((ServiceMap obj) {
+      instances = obj;
+    });
   }
   
   Future<ServiceObject> retainedToplist(var limit) {
@@ -40,7 +39,7 @@ class ClassViewElement extends ObservatoryElement {
 
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
   Future<ServiceObject> retainedSize(var dummy) {
-    return cls.get("retained").then((Instance obj) {
+    return cls.isolate.getRetainedSize(cls).then((Instance obj) {
       retainedBytes = int.parse(obj.valueAsString);
     });
   }

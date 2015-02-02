@@ -105,6 +105,9 @@ class ObservatoryApplication extends Observable {
   void _registerPages() {
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new DebuggerPage(this));
+    _pageRegistry.add(new CpuProfilerPage(this));
+    _pageRegistry.add(new AllocationProfilerPage(this));
+    _pageRegistry.add(new HeapMapPage(this));
     _pageRegistry.add(new VMConnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));

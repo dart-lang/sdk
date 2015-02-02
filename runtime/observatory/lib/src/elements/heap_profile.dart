@@ -42,11 +42,11 @@ class HeapProfileElement extends ObservatoryElement {
   @observable ClassSortedTable classTable;
   var _classTableBody;
 
-  @published ServiceMap profile;
   @published bool autoRefresh = false;
   var _subscription;
 
-  @observable Isolate isolate;
+  @published Isolate isolate;
+  @observable ServiceMap profile;
 
   HeapProfileElement.created() : super.created() {
     // Create pie chart models.
@@ -99,7 +99,7 @@ class HeapProfileElement extends ObservatoryElement {
 
   @override
   void detached() {
-    _subscription.cancel();
+    _subscription.cancel((){});
     super.detached();
   }
   
@@ -112,7 +112,6 @@ class HeapProfileElement extends ObservatoryElement {
   void _updatePieCharts() {
     assert(profile != null);
     _newPieDataTable.clearRows();
-    var isolate = profile.isolate;
     _newPieDataTable.addRow(['Used', isolate.newSpace.used]);
     _newPieDataTable.addRow(['Free',
         isolate.newSpace.capacity - isolate.newSpace.used]);
@@ -259,29 +258,36 @@ class HeapProfileElement extends ObservatoryElement {
     }
   }
 
-  void refresh(var done) {
-    if (profile == null) {
+  void isolateChanged(oldValue) {
+    if (isolate == null) {
+      profile = null;
       return;
     }
-    var isolate = profile.isolate;
-    isolate.get('/allocationprofile').then(_update).whenComplete(done);
+    isolate.invokeRpc('getAllocationProfile', {}).then(_update);
+  }
+
+  void refresh(var done) {
+    if (isolate == null) {
+      return;
+    }
+    isolate.invokeRpc('getAllocationProfile', {})
+        .then(_update).whenComplete(done);
   }
 
   void refreshGC(var done) {
-    if (profile == null) {
+    if (isolate == null) {
       return;
     }
-    var isolate = profile.isolate;
-    isolate.get('/allocationprofile?gc=full').then(_update).whenComplete(done);
+    isolate.invokeRpc('getAllocationProfile', { 'gc': 'full' })
+        .then(_update).whenComplete(done);
   }
 
   void resetAccumulator(var done) {
-    if (profile == null) {
+    if (isolate == null) {
       return;
     }
-    var isolate = profile.isolate;
-    isolate.get('/allocationprofile?reset=true').then(_update).
-                                                 whenComplete(done);
+    isolate.invokeRpc('getAllocationProfile', { 'reset': 'true' })
+        .then(_update).whenComplete(done);
   }
 
   void _update(ServiceMap newProfile) {
@@ -292,7 +298,6 @@ class HeapProfileElement extends ObservatoryElement {
     if (profile == null) {
       return;
     }
-    isolate = profile.isolate;
     isolate.updateHeapsFromMap(profile['heaps']);
     var millis = int.parse(profile['dateLastAccumulatorReset']);
     if (millis != 0) {
@@ -318,7 +323,7 @@ class HeapProfileElement extends ObservatoryElement {
     if (profile == null) {
       return '';
     }
-    var heap = newSpace ? profile.isolate.newSpace : profile.isolate.oldSpace;
+    var heap = newSpace ? isolate.newSpace : isolate.oldSpace;
     var avg = ((heap.totalCollectionTimeInSeconds * 1000.0) / heap.collections);
     return '${avg.toStringAsFixed(2)} ms';
   }
@@ -327,7 +332,7 @@ class HeapProfileElement extends ObservatoryElement {
     if (profile == null) {
       return '';
     }
-    var heap = newSpace ? profile.isolate.newSpace : profile.isolate.oldSpace;
+    var heap = newSpace ? isolate.newSpace : isolate.oldSpace;
     return heap.collections.toString();
   }
 
@@ -335,7 +340,7 @@ class HeapProfileElement extends ObservatoryElement {
     if (profile == null) {
       return '';
     }
-    var heap = newSpace ? profile.isolate.newSpace : profile.isolate.oldSpace;
+    var heap = newSpace ? isolate.newSpace : isolate.oldSpace;
     return '${Utils.formatSeconds(heap.totalCollectionTimeInSeconds)} secs';
   }
 }

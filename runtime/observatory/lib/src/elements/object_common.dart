@@ -20,21 +20,19 @@ class ObjectCommonElement extends ObservatoryElement {
 
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
   Future<ServiceObject> retainedSize(var dummy) {
-    return object.isolate.get(object.id + "/retained")
-        .then((Instance obj) {
-          retainedBytes = int.parse(obj.valueAsString);
-        });
+    return object.isolate.getRetainedSize(object).then((Instance obj) {
+      retainedBytes = int.parse(obj.valueAsString);
+    });
   }
 
-  Future<ServiceObject> retainingPath(var arg) {
-    return object.isolate.get(object.id + "/retaining_path?limit=$arg")
-        .then((ServiceObject obj) {
-          path = obj;
-        });
+  Future<ServiceObject> retainingPath(var limit) {
+    return object.isolate.getRetainingPath(object, limit).then((ServiceObject obj) {
+      path = obj;
+    });
   }
 
-  Future<ServiceObject> fetchInboundReferences(var arg) {
-    return object.isolate.get(object.id + "/inbound_references?limit=$arg")
+  Future<ServiceObject> fetchInboundReferences(var limit) {
+    return object.isolate.getInboundReferences(object, limit)
         .then((ServiceObject obj) {
            inboundReferences = obj;
         });

@@ -824,6 +824,7 @@ struct IsolateMessageHandlerEntry {
 };
 
 static IsolateMessageHandler FindIsolateMessageHandler(const char* command);
+static IsolateMessageHandler FindIsolateMessageHandlerNew(const char* command);
 
 
 // A handler for a root (vm-global) request.
@@ -882,7 +883,6 @@ static void PrintError(JSONStream* js,
 
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Error");
-  jsobj.AddProperty("id", "");
   jsobj.AddProperty("message", buffer);
   PrintArgumentsAndOptions(jsobj, js);
 }
@@ -913,6 +913,60 @@ static void PrintErrorWithKind(JSONStream* js,
 }
 
 
+void Service::HandleIsolateMessageNew(Isolate* isolate, const Array& msg) {
+  ASSERT(isolate != NULL);
+  ASSERT(!msg.IsNull());
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+
+    Instance& reply_port = Instance::Handle(isolate);
+    String& method = String::Handle(isolate);
+    Array& param_keys = Array::Handle(isolate);
+    Array& param_values = Array::Handle(isolate);
+    reply_port ^= msg.At(1);
+    method ^= msg.At(2);
+    param_keys ^= msg.At(3);
+    param_values ^= msg.At(4);
+
+    ASSERT(!method.IsNull());
+    ASSERT(!param_keys.IsNull());
+    ASSERT(!param_values.IsNull());
+    ASSERT(param_keys.Length() == param_values.Length());
+
+    if (!reply_port.IsSendPort()) {
+      FATAL("SendPort expected.");
+    }
+
+    IsolateMessageHandler handler =
+        FindIsolateMessageHandlerNew(method.ToCString());
+    {
+      JSONStream js;
+      js.SetupNew(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+                  method, param_keys, param_values);
+      if (handler == NULL) {
+        // Check for an embedder handler.
+        EmbedderServiceHandler* e_handler =
+            FindIsolateEmbedderHandler(method.ToCString());
+        if (e_handler != NULL) {
+          EmbedderHandleMessage(e_handler, &js);
+        } else {
+          PrintError(&js, "Unrecognized method: %s", method.ToCString());
+        }
+        js.PostReply();
+      } else {
+        if (handler(isolate, &js)) {
+          // Handler returns true if the reply is ready to be posted.
+          // TODO(johnmccutchan): Support asynchronous replies.
+          js.PostReply();
+        }
+      }
+    }
+  }
+}
+
+
 void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
@@ -923,6 +977,12 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
 
     // Message is a list with five entries.
     ASSERT(msg.Length() == 5);
+
+    Object& tmp = Object::Handle(isolate);
+    tmp = msg.At(2);
+    if (tmp.IsString()) {
+      return Service::HandleIsolateMessageNew(isolate, msg);
+    }
 
     Instance& reply_port = Instance::Handle(isolate);
     GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
@@ -986,16 +1046,11 @@ static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleStackTrace(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() > 1) {
-    PrintError(js, "Command too long");
-    return true;
-  }
+static bool HandleIsolateGetStack(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "StackTrace");
-  jsobj.AddProperty("id", "stacktrace");
-  JSONArray jsarr(&jsobj, "members");
+  jsobj.AddProperty("type", "Stack");
+  JSONArray jsarr(&jsobj, "frames");
   intptr_t num_frames = stack->Length();
   for (intptr_t i = 0; i < num_frames; i++) {
     ActivationFrame* frame = stack->FrameAt(i);
@@ -1195,16 +1250,309 @@ static bool ContainsNonInstance(const Object& obj) {
 }
 
 
-static bool HandleInboundReferences(Isolate* isolate,
-                                    Object* target,
-                                    intptr_t limit,
-                                    JSONStream* js) {
+static RawObject* LookupObjectId(Isolate* isolate,
+                                 const char* arg,
+                                 ObjectIdRing::LookupResult* kind) {
+  *kind = ObjectIdRing::kValid;
+  if (strncmp(arg, "int-", 4) == 0) {
+    arg += 4;
+    int64_t value = 0;
+    if (!OS::StringToInt64(arg, &value) ||
+        !Smi::IsValid(value)) {
+      *kind = ObjectIdRing::kInvalid;
+      return Object::null();
+    }
+    const Integer& obj =
+        Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
+    return obj.raw();
+  } else if (strcmp(arg, "bool-true") == 0) {
+    return Bool::True().raw();
+  } else if (strcmp(arg, "bool-false") == 0) {
+    return Bool::False().raw();
+  } else if (strcmp(arg, "null") == 0) {
+    return Object::null();
+  } else if (strcmp(arg, "not-initialized") == 0) {
+    return Object::sentinel().raw();
+  } else if (strcmp(arg, "being-initialized") == 0) {
+    return Object::transition_sentinel().raw();
+  }
+
+  ObjectIdRing* ring = isolate->object_id_ring();
+  ASSERT(ring != NULL);
+  intptr_t id = -1;
+  if (!GetIntegerId(arg, &id)) {
+    *kind = ObjectIdRing::kInvalid;
+    return Object::null();
+  }
+  return ring->GetObjectForId(id, kind);
+}
+
+
+static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
+                                            char** parts, int num_parts) {
+  // Library ids look like "libraries/35"
+  if (num_parts < 2) {
+    return Object::sentinel().raw();
+  }
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  ASSERT(!libs.IsNull());
+  intptr_t id = 0;
+  if (!GetIntegerId(parts[1], &id)) {
+    return Object::sentinel().raw();
+  }
+  if ((id < 0) || (id >= libs.Length())) {
+    return Object::sentinel().raw();
+  }
+  Library& lib = Library::Handle();
+  lib ^= libs.At(id);
+  ASSERT(!lib.IsNull());
+  if (num_parts == 2) {
+    return lib.raw();
+  }
+  if (strcmp(parts[2], "scripts") == 0) {
+    // Script ids look like "libraries/35/scripts/library%2Furl.dart"
+    if (num_parts != 4) {
+      return Object::sentinel().raw();
+    }
+    const String& id = String::Handle(String::New(parts[3]));
+    ASSERT(!id.IsNull());
+    // The id is the url of the script % encoded, decode it.
+    const String& requested_url = String::Handle(String::DecodeIRI(id));
+    Script& script = Script::Handle();
+    String& script_url = String::Handle();
+    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
+    ASSERT(!loaded_scripts.IsNull());
+    intptr_t i;
+    for (i = 0; i < loaded_scripts.Length(); i++) {
+      script ^= loaded_scripts.At(i);
+      ASSERT(!script.IsNull());
+      script_url ^= script.url();
+      if (script_url.Equals(requested_url)) {
+        return script.raw();
+      }
+    }
+  }
+
+  // Not found.
+  return Object::sentinel().raw();
+}
+
+static RawObject* LookupHeapObjectClasses(Isolate* isolate,
+                                          char** parts, int num_parts) {
+  // Class ids look like: "classes/17"
+  if (num_parts < 2) {
+    return Object::sentinel().raw();
+  }
+  ClassTable* table = isolate->class_table();
+  intptr_t id;
+  if (!GetIntegerId(parts[1], &id) ||
+      !table->IsValidIndex(id)) {
+    return Object::sentinel().raw();
+  }
+  Class& cls = Class::Handle(table->At(id));
+  if (num_parts == 2) {
+    return cls.raw();
+  }
+  if (strcmp(parts[2], "closures") == 0) {
+    // Closure ids look like: "classes/17/closures/11"
+    if (num_parts != 4) {
+      return Object::sentinel().raw();
+    }
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    Function& func = Function::Handle();
+    func ^= cls.ClosureFunctionFromIndex(id);
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+
+  } else if (strcmp(parts[2], "fields") == 0) {
+    // Field ids look like: "classes/17/fields/11"
+    if (num_parts != 4) {
+      return Object::sentinel().raw();
+    }
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    Field& field = Field::Handle(cls.FieldFromIndex(id));
+    if (field.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return field.raw();
+
+  } else if (strcmp(parts[2], "functions") == 0) {
+    // Function ids look like: "classes/17/functions/11"
+    if (num_parts != 4) {
+      return Object::sentinel().raw();
+    }
+    const char* encoded_id = parts[3];
+    String& id = String::Handle(isolate, String::New(encoded_id));
+    id = String::DecodeIRI(id);
+    if (id.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    Function& func = Function::Handle(cls.LookupFunction(id));
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+
+  } else if (strcmp(parts[2], "implicit_closures") == 0) {
+    // Function ids look like: "classes/17/implicit_closures/11"
+    if (num_parts != 4) {
+      return Object::sentinel().raw();
+    }
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    Function& func = Function::Handle();
+    func ^= cls.ImplicitClosureFunctionFromIndex(id);
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+
+  } else if (strcmp(parts[2], "dispatchers") == 0) {
+    // Dispatcher Function ids look like: "classes/17/dispatchers/11"
+    if (num_parts != 4) {
+      return Object::sentinel().raw();
+    }
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    Function& func = Function::Handle();
+    func ^= cls.InvocationDispatcherFunctionFromIndex(id);
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+
+  } else if (strcmp(parts[2], "types") == 0) {
+    // Type ids look like: "classes/17/types/11"
+    if (num_parts != 4) {
+      return Object::sentinel().raw();
+    }
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    Type& type = Type::Handle();
+    type ^= cls.CanonicalTypeFromIndex(id);
+    if (type.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return type.raw();
+  }
+
+  // Not found.
+  return Object::sentinel().raw();
+}
+
+
+static RawObject* LookupHeapObject(Isolate* isolate,
+                                   const char* id_original,
+                                   ObjectIdRing::LookupResult* result) {
+  char* id = isolate->current_zone()->MakeCopyOfString(id_original);
+
+  // Parse the id by splitting at each '/'.
+  const int MAX_PARTS = 8;
+  char* parts[MAX_PARTS];
+  int num_parts = 0;
+  int i = 0;
+  int start_pos = 0;
+  while (id[i] != '\0') {
+    if (id[i] == '/') {
+      id[i++] = '\0';
+      parts[num_parts++] = &id[start_pos];
+      if (num_parts == MAX_PARTS) {
+        break;
+      }
+      start_pos = i;
+    } else {
+      i++;
+    }
+  }
+  if (num_parts < MAX_PARTS) {
+    parts[num_parts++] = &id[start_pos];
+  }
+
+  if (result != NULL) {
+    *result = ObjectIdRing::kValid;
+  }
+
+  if (strcmp(parts[0], "objects") == 0) {
+    // Object ids look like "objects/1123"
+    Object& obj = Object::Handle(isolate);
+    ObjectIdRing::LookupResult lookup_result;
+    obj = LookupObjectId(isolate, parts[1], &lookup_result);
+    if (lookup_result != ObjectIdRing::kValid) {
+      if (result != NULL) {
+        *result = lookup_result;
+      }
+      return Object::sentinel().raw();
+    }
+    return obj.raw();
+
+  } else if (strcmp(parts[0], "libraries") == 0) {
+    return LookupHeapObjectLibraries(isolate, parts, num_parts);
+  } else if (strcmp(parts[0], "classes") == 0) {
+    return LookupHeapObjectClasses(isolate, parts, num_parts);
+  }
+
+  // Not found.
+  return Object::sentinel().raw();
+}
+
+
+static void PrintSentinel(JSONStream* js,
+                          const char* id,
+                          const char* preview) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Sentinel");
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("valueAsString", preview);
+}
+
+
+static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
+  size_t end_pos = strcspn(id, "/");
+  const char* rest = NULL;
+  if (end_pos < strlen(id)) {
+    rest = id + end_pos + 1;  // +1 for '/'.
+  }
+  if (strncmp("breakpoints", id, end_pos) == 0) {
+    if (rest == NULL) {
+      return NULL;
+    }
+    intptr_t bpt_id = 0;
+    SourceBreakpoint* bpt = NULL;
+    if (GetIntegerId(rest, &bpt_id)) {
+      bpt = isolate->debugger()->GetBreakpointById(bpt_id);
+    }
+    return bpt;
+  }
+  return NULL;
+}
+
+
+
+
+static bool PrintInboundReferences(Isolate* isolate,
+                                   Object* target,
+                                   intptr_t limit,
+                                   JSONStream* js) {
   ObjectGraph graph(isolate);
   Array& path = Array::Handle(Array::New(limit * 2));
   intptr_t length = graph.InboundReferences(target, path);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InboundReferences");
-  jsobj.AddProperty("id", "inbound_references");
   {
     JSONArray elements(&jsobj, "references");
     Object& source = Object::Handle();
@@ -1244,16 +1592,61 @@ static bool HandleInboundReferences(Isolate* isolate,
 }
 
 
-static bool HandleRetainingPath(Isolate* isolate,
-                                Object* obj,
-                                intptr_t limit,
-                                JSONStream* js) {
+static bool HandleIsolateGetInboundReferences(Isolate* isolate,
+                                              JSONStream* js) {
+  const char* target_id = js->LookupOption("targetId");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'targetId' option");
+    return true;
+  }
+  const char* limit_cstr = js->LookupOption("limit");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'limit' option");
+    return true;
+  }
+  intptr_t limit;
+  if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
+    PrintError(js, "Invalid 'limit' option: %s", limit_cstr);
+    return true;
+  }
+
+  Object& obj = Object::Handle(isolate);
+  ObjectIdRing::LookupResult lookup_result;
+  {
+    HANDLESCOPE(isolate);
+    obj = LookupHeapObject(isolate, target_id, &lookup_result);
+  }
+  if (obj.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "InboundReferencesCollected",
+          "attempt to find a retaining path for a collected object\n",
+          js->num_arguments());
+      return true;
+    } else if (lookup_result == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "InboundReferencesExpired",
+          "attempt to find a retaining path for an expired object\n",
+          js->num_arguments());
+      return true;
+    }
+    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
+               target_id);
+    return true;
+  }
+  return PrintInboundReferences(isolate, &obj, limit, js);
+}
+
+
+static bool PrintRetainingPath(Isolate* isolate,
+                               Object* obj,
+                               intptr_t limit,
+                               JSONStream* js) {
   ObjectGraph graph(isolate);
   Array& path = Array::Handle(Array::New(limit * 2));
   intptr_t length = graph.RetainingPath(obj, path);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "RetainingPath");
-  jsobj.AddProperty("id", "retaining_path");
   jsobj.AddProperty("length", length);
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
@@ -1291,7 +1684,7 @@ static bool HandleRetainingPath(Isolate* isolate,
   }
 
   // We nil out the array after generating the response to prevent
-  // reporting suprious references when looking for inbound references
+  // reporting spurious references when looking for inbound references
   // after looking for a retaining path.
   for (intptr_t i = 0; i < limit; ++i) {
     path.SetAt(i * 2, Object::null_object());
@@ -1300,122 +1693,97 @@ static bool HandleRetainingPath(Isolate* isolate,
   return true;
 }
 
+static bool HandleIsolateGetRetainingPath(Isolate* isolate,
+                                          JSONStream* js) {
+  const char* target_id = js->LookupOption("targetId");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'targetId' option");
+    return true;
+  }
+  const char* limit_cstr = js->LookupOption("limit");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'limit' option");
+    return true;
+  }
+  intptr_t limit;
+  if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
+    PrintError(js, "Invalid 'limit' option: %s", limit_cstr);
+    return true;
+  }
 
-// Takes an Object* only because RetainingPath temporarily clears it.
-static bool HandleInstanceCommands(Isolate* isolate,
-                                   Object* obj,
-                                   ObjectIdRing::LookupResult kind,
-                                   JSONStream* js,
-                                   intptr_t arg_pos) {
-  ASSERT(js->num_arguments() > arg_pos);
-  ASSERT(kind != ObjectIdRing::kInvalid);
-  const char* action = js->GetArgument(arg_pos);
-  if (strcmp(action, "eval") == 0) {
-    if (js->num_arguments() > (arg_pos + 1)) {
-      PrintError(js, "expected at most %" Pd " arguments but found %" Pd "\n",
-                 arg_pos + 1,
-                 js->num_arguments());
-      return true;
-    }
-    if (kind == ObjectIdRing::kCollected) {
-      PrintErrorWithKind(js, "EvalCollected",
-                         "attempt to evaluate against collected object\n",
-                         js->num_arguments());
-      return true;
-    }
-    if (kind == ObjectIdRing::kExpired) {
-      PrintErrorWithKind(js, "EvalExpired",
-                         "attempt to evaluate against expired object\n",
-                         js->num_arguments());
-      return true;
-    }
-    if (ContainsNonInstance(*obj)) {
-      PrintError(js, "attempt to evaluate against internal VM object\n");
-      return true;
-    }
-    const char* expr = js->LookupOption("expr");
-    if (expr == NULL) {
-      PrintError(js, "eval expects an 'expr' option\n",
-                 js->num_arguments());
-      return true;
-    }
-    const String& expr_str = String::Handle(isolate, String::New(expr));
-    ASSERT(obj->IsInstance() || obj->IsNull());
-    Instance& instance = Instance::Handle();
-    instance ^= obj->raw();
-    const Object& result =
-        Object::Handle(instance.Evaluate(expr_str,
-                                         Array::empty_array(),
-                                         Array::empty_array()));
-    result.PrintJSON(js, true);
-    return true;
-  } else if (strcmp(action, "retained") == 0) {
-    if (kind == ObjectIdRing::kCollected) {
-      PrintErrorWithKind(
-          js, "RetainedCollected",
-          "attempt to calculate size retained by a collected object\n",
-          js->num_arguments());
-      return true;
-    }
-    if (kind == ObjectIdRing::kExpired) {
-      PrintErrorWithKind(
-          js, "RetainedExpired",
-          "attempt to calculate size retained by an expired object\n",
-          js->num_arguments());
-      return true;
-    }
-    ObjectGraph graph(isolate);
-    intptr_t retained_size = graph.SizeRetainedByInstance(*obj);
-    const Object& result = Object::Handle(Integer::New(retained_size));
-    result.PrintJSON(js, true);
-    return true;
-  } else if (strcmp(action, "retaining_path") == 0) {
-    if (kind == ObjectIdRing::kCollected) {
+  Object& obj = Object::Handle(isolate);
+  ObjectIdRing::LookupResult lookup_result;
+  {
+    HANDLESCOPE(isolate);
+    obj = LookupHeapObject(isolate, target_id, &lookup_result);
+  }
+  if (obj.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
       PrintErrorWithKind(
           js, "RetainingPathCollected",
           "attempt to find a retaining path for a collected object\n",
           js->num_arguments());
       return true;
-    }
-    if (kind == ObjectIdRing::kExpired) {
+    } else if (lookup_result == ObjectIdRing::kExpired) {
       PrintErrorWithKind(
           js, "RetainingPathExpired",
           "attempt to find a retaining path for an expired object\n",
           js->num_arguments());
       return true;
     }
-    intptr_t limit;
-    if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
-      PrintError(js, "retaining_path expects a 'limit' option\n",
-                 js->num_arguments());
-      return true;
-    }
-    return HandleRetainingPath(isolate, obj, limit, js);
-  } else if (strcmp(action, "inbound_references") == 0) {
-    if (kind == ObjectIdRing::kCollected) {
-      PrintErrorWithKind(
-          js, "InboundReferencesCollected",
-          "attempt to find inbound references for a collected object\n",
-          js->num_arguments());
-      return true;
-    }
-    if (kind == ObjectIdRing::kExpired) {
-      PrintErrorWithKind(
-          js, "InboundReferencesExpired",
-          "attempt to find inbound references for an expired object\n",
-          js->num_arguments());
-      return true;
-    }
-    intptr_t limit;
-    if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
-      PrintError(js, "inbound_references expects a 'limit' option\n",
-                 js->num_arguments());
-      return true;
-    }
-    return HandleInboundReferences(isolate, obj, limit, js);
+    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
+               target_id);
+    return true;
   }
+  return PrintRetainingPath(isolate, &obj, limit, js);
+}
 
-  PrintError(js, "unrecognized action '%s'\n", action);
+
+static bool HandleIsolateGetRetainedSize(Isolate* isolate, JSONStream* js) {
+  const char* target_id = js->LookupOption("targetId");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'targetId' option");
+    return true;
+  }
+  ObjectIdRing::LookupResult lookup_result;
+  Object& obj = Object::Handle(LookupHeapObject(isolate, target_id,
+                                                &lookup_result));
+  if (obj.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "RetainedCollected",
+          "attempt to calculate size retained by a collected object\n",
+          js->num_arguments());
+      return true;
+    } else if (lookup_result == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "RetainedExpired",
+          "attempt to calculate size retained by an expired object\n",
+          js->num_arguments());
+      return true;
+    }
+    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
+               target_id);
+    return true;
+  }
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    ObjectGraph graph(isolate);
+    intptr_t retained_size = graph.SizeRetainedByClass(cls.id());
+    const Object& result = Object::Handle(Integer::New(retained_size));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  if (obj.IsInstance() || obj.IsNull()) {
+    // We don't use Instance::Cast here because it doesn't allow null.
+    ObjectGraph graph(isolate);
+    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+    const Object& result = Object::Handle(Integer::New(retained_size));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  PrintError(js, "Invalid 'targetId' value: id '%s' does not correspond to a "
+             "library, class, or instance", target_id);
   return true;
 }
 
@@ -1442,23 +1810,62 @@ static bool HandleClassesClosures(Isolate* isolate, const Class& cls,
 }
 
 
-static bool HandleClassesEval(Isolate* isolate, const Class& cls,
-                              JSONStream* js) {
-  if (js->num_arguments() > 3) {
-    PrintError(js, "Command too long");
+static bool HandleIsolateEval(Isolate* isolate, JSONStream* js) {
+  const char* target_id = js->LookupOption("targetId");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'targetId' option");
     return true;
   }
-  const char* expr = js->LookupOption("expr");
+  const char* expr = js->LookupOption("expression");
   if (expr == NULL) {
-    PrintError(js, "eval expects an 'expr' option\n",
-               js->num_arguments());
+    PrintError(js, "Missing 'expression' option");
     return true;
   }
   const String& expr_str = String::Handle(isolate, String::New(expr));
-  const Object& result = Object::Handle(cls.Evaluate(expr_str,
-                                                     Array::empty_array(),
-                                                     Array::empty_array()));
-  result.PrintJSON(js, true);
+  ObjectIdRing::LookupResult lookup_result;
+  Object& obj = Object::Handle(LookupHeapObject(isolate, target_id,
+                                                &lookup_result));
+  if (obj.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
+      PrintSentinel(js, "objects/collected", "<collected>");
+    } else if (lookup_result == ObjectIdRing::kExpired) {
+      PrintSentinel(js, "objects/expired", "<expired>");
+    } else {
+      PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
+                 target_id);
+    }
+    return true;
+  }
+  if (obj.IsLibrary()) {
+    const Library& lib = Library::Cast(obj);
+    const Object& result = Object::Handle(lib.Evaluate(expr_str,
+                                                       Array::empty_array(),
+                                                       Array::empty_array()));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    const Object& result = Object::Handle(cls.Evaluate(expr_str,
+                                                       Array::empty_array(),
+                                                       Array::empty_array()));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  if ((obj.IsInstance() || obj.IsNull()) &&
+      !ContainsNonInstance(obj)) {
+    // We don't use Instance::Cast here because it doesn't allow null.
+    Instance& instance = Instance::Handle(isolate);
+    instance ^= obj.raw();
+    const Object& result =
+        Object::Handle(instance.Evaluate(expr_str,
+                                         Array::empty_array(),
+                                         Array::empty_array()));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  PrintError(js, "Invalid 'targetId' value: id '%s' does not correspond to a "
+             "library, class, or instance", target_id);
   return true;
 }
 
@@ -1481,14 +1888,6 @@ static bool HandleClassesDispatchers(Isolate* isolate, const Class& cls,
     return true;
   }
   func.PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleClassesFunctionsCoverage(
-    Isolate* isolate, const Function& func, JSONStream* js) {
-  FunctionCoverageFilter filter(func);
-  CodeCoverage::PrintJSON(isolate, js, &filter);
   return true;
 }
 
@@ -1546,9 +1945,7 @@ static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
     return true;
   } else {
     const char* subcommand = js->GetArgument(4);
-    if (strcmp(subcommand, "coverage") == 0) {
-      return HandleClassesFunctionsCoverage(isolate, func, js);
-    } else if (strcmp(subcommand, "set_source") == 0) {
+    if (strcmp(subcommand, "set_source") == 0) {
       return HandleFunctionSetSource(isolate, cls, func, js);
     } else {
       PrintError(js, "Invalid sub command %s", subcommand);
@@ -1617,7 +2014,11 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     }
     return true;
   }
-  ASSERT(js->num_arguments() >= 4);
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  ASSERT(js->num_arguments() == 4);
   intptr_t id;
   if (!GetIntegerId(js->GetArgument(3), &id)) {
     PrintError(js, "Must specify collection object id: types/id");
@@ -1629,24 +2030,7 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     PrintError(js, "Canonical type %" Pd " not found", id);
     return true;
   }
-  if (js->num_arguments() == 4) {
-    type.PrintJSON(js, false);
-    return true;
-  }
-  return HandleInstanceCommands(isolate, &type, ObjectIdRing::kValid, js, 4);
-}
-
-
-static bool HandleClassesRetained(Isolate* isolate, const Class& cls,
-                                  JSONStream* js) {
-  if (js->num_arguments() != 3) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  ObjectGraph graph(isolate);
-  intptr_t retained_size = graph.SizeRetainedByClass(cls.id());
-  const Object& result = Object::Handle(Integer::New(retained_size));
-  result.PrintJSON(js, true);
+  type.PrintJSON(js, false);
   return true;
 }
 
@@ -1683,18 +2067,30 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 };
 
 
-static bool HandleClassesInstances(Isolate* isolate, const Class& cls,
-                                   JSONStream* js) {
-  if (js->num_arguments() != 3) {
-    PrintError(js, "Command too long");
+static bool HandleIsolateGetInstances(Isolate* isolate, JSONStream* js) {
+  const char* target_id = js->LookupOption("classId");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'classId' option");
+    return true;
+  }
+  const char* limit_cstr = js->LookupOption("limit");
+  if (target_id == NULL) {
+    PrintError(js, "Missing 'limit' option");
     return true;
   }
   intptr_t limit;
   if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
-    PrintError(js, "instances expects a 'limit' option\n",
-               js->num_arguments());
+    PrintError(js, "Invalid 'limit' option: %s", limit_cstr);
     return true;
   }
+  const Object& obj =
+      Object::Handle(LookupHeapObject(isolate, target_id, NULL));
+  if (obj.raw() == Object::sentinel().raw() ||
+      !obj.IsClass()) {
+    PrintError(js, "Invalid 'classId' value: no class with id '%s'", target_id);
+    return true;
+  }
+  const Class& cls = Class::Cast(obj);
   Array& storage = Array::Handle(Array::New(limit));
   GetInstancesVisitor visitor(cls, storage);
   ObjectGraph graph(isolate);
@@ -1713,15 +2109,6 @@ static bool HandleClassesInstances(Isolate* isolate, const Class& cls,
   jsobj.AddProperty("totalCount", count);
   jsobj.AddProperty("sampleCount", storage.Length());
   jsobj.AddProperty("sample", storage);
-  return true;
-}
-
-
-static bool HandleClassesCoverage(Isolate* isolate,
-                                  const Class& cls,
-                                  JSONStream* stream) {
-  ClassCoverageFilter cf(cls);
-  CodeCoverage::PrintJSON(isolate, stream, &cf);
   return true;
 }
 
@@ -1750,9 +2137,7 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
     return true;
   } else if (js->num_arguments() >= 3) {
     const char* second = js->GetArgument(2);
-    if (strcmp(second, "eval") == 0) {
-      return HandleClassesEval(isolate, cls, js);
-    } else if (strcmp(second, "closures") == 0) {
+    if (strcmp(second, "closures") == 0) {
       return HandleClassesClosures(isolate, cls, js);
     } else if (strcmp(second, "fields") == 0) {
       return HandleClassesFields(isolate, cls, js);
@@ -1764,12 +2149,6 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
       return HandleClassesDispatchers(isolate, cls, js);
     } else if (strcmp(second, "types") == 0) {
       return HandleClassesTypes(isolate, cls, js);
-    } else if (strcmp(second, "retained") == 0) {
-      return HandleClassesRetained(isolate, cls, js);
-    } else if (strcmp(second, "instances") == 0) {
-      return HandleClassesInstances(isolate, cls, js);
-    } else if (strcmp(second, "coverage") == 0) {
-      return HandleClassesCoverage(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
@@ -1780,37 +2159,45 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
-                                JSONStream* js) {
-  if (js->num_arguments() > 3) {
-    PrintError(js, "Command too long");
+static bool HandleIsolateGetCoverage(Isolate* isolate, JSONStream* js) {
+  if (!js->HasOption("targetId")) {
+    CodeCoverage::PrintJSON(isolate, js, NULL);
     return true;
   }
-  const char* expr = js->LookupOption("expr");
-  if (expr == NULL) {
-    PrintError(js, "eval expects an 'expr' option\n",
-               js->num_arguments());
+  const char* target_id = js->LookupOption("targetId");
+  Object& obj = Object::Handle(LookupHeapObject(isolate, target_id, NULL));
+  if (obj.raw() == Object::sentinel().raw()) {
+    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
+               target_id);
     return true;
   }
-  const String& expr_str = String::Handle(isolate, String::New(expr));
-  const Object& result = Object::Handle(lib.Evaluate(expr_str,
-                                                     Array::empty_array(),
-                                                     Array::empty_array()));
-  result.PrintJSON(js, true);
+  if (obj.IsScript()) {
+    ScriptCoverageFilter sf(Script::Cast(obj));
+    CodeCoverage::PrintJSON(isolate, js, &sf);
+    return true;
+  }
+  if (obj.IsLibrary()) {
+    LibraryCoverageFilter lf(Library::Cast(obj));
+    CodeCoverage::PrintJSON(isolate, js, &lf);
+    return true;
+  }
+  if (obj.IsClass()) {
+    ClassCoverageFilter cf(Class::Cast(obj));
+    CodeCoverage::PrintJSON(isolate, js, &cf);
+    return true;
+  }
+  if (obj.IsFunction()) {
+    FunctionCoverageFilter ff(Function::Cast(obj));
+    CodeCoverage::PrintJSON(isolate, js, &ff);
+    return true;
+  }
+  PrintError(js, "Invalid 'targetId' value: id '%s' does not correspond to a "
+             "script, library, class, or function", target_id);
   return true;
 }
 
 
-static bool HandleLibrariesScriptsCoverage(
-    Isolate* isolate, const Script& script, JSONStream* js) {
-  ScriptCoverageFilter sf(script);
-  CodeCoverage::PrintJSON(isolate, js, &sf);
-  return true;
-}
-
-
-static bool HandleLibrariesScriptsSetBreakpoint(
-    Isolate* isolate, const Script& script, JSONStream* js) {
+static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
   if (!js->HasOption("line")) {
     PrintError(js, "Missing 'line' option");
     return true;
@@ -1818,9 +2205,16 @@ static bool HandleLibrariesScriptsSetBreakpoint(
   const char* line_option = js->LookupOption("line");
   intptr_t line = -1;
   if (!GetIntegerId(line_option, &line)) {
-    PrintError(js, "Invalid 'line' value: %s", line_option);
+    PrintError(js, "Invalid 'line' value: %s is not an integer", line_option);
     return true;
   }
+  const char* script_id = js->LookupOption("script");
+  Object& obj = Object::Handle(LookupHeapObject(isolate, script_id, NULL));
+  if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
+    PrintError(js, "Invalid 'script' value: no script with id '%s'", script_id);
+    return true;
+  }
+  const Script& script = Script::Cast(obj);
   const String& script_url = String::Handle(script.url());
   SourceBreakpoint* bpt =
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
@@ -1829,6 +2223,30 @@ static bool HandleLibrariesScriptsSetBreakpoint(
     return true;
   }
   bpt->PrintJSON(js);
+  return true;
+}
+
+
+static bool HandleIsolateRemoveBreakpoint(Isolate* isolate, JSONStream* js) {
+  if (!js->HasOption("breakpointId")) {
+    PrintError(js, "Missing 'breakpointId' option");
+    return true;
+  }
+  const char* bpt_id = js->LookupOption("breakpointId");
+  SourceBreakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
+  if (bpt == NULL) {
+    fprintf(stderr, "ERROR1");
+    PrintError(js, "Invalid 'breakpointId' value: no breakpoint with id '%s'",
+               bpt_id);
+    return true;
+  }
+  isolate->debugger()->RemoveBreakpoint(bpt->id());
+
+    fprintf(stderr, "SUCCESS");
+  // TODO(turnidge): Consider whether the 'Success' type is proper.
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Success");
+  jsobj.AddProperty("id", "");
   return true;
 }
 
@@ -1864,30 +2282,11 @@ static bool HandleLibrariesScripts(Isolate* isolate,
     PrintError(js, "Script %s not found", requested_url.ToCString());
     return true;
   }
-  if (js->num_arguments() == 4) {
-    script.PrintJSON(js, false);
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
     return true;
-  } else {
-    const char* subcollection = js->GetArgument(4);
-    if (strcmp(subcollection, "coverage") == 0) {
-      return HandleLibrariesScriptsCoverage(isolate, script, js);
-    } else if (strcmp(subcollection, "setBreakpoint") == 0) {
-      return HandleLibrariesScriptsSetBreakpoint(isolate, script, js);
-    } else {
-      PrintError(js, "Invalid sub collection %s", subcollection);
-      return true;
-    }
   }
-  UNREACHABLE();
-  return true;
-}
-
-
-static bool HandleLibrariesCoverage(Isolate* isolate,
-                                    const Library& lib,
-                                    JSONStream* js) {
-  LibraryCoverageFilter lf(lib);
-  CodeCoverage::PrintJSON(isolate, js, &lf);
+  script.PrintJSON(js, false);
   return true;
 }
 
@@ -1909,12 +2308,8 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
     return true;
   } else if (js->num_arguments() >= 3) {
     const char* second = js->GetArgument(2);
-    if (strcmp(second, "eval") == 0) {
-      return HandleLibrariesEval(isolate, lib, js);
-    } else if (strcmp(second, "scripts") == 0) {
+    if (strcmp(second, "scripts") == 0) {
       return HandleLibrariesScripts(isolate, lib, js);
-    } else if (strcmp(second, "coverage") == 0) {
-      return HandleLibrariesCoverage(isolate, lib, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
@@ -1922,54 +2317,6 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   }
   UNREACHABLE();
   return true;
-}
-
-
-static void PrintSentinel(JSONStream* js,
-                          const char* id,
-                          const char* preview) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Sentinel");
-  jsobj.AddProperty("id", id);
-  jsobj.AddProperty("valueAsString", preview);
-}
-
-
-static RawObject* LookupObjectId(Isolate* isolate,
-                                 const char* arg,
-                                 ObjectIdRing::LookupResult* kind) {
-  *kind = ObjectIdRing::kValid;
-  if (strncmp(arg, "int-", 4) == 0) {
-    arg += 4;
-    int64_t value = 0;
-    if (!OS::StringToInt64(arg, &value) ||
-        !Smi::IsValid(value)) {
-      *kind = ObjectIdRing::kInvalid;
-      return Object::null();
-    }
-    const Integer& obj =
-        Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
-    return obj.raw();
-  } else if (strcmp(arg, "bool-true") == 0) {
-    return Bool::True().raw();
-  } else if (strcmp(arg, "bool-false") == 0) {
-    return Bool::False().raw();
-  } else if (strcmp(arg, "null") == 0) {
-    return Object::null();
-  } else if (strcmp(arg, "not-initialized") == 0) {
-    return Object::sentinel().raw();
-  } else if (strcmp(arg, "being-initialized") == 0) {
-    return Object::transition_sentinel().raw();
-  }
-
-  ObjectIdRing* ring = isolate->object_id_ring();
-  ASSERT(ring != NULL);
-  intptr_t id = -1;
-  if (!GetIntegerId(arg, &id)) {
-    *kind = ObjectIdRing::kInvalid;
-    return Object::null();
-  }
-  return ring->GetObjectForId(id, kind);
 }
 
 
@@ -2095,7 +2442,7 @@ static bool HandleMetrics(Isolate* isolate, JSONStream* js) {
 
 static bool HandleObjects(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("objects");
-  if (js->num_arguments() < 2) {
+  if (js->num_arguments() != 2) {
     PrintError(js, "expected at least 2 arguments but found %" Pd "\n",
                js->num_arguments());
     return true;
@@ -2139,21 +2486,19 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     PrintError(js, "unrecognized object id '%s'", arg);
     return true;
   }
-  if (js->num_arguments() == 2) {
-    // Print.
-    if (kind == ObjectIdRing::kCollected) {
-      // The object has been collected by the gc.
-      PrintSentinel(js, "objects/collected", "<collected>");
-      return true;
-    } else if (kind == ObjectIdRing::kExpired) {
-      // The object id has expired.
-      PrintSentinel(js, "objects/expired", "<expired>");
-      return true;
-    }
-    obj.PrintJSON(js, false);
+
+  // Print.
+  if (kind == ObjectIdRing::kCollected) {
+    // The object has been collected by the gc.
+    PrintSentinel(js, "objects/collected", "<collected>");
+    return true;
+  } else if (kind == ObjectIdRing::kExpired) {
+    // The object id has expired.
+    PrintSentinel(js, "objects/expired", "<expired>");
     return true;
   }
-  return HandleInstanceCommands(isolate, &obj, kind, js, 2);
+  obj.PrintJSON(js, false);
+  return true;
 }
 
 
@@ -2193,9 +2538,8 @@ static bool HandleScripts(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleDebugResume(Isolate* isolate,
-                              const char* step_option,
-                              JSONStream* js) {
+static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
+  const char* step_option = js->LookupOption("step");
   if (isolate->message_handler()->paused_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
     JSONObject jsobj(js);
@@ -2235,78 +2579,22 @@ static bool HandleDebugResume(Isolate* isolate,
 }
 
 
-static bool HandleDebug(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() == 1) {
-    PrintError(js, "Must specify a subcommand");
-    return true;
-  }
-  const char* command = js->GetArgument(1);
-  if (strcmp(command, "breakpoints") == 0) {
-    if (js->num_arguments() == 2) {
-      // Print breakpoint list.
-      JSONObject jsobj(js);
-      jsobj.AddProperty("type", "BreakpointList");
-      jsobj.AddProperty("id", "debug/breakpoints");
-      JSONArray jsarr(&jsobj, "breakpoints");
-      isolate->debugger()->PrintBreakpointsToJSONArray(&jsarr);
-      return true;
-    } else {
-      intptr_t id = 0;
-      SourceBreakpoint* bpt = NULL;
-      if (GetIntegerId(js->GetArgument(2), &id)) {
-        bpt = isolate->debugger()->GetBreakpointById(id);
-      }
-      if (bpt == NULL) {
-        PrintError(js, "Unrecognized breakpoint id: %s", js->GetArgument(2));
-        return true;
-      }
-      if (js->num_arguments() == 3) {
-        // Print individual breakpoint.
-        bpt->PrintJSON(js);
-        return true;
-      } else if (js->num_arguments() == 4) {
-        const char* sub_command = js->GetArgument(3);
-        if (strcmp(sub_command, "clear") == 0) {
-          // Clear this breakpoint.
-          isolate->debugger()->RemoveBreakpoint(id);
+static bool HandleIsolateGetBreakpoints(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "BreakpointList");
+  JSONArray jsarr(&jsobj, "breakpoints");
+  isolate->debugger()->PrintBreakpointsToJSONArray(&jsarr);
+  return true;
+}
 
-          JSONObject jsobj(js);
-          jsobj.AddProperty("type", "Success");
-          jsobj.AddProperty("id", "");
-          return true;
-        } else {
-          PrintError(js, "Unrecognized subcommand: %s", sub_command);
-          return true;
-        }
-      } else {
-        PrintError(js, "Command too long");
-        return true;
-      }
-    }
-  } else if (strcmp(command, "pause") == 0) {
-    if (js->num_arguments() == 2) {
-      // TODO(turnidge): Don't double-interrupt the isolate here.
-      isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
-      JSONObject jsobj(js);
-      jsobj.AddProperty("type", "Success");
-      jsobj.AddProperty("id", "");
-      return true;
-    } else {
-      PrintError(js, "Command too long");
-      return true;
-    }
-  } else if (strcmp(command, "resume") == 0) {
-    if (js->num_arguments() == 2) {
-      const char* step_option = js->LookupOption("step");
-      return HandleDebugResume(isolate, step_option, js);
-    } else {
-      PrintError(js, "Command too long");
-      return true;
-    }
-  } else {
-    PrintError(js, "Unrecognized subcommand '%s'", js->GetArgument(1));
-    return true;
-  }
+
+static bool HandleIsolatePause(Isolate* isolate, JSONStream* js) {
+  // TODO(turnidge): Don't double-interrupt the isolate here.
+  isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Success");
+  jsobj.AddProperty("id", "");
+  return true;
 }
 
 
@@ -2373,37 +2661,30 @@ static bool HandleCode(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleProfile(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() == 2) {
-    const char* sub_command = js->GetArgument(1);
-    if (!strcmp(sub_command, "tag")) {
-      {
-        JSONObject miniProfile(js);
-        miniProfile.AddProperty("type", "TagProfile");
-        miniProfile.AddProperty("id", "profile/tag");
-        isolate->vm_tag_counters()->PrintToJSONObject(&miniProfile);
-      }
-      return true;
-    } else {
-      PrintError(js, "Unrecognized subcommand '%s'", sub_command);
-      return true;
-    }
-  }
+static bool HandleIsolateGetTagProfile(Isolate* isolate, JSONStream* js) {
+  JSONObject miniProfile(js);
+  miniProfile.AddProperty("type", "TagProfile");
+  miniProfile.AddProperty("id", "profile/tag");
+  isolate->vm_tag_counters()->PrintToJSONObject(&miniProfile);
+  return true;
+}
+
+static bool HandleIsolateGetCpuProfile(Isolate* isolate, JSONStream* js) {
   // A full profile includes disassembly of all Dart code objects.
   // TODO(johnmccutchan): Add sub command to trigger full code dump.
   bool full_profile = false;
   const char* tags_option = js->LookupOption("tags");
   Profiler::TagOrder tag_order = Profiler::kUserVM;
   if (js->HasOption("tags")) {
-    if (js->OptionIs("tags", "hide")) {
+    if (js->OptionIs("tags", "None")) {
       tag_order = Profiler::kNoTags;
-    } else if (js->OptionIs("tags", "uv")) {
+    } else if (js->OptionIs("tags", "UserVM")) {
       tag_order = Profiler::kUserVM;
-    } else if (js->OptionIs("tags", "u")) {
+    } else if (js->OptionIs("tags", "UserOnly")) {
       tag_order = Profiler::kUser;
-    } else if (js->OptionIs("tags", "vu")) {
+    } else if (js->OptionIs("tags", "VMUser")) {
       tag_order = Profiler::kVMUser;
-    } else if (js->OptionIs("tags", "v")) {
+    } else if (js->OptionIs("tags", "VMOnly")) {
       tag_order = Profiler::kVM;
     } else {
       PrintError(js, "Invalid tags option value: %s\n", tags_option);
@@ -2414,19 +2695,11 @@ static bool HandleProfile(Isolate* isolate, JSONStream* js) {
   return true;
 }
 
-static bool HandleCoverage(Isolate* isolate, JSONStream* js) {
-  CodeCoverage::PrintJSON(isolate, js, NULL);
-  return true;
-}
 
-
-static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
+static bool HandleIsolateGetAllocationProfile(Isolate* isolate,
+                                              JSONStream* js) {
   bool should_reset_accumulator = false;
   bool should_collect = false;
-  if (js->num_arguments() != 1) {
-    PrintError(js, "Command too long");
-    return true;
-  }
   if (js->HasOption("reset")) {
     if (js->OptionIs("reset", "true")) {
       should_reset_accumulator = true;
@@ -2509,13 +2782,13 @@ static bool HandleTypeArguments(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
+static bool HandleIsolateGetHeapMap(Isolate* isolate, JSONStream* js) {
   isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
   return true;
 }
 
 
-static bool HandleGraph(Isolate* isolate, JSONStream* js) {
+static bool HandleIsolateRequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
   Service::SendGraphEvent(isolate);
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
@@ -2606,25 +2879,18 @@ static bool HandleMalformedObject(Isolate* isolate, JSONStream* js) {
 
 
 static IsolateMessageHandlerEntry isolate_handlers[] = {
-  { "_malformedjson", HandleMalformedJson },
-  { "_malformedobject", HandleMalformedObject },
-  { "_echo", HandleIsolateEcho },
-  { "", HandleIsolate },
-  { "address", HandleAddress },
-  { "allocationprofile", HandleAllocationProfile },
-  { "classes", HandleClasses },
-  { "code", HandleCode },
-  { "coverage", HandleCoverage },
-  { "debug", HandleDebug },
-  { "graph", HandleGraph },
-  { "heapmap", HandleHeapMap },
-  { "libraries", HandleLibraries },
-  { "metrics", HandleMetrics },
-  { "objects", HandleObjects },
-  { "profile", HandleProfile },
-  { "scripts", HandleScripts },
-  { "stacktrace", HandleStackTrace },
-  { "typearguments", HandleTypeArguments },
+  { "_malformedjson", HandleMalformedJson },      // debug
+  { "_malformedobject", HandleMalformedObject },  // debug
+  { "_echo", HandleIsolateEcho },                 // debug
+  { "", HandleIsolate },                          // getObject
+  { "address", HandleAddress },                   // to do
+  { "classes", HandleClasses },                   // getObject
+  { "code", HandleCode },                         // getObject
+  { "libraries", HandleLibraries },               // getObject
+  { "metrics", HandleMetrics },                   // to do - complex?
+  { "objects", HandleObjects },                   // getObject
+  { "scripts", HandleScripts },                   // getObject
+  { "typearguments", HandleTypeArguments },       // confusing
 };
 
 
@@ -2639,6 +2905,79 @@ static IsolateMessageHandler FindIsolateMessageHandler(const char* command) {
   }
   if (FLAG_trace_service) {
     OS::Print("vm-service: No isolate message handler for <%s>.\n", command);
+  }
+  return NULL;
+}
+
+
+static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
+  const char* id = js->LookupOption("id");
+  if (id == NULL) {
+    // TODO(turnidge): Print the isolate here instead.
+    PrintError(js, "GetObject expects an 'id' parameter\n",
+               js->num_arguments());
+    return true;
+  }
+
+  // Handle heap objects.
+  ObjectIdRing::LookupResult lookup_result;
+  const Object& obj =
+      Object::Handle(LookupHeapObject(isolate, id, &lookup_result));
+  if (obj.raw() != Object::sentinel().raw()) {
+    // We found a heap object for this id.  Return it.
+    obj.PrintJSON(js, false);
+    return true;
+  } else if (lookup_result == ObjectIdRing::kCollected) {
+    PrintSentinel(js, "objects/collected", "<collected>");
+  } else if (lookup_result == ObjectIdRing::kExpired) {
+    PrintSentinel(js, "objects/expired", "<expired>");
+  }
+
+  // Handle non-heap objects.
+  SourceBreakpoint* bpt = LookupBreakpoint(isolate, id);
+  if (bpt != NULL) {
+    bpt->PrintJSON(js);
+    return true;
+  }
+
+  PrintError(js, "Unrecognized object id: %s\n", id);
+  return true;
+}
+
+
+static IsolateMessageHandlerEntry isolate_handlers_new[] = {
+  { "getObject", HandleIsolateGetObject },
+  { "getBreakpoints", HandleIsolateGetBreakpoints },
+  { "pause", HandleIsolatePause },
+  { "resume", HandleIsolateResume },
+  { "getStack", HandleIsolateGetStack },
+  { "getCpuProfile", HandleIsolateGetCpuProfile },
+  { "getTagProfile", HandleIsolateGetTagProfile },
+  { "getAllocationProfile", HandleIsolateGetAllocationProfile },
+  { "getHeapMap", HandleIsolateGetHeapMap },
+  { "addBreakpoint", HandleIsolateAddBreakpoint },
+  { "removeBreakpoint", HandleIsolateRemoveBreakpoint },
+  { "getCoverage", HandleIsolateGetCoverage },
+  { "eval", HandleIsolateEval },
+  { "getRetainedSize", HandleIsolateGetRetainedSize },
+  { "getRetainingPath", HandleIsolateGetRetainingPath },
+  { "getInboundReferences", HandleIsolateGetInboundReferences },
+  { "getInstances", HandleIsolateGetInstances },
+  { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot },
+};
+
+
+static IsolateMessageHandler FindIsolateMessageHandlerNew(const char* command) {
+  intptr_t num_message_handlers = sizeof(isolate_handlers_new) /
+                                  sizeof(isolate_handlers_new[0]);
+  for (intptr_t i = 0; i < num_message_handlers; i++) {
+    const IsolateMessageHandlerEntry& entry = isolate_handlers_new[i];
+    if (strcmp(command, entry.command) == 0) {
+      return entry.handler;
+    }
+  }
+  if (FLAG_trace_service) {
+    OS::Print("Service has no isolate message handler for <%s>\n", command);
   }
   return NULL;
 }

@@ -170,7 +170,7 @@ void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Breakpoint");
 
-  jsobj.AddPropertyF("id", "debug/breakpoints/%" Pd "", id());
+  jsobj.AddPropertyF("id", "breakpoints/%" Pd "", id());
   jsobj.AddProperty("breakpointNumber", id());
   jsobj.AddProperty("enabled", IsEnabled());
   jsobj.AddProperty("resolved", IsResolved());

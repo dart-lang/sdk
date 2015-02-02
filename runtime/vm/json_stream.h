@@ -34,6 +34,13 @@ class JSONStream : ValueObject {
              const GrowableObjectArray& path,
              const Array& option_keys,
              const Array& option_values);
+
+  void SetupNew(Zone* zone,
+                Dart_Port reply_port,
+                const String& method,
+                const Array& param_keys,
+                const Array& param_values);
+
   void PostReply();
 
   TextBuffer* buffer() { return &buffer_; }
@@ -50,6 +57,9 @@ class JSONStream : ValueObject {
   const char* GetArgument(intptr_t i) const {
     return arguments_[i];
   }
+
+  // TODO(turnidge): Rename "options" to "params".  That is the more
+  // appropriate name for json rpc.
   intptr_t num_options() const { return num_options_; }
   const char* GetOptionKey(intptr_t i) const {
     return option_keys_[i];
@@ -66,6 +76,7 @@ class JSONStream : ValueObject {
   // otherwise.
   bool OptionIs(const char* key, const char* value) const;
 
+  // TODO(turnidge): Rename "command" to "method".  Better name for json rpc.
   const char* command() const { return command_; }
   const char** arguments() const { return arguments_; }
   const char** option_keys() const { return option_keys_; }

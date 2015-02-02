@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-      <nav-menu link="{{ profile.isolate.relativeLink('profile') }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <nav-menu link="{{ '/profiler' + isolate.link }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
@@ -131,11 +131,11 @@
          <div class="memberName">Tags</div>
          <div class="memberValue">
           <select value="{{tagSelector}}">
-            <option value="uv">User &gt; VM</option>
-            <option value="u">User</option>
-            <option value="vu">VM &gt; User</option>
-            <option value="v">VM</option>
-            <option value="hide">None</option>
+            <option value="UserVM">User &gt; VM</option>
+            <option value="UserOnly">User</option>
+            <option value="VMUser">VM &gt; User</option>
+            <option value="VMOnly">VM</option>
+            <option value="None">None</option>
           </select>
          </div>
         </div>

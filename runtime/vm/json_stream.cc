@@ -73,7 +73,46 @@ void JSONStream::Setup(Zone* zone,
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processing service request /%s",
+    OS::Print("Isolate %s processing service request %s",
+              isolate_name, command_);
+    for (intptr_t i = 1; i < num_arguments(); i++) {
+      OS::Print("/%s", GetArgument(i));
+    }
+    OS::Print("\n");
+    setup_time_micros_ = OS::GetCurrentTimeMicros();
+  }
+}
+
+
+void JSONStream::SetupNew(Zone* zone,
+                          Dart_Port reply_port,
+                          const String& method,
+                          const Array& option_keys,
+                          const Array& option_values) {
+  set_reply_port(reply_port);
+  command_ = method.ToCString();
+
+  String& string_iterator = String::Handle();
+  if (option_keys.Length() > 0) {
+    const char** option_keys_native =
+        zone->Alloc<const char*>(option_keys.Length());
+    const char** option_values_native =
+        zone->Alloc<const char*>(option_keys.Length());
+    for (intptr_t i = 0; i < option_keys.Length(); i++) {
+      string_iterator ^= option_keys.At(i);
+      option_keys_native[i] =
+          zone->MakeCopyOfString(string_iterator.ToCString());
+      string_iterator ^= option_values.At(i);
+      option_values_native[i] =
+          zone->MakeCopyOfString(string_iterator.ToCString());
+    }
+    SetOptions(option_keys_native, option_values_native, option_keys.Length());
+  }
+  if (FLAG_trace_service) {
+    Isolate* isolate = Isolate::Current();
+    ASSERT(isolate != NULL);
+    const char* isolate_name = isolate->name();
+    OS::Print("Isolate %s processing service request %s",
               isolate_name, command_);
     for (intptr_t i = 1; i < num_arguments(); i++) {
       OS::Print("/%s", GetArgument(i));
@@ -111,7 +150,7 @@ void JSONStream::PostReply() {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processed service request /%s",
+    OS::Print("Isolate %s processed service request %s",
               isolate_name, command_);
     for (intptr_t i = 1; i < num_arguments(); i++) {
       OS::Print("/%s", GetArgument(i));

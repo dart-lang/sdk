@@ -26,6 +26,36 @@ class RunningIsolates implements MessageRouter {
   }
 
   Future<String> route(Message message) {
+    if (message.isOld) {
+      return routeOld(message);
+    }
+
+    String isolateParam = message.params['isolate'];
+    int isolateId;
+    if (!isolateParam.startsWith('isolates/')) {
+      message.setErrorResponse('Malformed isolate id $isolateParam');
+      return message.response;
+    }
+    isolateParam = isolateParam.substring('isolates/'.length);
+    if (isolateParam == 'isolates/root') {
+      isolateId = _rootPortId;
+    } else {
+      try {
+        isolateId = int.parse(isolateParam);
+      } catch (e) {
+        message.setErrorResponse('Could not parse isolate id: $e');
+        return message.response;
+      }
+    }
+    var isolate = isolates[isolateId];
+    if (isolate == null) {
+      message.setErrorResponse('Cannot find isolate id: $isolateId');
+      return message.response;
+    }
+    return isolate.route(message);
+  }
+
+  Future<String> routeOld(Message message) {
     if (message.path.length == 0) {
       message.setErrorResponse('No path.');
       return message.response;

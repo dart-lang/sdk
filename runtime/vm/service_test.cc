@@ -213,277 +213,6 @@ TEST_CASE(Service_Isolate) {
 }
 
 
-TEST_CASE(Service_StackTrace) {
-  // TODO(turnidge): Extend this test to cover a non-trivial stack trace.
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "main() {\n"
-      "}";
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  Array& service_msg = Array::Handle();
-
-  // Get the stacktrace.
-  service_msg = Eval(lib, "[0, port, ['stacktrace'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ(
-      "{\"type\":\"StackTrace\",\"id\":\"stacktrace\",\"members\":[]}",
-      handler.msg());
-
-  // Malformed request.
-  service_msg = Eval(lib, "[0, port, ['stacktrace', 'jamboree'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ(
-      "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
-      "\"request\":{\"arguments\":[\"stacktrace\",\"jamboree\"],"
-      "\"option_keys\":[],\"option_values\":[]}}",
-      handler.msg());
-}
-
-
-TEST_CASE(Service_DebugBreakpoints) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "main() {\n"   // We set breakpoint here.
-      "}";
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& vmlib = Library::Handle();
-  vmlib ^= Api::UnwrapHandle(lib);
-  EXPECT(!vmlib.IsNull());
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  Array& service_msg = Array::Handle();
-
-  // Add a breakpoint.
-  service_msg = EvalF(lib,
-                     "[0, port, ['libraries', '%" Pd "', "
-                     "'scripts', 'test-lib', 'setBreakpoint'], "
-                      "['line'], ['3']]",
-                      vmlib.index());
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  ExpectSubstringF(
-      handler.msg(),
-      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
-      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
-      "\"location\":{\"type\":\"Location\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"kind\":\"script\"},"
-      "\"tokenPos\":5}}",
-      vmlib.index());
-
-  // Get the breakpoint list.
-  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  ExpectSubstringF(
-      handler.msg(),
-      "{\"type\":\"BreakpointList\",\"id\":\"debug\\/breakpoints\","
-      "\"breakpoints\":["
-      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
-      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
-      "\"location\":{\"type\":\"Location\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"kind\":\"script\"},"
-      "\"tokenPos\":5}}]}",
-      vmlib.index());
-
-  // Lookup individual breakpoint.
-  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints', '1'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  ExpectSubstringF(
-      handler.msg(),
-      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
-      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
-      "\"location\":{\"type\":\"Location\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"kind\":\"script\"},"
-      "\"tokenPos\":5}}",
-      vmlib.index());
-
-  // Unrecognized breakpoint subcommand.
-  service_msg =
-      Eval(lib, "[0, port, ['debug', 'breakpoints', '1', 'green'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
-                "\"message\":\"Unrecognized subcommand: green\","
-                "\"request\":{\"arguments\":[\"debug\",\"breakpoints\","
-                                            "\"1\",\"green\"],"
-                             "\"option_keys\":[],\"option_values\":[]}}",
-               handler.msg());
-
-  // Clear breakpoint.
-  service_msg =
-      Eval(lib, "[0, port, ['debug', 'breakpoints', '1', 'clear'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Success\",\"id\":\"\"}",
-               handler.msg());
-
-  // Get the breakpoint list.
-  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ(
-      "{\"type\":\"BreakpointList\",\"id\":\"debug\\/breakpoints\","
-      "\"breakpoints\":[]}",
-      handler.msg());
-
-  // Missing sub-command.
-  service_msg = Eval(lib, "[0, port, ['debug'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ(
-      "{\"type\":\"Error\",\"id\":\"\","
-       "\"message\":\"Must specify a subcommand\","
-       "\"request\":{\"arguments\":[\"debug\"],\"option_keys\":[],"
-                    "\"option_values\":[]}}",
-      handler.msg());
-
-  // Unrecognized breakpoint.
-  service_msg = Eval(lib,
-                     "[0, port, ['debug', 'breakpoints', '1111'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
-                "\"message\":\"Unrecognized breakpoint id: 1111\","
-                "\"request\":{"
-                    "\"arguments\":[\"debug\",\"breakpoints\",\"1111\"],"
-                    "\"option_keys\":[],\"option_values\":[]}}",
-               handler.msg());
-
-  // Unrecognized subcommand.
-  service_msg = Eval(lib, "[0, port, ['debug', 'nosferatu'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
-                "\"message\":\"Unrecognized subcommand 'nosferatu'\","
-                "\"request\":{\"arguments\":[\"debug\",\"nosferatu\"],"
-                             "\"option_keys\":[],\"option_values\":[]}}",
-               handler.msg());
-}
-
-
-// Globals used to communicate with HandlerPausedEvent.
-static intptr_t pause_line_number = 0;
-static Dart_Handle saved_lib;
-static ServiceTestMessageHandler* saved_handler = NULL;
-
-static void HandlePausedEvent(Dart_IsolateId isolate_id,
-                              intptr_t bp_id,
-                              const Dart_CodeLocation& loc) {
-  Isolate* isolate = Isolate::Current();
-  Debugger* debugger = isolate->debugger();
-
-  // The debugger knows that it is paused, and why.
-  EXPECT(debugger->IsPaused());
-  const DebuggerEvent* event = debugger->PauseEvent();
-  EXPECT(event != NULL);
-  EXPECT(event->type() == DebuggerEvent::kBreakpointReached);
-
-  // Save the last line number seen by this handler.
-  pause_line_number = event->top_frame()->LineNumber();
-
-  // Single step
-  Array& service_msg = Array::Handle();
-  service_msg = Eval(saved_lib,
-                     "[0, port, ['debug', 'resume'], "
-                     "['step'], ['into']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  saved_handler->HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Success\",\"id\":\"\"}",
-               saved_handler->msg());
-}
-
-
-TEST_CASE(Service_Stepping) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "var value = 0;\n"
-      "\n"
-      "main() {\n"   // We set breakpoint here.
-      "  value++;\n"
-      "  value++;\n"
-      "  value++;\n"
-      "}";           // We step up to here.
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& vmlib = Library::Handle();
-  vmlib ^= Api::UnwrapHandle(lib);
-  EXPECT(!vmlib.IsNull());
-  saved_lib = lib;
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  saved_handler = &handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  Array& service_msg = Array::Handle();
-
-  // Add a breakpoint.
-  service_msg = EvalF(lib,
-                      "[0, port, ['libraries', '%" Pd "', "
-                      "'scripts', 'test-lib', 'setBreakpoint'], "
-                      "['line'], ['4']]",
-                      vmlib.index());
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  ExpectSubstringF(
-      handler.msg(),
-      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
-      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
-      "\"location\":{\"type\":\"Location\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"kind\":\"script\"},"
-      "\"tokenPos\":11}}",
-      vmlib.index());
-
-  pause_line_number = -1;
-  Dart_SetPausedEventHandler(HandlePausedEvent);
-
-  // Run the program.
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-
-  // We were able to step to the last line in main.
-  EXPECT_EQ(8, pause_line_number);
-}
-
-
 TEST_CASE(Service_Objects) {
   // TODO(turnidge): Extend this test to cover a non-trivial stack trace.
   const char* kScript =
@@ -636,75 +365,11 @@ TEST_CASE(Service_Objects) {
       "\"valueAsString\":\"<expired>\"}",
       handler.msg());
 
-  // expired/eval => error
-  service_msg = Eval(lib, "[0, port, ['objects', 'expired', 'eval'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  handler.filterMsg("_vmName");
-  EXPECT_STREQ(
-      "{\"type\":\"Error\",\"id\":\"\","
-      "\"message\":\"expected at most 2 arguments but found 3\\n\","
-      "\"request\":{\"arguments\":[\"objects\",\"expired\",\"eval\"],"
-      "\"option_keys\":[],\"option_values\":[]}}",
-      handler.msg());
-
-  // int/eval => good
-  service_msg = Eval(lib,
-                     "[0, port, ['objects', 'int-123', 'eval'], "
-                     "['expr'], ['this+99']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  handler.filterMsg("_vmName");
-  EXPECT_STREQ(
-      "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
-      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"name\":\"_Smi\",},"
-      "\"id\":\"objects\\/int-222\","
-      "\"valueAsString\":\"222\"}",
-      handler.msg());
-
-  // eval returning null works
-  service_msg = Eval(lib,
-                     "[0, port, ['objects', 'int-123', 'eval'], "
-                     "['expr'], ['null']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  handler.filterMsg("_vmName");
-  EXPECT_STREQ(
-      "{\"type\":\"@null\",\"id\":\"objects\\/null\","
-      "\"valueAsString\":\"null\"}",
-      handler.msg());
-
-  // object id ring / invalid => expired
-  service_msg = Eval(lib, "[0, port, ['objects', '99999999', 'eval'], "
-                     "['expr'], ['this']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  handler.filterMsg("_vmName");
-  EXPECT_STREQ(
-      "{\"type\":\"Error\",\"id\":\"\",\"kind\":\"EvalExpired\","
-      "\"message\":\"attempt to evaluate against expired object\\n\","
-      "\"request\":{\"arguments\":[\"objects\",\"99999999\",\"eval\"],"
-      "\"option_keys\":[\"expr\"],\"option_values\":[\"this\"]}}",
-      handler.msg());
-
-  // Extra arg to eval.
-  service_msg = Eval(lib,
-                     "[0, port, ['objects', 'int-123', 'eval', 'foo'], "
-                     "['expr'], ['this+99']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  handler.filterMsg("_vmName");
-  EXPECT_STREQ(
-      "{\"type\":\"Error\",\"id\":\"\","
-      "\"message\":\"expected at most 3 arguments but found 4\\n\","
-      "\"request\":{\"arguments\":[\"objects\",\"int-123\",\"eval\",\"foo\"],"
-      "\"option_keys\":[\"expr\"],\"option_values\":[\"this+99\"]}}",
-      handler.msg());
-
   // Retained by single instance.
-  service_msg = Eval(lib,
-                     "[0, port, ['objects', '$validId', 'retained'], [], []]");
+  service_msg = Eval(
+      lib,
+      "[0, port, 'getRetainedSize', "
+      "['targetId'], ['objects/$validId']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("_vmName");
@@ -715,35 +380,23 @@ TEST_CASE(Service_Objects) {
   // Retaining path to 'arr', limit 1.
   service_msg = Eval(
       lib,
-      "[0, port, ['objects', '$validId', 'retaining_path'], ['limit'], ['1']]");
+      "[0, port, 'getRetainingPath', "
+      "['targetId', 'limit'], ['objects/$validId', '1']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(
       handler.msg(),
-      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":1,"
+      "{\"type\":\"RetainingPath\",\"length\":1,"
       "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@List\"");
 
   // Retaining path missing limit.
   service_msg = Eval(
       lib,
-      "[0, port, ['objects', '$validId', 'retaining_path'], [], []]");
+      "[0, port, 'getRetainingPath', "
+      "['targetId'], ['objects/$validId']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(), "{\"type\":\"Error\"");
-
-  // eval against list containing an internal object.
-  Object& internal_object = Object::Handle();
-  internal_object = LiteralToken::New();
-  arr.SetAt(0, internal_object);
-  service_msg = Eval(lib,
-                     "[0, port, ['objects', '$validId', 'eval'], "
-                     "['expr'], ['toString()']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  ExpectSubstringF(handler.msg(), "\"type\":\"Error\"");
-  ExpectSubstringF(
-      handler.msg(),
-      "\"message\":\"attempt to evaluate against internal VM object\\n\"");
 }
 
 
@@ -817,12 +470,13 @@ TEST_CASE(Service_RetainingPath) {
   // Retaining path to 'foo0', limit 2.
   service_msg = Eval(
       lib,
-      "[0, port, ['objects', '$id0', 'retaining_path'], ['limit'], ['2']]");
+      "[0, port, 'getRetainingPath', "
+      "['targetId', 'limit'], ['objects/$id0', '2']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(
       handler.msg(),
-      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":2,"
+      "{\"type\":\"RetainingPath\",\"length\":2,"
       "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@String\"");
   ExpectSubstringF(handler.msg(), "\"parentField\":{\"type\":\"@Field\"");
   ExpectSubstringF(handler.msg(), "\"name\":\"f0\"");
@@ -832,12 +486,13 @@ TEST_CASE(Service_RetainingPath) {
   // Retaining path to 'foo1', limit 2.
   service_msg = Eval(
       lib,
-      "[0, port, ['objects', '$id1', 'retaining_path'], ['limit'], ['2']]");
+      "[0, port,  'getRetainingPath', "
+      "['targetId', 'limit'], ['objects/$id1', '2']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(
       handler.msg(),
-      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":2,"
+      "{\"type\":\"RetainingPath\",\"length\":2,"
       "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@String\"");
   ExpectSubstringF(handler.msg(), "\"parentField\":{\"type\":\"@Field\"");
   ExpectSubstringF(handler.msg(), "\"name\":\"f1\"");
@@ -847,12 +502,13 @@ TEST_CASE(Service_RetainingPath) {
   // Retaining path to 'elem', limit 2.
   service_msg = Eval(
       lib,
-      "[0, port, ['objects', '$idElem', 'retaining_path'], ['limit'], ['2']]");
+      "[0, port, 'getRetainingPath', "
+      "['targetId', 'limit'], ['objects/$idElem', '2']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(
       handler.msg(),
-      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":2,"
+      "{\"type\":\"RetainingPath\",\"length\":2,"
       "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@String\"");
   ExpectSubstringF(handler.msg(), "\"parentListIndex\":%" Pd, kElemIndex);
   ExpectSubstringF(handler.msg(),
@@ -892,21 +548,6 @@ TEST_CASE(Service_Libraries) {
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Library\"", handler.msg());
   EXPECT_SUBSTRING("\"url\":\"test-lib\"", handler.msg());
-
-  // Evaluate an expression from a library.
-  service_msg = EvalF(lib,
-                      "[0, port, ['libraries', '%" Pd "', 'eval'], "
-                      "['expr'], ['libVar - 1']]",
-                      vmlib.index());
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  handler.filterMsg("_vmName");
-  EXPECT_STREQ(
-      "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
-      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"name\":\"_Smi\",},\"id\":\"objects\\/int-54320\","
-      "\"valueAsString\":\"54320\"}",
-      handler.msg());
 }
 
 
@@ -957,7 +598,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Error\",\"id\":\"\","
+    "{\"type\":\"Error\","
     "\"message\":\"999999 is not a valid class id.\","
     "\"request\":{\"arguments\":[\"classes\",\"999999\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
@@ -972,21 +613,6 @@ TEST_CASE(Service_Classes) {
   ExpectSubstringF(handler.msg(), "\"allocationStats\":");
   ExpectSubstringF(handler.msg(), "\"tokenPos\":");
   ExpectSubstringF(handler.msg(), "\"endTokenPos\":");
-
-  // Evaluate an expression from class A.
-  service_msg = EvalF(lib,
-                      "[0, port, ['classes', '%" Pd "', 'eval'], "
-                      "['expr'], ['cobra + 100000']]", cid);
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  handler.filterMsg("_vmName");
-  EXPECT_STREQ(
-      "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
-      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"name\":\"_Smi\",},"
-      "\"id\":\"objects\\/int-111235\","
-      "\"valueAsString\":\"111235\"}",
-      handler.msg());
 
   // Request function 'b' from class A.
   service_msg = EvalF(lib,
@@ -1015,7 +641,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub collection huh\""
+    "{\"type\":\"Error\",\"message\":\"Invalid sub collection huh\""
     ",\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"huh\",\"0\"],\"option_keys\":[],"
     "\"option_values\":[]}}", cid);
@@ -1026,7 +652,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Field 9 not found\","
+    "{\"type\":\"Error\",\"message\":\"Field 9 not found\","
     "\"request\":{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
@@ -1037,7 +663,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Function 9 not found\","
+    "{\"type\":\"Error\",\"message\":\"Function 9 not found\","
     "\"request\":{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
@@ -1049,7 +675,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
+    "{\"type\":\"Error\",\"message\":\"Command too long\","
     "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
@@ -1061,7 +687,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\","
+    "{\"type\":\"Error\","
     "\"message\":\"Command should have 4 or 5 arguments\","
     "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"0\",\"x\",\"y\"],"
@@ -1074,7 +700,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub command x\","
+    "{\"type\":\"Error\",\"message\":\"Invalid sub command x\","
     "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"b\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
@@ -1084,16 +710,17 @@ TEST_CASE(Service_Classes) {
   EXPECT(!class_b.IsNull());
   const Instance& b0 = Instance::Handle(Instance::New(class_b));
   const Instance& b1 = Instance::Handle(Instance::New(class_b));
-  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'retained'],"
-                      "[], []]", class_b.id());
+  service_msg = EvalF(lib, "[0, port, 'getRetainedSize', "
+                      "['targetId'], ['classes/%" Pd "']]", class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"objects\\/int-%" Pd "\"",
                    b0.raw()->Size() + b1.raw()->Size());
   // ... and list the instances of class B.
-  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
-                      "['limit'], ['3']]", class_b.id());
+  service_msg = EvalF(lib, "[0, port, 'getInstances', "
+                      "['classId', 'limit'], ['classes/%" Pd "', '3']]",
+                      class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(), "\"type\":\"InstanceSet\"");
@@ -1111,8 +738,9 @@ TEST_CASE(Service_Classes) {
   EXPECT((list.At(0) == b0.raw() && list.At(1) == b1.raw()) ||
          (list.At(0) == b1.raw() && list.At(1) == b0.raw()));
   // ... and if limit is 1, we one get one of them.
-  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
-                      "['limit'], ['1']]", class_b.id());
+  service_msg = EvalF(lib, "[0, port, 'getInstances', "
+                      "['classId', 'limit'], ['classes/%" Pd "', '1']]",
+                      class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(), "\"totalCount\":2");
@@ -1307,7 +935,7 @@ TEST_CASE(Service_Types) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\","
+    "{\"type\":\"Error\","
     "\"message\":\"Canonical type 42 not found\""
     ",\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"types\",\"42\"],"
@@ -1383,7 +1011,7 @@ TEST_CASE(Service_Code) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Malformed code id: 0\","
+    "{\"type\":\"Error\",\"message\":\"Malformed code id: 0\","
     "\"request\":{\"arguments\":[\"code\",\"0\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
@@ -1755,281 +1383,6 @@ TEST_CASE(Service_Scripts) {
 }
 
 
-// TODO(zra): Remove when tests are ready to enable.
-#if !defined(TARGET_ARCH_ARM64)
-
-TEST_CASE(Service_Coverage) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "var x = 7;\n"
-      "main() {\n"
-      "  x = x * x;\n"
-      "  x = x / 13;\n"
-      "}";
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& vmlib = Library::Handle();
-  vmlib ^= Api::UnwrapHandle(lib);
-  EXPECT(!vmlib.IsNull());
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, ['coverage'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-
-  char buf[1024];
-  OS::SNPrint(buf, sizeof(buf),
-              "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-              "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-              "\"name\":\"test-lib\","
-              "\"kind\":\"script\"},\"hits\":"
-              "[5,1,6,1]}",
-              vmlib.index());
-  EXPECT_SUBSTRING(buf, handler.msg());
-}
-
-
-TEST_CASE(Service_LibrariesScriptsCoverage) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "var x = 7;\n"
-      "main() {\n"
-      "  x = x * x;\n"
-      "  x = x / 13;\n"
-      "}";
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& vmlib = Library::Handle();
-  vmlib ^= Api::UnwrapHandle(lib);
-  EXPECT(!vmlib.IsNull());
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  Array& service_msg = Array::Handle();
-  char buf[1024];
-  OS::SNPrint(buf, sizeof(buf),
-      "[0, port, ['libraries', '%" Pd  "', 'scripts', 'test-lib', 'coverage'], "
-      "[], []]",
-      vmlib.index());
-
-  service_msg = Eval(lib, buf);
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  OS::SNPrint(buf, sizeof(buf),
-      "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", vmlib.index());
-  EXPECT_STREQ(buf, handler.msg());
-}
-
-
-TEST_CASE(Service_LibrariesCoverage) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "var x = 7;\n"
-      "main() {\n"
-      "  x = x * x;\n"
-      "  x = x / 13;\n"
-      "}";
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& vmlib = Library::Handle();
-  vmlib ^= Api::UnwrapHandle(lib);
-  EXPECT(!vmlib.IsNull());
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  char buf[1024];
-  OS::SNPrint(buf, sizeof(buf),
-              "[0, port, ['libraries', '%" Pd "', 'coverage'], [], []]",
-              vmlib.index());
-
-  Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, buf);
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  OS::SNPrint(buf, sizeof(buf),
-              "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-              "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-              "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-              "\"name\":\"test-lib\","
-              "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}",
-              vmlib.index());
-  EXPECT_STREQ(buf, handler.msg());
-}
-
-
-TEST_CASE(Service_ClassesCoverage) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "class Foo {\n"
-      "  var x;\n"
-      "  Foo(this.x);\n"
-      "  bar() {\n"
-      "    x = x * x;\n"
-      "    x = x / 13;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  var foo = new Foo(7);\n"
-      "  foo.bar();\n"
-      "}";
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& vmlib = Library::Handle();
-  vmlib ^= Api::UnwrapHandle(lib);
-  EXPECT(!vmlib.IsNull());
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  // Look up the service id of Foo.
-  const Class& cls = Class::Handle(
-      vmlib.LookupClass(String::Handle(String::New("Foo"))));
-  ASSERT(!cls.IsNull());
-  ClassTable* table = isolate->class_table();
-  intptr_t i;
-  for (i = 1; i < table->NumCids(); i++) {
-    if (table->HasValidClassAt(i) && table->At(i) == cls.raw()) {
-      break;
-    }
-  }
-  ASSERT(i != table->NumCids());
-  char buf[1024];
-  OS::SNPrint(buf, sizeof(buf),
-              "[0, port, ['classes', '%" Pd "', 'coverage'], [], []]", i);
-
-  Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, buf);
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  OS::SNPrint(buf, sizeof(buf),
-              "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-              "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-              "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-              "\"name\":\"test-lib\","
-              "\"kind\":\"script\"},\"hits\":[5,1,7,4,8,3]}]}",
-              vmlib.index());
-  EXPECT_STREQ(buf, handler.msg());
-}
-
-
-TEST_CASE(Service_ClassesFunctionsCoverage) {
-  const char* kScript =
-      "var port;\n"  // Set to our mock port by C++.
-      "\n"
-      "class Foo {\n"
-      "  var x;\n"
-      "  Foo(this.x);\n"
-      "  bar() {\n"
-      "    x = x * x;\n"
-      "    x = x / 13;\n"
-      "  }\n"
-      "  badum(var a) => 4 + a;\n"
-      "}\n"
-      "main() {\n"
-      "  var foo = new Foo(7);\n"
-      "  foo.bar();\n"
-      "}";
-
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  Library& vmlib = Library::Handle();
-  vmlib ^= Api::UnwrapHandle(lib);
-  EXPECT(!vmlib.IsNull());
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-
-  // Build a mock message handler and wrap it in a dart port.
-  ServiceTestMessageHandler handler;
-  Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
-  EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
-
-  // Look up the service id of Foo.
-  const Class& cls = Class::Handle(
-      vmlib.LookupClass(String::Handle(String::New("Foo"))));
-  ASSERT(!cls.IsNull());
-  ClassTable* table = isolate->class_table();
-  intptr_t i;
-  for (i = 1; i < table->NumCids(); i++) {
-    if (table->HasValidClassAt(i) && table->At(i) == cls.raw()) {
-      break;
-    }
-  }
-  ASSERT(i != table->NumCids());
-
-  // Look up the service if of the function Foo.bar.
-  const Function& func = Function::Handle(
-      cls.LookupFunction(String::Handle(String::New("bar"))));
-  ASSERT(!func.IsNull());
-
-  char buf[1024];
-  OS::SNPrint(buf, sizeof(buf),
-              "[0, port, ['classes', '%" Pd "', 'functions',"
-              "'bar', 'coverage'], [], []]", i);
-
-  Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, buf);
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  OS::SNPrint(buf, sizeof(buf),
-      "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[7,4,8,3]}]}", vmlib.index());
-  EXPECT_STREQ(buf, handler.msg());
-}
-
-#endif
-
-
 TEST_CASE(Service_AllocationProfile) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -2054,48 +1407,44 @@ TEST_CASE(Service_AllocationProfile) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, ['allocationprofile'], [], []]");
+  service_msg = Eval(lib, "[0, port, 'getAllocationProfile', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
-  // Too long.
-  service_msg = Eval(lib, "[0, port, ['allocationprofile', 'foo'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
-
   // Bad gc option.
   service_msg = Eval(lib,
-                     "[0, port, ['allocationprofile'], ['gc'], ['cat']]");
+                     "[0, port, 'getAllocationProfile', "
+                     "['gc'], ['cat']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // Bad reset option.
-  service_msg = Eval(lib,
-                     "[0, port, ['allocationprofile'], ['reset'], ['ff']]");
+  service_msg = Eval(lib, "[0, port, 'getAllocationProfile', "
+                          "['reset'], ['ff']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // Good reset.
   service_msg =
-      Eval(lib, "[0, port, ['allocationprofile'], ['reset'], ['true']]");
+      Eval(lib,
+           "[0, port, 'getAllocationProfile', ['reset'], ['true']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Good GC.
   service_msg =
-      Eval(lib, "[0, port, ['allocationprofile'], ['gc'], ['full']]");
+      Eval(lib, "[0, port, 'getAllocationProfile', ['gc'], ['full']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Good GC and reset.
-  service_msg = Eval(lib,
-      "[0, port, ['allocationprofile'], ['gc', 'reset'], ['full', 'true']]");
+  service_msg = Eval(lib, "[0, port, 'getAllocationProfile', "
+                          "['gc', 'reset'], ['full', 'true']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
@@ -2121,7 +1470,7 @@ TEST_CASE(Service_HeapMap) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, ['heapmap'], [], []]");
+  service_msg = Eval(lib, "[0, port, 'getHeapMap', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"HeapMap\"", handler.msg());
@@ -2306,19 +1655,21 @@ TEST_CASE(Service_Profile) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, ['profile'], [], []]");
+  service_msg = Eval(lib, "[0, port, 'getCpuProfile', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
-  EXPECT_SUBSTRING("\"type\":\"Profile\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"CpuProfile\"", handler.msg());
 
-  service_msg = Eval(lib, "[0, port, ['profile'], ['tags'], ['hide']]");
+  service_msg =
+      Eval(lib, "[0, port, 'getCpuProfile', ['tags'], ['None']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
-  EXPECT_SUBSTRING("\"type\":\"Profile\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"CpuProfile\"", handler.msg());
 
-  service_msg = Eval(lib, "[0, port, ['profile'], ['tags'], ['hidden']]");
+  service_msg =
+      Eval(lib, "[0, port, 'getCpuProfile', ['tags'], ['Bogus']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error.

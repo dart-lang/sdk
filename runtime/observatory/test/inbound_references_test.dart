@@ -31,8 +31,7 @@ var tests = [
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
     Instance e = lib.variables.where((v) => v.name == 'e').single.value;
-    var id = e.id;
-    return isolate.get('/$id/inbound_references?limit=100').then(
+    return isolate.getInboundReferences(e, 100).then(
         (ServiceMap response) {
           List references = response['references'];
           hasReferenceSuchThat(predicate) {

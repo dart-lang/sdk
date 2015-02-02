@@ -88,6 +88,9 @@ class ClassTreePage extends Page {
     assert(canVisit(url));
     // ClassTree urls are 'class-tree/isolate-id', chop off prefix, leaving
     // isolate url.
+    //
+    // TODO(turnidge): Many pages share the isolate parsing/fetching
+    // code.  Consider refactoring.
     url = url.substring(_urlPrefix.length);
     /// Request the isolate url.
     app.vm.get(url).then((isolate) {
@@ -131,6 +134,105 @@ class DebuggerPage extends Page {
       }
     }).catchError((e) {
         Logger.root.severe('Unexpected debugger error: $e');
+    });
+  }
+
+  /// Catch all.
+  bool canVisit(String url) => url.startsWith(_urlPrefix);
+}
+
+class CpuProfilerPage extends Page {
+  static const _urlPrefix = 'profiler/';
+
+  CpuProfilerPage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('cpu-profile');
+    }
+  }
+
+  void _visit(String url) {
+    assert(element != null);
+    assert(canVisit(url));
+    // CpuProfiler urls are 'profiler/isolate-id', chop off prefix, leaving
+    // isolate url.
+    url = url.substring(_urlPrefix.length);
+    /// Request the isolate url.
+    app.vm.get(url).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        CpuProfileElement page = element;
+        page.isolate = isolate;
+      }
+    }).catchError((e) {
+        Logger.root.severe('Unexpected profiler error: $e');
+    });
+  }
+
+  /// Catch all.
+  bool canVisit(String url) => url.startsWith(_urlPrefix);
+}
+
+class AllocationProfilerPage extends Page {
+  static const _urlPrefix = 'allocation-profiler/';
+
+  AllocationProfilerPage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('heap-profile');
+    }
+  }
+
+  void _visit(String url) {
+    assert(element != null);
+    assert(canVisit(url));
+    // Allocation profiler urls are 'allocation-profiler/isolate-id',
+    // chop off prefix, leaving isolate url.
+    url = url.substring(_urlPrefix.length);
+    /// Request the isolate url.
+    app.vm.get(url).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        HeapProfileElement page = element;
+        page.isolate = isolate;
+      }
+    }).catchError((e) {
+        Logger.root.severe('Unexpected allocation profiler error: $e');
+    });
+  }
+
+  /// Catch all.
+  bool canVisit(String url) => url.startsWith(_urlPrefix);
+}
+
+class HeapMapPage extends Page {
+  static const _urlPrefix = 'heap-map/';
+
+  HeapMapPage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('heap-map');
+    }
+  }
+
+  void _visit(String url) {
+    assert(element != null);
+    assert(canVisit(url));
+    // Allocation profiler urls are 'heap-map/isolate-id',
+    // chop off prefix, leaving isolate url.
+    url = url.substring(_urlPrefix.length);
+    /// Request the isolate url.
+    app.vm.get(url).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        HeapMapElement page = element;
+        page.isolate = isolate;
+      }
+    }).catchError((e) {
+        Logger.root.severe('Unexpected heap map error: $e');
     });
   }
 

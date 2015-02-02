@@ -32,6 +32,7 @@ class Service : public AllStatic {
   static void HandleRootMessage(const Instance& message);
 
   // Handles a message which is directed to a particular isolate.
+  static void HandleIsolateMessageNew(Isolate* isolate, const Array& message);
   static void HandleIsolateMessage(Isolate* isolate, const Array& message);
 
   static Isolate* GetServiceIsolate(void* callback_data);

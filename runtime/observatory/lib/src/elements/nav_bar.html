@@ -204,14 +204,12 @@
     <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
       <nav-menu-item link="{{ '/debugger' + isolate.link }}"
                      anchor="debugger"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeLink('profile') }}"
+      <nav-menu-item link="{{ '/profiler' + isolate.link }}"
                      anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeLink('allocationprofile') }}"
+      <nav-menu-item link="{{ '/allocation-profiler' + isolate.link }}"
                      anchor="allocation profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeLink('heapmap') }}"
+      <nav-menu-item link="{{ '/heap-map' + isolate.link }}"
                      anchor="heap map"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeLink('debug/breakpoints') }}"
-                     anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
   </template>

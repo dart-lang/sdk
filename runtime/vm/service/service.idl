@@ -1,0 +1,298 @@
+//
+// TODO(turnidge): Finish writing an idl description of the service protocol.
+//
+
+interface Service {
+  // Returns the list of breakpoints for an isolate.
+  getBreakpoints(isolateId string) BreakpointList
+
+  // Adds a breakpoint at the specified line.
+  //
+  // TODO(turnidge): Make line an int instead of a string.
+  addBreakpoint(isolateId string,
+                scriptId string,
+                line string) Breakpoint
+
+  // Removes the specified breakpoint
+  removeBreakpoint(isolateId string, breakpointId string) Response
+
+  // Requests that an isolate pause execution.
+  pause(isolateId string) Response
+
+  // Requests that an isolate resume execution.
+  //
+  // <code>step</code> is optional and indicates whether execution
+  // should single-step.
+  resume(isolateId string, step StepOption) Response
+
+  // Evaluate an expression in the context of some target.
+  eval(isolateId string, targetId string, expression string) InstanceRef
+
+  // Returns the current execution stack for an isolate.
+  getStack(isolateId string) Stack
+
+  // Returns code coverage information for a library, script, class,
+  // or function.
+  getCoverage(isolateId string, targetId string) CodeCoverage
+
+  // Returns a full cpu profile for an isolate.
+  //
+  // <code>tagSelector</code> is optional with default 'UserVM'.
+  getCpuProfile(isolateId string, tags TagSelector) CpuProfile
+
+
+  // Returns a simple tag-based profile for an isolate.
+  getTagProfile(isolateId string) TagProfile
+
+  // Returns an allocation profile for an isolate.
+  // 
+  // <code>reset</code> is optional and indicates whether allocation
+  // accumulators should be reset.
+  //
+  // <code>gc</code> is optional and indicates whether a full 
+  getAllocationProfile(isolateId string,
+                       reset bool,
+                       gc GCOption) AllocationProfile
+
+  // Returns the heap map for an isolate.
+  getHeapMap(isolateId string) HeapMap
+
+  // Returns how many bytes are retained by some target Class or Instance.
+  getRetainedSize(isolateId string, targetId string) InstanceRef
+
+  // Returns a path demonstrating why an object is retained in memory.
+  //
+  // TODO(turnidge): Make limit an int instead of a string.
+  getRetainingPath(isolateId string,
+                   targetId string,
+                   limit int) RetainingPath
+
+  // Returns a collection of inbound references to some object.
+  //
+  // TODO(turnidge): Make limit an int instead of a string.
+  getInboundReferences(isolateId string,
+                       targetId string,
+                       limit int) InboundReferences
+}
+
+
+// Every top level response returned by the Service interface extends
+// <code>Response</code>.  This allows the client to distinguish
+// between different kinds of responses by using the <code>type</code>
+// property.
+struct Response {
+  // Every response returned by the VM Service has the
+  // <code>type</code> property.  This allows the client distinguish
+  // between different kinds of responses.
+  type    string
+
+  // Some responses will have the <code>_vmType</code> property.  This
+  // provides the VM-internal type name of an object, and is provided
+  // only when this type name differs from the <code>type</code>
+  // property.
+  _vmType string [optional]
+}
+
+
+// Persistent objects in the vm are returned as subclasses of Object.
+struct Object extends Response {
+  // The object <code>id</code> can be used to refer to a persistent
+  // object inside the vm or an isolate.
+  id  string
+}
+
+
+// An <code>Instance</code> represents a Dart-language object.
+struct Instance extends Object {
+  placeholder int
+}
+
+
+// A <code>Breakpoint</code> describes a debugger breakpoint.
+struct Breakpoint extends Object {
+  breakpointNumber int
+  enabled          bool
+  resolved         bool
+  location         Location
+}
+
+
+// References to persistent objects in the vm are returned as
+// subclasses of ObjectRef.
+struct ObjectRef extends Response {
+  // The object <code>id</code> can be used to refer to a persistent
+  // object inside the vm or an isolate.
+  id  string
+}
+
+
+// A <code>CodeRef</code> encodes a reference to a <code>Code</code> object.
+struct CodeRef extends ObjectRef {
+  placeholder int
+}
+
+
+// A <code>FunctionRef</code> encodes a reference to a <code>Function</code> object.
+struct FunctionRef extends ObjectRef {
+  placeholder int
+}
+
+
+// A <code>FieldRef</code> encodes a reference to a <code>Field</code> object.
+struct FieldRef extends ObjectRef {
+  placeholder int
+}
+
+
+// A <code>InstanceRef</code> encodes a reference to a <code>Instance</code> object.
+struct InstanceRef extends ObjectRef {
+  placeholder int
+}
+
+
+// A <code>ScriptRef</code> encodes a reference to a <code>Script</code> object.
+struct ScriptRef extends ObjectRef {
+  placeholder int
+}
+
+
+// A <code>Location</code> encodes a location withing a dart script.
+//
+// TODO(turnidge): Should this really be broken out as its own type?
+// If so, we should use it more consistently in the api.  For example,
+// in Frame.
+struct Location {
+  script   ScriptRef
+  tokenPos int
+}
+
+
+// A <code>Variable</code> represents one name/value pair from a frame.
+struct Variable {
+  name  string
+  value InstanceRef
+}
+
+
+// A <code>Frame</code> represents one frame from an isolate's stack.
+struct Frame {
+  script   ScriptRef
+  tokenPos int
+  function FunctionRef
+  code     CodeRef
+  vars     []Variable
+}
+
+
+// A <code>Stack</code> represents an isolate's execution stack.
+struct Stack extends Response {
+  frames []Frame
+}
+
+
+struct CodeCoverage extends Response {
+  placeholder int
+}
+
+// A <code>TagProfile</code> is a limited profile encoded as parallel
+// arrays of tag names and tag values.
+struct TagProfile extends Response {
+  names    []string
+  counters []int
+}
+
+
+// A list of <code>Breakpoint</code>
+struct BreakpointList extends Response {
+  breakpoints []Breakpoint
+}
+
+
+// An <code>AllocationProfile</code> encodes an allocation profile.
+struct AllocationProfile extends Response {
+  todo int
+}
+
+
+// A <code>CpuProfile</code> encodes a full cpu profile.
+struct CpuProfile extends Response {
+  samples        int
+  depth          int
+  period         int
+  timeSpan       float
+  exclusive_trie []int
+  codes          []CodeRegion
+}
+
+
+// A <code>CodeRegion</code> represents profiling information for a
+// specific <code>Code</code> object.
+struct CodeRegion {
+  kind            string
+  inclusive_ticks int
+  exclusive_ticks int
+  code            CodeRef
+  ticks           []int
+  callers         []int
+}
+
+// An <code>HeapMap</code> provides a memory view of all heap allocated objects.
+struct HeapMap extends Response {
+  todo int
+}
+
+
+// An <code>HeapMap</code> provides a memory view of all heap allocated objects.
+struct RetainingPath extends Response {
+  length int
+  elements []RetainingPathElement
+}
+
+
+// One entry in a <code>RetainingPath</code>.
+struct RetainingPathElement {
+  index           int
+  element         InstanceRef
+  parentListIndex int [optional]
+  parentField     FieldRef [optional]
+}
+
+
+struct InboundReferences extends Response {
+  length int
+  references []InboundReference
+}
+
+
+// TODO(koda): slot can actually be a string, and integer or a
+// FieldRef.  Fix this to be consistent with RetainingPathElement.
+struct InboundReference {
+  source InstanceRef
+  slot   int
+}
+
+
+// A <code>GCOption</code> is used to indicate which form of garbage
+// collection is requested.
+enum GCOption {
+  full
+}
+
+// A <code>StepOption</code> is used to indicate which form of
+// single-stepping is requested.
+enum StepOption {
+  into
+  over
+  out
+}
+
+// A <code>TagSelector</code> is used to indicate which sets of tags
+// should take precedence in a cpu profile.
+enum TagSelector {
+  UserVM
+  UserOnly
+  VMUser
+  VMOnly
+  None
+}
+

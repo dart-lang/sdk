@@ -142,8 +142,14 @@ class VMService extends MessageRouter {
       _clientCollection(message);
       return message.response;
     }
-    if (message.path[0] == 'isolates') {
-      return runningIsolates.route(message);
+    if (message.isOld) {
+      if (message.path[0] == 'isolates') {
+        return runningIsolates.route(message);
+      }
+    } else {
+      if (message.params['isolate'] != null) {
+        return runningIsolates.route(message);
+      }
     }
     return message.sendToVM();
   }

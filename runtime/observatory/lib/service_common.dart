@@ -54,9 +54,14 @@ class WebSocketVMTarget {
 }
 
 class _WebSocketRequest {
-  final String id;
+  final String method;
+  final Map params;
   final Completer<String> completer;
-  _WebSocketRequest(this.id)
+
+   _WebSocketRequest.old(this.method)
+      : params = null, completer = new Completer<String>();
+
+   _WebSocketRequest.rpc(this.method, this.params)
       : completer = new Completer<String>();
 }
 
@@ -137,7 +142,25 @@ abstract class CommonWebSocketVM extends VM {
     assert(_hasInitiatedConnect);
     // Create request.
     String serial = (_requestSerial++).toString();
-    var request = new _WebSocketRequest(id);
+    var request = new _WebSocketRequest.old(id);
+    if (_webSocket.isOpen) {
+      // Already connected, send request immediately.
+      _sendRequest(serial, request);
+    } else {
+      // Not connected yet, add to delayed requests.
+      _delayedRequests[serial] = request;
+    }
+    return request.completer.future;
+  }
+
+  Future<String> invokeRpcRaw(String method, Map params) {
+    if (!_hasInitiatedConnect) {
+      _hasInitiatedConnect = true;
+      _webSocket.connect(
+          target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
+    }
+    String serial = (_requestSerial++).toString();
+    var request = new _WebSocketRequest.rpc(method, params);
     if (_webSocket.isOpen) {
       // Already connected, send request immediately.
       _sendRequest(serial, request);
@@ -203,7 +226,7 @@ abstract class CommonWebSocketVM extends VM {
       serial = map['params']['id'].toString();
       response = map['params']['data'];
     } else {
-      serial = map['seq'];
+      serial = map['id'];
       response = map['response'];
     }
     if (serial == null) {
@@ -266,8 +289,8 @@ abstract class CommonWebSocketVM extends VM {
   /// Send the request over WebSocket.
   void _sendRequest(String serial, _WebSocketRequest request) {
     assert (_webSocket.isOpen);
-    if (!request.id.endsWith('/profile/tag')) {
-      Logger.root.info('GET ${request.id} from ${target.networkAddress}');
+    if (request.method != 'getTagProfile') {
+      Logger.root.info('GET ${request.method} from ${target.networkAddress}');
     }
     // Mark request as pending.
     assert(_pendingRequests.containsKey(serial) == false);
@@ -280,11 +303,13 @@ abstract class CommonWebSocketVM extends VM {
         'method': 'Dart.observatoryQuery',
         'params': {
           'id': serial,
-          'query': request.id
+          'query': request.method
         }
       });
     } else {
-      message = JSON.encode({'seq': serial, 'request': request.id});
+      message = JSON.encode({'id': serial,
+                             'method': request.method,
+                             'params': request.params});
     }
     // Send message.
     _webSocket.send(message);
