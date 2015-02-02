@@ -3674,6 +3674,12 @@ class Parser {
    */
   SimpleIdentifier parseSimpleIdentifier() {
     if (_matchesIdentifier()) {
+      String lexeme = _currentToken.lexeme;
+      if ((_inAsync || _inGenerator) &&
+          (lexeme == 'async' || lexeme == 'await' || lexeme == 'yield')) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
+      }
       return new SimpleIdentifier(getAndAdvance());
     }
     _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
@@ -10028,6 +10034,16 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode(
           'ASSERT_DOES_NOT_TAKE_RETHROW',
           "Assert cannot be called on rethrows");
+
+  /**
+   * 16.32 Identifier Reference: It is a compile-time error if any of the
+   * identifiers async, await, or yield is used as an identifier in a function
+   * body marked with either async, async*, or sync*.
+   */
+  static const ParserErrorCode ASYNC_KEYWORD_USED_AS_IDENTIFIER =
+      const ParserErrorCode(
+          'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
+          "The keywords 'async', 'await', and 'yield' may not be used as identifiers in an asynchronous or generator function.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'BREAK_OUTSIDE_OF_LOOP',
