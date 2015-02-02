@@ -6,6 +6,7 @@ library analysis.server;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math' show max;
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -167,6 +168,24 @@ class AnalysisServer {
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
+   * Performance information before initial analysis is complete.
+   */
+  ServerPerformance performanceDuringStartup = new ServerPerformance();
+
+  /**
+   * Performance information after initial analysis is complete
+   * or `null` if the initial analysis is not yet complete
+   */
+  ServerPerformance performanceAfterStartup;
+
+  /**
+   * The class into which performance information is currently being recorded.
+   * During startup, this will be the same as [performanceDuringStartup]
+   * and after startup is complete, this switches to [performanceAfterStartup].
+   */
+  ServerPerformance _performance;
+
+  /**
    * The option possibly set from the server initialization which disables error notifications.
    */
   bool _noErrorNotification;
@@ -225,6 +244,7 @@ class AnalysisServer {
       PackageMapProvider packageMapProvider, this.index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
       this.instrumentationService, {this.rethrowExceptions: true}) {
+    _performance = performanceDuringStartup;
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue();
     contextDirectoryManager =
@@ -241,6 +261,12 @@ class AnalysisServer {
     _onPriorityChangeController =
         new StreamController<PriorityChangeEvent>.broadcast();
     running = true;
+    onAnalysisStarted.first.then((_) {
+      onAnalysisComplete.then((_) {
+        performanceAfterStartup = new ServerPerformance();
+        _performance = performanceAfterStartup;
+      });
+    });
     Notification notification = new ServerConnectedParams().toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
@@ -529,6 +555,7 @@ class AnalysisServer {
    * Handle a [request] that was read from the communication channel.
    */
   void handleRequest(Request request) {
+    _performance.logRequest(request);
     runZoned(() {
       int count = handlers.length;
       for (int i = 0; i < count; i++) {
@@ -1149,5 +1176,56 @@ class ServerContextManager extends ContextManager {
         new ResourceUriResolver(resourceProvider),
         packageUriResolver];
     return new SourceFactory(resolvers);
+  }
+}
+
+
+/**
+ * A class used by [AnalysisServer] to record performance information
+ * such as request latency.
+ */
+class ServerPerformance {
+
+  /**
+   * The creation time and the time when performance information
+   * started to be recorded here.
+   */
+  int startTime = new DateTime.now().millisecondsSinceEpoch;
+
+  /**
+   * The number of requests.
+   */
+  int requestCount = 0;
+
+  /**
+   * The total latency (milliseconds) for all recorded requests.
+   */
+  int requestLatency = 0;
+
+  /**
+   * The maximum latency (milliseconds) for all recorded requests.
+   */
+  int maxLatency = 0;
+
+  /**
+   * The number of requests with latency > 150 milliseconds.
+   */
+  int slowRequestCount = 0;
+
+  /**
+   * Log performation information about the given request.
+   */
+  void logRequest(Request request) {
+    ++requestCount;
+    if (request.clientRequestTime != null) {
+      int latency =
+          new DateTime.now().millisecondsSinceEpoch -
+          request.clientRequestTime;
+      requestLatency += latency;
+      maxLatency = max(maxLatency, latency);
+      if (latency > 150) {
+        ++slowRequestCount;
+      }
+    }
   }
 }
