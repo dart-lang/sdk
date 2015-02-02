@@ -289,7 +289,14 @@ class GetHandler {
           buffer.write('<p>null</p>');
           return;
         }
-        ast.accept(new AstWriter(buffer));
+        AstWriter writer = new AstWriter(buffer);
+        ast.accept(writer);
+        if (writer.exceptions.isNotEmpty) {
+          buffer.write('<h3>Exceptions while creating page</h3>');
+          for (CaughtException exception in writer.exceptions) {
+            _writeException(buffer, exception);
+          }
+        }
       });
     });
   }
