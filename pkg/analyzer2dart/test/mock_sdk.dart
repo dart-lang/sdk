@@ -75,7 +75,7 @@ typedef int Comparator<T>(T a, T b);
   static const _MockSdkLibrary LIB_ASYNC =
       const _MockSdkLibrary('async', '/lib/async/async.dart', '''
 library dart.async;
-class Future {
+class Future<T> {
   static Future wait(List<Future> futures) => null;
 }
 
