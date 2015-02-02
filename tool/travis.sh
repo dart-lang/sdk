@@ -16,10 +16,10 @@ dartanalyzer --fatal-warnings \
 dart test/all.dart
 
 # Install dart_coveralls; gather and send coverage data.
-if [ "$REPO_TOKEN" ]; then
+if [ "$COVERALLS_TOKEN" ]; then
   pub global activate dart_coveralls
   pub global run dart_coveralls report \
-    --token $REPO_TOKEN \
+    --token $COVERALLS_TOKEN \
     --retry 2 \
     --exclude-test-files \
     test/all.dart
