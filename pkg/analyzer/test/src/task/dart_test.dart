@@ -8,7 +8,6 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask,
     ParseDartTask, ScanDartTask;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/task/targets.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -28,7 +27,7 @@ main() {
 @reflectiveTest
 class BuildCompilationUnitElementTaskTest extends EngineTestCase {
   test_buildInputs() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     Map<String, TaskInput> inputs =
         BuildCompilationUnitElementTask.buildInputs(target);
     expect(inputs, isNotNull);
@@ -40,7 +39,7 @@ class BuildCompilationUnitElementTaskTest extends EngineTestCase {
 
   test_constructor() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     BuildCompilationUnitElementTask task =
         new BuildCompilationUnitElementTask(context, target);
     expect(task, isNotNull);
@@ -50,7 +49,7 @@ class BuildCompilationUnitElementTaskTest extends EngineTestCase {
 
   test_createTask() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     BuildCompilationUnitElementTask task =
         BuildCompilationUnitElementTask.createTask(context, target);
     expect(task, isNotNull);
@@ -59,7 +58,7 @@ class BuildCompilationUnitElementTaskTest extends EngineTestCase {
   }
 
   test_description() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     BuildCompilationUnitElementTask task =
         new BuildCompilationUnitElementTask(null, target);
     expect(task.description, isNotNull);
@@ -87,7 +86,7 @@ class A {''');
 
   BuildCompilationUnitElementTask _performBuildTask(String content) {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
 
     ScanDartTask scanTask = new ScanDartTask(context, target);
     scanTask.inputs = {
@@ -119,7 +118,7 @@ class A {''');
 @reflectiveTest
 class ParseDartTaskTest extends EngineTestCase {
   test_buildInputs() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     Map<String, TaskInput> inputs = ParseDartTask.buildInputs(target);
     expect(inputs, isNotNull);
     expect(inputs, hasLength(2));
@@ -129,7 +128,7 @@ class ParseDartTaskTest extends EngineTestCase {
 
   test_constructor() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     ParseDartTask task = new ParseDartTask(context, target);
     expect(task, isNotNull);
     expect(task.context, context);
@@ -138,7 +137,7 @@ class ParseDartTaskTest extends EngineTestCase {
 
   test_createTask() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     ParseDartTask task = ParseDartTask.createTask(context, target);
     expect(task, isNotNull);
     expect(task.context, context);
@@ -146,7 +145,7 @@ class ParseDartTaskTest extends EngineTestCase {
   }
 
   test_description() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     ParseDartTask task = new ParseDartTask(null, target);
     expect(task.description, isNotNull);
   }
@@ -213,7 +212,7 @@ class A {''');
 
   ParseDartTask _performParseTask(String content) {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
 
     ScanDartTask scanTask = new ScanDartTask(context, target);
     scanTask.inputs = {
@@ -235,7 +234,7 @@ class A {''');
 @reflectiveTest
 class ScanDartTaskTest extends EngineTestCase {
   test_buildInputs() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     Map<String, TaskInput> inputs = ScanDartTask.buildInputs(target);
     expect(inputs, isNotNull);
     expect(inputs, hasLength(1));
@@ -244,7 +243,7 @@ class ScanDartTaskTest extends EngineTestCase {
 
   test_constructor() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     ScanDartTask task = new ScanDartTask(context, target);
     expect(task, isNotNull);
     expect(task.context, context);
@@ -253,7 +252,7 @@ class ScanDartTaskTest extends EngineTestCase {
 
   test_createTask() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     ScanDartTask task = ScanDartTask.createTask(context, target);
     expect(task, isNotNull);
     expect(task.context, context);
@@ -261,7 +260,7 @@ class ScanDartTaskTest extends EngineTestCase {
   }
 
   test_description() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     ScanDartTask task = new ScanDartTask(null, target);
     expect(task.description, isNotNull);
   }
@@ -295,7 +294,7 @@ class ScanDartTaskTest extends EngineTestCase {
 
   ScanDartTask _performScanTask(String content) {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
 
     ScanDartTask scanTask = new ScanDartTask(context, target);
     scanTask.inputs = {

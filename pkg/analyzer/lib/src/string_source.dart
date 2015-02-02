@@ -8,7 +8,7 @@ import 'generated/engine.dart' show TimestampedData;
 import 'generated/source.dart';
 
 /// An implementation of [Source] that's based on an in-memory Dart string.
-class StringSource implements Source {
+class StringSource extends Source {
   final String _contents;
   final String fullName;
   final int modificationStamp;
