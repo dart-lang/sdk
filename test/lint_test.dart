@@ -14,24 +14,16 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:dart_lint/src/linter.dart';
 import 'package:dart_lint/src/rules.dart';
 import 'package:path/path.dart' as p;
-import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 
 const ruleDir = 'test/rules';
 
-
 main() {
-  // Tidy up the unittest output.
-  filterStacks = true;
-  formatStacks = true;
-  useCompactVMConfiguration();
-
   defineSanityTests();
   defineLinterEngineTests();
   //defineRuleTests();
 }
-
 
 void defineLinterEngineTests() {
   group('linter engine tests', () {

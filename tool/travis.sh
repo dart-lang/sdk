@@ -8,13 +8,12 @@
 set -e
 
 # Verify that the libraries are error free.
-#dartanalyzer --fatal-warnings \
-#  bin/dartpad_server.dart \
-#  lib/dartpad_server.dart \
-#  test/all.dart
+dartanalyzer --fatal-warnings \
+  lib/dart_lint.dart \
+  test/all.dart
 
 # Run the tests.
-#dart test/all.dart
+dart test/all.dart
 
 # Install dart_coveralls; gather and send coverage data.
 if [ "$REPO_TOKEN" ]; then
