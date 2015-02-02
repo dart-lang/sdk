@@ -16,6 +16,8 @@
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LayoutTests/fast/mediastream/getusermedia_t01: Fail # co19 issue 738.
 
+LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
+
 # These tests are obsolete and need updating.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-002_t01: Skip # Issue 19019
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-003_t01: Skip # Issue 19019
@@ -52,7 +54,6 @@ LibTest/core/Expando/Expando_A03_t05: RuntimeError # Issue 17735
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # co19 issue 740
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # co19 issue 741
-LibTest/core/RegExp/firstMatch_A01_t01: RuntimeError # co19 issue 742
 
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493 (not fixed in r672)
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495 (not fixed in r672)
