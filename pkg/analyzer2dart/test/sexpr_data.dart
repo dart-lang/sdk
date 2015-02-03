@@ -1372,7 +1372,7 @@ main(x,foo) {
   (LetCont ((k0 (v0)
       (LetPrim (v1 (CreateFunction
           (FunctionDefinition getFoo () return
-            (LetPrim (v2 (GetClosureVariable foo))
+            (LetPrim (v2 (GetMutableVariable foo))
               (InvokeContinuation return (v2))))))
         (LetCont ((k1 (v3)
             (LetCont ((k2 (v4)

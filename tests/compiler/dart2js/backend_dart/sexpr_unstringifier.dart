@@ -124,13 +124,14 @@ class SExpressionUnstringifier {
   static const String INVOKE_METHOD = "InvokeMethod";
   static const String LET_PRIM = "LetPrim";
   static const String LET_CONT = "LetCont";
-  static const String SET_CLOSURE_VARIABLE = "SetClosureVariable";
+  static const String LET_MUTABLE = "LetMutable";
+  static const String SET_MUTABLE_VARIABLE = "SetMutableVariable";
   static const String TYPE_OPERATOR = "TypeOperator";
 
   // Primitives
   static const String CONSTANT = "Constant";
   static const String CREATE_FUNCTION = "CreateFunction";
-  static const String GET_CLOSURE_VARIABLE = "GetClosureVariable";
+  static const String GET_MUTABLE_VARIABLE = "GetMutableVariable";
   static const String LITERAL_LIST = "LiteralList";
   static const String LITERAL_MAP = "LiteralMap";
   static const String REIFY_TYPE_VAR = "ReifyTypeVar";
@@ -230,8 +231,10 @@ class SExpressionUnstringifier {
         return parseLetPrim();
       case LET_CONT:
         return parseLetCont();
-      case SET_CLOSURE_VARIABLE:
-        return parseSetClosureVariable();
+      case LET_MUTABLE:
+        return parseLetMutable();
+      case SET_MUTABLE_VARIABLE:
+        return parseSetMutableVariable();
       case TYPE_OPERATOR:
         return parseTypeOperator();
       default:
@@ -336,7 +339,7 @@ class SExpressionUnstringifier {
     tokens.consumeStart(DECLARE_FUNCTION);
 
     // name =
-    ClosureVariable local = getClosureVariable(tokens.read());
+    MutableVariable local = addMutableVariable(tokens.read());
     tokens.read("=");
 
     // function in
@@ -490,19 +493,33 @@ class SExpressionUnstringifier {
     return new LetCont.many(continuations, body);
   }
 
-  /// (SetClosureVariable name value body)
-  SetClosureVariable parseSetClosureVariable() {
-    tokens.consumeStart(SET_CLOSURE_VARIABLE);
+  /// (LetMutable (name value) body)
+  LetMutable parseLetMutable() {
+    tokens.consumeStart(LET_MUTABLE);
 
+    tokens.consumeStart();
     String name = tokens.read();
-    ClosureVariable local = getClosureVariable(name);
+    MutableVariable local = addMutableVariable(name);
+    Primitive value = name2variable[tokens.read()];
+    tokens.consumeEnd();
+
+    Expression body = parseExpression();
+    tokens.consumeEnd();
+    return new LetMutable(local, value)..plug(body);
+  }
+
+  /// (SetMutableVariable name value body)
+  SetMutableVariable parseSetMutableVariable() {
+    tokens.consumeStart(SET_MUTABLE_VARIABLE);
+
+    MutableVariable local = name2variable[tokens.read()];
     Primitive value = name2variable[tokens.read()];
     assert(value != null);
 
     Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new SetClosureVariable(local, value)
+    return new SetMutableVariable(local, value)
                   ..plug(body);
   }
 
@@ -552,8 +569,8 @@ class SExpressionUnstringifier {
         return parseConstant();
       case CREATE_FUNCTION:
         return parseCreateFunction();
-      case GET_CLOSURE_VARIABLE:
-        return parseGetClosureVariable();
+      case GET_MUTABLE_VARIABLE:
+        return parseGetMutableVariable();
       case LITERAL_LIST:
         return parseLiteralList();
       case LITERAL_MAP:
@@ -637,24 +654,21 @@ class SExpressionUnstringifier {
     return new CreateFunction(def);
   }
 
-  ClosureVariable getClosureVariable(String name) {
-    if (!name2variable.containsKey(name)) {
-      ClosureVariable variable =
-          new ClosureVariable(new DummyElement(""), new DummyElement(name));
-      name2variable[name] = variable;
-    }
-    return name2variable[name];
+  MutableVariable addMutableVariable(String name) {
+    assert(!name2variable.containsKey(name));
+    MutableVariable variable =
+        new MutableVariable(new DummyElement(""), new DummyElement(name));
+    name2variable[name] = variable;
+    return variable;
   }
 
-  /// (GetClosureVariable name)
-  GetClosureVariable parseGetClosureVariable() {
-    tokens.consumeStart(GET_CLOSURE_VARIABLE);
-
-    String name = tokens.read();
-    ClosureVariable local = getClosureVariable(name);
+  /// (GetMutableVariable name)
+  GetMutableVariable parseGetMutableVariable() {
+    tokens.consumeStart(GET_MUTABLE_VARIABLE);
+    MutableVariable local = name2variable[tokens.read()];
     tokens.consumeEnd();
 
-    return new GetClosureVariable(local);
+    return new GetMutableVariable(local);
   }
 
   /// (LiteralList (values))

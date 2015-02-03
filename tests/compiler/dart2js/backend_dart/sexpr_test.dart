@@ -149,13 +149,13 @@ void main() {
           , "InvokeMethodDirectly"
           , "LetCont"
           , "LetPrim"
-          , "SetClosureVariable"
+          , "SetMutableVariable"
           , "TypeOperator"
 
           // Primitives
           , "Constant"
           , "CreateFunction"
-          , "GetClosureVariable"
+          , "GetMutableVariable"
           , "LiteralList"
           , "LiteralMap"
           // Parameters are encoded by name only and hence are not in this list.

@@ -492,9 +492,10 @@ class Assign extends Statement {
   Variable variable;
   Expression definition;
 
-  /// If true, this declares a new copy of the closure variable.
-  /// The consequences are similar to [cps_ir.SetClosureVariable].
-  /// All uses of the variable must be nested inside the [next] statement.
+  /// If true, this assignes to a fresh variable scoped to the [next]
+  /// statement.
+  ///
+  /// Variable declarations themselves are hoisted to function level.
   bool isDeclaration;
 
   Assign(this.variable, this.definition, this.next,

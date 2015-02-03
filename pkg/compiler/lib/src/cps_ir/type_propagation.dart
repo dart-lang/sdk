@@ -415,7 +415,8 @@ class _TypePropagationVisitor<T> extends Visitor {
 
   void visitNode(Node node) {
     internalError(NO_LOCATION_SPANNABLE,
-        "_TypePropagationVisitor is stale, add missing visit overrides");
+        "_TypePropagationVisitor is stale,"
+        " add missing visit overrides ($node)");
   }
 
   void visitRunnableBody(RunnableBody node) {
@@ -442,6 +443,11 @@ class _TypePropagationVisitor<T> extends Visitor {
 
   void visitLetCont(LetCont node) {
     // The continuation is only marked as reachable on use.
+    setReachable(node.body);
+  }
+
+  void visitLetMutable(LetMutable node) {
+    setValue(node.variable, getValue(node.value.definition));
     setReachable(node.body);
   }
 
@@ -667,7 +673,8 @@ class _TypePropagationVisitor<T> extends Visitor {
     }
   }
 
-  void visitSetClosureVariable(SetClosureVariable node) {
+  void visitSetMutableVariable(SetMutableVariable node) {
+    setValue(node.variable.definition, getValue(node.value.definition));
     setReachable(node.body);
   }
 
@@ -710,11 +717,28 @@ class _TypePropagationVisitor<T> extends Visitor {
     setValue(node, constantValue(constant, typeSystem.functionType));
   }
 
-  void visitGetClosureVariable(GetClosureVariable node) {
-    setValue(node, nonConst());
+  void visitGetMutableVariable(GetMutableVariable node) {
+    setValue(node, getValue(node.variable.definition));
   }
 
-  void visitClosureVariable(ClosureVariable node) {
+  void visitMutableVariable(MutableVariable node) {
+    // [MutableVariable]s are bound either as parameters to
+    // [FunctionDefinition]s, by [LetMutable], or by [DeclareFunction].
+    if (node.parent is FunctionDefinition) {
+      // Just like immutable parameters, the values of mutable parameters are
+      // never constant.
+      // TODO(karlklose): remove reference to the element model.
+      Entity source = node.hint;
+      T type = (source is ParameterElement)
+          ? typeSystem.getParameterType(source)
+          : typeSystem.dynamicType;
+      setValue(node, nonConst(type));
+    } else if (node.parent is LetMutable || node.parent is DeclareFunction) {
+      // Mutable values bound by LetMutable or DeclareFunction could have
+      // known values.
+    } else {
+      internalError(node.hint, "Unexpected parent of MutableVariable");
+    }
   }
 
   void visitParameter(Parameter node) {
@@ -723,24 +747,18 @@ class _TypePropagationVisitor<T> extends Visitor {
     T type = (source is ParameterElement) ? typeSystem.getParameterType(source)
         : typeSystem.dynamicType;
     if (node.parent is FunctionDefinition) {
-      // Functions may escape and thus their parameters must be initialized to
-      // NonConst.
+      // Functions may escape and thus their parameters must be non-constant.
       setValue(node, nonConst(type));
     } else if (node.parent is Continuation) {
-      // Continuations on the other hand are local, and parameters are
-      // initialized to Unknown.
-      setValue(node, unknown());
+      // Continuations on the other hand are local, and parameters can have
+      // some other abstract value than non-constant.
     } else {
       internalError(node.hint, "Unexpected parent of Parameter");
     }
   }
 
   void visitContinuation(Continuation node) {
-    node.parameters.forEach((Parameter p) {
-      // TODO(karlklose): join parameter types from use sites.
-      setValue(p, unknown());
-      defWorkset.add(p);
-    });
+    node.parameters.forEach(visit);
 
     if (node.body != null) {
       setReachable(node.body);

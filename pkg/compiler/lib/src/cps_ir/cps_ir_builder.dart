@@ -1523,34 +1523,24 @@ abstract class IrBuilder {
 
 /// Shared state between DartIrBuilders within the same method.
 class DartIrBuilderSharedState {
-  /// Maps local variables to their corresponding [ClosureVariable] object.
-  final Map<Local, ir.ClosureVariable> local2closure =
-      <Local, ir.ClosureVariable>{};
+  /// Maps local variables to their corresponding [MutableVariable] object.
+  final Map<Local, ir.MutableVariable> local2mutable =
+      <Local, ir.MutableVariable>{};
 
-  /// Maps functions to the list of closure variables declared in that function.
-  final Map<ExecutableElement, List<ir.ClosureVariable>> function2closures =
-      <ExecutableElement, List<ir.ClosureVariable>>{};
+  final DartCapturedVariableInfo capturedVariables;
 
-  final DartCapturedVariableInfo closureVariables;
-
-  /// Returns the closure variables declared in the given function.
-  List<ir.ClosureVariable> getClosureList(ExecutableElement element) {
-    return function2closures.putIfAbsent(element, () => <ir.ClosureVariable>[]);
+  /// Creates a [MutableVariable] for the given local.
+  void makeMutableVariable(Local local) {
+    ir.MutableVariable variable =
+        new ir.MutableVariable(local.executableContext, local);
+    local2mutable[local] = variable;
   }
 
-  /// Creates a closure variable for the given local.
-  void makeClosureVariable(Local local) {
-    ir.ClosureVariable variable =
-        new ir.ClosureVariable(local.executableContext, local);
-    local2closure[local] = variable;
-    getClosureList(local.executableContext).add(variable);
-  }
+  /// [MutableVariable]s that should temporarily be treated as registers.
+  final Set<Local> registerizedMutableVariables = new Set<Local>();
 
-  /// Closure variables that should temporarily be treated as registers.
-  final Set<Local> registerizedClosureVariables = new Set<Local>();
-
-  DartIrBuilderSharedState(this.closureVariables) {
-    closureVariables.capturedVariables.forEach(makeClosureVariable);
+  DartIrBuilderSharedState(this.capturedVariables) {
+    capturedVariables.capturedVariables.forEach(makeMutableVariable);
   }
 }
 
@@ -1559,8 +1549,8 @@ class DartIrBuilderSharedState {
 /// Inner functions are represented by a [FunctionDefinition] with the
 /// IR for the inner function nested inside.
 ///
-/// Captured variables are translated to ref cells (see [ClosureVariable])
-/// using [GetClosureVariable] and [SetClosureVariable].
+/// Captured variables are translated to ref cells (see [MutableVariable])
+/// using [GetMutableVariable] and [SetMutableVariable].
 class DartIrBuilder extends IrBuilder {
   final DartIrBuilderSharedState dartState;
 
@@ -1569,20 +1559,20 @@ class DartIrBuilder extends IrBuilder {
 
   DartIrBuilder(ConstantSystem constantSystem,
                 ExecutableElement currentElement,
-                DartCapturedVariableInfo closureVariables)
-      : dartState = new DartIrBuilderSharedState(closureVariables) {
+                DartCapturedVariableInfo capturedVariables)
+      : dartState = new DartIrBuilderSharedState(capturedVariables) {
     _init(constantSystem, currentElement);
   }
 
-  /// True if [local] should currently be accessed from a [ClosureVariable].
-  bool isInClosureVariable(Local local) {
-    return dartState.local2closure.containsKey(local) &&
-           !dartState.registerizedClosureVariables.contains(local);
+  /// True if [local] should currently be accessed from a [MutableVariable].
+  bool isInMutableVariable(Local local) {
+    return dartState.local2mutable.containsKey(local) &&
+           !dartState.registerizedMutableVariables.contains(local);
   }
 
-  /// Gets the [ClosureVariable] containing the value of [local].
-  ir.ClosureVariable getClosureVariable(Local local) {
-    return dartState.local2closure[local];
+  /// Gets the [MutableVariable] containing the value of [local].
+  ir.MutableVariable getMutableVariable(Local local) {
+    return dartState.local2mutable[local];
   }
 
   void _enterScope(ClosureScope scope) {
@@ -1597,11 +1587,11 @@ class DartIrBuilder extends IrBuilder {
                                 List<LocalElement> loopVariables) {
     assert(scope == null);
     for (LocalElement loopVariable in loopVariables) {
-      if (dartState.local2closure.containsKey(loopVariable)) {
+      if (dartState.local2mutable.containsKey(loopVariable)) {
         // Temporarily keep the loop variable in a primitive.
         // The loop variable will be added to environment when
         // [declareLocalVariable] is called.
-        dartState.registerizedClosureVariables.add(loopVariable);
+        dartState.registerizedMutableVariables.add(loopVariable);
       }
     }
   }
@@ -1610,12 +1600,11 @@ class DartIrBuilder extends IrBuilder {
                          List<LocalElement> loopVariables) {
     assert(scope == null);
     for (LocalElement loopVariable in loopVariables) {
-      if (dartState.local2closure.containsKey(loopVariable)) {
-        // Move from primitive into ClosureVariable.
-        dartState.registerizedClosureVariables.remove(loopVariable);
-        add(new ir.SetClosureVariable(getClosureVariable(loopVariable),
-                                      environment.lookup(loopVariable),
-                                      isDeclaration: true));
+      if (dartState.local2mutable.containsKey(loopVariable)) {
+        // Move from [Primitive] into [MutableVariable].
+        dartState.registerizedMutableVariables.remove(loopVariable);
+        add(new ir.LetMutable(getMutableVariable(loopVariable),
+                              environment.lookup(loopVariable)));
       }
     }
   }
@@ -1628,12 +1617,12 @@ class DartIrBuilder extends IrBuilder {
     // and then the environments for the initializer and update will be
     // joined at the head of the body.
     for (LocalElement loopVariable in loopVariables) {
-      if (isInClosureVariable(loopVariable)) {
-        ir.ClosureVariable closureVariable = getClosureVariable(loopVariable);
-        ir.Primitive get = new ir.GetClosureVariable(closureVariable);
+      if (isInMutableVariable(loopVariable)) {
+        ir.MutableVariable mutableVariable = getMutableVariable(loopVariable);
+        ir.Primitive get = new ir.GetMutableVariable(mutableVariable);
         add(new ir.LetPrim(get));
         environment.update(loopVariable, get);
-        dartState.registerizedClosureVariables.add(loopVariable);
+        dartState.registerizedMutableVariables.add(loopVariable);
       }
     }
   }
@@ -1641,8 +1630,8 @@ class DartIrBuilder extends IrBuilder {
   void _createFunctionParameter(ParameterElement parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
-    if (isInClosureVariable(parameterElement)) {
-      state.functionParameters.add(getClosureVariable(parameterElement));
+    if (isInMutableVariable(parameterElement)) {
+      state.functionParameters.add(getMutableVariable(parameterElement));
     } else {
       state.functionParameters.add(parameter);
       environment.extend(parameterElement, parameter);
@@ -1655,10 +1644,9 @@ class DartIrBuilder extends IrBuilder {
     if (initialValue == null) {
       initialValue = buildNullLiteral();
     }
-    if (isInClosureVariable(variableElement)) {
-      add(new ir.SetClosureVariable(getClosureVariable(variableElement),
-                                    initialValue,
-                                    isDeclaration: true));
+    if (isInMutableVariable(variableElement)) {
+      add(new ir.LetMutable(getMutableVariable(variableElement),
+                            initialValue));
     } else {
       initialValue.useElementAsHint(variableElement);
       environment.extend(variableElement, initialValue);
@@ -1669,8 +1657,8 @@ class DartIrBuilder extends IrBuilder {
   void declareLocalFunction(LocalFunctionElement functionElement,
                             ir.FunctionDefinition definition) {
     assert(isOpen);
-    if (isInClosureVariable(functionElement)) {
-      ir.ClosureVariable variable = getClosureVariable(functionElement);
+    if (isInMutableVariable(functionElement)) {
+      ir.MutableVariable variable = getMutableVariable(functionElement);
       add(new ir.DeclareFunction(variable, definition));
     } else {
       ir.CreateFunction prim = new ir.CreateFunction(definition);
@@ -1690,11 +1678,11 @@ class DartIrBuilder extends IrBuilder {
   /// Create a read access of [local].
   ir.Primitive buildLocalGet(LocalElement local) {
     assert(isOpen);
-    if (isInClosureVariable(local)) {
+    if (isInMutableVariable(local)) {
       // Do not use [local] as a hint on [result]. The variable should always
       // be inlined, but the hint prevents it.
       ir.Primitive result =
-          new ir.GetClosureVariable(getClosureVariable(local));
+          new ir.GetMutableVariable(getMutableVariable(local));
       add(new ir.LetPrim(result));
       return result;
     } else {
@@ -1705,8 +1693,8 @@ class DartIrBuilder extends IrBuilder {
   /// Create a write access to [local] with the provided [value].
   ir.Primitive buildLocalSet(LocalElement local, ir.Primitive value) {
     assert(isOpen);
-    if (isInClosureVariable(local)) {
-      add(new ir.SetClosureVariable(getClosureVariable(local), value));
+    if (isInMutableVariable(local)) {
+      add(new ir.SetMutableVariable(getMutableVariable(local), value));
     } else {
       value.useElementAsHint(local);
       environment.update(local, value);

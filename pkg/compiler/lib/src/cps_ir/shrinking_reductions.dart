@@ -512,6 +512,12 @@ class ParentVisitor extends RecursiveVisitor {
     node.body.parent = node;
   }
 
+  processLetMutable(LetMutable node) {
+    node.variable.parent = node;
+    node.value.parent = node;
+    node.body.parent = node;
+  }
+
   processInvokeStatic(InvokeStatic node) {
     node.arguments.forEach((Reference ref) => ref.parent = node);
     node.continuation.parent = node;
@@ -555,12 +561,14 @@ class ParentVisitor extends RecursiveVisitor {
     node.receiver.parent = node;
   }
 
-  processSetClosureVariable(SetClosureVariable node) {
+  processSetMutableVariable(SetMutableVariable node) {
+    node.variable.parent = node;
     node.body.parent = node;
     node.value.parent = node;
   }
 
   processDeclareFunction(DeclareFunction node) {
+    node.variable.parent = node;
     node.definition.parent = node;
     node.body.parent = node;
   }
@@ -616,6 +624,10 @@ class ParentVisitor extends RecursiveVisitor {
 
   processGetField(GetField node) {
     node.object.parent = node;
+  }
+
+  processGetMutableVariable(GetMutableVariable node) {
+    node.variable.parent = node;
   }
 
   processCreateInstance(CreateInstance node) {
