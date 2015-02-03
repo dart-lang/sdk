@@ -429,6 +429,7 @@ class ModelEmitter {
   /// [DartMethod.tearOffName]
   /// [JavaScriptBackend.isInterceptedMethod]
   /// functionType
+  /// [InstanceMethod.aliasName]
   ///
   /// followed by
   ///
@@ -443,7 +444,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     proto[name] = descriptor[0];
     var funs = [descriptor[0]];
     funs[0].$callName = descriptor[1];
-    for (var pos = 5; pos < descriptor.length; pos += 3) {
+    for (var pos = 6; pos < descriptor.length; pos += 3) {
       var stub = descriptor[pos + 2];
       stub.$callName = descriptor[pos + 1];
       proto[descriptor[pos]] = stub;
@@ -454,6 +455,10 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       var reflectionInfo = descriptor[4];
       proto[descriptor[2]] = 
           tearOff(funs, reflectionInfo, false, name, isIntercepted);
+    }
+    // Install the alias for super calls on the prototype chain.
+    if (desc[5] != null) {
+      proto[desc[5]] = desc[0];
     }
   } else {
     proto[name] = descriptor;
@@ -483,18 +488,23 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       return [js.string(stub.name), callName, stub.code];
     }
 
-    if (method is DartMethod) {
-      if (method.needsTearOff) {
+    if (method is InstanceMethod) {
+      if (method.needsTearOff || method.aliasName != null) {
         /// See [parseFunctionDescriptorBoilerplate] for a full description of
         /// the format.
         // [name, [function, callName, tearOffName, isIntercepted, functionType,
-        //     stub1_name, stub1_callName, stub1_code, ...]
+        //     aliasName, stub1_name, stub1_callName, stub1_code, ...]
         bool isIntercepted = backend.isInterceptedMethod(method.element);
         var data = [method.code];
         data.add(js.string(method.callName));
         data.add(js.string(method.tearOffName));
         data.add(new js.LiteralBool(isIntercepted));
         data.add(_generateFunctionType(method.type));
+        if (method.aliasName != null) {
+          data.add(js.string(method.aliasName));
+        } else {
+          data.add(new js.LiteralNull());
+        }
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
         return [js.string(method.name), new js.ArrayInitializer(data)];
       } else {
