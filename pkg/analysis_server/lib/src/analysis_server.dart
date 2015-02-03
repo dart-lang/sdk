@@ -1173,8 +1173,10 @@ class ServerContextManager extends ContextManager {
   SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
     List<UriResolver> resolvers = <UriResolver>[
         new DartUriResolver(analysisServer.defaultSdk),
-        new ResourceUriResolver(resourceProvider),
-        packageUriResolver];
+        new ResourceUriResolver(resourceProvider)];
+    if (packageUriResolver != null) {
+      resolvers.add(packageUriResolver);
+    }
     return new SourceFactory(resolvers);
   }
 }
