@@ -1359,7 +1359,7 @@ class LocalVariableElementX extends VariableElementX
 
   ExecutableElement get executableContext => enclosingElement;
 
-  ExecutableElement get memberContext => executableContext.memberContext;
+  MemberElement get memberContext => executableContext.memberContext;
 
   bool get isLocal => true;
 }

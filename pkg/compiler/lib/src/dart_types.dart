@@ -218,7 +218,7 @@ class TypeVariableType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
-  DartType get typeVariableOccurrence => this;
+  TypeVariableType get typeVariableOccurrence => this;
 
   void forEachTypeVariable(f(TypeVariableType variable)) {
     f(this);
@@ -661,7 +661,7 @@ class FunctionType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
-  DartType get typeVariableOccurrence {
+  TypeVariableType get typeVariableOccurrence {
     TypeVariableType typeVariableType = returnType.typeVariableOccurrence;
     if (typeVariableType != null) return typeVariableType;
 

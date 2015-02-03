@@ -126,7 +126,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     }
   }
 
-  Element visitIdentifier(Identifier node) {
+  FormalElementX visitIdentifier(Identifier node) {
     return createParameter(node, null);
   }
 
