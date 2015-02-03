@@ -37,7 +37,7 @@ enum_mirror_test: Skip # Issue 11511.
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 
-[ $compiler == none || $compiler == dart2dart]
+[ $compiler == none || $compiler == dart2dart ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
@@ -77,6 +77,39 @@ async_await_syntax_test/c03a: CompileTimeError # Issue 21404
 async_await_syntax_test/c04a: CompileTimeError # Issue 21404
 async_await_syntax_test/d03a: CompileTimeError # Issue 21404
 async_await_syntax_test/d04a: CompileTimeError # Issue 21404
+
+[ $compiler == none || $runtime == dartium ]
+async_await_syntax_test/a03a: RuntimeError # Issue 21404
+async_await_syntax_test/a04a: RuntimeError # Issue 21404
+async_await_syntax_test/a07a: RuntimeError # Issue 21404
+async_await_syntax_test/a08a: RuntimeError # Issue 21404
+async_await_syntax_test/a09a: RuntimeError # Issue 21404
+async_await_syntax_test/a10a: RuntimeError # Issue 21404
+async_await_syntax_test/a11b: RuntimeError # Issue 21404
+async_await_syntax_test/a11d: RuntimeError # Issue 21404
+async_await_syntax_test/b00a: MissingCompileTimeError  # Issue 21404
+async_await_syntax_test/b03a: RuntimeError # Issue 21404
+async_await_syntax_test/b04a: RuntimeError # Issue 21404
+async_await_syntax_test/b07a: RuntimeError # Issue 21404
+async_await_syntax_test/b08a: RuntimeError # Issue 21404
+async_await_syntax_test/b09a: RuntimeError # Issue 21404
+async_await_syntax_test/b10a: RuntimeError # Issue 21404
+async_await_syntax_test/b11b: RuntimeError # Issue 21404
+async_await_syntax_test/b11d: RuntimeError # Issue 21404
+async_await_syntax_test/c03a: RuntimeError # Issue 21404
+async_await_syntax_test/c04a: RuntimeError # Issue 21404
+async_await_syntax_test/c07a: RuntimeError # Issue 21404
+async_await_syntax_test/c08a: RuntimeError # Issue 21404
+async_await_syntax_test/c09a: RuntimeError # Issue 21404
+async_await_syntax_test/c10a: RuntimeError # Issue 21404
+async_await_syntax_test/d03a: RuntimeError # Issue 21404
+async_await_syntax_test/d04a: RuntimeError # Issue 21404
+async_await_syntax_test/d07a: RuntimeError # Issue 21404
+async_await_syntax_test/d08a: RuntimeError # Issue 21404
+async_await_syntax_test/d08b: RuntimeError # Issue 21404
+async_await_syntax_test/d09a: RuntimeError # Issue 21404
+async_await_syntax_test/d10a: RuntimeError # Issue 21404
+
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
