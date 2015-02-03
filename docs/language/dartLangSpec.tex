@@ -593,7 +593,8 @@ An asynchronous constructor would, by definition, never return an instance of th
 
 One could allow modifiers for factories. A factory for \code{Future} could be modified by \ASYNC{}, a factory for \code{Stream} could be modified by \ASYNC* and a factory for \code{Iterable} could be modified by \SYNC*. No other scenario makes sense because the object returned by the factory would be of the wrong type. This situation is very unusual so it is not worth making an exception to the general rule for constructors in order to allow it.
 }
-
+\LMHash{}
+It is a static warning if the declared return type of a function marked \ASYNC{} may not be assigned to \code{Future}. It is a static warning if the declared return type of a function marked \SYNC* may not be assigned to \code{Iterable}. It is a static warning if the declared return type of  a function marked \ASYNC* may not be assigned to \code{Stream}.  
 
 \subsection{Function Declarations}
 \LMLabel{functionDeclarations}
@@ -5970,7 +5971,7 @@ The current call to \code{moveNext()} returns \TRUE.
 It is a compile-time error if a yield-each statement appears in a function that is not a generator function.
 
 \LMHash{}
-Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  It is a static type warning if $T$ may not be assigned to the declared return type of $f$. 
+Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  It is a static type warning if $T$ may not be assigned to the declared return type of $f$.  If $f$ is synchronous it is a static  type warning if $T$ may not be assigned to \code{Iterable}.  If $f$ is asynchronous it is a static  type warning if $T$ may not be assigned to \code{Stream}. 
 
 
 \subsection{ Assert}
