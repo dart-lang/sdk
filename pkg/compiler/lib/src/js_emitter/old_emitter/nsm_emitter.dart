@@ -49,11 +49,10 @@ class NsmEmitter extends CodeEmitterHelper {
           isTrivialNsmHandler(type, argNames, selector, jsName) &&
           reflectionName == null) {
         trivialNsmHandlers.add(selector);
-      }
-
-      jsAst.Expression method = generator.generateStubForNoSuchMethod(selector);
-      if (method != null) {
-        addProperty(jsName, method);
+      } else {
+        StubMethod method =
+            generator.generateStubForNoSuchMethod(jsName, selector);
+        addProperty(method.name, method.code);
         if (reflectionName != null) {
           bool accessible = compiler.world.allFunctions.filter(selector).any(
               (Element e) => backend.isAccessibleByReflection(e));

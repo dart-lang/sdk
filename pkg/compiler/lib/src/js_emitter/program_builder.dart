@@ -290,7 +290,7 @@ class ProgramBuilder {
     String name = namer.getNameOfClass(element);
 
     return new Class(
-        element, name, null, [], instanceFields, [], [], [], null,
+        element, name, null, [], instanceFields, [], [], [], [], null,
         isDirectlyInstantiated: true,
         onlyForRti: false,
         isNative: element.isNative);
@@ -301,6 +301,9 @@ class ProgramBuilder {
 
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
+
+    ClassStubGenerator classStubGenerator =
+        new ClassStubGenerator(_compiler, namer, backend);
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
@@ -316,15 +319,25 @@ class ProgramBuilder {
         Set<Selector> selectors =
             _compiler.codegenWorld.invokedNames[member.name];
         if (selectors != null && !selectors.isEmpty) {
-          ClassStubGenerator generator =
-              new ClassStubGenerator(_compiler, namer, backend);
+
           Map<String, js.Expression> callStubsForMember =
-              generator.generateCallStubsForGetter(member, selectors);
+              classStubGenerator.generateCallStubsForGetter(member, selectors);
           callStubsForMember.forEach((String name, js.Expression code) {
             callStubs.add(_buildStubMethod(name, code, element: member));
           });
         }
       }
+    }
+
+    List<StubMethod> noSuchMethodStubs = <StubMethod>[];
+    if (element == _compiler.objectClass) {
+      Map<String, Selector> selectors =
+          classStubGenerator.computeSelectorsForNsmHandlers();
+      selectors.forEach((String name, Selector selector) {
+        noSuchMethodStubs
+            .add(classStubGenerator.generateStubForNoSuchMethod(name,
+                                                                selector));
+      });
     }
 
     ClassElement implementation = element.implementation;
@@ -377,6 +390,7 @@ class ProgramBuilder {
                          name, holder, methods, instanceFields,
                          staticFieldsForReflection,
                          callStubs,
+                         noSuchMethodStubs,
                          isChecks,
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,

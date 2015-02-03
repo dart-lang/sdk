@@ -143,7 +143,7 @@ class ClassStubGenerator {
     return jsNames;
   }
 
-  jsAst.Expression generateStubForNoSuchMethod(Selector selector) {
+  StubMethod generateStubForNoSuchMethod(String name, Selector selector) {
     // Values match JSInvocationMirror in js-helper library.
     int type = selector.invocationMirrorKind;
     List<String> parameterNames =
@@ -177,11 +177,13 @@ class ClassStubGenerator {
                 new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
             'namedArguments': new jsAst.ArrayInitializer(argNames)});
 
+    jsAst.Expression function;
     if (backend.isInterceptedName(selector.name)) {
-      return js(r'function($receiver, #) { return # }',
-                [parameterNames, expression]);
+      function = js(r'function($receiver, #) { return # }',
+                              [parameterNames, expression]);
     } else {
-      return js(r'function(#) { return # }', [parameterNames, expression]);
+      function = js(r'function(#) { return # }', [parameterNames, expression]);
     }
+    return new StubMethod(name, function);
   }
 }

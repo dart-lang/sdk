@@ -206,9 +206,11 @@ class Class implements FieldContainer {
   final List<Field> fields;
   final List<StubMethod> isChecks;
 
-  /// Stub methods for this class that are either call stubs for getters or
+  /// Stub methods for this class that are call stubs for getters.
+  final List<StubMethod> callStubs;
+
   /// noSuchMethod stubs in the special case that the class is Object.
-  final List<StubMethod> stubs;
+  final List<StubMethod> noSuchMethodStubs;
   final List<Field> staticFieldsForReflection;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
@@ -228,7 +230,8 @@ class Class implements FieldContainer {
         this.methods,
         this.fields,
         this.staticFieldsForReflection,
-        this.stubs,
+        this.callStubs,
+        this.noSuchMethodStubs,
         this.isChecks,
         this.functionTypeIndex,
         {this.onlyForRti,
@@ -269,6 +272,7 @@ class MixinApplication extends Class {
               instanceFields,
               staticFieldsForReflection,
               callStubs,
+              const <StubMethod>[],
               isChecks, functionTypeIndex,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated,
