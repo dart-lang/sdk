@@ -214,7 +214,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void emitCallStubs(Class cls, ClassBuilder builder) {
-    for (Method method in cls.callStubs) {
+    for (Method method in cls.stubs) {
       jsAst.Property property = builder.addProperty(method.name, method.code);
       compiler.dumpInfoTask.registerElementAst(method.element, property);
     }

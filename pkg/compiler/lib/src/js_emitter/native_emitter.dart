@@ -268,7 +268,7 @@ class NativeEmitter {
     return
         cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
-        cls.callStubs.isEmpty &&
+        cls.stubs.isEmpty &&
         !cls.superclass.isMixinApplication &&
         !cls.fields.any(needsAccessor);
   }

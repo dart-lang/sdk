@@ -205,7 +205,10 @@ class Class implements FieldContainer {
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
-  final List<StubMethod> callStubs;
+
+  /// Stub methods for this class that are either call stubs for getters or
+  /// noSuchMethod stubs in the special case that the class is Object.
+  final List<StubMethod> stubs;
   final List<Field> staticFieldsForReflection;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
@@ -225,7 +228,7 @@ class Class implements FieldContainer {
         this.methods,
         this.fields,
         this.staticFieldsForReflection,
-        this.callStubs,
+        this.stubs,
         this.isChecks,
         this.functionTypeIndex,
         {this.onlyForRti,
