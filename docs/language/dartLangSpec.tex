@@ -3505,11 +3505,40 @@ If $f$ is asynchronous then, when $f$ terminates, any open stream subscriptions 
 }
 
 \LMHash{}
-If $f$ is marked \SYNC* (\ref{functions}), then a fresh instance $i$ implementing the built-in class \code{Iterable} is associated with the invocation and immediately returned. When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()} on it, execution of the body of $f$ will begin. When $f$ terminates, $j$ is positioned after its last element, so that its current value is \NULL{} and the current call to \code{moveNext()} on $j$ returns false, as will all further calls.
+If $f$ is marked \SYNC* (\ref{functions}), then a fresh instance $i$ implementing the built-in class \code{Iterable} is associated with the invocation and immediately returned.  
 
-% Can we get more than one iterator from this Iterable? I'd say yes. And if so, do they restart the computation or do they iterate over previously computed results. My guess is the latter.
-% I also assume we extend the IterableBase implementation; otherwise one can pre-compute
-% it all
+
+\commentary{
+A Dart implementation will need to provide a specific implementation of \code{Iterable} that will be returned by \SYNC* methods. A typical strategy would be to produce an instance of a subclass of class \code{IterableBase} defined in \code{dart:core}. The only method that needs to be added by the Dart implementation in that case is \code{iterator}.  
+}
+
+\LMHash{}
+The iterable implementation must comply with the contract of \code{Iterable} and should not take any steps identified as exceptionally efficient in that contract.
+
+\commentary {
+The contract explicitly mentions a number of situations where certain iterables could be more efficient than normal. For example, by precomputing their length. Normal iterables must iterate over their elements to determine their length. This is certainly true in the case of a synchronous generator, where each element is computed by a function. It would not be acceptable to pre-compute the results of the generator and cache them, for example.
+}
+
+\LMHash{}
+When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()} on it, execution of the body of $f$ will begin. When $f$ terminates, $j$ is positioned after its last element, so that its current value is \NULL{} and the current call to \code{moveNext()} on $j$ returns false, as will all further calls.
+
+Each iterator starts a separate computation. If the \SYNC* function is impure, the sequence of values yielded by each iterator may differ. 
+
+\commentary{
+One can derive more than one iterator from a given iterable.   Note that operations on the iterable itself can create distinct iterators. An example would be \code{length}.  It is conceivable that different iterators might yield sequences of different length. The same care needs to be taken when writing \SYNC* functions as when
+writing an \code{Iterator} class. In particular, it should handle multiple
+simultaneous iterators gracefully. If the iterator depends on external state
+that might change, it should check that the state is still valid after every
+yield (and maybe throw a \code{ConcurrentModificationError} if it isn't).
+}
+
+\LMHash{}
+Each iterator runs with its own shallow copies of all local variables; in particular, each iterator has the same initial arguments, even if their bindings are modified by the function. 
+\commentary{
+Two executions of an iterator interact only via state outside the function.
+}
+% The alternative would be to cache the results of an iterator in the iterable, and check the cache at each \YIELD{}.  This would have strange issues as well. The yielded value might differ from the expression in the yield. And it is a potential memory leak as the cache is kept alive by any iterator.
+
 
 \LMHash{}
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.  When $f$ terminates the current return value is returned to the caller.
