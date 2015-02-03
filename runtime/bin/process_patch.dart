@@ -22,14 +22,14 @@ patch class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       bool detach: false}) {
+       ProcessStartMode mode: ProcessStartMode.NORMAL}) {
     _ProcessImpl process = new _ProcessImpl(executable,
                                             arguments,
                                             workingDirectory,
                                             environment,
                                             includeParentEnvironment,
                                             runInShell,
-                                            detach);
+                                            mode);
     return process._start();
   }
 
@@ -176,7 +176,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                Map<String, String> environment,
                bool includeParentEnvironment,
                bool runInShell,
-               bool detach) : super() {
+               ProcessStartMode mode) : super() {
     _processes[_serviceId] = this;
     if (runInShell) {
       arguments = _getShellArguments(path, arguments);
@@ -233,13 +233,12 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
       });
     }
 
-    if (detach is !bool) {
-      throw new ArgumentError("Detach is not a boolean: $detach");
+    if (mode is !ProcessStartMode) {
+      throw new ArgumentError("Mode is not a ProcessStartMode: $mode");
     }
-    _detach = detach;
+    _mode = mode;
 
-
-    if (!detach) {
+    if (mode != ProcessStartMode.DETACHED) {
       // stdin going to process.
       _stdin = new _StdSink(new _Socket._writePipe());
       _stdin._sink._owner = this;
@@ -249,6 +248,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
       // stderr coming from process.
       _stderr = new _StdStream(new _Socket._readPipe());
       _stderr._stream._owner = this;
+    }
+    if (mode == ProcessStartMode.NORMAL) {
       _exitHandler = new _Socket._readPipe();
     }
     _ended = false;
@@ -374,7 +375,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
 
   Future<Process> _start() {
     var completer = new Completer();
-    if (!_detach) {
+    if (_mode == ProcessStartMode.NORMAL) {
       _exitCode = new Completer<int>();
     }
     // TODO(ager): Make the actual process starting really async instead of
@@ -386,11 +387,15 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                        _arguments,
                        _workingDirectory,
                        _environment,
-                       _detach,
-                       _detach ? null : _stdin._sink._nativeSocket,
-                       _detach ? null : _stdout._stream._nativeSocket,
-                       _detach ? null : _stderr._stream._nativeSocket,
-                       _detach ? null : _exitHandler._nativeSocket,
+                       _mode.index,
+                       _mode == ProcessStartMode.DETACHED
+                           ? null : _stdin._sink._nativeSocket,
+                       _mode == ProcessStartMode.DETACHED
+                           ? null : _stdout._stream._nativeSocket,
+                       _mode == ProcessStartMode.DETACHED
+                           ? null : _stderr._stream._nativeSocket,
+                       _mode != ProcessStartMode.NORMAL
+                           ? null : _exitHandler._nativeSocket,
                        status);
       if (!success) {
         completer.completeError(
@@ -405,7 +410,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
-      if (!_detach) {
+      if (_mode == ProcessStartMode.NORMAL) {
         int exitDataRead = 0;
         final int EXIT_DATA_SIZE = 8;
         List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
@@ -448,7 +453,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                                 _arguments,
                                 _workingDirectory,
                                 _environment,
-                                false,
+                                ProcessStartMode.NORMAL.index,
                                 _stdin._sink._nativeSocket,
                                 _stdout._stream._nativeSocket,
                                 _stderr._stream._nativeSocket,
@@ -485,7 +490,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                     List<String> arguments,
                     String workingDirectory,
                     List<String> environment,
-                    bool detach,
+                    int mode,
                     _NativeSocket stdin,
                     _NativeSocket stdout,
                     _NativeSocket stderr,
@@ -529,7 +534,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
   List<String> _arguments;
   String _workingDirectory;
   List<String> _environment;
-  bool _detach;
+  ProcessStartMode _mode;
   // Private methods of Socket are used by _in, _out, and _err.
   _StdSink _stdin;
   _StdStream _stdout;
@@ -608,7 +613,7 @@ ProcessResult _runNonInteractiveProcessSync(
                                  environment,
                                  includeParentEnvironment,
                                  runInShell,
-                                 false);
+                                 ProcessStartMode.NORMAL);
   return process._runAndWait(stdoutEncoding, stderrEncoding);
 }
 

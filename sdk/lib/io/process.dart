@@ -100,6 +100,19 @@ void sleep(Duration duration) {
 int get pid => _ProcessUtils._pid(null);
 
 /**
+ * Modes for running a new process.
+ */
+enum ProcessStartMode {
+  /// Normal child process.
+  NORMAL,
+  /// Detached child process with no open communication channel.
+  DETACHED,
+  /// Detached child process with stdin, stdout and stderr still open
+  /// for communication with the child.
+  DETACHED_WITH_STDIO
+}
+
+/**
  * The means to execute a program.
  *
  * Use the static [start] and [run] methods to start a new process.
@@ -248,7 +261,7 @@ abstract class Process {
    * Users must read all data coming on the [stdout] and [stderr]
    * streams of processes started with [:Process.start:]. If the user
    * does not read all data on the streams the underlying system
-   * resources will not be freed since there is still pending data.
+   * resources will not be released since there is still pending data.
    *
    * The following code uses `Process.start` to grep for `main` in the
    * file `test.dart` on Linux.
@@ -258,12 +271,25 @@ abstract class Process {
    *       stderr.addStream(process.stderr);
    *     });
    *
-   * If [detach] is `true` a detached process will be created. A
-   * detached process has no connection to its parent, and can
-   * keep running on its own when the parent dies. The only
+   * If [mode] is [ProcessStartMode.NORMAL] (the default) a child
+   * process will be started with `stdin`, `stdout` and `stderr`
+   * connected.
+   *
+   * If `mode` is [ProcessStartMode.DETACHED] a detached process will
+   * be created. A detached process has no connection to its parent,
+   * and can keep running on its own when the parent dies. The only
    * information available from a detached process is its `pid`. There
-   * is no connection to its `stdin`, `stdout` or `stderr` nor will its
-   * exit code become available when it terminates.
+   * is no connection to its `stdin`, `stdout` or `stderr`, nor will
+   * the process' exit code become available when it terminates.
+   *
+   * If `mode` is [ProcessStartMode.DETACHED_WITH_STDIO] a detached
+   * process will be created where the `stdin`, `stdout` and `stderr`
+   * are connected. The creator can communicate with the child through
+   * these. The detached process will keep running even if these
+   * communication channels are closed. The process' exit code will
+   * not become available when it terminated.
+   *
+   * The default value for `mode` is `ProcessStartMode.NORMAL`.
    */
   external static Future<Process> start(
       String executable,
@@ -272,7 +298,7 @@ abstract class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       bool detach: false});
+       ProcessStartMode mode: ProcessStartMode.NORMAL});
 
   /**
    * Starts a process and runs it non-interactively to completion. The

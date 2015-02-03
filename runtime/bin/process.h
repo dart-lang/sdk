@@ -77,6 +77,14 @@ enum ProcessSignals {
 };
 
 
+// To be kept in sync with ProcessStartMode consts in sdk/lib/io/process.dart.
+enum ProcessStartMode {
+  kNormal = 0,
+  kDetached = 1,
+  kDetachedWithStdio = 2,
+};
+
+
 class Process {
  public:
   // Start a new process providing access to stdin, stdout, stderr and
@@ -87,7 +95,7 @@ class Process {
                    const char* working_directory,
                    char* environment[],
                    intptr_t environment_length,
-                   bool detached,
+                   ProcessStartMode mode,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,

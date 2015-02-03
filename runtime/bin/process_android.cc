@@ -238,7 +238,7 @@ class ProcessStarter {
                  const char* working_directory,
                  char* environment[],
                  intptr_t environment_length,
-                 bool detach,
+                 ProcessStartMode mode,
                  intptr_t* in,
                  intptr_t* out,
                  intptr_t* err,
@@ -247,7 +247,7 @@ class ProcessStarter {
                  char** os_error_message)
       : path_(path),
         working_directory_(working_directory),
-        detach_(detach),
+        mode_(mode),
         in_(in),
         out_(out),
         err_(err),
@@ -308,7 +308,7 @@ class ProcessStarter {
     ExitCodeHandler::ProcessStarted();
 
     // Register the child process if not detached.
-    if (!detach_) {
+    if (mode_ == kNormal) {
       err = RegisterProcess(pid);
       if (err != 0) return err;
     }
@@ -326,7 +326,7 @@ class ProcessStarter {
     // Read the result of executing the child process.
     VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
     exec_control_[1] = -1;
-    if (!detach_) {
+    if (mode_ == kNormal) {
       err = ReadExecResult();
     } else {
       err = ReadDetachedExecResult(&pid);
@@ -336,7 +336,7 @@ class ProcessStarter {
 
     // Return error code if any failures.
     if (err != 0) {
-      if (!detach_) {
+      if (mode_ == kNormal) {
         // Since exec() failed, we're not interested in the exit code.
         // We close the reading side of the exit code pipe here.
         // GetProcessExitCodes will get a broken pipe error when it
@@ -349,7 +349,7 @@ class ProcessStarter {
       return err;
     }
 
-    if (!detach_) {
+    if (mode_ != kDetached) {
       // Connect stdio, stdout and stderr.
       FDUtils::SetNonBlocking(read_in_[0]);
       *in_ = read_in_[0];
@@ -395,7 +395,7 @@ class ProcessStarter {
     FDUtils::SetCloseOnExec(read_in_[0]);
 
     // For detached processes the pipe to connect stderr and stdin are not used.
-    if (!detach_) {
+    if (mode_ != kDetached) {
       result = TEMP_FAILURE_RETRY(pipe(read_err_));
       if (result < 0) {
         return CleanupAndReturnError();
@@ -421,10 +421,10 @@ class ProcessStarter {
       perror("Failed receiving notification message");
       exit(1);
     }
-    if (detach_) {
-      ExecDetachedProcess();
-    } else {
+    if (mode_ == kNormal) {
       ExecProcess();
+    } else {
+      ExecDetachedProcess();
     }
   }
 
@@ -467,14 +467,21 @@ class ProcessStarter {
 
 
   void ExecDetachedProcess() {
-    ASSERT(write_out_[0] == -1);
-    ASSERT(write_out_[1] == -1);
-    ASSERT(read_err_[0] == -1);
-    ASSERT(read_err_[1] == -1);
-    // For a detached process the pipe to connect stdout is only used for
-    // signaling when to do the first fork.
-    VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
-    VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+    if (mode_ == kDetached) {
+      ASSERT(write_out_[0] == -1);
+      ASSERT(write_out_[1] == -1);
+      ASSERT(read_err_[0] == -1);
+      ASSERT(read_err_[1] == -1);
+      // For a detached process the pipe to connect stdout is only used for
+      // signaling when to do the first fork.
+      VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
+      read_in_[0] = -1;
+      VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+      read_in_[1] = -1;
+    } else {
+      // Don't close any fds if keeping stdio open to the detached process.
+      ASSERT(mode_ == kDetachedWithStdio);
+    }
     // Fork once more to start a new session.
     pid_t pid = TEMP_FAILURE_RETRY(fork());
     if (pid < 0) {
@@ -489,28 +496,14 @@ class ProcessStarter {
         if (pid < 0) {
           ReportChildError();
         } else if (pid == 0) {
-          // Close all open file descriptors except for exec_control_[1].
-          int max_fds = sysconf(_SC_OPEN_MAX);
-          if (max_fds == -1) max_fds = _POSIX_OPEN_MAX;
-          for (int fd = 0; fd < max_fds; fd++) {
-            if (fd != exec_control_[1]) {
-              VOID_TEMP_FAILURE_RETRY(close(fd));
-            }
+          if (mode_ == kDetached) {
+            SetupDetached();
+          } else {
+            SetupDetachedWithStdio();
           }
 
-          // Re-open stdin, stdout and stderr and connect them to /dev/null.
-          // The loop above should already have closed all of them, so
-          // creating new file descriptors should start at STDIN_FILENO.
-          int fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDWR));
-          if (fd != STDIN_FILENO) {
-            ReportChildError();
-          }
-          if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDOUT_FILENO)) !=
-              STDOUT_FILENO) {
-            ReportChildError();
-          }
-          if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDERR_FILENO)) !=
-              STDERR_FILENO) {
+          if (working_directory_ != NULL &&
+              TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
             ReportChildError();
           }
 
@@ -588,6 +581,67 @@ class ProcessStarter {
       return errno;
     }
     return 0;
+  }
+
+
+  void SetupDetached() {
+    ASSERT(mode_ == kDetached);
+
+    // Close all open file descriptors except for exec_control_[1].
+    int max_fds = sysconf(_SC_OPEN_MAX);
+    if (max_fds == -1) max_fds = _POSIX_OPEN_MAX;
+    for (int fd = 0; fd < max_fds; fd++) {
+      if (fd != exec_control_[1]) {
+        VOID_TEMP_FAILURE_RETRY(close(fd));
+      }
+    }
+
+    // Re-open stdin, stdout and stderr and connect them to /dev/null.
+    // The loop above should already have closed all of them, so
+    // creating new file descriptors should start at STDIN_FILENO.
+    int fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDWR));
+    if (fd != STDIN_FILENO) {
+      ReportChildError();
+    }
+    if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDOUT_FILENO)) !=
+        STDOUT_FILENO) {
+      ReportChildError();
+    }
+    if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDERR_FILENO)) !=
+        STDERR_FILENO) {
+      ReportChildError();
+    }
+  }
+
+  void SetupDetachedWithStdio() {
+    // Close all open file descriptors except for
+    // exec_control_[1], write_out_[0], read_in_[1] and
+    // read_err_[1].
+    int max_fds = sysconf(_SC_OPEN_MAX);
+    if (max_fds == -1) max_fds = _POSIX_OPEN_MAX;
+    for (int fd = 0; fd < max_fds; fd++) {
+      if (fd != exec_control_[1] &&
+          fd != write_out_[0] &&
+          fd != read_in_[1] &&
+          fd != read_err_[1]) {
+        VOID_TEMP_FAILURE_RETRY(close(fd));
+      }
+    }
+
+    if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
+      ReportChildError();
+    }
+    VOID_TEMP_FAILURE_RETRY(close(write_out_[0]));
+
+    if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
+      ReportChildError();
+    }
+    VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+
+    if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
+      ReportChildError();
+    }
+    VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
   }
 
 
@@ -681,7 +735,7 @@ class ProcessStarter {
 
   const char* path_;
   const char* working_directory_;
-  bool detach_;
+  ProcessStartMode mode_;
   intptr_t* in_;
   intptr_t* out_;
   intptr_t* err_;
@@ -697,7 +751,7 @@ int Process::Start(const char* path,
                    const char* working_directory,
                    char* environment[],
                    intptr_t environment_length,
-                   bool detach,
+                   ProcessStartMode mode,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
@@ -710,7 +764,7 @@ int Process::Start(const char* path,
                          working_directory,
                          environment,
                          environment_length,
-                         detach,
+                         mode,
                          in,
                          out,
                          err,

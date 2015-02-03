@@ -118,7 +118,8 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       return;
     }
   }
-  bool detached = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 5));
+  int64_t mode =
+      DartUtils::GetInt64ValueCheckRange(Dart_GetNativeArgument(args, 5), 0, 2);
   Dart_Handle stdin_handle = Dart_GetNativeArgument(args, 6);
   Dart_Handle stdout_handle = Dart_GetNativeArgument(args, 7);
   Dart_Handle stderr_handle = Dart_GetNativeArgument(args, 8);
@@ -132,7 +133,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                                   working_directory,
                                   string_environment,
                                   environment_length,
-                                  detached,
+                                  static_cast<ProcessStartMode>(mode),
                                   &process_stdout,
                                   &process_stdin,
                                   &process_stderr,
@@ -140,10 +141,12 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                                   &exit_event,
                                   &os_error_message);
   if (error_code == 0) {
-    if (!detached) {
+    if (mode != kDetached) {
       Socket::SetSocketIdNativeField(stdin_handle, process_stdin);
       Socket::SetSocketIdNativeField(stdout_handle, process_stdout);
       Socket::SetSocketIdNativeField(stderr_handle, process_stderr);
+    }
+    if (mode == kNormal) {
       Socket::SetSocketIdNativeField(exit_handle, exit_event);
     }
     Process::SetProcessIdNativeField(process, pid);
