@@ -362,9 +362,8 @@ $name.prototype[Symbol.iterator] = function() {
     }
     out.write('$name.call(this');
     var args = node.argumentList;
-    if (args != null) {
-      _visitNodeList(args.arguments, prefix: ', ', separator: ', ');
-    }
+    if (args != null && args.arguments.isNotEmpty) out.write(', ');
+    _visitNode(node.argumentList);
     out.write(');\n');
   }
 
@@ -376,16 +375,13 @@ $name.prototype[Symbol.iterator] = function() {
     if (ctor.name != null && superName == null) {
       var supertype = (ctor.parent as ClassDeclaration).element.supertype;
       out.write('${_typeName(supertype)}.call(this');
-      if (args != null) {
-        _visitNodeList(args.arguments, prefix: ', ', separator: ', ');
-      }
+      if (args != null && args.arguments.isNotEmpty) out.write(', ');
+      _visitNode(args);
     } else {
       out.write('super');
       if (superName != null) out.write('.__init_${superName.name}');
       out.write('(');
-      if (args != null) {
-        _visitNodeList(args.arguments, separator: ', ');
-      }
+      _visitNode(args);
     }
     out.write(');\n');
   }
@@ -655,14 +651,39 @@ $name.prototype[Symbol.iterator] = function() {
     var target = node.isCascaded ? _cascadeTarget : node.target;
     _visitNode(target, suffix: '.');
     node.methodName.accept(this);
+
+    out.write('(');
     node.argumentList.accept(this);
+    out.write(')');
+  }
+
+  /// Writes an argument list. This does not write the parens, because sometimes
+  /// a parameter will need to be added before the start of the list, so
+  /// writing parens is the responsibility of the parent node.
+  @override
+  void visitArgumentList(ArgumentList node) {
+    var args = node.arguments;
+
+    bool hasNamed = false;
+    for (int i = 0; i < args.length; i++) {
+      if (i > 0) out.write(', ');
+
+      var arg = args[i];
+      if (arg is NamedExpression) {
+        if (!hasNamed) out.write('{');
+        hasNamed = true;
+      }
+      arg.accept(this);
+    }
+    if (hasNamed) out.write('}');
   }
 
   @override
-  void visitArgumentList(ArgumentList node) {
-    out.write('(');
-    _visitNodeList(node.arguments, separator: ', ');
-    out.write(')');
+  void visitNamedExpression(NamedExpression node) {
+    assert(node.parent is ArgumentList);
+    node.name.accept(this);
+    out.write(' ');
+    node.expression.accept(this);
   }
 
   @override
@@ -821,7 +842,9 @@ $name.prototype[Symbol.iterator] = function() {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     out.write('new ');
     node.constructorName.accept(this);
+    out.write('(');
     node.argumentList.accept(this);
+    out.write(')');
   }
 
   bool typeIsPrimitiveInJS(DartType t) => rules.isIntType(t) ||

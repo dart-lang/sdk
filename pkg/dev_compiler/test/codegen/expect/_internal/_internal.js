@@ -883,7 +883,7 @@ var _internal;
         otherList = /* Unimplemented: DownCast: Iterable<dynamic> to List<dynamic> */ from;
         otherStart = skipCount;
       } else {
-        otherList = from.skip(skipCount).toList(/* Unimplemented NamedExpression: growable: false */);
+        otherList = from.skip(skipCount).toList({growable: false});
         otherStart = 0;
       }
       if (otherStart + length > otherList.length) {
@@ -925,7 +925,7 @@ var _internal;
     static insertAllList(list, index, iterable) {
       dart_core.RangeError.checkValueInInterval(index, 0, list.length, "index");
       if (/* Unimplemented IsExpression: iterable is! EfficientLength */) {
-        iterable = iterable.toList(/* Unimplemented NamedExpression: growable: false */);
+        iterable = iterable.toList({growable: false});
       }
       let insertionLength = iterable.length;
       list.length = insertionLength;

@@ -100,7 +100,7 @@ var core;
           throw new FormatException("Time out of range", formattedString);
         }
         if (addOneMillisecond) millisecondsSinceEpoch++;
-        return new DateTime.this.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, /* Unimplemented NamedExpression: isUtc: isUtc */);
+        return new DateTime.this.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, {isUtc: isUtc});
       } else {
         throw new FormatException("Invalid date format", formattedString);
       }
@@ -131,13 +131,13 @@ var core;
     get hashCode() { return this.millisecondsSinceEpoch; }
     toLocal() {
       if (this.isUtc) {
-        return new DateTime.this.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, /* Unimplemented NamedExpression: isUtc: false */);
+        return new DateTime.this.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, {isUtc: false});
       }
       return this;
     }
     toUtc() {
       if (this.isUtc) return this;
-      return new DateTime.this.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, /* Unimplemented NamedExpression: isUtc: true */);
+      return new DateTime.this.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, {isUtc: true});
     }
     static _fourDigits(n) {
       let absN = n.abs();
@@ -193,16 +193,16 @@ var core;
     }
     add(duration) {
       let ms = this.millisecondsSinceEpoch;
-      return new DateTime.this.fromMillisecondsSinceEpoch(ms + duration.inMilliseconds, /* Unimplemented NamedExpression: isUtc: isUtc */);
+      return new DateTime.this.fromMillisecondsSinceEpoch(ms + duration.inMilliseconds, {isUtc: this.isUtc});
     }
     subtract(duration) {
       let ms = this.millisecondsSinceEpoch;
-      return new DateTime.this.fromMillisecondsSinceEpoch(ms - duration.inMilliseconds, /* Unimplemented NamedExpression: isUtc: isUtc */);
+      return new DateTime.this.fromMillisecondsSinceEpoch(ms - duration.inMilliseconds, {isUtc: this.isUtc});
     }
     difference(other) {
       let ms = this.millisecondsSinceEpoch;
       let otherMs = other.millisecondsSinceEpoch;
-      return new Duration(/* Unimplemented NamedExpression: milliseconds: ms - otherMs */);
+      return new Duration({milliseconds: ms - otherMs});
     }
     __init__internal(year, month, day, hour, minute, second, millisecond, isUtc) {
       this.millisecondsSinceEpoch = null;
@@ -352,7 +352,7 @@ var core;
   Duration.SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
   Duration.SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
   Duration.MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
-  Duration.ZERO = new Duration(/* Unimplemented NamedExpression: seconds: 0 */);
+  Duration.ZERO = new Duration({seconds: 0});
 
   class Error {
     constructor() {
@@ -926,7 +926,7 @@ var core;
     static parse(input, onError) {
       if (onError === undefined) onError = null;
       let source = input.trim();
-      let result = int.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → int */ /* Unimplemented NamedExpression: onError: _returnNull */);
+      let result = int.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → int */ onError: _returnNull);
       if (result !== null) return result;
       result = double.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → double */ _returnNull);
       if (result !== null) return result;
@@ -1025,7 +1025,7 @@ var core;
       return (this._stop === null) ? (_now() - this._start) : (this._stop - this._start);
     }
     get elapsed() {
-      return new Duration(/* Unimplemented NamedExpression: microseconds: elapsedMicroseconds */);
+      return new Duration({microseconds: this.elapsedMicroseconds});
     }
     get elapsedMicroseconds() {
       return ((this.elapsedTicks * 1000000) / this.frequency).truncate();
@@ -1498,7 +1498,7 @@ var core;
         }
         host = authority.substring(hostStart, hostEnd);
       }
-      return new Uri(/* Unimplemented NamedExpression: scheme: scheme */, /* Unimplemented NamedExpression: userInfo: userInfo */, /* Unimplemented NamedExpression: host: host */, /* Unimplemented NamedExpression: port: port */, /* Unimplemented NamedExpression: pathSegments: unencodedPath.split("/") */, /* Unimplemented NamedExpression: queryParameters: queryParameters */);
+      return new Uri({scheme: scheme, userInfo: userInfo, host: host, port: port, pathSegments: unencodedPath.split("/"), queryParameters: queryParameters});
     }
     __init_file(path, opt$) {
       let windows = opt$.windows === undefined ? null : opt$.windows;
@@ -1543,9 +1543,9 @@ var core;
     static _makeFileUri(path) {
       let sep = "/";
       if (path.startsWith(sep)) {
-        return new Uri(/* Unimplemented NamedExpression: scheme: "file" */, /* Unimplemented NamedExpression: pathSegments: path.split(sep) */);
+        return new Uri({scheme: "file", pathSegments: path.split(sep)});
       } else {
-        return new Uri(/* Unimplemented NamedExpression: pathSegments: path.split(sep) */);
+        return new Uri({pathSegments: path.split(sep)});
       }
     }
     static _makeWindowsFileUrl(path) {
@@ -1569,7 +1569,7 @@ var core;
         }
         let pathSegments = path.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true, 1);
-        return new Uri(/* Unimplemented NamedExpression: scheme: "file" */, /* Unimplemented NamedExpression: pathSegments: pathSegments */);
+        return new Uri({scheme: "file", pathSegments: pathSegments});
       }
       if (path.length > 0 && dart.equals(path[0], sep)) {
         if (path.length > 1 && dart.equals(path[1], sep)) {
@@ -1578,16 +1578,16 @@ var core;
           let pathPart = pathStart === -1 ? "" : path.substring(pathStart + 1);
           let pathSegments = pathPart.split(sep);
           _checkWindowsPathReservedCharacters(pathSegments, true);
-          return new Uri(/* Unimplemented NamedExpression: scheme: "file" */, /* Unimplemented NamedExpression: host: hostPart */, /* Unimplemented NamedExpression: pathSegments: pathSegments */);
+          return new Uri({scheme: "file", host: hostPart, pathSegments: pathSegments});
         } else {
           let pathSegments = path.split(sep);
           _checkWindowsPathReservedCharacters(pathSegments, true);
-          return new Uri(/* Unimplemented NamedExpression: scheme: "file" */, /* Unimplemented NamedExpression: pathSegments: pathSegments */);
+          return new Uri({scheme: "file", pathSegments: pathSegments});
         }
       } else {
         let pathSegments = path.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
-        return new Uri(/* Unimplemented NamedExpression: pathSegments: pathSegments */);
+        return new Uri({pathSegments: pathSegments});
       }
     }
     replace(opt$) {
@@ -1652,7 +1652,7 @@ var core;
     get pathSegments() {
       if (this._pathSegments === null) {
         let pathToSplit = !this.path.isEmpty && this.path.codeUnitAt(0) === _SLASH ? this.path.substring(1) : this.path;
-        this._pathSegments = /* Unimplemented: DownCastExact: UnmodifiableListView<dynamic> to List<String> */ new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const *//* Unimplemented ArrayList */[] : pathToSplit.split("/").map(Uri.decodeComponent).toList(/* Unimplemented NamedExpression: growable: false */));
+        this._pathSegments = /* Unimplemented: DownCastExact: UnmodifiableListView<dynamic> to List<String> */ new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const *//* Unimplemented ArrayList */[] : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false}));
       }
       return this._pathSegments;
     }
@@ -2166,14 +2166,14 @@ var core;
     }
     static encodeQueryComponent(component, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
-      return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _unreservedTable, component, /* Unimplemented NamedExpression: encoding: encoding */, /* Unimplemented NamedExpression: spaceToPlus: true */);
+      return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _unreservedTable, component, {encoding: encoding, spaceToPlus: true});
     }
     static decodeComponent(encodedComponent) {
       return _uriDecode(encodedComponent);
     }
     static decodeQueryComponent(encodedComponent, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
-      return _uriDecode(encodedComponent, /* Unimplemented NamedExpression: plusToSpace: true */, /* Unimplemented NamedExpression: encoding: encoding */);
+      return _uriDecode(encodedComponent, {plusToSpace: true, encoding: encoding});
     }
     static encodeFull(uri) {
       return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _encodeFullTable, uri);
@@ -2192,7 +2192,7 @@ var core;
         } else if (index !== 0) {
           let key = /* Unimplemented dynamic method call: element.substring(0, index) */;
           let value = /* Unimplemented dynamic method call: element.substring(index + 1) */;
-          /* Unimplemented dynamic IndexExpression: map[Uri.decodeQueryComponent(key, encoding: encoding)] */ = decodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ value, /* Unimplemented NamedExpression: encoding: encoding */);
+          /* Unimplemented dynamic IndexExpression: map[Uri.decodeQueryComponent(key, encoding: encoding)] */ = decodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ value, {encoding: encoding});
         }
         return map;
       });
@@ -2228,7 +2228,7 @@ var core;
         if (end - start > 4) {
           error("an IPv6 part can only contain a maximum of 4 hex digits", start);
         }
-        let value = int.parse(host.substring(start, end), /* Unimplemented NamedExpression: radix: 16 */);
+        let value = int.parse(host.substring(start, end), {radix: 16});
         if (value < 0 || value > (1 << 16) - 1) {
           error("each part must be in the range of `0x0..0xFFFF`", start);
         }

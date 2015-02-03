@@ -152,7 +152,7 @@ var collection;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
-      return new dart_core.List.from(this, /* Unimplemented NamedExpression: growable: growable */)
+      return new dart_core.List.from(this, {growable: growable})
     }
     toSet() { return new dart_core.Set.from(this); }
     get length() {
@@ -318,7 +318,7 @@ var collection;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
-      return new dart_core.List.from(this, /* Unimplemented NamedExpression: growable: growable */)
+      return new dart_core.List.from(this, {growable: growable})
     }
     toSet() { return new dart_core.Set.from(this); }
     get length() {
@@ -1048,7 +1048,7 @@ var collection;
         otherList = /* Unimplemented: DownCast: Iterable<E> to List<dynamic> */ iterable;
         otherStart = skipCount;
       } else {
-        otherList = iterable.skip(skipCount).toList(/* Unimplemented NamedExpression: growable: false */);
+        otherList = iterable.skip(skipCount).toList({growable: false});
         otherStart = 0;
       }
       if (otherStart + length > otherList.length) {

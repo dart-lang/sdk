@@ -514,7 +514,7 @@ var async;
               result._completeError(error, stackTrace);
             }
           }
-        }, /* Unimplemented NamedExpression: onError: handleError */);
+        }, {onError: handleError});
       }
       if (remaining === 0) {
         return /* Unimplemented: DownCastExact: Future<dynamic> to Future<List<dynamic>> */ new Future.this.value(/* Unimplemented const *//* Unimplemented ArrayList */[]);
@@ -534,11 +534,11 @@ var async;
       let nextIteration = null;
       nextIteration = Zone.current.bindUnaryCallback(/* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */ (keepGoing) => {
         if (keepGoing) {
-          new Future.this.sync(f).this.then(/* Unimplemented: DownCast: dynamic to (dynamic) → dynamic */ nextIteration, /* Unimplemented NamedExpression: onError: doneSignal._completeError */);
+          new Future.this.sync(f).this.then(/* Unimplemented: DownCast: dynamic to (dynamic) → dynamic */ nextIteration, {onError: doneSignal._completeError});
         } else {
           doneSignal._complete(null);
         }
-      }, /* Unimplemented NamedExpression: runGuarded: true */);
+      }, {runGuarded: true});
       /* Unimplemented dynamic method call: nextIteration(true) */;
       return doneSignal;
     }
@@ -823,7 +823,11 @@ var async;
       source.then((value) => {
         dart.assert(target._isChained);
         target.this._completeWithValue(value);
-      }, /* Unimplemented NamedExpression: onError: (error, [stackTrace]) {assert (target._isChained); target._completeError(error, stackTrace);} */);
+      }, {onError: (error, stackTrace) => {
+        if (stackTrace === undefined) stackTrace = null;
+        dart.assert(target._isChained);
+        target.this._completeError(error, /* Unimplemented: DownCast: dynamic to StackTrace */ stackTrace);
+      }});
     }
     static _chainCoreFuture(source, target) {
       dart.assert(!target._isComplete);
@@ -1020,7 +1024,12 @@ var async;
           timer.cancel();
           result.this._completeWithValue(v);
         }
-      }, /* Unimplemented NamedExpression: onError: (e, s) {if (timer.isActive) {timer.cancel(); result._completeError(e, s);}} */);
+      }, {onError: (e, s) => {
+        if (timer.isActive) {
+          timer.cancel();
+          result.this._completeError(e, /* Unimplemented: DownCast: dynamic to StackTrace */ s);
+        }
+      }});
       return result;
     }
   }
@@ -1100,7 +1109,7 @@ var async;
       _rootScheduleMicrotask(null, null, /* Unimplemented: DownCast: dynamic to Zone */ _ROOT_ZONE, callback);
       return;
     }
-    Zone.current.scheduleMicrotask(Zone.current.bindCallback(callback, /* Unimplemented NamedExpression: runGuarded: true */));
+    Zone.current.scheduleMicrotask(Zone.current.bindCallback(callback, {runGuarded: true}));
   }
 
   class _AsyncRun {
@@ -1111,11 +1120,14 @@ var async;
     constructor() {
     }
     __init_fromFuture(future) {
-      let controller = /* Unimplemented: DownCastExact: StreamController<T> to _StreamController<T> */ new StreamController(/* Unimplemented NamedExpression: sync: true */);
+      let controller = /* Unimplemented: DownCastExact: StreamController<T> to _StreamController<T> */ new StreamController({sync: true});
       future.then((value) => {
         controller._add(/* Unimplemented: DownCast: dynamic to T */ value);
         controller._closeUnchecked();
-      }, /* Unimplemented NamedExpression: onError: (error, stackTrace) {controller._addError(error, stackTrace); controller._closeUnchecked();} */);
+      }, {onError: (error, stackTrace) => {
+        controller._addError(error, /* Unimplemented: DownCast: dynamic to StackTrace */ stackTrace);
+        controller._closeUnchecked();
+      }});
       return controller.stream;
     }
     __init_fromIterable(data) {
@@ -1141,7 +1153,26 @@ var async;
           sendEvent();
         });
       }
-      controller = new StreamController(/* Unimplemented NamedExpression: sync: true */, /* Unimplemented NamedExpression: onListen: () {watch.start(); startPeriodicTimer();} */, /* Unimplemented NamedExpression: onPause: () {timer.cancel(); timer = null; watch.stop();} */, /* Unimplemented NamedExpression: onResume: () {assert (timer == null); Duration elapsed = watch.elapsed; watch.start(); timer = new Timer(period - elapsed, () {timer = null; startPeriodicTimer(); sendEvent();});} */, /* Unimplemented NamedExpression: onCancel: () {if (timer != null) timer.cancel(); timer = null;} */);
+      controller = new StreamController({sync: true, onListen: () => {
+        watch.start();
+        startPeriodicTimer();
+      }, onPause: () => {
+        timer.cancel();
+        timer = null;
+        watch.stop();
+      }, onResume: () => {
+        dart.assert(timer === null);
+        let elapsed = watch.elapsed;
+        watch.start();
+        timer = new Timer(/* Unimplemented binary operator: period - elapsed */, () => {
+          timer = null;
+          startPeriodicTimer();
+          sendEvent();
+        });
+      }, onCancel: () => {
+        if (timer !== null) timer.cancel();
+        timer = null;
+      }});
       return controller.stream;
     }
     __init_eventTransformed(source, mapSink) {
@@ -1176,12 +1207,20 @@ var async;
           } else {
             controller.add(newValue);
           }
-        }, /* Unimplemented: DownCast: dynamic to Function */ /* Unimplemented NamedExpression: onError: addError */, /* Unimplemented NamedExpression: onDone: controller.close */);
+        }, /* Unimplemented: DownCast: dynamic to Function */ onError: addError, {onDone: controller.close});
       }
       if (this.isBroadcast) {
-        controller = new StreamController.broadcast(/* Unimplemented NamedExpression: onListen: onListen */, /* Unimplemented NamedExpression: onCancel: () {subscription.cancel();} */, /* Unimplemented NamedExpression: sync: true */);
+        controller = new StreamController.broadcast({onListen: onListen, onCancel: () => {
+          subscription.cancel();
+        }, sync: true});
       } else {
-        controller = new StreamController(/* Unimplemented NamedExpression: onListen: onListen */, /* Unimplemented NamedExpression: onPause: () {subscription.pause();} */, /* Unimplemented NamedExpression: onResume: () {subscription.resume();} */, /* Unimplemented NamedExpression: onCancel: () {subscription.cancel();} */, /* Unimplemented NamedExpression: sync: true */);
+        controller = new StreamController({onListen: onListen, onPause: () => {
+          subscription.pause();
+        }, onResume: () => {
+          subscription.resume();
+        }, onCancel: () => {
+          subscription.cancel();
+        }, sync: true});
       }
       return controller.stream;
     }
@@ -1198,12 +1237,20 @@ var async;
             subscription.pause();
             controller.addStream(newStream).whenComplete(subscription.resume);
           }
-        }, /* Unimplemented: DownCast: dynamic to Function */ /* Unimplemented NamedExpression: onError: eventSink._addError */, /* Unimplemented NamedExpression: onDone: controller.close */);
+        }, /* Unimplemented: DownCast: dynamic to Function */ onError: eventSink._addError, {onDone: controller.close});
       }
       if (this.isBroadcast) {
-        controller = new StreamController.broadcast(/* Unimplemented NamedExpression: onListen: onListen */, /* Unimplemented NamedExpression: onCancel: () {subscription.cancel();} */, /* Unimplemented NamedExpression: sync: true */);
+        controller = new StreamController.broadcast({onListen: onListen, onCancel: () => {
+          subscription.cancel();
+        }, sync: true});
       } else {
-        controller = new StreamController(/* Unimplemented NamedExpression: onListen: onListen */, /* Unimplemented NamedExpression: onPause: () {subscription.pause();} */, /* Unimplemented NamedExpression: onResume: () {subscription.resume();} */, /* Unimplemented NamedExpression: onCancel: () {subscription.cancel();} */, /* Unimplemented NamedExpression: sync: true */);
+        controller = new StreamController({onListen: onListen, onPause: () => {
+          subscription.pause();
+        }, onResume: () => {
+          subscription.resume();
+        }, onCancel: () => {
+          subscription.cancel();
+        }, sync: true});
       }
       return controller.stream;
     }
@@ -1234,7 +1281,12 @@ var async;
           value = element;
           seenFirst = true;
         }
-      }, /* Unimplemented NamedExpression: onError: result._completeError */, /* Unimplemented NamedExpression: onDone: () {if (!seenFirst) {try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(result, e, s);}} else {result._complete(value);}} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: result._completeError, onDone: () => {
+        if (!seenFirst) {
+          /* Unimplemented TryStatement: try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(result, e, s);} */} else {
+          result._complete(value);
+        }
+      }, cancelOnError: true});
       return result;
     }
     fold(initialValue, combine) {
@@ -1245,7 +1297,11 @@ var async;
         _runUserCode(() => combine(value, element), (newValue) => {
           value = newValue;
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, result));
-      }, /* Unimplemented NamedExpression: onError: (e, st) {result._completeError(e, st);} */, /* Unimplemented NamedExpression: onDone: () {result._complete(value);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: (e, st) => {
+        result._completeError(e, /* Unimplemented: DownCast: dynamic to StackTrace */ st);
+      }, onDone: () => {
+        result._complete(value);
+      }, cancelOnError: true});
       return result;
     }
     join(separator) {
@@ -1259,7 +1315,11 @@ var async;
           buffer.write(separator);
         }
         first = false;
-        /* Unimplemented TryStatement: try {buffer.write(element);} catch (e, s) {_cancelAndErrorWithReplacement(subscription, result, e, s);} */}, /* Unimplemented NamedExpression: onError: (e) {result._completeError(e);} */, /* Unimplemented NamedExpression: onDone: () {result._complete(buffer.toString());} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+        /* Unimplemented TryStatement: try {buffer.write(element);} catch (e, s) {_cancelAndErrorWithReplacement(subscription, result, e, s);} */}, {onError: (e) => {
+        result._completeError(e);
+      }, onDone: () => {
+        result._complete(buffer.toString());
+      }, cancelOnError: true});
       return result;
     }
     contains(needle) {
@@ -1271,7 +1331,9 @@ var async;
             _cancelAndValue(subscription, future, true);
           }
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, future));
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(false);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(false);
+      }, cancelOnError: true});
       return future;
     }
     forEach(action) {
@@ -1280,7 +1342,9 @@ var async;
       subscription = this.this.listen((element) => {
         _runUserCode(() => action(element), (_) => {
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, future));
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(null);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(null);
+      }, cancelOnError: true});
       return future;
     }
     every(test) {
@@ -1292,7 +1356,9 @@ var async;
             _cancelAndValue(subscription, future, false);
           }
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, future));
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(true);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(true);
+      }, cancelOnError: true});
       return future;
     }
     any(test) {
@@ -1304,7 +1370,9 @@ var async;
             _cancelAndValue(subscription, future, true);
           }
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, future));
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(false);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(false);
+      }, cancelOnError: true});
       return future;
     }
     get length() {
@@ -1312,7 +1380,9 @@ var async;
       let count = 0;
       this.this.listen((_) => {
         count++;
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(count);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(count);
+      }, cancelOnError: true});
       return future;
     }
     get isEmpty() {
@@ -1320,7 +1390,9 @@ var async;
       let subscription = null;
       subscription = this.this.listen((_) => {
         _cancelAndValue(subscription, future, false);
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(true);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(true);
+      }, cancelOnError: true});
       return future;
     }
     toList() {
@@ -1328,7 +1400,9 @@ var async;
       let future = new _Future();
       this.this.listen((data) => {
         result.add(data);
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(result);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(result);
+      }, cancelOnError: true});
       return future;
     }
     toSet() {
@@ -1336,12 +1410,14 @@ var async;
       let future = new _Future();
       this.this.listen((data) => {
         result.add(data);
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._complete(result);} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._complete(result);
+      }, cancelOnError: true});
       return future;
     }
     drain(futureValue) {
       if (futureValue === undefined) futureValue = null;
-      return this.listen(null, /* Unimplemented NamedExpression: cancelOnError: true */).asFuture(futureValue)
+      return this.listen(null, {cancelOnError: true}).asFuture(futureValue)
     }
     take(count) {
       return /* Unimplemented: DownCastExact: _TakeStream<dynamic> to Stream<T> */ new _TakeStream(this, count);
@@ -1364,7 +1440,8 @@ var async;
       let subscription = null;
       subscription = this.this.listen((value) => {
         _cancelAndValue(subscription, future, value);
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);}} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        /* Unimplemented TryStatement: try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);} */}, cancelOnError: true});
       return future;
     }
     get last() {
@@ -1375,7 +1452,12 @@ var async;
       subscription = this.this.listen((value) => {
         foundResult = true;
         result = value;
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {if (foundResult) {future._complete(result); return;} try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);}} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        if (foundResult) {
+          future._complete(result);
+          return;
+        }
+        /* Unimplemented TryStatement: try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);} */}, cancelOnError: true});
       return future;
     }
     get single() {
@@ -1389,7 +1471,12 @@ var async;
         }
         foundResult = true;
         result = value;
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {if (foundResult) {future._complete(result); return;} try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);}} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        if (foundResult) {
+          future._complete(result);
+          return;
+        }
+        /* Unimplemented TryStatement: try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);} */}, cancelOnError: true});
       return future;
     }
     firstWhere(test, opt$) {
@@ -1402,7 +1489,12 @@ var async;
             _cancelAndValue(subscription, future, value);
           }
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, future));
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {if (defaultValue != null) {_runUserCode(defaultValue, future._complete, future._completeError); return;} try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);}} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        if (defaultValue !== null) {
+          _runUserCode(defaultValue, future._complete, future._completeError);
+          return;
+        }
+        /* Unimplemented TryStatement: try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);} */}, cancelOnError: true});
       return future;
     }
     lastWhere(test, opt$) {
@@ -1418,7 +1510,16 @@ var async;
             result = value;
           }
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, future));
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {if (foundResult) {future._complete(result); return;} if (defaultValue != null) {_runUserCode(defaultValue, future._complete, future._completeError); return;} try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);}} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        if (foundResult) {
+          future._complete(result);
+          return;
+        }
+        if (defaultValue !== null) {
+          _runUserCode(defaultValue, future._complete, future._completeError);
+          return;
+        }
+        /* Unimplemented TryStatement: try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);} */}, cancelOnError: true});
       return future;
     }
     singleWhere(test) {
@@ -1436,7 +1537,12 @@ var async;
             result = value;
           }
         }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */ _cancelAndErrorClosure(subscription, future));
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {if (foundResult) {future._complete(result); return;} try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);}} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        if (foundResult) {
+          future._complete(result);
+          return;
+        }
+        /* Unimplemented TryStatement: try {throw IterableElementError.noElement();} catch (e, s) {_completeWithErrorCallback(future, e, s);} */}, cancelOnError: true});
       return future;
     }
     elementAt(index) {
@@ -1450,7 +1556,9 @@ var async;
           return;
         }
         elementIndex = 1;
-      }, /* Unimplemented NamedExpression: onError: future._completeError */, /* Unimplemented NamedExpression: onDone: () {future._completeError(new RangeError.index(index, this, "index", null, elementIndex));} */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      }, {onError: future._completeError, onDone: () => {
+        future._completeError(new dart_core.RangeError.index(index, this, "index", null, elementIndex));
+      }, cancelOnError: true});
       return future;
     }
     timeout(timeLimit, opt$) {
@@ -1495,7 +1603,7 @@ var async;
             wrapper._sink = null;
           };
         }
-        subscription = this.this.listen(onData, /* Unimplemented NamedExpression: onError: onError */, /* Unimplemented NamedExpression: onDone: onDone */);
+        subscription = this.this.listen(onData, {onError: onError, onDone: onDone});
         timer = zone.createTimer(timeLimit, /* Unimplemented: DownCast: Function to () → void */ timeout);
       }
       // Function onCancel: () → Future<dynamic>
@@ -1539,13 +1647,13 @@ var async;
     asBroadcastStream(opt$) {
       let onListen = opt$.onListen === undefined ? null : opt$.onListen;
       let onCancel = opt$.onCancel === undefined ? null : opt$.onCancel;
-      return this._stream.asBroadcastStream(/* Unimplemented NamedExpression: onListen: onListen */, /* Unimplemented NamedExpression: onCancel: onCancel */)
+      return this._stream.asBroadcastStream({onListen: onListen, onCancel: onCancel})
     }
     listen(onData, opt$) {
       let onError = opt$.onError === undefined ? null : opt$.onError;
       let onDone = opt$.onDone === undefined ? null : opt$.onDone;
       let cancelOnError = opt$.cancelOnError === undefined ? null : opt$.cancelOnError;
-      return this._stream.listen(onData, /* Unimplemented NamedExpression: onError: onError */, /* Unimplemented NamedExpression: onDone: onDone */, /* Unimplemented NamedExpression: cancelOnError: cancelOnError */);
+      return this._stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
     }
   }
 
@@ -1908,7 +2016,7 @@ var async;
     close() { return this._target.close(); }
     addStream(source, opt$) {
       let cancelOnError = opt$.cancelOnError === undefined ? true : opt$.cancelOnError;
-      return this._target.addStream(source, /* Unimplemented NamedExpression: cancelOnError: cancelOnError */)
+      return this._target.addStream(source, {cancelOnError: cancelOnError})
     }
     get done() { return this._target.done; }
   }
@@ -1916,7 +2024,7 @@ var async;
   class _AddStreamState/* Unimplemented <T> */ {
     constructor(controller, source, cancelOnError) {
       this.addStreamFuture = new _Future();
-      this.addSubscription = source.listen(/* Unimplemented: ClosureWrap: (T) → void to (dynamic) → void */ controller._add, /* Unimplemented: DownCast: dynamic to Function */ /* Unimplemented NamedExpression: onError: cancelOnError ? makeErrorHandler(controller) : controller._addError */, /* Unimplemented NamedExpression: onDone: controller._close */, /* Unimplemented NamedExpression: cancelOnError: cancelOnError */);
+      this.addSubscription = source.listen(/* Unimplemented: ClosureWrap: (T) → void to (dynamic) → void */ controller._add, /* Unimplemented: DownCast: dynamic to Function */ onError: cancelOnError ? makeErrorHandler(controller) : controller._addError, {onDone: controller._close, cancelOnError: cancelOnError});
     }
     static makeErrorHandler(controller) { return (e, s) => {
       controller._addError(e, s);
@@ -2484,7 +2592,7 @@ var async;
         return new _DoneStreamSubscription(onDone);
       }
       if (this._subscription === null) {
-        this._subscription = this._source.listen(this._controller.add, /* Unimplemented NamedExpression: onError: _controller.addError */, /* Unimplemented NamedExpression: onDone: _controller.close */);
+        this._subscription = this._source.listen(this._controller.add, {onError: this._controller.addError, onDone: this._controller.close});
       }
       cancelOnError = dart_core.identical(true, cancelOnError);
       return this._controller._subscribe(onData, onError, onDone, cancelOnError);
@@ -2566,7 +2674,7 @@ var async;
       this._current = null;
       this._futureOrPrefetch = null;
       this._state = _STATE_FOUND;
-      this._subscription = stream.listen(this._onData, /* Unimplemented NamedExpression: onError: _onError */, /* Unimplemented NamedExpression: onDone: _onDone */, /* Unimplemented NamedExpression: cancelOnError: true */);
+      this._subscription = stream.listen(this._onData, {onError: this._onError, onDone: this._onDone, cancelOnError: true});
     }
     get current() { return this._current; }
     moveNext() {
@@ -2718,7 +2826,7 @@ var async;
       this._stream = _stream;
       this._subscription = null;
       super(onData, onError, onDone, cancelOnError);
-      this._subscription = this._stream._source.listen(this._handleData, /* Unimplemented NamedExpression: onError: _handleError */, /* Unimplemented NamedExpression: onDone: _handleDone */);
+      this._subscription = this._stream._source.listen(this._handleData, {onError: this._handleError, onDone: this._handleDone});
     }
     _add(data) {
       if (_isClosed) return;
@@ -2928,7 +3036,7 @@ var async;
       super(onData, onError, onDone, cancelOnError);
       let eventSink = new _EventSinkWrapper(this);
       this._transformerSink = mapper(eventSink);
-      this._subscription = source.listen(this._handleData, /* Unimplemented NamedExpression: onError: _handleError */, /* Unimplemented NamedExpression: onDone: _handleDone */);
+      this._subscription = source.listen(this._handleData, {onError: this._handleError, onDone: this._handleDone});
     }
     get _isSubscribed() { return this._subscription !== null; }
     _add(data) {
@@ -3068,13 +3176,13 @@ var async;
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createTimer(duration, callback);
       }
-      return Zone.current.createTimer(duration, Zone.current.bindCallback(callback, /* Unimplemented NamedExpression: runGuarded: true */));
+      return Zone.current.createTimer(duration, Zone.current.bindCallback(callback, {runGuarded: true}));
     }
     __init_periodic(duration, callback) {
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createPeriodicTimer(duration, callback);
       }
-      return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(/* Unimplemented: ClosureWrap: (Timer) → void to (dynamic) → dynamic */ callback, /* Unimplemented NamedExpression: runGuarded: true */));
+      return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(/* Unimplemented: ClosureWrap: (Timer) → void to (dynamic) → dynamic */ callback, {runGuarded: true}));
     }
     static run(callback) {
       new Timer(dart_core.Duration.ZERO, callback);
@@ -3118,7 +3226,7 @@ var async;
       let createPeriodicTimer = opt$.createPeriodicTimer === undefined ? null : opt$.createPeriodicTimer;
       let print = opt$.print === undefined ? null : opt$.print;
       let fork = opt$.fork === undefined ? null : opt$.fork;
-      return new ZoneSpecification(/* Unimplemented NamedExpression: handleUncaughtError: handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError */, /* Unimplemented NamedExpression: run: run != null ? run : other.run */, /* Unimplemented NamedExpression: runUnary: runUnary != null ? runUnary : other.runUnary */, /* Unimplemented NamedExpression: runBinary: runBinary != null ? runBinary : other.runBinary */, /* Unimplemented NamedExpression: registerCallback: registerCallback != null ? registerCallback : other.registerCallback */, /* Unimplemented NamedExpression: registerUnaryCallback: registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback */, /* Unimplemented NamedExpression: registerBinaryCallback: registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback */, /* Unimplemented NamedExpression: errorCallback: errorCallback != null ? errorCallback : other.errorCallback */, /* Unimplemented NamedExpression: scheduleMicrotask: scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask */, /* Unimplemented NamedExpression: createTimer: createTimer != null ? createTimer : other.createTimer */, /* Unimplemented NamedExpression: createPeriodicTimer: createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer */, /* Unimplemented NamedExpression: print: print != null ? print : other.print */, /* Unimplemented NamedExpression: fork: fork != null ? fork : other.fork */);
+      return new ZoneSpecification({handleUncaughtError: handleUncaughtError !== null ? handleUncaughtError : other.handleUncaughtError, run: run !== null ? run : other.run, runUnary: runUnary !== null ? runUnary : other.runUnary, runBinary: runBinary !== null ? runBinary : other.runBinary, registerCallback: registerCallback !== null ? registerCallback : other.registerCallback, registerUnaryCallback: registerUnaryCallback !== null ? registerUnaryCallback : other.registerUnaryCallback, registerBinaryCallback: registerBinaryCallback !== null ? registerBinaryCallback : other.registerBinaryCallback, errorCallback: errorCallback !== null ? errorCallback : other.errorCallback, scheduleMicrotask: scheduleMicrotask !== null ? scheduleMicrotask : other.scheduleMicrotask, createTimer: createTimer !== null ? createTimer : other.createTimer, createPeriodicTimer: createPeriodicTimer !== null ? createPeriodicTimer : other.createPeriodicTimer, print: print !== null ? print : other.print, fork: fork !== null ? fork : other.fork});
     }
   }
   ZoneSpecification.from = function(other, opt$) { this.__init_from(other, opt$) };
@@ -3481,7 +3589,7 @@ var async;
   function _rootScheduleMicrotask(self, parent, zone, f) {
     if (!dart_core.identical(_ROOT_ZONE, zone)) {
       let hasErrorHandler = /* Unimplemented postfix operator: !_ROOT_ZONE.inSameErrorZone(zone) */;
-      f = zone.bindCallback(f, /* Unimplemented NamedExpression: runGuarded: hasErrorHandler */);
+      f = zone.bindCallback(f, {runGuarded: hasErrorHandler});
     }
     _scheduleAsyncCallback(f);
   }
@@ -3659,11 +3767,11 @@ var async;
         /* Unimplemented TryStatement: try {if (onError is ZoneBinaryCallback) {return self.parent.runBinary(onError, error, stackTrace);} return self.parent.runUnary(onError, error);} catch (e, s) {if (identical(e, error)) {return parent.handleUncaughtError(zone, error, stackTrace);} else {return parent.handleUncaughtError(zone, e, s);}} */};
     }
     if (zoneSpecification === null) {
-      zoneSpecification = new ZoneSpecification(/* Unimplemented NamedExpression: handleUncaughtError: errorHandler */);
+      zoneSpecification = new ZoneSpecification({handleUncaughtError: errorHandler});
     } else if (errorHandler !== null) {
-      zoneSpecification = new ZoneSpecification.from(zoneSpecification, /* Unimplemented NamedExpression: handleUncaughtError: errorHandler */);
+      zoneSpecification = new ZoneSpecification.from(zoneSpecification, {handleUncaughtError: errorHandler});
     }
-    let zone = Zone.current.fork(/* Unimplemented NamedExpression: specification: zoneSpecification */, /* Unimplemented NamedExpression: zoneValues: zoneValues */);
+    let zone = Zone.current.fork({specification: zoneSpecification, zoneValues: zoneValues});
     if (onError !== null) {
       return zone.runGuarded(body);
     } else {

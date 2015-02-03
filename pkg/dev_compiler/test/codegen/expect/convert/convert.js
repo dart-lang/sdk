@@ -14,13 +14,13 @@ var convert;
       let allowInvalid = opt$.allowInvalid === undefined ? null : opt$.allowInvalid;
       if (allowInvalid === null) allowInvalid = this._allowInvalid;
       if (allowInvalid) {
-        return new AsciiDecoder(/* Unimplemented NamedExpression: allowInvalid: true */).convert(bytes);
+        return new AsciiDecoder({allowInvalid: true}).convert(bytes);
       } else {
-        return new AsciiDecoder(/* Unimplemented NamedExpression: allowInvalid: false */).convert(bytes);
+        return new AsciiDecoder({allowInvalid: false}).convert(bytes);
       }
     }
     get encoder() { return new AsciiEncoder(); }
-    get decoder() { return this._allowInvalid ? new AsciiDecoder(/* Unimplemented NamedExpression: allowInvalid: true */) : new AsciiDecoder(/* Unimplemented NamedExpression: allowInvalid: false */); }
+    get decoder() { return this._allowInvalid ? new AsciiDecoder({allowInvalid: true}) : new AsciiDecoder({allowInvalid: false}); }
   }
 
   class _UnicodeSubsetEncoder extends Converter/* Unimplemented <String, List<int>> */ {
@@ -509,7 +509,7 @@ var convert;
       super();
     }
     __init_withReviver(reviver) {
-      withReviver.call(this, /* Unimplemented NamedExpression: reviver: reviver */);
+      withReviver.call(this, {reviver: reviver});
     }
     decode(source, opt$) {
       let reviver = opt$.reviver === undefined ? null : opt$.reviver;
@@ -1055,13 +1055,13 @@ var convert;
       let allowInvalid = opt$.allowInvalid === undefined ? null : opt$.allowInvalid;
       if (allowInvalid === null) allowInvalid = this._allowInvalid;
       if (allowInvalid) {
-        return new Latin1Decoder(/* Unimplemented NamedExpression: allowInvalid: true */).convert(bytes);
+        return new Latin1Decoder({allowInvalid: true}).convert(bytes);
       } else {
-        return new Latin1Decoder(/* Unimplemented NamedExpression: allowInvalid: false */).convert(bytes);
+        return new Latin1Decoder({allowInvalid: false}).convert(bytes);
       }
     }
     get encoder() { return new Latin1Encoder(); }
-    get decoder() { return this._allowInvalid ? new Latin1Decoder(/* Unimplemented NamedExpression: allowInvalid: true */) : new Latin1Decoder(/* Unimplemented NamedExpression: allowInvalid: false */); }
+    get decoder() { return this._allowInvalid ? new Latin1Decoder({allowInvalid: true}) : new Latin1Decoder({allowInvalid: false}); }
   }
 
   class Latin1Encoder extends _UnicodeSubsetEncoder {
@@ -1453,11 +1453,11 @@ var convert;
     decode(codeUnits, opt$) {
       let allowMalformed = opt$.allowMalformed === undefined ? null : opt$.allowMalformed;
       if (allowMalformed === null) allowMalformed = this._allowMalformed;
-      return new Utf8Decoder(/* Unimplemented NamedExpression: allowMalformed: allowMalformed */).convert(codeUnits);
+      return new Utf8Decoder({allowMalformed: allowMalformed}).convert(codeUnits);
     }
     get encoder() { return new Utf8Encoder(); }
     get decoder() {
-      return new Utf8Decoder(/* Unimplemented NamedExpression: allowMalformed: _allowMalformed */);
+      return new Utf8Decoder({allowMalformed: this._allowMalformed});
     }
   }
 
