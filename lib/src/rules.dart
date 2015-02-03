@@ -26,7 +26,6 @@ class Rule {
 }
 
 class RuleRegistry {
-
   final Reporter reporter;
   final Map<String, Rule> _ruleMap = <String, Rule>{};
 

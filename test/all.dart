@@ -10,7 +10,7 @@ main() {
   // Tidy up the unittest output.
   filterStacks = true;
   formatStacks = true;
-//  useCompactVMConfiguration();
+  // useCompactVMConfiguration();
 
   lint_test.main();
 }

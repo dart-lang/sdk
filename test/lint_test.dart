@@ -16,7 +16,6 @@ import 'package:dart_lint/src/rules.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
-
 const ruleDir = 'test/rules';
 
 main() {
@@ -31,9 +30,9 @@ void defineLinterEngineTests() {
       test('duplicate rules', () {
         var registry = new MockRegistry();
         registry
-            ..registerLinter('r1', new MockLinter())
-            ..registerLinter('r1', new MockLinter())
-            ..expectWarnings(["Multiple linter rules registered to name 'r1'"]);
+          ..registerLinter('r1', new MockLinter())
+          ..registerLinter('r1', new MockLinter())
+          ..expectWarnings(["Multiple linter rules registered to name 'r1'"]);
       });
       test('empty to start', () {
         var registry = new MockRegistry();
@@ -74,7 +73,6 @@ void defineLinterEngineTests() {
   });
 }
 
-
 // Test framework sanity
 void defineRuleTests() {
 
@@ -98,8 +96,7 @@ void defineSanityTests() {
       expect(extractAnnotation('int x; //LINT'), isNotNull);
       expect(extractAnnotation('int x; // OK'), isNull);
       expect(extractAnnotation('int x;'), isNull);
-      expect(
-          extractAnnotation('dynamic x; // LINT dynamic is bad').message,
+      expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
           equals('dynamic is bad'));
     });
   });
@@ -120,7 +117,6 @@ Annotation extractAnnotation(String line) {
 }
 
 void testRule(String ruleName, File file) {
-
   var expected = <Annotation>[];
 
   int lineNumber = 0;
@@ -148,7 +144,6 @@ void testRule(String ruleName, File file) {
   print(lints);
 
   expect(actual, unorderedEquals(expected));
-
 }
 
 class Annotation {
@@ -173,7 +168,6 @@ class Annotation {
   }
 }
 
-
 class MockLinter extends Linter {
   @override
   AstVisitor getVisitor() => null;
@@ -188,7 +182,6 @@ class MockRegistry extends RuleRegistry {
 }
 
 class MockReporter extends Reporter {
-
   var exceptions = <LinterException>[];
   var warnings = <String>[];
 

@@ -28,13 +28,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:grinder/grinder.dart' as grinder;
 
-
 /// A refactored fork of [AnalyzerImpl] with an eye towards easing
 /// use and extension.
 ///
 /// Still very much a WIP.
 class AnalysisDriver {
-
   final DriverOptions _options;
 
   final int _startTime;
@@ -56,15 +54,11 @@ class AnalysisDriver {
       : this.forPath(file.absolute.path, options, dartSdk);
 
   AnalysisDriver.forPath(String sourcePath, DriverOptions options,
-      [DartSdk dartSdk])
-      : this.forSource(
-          _createSource(sourcePath, dartSdk, options),
-          options,
-          dartSdk);
+      [DartSdk dartSdk]) : this.forSource(
+          _createSource(sourcePath, dartSdk, options), options, dartSdk);
 
   AnalysisDriver.forSource(this._librarySource, this._options,
-      [DartSdk dartSdk])
-      : _startTime = _currentTimeInMillis() {
+      [DartSdk dartSdk]) : _startTime = _currentTimeInMillis() {
     //TODO: is already called when redirected from forPath
     _setupSdk(dartSdk, _options);
   }
@@ -98,8 +92,8 @@ class AnalysisDriver {
           PhysicalResourceProvider.INSTANCE.getResource('.'));
       Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
       if (packageMap != null) {
-        resolvers.add(
-            new PackageMapUriResolver(PhysicalResourceProvider.INSTANCE, packageMap));
+        resolvers.add(new PackageMapUriResolver(
+            PhysicalResourceProvider.INSTANCE, packageMap));
       }
     }
   }
@@ -114,7 +108,7 @@ class AnalysisDriver {
   /// Treats the [sourcePath] as the top level library and analyzes it using a
   /// synchronous algorithm over the analysis engine. If [printMode] is `0`,
 
-      /// then no error or performance information is printed. If [printMode] is `1`,
+  /// then no error or performance information is printed. If [printMode] is `1`,
   /// then both will be printed. If [printMode] is `2`, then only performance
   /// information will be printed, and it will be marked as being for a cold VM.
   ErrorSeverity analyzeSync({int printMode: 1}) {
@@ -130,8 +124,7 @@ class AnalysisDriver {
       return false;
     }
     if (_computeSeverity(error, _options.enableTypeChecks) ==
-        ErrorSeverity.INFO &&
-        _options.disableHints) {
+        ErrorSeverity.INFO && _options.disableHints) {
       return false;
     }
     return true;
@@ -165,9 +158,7 @@ class AnalysisDriver {
     }
     // add compilation units
     _addCompilationUnitSource(
-        library.definingCompilationUnit,
-        libraries,
-        units);
+        library.definingCompilationUnit, libraries, units);
     for (CompilationUnitElement child in library.parts) {
       _addCompilationUnitSource(child, libraries, units);
     }
@@ -247,8 +238,9 @@ class AnalysisDriver {
 
   List<UriResolver> _getResolvers() {
     List<UriResolver> resolvers = [
-        new DartUriResolver(sdk),
-        new FileUriResolver()];
+      new DartUriResolver(sdk),
+      new FileUriResolver()
+    ];
     addResolvers(resolvers);
     return resolvers;
   }
@@ -366,8 +358,8 @@ class AnalysisDriver {
   /// Compute the severity of the error; however, if
   /// enableTypeChecks] is false, then de-escalate checked-mode compile time
   /// errors to a severity of [ErrorSeverity.INFO].
-  static ErrorSeverity _computeSeverity(AnalysisError error,
-      bool enableTypeChecks) {
+  static ErrorSeverity _computeSeverity(
+      AnalysisError error, bool enableTypeChecks) {
     if (!enableTypeChecks &&
         error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
       return ErrorSeverity.INFO;
@@ -375,8 +367,8 @@ class AnalysisDriver {
     return error.errorCode.errorSeverity;
   }
 
-  static Source _createSource(String sourcePath, DartSdk dartSdk,
-      DriverOptions options) {
+  static Source _createSource(
+      String sourcePath, DartSdk dartSdk, DriverOptions options) {
     _setupSdk(dartSdk, options);
     JavaFile sourceFile = new JavaFile(_normalizeSourcePath(sourcePath));
     Uri uri = _getUri(sourceFile);
@@ -437,9 +429,7 @@ class AnalysisDriver {
       sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDir.path));
     }
   }
-
 }
-
 
 class DriverOptions {
 
@@ -494,9 +484,7 @@ class DriverOptions {
   bool warningsAreFatal = false;
 }
 
-
 class SdkWrapper implements DirectoryBasedDartSdk {
-
   DartSdk dartSdk;
 
   SdkWrapper(this.dartSdk);
@@ -572,7 +560,6 @@ class SdkWrapper implements DirectoryBasedDartSdk {
 }
 
 class _OptionsWrapper implements CommandLineOptions {
-
   final DriverOptions driverOptions;
 
   _OptionsWrapper(this.driverOptions);

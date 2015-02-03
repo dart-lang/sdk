@@ -14,7 +14,6 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:dart_lint/src/analysis.dart';
 import 'package:dart_lint/src/rules.dart';
 
-
 /// Dart source linter.
 abstract class DartLinter {
 
@@ -33,23 +32,20 @@ abstract class DartLinter {
 }
 
 class LintDriver extends AnalysisDriver {
-
   static LinterOptions get standardOptions => new LinterOptions();
 
   factory LintDriver.forFile(File file, Iterable<Linter> linters,
       [LinterOptions options]) {
     _registerLinters(linters);
     return new LintDriver._forFile(
-        file,
-        options != null ? options : standardOptions);
+        file, options != null ? options : standardOptions);
   }
 
   factory LintDriver.forPath(String path, Iterable<Linter> linters,
       [LinterOptions options]) {
     _registerLinters(linters);
     return new LintDriver._forPath(
-        path,
-        options != null ? options : standardOptions);
+        path, options != null ? options : standardOptions);
   }
 
   LintDriver._forFile(File file, [LinterOptions options])
@@ -106,14 +102,13 @@ abstract class Reporter {
 
 /// Linter implementation
 class SourceLinter implements DartLinter, AnalysisErrorListener {
-
   final errors = <AnalysisError>[];
   LinterOptions options;
   final Reporter reporter;
   RuleRegistry registry;
 
-  SourceLinter(this.options, [this.reporter = const StdIoReporter(),
-      this.registry]) {
+  SourceLinter(this.options,
+      [this.reporter = const StdIoReporter(), this.registry]) {
     if (options == null) {
       options = new LinterOptions();
     }
@@ -152,7 +147,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 }
 
 class StdIoReporter implements Reporter, Logger {
-
   const StdIoReporter();
 
   @override
