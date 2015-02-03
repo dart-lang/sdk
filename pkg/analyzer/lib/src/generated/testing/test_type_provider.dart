@@ -47,6 +47,11 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType _functionType;
 
   /**
+   * The type representing 'Future<dynamic>'
+   */
+  InterfaceType _futureDynamicType;
+
+  /**
    * The type representing 'Future<Null>'
    */
   InterfaceType _futureNullType;
@@ -194,6 +199,14 @@ class TestTypeProvider implements TypeProvider {
       _functionType = ElementFactory.classElement2("Function").type;
     }
     return _functionType;
+  }
+
+  @override
+  InterfaceType get futureDynamicType {
+    if (_futureDynamicType == null) {
+      _futureDynamicType = futureType.substitute4(<DartType>[dynamicType]);
+    }
+    return _futureDynamicType;
   }
 
   @override

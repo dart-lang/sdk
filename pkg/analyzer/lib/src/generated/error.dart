@@ -3284,6 +3284,33 @@ class StaticTypeWarningCode extends ErrorCode {
           "Map literal requires exactly two type arguments or none, but {0} found");
 
   /**
+   * 9 Functions: It is a static warning if the declared return type of a
+   * function marked async* may not be assigned to Stream.
+   */
+  static const StaticTypeWarningCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
+      const StaticTypeWarningCode(
+          'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'async*' must have a return type assignable to 'Stream'");
+
+  /**
+   * 9 Functions: It is a static warning if the declared return type of a
+   * function marked async may not be assigned to Future.
+   */
+  static const StaticTypeWarningCode ILLEGAL_ASYNC_RETURN_TYPE =
+      const StaticTypeWarningCode(
+          'ILLEGAL_ASYNC_RETURN_TYPE',
+          "Functions marked 'async' must have a return type assignable to 'Future'");
+
+  /**
+   * 9 Functions: It is a static warning if the declared return type of a
+   * function marked sync* may not be assigned to Iterable.
+   */
+  static const StaticTypeWarningCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
+      const StaticTypeWarningCode(
+          'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'sync*' must have a return type assignable to 'Iterable'");
+
+  /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
    * It is a static type warning if <i>T</i> does not have an accessible
    * instance setter named <i>v=</i>.

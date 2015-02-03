@@ -677,6 +677,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
       _checkForTypeAnnotationDeferredClass(returnType);
+      _checkForIllegalReturnType(returnType);
       return super.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -862,6 +863,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForConcreteClassWithAbstractMember(node);
       _checkForAllInvalidOverrideErrorCodesForMethod(node);
       _checkForTypeAnnotationDeferredClass(returnTypeName);
+      _checkForIllegalReturnType(returnTypeName);
       return super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -3478,6 +3480,43 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * If the current function is async, async*, or sync*, verify that its
+   * declared return type is assignable to Future, Stream, or Iterable,
+   * respectively.  If not, report the error using [node].
+   */
+  void _checkForIllegalReturnType(TypeName node) {
+    if (node == null) {
+      // No declared return type, so the return type must be dynamic, which is
+      // assignable to everything.
+      return;
+    }
+    if (_enclosingFunction.isAsynchronous) {
+      if (_enclosingFunction.isGenerator) {
+        if (!_enclosingFunction.returnType.isAssignableTo(
+            _typeProvider.streamDynamicType)) {
+          _errorReporter.reportErrorForNode(
+              StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+              node);
+        }
+      } else {
+        if (!_enclosingFunction.returnType.isAssignableTo(
+            _typeProvider.futureDynamicType)) {
+          _errorReporter.reportErrorForNode(
+              StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
+              node);
+        }
+      }
+    } else if (_enclosingFunction.isGenerator) {
+      if (!_enclosingFunction.returnType.isAssignableTo(
+          _typeProvider.iterableDynamicType)) {
+        _errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+            node);
+      }
+    }
   }
 
   /**

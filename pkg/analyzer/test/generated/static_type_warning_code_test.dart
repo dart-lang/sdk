@@ -90,6 +90,78 @@ main() {
     verify([source]);
   }
 
+  void test_illegal_return_type_async_function() {
+    Source source = addSource('''
+int f() async {}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  void test_illegal_return_type_async_generator_function() {
+    Source source = addSource('''
+int f() async* {}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
+    verify([source]);
+  }
+
+  void test_illegal_return_type_async_generator_method() {
+    Source source = addSource('''
+class C {
+  int f() async* {}
+}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
+    verify([source]);
+  }
+
+  void test_illegal_return_type_async_method() {
+    Source source = addSource('''
+class C {
+  int f() async {}
+}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  void test_illegal_return_type_sync_generator_function() {
+    Source source = addSource('''
+int f() sync* {}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
+    verify([source]);
+  }
+
+  void test_illegal_return_type_sync_generator_method() {
+    Source source = addSource('''
+class C {
+  int f() sync* {}
+}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
+    verify([source]);
+  }
+
   void test_inconsistentMethodInheritance_paramCount() {
     Source source = addSource(r'''
 abstract class A {
@@ -598,7 +670,11 @@ int f() async {
 }
 ''');
     resolve(source);
-    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    assertErrors(
+        source,
+        [
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+            StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE]);
     verify([source]);
   }
 
@@ -1661,7 +1737,11 @@ int f() async* {
 }
 ''');
     resolve(source);
-    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    assertErrors(
+        source,
+        [
+            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+            StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
     verify([source]);
   }
 
@@ -1672,7 +1752,11 @@ Iterable<int> f() async* {
 }
 ''');
     resolve(source);
-    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    assertErrors(
+        source,
+        [
+            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+            StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
     verify([source]);
   }
 
@@ -1703,7 +1787,7 @@ Stream<String> g() => null;
 
   void test_yield_each_sync_to_mistyped_iterable() {
     Source source = addSource('''
-Iterable<int> f() async* {
+Iterable<int> f() sync* {
   yield* g();
 }
 Iterable<String> g() => null;
@@ -1720,7 +1804,11 @@ int f() sync* {
 }
 ''');
     resolve(source);
-    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    assertErrors(
+        source,
+        [
+            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+            StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
     verify([source]);
   }
 
@@ -1743,7 +1831,11 @@ Stream<int> f() sync* {
 }
 ''');
     resolve(source);
-    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    assertErrors(
+        source,
+        [
+            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+            StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
     verify([source]);
   }
 }

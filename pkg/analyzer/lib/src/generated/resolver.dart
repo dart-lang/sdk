@@ -13410,6 +13410,11 @@ abstract class TypeProvider {
   InterfaceType get functionType;
 
   /**
+   * Return the type representing 'Future<dynamic>'.
+   */
+  InterfaceType get futureDynamicType;
+
+  /**
    * Return the type representing 'Future<Null>'.
    */
   InterfaceType get futureNullType;
@@ -13551,6 +13556,11 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _functionType;
 
   /**
+   * The type representing 'Future<dynamic>'.
+   */
+  InterfaceType _futureDynamicType;
+
+  /**
    * The type representing 'Future<Null>'.
    */
   InterfaceType _futureNullType;
@@ -13663,6 +13673,9 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType get functionType => _functionType;
 
   @override
+  InterfaceType get futureDynamicType => _futureDynamicType;
+
+  @override
   InterfaceType get futureNullType => _futureNullType;
 
   @override
@@ -13762,6 +13775,7 @@ class TypeProviderImpl implements TypeProvider {
     _symbolType = _getType(coreNamespace, "Symbol");
     _typeType = _getType(coreNamespace, "Type");
     _undefinedType = UndefinedTypeImpl.instance;
+    _futureDynamicType = _futureType.substitute4(<DartType>[_dynamicType]);
     _futureNullType = _futureType.substitute4(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.substitute4(<DartType>[_dynamicType]);
     _streamDynamicType = _streamType.substitute4(<DartType>[_dynamicType]);
