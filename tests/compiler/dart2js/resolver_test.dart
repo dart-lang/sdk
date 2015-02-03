@@ -685,12 +685,7 @@ Future resolveConstructor(
     compiler.resolveStatement(statement);
     ClassElement classElement = compiler.mainApp.find(className);
     Element element;
-    if (constructor != '') {
-      element = classElement.lookupConstructor(constructor);
-    } else {
-      element = classElement.lookupDefaultConstructor();
-    }
-
+    element = classElement.lookupConstructor(constructor);
     FunctionExpression tree = (element as FunctionElement).node;
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, element,
