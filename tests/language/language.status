@@ -78,7 +78,7 @@ async_await_syntax_test/c04a: CompileTimeError # Issue 21404
 async_await_syntax_test/d03a: CompileTimeError # Issue 21404
 async_await_syntax_test/d04a: CompileTimeError # Issue 21404
 
-[ $compiler == none || $runtime == dartium ]
+[ $compiler == none && $runtime == dartium ]
 async_await_syntax_test/a03a: RuntimeError # Issue 21404
 async_await_syntax_test/a04a: RuntimeError # Issue 21404
 async_await_syntax_test/a07a: RuntimeError # Issue 21404
@@ -87,7 +87,7 @@ async_await_syntax_test/a09a: RuntimeError # Issue 21404
 async_await_syntax_test/a10a: RuntimeError # Issue 21404
 async_await_syntax_test/a11b: RuntimeError # Issue 21404
 async_await_syntax_test/a11d: RuntimeError # Issue 21404
-async_await_syntax_test/b00a: MissingCompileTimeError  # Issue 21404
+async_await_syntax_test/b00a: Fail  # Issue 21404
 async_await_syntax_test/b03a: RuntimeError # Issue 21404
 async_await_syntax_test/b04a: RuntimeError # Issue 21404
 async_await_syntax_test/b07a: RuntimeError # Issue 21404
