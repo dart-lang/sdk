@@ -253,8 +253,18 @@ class Unparser extends Indentation implements Visitor {
       unparseNodeListFrom(node.initializers, node.initializers.nodes,
           spaces: true);
     }
-    visit(node.asyncModifier);
-    if (node.body != null && node.body is! EmptyStatement) space();
+    if (node.asyncModifier != null) {
+      if (node.getOrSet != null) {
+        write(' ');
+      } else {
+        // Space is optional if this is not a getter.
+        space();
+      }
+      visit(node.asyncModifier);
+    }
+    if (node.body != null && node.body is! EmptyStatement) {
+      space();
+    }
     visit(node.body);
   }
 
@@ -394,11 +404,13 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitYield(Yield node) {
-    write(node.yieldToken);
-    write(node.starToken);
+    write(node.yieldToken.value);
+    if (node.starToken != null) {
+      write(node.starToken.value);
+    }
     space();
     visit(node.expression);
-    write(node.endToken);
+    write(node.endToken.value);
   }
 
 

@@ -106,7 +106,7 @@ class Compiler extends leg.Compiler {
       throw new ArgumentError("[packageRoot] must end with a /.");
     }
     if (!analyzeOnly) {
-      if (enableAsyncAwait) {
+      if (enableAsyncAwait && emitJavaScript) {
         throw new ArgumentError(
             "--enable-async is currently only supported with --analyze-only");
       }

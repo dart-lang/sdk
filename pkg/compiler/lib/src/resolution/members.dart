@@ -500,10 +500,6 @@ class ResolverTask extends CompilerTask {
         compiler.reportError(asyncModifier,
             MessageKind.EXPERIMENTAL_ASYNC_AWAIT,
             {'modifier': element.asyncMarker});
-      } else if (!compiler.analyzeOnly) {
-        compiler.reportError(asyncModifier,
-            MessageKind.EXPERIMENTAL_ASYNC_AWAIT,
-            {'modifier': element.asyncMarker});
       }
 
       if (asyncModifier.isAsynchronous) {

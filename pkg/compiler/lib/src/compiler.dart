@@ -743,6 +743,9 @@ abstract class Compiler implements DiagnosticListener {
   /// `true` if async/await features are supported.
   final bool enableAsyncAwait;
 
+  /// `true` if the compiler uses the [JavaScriptBackend].
+  final bool emitJavaScript;
+
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
   final bool hasIncrementalSupport;
@@ -1004,12 +1007,14 @@ abstract class Compiler implements DiagnosticListener {
             this.suppressWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
-            this.enableAsyncAwait: false,
+            bool enableAsyncAwait: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
-      : this.disableTypeInferenceFlag =
+      : this.emitJavaScript = emitJavaScript,
+        this.enableAsyncAwait = enableAsyncAwait || !emitJavaScript,
+        this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,
         this.analyzeOnly =
             analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,

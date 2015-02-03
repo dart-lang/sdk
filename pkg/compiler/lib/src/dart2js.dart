@@ -410,7 +410,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
   if (analyzeAll) analyzeOnly = true;
   if (!analyzeOnly) {
-    if (enableAsyncAwait) {
+    if (enableAsyncAwait && outputLanguage != OUTPUT_LANGUAGE_DART) {
       helpAndFail("Option '--enable-async' is currently only supported in "
                   "combination with the '--analyze-only' option.");
     }

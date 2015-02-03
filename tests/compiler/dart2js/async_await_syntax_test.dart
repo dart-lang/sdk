@@ -8,7 +8,7 @@
 import 'frontend_checker.dart';
 
 const List<String> TESTS = const <String>[
-  'compiler/dart2js/async_await_syntax.dart',
+  'language/async_await_syntax_test.dart',
 ];
 
 void main(List<String> arguments) {

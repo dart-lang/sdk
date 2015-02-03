@@ -1,11 +1,14 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // Test async/await syntax.
 
+import 'dart:async' show Stream;
+
 var yield = 0;
 var await = 0;
+get st => new Stream.fromIterable([]);
 
 a01a() async => null;                        /// a01a: ok
 a01b() async* => null;                       /// a01b: compile-time error
@@ -37,8 +40,8 @@ a05f() async {                               /// a05f: compile-time error
   var await = (a) {};                        /// a05f: continued
   await(0);                                  /// a05f: continued
 }                                            /// a05f: continued
-a06a() async { await for (var o in []) {} }  /// a06a: ok
-a06b() sync* { await for (var o in []) {} }  /// a06b: compile-time error
+a06a() async { await for (var o in st) {} }  /// a06a: ok
+a06b() sync* { await for (var o in st) {} }  /// a06b: compile-time error
 a07a() sync* { yield 0; }                    /// a07a: ok
 a07b() sync { yield 0; }                     /// a07b: compile-time error
 a08a() sync* { yield* []; }                  /// a08a: ok
@@ -104,7 +107,7 @@ class C extends B {
   b04a() sync* {}                              /// b04a: ok
   b04b() sync {}                               /// b04b: compile-time error
   b05a() async { await 0; }                    /// b05a: ok
-  b06a() async { await for (var o in []) {} }  /// b06a: ok
+  b06a() async { await for (var o in st) {} }  /// b06a: ok
   b06b() async { await for ( ; ; ) {} }        /// b06b: compile-time error
   b07a() sync* { yield 0; }                    /// b07a: ok
   b08a() sync* { yield* []; }                  /// b08a: ok
@@ -146,7 +149,7 @@ method1() {
   c04a() sync* {} c04a();                              /// c04a: ok
   c04b() sync {} c04b();                               /// c04b: compile-time error
   c05a() async { await 0; } c05a();                    /// c05a: ok
-  c06a() async { await for (var o in []) {} } c06a();  /// c06a: ok
+  c06a() async { await for (var o in st) {} } c06a();  /// c06a: ok
   c07a() sync* { yield 0; } c07a();                    /// c07a: ok
   c08a() sync* { yield* []; } c08a();                  /// c08a: ok
   c09a() async* { yield 0; } c09a();                   /// c09a: ok
@@ -162,7 +165,7 @@ method2() {
   var d04a = () sync* {}; d04a();                              /// d04a: ok
   var d04b = () sync {}; d04b();                               /// d04b: compile-time error
   var d05a = () async { await 0; }; d05a();                    /// d05a: ok
-  var d06a = () async { await for (var o in []) {} }; d06a();  /// d06a: ok
+  var d06a = () async { await for (var o in st) {} }; d06a();  /// d06a: ok
   var d07a = () sync* { yield 0; }; d07a();                    /// d07a: ok
   var d08a = () sync* { yield* []; }; d08a();                  /// d08a: ok
   var d08b = () sync* { yield*0+1; }; d08b();                  /// d08b: ok
