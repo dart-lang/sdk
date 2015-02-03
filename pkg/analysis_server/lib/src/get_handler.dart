@@ -4,6 +4,7 @@
 
 library analysis_server.src.get_handler;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
@@ -16,6 +17,9 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index/local_index.dart';
+import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -77,6 +81,11 @@ class GetHandler {
   static const String ELEMENT_PATH = '/element';
 
   /**
+   * The path used to request information about elements with the given name.
+   */
+  static const String INDEX_ELEMENT_BY_NAME = '/index/element-by-name';
+
+  /**
    * The path used to request an overlay contents.
    */
   static const String OVERLAY_PATH = '/overlay';
@@ -113,6 +122,12 @@ class GetHandler {
    * Query parameter used to represent the index in the [_overlayContents].
    */
   static const String ID_PARAM = 'id';
+
+  /**
+   * Query parameter used to represent the name of elements to search for, when
+   * accessing [INDEX_ELEMENT_BY_NAME].
+   */
+  static const String INDEX_ELEMENT_NAME = 'name';
 
   /**
    * Query parameter used to represent the source to search for, when accessing
@@ -177,6 +192,8 @@ class GetHandler {
       _returnContextInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
+    } else if (path == INDEX_ELEMENT_BY_NAME) {
+      _returnIndexElementByName(request);
     } else if (path == OVERLAY_PATH) {
       _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
@@ -702,6 +719,55 @@ class GetHandler {
     });
   }
 
+  /**
+   * Return a response containing information about elements with the given
+   * name.
+   */
+  Future _returnIndexElementByName(HttpRequest request) async {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server not running');
+    }
+    Index index = analysisServer.index;
+    String name = request.uri.queryParameters[INDEX_ELEMENT_NAME];
+    if (name == null) {
+      return _returnFailure(
+          request,
+          'Query parameter $INDEX_ELEMENT_NAME required');
+    }
+    if (index is LocalIndex) {
+      Map<List<String>, List<InspectLocation>> relations =
+          await index.findElementsByName(name);
+      _writeResponse(request, (StringBuffer buffer) {
+        _writePage(
+            buffer,
+            'Analysis Server - Index Elements',
+            ['Name: $name'],
+            (StringBuffer buffer) {
+          buffer.write('<table border="1">');
+          _writeRow(
+              buffer,
+              ['Element', 'Relationship', 'Location'],
+              header: true);
+          relations.forEach(
+              (List<String> elementPath, List<InspectLocation> relations) {
+            String elementLocation = elementPath.join(' ');
+            relations.forEach((InspectLocation location) {
+              var relString = location.relationship.identifier;
+              var locString =
+                  '${location.path} offset=${location.offset} '
+                      'length=${location.length} flags=${location.flags}';
+              _writeRow(buffer, [elementLocation, relString, locString]);
+            });
+          });
+          buffer.write('</table>');
+        });
+      });
+    } else {
+      return _returnFailure(request, 'LocalIndex expected, but $index found.');
+    }
+  }
+
   void _returnOverlayContents(HttpRequest request) {
     String idString = request.requestedUri.queryParameters[ID_PARAM];
     if (idString == null) {
@@ -1057,7 +1123,7 @@ class GetHandler {
               HTML_ESCAPE.convert(performance.snippet)]);
       ++index;
     }
-    ;
+
     buffer.write('</table>');
     buffer.write('''
       <p><strong>First (ms)</strong> - the number of milliseconds

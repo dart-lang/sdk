@@ -145,6 +145,34 @@ class ElementCodec {
     return index;
   }
 
+  /**
+   * Returns a list with the location components of the element with the
+   * given encoded ID.
+   */
+  List<String> inspect_decodePath(int id) {
+    List<int> path = _indexToPath[id];
+    return _getLocationComponents(path);
+  }
+
+  /**
+   * Returns a map of element IDs to their locations for elements with
+   * the [requiredName].
+   */
+  Map<int, List<String>> inspect_getElements(String requiredName) {
+    Map<int, List<String>> result = <int, List<String>>{};
+    for (int i = 0; i < _indexToPath.length; i++) {
+      List<int> path = _indexToPath[i];
+      int nameIndex = path[path.length - 1];
+      if (nameIndex >= 0) {
+        String name = _stringCodec.decode(nameIndex);
+        if (name == requiredName) {
+          result[i] = path.map(_stringCodec.decode).toList();
+        }
+      }
+    }
+    return result;
+  }
+
   int _encodePath(List<int> path) {
     int index = _pathToIndex[path];
     if (index == null) {

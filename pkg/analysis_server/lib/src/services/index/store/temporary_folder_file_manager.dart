@@ -53,6 +53,18 @@ class TemporaryFolderFileManager implements FileManager {
   }
 
   @override
+  List<String> inspect_getAllNodeNames() {
+    List<String> names = <String>[];
+    List<FileSystemEntity> filePathList = _directory.listSync();
+    for (FileSystemEntity file in filePathList) {
+      String filePath = file.path;
+      String name = pathos.basename(filePath);
+      names.add(name);
+    }
+    return names;
+  }
+
+  @override
   Future<List<int>> read(String name) {
     if (_directory == null) {
       return new Future.value(null);
