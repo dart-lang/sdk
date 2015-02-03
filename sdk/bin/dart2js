@@ -36,12 +36,6 @@ fi
 unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
 
-# Tell the VM to grow the heap more aggressively. This should only
-# be necessary temporarily until the VM is better at detecting how
-# applications use memory.
-# TODO(ahe): Remove this option (http://dartbug.com/6495).
-EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--heap_growth_rate=512'
-
 case $0 in
   *_developer)
     EXTRA_VM_OPTIONS+=('--checked')
