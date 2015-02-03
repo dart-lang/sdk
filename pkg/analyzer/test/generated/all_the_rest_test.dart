@@ -6892,6 +6892,14 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("v = throw '';");
   }
 
+  void test_await_false() {
+    _assertFalse("await x;");
+  }
+
+  void test_await_throw_true() {
+    _assertTrue("bool b = await (throw '' || true);");
+  }
+
   void test_binaryExpression_and() {
     _assertFalse("a && b;");
   }

@@ -3907,6 +3907,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.leftHandSide) || _nodeExits(node.rightHandSide);
 
   @override
+  bool visitAwaitExpression(AwaitExpression node) =>
+      _nodeExits(node.expression);
+
+  @override
   bool visitBinaryExpression(BinaryExpression node) {
     Expression lhsExpression = node.leftOperand;
     sc.TokenType operatorType = node.operator.type;
