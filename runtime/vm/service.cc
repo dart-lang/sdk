@@ -1071,20 +1071,24 @@ static bool HandleIsolateGetStack(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
-  jsobj->AddProperty("type", "message");
-  PrintArgumentsAndOptions(*jsobj, js);
+  jsobj->AddProperty("type", "_EchoResponse");
+  if (js->HasOption("text")) {
+    jsobj->AddProperty("text", js->LookupOption("text"));
+  }
   return true;
 }
 
 
-void Service::SendEchoEvent(Isolate* isolate) {
+void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
     jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddPropertyF("id", "_echoEvent");
     jsobj.AddProperty("eventType", "_Echo");
     jsobj.AddProperty("isolate", isolate);
+    if (text != NULL) {
+      jsobj.AddProperty("text", text);
+    }
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
@@ -1093,12 +1097,15 @@ void Service::SendEchoEvent(Isolate* isolate) {
 }
 
 
+static bool HandleIsolateTriggerEchoEvent(Isolate* isolate, JSONStream* js) {
+  Service::SendEchoEvent(isolate, js->LookupOption("text"));
+  JSONObject jsobj(js);
+  return HandleCommonEcho(&jsobj, js);
+}
+
+
 static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("id", "_echo");
-  if (js->num_arguments() == 2 && strcmp(js->GetArgument(1), "event") == 0) {
-    Service::SendEchoEvent(isolate);
-  }
   return HandleCommonEcho(&jsobj, js);
 }
 
@@ -2883,7 +2890,8 @@ static bool HandleAddress(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleMalformedJson(Isolate* isolate, JSONStream* js) {
+static bool HandleIsolateRespondWithMalformedJson(Isolate* isolate,
+                                                  JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("a", "a");
   JSONObject jsobj1(js);
@@ -2896,7 +2904,8 @@ static bool HandleMalformedJson(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleMalformedObject(Isolate* isolate, JSONStream* js) {
+static bool HandleIsolateRespondWithMalformedObject(Isolate* isolate,
+                                                    JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("bart", "simpson");
   return true;
@@ -2904,9 +2913,6 @@ static bool HandleMalformedObject(Isolate* isolate, JSONStream* js) {
 
 
 static IsolateMessageHandlerEntry isolate_handlers[] = {
-  { "_malformedjson", HandleMalformedJson },      // debug
-  { "_malformedobject", HandleMalformedObject },  // debug
-  { "_echo", HandleIsolateEcho },                 // debug
   { "", HandleIsolate },                          // getObject
   { "address", HandleAddress },                   // to do
   { "classes", HandleClasses },                   // getObject
@@ -3027,7 +3033,11 @@ static IsolateMessageHandlerEntry isolate_handlers_new[] = {
   { "getInstances", HandleIsolateGetInstances },
   { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot },
   { "getClassList", HandleIsolateGetClassList },
-  { "getTypeArgumentsList", HandleIsolateGetTypeArgumentsList }
+  { "getTypeArgumentsList", HandleIsolateGetTypeArgumentsList },
+  { "_echo", HandleIsolateEcho },
+  { "_triggerEchoEvent", HandleIsolateTriggerEchoEvent },
+  { "_respondWithMalformedJson", HandleIsolateRespondWithMalformedJson },
+  { "_respondWithMalformedObject", HandleIsolateRespondWithMalformedObject },
 };
 
 
@@ -3190,7 +3200,6 @@ void Service::HandleRootMessage(const Instance& msg) {
 
 static bool HandleRootEcho(JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("id", "_echo");
   return HandleCommonEcho(&jsobj, js);
 }
 
@@ -3281,9 +3290,7 @@ static bool HandleFlags(JSONStream* js) {
   }
 }
 
-
 static RootMessageHandlerEntry root_handlers[] = {
-  { "_echo", HandleRootEcho },
   { "vm", HandleVM },
   { "flags", HandleFlags },
 };
@@ -3307,6 +3314,7 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
 
 static RootMessageHandlerEntry root_handlers_new[] = {
   { "getVM", HandleVM },
+  { "_echo", HandleRootEcho },
 };
 
 

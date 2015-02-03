@@ -495,8 +495,13 @@ abstract class VM extends ServiceObjectOwner {
     try {
       var decoder = new JsonDecoder(_reviver);
       map = decoder.convert(response);
-    } catch (e, st) {
-      return null;
+    } catch (e) {
+      return toObservable({
+        'type': 'ServiceException',
+        'kind': 'JSONDecodeException',
+        'response': map,
+        'message': 'Could not decode JSON: $e',
+      });
     }
     return toObservable(map);
   }
@@ -507,8 +512,7 @@ abstract class VM extends ServiceObjectOwner {
       return new Future.error(
             new ServiceObject._fromMap(this, toObservable({
         'type': 'ServiceException',
-        'id': '',
-        'kind': 'FormatException',
+        'kind': 'ResponseFormatException',
         'response': map,
         'message': 'Top level service responses must be service maps: ${map}.',
       })));
@@ -521,21 +525,6 @@ abstract class VM extends ServiceObjectOwner {
     }
     // map is now guaranteed to be a non-error/exception ServiceObject.
     return new Future.value(map);
-  }
-
-  Future<ObservableMap> _decodeError(e) {
-    return new Future.error(new ServiceObject._fromMap(this, toObservable({
-      'type': 'ServiceException',
-      'id': '',
-      'kind': 'DecodeException',
-      'response':
-          'This is likely a result of a known V8 bug. Although the '
-          'the bug has been fixed the fix may not be in your Chrome'
-          ' version. For more information see dartbug.com/18385. '
-          'Observatory is still functioning and you should try your'
-          ' action again.',
-      'message': 'Could not decode JSON: $e',
-    })));
   }
 
   /// Gets [id] as an [ObservableMap] from the service directly. If

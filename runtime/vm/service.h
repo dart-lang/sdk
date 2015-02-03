@@ -74,7 +74,7 @@ class Service : public AllStatic {
       Dart_ServiceRequestCallback callback,
       void* user_data);
 
-  static void SendEchoEvent(Isolate* isolate);
+  static void SendEchoEvent(Isolate* isolate, const char* text);
   static void SendGraphEvent(Isolate* isolate);
 
   static void MaybeInjectVMServiceLibrary(Isolate* isolate);

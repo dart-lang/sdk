@@ -81,6 +81,21 @@ interface Service {
   // returned.
   getTypeArgumentsList(isolateId string,
                        onlyWithInstantiations bool) TypeArgumentsList
+
+  _echo(isolateId string,
+        text string) _EchoResponse
+
+  _echoVM(text string) _EchoResponse
+
+  // Triggers a ServiceEvent with EventType '_Echo'.
+  _triggerEchoEvent(isolateId string,
+                    text string) _EchoResponse
+
+  // Response is bad JSON.
+  _respondWithMalformedJson(isolateId string) Response
+
+  // Response is not an object.
+  _respondWithMalformedObject(isolateId string) Response
 }
 
 
@@ -99,6 +114,11 @@ struct Response {
   // only when this type name differs from the <code>type</code>
   // property.
   _vmType string [optional]
+}
+
+
+struct _EchoResponse extends Response {
+  text string
 }
 
 
