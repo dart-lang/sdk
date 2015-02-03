@@ -26,18 +26,15 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
     expect(result.isPotential, isPotential);
   }
 
-  Future findMemberReferences(String name) {
-    return waitForTasksFinished().then((_) {
-      Request request =
-          new SearchFindMemberReferencesParams(name).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      searchId = new SearchFindMemberReferencesResult.fromResponse(response).id;
-      results.clear();
-      return waitForSearchResults();
-    });
+  Future findMemberReferences(String name) async {
+    await waitForTasksFinished();
+    Request request = new SearchFindMemberReferencesParams(name).toRequest('0');
+    Response response = await waitResponse(request);
+    searchId = new SearchFindMemberReferencesResult.fromResponse(response).id;
+    return waitForSearchResults();
   }
 
-  test_fields_explicit() {
+  test_fields_explicit() async {
     addTestFile('''
 class A {
   var foo;
@@ -58,19 +55,18 @@ mainUnresolved(a, b) {
   print(b.foo); // unresolved B
 }
 ''');
-    return findMemberReferences('foo').then((_) {
-      assertHasRef(SearchResultKind.WRITE, 'foo = 1;', false);
-      assertHasRef(SearchResultKind.WRITE, 'foo = 2;', false);
-      assertHasRef(SearchResultKind.READ, 'foo); // resolved A', false);
-      assertHasRef(SearchResultKind.READ, 'foo); // resolved B', false);
-      assertHasRef(SearchResultKind.WRITE, 'foo = 10;', true);
-      assertHasRef(SearchResultKind.WRITE, 'foo = 20;', true);
-      assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
-      assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
-    });
+    await findMemberReferences('foo');
+    assertHasRef(SearchResultKind.WRITE, 'foo = 1;', false);
+    assertHasRef(SearchResultKind.WRITE, 'foo = 2;', false);
+    assertHasRef(SearchResultKind.READ, 'foo); // resolved A', false);
+    assertHasRef(SearchResultKind.READ, 'foo); // resolved B', false);
+    assertHasRef(SearchResultKind.WRITE, 'foo = 10;', true);
+    assertHasRef(SearchResultKind.WRITE, 'foo = 20;', true);
+    assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
+    assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_fields_implicit() {
+  test_fields_implicit() async {
     addTestFile('''
 class A {
   get foo => null;
@@ -87,15 +83,14 @@ mainUnresolved(a, b) {
   print(b.foo); // unresolved B
 }
 ''');
-    return findMemberReferences('foo').then((_) {
-      assertHasRef(SearchResultKind.READ, 'foo); // resolved A', false);
-      assertHasRef(SearchResultKind.READ, 'foo); // resolved B', false);
-      assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
-      assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
-    });
+    await findMemberReferences('foo');
+    assertHasRef(SearchResultKind.READ, 'foo); // resolved A', false);
+    assertHasRef(SearchResultKind.READ, 'foo); // resolved B', false);
+    assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
+    assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_methods() {
+  test_methods() async {
     addTestFile('''
 class A {
   foo() {}
@@ -112,11 +107,10 @@ mainUnresolved(a, b) {
   b.foo(20);
 }
 ''');
-    return findMemberReferences('foo').then((_) {
-      assertHasRef(SearchResultKind.INVOCATION, 'foo(1)', false);
-      assertHasRef(SearchResultKind.INVOCATION, 'foo(2)', false);
-      assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
-      assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
-    });
+    await findMemberReferences('foo');
+    assertHasRef(SearchResultKind.INVOCATION, 'foo(1)', false);
+    assertHasRef(SearchResultKind.INVOCATION, 'foo(2)', false);
+    assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
+    assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
   }
 }

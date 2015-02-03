@@ -17,8 +17,8 @@ import '../analysis_abstract.dart';
 
 
 class AbstractSearchDomainTest extends AbstractAnalysisTest {
+  final Map<String, _ResultSet> resultSets = {};
   String searchId;
-  bool searchDone = false;
   List<SearchResult> results = <SearchResult>[];
   SearchResult result;
 
@@ -75,24 +75,39 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == SEARCH_RESULTS) {
       var params = new SearchResultsParams.fromNotification(notification);
-      if (params.id == searchId) {
-        results.addAll(params.results);
-        searchDone = params.isLast;
+      String id = params.id;
+      _ResultSet resultSet = resultSets[id];
+      if (resultSet == null) {
+        resultSet = new _ResultSet(id);
+        resultSets[id] = resultSet;
       }
+      resultSet.results.addAll(params.results);
+      resultSet.done = params.isLast;
     }
   }
 
   @override
   void setUp() {
     super.setUp();
+    server.handlers = [new SearchDomainHandler(server),];
     createProject();
-    handler = new SearchDomainHandler(server);
   }
 
   Future waitForSearchResults() {
-    if (searchDone) {
+    _ResultSet resultSet = resultSets[searchId];
+    if (resultSet != null && resultSet.done) {
+      results = resultSet.results;
       return new Future.value();
     }
     return new Future.delayed(Duration.ZERO, waitForSearchResults);
   }
+}
+
+
+class _ResultSet {
+  final String id;
+  final List<SearchResult> results = <SearchResult>[];
+  bool done = false;
+
+  _ResultSet(this.id);
 }

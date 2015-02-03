@@ -4,6 +4,8 @@
 
 library search.domain;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -39,9 +41,10 @@ class SearchDomainHandler implements protocol.RequestHandler {
     searchEngine = server.searchEngine;
   }
 
-  protocol.Response findElementReferences(protocol.Request request) {
+  Future findElementReferences(protocol.Request request) async {
     var params =
         new protocol.SearchFindElementReferencesParams.fromRequest(request);
+    await server.onAnalysisComplete;
     // prepare elements
     List<Element> elements =
         server.getElementsAtOffset(params.file, params.offset);
@@ -59,15 +62,14 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }).where((Element element) {
       return element != null;
     }).toList();
-    // schedule search
+    // search
     String searchId = (_nextSearchId++).toString();
-    elements.forEach((Element element) {
+    elements.forEach((Element element) async {
       var computer = new ElementReferencesComputer(searchEngine);
-      var future = computer.compute(element, params.includePotential);
-      future.then((List<protocol.SearchResult> results) {
-        bool isLast = identical(element, elements.last);
-        _sendSearchNotification(searchId, isLast, results);
-      });
+      List<protocol.SearchResult> results =
+          await computer.compute(element, params.includePotential);
+      bool isLast = identical(element, elements.last);
+      _sendSearchNotification(searchId, isLast, results);
     });
     // respond
     var result = new protocol.SearchFindElementReferencesResult();
@@ -75,82 +77,75 @@ class SearchDomainHandler implements protocol.RequestHandler {
       result.id = searchId;
       result.element = protocol.newElement_fromEngine(elements[0]);
     }
-    return result.toResponse(request.id);
+    _sendSearchResult(request, result);
   }
 
-  protocol.Response findMemberDeclarations(protocol.Request request) {
+  Future findMemberDeclarations(protocol.Request request) async {
     var params =
         new protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
-    // schedule search
-    String searchId = (_nextSearchId++).toString();
-    {
-      var matchesFuture = searchEngine.searchMemberDeclarations(params.name);
-      matchesFuture.then((List<SearchMatch> matches) {
-        _sendSearchNotification(searchId, true, matches.map(toResult));
-      });
-    }
+    await server.onAnalysisComplete;
     // respond
-    return new protocol.SearchFindMemberDeclarationsResult(
-        searchId).toResponse(request.id);
+    String searchId = (_nextSearchId++).toString();
+    _sendSearchResult(
+        request,
+        new protocol.SearchFindMemberDeclarationsResult(searchId));
+    // search
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberDeclarations(params.name);
+    _sendSearchNotification(searchId, true, matches.map(toResult));
   }
 
-  protocol.Response findMemberReferences(protocol.Request request) {
+  Future findMemberReferences(protocol.Request request) async {
     var params =
         new protocol.SearchFindMemberReferencesParams.fromRequest(request);
-    // schedule search
-    String searchId = (_nextSearchId++).toString();
-    {
-      var matchesFuture = searchEngine.searchMemberReferences(params.name);
-      matchesFuture.then((List<SearchMatch> matches) {
-        _sendSearchNotification(searchId, true, matches.map(toResult));
-      });
-    }
+    await server.onAnalysisComplete;
     // respond
-    return new protocol.SearchFindMemberReferencesResult(
-        searchId).toResponse(request.id);
+    String searchId = (_nextSearchId++).toString();
+    _sendSearchResult(
+        request,
+        new protocol.SearchFindMemberReferencesResult(searchId));
+    // search
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences(params.name);
+    _sendSearchNotification(searchId, true, matches.map(toResult));
   }
 
-  protocol.Response findTopLevelDeclarations(protocol.Request request) {
+  Future findTopLevelDeclarations(protocol.Request request) async {
     var params =
         new protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
-    // schedule search
-    String searchId = (_nextSearchId++).toString();
-    {
-      var matchesFuture =
-          searchEngine.searchTopLevelDeclarations(params.pattern);
-      matchesFuture.then((List<SearchMatch> matches) {
-        _sendSearchNotification(searchId, true, matches.map(toResult));
-      });
-    }
+    await server.onAnalysisComplete;
     // respond
-    return new protocol.SearchFindTopLevelDeclarationsResult(
-        searchId).toResponse(request.id);
+    String searchId = (_nextSearchId++).toString();
+    _sendSearchResult(
+        request,
+        new protocol.SearchFindTopLevelDeclarationsResult(searchId));
+    // search
+    List<SearchMatch> matches =
+        await searchEngine.searchTopLevelDeclarations(params.pattern);
+    _sendSearchNotification(searchId, true, matches.map(toResult));
   }
 
   /**
    * Implement the `search.getTypeHierarchy` request.
    */
-  protocol.Response getTypeHierarchy(protocol.Request request) {
+  Future getTypeHierarchy(protocol.Request request) async {
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
+    await server.onAnalysisComplete;
     // prepare parameters
-    // prepare Element
     List<Element> elements =
         server.getElementsAtOffset(params.file, params.offset);
     if (elements.isEmpty) {
       protocol.Response response =
           new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
-      return response;
+      server.sendResponse(response);
     }
     Element element = elements.first;
     // prepare type hierarchy
     TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
-    computer.compute(element).then((List<protocol.TypeHierarchyItem> items) {
-      protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
-          hierarchyItems: items).toResponse(request.id);
-      server.sendResponse(response);
-    });
-    // delay response
-    return protocol.Response.DELAYED_RESPONSE;
+    List<protocol.TypeHierarchyItem> items = await computer.compute(element);
+    protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
+        hierarchyItems: items).toResponse(request.id);
+    server.sendResponse(response);
   }
 
   @override
@@ -158,15 +153,20 @@ class SearchDomainHandler implements protocol.RequestHandler {
     try {
       String requestName = request.method;
       if (requestName == SEARCH_FIND_ELEMENT_REFERENCES) {
-        return findElementReferences(request);
+        findElementReferences(request);
+        return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_FIND_MEMBER_DECLARATIONS) {
-        return findMemberDeclarations(request);
+        findMemberDeclarations(request);
+        return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_FIND_MEMBER_REFERENCES) {
-        return findMemberReferences(request);
+        findMemberReferences(request);
+        return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_FIND_TOP_LEVEL_DECLARATIONS) {
-        return findTopLevelDeclarations(request);
+        findTopLevelDeclarations(request);
+        return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_GET_TYPE_HIERARCHY) {
-        return getTypeHierarchy(request);
+        getTypeHierarchy(request);
+        return protocol.Response.DELAYED_RESPONSE;
       }
     } on protocol.RequestFailure catch (exception) {
       return exception.response;
@@ -181,6 +181,14 @@ class SearchDomainHandler implements protocol.RequestHandler {
             searchId,
             results.toList(),
             isLast).toNotification());
+  }
+
+  /**
+   * Send a search response with the given [result] to the given [request].
+   */
+  void _sendSearchResult(protocol.Request request, result) {
+    protocol.Response response = result.toResponse(request.id);
+    server.sendResponse(response);
   }
 
   static protocol.SearchResult toResult(SearchMatch match) {

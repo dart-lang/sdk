@@ -34,7 +34,6 @@ int findIdentifierLength(String search) {
 }
 
 
-
 /**
  * An abstract base for all 'analysis' domain tests.
  */
@@ -52,12 +51,8 @@ class AbstractAnalysisTest {
   String testFile = '/project/bin/test.dart';
   String testCode;
 
-//  Map<String, List<AnalysisError>> filesErrors = {};
-//  Map<String, List<Map<String, Object>>> filesHighlights = {};
-//  Map<String, List<Map<String, Object>>> filesNavigation = {};
-
-
   AbstractAnalysisTest();
+
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
@@ -145,94 +140,8 @@ class AbstractAnalysisTest {
     return testFile;
   }
 
-//  /**
-//   * Returns [AnalysisError]s recorded for the given [file].
-//   * May be empty, but not `null`.
-//   */
-//  List<AnalysisError> getErrors(String file) {
-//    List<AnalysisError> errors = filesErrors[file];
-//    if (errors != null) {
-//      return errors;
-//    }
-//    return <AnalysisError>[];
-//  }
-//
-//  /**
-//   * Returns highlights recorded for the given [file].
-//   * May be empty, but not `null`.
-//   */
-//  List<Map<String, Object>> getHighlights(String file) {
-//    List<Map<String, Object>> highlights = filesHighlights[file];
-//    if (highlights != null) {
-//      return highlights;
-//    }
-//    return [];
-//  }
-//
-//  /**
-//   * Returns navigation regions recorded for the given [file].
-//   * May be empty, but not `null`.
-//   */
-//  List<Map<String, Object>> getNavigation(String file) {
-//    List<Map<String, Object>> navigation = filesNavigation[file];
-//    if (navigation != null) {
-//      return navigation;
-//    }
-//    return [];
-//  }
-//
-//  /**
-//   * Returns [AnalysisError]s recorded for the [testFile].
-//   * May be empty, but not `null`.
-//   */
-//  List<AnalysisError> getTestErrors() {
-//    return getErrors(testFile);
-//  }
-//
-//  /**
-//   * Returns highlights recorded for the given [testFile].
-//   * May be empty, but not `null`.
-//   */
-//  List<Map<String, Object>> getTestHighlights() {
-//    return getHighlights(testFile);
-//  }
-//
-//  /**
-//   * Returns navigation information recorded for the given [testFile].
-//   * May be empty, but not `null`.
-//   */
-//  List<Map<String, Object>> getTestNavigation() {
-//    return getNavigation(testFile);
-//  }
-
   void processNotification(Notification notification) {
-//    if (notification.event == NOTIFICATION_ERRORS) {
-//      String file = notification.getParameter(FILE);
-//      List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-//      filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
-//    }
-//    if (notification.event == NOTIFICATION_HIGHLIGHTS) {
-//      String file = notification.getParameter(FILE);
-//      filesHighlights[file] = notification.getParameter(REGIONS);
-//    }
-//    if (notification.event == NOTIFICATION_NAVIGATION) {
-//      String file = notification.getParameter(FILE);
-//      filesNavigation[file] = notification.getParameter(REGIONS);
-//    }
   }
-
-//  /**
-//   * Creates a project with a single Dart file `/project/bin/test.dart` with
-//   * the given [code].
-//   */
-//  void createSingleFileProject(code) {
-//    this.testCode = _getCodeString(code);
-//    resourceProvider.newFolder('/project');
-//    resourceProvider.newFile(testFile, testCode);
-//    Request request = new AnalysisSetAnalysisRootsParams(['/project'],
-//        []).toRequest('0');
-//    handleSuccessfulRequest(request);
-//  }
 
   void setUp() {
     serverChannel = new MockServerChannel();
@@ -262,5 +171,13 @@ class AbstractAnalysisTest {
    */
   Future waitForTasksFinished() {
     return server.onAnalysisComplete;
+  }
+
+  /**
+   * Completes with a successful [Response] for the given [request].
+   * Otherwise fails.
+   */
+  Future<Response> waitResponse(Request request) async {
+    return serverChannel.sendRequest(request);
   }
 }
