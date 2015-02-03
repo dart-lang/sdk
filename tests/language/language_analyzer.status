@@ -12,6 +12,9 @@ async_test/type-mismatch4: MissingStaticWarning # Issue 22053
 
 async_await_syntax_test/a03b: MissingCompileTimeError # Issue 22234
 async_await_syntax_test/a04c: MissingCompileTimeError # Issue 22234
+async_await_syntax_test/a05c: CompileTimeError
+async_await_syntax_test/a05e: CompileTimeError
+async_await_syntax_test/a05f: MissingCompileTimeError
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
