@@ -10,7 +10,9 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:dart_lint/src/analysis.dart';
 import 'package:dart_lint/src/rules.dart';
 
@@ -18,13 +20,17 @@ import 'package:dart_lint/src/rules.dart';
 abstract class DartLinter {
 
   /// Creates a new linter for dart source.
-  factory DartLinter([LinterOptions options]) => new SourceLinter(options);
+  factory DartLinter([LinterOptions options]) =>
+      new SourceLinter(options: options);
 
   disableRule(String ruleName);
 
   enableRule(String ruleName);
 
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile);
+
+  Iterable<AnalysisErrorInfo> lintLibrarySource(
+      {String libraryName, String libraryContents});
 
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath);
 
@@ -48,11 +54,23 @@ class LintDriver extends AnalysisDriver {
         path, options != null ? options : standardOptions);
   }
 
+  factory LintDriver.forSource(
+      String libraryName, String librarySource, Iterable<Linter> linters,
+      [LinterOptions options]) {
+    _registerLinters(linters);
+    return new LintDriver._forSource(libraryName, librarySource,
+        options != null ? options : standardOptions);
+  }
+
   LintDriver._forFile(File file, [LinterOptions options])
       : super.forFile(file, options);
 
   LintDriver._forPath(String path, [LinterOptions options])
       : super.forPath(path, options);
+
+  LintDriver._forSource(String libraryName, String librarySource,
+      [LinterOptions options])
+      : super.forSource(new _StringSource(librarySource, libraryName), options);
 
   bool isDesiredError(AnalysisError error) =>
       error.errorCode.type == ErrorType.LINT;
@@ -107,8 +125,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   final Reporter reporter;
   RuleRegistry registry;
 
-  SourceLinter(this.options,
-      {this.reporter: const StdIoReporter(), this.registry}) {
+  SourceLinter(
+      {this.options, this.reporter: const StdIoReporter(), this.registry}) {
     if (options == null) {
       options = new LinterOptions();
     }
@@ -130,6 +148,11 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile) =>
       new LintDriver.forFile(sourceFile, registry.enabledLints, options).lint();
+
+  @override
+  Iterable<AnalysisErrorInfo> lintLibrarySource(
+      {String libraryName, String libraryContents}) => new LintDriver.forSource(
+          libraryName, libraryContents, registry.enabledLints, options).lint();
 
   @override
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath) =>
@@ -178,4 +201,10 @@ class StdIoReporter implements Reporter, Logger {
   void warn(String message) {
     print('WARN: $message');
   }
+}
+
+class _StringSource extends StringSource {
+  _StringSource(String contents, String fullName) : super(contents, fullName);
+
+  UriKind get uriKind => UriKind.FILE_URI;
 }

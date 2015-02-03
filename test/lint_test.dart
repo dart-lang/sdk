@@ -20,7 +20,7 @@ const ruleDir = 'test/rules';
 
 /// Linter engine tests
 void defineLinterEngineTests() {
-  group('linter engine tests', () {
+  group('engine', () {
     group('registry', () {
       test('duplicate rules', () {
         var registry = new MockRegistry();
@@ -65,12 +65,13 @@ void defineLinterEngineTests() {
             ["No rule registered to 'unknown_rule', cannot disable"]);
       });
     });
+
     group('source linter', () {
       test('enable rule', () {
         var registry = new MockRegistry();
         var lint = new MockLinter();
         registry.registerLinter('my_first_lint', lint);
-        var linter = new SourceLinter(null, registry: registry);
+        var linter = new SourceLinter(registry: registry);
         linter.enableRule('my_first_lint');
         expect(linter.registry.enabledLints, unorderedEquals([lint]));
       });
@@ -78,11 +79,22 @@ void defineLinterEngineTests() {
         var registry = new MockRegistry();
         var lint = new MockLinter();
         registry.registerLinter('my_first_lint', lint);
-        var linter = new SourceLinter(null, registry: registry);
+        var linter = new SourceLinter(registry: registry);
         linter.enableRule('my_first_lint');
         expect(linter.registry.enabledLints, unorderedEquals([lint]));
         linter.disableRule('my_first_lint');
         expect(linter.registry.enabledLints, isEmpty);
+      });
+    });
+
+    group('lint driver', () {
+      test('basic', () {
+        bool visited;
+        var r = new MockRegistry([new MockLinter((n) => visited = true)]);
+        new SourceLinter(registry: r).lintLibrarySource(
+            libraryName: 'testLibrary',
+            libraryContents: 'library testLibrary;');
+        expect(visited, isTrue);
       });
     });
   });
@@ -92,20 +104,18 @@ void defineLinterEngineTests() {
 void defineRuleTests() {
 
   //TODO: if ruleDir cannot be found print message to set CWD to project root
-
-  print("Running tests in '$ruleDir'...");
-
-  for (var entry in new Directory(ruleDir).listSync()) {
-    if (entry is! File || !entry.path.endsWith('.dart')) continue;
-    var ruleName = p.basenameWithoutExtension(entry.path);
-    print("Testing rule '$ruleName'");
-    testRule(ruleName, entry);
-  }
+  group('rule', () {
+    for (var entry in new Directory(ruleDir).listSync()) {
+      if (entry is! File || !entry.path.endsWith('.dart')) continue;
+      var ruleName = p.basenameWithoutExtension(entry.path);
+      testRule(ruleName, entry);
+    }
+  });
 }
 
 /// Test framework sanity
 void defineSanityTests() {
-  group('test framework tests', () {
+  group('test framework', () {
     test('annotation extraction', () {
       expect(extractAnnotation('int x; // LINT'), isNotNull);
       expect(extractAnnotation('int x; //LINT'), isNotNull);
@@ -139,34 +149,40 @@ main() {
 }
 
 void testRule(String ruleName, File file) {
-  var expected = <Annotation>[];
+  test('$ruleName', () {
+    var expected = <Annotation>[];
 
-  int lineNumber = 0;
-  for (var line in file.readAsLinesSync()) {
-    var annotation = extractAnnotation(line);
-    if (annotation != null) {
-      annotation.lineNumber = lineNumber;
-      expected.add(annotation);
+    int lineNumber = 0;
+    for (var line in file.readAsLinesSync()) {
+      var annotation = extractAnnotation(line);
+      if (annotation != null) {
+        annotation.lineNumber = lineNumber;
+        expected.add(annotation);
+      }
+      ++lineNumber;
     }
-    ++lineNumber;
-  }
 
-  DartLinter driver = new DartLinter();
-  driver.enableRule(ruleName);
+    DartLinter driver = new DartLinter();
+    driver.enableRule(ruleName);
 
-  Iterable<AnalysisErrorInfo> lints = driver.lintFile(file);
+    Iterable<AnalysisErrorInfo> lints = driver.lintFile(file);
 
-  List<Annotation> actual = [];
-  lints.forEach((AnalysisErrorInfo info) {
-    info.errors.forEach((AnalysisError error) {
-      actual.add(new Annotation.forError(error, info.lineInfo));
+    List<Annotation> actual = [];
+    lints.forEach((AnalysisErrorInfo info) {
+      info.errors.forEach((AnalysisError error) {
+        actual.add(new Annotation.forError(error, info.lineInfo));
+      });
     });
+
+    print(lints);
+
+    expect(actual, unorderedEquals(expected));
   });
-
-  print(lints);
-
-  expect(actual, unorderedEquals(expected));
 }
+
+typedef nodeVisitor(AstNode node);
+
+typedef AstVisitor VisitorCallback();
 
 class Annotation {
   final String message;
@@ -191,17 +207,35 @@ class Annotation {
 }
 
 class MockLinter extends Linter {
+  VisitorCallback visitorCallback;
+
+  MockLinter([nodeVisitor v]) {
+    visitorCallback = () => new MockVisitor(v);
+  }
+
   @override
-  AstVisitor getVisitor() => null;
+  AstVisitor getVisitor() => visitorCallback();
 }
 
 class MockRegistry extends RuleRegistry {
-  MockRegistry() : super(new MockReporter());
+  MockRegistry([List<Linter> lints]) : super(new MockReporter()) {
+    if (lints != null) {
+      for (int i = 0; i < lints.length; ++i) {
+        registerLinter('_linter_$i', lints[i]);
+        enable('_linter_$i');
+      }
+    }
+  }
 
   expectWarnings(List<String> warnings) {
     expect((reporter as MockReporter).warnings, unorderedEquals(warnings));
   }
 }
+
+//class MockLinter extends Linter {
+//  @override
+//  AstVisitor getVisitor() => null;
+//}
 
 class MockReporter extends Reporter {
   var exceptions = <LinterException>[];
@@ -215,5 +249,17 @@ class MockReporter extends Reporter {
   @override
   void warn(String message) {
     warnings.add(message);
+  }
+}
+
+class MockVisitor extends GeneralizingAstVisitor {
+  final nodeVisitor;
+
+  MockVisitor(this.nodeVisitor);
+
+  visitNode(AstNode node) {
+    if (nodeVisitor != null) {
+      nodeVisitor(node);
+    }
   }
 }
