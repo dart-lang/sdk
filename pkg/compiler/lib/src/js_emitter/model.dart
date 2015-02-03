@@ -335,7 +335,6 @@ class DartMethod extends Method {
   final bool needsTearOff;
   final String tearOffName;
   final List<ParameterStubMethod> parameterStubs;
-  // TODO(herhut): Directly store aliases instead.
   final bool canBeApplied;
   final bool canBeReflected;
 
@@ -357,16 +356,20 @@ class DartMethod extends Method {
 }
 
 class InstanceMethod extends DartMethod {
-  // TODO(herhut): Directly store aliases instead.
-  final bool hasSuperAlias;
+  /// An alternative name for this method. This is used to model calls to
+  /// a method via `super`. If [aliasName] is non-null, the emitter has to
+  /// ensure that this method is registered on the prototype under both [name]
+  /// and [aliasName].
+  final String aliasName;
   final bool isClosure;
+
 
   InstanceMethod(Element element, String name, js.Expression code,
                  List<ParameterStubMethod> parameterStubs,
                  String callName,
                  {bool needsTearOff,
                   String tearOffName,
-                  this.hasSuperAlias,
+                  this.aliasName,
                   bool canBeApplied,
                   bool canBeReflected,
        this.isClosure})
@@ -375,7 +378,6 @@ class InstanceMethod extends DartMethod {
               tearOffName: tearOffName,
               canBeApplied: canBeApplied,
               canBeReflected: canBeReflected) {
-    assert(hasSuperAlias != null);
     assert(isClosure != null);
   }
 }

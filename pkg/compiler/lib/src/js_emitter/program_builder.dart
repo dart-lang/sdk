@@ -425,9 +425,13 @@ class ProgramBuilder {
     bool isClosure = false;
     bool isNotApplyTarget = !element.isFunction || element.isAccessor;
 
-    final bool canBeReflected = _methodCanBeReflected(element);
-    final bool canBeApplied = _methodCanBeApplied(element);
-    final bool hasSuperAlias = backend.isAliasedSuperMember(element);
+    bool canBeReflected = _methodCanBeReflected(element);
+    bool needsStubs = _methodNeedsStubs(element);
+    bool canBeApplied = _methodCanBeApplied(element);
+
+    String aliasName = backend.isAliasedSuperMember(element)
+        ? namer.getNameOfAliasedSuperMember(element)
+        : null;
 
     if (isNotApplyTarget) {
       canTearOff = false;
@@ -461,7 +465,7 @@ class ProgramBuilder {
     return new InstanceMethod(element, name, code,
         _generateParameterStubs(element, canTearOff), callName,
         needsTearOff: canTearOff, tearOffName: tearOffName,
-        isClosure: isClosure, hasSuperAlias: hasSuperAlias,
+        isClosure: isClosure, aliasName: aliasName,
         canBeApplied: canBeApplied, canBeReflected: canBeReflected);
   }
 
@@ -580,15 +584,15 @@ class ProgramBuilder {
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
 
-    final bool isApplyTarget = !element.isConstructor && !element.isAccessor;
-    final bool canBeApplied = _methodCanBeApplied(element);
-    final bool canBeReflected = _methodCanBeReflected(element);
+    bool isApplyTarget = !element.isConstructor && !element.isAccessor;
+    bool canBeApplied = _methodCanBeApplied(element);
+    bool canBeReflected = _methodCanBeReflected(element);
 
-    final bool needsTearOff = isApplyTarget &&
+    bool needsTearOff = isApplyTarget &&
         (canBeReflected ||
             universe.staticFunctionsNeedingGetter.contains(element));
 
-    final String tearOffName =
+    String tearOffName =
         needsTearOff ? namer.getStaticClosureName(element) : null;
 
     String callName = null;

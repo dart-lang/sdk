@@ -11,19 +11,20 @@ part of dart2js.js_emitter;
 class ContainerBuilder extends CodeEmitterHelper {
 
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
-    final FunctionElement member = method.element;
+    FunctionElement member = method.element;
     String name = method.name;
-    final FunctionSignature parameters = member.functionSignature;
+    FunctionSignature parameters = member.functionSignature;
     jsAst.Expression code = method.code;
-    final bool needsStubs = method.parameterStubs.isNotEmpty;
-    final bool canTearOff = method.needsTearOff;
-    final String tearOffName = method.tearOffName;
-    final bool canBeReflected = method.canBeReflected;
-    final bool canBeApplied = method.canBeApplied;
-    final bool isClosure = method is InstanceMethod && method.isClosure;
-    final bool hasSuperAlias = method is InstanceMethod && method.hasSuperAlias;
+    bool needsStubs = method.parameterStubs.isNotEmpty;
+    bool canBeApplied = method.canBeApplied;
+    bool canBeReflected = method.canBeReflected;
+    bool canTearOff = method.needsTearOff;
+    String tearOffName = method.tearOffName;
+    bool isClosure = method is InstanceMethod && method.isClosure;
+    String superAlias = method is InstanceMethod ? method.aliasName : null;
+    bool hasSuperAlias = superAlias != null;
 
-    final bool needStructuredInfo =
+    bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
 
     emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
@@ -74,14 +75,13 @@ class ContainerBuilder extends CodeEmitterHelper {
     List<jsAst.Expression> expressions = <jsAst.Expression>[];
 
     // Create the optional aliasing entry if this method is called via super.
-    if (backend.isAliasedSuperMember(member)) {
-      expressions.add(new jsAst.LiteralString(
-          '"${namer.getNameOfAliasedSuperMember(member)}"'));
+    if (hasSuperAlias) {
+      expressions.add(new jsAst.LiteralString('"${superAlias}"'));
     }
 
     expressions.add(code);
 
-    final bool onlyNeedsSuperAlias =
+    bool onlyNeedsSuperAlias =
         !(canTearOff || canBeReflected || canBeApplied || needsStubs);
 
     if (onlyNeedsSuperAlias) {
