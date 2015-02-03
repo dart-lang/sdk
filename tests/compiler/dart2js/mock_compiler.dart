@@ -74,6 +74,7 @@ class MockCompiler extends Compiler {
        // affected by inlining support.
        bool disableInlining: true,
        bool trustTypeAnnotations: false,
+       bool enableAsyncAwait: false,
        int this.expectedWarnings,
        int this.expectedErrors,
        api.CompilerOutputProvider outputProvider,
@@ -91,7 +92,8 @@ class MockCompiler extends Compiler {
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true,
-              outputProvider: outputProvider) {
+              outputProvider: outputProvider,
+              enableAsyncAwait: enableAsyncAwait) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);

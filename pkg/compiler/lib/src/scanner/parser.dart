@@ -41,10 +41,11 @@ class FormalParameterType {
 class Parser {
   final Listener listener;
   bool mayParseFunctionExpressions = true;
-  bool yieldIsKeyword = false;
-  bool awaitIsKeyword = false;
+  bool yieldIsKeyword;
+  bool awaitIsKeyword;
 
-  Parser(this.listener);
+  Parser(this.listener,
+         {this.yieldIsKeyword: false, this.awaitIsKeyword: false});
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -2472,7 +2473,8 @@ class Parser {
     Token awaitToken = token;
     listener.beginAwaitExpression(awaitToken);
     token = expect('await', token);
-    token = parseUnaryExpression(token, allowCascades);
+    token = parsePrecedenceExpression(token, POSTFIX_PRECEDENCE,
+                                      allowCascades);
     listener.endAwaitExpression(awaitToken, token);
     return token;
   }

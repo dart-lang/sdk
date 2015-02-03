@@ -90,6 +90,7 @@ const String DEFAULT_PATCH_CORE_SOURCE = r'''
 import 'dart:_js_helper';
 import 'dart:_interceptors';
 import 'dart:_isolate_helper';
+import 'dart:async';
 ''';
 
 const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
@@ -362,6 +363,7 @@ const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
 };
 
 const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
+  'DeferredLibrary': 'class DeferredLibrary {}',
   'Future': 'class Future<T> {}',
   'Stream': 'class Stream<T> {}',
 };

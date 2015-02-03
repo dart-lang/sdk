@@ -1601,17 +1601,28 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return const DynamicType();
   }
 
-  DartType visitAwait(Await node) {
-    DartType expressionType = analyze(node.expression);
-    DartType resultType = expressionType;
-    if (expressionType is InterfaceType) {
-      InterfaceType futureType =
-          expressionType.asInstanceOf(compiler.futureClass);
+  /// Flatten [type] by recursively removing enclosing `Future` annotations.
+  ///
+  /// For instance:
+  ///     flatten(T) = T
+  ///     flatten(Future<T>) = T
+  ///     flatten(Future<Future<T>>) = T
+  ///
+  /// This method is used in the static typing of await and type checking of
+  /// return.
+  DartType flatten(DartType type) {
+    if (type is InterfaceType) {
+      InterfaceType futureType = type.asInstanceOf(compiler.futureClass);
       if (futureType != null) {
-        resultType = futureType.typeArguments.first;
+        return flatten(futureType.typeArguments.first);
       }
     }
-    return resultType;
+    return type;
+  }
+
+  DartType visitAwait(Await node) {
+    DartType expressionType = analyze(node.expression);
+    return flatten(expressionType);
   }
 
   DartType visitYield(Yield node) {

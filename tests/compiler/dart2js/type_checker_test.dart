@@ -54,7 +54,8 @@ main() {
                 testInitializers,
                 testTypePromotionHints,
                 testFunctionCall,
-                testCascade];
+                testCascade,
+                testAwait];
   asyncTest(() => Future.forEach(tests, (test) => setup(test)));
 }
 
@@ -1999,6 +2000,32 @@ void testCascade(MockCompiler compiler) {
   check('new A()..afunc()()[0] = new C();');
 }
 
+testAwait(MockCompiler compiler) {
+  String script = """class Foo {
+                       void method() async {}
+                       Future<int> asyncInt() => new Future<int>.value(0);
+                       Foo self() => this;
+                     }""";
+  compiler.parseScript(script);
+  ClassElement foo = compiler.mainApp.find("Foo");
+  foo.ensureResolved(compiler);
+  FunctionElement method = foo.lookupLocalMember('method');
+  analyzeIn(compiler, method, "{ await 0; }");
+  analyzeIn(compiler, method, "{ int i = await 0; }");
+  analyzeIn(compiler, method, "{ String s = await 0; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ await asyncInt(); }");
+  analyzeIn(compiler, method, "{ int i = await asyncInt(); }");
+  analyzeIn(compiler, method, "{ String s = await asyncInt(); }",
+            NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ Foo f = self(); }");
+  analyzeIn(compiler, method, "{ Foo f = await self(); }");
+  analyzeIn(compiler, method, "{ Foo f = await self().asyncInt(); }",
+            NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ int i = await self().asyncInt(); }");
+  analyzeIn(compiler, method, "{ String s = await self().asyncInt(); }",
+            NOT_ASSIGNABLE);
+}
+
 const CLASS_WITH_METHODS = '''
 typedef int String2Int(String s);
 
@@ -2079,8 +2106,9 @@ const Map<String, String> ALT_SOURCE = const <String, String>{
 };
 
 Future setup(test(MockCompiler compiler)) {
-  MockCompiler compiler = new MockCompiler.internal(coreSource: ALT_SOURCE);
-  return compiler.init().then((_) => test(compiler));
+  MockCompiler compiler = new MockCompiler.internal(
+      coreSource: ALT_SOURCE, enableAsyncAwait: true);
+  return compiler.init("import 'dart:async';").then((_) => test(compiler));
 }
 
 DartType analyzeType(MockCompiler compiler, String text) {
@@ -2192,15 +2220,18 @@ void generateOutput(MockCompiler compiler, String text) {
 }
 
 analyzeIn(MockCompiler compiler,
-          ExecutableElement element,
+          FunctionElement element,
           String text,
           [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
+  compiler.resolver.resolve(element);
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(compiler, null);
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener,
+      yieldIsKeyword: element.asyncMarker.isYielding,
+      awaitIsKeyword: element.asyncMarker.isAsync);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   TreeElements elements = compiler.resolveNodeStatement(node, element);
