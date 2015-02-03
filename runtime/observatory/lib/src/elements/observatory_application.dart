@@ -13,7 +13,6 @@ import 'package:polymer/polymer.dart';
 /// elements.
 @CustomTag('observatory-application')
 class ObservatoryApplicationElement extends ObservatoryElement {
-  @published bool devtools = false;
   @reflectable ObservatoryApplication app;
 
   ObservatoryApplicationElement.created() : super.created();
@@ -21,10 +20,6 @@ class ObservatoryApplicationElement extends ObservatoryElement {
   @override
   void attached() {
     super.attached();
-    if (devtools) {
-      app = new ObservatoryApplication.devtools(this);
-    } else {
-      app = new ObservatoryApplication(this);
-    }
+    app = new ObservatoryApplication(this);
   }
 }

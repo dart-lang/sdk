@@ -71,173 +71,111 @@ class ServiceObjectPage extends Page {
   bool canVisit(String url) => true;
 }
 
-/// Class tree page.
-class ClassTreePage extends Page {
-  static const _urlPrefix = 'class-tree/';
-
-  ClassTreePage(app) : super(app);
+class IsolateSuffixPage extends Page {
+  final String pagePrefix;
+  final String elementTagName;
+  String _isolateId;
+  String get isolateId => _isolateId;
+  IsolateSuffixPage(this.pagePrefix, this.elementTagName, app) : super(app);
 
   void onInstall() {
     if (element == null) {
-      element = new Element.tag('class-tree');
+      element = new Element.tag(elementTagName);
     }
   }
 
   void _visit(String url) {
-    assert(element != null);
+    assert(url != null);
     assert(canVisit(url));
-    // ClassTree urls are 'class-tree/isolate-id', chop off prefix, leaving
-    // isolate url.
-    //
-    // TODO(turnidge): Many pages share the isolate parsing/fetching
-    // code.  Consider refactoring.
-    url = url.substring(_urlPrefix.length);
-    /// Request the isolate url.
-    app.vm.get(url).then((isolate) {
+    _isolateId = url.substring(pagePrefix.length);
+  }
+
+  Future<Isolate> getIsolate() {
+    return app.vm.get(isolateId).catchError((e) {
+      Logger.root.severe('$pagePrefix visit error: $e');
+      return e;
+    });
+  }
+
+  bool canVisit(String url) => url.startsWith(pagePrefix);
+}
+
+
+/// Class tree page.
+class ClassTreePage extends IsolateSuffixPage {
+  ClassTreePage(app) : super('class-tree/', 'class-tree', app);
+
+  void _visit(String url) {
+    super._visit(url);
+    getIsolate().then((isolate) {
       if (element != null) {
         /// Update the page.
         ClassTreeElement page = element;
         page.isolate = isolate;
       }
-    }).catchError((e) {
-      Logger.root.severe('ClassTreePage visit error: $e');
     });
   }
-
-  /// Catch all.
-  bool canVisit(String url) => url.startsWith(_urlPrefix);
 }
 
-class DebuggerPage extends Page {
-  static const _urlPrefix = 'debugger/';
-
-  DebuggerPage(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      element = new Element.tag('debugger-page');
-    }
-  }
+class DebuggerPage extends IsolateSuffixPage {
+  DebuggerPage(app) : super('debugger/', 'debugger-page', app);
 
   void _visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    // Debugger urls are 'debugger/isolate-id', chop off prefix, leaving
-    // isolate url.
-    url = url.substring(_urlPrefix.length);
-    /// Request the isolate url.
-    app.vm.get(url).then((isolate) {
+    super._visit(url);
+    getIsolate().then((isolate) {
       if (element != null) {
         /// Update the page.
         DebuggerPageElement page = element;
         page.isolate = isolate;
       }
-    }).catchError((e) {
-        Logger.root.severe('Unexpected debugger error: $e');
     });
   }
-
-  /// Catch all.
-  bool canVisit(String url) => url.startsWith(_urlPrefix);
 }
 
-class CpuProfilerPage extends Page {
-  static const _urlPrefix = 'profiler/';
-
-  CpuProfilerPage(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      element = new Element.tag('cpu-profile');
-    }
-  }
+class CpuProfilerPage extends IsolateSuffixPage {
+  CpuProfilerPage(app) : super('profiler/', 'cpu-profile', app);
 
   void _visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    // CpuProfiler urls are 'profiler/isolate-id', chop off prefix, leaving
-    // isolate url.
-    url = url.substring(_urlPrefix.length);
-    /// Request the isolate url.
-    app.vm.get(url).then((isolate) {
+    super._visit(url);
+    getIsolate().then((isolate) {
       if (element != null) {
         /// Update the page.
         CpuProfileElement page = element;
         page.isolate = isolate;
       }
-    }).catchError((e) {
-        Logger.root.severe('Unexpected profiler error: $e');
     });
   }
-
-  /// Catch all.
-  bool canVisit(String url) => url.startsWith(_urlPrefix);
 }
 
-class AllocationProfilerPage extends Page {
-  static const _urlPrefix = 'allocation-profiler/';
-
-  AllocationProfilerPage(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      element = new Element.tag('heap-profile');
-    }
-  }
+class AllocationProfilerPage extends IsolateSuffixPage {
+  AllocationProfilerPage(app)
+      : super('allocation-profiler/', 'heap-profile', app);
 
   void _visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    // Allocation profiler urls are 'allocation-profiler/isolate-id',
-    // chop off prefix, leaving isolate url.
-    url = url.substring(_urlPrefix.length);
-    /// Request the isolate url.
-    app.vm.get(url).then((isolate) {
+    super._visit(url);
+    getIsolate().then((isolate) {
       if (element != null) {
         /// Update the page.
         HeapProfileElement page = element;
         page.isolate = isolate;
       }
-    }).catchError((e) {
-        Logger.root.severe('Unexpected allocation profiler error: $e');
     });
   }
-
-  /// Catch all.
-  bool canVisit(String url) => url.startsWith(_urlPrefix);
 }
 
-class HeapMapPage extends Page {
-  static const _urlPrefix = 'heap-map/';
-
-  HeapMapPage(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      element = new Element.tag('heap-map');
-    }
-  }
+class HeapMapPage extends IsolateSuffixPage {
+  HeapMapPage(app) : super('heap-map/', 'heap-map', app);
 
   void _visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    // Allocation profiler urls are 'heap-map/isolate-id',
-    // chop off prefix, leaving isolate url.
-    url = url.substring(_urlPrefix.length);
-    /// Request the isolate url.
-    app.vm.get(url).then((isolate) {
+    super._visit(url);
+    getIsolate().then((isolate) {
       if (element != null) {
         /// Update the page.
         HeapMapElement page = element;
         page.isolate = isolate;
       }
-    }).catchError((e) {
-        Logger.root.severe('Unexpected heap map error: $e');
     });
   }
-
-  /// Catch all.
-  bool canVisit(String url) => url.startsWith(_urlPrefix);
 }
 
 class ErrorViewPage extends Page {

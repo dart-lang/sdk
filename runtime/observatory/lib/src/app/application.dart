@@ -195,13 +195,6 @@ class ObservatoryApplication extends Observable {
     currentPage = page;
   }
 
-  ObservatoryApplication.devtools(this.rootElement) :
-      locationManager = new HashLocationManager(),
-      targets = null {
-    vm = new PostMessageVM();
-    _initOnce(true);
-  }
-
   ObservatoryApplication(this.rootElement) :
       locationManager = new HashLocationManager(),
       targets = new TargetManager() {
