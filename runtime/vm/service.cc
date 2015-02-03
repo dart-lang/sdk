@@ -2115,9 +2115,7 @@ static bool HandleIsolateGetInstances(Isolate* isolate, JSONStream* js) {
 
 static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
-    ClassTable* table = isolate->class_table();
-    JSONObject jsobj(js);
-    table->PrintToJSONObject(&jsobj);
+    PrintError(js, "Invalid number of arguments.");
     return true;
   }
   ASSERT(js->num_arguments() >= 2);
@@ -2945,6 +2943,14 @@ static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleIsolateGetClassList(Isolate* isolate, JSONStream* js) {
+  ClassTable* table = isolate->class_table();
+  JSONObject jsobj(js);
+  table->PrintToJSONObject(&jsobj);
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers_new[] = {
   { "getObject", HandleIsolateGetObject },
   { "getBreakpoints", HandleIsolateGetBreakpoints },
@@ -2964,6 +2970,7 @@ static IsolateMessageHandlerEntry isolate_handlers_new[] = {
   { "getInboundReferences", HandleIsolateGetInboundReferences },
   { "getInstances", HandleIsolateGetInstances },
   { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot },
+  { "getClassList", HandleIsolateGetClassList },
 };
 
 

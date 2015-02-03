@@ -213,9 +213,8 @@ void ClassTable::Print() {
 void ClassTable::PrintToJSONObject(JSONObject* object) {
   Class& cls = Class::Handle();
   object->AddProperty("type", "ClassList");
-  object->AddProperty("id", "classes");
   {
-    JSONArray members(object, "members");
+    JSONArray members(object, "classes");
     for (intptr_t i = 1; i < top_; i++) {
       if (HasValidClassAt(i)) {
         cls = At(i);

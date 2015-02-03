@@ -45,11 +45,11 @@ interface Service {
   getTagProfile(isolateId string) TagProfile
 
   // Returns an allocation profile for an isolate.
-  // 
+  //
   // <code>reset</code> is optional and indicates whether allocation
   // accumulators should be reset.
   //
-  // <code>gc</code> is optional and indicates whether a full 
+  // <code>gc</code> is optional and indicates whether a full
   getAllocationProfile(isolateId string,
                        reset bool,
                        gc GCOption) AllocationProfile
@@ -73,6 +73,8 @@ interface Service {
   getInboundReferences(isolateId string,
                        targetId string,
                        limit int) InboundReferences
+
+  getClassList(isolateId string) ClassList
 }
 
 
@@ -132,6 +134,11 @@ struct CodeRef extends ObjectRef {
 }
 
 
+struct ClassRef extends ObjectRef {
+  placeholder int
+}
+
+
 // A <code>FunctionRef</code> encodes a reference to a <code>Function</code> object.
 struct FunctionRef extends ObjectRef {
   placeholder int
@@ -152,6 +159,11 @@ struct InstanceRef extends ObjectRef {
 
 // A <code>ScriptRef</code> encodes a reference to a <code>Script</code> object.
 struct ScriptRef extends ObjectRef {
+  placeholder int
+}
+
+
+struct Class extends Object {
   placeholder int
 }
 
@@ -269,6 +281,11 @@ struct InboundReferences extends Response {
 struct InboundReference {
   source InstanceRef
   slot   int
+}
+
+
+struct ClassList {
+  classes []ClassRef
 }
 
 

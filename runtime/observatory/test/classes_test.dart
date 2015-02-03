@@ -9,10 +9,16 @@ import 'test_helper.dart';
 var tests = [
 
 (Isolate isolate) =>
+  isolate.getClassHierarchy().then((Class o) {
+    expect(o.name, equals('Object'));
+}),
+
+(Isolate isolate) =>
   isolate.get('classes/62').then((Class c) {
     expect(c.name, equals('_List'));
     expect(c.vmCid, equals(62));
 }),
+
 
 ];
 

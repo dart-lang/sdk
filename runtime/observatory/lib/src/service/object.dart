@@ -835,14 +835,16 @@ class Isolate extends ServiceObjectOwner with Coverage {
   /// Fetches and builds the class hierarchy for this isolate. Returns the
   /// Object class object.
   Future<Class> getClassHierarchy() {
-    return get('classes').then(_loadClasses).then(_buildClassHierarchy);
+    return invokeRpc('getClassList', {})
+        .then(_loadClasses)
+        .then(_buildClassHierarchy);
   }
 
   /// Given the class list, loads each class.
   Future<List<Class>> _loadClasses(ServiceMap classList) {
     assert(classList.type == 'ClassList');
     var futureClasses = [];
-    for (var cls in classList['members']) {
+    for (var cls in classList['classes']) {
       // Skip over non-class classes.
       if (cls is Class) {
         futureClasses.add(cls.load());
