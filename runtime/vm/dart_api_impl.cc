@@ -3887,10 +3887,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     const Class& cls = Class::Handle(isolate, Type::Cast(obj).type_class());
     const Function& function = Function::Handle(
         isolate,
-        Resolver::ResolveStatic(cls,
-                                function_name,
-                                number_of_arguments,
-                                Object::empty_array()));
+        Resolver::ResolveStaticAllowPrivate(cls,
+                                            function_name,
+                                            number_of_arguments,
+                                            Object::empty_array()));
     if (function.IsNull()) {
       const String& cls_name = String::Handle(isolate, cls.Name());
       return Api::NewError("%s: did not find static method '%s.%s'.",

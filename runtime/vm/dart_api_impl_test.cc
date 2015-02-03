@@ -5112,7 +5112,7 @@ TEST_CASE(Invoke) {
                "did not find static method 'Methods.staticMethod'");
 
   // Hidden static method.
-  name = PrivateLibName(lib, "_staticMethod");
+  name = NewString("_staticMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(type, name, 1, args);
@@ -5141,13 +5141,39 @@ TEST_CASE(Invoke) {
                "2 passed, 1 expected.");
 
   // Hidden top-level method.
-  name = PrivateLibName(lib, "_topMethod");
+  name = NewString("_topMethod");
   EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(lib, name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("hidden top !!!", str);
+}
+
+
+TEST_CASE(Invoke_PrivateStatic) {
+  const char* kScriptChars =
+      "class Methods {\n"
+      "  static _staticMethod(arg) => 'hidden static $arg';\n"
+      "}\n"
+      "\n";
+
+  // Shared setup.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle type = Dart_GetType(lib, NewString("Methods"), 0, NULL);
+  Dart_Handle result;
+  EXPECT_VALID(type);
+  Dart_Handle name = NewString("_staticMethod");
+  EXPECT_VALID(name);
+
+  Dart_Handle args[1];
+  args[0] = NewString("!!!");
+  result = Dart_Invoke(type, name, 1, args);
+  EXPECT_VALID(result);
+
+  const char* str = NULL;
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("hidden static !!!", str);
 }
 
 
