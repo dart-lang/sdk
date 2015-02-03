@@ -1280,6 +1280,27 @@ main() {
     verify([source]);
   }
 
+  void test_empty_generator_async() {
+    Source source = addSource('''
+import 'dart:async';
+Stream<int> f() async* {
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_empty_generator_sync() {
+    Source source = addSource('''
+Iterable<int> f() sync* {
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_expectedOneListTypeArgument() {
     Source source = addSource(r'''
 main() {
@@ -1320,21 +1341,21 @@ export 'lib1.dart';''');
     verify([source]);
   }
 
-  void test_extraPositionalArguments_function() {
+  void test_extraPositionalArguments_Function() {
     Source source = addSource(r'''
-f(p1, p2) {}
-main() {
-  f(1, 2);
+f(Function a) {
+  a(1, 2);
 }''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_extraPositionalArguments_Function() {
+  void test_extraPositionalArguments_function() {
     Source source = addSource(r'''
-f(Function a) {
-  a(1, 2);
+f(p1, p2) {}
+main() {
+  f(1, 2);
 }''');
     resolve(source);
     assertNoErrors(source);
@@ -4025,6 +4046,29 @@ class A {
     try {} catch (e) {rethrow;}
   }
 }''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_return_in_generator_async() {
+    Source source = addSource('''
+import 'dart:async';
+Stream<int> f() async* {
+  return;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_return_in_generator_sync() {
+    Source source = addSource('''
+Iterable<int> f() sync* {
+  return;
+}
+''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);

@@ -1793,8 +1793,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // RETURN_WITHOUT_VALUE
     if (returnExpression == null) {
-      if (_computeReturnTypeForMethod(
-          null).isAssignableTo(expectedReturnType)) {
+      if (_inGenerator ||
+          _computeReturnTypeForMethod(null).isAssignableTo(expectedReturnType)) {
         return false;
       }
       _hasReturnWithoutValue = true;
@@ -5172,6 +5172,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_enclosingFunction == null) {
       return false;
     }
+    if (_inGenerator) {
+      // "return expression;" is disallowed in generators, but this is checked
+      // elsewhere.  Bare "return" is always allowed in generators regardless
+      // of the return type.  So no need to do any further checking.
+      return false;
+    }
     DartType staticReturnType = _computeReturnTypeForMethod(returnExpression);
     if (expectedReturnType.isVoid) {
       if (staticReturnType.isVoid ||
@@ -5775,7 +5781,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   DartType _computeReturnTypeForMethod(Expression returnExpression) {
-    // TODO(paulberry): do the right thing for generators.
+    // This method should never be called for generators, since generators are
+    // never allowed to contain return statements with expressions.
+    assert(!_inGenerator);
     if (returnExpression == null) {
       if (_enclosingFunction.isAsynchronous) {
         return _typeProvider.futureNullType;

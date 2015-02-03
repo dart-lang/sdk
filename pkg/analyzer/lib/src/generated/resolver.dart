@@ -582,6 +582,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (body is! BlockFunctionBody) {
       return false;
     }
+    // Generators are never required to have a return statement.
+    if (body.isGenerator) {
+      return false;
+    }
     // Check that the type is resolvable, and is not "void"
     DartType returnTypeType = returnType.type;
     if (returnTypeType == null || returnTypeType.isVoid) {
