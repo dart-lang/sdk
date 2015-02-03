@@ -6084,6 +6084,9 @@ class Parser {
     } else {
       name = _createSyntheticIdentifier();
     }
+    if (commentAndMetadata.metadata.isNotEmpty) {
+      _reportErrorForNode(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, commentAndMetadata.metadata[0]);
+    }
     return new EnumConstantDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
@@ -6110,7 +6113,7 @@ class Parser {
     Token rightBracket = null;
     if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
-      if (_matchesIdentifier()) {
+      if (_matchesIdentifier() || _matches(TokenType.AT)) {
         constants.add(_parseEnumConstantDeclaration());
       } else if (_matches(TokenType.COMMA) &&
           _tokenMatchesIdentifier(_peek())) {
@@ -10014,6 +10017,10 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ABSTRACT_TYPEDEF = const ParserErrorCode(
       'ABSTRACT_TYPEDEF',
       "Type aliases cannot be declared to be 'abstract'");
+
+  static const ParserErrorCode ANNOTATION_ON_ENUM_CONSTANT = const ParserErrorCode(
+      'ANNOTATION_ON_ENUM_CONSTANT',
+      "Enum constants cannot have annotations");
 
   static const ParserErrorCode ASSERT_DOES_NOT_TAKE_ASSIGNMENT =
       const ParserErrorCode(

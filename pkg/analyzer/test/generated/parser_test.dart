@@ -779,6 +779,18 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.ABSTRACT_TYPEDEF]);
   }
 
+  void test_annotationOnEnumConstant_first() {
+    ParserTestCase.parseCompilationUnit(
+        "enum E { @override C }",
+        [ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT]);
+  }
+
+  void test_annotationOnEnumConstant_middle() {
+    ParserTestCase.parseCompilationUnit(
+        "enum E { C, @override D, E }",
+        [ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT]);
+  }
+
   void test_assertDoesNotTakeAssignment() {
     ParserTestCase.parse4(
         "parseAssertStatement",
