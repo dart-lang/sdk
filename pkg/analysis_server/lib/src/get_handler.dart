@@ -1414,6 +1414,12 @@ class GetHandler {
       buffer.write('Version: ');
       buffer.write(AnalysisServer.VERSION);
       buffer.write('</p>');
+
+      buffer.write('<p><b>Performance Data</b></p>');
+      buffer.write('<p>');
+      buffer.write(
+          _makeLink(PERFORMANCE_PATH, {}, 'Communication performance'));
+      buffer.write('</p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
     });
