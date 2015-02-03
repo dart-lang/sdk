@@ -18,12 +18,7 @@ import 'package:unittest/unittest.dart';
 
 const ruleDir = 'test/rules';
 
-main() {
-  defineSanityTests();
-  defineLinterEngineTests();
-  //defineRuleTests();
-}
-
+/// Linter engine tests
 void defineLinterEngineTests() {
   group('linter engine tests', () {
     group('registry', () {
@@ -70,10 +65,30 @@ void defineLinterEngineTests() {
             ["No rule registered to 'unknown_rule', cannot disable"]);
       });
     });
+    group('source linter', () {
+      test('enable rule', () {
+        var registry = new MockRegistry();
+        var lint = new MockLinter();
+        registry.registerLinter('my_first_lint', lint);
+        var linter = new SourceLinter(null, registry: registry);
+        linter.enableRule('my_first_lint');
+        expect(linter.registry.enabledLints, unorderedEquals([lint]));
+      });
+      test('disable rule', () {
+        var registry = new MockRegistry();
+        var lint = new MockLinter();
+        registry.registerLinter('my_first_lint', lint);
+        var linter = new SourceLinter(null, registry: registry);
+        linter.enableRule('my_first_lint');
+        expect(linter.registry.enabledLints, unorderedEquals([lint]));
+        linter.disableRule('my_first_lint');
+        expect(linter.registry.enabledLints, isEmpty);
+      });
+    });
   });
 }
 
-// Test framework sanity
+/// Rule tests
 void defineRuleTests() {
 
   //TODO: if ruleDir cannot be found print message to set CWD to project root
@@ -88,7 +103,7 @@ void defineRuleTests() {
   }
 }
 
-// Linter engine tests
+/// Test framework sanity
 void defineSanityTests() {
   group('test framework tests', () {
     test('annotation extraction', () {
@@ -102,7 +117,6 @@ void defineSanityTests() {
   });
 }
 
-// Rule tests
 Annotation extractAnnotation(String line) {
   int index = line.indexOf(new RegExp(r'//[ ]?LINT'));
   if (index > -1) {
@@ -114,6 +128,14 @@ Annotation extractAnnotation(String line) {
     return new Annotation.forLint(msg);
   }
   return null;
+}
+
+main() {
+  groupSep = ' | ';
+
+  defineSanityTests();
+  defineLinterEngineTests();
+  //defineRuleTests();
 }
 
 void testRule(String ruleName, File file) {

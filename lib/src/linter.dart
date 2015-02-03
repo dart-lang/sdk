@@ -108,7 +108,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   RuleRegistry registry;
 
   SourceLinter(this.options,
-      [this.reporter = const StdIoReporter(), this.registry]) {
+      {this.reporter: const StdIoReporter(), this.registry}) {
     if (options == null) {
       options = new LinterOptions();
     }
