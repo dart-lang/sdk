@@ -75,9 +75,8 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
-
 /// Marks the internal map in dart2js, so that internal libraries can is-check
-// them.
+/// them.
 abstract class InternalMap {
 }
 
