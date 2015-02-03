@@ -241,11 +241,19 @@ patch class ByteData {
 
 // Based class for _TypedList that provides common methods for implementing
 // the collection and list interfaces.
-// TODO(13647): Make this extends ListBase<T>
+// This class does not extend ListBase<T> since that would add type arguments
+// to instances of _TypeListBase. Instead the subclasses use type specific
+// mixins (like _IntListMixin, _DoubleListMixin) to implement ListBase<T>.
 abstract class _TypedListBase {
 
   // Method(s) implementing the Collection interface.
-  bool contains(element) => IterableMixinWorkaround.contains(this, element);
+  bool contains(element) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (this[i] == element) return true;
+    }
+    return false;
+  }
 
   void forEach(void f(element)) {
     var len = this.length;
@@ -255,44 +263,90 @@ abstract class _TypedListBase {
   }
 
   String join([String separator = ""]) {
-    return IterableMixinWorkaround.join(this, separator);
+    StringBuffer buffer = new StringBuffer();
+    buffer.writeAll(this, separator);
+    return buffer.toString();
   }
 
   dynamic reduce(dynamic combine(value, element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
+    var len = this.length;
+    if (len == 0) throw IterableElementError.noElement();
+    var i = 0;
+    var value = this[0];
+    for (var i = 1; i < len; ++i) {
+      value = combine(value, this[i]);
+    }
+    return value;
   }
 
   dynamic fold(dynamic initialValue,
                dynamic combine(dynamic initialValue, element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      initialValue = combine(initialValue, this[i]);
+    }
+    return initialValue;
   }
 
-  Iterable map(f(element)) {
-    return IterableMixinWorkaround.mapList(this, f);
-  }
+  Iterable map(f(element)) => new MappedIterable(this, f);
 
-  Iterable expand(Iterable f(element)) {
-    return IterableMixinWorkaround.expand(this, f);
-  }
+  Iterable expand(Iterable f(element)) => new ExpandIterable(this, f);
 
   bool every(bool f(element)) {
-    return IterableMixinWorkaround.every(this, f);
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (!f(this[i])) return false;
+    }
+    return true;
   }
 
   bool any(bool f(element)) {
-    return IterableMixinWorkaround.any(this, f);
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (f(this[i])) return true;
+    }
+    return false;
   }
 
   dynamic firstWhere(bool test(element), {orElse()}) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
   }
 
   dynamic lastWhere(bool test(element), {orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+    var result = null;
+    var len = this.length;
+    for (var i = len - 1; i >= 0; --i) {
+      var element = this[i];
+      if (test(element)) {
+        return element;
+      }
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
   }
 
   dynamic singleWhere(bool test(element)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
+    var result = null;
+    bool foundMatching = false;
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) {
+        if (foundMatching) {
+          throw IterableElementError.tooMany();
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw IterableElementError.noElement();
   }
 
   dynamic elementAt(int index) {
@@ -333,19 +387,29 @@ abstract class _TypedListBase {
   }
 
   void sort([int compare(a, b)]) {
-    IterableMixinWorkaround.sortList(this, compare);
+    if (compare == null) compare = Comparable.compare;
+    Sort.sort(this, compare);
   }
 
   void shuffle([Random random]) {
-    IterableMixinWorkaround.shuffleList(this, random);
+    if (random == null) random = new Random();
+    var i = this.length;
+    while (i > 1) {
+      int pos = random.nextInt(i);
+      i -= 1;
+      var tmp = this[i];
+      this[i] = this[pos];
+      this[pos] = tmp;
+    }
   }
 
   int indexOf(element, [int start = 0]) {
-    return IterableMixinWorkaround.indexOfList(this, element, start);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(element, [int start = null]) {
-    return IterableMixinWorkaround.lastIndexOfList(this, element, start);
+    if (start == null) start = this.length - 1;
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
@@ -380,18 +444,18 @@ abstract class _TypedListBase {
 
   dynamic get first {
     if (length > 0) return this[0];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   dynamic get last {
     if (length > 0) return this[length - 1];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   dynamic get single {
     if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
   }
 
   void removeRange(int start, int end) {
@@ -414,7 +478,7 @@ abstract class _TypedListBase {
 
   List sublist(int start, [int end]) {
     if (end == null) end = this.length;
-    int length = end - start;
+    var length = end - start;
     _rangeCheck(this.length, start, length);
     List result = _createList(length);
     result.setRange(0, length, this, start);
@@ -438,7 +502,7 @@ abstract class _TypedListBase {
 
     final count = end - start;
     if ((from.length - skipCount) < count) {
-      throw new StateError("Not enough elements");
+      throw IterableElementError.tooFew();
     }
 
     if (from is _TypedListBase) {
@@ -459,17 +523,30 @@ abstract class _TypedListBase {
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
         final temp_buffer = new List(count);
-        for (int i = 0; i < count; i++) {
+        for (var i = 0; i < count; i++) {
           temp_buffer[i] = from[skipCount + i];
         }
-        for (int i = start; i < end; i++) {
+        for (var i = start; i < end; i++) {
           this[i] = temp_buffer[i - start];
         }
         return;
       }
     }
-    IterableMixinWorkaround.setRangeList(this, start,
-                                         end, from, skipCount);
+
+    if (count == 0) return;
+    List otherList;
+    int otherStart;
+    if (from is List) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + count > otherList.length) {
+      throw IterableElementError.tooFew();
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
   }
 
   void setAll(int index, Iterable iterable) {
@@ -478,7 +555,10 @@ abstract class _TypedListBase {
   }
 
   void fillRange(int start, int end, [fillValue]) {
-    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
+    RangeError.checkValidRange(start, end, this.length);
+    for (var i = start; i < end; ++i) {
+      this[i] = fillValue;
+    }
   }
 
 
