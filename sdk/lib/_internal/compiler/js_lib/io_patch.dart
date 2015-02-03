@@ -276,7 +276,7 @@ class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       bool detach: false}) {
+       ProcessStartMode mode: ProcessStartMode.NORMAL}) {
     throw new UnsupportedError("Process.start");
   }
 
