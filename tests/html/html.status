@@ -271,7 +271,7 @@ input_element_test/supported_datetime-local: Fail
 touchevent_test/supported: Fail
 
 [ $runtime == safari && ($builder_tag == mac10_8 || $builder_tag == mac10_9) ]
-indexeddb_1_test/functional: RuntimeError # Issue 21433
+indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
