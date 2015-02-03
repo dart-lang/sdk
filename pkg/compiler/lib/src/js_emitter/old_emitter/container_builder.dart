@@ -128,13 +128,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     jsAst.Expression memberTypeExpression;
     if (canTearOff || canBeReflected) {
-      DartType memberType;
-      if (member.isGenerativeConstructorBody) {
-        var body = member;
-        memberType = body.constructor.type;
-      } else {
-        memberType = member.type;
-      }
+      DartType memberType = method.type;
       if (memberType.containsTypeVariables) {
         jsAst.Expression thisAccess = js(r'this.$receiver');
         memberTypeExpression =

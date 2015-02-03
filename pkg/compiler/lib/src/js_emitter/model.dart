@@ -341,6 +341,7 @@ class DartMethod extends Method {
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
   final bool canBeReflected;
+  final DartType type;
 
   // If this method can be torn off, contains the name of the corresponding
   // call method. For example, for the member `foo$1$name` it would be
@@ -348,7 +349,7 @@ class DartMethod extends Method {
   final String callName;
 
   DartMethod(Element element, String name, js.Expression code,
-             this.parameterStubs, this.callName,
+             this.parameterStubs, this.callName, this.type,
              {this.needsTearOff, this.tearOffName, this.canBeApplied,
              this.canBeReflected})
       : super(element, name, code) {
@@ -370,14 +371,14 @@ class InstanceMethod extends DartMethod {
 
   InstanceMethod(Element element, String name, js.Expression code,
                  List<ParameterStubMethod> parameterStubs,
-                 String callName,
+                 String callName, DartType type,
                  {bool needsTearOff,
                   String tearOffName,
                   this.aliasName,
                   bool canBeApplied,
                   bool canBeReflected,
        this.isClosure})
-      : super(element, name, code, parameterStubs, callName,
+      : super(element, name, code, parameterStubs, callName, type,
               needsTearOff: needsTearOff,
               tearOffName: tearOffName,
               canBeApplied: canBeApplied,
@@ -425,10 +426,10 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
   StaticDartMethod(Element element, String name, this.holder,
                    js.Expression code, List<ParameterStubMethod> parameterStubs,
-                   String callName,
+                   String callName, DartType type,
                    {bool needsTearOff, String tearOffName, bool canBeApplied,
                     bool canBeReflected})
-      : super(element, name, code, parameterStubs, callName,
+      : super(element, name, code, parameterStubs, callName, type,
               needsTearOff: needsTearOff,
               tearOffName : tearOffName,
               canBeApplied : canBeApplied,

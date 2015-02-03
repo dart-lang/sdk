@@ -476,8 +476,19 @@ class ProgramBuilder {
       callName = namer.invocationName(callSelector);
     }
 
+    DartType memberType;
+    if (element.isGenerativeConstructorBody) {
+      // TODO(herhut): Why does this need to be normalized away? We never need
+      //               this information anyway as they cannot be torn off or
+      //               reflected.
+      var body = element;
+      memberType = body.constructor.type;
+    } else {
+      memberType = element.type;
+    }
+
     return new InstanceMethod(element, name, code,
-        _generateParameterStubs(element, canTearOff), callName,
+        _generateParameterStubs(element, canTearOff), callName, memberType,
         needsTearOff: canTearOff, tearOffName: tearOffName,
         isClosure: isClosure, aliasName: aliasName,
         canBeApplied: canBeApplied, canBeReflected: canBeReflected);
@@ -619,7 +630,7 @@ class ProgramBuilder {
     return new StaticDartMethod(element,
                                 name, _registry.registerHolder(holder), code,
                                 _generateParameterStubs(element, needsTearOff),
-                                callName,
+                                callName, element.type,
                                 needsTearOff: needsTearOff,
                                 tearOffName: tearOffName,
                                 canBeApplied: canBeApplied,
