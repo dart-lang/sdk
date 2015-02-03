@@ -1391,13 +1391,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType
       _computeStaticReturnTypeOfFunctionExpression(FunctionExpression node) {
     FunctionBody body = node.body;
+    if (body.isGenerator) {
+      if (body.isAsynchronous) {
+        return _typeProvider.streamDynamicType;
+      } else {
+        return _typeProvider.iterableDynamicType;
+      }
+    }
     DartType type;
     if (body is ExpressionFunctionBody) {
       type = _getStaticType(body.expression);
     } else {
       type = _dynamicType;
     }
-    // TODO(paulberry): also handle generator functions.
     if (body.isAsynchronous) {
       return _typeProvider.futureType.substitute4(<DartType>[type]);
     } else {

@@ -1653,4 +1653,72 @@ f(p) {
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
     verify([source]);
   }
+
+  void test_yield_async_to_basic_type() {
+    Source source = addSource('''
+int f() async* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_yield_async_to_iterable() {
+    Source source = addSource('''
+Iterable<int> f() async* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_yield_async_to_mistyped_stream() {
+    Source source = addSource('''
+import 'dart:async';
+Stream<int> f() async* {
+  yield "foo";
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_yield_sync_to_basic_type() {
+    Source source = addSource('''
+int f() sync* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_yield_sync_to_mistyped_iterable() {
+    Source source = addSource('''
+Iterable<int> f() sync* {
+  yield "foo";
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_yield_sync_to_stream() {
+    Source source = addSource('''
+import 'dart:async';
+Stream<int> f() sync* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
 }

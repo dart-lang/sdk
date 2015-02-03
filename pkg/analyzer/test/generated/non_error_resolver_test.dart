@@ -2765,6 +2765,28 @@ main() {
 }'''], <ErrorCode>[]);
   }
 
+  void test_local_generator_async() {
+    Source source = addSource('''
+f() {
+  return () async* { yield 0; };
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_local_generator_sync() {
+    Source source = addSource('''
+f() {
+  return () sync* { yield 0; };
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_mapKeyTypeNotAssignable() {
     Source source = addSource("var v = <String, int > {'a' : 1};");
     resolve(source);
@@ -5006,6 +5028,96 @@ class A {
 class A {
   set x(a) {}
 }''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_async_to_dynamic_type() {
+    Source source = addSource('''
+dynamic f() async* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_async_to_generic_type() {
+    Source source = addSource('''
+import 'dart:async';
+Stream f() async* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_async_to_parameterized_type() {
+    Source source = addSource('''
+import 'dart:async';
+Stream<int> f() async* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_async_to_untyped() {
+    Source source = addSource('''
+f() async* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_sync_to_dynamic_type() {
+    Source source = addSource('''
+dynamic f() sync* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_sync_to_generic_type() {
+    Source source = addSource('''
+Iterable f() sync* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_sync_to_parameterized_type() {
+    Source source = addSource('''
+Iterable<int> f() sync* {
+  yield 3;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yield_sync_to_untyped() {
+    Source source = addSource('''
+f() sync* {
+  yield 3;
+}
+''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);

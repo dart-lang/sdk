@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
 
@@ -10005,6 +10006,40 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitFunctionExpression_generator_async() {
+    // () async* {}
+    BlockFunctionBody body = AstFactory.blockFunctionBody2();
+    body.keyword = TokenFactory.tokenFromString('async');
+    body.star = TokenFactory.tokenFromType(TokenType.STAR);
+    FunctionExpression node =
+        _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(
+        _typeProvider.streamDynamicType,
+        null,
+        null,
+        null,
+        resultType);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionExpression_generator_sync() {
+    // () sync* {}
+    BlockFunctionBody body = AstFactory.blockFunctionBody2();
+    body.keyword = TokenFactory.tokenFromString('sync');
+    body.star = TokenFactory.tokenFromType(TokenType.STAR);
+    FunctionExpression node =
+        _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(
+        _typeProvider.iterableDynamicType,
+        null,
+        null,
+        null,
+        resultType);
+    _listener.assertNoErrors();
+  }
+
   void test_visitFunctionExpression_named_block() {
     // ({p1 : 0, p2 : 0}) {}
     DartType dynamicType = _typeProvider.dynamicType;
@@ -12992,9 +13027,12 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType functionType = _classElement("Function", objectType).type;
     InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
     InterfaceType intType = _classElement("int", numType).type;
+    InterfaceType iterableType =
+        _classElement("Iterable", objectType, ["T"]).type;
     InterfaceType listType = _classElement("List", objectType, ["E"]).type;
     InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
     InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
+    InterfaceType streamType = _classElement("Stream", objectType, ["T"]).type;
     InterfaceType stringType = _classElement("String", objectType).type;
     InterfaceType symbolType = _classElement("Symbol", objectType).type;
     InterfaceType typeType = _classElement("Type", objectType).type;
@@ -13005,6 +13043,7 @@ class TypeProviderImplTest extends EngineTestCase {
         doubleType.element,
         functionType.element,
         intType.element,
+        iterableType.element,
         listType.element,
         mapType.element,
         objectType.element,
@@ -13014,7 +13053,7 @@ class TypeProviderImplTest extends EngineTestCase {
         typeType.element];
     CompilationUnitElementImpl asyncUnit =
         new CompilationUnitElementImpl("async.dart");
-    asyncUnit.types = <ClassElement>[futureType.element];
+    asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
     AnalysisContextImpl context = new AnalysisContextImpl();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         context,

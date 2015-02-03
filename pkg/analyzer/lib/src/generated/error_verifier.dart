@@ -1095,7 +1095,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitYieldStatement(YieldStatement node) {
-    if (!_inGenerator) {
+    if (_inGenerator) {
+      _checkForYieldOfInvalidType(node.expression);
+    } else {
       CompileTimeErrorCode errorCode;
       if (node.star != null) {
         errorCode = CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR;
@@ -5708,6 +5710,37 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Check for a type mis-match between the yielded type and the declared
+   * return type of a generator function.
+   *
+   * This method should only be called in generator functions.
+   */
+  bool _checkForYieldOfInvalidType(Expression yieldExpression) {
+    assert(_inGenerator);
+    if (_enclosingFunction == null) {
+      return false;
+    }
+    DartType declaredReturnType = _enclosingFunction.returnType;
+    DartType staticYieldedType = getStaticType(yieldExpression);
+    DartType impliedReturnType;
+    if (_enclosingFunction.isAsynchronous) {
+      impliedReturnType =
+          _typeProvider.streamType.substitute4(<DartType>[staticYieldedType]);
+    } else {
+      impliedReturnType =
+          _typeProvider.iterableType.substitute4(<DartType>[staticYieldedType]);
+    }
+    if (impliedReturnType.isAssignableTo(declaredReturnType)) {
+      return false;
+    }
+    _errorReporter.reportTypeErrorForNode(
+        StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+        yieldExpression,
+        [declaredReturnType, impliedReturnType]);
+    return true;
   }
 
   /**

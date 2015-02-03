@@ -13427,6 +13427,16 @@ abstract class TypeProvider {
   InterfaceType get intType;
 
   /**
+   * Return the type representing the type 'Iterable<dynamic>'.
+   */
+  InterfaceType get iterableDynamicType;
+
+  /**
+   * Return the type representing the built-in type 'Iterable'.
+   */
+  InterfaceType get iterableType;
+
+  /**
    * Return the type representing the built-in type 'List'.
    *
    * @return the type representing the built-in type 'List'
@@ -13467,6 +13477,16 @@ abstract class TypeProvider {
    * @return the type representing the built-in type 'StackTrace'
    */
   InterfaceType get stackTraceType;
+
+  /**
+   * Return the type representing 'Stream<dynamic>'.
+   */
+  InterfaceType get streamDynamicType;
+
+  /**
+   * Return the type representing the built-in type 'Stream'.
+   */
+  InterfaceType get streamType;
 
   /**
    * Return the type representing the built-in type 'String'.
@@ -13546,6 +13566,16 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _intType;
 
   /**
+   * The type representing 'Iterable<dynamic>'.
+   */
+  InterfaceType _iterableDynamicType;
+
+  /**
+   * The type representing the built-in type 'Iterable'.
+   */
+  InterfaceType _iterableType;
+
+  /**
    * The type representing the built-in type 'List'.
    */
   InterfaceType _listType;
@@ -13574,6 +13604,16 @@ class TypeProviderImpl implements TypeProvider {
    * The type representing the built-in type 'StackTrace'.
    */
   InterfaceType _stackTraceType;
+
+  /**
+   * The type representing 'Stream<dynamic>'.
+   */
+  InterfaceType _streamDynamicType;
+
+  /**
+   * The type representing the built-in type 'Stream'.
+   */
+  InterfaceType _streamType;
 
   /**
    * The type representing the built-in type 'String'.
@@ -13632,6 +13672,12 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType get intType => _intType;
 
   @override
+  InterfaceType get iterableDynamicType => _iterableDynamicType;
+
+  @override
+  InterfaceType get iterableType => _iterableType;
+
+  @override
   InterfaceType get listType => _listType;
 
   @override
@@ -13648,6 +13694,12 @@ class TypeProviderImpl implements TypeProvider {
 
   @override
   InterfaceType get stackTraceType => _stackTraceType;
+
+  @override
+  InterfaceType get streamDynamicType => _streamDynamicType;
+
+  @override
+  InterfaceType get streamType => _streamType;
 
   @override
   InterfaceType get stringType => _stringType;
@@ -13698,17 +13750,21 @@ class TypeProviderImpl implements TypeProvider {
     _functionType = _getType(coreNamespace, "Function");
     _futureType = _getType(asyncNamespace, "Future");
     _intType = _getType(coreNamespace, "int");
+    _iterableType = _getType(coreNamespace, "Iterable");
     _listType = _getType(coreNamespace, "List");
     _mapType = _getType(coreNamespace, "Map");
     _nullType = _getType(coreNamespace, "Null");
     _numType = _getType(coreNamespace, "num");
     _objectType = _getType(coreNamespace, "Object");
     _stackTraceType = _getType(coreNamespace, "StackTrace");
+    _streamType = _getType(asyncNamespace, "Stream");
     _stringType = _getType(coreNamespace, "String");
     _symbolType = _getType(coreNamespace, "Symbol");
     _typeType = _getType(coreNamespace, "Type");
     _undefinedType = UndefinedTypeImpl.instance;
     _futureNullType = _futureType.substitute4(<DartType>[_nullType]);
+    _iterableDynamicType = _iterableType.substitute4(<DartType>[_dynamicType]);
+    _streamDynamicType = _streamType.substitute4(<DartType>[_dynamicType]);
   }
 }
 
