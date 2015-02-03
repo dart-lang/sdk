@@ -40,7 +40,7 @@ from time import strptime
 # Repositories to auto-update
 ########################################################################
 
-BRANCH_CURRENT="dart/dartium"
+BRANCH_CURRENT="dart/2125"
 BRANCH_NEXT="dart/dartium"
 BRANCH_MULTIVM="dart/multivm"
 
@@ -48,13 +48,15 @@ TARGETS = {
   'dartium': (
     'https://dart.googlecode.com/svn/branches/bleeding_edge/deps/dartium.deps',
     'dartium',
+    # TODO(vsm): 'chromium' will move to git
     ['webkit', 'chromium'],
     BRANCH_CURRENT,
     ),
   'integration': (
     'https://dart.googlecode.com/svn/branches/dartium_integration/deps/dartium.deps',
     'dartium',
-    ['webkit', 'chromium'],
+    # TODO(vsm): Reenable 'chromium'
+    ['webkit'],
     BRANCH_NEXT,
     ),
   'clank': (
