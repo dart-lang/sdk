@@ -15,6 +15,9 @@ async_await_syntax_test/a04c: MissingCompileTimeError # Issue 22234
 async_await_syntax_test/a05c: CompileTimeError
 async_await_syntax_test/a05e: CompileTimeError
 async_await_syntax_test/a05f: MissingCompileTimeError
+async_await_syntax_test/a10a: MissingStaticWarning
+async_await_syntax_test/b10a: MissingStaticWarning
+async_await_syntax_test/c10a: MissingStaticWarning
 async_await_syntax_test/d08b: MissingStaticWarning
 async_await_syntax_test/d10a: MissingStaticWarning
 

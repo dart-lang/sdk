@@ -47,7 +47,7 @@ a07b() sync { yield 0; }                     /// a07b: compile-time error
 a08a() sync* { yield* []; }                  /// a08a: ok
 a08b() sync { yield 0; }                     /// a08b: compile-time error
 a09a() async* { yield 0; }                   /// a09a: ok
-a10a() async* { yield* []; }                 /// a10a: ok
+a10a() async* { yield* []; }                 /// a10a: static type warning
 
 get sync sync {}                             /// a11a: compile-time error
 get sync sync* {}                            /// a11b: ok
@@ -112,7 +112,7 @@ class C extends B {
   b07a() sync* { yield 0; }                    /// b07a: ok
   b08a() sync* { yield* []; }                  /// b08a: ok
   b09a() async* { yield 0; }                   /// b09a: ok
-  b10a() async* { yield* []; }                 /// b10a: ok
+  b10a() async* { yield* []; }                 /// b10a: static type warning
 
   get sync sync {}                             /// b11a: compile-time error
   get sync sync* {}                            /// b11b: ok
@@ -153,7 +153,7 @@ method1() {
   c07a() sync* { yield 0; } c07a();                    /// c07a: ok
   c08a() sync* { yield* []; } c08a();                  /// c08a: ok
   c09a() async* { yield 0; } c09a();                   /// c09a: ok
-  c10a() async* { yield* []; } c10a();                 /// c10a: ok
+  c10a() async* { yield* []; } c10a();                 /// c10a: static type warning
 }
 
 method2() {

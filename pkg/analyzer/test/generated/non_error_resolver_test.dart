@@ -5272,26 +5272,6 @@ f() sync* {
     verify([source]);
   }
 
-  void test_yieldEachInNonGenerator_asyncStar() {
-    Source source = addSource(r'''
-f() async* {
-  yield* 0;
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_yieldEachInNonGenerator_syncStar() {
-    Source source = addSource(r'''
-f() sync* {
-  yield* 0;
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_yieldInNonGenerator_asyncStar() {
     Source source = addSource(r'''
 f() async* {

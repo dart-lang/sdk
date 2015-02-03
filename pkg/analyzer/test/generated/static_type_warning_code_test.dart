@@ -1772,6 +1772,17 @@ Stream<int> f() async* {
     verify([source]);
   }
 
+  void test_yield_each_async_non_stream() {
+    Source source = addSource('''
+f() async* {
+  yield* 0;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
   void test_yield_each_async_to_mistyped_stream() {
     Source source = addSource('''
 import 'dart:async';
@@ -1779,6 +1790,17 @@ Stream<int> f() async* {
   yield* g();
 }
 Stream<String> g() => null;
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_yield_each_sync_non_iterable() {
+    Source source = addSource('''
+f() sync* {
+  yield* 0;
+}
 ''');
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);

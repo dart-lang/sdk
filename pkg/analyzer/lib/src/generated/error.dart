@@ -3752,11 +3752,18 @@ class StaticTypeWarningCode extends ErrorCode {
    *
    * - the body of f is marked sync* and the type Iterable<T> may not be
    *   assigned to the declared return type of f.
+   *
+   * 17.16.2 Yield-Each: Let T be the static type of e [the expression to the
+   * right of "yield*"] and let f be the immediately enclosing function.  It is
+   * a static type warning if T may not be assigned to the declared return type
+   * of f.  If f is synchronous it is a static type warning if T may not be
+   * assigned to Iterable.  If f is asynchronous it is a static type warning if
+   * T may not be assigned to Stream.
    */
   static const StaticTypeWarningCode YIELD_OF_INVALID_TYPE =
       const StaticTypeWarningCode(
           'YIELD_OF_INVALID_TYPE',
-          "The declared return type '{0}' is incompatible with the type '{1}' implied by the 'yield' expression");
+          "The type '{0}' implied by the 'yield' expression must be assignable to '{1}'");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

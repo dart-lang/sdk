@@ -5775,14 +5775,32 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       impliedReturnType =
           _typeProvider.iterableType.substitute4(<DartType>[staticYieldedType]);
     }
-    if (impliedReturnType.isAssignableTo(declaredReturnType)) {
-      return false;
+    if (!impliedReturnType.isAssignableTo(declaredReturnType)) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+          yieldExpression,
+          [impliedReturnType, declaredReturnType]);
+      return true;
     }
-    _errorReporter.reportTypeErrorForNode(
-        StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-        yieldExpression,
-        [declaredReturnType, impliedReturnType]);
-    return true;
+    if (isYieldEach) {
+      // Since the declared return type might have been "dynamic", we need to
+      // also check that the implied return type is assignable to generic
+      // Stream/Iterable.
+      DartType requiredReturnType;
+      if (_enclosingFunction.isAsynchronous) {
+        requiredReturnType = _typeProvider.streamDynamicType;
+      } else {
+        requiredReturnType = _typeProvider.iterableDynamicType;
+      }
+      if (!impliedReturnType.isAssignableTo(requiredReturnType)) {
+        _errorReporter.reportTypeErrorForNode(
+            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+            yieldExpression,
+            [impliedReturnType, requiredReturnType]);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
