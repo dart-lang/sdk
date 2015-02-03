@@ -20,81 +20,13 @@ class NsmEmitter extends CodeEmitterHelper {
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
 
-    Map<String, Selector> jsNames = <String, Selector>{};
-
-    Map<String, Selector> computeSelectorsForNsmHandlers() {
-      // Do not generate no such method handlers if there is no class.
-      if (compiler.codegenWorld.directlyInstantiatedClasses.isEmpty) {
-        return jsNames;
-      }
-
-      void addNoSuchMethodHandlers(String ignore, Set<Selector> selectors) {
-        TypeMask objectSubclassTypeMask =
-            new TypeMask.subclass(compiler.objectClass, compiler.world);
-
-        for (Selector selector in selectors) {
-          TypeMask mask = selector.mask;
-          if (mask == null) mask = objectSubclassTypeMask;
-
-          if (!mask.needsNoSuchMethodHandling(selector, compiler.world)) {
-            continue;
-          }
-          String jsName = namer.invocationMirrorInternalName(selector);
-          jsNames[jsName] = selector;
-        }
-      }
-
-      compiler.codegenWorld.invokedNames.forEach(addNoSuchMethodHandlers);
-      compiler.codegenWorld.invokedGetters.forEach(addNoSuchMethodHandlers);
-      compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
-      return jsNames;
-    }
-
-    jsAst.Expression generateMethod(Selector selector) {
-      // Values match JSInvocationMirror in js-helper library.
-      int type = selector.invocationMirrorKind;
-      List<String> parameterNames =
-          new List.generate(selector.argumentCount, (i) => '\$$i');
-
-      List<jsAst.Expression> argNames =
-          selector.getOrderedNamedArguments().map((String name) =>
-              js.string(name)).toList();
-
-      String methodName = selector.invocationMirrorMemberName;
-      String internalName = namer.invocationMirrorInternalName(selector);
-
-      assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
-      jsAst.Expression expression =
-          js('''this.#noSuchMethodName(this,
-                    #createInvocationMirror(#methodName,
-                                            #internalName,
-                                            #type,
-                                            #arguments,
-                                            #namedArguments))''',
-             {'noSuchMethodName': namer.noSuchMethodName,
-              'createInvocationMirror':
-                  backend.emitter.staticFunctionAccess(
-                      backend.getCreateInvocationMirror()),
-              'methodName':
-                  js.string(compiler.enableMinification
-                      ? internalName : methodName),
-              'internalName': js.string(internalName),
-              'type': js.number(type),
-              'arguments':
-                  new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
-              'namedArguments': new jsAst.ArrayInitializer(argNames)});
-
-      if (backend.isInterceptedName(selector.name)) {
-        return js(r'function($receiver, #) { return # }',
-                  [parameterNames, expression]);
-      } else {
-        return js(r'function(#) { return # }', [parameterNames, expression]);
-      }
-    }
+    ClassStubGenerator generator =
+        new ClassStubGenerator(compiler, namer, backend);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
-    Map<String, Selector> addedJsNames = computeSelectorsForNsmHandlers();
+    Map<String, Selector> addedJsNames
+        = generator.computeSelectorsForNsmHandlers();
 
     // Set flag used by generateMethod helper below.  If we have very few
     // handlers we use addProperty for them all, rather than try to generate
@@ -119,7 +51,7 @@ class NsmEmitter extends CodeEmitterHelper {
         trivialNsmHandlers.add(selector);
       }
 
-      jsAst.Expression method = generateMethod(selector);
+      jsAst.Expression method = generator.generateStubForNoSuchMethod(selector);
       if (method != null) {
         addProperty(jsName, method);
         if (reflectionName != null) {
