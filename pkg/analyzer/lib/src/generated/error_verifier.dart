@@ -1096,7 +1096,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitYieldStatement(YieldStatement node) {
     if (_inGenerator) {
-      _checkForYieldOfInvalidType(node.expression);
+      _checkForYieldOfInvalidType(node.expression, node.star != null);
     } else {
       CompileTimeErrorCode errorCode;
       if (node.star != null) {
@@ -5718,7 +5718,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * This method should only be called in generator functions.
    */
-  bool _checkForYieldOfInvalidType(Expression yieldExpression) {
+  bool _checkForYieldOfInvalidType(Expression yieldExpression,
+      bool isYieldEach) {
     assert(_inGenerator);
     if (_enclosingFunction == null) {
       return false;
@@ -5726,7 +5727,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     DartType declaredReturnType = _enclosingFunction.returnType;
     DartType staticYieldedType = getStaticType(yieldExpression);
     DartType impliedReturnType;
-    if (_enclosingFunction.isAsynchronous) {
+    if (isYieldEach) {
+      impliedReturnType = staticYieldedType;
+    } else if (_enclosingFunction.isAsynchronous) {
       impliedReturnType =
           _typeProvider.streamType.substitute4(<DartType>[staticYieldedType]);
     } else {

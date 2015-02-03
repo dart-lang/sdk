@@ -168,10 +168,10 @@ method2() {
   var d06a = () async { await for (var o in st) {} }; d06a();  /// d06a: ok
   var d07a = () sync* { yield 0; }; d07a();                    /// d07a: ok
   var d08a = () sync* { yield* []; }; d08a();                  /// d08a: ok
-  var d08b = () sync* { yield*0+1; }; d08b();                  /// d08b: ok
+  var d08b = () sync* { yield*0+1; }; d08b();                  /// d08b: static type warning
   var d08c = () { yield*0+1; }; d08c();                        /// d08c: ok
   var d09a = () async* { yield 0; }; d09a();                   /// d09a: ok
-  var d10a = () async* { yield* []; }; d10a();                 /// d10a: ok
+  var d10a = () async* { yield* []; }; d10a();                 /// d10a: static type warning
 }
 
 

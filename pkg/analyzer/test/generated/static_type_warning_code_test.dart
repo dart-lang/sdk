@@ -1688,6 +1688,31 @@ Stream<int> f() async* {
     verify([source]);
   }
 
+  void test_yield_each_async_to_mistyped_stream() {
+    Source source = addSource('''
+import 'dart:async';
+Stream<int> f() async* {
+  yield* g();
+}
+Stream<String> g() => null;
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
+  void test_yield_each_sync_to_mistyped_iterable() {
+    Source source = addSource('''
+Iterable<int> f() async* {
+  yield* g();
+}
+Iterable<String> g() => null;
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
   void test_yield_sync_to_basic_type() {
     Source source = addSource('''
 int f() sync* {
