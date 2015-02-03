@@ -1482,13 +1482,16 @@ static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
 // Returns 'sorted' array in decreasing count order.
 // The expected number of elements to sort is less than 10.
 void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
-                                          GrowableArray<CidTarget>* sorted) {
+                                          GrowableArray<CidTarget>* sorted,
+                                          bool drop_smi) {
   ASSERT(ic_data.NumArgsTested() == 1);
   const intptr_t len = ic_data.NumberOfChecks();
   sorted->Clear();
 
   for (int i = 0; i < len; i++) {
-    sorted->Add(CidTarget(ic_data.GetReceiverClassIdAt(i),
+    intptr_t receiver_cid = ic_data.GetReceiverClassIdAt(i);
+    if (drop_smi && (receiver_cid == kSmiCid)) continue;
+    sorted->Add(CidTarget(receiver_cid,
                           &Function::ZoneHandle(ic_data.GetTargetAt(i)),
                           ic_data.GetCountAt(i)));
   }

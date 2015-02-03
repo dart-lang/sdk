@@ -501,7 +501,8 @@ class FlowGraphCompiler : public ValueObject {
 
   // Returns 'sorted' array in decreasing count order.
   static void SortICDataByCount(const ICData& ic_data,
-                                GrowableArray<CidTarget>* sorted);
+                                GrowableArray<CidTarget>* sorted,
+                                bool drop_smi);
 
   // Use in unoptimized compilation to preserve/reuse ICData.
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,

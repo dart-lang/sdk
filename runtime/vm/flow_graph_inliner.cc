@@ -1692,7 +1692,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
 
 void PolymorphicInliner::Inline() {
   // Consider the polymorphic variants in order by frequency.
-  FlowGraphCompiler::SortICDataByCount(call_->ic_data(), &variants_);
+  FlowGraphCompiler::SortICDataByCount(call_->ic_data(),
+                                       &variants_,
+                                       /* drop_smi = */ false);
   for (intptr_t var_idx = 0; var_idx < variants_.length(); ++var_idx) {
     const Function& target = *variants_[var_idx].target;
     const intptr_t receiver_cid = variants_[var_idx].cid;

@@ -1511,7 +1511,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<CidTarget> sorted(len);
-  SortICDataByCount(ic_data, &sorted);
+  SortICDataByCount(ic_data, &sorted, /* drop_smi = */ false);
   ASSERT(class_id_reg != R4);
   ASSERT(len > 0);  // Why bother otherwise.
   const Array& arguments_descriptor =

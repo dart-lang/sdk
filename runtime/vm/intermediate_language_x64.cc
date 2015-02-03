@@ -5512,11 +5512,9 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   Label is_ok;
-  intptr_t cix = 0;
-  if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
+  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) {
     __ testq(value, Immediate(kSmiTagMask));
     __ j(ZERO, &is_ok);
-    cix++;  // Skip first check.
   } else {
     __ testq(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
@@ -5539,11 +5537,15 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(NOT_CARRY, deopt);
     }
   } else {
-    const intptr_t num_checks = unary_checks().NumberOfChecks();
+    GrowableArray<CidTarget> sorted_ic_data;
+    FlowGraphCompiler::SortICDataByCount(unary_checks(),
+                                         &sorted_ic_data,
+                                         /* drop_smi = */ true);
+    const intptr_t num_checks = sorted_ic_data.length();
     const bool use_near_jump = num_checks < 5;
-    for (intptr_t i = cix; i < num_checks; i++) {
-      ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
-      __ cmpl(temp, Immediate(unary_checks().GetReceiverClassIdAt(i)));
+    for (intptr_t i = 0; i < num_checks; i++) {
+      const intptr_t cid = sorted_ic_data[i].cid;
+      __ cmpl(temp, Immediate(cid));
       if (i == (num_checks - 1)) {
         __ j(NOT_EQUAL, deopt);
       } else {
