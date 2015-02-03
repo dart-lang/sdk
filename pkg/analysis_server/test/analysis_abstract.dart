@@ -7,6 +7,7 @@ library test.domain.analysis.abstract;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -44,7 +45,8 @@ class AbstractAnalysisTest {
   AnalysisServer server;
   RequestHandler handler;
 
-  Map<AnalysisService, List<String>> analysisSubscriptions = {};
+  final List<ServerErrorParams> serverErrors = <ServerErrorParams>[];
+  final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   String projectPath = '/project';
   String testFolder = '/project/bin/';
@@ -141,6 +143,10 @@ class AbstractAnalysisTest {
   }
 
   void processNotification(Notification notification) {
+    if (notification.event == SERVER_ERROR) {
+      var params = new ServerErrorParams.fromNotification(notification);
+      serverErrors.add(params);
+    }
   }
 
   void setUp() {

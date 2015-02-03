@@ -47,6 +47,16 @@ main() {
     expect(items, isNull);
   }
 
+  test_bad_noElement() async {
+    addTestFile('''
+main() {
+  /* target */
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('/* target */');
+    expect(items, isNull);
+  }
+
   test_bad_recursion() async {
     addTestFile('''
 class A extends B {
@@ -556,6 +566,7 @@ class D extends C {
     await waitForTasksFinished();
     Request request = _createGetTypeHierarchyRequest(search);
     Response response = await serverChannel.sendRequest(request);
+    expect(serverErrors, isEmpty);
     return new SearchGetTypeHierarchyResult.fromResponse(
         response).hierarchyItems;
   }

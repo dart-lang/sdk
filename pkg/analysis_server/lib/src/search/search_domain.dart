@@ -131,13 +131,14 @@ class SearchDomainHandler implements protocol.RequestHandler {
   Future getTypeHierarchy(protocol.Request request) async {
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     await server.onAnalysisComplete;
-    // prepare parameters
+    // prepare element
     List<Element> elements =
         server.getElementsAtOffset(params.file, params.offset);
     if (elements.isEmpty) {
       protocol.Response response =
           new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
       server.sendResponse(response);
+      return;
     }
     Element element = elements.first;
     // prepare type hierarchy
