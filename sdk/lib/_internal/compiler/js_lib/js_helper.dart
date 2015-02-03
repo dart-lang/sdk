@@ -1956,14 +1956,15 @@ abstract class Closure implements Function {
    *
    * Further assumes that [reflectionInfo] is the end of the array created by
    * [dart2js.js_emitter.ContainerBuilder.addMemberMethod] starting with
-   * required parameter count.
+   * required parameter count or, in case of the new emitter, the runtime
+   * representation of the function's type.
    *
    * Caution: this function may be called when building constants.
    * TODO(ahe): Don't call this function when building constants.
    */
   static fromTearOff(receiver,
                      List functions,
-                     List reflectionInfo,
+                     var reflectionInfo,
                      bool isStatic,
                      jsArguments,
                      String propertyName) {
@@ -1977,10 +1978,15 @@ abstract class Closure implements Function {
     String name = JS('String|Null', '#.\$stubName', function);
     String callName = JS('String|Null', '#.\$callName', function);
 
-    JS('', '#.\$reflectionInfo = #', function, reflectionInfo);
-    ReflectionInfo info = new ReflectionInfo(function);
+    var functionType;
+    if (reflectionInfo is List) {
+      JS('', '#.\$reflectionInfo = #', function, reflectionInfo);
+      ReflectionInfo info = new ReflectionInfo(function);
+      functionType = info.functionType;
+    } else {
+      functionType = reflectionInfo;
+    }
 
-    var functionType = info.functionType;
 
     // function tmp() {};
     // tmp.prototype = BC.prototype;
@@ -2322,7 +2328,8 @@ closureFromTearOff(receiver,
   return Closure.fromTearOff(
       receiver,
       JSArray.markFixedList(functions),
-      JSArray.markFixedList(reflectionInfo),
+      reflectionInfo is List ? JSArray.markFixedList(reflectionInfo)
+                             : reflectionInfo,
       JS('bool', '!!#', isStatic),
       jsArguments,
       JS('String', '#', name));

@@ -5,6 +5,7 @@
 library dart2js.new_js_emitter.model_emitter;
 
 import '../../dart2jslib.dart' show Compiler;
+import '../../dart_types.dart' show DartType;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
@@ -22,8 +23,9 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     METADATA,
     TYPE_TO_INTERCEPTOR_MAP;
 
-import '../js_emitter.dart' show NativeGenerator;
+import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
+
 
 class ModelEmitter {
   final Compiler compiler;
@@ -108,6 +110,9 @@ class ModelEmitter {
         boilerplate,
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
          'holders': emitHolders(fragment.holders),
+         'tearOff': buildTearOffCode(backend),
+         'parseFunctionDescriptor':
+           js.js.statement(parseFunctionDescriptorBoilerplate),
          'cyclicThrow':
            backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
          'outputContainsConstantList': program.outputContainsConstantList,
@@ -395,14 +400,7 @@ class ModelEmitter {
     } else {
       elements.add(_generateConstructor(cls));
     }
-    Iterable<Method> methods = cls.methods.expand((Method method) {
-      // TODO(floitsch): can there be anything else than a DartMethod?
-      if (method is DartMethod) {
-        return [method]..addAll(method.parameterStubs);
-      } else {
-        return [method];
-      }
-    });
+    Iterable<Method> methods = cls.methods;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
@@ -410,13 +408,103 @@ class ModelEmitter {
     Iterable<Method> allMethods =
         [methods, isChecks, callStubs, noSuchMethodStubs, gettersSetters]
             .expand((x) => x);
-    elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
+    elements.addAll(allMethods.expand(emitInstanceMethod));
+
     return unparse(compiler, new js.ArrayInitializer(elements));
   }
 
   js.Expression emitLazyInitializer(StaticField field) {
     assert(field.isLazy);
     return unparse(compiler, field.code);
+  }
+
+  /// JavaScript code template that implements parsing of a function descriptor.
+  /// Descriptors are used in place of the actual JavaScript function
+  /// definition in the output if additional information needs to be passed to
+  /// facilitate the generation of tearOffs at runtime. The format is an array
+  /// with the following fields:
+  ///
+  /// [Method.code]
+  /// [DartMethod.callName]
+  /// [DartMethod.tearOffName]
+  /// [JavaScriptBackend.isInterceptedMethod]
+  /// functionType
+  ///
+  /// followed by
+  ///
+  /// [ParameterStubMethod.name]
+  /// [ParameterStubMethod.code]
+  ///
+  /// for each stub in [DartMethod.parameterStubs].
+
+  static final String parseFunctionDescriptorBoilerplate = r"""
+function parseFunctionDescriptor(proto, name, descriptor) {
+  if (descriptor instanceof Array) {
+    proto[name] = descriptor[0];
+    var funs = [descriptor[0]];
+    funs[0].$callName = descriptor[1];
+    for (var pos = 5; pos < descriptor.length; pos += 3) {
+      var stub = descriptor[pos + 2];
+      stub.$callName = descriptor[pos + 1];
+      proto[descriptor[pos]] = stub;
+      funs.push(stub);
+    }
+    if (descriptor[2] != null) {
+      var isIntercepted = descriptor[3];
+      var reflectionInfo = descriptor[4];
+      proto[descriptor[2]] = 
+          tearOff(funs, reflectionInfo, false, name, isIntercepted);
+    }
+  } else {
+    proto[name] = descriptor;
+  }
+}
+""";
+
+  js.Expression _generateFunctionType(DartType memberType) {
+    if (memberType.containsTypeVariables) {
+      js.Expression thisAccess = js.js(r'this.$receiver');
+      return backend.rti.getSignatureEncoding(memberType, thisAccess);
+    } else {
+      return js.number(backend.emitter.metadataCollector.reifyType(memberType));
+    }
+  }
+
+  Iterable<js.Expression> emitInstanceMethod(Method method) {
+
+    List<js.Expression> makeNameCodePair(Method method) {
+      return [js.string(method.name), method.code];
+    }
+
+    List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
+      js.Expression callName = stub.callName == null
+          ? new js.LiteralNull()
+          : js.string(stub.callName);
+      return [js.string(stub.name), callName, stub.code];
+    }
+
+    if (method is DartMethod) {
+      if (method.needsTearOff) {
+        /// See [parseFunctionDescriptorBoilerplate] for a full description of
+        /// the format.
+        // [name, [function, callName, tearOffName, isIntercepted, functionType,
+        //     stub1_name, stub1_callName, stub1_code, ...]
+        bool isIntercepted = backend.isInterceptedMethod(method.element);
+        var data = [method.code];
+        data.add(js.string(method.callName));
+        data.add(js.string(method.tearOffName));
+        data.add(new js.LiteralBool(isIntercepted));
+        data.add(_generateFunctionType(method.type));
+        data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
+        return [js.string(method.name), new js.ArrayInitializer(data)];
+      } else {
+        // TODO(floitsch): not the most efficient way...
+        return ([method]..addAll(method.parameterStubs))
+            .expand(makeNameCodePair);
+      }
+    } else {
+      return makeNameCodePair(method);
+    }
   }
 
   Iterable<js.Expression> emitStaticMethod(StaticMethod method) {
@@ -430,10 +518,32 @@ class ModelEmitter {
       output.add(unparsed);
     }
 
+    List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
+      js.Expression callName = stub.callName == null
+          ? new js.LiteralNull()
+          : js.string(stub.callName);
+      return [js.string(stub.name), callName, unparse(compiler, stub.code)];
+    }
+
     _addMethod(method);
     // TODO(floitsch): can there be anything else than a StaticDartMethod?
     if (method is StaticDartMethod) {
-      method.parameterStubs.forEach(_addMethod);
+      if (method.needsTearOff) {
+        /// The format emitted is the same as for the parser specified at
+        /// [parseFunctionDescriptorBoilerplate] except for the missing
+        /// field whether the method is intercepted.
+        // [name, [function, callName, tearOffName, functionType,
+        //     stub1_name, stub1_callName, stub1_code, ...]
+        var data = [unparse(compiler, method.code)];
+        data.add(js.string(method.callName));
+        data.add(js.string(method.tearOffName));
+        data.add(_generateFunctionType(method.type));
+        data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
+        return [js.string(method.name), holderIndex,
+                new js.ArrayInitializer(data)];
+      } else {
+        method.parameterStubs.forEach(_addMethod);
+      }
     }
     return output;
   }
@@ -444,9 +554,11 @@ class ModelEmitter {
 #deferredInitializer;
 
 !function(start, program) {
-
   // Initialize holder objects.
   #holders;
+
+  // Counter to generate unique names for tear offs.
+  var functionCounter = 0;
 
   function setupProgram() {
     for (var i = 0; i < program.length - 1; i++) {
@@ -481,11 +593,50 @@ class ModelEmitter {
   }
 
   function setupStatic(name, holder, descriptor) {
-    holder[name] = function() {
-      var method = compile(name, descriptor);
-      holder[name] = method;
-      return method.apply(this, arguments);
-    };
+    if (typeof descriptor == 'string') {
+      holder[name] = function() {
+        var method = compile(name, descriptor);
+        holder[name] = method;
+        return method.apply(this, arguments);
+      };
+    } else {
+      // Parse the tear off information and generate compile handlers.
+      // TODO(herhut): Share parser with instance methods.      
+      function compileAllStubs() {
+        var funs;
+        var fun = compile(name, descriptor[0]);
+        fun.\$callName = descriptor[1];
+        holder[name] = fun;
+        funs = [fun];
+        for (var pos = 4; pos < descriptor.length; pos += 3) {
+          var stubName = descriptor[pos];
+          fun = compile(stubName, descriptor[pos + 2]);
+          fun.\$callName = descriptor[pos + 1];
+          holder[stubName] = fun;
+          funs.push(fun);
+        }
+        if (descriptor[2] != null) {  // tear-off name.
+          // functions, reflectionInfo, isStatic, name, isIntercepted.
+          holder[descriptor[2]] = 
+              tearOff(funs, descriptor[3], true, name, false);
+        }
+      }
+
+      function setupCompileAllAndDelegateStub(name) {
+        holder[name] = function() {
+          compileAllStubs();
+          return holder[name].apply(this, arguments);
+        };
+      }
+
+      setupCompileAllAndDelegateStub(name);
+      for (var pos = 4; pos < descriptor.length; pos += 3) {
+        setupCompileAllAndDelegateStub(descriptor[pos]);
+      }
+      if (descriptor[2] != null) {  // tear-off name.
+        setupCompileAllAndDelegateStub(descriptor[2])
+      }
+    }
   }
 
   function setupLazyStatic(name, getterName, holder, descriptor) {
@@ -533,6 +684,10 @@ class ModelEmitter {
     holder[name] = patch;
   }
 
+  #tearOff;
+
+  #parseFunctionDescriptor;
+
   function compileConstructor(name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
@@ -541,12 +696,12 @@ class ModelEmitter {
     if (typeof descriptor[2] !== 'function') {
       constructor = compileMixinConstructor(name, prototype, descriptor);
       for (var i = 4; i < descriptor.length; i += 2) {
-        prototype[descriptor[i]] = descriptor[i + 1];
+        parseFunctionDescriptor(prototype, descriptor, descriptor[i + 1]);
       }
     } else {
       constructor = descriptor[2];
       for (var i = 3; i < descriptor.length; i += 2) {
-        prototype[descriptor[i]] = descriptor[i + 1];
+        parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
       }
     }
     constructor.builtin\$cls = name;  // Needed for RTI.
