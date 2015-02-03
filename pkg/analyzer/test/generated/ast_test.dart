@@ -28,6 +28,7 @@ main() {
   runReflectiveTests(ClassTypeAliasTest);
   runReflectiveTests(ConstantEvaluatorTest);
   runReflectiveTests(ConstructorDeclarationTest);
+  runReflectiveTests(FieldFormalParameterTest);
   runReflectiveTests(IndexExpressionTest);
   runReflectiveTests(NodeListTest);
   runReflectiveTests(NodeLocatorTest);
@@ -659,6 +660,19 @@ class ConstructorDeclarationTest extends EngineTestCase {
     expect(
         declaration.firstTokenAfterCommentAndMetadata,
         declaration.factoryKeyword);
+  }
+}
+
+@reflectiveTest
+class FieldFormalParameterTest extends EngineTestCase {
+  void test_endToken_noParameters() {
+    FieldFormalParameter parameter = AstFactory.fieldFormalParameter2('field');
+    expect(parameter.endToken, parameter.identifier.endToken);
+  }
+
+  void test_endToken_parameters() {
+    FieldFormalParameter parameter = AstFactory.fieldFormalParameter(null, null, 'field', AstFactory.formalParameterList([]));
+    expect(parameter.endToken, parameter.parameters.endToken);
   }
 }
 
