@@ -841,6 +841,7 @@ struct RootMessageHandlerEntry {
 };
 
 static RootMessageHandler FindRootMessageHandler(const char* command);
+static RootMessageHandler FindRootMessageHandlerNew(const char* command);
 
 
 static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
@@ -1456,6 +1457,54 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
 }
 
 
+static RawObject* LookupHeapObjectCode(Isolate* isolate,
+                                       char** parts, int num_parts) {
+  if (num_parts != 2) {
+    return Object::sentinel().raw();
+  }
+  uword pc;
+  static const char* kCollectedPrefix = "collected-";
+  static intptr_t kCollectedPrefixLen = strlen(kCollectedPrefix);
+  static const char* kNativePrefix = "native-";
+  static intptr_t kNativePrefixLen = strlen(kNativePrefix);
+  static const char* kReusedPrefix = "reused-";
+  static intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
+  const char* id = parts[1];
+  if (strncmp(kCollectedPrefix, id, kCollectedPrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&id[kCollectedPrefixLen], &pc, 16)) {
+      return Object::sentinel().raw();
+    }
+    // TODO(turnidge): Return "collected" instead.
+    return Object::null();
+  }
+  if (strncmp(kNativePrefix, id, kNativePrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&id[kNativePrefixLen], &pc, 16)) {
+      return Object::sentinel().raw();
+    }
+    // TODO(johnmccutchan): Support native Code.
+    return Object::null();
+  }
+  if (strncmp(kReusedPrefix, id, kReusedPrefixLen) == 0) {
+    if (!GetUnsignedIntegerId(&id[kReusedPrefixLen], &pc, 16)) {
+      return Object::sentinel().raw();
+    }
+    // TODO(turnidge): Return "expired" instead.
+    return Object::null();
+  }
+  int64_t timestamp = 0;
+  if (!GetCodeId(id, &timestamp, &pc) || (timestamp < 0)) {
+    return Object::sentinel().raw();
+  }
+  Code& code = Code::Handle(Code::FindCode(pc, timestamp));
+  if (!code.IsNull()) {
+    return code.raw();
+  }
+
+  // Not found.
+  return Object::sentinel().raw();
+}
+
+
 static RawObject* LookupHeapObject(Isolate* isolate,
                                    const char* id_original,
                                    ObjectIdRing::LookupResult* result) {
@@ -1504,6 +1553,8 @@ static RawObject* LookupHeapObject(Isolate* isolate,
     return LookupHeapObjectLibraries(isolate, parts, num_parts);
   } else if (strcmp(parts[0], "classes") == 0) {
     return LookupHeapObjectClasses(isolate, parts, num_parts);
+  } else if (strcmp(parts[0], "code") == 0) {
+    return LookupHeapObjectCode(isolate, parts, num_parts);
   }
 
   // Not found.
@@ -2909,10 +2960,10 @@ static IsolateMessageHandler FindIsolateMessageHandler(const char* command) {
 
 
 static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
-  const char* id = js->LookupOption("id");
+  const char* id = js->LookupOption("objectId");
   if (id == NULL) {
     // TODO(turnidge): Print the isolate here instead.
-    PrintError(js, "GetObject expects an 'id' parameter\n",
+    PrintError(js, "GetObject expects an 'objectId' parameter\n",
                js->num_arguments());
     return true;
   }
@@ -2952,6 +3003,7 @@ static bool HandleIsolateGetClassList(Isolate* isolate, JSONStream* js) {
 
 
 static IsolateMessageHandlerEntry isolate_handlers_new[] = {
+  { "getIsolate", HandleIsolate },
   { "getObject", HandleIsolateGetObject },
   { "getBreakpoints", HandleIsolateGetBreakpoints },
   { "pause", HandleIsolatePause },
@@ -2990,6 +3042,64 @@ static IsolateMessageHandler FindIsolateMessageHandlerNew(const char* command) {
 }
 
 
+void Service::HandleRootMessageNew(const Array& msg) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(!msg.IsNull());
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+
+    const Array& message = Array::Cast(msg);
+    // Message is a list with five entries.
+    ASSERT(message.Length() == 5);
+
+    Instance& reply_port = Instance::Handle(isolate);
+    String& method = String::Handle(isolate);
+    Array& param_keys = Array::Handle(isolate);
+    Array& param_values = Array::Handle(isolate);
+    reply_port ^= msg.At(1);
+    method ^= msg.At(2);
+    param_keys ^= msg.At(3);
+    param_values ^= msg.At(4);
+
+    ASSERT(!method.IsNull());
+    ASSERT(!param_keys.IsNull());
+    ASSERT(!param_values.IsNull());
+    ASSERT(param_keys.Length() == param_values.Length());
+
+    if (!reply_port.IsSendPort()) {
+      FATAL("SendPort expected.");
+    }
+
+    RootMessageHandler handler =
+        FindRootMessageHandlerNew(method.ToCString());
+    {
+      JSONStream js;
+      js.SetupNew(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+                  method, param_keys, param_values);
+      if (handler == NULL) {
+        // Check for an embedder handler.
+        EmbedderServiceHandler* e_handler =
+            FindRootEmbedderHandler(method.ToCString());
+        if (e_handler != NULL) {
+          EmbedderHandleMessage(e_handler, &js);
+        } else {
+          PrintError(&js, "Unrecognized path");
+        }
+        js.PostReply();
+      } else {
+        if (handler(&js)) {
+          // Handler returns true if the reply is ready to be posted.
+          // TODO(johnmccutchan): Support asynchronous replies.
+          js.PostReply();
+        }
+      }
+    }
+  }
+}
+
+
 void Service::HandleRootMessage(const Instance& msg) {
   Isolate* isolate = Isolate::Current();
   ASSERT(!msg.IsNull());
@@ -3002,6 +3112,12 @@ void Service::HandleRootMessage(const Instance& msg) {
     const Array& message = Array::Cast(msg);
     // Message is a list with five entries.
     ASSERT(message.Length() == 5);
+
+    Object& tmp = Object::Handle(isolate);
+    tmp = message.At(2);
+    if (tmp.IsString()) {
+      return Service::HandleRootMessageNew(message);
+    }
 
     Instance& reply_port = Instance::Handle(isolate);
     GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
@@ -3168,6 +3284,27 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
                                   sizeof(root_handlers[0]);
   for (intptr_t i = 0; i < num_message_handlers; i++) {
     const RootMessageHandlerEntry& entry = root_handlers[i];
+    if (strcmp(command, entry.command) == 0) {
+      return entry.handler;
+    }
+  }
+  if (FLAG_trace_service) {
+    OS::Print("vm-service: No root message handler for <%s>.\n", command);
+  }
+  return NULL;
+}
+
+
+static RootMessageHandlerEntry root_handlers_new[] = {
+  { "getVM", HandleVM },
+};
+
+
+static RootMessageHandler FindRootMessageHandlerNew(const char* command) {
+  intptr_t num_message_handlers = sizeof(root_handlers_new) /
+                                  sizeof(root_handlers_new[0]);
+  for (intptr_t i = 0; i < num_message_handlers; i++) {
+    const RootMessageHandlerEntry& entry = root_handlers_new[i];
     if (strcmp(command, entry.command) == 0) {
       return entry.handler;
     }

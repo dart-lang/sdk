@@ -211,6 +211,13 @@ abstract class ServiceObject extends Observable {
 
   Future<ServiceObject> _inProgressReload;
 
+  Future<ObservableMap> _fetchDirect() {
+    Map params = {
+      'objectId': id,
+    };
+    return isolate.invokeRpcNoUpgrade('getObject', params);
+  }
+
   /// Reload [this]. Returns a future which completes to [this] or
   /// a [ServiceError].
   Future<ServiceObject> reload() {
@@ -223,7 +230,7 @@ abstract class ServiceObject extends Observable {
       return new Future.value(this);
     }
     if (_inProgressReload == null) {
-      _inProgressReload = vm.getAsMap(link).then((ObservableMap map) {
+      _inProgressReload = _fetchDirect().then((ObservableMap map) {
           var mapType = _stripRef(map['type']);
           if (mapType != _type) {
             // If the type changes, return a new object instead of
@@ -589,6 +596,10 @@ abstract class VM extends ServiceObjectOwner {
     });
   }
 
+  Future<ObservableMap> _fetchDirect() {
+    return invokeRpcNoUpgrade('getVM', {});
+  }
+
   /// Force the VM to disconnect.
   void disconnect();
   /// Completes when the VM first connects.
@@ -909,12 +920,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return vm.invokeRpcNoUpgrade(method, params);
   }
 
-
   Future<ServiceObject> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
       // TODO - needs to cache!!! move to constructor?
       return new ServiceObject._fromMap(this, response);
     });
+  }
+
+  Future<ObservableMap> _fetchDirect() {
+    return invokeRpcNoUpgrade('getIsolate', {});
   }
 
   @observable Class objectClass;
@@ -2796,6 +2810,12 @@ class ServiceMetric extends ServiceObject {
     _sampleBufferSize = size;
     _removeOld();
   }
+
+  Future<ObservableMap> _fetchDirect() {
+    // TODO(johnmmccutchan): Make this use json rpc.
+    return vm.getAsMap(link);
+  }
+
 
   void addSample(MetricSample sample) {
     samples.add(sample);

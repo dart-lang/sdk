@@ -29,6 +29,7 @@ class Service : public AllStatic {
   static bool IsServiceIsolateName(const char* name);
 
   // Handles a message which is not directed to an isolate.
+  static void HandleRootMessageNew(const Array& message);
   static void HandleRootMessage(const Instance& message);
 
   // Handles a message which is directed to a particular isolate.
