@@ -1457,6 +1457,27 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
 }
 
 
+static RawObject* LookupHeapObjectTypeArguments(Isolate* isolate,
+                                          char** parts, int num_parts) {
+  // TypeArguments ids look like: "typearguments/17"
+  if (num_parts < 2) {
+    return Object::sentinel().raw();
+  }
+  intptr_t id;
+  if (!GetIntegerId(parts[1], &id)) {
+    return Object::sentinel().raw();
+  }
+  ObjectStore* object_store = isolate->object_store();
+  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  ASSERT(table.Length() > 0);
+  const intptr_t table_size = table.Length() - 1;
+  if ((id < 0) || (id >= table_size) || (table.At(id) == Object::null())) {
+    return Object::sentinel().raw();
+  }
+  return table.At(id);
+}
+
+
 static RawObject* LookupHeapObjectCode(Isolate* isolate,
                                        char** parts, int num_parts) {
   if (num_parts != 2) {
@@ -1553,6 +1574,8 @@ static RawObject* LookupHeapObject(Isolate* isolate,
     return LookupHeapObjectLibraries(isolate, parts, num_parts);
   } else if (strcmp(parts[0], "classes") == 0) {
     return LookupHeapObjectClasses(isolate, parts, num_parts);
+  } else if (strcmp(parts[0], "typearguments") == 0) {
+    return LookupHeapObjectTypeArguments(isolate, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
     return LookupHeapObjectCode(isolate, parts, num_parts);
   }
@@ -2779,58 +2802,6 @@ static bool HandleIsolateGetAllocationProfile(Isolate* isolate,
 }
 
 
-static bool HandleTypeArguments(Isolate* isolate, JSONStream* js) {
-  ObjectStore* object_store = isolate->object_store();
-  const Array& table = Array::Handle(object_store->canonical_type_arguments());
-  ASSERT(table.Length() > 0);
-  TypeArguments& type_args = TypeArguments::Handle();
-  const intptr_t table_size = table.Length() - 1;
-  const intptr_t table_used = Smi::Value(Smi::RawCast(table.At(table_size)));
-  bool only_with_instantiations = false;
-  if (js->num_arguments() >= 2) {
-    const char* second = js->GetArgument(1);
-    if (strcmp(second, "withinstantiations") == 0) {
-      only_with_instantiations = true;
-      if (js->num_arguments() > 2) {
-        PrintError(js, "Command too long");
-        return true;
-      }
-    }
-  }
-  if ((js->num_arguments() == 1) || only_with_instantiations) {
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "TypeArgumentsList");
-    jsobj.AddProperty("table_size", table_size);
-    jsobj.AddProperty("table_used", table_used);
-    JSONArray members(&jsobj, "members");
-    for (intptr_t i = 0; i < table_size; i++) {
-      type_args ^= table.At(i);
-      if (!type_args.IsNull()) {
-        if (!only_with_instantiations || type_args.HasInstantiations()) {
-          members.AddValue(type_args);
-        }
-      }
-    }
-    return true;
-  }
-  ASSERT((js->num_arguments() >= 2) && !only_with_instantiations);
-  intptr_t id;
-  if (!GetIntegerId(js->GetArgument(1), &id)) {
-    // Note that the table index of the canonical type arguments will change
-    // when the table grows. Should we not support this access at all?
-    PrintError(js, "Must specify collection object id: /typearguments/id");
-    return true;
-  }
-  if ((id < 0) || (id >= table_size) || (table.At(id) == Object::null())) {
-    PrintError(js, "%" Pd " is not a valid typearguments id.", id);
-    return true;
-  }
-  type_args ^= table.At(id);
-  type_args.PrintJSON(js, false);
-  return true;
-}
-
-
 static bool HandleIsolateGetHeapMap(Isolate* isolate, JSONStream* js) {
   isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
   return true;
@@ -2939,7 +2910,6 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "metrics", HandleMetrics },                   // to do - complex?
   { "objects", HandleObjects },                   // getObject
   { "scripts", HandleScripts },                   // getObject
-  { "typearguments", HandleTypeArguments },       // confusing
 };
 
 
@@ -3002,6 +2972,35 @@ static bool HandleIsolateGetClassList(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleIsolateGetTypeArgumentsList(Isolate* isolate,
+                                              JSONStream* js) {
+  bool only_with_instantiations = false;
+  if (js->OptionIs("onlyWithInstantiations", "true")) {
+    only_with_instantiations = true;
+  }
+  ObjectStore* object_store = isolate->object_store();
+  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  ASSERT(table.Length() > 0);
+  TypeArguments& type_args = TypeArguments::Handle();
+  const intptr_t table_size = table.Length() - 1;
+  const intptr_t table_used = Smi::Value(Smi::RawCast(table.At(table_size)));
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "TypeArgumentsList");
+  jsobj.AddProperty("canonicalTypeArgumentsTableSize", table_size);
+  jsobj.AddProperty("canonicalTypeArgumentsTableUsed", table_used);
+  JSONArray members(&jsobj, "typeArguments");
+  for (intptr_t i = 0; i < table_size; i++) {
+    type_args ^= table.At(i);
+    if (!type_args.IsNull()) {
+      if (!only_with_instantiations || type_args.HasInstantiations()) {
+        members.AddValue(type_args);
+      }
+    }
+  }
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers_new[] = {
   { "getIsolate", HandleIsolate },
   { "getObject", HandleIsolateGetObject },
@@ -3023,6 +3022,7 @@ static IsolateMessageHandlerEntry isolate_handlers_new[] = {
   { "getInstances", HandleIsolateGetInstances },
   { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot },
   { "getClassList", HandleIsolateGetClassList },
+  { "getTypeArgumentsList", HandleIsolateGetTypeArgumentsList }
 };
 
 

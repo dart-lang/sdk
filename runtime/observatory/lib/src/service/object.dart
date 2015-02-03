@@ -1305,6 +1305,13 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('getInboundReferences', params);
   }
 
+  Future<ServiceObject> getTypeArgumentsList(bool onlyWithInstantiations) {
+    Map params = {
+      'onlyWithInstantiations': onlyWithInstantiations,
+    };
+    return invokeRpc('getTypeArgumentsList', params);
+  }
+
   Future<ServiceObject> getInstances(Class cls, var limit) {
     Map params = {
       'classId': cls.id,

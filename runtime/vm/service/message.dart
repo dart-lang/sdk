@@ -62,6 +62,23 @@ class Message {
     };
   }
 
+  // Calls toString on all non-String elements of [list]. We do this so all
+  // elements in the list are strings, making consumption by C++ simpler.
+  // This has a side effect that boolean literal values like true become 'true'
+  // and thus indistinguishable from the string literal 'true'.
+  List _makeAllString(List list) {
+    if (list == null) {
+      return null;
+    }
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] is String) {
+        continue;
+      }
+      list[i] = list[i].toString();
+    }
+    return list;
+  }
+
   Future<String> send(SendPort sendPort) {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
@@ -72,8 +89,8 @@ class Message {
         _completer.complete(value);
       }
     };
-    var keys = params.keys.toList(growable:false);
-    var values = params.values.toList(growable:false);
+    var keys = _makeAllString(params.keys.toList(growable:false));
+    var values = _makeAllString(params.values.toList(growable:false));
     var request = new List(5)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
@@ -94,8 +111,8 @@ class Message {
         _completer.complete(value);
       }
     };
-    var keys = params.keys.toList(growable:false);
-    var values = params.values.toList(growable:false);
+    var keys = _makeAllString(params.keys.toList(growable:false));
+    var values = _makeAllString(params.values.toList(growable:false));
     var request = new List(5)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort

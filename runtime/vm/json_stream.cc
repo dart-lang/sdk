@@ -94,6 +94,7 @@ void JSONStream::SetupNew(Zone* zone,
 
   String& string_iterator = String::Handle();
   if (option_keys.Length() > 0) {
+    ASSERT(option_keys.Length() == option_values.Length());
     const char** option_keys_native =
         zone->Alloc<const char*>(option_keys.Length());
     const char** option_values_native =

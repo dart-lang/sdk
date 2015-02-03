@@ -940,22 +940,6 @@ TEST_CASE(Service_Types) {
     ",\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"types\",\"42\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
-
-  // Request canonical type arguments. Expect <A<bool>> to be listed.
-  service_msg = EvalF(lib, "[0, port, ['typearguments'],"
-                      "[], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"TypeArgumentsList\"", handler.msg());
-  ExpectSubstringF(handler.msg(), "\"name\":\"<A<bool>>\",");
-
-  // Request canonical type arguments with instantiations.
-  service_msg = EvalF(lib,
-                      "[0, port, ['typearguments', 'withinstantiations'],"
-                      "[], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"TypeArgumentsList\"", handler.msg());
 }
 
 

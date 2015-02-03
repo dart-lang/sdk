@@ -566,7 +566,6 @@
         'builtin_nolib.cc',
         'builtin.h',
         'io_natives.h',
-        'vmservice.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
         '<(snapshot_cc_file)',
@@ -618,7 +617,6 @@
         'builtin.cc',
         'builtin.h',
         'io_natives.h',
-        'vmservice.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
         # Include generated source files.
@@ -672,7 +670,6 @@
         'builtin.cc',
         'builtin.h',
         'io_natives.h',
-        'vmservice.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
         # Include generated source files.

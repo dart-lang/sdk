@@ -75,6 +75,12 @@ interface Service {
                        limit int) InboundReferences
 
   getClassList(isolateId string) ClassList
+
+  // When <code>onlyWithInstantiations</code> is true, the list only includes
+  // type arguments with instantiations. Otherwise, all type arguments are
+  // returned.
+  getTypeArgumentsList(isolateId string,
+                       onlyWithInstantiations bool) TypeArgumentsList
 }
 
 
@@ -139,6 +145,11 @@ struct ClassRef extends ObjectRef {
 }
 
 
+struct TypeArgumentsRef extends ObjectRef {
+  placeholder int
+}
+
+
 // A <code>FunctionRef</code> encodes a reference to a <code>Function</code> object.
 struct FunctionRef extends ObjectRef {
   placeholder int
@@ -164,6 +175,11 @@ struct ScriptRef extends ObjectRef {
 
 
 struct Class extends Object {
+  placeholder int
+}
+
+
+struct TypeArguments extends Object {
   placeholder int
 }
 
@@ -286,6 +302,13 @@ struct InboundReference {
 
 struct ClassList {
   classes []ClassRef
+}
+
+
+struct TypeArgumentsList {
+  tableSize int
+  tableUsed int
+  typeArguments []TypeArgumentsRef
 }
 
 
