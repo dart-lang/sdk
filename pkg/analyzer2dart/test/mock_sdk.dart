@@ -58,7 +58,9 @@ class Deprecated extends Object {
 }
 const Object deprecated = const Deprecated("next release");
 
-abstract class List<E> extends Object {
+abstract class Iterable<E> {}
+
+abstract class List<E> extends Object implements Iterable {
   void add(E value);
   E operator [](int index);
   void operator []=(int index, E value);
