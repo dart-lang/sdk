@@ -289,6 +289,8 @@ class Namer implements ClosureNamer {
 
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
+  String get noSuchMethodName => publicInstanceMethodNameByArity(
+      Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
   /**
    * Some closures must contain their name. The name is stored in
    * [STATIC_CLOSURE_NAME_NAME].
