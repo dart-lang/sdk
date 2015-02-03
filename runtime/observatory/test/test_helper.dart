@@ -94,7 +94,7 @@ void runIsolateTests(List<String> mainArgs,
     var process = new _TestLauncher();
     process.launch().then((port) {
       String addr = 'ws://localhost:$port/ws';
-      new WebSocketVM(new WebSocketVMTarget(addr)).get('vm')
+      new WebSocketVM(new WebSocketVMTarget(addr)).load()
           .then((VM vm) => vm.isolates.first.load())
           .then((Isolate isolate) =>
               Future.forEach(tests, (test) => test(isolate)))

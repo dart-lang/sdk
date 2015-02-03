@@ -23,10 +23,11 @@ var tests = [
     expect(lib.classes.length, equals(1));
     return lib.classes.first.load().then((Class fooClass) {
       expect(fooClass.name, equals('Foo'));
-      return fooClass.get('functions/get%3Aa').then((ServiceFunction func) {
-        expect(func.name, equals('a'));
-        expect(func.kind, equals(FunctionKind.kImplicitGetterFunction));
-      });
+      return isolate.getObject('${fooClass.id}/functions/get%3Aa')
+          .then((ServiceFunction func) {
+              expect(func.name, equals('a'));
+              expect(func.kind, equals(FunctionKind.kImplicitGetterFunction));
+          });
     });
 }),
 

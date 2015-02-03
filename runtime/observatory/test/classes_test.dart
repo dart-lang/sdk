@@ -14,7 +14,7 @@ var tests = [
 }),
 
 (Isolate isolate) =>
-  isolate.get('classes/62').then((Class c) {
+  isolate.getObject('classes/62').then((Class c) {
     expect(c.name, equals('_List'));
     expect(c.vmCid, equals(62));
 }),

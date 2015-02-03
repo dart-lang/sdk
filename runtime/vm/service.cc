@@ -953,7 +953,12 @@ void Service::HandleIsolateMessageNew(Isolate* isolate, const Array& msg) {
         if (e_handler != NULL) {
           EmbedderHandleMessage(e_handler, &js);
         } else {
-          PrintError(&js, "Unrecognized method: %s", method.ToCString());
+          if (FindRootMessageHandlerNew(method.ToCString()) != NULL) {
+            PrintError(&js, "%s expects no 'isolate' parameter\n",
+                       method.ToCString());
+          } else {
+            PrintError(&js, "Unrecognized method: %s", method.ToCString());
+          }
         }
         js.PostReply();
       } else {
@@ -3085,7 +3090,12 @@ void Service::HandleRootMessageNew(const Array& msg) {
         if (e_handler != NULL) {
           EmbedderHandleMessage(e_handler, &js);
         } else {
-          PrintError(&js, "Unrecognized path");
+          if (FindIsolateMessageHandlerNew(method.ToCString()) != NULL) {
+            PrintError(&js, "%s expects an 'isolate' parameter\n",
+                       method.ToCString());
+          } else {
+            PrintError(&js, "Unrecognized method: %s", method.ToCString());
+          }
         }
         js.PostReply();
       } else {

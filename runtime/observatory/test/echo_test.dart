@@ -10,14 +10,14 @@ import 'test_helper.dart';
 var tests = [
 
 (Isolate isolate) =>
-  isolate.vm.get('_echo').then((result) {
+  isolate.vm.getDeprecated('_echo').then((result) {
     expect(result['type'], equals("message"));
     expect(result['id'], equals("_echo"));
     expect(result.owner, equals(isolate.vm));
 }),
 
 (Isolate isolate) =>
-  isolate.get('_echo').then((result) {
+  isolate.getDeprecated('_echo').then((result) {
     expect(result['type'], equals("message"));
     expect(result['id'], equals("_echo"));
     expect(result.owner, equals(isolate));
@@ -34,7 +34,7 @@ var tests = [
       completer.complete();
     }
   });
-  isolate.get('_echo/event');
+  isolate.getDeprecated('_echo/event');
   return completer.future;
 },
 

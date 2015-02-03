@@ -130,7 +130,7 @@ class IsolateViewElement extends ObservatoryElement {
   }
 
   Future pause(_) {
-    return isolate.get("debug/pause").then((result) {
+    return isolate.pause().then((result) {
         // TODO(turnidge): Instead of asserting here, handle errors
         // properly.
         assert(result.type == 'Success');
@@ -139,7 +139,7 @@ class IsolateViewElement extends ObservatoryElement {
   }
 
   Future resume(_) {
-    return isolate.get("resume").then((result) {
+    return isolate.resume().then((result) {
         // TODO(turnidge): Instead of asserting here, handle errors
         // properly.
         assert(result.type == 'Success');

@@ -13,7 +13,7 @@ void script() {
 var tests = [
 
 (Isolate isolate) =>
-  isolate.get('metrics/vm').then((ServiceMap metrics) {
+  isolate.getDeprecated('metrics/vm').then((ServiceMap metrics) {
     expect(metrics['type'], equals('MetricList'));
     var members = metrics['members'];
     expect(members, isList);
@@ -24,13 +24,13 @@ var tests = [
 }),
 
 (Isolate isolate) =>
-  isolate.get('metrics/vm/heap.old.used').then((ServiceMetric counter) {
+  isolate.getDeprecated('metrics/vm/heap.old.used').then((ServiceMetric counter) {
     expect(counter.type, equals('Counter'));
     expect(counter.name, equals('heap.old.used'));
 }),
 
 (Isolate isolate) =>
-  isolate.get('metrics/vm/doesnotexist').then((DartError err) {
+  isolate.getDeprecated('metrics/vm/doesnotexist').then((DartError err) {
     expect(err is DartError, isTrue);
 }),
 

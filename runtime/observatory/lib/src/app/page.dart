@@ -59,7 +59,7 @@ class ServiceObjectPage extends Page {
       return;
     }
     /// Request url from VM and display it.
-    app.vm.get(url).then((obj) {
+    app.vm.getDeprecated(url).then((obj) {
       ServiceObjectViewElement serviceElement = element;
       serviceElement.object = obj;
     }).catchError((e) {
@@ -91,7 +91,7 @@ class IsolateSuffixPage extends Page {
   }
 
   Future<Isolate> getIsolate() {
-    return app.vm.get(isolateId).catchError((e) {
+    return app.vm.getIsolate(isolateId).catchError((e) {
       Logger.root.severe('$pagePrefix visit error: $e');
       return e;
     });
@@ -276,7 +276,7 @@ class MetricsPage extends Page {
   void _visit(String url) {
     assert(element != null);
     assert(canVisit(url));
-    app.vm.get(_isolateId(url)).then((i) {
+    app.vm.getIsolate(_isolateId(url)).then((i) {
       (element as MetricsPageElement).isolate = i;
     });
   }

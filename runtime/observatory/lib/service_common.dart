@@ -128,7 +128,7 @@ abstract class CommonWebSocketVM extends VM {
     _notifyDisconnect();
   }
 
-  Future<String> getString(String id) {
+  Future<String> getStringDeprecated(String id) {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
       _webSocket.connect(

@@ -19,15 +19,15 @@ import 'dart:io';
 
 void repl(VM vm, String prefix, String lastResult) {
   print(lastResult);
-  // TODO(koda): Use 'get' when ServiceObjects have more informative toString.
-  vm.getString(prefix + stdin.readLineSync()).then((String result) {
+  // TODO(turnidge): use the non-deprecated api here.
+  vm.getStringDeprecated(prefix + stdin.readLineSync()).then((String result) {
     repl(vm, prefix, result);
   });
 }
 
 void main() {
   String addr = 'ws://localhost:8181/ws';
-  new WebSocketVM(new WebSocketVMTarget(addr)).get('vm').then((VM vm) {
+  new WebSocketVM(new WebSocketVMTarget(addr)).load().then((VM vm) {
     Isolate isolate = vm.isolates.first;
     String prefix = '${isolate.link}';
     repl(vm, prefix, 'prefix $prefix');

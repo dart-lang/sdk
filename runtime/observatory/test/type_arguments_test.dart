@@ -30,7 +30,7 @@ var tests = [
              greaterThanOrEqualTo(instantiatedTypeArgsList.length));
       // Check that we can 'get' this object again.
       var firstType = allTypeArgsList[0];
-      return isolate.get(firstType['id']).then((ServiceMap map) {
+      return isolate.getObject(firstType['id']).then((ServiceMap map) {
         expect(firstType['name'], map['name']);
       });
     });

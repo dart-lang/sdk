@@ -66,13 +66,13 @@ var tests = [
 
       List tests = [];
       // Load code from frame 0.
-      tests.add(isolate.get(codeId0)..then((Code code) {
+      tests.add(isolate.getObject(codeId0)..then((Code code) {
             expect(code.type, equals('Code'));
             expect(code.function.name, equals('funcB'));
             expect(code.hasDisassembly, equals(true));
           }));
       // Load code from frame 0.
-      tests.add(isolate.get(codeId1)..then((Code code) {
+      tests.add(isolate.getObject(codeId1)..then((Code code) {
             expect(code.type, equals('Code'));
             expect(code.function.name, equals('funcA'));
             expect(code.hasDisassembly, equals(true));

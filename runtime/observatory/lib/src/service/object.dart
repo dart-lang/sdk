@@ -387,7 +387,7 @@ abstract class VM extends ServiceObjectOwner {
 
       // Extract the owning isolate from the event itself.
       String owningIsolateId = map['isolate']['id'];
-      _getIsolate(owningIsolateId).then((owningIsolate) {
+      getIsolate(owningIsolateId).then((owningIsolate) {
           if (owningIsolate == null) {
             // TODO(koda): Do we care about GC events in VM isolate?
             Logger.root.severe(
@@ -426,7 +426,9 @@ abstract class VM extends ServiceObjectOwner {
     throw new UnimplementedError();
   }
 
-  Future<ServiceObject> _getIsolate(String isolateId) {
+  // Note that this function does not reload the isolate if it found
+  // in the cache.
+  Future<ServiceObject> getIsolate(String isolateId) {
     if (isolateId == '') {
       return new Future.value(null);
     }
@@ -436,6 +438,9 @@ abstract class VM extends ServiceObjectOwner {
     }
     // The isolate is not in the cache.  Reload the vm and see if the
     // requested isolate is found.
+    //
+    // TODO(turnidge): We don't want to reload all isolates so much.
+    // Doesn't scale well.  Change this to be more fine-grained.
     return reload().then((result) {
         if (result is! VM) {
           return null;
@@ -445,13 +450,13 @@ abstract class VM extends ServiceObjectOwner {
       });
   }
 
-  Future<ServiceObject> get(String id) {
+  Future<ServiceObject> getDeprecated(String id) {
     assert(id.startsWith('/') == false);
     // Isolates are handled specially, since they can cache sub-objects.
     if (id.startsWith(_isolatesPrefix)) {
       String isolateId = _parseIsolateId(id);
       String objectId = _parseObjectId(id);
-      return _getIsolate(isolateId).then((isolate) {
+      return getIsolate(isolateId).then((isolate) {
         if (isolate == null) {
           // The isolate does not exist.  Return the VM object instead.
           //
@@ -461,7 +466,7 @@ abstract class VM extends ServiceObjectOwner {
         if (objectId == null) {
           return isolate.reload();
         } else {
-          return isolate.get(objectId);
+          return isolate.getDeprecated(objectId);
         }
       });
     }
@@ -472,7 +477,7 @@ abstract class VM extends ServiceObjectOwner {
     }
 
     // Cache miss.  Get the object from the vm directly.
-    return getAsMap(id).then((ObservableMap map) {
+    return _getAsMapDeprecated(id).then((ObservableMap map) {
       var obj = new ServiceObject._fromMap(this, map);
       if (obj.canCache) {
         _cache.putIfAbsent(id, () => obj);
@@ -537,8 +542,8 @@ abstract class VM extends ServiceObjectOwner {
   /// an error occurs, the future is completed as an error with a
   /// ServiceError or ServiceException. Therefore any chained then() calls
   /// will only receive a map encoding a valid ServiceObject.
-  Future<ObservableMap> getAsMap(String id) {
-    return getString(id).then((response) {
+  Future<ObservableMap> _getAsMapDeprecated(String id) {
+    return getStringDeprecated(id).then((response) {
       var map = _parseJSON(response);
       if (Tracer.current != null) {
         Tracer.current.trace("Received response for ${id}", map:map);
@@ -556,7 +561,7 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   /// Get [id] as a [String] from the service directly. See [getAsMap].
-  Future<String> getString(String id);
+  Future<String> getStringDeprecated(String id);
 
   // Implemented in subclass.
   Future<String> invokeRpcRaw(String method, Map params);
@@ -585,14 +590,12 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   Future<ServiceObject> invokeRpc(String method, Map params) {
-    // TODO(turnidge): Once we start implementing "get" requests
-    // through the JsonRpc interface, we will need to start checking the
-    // cache before making the request here.  For now, we just make the
-    // request without bothering with the cache.
     return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
 	var obj = new ServiceObject._fromMap(this, response);
-	// TODO(turnidge): Put the object into the cache if we can.
-	return obj;
+        if (obj.canCache) {
+          _cache.putIfAbsent(id, () => obj);
+        }
+        return obj;
     });
   }
 
@@ -762,7 +765,7 @@ class HeapSnapshot {
     var result = [];
     for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
       var address = v.addressForWordSize(isolate.vm.architectureBits ~/ 8);
-      result.add(isolate.get(
+      result.add(isolate.getDeprecated(
           'address/${address.toRadixString(16)}?ref=true').then((obj) {
         obj.retainedSize = v.retainedSize;
         return new Future(() => obj);
@@ -898,7 +901,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return obj;
   }
 
-  Future<ServiceObject> get(String id) {
+  Future<ServiceObject> getDeprecated(String id) {
     // Do not allow null ids or empty ids.
     assert(id != null && id != '');
     var obj = _cache[id];
@@ -906,7 +909,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       return obj.reload();
     }
     // Cache miss.  Get the object from the vm directly.
-    return vm.getAsMap(relativeLink(id)).then((ObservableMap map) {
+    return vm._getAsMapDeprecated(relativeLink(id)).then((ObservableMap map) {
       var obj = new ServiceObject._fromMap(this, map);
       if (obj.canCache) {
         _cache.putIfAbsent(id, () => obj);
@@ -922,9 +925,24 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   Future<ServiceObject> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
-      // TODO - needs to cache!!! move to constructor?
-      return new ServiceObject._fromMap(this, response);
+        var obj = new ServiceObject._fromMap(this, response);
+        if (obj.canCache) {
+          _cache.putIfAbsent(id, () => obj);
+        }
+	return obj;
     });
+  }
+
+  Future<ServiceObject> getObject(String objectId) {
+    assert(objectId != null && objectId != '');
+    var obj = _cache[objectId];
+    if (obj != null) {
+      return obj.reload();
+    }
+    Map params = {
+      'objectId': objectId,
+    };
+    return isolate.invokeRpc('getObject', params);
   }
 
   Future<ObservableMap> _fetchDirect() {
@@ -1329,7 +1347,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   Future<ObservableMap<String, ServiceMetric>> _refreshMetrics(
       String id,
       ObservableMap<String, ServiceMetric> metricsMap) {
-    return get(id).then((result) {
+    return getDeprecated(id).then((result) {
       if (result is DartError) {
         // TODO(turnidge): Handle this more gracefully.
         Logger.root.severe(result.message);
@@ -1715,10 +1733,6 @@ class Class extends ServiceObject with Coverage {
     }
     subclasses.add(subclass);
     subclasses.sort(ServiceObject.LexicalSortName);
-  }
-
-  Future<ServiceObject> get(String command) {
-    return isolate.get(id + "/$command");
   }
 
   String toString() => 'Class($vmName)';
@@ -2820,7 +2834,7 @@ class ServiceMetric extends ServiceObject {
 
   Future<ObservableMap> _fetchDirect() {
     // TODO(johnmmccutchan): Make this use json rpc.
-    return vm.getAsMap(link);
+    return vm._getAsMapDeprecated(link);
   }
 
 
