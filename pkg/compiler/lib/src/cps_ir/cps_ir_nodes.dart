@@ -13,7 +13,6 @@ import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 import '../cps_ir/optimizers.dart';
-import '../closure.dart' show ClosureClassElement;
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -634,7 +633,7 @@ class Parameter extends Primitive {
   // FunctionDefinition, parameters have an index into the list of parameters
   // bound by the parent.  This gives constant-time access to the continuation
   // from the parent.
-  int parent_index;
+  int parentIndex;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }

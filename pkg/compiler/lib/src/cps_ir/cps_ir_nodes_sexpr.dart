@@ -353,7 +353,7 @@ class _Namer {
     return _names[variable] = variable.hint.name;
   }
 
-  String nameClosureVariableIfAbsent(ClosureVariable variable) {
+  void nameClosureVariableIfAbsent(ClosureVariable variable) {
     if (!_names.containsKey(variable)) {
       _names[variable] = variable.hint.name;
     }

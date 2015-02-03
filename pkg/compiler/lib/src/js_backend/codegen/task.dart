@@ -20,7 +20,6 @@ import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
 import '../../scanner/scannerlib.dart' as scanner;
 import '../../elements/elements.dart';
-import '../../closure.dart';
 import '../../js/js.dart' as js;
 import '../../io/source_map_builder.dart';
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;

@@ -12,7 +12,6 @@ import '../elements/elements.dart';
 import '../universe/universe.dart';
 import '../universe/universe.dart' show Selector;
 import 'optimization/optimization.dart';
-import '../closure.dart' show ClosureClassElement;
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
