@@ -131,9 +131,10 @@ abstract class TestSuite {
   Map<String, String> _environmentOverrides;
 
   TestSuite(this.configuration, this.suiteName) {
-    if (configuration['build_directory'] == '') {
+    TestUtils.buildDir(configuration);  // Sets configuration_directory.
+    if (configuration['configuration_directory'] != null) {
       _environmentOverrides = {
-        'DART_CONFIGURATION' : TestUtils.configurationDir(configuration)
+        'DART_CONFIGURATION' : configuration['configuration_directory']
       };
     }
   }
@@ -2260,27 +2261,24 @@ class TestUtils {
     // is relative to the current working directory.
     // Thus, if we pass in an absolute path (e.g. '--build-directory=/tmp/out')
     // we get into trouble.
-    if (configuration['build_directory'] != '') {
-      return configuration['build_directory'];
+    if (configuration['build_directory'] == '') {
+      configuration['configuration_directory'] =
+          configurationDir(configuration);
+      configuration['build_directory'] =
+          outputDir(configuration) + configuration['configuration_directory'];
     }
-
-    return "${outputDir(configuration)}${configurationDir(configuration)}";
+    return configuration['build_directory'];
   }
 
   static String configurationDir(Map configuration) {
     // This returns the correct configuration directory (the last component
     // of the output directory path) for regular dart checkouts.
-    // Do not call this function if the --build-directory option is used.
     // Dartium checkouts use the --build-directory option to pass in the
     // correct build directory explicitly.
     // We allow our code to have been cross compiled, i.e., that there
     // is an X in front of the arch. We don't allow both a cross compiled
     // and a normal version to be present (except if you specifically pass
     // in the build_directory).
-    if (configuration['build_directory'] != '') {
-      throw "Internal test.dart error: Don't call TestUtils.configurationDir "
-            "if the --build-directory option is used.";
-    }
     var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
     var arch = configuration['arch'].toUpperCase();
     var normal = '$mode$arch';
