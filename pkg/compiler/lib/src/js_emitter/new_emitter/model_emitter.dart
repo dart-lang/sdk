@@ -517,8 +517,8 @@ function parseFunctionDescriptor(proto, name, descriptor) {
           tearOff(funs, reflectionInfo, false, name, isIntercepted);
     }
     // Install the alias for super calls on the prototype chain.
-    if (desc[5] != null) {
-      proto[desc[5]] = desc[0];
+    if (descriptor[5] != null) {
+      proto[descriptor[5]] = descriptor[0];
     }
   } else {
     proto[name] = descriptor;
