@@ -283,7 +283,7 @@ abstract class ContextManager {
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
   void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info) {
-    if (info.excludesResource(folder)) {
+    if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
       return;
     }
     List<Resource> children = folder.getChildren();
@@ -662,7 +662,7 @@ class _ContextInfo {
   }
 
   /**
-   * Returns `true` if [resource] is excldued, as it is in one of the children.
+   * Returns `true` if [resource] is excluded, as it is in one of the children.
    */
   bool excludesResource(Resource resource) {
     return excludes(resource.path);

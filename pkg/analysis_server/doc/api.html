@@ -595,10 +595,10 @@ dt.typeDefinition {
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
-          Sets the root paths used to determine which files to
-          analyze. The set of files to be analyzed are all of the
-          files in one of the root paths that are not also in one of
-          the excluded paths.
+          Sets the root paths used to determine which files to analyze. The set
+          of files to be analyzed are all of the files in one of the root paths
+          that are not also in one of the excluded paths and do not start with
+          a dot ('.').
         </p>
         <p>
           Note that this request determines the set of requested
@@ -1517,14 +1517,14 @@ dt.typeDefinition {
           </dd><dt class="field"><b><i>selectionOffset ( int )</i></b></dt><dd>
             
             <p>
-              The offset of the current selection in the file. In case 
+              The offset of the current selection in the file. In case
               preserving, selection information is not required, 0 can be
-              specified for both selection offset and length. 
+              specified for both selection offset and length.
             </p>
           </dd><dt class="field"><b><i>selectionLength ( int )</i></b></dt><dd>
             
             <p>
-              The length of the current selection in the file. In case 
+              The length of the current selection in the file. In case
               preserving, selection information is not required, 0 can be
               specified for both selection offset and length.
             </p>
