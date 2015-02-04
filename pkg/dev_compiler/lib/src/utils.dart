@@ -4,12 +4,23 @@ library ddc.src.utils;
 import 'dart:io';
 
 import 'package:analyzer/src/generated/ast.dart'
-    show ImportDirective, ExportDirective, PartDirective, CompilationUnit;
+    show
+        ImportDirective,
+        ExportDirective,
+        PartDirective,
+        CompilationUnit,
+        Identifier;
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/analyzer.dart' show parseDirectives;
+
+bool isDartPrivateLibrary(LibraryElement library) {
+  var uri = library.source.uri;
+  if (uri.scheme != "dart") return false;
+  return Identifier.isPrivateName(uri.path);
+}
 
 // Choose a canonical name for library
 String libraryName(String name, Uri uri) {

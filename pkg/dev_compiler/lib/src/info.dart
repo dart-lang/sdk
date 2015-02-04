@@ -6,7 +6,8 @@ import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart' show Token;
+import 'package:analyzer/src/generated/scanner.dart'
+    show Token, TokenType, SyntheticStringToken;
 import 'package:logging/logging.dart' show Level;
 
 import 'package:ddc/src/checker/rules.dart';
@@ -476,12 +477,51 @@ class InvalidSuperInvocation extends StaticError {
       "(see http://goo.gl/q1T4BB): $node";
 }
 
+/// Calls into the runtime support library
+class RuntimeOperation extends Expression {
+  final List<Expression> arguments;
+  final String operation;
+  Token opToken;
+
+  RuntimeOperation(this.operation, this.arguments) {
+    opToken = new SyntheticStringToken(TokenType.IDENTIFIER, this.operation, 0);
+  }
+
+  Token get beginToken => opToken;
+  Token get endToken => opToken;
+
+  @override
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitRuntimeOperation(this);
+    } else if (visitor is AstCloner) {
+      var l = arguments.map((e) => e.accept(visitor)).toList();
+      return new RuntimeOperation(operation, l);
+    } else {
+      visitChildren(visitor);
+    }
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    arguments.forEach((e) => e.accept(visitor));
+  }
+
+  // Use same precedence as MethodInvocation.
+  int get precedence => 15;
+}
+
 /// A simple generalizing visitor interface for the conversion nodes.
 /// This can be mixed in to your visitor if the AST can contain these nodes.
+/// TODO(leafp): Rename to something appropriate if RuntimeOperation stays
+/// around
 abstract class ConversionVisitor<R> implements AstVisitor<R> {
   /// This method must be implemented. It is typically supplied by the base
   /// GeneralizingAstVisitor<R>.
   R visitNode(AstNode node);
+
+  // Handle runtime operations
+  R visitRuntimeOperation(RuntimeOperation node) => visitNode(node);
 
   /// The catch-all for any kind of conversion
   R visitConversion(Conversion node) => visitNode(node);

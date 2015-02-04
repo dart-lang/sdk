@@ -98,12 +98,12 @@ InternalAnalysisContext _initContext() {
 /// and statements, and how types are computed on expressions.
 class RestrictedResolverVisitor extends ResolverVisitor {
   RestrictedResolverVisitor(
-      Library library, Source source, TypeProvider typeProvider) : super.con1(
-          library, source, typeProvider,
+      Library library, Source source, TypeProvider typeProvider)
+      : super.con1(library, source, typeProvider,
           typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
 
   static ResolverVisitor constructor(
-      Library library, Source source, TypeProvider typeProvider) =>
+          Library library, Source source, TypeProvider typeProvider) =>
       new RestrictedResolverVisitor(library, source, typeProvider);
 
   @override // removes type promotion

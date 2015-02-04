@@ -1,9 +1,10 @@
-/// Tests JavaScript code generation.
-/// Runs Dart Dev Compiler on all input in the `codengen` directory and checks
-/// that the JavaScript output is what we expected.
+/// Tests code generation.
+/// Runs Dart Dev Compiler on all input in the `codegen` directory and checks
+/// that the output is what we expected.
 library ddc.test.codegen_test;
 
 import 'dart:io';
+import 'package:args/args.dart';
 import 'package:ddc/devc.dart';
 import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
@@ -11,11 +12,16 @@ import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
+final ArgParser argParser = new ArgParser()
+  ..addFlag('dart-gen',
+      abbr: 'd', help: 'Generate dart output', defaultsTo: false);
+
 main(arguments) {
   if (arguments == null) arguments = [];
+  ArgResults args = argParser.parse(arguments);
   var script = Platform.script.path;
-  var filePattern = new RegExp(arguments.length > 0 ? arguments[0] : '.');
-
+  var dartGen = args['dart-gen'];
+  var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
   var compilerMessages = new StringBuffer();
   var loggerSub;
 
@@ -32,9 +38,10 @@ main(arguments) {
   });
 
   var testDir = path.absolute(path.dirname(script));
-  var inputDir = path.join(testDir, 'codegen');
+  var inputDir = dartGen
+      ? path.join(testDir, 'dart_codegen')
+      : path.join(testDir, 'codegen');
   var actualDir = path.join(inputDir, 'actual');
-
   var paths = new Directory(inputDir)
       .listSync()
       .where((f) => f is File)
@@ -58,8 +65,11 @@ main(arguments) {
     test('devc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      var result =
-          compile(filePath, realSdk, outputDir: actualDir, useColors: false);
+      var result = compile(filePath, realSdk,
+          outputDir: actualDir,
+          useColors: false,
+          outputDart: dartGen,
+          formatOutput: dartGen);
       var success = !result.failure;
 
       // Write compiler messages to disk.
@@ -82,9 +92,14 @@ main(arguments) {
         TypeResolver.sdkResolverFromDir(path.join(testDir, 'sdk')));
 
     var result = compile('dart:core', testSdk,
-        outputDir: actualDir, checkSdk: true, forceCompile: true);
+        outputDir: actualDir,
+        checkSdk: true,
+        forceCompile: true,
+        outputDart: dartGen,
+        formatOutput: dartGen);
 
-    var outputDir = new Directory(path.join(actualDir, 'core'));
+    var coreDir = dartGen ? 'dart.core' : 'core';
+    var outputDir = new Directory(path.join(actualDir, coreDir));
     expect(outputDir.existsSync(), true,
         reason: '${outputDir.path} was created for dart:core');
   });

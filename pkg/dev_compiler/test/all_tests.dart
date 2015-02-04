@@ -19,4 +19,7 @@ main(args) {
   group('report', report_test.main);
   group('runtime', runtime_test.main);
   group('codegen', () => codegen_test.main(args));
+  var args2 = new List.from((args == null) ? [] : args, growable: true);
+  args2.add("--dart-gen");
+  group('dart_codegen', () => codegen_test.main(args2));
 }

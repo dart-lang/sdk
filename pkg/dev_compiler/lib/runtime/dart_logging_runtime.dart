@@ -31,8 +31,7 @@ var _cache = <Type, Map<Type, CastRecord>>{};
 Map<Type, CastRecord> _cacheGen() => <Type, CastRecord>{};
 
 void _addToCache(Type runtimeType, Type staticType, CastRecord record) {
-  _cache.putIfAbsent(runtimeType, _cacheGen)[staticType] =
-    record;
+  _cache.putIfAbsent(runtimeType, _cacheGen)[staticType] = record;
 }
 
 CastRecord _lookupInCache(Type runtimeType, Type staticType) {
@@ -43,7 +42,8 @@ CastRecord _lookupInCache(Type runtimeType, Type staticType) {
 
 var _successCache = <Type, Set<Type>>{};
 
-dynamic cast(dynamic obj, Type staticType, {String key}) {
+dynamic cast(dynamic obj, Type fromType, Type staticType, String kind,
+    String key, bool dartIs, bool isGround) {
   var runtimeType = obj.runtimeType;
   // Short-circuit uninteresting cases.
   if (_skipSuccess && _successCache.containsKey(staticType)) {
@@ -81,15 +81,22 @@ dynamic cast(dynamic obj, Type staticType, {String key}) {
       dartSuccess = classMirror.isSubtypeOf(staticMirror);
     }
     if (_skipSuccess && dartSuccess && ddcSuccess) {
-      _successCache.putIfAbsent(staticType, () => new Set<Type>()).add(runtimeType);
+      _successCache
+          .putIfAbsent(staticType, () => new Set<Type>())
+          .add(runtimeType);
       return obj;
     }
-    record =
-      new CastRecord(runtimeType, staticType, ddcSuccess, dartSuccess);
+    record = new CastRecord(runtimeType, staticType, ddcSuccess, dartSuccess);
     _addToCache(runtimeType, staticType, record);
   }
   castRecordHandler(key, record);
   return obj;
+}
+
+dynamic wrap(Function build(Function _), Function f, Type fromType, Type toType,
+    String kind, String key, bool dartIs) {
+  if (f == null) return null;
+  return build(f);
 }
 
 // The default handler simply records all CastRecords and prints a summary
@@ -137,7 +144,7 @@ String summary({bool clear: true}) {
       buffer.writeln(' - static type: $staticType');
       buffer.writeln(' - runtime types: $runtimeTypes');
       final category = (String cat, int val) =>
-        buffer.writeln(' - $cat: $val (${val / total})');
+          buffer.writeln(' - $cat: $val (${val / total})');
       category('success', success);
       category('failure', failure);
       category('mismatch', mismatch);

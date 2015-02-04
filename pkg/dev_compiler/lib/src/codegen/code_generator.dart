@@ -3,6 +3,8 @@ library ddc.src.codegen.code_generator;
 import 'dart:io';
 
 import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
+import 'package:analyzer/src/generated/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/info.dart';
@@ -61,17 +63,21 @@ abstract class CodeGenerator {
     return path.join(prefix, suffix);
   }
 
-  String _getOutputDirectory(LibraryInfo info, CompilationUnit unit) {
-    var uri = unit.element.source.uri.toString();
+  static String _getOutputDirectory(
+      LibraryInfo info, CompilationUnitElement unitElement) {
+    var uri = unitElement.source.uri.toString();
     String suffix;
     if (uri.startsWith('dart:') || _searchPaths == null) {
       // Use the library name as the directory.
       suffix = info.name;
+    } else if (uri.startsWith('package:')) {
+      suffix = uri.replaceFirst('package:', 'packages/');
+      suffix = path.dirname(suffix);
     } else {
       // Recover the original search path and use the relative path
       // from there as the directory.
       // TODO(vsm): Is there a better way to get the resolved path?
-      var resolvedPath = unit.element.toString();
+      var resolvedPath = unitElement.toString();
       var resolvedDir = path.dirname(resolvedPath);
       for (var prefix in _searchPaths) {
         if (resolvedDir.startsWith(prefix)) {
@@ -82,13 +88,38 @@ abstract class CodeGenerator {
     }
     assert(suffix != null);
     assert(path.isRelative(suffix));
-    suffix = _convertIfPackage(suffix);
+    return _convertIfPackage(suffix);
+  }
+
+  String makeOutputDirectory(LibraryInfo info, CompilationUnit unit) {
+    var suffix = _getOutputDirectory(info, unit.element);
     var fileDir = path.join(outDir, suffix);
     var dir = new Directory(fileDir);
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }
     return fileDir;
+  }
+
+  static Uri uriFor(LibraryElement lib) {
+    var info = new LibraryInfo(lib);
+    var unitElement = lib.definingCompilationUnit;
+    var uri = unitElement.source.uri;
+    if (uri.scheme == 'dart') return uri;
+    if (uri.scheme == 'package') return uri;
+    var suffix = _getOutputDirectory(info, unitElement);
+    suffix = path.join(suffix, uri.pathSegments.last);
+    var parts = path.split(suffix);
+    var index = parts.indexOf('packages');
+    if (index < 0) {
+      // Not a package.
+      // TODO(leafp) These may need to be adjusted
+      // relative to the import location
+      return new Uri(path: suffix);
+    }
+    assert(index == 0);
+    return new Uri(
+        scheme: 'package', path: path.joinAll(parts.sublist(index + 1)));
   }
 
   CodeGenerator(String outDir, this.root, this.rules)
@@ -102,7 +133,7 @@ abstract class CodeGenerator {
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
     for (var unit in units) {
-      var outputDir = _getOutputDirectory(info, unit);
+      var outputDir = makeOutputDirectory(info, unit);
       reporter.enterSource(unit.element.source);
       generateUnit(unit, info, outputDir);
       reporter.leaveSource();

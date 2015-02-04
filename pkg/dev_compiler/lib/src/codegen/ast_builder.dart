@@ -51,6 +51,10 @@ class AstBuilder {
     return RawAstBuilder.functionTypeAlias(ret, name, tps, fps);
   }
 
+  static BooleanLiteral booleanLiteral(bool b) {
+    return RawAstBuilder.booleanLiteral(b);
+  }
+
   static NullLiteral nullLiteral() {
     return RawAstBuilder.nullLiteral();
   }
@@ -59,8 +63,16 @@ class AstBuilder {
     return RawAstBuilder.simpleStringLiteral(s);
   }
 
+  static StringLiteral multiLineStringLiteral(String s) {
+    return RawAstBuilder.tripleQuotedStringLiteral(s);
+  }
+
   static AsExpression asExpression(Expression exp, TypeName type) {
     return RawAstBuilder.asExpression(exp, type);
+  }
+
+  static IsExpression isExpression(Expression exp, TypeName type) {
+    return RawAstBuilder.isExpression(exp, type);
   }
 
   static ParenthesizedExpression parenthesizedExpression(Expression exp) {
@@ -101,11 +113,12 @@ class AstBuilder {
   }
 
   static MethodDeclaration blockMethodDeclaration(TypeName rt, Identifier m,
-      List<FormalParameter> params, List<Statement> statements) {
+      List<FormalParameter> params, List<Statement> statements,
+      {bool isStatic: false}) {
     FormalParameterList fl = formalParameterList(params);
     Block b = block(statements);
     BlockFunctionBody body = RawAstBuilder.blockFunctionBody(b);
-    return RawAstBuilder.methodDeclaration(rt, m, fl, body);
+    return RawAstBuilder.methodDeclaration(rt, m, fl, body, isStatic: isStatic);
   }
 
   static FunctionDeclaration blockFunctionDeclaration(TypeName rt, Identifier f,
@@ -225,6 +238,11 @@ class RawAstBuilder {
     return new FunctionTypeAlias(null, null, td, ret, name, tps, fps, semi);
   }
 
+  static BooleanLiteral booleanLiteral(bool b) {
+    var k = new KeywordToken(b ? Keyword.TRUE : Keyword.FALSE, 0);
+    return new BooleanLiteral(k, b);
+  }
+
   static NullLiteral nullLiteral() {
     var n = new KeywordToken(Keyword.NULL, 0);
     return new NullLiteral(n);
@@ -235,9 +253,19 @@ class RawAstBuilder {
     return new SimpleStringLiteral(token, s);
   }
 
+  static SimpleStringLiteral tripleQuotedStringLiteral(String s) {
+    StringToken token = new StringToken(TokenType.STRING, '"""' + s + '"""', 0);
+    return new SimpleStringLiteral(token, s);
+  }
+
   static AsExpression asExpression(Expression exp, TypeName type) {
     Token token = new KeywordToken(Keyword.AS, 0);
     return new AsExpression(exp, token, type);
+  }
+
+  static IsExpression isExpression(Expression exp, TypeName type) {
+    Token token = new KeywordToken(Keyword.IS, 0);
+    return new IsExpression(exp, token, null, type);
   }
 
   static ParenthesizedExpression parenthesizedExpression(Expression exp) {
@@ -304,8 +332,9 @@ class RawAstBuilder {
   }
 
   static MethodDeclaration methodDeclaration(
-      TypeName rt, Identifier m, FormalParameterList fl, FunctionBody body) {
-    Token st = new KeywordToken(Keyword.STATIC, 0);
+      TypeName rt, Identifier m, FormalParameterList fl, FunctionBody body,
+      {bool isStatic: false}) {
+    Token st = isStatic ? new KeywordToken(Keyword.STATIC, 0) : null;
     return new MethodDeclaration(
         null, null, null, st, rt, null, null, m, fl, body);
   }

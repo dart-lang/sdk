@@ -15,7 +15,6 @@ import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:ddc/src/utils.dart';
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/report.dart';
-import 'package:ddc/src/checker/checker.dart';
 import 'package:ddc/devc.dart' show compile;
 
 /// Run the checker on a program with files contents as indicated in

@@ -1,0 +1,19 @@
+library dart.async;
+
+import 'package:ddc/runtime/dart_logging_runtime.dart' as DDC$RT;
+import "dart:collection";
+import "dart:_internal"
+    show deprecated, printToZone, printToConsole, IterableElementError;
+part 'async_error.dart';
+part 'broadcast_stream_controller.dart';
+part 'deferred_load.dart';
+part 'future.dart';
+part 'future_impl.dart';
+part 'schedule_microtask.dart';
+part 'stream.dart';
+part 'stream_controller.dart';
+part 'stream_impl.dart';
+part 'stream_pipe.dart';
+part 'stream_transformers.dart';
+part 'timer.dart';
+part 'zone.dart';
