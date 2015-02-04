@@ -58,6 +58,7 @@ main() {
   runReflectiveTests(ErrorReporterTest);
   runReflectiveTests(ErrorSeverityTest);
   runReflectiveTests(ExitDetectorTest);
+  runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(FileUriResolverTest);
   runReflectiveTests(HtmlParserTest);
@@ -6849,7 +6850,11 @@ class ErrorSeverityTest extends EngineTestCase {
   }
 }
 
-
+/**
+ * Tests for the [ExitDetector] that do not require that the AST be resolved.
+ *
+ * See [ExitDetectorTest2] for tests that require the AST to be resolved.
+ */
 @reflectiveTest
 class ExitDetectorTest extends ParserTestCase {
   void fail_doStatement_continue_with_label() {
@@ -7347,6 +7352,98 @@ class ExitDetectorTest extends ParserTestCase {
   }
 }
 
+/**
+ * Tests for the [ExitDetector] that require that the AST be resolved.
+ *
+ * See [ExitDetectorTest] for tests that do not require the AST to be resolved.
+ */
+@reflectiveTest
+class ExitDetectorTest2 extends ResolverTestCase {
+  void test_switch_withEnum_false_noDefault() {
+    Source source = addSource(r'''
+enum E { A, B }
+String f(E e) {
+  var x;
+  switch (e) {
+    case A:
+      x = 'A';
+    case B:
+      x = 'B';
+  }
+  return x;
+}
+''');
+    LibraryElement element = resolve(source);
+    CompilationUnit unit = resolveCompilationUnit(source, element);
+    FunctionDeclaration function = unit.declarations.last;
+    BlockFunctionBody body = function.functionExpression.body;
+    Statement statement = body.block.statements[1];
+    expect(statement.accept(new ExitDetector()), false);
+  }
+
+  void test_switch_withEnum_false_withDefault() {
+    Source source = addSource(r'''
+enum E { A, B }
+String f(E e) {
+  var x;
+  switch (e) {
+    case A:
+      x = 'A';
+    default:
+      x = '?';
+  }
+  return x;
+}
+''');
+    LibraryElement element = resolve(source);
+    CompilationUnit unit = resolveCompilationUnit(source, element);
+    FunctionDeclaration function = unit.declarations.last;
+    BlockFunctionBody body = function.functionExpression.body;
+    Statement statement = body.block.statements[1];
+    expect(statement.accept(new ExitDetector()), false);
+  }
+
+  void test_switch_withEnum_true_noDefault() {
+    Source source = addSource(r'''
+enum E { A, B }
+String f(E e) {
+  switch (e) {
+    case A:
+      return 'A';
+    case B:
+      return 'B';
+  }
+}
+''');
+    LibraryElement element = resolve(source);
+    CompilationUnit unit = resolveCompilationUnit(source, element);
+    FunctionDeclaration function = unit.declarations.last;
+    BlockFunctionBody body = function.functionExpression.body;
+    Statement statement = body.block.statements[0];
+    expect(statement.accept(new ExitDetector()), true);
+  }
+
+  void test_switch_withEnum_true_withDefault() {
+    Source source = addSource(r'''
+enum E { A, B }
+String f(E e) {
+  switch (e) {
+    case A:
+      return 'A';
+    default:
+      return '?';
+  }
+}
+''');
+    LibraryElement element = resolve(source);
+    CompilationUnit unit = resolveCompilationUnit(source, element);
+    FunctionDeclaration function = unit.declarations.last;
+    BlockFunctionBody body = function.functionExpression.body;
+    Statement statement = body.block.statements[0];
+    expect(statement.accept(new ExitDetector()), true);
+  }
+}
+
 
 @reflectiveTest
 class FileBasedSourceTest {
@@ -7370,27 +7467,6 @@ class FileBasedSourceTest {
     FileBasedSource source1 = new FileBasedSource.con1(file1);
     FileBasedSource source2 = new FileBasedSource.con1(file2);
     expect(source1 == source2, isTrue);
-  }
-
-  void test_getEncoding() {
-    SourceFactory factory = new SourceFactory([new FileUriResolver()]);
-    String fullPath = "/does/not/exist.dart";
-    JavaFile file = FileUtilities2.createFile(fullPath);
-    FileBasedSource source = new FileBasedSource.con1(file);
-    expect(factory.fromEncoding(source.encoding), source);
-  }
-
-  void test_getFullName() {
-    String fullPath = "/does/not/exist.dart";
-    JavaFile file = FileUtilities2.createFile(fullPath);
-    FileBasedSource source = new FileBasedSource.con1(file);
-    expect(source.fullName, file.getAbsolutePath());
-  }
-
-  void test_getShortName() {
-    JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource.con1(file);
-    expect(source.shortName, "exist.dart");
   }
 
   void test_fileReadMode() {
@@ -7433,6 +7509,27 @@ class FileBasedSourceTest {
     expect(FileBasedSource.fileReadMode('\ra'), '\na');
 
     FileBasedSource.fileReadMode = (String s) => s;
+  }
+
+  void test_getEncoding() {
+    SourceFactory factory = new SourceFactory([new FileUriResolver()]);
+    String fullPath = "/does/not/exist.dart";
+    JavaFile file = FileUtilities2.createFile(fullPath);
+    FileBasedSource source = new FileBasedSource.con1(file);
+    expect(factory.fromEncoding(source.encoding), source);
+  }
+
+  void test_getFullName() {
+    String fullPath = "/does/not/exist.dart";
+    JavaFile file = FileUtilities2.createFile(fullPath);
+    FileBasedSource source = new FileBasedSource.con1(file);
+    expect(source.fullName, file.getAbsolutePath());
+  }
+
+  void test_getShortName() {
+    JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
+    FileBasedSource source = new FileBasedSource.con1(file);
+    expect(source.shortName, "exist.dart");
   }
 
   void test_hashCode() {
