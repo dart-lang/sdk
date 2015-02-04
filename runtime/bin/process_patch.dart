@@ -141,7 +141,7 @@ patch class _ProcessUtils {
   /* patch */ static int _getExitCode() native "Process_GetExitCode";
   /* patch */ static void _sleep(int millis) native "Process_Sleep";
   /* patch */ static int _pid(Process process) native "Process_Pid";
-  static int _killPid(int pid, ProcessSignal signal)
+  static int _killPid(int pid, int signal)
       native "Process_KillPid";
   /* patch */ static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
     if (signal != ProcessSignal.SIGHUP &&
