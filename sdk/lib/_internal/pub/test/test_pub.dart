@@ -809,8 +809,16 @@ Map packageMap(String name, String version, [Map dependencies]) {
 }
 
 /// Resolves [target] relative to the path to pub's `test/asset` directory.
-String testAssetPath(String target) =>
-    p.join(p.dirname(libraryPath('test_pub')), 'asset', target);
+String testAssetPath(String target) {
+  var libPath = libraryPath('test_pub');
+
+  // We are running from the generated directory, but non-dart assets are only
+  // in the canonical directory.
+  // TODO(rnystrom): Remove this when #104 is fixed.
+  libPath = libPath.replaceAll('pub_generated', 'pub');
+
+  return p.join(p.dirname(libPath), 'asset', target);
+}
 
 /// Returns a Map in the format used by the pub.dartlang.org API to represent a
 /// package version.

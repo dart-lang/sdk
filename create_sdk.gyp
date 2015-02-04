@@ -24,9 +24,9 @@
             # the pub directory instead of in tests/pub. Xcode can only handle
             # a certain amount of files in one list (also depending on the
             # length of the path from where you run). This regexp excludes
-            # pub/test
+            # pub/test and pub_generated/test
             '<!@(["python", "tools/list_files.py",'
-                '"^(?!.*pub/test).*dart$",'
+                '"^(?!.*pub/test)(?!.*pub_generated/test).*dart$",'
                 '"sdk/lib"])',
             '<!@(["python", "tools/list_files.py", "", '
                 '"sdk/lib/_internal/compiler/js_lib/preambles"])',

@@ -32,7 +32,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--package-root=<(PRODUCT_DIR)/packages/',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
-            '../../sdk/lib/_internal/pub/bin/pub.dart',
+            '../../sdk/lib/_internal/pub_generated/bin/pub.dart',
           ]
         },
       ],
@@ -78,7 +78,7 @@
           'inputs': [
             '../../tools/create_timestamp_file.py',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$",'
-                ' "../../sdk/lib/_internal/pub"])',
+                ' "../../sdk/lib/_internal/pub_generated"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/pub_files.stamp',

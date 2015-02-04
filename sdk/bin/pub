@@ -56,6 +56,6 @@ fi
 DART="$BUILD_DIR/dart-sdk/bin/dart"
 PACKAGES_DIR="$BUILD_DIR/packages/"
 
-# Run pub.
-PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
+# Run the async/await compiled pub.
+PUB="$SDK_DIR/lib/_internal/pub_generated/bin/pub.dart"
 exec "$DART" "${VM_OPTIONS[@]}" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
