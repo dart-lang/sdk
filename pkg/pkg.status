@@ -55,7 +55,7 @@ analyzer/test/generated/engine_test: Skip # Slow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 
-analyzer/test/enum_test: Pass, Fail # Issue 21323
+analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
 
 analysis_server/test/*: Skip # Issue 22161
 analysis_server/test/search/element_references_test: Pass, Slow
