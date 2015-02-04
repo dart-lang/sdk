@@ -439,7 +439,7 @@ abstract class FileSystemEntity {
    */
   Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
                                  bool recursive: false})
-     => _FileSystemWatcher.watch(_trimTrailingPathSeparators(path),
+     => _FileSystemWatcher._watch(_trimTrailingPathSeparators(path),
                                  events,
                                  recursive);
 
@@ -827,7 +827,7 @@ class FileSystemMoveEvent extends FileSystemEvent {
 
 
 class _FileSystemWatcher {
-  external static Stream<FileSystemEvent> watch(
+  external static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive);
   external static bool get isSupported;
 }

@@ -518,7 +518,7 @@ class Stdout {
 @patch
 class _FileSystemWatcher {
   @patch
-  static Stream<FileSystemEvent> watch(
+  static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
     throw new UnsupportedError("_FileSystemWatcher.watch");
   }

@@ -64,7 +64,7 @@ patch class _FileSystemWatcher {
 
   StreamController _broadcastController;
 
-  /* patch */ static Stream<FileSystemEvent> watch(
+  /* patch */ static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
     if (Platform.isLinux) {
       return new _InotifyFileSystemWatcher(path, events, recursive).stream;
