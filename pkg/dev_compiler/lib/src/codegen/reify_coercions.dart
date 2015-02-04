@@ -1,7 +1,5 @@
 library ddc.src.codegen.reify_coercions;
 
-import 'dart:collection';
-
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
