@@ -98,32 +98,12 @@ void defineLinterEngineTests() {
       });
     });
 
-    group('source linter', () {
-      test('enable rule', () {
-        var registry = new MockRegistry();
-        var lint = new MockLinter();
-        registry.registerLinter('my_first_lint', lint);
-        var linter = new SourceLinter(registry: registry);
-        linter.enableRule('my_first_lint');
-        expect(linter.registry.enabledLints, unorderedEquals([lint]));
-      });
-      test('disable rule', () {
-        var registry = new MockRegistry();
-        var lint = new MockLinter();
-        registry.registerLinter('my_first_lint', lint);
-        var linter = new SourceLinter(registry: registry);
-        linter.enableRule('my_first_lint');
-        expect(linter.registry.enabledLints, unorderedEquals([lint]));
-        linter.disableRule('my_first_lint');
-        expect(linter.registry.enabledLints, isEmpty);
-      });
-    });
-
     group('lint driver', () {
       test('basic', () {
         bool visited;
-        var r = new MockRegistry([new MockLinter((n) => visited = true)]);
-        new SourceLinter(registry: r).lintLibrarySource(
+        var options =
+            new LinterOptions(() => [new MockLinter((n) => visited = true)]);
+        new SourceLinter(options).lintLibrarySource(
             libraryName: 'testLibrary',
             libraryContents: 'library testLibrary;');
         expect(visited, isTrue);
@@ -148,13 +128,35 @@ void defineRuleTests() {
 /// Test framework sanity
 void defineSanityTests() {
   group('test framework', () {
-    test('annotation extraction', () {
-      expect(extractAnnotation('int x; // LINT'), isNotNull);
-      expect(extractAnnotation('int x; //LINT'), isNotNull);
-      expect(extractAnnotation('int x; // OK'), isNull);
-      expect(extractAnnotation('int x;'), isNull);
-      expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
-          equals('dynamic is bad'));
+    group('annotation', () {
+      test('extraction', () {
+        expect(extractAnnotation('int x; // LINT'), isNotNull);
+        expect(extractAnnotation('int x; //LINT'), isNotNull);
+        expect(extractAnnotation('int x; // OK'), isNull);
+        expect(extractAnnotation('int x;'), isNull);
+        expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
+            equals('dynamic is bad'));
+        expect(extractAnnotation('dynamic x; //LINT').message, isNull);
+        expect(extractAnnotation('dynamic x; //LINT ').message, isNull);
+      });
+    });
+    test('equality', () {
+      expect(
+          new Annotation('Actual message (to be ignored)', ErrorType.LINT, 1),
+          matchesAnnotation(null, ErrorType.LINT, 1));
+      expect(new Annotation('Message', ErrorType.LINT, 1),
+          matchesAnnotation('Message', ErrorType.LINT, 1));
+    });
+    test('inequality', () {
+      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message', ErrorType.HINT, 1)),
+          throwsA(new isInstanceOf<TestFailure>()));
+      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message2', ErrorType.LINT, 1)),
+          throwsA(new isInstanceOf<TestFailure>()));
+      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message', ErrorType.LINT, 2)),
+          throwsA(new isInstanceOf<TestFailure>()));
     });
   });
 }
@@ -166,6 +168,9 @@ Annotation extractAnnotation(String line) {
     String msg = null;
     if (msgIndex < line.length) {
       msg = line.substring(index + msgIndex).trim();
+      if (msg.length == 0) {
+        msg = null;
+      }
     }
     return new Annotation.forLint(msg);
   }
@@ -177,25 +182,29 @@ main() {
 
   defineSanityTests();
   defineLinterEngineTests();
-  //defineRuleTests();
+  defineRuleTests();
 }
+
+AnnotationMatcher matchesAnnotation(
+    String message, ErrorType type, int lineNumber) =>
+        new AnnotationMatcher(new Annotation(message, type, lineNumber));
 
 void testRule(String ruleName, File file) {
   test('$ruleName', () {
-    var expected = <Annotation>[];
+    var expected = <AnnotationMatcher>[];
 
-    int lineNumber = 0;
+    int lineNumber = 1;
     for (var line in file.readAsLinesSync()) {
       var annotation = extractAnnotation(line);
       if (annotation != null) {
         annotation.lineNumber = lineNumber;
-        expected.add(annotation);
+        expected.add(new AnnotationMatcher(annotation));
       }
       ++lineNumber;
     }
 
-    DartLinter driver = new DartLinter();
-    driver.enableRule(ruleName);
+    DartLinter driver = new DartLinter.forRules(
+        () => [ruleMap[ruleName]].where((rule) => rule != null));
 
     Iterable<AnalysisErrorInfo> lints = driver.lintFile(file);
 
@@ -205,10 +214,7 @@ void testRule(String ruleName, File file) {
         actual.add(new Annotation.forError(error, info.lineInfo));
       });
     });
-
-    print(lints);
-
-    expect(actual, unorderedEquals(expected));
+    expect(actual, unorderedMatches(expected));
   });
 }
 
@@ -221,12 +227,13 @@ class Annotation {
   final ErrorType type;
   int lineNumber;
 
-  Annotation(this.message, this.type);
+  Annotation(this.message, this.type, this.lineNumber);
 
-  Annotation.forError(AnalysisError error, LineInfo lineInfo)
-      : this(error.message, error.errorCode.type);
+  Annotation.forError(AnalysisError error, LineInfo lineInfo) : this(
+          error.message, error.errorCode.type,
+          lineInfo.getLocation(error.offset).lineNumber);
 
-  Annotation.forLint([String message]) : this(message, ErrorType.LINT);
+  Annotation.forLint([String message]) : this(message, ErrorType.LINT, null);
 
   String toString() => '[$type]: "$message" (line: $lineNumber)';
 
@@ -235,6 +242,29 @@ class Annotation {
     error.errors.forEach(
         (e) => annotations.add(new Annotation.forError(e, error.lineInfo)));
     return annotations;
+  }
+}
+
+class AnnotationMatcher extends Matcher {
+  final Annotation _expected;
+  AnnotationMatcher(this._expected);
+
+  Description describe(Description description) =>
+      description.addDescriptionOf(_expected);
+
+  bool matches(item, Map matchState) {
+    return item is Annotation && _matches(item as Annotation);
+  }
+
+  bool _matches(Annotation other) {
+    // Only test messages if they're specified in the expectation
+    if (_expected.message != null) {
+      if (_expected.message != other.message) {
+        return false;
+      }
+    }
+    return _expected.type == other.type &&
+        _expected.lineNumber == other.lineNumber;
   }
 }
 

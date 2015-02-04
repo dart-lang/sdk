@@ -14,14 +14,18 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:dart_lint/src/analysis.dart';
-import 'package:dart_lint/src/rules.dart';
 
 void _registerLinters(Iterable<Linter> linters) {
-  LintGenerator.LINTERS.clear();
-  linters.forEach((l) => LintGenerator.LINTERS.add(l));
+  if (linters != null) {
+    LintGenerator.LINTERS.clear();
+    linters.forEach((l) => LintGenerator.LINTERS.add(l));
+  }
 }
 
 typedef Printer(String msg);
+
+/// Describes a set of enabled rules.
+typedef Iterable<Linter> RuleSet();
 
 typedef AnalysisDriver _DriverFactory();
 
@@ -29,12 +33,10 @@ typedef AnalysisDriver _DriverFactory();
 abstract class DartLinter {
 
   /// Creates a new linter.
-  factory DartLinter([LinterOptions options]) =>
-      new SourceLinter(options: options);
+  factory DartLinter([LinterOptions options]) => new SourceLinter(options);
 
-  disableRule(String ruleName);
-
-  enableRule(String ruleName);
+  factory DartLinter.forRules(RuleSet ruleSet) =>
+      new DartLinter(new LinterOptions(ruleSet));
 
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile);
 
@@ -42,8 +44,6 @@ abstract class DartLinter {
       {String libraryName, String libraryContents});
 
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath);
-
-  registerRule(String ruleName, Linter lintRule);
 }
 
 /// Thrown when an error occurs in linting.
@@ -71,9 +71,12 @@ class LinterException implements Exception {
 
 /// Linter options.
 class LinterOptions extends DriverOptions {
+  final RuleSet _enabledLints;
   final bool enableLints = true;
   final ErrorFilter errorFilter =
       (AnalysisError error) => error.errorCode.type == ErrorType.LINT;
+  LinterOptions(this._enabledLints);
+  Iterable<Linter> get enabledLints => _enabledLints();
 }
 
 class PrintingReporter implements Reporter, Logger {
@@ -120,25 +123,9 @@ abstract class Reporter {
 /// Linter implementation
 class SourceLinter implements DartLinter, AnalysisErrorListener {
   final errors = <AnalysisError>[];
-  LinterOptions options;
+  final LinterOptions options;
   final Reporter reporter;
-  RuleRegistry registry;
-
-  SourceLinter(
-      {this.options, this.reporter: const PrintingReporter(), this.registry}) {
-    if (options == null) {
-      options = new LinterOptions();
-    }
-    if (registry == null) {
-      registry = new RuleRegistry(reporter);
-    }
-  }
-
-  @override
-  disableRule(String ruleName) => registry.disable(ruleName);
-
-  @override
-  enableRule(String ruleName) => registry.enable(ruleName);
+  SourceLinter(this.options, {this.reporter: const PrintingReporter()});
 
   @override
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile) =>
@@ -157,12 +144,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   onError(AnalysisError error) => errors.add(error);
 
-  @override
-  registerRule(String ruleName, Linter lintRule) =>
-      registry.registerLinter(ruleName, lintRule);
-
   Iterable<AnalysisErrorInfo> _registerAndRun(_DriverFactory createDriver) {
-    _registerLinters(registry.enabledLints);
+    _registerLinters(options.enabledLints);
     return createDriver().getErrors();
   }
 }

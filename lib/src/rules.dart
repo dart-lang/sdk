@@ -6,11 +6,12 @@ library rules;
 
 import 'package:analyzer/src/services/lint.dart';
 import 'package:dart_lint/src/linter.dart';
-//import 'package:dart_lint/src/rules/super_goes_last.dart';
+import 'package:dart_lint/src/rules/unnecessary_brace_in_string_interp.dart';
 
 /// Map of contributed lint rules.
-final Map<String, Linter> _rules = {
+final Map<String, Linter> ruleMap = {
   //'super_goes_last': new SuperGoesLastLint()
+  'unnecessary_brace_in_string_interp': new UnnecessaryBraceInStringInterp()
 };
 
 class Rule {
@@ -29,9 +30,9 @@ class RuleRegistry {
   final Reporter reporter;
   final Map<String, Rule> _ruleMap = <String, Rule>{};
 
-  RuleRegistry(this.reporter) {
+  RuleRegistry([this.reporter = const PrintingReporter()]) {
     // Register rules
-    _rules.forEach((n, l) => registerLinter(n, l));
+    ruleMap.forEach((n, l) => registerLinter(n, l));
   }
 
   /// An empty registry for testing
