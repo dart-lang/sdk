@@ -5,6 +5,8 @@
 #ifndef BIN_SOCKET_H_
 #define BIN_SOCKET_H_
 
+#include <map>
+
 #include "platform/globals.h"
 
 #include "bin/builtin.h"
@@ -74,6 +76,21 @@ class SocketAddress {
     ASSERT(addr->ss.ss_family == AF_INET || addr->ss.ss_family == AF_INET6);
     return addr->ss.ss_family == AF_INET6 ?
         sizeof(struct in6_addr) : sizeof(struct in_addr);
+  }
+
+  static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
+    if (a.ss.ss_family == AF_INET) {
+      if (b.ss.ss_family != AF_INET) return false;
+      return memcmp(&a.in.sin_addr, &b.in.sin_addr, sizeof(a.in.sin_addr)) == 0;
+    } else if (a.ss.ss_family == AF_INET6) {
+      if (b.ss.ss_family != AF_INET6) return false;
+      return memcmp(&a.in6.sin6_addr,
+                    &b.in6.sin6_addr,
+                    sizeof(a.in6.sin6_addr)) == 0;
+    } else {
+      UNREACHABLE();
+      return false;
+    }
   }
 
   static void GetSockAddr(Dart_Handle obj, RawAddr* addr) {
@@ -311,6 +328,76 @@ class ServerSocket {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
+
+class ListeningSocketRegistry {
+ private:
+  struct OSSocket {
+    RawAddr address;
+    int port;
+    bool v6_only;
+    bool shared;
+    int ref_count;
+    int socketfd;
+
+    // Singly linked lists of OSSocket instances which listen on the same port
+    // but on different addresses.
+    OSSocket *next;
+
+    OSSocket(RawAddr address, int port, bool v6_only, bool shared, int socketfd)
+        : address(address), port(port), v6_only(v6_only), shared(shared),
+          ref_count(0), socketfd(socketfd), next(NULL) {}
+  };
+
+ public:
+  ListeningSocketRegistry() : mutex_(new Mutex()) {}
+
+  // This function should be called from a dart runtime call in order to create
+  // a new (potentially shared) socket.
+  Dart_Handle CreateBindListen(Dart_Handle socket_object,
+                               RawAddr addr,
+                               intptr_t port,
+                               intptr_t backlog,
+                               bool v6_only,
+                               bool shared);
+
+  // This should be called from the event handler for every kCloseEvent it gets
+  // on listening sockets.
+  //
+  // Returns `true` if the last reference has been dropped and the underlying
+  // socket can be closed.
+  //
+  // The caller is responsible for obtaining the mutex first, before calling
+  // this function.
+  bool CloseSafe(int socketfd);
+
+  // Mark an existing socket as sharable if it is not already marked as
+  // sharable.
+  //
+  // NOTE: This is a temporary measure until ServerSocketReference's are
+  // removed.
+  Dart_Handle MarkSocketFdAsSharableHack(int socketfd);
+
+  Mutex *mutex() { return mutex_; }
+
+ private:
+  OSSocket *findOSSocketWithAddress(OSSocket *current, const RawAddr& addr) {
+    while (current != NULL) {
+      if (SocketAddress::AreAddressesEqual(current->address, addr)) {
+        return current;
+      }
+      current = current->next;
+    }
+    return NULL;
+  }
+
+  std::map<intptr_t, OSSocket*> sockets_by_port_;
+  std::map<intptr_t, OSSocket*> sockets_by_fd_;
+  Mutex *mutex_;
+
+  typedef std::map<intptr_t, OSSocket*>::iterator SocketsIterator;
+};
+
+extern ListeningSocketRegistry globalTcpListeningSocketRegistry;
 
 }  // namespace bin
 }  // namespace dart

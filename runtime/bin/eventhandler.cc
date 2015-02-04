@@ -12,8 +12,6 @@
 namespace dart {
 namespace bin {
 
-static const intptr_t kTimerId = -1;
-static const intptr_t kInvalidId = -2;
 
 void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
   // Find port if present.
@@ -85,7 +83,7 @@ EventHandlerImplementation* EventHandler::delegate() {
  */
 void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   Dart_Handle sender = Dart_GetNativeArgument(args, 0);
-  intptr_t id = kInvalidId;
+  intptr_t id;
   if (Dart_IsNull(sender)) {
     id = kTimerId;
   } else {
