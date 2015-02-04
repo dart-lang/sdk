@@ -60,8 +60,6 @@ websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
-audiobuffersourcenode_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
-audiocontext_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issue 20524
 
