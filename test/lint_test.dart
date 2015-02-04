@@ -16,7 +16,22 @@ import 'package:dart_lint/src/rules.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
-const ruleDir = 'test/rules';
+Directory get ruleDir {
+
+  print('CWD: ${Directory.current.path}');
+  print('CWD: ${Directory.current.absolute.path}');
+
+  Directory dir = new Directory('test/rules');
+  if (dir.existsSync()) {
+    return dir;
+  }
+
+  Directory testDir = new File(Platform.script.path).parent;
+  Directory rulesDir = new Directory(testDir.path + '/rules');
+
+  print('trying... ${rulesDir.absolute.path}');
+  return rulesDir;
+}
 
 /// Linter engine tests
 void defineLinterEngineTests() {
@@ -117,7 +132,7 @@ void defineRuleTests() {
 
   //TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
-    for (var entry in new Directory(ruleDir).listSync()) {
+    for (var entry in ruleDir.listSync()) {
       if (entry is! File || !entry.path.endsWith('.dart')) continue;
       var ruleName = p.basenameWithoutExtension(entry.path);
       testRule(ruleName, entry);
