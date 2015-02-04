@@ -21,8 +21,8 @@ main() {
 @reflectiveTest
 class KeywordComputerTest extends AbstractCompletionTest {
 
-  void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+  void assertSuggestKeywords(Iterable<Keyword> expectedKeywords, [int relevance
+      = COMPLETION_RELEVANCE_DEFAULT]) {
     Set<Keyword> actualKeywords = new Set<Keyword>();
     request.suggestions.forEach((CompletionSuggestion s) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
@@ -34,7 +34,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             fail('Duplicate keyword suggested: ${s.completion}');
           }
         }
-        expect(s.relevance, equals(relevance));
+        expect(s.relevance, equals(relevance), reason: k.toString());
         expect(s.selectionOffset, equals(s.completion.length));
         expect(s.selectionLength, equals(0));
         expect(s.isDeprecated, equals(false));
@@ -79,6 +79,54 @@ class KeywordComputerTest extends AbstractCompletionTest {
         COMPLETION_RELEVANCE_HIGH);
   }
 
+  test_after_class2() {
+    addTestSource('class A {} c^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.FINAL,
+            Keyword.TYPEDEF,
+            Keyword.VAR],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_after_import() {
+    addTestSource('import foo; ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.EXPORT,
+            Keyword.FINAL,
+            Keyword.IMPORT,
+            Keyword.PART,
+            Keyword.TYPEDEF,
+            Keyword.VAR],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_after_import2() {
+    addTestSource('import foo; c^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.EXPORT,
+            Keyword.FINAL,
+            Keyword.IMPORT,
+            Keyword.PART,
+            Keyword.TYPEDEF,
+            Keyword.VAR],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
   test_before_import() {
     addTestSource('^ import foo;');
     expect(computeFast(), isTrue);
@@ -95,8 +143,40 @@ class KeywordComputerTest extends AbstractCompletionTest {
         COMPLETION_RELEVANCE_HIGH);
   }
 
+  test_class2() {
+    addTestSource('class A e^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_class3() {
+    addTestSource('class A e^ { }');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
   test_class_extends() {
     addTestSource('class A extends foo ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.IMPLEMENTS, Keyword.WITH],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_class_extends2() {
+    addTestSource('class A extends foo i^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.IMPLEMENTS, Keyword.WITH],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_class_extends3() {
+    addTestSource('class A extends foo i^ { }');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.IMPLEMENTS, Keyword.WITH],
@@ -115,6 +195,24 @@ class KeywordComputerTest extends AbstractCompletionTest {
     assertSuggestKeywords([Keyword.EXTENDS], COMPLETION_RELEVANCE_HIGH);
   }
 
+  test_class_implements2() {
+    addTestSource('class A e^ implements foo');
+    expect(computeFast(), isTrue);
+    // TODO (danrubel) refinement: don't suggest implements
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_class_implements3() {
+    addTestSource('class A e^ implements foo { }');
+    expect(computeFast(), isTrue);
+    // TODO (danrubel) refinement: don't suggest implements
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS],
+        COMPLETION_RELEVANCE_HIGH);
+  }
+
   test_class_implements_name() {
     addTestSource('class A implements ^');
     expect(computeFast(), isTrue);
@@ -125,6 +223,24 @@ class KeywordComputerTest extends AbstractCompletionTest {
     addTestSource('class ^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([]);
+  }
+
+  test_class_with() {
+    addTestSource('class A extends foo with bar ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.IMPLEMENTS], COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_class_with2() {
+    addTestSource('class A extends foo with bar i^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.IMPLEMENTS], COMPLETION_RELEVANCE_HIGH);
+  }
+
+  test_class_with3() {
+    addTestSource('class A extends foo with bar i^ { }');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.IMPLEMENTS], COMPLETION_RELEVANCE_HIGH);
   }
 
   test_class_with_name() {
@@ -153,6 +269,32 @@ class KeywordComputerTest extends AbstractCompletionTest {
 
   test_function_body() {
     addTestSource('main() {^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            Keyword.ASSERT,
+            Keyword.CASE,
+            Keyword.CONTINUE,
+            Keyword.DO,
+            Keyword.FACTORY,
+            Keyword.FINAL,
+            Keyword.FOR,
+            Keyword.IF,
+            Keyword.NEW,
+            Keyword.RETHROW,
+            Keyword.RETURN,
+            Keyword.SUPER,
+            Keyword.SWITCH,
+            Keyword.THIS,
+            Keyword.THROW,
+            Keyword.TRY,
+            Keyword.VAR,
+            Keyword.VOID,
+            Keyword.WHILE]);
+  }
+
+  test_function_body2() {
+    addTestSource('main() {{}^}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [
