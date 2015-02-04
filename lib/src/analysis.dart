@@ -28,6 +28,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:grinder/grinder.dart' as grinder;
 
+/// Returns `true` if [AnalysisError] should be printed.
+typedef bool ErrorFilter(AnalysisError error);
+
 /// A refactored fork of [AnalyzerImpl] with an eye towards easing
 /// use and extension.
 ///
@@ -78,6 +81,10 @@ class AnalysisDriver {
     return status;
   }
 
+  ErrorFilter get _errorFilter => _options.errorFilter != null
+      ? _options.errorFilter
+      : _defaultErrorFilter();
+
   /// Default implementation contributes a package URI and package map
   /// resolvers (in addition to the predefined dart URI and file URI resolvers).
   /// Override to specialize.
@@ -119,16 +126,12 @@ class AnalysisDriver {
   /// By default creates a logger that reports to standard out and error.
   Logger createLogger() => new StdLogger(_options.log);
 
-  bool isDesiredError(AnalysisError error) {
-    if (error.errorCode.type == ErrorType.TODO) {
-      return false;
-    }
-    if (_computeSeverity(error, _options.enableTypeChecks) ==
-        ErrorSeverity.INFO && _options.disableHints) {
-      return false;
-    }
-    return true;
+  Iterable<AnalysisErrorInfo> getErrors() {
+    analyzeSync();
+    return errorInfos;
   }
+
+  bool isDesiredError(AnalysisError error) => _errorFilter(error);
 
   void _addCompilationUnitSource(CompilationUnitElement unit,
       Set<LibraryElement> libraries, Set<CompilationUnitElement> units) {
@@ -235,6 +238,17 @@ class AnalysisDriver {
     }
     return status;
   }
+
+  ErrorFilter _defaultErrorFilter() => (AnalysisError error) {
+    if (error.errorCode.type == ErrorType.TODO) {
+      return false;
+    }
+    if (_computeSeverity(error, _options.enableTypeChecks) ==
+        ErrorSeverity.INFO && _options.disableHints) {
+      return false;
+    }
+    return true;
+  };
 
   List<UriResolver> _getResolvers() {
     List<UriResolver> resolvers = [
@@ -455,6 +469,9 @@ class DriverOptions {
   /// Whether to treat type mismatches found during constant evaluation as
   /// errors.
   bool enableTypeChecks = false;
+
+  /// Custom error filtering.
+  ErrorFilter errorFilter;
 
   /// Whether to ignore unrecognized flags.
   bool ignoreUnrecognizedFlags;
