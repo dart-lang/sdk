@@ -34,8 +34,8 @@ set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
 set PACKAGES_DIR=%BUILD_DIR%\packages
 set DART=%BUILD_DIR%\dart-sdk\bin\dart
 
-rem Run the async/await compiled pub.
-set PUB="%SDK_DIR%\lib\_internal\pub_generated\bin\pub.dart"
+rem Run pub.
+set PUB="%SDK_DIR%\lib\_internal\pub.dart"
 "%DART%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
 
 endlocal

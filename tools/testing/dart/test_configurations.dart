@@ -199,7 +199,7 @@ void testConfigurations(List<Map> configurations) {
           // TODO(rnystrom): Move pub back into TEST_SUITE_DIRECTORIES once
           // #104 is fixed.
           testSuites.add(new StandardTestSuite(conf, 'pub',
-              new Path('sdk/lib/_internal/pub_generated'),
+              new Path('sdk/lib/_internal/pub'),
               ['sdk/lib/_internal/pub/pub.status'],
               isTestFilePredicate: (file) => file.endsWith('_test.dart'),
               recursive: true));
