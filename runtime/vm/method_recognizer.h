@@ -155,15 +155,12 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 134149043)                                         \
   V(_Smi, get:bitLength, Smi_bitLength, 869986288)                             \
-  V(_Bigint, set:_neg, Bigint_setNeg, 1924982939)                              \
-  V(_Bigint, set:_used, Bigint_setUsed, 1574448752)                            \
-  V(_Bigint, set:_digits, Bigint_setDigits, 1109140916)                        \
-  V(_Bigint, _absAdd, Bigint_absAdd, 97148049)                                 \
-  V(_Bigint, _absSub, Bigint_absSub, 159012285)                                \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 1625285265)                               \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 56442243)                                 \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 1844507489)           \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, 1004817085)                       \
+  V(_Bigint, _absAdd, Bigint_absAdd, 222437051)                                \
+  V(_Bigint, _absSub, Bigint_absSub, 599465997)                                \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 1696801459)                               \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1937424317)                               \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 1873913198)           \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 2040316431)                       \
   V(_Double, >, Double_greaterThan, 1538121903)                                \
   V(_Double, >=, Double_greaterEqualThan, 1058495718)                          \
   V(_Double, <, Double_lessThan, 62910596)                                     \
@@ -397,20 +394,17 @@ namespace dart {
   V(::, tan, MathTan, 982072809)                                               \
   V(Lists, copy, ListsCopy, 605584668)                                         \
   V(_Bigint, get:_neg, Bigint_getNeg, 1151543890)                              \
-  V(_Bigint, set:_neg, Bigint_setNeg, 1924982939)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 1308559334)                            \
-  V(_Bigint, set:_used, Bigint_setUsed, 1574448752)                            \
   V(_Bigint, get:_digits, Bigint_getDigits, 1408092463)                        \
-  V(_Bigint, set:_digits, Bigint_setDigits, 1109140916)                        \
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \
-  V(_Bigint, _absAdd, Bigint_absAdd, 97148049)                                 \
-  V(_Bigint, _absSub, Bigint_absSub, 159012285)                                \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 1625285265)                               \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 56442243)                                 \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 1844507489)           \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, 1004817085)                       \
+  V(_Bigint, _absAdd, Bigint_absAdd, 222437051)                                \
+  V(_Bigint, _absSub, Bigint_absSub, 599465997)                                \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 1696801459)                               \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1937424317)                               \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 1873913198)           \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 2040316431)                       \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \

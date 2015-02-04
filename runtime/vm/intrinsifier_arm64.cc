@@ -688,30 +688,6 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R1, Address(SP, 1 * kWordSize));
-  __ StoreIntoObject(R1, FieldAddress(R1, Bigint::neg_offset()), R0, false);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R1, Address(SP, 1 * kWordSize));
-  __ StoreIntoObject(R1, FieldAddress(R1, Bigint::used_offset()), R0);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R1, Address(SP, 1 * kWordSize));
-  __ StoreIntoObject(R1, FieldAddress(R1, Bigint::digits_offset()), R0, false);
-  __ ret();
-}
-
-
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -767,9 +743,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ cbnz(&carry_loop, R9);
 
   __ Bind(&last_carry);
-  __ adc(R0, ZR, ZR);
+  Label done;
+  __ b(&done, CC);
+  __ LoadImmediate(R0, 1, kNoPP);
   __ str(R0, Address(R6, 0));
 
+  __ Bind(&done);
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }

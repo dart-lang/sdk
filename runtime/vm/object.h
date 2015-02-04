@@ -5579,35 +5579,33 @@ class Bigint : public Integer {
     return RoundedAllocationSize(sizeof(RawBigint));
   }
 
+  // Offsets of fields accessed directly by optimized code.
+  static intptr_t neg_offset() { return OFFSET_OF(RawBigint, neg_); }
+  static intptr_t used_offset() { return OFFSET_OF(RawBigint, used_); }
+  static intptr_t digits_offset() { return OFFSET_OF(RawBigint, digits_); }
+
   // Accessors used by native calls from Dart.
   RawBool* neg() const { return raw_ptr()->neg_; }
-  void set_neg(const Bool& value) const;
-  static intptr_t neg_offset() { return OFFSET_OF(RawBigint, neg_); }
   RawSmi* used() const { return raw_ptr()->used_; }
-  void set_used(const Smi& value) const;
-  static intptr_t used_offset() { return OFFSET_OF(RawBigint, used_); }
   RawTypedData* digits() const { return raw_ptr()->digits_; }
-  void set_digits(const TypedData& value) const;
-  static intptr_t digits_offset() { return OFFSET_OF(RawBigint, digits_); }
 
   // Accessors used by runtime calls from C++.
   bool Neg() const;
-  void SetNeg(bool value) const;
   intptr_t Used() const;
-  void SetUsed(intptr_t value) const;
   uint32_t DigitAt(intptr_t index) const;
-  void SetDigitAt(intptr_t index, uint32_t value) const;
 
   const char* ToDecCString(uword (*allocator)(intptr_t size)) const;
   const char* ToHexCString(uword (*allocator)(intptr_t size)) const;
 
-  static const intptr_t kExtraDigits = 4;  // Same as _Bigint.EXTRA_DIGITS
-  static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint.DIGIT_BITS
+  static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint._DIGIT_BITS
   static const intptr_t kBytesPerDigit = 4;
   static const int64_t kDigitBase = 1LL << kBitsPerDigit;
   static const int64_t kDigitMask = kDigitBase - 1;
 
-  static RawBigint* New(Heap::Space space = Heap::kNew);
+  static RawBigint* New(Heap::Space space = Heap::kNew);  // For snapshots.
+
+  static RawBigint* New(bool neg, intptr_t used, const TypedData& digits,
+                        Heap::Space space = Heap::kNew);
 
   static RawBigint* NewFromInt64(int64_t value,
                                   Heap::Space space = Heap::kNew);
@@ -5625,19 +5623,23 @@ class Bigint : public Integer {
   static RawBigint* NewCanonical(const String& str);
 
  private:
-  static RawBigint* NewFromHexCString(const char* str,
-                                       Heap::Space space = Heap::kNew);
-  static RawBigint* NewFromDecCString(const char* str,
-                                       Heap::Space space = Heap::kNew);
+  void SetNeg(bool value) const;
+  void SetUsed(intptr_t value) const;
+  void set_digits(const TypedData& value) const;
 
-  // Make sure at least 'length' _digits are allocated.
-  // Copy existing _digits if reallocation is necessary.
-  void EnsureLength(intptr_t length, Heap::Space space = Heap::kNew) const;
+  // Convenience helpers.
+  static RawTypedData* NewDigits(intptr_t length,
+                                 Heap::Space space = Heap::kNew);
+  static uint32_t DigitAt(const TypedData& digits, intptr_t index);
+  static void SetDigitAt(const TypedData& digits,
+                         intptr_t index,
+                         uint32_t value);
 
-  // Do not count zero high digits as used.
-  void Clamp() const;
+  static RawTypedData* NewDigitsFromHexCString(const char* str, intptr_t* used,
+                                               Heap::Space space = Heap::kNew);
 
-  bool IsClamped() const;
+  static RawTypedData* NewDigitsFromDecCString(const char* str, intptr_t* used,
+                                               Heap::Space space = Heap::kNew);
 
   static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
 

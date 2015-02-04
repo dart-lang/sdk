@@ -16361,13 +16361,29 @@ void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void Bigint::set_neg(const Bool& value) const {
-  StorePointer(&raw_ptr()->neg_, value.raw());
+bool Bigint::Neg() const {
+  return Bool::Handle(neg()).value();
 }
 
 
-void Bigint::set_used(const Smi& value) const {
-  StoreSmi(&raw_ptr()->used_, value.raw());
+void Bigint::SetNeg(bool value) const {
+  StorePointer(&raw_ptr()->neg_, Bool::Get(value).raw());
+}
+
+
+intptr_t Bigint::Used() const {
+  return Smi::Value(used());
+}
+
+
+void Bigint::SetUsed(intptr_t value) const {
+  StoreSmi(&raw_ptr()->used_, Smi::New(value));
+}
+
+
+uint32_t Bigint::DigitAt(intptr_t index) const {
+  const TypedData& typed_data = TypedData::Handle(digits());
+  return typed_data.GetUint32(index << 2);
 }
 
 
@@ -16378,35 +16394,22 @@ void Bigint::set_digits(const TypedData& value) const {
 }
 
 
-bool Bigint::Neg() const {
-  return Bool::Handle(neg()).value();
+RawTypedData* Bigint::NewDigits(intptr_t length, Heap::Space space) {
+  ASSERT(length > 0);
+  // Account for leading zero for 64-bit processing.
+  return TypedData::New(kTypedDataUint32ArrayCid, length + 1, space);
 }
 
 
-void Bigint::SetNeg(bool value) const {
-  set_neg(Bool::Get(value));
+uint32_t Bigint::DigitAt(const TypedData& digits, intptr_t index) {
+  return digits.GetUint32(index << 2);
 }
 
 
-intptr_t Bigint::Used() const {
-  return Smi::Value(used());
-}
-
-
-void Bigint::SetUsed(intptr_t value) const {
-  set_used(Smi::Handle(Smi::New(value)));
-}
-
-
-uint32_t Bigint::DigitAt(intptr_t index) const {
-  const TypedData& typed_data = TypedData::Handle(digits());
-  return typed_data.GetUint32(index << 2);
-}
-
-
-void Bigint::SetDigitAt(intptr_t index, uint32_t value) const {
-  const TypedData& typed_data = TypedData::Handle(digits());
-  typed_data.SetUint32(index << 2, value);
+void Bigint::SetDigitAt(const TypedData& digits,
+                        intptr_t index,
+                        uint32_t value) {
+  digits.SetUint32(index << 2, value);
 }
 
 
@@ -16468,37 +16471,71 @@ RawBigint* Bigint::New(Heap::Space space) {
     NoGCScope no_gc;
     result ^= raw;
   }
-  result.set_neg(Bool::Get(false));
-  result.set_used(Smi::Handle(isolate, Smi::New(0)));
+  result.SetNeg(false);
+  result.SetUsed(0);
   result.set_digits(
       TypedData::Handle(isolate, TypedData::EmptyUint32Array(isolate)));
   return result.raw();
 }
 
 
-RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
-  const Bigint& result = Bigint::Handle(New(space));
-  result.EnsureLength(2, space);
-  result.SetUsed(2);
-  if (value < 0) {
-    result.SetNeg(true);
-    value = -value;  // No concern about overflow, since sign is captured.
+RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
+                       Heap::Space space) {
+  ASSERT((used == 0) ||
+         (!digits.IsNull() && (digits.Length() >= (used + (used & 1)))));
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->bigint_class() != Class::null());
+  Bigint& result = Bigint::Handle(isolate);
+  {
+    RawObject* raw = Object::Allocate(Bigint::kClassId,
+                                      Bigint::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
   }
-  result.SetDigitAt(0, static_cast<uint32_t>(value));
-  result.SetDigitAt(1, static_cast<uint32_t>(value >> 32));  // value >= 0.
-  result.Clamp();
+  // Clamp the digits array.
+  while ((used > 0) && (digits.GetUint32((used - 1) << 2) == 0)) {
+    --used;
+  }
+  if (used > 0) {
+    if ((used & 1) != 0) {
+      // Set leading zero for 64-bit processing of digit pairs.
+      digits.SetUint32(used << 2, 0);
+    }
+    result.set_digits(digits);
+  } else {
+    neg = false;
+    result.set_digits(
+        TypedData::Handle(isolate, TypedData::EmptyUint32Array(isolate)));
+  }
+  result.SetNeg(neg);
+  result.SetUsed(used);
   return result.raw();
 }
 
 
+RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
+  const TypedData& digits = TypedData::Handle(NewDigits(2, space));
+  bool neg;
+  uint64_t abs_value;
+  if (value < 0) {
+    neg = true;
+    abs_value = -value;
+  } else {
+    neg = false;
+    abs_value = value;
+  }
+  SetDigitAt(digits, 0, static_cast<uint32_t>(abs_value));
+  SetDigitAt(digits, 1, static_cast<uint32_t>(abs_value >> 32));
+  return New(neg, 2, digits, space);
+}
+
+
 RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
-  const Bigint& result = Bigint::Handle(New(space));
-  result.EnsureLength(2, space);
-  result.SetUsed(2);
-  result.SetDigitAt(0, static_cast<uint32_t>(value));
-  result.SetDigitAt(1, static_cast<uint32_t>(value >> 32));
-  result.Clamp();
-  return result.raw();
+  const TypedData& digits = TypedData::Handle(NewDigits(2, space));
+  SetDigitAt(digits, 0, static_cast<uint32_t>(value));
+  SetDigitAt(digits, 1, static_cast<uint32_t>(value >> 32));
+  return New(false, 2, digits, space);
 }
 
 
@@ -16506,95 +16543,52 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
                                        Heap::Space space) {
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
-  const Bigint& result = Bigint::Handle(New(space));
   const intptr_t digit_shift = shift / kBitsPerDigit;
   const intptr_t bit_shift = shift % kBitsPerDigit;
-  result.EnsureLength(3 + digit_shift, space);
-  result.SetUsed(3 + digit_shift);
+  const intptr_t used = 3 + digit_shift;
+  const TypedData& digits = TypedData::Handle(NewDigits(used, space));
+  bool neg;
   uint64_t abs_value;
   if (value < 0) {
-    result.SetNeg(true);
-    abs_value = -value;  // No concern about overflow, since sign is captured.
+    neg = true;
+    abs_value = -value;
   } else {
+    neg = false;
     abs_value = value;
   }
   for (intptr_t i = 0; i < digit_shift; i++) {
-    result.SetDigitAt(i, 0);
+    SetDigitAt(digits, i, 0);
   }
-  result.SetDigitAt(0 + digit_shift,
-                    static_cast<uint32_t>(abs_value << bit_shift));
-  result.SetDigitAt(1 + digit_shift,
-                    static_cast<uint32_t>(abs_value >> (32 - bit_shift)));
-  result.SetDigitAt(2 + digit_shift,
+  SetDigitAt(digits, 0 + digit_shift,
+             static_cast<uint32_t>(abs_value << bit_shift));
+  SetDigitAt(digits, 1 + digit_shift,
+             static_cast<uint32_t>(abs_value >> (32 - bit_shift)));
+  SetDigitAt(digits, 2 + digit_shift,
       (bit_shift == 0) ? 0
                        : static_cast<uint32_t>(abs_value >> (64 - bit_shift)));
-  result.Clamp();
-  return result.raw();
-}
-
-
-void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
-  ASSERT(length >= 0);
-  length++;  // Account for leading zero for 64-bit processing.
-  TypedData& old_digits = TypedData::Handle(digits());
-  if (length > old_digits.Length()) {
-    TypedData& new_digits = TypedData::Handle(
-        TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
-    set_digits(new_digits);
-    if (Used() > 0) {
-      TypedData::Copy(new_digits, TypedData::data_offset(),
-                      old_digits, TypedData::data_offset(),
-                      (Used() + 1)*kBytesPerDigit);  // Copy leading zero.
-    }
-  }
-}
-
-
-void Bigint::Clamp() const {
-  intptr_t used = Used();
-  if (used > 0) {
-    if (DigitAt(used - 1) == 0) {
-      do {
-        --used;
-      } while ((used > 0) && (DigitAt(used - 1) == 0));
-      SetUsed(used);
-    }
-    SetDigitAt(used, 0);  // Set leading zero for 64-bit processing.
-  }
-}
-
-
-bool Bigint::IsClamped() const {
-  intptr_t used = Used();
-  return (used == 0) || (DigitAt(used - 1) > 0);
+  return New(neg, used, digits, space);
 }
 
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
   ASSERT(str != NULL);
-  // If the string starts with '-' recursively restart the whole operation
-  // without the character and then toggle the sign.
+  bool neg = false;
+  TypedData& digits = TypedData::Handle();
   if (str[0] == '-') {
     ASSERT(str[1] != '-');
-    const Bigint& result = Bigint::Handle(NewFromCString(&str[1], space));
-    result.SetNeg(!result.Neg());  // Toggle sign.
-    ASSERT(result.IsZero() || result.IsNegative());
-    ASSERT(result.IsClamped());
-    return result.raw();
+    neg = true;
+    str++;
   }
-
-  // No overflow check needed since overflowing str_length implies that we take
-  // the branch to NewFromDecCString() which contains a check itself.
+  intptr_t used;
   const intptr_t str_length = strlen(str);
   if ((str_length >= 2) &&
       (str[0] == '0') &&
       ((str[1] == 'x') || (str[1] == 'X'))) {
-    const Bigint& result = Bigint::Handle(NewFromHexCString(&str[2], space));
-    ASSERT(result.IsClamped());
-    return result.raw();
+    digits = NewDigitsFromHexCString(&str[2], &used, space);
   } else {
-    return NewFromDecCString(str, space);
+    digits = NewDigitsFromDecCString(str, &used, space);
   }
+  return New(neg, used, digits, space);
 }
 
 
@@ -16627,28 +16621,17 @@ RawBigint* Bigint::NewCanonical(const String& str) {
 }
 
 
-RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
-  // If the string starts with '-' recursively restart the whole operation
-  // without the character and then toggle the sign.
-  if (str[0] == '-') {
-    ASSERT(str[1] != '-');
-    const Bigint& result = Bigint::Handle(NewFromHexCString(&str[1], space));
-    if (!result.IsZero()) {
-      result.SetNeg(!result.Neg());  // Toggle sign.
-    }
-    ASSERT(result.IsClamped());
-    return result.raw();
-  }
-  const Bigint& result = Bigint::Handle(New(space));
+RawTypedData* Bigint::NewDigitsFromHexCString(const char* str, intptr_t* used,
+                                              Heap::Space space) {
   const int kBitsPerHexDigit = 4;
   const int kHexDigitsPerDigit = 8;
   const int kBitsPerDigit = kBitsPerHexDigit * kHexDigitsPerDigit;
   intptr_t hex_i = strlen(str);  // Terminating byte excluded.
   if ((hex_i <= 0) || (hex_i >= kMaxInt32)) {
-    FATAL("Fatal error in Bigint::NewFromHexCString: string too long or empty");
+    FATAL("Fatal error parsing hex bigint: string too long or empty");
   }
-  result.EnsureLength((hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit,
-                      space);
+  const intptr_t length = (hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit;
+  const TypedData& digits = TypedData::Handle(NewDigits(length, space));
   intptr_t used_ = 0;
   uint32_t digit = 0;
   intptr_t bit_i = 0;
@@ -16657,53 +16640,48 @@ RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
     bit_i += kBitsPerHexDigit;
     if (bit_i == kBitsPerDigit) {
       bit_i = 0;
-      result.SetDigitAt(used_++, digit);
+      SetDigitAt(digits, used_++, digit);
       digit = 0;
     }
   }
   if (bit_i != 0) {
-    result.SetDigitAt(used_++, digit);
+    SetDigitAt(digits, used_++, digit);
   }
-  result.SetUsed(used_);
-  result.Clamp();
-  return result.raw();
+  *used = used_;
+  return digits.raw();
 }
 
 
-RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
+RawTypedData* Bigint::NewDigitsFromDecCString(const char* str, intptr_t* used,
+                                              Heap::Space space) {
   // Read 9 digits a time. 10^9 < 2^32.
   const int kDecDigitsPerIteration = 9;
   const uint32_t kTenMultiplier = 1000000000;
   ASSERT(kBitsPerDigit == 32);
-
   const intptr_t str_length = strlen(str);
   if ((str_length <= 0) || (str_length >= kMaxInt32)) {
-    FATAL("Fatal error in Bigint::NewFromDecCString: string too long or empty");
+    FATAL("Fatal error parsing dec bigint: string too long or empty");
   }
-  intptr_t str_pos = 0;
-
-  Bigint& result = Bigint::Handle(Bigint::New(space));
   // One decimal digit takes log2(10) bits, i.e. ~3.32192809489 bits.
   // That is a theoretical limit for large numbers.
-  // The extra digits allocated take care of variations (kExtraDigits).
+  // The extra 5 digits allocated take care of variations.
   const int64_t kLog10Dividend = 33219281;
   const int64_t kLog10Divisor = 10000000;
-
-  result.EnsureLength((kLog10Dividend * str_length) /
-                      (kLog10Divisor * kBitsPerDigit) + 1, space);
-
+  const intptr_t length = (kLog10Dividend * str_length) /
+                          (kLog10Divisor * kBitsPerDigit) + 5;
+  const TypedData& digits = TypedData::Handle(NewDigits(length, space));
   // Read first digit separately. This avoids a multiplication and addition.
   // The first digit might also not have kDecDigitsPerIteration decimal digits.
   const intptr_t lsdigit_length = str_length % kDecDigitsPerIteration;
   uint32_t digit = 0;
+  intptr_t str_pos = 0;
   for (intptr_t i = 0; i < lsdigit_length; i++) {
     char c = str[str_pos++];
     ASSERT(('0' <= c) && (c <= '9'));
     digit = digit * 10 + c - '0';
   }
-  result.SetDigitAt(0, digit);
-  intptr_t used = 1;
-
+  SetDigitAt(digits, 0, digit);
+  intptr_t used_ = 1;
   // Read kDecDigitsPerIteration at a time, and store it in 'digit'.
   // Then multiply the temporary result by 10^kDecDigitsPerIteration and add
   // 'digit' to the new result.
@@ -16715,17 +16693,16 @@ RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
       digit = digit * 10 + c - '0';
     }
     // Multiply result with kTenMultiplier and add digit.
-    for (intptr_t i = 0; i < used; i++) {
+    for (intptr_t i = 0; i < used_; i++) {
       uint64_t product =
-          (static_cast<uint64_t>(result.DigitAt(i)) * kTenMultiplier) + digit;
-      result.SetDigitAt(i, static_cast<uint32_t>(product & kDigitMask));
+          (static_cast<uint64_t>(DigitAt(digits, i)) * kTenMultiplier) + digit;
+      SetDigitAt(digits, i, static_cast<uint32_t>(product & kDigitMask));
       digit = static_cast<uint32_t>(product >> kBitsPerDigit);
     }
-    result.SetDigitAt(used++, digit);
+    SetDigitAt(digits, used_++, digit);
   }
-  result.SetUsed(used);
-  result.Clamp();
-  return result.raw();
+  *used = used_;
+  return digits.raw();
 }
 
 
@@ -16775,7 +16752,6 @@ static double Uint64ToDouble(uint64_t x) {
 
 double Bigint::AsDoubleValue() const {
   ASSERT(kBitsPerDigit == 32);
-  ASSERT(IsClamped());
   const intptr_t used = Used();
   if (used == 0) {
     return 0.0;

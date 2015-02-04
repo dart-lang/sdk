@@ -781,30 +781,6 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(T1, Address(SP, 1 * kWordSize));
-  __ StoreIntoObject(T1, FieldAddress(T1, Bigint::neg_offset()), T0, false);
-  __ Ret();
-}
-
-
-void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(T1, Address(SP, 1 * kWordSize));
-  __ StoreIntoObject(T1, FieldAddress(T1, Bigint::used_offset()), T0);
-  __ Ret();
-}
-
-
-void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(T1, Address(SP, 1 * kWordSize));
-  __ StoreIntoObject(T1, FieldAddress(T1, Bigint::digits_offset()), T0, false);
-  __ Ret();
-}
-
-
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,

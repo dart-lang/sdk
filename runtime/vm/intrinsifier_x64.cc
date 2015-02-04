@@ -723,31 +723,6 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ StoreIntoObject(RCX, FieldAddress(RCX, Bigint::neg_offset()), RAX, false);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ StoreIntoObject(RCX, FieldAddress(RCX, Bigint::used_offset()), RAX);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ StoreIntoObject(RCX,
-                     FieldAddress(RCX, Bigint::digits_offset()), RAX, false);
-  __ ret();
-}
-
-
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -793,10 +768,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&last_carry);
-  __ movq(RAX, Immediate(0));
-  __ adcq(RAX, Immediate(0));
-  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
+  Label done;
+  __ j(NOT_CARRY, &done);
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()),
+          Immediate(1));
 
+  __ Bind(&done);
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
