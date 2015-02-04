@@ -30603,6 +30603,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   final int outerWidth;
 
+  @JSName('pageXOffset')
   /**
    * The distance this window has been scrolled horizontally.
    *
@@ -30617,8 +30618,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
-  final int pageXOffset;
+  final int _pageXOffset;
 
+  @JSName('pageYOffset')
   /**
    * The distance this window has been scrolled vertically.
    *
@@ -30633,7 +30635,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
-  final int pageYOffset;
+  final int _pageYOffset;
 
   @DomName('Window.parent')
   @DocsEditable()
@@ -31749,6 +31751,14 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     _moveTo(p.x, p.y);
   }
 
+  @DomName('Window.pageXOffset')
+  @DocsEditable()
+  int get pageXOffset => JS('num', '#.pageXOffset', this).round();
+
+  @DomName('Window.pageYOffset')
+  @DocsEditable()
+  int get pageYOffset => JS('num', '#.pageYOffset', this).round();
+
   /**
    * The distance this window has been scrolled horizontally.
    *
@@ -31759,8 +31769,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * * [scrollX]
    * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
    */
-  int get scrollX => JS('bool', '("scrollX" in #)', this) ? JS('int',
-      '#.scrollX', this) : document.documentElement.scrollLeft;
+  @DomName('Window.scrollX')
+  @DocsEditable()
+  int get scrollX => JS('bool', '("scrollX" in #)', this) ?
+      JS('num', '#.scrollX', this).round() :
+      document.documentElement.scrollLeft;
 
   /**
    * The distance this window has been scrolled vertically.
@@ -31772,8 +31785,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * * [scrollY]
    * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
    */
-  int get scrollY => JS('bool', '("scrollY" in #)', this) ? JS('int',
-      '#.scrollY', this) : document.documentElement.scrollTop;
+  @DomName('Window.scrollY')
+  @DocsEditable()
+  int get scrollY => JS('bool', '("scrollY" in #)', this) ?
+      JS('num', '#.scrollY', this).round() :
+      document.documentElement.scrollTop;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {

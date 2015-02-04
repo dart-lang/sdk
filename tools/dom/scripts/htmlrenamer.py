@@ -380,6 +380,13 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Window.getComputedStyle',
   'Window.clearInterval',
   'Window.clearTimeout',
+  # TODO(tll): These have been converted from int to double in Chrome 39 for
+  #            subpixel precision.  Special case for backward compatibility.
+  'Window.scrollX',
+  'Window.scrollY',
+  'Window.pageXOffset',
+  'Window.pageYOffset',
+
   'WindowTimers.clearInterval',
   'WindowTimers.clearTimeout',
   'WindowTimers.setInterval',
