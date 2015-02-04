@@ -2144,6 +2144,17 @@ class A {
 }
 main() => new A.a();"""]);
 
+  static const MessageKind ASYNC_MODIFIER_ON_SETTER =
+      const MessageKind(
+          "The modifier '#{modifier}' is not allowed on setters.",
+          options: const ['--enable-async'],
+          howToFix: "Try removing the '#{modifier}' modifier.",
+          examples: const ["""
+class A {
+  set foo(v) async {}
+}
+main() => new A().foo = 0;"""]);
+
   static const MessageKind YIELDING_MODIFIER_ON_ARROW_BODY =
       const MessageKind(
           "The modifier '#{modifier}' is not allowed on methods implemented "

@@ -19,10 +19,6 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 
 [ $compiler == dart2dart ]
-async_test/constructor2: MissingCompileTimeError # Issue 22051
-async_test/constructor3: MissingCompileTimeError # Issue 22051
-async_test/setter1: MissingCompileTimeError # Issue 22051
-
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
 deferred_not_loaded_check_test: Fail # Issue 17523

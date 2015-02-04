@@ -126,4 +126,6 @@ main() {
   };
   checkAsync(() async => 4);
 
+  new A.fail(); /// constructor2: continued
+  new A.create(); /// constructor3: continued
 }

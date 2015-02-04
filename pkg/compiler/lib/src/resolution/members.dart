@@ -516,11 +516,19 @@ class ResolverTask extends CompilerTask {
         compiler.reportError(asyncModifier,
             MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
             {'modifier': element.asyncMarker});
-      } else if (functionExpression.body.asReturn() != null &&
+      } else {
+        if (element.isSetter) {
+          compiler.reportError(asyncModifier,
+              MessageKind.ASYNC_MODIFIER_ON_SETTER,
+              {'modifier': element.asyncMarker});
+
+        }
+        if (functionExpression.body.asReturn() != null &&
                  element.asyncMarker.isYielding) {
-        compiler.reportError(asyncModifier,
-            MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
-            {'modifier': element.asyncMarker});
+          compiler.reportError(asyncModifier,
+              MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+              {'modifier': element.asyncMarker});
+        }
       }
     }
   }
