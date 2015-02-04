@@ -470,6 +470,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildAwaitJump(LocalVariable* old_context,
                       LocalVariable* continuation_result,
                       LocalVariable* continuation_error,
+                      LocalVariable* continuation_stack_trace,
                       const intptr_t old_ctx_level,
                       JoinEntryInstr* target);
 

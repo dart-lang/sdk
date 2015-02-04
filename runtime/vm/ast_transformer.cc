@@ -131,6 +131,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       preamble_->scope(), Symbols::AsyncOperationParam());
   LocalVariable* error_param = GetVariableInScope(
       preamble_->scope(), Symbols::AsyncOperationErrorParam());
+  LocalVariable* stack_trace_param = GetVariableInScope(
+      preamble_->scope(), Symbols::AsyncOperationStackTraceParam());
 
   AstNode* transformed_expr = Transform(node->expr());
   preamble_->Add(new(Z) StoreLocalNode(
@@ -224,12 +226,14 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
 
   LoadLocalNode* load_error_param = new (Z) LoadLocalNode(
       Scanner::kNoSourcePos, error_param);
+  LoadLocalNode* load_stack_trace_param = new (Z) LoadLocalNode(
+      Scanner::kNoSourcePos, stack_trace_param);
   SequenceNode* error_ne_null_branch = new (Z) SequenceNode(
       Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
   error_ne_null_branch->Add(new (Z) ThrowNode(
       Scanner::kNoSourcePos,
       load_error_param,
-      NULL));
+      load_stack_trace_param));
   preamble_->Add(new (Z) IfNode(
       Scanner::kNoSourcePos,
       new (Z) ComparisonNode(

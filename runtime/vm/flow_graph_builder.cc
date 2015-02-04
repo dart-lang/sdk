@@ -1484,6 +1484,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
 void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
                                         LocalVariable* continuation_result,
                                         LocalVariable* continuation_error,
+                                        LocalVariable* continuation_stack_trace,
                                         const intptr_t old_ctx_level,
                                         JoinEntryInstr* target) {
   // Building a jump consists of the following actions:
@@ -1500,6 +1501,8 @@ void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
       Bind(BuildLoadLocal(*continuation_result)));
   LocalVariable* temp_error_var = EnterTempLocalScope(
       Bind(BuildLoadLocal(*continuation_error)));
+  LocalVariable* temp_stack_trace_var = EnterTempLocalScope(
+      Bind(BuildLoadLocal(*continuation_stack_trace)));
   // Restore the saved continuation context.
   BuildRestoreContext(*old_context);
 
@@ -1538,7 +1541,18 @@ void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
       Scanner::kNoSourcePos);
   Do(store2);
 
+  context_val = Bind(new(I) LoadLocalInstr(*temp_context_var));
+  store_val = Bind(new(I) LoadLocalInstr(*temp_stack_trace_var));
+  StoreInstanceFieldInstr* store3 = new(I) StoreInstanceFieldInstr(
+      Context::variable_offset(continuation_stack_trace->index()),
+      context_val,
+      store_val,
+      kEmitStoreBarrier,
+      Scanner::kNoSourcePos);
+  Do(store3);
+
   Do(ExitTempLocalScope(temp_context_var));
+  Do(ExitTempLocalScope(temp_stack_trace_var));
   Do(ExitTempLocalScope(temp_error_var));
   Do(ExitTempLocalScope(temp_result_var));
 
@@ -3901,6 +3915,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         Symbols::AsyncOperationParam(), false);
     LocalVariable* continuation_error = top_scope->LookupVariable(
         Symbols::AsyncOperationErrorParam(), false);
+    LocalVariable* continuation_stack_trace = top_scope->LookupVariable(
+        Symbols::AsyncOperationStackTraceParam(), false);
     for (intptr_t i = 0; i < num_await_states; i++) {
       check_jump_count = new(I) ComparisonNode(
           Scanner::kNoSourcePos,
@@ -3916,6 +3932,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       for_true.BuildAwaitJump(old_context,
                               continuation_result,
                               continuation_error,
+                              continuation_stack_trace,
                               (*owner()->await_levels())[i],
                               (*owner()->await_joins())[i]);
       Join(for_test, for_true, for_false);

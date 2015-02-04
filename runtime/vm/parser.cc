@@ -3083,9 +3083,14 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     error_param.name = &Symbols::AsyncOperationErrorParam();
     error_param.default_value = &Object::null_instance();
     error_param.type = &dynamic_type;
+    ParamDesc stack_trace_param;
+    stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
+    stack_trace_param.default_value = &Object::null_instance();
+    stack_trace_param.type = &dynamic_type;
     params.parameters->Add(result_param);
     params.parameters->Add(error_param);
-    params.num_optional_parameters += 2;
+    params.parameters->Add(stack_trace_param);
+    params.num_optional_parameters += 3;
     params.has_optional_positional_parameters = true;
     SetupDefaultsForOptionalParams(&params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
@@ -6068,8 +6073,13 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
   error_param.default_value = &Object::null_instance();
   error_param.type = &dynamic_type;
   closure_params.parameters->Add(error_param);
+  ParamDesc stack_trace_param;
+  stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
+  stack_trace_param.default_value = &Object::null_instance();
+  stack_trace_param.type = &dynamic_type;
+  closure_params.parameters->Add(stack_trace_param);
   closure_params.has_optional_positional_parameters = true;
-  closure_params.num_optional_parameters += 2;
+  closure_params.num_optional_parameters += 3;
 
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
