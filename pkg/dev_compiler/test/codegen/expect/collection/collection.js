@@ -7,7 +7,7 @@ var collection;
       super();
     }
     get length() { return this._source.length; }
-    [](index) { return this._source.elementAt(index); }
+    get(index) { return this._source.elementAt(index); }
   }
 
   // Function _defaultEquals: (dynamic, dynamic) → bool
@@ -17,17 +17,12 @@ var collection;
   function _defaultHashCode(a) { return /* Unimplemented: DownCast: dynamic to int */ dart.dload(a, "hashCode"); }
 
   class HashMap/* Unimplemented <K, V> */ {
-    constructor(opt$) {
-      let equals = opt$.equals === undefined ? null : opt$.equals;
-      let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
-      let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
-    }
-    __init_identity() {
-    }
+    /* Unimplemented external factory HashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
+    /* Unimplemented external factory HashMap.identity(); */
     __init_from(other) {
       let result = new HashMap();
       other.forEach((k, v) => {
-        result[k] = /* Unimplemented: DownCast: dynamic to V */ v;
+        result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
       });
       return result;
     }
@@ -72,13 +67,8 @@ var collection;
   }
 
   class HashSet/* Unimplemented <E> */ {
-    constructor(opt$) {
-      let equals = opt$.equals === undefined ? null : opt$.equals;
-      let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
-      let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
-    }
-    __init_identity() {
-    }
+    /* Unimplemented external factory HashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
+    /* Unimplemented external factory HashSet.identity(); */
     __init_from(elements) {
       let result = new HashSet();
       for (let e of elements) result.add(e);
@@ -129,7 +119,7 @@ var collection;
       if (separator === undefined) separator = "";
       let iterator = this.iterator;
       if (!iterator.moveNext()) return "";
-      let buffer = new dart_core.StringBuffer();
+      let buffer = new core.StringBuffer();
       if (separator === null || dart.equals(separator, "")) {
         do {
           buffer.write("" + (iterator.current) + "");
@@ -152,9 +142,9 @@ var collection;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
-      return new dart_core.List.from(this, {growable: growable})
+      return new core.List.from(this, {growable: growable})
     }
-    toSet() { return new dart_core.Set.from(this); }
+    toSet() { return new core.Set.from(this); }
     get length() {
       dart.assert(/* Unimplemented IsExpression: this is! EfficientLength */);
       let count = 0;
@@ -242,14 +232,14 @@ var collection;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
-      if (/* Unimplemented IsExpression: index is! int */) throw new dart_core.ArgumentError.notNull("index");
-      dart_core.RangeError.checkNotNegative(index, "index");
+      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError.notNull("index");
+      core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
       for (let element of this) {
         if (index === elementIndex) return element;
         elementIndex++;
       }
-      throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
+      throw new core.RangeError.index(index, this, "index", null, elementIndex);
     }
     toString() { return IterableBase.iterableToShortString(this, "(", ")"); }
   }
@@ -295,7 +285,7 @@ var collection;
       if (separator === undefined) separator = "";
       let iterator = this.iterator;
       if (!iterator.moveNext()) return "";
-      let buffer = new dart_core.StringBuffer();
+      let buffer = new core.StringBuffer();
       if (separator === null || dart.equals(separator, "")) {
         do {
           buffer.write("" + (iterator.current) + "");
@@ -318,9 +308,9 @@ var collection;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
-      return new dart_core.List.from(this, {growable: growable})
+      return new core.List.from(this, {growable: growable})
     }
-    toSet() { return new dart_core.Set.from(this); }
+    toSet() { return new core.Set.from(this); }
     get length() {
       dart.assert(/* Unimplemented IsExpression: this is! EfficientLength */);
       let count = 0;
@@ -408,14 +398,14 @@ var collection;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
-      if (/* Unimplemented IsExpression: index is! int */) throw new dart_core.ArgumentError.notNull("index");
-      dart_core.RangeError.checkNotNegative(index, "index");
+      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError.notNull("index");
+      core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
       for (let element of this) {
         if (index === elementIndex) return element;
         elementIndex++;
       }
-      throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
+      throw new core.RangeError.index(index, this, "index", null, elementIndex);
     }
     toString() { return iterableToShortString(this, "(", ")"); }
     static iterableToShortString(iterable, leftDelimiter, rightDelimiter) {
@@ -427,7 +417,7 @@ var collection;
         }
         return "" + (leftDelimiter) + "..." + (rightDelimiter) + "";
       }
-      let parts = /* Unimplemented ArrayList */[];
+      let parts = new List.from([]);
       _toStringVisiting.add(iterable);
       /* Unimplemented TryStatement: try {_iterablePartsToStrings(iterable, parts);} finally {assert (identical(_toStringVisiting.last, iterable)); _toStringVisiting.removeLast();} */return (/* Unimplemented cascade on non-simple identifier: new StringBuffer(leftDelimiter)..writeAll(parts, ", ")..write(rightDelimiter) */).toString();
     }
@@ -437,14 +427,14 @@ var collection;
       if (_isToStringVisiting(iterable)) {
         return "" + (leftDelimiter) + "..." + (rightDelimiter) + "";
       }
-      let buffer = new dart_core.StringBuffer(leftDelimiter);
+      let buffer = new core.StringBuffer(leftDelimiter);
       _toStringVisiting.add(iterable);
       /* Unimplemented TryStatement: try {buffer.writeAll(iterable, ", ");} finally {assert (identical(_toStringVisiting.last, iterable)); _toStringVisiting.removeLast();} */buffer.write(rightDelimiter);
       return buffer.toString();
     }
     static _isToStringVisiting(o) {
       for (let i = 0; i < _toStringVisiting.length; i++) {
-        if (dart_core.identical(o, _toStringVisiting[i])) return true;
+        if (core.identical(o, _toStringVisiting.get(i))) return true;
       }
       return false;
     }
@@ -494,7 +484,7 @@ var collection;
             count++;
             if (count > MAX_COUNT) {
               while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
-                length = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented binary operator: parts.removeLast().length + OVERHEAD */;
+                length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+"OVERHEAD);
                 count--;
               }
               parts.add("...");
@@ -512,7 +502,7 @@ var collection;
         length = ELLIPSIS_SIZE + OVERHEAD;
       }
       while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-        length = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented binary operator: parts.removeLast().length + OVERHEAD */;
+        length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+"OVERHEAD);
         if (elision === null) {
           elision = "...";
           length = ELLIPSIS_SIZE + OVERHEAD;
@@ -526,7 +516,7 @@ var collection;
     }
   }
   dart.defineLazyProperties(IterableBase, {
-    get _toStringVisiting() { return /* Unimplemented ArrayList */[] },
+    get _toStringVisiting() { return new List.from([]) },
   });
 
   class HasNextIterator/* Unimplemented <E> */ {
@@ -539,7 +529,7 @@ var collection;
       return this._state === _HAS_NEXT_AND_NEXT_IN_CURRENT;
     }
     next() {
-      if (!this.hasNext) throw new dart_core.StateError("No more elements");
+      if (!this.hasNext) throw new core.StateError("No more elements");
       dart.assert(this._state === _HAS_NEXT_AND_NEXT_IN_CURRENT);
       let result = /* Unimplemented: DownCast: dynamic to E */ this._iterator.current;
       this._move();
@@ -558,17 +548,12 @@ var collection;
   HasNextIterator._NOT_MOVED_YET = 2;
 
   class LinkedHashMap/* Unimplemented <K, V> */ {
-    constructor(opt$) {
-      let equals = opt$.equals === undefined ? null : opt$.equals;
-      let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
-      let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
-    }
-    __init_identity() {
-    }
+    /* Unimplemented external factory LinkedHashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
+    /* Unimplemented external factory LinkedHashMap.identity(); */
     __init_from(other) {
       let result = new LinkedHashMap();
       other.forEach((k, v) => {
-        result[k] = /* Unimplemented: DownCast: dynamic to V */ v;
+        result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
       });
       return result;
     }
@@ -595,13 +580,8 @@ var collection;
   LinkedHashMap.fromIterables.prototype = LinkedHashMap.prototype;
 
   class LinkedHashSet/* Unimplemented <E> */ {
-    constructor(opt$) {
-      let equals = opt$.equals === undefined ? null : opt$.equals;
-      let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
-      let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
-    }
-    __init_identity() {
-    }
+    /* Unimplemented external factory LinkedHashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
+    /* Unimplemented external factory LinkedHashSet.identity(); */
     __init_from(elements) {
       let result = new LinkedHashSet();
       for (let element of elements) {
@@ -643,7 +623,7 @@ var collection;
     clear() {
       this._modificationCount++;
       let next = this._next;
-      while (!dart_core.identical(next, this)) {
+      while (!core.identical(next, this)) {
         let entry = /* Unimplemented: DownCast: _LinkedListLink to E */ next;
         next = entry._next;
         entry._next = entry._previous = entry._list = null;
@@ -652,33 +632,33 @@ var collection;
       this._length = 0;
     }
     get first() {
-      if (dart_core.identical(this._next, this)) {
-        throw new dart_core.StateError("No such element");
+      if (core.identical(this._next, this)) {
+        throw new core.StateError("No such element");
       }
       return /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
     }
     get last() {
-      if (dart_core.identical(this._previous, this)) {
-        throw new dart_core.StateError("No such element");
+      if (core.identical(this._previous, this)) {
+        throw new core.StateError("No such element");
       }
       return /* Unimplemented: DownCast: _LinkedListLink to E */ this._previous;
     }
     get single() {
-      if (dart_core.identical(this._previous, this)) {
-        throw new dart_core.StateError("No such element");
+      if (core.identical(this._previous, this)) {
+        throw new core.StateError("No such element");
       }
-      if (!dart_core.identical(this._previous, this._next)) {
-        throw new dart_core.StateError("Too many elements");
+      if (!core.identical(this._previous, this._next)) {
+        throw new core.StateError("Too many elements");
       }
       return /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
     }
     forEach(action) {
       let modificationCount = this._modificationCount;
       let current = this._next;
-      while (!dart_core.identical(current, this)) {
+      while (!core.identical(current, this)) {
         action(/* Unimplemented: DownCast: _LinkedListLink to E */ current);
         if (modificationCount !== this._modificationCount) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
         current = current._next;
       }
@@ -686,7 +666,7 @@ var collection;
     get isEmpty() { return this._length === 0; }
     _insertAfter(entry, newEntry) {
       if (newEntry.list !== null) {
-        throw new dart_core.StateError("LinkedListEntry is already in a LinkedList");
+        throw new core.StateError("LinkedListEntry is already in a LinkedList");
       }
       this._modificationCount++;
       newEntry._list = this;
@@ -716,12 +696,12 @@ var collection;
     }
     get current() { return this._current; }
     moveNext() {
-      if (dart_core.identical(this._next, this._list)) {
+      if (core.identical(this._next, this._list)) {
         this._current = null;
         return false;
       }
       if (this._modificationCount !== this._list._modificationCount) {
-        throw new dart_core.ConcurrentModificationError(this);
+        throw new core.ConcurrentModificationError(this);
       }
       this._current = /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
       this._next = this._next._next;
@@ -749,12 +729,12 @@ var collection;
       this._list._unlink(this);
     }
     get next() {
-      if (dart_core.identical(this._next, this._list)) return null;
+      if (core.identical(this._next, this._list)) return null;
       let result = /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
       return result;
     }
     get previous() {
-      if (dart_core.identical(this._previous, this._list)) return null;
+      if (core.identical(this._previous, this._list)) return null;
       return /* Unimplemented: as E. */this._previous;
     }
     insertAfter(entry) {
@@ -765,19 +745,19 @@ var collection;
     }
   }
 
-  class ListBase/* Unimplemented <E> */ extends dart.mixin(dart_core.Object, ListMixin/* Unimplemented <E> */) {
+  class ListBase/* Unimplemented <E> */ extends dart.mixin(core.Object, ListMixin/* Unimplemented <E> */) {
     static listToString(list) { return IterableBase.iterableToFullString(list, "[", "]"); }
   }
 
   class ListMixin/* Unimplemented <E> */ {
     get iterator() { return new _internal.ListIterator(this); }
-    elementAt(index) { return this[index]; }
+    elementAt(index) { return this.get(index); }
     forEach(action) {
       let length = this.length;
       for (let i = 0; i < length; i++) {
-        action(this[i]);
+        action(this.get(i));
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
     }
@@ -785,23 +765,23 @@ var collection;
     get isNotEmpty() { return !this.isEmpty; }
     get first() {
       if (length === 0) throw _internal.IterableElementError.noElement();
-      return this[0];
+      return this.get(0);
     }
     get last() {
       if (length === 0) throw _internal.IterableElementError.noElement();
-      return this[length - 1];
+      return this.get(length - 1);
     }
     get single() {
       if (length === 0) throw _internal.IterableElementError.noElement();
       if (length > 1) throw _internal.IterableElementError.tooMany();
-      return this[0];
+      return this.get(0);
     }
     contains(element) {
       let length = this.length;
       for (let i = 0; i < this.length; i++) {
-        if (dart.equals(this[i], element)) return true;
+        if (dart.equals(this.get(i), element)) return true;
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       return false;
@@ -809,9 +789,9 @@ var collection;
     every(test) {
       let length = this.length;
       for (let i = 0; i < length; i++) {
-        if (!test(this[i])) return false;
+        if (!test(this.get(i))) return false;
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       return true;
@@ -819,9 +799,9 @@ var collection;
     any(test) {
       let length = this.length;
       for (let i = 0; i < length; i++) {
-        if (test(this[i])) return true;
+        if (test(this.get(i))) return true;
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       return false;
@@ -830,10 +810,10 @@ var collection;
       let orElse = opt$.orElse === undefined ? null : opt$.orElse;
       let length = this.length;
       for (let i = 0; i < length; i++) {
-        let element = this[i];
+        let element = this.get(i);
         if (test(element)) return element;
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       if (orElse !== null) return orElse();
@@ -843,10 +823,10 @@ var collection;
       let orElse = opt$.orElse === undefined ? null : opt$.orElse;
       let length = this.length;
       for (let i = length - 1; i >= 0; i--) {
-        let element = this[i];
+        let element = this.get(i);
         if (test(element)) return element;
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       if (orElse !== null) return orElse();
@@ -857,7 +837,7 @@ var collection;
       let match = null;
       let matchFound = false;
       for (let i = 0; i < length; i++) {
-        let element = this[i];
+        let element = this.get(i);
         if (test(element)) {
           if (matchFound) {
             throw _internal.IterableElementError.tooMany();
@@ -866,7 +846,7 @@ var collection;
           match = element;
         }
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       if (matchFound) return match;
@@ -884,11 +864,11 @@ var collection;
     reduce(combine) {
       let length = this.length;
       if (length === 0) throw _internal.IterableElementError.noElement();
-      let value = this[0];
+      let value = this.get(0);
       for (let i = 1; i < length; i++) {
-        value = combine(value, this[i]);
+        value = combine(value, this.get(i));
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       return value;
@@ -897,9 +877,9 @@ var collection;
       let value = initialValue;
       let length = this.length;
       for (let i = 0; i < length; i++) {
-        value = combine(value, this[i]);
+        value = combine(value, this.get(i));
         if (length !== this.length) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
       }
       return value;
@@ -918,32 +898,32 @@ var collection;
       if (growable) {
         result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
       } else {
-        result = new dart_core.List(length);
+        result = new core.List(length);
       }
       for (let i = 0; i < length; i++) {
-        result[i] = this[i];
+        result.set(i, this.get(i));
       }
       return result;
     }
     toSet() {
-      let result = new dart_core.Set();
+      let result = new core.Set();
       for (let i = 0; i < length; i++) {
-        result.add(this[i]);
+        result.add(this.get(i));
       }
       return result;
     }
     add(element) {
-      this[this.length++] = element;
+      this.set(this.length++, element);
     }
     addAll(iterable) {
       for (let element of iterable) {
-        this[this.length++] = element;
+        this.set(this.length++, element);
       }
     }
     remove(element) {
       for (let i = 0; i < this.length; i++) {
-        if (dart.equals(this[i], element)) {
-          this.this.setRange(i, this.length - 1, this, i + 1);
+        if (dart.equals(this.get(i), element)) {
+          this.setRange(i, this.length - 1, this, i + 1);
           this.length = 1;
           return true;
         }
@@ -957,15 +937,15 @@ var collection;
       _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */ test, true);
     }
     static _filter(source, test, retainMatching) {
-      let retained = /* Unimplemented ArrayList */[];
+      let retained = new List.from([]);
       let length = source.length;
       for (let i = 0; i < length; i++) {
-        let element = source[i];
+        let element = source.get(i);
         if (test(element) === retainMatching) {
           retained.add(element);
         }
         if (length !== source.length) {
-          throw new dart_core.ConcurrentModificationError(source);
+          throw new core.ConcurrentModificationError(source);
         }
       }
       if (retained.length !== source.length) {
@@ -980,28 +960,28 @@ var collection;
       if (length === 0) {
         throw _internal.IterableElementError.noElement();
       }
-      let result = this[length - 1];
+      let result = this.get(length - 1);
       length--;
       return result;
     }
     sort(compare) {
       if (compare === undefined) compare = null;
       if (compare === null) {
-        let defaultCompare = dart_core.Comparable.compare;
+        let defaultCompare = core.Comparable.compare;
         compare = defaultCompare;
       }
       _internal.Sort.sort(this, /* Unimplemented: ClosureWrap: (E, E) → int to (dynamic, dynamic) → int */ compare);
     }
     shuffle(random) {
       if (random === undefined) random = null;
-      if (random === null) random = new dart_math.Random();
+      if (random === null) random = new math.Random();
       let length = this.length;
       while (length > 1) {
         let pos = random.nextInt(length);
         length = 1;
-        let tmp = this[length];
-        this[length] = this[pos];
-        this[pos] = tmp;
+        let tmp = this.get(length);
+        this.set(length, this.get(pos));
+        this.set(pos, tmp);
       }
     }
     asMap() {
@@ -1011,37 +991,37 @@ var collection;
       if (end === undefined) end = null;
       let listLength = this.length;
       if (end === null) end = listLength;
-      dart_core.RangeError.checkValidRange(start, end, listLength);
+      core.RangeError.checkValidRange(start, end, listLength);
       let length = end - start;
       let result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
       for (let i = 0; i < length; i++) {
-        result[i] = this[start + i];
+        result.set(i, this.get(start + i));
       }
       return result;
     }
     getRange(start, end) {
-      dart_core.RangeError.checkValidRange(start, end, this.length);
+      core.RangeError.checkValidRange(start, end, this.length);
       return new _internal.SubListIterable(this, start, end);
     }
     removeRange(start, end) {
-      dart_core.RangeError.checkValidRange(start, end, this.length);
+      core.RangeError.checkValidRange(start, end, this.length);
       let length = end - start;
       this.setRange(start, this.length - length, this, end);
       this.length = length;
     }
     fillRange(start, end, fill) {
       if (fill === undefined) fill = null;
-      dart_core.RangeError.checkValidRange(start, end, this.length);
+      core.RangeError.checkValidRange(start, end, this.length);
       for (let i = start; i < end; i++) {
-        this[i] = fill;
+        this.set(i, fill);
       }
     }
     setRange(start, end, iterable, skipCount) {
       if (skipCount === undefined) skipCount = 0;
-      dart_core.RangeError.checkValidRange(start, end, this.length);
+      core.RangeError.checkValidRange(start, end, this.length);
       let length = end - start;
       if (length === 0) return;
-      dart_core.RangeError.checkNotNegative(skipCount, "skipCount");
+      core.RangeError.checkNotNegative(skipCount, "skipCount");
       let otherList = null;
       let otherStart = null;
       if (/* Unimplemented IsExpression: iterable is List */) {
@@ -1056,16 +1036,16 @@ var collection;
       }
       if (otherStart < start) {
         for (let i = length - 1; i >= 0; i--) {
-          this[start + i] = /* Unimplemented: DownCast: dynamic to E */ otherList[otherStart + i];
+          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */ otherList.get(otherStart + i));
         }
       } else {
         for (let i = 0; i < length; i++) {
-          this[start + i] = /* Unimplemented: DownCast: dynamic to E */ otherList[otherStart + i];
+          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */ otherList.get(otherStart + i));
         }
       }
     }
     replaceRange(start, end, newContents) {
-      dart_core.RangeError.checkValidRange(start, end, this.length);
+      core.RangeError.checkValidRange(start, end, this.length);
       if (/* Unimplemented IsExpression: newContents is! EfficientLength */) {
         newContents = newContents.toList();
       }
@@ -1075,9 +1055,9 @@ var collection;
         let delta = removeLength - insertLength;
         let insertEnd = start + insertLength;
         let newLength = this.length - delta;
-        this.this.setRange(start, insertEnd, newContents);
+        this.setRange(start, insertEnd, newContents);
         if (delta !== 0) {
-          this.this.setRange(insertEnd, newLength, this, end);
+          this.setRange(insertEnd, newLength, this, end);
           this.length = newLength;
         }
       } else {
@@ -1085,8 +1065,8 @@ var collection;
         let newLength = this.length + delta;
         let insertEnd = start + insertLength;
         this.length = newLength;
-        this.this.setRange(insertEnd, newLength, this, end);
-        this.this.setRange(start, insertEnd, newContents);
+        this.setRange(insertEnd, newLength, this, end);
+        this.setRange(start, insertEnd, newContents);
       }
     }
     indexOf(element, startIndex) {
@@ -1098,7 +1078,7 @@ var collection;
         startIndex = 0;
       }
       for (let i = startIndex; i < this.length; i++) {
-        if (dart.equals(this[i], element)) {
+        if (dart.equals(this.get(i), element)) {
           return i;
         }
       }
@@ -1117,31 +1097,31 @@ var collection;
         }
       }
       for (let i = startIndex; i >= 0; i--) {
-        if (dart.equals(this[i], element)) {
+        if (dart.equals(this.get(i), element)) {
           return i;
         }
       }
       return -1;
     }
     insert(index, element) {
-      dart_core.RangeError.checkValueInInterval(index, 0, length, "index");
+      core.RangeError.checkValueInInterval(index, 0, length, "index");
       if (index === this.length) {
         this.add(element);
         return;
       }
-      if (/* Unimplemented IsExpression: index is! int */) throw new dart_core.ArgumentError(index);
+      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError(index);
       this.length++;
       this.setRange(index + 1, this.length, this, index);
-      this[index] = element;
+      this.set(index, element);
     }
     removeAt(index) {
-      let result = this[index];
+      let result = this.get(index);
       this.setRange(index, this.length - 1, this, index + 1);
       length--;
       return result;
     }
     insertAll(index, iterable) {
-      dart_core.RangeError.checkValueInInterval(index, 0, length, "index");
+      core.RangeError.checkValueInInterval(index, 0, length, "index");
       if (/* Unimplemented IsExpression: iterable is EfficientLength */) {
         iterable = iterable.toList();
       }
@@ -1155,7 +1135,7 @@ var collection;
         this.setRange(index, index + iterable.length, iterable);
       } else {
         for (let element of iterable) {
-          this[index++] = element;
+          this.set(index++, element);
         }
       }
     }
@@ -1168,25 +1148,25 @@ var collection;
   class MapMixin/* Unimplemented <K, V> */ {
     forEach(action) {
       for (let key of this.keys) {
-        action(key, this[key]);
+        action(key, this.get(key));
       }
     }
     addAll(other) {
       for (let key of other.keys) {
-        this[key] = other[key];
+        this.set(key, other.get(key));
       }
     }
     containsValue(value) {
       for (let key of this.keys) {
-        if (dart.equals(this[key], value)) return true;
+        if (dart.equals(this.get(key), value)) return true;
       }
       return false;
     }
     putIfAbsent(key, ifAbsent) {
       if (this.keys.contains(key)) {
-        return this[key];
+        return this.get(key);
       }
-      return this[key] = ifAbsent();
+      return this.set(key, ifAbsent());
     }
     containsKey(key) { return this.keys.contains(key); }
     get length() { return this.keys.length; }
@@ -1206,9 +1186,9 @@ var collection;
     get length() { return this._map.length; }
     get isEmpty() { return this._map.isEmpty; }
     get isNotEmpty() { return this._map.isNotEmpty; }
-    get first() { return /* Unimplemented: DownCast: dynamic to V */ this._map[this._map.keys.first]; }
-    get single() { return /* Unimplemented: DownCast: dynamic to V */ this._map[this._map.keys.single]; }
-    get last() { return /* Unimplemented: DownCast: dynamic to V */ this._map[this._map.keys.last]; }
+    get first() { return /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._map.keys.first); }
+    get single() { return /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._map.keys.single); }
+    get last() { return /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._map.keys.last); }
     get iterator() { return new _MapBaseValueIterator(this._map); }
   }
 
@@ -1220,7 +1200,7 @@ var collection;
     }
     moveNext() {
       if (this._keys.moveNext()) {
-        this._current = /* Unimplemented: DownCast: dynamic to V */ this._map[this._keys.current];
+        this._current = /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._keys.current);
         return true;
       }
       this._current = null;
@@ -1230,20 +1210,20 @@ var collection;
   }
 
   class _UnmodifiableMapMixin/* Unimplemented <K, V> */ {
-    []=(key, value) {
-      throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
+    set(key, value) {
+      throw new core.UnsupportedError("Cannot modify unmodifiable map");
     }
     addAll(other) {
-      throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
+      throw new core.UnsupportedError("Cannot modify unmodifiable map");
     }
     clear() {
-      throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
+      throw new core.UnsupportedError("Cannot modify unmodifiable map");
     }
     remove(key) {
-      throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
+      throw new core.UnsupportedError("Cannot modify unmodifiable map");
     }
     putIfAbsent(key, ifAbsent) {
-      throw new dart_core.UnsupportedError("Cannot modify unmodifiable map");
+      throw new core.UnsupportedError("Cannot modify unmodifiable map");
     }
   }
 
@@ -1251,9 +1231,9 @@ var collection;
     constructor(map) {
       this._map = map;
     }
-    [](key) { return this._map[key]; }
-    []=(key, value) {
-      this._map[key] = value;
+    get(key) { return this._map.get(key); }
+    set(key, value) {
+      this._map.set(key, value);
     }
     addAll(other) {
       this._map.addAll(other);
@@ -1297,10 +1277,10 @@ var collection;
     }
     static putIfAbsent(map, key, ifAbsent) {
       if (map.containsKey(key)) {
-        return map[key];
+        return map.get(key);
       }
       let v = ifAbsent();
-      map[key] = v;
+      map.set(key, v);
       return v;
     }
     static clear(map) {
@@ -1310,11 +1290,11 @@ var collection;
     }
     static forEach(map, f) {
       for (let k of map.keys) {
-        f(k, map[k]);
+        f(k, map.get(k));
       }
     }
     static getValues(map) {
-      return map.keys.map((key) => map[key]);
+      return map.keys.map((key) => map.get(key));
     }
     static length(map) { return map.keys.length; }
     static isEmpty(map) { return map.keys.isEmpty; }
@@ -1323,7 +1303,7 @@ var collection;
       if (IterableBase._isToStringVisiting(m)) {
         return "{...}";
       }
-      let result = new dart_core.StringBuffer();
+      let result = new core.StringBuffer();
       /* Unimplemented TryStatement: try {IterableBase._toStringVisiting.add(m); result.write('{'); bool first = true; m.forEach((k, v) {if (!first) {result.write(', ');} first = false; result.write(k); result.write(': '); result.write(v);}); result.write('}');} finally {assert (identical(IterableBase._toStringVisiting.last, m)); IterableBase._toStringVisiting.removeLast();} */return result.toString();
     }
     static _id(x) { return x; }
@@ -1331,7 +1311,7 @@ var collection;
       if (key === null) key = _id;
       if (value === null) value = _id;
       for (let element of iterable) {
-        map[key(element)] = value(element);
+        map.set(key(element), value(element));
       }
     }
     static _fillMapWithIterables(map, keys, values) {
@@ -1340,12 +1320,12 @@ var collection;
       let hasNextKey = keyIterator.moveNext();
       let hasNextValue = valueIterator.moveNext();
       while (hasNextKey && hasNextValue) {
-        map[keyIterator.current] = valueIterator.current;
+        map.set(keyIterator.current, valueIterator.current);
         hasNextKey = keyIterator.moveNext();
         hasNextValue = valueIterator.moveNext();
       }
       if (hasNextKey || hasNextValue) {
-        throw new dart_core.ArgumentError("Iterables do not have same length.");
+        throw new core.ArgumentError("Iterables do not have same length.");
       }
     }
   }
@@ -1374,10 +1354,10 @@ var collection;
       next._previous = this;
     }
     append(e) {
-      new DoubleLinkedQueueEntry(e).this._link(this, this._next);
+      new DoubleLinkedQueueEntry(e)._link(this, this._next);
     }
     prepend(e) {
-      new DoubleLinkedQueueEntry(e).this._link(this._previous, this);
+      new DoubleLinkedQueueEntry(e)._link(this._previous, this);
     }
     remove() {
       this._previous._next = this._next;
@@ -1390,10 +1370,10 @@ var collection;
       return this;
     }
     previousEntry() {
-      return this._previous.this._asNonSentinelEntry();
+      return this._previous._asNonSentinelEntry();
     }
     nextEntry() {
-      return this._next.this._asNonSentinelEntry();
+      return this._next._asNonSentinelEntry();
     }
     get element() {
       return this._element;
@@ -1467,7 +1447,7 @@ var collection;
     }
     remove(o) {
       let entry = this._sentinel._next;
-      while (!dart_core.identical(entry, this._sentinel)) {
+      while (!core.identical(entry, this._sentinel)) {
         if (dart.equals(entry.element, o)) {
           entry.remove();
           this._elementCount--;
@@ -1479,9 +1459,9 @@ var collection;
     }
     _filter(test, removeMatching) {
       let entry = this._sentinel._next;
-      while (!dart_core.identical(entry, this._sentinel)) {
+      while (!core.identical(entry, this._sentinel)) {
         let next = entry._next;
-        if (dart_core.identical(removeMatching, test(entry.element))) {
+        if (core.identical(removeMatching, test(entry.element))) {
           entry.remove();
           this._elementCount--;
         }
@@ -1501,7 +1481,7 @@ var collection;
       return this._sentinel._previous.element;
     }
     get single() {
-      if (dart_core.identical(this._sentinel._next, this._sentinel._previous)) {
+      if (core.identical(this._sentinel._next, this._sentinel._previous)) {
         return this._sentinel._next.element;
       }
       throw _internal.IterableElementError.tooMany();
@@ -1513,7 +1493,7 @@ var collection;
       return this._sentinel.nextEntry();
     }
     get isEmpty() {
-      return (dart_core.identical(this._sentinel._next, this._sentinel));
+      return (core.identical(this._sentinel._next, this._sentinel));
     }
     clear() {
       this._sentinel._next = this._sentinel;
@@ -1522,7 +1502,7 @@ var collection;
     }
     forEachEntry(f) {
       let entry = this._sentinel._next;
-      while (!dart_core.identical(entry, this._sentinel)) {
+      while (!core.identical(entry, this._sentinel)) {
         let nextEntry = entry._next;
         f(entry);
         entry = nextEntry;
@@ -1543,7 +1523,7 @@ var collection;
       this._current = null;
     }
     moveNext() {
-      if (!dart_core.identical(this._nextEntry, this._sentinel)) {
+      if (!core.identical(this._nextEntry, this._sentinel)) {
         this._current = this._nextEntry._element;
         this._nextEntry = this._nextEntry._next;
         return true;
@@ -1569,7 +1549,7 @@ var collection;
         initialCapacity = _nextPowerOf2(initialCapacity);
       }
       dart.assert(_isPowerOf2(initialCapacity));
-      this._table = new dart_core.List(initialCapacity);
+      this._table = new core.List(initialCapacity);
     }
     __init_from(elements) {
       if (/* Unimplemented IsExpression: elements is List */) {
@@ -1587,7 +1567,7 @@ var collection;
         }
         let result = new ListQueue(capacity);
         for (let element of elements) {
-          result.this.addLast(element);
+          result.addLast(element);
         }
         return result;
       }
@@ -1596,7 +1576,7 @@ var collection;
     forEach(action) {
       let modificationCount = this._modificationCount;
       for (let i = this._head; i !== this._tail; i = (i + 1) & (this._table.length - 1)) {
-        action(this._table[i]);
+        action(this._table.get(i));
         this._checkModification(modificationCount);
       }
     }
@@ -1604,20 +1584,20 @@ var collection;
     get length() { return (this._tail - this._head) & (this._table.length - 1); }
     get first() {
       if (this._head === this._tail) throw _internal.IterableElementError.noElement();
-      return this._table[this._head];
+      return this._table.get(this._head);
     }
     get last() {
       if (this._head === this._tail) throw _internal.IterableElementError.noElement();
-      return this._table[(this._tail - 1) & (this._table.length - 1)];
+      return this._table.get((this._tail - 1) & (this._table.length - 1));
     }
     get single() {
       if (this._head === this._tail) throw _internal.IterableElementError.noElement();
       if (this.length > 1) throw _internal.IterableElementError.tooMany();
-      return this._table[this._head];
+      return this._table.get(this._head);
     }
     elementAt(index) {
-      dart_core.RangeError.checkValidIndex(index, this);
-      return this._table[(this._head + index) & (this._table.length - 1)];
+      core.RangeError.checkValidIndex(index, this);
+      return this._table.get((this._head + index) & (this._table.length - 1));
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
@@ -1625,7 +1605,7 @@ var collection;
       if (growable) {
         list = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
       } else {
-        list = new dart_core.List(this.length);
+        list = new core.List(this.length);
       }
       this._writeToList(list);
       return list;
@@ -1661,7 +1641,7 @@ var collection;
     }
     remove(object) {
       for (let i = this._head; i !== this._tail; i = (i + 1) & (this._table.length - 1)) {
-        let element = this._table[i];
+        let element = this._table.get(i);
         if (dart.equals(element, object)) {
           this._remove(i);
           this._modificationCount++;
@@ -1675,8 +1655,8 @@ var collection;
       let modificationCount = this._modificationCount;
       let i = this._head;
       while (i !== this._tail) {
-        let element = this._table[i];
-        let remove = dart_core.identical(removeMatching, test(element));
+        let element = this._table.get(i);
+        let remove = core.identical(removeMatching, test(element));
         this._checkModification(modificationCount);
         if (remove) {
           i = this._remove(i);
@@ -1695,7 +1675,7 @@ var collection;
     clear() {
       if (this._head !== this._tail) {
         for (let i = this._head; i !== this._tail; i = (i + 1) & (this._table.length - 1)) {
-          this._table[i] = null;
+          this._table.set(i, null);
         }
         this._head = this._tail = 0;
         this._modificationCount++;
@@ -1707,15 +1687,15 @@ var collection;
     }
     addFirst(element) {
       this._head = (this._head - 1) & (this._table.length - 1);
-      this._table[this._head] = element;
+      this._table.set(this._head, element);
       if (this._head === this._tail) this._grow();
       this._modificationCount++;
     }
     removeFirst() {
       if (this._head === this._tail) throw _internal.IterableElementError.noElement();
       this._modificationCount++;
-      let result = this._table[this._head];
-      this._table[this._head] = null;
+      let result = this._table.get(this._head);
+      this._table.set(this._head, null);
       this._head = (this._head + 1) & (this._table.length - 1);
       return result;
     }
@@ -1723,8 +1703,8 @@ var collection;
       if (this._head === this._tail) throw _internal.IterableElementError.noElement();
       this._modificationCount++;
       this._tail = (this._tail - 1) & (this._table.length - 1);
-      let result = this._table[this._tail];
-      this._table[this._tail] = null;
+      let result = this._table.get(this._tail);
+      this._table.set(this._tail, null);
       return result;
     }
     static _isPowerOf2(number) { return (number & (number - 1)) === 0; }
@@ -1739,11 +1719,11 @@ var collection;
     }
     _checkModification(expectedModificationCount) {
       if (expectedModificationCount !== this._modificationCount) {
-        throw new dart_core.ConcurrentModificationError(this);
+        throw new core.ConcurrentModificationError(this);
       }
     }
     _add(element) {
-      this._table[this._tail] = element;
+      this._table.set(this._tail, element);
       this._tail = (this._tail + 1) & (this._table.length - 1);
       if (this._head === this._tail) this._grow();
       this._modificationCount++;
@@ -1756,10 +1736,10 @@ var collection;
         let i = offset;
         while (i !== this._head) {
           let prevOffset = (i - 1) & mask;
-          this._table[i] = this._table[prevOffset];
+          this._table.set(i, this._table.get(prevOffset));
           i = prevOffset;
         }
-        this._table[this._head] = null;
+        this._table.set(this._head, null);
         this._head = (this._head + 1) & mask;
         return (offset + 1) & mask;
       } else {
@@ -1767,15 +1747,15 @@ var collection;
         let i = offset;
         while (i !== this._tail) {
           let nextOffset = (i + 1) & mask;
-          this._table[i] = this._table[nextOffset];
+          this._table.set(i, this._table.get(nextOffset));
           i = nextOffset;
         }
-        this._table[this._tail] = null;
+        this._table.set(this._tail, null);
         return offset;
       }
     }
     _grow() {
-      let newTable = new dart_core.List(this._table.length * 2);
+      let newTable = new core.List(this._table.length * 2);
       let split = this._table.length - this._head;
       newTable.setRange(0, split, this._table, this._head);
       newTable.setRange(split, split + this._head, this._table, 0);
@@ -1800,7 +1780,7 @@ var collection;
       dart.assert(newElementCount >= this.length);
       newElementCount = newElementCount >> 1;
       let newCapacity = _nextPowerOf2(newElementCount);
-      let newTable = new dart_core.List(newCapacity);
+      let newTable = new core.List(newCapacity);
       this._tail = this._writeToList(newTable);
       this._table = newTable;
       this._head = 0;
@@ -1825,7 +1805,7 @@ var collection;
         this._current = null;
         return false;
       }
-      this._current = /* Unimplemented: DownCast: dynamic to E */ this._queue._table[this._position];
+      this._current = /* Unimplemented: DownCast: dynamic to E */ this._queue._table.get(this._position);
       this._position = (this._position + 1) & (this._queue._table.length - 1);
       return true;
     }
@@ -1851,14 +1831,14 @@ var collection;
       this.removeAll(toRemove);
     }
     removeWhere(test) {
-      let toRemove = /* Unimplemented ArrayList */[];
+      let toRemove = new List.from([]);
       for (let element of this) {
         if (test(element)) toRemove.add(element);
       }
       this.removeAll(/* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<Object> */ toRemove);
     }
     retainWhere(test) {
-      let toRemove = /* Unimplemented ArrayList */[];
+      let toRemove = new List.from([]);
       for (let element of this) {
         if (!test(element)) toRemove.add(element);
       }
@@ -1889,9 +1869,9 @@ var collection;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
-      let result = growable ? (/* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */) : new dart_core.List(this.length);
+      let result = growable ? (/* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */) : new core.List(this.length);
       let i = 0;
-      for (let element of this) result[i++] = element;
+      for (let element of this) result.set(i++, element);
       return result;
     }
     map(f) { return new _internal.EfficientLengthMappedIterable(this, f); }
@@ -1934,7 +1914,7 @@ var collection;
       if (separator === undefined) separator = "";
       let iterator = this.iterator;
       if (!iterator.moveNext()) return "";
-      let buffer = new dart_core.StringBuffer();
+      let buffer = new core.StringBuffer();
       if (separator === null || dart.equals(separator, "")) {
         do {
           buffer.write("" + (iterator.current) + "");
@@ -2024,14 +2004,14 @@ var collection;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
-      if (/* Unimplemented IsExpression: index is! int */) throw new dart_core.ArgumentError.notNull("index");
-      dart_core.RangeError.checkNotNegative(index, "index");
+      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError.notNull("index");
+      core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
       for (let element of this) {
         if (index === elementIndex) return element;
         elementIndex++;
       }
-      throw new dart_core.RangeError.index(index, this, "index", null, elementIndex);
+      throw new core.RangeError.index(index, this, "index", null, elementIndex);
     }
   }
 
@@ -2190,7 +2170,7 @@ var collection;
     constructor(compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
-      this._comparator = (compare === null) ? dart_core.Comparable.compare : compare;
+      this._comparator = (compare === null) ? core.Comparable.compare : compare;
       this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented IsExpression: v is K */);
       super();
     }
@@ -2199,7 +2179,7 @@ var collection;
       if (isValidKey === undefined) isValidKey = null;
       let result = new SplayTreeMap();
       other.forEach((k, v) => {
-        result[k] = /* Unimplemented: DownCast: dynamic to V */ v;
+        result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
       });
       return result;
     }
@@ -2225,8 +2205,8 @@ var collection;
       this._validKey = null;
       _SplayTree.call(this);
     }
-    [](key) {
-      if (key === null) throw new dart_core.ArgumentError(key);
+    get(key) {
+      if (key === null) throw new core.ArgumentError(key);
       if (!this._validKey(key)) return null;
       if (_root !== null) {
         let comp = _splay(/* Unimplemented: DownCast: Object to K */ key);
@@ -2243,8 +2223,8 @@ var collection;
       if (mapRoot !== null) return /* Unimplemented: DownCast: dynamic to V */ mapRoot.value;
       return null;
     }
-    []=(key, value) {
-      if (key === null) throw new dart_core.ArgumentError(key);
+    set(key, value) {
+      if (key === null) throw new core.ArgumentError(key);
       let comp = _splay(key);
       if (comp === 0) {
         let mapRoot = /* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root;
@@ -2254,7 +2234,7 @@ var collection;
       _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeMapNode<dynamic, dynamic> to _SplayTreeNode<K> */ new _SplayTreeMapNode(key, value), comp);
     }
     putIfAbsent(key, ifAbsent) {
-      if (key === null) throw new dart_core.ArgumentError(key);
+      if (key === null) throw new core.ArgumentError(key);
       let comp = _splay(key);
       if (comp === 0) {
         let mapRoot = /* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root;
@@ -2264,7 +2244,7 @@ var collection;
       let splayCount = _splayCount;
       let value = ifAbsent();
       if (modificationCount !== _modificationCount) {
-        throw new dart_core.ConcurrentModificationError(this);
+        throw new core.ConcurrentModificationError(this);
       }
       if (splayCount !== _splayCount) {
         comp = _splay(key);
@@ -2275,7 +2255,7 @@ var collection;
     }
     addAll(other) {
       other.forEach((key, value) => {
-        this[key] = value;
+        this.set(key, value);
       });
     }
     get isEmpty() {
@@ -2306,7 +2286,7 @@ var collection;
         while (node !== null) {
           if (dart.equals(node.value, value)) return true;
           if (initialSplayCount !== _splayCount) {
-            throw new dart_core.ConcurrentModificationError(this);
+            throw new core.ConcurrentModificationError(this);
           }
           if (node.right !== null && visit(/* Unimplemented: DownCast: _SplayTreeNode<dynamic> to _SplayTreeMapNode<dynamic, dynamic> */ node.right)) return true;
           node = /* Unimplemented: DownCast: _SplayTreeNode<dynamic> to _SplayTreeMapNode<dynamic, dynamic> */ node.left;
@@ -2329,7 +2309,7 @@ var collection;
       return /* Unimplemented: DownCast: dynamic to K */ _last.key;
     }
     lastKeyBefore(key) {
-      if (key === null) throw new dart_core.ArgumentError(key);
+      if (key === null) throw new core.ArgumentError(key);
       if (_root === null) return null;
       let comp = _splay(key);
       if (comp < 0) return _root.key;
@@ -2341,7 +2321,7 @@ var collection;
       return node.key;
     }
     firstKeyAfter(key) {
-      if (key === null) throw new dart_core.ArgumentError(key);
+      if (key === null) throw new core.ArgumentError(key);
       if (_root === null) return null;
       let comp = _splay(key);
       if (comp > 0) return _root.key;
@@ -2364,7 +2344,7 @@ var collection;
 
   class _SplayTreeIterator/* Unimplemented <T> */ {
     constructor(tree) {
-      this._workList = /* Unimplemented ArrayList */[];
+      this._workList = new List.from([]);
       this._tree = tree;
       this._modificationCount = tree._modificationCount;
       this._splayCount = tree._splayCount;
@@ -2372,7 +2352,7 @@ var collection;
       this._findLeftMostDescendent(tree._root);
     }
     __init_startAt(tree, startKey) {
-      this._workList = /* Unimplemented ArrayList */[];
+      this._workList = new List.from([]);
       this._tree = tree;
       this._modificationCount = tree._modificationCount;
       this._splayCount = null;
@@ -2409,7 +2389,7 @@ var collection;
     }
     moveNext() {
       if (this._modificationCount !== this._tree._modificationCount) {
-        throw new dart_core.ConcurrentModificationError(this._tree);
+        throw new core.ConcurrentModificationError(this._tree);
       }
       if (this._workList.isEmpty) {
         this._currentNode = null;
@@ -2483,7 +2463,7 @@ var collection;
     constructor(compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
-      this._comparator = (compare === null) ? dart_core.Comparable.compare : compare;
+      this._comparator = (compare === null) ? core.Comparable.compare : compare;
       this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented IsExpression: v is E */);
       super();
     }
@@ -2492,7 +2472,7 @@ var collection;
       if (isValidKey === undefined) isValidKey = null;
       let result = new SplayTreeSet(compare, isValidKey);
       for (let element of elements) {
-        result.this.add(element);
+        result.add(element);
       }
       return result;
     }
@@ -2545,9 +2525,9 @@ var collection;
       let modificationCount = _modificationCount;
       for (let object of elements) {
         if (modificationCount !== _modificationCount) {
-          throw new dart_core.ConcurrentModificationError(this);
+          throw new core.ConcurrentModificationError(this);
         }
-        if (this._validKey(object) && _splay(/* Unimplemented: DownCast: Object to E */ object) === 0) retainSet.this.add(_root.key);
+        if (this._validKey(object) && _splay(/* Unimplemented: DownCast: Object to E */ object) === 0) retainSet.add(_root.key);
       }
       if (retainSet._count !== _count) {
         _root = retainSet._root;

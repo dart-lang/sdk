@@ -21,7 +21,7 @@ var DeltaBlue;
       this.value = value;
       this.name = name;
     }
-    nextWeaker() { return /* Unimplemented const *//* Unimplemented ArrayList */[STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST][this.value]; }
+    nextWeaker() { return /* Unimplemented const */new List.from([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST]).get(this.value); }
     static stronger(s1, s2) {
       return s1.value < s2.value;
     }
@@ -55,16 +55,16 @@ var DeltaBlue;
       this.chooseMethod(/* Unimplemented: DownCast: dynamic to int */ mark);
       if (!this.isSatisfied()) {
         if (dart.equals(this.strength, REQUIRED)) {
-          dart_core.print("Could not satisfy a required constraint!");
+          core.print("Could not satisfy a required constraint!");
         }
         return null;
       }
       this.markInputs(/* Unimplemented: DownCast: dynamic to int */ mark);
       let out = this.output();
       let overridden = out.determinedBy;
-      if (overridden !== null) overridden.this.markUnsatisfied();
+      if (overridden !== null) overridden.markUnsatisfied();
       out.determinedBy = this;
-      if (!DeltaBlue.planner.addPropagate(this, /* Unimplemented: DownCast: dynamic to int */ mark)) dart_core.print("Cycle encountered");
+      if (!DeltaBlue.planner.addPropagate(this, /* Unimplemented: DownCast: dynamic to int */ mark)) core.print("Cycle encountered");
       out.mark = /* Unimplemented: DownCast: dynamic to int */ mark;
       return overridden;
     }
@@ -226,7 +226,7 @@ var DeltaBlue;
 
   class Variable {
     constructor(name, value) {
-      this.constraints = /* Unimplemented ArrayList */[];
+      this.constraints = new List.from([]);
       this.name = name;
       this.value = value;
       this.determinedBy = null;
@@ -260,7 +260,7 @@ var DeltaBlue;
       let strength = /* Unimplemented: DownCast: dynamic to Strength */ REQUIRED;
       do {
         for (let i = 0; i < unsatisfied.length; i++) {
-          let u = unsatisfied[i];
+          let u = unsatisfied.get(i);
           if (dart.equals(u.strength, strength)) this.incrementalAdd(u);
         }
         strength = strength.nextWeaker();
@@ -283,15 +283,15 @@ var DeltaBlue;
       return plan;
     }
     extractPlanFromConstraints(constraints) {
-      let sources = /* Unimplemented ArrayList */[];
+      let sources = new List.from([]);
       for (let i = 0; i < constraints.length; i++) {
-        let c = constraints[i];
+        let c = constraints.get(i);
         if (c.isInput() && c.isSatisfied()) sources.add(c);
       }
       return this.makePlan(sources);
     }
     addPropagate(c, mark) {
-      let todo = /* Unimplemented ArrayList */[c];
+      let todo = new List.from([c]);
       while (todo.length > 0) {
         let d = todo.removeLast();
         if (d.output().mark === mark) {
@@ -307,17 +307,17 @@ var DeltaBlue;
       out.determinedBy = null;
       out.walkStrength = /* Unimplemented: DownCast: dynamic to Strength */ WEAKEST;
       out.stay = true;
-      let unsatisfied = /* Unimplemented ArrayList */[];
-      let todo = /* Unimplemented ArrayList */[out];
+      let unsatisfied = new List.from([]);
+      let todo = new List.from([out]);
       while (todo.length > 0) {
         let v = todo.removeLast();
         for (let i = 0; i < v.constraints.length; i++) {
-          let c = v.constraints[i];
+          let c = v.constraints.get(i);
           if (!c.isSatisfied()) unsatisfied.add(c);
         }
         let determining = v.determinedBy;
         for (let i = 0; i < v.constraints.length; i++) {
-          let next = v.constraints[i];
+          let next = v.constraints.get(i);
           if (!dart.equals(next, determining) && next.isSatisfied()) {
             next.recalculate();
             todo.add(next.output());
@@ -329,7 +329,7 @@ var DeltaBlue;
     addConstraintsConsumingTo(v, coll) {
       let determining = v.determinedBy;
       for (let i = 0; i < v.constraints.length; i++) {
-        let c = v.constraints[i];
+        let c = v.constraints.get(i);
         if (!dart.equals(c, determining) && c.isSatisfied()) coll.add(c);
       }
     }
@@ -337,7 +337,7 @@ var DeltaBlue;
 
   class Plan {
     constructor() {
-      this.list = /* Unimplemented ArrayList */[];
+      this.list = new List.from([]);
       super();
     }
     addConstraint(c) {
@@ -346,7 +346,7 @@ var DeltaBlue;
     size() { return this.list.length; }
     execute() {
       for (let i = 0; i < this.list.length; i++) {
-        this.list[i].execute();
+        this.list.get(i).execute();
       }
     }
   }
@@ -364,13 +364,13 @@ var DeltaBlue;
     }
     new StayConstraint(last, STRONG_DEFAULT);
     let edit = new EditConstraint(first, PREFERRED);
-    let plan = DeltaBlue.planner.extractPlanFromConstraints(/* Unimplemented ArrayList */[edit]);
+    let plan = DeltaBlue.planner.extractPlanFromConstraints(new List.from([edit]));
     for (let i = 0; i < 100; i++) {
       first.value = i;
       plan.execute();
       if (last.value !== i) {
-        dart_core.print("Chain test failed:");
-        dart_core.print("Expected last value to be " + (i) + " but it was " + (last.value) + ".");
+        core.print("Chain test failed:");
+        core.print("Expected last value to be " + (i) + " but it was " + (last.value) + ".");
       }
     }
   }
@@ -381,7 +381,7 @@ var DeltaBlue;
     let scale = new Variable("scale", 10);
     let offset = new Variable("offset", 1000);
     let src = null, dst = null;
-    let dests = /* Unimplemented ArrayList */[];
+    let dests = new List.from([]);
     for (let i = 0; i < n; i++) {
       src = new Variable("src", i);
       dst = new Variable("dst", i);
@@ -390,23 +390,23 @@ var DeltaBlue;
       new ScaleConstraint(src, scale, offset, dst, REQUIRED);
     }
     change(src, 17);
-    if (dst.value !== 1170) dart_core.print("Projection 1 failed");
+    if (dst.value !== 1170) core.print("Projection 1 failed");
     change(dst, 1050);
-    if (src.value !== 5) dart_core.print("Projection 2 failed");
+    if (src.value !== 5) core.print("Projection 2 failed");
     change(scale, 5);
     for (let i = 0; i < n - 1; i++) {
-      if (dests[i].value !== i * 5 + 1000) dart_core.print("Projection 3 failed");
+      if (dests.get(i).value !== i * 5 + 1000) core.print("Projection 3 failed");
     }
     change(offset, 2000);
     for (let i = 0; i < n - 1; i++) {
-      if (dests[i].value !== i * 5 + 2000) dart_core.print("Projection 4 failed");
+      if (dests.get(i).value !== i * 5 + 2000) core.print("Projection 4 failed");
     }
   }
 
   // Function change: (Variable, int) → void
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
-    let plan = DeltaBlue.planner.extractPlanFromConstraints(/* Unimplemented ArrayList */[edit]);
+    let plan = DeltaBlue.planner.extractPlanFromConstraints(new List.from([edit]));
     for (let i = 0; i < 10; i++) {
       v.value = newValue;
       plan.execute();

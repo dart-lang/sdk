@@ -28,7 +28,7 @@ var dart;
 
   function dload(obj, field) {
     if (!(field in obj)) {
-      throw new dart_core.NoSuchMethodError(obj, field);
+      throw new core.NoSuchMethodError(obj, field);
     }
     return obj[field];
   }
@@ -38,22 +38,32 @@ var dart;
     var formals = formalParameterList(f);
     // TODO(vsm): Type check args!  We need to encode sufficient type info on f.
     if (formals.length < args.length) {
-      throw new dart_core.NoSuchMethodError(f, args);
+      throw new core.NoSuchMethodError(f, args);
     } else if (formals.length > args.length) {
       for (var i = args.length; i < formals.length; ++i) {
         if (formals[i].indexOf("opt$") != 0)
-          throw new dart_core.NoSuchMethodError(f, args);
+          throw new core.NoSuchMethodError(f, args);
       }
     }
     return f.apply(void 0, args);
   }
   dart.dinvokef = dinvokef;
 
-  function dextend(sub, _super) {
-    sub.prototype = Object.create(_super.prototype);
-    sub.prototype.constructor = sub;
+  // TODO(jmesserly): we could replace a lot of these with a generic "send".
+  // It's likely simpler and less code size.
+  function dindex(obj, index) {
+    if (!('get' in obj)) throw new core.NoSuchMethodError(obj, '[]', [index]);
+    // TODO(vsm): Type check arg
+    return obj.get(index);
   }
-  dart.dextend = dextend;
+  dart.dindex = dindex;
+
+  function dbinary(left, op, right) {
+    if (!(op in left)) throw new core.NoSuchMethodError(obj, op, [right]);
+    // TODO(vsm): Type check arg
+    return left[op](right);
+  }
+  dart.dbinary = dbinary;
 
   function cast(obj, type) {
     if (obj == null || instanceOf(obj, type)) return obj;
@@ -81,7 +91,7 @@ var dart;
 
   function equals(x, y) {
     if (x === null || y === null) return x === y;
-    var eq = x.__equals;
+    var eq = x['=='];
     return eq ? eq.call(x, y) : x === y;
   }
   dart.equals = equals;
@@ -192,14 +202,14 @@ var dart;
       for (var i = 0, end = values.length - 1; i < end; i += 2) {
         var key = values[i];
         var value = values[i + 1];
-        map.__set(key, value);
+        map.set(key, value);
       }
     } else if (typeof values === 'object') {
       var keys = Object.getOwnPropertyNames(values);
       for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         var value = values[key];
-        map.__set(key, value);
+        map.set(key, value);
       }
     }
     return map;

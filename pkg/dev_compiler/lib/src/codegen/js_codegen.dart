@@ -35,6 +35,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
 
+  static final int _indexExpressionPrecedence =
+      new IndexExpression.forTarget(null, null, null, null).precedence;
+
   JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules, this.out)
       : libraryInfo = libraryInfo,
         rules = rules,
@@ -275,6 +278,11 @@ $name.prototype[Symbol.iterator] = function() {
 
   void _generateConstructor(ConstructorDeclaration node, String className,
       List<FieldDeclaration> fields) {
+    if (node.externalKeyword != null) {
+      out.write('/* Unimplemented $node */\n');
+      return;
+    }
+
     if (node.name != null) {
       // We generate named constructors as initializer methods in the class;
       // this allows use of `super` for instance methods/properties.
@@ -486,6 +494,10 @@ $name.prototype[Symbol.iterator] = function() {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isAbstract) return;
+    if (node.externalKeyword != null) {
+      out.write('/* Unimplemented $node */\n');
+      return;
+    }
 
     if (node.isStatic) {
       out.write('static ');
@@ -496,7 +508,11 @@ $name.prototype[Symbol.iterator] = function() {
       out.write('set ');
     }
 
-    var name = node.name;
+    // V8 does not yet support ComputedPropertyName syntax in MethodDefinitions.
+    //
+    // MethodDefinition: https://people.mozilla.org/~jorendorff/es6-draft.html#sec-method-definitions
+    // PropertyName: https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object-initializer
+    var name = _canonicalMethodName(node.name.name);
     out.write('$name(');
     _visitNode(node.parameters);
     out.write(') ');
@@ -507,6 +523,13 @@ $name.prototype[Symbol.iterator] = function() {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     assert(node.parent is CompilationUnit);
+
+    if (node.externalKeyword != null) {
+      // TODO(jmesserly): the toString visitor in Analyzer doesn't include the
+      // external keyword for FunctionDeclaration.
+      out.write('/* Unimplemented external $node */\n');
+      return;
+    }
 
     if (node.isGetter || node.isSetter) {
       // Add these later so we can use getter/setter syntax.
@@ -578,11 +601,11 @@ $name.prototype[Symbol.iterator] = function() {
     var e = node.staticElement;
     if (e.enclosingElement is CompilationUnitElement &&
         (e.library != libraryInfo.library || _needsModuleGetter(e))) {
-      out.write('${getLibraryId(e.library)}.');
+      out.write('${_jsLibraryName(e.library)}.');
     } else if (currentClass != null &&
         e.enclosingElement == currentClass.element) {
       if (e is PropertyAccessorElement && !e.variable.isStatic ||
-          e is ClassMemberElement && !e.isStatic) {
+          e is ClassMemberElement && !e.isStatic && e is! ConstructorElement) {
         out.write('this.');
       }
     }
@@ -591,15 +614,50 @@ $name.prototype[Symbol.iterator] = function() {
 
   String _typeName(InterfaceType type) {
     var name = type.name;
-    var library = type.element.library;
-    return library == currentLibrary ? name : '${getLibraryId(library)}.$name';
+    var lib = type.element.library;
+    return lib == currentLibrary ? name : '${_jsLibraryName(lib)}.$name';
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    node.leftHandSide.accept(this);
+    var lhs = node.leftHandSide;
+    var rhs = node.rightHandSide;
+    if (lhs is IndexExpression) {
+      var target = _getTarget(lhs);
+      if (rules.isDynamicTarget(target)) {
+        out.write('dart.dsetindex(');
+        target.accept(this);
+        out.write(', ');
+        lhs.index.accept(this);
+        out.write(', ');
+        rhs.accept(this);
+        out.write(')');
+      } else {
+        target.accept(this);
+        out.write('.set(');
+        lhs.index.accept(this);
+        out.write(', ');
+        rhs.accept(this);
+        out.write(')');
+      }
+      return;
+    }
+
+    if (lhs is PropertyAccess) {
+      var target = _getTarget(lhs);
+      if (rules.isDynamicTarget(target)) {
+        out.write('dart.dput(');
+        target.accept(this);
+        out.write(', "${lhs.propertyName.name}", ');
+        rhs.accept(this);
+        out.write(')');
+        return;
+      }
+    }
+
+    lhs.accept(this);
     out.write(' = ');
-    node.rightHandSide.accept(this);
+    rhs.accept(this);
   }
 
   @override
@@ -649,8 +707,14 @@ $name.prototype[Symbol.iterator] = function() {
     }
 
     var target = node.isCascaded ? _cascadeTarget : node.target;
-    _visitNode(target, suffix: '.');
-    node.methodName.accept(this);
+    if (target != null) {
+      target.accept(this);
+      out
+        ..write('.')
+        ..write(node.methodName.name);
+    } else {
+      node.methodName.accept(this);
+    }
 
     out.write('(');
     node.argumentList.accept(this);
@@ -847,6 +911,13 @@ $name.prototype[Symbol.iterator] = function() {
     out.write(')');
   }
 
+  /// True if this type is built-in to JS, and we use the values unwrapped.
+  /// For these types we generate a calling convention via static
+  /// "extension methods". This allows types to be extended without adding
+  /// extensions directly on the prototype.
+  bool _isJSBuiltinType(DartType t) =>
+      rules.isNumType(t) || rules.isStringType(t) || rules.isBoolType(t);
+
   bool typeIsPrimitiveInJS(DartType t) => rules.isIntType(t) ||
       rules.isDoubleType(t) ||
       rules.isBoolType(t) ||
@@ -886,6 +957,11 @@ $name.prototype[Symbol.iterator] = function() {
         out.write(')');
       }
     } else if (binaryOperationIsPrimitive(dispatchType, otherType)) {
+      // special cases where we inline the operation
+      // these values are assumed to be non-null (determined by the checker)
+      // TODO(jmesserly): it would be nice to just inline the method from core,
+      // instead of special cases here.
+
       if (op.type == TokenType.TILDE_SLASH) {
         // `a ~/ b` is equivalent to `(a / b).truncate()`
         out.write('(');
@@ -899,9 +975,44 @@ $name.prototype[Symbol.iterator] = function() {
         out.write(' $op ');
         rhs.accept(this);
       }
+    } else if (rules.isDynamicTarget(lhs)) {
+      // dynamic dispatch
+      out.write('dart.dbinary(');
+      lhs.accept(this);
+      out.write(', "${op.lexeme}"');
+      rhs.accept(this);
+      out.write(')');
+    } else if (_isJSBuiltinType(dispatchType)) {
+      // TODO(jmesserly): we'd get better readability from the static-dispatch
+      // pattern below. Consider:
+      //
+      //     "hello"['+']"world"
+      // vs
+      //     core.String['+']("hello", "world")
+      //
+      // Infix notation is much more readable, which is a bit part of why
+      // C# added its extension methods feature. However this would require
+      // adding these methods to String.prototype/Number.prototype in JS.
+      out.write(_typeName(dispatchType));
+      out.write(_canonicalMethodInvoke(op.lexeme));
+      out.write('(');
+      lhs.accept(this);
+      out.write(', ');
+      rhs.accept(this);
+      out.write(')');
     } else {
-      // TODO(vsm): Figure out operator calling convention / dispatch.
-      out.write('/* Unimplemented binary operator: $node */');
+      // Generic static-dispatch, user-defined operator code path.
+
+      // We're going to replace the operator with high-precedence "." or "[]",
+      // so add parens around the left side if necessary.
+      var needParens = lhs.precedence < _indexExpressionPrecedence;
+      if (needParens) out.write('(');
+      lhs.accept(this);
+      if (needParens) out.write(')');
+      out.write(_canonicalMethodInvoke(op.lexeme));
+      out.write('(');
+      rhs.accept(this);
+      out.write(')');
     }
   }
 
@@ -1002,13 +1113,12 @@ $name.prototype[Symbol.iterator] = function() {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    var target = node.isCascaded ? _cascadeTarget : node.target;
-    _visitGet(target, node.propertyName);
+    _visitGet(_getTarget(node), node.propertyName);
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   void _visitGet(Expression target, SimpleIdentifier name) {
-    if (rules.isDynamicGet(target)) {
+    if (rules.isDynamicTarget(target)) {
       // TODO(jmesserly): this won't work if we're left hand side of assignment.
       out.write('dart.dload(');
       target.accept(this);
@@ -1021,15 +1131,28 @@ $name.prototype[Symbol.iterator] = function() {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var target = node.isCascaded ? _cascadeTarget : node.target;
-    if (rules.isDynamicGet(target)) {
-      out.write('/* Unimplemented dynamic IndexExpression: $node */');
+    var target = _getTarget(node);
+    if (rules.isDynamicTarget(target)) {
+      out.write('dart.dindex(');
+      target.accept(this);
+      out.write(', ');
+      node.index.accept(this);
+      out.write(')');
     } else {
       target.accept(this);
-      out.write('[');
+      out.write(_canonicalMethodInvoke('[]'));
+      out.write('(');
       node.index.accept(this);
-      out.write(']');
+      out.write(')');
     }
+  }
+
+  /// Gets the target of a [PropertyAccess] or [IndexExpression].
+  /// Those two nodes are special because they're both allowed on left side of
+  /// an assignment expression and cascades.
+  Expression _getTarget(node) {
+    assert(node is IndexExpression || node is PropertyAccess);
+    return node.isCascaded ? _cascadeTarget : node.target;
   }
 
   @override
@@ -1171,10 +1294,10 @@ $name.prototype[Symbol.iterator] = function() {
     if (node.constKeyword != null) {
       out.write('/* Unimplemented const */');
     }
-    // TODO(jmesserly): ES Array does not have Dart's ArrayList methods.
-    out.write('/* Unimplemented ArrayList */[');
+    // TODO(jmesserly): make this faster.
+    out.write('new List.from([');
     _visitNodeList(node.elements, separator: ', ');
-    out.write(']');
+    out.write('])');
   }
 
   @override
@@ -1213,7 +1336,7 @@ $name.prototype[Symbol.iterator] = function() {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    // TODO(jmesserly): does this work for other quote styles?
+    // TODO(jmesserly): this does not handle all quote styles
     out.write('"${node.stringValue}"');
   }
 
@@ -1283,19 +1406,6 @@ $name.prototype[Symbol.iterator] = function() {
     return initializer.accept(_constVisitor);
   }
 
-  static const Map<String, String> _builtins = const <String, String>{
-    'dart.core': 'dart_core',
-    'dart.math': 'dart_math',
-  };
-
-  String getLibraryId(LibraryElement element) {
-    var libraryName = element.name;
-    var builtinName = _builtins[libraryName];
-    if (builtinName != null) return builtinName;
-
-    return _jsLibraryName(element);
-  }
-
   /// Returns true if [element] is a getter in JS, therefore needs
   /// `lib.topLevel` syntax instead of just `topLevel`.
   bool _needsModuleGetter(Element element) {
@@ -1337,6 +1447,62 @@ $name.prototype[Symbol.iterator] = function() {
     out.write(prefix);
     out.write(token.lexeme);
     out.write(suffix);
+  }
+
+  /// The following names are allowed for user-defined operators:
+  ///
+  ///     <, >, <=, >=, ==, -, +, /, ˜/, *, %, |, ˆ, &, <<, >>, []=, [], ˜
+  ///
+  /// For the indexing operators, we use `get` and `set` instead:
+  ///
+  ///     x.get('hi')
+  ///     x.set('hi', 123)
+  ///
+  /// This follows the same pattern as EcmaScript 6 Map:
+  /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map>
+  ///
+  /// For all others we use the operator name:
+  ///
+  ///     x['+'](y)
+  ///
+  /// Equality is a bit special, it is generated via the Dart `equals` runtime
+  /// helper, that checks for null. The user defined method is called '=='.
+  String _canonicalMethodName(String name) {
+    switch (name) {
+      case '[]':
+        return 'get';
+      case '[]=':
+        return 'set';
+      case '<':
+      case '>':
+      case '<=':
+      case '>=':
+      case '==':
+      case '-':
+      case '+':
+      case '/':
+      case '~/':
+      case '*':
+      case '%':
+      case '|':
+      case '^':
+      case '&':
+      case '<<':
+      case '>>':
+      case '~':
+        return "['$name']";
+      default:
+        return name;
+    }
+  }
+
+  /// The string to invoke a canonical method name, for example:
+  ///
+  ///     "[]" returns ".get"
+  ///      "+" returns "['+']"
+  String _canonicalMethodInvoke(String name) {
+    name = _canonicalMethodName(name);
+    return name.startsWith('[') ? name : '.$name';
   }
 }
 

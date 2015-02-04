@@ -4,7 +4,7 @@ var sunflower;
   let ORANGE = "orange";
   let SEED_RADIUS = 2;
   let SCALE_FACTOR = 4;
-  let TAU = dart_math.PI * 2;
+  let TAU = math.PI * 2;
   let MAX_D = 300;
   let centerX = MAX_D / 2;
   let centerY = centerX;
@@ -15,7 +15,7 @@ var sunflower;
   dart.defineLazyProperties(sunflower, {
     get slider() { return /* Unimplemented: DownCast: Element to InputElement */ querySelector("#slider") },
     get notes() { return querySelector("#notes") },
-    get PHI() { return (dart_math.sqrt(5) + 1) / 2 },
+    get PHI() { return (math.sqrt(5) + 1) / 2 },
     get context() { return /* Unimplemented: DownCast: RenderingContext to CanvasRenderingContext2D */ (/* Unimplemented: as CanvasElement. */querySelector("#canvas")).getContext("2d") },
   });
 
@@ -55,13 +55,13 @@ var sunflower;
 
   // Function draw: () → void
   function draw() {
-    sunflower.seeds = dart_core.int.parse(sunflower.slider.value);
+    sunflower.seeds = core.int.parse(sunflower.slider.value);
     sunflower.context.clearRect(0, 0, MAX_D, MAX_D);
     for (let i = 0; i < sunflower.seeds; i++) {
       let theta = i * TAU / sunflower.PHI;
-      let r = dart_math.sqrt(i) * SCALE_FACTOR;
-      let x = centerX + r * dart_math.cos(theta);
-      let y = centerY - r * dart_math.sin(theta);
+      let r = math.sqrt(i) * SCALE_FACTOR;
+      let x = centerX + r * math.cos(theta);
+      let y = centerY - r * math.sin(theta);
       new SunflowerSeed(x, y).draw();
     }
     sunflower.notes.textContent = "" + (sunflower.seeds) + " seeds";

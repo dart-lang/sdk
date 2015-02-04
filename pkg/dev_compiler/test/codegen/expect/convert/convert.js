@@ -32,16 +32,16 @@ var convert;
       if (start === undefined) start = 0;
       if (end === undefined) end = null;
       let stringLength = string.length;
-      dart_core.RangeError.checkValidRange(start, end, stringLength);
+      core.RangeError.checkValidRange(start, end, stringLength);
       if (end === null) end = stringLength;
       let length = end - start;
       let result = new typed_data.Uint8List(length);
       for (let i = 0; i < length; i++) {
         let codeUnit = string.codeUnitAt(start + i);
         if ((codeUnit & ~this._subsetMask) !== 0) {
-          throw new dart_core.ArgumentError("String contains invalid characters.");
+          throw new core.ArgumentError("String contains invalid characters.");
         }
-        result[i] = codeUnit;
+        result.set(i, codeUnit);
       }
       return /* Unimplemented: DownCastDynamic: List<dynamic> to List<int> */ result;
     }
@@ -70,11 +70,11 @@ var convert;
       this._sink.close();
     }
     addSlice(source, start, end, isLast) {
-      dart_core.RangeError.checkValidRange(start, end, source.length);
+      core.RangeError.checkValidRange(start, end, source.length);
       for (let i = start; i < end; i++) {
         let codeUnit = source.codeUnitAt(i);
         if ((codeUnit & ~this._subsetMask) !== 0) {
-          throw new dart_core.ArgumentError("Source contains invalid character with code point: " + (codeUnit) + ".");
+          throw new core.ArgumentError("Source contains invalid character with code point: " + (codeUnit) + ".");
         }
       }
       this._sink.add(source.codeUnits.sublist(start, end));
@@ -94,24 +94,24 @@ var convert;
       if (start === undefined) start = 0;
       if (end === undefined) end = null;
       let byteCount = bytes.length;
-      dart_core.RangeError.checkValidRange(start, end, byteCount);
+      core.RangeError.checkValidRange(start, end, byteCount);
       if (end === null) end = byteCount;
       let length = end - start;
       for (let i = start; i < end; i++) {
-        let byte = bytes[i];
+        let byte = bytes.get(i);
         if ((byte & ~this._subsetMask) !== 0) {
           if (!this._allowInvalid) {
-            throw new dart_core.FormatException("Invalid value in input: " + (byte) + "");
+            throw new core.FormatException("Invalid value in input: " + (byte) + "");
           }
           return this._convertInvalid(bytes, start, end);
         }
       }
-      return new dart_core.String.fromCharCodes(bytes, start, end);
+      return new core.String.fromCharCodes(bytes, start, end);
     }
     _convertInvalid(bytes, start, end) {
-      let buffer = new dart_core.StringBuffer();
+      let buffer = new core.StringBuffer();
       for (let i = start; i < end; i++) {
-        let value = bytes[i];
+        let value = bytes.get(i);
         if ((value & ~this._subsetMask) !== 0) value = 65533;
         buffer.writeCharCode(value);
       }
@@ -152,11 +152,11 @@ var convert;
       this.addSlice(source, 0, source.length, false);
     }
     addSlice(source, start, end, isLast) {
-      dart_core.RangeError.checkValidRange(start, end, source.length);
+      core.RangeError.checkValidRange(start, end, source.length);
       for (let i = start; i < end; i++) {
-        if ((source[i] & ~_ASCII_MASK) !== 0) {
+        if ((source.get(i) & ~_ASCII_MASK) !== 0) {
           if (i > start) this._utf8Sink.addSlice(source, start, i, false);
-          this._utf8Sink.add(/* Unimplemented const *//* Unimplemented ArrayList */[239, 191, 189]);
+          this._utf8Sink.add(/* Unimplemented const */new List.from([239, 191, 189]));
           start = i + 1;
         }
       }
@@ -178,15 +178,15 @@ var convert;
     }
     add(source) {
       for (let i = 0; i < source.length; i++) {
-        if ((source[i] & ~_ASCII_MASK) !== 0) {
-          throw new dart_core.FormatException("Source contains non-ASCII bytes.");
+        if ((source.get(i) & ~_ASCII_MASK) !== 0) {
+          throw new core.FormatException("Source contains non-ASCII bytes.");
         }
       }
-      this._sink.add(new dart_core.String.fromCharCodes(source));
+      this._sink.add(new core.String.fromCharCodes(source));
     }
     addSlice(source, start, end, isLast) {
       let length = source.length;
-      dart_core.RangeError.checkValidRange(start, end, length);
+      core.RangeError.checkValidRange(start, end, length);
       if (start < end) {
         if (start !== 0 || end !== length) {
           source = source.sublist(start, end);
@@ -277,7 +277,7 @@ var convert;
 
   class _SimpleCallbackSink/* Unimplemented <T> */ extends ChunkedConversionSink/* Unimplemented <T> */ {
     constructor(_callback) {
-      this._accumulated = /* Unimplemented ArrayList */[];
+      this._accumulated = new List.from([]);
       this._callback = _callback;
       super();
     }
@@ -348,7 +348,7 @@ var convert;
       return new _FusedConverter(this, other);
     }
     startChunkedConversion(sink) {
-      throw new dart_core.UnsupportedError("This converter does not support chunked conversions: " + (this) + "");
+      throw new core.UnsupportedError("This converter does not support chunked conversions: " + (this) + "");
     }
     bind(source) {
       return new async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
@@ -372,13 +372,13 @@ var convert;
       super();
     }
     decodeStream(byteStream) {
-      return /* Unimplemented: DownCastDynamic: Future<dynamic> to Future<String> */ byteStream.transform(/* Unimplemented: DownCastDynamic: Converter<List<int>, String> to StreamTransformer<List<int>, dynamic> */ decoder).fold(new dart_core.StringBuffer(), (buffer, string) => (/* Unimplemented dynamic method call: ..write(string) */,
+      return /* Unimplemented: DownCastDynamic: Future<dynamic> to Future<String> */ byteStream.transform(/* Unimplemented: DownCastDynamic: Converter<List<int>, String> to StreamTransformer<List<int>, dynamic> */ decoder).fold(new core.StringBuffer(), (buffer, string) => (/* Unimplemented dynamic method call: ..write(string) */,
         buffer)).then((buffer) => /* Unimplemented dynamic method call: buffer.toString() */);
     }
     static getByName(name) {
       if (name === null) return null;
       name = name.toLowerCase();
-      return _nameToEncoding[name];
+      return _nameToEncoding.get(name);
     }
   }
   dart.defineLazyProperties(Encoding, {
@@ -422,9 +422,9 @@ var convert;
   }
   HtmlEscapeMode._ = function(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) { this.__init__(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) };
   HtmlEscapeMode._.prototype = HtmlEscapeMode.prototype;
-  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode.this._("unknown", true, true, true, true);
-  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode.this._("attribute", false, true, false, false);
-  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode.this._("element", true, false, false, true);
+  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode._("unknown", true, true, true, true);
+  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode._("attribute", false, true, false, false);
+  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode._("element", true, false, false, true);
 
   class HtmlEscape extends Converter/* Unimplemented <String, String> */ {
     constructor(mode) {
@@ -439,10 +439,10 @@ var convert;
     _convert(text, start, end) {
       let result = null;
       for (let i = start; i < end; i++) {
-        let ch = text[i];
+        let ch = text.get(i);
         let replace = null;
         /* Unimplemented SwitchStatement: switch (ch) {case '&': replace = '&amp;'; break; case '\u00A0': replace = '&nbsp;'; break; case '"': if (mode.escapeQuot) replace = '&quot;'; break; case "'": if (mode.escapeApos) replace = '&#x27;'; break; case '<': if (mode.escapeLtGt) replace = '&lt;'; break; case '>': if (mode.escapeLtGt) replace = '&gt;'; break; case '/': if (mode.escapeSlash) replace = '&#x2F;'; break;} */if (replace !== null) {
-          if (result === null) result = new dart_core.StringBuffer(text.substring(start, i));
+          if (result === null) result = new core.StringBuffer(text.substring(start, i));
           result.write(replace);
         } else if (result !== null) {
           result.write(ch);
@@ -476,7 +476,7 @@ var convert;
     close() { return this._sink.close(); }
   }
 
-  class JsonUnsupportedObjectError extends dart_core.Error {
+  class JsonUnsupportedObjectError extends core.Error {
     constructor(unsupportedObject, opt$) {
       let cause = opt$.cause === undefined ? null : opt$.cause;
       this.unsupportedObject = unsupportedObject;
@@ -590,7 +590,7 @@ var convert;
       return UTF8.encode(string);
     }
     convert(object) {
-      let bytes = /* Unimplemented: DownCastLiteral: List<dynamic> to List<List<int>> */ /* Unimplemented ArrayList */[];
+      let bytes = /* Unimplemented: DownCastLiteral: List<dynamic> to List<List<int>> */ new List.from([]);
       // Function addChunk: (Uint8List, int, int) → void
       function addChunk(chunk, start, end) {
         if (start > 0 || end < chunk.length) {
@@ -600,14 +600,14 @@ var convert;
         bytes.add(chunk);
       }
       _JsonUtf8Stringifier.stringify(object, this._indent, /* Unimplemented: DownCast: Function to (Object) → dynamic */ this._toEncodable, this._bufferSize, addChunk);
-      if (bytes.length === 1) return bytes[0];
+      if (bytes.length === 1) return bytes.get(0);
       let length = 0;
       for (let i = 0; i < bytes.length; i++) {
-        length = bytes[i].length;
+        length = bytes.get(i).length;
       }
       let result = new typed_data.Uint8List(length);
       for (let i = 0, offset = 0; i < bytes.length; i++) {
-        let byteList = bytes[i];
+        let byteList = bytes.get(i);
         let end = offset + byteList.length;
         result.setRange(offset, end, byteList);
         offset = end;
@@ -642,7 +642,7 @@ var convert;
     }
     add(o) {
       if (this._isDone) {
-        throw new dart_core.StateError("Only one call to add allowed");
+        throw new core.StateError("Only one call to add allowed");
       }
       this._isDone = true;
       let stringSink = this._sink.asStringSink();
@@ -667,7 +667,7 @@ var convert;
     }
     add(object) {
       if (this._isDone) {
-        throw new dart_core.StateError("Only one call to add allowed");
+        throw new core.StateError("Only one call to add allowed");
       }
       this._isDone = true;
       _JsonUtf8Stringifier.stringify(object, this._indent, /* Unimplemented: DownCast: Function to (Object) → dynamic */ this._toEncodable, this._bufferSize, this._addChunk);
@@ -688,19 +688,17 @@ var convert;
       super();
     }
     convert(input) { return _parseJson(input, this._reviver); }
-    startChunkedConversion(sink) {}
+    /* Unimplemented external StringConversionSink startChunkedConversion(Sink<Object> sink); */
     bind(stream) { return /* Unimplemented: DownCastDynamic: Stream<dynamic> to Stream<Object> */ super.bind(stream); }
   }
 
-  // Function _parseJson: (String, (dynamic, dynamic) → dynamic) → dynamic
-  function _parseJson(source, reviver) {}
-
+  /* Unimplemented external _parseJson(String source, reviver(key, value)) ; */
   // Function _defaultToEncodable: (dynamic) → Object
   function _defaultToEncodable(object) { return /* Unimplemented dynamic method call: object.toJson() */; }
 
   class _JsonStringifier {
     constructor(_toEncodable) {
-      this._seen = new dart_core.List();
+      this._seen = new core.List();
       this._toEncodable = (_toEncodable !== null) ? _toEncodable : _defaultToEncodable;
     }
     static hexDigit(x) { return x < 10 ? 48 + x : 87 + x; }
@@ -729,7 +727,7 @@ var convert;
     }
     _checkCycle(object) {
       for (let i = 0; i < this._seen.length; i++) {
-        if (dart_core.identical(object, this._seen[i])) {
+        if (core.identical(object, this._seen.get(i))) {
           throw new JsonCyclicError(object);
         }
       }
@@ -737,7 +735,7 @@ var convert;
     }
     _removeSeen(object) {
       dart.assert(!this._seen.isEmpty);
-      dart.assert(dart_core.identical(this._seen.last, object));
+      dart.assert(core.identical(this._seen.last, object));
       this._seen.removeLast();
     }
     writeObject(object) {
@@ -749,10 +747,10 @@ var convert;
         if (/* Unimplemented postfix operator: !object.isFinite */) return false;
         this.writeNumber(/* Unimplemented: DownCast: dynamic to num */ object);
         return true;
-      } else if (dart_core.identical(object, true)) {
+      } else if (core.identical(object, true)) {
         this.writeString("true");
         return true;
-      } else if (dart_core.identical(object, false)) {
+      } else if (core.identical(object, false)) {
         this.writeString("false");
         return true;
       } else if (object === null) {
@@ -780,10 +778,10 @@ var convert;
     writeList(list) {
       this.writeString("[");
       if (list.length > 0) {
-        this.writeObject(list[0]);
+        this.writeObject(list.get(0));
         for (let i = 1; i < list.length; i++) {
           this.writeString(",");
-          this.writeObject(list[i]);
+          this.writeObject(list.get(i));
         }
       }
       this.writeString("]");
@@ -829,12 +827,12 @@ var convert;
         ");
         this._indentLevel++;
         this.writeIndentation(this._indentLevel);
-        writeObject(list[0]);
+        writeObject(list.get(0));
         for (let i = 1; i < list.length; i++) {
           writeString(",
           ");
           this.writeIndentation(this._indentLevel);
-          writeObject(list[i]);
+          writeObject(list.get(i));
         }
         writeString("
         ");
@@ -878,7 +876,7 @@ var convert;
       super(/* Unimplemented: DownCast: dynamic to (Object) → Object */ _toEncodable);
     }
     static stringify(object, toEncodable, indent) {
-      let output = new dart_core.StringBuffer();
+      let output = new core.StringBuffer();
       printOn(object, output, toEncodable, indent);
       return output.toString();
     }
@@ -931,7 +929,7 @@ var convert;
         stringifier = new _JsonUtf8Stringifier(toEncodableFunction, bufferSize, addChunk);
       }
       stringifier.writeObject(object);
-      stringifier.this.flush();
+      stringifier.flush();
     }
     flush() {
       if (this.index > 0) {
@@ -1007,7 +1005,7 @@ var convert;
         this.buffer = new typed_data.Uint8List(this.bufferSize);
         this.index = 0;
       }
-      this.buffer[this.index++] = byte;
+      this.buffer.set(this.index++, byte);
     }
   }
 
@@ -1020,7 +1018,7 @@ var convert;
       let indent = this.indent;
       let indentLength = indent.length;
       if (indentLength === 1) {
-        let char = indent[0];
+        let char = indent.get(0);
         while (count > 0) {
           writeByte(char);
           count = 1;
@@ -1035,7 +1033,7 @@ var convert;
           index = end;
         } else {
           for (let i = 0; i < indentLength; i++) {
-            writeByte(indent[i]);
+            writeByte(indent.get(i));
           }
         }
       }
@@ -1099,15 +1097,15 @@ var convert;
       this.addSlice(source, 0, source.length, false);
     }
     _addSliceToSink(source, start, end, isLast) {
-      this._sink.add(new dart_core.String.fromCharCodes(source, start, end));
+      this._sink.add(new core.String.fromCharCodes(source, start, end));
       if (isLast) this.close();
     }
     addSlice(source, start, end, isLast) {
-      dart_core.RangeError.checkValidRange(start, end, source.length);
+      core.RangeError.checkValidRange(start, end, source.length);
       for (let i = start; i < end; i++) {
-        let char = source[i];
+        let char = source.get(i);
         if (char > _LATIN1_MASK || char < 0) {
-          throw new dart_core.FormatException("Source contains non-Latin-1 characters.");
+          throw new core.FormatException("Source contains non-Latin-1 characters.");
         }
       }
       if (start < end) {
@@ -1124,12 +1122,12 @@ var convert;
       super(sink);
     }
     addSlice(source, start, end, isLast) {
-      dart_core.RangeError.checkValidRange(start, end, source.length);
+      core.RangeError.checkValidRange(start, end, source.length);
       for (let i = start; i < end; i++) {
-        let char = source[i];
+        let char = source.get(i);
         if (char > _LATIN1_MASK || char < 0) {
           if (i > start) _addSliceToSink(source, start, i, false);
-          _addSliceToSink(/* Unimplemented: DownCastLiteral: List<dynamic> to List<int> */ /* Unimplemented const *//* Unimplemented ArrayList */[65533], 0, 1, false);
+          _addSliceToSink(/* Unimplemented: DownCastLiteral: List<dynamic> to List<int> */ /* Unimplemented const */new List.from([65533]), 0, 1, false);
           start = i + 1;
         }
       }
@@ -1147,7 +1145,7 @@ var convert;
       super();
     }
     convert(data) {
-      let lines = new dart_core.List();
+      let lines = new core.List();
       _LineSplitterSink._addSlice(data, 0, data.length, true, lines.add);
       return lines;
     }
@@ -1167,7 +1165,7 @@ var convert;
     }
     addSlice(chunk, start, end, isLast) {
       if (this._carry !== null) {
-        chunk = /* Unimplemented binary operator: _carry + chunk.substring(start, end) */;
+        chunk = core.String['+'](this._carry, chunk.substring(start, end));
         start = 0;
         end = chunk.length;
         this._carry = null;
@@ -1237,7 +1235,7 @@ var convert;
   StringConversionSink.fromStringSink = function(sink) { this.__init_fromStringSink(sink) };
   StringConversionSink.fromStringSink.prototype = StringConversionSink.prototype;
 
-  class ClosableStringSink extends dart_core.StringSink {
+  class ClosableStringSink extends core.StringSink {
     __init_fromStringSink(sink, onClose) {
       return new _ClosableStringSink(sink, onClose);
     }
@@ -1266,7 +1264,7 @@ var convert;
   class _StringConversionSinkAsStringSinkAdapter {
     constructor(_chunkedSink) {
       this._chunkedSink = _chunkedSink;
-      this._buffer = new dart_core.StringBuffer();
+      this._buffer = new core.StringBuffer();
     }
     close() {
       if (this._buffer.isNotEmpty) this._flush();
@@ -1274,7 +1272,7 @@ var convert;
     }
     writeCharCode(charCode) {
       this._buffer.writeCharCode(charCode);
-      if (/* Unimplemented binary operator: _buffer.length > _MIN_STRING_SIZE */) this._flush();
+      if (this._buffer.length['>'](_MIN_STRING_SIZE)) this._flush();
     }
     write(o) {
       if (this._buffer.isNotEmpty) this._flush();
@@ -1284,7 +1282,7 @@ var convert;
     writeln(o) {
       if (o === undefined) o = "";
       this._buffer.writeln(o);
-      if (/* Unimplemented binary operator: _buffer.length > _MIN_STRING_SIZE */) this._flush();
+      if (this._buffer.length['>'](_MIN_STRING_SIZE)) this._flush();
     }
     writeAll(objects, separator) {
       if (separator === undefined) separator = "";
@@ -1354,7 +1352,7 @@ var convert;
   class _StringCallbackSink extends _StringSinkConversionSink {
     constructor(_callback) {
       this._callback = _callback;
-      super(new dart_core.StringBuffer());
+      super(new core.StringBuffer());
     }
     close() {
       let buffer = /* Unimplemented: DownCast: StringSink to StringBuffer */ _stringSink;
@@ -1405,7 +1403,7 @@ var convert;
 
   class _Utf8ConversionSink extends ByteConversionSink {
     constructor(sink, allowMalformed) {
-      _Utf8ConversionSink.call(this, sink, new dart_core.StringBuffer(), allowMalformed);
+      _Utf8ConversionSink.call(this, sink, new core.StringBuffer(), allowMalformed);
     }
     __init__(_chunkedSink, stringBuffer, allowMalformed) {
       this._chunkedSink = _chunkedSink;
@@ -1469,7 +1467,7 @@ var convert;
       if (start === undefined) start = 0;
       if (end === undefined) end = null;
       let stringLength = string.length;
-      dart_core.RangeError.checkValidRange(start, end, stringLength);
+      core.RangeError.checkValidRange(start, end, stringLength);
       if (end === null) end = stringLength;
       let length = end - start;
       if (length === 0) return new typed_data.Uint8List(0);
@@ -1508,15 +1506,15 @@ var convert;
         let rune = _combineSurrogatePair(leadingSurrogate, nextCodeUnit);
         dart.assert(rune > _THREE_BYTE_LIMIT);
         dart.assert(rune <= _FOUR_BYTE_LIMIT);
-        this._buffer[this._bufferIndex++] = 240 | (rune >> 18);
-        this._buffer[this._bufferIndex++] = 128 | ((rune >> 12) & 63);
-        this._buffer[this._bufferIndex++] = 128 | ((rune >> 6) & 63);
-        this._buffer[this._bufferIndex++] = 128 | (rune & 63);
+        this._buffer.set(this._bufferIndex++, 240 | (rune >> 18));
+        this._buffer.set(this._bufferIndex++, 128 | ((rune >> 12) & 63));
+        this._buffer.set(this._bufferIndex++, 128 | ((rune >> 6) & 63));
+        this._buffer.set(this._bufferIndex++, 128 | (rune & 63));
         return true;
       } else {
-        this._buffer[this._bufferIndex++] = 224 | (leadingSurrogate >> 12);
-        this._buffer[this._bufferIndex++] = 128 | ((leadingSurrogate >> 6) & 63);
-        this._buffer[this._bufferIndex++] = 128 | (leadingSurrogate & 63);
+        this._buffer.set(this._bufferIndex++, 224 | (leadingSurrogate >> 12));
+        this._buffer.set(this._bufferIndex++, 128 | ((leadingSurrogate >> 6) & 63));
+        this._buffer.set(this._bufferIndex++, 128 | (leadingSurrogate & 63));
         return false;
       }
     }
@@ -1529,7 +1527,7 @@ var convert;
         let codeUnit = str.codeUnitAt(stringIndex);
         if (codeUnit <= _ONE_BYTE_LIMIT) {
           if (this._bufferIndex >= this._buffer.length) break;
-          this._buffer[this._bufferIndex++] = codeUnit;
+          this._buffer.set(this._bufferIndex++, codeUnit);
         } else if (_isLeadSurrogate(codeUnit)) {
           if (this._bufferIndex + 3 >= this._buffer.length) break;
           let nextCodeUnit = str.codeUnitAt(stringIndex + 1);
@@ -1539,14 +1537,14 @@ var convert;
           let rune = codeUnit;
           if (rune <= _TWO_BYTE_LIMIT) {
             if (this._bufferIndex + 1 >= this._buffer.length) break;
-            this._buffer[this._bufferIndex++] = 192 | (rune >> 6);
-            this._buffer[this._bufferIndex++] = 128 | (rune & 63);
+            this._buffer.set(this._bufferIndex++, 192 | (rune >> 6));
+            this._buffer.set(this._bufferIndex++, 128 | (rune & 63));
           } else {
             dart.assert(rune <= _THREE_BYTE_LIMIT);
             if (this._bufferIndex + 2 >= this._buffer.length) break;
-            this._buffer[this._bufferIndex++] = 224 | (rune >> 12);
-            this._buffer[this._bufferIndex++] = 128 | ((rune >> 6) & 63);
-            this._buffer[this._bufferIndex++] = 128 | (rune & 63);
+            this._buffer.set(this._bufferIndex++, 224 | (rune >> 12));
+            this._buffer.set(this._bufferIndex++, 128 | ((rune >> 6) & 63));
+            this._buffer.set(this._bufferIndex++, 128 | (rune & 63));
           }
         }
       }
@@ -1616,9 +1614,9 @@ var convert;
       if (start === undefined) start = 0;
       if (end === undefined) end = null;
       let length = codeUnits.length;
-      dart_core.RangeError.checkValidRange(start, end, length);
+      core.RangeError.checkValidRange(start, end, length);
       if (end === null) end = length;
-      let buffer = new dart_core.StringBuffer();
+      let buffer = new core.StringBuffer();
       let decoder = new _Utf8Decoder(buffer, this._allowMalformed);
       decoder.convert(codeUnits, start, end);
       decoder.close();
@@ -1634,7 +1632,7 @@ var convert;
       return stringSink.asUtf8Sink(this._allowMalformed);
     }
     bind(stream) { return /* Unimplemented: DownCastDynamic: Stream<dynamic> to Stream<String> */ super.bind(stream); }
-    fuse(next) {}
+    /* Unimplemented external Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next); */
   }
 
   let _ONE_BYTE_LIMIT = 127;
@@ -1674,7 +1672,7 @@ var convert;
     flush() {
       if (this.hasPartialInput) {
         if (!this._allowMalformed) {
-          throw new dart_core.FormatException("Unfinished UTF-8 octet sequence");
+          throw new core.FormatException("Unfinished UTF-8 octet sequence");
         }
         this._stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
         this._value = 0;
@@ -1694,8 +1692,8 @@ var convert;
         let to = endIndex;
         let mask = _ONE_BYTE_LIMIT;
         for (let i = from; i < to; i++) {
-          let unit = /* Unimplemented dynamic IndexExpression: units[i] */;
-          if (!dart.equals((/* Unimplemented binary operator: unit & mask */), unit)) return i - from;
+          let unit = dart.dindex(units, i);
+          if (!dart.equals((dart.dbinary(unit, "&"mask)), unit)) return i - from;
         }
         return to - from;
       }
@@ -1703,7 +1701,7 @@ var convert;
       function addSingleBytes(from, to) {
         dart.assert(from >= startIndex && from <= endIndex);
         dart.assert(to >= startIndex && to <= endIndex);
-        this._stringSink.write(new dart_core.String.fromCharCodes(codeUnits, from, to));
+        this._stringSink.write(new core.String.fromCharCodes(codeUnits, from, to));
       }
       let i = startIndex;
       loop: while (true) {
@@ -1712,11 +1710,11 @@ var convert;
             if (i === endIndex) {
               break loop;
             }
-            let unit = codeUnits[i];
+            let unit = codeUnits.get(i);
             if ((unit & 192) !== 128) {
               expectedUnits = 0;
               if (!this._allowMalformed) {
-                throw new dart_core.FormatException("Bad UTF-8 encoding 0x" + (unit.toRadixString(16)) + "");
+                throw new core.FormatException("Bad UTF-8 encoding 0x" + (unit.toRadixString(16)) + "");
               }
               this._isFirstCharacter = false;
               this._stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -1728,16 +1726,16 @@ var convert;
             }
           }
           while (expectedUnits > 0);
-          if (value <= _LIMITS[extraUnits - 1]) {
+          if (value <= _LIMITS.get(extraUnits - 1)) {
             if (!this._allowMalformed) {
-              throw new dart_core.FormatException("Overlong encoding of 0x" + (value.toRadixString(16)) + "");
+              throw new core.FormatException("Overlong encoding of 0x" + (value.toRadixString(16)) + "");
             }
             expectedUnits = extraUnits = 0;
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           }
           if (value > _FOUR_BYTE_LIMIT) {
             if (!this._allowMalformed) {
-              throw new dart_core.FormatException("Character outside valid Unicode range: " + "0x" + (value.toRadixString(16)) + "");
+              throw new core.FormatException("Character outside valid Unicode range: " + "0x" + (value.toRadixString(16)) + "");
             }
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           }
@@ -1754,10 +1752,10 @@ var convert;
             i = oneBytes;
             if (i === endIndex) break;
           }
-          let unit = codeUnits[i++];
+          let unit = codeUnits.get(i++);
           if (unit < 0) {
             if (!this._allowMalformed) {
-              throw new dart_core.FormatException("Negative UTF-8 code unit: -0x" + ((-unit).toRadixString(16)) + "");
+              throw new core.FormatException("Negative UTF-8 code unit: -0x" + ((-unit).toRadixString(16)) + "");
             }
             this._stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
           } else {
@@ -1778,7 +1776,7 @@ var convert;
               continue loop;
             }
             if (!this._allowMalformed) {
-              throw new dart_core.FormatException("Bad UTF-8 encoding 0x" + (unit.toRadixString(16)) + "");
+              throw new core.FormatException("Bad UTF-8 encoding 0x" + (unit.toRadixString(16)) + "");
             }
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
             expectedUnits = extraUnits = 0;
@@ -1795,7 +1793,7 @@ var convert;
       }
     }
   }
-  _Utf8Decoder._LIMITS = /* Unimplemented const *//* Unimplemented ArrayList */[_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT];
+  _Utf8Decoder._LIMITS = /* Unimplemented const */new List.from([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT]);
 
   // Exports:
   convert.ASCII = ASCII;

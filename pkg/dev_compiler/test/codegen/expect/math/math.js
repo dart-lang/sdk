@@ -11,8 +11,8 @@ var math;
   let SQRT2 = 1.4142135623730951;
   // Function min: (num, num) → num
   function min(a, b) {
-    if (/* Unimplemented IsExpression: a is! num */) throw new dart_core.ArgumentError(a);
-    if (/* Unimplemented IsExpression: b is! num */) throw new dart_core.ArgumentError(b);
+    if (/* Unimplemented IsExpression: a is! num */) throw new core.ArgumentError(a);
+    if (/* Unimplemented IsExpression: b is! num */) throw new core.ArgumentError(b);
     if (a > b) return b;
     if (a < b) return a;
     if (/* Unimplemented IsExpression: b is double */) {
@@ -29,8 +29,8 @@ var math;
 
   // Function max: (num, num) → num
   function max(a, b) {
-    if (/* Unimplemented IsExpression: a is! num */) throw new dart_core.ArgumentError(a);
-    if (/* Unimplemented IsExpression: b is! num */) throw new dart_core.ArgumentError(b);
+    if (/* Unimplemented IsExpression: a is! num */) throw new core.ArgumentError(a);
+    if (/* Unimplemented IsExpression: b is! num */) throw new core.ArgumentError(b);
     if (a > b) return a;
     if (a < b) return b;
     if (/* Unimplemented IsExpression: b is double */) {
@@ -46,39 +46,17 @@ var math;
     return a;
   }
 
-  // Function atan2: (num, num) → double
-  function atan2(a, b) {}
-
-  // Function pow: (num, num) → num
-  function pow(x, exponent) {}
-
-  // Function sin: (num) → double
-  function sin(x) {}
-
-  // Function cos: (num) → double
-  function cos(x) {}
-
-  // Function tan: (num) → double
-  function tan(x) {}
-
-  // Function acos: (num) → double
-  function acos(x) {}
-
-  // Function asin: (num) → double
-  function asin(x) {}
-
-  // Function atan: (num) → double
-  function atan(x) {}
-
-  // Function sqrt: (num) → double
-  function sqrt(x) {}
-
-  // Function exp: (num) → double
-  function exp(x) {}
-
-  // Function log: (num) → double
-  function log(x) {}
-
+  /* Unimplemented external double atan2(num a, num b) ; */
+  /* Unimplemented external num pow(num x, num exponent) ; */
+  /* Unimplemented external double sin(num x) ; */
+  /* Unimplemented external double cos(num x) ; */
+  /* Unimplemented external double tan(num x) ; */
+  /* Unimplemented external double acos(num x) ; */
+  /* Unimplemented external double asin(num x) ; */
+  /* Unimplemented external double atan(num x) ; */
+  /* Unimplemented external double sqrt(num x) ; */
+  /* Unimplemented external double exp(num x) ; */
+  /* Unimplemented external double log(num x) ; */
   class _JenkinsSmiHash {
     static combine(hash, value) {
       hash = 536870911 & (hash + value);
@@ -100,58 +78,56 @@ var math;
       this.y = y;
     }
     toString() { return "Point(" + (this.x) + ", " + (this.y) + ")"; }
-    ==(other) {
+    ['=='](other) {
       if (/* Unimplemented IsExpression: other is! Point */) return false;
       return dart.equals(this.x, dart.dload(other, "x")) && dart.equals(this.y, dart.dload(other, "y"));
     }
     get hashCode() { return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode); }
-    +(other) {
-      return new Point(/* Unimplemented binary operator: x + other.x */, /* Unimplemented binary operator: y + other.y */);
+    ['+'](other) {
+      return new Point(this.x['+'](other.x), this.y['+'](other.y));
     }
-    -(other) {
-      return new Point(/* Unimplemented binary operator: x - other.x */, /* Unimplemented binary operator: y - other.y */);
+    ['-'](other) {
+      return new Point(this.x['-'](other.x), this.y['-'](other.y));
     }
-    *(factor) {
-      return new Point(/* Unimplemented binary operator: x * factor */, /* Unimplemented binary operator: y * factor */);
+    ['*'](factor) {
+      return new Point(this.x['*'](factor), this.y['*'](factor));
     }
-    get magnitude() { return sqrt(/* Unimplemented binary operator: x * x */ + /* Unimplemented binary operator: y * y */); }
+    get magnitude() { return sqrt(this.x['*'](this.x) + this.y['*'](this.y)); }
     distanceTo(other) {
-      let dx = /* Unimplemented binary operator: x - other.x */;
-      let dy = /* Unimplemented binary operator: y - other.y */;
+      let dx = this.x['-'](other.x);
+      let dy = this.y['-'](other.y);
       return sqrt(dx * dx + dy * dy);
     }
     squaredDistanceTo(other) {
-      let dx = /* Unimplemented binary operator: x - other.x */;
-      let dy = /* Unimplemented binary operator: y - other.y */;
+      let dx = this.x['-'](other.x);
+      let dy = this.y['-'](other.y);
       return /* Unimplemented: DownCast: num to T */ dx * dx + dy * dy;
     }
   }
 
   class Random {
-    constructor(seed) {
-      if (seed === undefined) seed = null;
-    }
+    /* Unimplemented external factory Random([int seed]); */
   }
 
   class _RectangleBase/* Unimplemented <T extends num> */ {
     constructor() {
     }
-    get right() { return /* Unimplemented: DownCast: num to T */ /* Unimplemented binary operator: left + width */; }
-    get bottom() { return /* Unimplemented: DownCast: num to T */ /* Unimplemented binary operator: top + height */; }
+    get right() { return /* Unimplemented: DownCast: num to T */ this.left['+'](this.width); }
+    get bottom() { return /* Unimplemented: DownCast: num to T */ this.top['+'](this.height); }
     toString() {
       return "Rectangle (" + (this.left) + ", " + (this.top) + ") " + (this.width) + " x " + (this.height) + "";
     }
-    ==(other) {
+    ['=='](other) {
       if (/* Unimplemented IsExpression: other is! Rectangle */) return false;
       return dart.equals(this.left, dart.dload(other, "left")) && dart.equals(this.top, dart.dload(other, "top")) && dart.equals(this.right, dart.dload(other, "right")) && dart.equals(this.bottom, dart.dload(other, "bottom"));
     }
     get hashCode() { return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode); }
     intersection(other) {
       let x0 = max(this.left, other.left);
-      let x1 = min(/* Unimplemented binary operator: left + width */, /* Unimplemented binary operator: other.left + other.width */);
+      let x1 = min(this.left['+'](this.width), other.left['+'](other.width));
       if (x0 <= x1) {
         let y0 = max(this.top, other.top);
-        let y1 = min(/* Unimplemented binary operator: top + height */, /* Unimplemented binary operator: other.top + other.height */);
+        let y1 = min(this.top['+'](this.height), other.top['+'](other.height));
         if (y0 <= y1) {
           return new Rectangle(x0, y0, x1 - x0, y1 - y0);
         }
@@ -159,40 +135,40 @@ var math;
       return null;
     }
     intersects(other) {
-      return (/* Unimplemented binary operator: left <= other.left + other.width */ && other.left <= /* Unimplemented binary operator: left + width */ && /* Unimplemented binary operator: top <= other.top + other.height */ && other.top <= /* Unimplemented binary operator: top + height */);
+      return (this.left['<='](other.left + other.width) && other.left <= this.left['+'](this.width) && this.top['<='](other.top + other.height) && other.top <= this.top['+'](this.height));
     }
     boundingBox(other) {
-      let right = max(/* Unimplemented binary operator: this.left + this.width */, /* Unimplemented binary operator: other.left + other.width */);
-      let bottom = max(/* Unimplemented binary operator: this.top + this.height */, /* Unimplemented binary operator: other.top + other.height */);
+      let right = max(this.left['+'](this.width), other.left['+'](other.width));
+      let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
       let left = min(this.left, other.left);
       let top = min(this.top, other.top);
       return new Rectangle(left, top, right - left, bottom - top);
     }
     containsRectangle(another) {
-      return /* Unimplemented binary operator: left <= another.left */ && /* Unimplemented binary operator: left + width */ >= another.left + another.width && /* Unimplemented binary operator: top <= another.top */ && /* Unimplemented binary operator: top + height */ >= another.top + another.height;
+      return this.left['<='](another.left) && this.left['+'](this.width) >= another.left + another.width && this.top['<='](another.top) && this.top['+'](this.height) >= another.top + another.height;
     }
     containsPoint(another) {
-      return /* Unimplemented binary operator: another.x >= left */ && another.x <= /* Unimplemented binary operator: left + width */ && /* Unimplemented binary operator: another.y >= top */ && another.y <= /* Unimplemented binary operator: top + height */;
+      return core.num['>='](another.x, this.left) && another.x <= this.left['+'](this.width) && core.num['>='](another.y, this.top) && another.y <= this.top['+'](this.height);
     }
     get topLeft() { return new Point(this.left, this.top); }
-    get topRight() { return new Point(/* Unimplemented binary operator: this.left + this.width */, this.top); }
-    get bottomRight() { return new Point(/* Unimplemented binary operator: this.left + this.width */, /* Unimplemented binary operator: this.top + this.height */); }
-    get bottomLeft() { return new Point(this.left, /* Unimplemented binary operator: this.top + this.height */); }
+    get topRight() { return new Point(this.left['+'](this.width), this.top); }
+    get bottomRight() { return new Point(this.left['+'](this.width), this.top['+'](this.height)); }
+    get bottomLeft() { return new Point(this.left, this.top['+'](this.height)); }
   }
 
   class Rectangle/* Unimplemented <T extends num> */ extends _RectangleBase/* Unimplemented <T> */ {
     constructor(left, top, width, height) {
       this.left = left;
       this.top = top;
-      this.width = (/* Unimplemented binary operator: width < 0 */) ? /* Unimplemented postfix operator: -width */ * 0 : width;
-      this.height = (/* Unimplemented binary operator: height < 0 */) ? /* Unimplemented postfix operator: -height */ * 0 : height;
+      this.width = (width['<'](0)) ? /* Unimplemented postfix operator: -width */ * 0 : width;
+      this.height = (height['<'](0)) ? /* Unimplemented postfix operator: -height */ * 0 : height;
       super();
     }
     __init_fromPoints(a, b) {
       let left = /* Unimplemented: DownCast: num to T */ min(a.x, b.x);
-      let width = /* Unimplemented: DownCast: num to T */ /* Unimplemented binary operator: max(a.x, b.x) - left */;
+      let width = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.x, b.x), left);
       let top = /* Unimplemented: DownCast: num to T */ min(a.y, b.y);
-      let height = /* Unimplemented: DownCast: num to T */ /* Unimplemented binary operator: max(a.y, b.y) - top */;
+      let height = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.y, b.y), top);
       return new Rectangle(left, top, width, height);
     }
   }
@@ -203,25 +179,25 @@ var math;
     constructor(left, top, width, height) {
       this.left = left;
       this.top = top;
-      this._width = (/* Unimplemented binary operator: width < 0 */) ? _clampToZero(width) : width;
-      this._height = (/* Unimplemented binary operator: height < 0 */) ? _clampToZero(height) : height;
+      this._width = (width['<'](0)) ? _clampToZero(width) : width;
+      this._height = (height['<'](0)) ? _clampToZero(height) : height;
       super();
     }
     __init_fromPoints(a, b) {
       let left = /* Unimplemented: DownCast: num to T */ min(a.x, b.x);
-      let width = /* Unimplemented: DownCast: num to T */ /* Unimplemented binary operator: max(a.x, b.x) - left */;
+      let width = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.x, b.x), left);
       let top = /* Unimplemented: DownCast: num to T */ min(a.y, b.y);
-      let height = /* Unimplemented: DownCast: num to T */ /* Unimplemented binary operator: max(a.y, b.y) - top */;
+      let height = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.y, b.y), top);
       return new MutableRectangle(left, top, width, height);
     }
     get width() { return this._width; }
     set width(width) {
-      if (/* Unimplemented binary operator: width < 0 */) width = /* Unimplemented: DownCast: num to T */ _clampToZero(width);
+      if (width['<'](0)) width = /* Unimplemented: DownCast: num to T */ _clampToZero(width);
       this._width = width;
     }
     get height() { return this._height; }
     set height(height) {
-      if (/* Unimplemented binary operator: height < 0 */) height = /* Unimplemented: DownCast: num to T */ _clampToZero(height);
+      if (height['<'](0)) height = /* Unimplemented: DownCast: num to T */ _clampToZero(height);
       this._height = height;
     }
   }
@@ -245,17 +221,6 @@ var math;
   math.SQRT2 = SQRT2;
   math.min = min;
   math.max = max;
-  math.atan2 = atan2;
-  math.pow = pow;
-  math.sin = sin;
-  math.cos = cos;
-  math.tan = tan;
-  math.acos = acos;
-  math.asin = asin;
-  math.atan = atan;
-  math.sqrt = sqrt;
-  math.exp = exp;
-  math.log = log;
   math.Point = Point;
   math.Random = Random;
   math.Rectangle = Rectangle;

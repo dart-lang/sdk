@@ -10,13 +10,13 @@ var fieldtest;
 
   // Function foo: (A) → int
   function foo(a) {
-    dart_core.print(a.x);
+    core.print(a.x);
     return a.x;
   }
 
   // Function bar: (dynamic) → int
   function bar(a) {
-    dart_core.print(dart.dload(a, "x"));
+    core.print(dart.dload(a, "x"));
     return /* Unimplemented: DownCast: dynamic to int */ dart.dload(a, "x");
   }
 
@@ -32,7 +32,7 @@ var fieldtest;
   });
 
   dart.copyProperties(fieldtest, {
-    get q() { return /* Unimplemented binary operator: 'life, ' + 'the universe ' + 'and everything' */; },
+    get q() { return core.String['+'](core.String['+']("life, ", "the universe "), "and everything"); },
     get z() { return 42; },
     set z(value) {
       fieldtest.y = /* Unimplemented: DownCast: dynamic to int */ value;
@@ -44,7 +44,7 @@ var fieldtest;
     let a = new A();
     foo(a);
     bar(a);
-    dart_core.print(baz(a));
+    core.print(baz(a));
   }
 
   // Exports:

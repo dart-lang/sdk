@@ -26,12 +26,16 @@ abstract class TypeRules {
   bool isDoubleType(DartType t) => t == provider.doubleType;
   bool isIntType(DartType t) => t == provider.intType;
   bool isNumType(DartType t) => t == provider.intType.superclass;
+  bool isStringType(DartType t) => t == provider.stringType;
 
   StaticInfo checkAssignment(Expression expr, DartType t);
 
   DartType getStaticType(Expression expr) => expr.staticType;
 
   DartType elementType(Element e);
+
+  /// Returns `true` if the target expression is dynamic.
+  bool isDynamicTarget(Expression expr) => getStaticType(expr).isDynamic;
 
   /// Returns `true` if the expression is a dynamic property access or prefixed
   /// identifier.

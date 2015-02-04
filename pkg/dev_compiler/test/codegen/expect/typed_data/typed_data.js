@@ -14,15 +14,14 @@ var typed_data;
   }
   Endianness._ = function(_littleEndian) { this.__init__(_littleEndian) };
   Endianness._.prototype = Endianness.prototype;
-  Endianness.BIG_ENDIAN = new Endianness.this._(false);
-  Endianness.LITTLE_ENDIAN = new Endianness.this._(true);
+  Endianness.BIG_ENDIAN = new Endianness._(false);
+  Endianness.LITTLE_ENDIAN = new Endianness._(true);
   dart.defineLazyProperties(Endianness, {
-    get HOST_ENDIAN() { return (new ByteData.view(new Uint16List.fromList(/* Unimplemented ArrayList */[1]).buffer)).getInt8(0) === 1 ? LITTLE_ENDIAN : BIG_ENDIAN },
+    get HOST_ENDIAN() { return (new ByteData.view(new Uint16List.fromList(new List.from([1])).buffer)).getInt8(0) === 1 ? LITTLE_ENDIAN : BIG_ENDIAN },
   });
 
   class ByteData {
-    constructor(length) {
-    }
+    /* Unimplemented external factory ByteData(int length); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -33,10 +32,8 @@ var typed_data;
   ByteData.view.prototype = ByteData.prototype;
 
   class Int8List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Int8List(int length); */
+    /* Unimplemented external factory Int8List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -50,10 +47,8 @@ var typed_data;
   Int8List.BYTES_PER_ELEMENT = 1;
 
   class Uint8List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Uint8List(int length); */
+    /* Unimplemented external factory Uint8List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -67,10 +62,8 @@ var typed_data;
   Uint8List.BYTES_PER_ELEMENT = 1;
 
   class Uint8ClampedList {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Uint8ClampedList(int length); */
+    /* Unimplemented external factory Uint8ClampedList.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -84,10 +77,8 @@ var typed_data;
   Uint8ClampedList.BYTES_PER_ELEMENT = 1;
 
   class Int16List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Int16List(int length); */
+    /* Unimplemented external factory Int16List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -101,10 +92,8 @@ var typed_data;
   Int16List.BYTES_PER_ELEMENT = 2;
 
   class Uint16List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Uint16List(int length); */
+    /* Unimplemented external factory Uint16List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -118,10 +107,8 @@ var typed_data;
   Uint16List.BYTES_PER_ELEMENT = 2;
 
   class Int32List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Int32List(int length); */
+    /* Unimplemented external factory Int32List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -135,10 +122,8 @@ var typed_data;
   Int32List.BYTES_PER_ELEMENT = 4;
 
   class Uint32List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Uint32List(int length); */
+    /* Unimplemented external factory Uint32List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -152,10 +137,8 @@ var typed_data;
   Uint32List.BYTES_PER_ELEMENT = 4;
 
   class Int64List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Int64List(int length); */
+    /* Unimplemented external factory Int64List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -169,10 +152,8 @@ var typed_data;
   Int64List.BYTES_PER_ELEMENT = 8;
 
   class Uint64List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Uint64List(int length); */
+    /* Unimplemented external factory Uint64List.fromList(List<int> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -186,10 +167,8 @@ var typed_data;
   Uint64List.BYTES_PER_ELEMENT = 8;
 
   class Float32List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Float32List(int length); */
+    /* Unimplemented external factory Float32List.fromList(List<double> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -203,10 +182,8 @@ var typed_data;
   Float32List.BYTES_PER_ELEMENT = 4;
 
   class Float64List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Float64List(int length); */
+    /* Unimplemented external factory Float64List.fromList(List<double> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -220,10 +197,8 @@ var typed_data;
   Float64List.BYTES_PER_ELEMENT = 8;
 
   class Float32x4List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Float32x4List(int length); */
+    /* Unimplemented external factory Float32x4List.fromList(List<Float32x4> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -237,10 +212,8 @@ var typed_data;
   Float32x4List.BYTES_PER_ELEMENT = 16;
 
   class Int32x4List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Int32x4List(int length); */
+    /* Unimplemented external factory Int32x4List.fromList(List<Int32x4> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -254,10 +227,8 @@ var typed_data;
   Int32x4List.BYTES_PER_ELEMENT = 16;
 
   class Float64x2List {
-    constructor(length) {
-    }
-    __init_fromList(elements) {
-    }
+    /* Unimplemented external factory Float64x2List(int length); */
+    /* Unimplemented external factory Float64x2List.fromList(List<Float64x2> elements); */
     __init_view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
@@ -271,16 +242,11 @@ var typed_data;
   Float64x2List.BYTES_PER_ELEMENT = 16;
 
   class Float32x4 {
-    constructor(x, y, z, w) {
-    }
-    __init_splat(v) {
-    }
-    __init_zero() {
-    }
-    __init_fromInt32x4Bits(x) {
-    }
-    __init_fromFloat64x2(v) {
-    }
+    /* Unimplemented external factory Float32x4(double x, double y, double z, double w); */
+    /* Unimplemented external factory Float32x4.splat(double v); */
+    /* Unimplemented external factory Float32x4.zero(); */
+    /* Unimplemented external factory Float32x4.fromInt32x4Bits(Int32x4 x); */
+    /* Unimplemented external factory Float32x4.fromFloat64x2(Float64x2 v); */
   }
   Float32x4.splat = function(v) { this.__init_splat(v) };
   Float32x4.splat.prototype = Float32x4.prototype;
@@ -548,12 +514,9 @@ var typed_data;
   Float32x4.WWWW = 255;
 
   class Int32x4 {
-    constructor(x, y, z, w) {
-    }
-    __init_bool(x, y, z, w) {
-    }
-    __init_fromFloat32x4Bits(x) {
-    }
+    /* Unimplemented external factory Int32x4(int x, int y, int z, int w); */
+    /* Unimplemented external factory Int32x4.bool(bool x, bool y, bool z, bool w); */
+    /* Unimplemented external factory Int32x4.fromFloat32x4Bits(Float32x4 x); */
   }
   Int32x4.bool = function(x, y, z, w) { this.__init_bool(x, y, z, w) };
   Int32x4.bool.prototype = Int32x4.prototype;
@@ -817,14 +780,10 @@ var typed_data;
   Int32x4.WWWW = 255;
 
   class Float64x2 {
-    constructor(x, y) {
-    }
-    __init_splat(v) {
-    }
-    __init_zero() {
-    }
-    __init_fromFloat32x4(v) {
-    }
+    /* Unimplemented external factory Float64x2(double x, double y); */
+    /* Unimplemented external factory Float64x2.splat(double v); */
+    /* Unimplemented external factory Float64x2.zero(); */
+    /* Unimplemented external factory Float64x2.fromFloat32x4(Float32x4 v); */
   }
   Float64x2.splat = function(v) { this.__init_splat(v) };
   Float64x2.splat.prototype = Float64x2.prototype;
