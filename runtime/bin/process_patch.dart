@@ -70,6 +70,15 @@ patch class Process {
                                          stdoutEncoding,
                                          stderrEncoding);
   }
+
+  /* patch */ static bool killPid(
+      int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+    if (signal is! ProcessSignal) {
+      throw new ArgumentError(
+          "Argument 'signal' must be a ProcessSignal");
+    }
+    return _ProcessUtils._killPid(pid, signal._signalNumber);
+  }
 }
 
 
@@ -132,6 +141,8 @@ patch class _ProcessUtils {
   /* patch */ static int _getExitCode() native "Process_GetExitCode";
   /* patch */ static void _sleep(int millis) native "Process_Sleep";
   /* patch */ static int _pid(Process process) native "Process_Pid";
+  static int _killPid(int pid, ProcessSignal signal)
+      native "Process_KillPid";
   /* patch */ static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
     if (signal != ProcessSignal.SIGHUP &&
         signal != ProcessSignal.SIGINT &&
@@ -523,10 +534,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
     }
     assert(_started);
     if (_ended) return false;
-    return _kill(this, signal._signalNumber);
+    return _ProcessUtils._killPid(pid, signal._signalNumber);
   }
-
-  bool _kill(Process p, int signal) native "Process_Kill";
 
   int get pid => _ProcessUtils._pid(this);
 

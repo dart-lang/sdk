@@ -305,6 +305,12 @@ class Process {
        Encoding stderrEncoding: SYSTEM_ENCODING}) {
     throw new UnsupportedError("Process.runSync");
   }
+
+  @patch
+  static bool killPid(
+      int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+    throw new UnsupportedError("Process.killPid");
+  }
 }
 
 @patch

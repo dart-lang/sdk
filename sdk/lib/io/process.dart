@@ -372,6 +372,25 @@ abstract class Process {
        Encoding stderrEncoding: SYSTEM_ENCODING});
 
   /**
+   * Kills the process with id [pid].
+   *
+   * Where possible, sends the [signal] to the process with id
+   * `pid`. This includes Linux and OS X. The default signal is
+   * [ProcessSignal.SIGTERM] which will normally terminate the
+   * process.
+   *
+   * On platforms without signal support, including Windows, the call
+   * just terminates the process with id `pid` in a platform specific
+   * way, and the `signal` parameter is ignored.
+   *
+   * Returns `true` if the signal is successfully delivered to the
+   * process. Otherwise the signal could not be sent, usually meaning
+   * that the process is already dead.
+   */
+  external static bool killPid(
+      int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]);
+
+  /**
    * Returns the standard output stream of the process as a [:Stream:].
    */
   Stream<List<int>> get stdout;
@@ -392,15 +411,19 @@ abstract class Process {
   int get pid;
 
   /**
-   * On Linux and Mac OS, [kill] sends [signal] to the process. When the process
-   * terminates as a result of calling [kill], the value for [exitCode] may be a
-   * negative number corresponding to the provided [signal].
+   * Kills the process.
    *
-   * On Windows, [kill] kills the process, ignoring the [signal] flag.
+   * Where possible, sends the [signal] to the process. This includes
+   * Linux and OS X. The default signal is [ProcessSignal.SIGTERM]
+   * which will normally terminate the process.
    *
-   * Returns [:true:] if the signal is successfully sent and process is killed.
-   * Otherwise the signal could not be sent, usually meaning that the process is
-   * already dead.
+   * On platforms without signal support, including Windows, the call
+   * just terminates the process in a platform specific way, and the
+   * `signal` parameter is ignored.
+   *
+   * Returns `true` if the signal is successfully delivered to the
+   * process. Otherwise the signal could not be sent, usually meaning
+   * that the process is already dead.
    */
   bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
 }

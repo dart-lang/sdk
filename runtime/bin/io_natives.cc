@@ -46,7 +46,7 @@ namespace bin {
   V(Platform_GetVersion, 0)                                                    \
   V(Process_Start, 11)                                                         \
   V(Process_Wait, 5)                                                           \
-  V(Process_Kill, 3)                                                           \
+  V(Process_KillPid, 2)                                                        \
   V(Process_SetExitCode, 1)                                                    \
   V(Process_GetExitCode, 0)                                                    \
   V(Process_Exit, 1)                                                           \

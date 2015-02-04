@@ -204,11 +204,9 @@ void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
-  Dart_Handle process = Dart_GetNativeArgument(args, 1);
-  intptr_t pid = -1;
-  Process::GetProcessIdNativeField(process, &pid);
-  intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+void FUNCTION_NAME(Process_KillPid)(Dart_NativeArguments args) {
+  intptr_t pid = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   bool success = Process::Kill(pid, signal);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
 }
