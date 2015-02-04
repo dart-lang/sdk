@@ -67,8 +67,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
        bool v6Only: false,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
-       List<String> supportedProtocols,
-       bool shared: false}) {
+       List<String> supportedProtocols}) {
     return RawSecureServerSocket.bind(
         address,
         port,
@@ -77,8 +76,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
         v6Only: v6Only,
         requestClientCertificate: requestClientCertificate,
         requireClientCertificate: requireClientCertificate,
-        supportedProtocols: supportedProtocols,
-        shared: shared).then(
+        supportedProtocols: supportedProtocols).then(
             (serverSocket) => new SecureServerSocket._(serverSocket));
   }
 
@@ -194,10 +192,8 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
        bool v6Only: false,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
-       List<String> supportedProtocols,
-       bool shared: false}) {
-    return RawServerSocket.bind(
-        address, port, backlog: backlog, v6Only: v6Only, shared: shared)
+       List<String> supportedProtocols}) {
+    return RawServerSocket.bind(address, port, backlog: backlog, v6Only: v6Only)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
             certificateName,

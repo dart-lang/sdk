@@ -227,8 +227,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
   external static Future<RawServerSocket> bind(address,
                                                int port,
                                                {int backlog: 0,
-                                                bool v6Only: false,
-                                                bool shared: false});
+                                                bool v6Only: false});
 
   /**
    * Returns the port used by this socket.
@@ -319,8 +318,7 @@ abstract class ServerSocket implements Stream<Socket> {
   external static Future<ServerSocket> bind(address,
                                             int port,
                                             {int backlog: 0,
-                                             bool v6Only: false,
-                                             bool shared: false});
+                                             bool v6Only: false});
 
   /**
    * Returns the port used by this socket.

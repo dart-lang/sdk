@@ -22,36 +22,60 @@
 namespace dart {
 namespace bin {
 
-class DescriptorInfo : public DescriptorInfoBase {
+class InterruptMessage {
  public:
-  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) { }
+  intptr_t id;
+  Dart_Port dart_port;
+  int64_t data;
+};
 
-  virtual ~DescriptorInfo() { }
+
+class SocketData {
+ public:
+  explicit SocketData(intptr_t fd)
+      : fd_(fd), port_(0), mask_(0), tokens_(16) {
+    ASSERT(fd_ != -1);
+  }
 
   intptr_t GetPollEvents();
 
-  virtual void Close() {
+  void Close() {
+    port_ = 0;
+    mask_ = 0;
     VOID_TEMP_FAILURE_RETRY(close(fd_));
     fd_ = -1;
   }
-};
 
+  void SetPortAndMask(Dart_Port port, intptr_t mask) {
+    ASSERT(fd_ != -1);
+    port_ = port;
+    mask_ = mask;
+  }
 
-class DescriptorInfoSingle
-    : public DescriptorInfoSingleMixin<DescriptorInfo> {
- public:
-  explicit DescriptorInfoSingle(intptr_t fd)
-      : DescriptorInfoSingleMixin(fd) {}
-  virtual ~DescriptorInfoSingle() {}
-};
+  intptr_t fd() { return fd_; }
+  Dart_Port port() { return port_; }
 
+  bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
 
-class DescriptorInfoMultiple
-    : public DescriptorInfoMultipleMixin<DescriptorInfo> {
- public:
-  explicit DescriptorInfoMultiple(intptr_t fd)
-      : DescriptorInfoMultipleMixin(fd) {}
-  virtual ~DescriptorInfoMultiple() {}
+  // Returns true if the last token was taken.
+  bool TakeToken() {
+    ASSERT(tokens_ > 0);
+    tokens_--;
+    return tokens_ == 0;
+  }
+
+  // Returns true if the tokens was 0 before adding.
+  bool ReturnToken() {
+    ASSERT(tokens_ >= 0);
+    tokens_++;
+    return tokens_ == 1;
+  }
+
+ private:
+  intptr_t fd_;
+  Dart_Port port_;
+  intptr_t mask_;
+  int tokens_;
 };
 
 
@@ -62,8 +86,8 @@ class EventHandlerImplementation {
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
-  DescriptorInfo* GetDescriptorInfo(intptr_t fd, bool is_listening);
-  void SendData(intptr_t id, Dart_Port dart_port, int64_t data);
+  SocketData* GetSocketData(intptr_t fd);
+  void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
   void Start(EventHandler* handler);
   void Shutdown();
 
@@ -75,7 +99,7 @@ class EventHandlerImplementation {
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   void HandleInterruptFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
-  intptr_t GetPollEvents(intptr_t events, DescriptorInfo* sd);
+  intptr_t GetPollEvents(intptr_t events, SocketData* sd);
   static void* GetHashmapKeyFromFd(intptr_t fd);
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
 

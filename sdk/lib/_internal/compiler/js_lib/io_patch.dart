@@ -359,8 +359,7 @@ class RawServerSocket {
   static Future<RawServerSocket> bind(address,
                                       int port,
                                       {int backlog: 0,
-                                       bool v6Only: false,
-                                       bool shared: false}) {
+                                       bool v6Only: false}) {
     throw new UnsupportedError("RawServerSocket.bind");
   }
 }
@@ -371,8 +370,7 @@ class ServerSocket {
   static Future<ServerSocket> bind(address,
                                    int port,
                                    {int backlog: 0,
-                                    bool v6Only: false,
-                                    bool shared: false}) {
+                                    bool v6Only: false}) {
     throw new UnsupportedError("ServerSocket.bind");
   }
 }
