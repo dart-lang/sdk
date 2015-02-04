@@ -560,8 +560,8 @@ class _Future<T> implements Future<T> {
     return result;
   }
 }
+typedef dynamic __t25(dynamic __u26);
+typedef bool __t27(dynamic __u28);
 typedef dynamic __t29();
 typedef dynamic __t31<T>(T __u32);
-typedef bool __t27(dynamic __u28);
-typedef dynamic __t25(dynamic __u26);
 typedef dynamic __t38(dynamic __u39, dynamic __u40);

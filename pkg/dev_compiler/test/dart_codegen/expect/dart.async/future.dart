@@ -211,6 +211,6 @@ void _completeWithErrorCallback(_Future result, error, stackTrace) {
 }
 Object _nonNullError(Object error) =>
     (error != null) ? error : new NullThrownError();
-typedef dynamic __t22(bool __u23);
 typedef dynamic __t15(dynamic __u16);
 typedef dynamic __t17(Object __u18);
+typedef dynamic __t22(bool __u23);

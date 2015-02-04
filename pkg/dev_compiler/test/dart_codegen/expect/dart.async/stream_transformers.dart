@@ -195,5 +195,5 @@ class _BoundSubscriptionStream<S, T> extends Stream<T> {
     return result;
   }
 }
-typedef dynamic __t115<T>(EventSink<T> __u116);
 typedef EventSink<S> __t113<S, T>(EventSink<T> __u114);
+typedef dynamic __t115<T>(EventSink<T> __u116);

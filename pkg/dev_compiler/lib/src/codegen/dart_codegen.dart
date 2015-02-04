@@ -69,13 +69,13 @@ class FileWriter extends java_core.PrintStringWriter {
     if (_format) {
       DartFormatter d = new DartFormatter();
       try {
-        _log.info("Formatting file $_path ");
+        _log.fine("Formatting file $_path ");
         s = d.format(s, uri: _path);
       } catch (e) {
         _log.severe("Failed to format $_path: " + e.toString());
       }
     }
-    _log.info("Writing file $_path");
+    _log.fine("Writing file $_path");
     new File(_path).writeAsStringSync(s);
   }
 }
@@ -378,7 +378,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
 
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
-    _log.info("Generating unit " + uri.toString());
+    _log.fine("Generating unit " + uri.toString());
     FileWriter out = new FileWriter(
         _format, path.join(libraryDir, '${uri.pathSegments.last}'));
     var tm = new reifier.TypeManager(_vm);
@@ -442,7 +442,7 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
 
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
-    _log.info("Emitting original unit " + uri.toString());
+    _log.fine("Emitting original unit " + uri.toString());
     FileWriter out = new FileWriter(
         _format, path.join(libraryDir, '${uri.pathSegments.last}'));
     var unitGen = new EmptyUnitGenerator(unit, out);

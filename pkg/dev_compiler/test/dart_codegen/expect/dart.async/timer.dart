@@ -31,5 +31,5 @@ abstract class Timer {
   external static Timer _createPeriodicTimer(
       Duration duration, void callback(Timer timer));
 }
-typedef void __t121(Timer __u122);
 typedef dynamic __t119(dynamic __u120);
+typedef void __t121(Timer __u122);

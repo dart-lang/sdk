@@ -773,7 +773,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
     _state = _STATE_EXTRA_DONE;
   }
 }
-typedef void __t104(StreamSubscription<dynamic> __u105);
-typedef void __t97<T>(T __u98);
 typedef dynamic __t95(dynamic __u96);
+typedef void __t97<T>(T __u98);
 typedef dynamic __t100(dynamic __u101, dynamic __u102);
+typedef void __t104(StreamSubscription<dynamic> __u105);

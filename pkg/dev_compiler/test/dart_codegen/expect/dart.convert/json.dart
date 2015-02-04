@@ -621,8 +621,8 @@ class _JsonUtf8StringifierPretty extends _JsonUtf8Stringifier
     }
   }
 }
-typedef void __t17(dynamic __u18, dynamic __u19);
 typedef dynamic __t7(dynamic __u8);
-typedef Object __t24(Object __u25);
-typedef dynamic __t20(String __u21, Object __u22);
 typedef dynamic __t11(Object __u12);
+typedef void __t17(dynamic __u18, dynamic __u19);
+typedef dynamic __t20(String __u21, Object __u22);
+typedef Object __t24(Object __u25);

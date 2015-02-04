@@ -24,5 +24,5 @@ void foo() {
   }, f3, __t3, __t5, "Wrap",
       """line 8, column 14 of test/dart_codegen/types/d.dart: """, f3 is __t5));
 }
-typedef dynamic __t5(dynamic __u6);
 typedef DDC$a$.A __t3(DDC$a$.A __u4);
+typedef dynamic __t5(dynamic __u6);

@@ -14,7 +14,7 @@ function show_diff {
     sed -e "s/^\(-.*\)/[31m\1[0m/"
   echo
   echo "You can update these expectations with:"
-  echo "$ pushd $TEST_DIR/codegen && cp -a actual/* expect && popd"
+  echo "$ pushd `pwd` && cp -a actual/* expect && popd"
   fail
 }
 

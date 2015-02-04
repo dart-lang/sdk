@@ -472,5 +472,5 @@ class _StreamControllerAddStreamState<T> extends _AddStreamState<T> {
     }
   }
 }
-typedef void __t91<T>(T __u92);
 typedef void __t89(dynamic __u90);
+typedef void __t91<T>(T __u92);

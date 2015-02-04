@@ -1,10 +1,4 @@
 // Messages from compiling types.dart
-info: Generating unit file:///usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/types/a.dart
-info: Formatting file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/a/a.dart 
-info: Writing file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/a/a.dart
-info: Generating unit file:///usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/types/b.dart
-info: Formatting file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/b/b.dart 
-info: Writing file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/b/b.dart
 info: line 6, column 6 of test/dart_codegen/types/c.dart: f4(3) (dynamic) will need runtime check to cast to type A
   f3(f4(3));
      ^^^^^
@@ -14,9 +8,6 @@ warning: line 7, column 6 of test/dart_codegen/types/c.dart: f4 ((dynamic) → d
 warning: line 8, column 6 of test/dart_codegen/types/c.dart: f3 ((A) → A) will need to be wrapped with a closure of type (dynamic) → dynamic
   f2(f3);
      ^^
-info: Generating unit file:///usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/types/c.dart
-info: Formatting file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/c/c.dart 
-info: Writing file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/c/c.dart
 info: line 6, column 14 of test/dart_codegen/types/d.dart: f4("""hello""") (dynamic) will need runtime check to cast to type A
   var x = f3(f4("""hello"""));
              ^^^^^^^^^^^^^^^
@@ -26,9 +17,3 @@ warning: line 7, column 14 of test/dart_codegen/types/d.dart: f4 ((dynamic) → 
 warning: line 8, column 14 of test/dart_codegen/types/d.dart: f3 ((A) → A) will need to be wrapped with a closure of type (dynamic) → dynamic
   var z = f2(f3);
              ^^
-info: Generating unit file:///usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/types/d.dart
-info: Formatting file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/d/d.dart 
-info: Writing file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/d/d.dart
-info: Generating unit file:///usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/types.dart
-info: Formatting file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/types/types.dart 
-info: Writing file /usr/local/google/home/leafp/IdeaProjects/dart-dev-compiler/test/dart_codegen/actual/types/types.dart

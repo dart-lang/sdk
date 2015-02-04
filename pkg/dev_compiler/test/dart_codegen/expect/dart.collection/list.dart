@@ -420,7 +420,7 @@ abstract class ListMixin<E> implements List<E> {
   Iterable<E> get reversed => new ReversedListIterable<E>(this);
   String toString() => IterableBase.iterableToFullString(this, '[', ']');
 }
-typedef int __t16<E>(E __u17, E __u18);
 typedef bool __t6(dynamic __u7);
 typedef bool __t8<E>(E __u9);
 typedef int __t13(dynamic __u14, dynamic __u15);
+typedef int __t16<E>(E __u17, E __u18);

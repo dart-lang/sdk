@@ -41,5 +41,5 @@ class _UncaughtAsyncError extends AsyncError {
     return result;
   }
 }
-typedef dynamic __t3(dynamic __u4);
 typedef dynamic __t0(dynamic __u1, dynamic __u2);
+typedef dynamic __t3(dynamic __u4);

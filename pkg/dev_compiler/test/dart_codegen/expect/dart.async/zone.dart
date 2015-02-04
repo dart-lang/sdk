@@ -866,7 +866,7 @@ dynamic runZoned(body(),
     return zone.run(body);
   }
 }
-typedef void __t145(Timer __u146);
 typedef dynamic __t124();
 typedef dynamic __t126(dynamic __u127);
 typedef dynamic __t129(dynamic __u130, dynamic __u131);
+typedef void __t145(Timer __u146);

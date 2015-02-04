@@ -951,5 +951,5 @@ abstract class IterableElementError {
   static StateError tooMany() => new StateError("Too many elements");
   static StateError tooFew() => new StateError("Too few elements");
 }
-typedef int __t8<T>(Comparable<dynamic> __u9, Comparable<dynamic> __u10);
 typedef int __t5(dynamic __u6, dynamic __u7);
+typedef int __t8<T>(Comparable<dynamic> __u9, Comparable<dynamic> __u10);

@@ -792,9 +792,9 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
     _sink.close();
   }
 }
-typedef dynamic __t46<T>(T __u47);
-typedef void __t80();
-typedef dynamic __t55(bool __u56);
 typedef dynamic __t44(dynamic __u45);
-typedef void __t82(EventSink<dynamic> __u83);
+typedef dynamic __t46<T>(T __u47);
 typedef dynamic __t49(dynamic __u50, StackTrace __u51);
+typedef dynamic __t55(bool __u56);
+typedef void __t80();
+typedef void __t82(EventSink<dynamic> __u83);

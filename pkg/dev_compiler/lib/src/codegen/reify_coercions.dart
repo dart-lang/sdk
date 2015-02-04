@@ -459,9 +459,10 @@ class TypeManager {
   VariableManager _vm;
   Set<TypeName> _newTypes = new Set<TypeName>();
 
-  // A map containing new function typedefs to be introduced at the top level
-  HashMap<FunctionType, FunctionTypeAlias> _typedefs =
-      new HashMap<FunctionType, FunctionTypeAlias>();
+  /// A map containing new function typedefs to be introduced at the top level
+  /// This uses LinkedHashMap to emit code in a consistent order.
+  final Map<FunctionType, FunctionTypeAlias> _typedefs =
+      new Map<FunctionType, FunctionTypeAlias>();
 
   TypeManager(this._vm);
 
