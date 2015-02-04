@@ -26,32 +26,34 @@ r"""
 function(x) {
   var v0, v1;
   v0 = 10;
-  v1 = J.getInterceptor(x).$add(x, v0);
+  v1 = J.getInterceptor$ns(x).$add(x, v0);
   return V.Base.prototype.m$1.call(this, v1);
 }"""),
 
-const TestEntry.forMethod('function(Sub#+)', """
-class Base {
-  m(x) {
-    print(x+1000);
-  }
-  operator+(x) => m(x+10);
-}
-class Sub extends Base {
-  m(x) => super.m(x+100);
-  operator+(x) => super + (x+1);
-}
-main() {
-  new Sub() + 10000;
-}""",
-r"""
-function(x) {
-  var v0, v1, v2;
-  v0 = 1;
-  v1 = J.getInterceptor(x).$add(x, v0);
-  v2 = this;
-  return V.Base.prototype.$add.call(null, v2, v1);
-}"""),
+  // Reenable when we support compiling functions that
+  // need interceptor calling convention.
+// const TestEntry.forMethod('function(Sub#+)', """
+// class Base {
+//   m(x) {
+//     print(x+1000);
+//   }
+//   operator+(x) => m(x+10);
+// }
+// class Sub extends Base {
+//   m(x) => super.m(x+100);
+//   operator+(x) => super + (x+1);
+// }
+// main() {
+//   new Sub() + 10000;
+// }""",
+// r"""
+// function(x) {
+//   var v0, v1, v2;
+//   v0 = 1;
+//   v1 = J.getInterceptor$ns(x).$add(x, v0);
+//   v2 = this;
+//   return V.Base.prototype.$add.call(null, v2, v1);
+// }"""),
 
 const TestEntry.forMethod('function(Sub#m)', """
 class Base {
@@ -67,7 +69,7 @@ r"""
 function(x) {
   var v0;
   v0 = this.field;
-  return J.getInterceptor(x).$add(x, v0);
+  return J.getInterceptor$ns(x).$add(x, v0);
 }"""),
 
 

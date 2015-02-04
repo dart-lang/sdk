@@ -27,7 +27,7 @@ function(x) {
   a = new V.main_a(box_0);
   x = box_0.x_0;
   v0 = "1";
-  box_0.x_0 = J.getInterceptor(x).$add(x, v0);
+  box_0.x_0 = J.getInterceptor$ns(x).$add(x, v0);
   P.print(a.call$0());
   return null;
 }"""),
@@ -62,7 +62,7 @@ function() {
   a = new V.main_closure(box_0);
   x = box_0.x_0;
   v0 = 1;
-  box_0.x_0 = J.getInterceptor(x).$add(x, v0);
+  box_0.x_0 = J.getInterceptor$ns(x).$add(x, v0);
   P.print(a.call$0());
   return null;
 }"""),
@@ -86,7 +86,7 @@ function() {
   a = new V.main_closure(box_0);
   x = box_0.x_0;
   v0 = 1;
-  box_0.x_0 = J.getInterceptor(x).$add(x, v0);
+  box_0.x_0 = J.getInterceptor$ns(x).$add(x, v0);
   P.print(a.call$0().call$0());
   return null;
 }"""),
@@ -107,10 +107,10 @@ function() {
   i = 0;
   while (true) {
     v0 = 10;
-    if (P.identical(J.getInterceptor(i).$lt(i, v0), true)) {
+    if (P.identical(J.getInterceptor$n(i).$lt(i, v0), true)) {
       a = new V.main_closure(i);
       v1 = 1;
-      i = J.getInterceptor(i).$add(i, v1);
+      i = J.getInterceptor$ns(i).$add(i, v1);
     } else {
       P.print(a.call$0());
       return null;

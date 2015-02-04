@@ -220,37 +220,70 @@ class InvokeStatic extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
+/// A [CallingConvention] codifies how arguments are matched to parameters when
+/// emitting code for a function call.
+class CallingConvention {
+  final String name;
+  const CallingConvention(this.name);
+  /// The normal way of calling a Dart function: Positional arguments are
+  /// matched with (mandatory and optional) positionals parameters from left to
+  /// right and named arguments are matched by name.
+  static const CallingConvention DART = const CallingConvention("Dart call");
+  /// Intercepted calls have an additional first argument that is the actual
+  /// receiver of the call.  See the documentation of [Interceptor] for more
+  /// information.
+  static const CallingConvention JS_INTERCEPTED =
+      const CallingConvention("intercepted JavaScript call");
+}
+
 /// Invoke a method, operator, getter, setter, or index getter/setter.
 /// Converting a method to a function object is treated as a getter invocation.
 class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
-  final Selector selector;
+  Selector selector;
+  CallingConvention callingConvention;
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
 
   InvokeMethod(Primitive receiver,
                Selector selector,
-               Continuation cont,
-               List<Primitive> args)
+               Continuation continuation,
+               List<Primitive> arguments)
       : this.internal(new Reference<Primitive>(receiver),
                       selector,
-                      new Reference<Continuation>(cont),
-                      _referenceList(args));
+                      new Reference<Continuation>(continuation),
+                      _referenceList(arguments));
 
   InvokeMethod.internal(this.receiver,
                         this.selector,
                         this.continuation,
-                        this.arguments) {
-    assert(selector != null);
-    assert(selector.kind == SelectorKind.CALL ||
-           selector.kind == SelectorKind.OPERATOR ||
-           (selector.kind == SelectorKind.GETTER && arguments.isEmpty) ||
-           (selector.kind == SelectorKind.SETTER && arguments.length == 1) ||
-           (selector.kind == SelectorKind.INDEX && arguments.length == 1) ||
-           (selector.kind == SelectorKind.INDEX && arguments.length == 2));
+                        this.arguments,
+                        [this.callingConvention = CallingConvention.DART]) {
+    assert(isValid);
   }
 
-  bool get isIntercepted => receiver.definition is Interceptor;
+  /// Returns whether the arguments match the selector under the given calling
+  /// convention.
+  ///
+  /// This check is designed to be used in an assert, as it also checks that the
+  /// selector, arguments, and calling convention have meaningful values.
+  bool get isValid {
+    if (selector == null || callingConvention == null) return false;
+    if (callingConvention != CallingConvention.DART &&
+        callingConvention != CallingConvention.JS_INTERCEPTED) {
+      return false;
+    }
+    int numberOfArguments =
+        callingConvention == CallingConvention.JS_INTERCEPTED
+            ? arguments.length - 1
+            : arguments.length;
+    return selector.kind == SelectorKind.CALL ||
+           selector.kind == SelectorKind.OPERATOR ||
+           (selector.kind == SelectorKind.GETTER && numberOfArguments == 0) ||
+           (selector.kind == SelectorKind.SETTER && numberOfArguments == 1) ||
+           (selector.kind == SelectorKind.INDEX && numberOfArguments == 1) ||
+           (selector.kind == SelectorKind.INDEX && numberOfArguments == 2);
+  }
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }

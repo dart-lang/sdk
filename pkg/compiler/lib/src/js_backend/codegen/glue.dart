@@ -102,4 +102,15 @@ class Glue {
         hasBeenInstantiated: hasBeenInstantiated);
   }
 
+
+  String getInterceptorName(Set<ClassElement> interceptedClasses) {
+    return _backend.namer.getInterceptorName(
+        getInterceptorMethod,
+        interceptedClasses);
+  }
+
+  js.Expression getInterceptorLibrary() {
+    return new js.VariableUse(
+        _backend.namer.globalObjectFor(_backend.interceptorsLibrary));
+  }
 }
