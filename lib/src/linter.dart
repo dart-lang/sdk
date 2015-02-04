@@ -21,6 +21,8 @@ void _registerLinters(Iterable<Linter> linters) {
   linters.forEach((l) => LintGenerator.LINTERS.add(l));
 }
 
+typedef Printer(String msg);
+
 typedef AnalysisDriver _DriverFactory();
 
 /// Dart source linter.
@@ -51,12 +53,13 @@ class LinterException implements Exception {
   final String message;
 
   /// Creates a new LinterException with an optional error [message].
-  const LinterException([this.message = 'LinterException']);
+  const LinterException([this.message]);
 
   LinterException.forError(List<AnalysisError> errors)
       : message = _createMessage(errors);
 
-  String toString() => '$message';
+  String toString() =>
+      message == null ? "LinterException" : "LinterException: $message";
 
   //TODO: revisit
   static String _createMessage(errors) {
@@ -73,6 +76,42 @@ class LinterOptions extends DriverOptions {
       (AnalysisError error) => error.errorCode.type == ErrorType.LINT;
 }
 
+class PrintingReporter implements Reporter, Logger {
+  final Printer _print;
+
+  const PrintingReporter([this._print = print]);
+
+  @override
+  void exception(LinterException exception) {
+    _print('EXCEPTION: $exception');
+  }
+
+  @override
+  void logError(String message, [CaughtException exception]) {
+    _print('ERROR: $message');
+  }
+
+  @override
+  void logError2(String message, Object exception) {
+    _print('ERROR: $message');
+  }
+
+  @override
+  void logInformation(String message, [CaughtException exception]) {
+    _print('INFO: $message');
+  }
+
+  @override
+  void logInformation2(String message, Object exception) {
+    _print('INFO: $message');
+  }
+
+  @override
+  void warn(String message) {
+    _print('WARN: $message');
+  }
+}
+
 abstract class Reporter {
   void exception(LinterException exception);
   void warn(String message);
@@ -86,7 +125,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   RuleRegistry registry;
 
   SourceLinter(
-      {this.options, this.reporter: const StdIoReporter(), this.registry}) {
+      {this.options, this.reporter: const PrintingReporter(), this.registry}) {
     if (options == null) {
       options = new LinterOptions();
     }
@@ -125,40 +164,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   Iterable<AnalysisErrorInfo> _registerAndRun(_DriverFactory createDriver) {
     _registerLinters(registry.enabledLints);
     return createDriver().getErrors();
-  }
-}
-
-class StdIoReporter implements Reporter, Logger {
-  const StdIoReporter();
-
-  @override
-  void exception(LinterException exception) {
-    print('EXCEPTION: $exception');
-  }
-
-  @override
-  void logError(String message, [CaughtException exception]) {
-    print('ERROR: $message');
-  }
-
-  @override
-  void logError2(String message, Object exception) {
-    print('ERROR: $message');
-  }
-
-  @override
-  void logInformation(String message, [CaughtException exception]) {
-    print('INFO: $message');
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
-    print('INFO: $message');
-  }
-
-  @override
-  void warn(String message) {
-    print('WARN: $message');
   }
 }
 

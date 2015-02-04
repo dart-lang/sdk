@@ -66,6 +66,38 @@ void defineLinterEngineTests() {
       });
     });
 
+    group('reporter', () {
+      _test(String label, String expected, report(PrintingReporter r)) {
+        test(label, () {
+          String msg;
+          PrintingReporter reporter = new PrintingReporter((m) => msg = m);
+          report(reporter);
+          expect(msg, expected);
+        });
+      }
+
+      _test('exception', 'EXCEPTION: LinterException: foo',
+          (r) => r.exception(new LinterException('foo')));
+      _test('logError', 'ERROR: foo', (r) => r.logError('foo'));
+      _test('logError2', 'ERROR: foo',
+          (r) => r.logError2('foo', new Exception()));
+      _test('logInformation', 'INFO: foo', (r) => r.logInformation('foo'));
+      _test('logInformation2', 'INFO: foo',
+          (r) => r.logInformation2('foo', new Exception()));
+      _test('warn', 'WARN: foo', (r) => r.warn('foo'));
+    });
+
+    group('exceptions', () {
+      test('message', () {
+        expect(const LinterException('foo').message, equals('foo'));
+      });
+      test('toString', () {
+        expect(const LinterException().toString(), equals('LinterException'));
+        expect(const LinterException('foo').toString(),
+            equals('LinterException: foo'));
+      });
+    });
+
     group('source linter', () {
       test('enable rule', () {
         var registry = new MockRegistry();
