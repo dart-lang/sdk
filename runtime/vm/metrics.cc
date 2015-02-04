@@ -81,7 +81,11 @@ void Metric::PrintJSON(JSONStream* stream) {
   obj.AddProperty("name", name_);
   obj.AddProperty("description", description_);
   obj.AddProperty("unit", UnitString(unit()));
-  obj.AddPropertyF("id", "metrics/vm/%s", name_);
+  if (isolate_ == NULL) {
+    obj.AddPropertyF("id", "vm/metrics/%s", name_);
+  } else {
+    obj.AddPropertyF("id", "metrics/native/%s", name_);
+  }
   // TODO(johnmccutchan): Overflow?
   double value_as_double = static_cast<double>(Value());
   obj.AddProperty("value", value_as_double);

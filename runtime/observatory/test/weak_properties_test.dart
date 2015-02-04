@@ -4,7 +4,6 @@
 
 library vm_references_test;
 
-import 'dart:async';
 import 'dart:mirrors';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';

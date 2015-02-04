@@ -4,7 +4,6 @@
 
 library inbound_references_test;
 
-import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';

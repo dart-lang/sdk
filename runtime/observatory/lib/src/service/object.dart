@@ -1330,13 +1330,14 @@ class Isolate extends ServiceObjectOwner with Coverage {
   final ObservableMap<String, ServiceMetric> dartMetrics =
       new ObservableMap<String, ServiceMetric>();
 
-  final ObservableMap<String, ServiceMetric> vmMetrics =
+  final ObservableMap<String, ServiceMetric> nativeMetrics =
       new ObservableMap<String, ServiceMetric>();
 
   Future<ObservableMap<String, ServiceMetric>> _refreshMetrics(
-      String id,
+      String metricType,
       ObservableMap<String, ServiceMetric> metricsMap) {
-    return getDeprecated(id).then((result) {
+    return invokeRpc('getIsolateMetricList',
+                     { 'type': metricType }).then((result) {
       if (result is DartError) {
         // TODO(turnidge): Handle this more gracefully.
         Logger.root.severe(result.message);
@@ -1345,8 +1346,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
       // Clear metrics map.
       metricsMap.clear();
       // Repopulate metrics map.
-      var members = result['members'];
-      for (var metric in members) {
+      var metrics = result['metrics'];
+      for (var metric in metrics) {
         metricsMap[metric.id] = metric;
       }
       return metricsMap;
@@ -1354,15 +1355,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future<ObservableMap<String, ServiceMetric>> refreshDartMetrics() {
-    return _refreshMetrics('metrics', dartMetrics);
+    return _refreshMetrics('Dart', dartMetrics);
   }
 
-  Future<ObservableMap<String, ServiceMetric>> refreshVMMetrics() {
-    return _refreshMetrics('metrics/vm', vmMetrics);
+  Future<ObservableMap<String, ServiceMetric>> refreshNativeMetrics() {
+    return _refreshMetrics('Native', nativeMetrics);
   }
 
   Future refreshMetrics() {
-    return refreshDartMetrics().then((_) => refreshVMMetrics());
+    return Future.wait([refreshDartMetrics(), refreshNativeMetrics()]);
   }
 
   String toString() => "Isolate($_id)";
@@ -2822,8 +2823,8 @@ class ServiceMetric extends ServiceObject {
   }
 
   Future<ObservableMap> _fetchDirect() {
-    // TODO(johnmmccutchan): Make this use json rpc.
-    return vm._getAsMapDeprecated(link);
+    assert(owner is Isolate);
+    return isolate.invokeRpcNoUpgrade('getIsolateMetric', { 'metricId': id });
   }
 
 

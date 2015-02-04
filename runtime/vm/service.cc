@@ -2418,15 +2418,14 @@ static RawClass* GetMetricsClass(Isolate* isolate) {
 }
 
 
-static bool HandleIsolateMetricsList(Isolate* isolate, JSONStream* js) {
+static bool HandleNativeMetricsList(Isolate* isolate, JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "MetricList");
-  obj.AddProperty("id", "metrics/vm");
   {
-    JSONArray members(&obj, "members");
+    JSONArray metrics(&obj, "metrics");
     Metric* current = isolate->metrics_list_head();
     while (current != NULL) {
-      members.AddValue(current);
+      metrics.AddValue(current);
       current = current->next();
     }
   }
@@ -2434,7 +2433,7 @@ static bool HandleIsolateMetricsList(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleIsolateMetric(Isolate* isolate,
+static bool HandleNativeMetric(Isolate* isolate,
                                 JSONStream* js,
                                 const char* id) {
   Metric* current = isolate->metrics_list_head();
@@ -2447,12 +2446,12 @@ static bool HandleIsolateMetric(Isolate* isolate,
     }
     current = current->next();
   }
-  PrintError(js, "Metric %s not found\n", id);
+  PrintError(js, "Native Metric %s not found\n", id);
   return true;
 }
 
 
-static bool HandleMetricsList(Isolate* isolate, JSONStream* js) {
+static bool HandleDartMetricsList(Isolate* isolate, JSONStream* js) {
   const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
   const String& print_metrics_name =
       String::Handle(String::New("_printMetrics"));
@@ -2472,7 +2471,7 @@ static bool HandleMetricsList(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleMetric(Isolate* isolate, JSONStream* js, const char* id) {
+static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
   const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
   const String& print_metric_name =
       String::Handle(String::New("_printMetric"));
@@ -2494,33 +2493,71 @@ static bool HandleMetric(Isolate* isolate, JSONStream* js, const char* id) {
     buffer->AddString(String::Cast(result).ToCString());
     return true;
   }
-  PrintError(js, "Metric %s not found\n", id);
+  PrintError(js, "Dart Metric %s not found\n", id);
   return true;
 }
 
 
-static bool HandleMetrics(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() == 1) {
-    return HandleMetricsList(isolate, js);
-  }
-  ASSERT(js->num_arguments() > 1);
-  const char* arg = js->GetArgument(1);
-  if (strcmp(arg, "vm") == 0) {
-    if (js->num_arguments() == 2) {
-      return HandleIsolateMetricsList(isolate, js);
+static bool HandleIsolateGetMetricList(Isolate* isolate, JSONStream* js) {
+  bool native_metrics = false;
+  if (js->HasOption("type")) {
+    if (js->OptionIs("type", "Native")) {
+      native_metrics = true;
+    } else if (js->OptionIs("type", "Dart")) {
+      native_metrics = false;
     } else {
-      if (js->num_arguments() > 3) {
-        PrintError(js, "Command too long");
-        return true;
-      }
-      return HandleIsolateMetric(isolate, js, js->GetArgument(2));
+      PrintError(js, "Invalid 'type' option value: %s\n",
+                 js->LookupOption("type"));
+      return true;
     }
-  }
-  if (js->num_arguments() > 2) {
-    PrintError(js, "Command too long");
+  } else {
+    PrintError(js, "Expected 'type' option.");
     return true;
   }
-  return HandleMetric(isolate, js, arg);
+  if (native_metrics) {
+    return HandleNativeMetricsList(isolate, js);
+  }
+  return HandleDartMetricsList(isolate, js);
+}
+
+
+static bool HandleIsolateGetMetric(Isolate* isolate, JSONStream* js) {
+  const char* metric_id = js->LookupOption("metricId");
+  if (metric_id == NULL) {
+    PrintError(js, "Expected 'metricId' option.");
+    return true;
+  }
+  // Verify id begins with "metrics/".
+  static const char* kMetricIdPrefix = "metrics/";
+  static intptr_t kMetricIdPrefixLen = strlen(kMetricIdPrefix);
+  if (strncmp(metric_id, kMetricIdPrefix, kMetricIdPrefixLen) != 0) {
+    PrintError(js, "Metric %s not found\n", metric_id);
+  }
+  // Check if id begins with "metrics/native/".
+  static const char* kNativeMetricIdPrefix = "metrics/native/";
+  static intptr_t kNativeMetricIdPrefixLen = strlen(kNativeMetricIdPrefix);
+  const bool native_metric =
+      strncmp(metric_id, kNativeMetricIdPrefix, kNativeMetricIdPrefixLen) == 0;
+  if (native_metric) {
+    const char* id = metric_id + kNativeMetricIdPrefixLen;
+    return HandleNativeMetric(isolate, js, id);
+  }
+  const char* id = metric_id + kMetricIdPrefixLen;
+  return HandleDartMetric(isolate, js, id);
+}
+
+
+static bool HandleVMGetMetricList(JSONStream* js) {
+  return false;
+}
+
+
+static bool HandleVMGetMetric(JSONStream* js) {
+  const char* metric_id = js->LookupOption("metricId");
+  if (metric_id == NULL) {
+    PrintError(js, "Expected 'metricId' option.");
+  }
+  return false;
 }
 
 
@@ -2918,7 +2955,6 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "classes", HandleClasses },                   // getObject
   { "code", HandleCode },                         // getObject
   { "libraries", HandleLibraries },               // getObject
-  { "metrics", HandleMetrics },                   // to do - complex?
   { "objects", HandleObjects },                   // getObject
   { "scripts", HandleScripts },                   // getObject
 };
@@ -3034,6 +3070,8 @@ static IsolateMessageHandlerEntry isolate_handlers_new[] = {
   { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot },
   { "getClassList", HandleIsolateGetClassList },
   { "getTypeArgumentsList", HandleIsolateGetTypeArgumentsList },
+  { "getIsolateMetricList", HandleIsolateGetMetricList },
+  { "getIsolateMetric", HandleIsolateGetMetric },
   { "_echo", HandleIsolateEcho },
   { "_triggerEchoEvent", HandleIsolateTriggerEchoEvent },
   { "_respondWithMalformedJson", HandleIsolateRespondWithMalformedJson },
@@ -3315,6 +3353,8 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
 
 static RootMessageHandlerEntry root_handlers_new[] = {
   { "getVM", HandleVM },
+  { "getVMMetricList", HandleVMGetMetricList },
+  { "getVMMetric", HandleVMGetMetric },
   { "_echo", HandleRootEcho },
 };
 

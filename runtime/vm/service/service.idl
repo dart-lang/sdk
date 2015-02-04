@@ -82,6 +82,16 @@ interface Service {
   getTypeArgumentsList(isolateId string,
                        onlyWithInstantiations bool) TypeArgumentsList
 
+  getIsolateMetricList(isolateId string,
+                       type MetricSelector) MetricList
+
+  getIsolateMetric(isolateId string,
+                   metricId string) Metric
+
+  getVMMetricList() MetricList
+
+  getVMMetric(metricId string) Metric
+
   _echo(isolateId string,
         text string) _EchoResponse
 
@@ -320,15 +330,38 @@ struct InboundReference {
 }
 
 
-struct ClassList {
+struct ClassList extends Response {
   classes []ClassRef
 }
 
 
-struct TypeArgumentsList {
+struct TypeArgumentsList extends Response {
   tableSize int
   tableUsed int
   typeArguments []TypeArgumentsRef
+}
+
+
+struct MetricList extends Response {
+  metrics []Metric
+}
+
+
+struct Metric extends Response {
+  name string
+  description string
+}
+
+
+struct Gauge extends Metric {
+  value double
+  min double
+  max double
+}
+
+
+struct Counter extends Metric {
+  value double
 }
 
 
@@ -356,3 +389,9 @@ enum TagSelector {
   None
 }
 
+// A <code>MetricSelector</code> is used to indicate which list of metrics
+// should be retrieved from an isolate.
+enum MetricSelector {
+  Dart,
+  Native,
+}
