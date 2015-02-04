@@ -189,6 +189,11 @@ analysis_server/test/edit/format_test: StaticWarning # Issue 22252
 analysis_server/test/edit/refactoring_test: StaticWarning # Issue 22252
 analysis_server/test/edit/fixes_test: StaticWarning # Issue 22252
 analysis_server/test/socket_server_test: StaticWarning # Issue 22252
+analysis_server/test/search/type_hierarchy_test: StaticWarning # Issue 22252
+analysis_server/test/search/top_level_declarations_test: StaticWarning # Issue 22252
+analysis_server/test/search/member_references_test: StaticWarning # Issue 22252
+analysis_server/test/search/member_declarations_test: StaticWarning # Issue 22252
+analysis_server/test/search/element_references_test: StaticWarning # Issue 22252
 
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
