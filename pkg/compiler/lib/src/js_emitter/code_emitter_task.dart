@@ -52,11 +52,11 @@ class CodeEmitterTask extends CompilerTask {
       : super(compiler),
         this.namer = namer,
         this.typeTestRegistry = new TypeTestRegistry(compiler) {
+    nativeEmitter = new NativeEmitter(this);
     oldEmitter = new OldEmitter(compiler, namer, generateSourceMap, this);
     emitter = USE_NEW_EMITTER
-        ? new new_js_emitter.Emitter(compiler, namer)
+        ? new new_js_emitter.Emitter(compiler, namer, nativeEmitter)
         : oldEmitter;
-    nativeEmitter = new NativeEmitter(this);
     metadataCollector = new MetadataCollector(compiler, emitter);
   }
 

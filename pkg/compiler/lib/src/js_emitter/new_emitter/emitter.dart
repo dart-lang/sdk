@@ -11,7 +11,13 @@ import '../../common.dart';
 import '../../elements/elements.dart' show FieldElement;
 import '../../js/js.dart' as js;
 
-import '../../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
+import '../../js_backend/js_backend.dart' show
+    JavaScriptBackend,
+    Namer;
+
+import '../js_emitter.dart' show
+    NativeEmitter;
+
 import '../js_emitter.dart' as emitterTask show
     Emitter;
 
@@ -20,10 +26,10 @@ class Emitter implements emitterTask.Emitter {
   final Namer namer;
   final ModelEmitter _emitter;
 
-  Emitter(Compiler compiler, Namer namer)
+  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer);
+        _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
 
   @override
   int emitProgram(ProgramBuilder programBuilder) {
