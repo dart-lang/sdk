@@ -413,7 +413,7 @@ class ModelEmitter {
 
     js.Expression fieldName = js.string(field.name);
     js.Expression code = js.js(getterTemplateFor(field.getterFlags), fieldName);
-    String getterName = "${namer.getterPrefix}${field.name}";
+    String getterName = "${namer.getterPrefix}${field.accessorName}";
     return new StubMethod(getterName, code);
   }
 
