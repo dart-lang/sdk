@@ -30618,7 +30618,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
-  final int _pageXOffset;
+  final double _pageXOffset;
 
   @JSName('pageYOffset')
   /**
@@ -30635,7 +30635,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
-  final int _pageYOffset;
+  final double _pageYOffset;
 
   @DomName('Window.parent')
   @DocsEditable()

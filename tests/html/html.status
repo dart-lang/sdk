@@ -23,9 +23,6 @@ media_stream_test/constructors: Pass, Crash # Issue 22267
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
 
-[ $compiler == none && $checked && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-window_test: RuntimeError # Issue 22266
-
 [ $compiler == dart2js ]
 input_element_test/attributes: Fail # Issue 21555
 

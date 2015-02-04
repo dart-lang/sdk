@@ -1008,8 +1008,6 @@ LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-
 LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/shapes/parsing/parsing-shape-outside_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/dom/left-overflow-in-ltr_t01: RuntimeError # Chrome 39 roll: Please triage this failure.
-LayoutTests/fast/dom/vertical-scrollbar-when-dir-change_t01: RuntimeError # Chrome 39 roll: Please triage this failure.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: Skip # Issue 19495.

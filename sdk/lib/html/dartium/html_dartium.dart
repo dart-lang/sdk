@@ -33207,7 +33207,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
-  int get _pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(this);
+  double get _pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(this);
 
   /**
    * The distance this window has been scrolled vertically.
@@ -33223,7 +33223,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
-  int get _pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(this);
+  double get _pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(this);
 
   @DomName('Window.parent')
   @DocsEditable()
@@ -33310,11 +33310,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.scrollX')
   @DocsEditable()
-  int get _scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(this);
+  double get _scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(this);
 
   @DomName('Window.scrollY')
   @DocsEditable()
-  int get _scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(this);
+  double get _scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(this);
 
   /**
    * This window's scroll bars.
