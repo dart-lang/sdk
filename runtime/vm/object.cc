@@ -5870,7 +5870,7 @@ const char* Function::ToQualifiedCString() const {
 
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
-  ASSERT(FLAG_error_on_bad_override);
+  ASSERT(Isolate::Current()->ErrorOnBadOverrideEnabled());
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -13559,7 +13559,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     const AbstractType& instantiated_other = AbstractType::Handle(
         isolate, other.InstantiateFrom(other_instantiator, bound_error));
     if ((bound_error != NULL) && !bound_error->IsNull()) {
-      ASSERT(FLAG_enable_type_checks);
+      ASSERT(Isolate::Current()->TypeChecksEnabled());
       return false;
     }
     other_class = instantiated_other.type_class();
@@ -14228,14 +14228,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // type and/or malbounded parameter types, which will then be encountered here
   // at run time.
   if (IsMalbounded()) {
-    ASSERT(FLAG_enable_type_checks);
+    ASSERT(Isolate::Current()->TypeChecksEnabled());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = error();
     }
     return false;
   }
   if (other.IsMalbounded()) {
-    ASSERT(FLAG_enable_type_checks);
+    ASSERT(Isolate::Current()->TypeChecksEnabled());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = other.error();
     }
@@ -14442,7 +14442,7 @@ bool Type::IsMalformed() const {
 
 
 bool Type::IsMalbounded() const {
-  if (!FLAG_enable_type_checks) {
+  if (!Isolate::Current()->TypeChecksEnabled()) {
     return false;
   }
   if (raw_ptr()->error_ == LanguageError::null()) {
@@ -14462,7 +14462,7 @@ bool Type::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return FLAG_enable_type_checks;
+  return Isolate::Current()->TypeChecksEnabled();
 }
 
 
@@ -15439,7 +15439,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
                                                 bound_error,
                                                 trail);
   }
-  if (FLAG_enable_type_checks &&
+  if ((Isolate::Current()->TypeChecksEnabled()) &&
       (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());

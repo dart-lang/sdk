@@ -1940,7 +1940,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (FLAG_enable_type_checks || HasUses()) ? this : NULL;
+  return (Isolate::Current()->TypeChecksEnabled() || HasUses()) ? this : NULL;
 }
 
 

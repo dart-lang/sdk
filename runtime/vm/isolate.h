@@ -22,6 +22,11 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, enable_asserts);
+DECLARE_FLAG(bool, error_on_bad_type);
+DECLARE_FLAG(bool, error_on_bad_override);
+
 // Forward declarations.
 class AbstractType;
 class ApiState;
@@ -357,6 +362,24 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
+  void set_has_compiled(bool value) { has_compiled_ = value; }
+  bool has_compiled() const { return has_compiled_; }
+
+  void set_strict_compilation(bool value) { strict_compilation_ = value; }
+  bool strict_compilation() const { return strict_compilation_; }
+  bool TypeChecksEnabled() {
+    return FLAG_enable_type_checks || strict_compilation_;
+  }
+  bool AssertsEnabled() {
+    return FLAG_enable_asserts || strict_compilation_;
+  }
+  bool ErrorOnBadTypeEnabled() {
+    return FLAG_error_on_bad_type || strict_compilation_;
+  }
+  bool ErrorOnBadOverrideEnabled() {
+    return FLAG_error_on_bad_override || strict_compilation_;
+  }
+
   // Requests that the debugger resume execution.
   void Resume() {
     resume_request_ = true;
@@ -649,6 +672,8 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   bool single_step_;
   bool resume_request_;
+  bool has_compiled_;
+  bool strict_compilation_;
   Random random_;
   Simulator* simulator_;
   LongJumpScope* long_jump_base_;

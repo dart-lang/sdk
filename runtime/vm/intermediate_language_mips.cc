@@ -433,7 +433,7 @@ static void EmitAssertBoolean(Register reg,
   ASSERT(locs->always_calls());
   Label done;
 
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     __ BranchEqual(reg, Bool::True(), &done);
     __ BranchEqual(reg, Bool::False(), &done);
   } else {

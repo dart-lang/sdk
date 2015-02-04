@@ -1384,6 +1384,18 @@ DART_EXPORT void Dart_ExitIsolate() {
 }
 
 
+DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value) {
+  CHECK_ISOLATE(Isolate::Current());
+  Isolate* isolate = Isolate::Current();
+  if (isolate->has_compiled()) {
+    return Api::NewError(
+        "%s expects that the isolate has not yet compiled code.", CURRENT_FUNC);
+  }
+  Isolate::Current()->set_strict_compilation(value);
+  return Api::Null();
+}
+
+
 static uint8_t* ApiReallocate(uint8_t* ptr,
                               intptr_t old_size,
                               intptr_t new_size) {
@@ -3861,6 +3873,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   // TODO(turnidge): This is a bit simplistic.  It overcounts when
   // other operations (gc, compilation) are active.
   TIMERSCOPE(isolate, time_dart_execution);
+
+  isolate->set_has_compiled(true);
 
   const String& function_name = Api::UnwrapStringHandle(isolate, name);
   if (function_name.IsNull()) {

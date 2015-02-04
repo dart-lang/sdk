@@ -44,7 +44,7 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   Label fall_through;
 
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     const intptr_t type_args_field_offset =
         ComputeObjectArrayTypeArgumentsOffset();
     // Inline simple tests (Smi, null), fallthrough if not positive.
@@ -147,7 +147,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     return;
   }
   Label fall_through;

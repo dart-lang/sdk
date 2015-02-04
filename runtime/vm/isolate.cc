@@ -455,6 +455,8 @@ Isolate::Isolate()
       debugger_(NULL),
       single_step_(false),
       resume_request_(false),
+      has_compiled_(false),
+      strict_compilation_(false),
       random_(),
       simulator_(NULL),
       long_jump_base_(NULL),

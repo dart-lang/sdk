@@ -3130,7 +3130,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // Populate function scope with the formal parameters.
     AddFormalParamsToScope(&params, current_block_->scope);
 
-    if (FLAG_enable_type_checks &&
+    if (I->TypeChecksEnabled() &&
         (current_block_->scope->function_level() > 0)) {
       // We are parsing, but not compiling, a local function.
       // The instantiator may be required at run time for generic type checks.
@@ -6571,7 +6571,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
   bool is_final = (CurrentToken() == Token::kFINAL);
   bool is_const = (CurrentToken() == Token::kCONST);
   const AbstractType& type = AbstractType::ZoneHandle(Z,
-      ParseConstFinalVarOrType(FLAG_enable_type_checks ?
+      ParseConstFinalVarOrType(I->TypeChecksEnabled() ?
           ClassFinalizer::kCanonicalize : ClassFinalizer::kIgnore));
   if (!IsIdentifier()) {
     ReportError("identifier expected");
@@ -7559,8 +7559,8 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-       FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
-                                 ClassFinalizer::kIgnore);
+       I->TypeChecksEnabled() ? ClassFinalizer::kCanonicalize :
+                                ClassFinalizer::kIgnore);
   }
   intptr_t loop_var_pos = TokenPos();
   const String* loop_var_name = ExpectIdentifier("variable name expected");
@@ -7702,8 +7702,8 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-        FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
-                                  ClassFinalizer::kIgnore);
+        I->TypeChecksEnabled() ? ClassFinalizer::kCanonicalize :
+                                 ClassFinalizer::kIgnore);
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
@@ -7921,7 +7921,7 @@ AstNode* Parser::ParseAssertStatement() {
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
   const intptr_t condition_pos = TokenPos();
-  if (!FLAG_enable_asserts && !FLAG_enable_type_checks) {
+  if (!I->AssertsEnabled() && !I->TypeChecksEnabled()) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -10831,7 +10831,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                     "include a type variable");
       }
     } else {
-      if (FLAG_error_on_bad_type) {
+      if (I->ErrorOnBadTypeEnabled()) {
         ReportError(type_pos,
                     "a list literal takes one type argument specifying "
                     "the element type");
@@ -10854,7 +10854,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     while (CurrentToken() != Token::kRBRACK) {
       const intptr_t element_pos = TokenPos();
       AstNode* element = ParseExpr(is_const, kConsumeCascades);
-      if (FLAG_enable_type_checks &&
+      if (I->TypeChecksEnabled() &&
           !is_const &&
           !element_type.IsDynamicType()) {
         element = new(Z) AssignableNode(element_pos,
@@ -10885,7 +10885,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (FLAG_enable_type_checks &&
+      if (I->TypeChecksEnabled() &&
           !element_type.IsDynamicType() &&
           (!elem->AsLiteralNode()->literal().IsNull() &&
            !elem->AsLiteralNode()->literal().IsInstanceOf(
@@ -11028,7 +11028,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                     "include a type variable");
       }
     } else {
-      if (FLAG_error_on_bad_type) {
+      if (I->ErrorOnBadTypeEnabled()) {
         ReportError(type_pos,
                     "a map literal takes two type arguments specifying "
                     "the key type and the value type");
@@ -11047,7 +11047,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const intptr_t key_pos = TokenPos();
     AstNode* key = ParseExpr(is_const, kConsumeCascades);
-    if (FLAG_enable_type_checks &&
+    if (I->TypeChecksEnabled() &&
         !is_const &&
         !key_type.IsDynamicType()) {
       key = new(Z) AssignableNode(
@@ -11070,7 +11070,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const intptr_t value_pos = TokenPos();
     AstNode* value = ParseExpr(is_const, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
-    if (FLAG_enable_type_checks &&
+    if (I->TypeChecksEnabled() &&
         !is_const &&
         !value_type.IsDynamicType()) {
       value = new(Z) AssignableNode(
@@ -11102,7 +11102,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (FLAG_enable_type_checks) {
+      if (I->TypeChecksEnabled()) {
         if ((i % 2) == 0) {
           // Check key type.
           arg_type = key_type.raw();
@@ -11427,7 +11427,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      if (FLAG_enable_type_checks && !redirect_type.IsSubtypeOf(type, NULL)) {
+      if (I->TypeChecksEnabled() && !redirect_type.IsSubtypeOf(type, NULL)) {
         // Additional type checking of the result is necessary.
         type_bound = type.raw();
       }

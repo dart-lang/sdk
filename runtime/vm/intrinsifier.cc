@@ -596,7 +596,9 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
 
 
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
-  if (FLAG_enable_type_checks) return false;
+  if (Isolate::Current()->TypeChecksEnabled()) {
+    return false;
+  }
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();

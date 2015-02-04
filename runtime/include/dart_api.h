@@ -977,6 +977,19 @@ DART_EXPORT void Dart_ExitIsolate();
  * "pure" dart isolate. Implement and document. */
 
 /**
+ * Enables/Disables strict compilation for the current Isolate.
+ * Strict compilation includes:
+ * - type-checking
+ * - asserts
+ * - errors on bad types
+ * - errors on bad overrides
+ *
+ * This call requires there to be a current isolate, and requires that there has
+ * not yet been any compilation for the current Isolate.
+ */
+DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value);
+
+/**
  * Creates a full snapshot of the current isolate heap.
  *
  * A full snapshot is a compact representation of the dart heap state and

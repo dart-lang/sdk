@@ -332,7 +332,7 @@ static void EmitAssertBoolean(Register reg,
   ASSERT(locs->always_calls());
   Label done;
 
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     __ CompareObject(reg, Bool::True(), PP);
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ CompareObject(reg, Bool::False(), PP);

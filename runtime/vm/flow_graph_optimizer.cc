@@ -1199,7 +1199,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(I, call);
   Instruction* cursor = *entry;
-  if (FLAG_enable_type_checks) {
+  if (I->TypeChecksEnabled()) {
     // Only type check for the value. A type check for the index is not
     // needed here because we insert a deoptimizing smi-check for the case
     // the index is not a smi.
@@ -4498,7 +4498,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.NumArgsTested() == 1));
-  if (FLAG_enable_type_checks) {
+  if (I->TypeChecksEnabled()) {
     // Checked mode setters are inlined like normal methods by conventional
     // inlining.
     return false;

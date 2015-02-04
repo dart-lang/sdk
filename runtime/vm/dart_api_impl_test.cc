@@ -3580,6 +3580,37 @@ UNIT_TEST_CASE(CurrentIsolateData) {
 }
 
 
+TEST_CASE(IsolateSetCheckedMode) {
+  const char* kScriptChars =
+      "int bad1() {\n"
+      "  int foo = 'string';\n"
+      "  return foo;\n"
+      "}\n"
+      "\n"
+      "int good1() {\n"
+      "  int five = 5;\n"
+      "  return five;"
+      "}\n";
+  Dart_Handle result;
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  result = Dart_IsolateSetStrictCompilation(true);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, NewString("bad1"), 0, NULL);
+  EXPECT_ERROR(result, "Unhandled exception:\n"
+      "type 'String' is not a subtype of type 'int' of 'foo'");
+
+  result = Dart_Invoke(lib, NewString("good1"), 0, NULL);
+  EXPECT_VALID(result);
+
+  result = Dart_IsolateSetStrictCompilation(false);
+  EXPECT_ERROR(result, "Dart_IsolateSetStrictCompilation expects that the "
+                       "isolate has not yet compiled code.");
+}
+
+
 TEST_CASE(DebugName) {
   Dart_Handle debug_name = Dart_DebugName();
   EXPECT_VALID(debug_name);

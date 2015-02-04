@@ -3224,6 +3224,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
 
 
 static bool HandleVM(JSONStream* js) {
+  Isolate* isolate = Isolate::Current();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
   jsobj.AddProperty("id", "vm");
@@ -3236,8 +3237,8 @@ static bool HandleVM(JSONStream* js) {
   // pids > 53-bits (when consumed by JavaScript).
   // TODO(johnmccutchan): Codify how integers are sent across the service.
   jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
-  jsobj.AddProperty("assertsEnabled", FLAG_enable_asserts);
-  jsobj.AddProperty("typeChecksEnabled", FLAG_enable_type_checks);
+  jsobj.AddProperty("assertsEnabled", isolate->AssertsEnabled());
+  jsobj.AddProperty("typeChecksEnabled", isolate->TypeChecksEnabled());
   int64_t start_time_micros = Dart::vm_isolate()->start_time();
   int64_t uptime_micros = (OS::GetCurrentTimeMicros() - start_time_micros);
   double seconds = (static_cast<double>(uptime_micros) /
