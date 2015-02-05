@@ -61,8 +61,8 @@ class Heap {
 #if defined(DEBUG)
   // Pattern for unused new space and swept old space.
   static const uint64_t kZap64Bits = 0xf3f3f3f3f3f3f3f3;
-  static const uint32_t kZap32Bits = static_cast<uint32_t>(kZap64Bits);
-  static const uint8_t kZapByte = static_cast<uint8_t>(kZap64Bits);
+  static const uint32_t kZap32Bits = 0xf3f3f3f3;
+  static const uint8_t kZapByte = 0xf3;
 #endif  // DEBUG
 
   ~Heap();
