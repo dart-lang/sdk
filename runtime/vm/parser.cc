@@ -5945,7 +5945,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   completer_args->Add(
       new (Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_param.var));
   current_block_->statements->Add(new (Z) InstanceCallNode(
-      Scanner::kNoSourcePos,
+      TokenPos(),
       new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_completer),
       Symbols::CompleterCompleteError(),
       completer_args));
@@ -6234,7 +6234,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   current_block_->statements->Add(store_async_op);
 
   // Add to AST:
-  //   new Future(:async_op);
+  //   new Future.microtask(:async_op);
   ArgumentListNode* arguments = new (Z) ArgumentListNode(Scanner::kNoSourcePos);
   arguments->Add(new (Z) LoadLocalNode(
       Scanner::kNoSourcePos, async_op_var));
@@ -9416,7 +9416,7 @@ AstNode* Parser::ParseUnaryExpr() {
     TRACE_PARSER("ParseAwaitExpr");
     ConsumeToken();
     parsed_function()->record_await();
-    expr = new (Z) AwaitNode(TokenPos(), ParseUnaryExpr());
+    expr = new (Z) AwaitNode(op_pos, ParseUnaryExpr());
   } else if (IsPrefixOperator(CurrentToken())) {
     Token::Kind unary_op = CurrentToken();
     if (unary_op == Token::kSUB) {

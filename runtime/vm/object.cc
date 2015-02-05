@@ -20099,6 +20099,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
                                    intptr_t frame_index) {
   const char* kFormatWithCol = "#%-6d %s (%s:%d:%d)\n";
   const char* kFormatNoCol = "#%-6d %s (%s:%d)\n";
+  const char* kFormatNoLine = "#%-6d %s (%s)\n";
   const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
   const Script& script = Script::Handle(isolate, function.script());
   const String& function_name =
@@ -20106,7 +20107,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
   const String& url = String::Handle(isolate, script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos >= 0) {
+  if (token_pos > 0) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {
@@ -20124,7 +20125,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
                 frame_index,
                 function_name.ToCString(),
                 url.ToCString(), line, column);
-  } else {
+  } else if (line >= 0) {
     len = OS::SNPrint(NULL, 0, kFormatNoCol,
                       frame_index, function_name.ToCString(),
                       url.ToCString(), line);
@@ -20132,6 +20133,14 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
     OS::SNPrint(chars, (len + 1), kFormatNoCol,
                 frame_index, function_name.ToCString(),
                 url.ToCString(), line);
+  } else {
+    len = OS::SNPrint(NULL, 0, kFormatNoLine,
+                      frame_index, function_name.ToCString(),
+                      url.ToCString());
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, (len + 1), kFormatNoLine,
+                frame_index, function_name.ToCString(),
+                url.ToCString());
   }
   frame_strings->Add(chars);
   return len;
