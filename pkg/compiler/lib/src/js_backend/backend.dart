@@ -93,6 +93,8 @@ class JavaScriptBackend extends Backend {
 
   String get patchVersion => USE_NEW_EMITTER ? 'new' : 'old';
 
+  final Annotations annotations = new Annotations();
+
   /// List of [FunctionElement]s that we want to inline always.  This list is
   /// filled when resolution is complete by looking up in [internalLibrary].
   List<FunctionElement> functionsToAlwaysInline;
@@ -1805,6 +1807,7 @@ class JavaScriptBackend extends Backend {
       } else if (uri == DART_HTML) {
         htmlLibraryIsLoaded = true;
       }
+      annotations.onLibraryScanned(library);
     });
   }
 
@@ -2330,6 +2333,65 @@ class JavaScriptBackend extends Backend {
     String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
     String extension = addExtension ? ".part.js" : "";
     return "${outName}_$name$extension";
+  }
+}
+
+/// Handling of special annotations for tests.
+class Annotations {
+  static final Uri PACKAGE_EXPECT =
+      new Uri(scheme: 'package', path: 'expect/expect.dart');
+
+  ClassElement expectNoInliningClass;
+  ClassElement expectTrustTypeAnnotationsClass;
+  ClassElement expectAssumeDynamicClass;
+
+  void onLibraryScanned(LibraryElement library) {
+    if (library.canonicalUri == PACKAGE_EXPECT) {
+      expectNoInliningClass = library.find('NoInlining');
+      expectTrustTypeAnnotationsClass = library.find('TrustTypeAnnotations');
+      expectAssumeDynamicClass = library.find('AssumeDynamic');
+      if (expectNoInliningClass == null ||
+          expectTrustTypeAnnotationsClass == null ||
+          expectAssumeDynamicClass == null) {
+        // This is not the package you're looking for.
+        expectNoInliningClass = null;
+        expectTrustTypeAnnotationsClass = null;
+        expectAssumeDynamicClass = null;
+      }
+    }
+  }
+
+  /// Returns `true` if inlining is disabled for [element].
+  bool noInlining(Element element) {
+    return _hasAnnotation(element, expectNoInliningClass);
+  }
+
+  /// Returns `true` if parameter and returns types should be trusted for
+  /// [element].
+  bool trustTypeAnnotations(Element element) {
+    return _hasAnnotation(element, expectTrustTypeAnnotationsClass);
+  }
+
+  /// Returns `true` if inference of parameter types is disabled for [element].
+  bool assumeDynamic(Element element) {
+    return _hasAnnotation(element, expectAssumeDynamicClass);
+  }
+
+  /// Returns `true` if [element] is annotated with [annotationClass].
+  bool _hasAnnotation(Element element, ClassElement annotationClass) {
+    if (annotationClass == null) return false;
+    for (Link<MetadataAnnotation> link = element.metadata;
+         !link.isEmpty;
+         link = link.tail) {
+      ConstantValue value = link.head.constant.value;
+      if (value.isConstructedObject) {
+        ConstructedConstantValue constructedConstant = value;
+        if (constructedConstant.type.element == annotationClass) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
 

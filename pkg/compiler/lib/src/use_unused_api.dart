@@ -176,6 +176,9 @@ useJs(js.Node node) {
 
 useJsBackend(js_backend.JavaScriptBackend backend) {
   backend.assembleCode(null);
+  backend.annotations.noInlining(null);
+  backend.annotations.trustTypeAnnotations(null);
+  backend.annotations.assumeDynamic(null);
 }
 
 useConcreteTypesInferrer(concrete_types_inferrer.ConcreteTypesInferrer c) {
