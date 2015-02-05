@@ -10,3 +10,8 @@ A Dart style linter.
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dart-lang/cli_util/issues
+
+### Contributing
+
+Contributions welcome! Please read the
+[contribution guidelines](CONTRIBUTING.md).
