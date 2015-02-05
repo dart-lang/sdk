@@ -1551,17 +1551,8 @@ class StandardTestSuite extends TestSuite {
     List<String> dartOptions = optionsFromFile["dartOptions"];
 
     assert(!isMultitest || dartOptions == null);
-    if (dartOptions == null) {
-      args.add(filePath.toNativePath());
-    } else {
-      var executable_name = dartOptions[0];
-      // TODO(ager): Get rid of this hack when the runtime checkout goes away.
-      var file = new File(executable_name);
-      if (!file.existsSync()) {
-        executable_name = '../$executable_name';
-        assert(new File(executable_name).existsSync());
-        dartOptions[0] = executable_name;
-      }
+    args.add(filePath.toNativePath());
+    if (dartOptions != null) {
       args.addAll(dartOptions);
     }
 

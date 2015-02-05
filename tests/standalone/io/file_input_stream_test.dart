@@ -11,8 +11,12 @@ import "package:expect/expect.dart";
 
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
-String getFilename(String path) =>
-    new File(path).existsSync() ? path : '../$path';
+String getFilename(String path) {
+  var testPath = Platform.script.resolve('../../../$path');
+  return new File.fromUri(testPath).existsSync()
+      ? testPath.toFilePath()
+      : Platform.script.resolve('../../../runtime/$path').toFilePath();
+}
 
 void testStringLineSplitter() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
