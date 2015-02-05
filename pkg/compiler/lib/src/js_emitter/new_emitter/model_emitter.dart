@@ -785,7 +785,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     if (typeof descriptor[2] !== 'function') {
       constructor = compileMixinConstructor(name, prototype, descriptor);
       for (var i = 4; i < descriptor.length; i += 2) {
-        parseFunctionDescriptor(prototype, descriptor, descriptor[i + 1]);
+        parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
       }
     } else {
       constructor = descriptor[2];
