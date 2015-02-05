@@ -330,8 +330,11 @@ abstract class IntegrationTestMixin {
   /**
    * Sets the root paths used to determine which files to analyze. The set of
    * files to be analyzed are all of the files in one of the root paths that
-   * are not also in one of the excluded paths and do not start with a dot
-   * ('.').
+   * are not either explicitly or implicitly excluded. A file is explicitly
+   * excluded if it is in one of the excluded paths. A file is implicitly
+   * excluded if it is in a subdirectory of one of the root paths where the
+   * name of the subdirectory starts with a period (that is, a hidden
+   * directory).
    *
    * Note that this request determines the set of requested analysis roots. The
    * actual set of analysis roots at any given time is the intersection of this
