@@ -83,7 +83,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     return new js.Fun(parameters, new js.Block(accumulator));
   }
 
-  js.Expression visit(tree_ir.Expression node) {
+  @override
+  js.Expression visitExpression(tree_ir.Expression node) {
     js.Expression result = node.accept(this);
     if (result == null) {
       glue.reportInternalError('$node did not produce code.');
@@ -141,9 +142,9 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   @override
   js.Expression visitConditional(tree_ir.Conditional node) {
     return new js.Conditional(
-        visit(node.condition),
-        visit(node.thenExpression),
-        visit(node.elseExpression));
+        visitExpression(node.condition),
+        visitExpression(node.thenExpression),
+        visitExpression(node.elseExpression));
   }
 
   js.Expression buildConstant(ConstantValue constant) {
@@ -285,7 +286,10 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitLogicalOperator(tree_ir.LogicalOperator node) {
-    return new js.Binary(node.operator, visit(node.left), visit(node.right));
+    return new js.Binary(
+        node.operator,
+        visitExpression(node.left),
+        visitExpression(node.right));
   }
 
   @override
