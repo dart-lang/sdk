@@ -5,6 +5,6 @@ description: Style linter for Dart.
 homepage: https://github.com/dart-lang/dart_lint
 dependencies:
   analyzer: '0.23.0-dev.16'
-  grinder: '>=0.6.0 <0.7.0'
+  cli_util: '>=0.0.1 <0.1.0'
 dev_dependencies:
   unittest: '>=0.11.0 <0.12.0'

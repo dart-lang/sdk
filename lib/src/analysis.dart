@@ -26,7 +26,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:grinder/grinder.dart' as grinder;
+import 'package:cli_util/cli_util.dart' as cli_util;
 
 /// Returns `true` if [AnalysisError] should be printed.
 typedef bool ErrorFilter(AnalysisError error);
@@ -438,8 +438,8 @@ class AnalysisDriver {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
     } else if (sdk == null) {
       // In case no SDK has been specified, fall back to inferring it
-      // TODO: pass args to grinder
-      Directory sdkDir = grinder.getSdkDir();
+      // TODO: pass args to cli_util
+      Directory sdkDir = cli_util.getSdkDir();
       sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDir.path));
     }
   }
