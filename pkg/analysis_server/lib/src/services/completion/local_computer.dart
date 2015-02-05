@@ -160,7 +160,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.IDENTIFIER,
-            COMPLETION_RELEVANCE_DEFAULT,
+            DART_RELEVANCE_DEFAULT,
             completion,
             completion.length,
             0,
@@ -211,7 +211,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         declaration.name,
         NO_RETURN_TYPE,
         isDeprecated,
-        COMPLETION_RELEVANCE_DEFAULT);
+        DART_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS,
@@ -229,7 +229,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         declaration.name,
         NO_RETURN_TYPE,
         isDeprecated,
-        COMPLETION_RELEVANCE_DEFAULT);
+        DART_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS_TYPE_ALIAS,
@@ -270,7 +270,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     TypeName returnType = declaration.returnType;
     bool isDeprecated = _isDeprecated(declaration);
     protocol.ElementKind kind;
-    int defaultRelevance = COMPLETION_RELEVANCE_DEFAULT;
+    int defaultRelevance = DART_RELEVANCE_DEFAULT;
     if (declaration.isGetter) {
       kind = protocol.ElementKind.GETTER;
       defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
@@ -317,7 +317,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         declaration.name,
         returnType,
         isDeprecated,
-        COMPLETION_RELEVANCE_DEFAULT);
+        DART_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       // TODO (danrubel) determine parameters and return type
       suggestion.element = _createElement(
@@ -355,7 +355,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     protocol.ElementKind kind;
     String parameters;
     TypeName returnType = declaration.returnType;
-    int defaultRelevance = COMPLETION_RELEVANCE_DEFAULT;
+    int defaultRelevance = DART_RELEVANCE_DEFAULT;
     if (declaration.isGetter) {
       kind = protocol.ElementKind.GETTER;
       parameters = null;
@@ -472,7 +472,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.INVOCATION,
-            isDeprecated ? COMPLETION_RELEVANCE_LOW : defaultRelevance,
+            isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance,
             completion,
             completion.length,
             0,

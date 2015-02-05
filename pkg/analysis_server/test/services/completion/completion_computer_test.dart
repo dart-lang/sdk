@@ -68,7 +68,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager = new DartCompletionManager.create(context, searchEngine, source);
     suggestion1 = new CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
-        COMPLETION_RELEVANCE_DEFAULT,
+        DART_RELEVANCE_DEFAULT,
         "suggestion1",
         1,
         1,
@@ -76,7 +76,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         false);
     suggestion2 = new CompletionSuggestion(
         CompletionSuggestionKind.IDENTIFIER,
-        COMPLETION_RELEVANCE_DEFAULT,
+        DART_RELEVANCE_DEFAULT,
         "suggestion2",
         2,
         2,

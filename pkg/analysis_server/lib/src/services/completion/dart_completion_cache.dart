@@ -178,7 +178,7 @@ class DartCompletionCache extends CompletionCache {
       if (elem is ClassElement) {
         importedClassMap[name] = elem;
       }
-      _addSuggestion(elem, COMPLETION_RELEVANCE_DEFAULT);
+      _addSuggestion(elem, DART_RELEVANCE_DEFAULT);
     });
   }
 
@@ -202,7 +202,7 @@ class DartCompletionCache extends CompletionCache {
                 if (elem is ClassElement) {
                   importedClassMap[name] = elem;
                 }
-                _addSuggestion(elem, COMPLETION_RELEVANCE_DEFAULT);
+                _addSuggestion(elem, DART_RELEVANCE_DEFAULT);
               });
             } else {
               // Exclude elements from prefixed imports
@@ -230,7 +230,7 @@ class DartCompletionCache extends CompletionCache {
     if (completion != null && completion.length > 0) {
       suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.INVOCATION,
-          COMPLETION_RELEVANCE_DEFAULT,
+          DART_RELEVANCE_DEFAULT,
           completion,
           completion.length,
           0,
@@ -258,7 +258,7 @@ class DartCompletionCache extends CompletionCache {
             element.isPublic &&
             !excludedLibs.contains(element.library) &&
             !_importedCompletions.contains(element.displayName)) {
-          _addSuggestion(element, COMPLETION_RELEVANCE_LOW);
+          _addSuggestion(element, DART_RELEVANCE_LOW);
         }
       }
     });
@@ -334,7 +334,7 @@ class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
 
   @override
   void visitClassElement(ClassElement element) {
-    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
+    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
   }
 
   @override
@@ -349,16 +349,16 @@ class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
 
   @override
   void visitFunctionElement(FunctionElement element) {
-    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
+    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
   }
 
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
+    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
   }
 
   @override
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    cache._addSuggestion(element, COMPLETION_RELEVANCE_DEFAULT);
+    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
   }
 }

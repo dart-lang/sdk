@@ -25,7 +25,7 @@ class InvocationComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     return assertSuggestField(
         name,
         type,

@@ -112,7 +112,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
    * Add imported element suggestions.
    */
   void _addElementSuggestions(List<Element> elements, {int relevance:
-      COMPLETION_RELEVANCE_DEFAULT}) {
+      DART_RELEVANCE_DEFAULT}) {
     elements.forEach((Element elem) {
       if (elem is! ClassElement) {
         if (typesOnly) {
@@ -198,7 +198,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
             request.suggestions.add(suggestion);
           }
         } else {
-          if (suggestion.relevance != COMPLETION_RELEVANCE_LOW) {
+          if (suggestion.relevance != DART_RELEVANCE_LOW) {
             request.suggestions.add(suggestion);
           }
         }

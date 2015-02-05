@@ -262,7 +262,7 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated = false,
+      [int relevance = DART_RELEVANCE_DEFAULT, bool isDeprecated = false,
       bool isPotential = false]) {
     var cs;
     suggestions.forEach((s) {
@@ -445,11 +445,11 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(
           CompletionSuggestionKind.KEYWORD,
           'import',
-          COMPLETION_RELEVANCE_HIGH);
+          DART_RELEVANCE_HIGH);
       assertHasResult(
           CompletionSuggestionKind.KEYWORD,
           'class',
-          COMPLETION_RELEVANCE_HIGH);
+          DART_RELEVANCE_HIGH);
     });
   }
 

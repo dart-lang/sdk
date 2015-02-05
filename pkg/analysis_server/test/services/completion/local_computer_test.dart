@@ -22,7 +22,7 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   CompletionSuggestion assertSuggestLocalClass(String name, {int relevance:
-      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     return assertSuggestClass(
         name,
         relevance: relevance,
@@ -31,7 +31,7 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
     return assertSuggestClassTypeAlias(name, relevance);
   }
 
@@ -55,7 +55,7 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestLocalFunctionTypeAlias(String name,
       String returnType, {bool deprecated: false, int relevance:
-      COMPLETION_RELEVANCE_DEFAULT}) {
+      DART_RELEVANCE_DEFAULT}) {
     return assertSuggestFunctionTypeAlias(
         name,
         returnType,

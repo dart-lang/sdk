@@ -76,7 +76,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.FINAL,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_after_class2() {
@@ -90,7 +90,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.FINAL,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_after_import() {
@@ -107,7 +107,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.PART,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_after_import2() {
@@ -124,7 +124,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.PART,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_before_import() {
@@ -132,7 +132,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class() {
@@ -140,7 +140,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.EXTENDS, Keyword.IMPLEMENTS],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class2() {
@@ -148,7 +148,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.EXTENDS, Keyword.IMPLEMENTS],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class3() {
@@ -156,7 +156,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.EXTENDS, Keyword.IMPLEMENTS],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class_extends() {
@@ -164,7 +164,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.IMPLEMENTS, Keyword.WITH],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class_extends2() {
@@ -172,7 +172,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.IMPLEMENTS, Keyword.WITH],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class_extends3() {
@@ -180,7 +180,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.IMPLEMENTS, Keyword.WITH],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class_extends_name() {
@@ -192,7 +192,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
   test_class_implements() {
     addTestSource('class A ^ implements foo');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([Keyword.EXTENDS], COMPLETION_RELEVANCE_HIGH);
+    assertSuggestKeywords([Keyword.EXTENDS], DART_RELEVANCE_HIGH);
   }
 
   test_class_implements2() {
@@ -201,7 +201,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     // TODO (danrubel) refinement: don't suggest implements
     assertSuggestKeywords(
         [Keyword.EXTENDS, Keyword.IMPLEMENTS],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class_implements3() {
@@ -210,7 +210,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     // TODO (danrubel) refinement: don't suggest implements
     assertSuggestKeywords(
         [Keyword.EXTENDS, Keyword.IMPLEMENTS],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_class_implements_name() {
@@ -228,19 +228,19 @@ class KeywordComputerTest extends AbstractCompletionTest {
   test_class_with() {
     addTestSource('class A extends foo with bar ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([Keyword.IMPLEMENTS], COMPLETION_RELEVANCE_HIGH);
+    assertSuggestKeywords([Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
   }
 
   test_class_with2() {
     addTestSource('class A extends foo with bar i^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([Keyword.IMPLEMENTS], COMPLETION_RELEVANCE_HIGH);
+    assertSuggestKeywords([Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
   }
 
   test_class_with3() {
     addTestSource('class A extends foo with bar i^ { }');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([Keyword.IMPLEMENTS], COMPLETION_RELEVANCE_HIGH);
+    assertSuggestKeywords([Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
   }
 
   test_class_with_name() {
@@ -264,7 +264,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.PART,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_function_body() {
@@ -350,7 +350,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.PART,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_library_name() {
@@ -405,7 +405,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.PART,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_partial_class() {
@@ -423,7 +423,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.PART,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   test_partial_class2() {
@@ -440,7 +440,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.PART,
             Keyword.TYPEDEF,
             Keyword.VAR],
-        COMPLETION_RELEVANCE_HIGH);
+        DART_RELEVANCE_HIGH);
   }
 
   void _appendKeywords(StringBuffer msg, Iterable<Keyword> keywords) {

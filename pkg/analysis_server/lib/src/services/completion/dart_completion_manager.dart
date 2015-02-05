@@ -23,14 +23,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
-// TODO (danrubel) these are temporary constants as we transition completion
-// relevance from CompletionRelevance.LOW/DEFAULT/HIGH to int.
-// These should be removed in a subsequent CL
-const int COMPLETION_RELEVANCE_LOW = 500;
-const int COMPLETION_RELEVANCE_DEFAULT = 1000;
-const int COMPLETION_RELEVANCE_HIGH = 2000;
-
 // Relevance highest to lowest
+const int DART_RELEVANCE_HIGH = 2000;
 const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
 const int DART_RELEVANCE_PARAMETER = 1059;
 const int DART_RELEVANCE_INHERITED_FIELD = 1058;
@@ -42,6 +36,8 @@ const int DART_RELEVANCE_LOCAL_METHOD = 1057;
 const int DART_RELEVANCE_LOCAL_FUNCTION = 1056;
 const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
 const int DART_RELEVANCE_KEYWORD = 1055;
+const int DART_RELEVANCE_DEFAULT = 1000;
+const int DART_RELEVANCE_LOW = 500;
 
 /**
  * The base class for computing code completion suggestions.

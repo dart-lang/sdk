@@ -23,7 +23,7 @@ const String DYNAMIC = 'dynamic';
  */
 CompletionSuggestion createSuggestion(Element element,
     {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-    int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
+    int relevance: DART_RELEVANCE_DEFAULT}) {
 
   String nameForType(DartType type) {
     if (type == null) {
@@ -58,7 +58,7 @@ CompletionSuggestion createSuggestion(Element element,
   bool isDeprecated = element.isDeprecated;
   CompletionSuggestion suggestion = new CompletionSuggestion(
       kind,
-      isDeprecated ? COMPLETION_RELEVANCE_LOW : relevance,
+      isDeprecated ? DART_RELEVANCE_LOW : relevance,
       completion,
       completion.length,
       0,
@@ -186,7 +186,7 @@ abstract class ElementSuggestionBuilder {
   /**
    * Add a suggestion based upon the given element.
    */
-  void addSuggestion(Element element, {int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
+  void addSuggestion(Element element, {int relevance: DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       LibraryElement elementLibrary = element.library;
       LibraryElement unitLibrary = request.unit.element.library;
