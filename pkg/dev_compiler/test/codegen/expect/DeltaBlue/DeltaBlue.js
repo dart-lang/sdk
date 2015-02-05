@@ -52,20 +52,20 @@ var DeltaBlue;
       DeltaBlue.planner.incrementalAdd(this);
     }
     satisfy(mark) {
-      this.chooseMethod(/* Unimplemented: DownCast: dynamic to int */ mark);
+      this.chooseMethod(dart.as(mark, core.int));
       if (!this.isSatisfied()) {
         if (dart.equals(this.strength, REQUIRED)) {
           core.print("Could not satisfy a required constraint!");
         }
         return null;
       }
-      this.markInputs(/* Unimplemented: DownCast: dynamic to int */ mark);
+      this.markInputs(dart.as(mark, core.int));
       let out = this.output();
       let overridden = out.determinedBy;
       if (overridden !== null) overridden.markUnsatisfied();
       out.determinedBy = this;
-      if (!DeltaBlue.planner.addPropagate(this, /* Unimplemented: DownCast: dynamic to int */ mark)) core.print("Cycle encountered");
-      out.mark = /* Unimplemented: DownCast: dynamic to int */ mark;
+      if (!DeltaBlue.planner.addPropagate(this, dart.as(mark, core.int))) core.print("Cycle encountered");
+      out.mark = dart.as(mark, core.int);
       return overridden;
     }
     destroyConstraint() {
@@ -231,7 +231,7 @@ var DeltaBlue;
       this.value = value;
       this.determinedBy = null;
       this.mark = 0;
-      this.walkStrength = /* Unimplemented: DownCast: dynamic to Strength */ WEAKEST;
+      this.walkStrength = dart.as(WEAKEST, Strength);
       this.stay = true;
     }
     addConstraint(c) {
@@ -257,7 +257,7 @@ var DeltaBlue;
       c.markUnsatisfied();
       c.removeFromGraph();
       let unsatisfied = this.removePropagateFrom(out);
-      let strength = /* Unimplemented: DownCast: dynamic to Strength */ REQUIRED;
+      let strength = dart.as(REQUIRED, Strength);
       do {
         for (let i = 0; i < unsatisfied.length; i++) {
           let u = unsatisfied.get(i);
@@ -305,7 +305,7 @@ var DeltaBlue;
     }
     removePropagateFrom(out) {
       out.determinedBy = null;
-      out.walkStrength = /* Unimplemented: DownCast: dynamic to Strength */ WEAKEST;
+      out.walkStrength = dart.as(WEAKEST, Strength);
       out.stay = true;
       let unsatisfied = new List.from([]);
       let todo = new List.from([out]);

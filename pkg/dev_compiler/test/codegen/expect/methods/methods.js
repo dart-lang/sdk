@@ -35,6 +35,26 @@ var methods;
     }
   }
 
+  class Bar {
+    call(x) { return core.print("hello from " + (x) + ""); }
+  }
+
+  class Foo {
+    constructor() {
+      this.bar = new Bar();
+      super();
+    }
+  }
+
+  // Function test: () → dynamic
+  function test() {
+    let f = new Foo();
+    dart.dinvoke(f, "bar", "Bar's call method!");
+  }
+
   // Exports:
   methods.A = A;
+  methods.Bar = Bar;
+  methods.Foo = Foo;
+  methods.test = test;
 })(methods || (methods = {}));

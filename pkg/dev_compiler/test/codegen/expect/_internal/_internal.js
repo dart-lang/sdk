@@ -258,7 +258,7 @@ var _internal;
         result.set(i, this._iterable.elementAt(start + i));
         if (this._iterable.length < end) throw new core.ConcurrentModificationError(this);
       }
-      return /* Unimplemented: DownCastDynamic: List<dynamic> to List<E> */ result;
+      return dart.as(result, core.List);
     }
   }
 
@@ -309,7 +309,7 @@ var _internal;
 
   class EfficientLengthMappedIterable/* Unimplemented <S, T> */ extends MappedIterable/* Unimplemented <S, T> */ {
     constructor(iterable, function) {
-      super._(/* Unimplemented: DownCastDynamic: Iterable<dynamic> to Iterable<S> */ iterable, function);
+      super._(dart.as(iterable, core.Iterable), function);
     }
   }
 
@@ -380,7 +380,7 @@ var _internal;
     constructor(_iterator, _f) {
       this._iterator = _iterator;
       this._f = _f;
-      this._currentExpansion = /* Unimplemented: DownCastExact: EmptyIterator<dynamic> to Iterator<T> */ new EmptyIterator();
+      this._currentExpansion = dart.as(new EmptyIterator(), core.Iterator);
       this._current = null;
     }
     _nextExpansion() {
@@ -392,7 +392,7 @@ var _internal;
         this._current = null;
         if (this._iterator.moveNext()) {
           this._currentExpansion = null;
-          this._currentExpansion = /* Unimplemented: DownCastDynamic: Iterator<dynamic> to Iterator<T> */ this._f(this._iterator.current).iterator;
+          this._currentExpansion = dart.as(this._f(this._iterator.current).iterator, core.Iterator);
         } else {
           return false;
         }
@@ -576,7 +576,7 @@ var _internal;
     constructor() {
       super();
     }
-    get iterator() { return /* Unimplemented: DownCastExact: EmptyIterator<dynamic> to Iterator<E> */ new EmptyIterator(); }
+    get iterator() { return dart.as(new EmptyIterator(), core.Iterator); }
     forEach(action) {
     }
     get isEmpty() { return true; }
@@ -841,7 +841,7 @@ var _internal;
       return new ReversedListIterable(list);
     }
     static sortList(list, compare) {
-      if (compare === null) compare = /* Unimplemented: ClosureWrap: (Comparable<dynamic>, Comparable<dynamic>) → int to (dynamic, dynamic) → int */ core.Comparable.compare;
+      if (compare === null) compare = /* Unimplemented: ClosureWrap: (Comparable<dynamic>, Comparable<dynamic>) → int to (dynamic, dynamic) → int */core.Comparable.compare;
       Sort.sort(list, compare);
     }
     static shuffleList(list, random) {
@@ -877,7 +877,7 @@ var _internal;
       let otherList = null;
       let otherStart = null;
       if (dart.is(from, core.List)) {
-        otherList = /* Unimplemented: DownCast: Iterable<dynamic> to List<dynamic> */ from;
+        otherList = dart.as(from, core.List);
         otherStart = skipCount;
       } else {
         otherList = from.skip(skipCount).toList({growable: false});
@@ -1110,7 +1110,7 @@ var _internal;
     constructor(_values) {
       this._values = _values;
     }
-    get(key) { return /* Unimplemented: DownCast: dynamic to E */ this.containsKey(key) ? this._values.get(key) : null; }
+    get(key) { return /* Unimplemented: DownCast: dynamic to E */this.containsKey(key) ? this._values.get(key) : null; }
     get length() { return this._values.length; }
     get values() { return new SubListIterable(this._values, 0, null); }
     get keys() { return new _ListIndicesIterable(this._values); }

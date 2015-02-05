@@ -68,8 +68,8 @@ var math;
       hash = hash ^ (hash >> 11);
       return 536870911 & (hash + ((16383 & hash) << 15));
     }
-    static hash2(a, b) { return finish(combine(combine(0, /* Unimplemented: DownCast: dynamic to int */ a), /* Unimplemented: DownCast: dynamic to int */ b)); }
-    static hash4(a, b, c, d) { return finish(combine(combine(combine(combine(0, /* Unimplemented: DownCast: dynamic to int */ a), /* Unimplemented: DownCast: dynamic to int */ b), /* Unimplemented: DownCast: dynamic to int */ c), /* Unimplemented: DownCast: dynamic to int */ d)); }
+    static hash2(a, b) { return finish(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int))); }
+    static hash4(a, b, c, d) { return finish(combine(combine(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int)), dart.as(c, core.int)), dart.as(d, core.int))); }
   }
 
   class Point/* Unimplemented <T extends num> */ {
@@ -101,7 +101,7 @@ var math;
     squaredDistanceTo(other) {
       let dx = this.x['-'](other.x);
       let dy = this.y['-'](other.y);
-      return /* Unimplemented: DownCast: num to T */ dx * dx + dy * dy;
+      return /* Unimplemented: DownCast: num to T */dx * dx + dy * dy;
     }
   }
 
@@ -112,8 +112,8 @@ var math;
   class _RectangleBase/* Unimplemented <T extends num> */ {
     constructor() {
     }
-    get right() { return /* Unimplemented: DownCast: num to T */ this.left['+'](this.width); }
-    get bottom() { return /* Unimplemented: DownCast: num to T */ this.top['+'](this.height); }
+    get right() { return /* Unimplemented: DownCast: num to T */this.left['+'](this.width); }
+    get bottom() { return /* Unimplemented: DownCast: num to T */this.top['+'](this.height); }
     toString() {
       return "Rectangle (" + (this.left) + ", " + (this.top) + ") " + (this.width) + " x " + (this.height) + "";
     }
@@ -165,10 +165,10 @@ var math;
       super();
     }
     /*constructor*/ fromPoints(a, b) {
-      let left = /* Unimplemented: DownCast: num to T */ min(a.x, b.x);
-      let width = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.x, b.x), left);
-      let top = /* Unimplemented: DownCast: num to T */ min(a.y, b.y);
-      let height = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.y, b.y), top);
+      let left = /* Unimplemented: DownCast: num to T */min(a.x, b.x);
+      let width = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.x, b.x), left);
+      let top = /* Unimplemented: DownCast: num to T */min(a.y, b.y);
+      let height = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.y, b.y), top);
       return new Rectangle(left, top, width, height);
     }
   }
@@ -183,20 +183,20 @@ var math;
       super();
     }
     /*constructor*/ fromPoints(a, b) {
-      let left = /* Unimplemented: DownCast: num to T */ min(a.x, b.x);
-      let width = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.x, b.x), left);
-      let top = /* Unimplemented: DownCast: num to T */ min(a.y, b.y);
-      let height = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.y, b.y), top);
+      let left = /* Unimplemented: DownCast: num to T */min(a.x, b.x);
+      let width = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.x, b.x), left);
+      let top = /* Unimplemented: DownCast: num to T */min(a.y, b.y);
+      let height = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.y, b.y), top);
       return new MutableRectangle(left, top, width, height);
     }
     get width() { return this._width; }
     set width(width) {
-      if (width['<'](0)) width = /* Unimplemented: DownCast: num to T */ _clampToZero(width);
+      if (width['<'](0)) width = /* Unimplemented: DownCast: num to T */_clampToZero(width);
       this._width = width;
     }
     get height() { return this._height; }
     set height(height) {
-      if (height['<'](0)) height = /* Unimplemented: DownCast: num to T */ _clampToZero(height);
+      if (height['<'](0)) height = /* Unimplemented: DownCast: num to T */_clampToZero(height);
       this._height = height;
     }
   }

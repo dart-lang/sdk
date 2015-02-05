@@ -347,7 +347,7 @@ var core;
         return object.toString();
       }
       if (typeof object == "string") {
-        return _stringToSafeString(/* Unimplemented: DownCast: Object to String */ object);
+        return _stringToSafeString(dart.as(object, String));
       }
       return _objectToString(object);
     }
@@ -443,7 +443,7 @@ var core;
       if (name === undefined) name = null;
       if (length === undefined) length = null;
       if (message === undefined) message = null;
-      if (length === null) length = /* Unimplemented: DownCast: dynamic to int */ dart.dload(indexable, "length");
+      if (length === null) length = dart.as(dart.dload(indexable, "length"), int);
       if (index < 0 || index >= length) {
         if (name === null) name = "index";
         throw new RangeError.index(index, indexable, name, message, length);
@@ -645,7 +645,7 @@ var core;
         offset = null;
       }
       if (offset === null) {
-        let source = /* Unimplemented: DownCast: dynamic to String */ this.source;
+        let source = dart.as(this.source, String);
         if (source.length > 78) {
           source = String['+'](source.substring(0, 75), "...");
         }
@@ -656,7 +656,7 @@ var core;
       let lineStart = 0;
       let lastWasCR = null;
       for (let i = 0; i < offset; i++) {
-        let char = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: source.codeUnitAt(i) */;
+        let char = dart.as(dart.dinvoke(this.source, "codeUnitAt", i), int);
         if (char === 10) {
           if (lineStart !== i || !lastWasCR) {
             lineNum++;
@@ -676,9 +676,9 @@ var core;
         report = " (at character " + (offset + 1) + ")
         ";
       }
-      let lineEnd = /* Unimplemented: DownCast: dynamic to int */ dart.dload(this.source, "length");
+      let lineEnd = dart.as(dart.dload(this.source, "length"), int);
       for (let i = offset; i['<'](dart.dload(this.source, "length")); i++) {
-        let char = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: source.codeUnitAt(i) */;
+        let char = dart.as(dart.dinvoke(this.source, "codeUnitAt", i), int);
         if (char === 10 || char === 13) {
           lineEnd = i;
           break;
@@ -703,7 +703,7 @@ var core;
           prefix = postfix = "...";
         }
       }
-      let slice = /* Unimplemented: DownCast: dynamic to String */ /* Unimplemented dynamic method call: source.substring(start, end) */;
+      let slice = dart.as(dart.dinvoke(this.source, "substring", start, end), String);
       let markOffset = offset - start + prefix.length;
       return "" + (report) + "" + (prefix) + "" + (slice) + "" + (postfix) + "
       " + (String['*'](" ", markOffset)) + "^
@@ -881,9 +881,9 @@ var core;
     static parse(input, onError) {
       if (onError === undefined) onError = null;
       let source = input.trim();
-      let result = int.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → int */ onError: _returnNull);
+      let result = int.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → int */onError: _returnNull);
       if (result !== null) return result;
-      result = double.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → double */ _returnNull);
+      result = double.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → double */_returnNull);
       if (result !== null) return result;
       if (onError === null) throw new FormatException(input);
       return onError(input);
@@ -910,7 +910,7 @@ var core;
     if (_internal.printToZone === null) {
       _internal.printToConsole(line);
     } else {
-      /* Unimplemented dynamic method call: printToZone(line) */;
+      dart.dinvokef(_internal.printToZone, line);
     }
   }
 
@@ -1051,7 +1051,7 @@ var core;
         throw new ArgumentError("Index inside surrogate pair: " + (index) + "");
       }
     }
-    get rawIndex() { return /* Unimplemented: DownCast: dynamic to int */ (this._position !== this._nextPosition) ? this._position : null; }
+    get rawIndex() { return dart.as((this._position !== this._nextPosition) ? this._position : null, int); }
     set rawIndex(rawIndex) {
       RangeError.checkValidIndex(rawIndex, this.string, "rawIndex");
       this.reset(rawIndex);
@@ -1441,13 +1441,13 @@ var core;
     /*constructor*/ file(path, opt$) {
       let windows = opt$.windows === undefined ? null : opt$.windows;
       windows = windows === null ? Uri._isWindows : windows;
-      return /* Unimplemented: DownCast: dynamic to Uri */ windows ? _makeWindowsFileUrl(path) : _makeFileUri(path);
+      return dart.as(windows ? _makeWindowsFileUrl(path) : _makeFileUri(path), Uri);
     }
     /* Unimplemented external static Uri get base; */
     /* Unimplemented external static bool get _isWindows; */
     static _checkNonWindowsPathReservedCharacters(segments, argumentError) {
       segments.forEach((segment) => {
-        if (/* Unimplemented dynamic method call: segment.contains("/") */) {
+        if (dart.dinvoke(segment, "contains", "/")) {
           if (argumentError) {
             throw new ArgumentError("Illegal path character " + (segment) + "");
           } else {
@@ -1459,7 +1459,7 @@ var core;
     static _checkWindowsPathReservedCharacters(segments, argumentError, firstSegment) {
       if (firstSegment === undefined) firstSegment = 0;
       segments.skip(firstSegment).forEach((segment) => {
-        if (/* Unimplemented dynamic method call: segment.contains(new RegExp(r'["*/:<>?\\|]')) */) {
+        if (dart.dinvoke(segment, "contains", new RegExp("["*/:<>?\\|]"))) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
           } else {
@@ -1590,13 +1590,13 @@ var core;
     get pathSegments() {
       if (this._pathSegments === null) {
         let pathToSplit = !this.path.isEmpty && this.path.codeUnitAt(0) === _SLASH ? this.path.substring(1) : this.path;
-        this._pathSegments = /* Unimplemented: DownCastExact: UnmodifiableListView<dynamic> to List<String> */ new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const */new List.from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false}));
+        this._pathSegments = dart.as(new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const */new List.from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List);
       }
       return this._pathSegments;
     }
     get queryParameters() {
       if (this._queryParameters === null) {
-        this._queryParameters = /* Unimplemented: DownCastExact: UnmodifiableMapView<dynamic, dynamic> to Map<String, String> */ new collection.UnmodifiableMapView(splitQueryString(this.query));
+        this._queryParameters = dart.as(new collection.UnmodifiableMapView(splitQueryString(this.query)), Map);
       }
       return this._queryParameters;
     }
@@ -1715,7 +1715,7 @@ var core;
     }
     static _makeUserInfo(userInfo, start, end) {
       if (userInfo === null) return "";
-      return _normalize(userInfo, start, end, /* Unimplemented: DownCast: dynamic to List<int> */ _userinfoTable);
+      return _normalize(userInfo, start, end, dart.as(_userinfoTable, List));
     }
     static _makePath(path, start, end, pathSegments, ensureLeadingSlash, isFile) {
       if (path === null && pathSegments === null) return isFile ? "/" : "";
@@ -1724,23 +1724,23 @@ var core;
       }
       let result = null;
       if (path !== null) {
-        result = _normalize(path, start, end, /* Unimplemented: DownCast: dynamic to List<int> */ _pathCharOrSlashTable);
+        result = _normalize(path, start, end, dart.as(_pathCharOrSlashTable, List));
       } else {
-        result = pathSegments.map((s) => _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _pathCharTable, /* Unimplemented: DownCast: dynamic to String */ s)).join("/");
+        result = pathSegments.map((s) => _uriEncode(dart.as(_pathCharTable, List), dart.as(s, String))).join("/");
       }
       if (dart.dload(result, "isEmpty")) {
         if (isFile) return "/";
-      } else if ((isFile || ensureLeadingSlash) && !dart.equals(/* Unimplemented dynamic method call: result.codeUnitAt(0) */, _SLASH)) {
+      } else if ((isFile || ensureLeadingSlash) && !dart.equals(dart.dinvoke(result, "codeUnitAt", 0), _SLASH)) {
         return "/" + (result) + "";
       }
-      return /* Unimplemented: DownCast: dynamic to String */ result;
+      return dart.as(result, String);
     }
     static _makeQuery(query, start, end, queryParameters) {
       if (query === null && queryParameters === null) return null;
       if (query !== null && queryParameters !== null) {
         throw new ArgumentError("Both query and queryParameters specified");
       }
-      if (query !== null) return _normalize(query, start, end, /* Unimplemented: DownCast: dynamic to List<int> */ _queryCharTable);
+      if (query !== null) return _normalize(query, start, end, dart.as(_queryCharTable, List));
       let result = new StringBuffer();
       let first = true;
       queryParameters.forEach((key, value) => {
@@ -1748,17 +1748,17 @@ var core;
           result.write("&");
         }
         first = false;
-        result.write(Uri.encodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ key));
+        result.write(Uri.encodeQueryComponent(dart.as(key, String)));
         if (value !== null && /* Unimplemented postfix operator: !value.isEmpty */) {
           result.write("=");
-          result.write(Uri.encodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ value));
+          result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
       });
       return result.toString();
     }
     static _makeFragment(fragment, start, end) {
       if (fragment === null) return null;
-      return _normalize(fragment, start, end, /* Unimplemented: DownCast: dynamic to List<int> */ _queryCharTable);
+      return _normalize(fragment, start, end, dart.as(_queryCharTable, List));
     }
     static _stringOrNullLength(s) { return (s === null) ? 0 : s.length; }
     static _isHexDigit(char) {
@@ -1804,8 +1804,8 @@ var core;
       if (dart.dbinary(char, "<", 128)) {
         codeUnits = new List(3);
         codeUnits.set(0, _PERCENT);
-        codeUnits.set(1, hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ dart.dbinary(char, ">>", 4)));
-        codeUnits.set(2, hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ dart.dbinary(char, "&", 15)));
+        codeUnits.set(1, hexDigits.codeUnitAt(dart.as(dart.dbinary(char, ">>", 4), int)));
+        codeUnits.set(2, hexDigits.codeUnitAt(dart.as(dart.dbinary(char, "&", 15), int)));
       } else {
         let flag = 192;
         let encodedBytes = 2;
@@ -1820,7 +1820,7 @@ var core;
         codeUnits = new List(3 * encodedBytes);
         let index = 0;
         while (--encodedBytes >= 0) {
-          let byte = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary((dart.dbinary((dart.dbinary(char, ">>", (6 * encodedBytes))), "&", 63)), "|", flag);
+          let byte = dart.as(dart.dbinary((dart.dbinary((dart.dbinary(char, ">>", (6 * encodedBytes))), "&", 63)), "|", flag), int);
           codeUnits.set(index, _PERCENT);
           codeUnits.set(index + 1, hexDigits.codeUnitAt(byte >> 4));
           codeUnits.set(index + 2, hexDigits.codeUnitAt(byte & 15));
@@ -1920,7 +1920,7 @@ var core;
     }
     _removeDotSegments(path) {
       if (!this._hasDotSegments(path)) return path;
-      let output = /* Unimplemented: DownCastLiteral: List<dynamic> to List<String> */ new List.from([]);
+      let output = dart.as(new List.from([]), List);
       let appendSlash = false;
       for (let segment of path.split("/")) {
         appendSlash = false;
@@ -1951,7 +1951,7 @@ var core;
         if (reference.hasAuthority) {
           targetUserInfo = reference.userInfo;
           targetHost = reference.host;
-          targetPort = /* Unimplemented: DownCast: dynamic to int */ reference.hasPort ? reference.port : null;
+          targetPort = dart.as(reference.hasPort ? reference.port : null, int);
         }
         targetPath = this._removeDotSegments(reference.path);
         if (reference.hasQuery) {
@@ -1962,7 +1962,7 @@ var core;
         if (reference.hasAuthority) {
           targetUserInfo = reference.userInfo;
           targetHost = reference.host;
-          targetPort = _makePort(/* Unimplemented: DownCast: dynamic to int */ reference.hasPort ? reference.port : null, targetScheme);
+          targetPort = _makePort(dart.as(reference.hasPort ? reference.port : null, int), targetScheme);
           targetPath = this._removeDotSegments(reference.path);
           if (reference.hasQuery) targetQuery = reference.query;
         } else {
@@ -1986,7 +1986,7 @@ var core;
           targetPort = this._port;
         }
       }
-      let fragment = /* Unimplemented: DownCast: dynamic to String */ reference.hasFragment ? reference.fragment : null;
+      let fragment = dart.as(reference.hasFragment ? reference.fragment : null, String);
       return new Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
     }
     get hasAuthority() { return this._host !== null; }
@@ -2083,13 +2083,13 @@ var core;
     }
     ['=='](other) {
       if (!dart.is(other, Uri)) return false;
-      let uri = /* Unimplemented: DownCast: dynamic to Uri */ other;
+      let uri = dart.as(other, Uri);
       return dart.equals(this.scheme, uri.scheme) && this.hasAuthority === uri.hasAuthority && dart.equals(this.userInfo, uri.userInfo) && dart.equals(this.host, uri.host) && this.port === uri.port && dart.equals(this.path, uri.path) && this.hasQuery === uri.hasQuery && dart.equals(this.query, uri.query) && this.hasFragment === uri.hasFragment && dart.equals(this.fragment, uri.fragment);
     }
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
       function combine(part, current) {
-        return /* Unimplemented: DownCast: dynamic to int */ dart.dbinary((dart.dbinary(dart.dbinary(current, "*", 31), "+", dart.dload(part, "hashCode"))), "&", 1073741823);
+        return dart.as(dart.dbinary((dart.dbinary(dart.dbinary(current, "*", 31), "+", dart.dload(part, "hashCode"))), "&", 1073741823), int);
       }
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
@@ -2100,11 +2100,11 @@ var core;
       }
     }
     static encodeComponent(component) {
-      return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _unreserved2396Table, component);
+      return _uriEncode(dart.as(_unreserved2396Table, List), component);
     }
     static encodeQueryComponent(component, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
-      return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _unreservedTable, component, {encoding: encoding, spaceToPlus: true});
+      return _uriEncode(dart.as(_unreservedTable, List), component, {encoding: encoding, spaceToPlus: true});
     }
     static decodeComponent(encodedComponent) {
       return _uriDecode(encodedComponent);
@@ -2114,26 +2114,26 @@ var core;
       return _uriDecode(encodedComponent, {plusToSpace: true, encoding: encoding});
     }
     static encodeFull(uri) {
-      return _uriEncode(/* Unimplemented: DownCast: dynamic to List<int> */ _encodeFullTable, uri);
+      return _uriEncode(dart.as(_encodeFullTable, List), uri);
     }
     static decodeFull(uri) {
       return _uriDecode(uri);
     }
     static splitQueryString(query, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
-      return /* Unimplemented: DownCast: dynamic to Map<String, String> */ query.split("&").fold(dart.map(), (map, element) => {
-        let index = /* Unimplemented: DownCast: dynamic to int */ /* Unimplemented dynamic method call: element.indexOf("=") */;
+      return dart.as(query.split("&").fold(dart.map(), (map, element) => {
+        let index = dart.as(dart.dinvoke(element, "indexOf", "="), int);
         if (index === -1) {
           if (!dart.equals(element, "")) {
-            dart.dsetindex(map, decodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ element, {encoding: encoding}), "");
+            dart.dsetindex(map, decodeQueryComponent(dart.as(element, String), {encoding: encoding}), "");
           }
         } else if (index !== 0) {
-          let key = /* Unimplemented dynamic method call: element.substring(0, index) */;
-          let value = /* Unimplemented dynamic method call: element.substring(index + 1) */;
-          dart.dsetindex(map, Uri.decodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ key, {encoding: encoding}), decodeQueryComponent(/* Unimplemented: DownCast: dynamic to String */ value, {encoding: encoding}));
+          let key = dart.dinvoke(element, "substring", 0, index);
+          let value = dart.dinvoke(element, "substring", index + 1);
+          dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
         }
         return map;
-      });
+      }), Map);
     }
     static parseIPv4Address(host) {
       // Function error: (String) → void
@@ -2144,13 +2144,13 @@ var core;
       if (bytes.length !== 4) {
         error("IPv4 address should contain exactly 4 parts");
       }
-      return /* Unimplemented: DownCastDynamic: List<dynamic> to List<int> */ bytes.map((byteString) => {
-        let byte = int.parse(/* Unimplemented: DownCast: dynamic to String */ byteString);
+      return dart.as(bytes.map((byteString) => {
+        let byte = int.parse(dart.as(byteString, String));
         if (byte < 0 || byte > 255) {
           error("each part must be in the range of `0..255`");
         }
         return byte;
-      }).toList();
+      }).toList(), List);
     }
     static parseIPv6Address(host, start, end) {
       if (start === undefined) start = 0;
@@ -2173,7 +2173,7 @@ var core;
         return value;
       }
       if (host.length < 2) error("address is too short");
-      let parts = /* Unimplemented: DownCastLiteral: List<dynamic> to List<int> */ new List.from([]);
+      let parts = dart.as(new List.from([]), List);
       let wildcardSeen = false;
       let partStart = start;
       for (let i = start; i < end; i++) {
@@ -2228,7 +2228,7 @@ var core;
           index = 2;
         }
       }
-      return /* Unimplemented: DownCastDynamic: List<dynamic> to List<int> */ bytes;
+      return dart.as(bytes, List);
     }
     static _uriEncode(canonicalTable, text, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
@@ -2236,8 +2236,8 @@ var core;
       // Function byteToHex: (dynamic, dynamic) → dynamic
       function byteToHex(byte, buffer) {
         let hex = "0123456789ABCDEF";
-        /* Unimplemented dynamic method call: buffer.writeCharCode(hex.codeUnitAt(byte >> 4)) */;
-        /* Unimplemented dynamic method call: buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f)) */;
+        dart.dinvoke(buffer, "writeCharCode", hex.codeUnitAt(dart.as(dart.dbinary(byte, ">>", 4), int)));
+        dart.dinvoke(buffer, "writeCharCode", hex.codeUnitAt(dart.as(dart.dbinary(byte, "&", 15), int)));
       }
       let result = new StringBuffer();
       let bytes = encoding.encode(text);
@@ -2287,7 +2287,7 @@ var core;
           bytes = text.codeUnits;
         }
       } else {
-        bytes = /* Unimplemented: DownCastExact: List<dynamic> to List<int> */ new List();
+        bytes = dart.as(new List(), List);
         for (let i = 0; i < text.length; i++) {
           let codeUnit = text.codeUnitAt(i);
           if (codeUnit > 127) {

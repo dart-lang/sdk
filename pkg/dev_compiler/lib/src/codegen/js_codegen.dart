@@ -101,6 +101,11 @@ var $_libraryName;
   void visitConversion(Conversion node) {
     var from = node.baseType;
     var to = node.convertedType;
+    if (to is! InterfaceType) {
+      out.write('/* Unimplemented: ${node.description} */');
+      node.expression.accept(this);
+      return;
+    }
 
     // num to int or num to double is just a null check.
     if (rules.isNumType(from) &&
@@ -115,10 +120,23 @@ var $_libraryName;
       return;
     }
 
-    out.write('/* Unimplemented: ');
-    out.write('${node.description}');
-    out.write(' */ ');
-    node.expression.accept(this);
+    _writeCast(node.expression, to);
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    var type = node.type.type;
+    if (type is InterfaceType) {
+      _writeCast(node.expression, type);
+    } else {
+      out.write('/* Unimplemented type for `as`: $node */');
+    }
+  }
+
+  void _writeCast(Expression node, InterfaceType type) {
+    out.write('dart.as(');
+    node.accept(this);
+    out.write(', ${_typeName(type)})');
   }
 
   @override
@@ -126,7 +144,7 @@ var $_libraryName;
     // Generate `is` as `instanceof` or `typeof` depending on the RHS type.
     var type = node.type.type;
     if (type is! InterfaceType) {
-      out.write('/* Unimplemented type test: $node');
+      out.write('/* Unimplemented type for `is`: $node */');
       return;
     }
 
@@ -139,10 +157,7 @@ var $_libraryName;
       out.write('typeof ');
       // We're going to replace the `is` operator with higher-precedence prefix
       // `typeof` operator, so add parens around the left side if necessary.
-      var needParens = lhs.precedence < _prefixExpressionPrecedence;
-      if (needParens) out.write('(');
-      lhs.accept(this);
-      if (needParens) out.write(')');
+      _visitExpression(lhs, _prefixExpressionPrecedence);
       out.write(' == "$typeofName"');
       if (node.notOperator != null) out.write(')');
     } else {
@@ -158,12 +173,6 @@ var $_libraryName;
     if (rules.isStringType(t)) return 'string';
     if (rules.isBoolType(t)) return 'boolean';
     return null;
-  }
-
-  @override
-  void visitAsExpression(AsExpression node) {
-    out.write('/* Unimplemented: as ${node.type.name.name}. */');
-    node.expression.accept(this);
   }
 
   @override
@@ -405,9 +414,7 @@ $name.prototype[Symbol.iterator] = function() {
       name = _typeName((parent.parent as ClassDeclaration).element.type);
     }
     out.write('$name.call(this');
-    var args = node.argumentList;
-    if (args != null && args.arguments.isNotEmpty) out.write(', ');
-    _visitNode(node.argumentList);
+    _visitArgumentsWithCommaPrefix(node.argumentList);
     out.write(');\n');
   }
 
@@ -737,17 +744,28 @@ $name.prototype[Symbol.iterator] = function() {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    var target = node.isCascaded ? _cascadeTarget : node.target;
+
     if (rules.isDynamicCall(node.methodName)) {
-      out.write('/* Unimplemented dynamic method call: $node */');
+      if (target != null) {
+        out.write('dart.dinvoke(');
+        target.accept(this);
+        out.write(', "${node.methodName.name}"');
+      } else {
+        out.write('dart.dinvokef(');
+        node.methodName.accept(this);
+      }
+
+      _visitArgumentsWithCommaPrefix(node.argumentList);
+      out.write(')');
       return;
     }
 
-    var target = node.isCascaded ? _cascadeTarget : node.target;
+    // TODO(jmesserly): if this resolves to a getter returning a function with
+    // a call method, we don't generate the `.call` correctly.
     if (target != null) {
       target.accept(this);
-      out
-        ..write('.')
-        ..write(node.methodName.name);
+      out.write('.${node.methodName.name}');
     } else {
       node.methodName.accept(this);
     }
@@ -755,6 +773,21 @@ $name.prototype[Symbol.iterator] = function() {
     out.write('(');
     node.argumentList.accept(this);
     out.write(')');
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    if (rules.isDynamicCall(node.function)) {
+      out.write('dart.dinvokef(');
+      node.function.accept(this);
+      _visitArgumentsWithCommaPrefix(node.argumentList);
+      out.write(')');
+    } else {
+      node.function.accept(this);
+      out.write('(');
+      node.argumentList.accept(this);
+      out.write(')');
+    }
   }
 
   /// Writes an argument list. This does not write the parens, because sometimes
@@ -776,6 +809,12 @@ $name.prototype[Symbol.iterator] = function() {
       arg.accept(this);
     }
     if (hasNamed) out.write('}');
+  }
+
+  void _visitArgumentsWithCommaPrefix(ArgumentList node) {
+    if (node == null) return;
+    if (node.arguments.isNotEmpty) out.write(', ');
+    visitArgumentList(node);
   }
 
   @override
@@ -1041,10 +1080,7 @@ $name.prototype[Symbol.iterator] = function() {
 
       // We're going to replace the operator with high-precedence "." or "[]",
       // so add parens around the left side if necessary.
-      var needParens = lhs.precedence < _indexExpressionPrecedence;
-      if (needParens) out.write('(');
-      lhs.accept(this);
-      if (needParens) out.write(')');
+      _visitExpression(lhs, _indexExpressionPrecedence);
       out.write(_canonicalMethodInvoke(op.lexeme));
       out.write('(');
       rhs.accept(this);
@@ -1449,6 +1485,18 @@ $name.prototype[Symbol.iterator] = function() {
       element = (element as PropertyAccessorElement).variable;
     }
     return element is TopLevelVariableElement && !element.isConst;
+  }
+
+  /// Safely visit the expression, adding parentheses if necessary
+  void _visitExpression(Expression node, int newPrecedence) {
+    if (node == null) return;
+
+    // If we're going to replace an expression with a higher-precedence
+    // operator, add parenthesis around it if needed.
+    var needParens = node.precedence < newPrecedence;
+    if (needParens) out.write('(');
+    node.accept(this);
+    if (needParens) out.write(')');
   }
 
   /// Safely visit the given node, with an optional prefix or suffix.

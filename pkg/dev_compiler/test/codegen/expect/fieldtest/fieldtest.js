@@ -17,7 +17,7 @@ var fieldtest;
   // Function bar: (dynamic) → int
   function bar(a) {
     core.print(dart.dload(a, "x"));
-    return /* Unimplemented: DownCast: dynamic to int */ dart.dload(a, "x");
+    return dart.as(dart.dload(a, "x"), core.int);
   }
 
   // Function baz: (A) → dynamic
@@ -35,7 +35,7 @@ var fieldtest;
     get q() { return core.String['+'](core.String['+']("life, ", "the universe "), "and everything"); },
     get z() { return 42; },
     set z(value) {
-      fieldtest.y = /* Unimplemented: DownCast: dynamic to int */ value;
+      fieldtest.y = dart.as(value, core.int);
     },
   });
 

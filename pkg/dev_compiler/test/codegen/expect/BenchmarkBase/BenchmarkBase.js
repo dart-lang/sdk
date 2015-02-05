@@ -45,7 +45,7 @@ var BenchmarkBase;
       watch.start();
       let elapsed = 0;
       while (elapsed < timeMinimum) {
-        /* Unimplemented dynamic method call: f() */;
+        dart.dinvokef(f);
         elapsed = watch.elapsedMilliseconds;
         iter++;
       }

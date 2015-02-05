@@ -13,10 +13,10 @@ var sunflower;
 
   sunflower.seeds = 0;
   dart.defineLazyProperties(sunflower, {
-    get slider() { return /* Unimplemented: DownCast: Element to InputElement */ querySelector("#slider") },
+    get slider() { return dart.as(querySelector("#slider"), dom.InputElement) },
     get notes() { return querySelector("#notes") },
     get PHI() { return (math.sqrt(5) + 1) / 2 },
-    get context() { return /* Unimplemented: DownCast: RenderingContext to CanvasRenderingContext2D */ (/* Unimplemented: as CanvasElement. */querySelector("#canvas")).getContext("2d") },
+    get context() { return dart.as((dart.as(querySelector("#canvas"), dom.CanvasElement)).getContext("2d"), dom.CanvasRenderingContext2D) },
   });
 
   class Circle {

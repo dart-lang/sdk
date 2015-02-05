@@ -1,1 +1,4 @@
 // Messages from compiling methods.dart
+warning: line 45, column 3 of test/codegen/methods.dart: f.bar("Bar's call method!") requires dynamic invoke
+  f.bar("Bar's call method!");
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^

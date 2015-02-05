@@ -31,3 +31,16 @@ class A {
     _c = c;
   }
 }
+
+class Bar {
+  call(x) => print('hello from $x');
+}
+class Foo {
+  final Bar bar = new Bar();
+}
+
+test() {
+  // looks like a method but is actually f.bar.call(...)
+  var f = new Foo();
+  f.bar("Bar's call method!");
+}

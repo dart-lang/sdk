@@ -14,7 +14,7 @@ var collection;
   function _defaultEquals(a, b) { return dart.equals(a, b); }
 
   // Function _defaultHashCode: (dynamic) → int
-  function _defaultHashCode(a) { return /* Unimplemented: DownCast: dynamic to int */ dart.dload(a, "hashCode"); }
+  function _defaultHashCode(a) { return dart.as(dart.dload(a, "hashCode"), core.int); }
 
   class HashMap/* Unimplemented <K, V> */ {
     /* Unimplemented external factory HashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
@@ -22,7 +22,7 @@ var collection;
     /*constructor*/ from(other) {
       let result = new HashMap();
       other.forEach((k, v) => {
-        result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
+        result.set(k, /* Unimplemented: DownCast: dynamic to V */v);
       });
       return result;
     }
@@ -48,14 +48,14 @@ var collection;
     difference(other) {
       let result = this._newSet();
       for (let element of this) {
-        if (!other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */ element);
+        if (!other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */element);
       }
       return result;
     }
     intersection(other) {
       let result = this._newSet();
       for (let element of this) {
-        if (other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */ element);
+        if (other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */element);
       }
       return result;
     }
@@ -167,7 +167,7 @@ var collection;
       if (!it.moveNext()) {
         throw _internal.IterableElementError.noElement();
       }
-      return /* Unimplemented: DownCast: dynamic to E */ it.current;
+      return /* Unimplemented: DownCast: dynamic to E */it.current;
     }
     get last() {
       let it = iterator;
@@ -176,7 +176,7 @@ var collection;
       }
       let result = null;
       do {
-        result = /* Unimplemented: DownCast: dynamic to E */ it.current;
+        result = /* Unimplemented: DownCast: dynamic to E */it.current;
       }
       while (it.moveNext());
       return result;
@@ -184,7 +184,7 @@ var collection;
     get single() {
       let it = iterator;
       if (!it.moveNext()) throw _internal.IterableElementError.noElement();
-      let result = /* Unimplemented: DownCast: dynamic to E */ it.current;
+      let result = /* Unimplemented: DownCast: dynamic to E */it.current;
       if (it.moveNext()) throw _internal.IterableElementError.tooMany();
       return result;
     }
@@ -333,7 +333,7 @@ var collection;
       if (!it.moveNext()) {
         throw _internal.IterableElementError.noElement();
       }
-      return /* Unimplemented: DownCast: dynamic to E */ it.current;
+      return /* Unimplemented: DownCast: dynamic to E */it.current;
     }
     get last() {
       let it = iterator;
@@ -342,7 +342,7 @@ var collection;
       }
       let result = null;
       do {
-        result = /* Unimplemented: DownCast: dynamic to E */ it.current;
+        result = /* Unimplemented: DownCast: dynamic to E */it.current;
       }
       while (it.moveNext());
       return result;
@@ -350,7 +350,7 @@ var collection;
     get single() {
       let it = iterator;
       if (!it.moveNext()) throw _internal.IterableElementError.noElement();
-      let result = /* Unimplemented: DownCast: dynamic to E */ it.current;
+      let result = /* Unimplemented: DownCast: dynamic to E */it.current;
       if (it.moveNext()) throw _internal.IterableElementError.tooMany();
       return result;
     }
@@ -455,8 +455,8 @@ var collection;
       let ultimate = null;
       if (!it.moveNext()) {
         if (count <= HEAD_COUNT + TAIL_COUNT) return;
-        ultimateString = /* Unimplemented: DownCast: dynamic to String */ parts.removeLast();
-        penultimateString = /* Unimplemented: DownCast: dynamic to String */ parts.removeLast();
+        ultimateString = dart.as(parts.removeLast(), core.String);
+        penultimateString = dart.as(parts.removeLast(), core.String);
       } else {
         penultimate = it.current;
         count++;
@@ -466,7 +466,7 @@ var collection;
             return;
           }
           ultimateString = "" + (penultimate) + "";
-          penultimateString = /* Unimplemented: DownCast: dynamic to String */ parts.removeLast();
+          penultimateString = dart.as(parts.removeLast(), core.String);
           length = ultimateString.length + OVERHEAD;
         } else {
           ultimate = it.current;
@@ -478,7 +478,7 @@ var collection;
             count++;
             if (count > MAX_COUNT) {
               while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
-                length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+", OVERHEAD);
+                length = dart.as(dart.dbinary(dart.dload(parts.removeLast(), "length"), "+", OVERHEAD), core.int);
                 count--;
               }
               parts.add("...");
@@ -496,7 +496,7 @@ var collection;
         length = ELLIPSIS_SIZE + OVERHEAD;
       }
       while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-        length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+", OVERHEAD);
+        length = dart.as(dart.dbinary(dart.dload(parts.removeLast(), "length"), "+", OVERHEAD), core.int);
         if (elision === null) {
           elision = "...";
           length = ELLIPSIS_SIZE + OVERHEAD;
@@ -525,7 +525,7 @@ var collection;
     next() {
       if (!this.hasNext) throw new core.StateError("No more elements");
       dart.assert(this._state === _HAS_NEXT_AND_NEXT_IN_CURRENT);
-      let result = /* Unimplemented: DownCast: dynamic to E */ this._iterator.current;
+      let result = /* Unimplemented: DownCast: dynamic to E */this._iterator.current;
       this._move();
       return result;
     }
@@ -547,7 +547,7 @@ var collection;
     /*constructor*/ from(other) {
       let result = new LinkedHashMap();
       other.forEach((k, v) => {
-        result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
+        result.set(k, /* Unimplemented: DownCast: dynamic to V */v);
       });
       return result;
     }
@@ -599,7 +599,7 @@ var collection;
       this._insertAfter(this._previous, entry);
     }
     addAll(entries) {
-      entries.forEach((entry) => this._insertAfter(this._previous, /* Unimplemented: DownCast: dynamic to E */ entry));
+      entries.forEach((entry) => this._insertAfter(this._previous, /* Unimplemented: DownCast: dynamic to E */entry));
     }
     remove(entry) {
       if (!dart.equals(entry._list, this)) return false;
@@ -612,7 +612,7 @@ var collection;
       this._modificationCount++;
       let next = this._next;
       while (!core.identical(next, this)) {
-        let entry = /* Unimplemented: DownCast: _LinkedListLink to E */ next;
+        let entry = /* Unimplemented: DownCast: _LinkedListLink to E */next;
         next = entry._next;
         entry._next = entry._previous = entry._list = null;
       }
@@ -623,13 +623,13 @@ var collection;
       if (core.identical(this._next, this)) {
         throw new core.StateError("No such element");
       }
-      return /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
+      return /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
     }
     get last() {
       if (core.identical(this._previous, this)) {
         throw new core.StateError("No such element");
       }
-      return /* Unimplemented: DownCast: _LinkedListLink to E */ this._previous;
+      return /* Unimplemented: DownCast: _LinkedListLink to E */this._previous;
     }
     get single() {
       if (core.identical(this._previous, this)) {
@@ -638,13 +638,13 @@ var collection;
       if (!core.identical(this._previous, this._next)) {
         throw new core.StateError("Too many elements");
       }
-      return /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
+      return /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
     }
     forEach(action) {
       let modificationCount = this._modificationCount;
       let current = this._next;
       while (!core.identical(current, this)) {
-        action(/* Unimplemented: DownCast: _LinkedListLink to E */ current);
+        action(/* Unimplemented: DownCast: _LinkedListLink to E */current);
         if (modificationCount !== this._modificationCount) {
           throw new core.ConcurrentModificationError(this);
         }
@@ -691,7 +691,7 @@ var collection;
       if (this._modificationCount !== this._list._modificationCount) {
         throw new core.ConcurrentModificationError(this);
       }
-      this._current = /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
+      this._current = /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
       this._next = this._next._next;
       return true;
     }
@@ -718,12 +718,12 @@ var collection;
     }
     get next() {
       if (core.identical(this._next, this._list)) return null;
-      let result = /* Unimplemented: DownCast: _LinkedListLink to E */ this._next;
+      let result = /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
       return result;
     }
     get previous() {
       if (core.identical(this._previous, this._list)) return null;
-      return /* Unimplemented: as E. */this._previous;
+      return /* Unimplemented type for `as`: _previous as E */;
     }
     insertAfter(entry) {
       this._list._insertAfter(this, entry);
@@ -919,10 +919,10 @@ var collection;
       return false;
     }
     removeWhere(test) {
-      _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */ test, false);
+      _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */test, false);
     }
     retainWhere(test) {
-      _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */ test, true);
+      _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */test, true);
     }
     static _filter(source, test, retainMatching) {
       let retained = new List.from([]);
@@ -958,7 +958,7 @@ var collection;
         let defaultCompare = core.Comparable.compare;
         compare = defaultCompare;
       }
-      _internal.Sort.sort(this, /* Unimplemented: ClosureWrap: (E, E) → int to (dynamic, dynamic) → int */ compare);
+      _internal.Sort.sort(this, /* Unimplemented: ClosureWrap: (E, E) → int to (dynamic, dynamic) → int */compare);
     }
     shuffle(random) {
       if (random === undefined) random = null;
@@ -1013,7 +1013,7 @@ var collection;
       let otherList = null;
       let otherStart = null;
       if (dart.is(iterable, core.List)) {
-        otherList = /* Unimplemented: DownCast: Iterable<E> to List<dynamic> */ iterable;
+        otherList = dart.as(iterable, core.List);
         otherStart = skipCount;
       } else {
         otherList = iterable.skip(skipCount).toList({growable: false});
@@ -1024,11 +1024,11 @@ var collection;
       }
       if (otherStart < start) {
         for (let i = length - 1; i >= 0; i--) {
-          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */ otherList.get(otherStart + i));
+          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */otherList.get(otherStart + i));
         }
       } else {
         for (let i = 0; i < length; i++) {
-          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */ otherList.get(otherStart + i));
+          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */otherList.get(otherStart + i));
         }
       }
     }
@@ -1174,9 +1174,9 @@ var collection;
     get length() { return this._map.length; }
     get isEmpty() { return this._map.isEmpty; }
     get isNotEmpty() { return this._map.isNotEmpty; }
-    get first() { return /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._map.keys.first); }
-    get single() { return /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._map.keys.single); }
-    get last() { return /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._map.keys.last); }
+    get first() { return /* Unimplemented: DownCast: dynamic to V */this._map.get(this._map.keys.first); }
+    get single() { return /* Unimplemented: DownCast: dynamic to V */this._map.get(this._map.keys.single); }
+    get last() { return /* Unimplemented: DownCast: dynamic to V */this._map.get(this._map.keys.last); }
     get iterator() { return new _MapBaseValueIterator(this._map); }
   }
 
@@ -1188,7 +1188,7 @@ var collection;
     }
     moveNext() {
       if (this._keys.moveNext()) {
-        this._current = /* Unimplemented: DownCast: dynamic to V */ this._map.get(this._keys.current);
+        this._current = /* Unimplemented: DownCast: dynamic to V */this._map.get(this._keys.current);
         return true;
       }
       this._current = null;
@@ -1397,11 +1397,11 @@ var collection;
       this._sentinel = new _DoubleLinkedQueueEntrySentinel();
     }
     /*constructor*/ from(elements) {
-      let list = /* Unimplemented: DownCastExact: DoubleLinkedQueue<dynamic> to Queue<E> */ new DoubleLinkedQueue();
+      let list = dart.as(new DoubleLinkedQueue(), Queue);
       for (let e of elements) {
         list.addLast(e);
       }
-      return /* Unimplemented: DownCast: Queue<E> to DoubleLinkedQueue<E> */ list;
+      return dart.as(list, DoubleLinkedQueue);
     }
     get length() { return this._elementCount; }
     addLast(value) {
@@ -1540,10 +1540,10 @@ var collection;
     /*constructor*/ from(elements) {
       if (dart.is(elements, core.List)) {
         let length = elements.length;
-        let queue = /* Unimplemented: DownCastExact: ListQueue<dynamic> to ListQueue<E> */ new ListQueue(length + 1);
+        let queue = dart.as(new ListQueue(length + 1), ListQueue);
         dart.assert(queue._table.length > length);
-        let sourceList = /* Unimplemented: DownCast: Iterable<dynamic> to List<dynamic> */ elements;
-        queue._table.setRange(0, length, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ sourceList, 0);
+        let sourceList = dart.as(elements, core.List);
+        queue._table.setRange(0, length, dart.as(sourceList, core.Iterable), 0);
         queue._tail = length;
         return queue;
       } else {
@@ -1601,22 +1601,22 @@ var collection;
     }
     addAll(elements) {
       if (dart.is(elements, core.List)) {
-        let list = /* Unimplemented: DownCast: Iterable<E> to List<dynamic> */ elements;
+        let list = dart.as(elements, core.List);
         let addCount = list.length;
         let length = this.length;
         if (length + addCount >= this._table.length) {
           this._preGrow(length + addCount);
-          this._table.setRange(length, length + addCount, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, 0);
+          this._table.setRange(length, length + addCount, dart.as(list, core.Iterable), 0);
           this._tail = addCount;
         } else {
           let endSpace = this._table.length - this._tail;
           if (addCount < endSpace) {
-            this._table.setRange(this._tail, this._tail + addCount, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, 0);
+            this._table.setRange(this._tail, this._tail + addCount, dart.as(list, core.Iterable), 0);
             this._tail = addCount;
           } else {
             let preSpace = addCount - endSpace;
-            this._table.setRange(this._tail, this._tail + endSpace, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, 0);
-            this._table.setRange(0, preSpace, /* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<E> */ list, endSpace);
+            this._table.setRange(this._tail, this._tail + endSpace, dart.as(list, core.Iterable), 0);
+            this._table.setRange(0, preSpace, dart.as(list, core.Iterable), endSpace);
             this._tail = preSpace;
           }
         }
@@ -1790,7 +1790,7 @@ var collection;
         this._current = null;
         return false;
       }
-      this._current = /* Unimplemented: DownCast: dynamic to E */ this._queue._table.get(this._position);
+      this._current = /* Unimplemented: DownCast: dynamic to E */this._queue._table.get(this._position);
       this._position = (this._position + 1) & (this._queue._table.length - 1);
       return true;
     }
@@ -1820,14 +1820,14 @@ var collection;
       for (let element of this) {
         if (test(element)) toRemove.add(element);
       }
-      this.removeAll(/* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<Object> */ toRemove);
+      this.removeAll(dart.as(toRemove, core.Iterable));
     }
     retainWhere(test) {
       let toRemove = new List.from([]);
       for (let element of this) {
         if (!test(element)) toRemove.add(element);
       }
-      this.removeAll(/* Unimplemented: DownCastDynamic: List<dynamic> to Iterable<Object> */ toRemove);
+      this.removeAll(dart.as(toRemove, core.Iterable));
     }
     containsAll(other) {
       for (let o of other) {
@@ -1864,7 +1864,7 @@ var collection;
       if (this.length > 1) throw _internal.IterableElementError.tooMany();
       let it = this.iterator;
       if (!it.moveNext()) throw _internal.IterableElementError.noElement();
-      let result = /* Unimplemented: DownCast: dynamic to E */ it.current;
+      let result = /* Unimplemented: DownCast: dynamic to E */it.current;
       return result;
     }
     toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
@@ -1937,7 +1937,7 @@ var collection;
       if (!it.moveNext()) {
         throw _internal.IterableElementError.noElement();
       }
-      return /* Unimplemented: DownCast: dynamic to E */ it.current;
+      return /* Unimplemented: DownCast: dynamic to E */it.current;
     }
     get last() {
       let it = this.iterator;
@@ -1946,7 +1946,7 @@ var collection;
       }
       let result = null;
       do {
-        result = /* Unimplemented: DownCast: dynamic to E */ it.current;
+        result = /* Unimplemented: DownCast: dynamic to E */it.current;
       }
       while (it.moveNext());
       return result;
@@ -2084,7 +2084,7 @@ var collection;
         left.right = current;
         current = left;
       }
-      return /* Unimplemented: DownCastDynamic: _SplayTreeNode<dynamic> to _SplayTreeNode<K> */ current;
+      return dart.as(current, _SplayTreeNode);
     }
     _splayMax(node) {
       let current = node;
@@ -2094,7 +2094,7 @@ var collection;
         right.left = current;
         current = right;
       }
-      return /* Unimplemented: DownCastDynamic: _SplayTreeNode<dynamic> to _SplayTreeNode<K> */ current;
+      return dart.as(current, _SplayTreeNode);
     }
     _remove(key) {
       if (this._root === null) return null;
@@ -2148,7 +2148,7 @@ var collection;
   }
 
   class _TypeTest/* Unimplemented <T> */ {
-    test(v) { return /* Unimplemented type test: v is T; }
+    test(v) { return /* Unimplemented type for `is`: v is T */; }
   }
 
   class SplayTreeMap/* Unimplemented <K, V> */ extends _SplayTree/* Unimplemented <K> */ {
@@ -2156,7 +2156,7 @@ var collection;
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       this._comparator = (compare === null) ? core.Comparable.compare : compare;
-      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type test: v is K);
+      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type for `is`: v is K */);
       super();
     }
     /*constructor*/ from(other, compare, isValidKey) {
@@ -2164,7 +2164,7 @@ var collection;
       if (isValidKey === undefined) isValidKey = null;
       let result = new SplayTreeMap();
       other.forEach((k, v) => {
-        result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
+        result.set(k, /* Unimplemented: DownCast: dynamic to V */v);
       });
       return result;
     }
@@ -2194,36 +2194,36 @@ var collection;
       if (key === null) throw new core.ArgumentError(key);
       if (!this._validKey(key)) return null;
       if (_root !== null) {
-        let comp = _splay(/* Unimplemented: DownCast: Object to K */ key);
+        let comp = _splay(/* Unimplemented: DownCast: Object to K */key);
         if (comp === 0) {
-          let mapRoot = /* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root;
-          return /* Unimplemented: DownCast: dynamic to V */ mapRoot.value;
+          let mapRoot = dart.as(_root, _SplayTreeMapNode);
+          return /* Unimplemented: DownCast: dynamic to V */mapRoot.value;
         }
       }
       return null;
     }
     remove(key) {
       if (!this._validKey(key)) return null;
-      let mapRoot = /* Unimplemented: DownCast: _SplayTreeNode<dynamic> to _SplayTreeMapNode<dynamic, dynamic> */ _remove(/* Unimplemented: DownCast: Object to K */ key);
-      if (mapRoot !== null) return /* Unimplemented: DownCast: dynamic to V */ mapRoot.value;
+      let mapRoot = dart.as(_remove(/* Unimplemented: DownCast: Object to K */key), _SplayTreeMapNode);
+      if (mapRoot !== null) return /* Unimplemented: DownCast: dynamic to V */mapRoot.value;
       return null;
     }
     set(key, value) {
       if (key === null) throw new core.ArgumentError(key);
       let comp = _splay(key);
       if (comp === 0) {
-        let mapRoot = /* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root;
+        let mapRoot = dart.as(_root, _SplayTreeMapNode);
         mapRoot.value = value;
         return;
       }
-      _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeMapNode<dynamic, dynamic> to _SplayTreeNode<K> */ new _SplayTreeMapNode(key, value), comp);
+      _addNewRoot(dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode), comp);
     }
     putIfAbsent(key, ifAbsent) {
       if (key === null) throw new core.ArgumentError(key);
       let comp = _splay(key);
       if (comp === 0) {
-        let mapRoot = /* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root;
-        return /* Unimplemented: DownCast: dynamic to V */ mapRoot.value;
+        let mapRoot = dart.as(_root, _SplayTreeMapNode);
+        return /* Unimplemented: DownCast: dynamic to V */mapRoot.value;
       }
       let modificationCount = _modificationCount;
       let splayCount = _splayCount;
@@ -2235,7 +2235,7 @@ var collection;
         comp = _splay(key);
         dart.assert(comp !== 0);
       }
-      _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeMapNode<dynamic, dynamic> to _SplayTreeNode<K> */ new _SplayTreeMapNode(key, value), comp);
+      _addNewRoot(dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode), comp);
       return value;
     }
     addAll(other) {
@@ -2250,7 +2250,7 @@ var collection;
     forEach(f) {
       let nodes = new _SplayTreeNodeIterator(this);
       while (nodes.moveNext()) {
-        let node = /* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<K, V> */ nodes.current;
+        let node = dart.as(nodes.current, _SplayTreeMapNode);
         f(node.key, node.value);
       }
     }
@@ -2261,7 +2261,7 @@ var collection;
       _clear();
     }
     containsKey(key) {
-      return this._validKey(key) && _splay(/* Unimplemented: DownCast: Object to K */ key) === 0;
+      return this._validKey(key) && _splay(/* Unimplemented: DownCast: Object to K */key) === 0;
     }
     containsValue(value) {
       let found = false;
@@ -2273,12 +2273,12 @@ var collection;
           if (initialSplayCount !== _splayCount) {
             throw new core.ConcurrentModificationError(this);
           }
-          if (node.right !== null && visit(/* Unimplemented: DownCast: _SplayTreeNode<dynamic> to _SplayTreeMapNode<dynamic, dynamic> */ node.right)) return true;
-          node = /* Unimplemented: DownCast: _SplayTreeNode<dynamic> to _SplayTreeMapNode<dynamic, dynamic> */ node.left;
+          if (node.right !== null && visit(dart.as(node.right, _SplayTreeMapNode))) return true;
+          node = dart.as(node.left, _SplayTreeMapNode);
         }
         return false;
       }
-      return visit(/* Unimplemented: DownCast: _SplayTreeNode<K> to _SplayTreeMapNode<dynamic, dynamic> */ _root);
+      return visit(dart.as(_root, _SplayTreeMapNode));
     }
     get keys() { return new _SplayTreeKeyIterable(this); }
     get values() { return new _SplayTreeValueIterable(this); }
@@ -2287,11 +2287,11 @@ var collection;
     }
     firstKey() {
       if (_root === null) return null;
-      return /* Unimplemented: DownCast: dynamic to K */ _first.key;
+      return /* Unimplemented: DownCast: dynamic to K */_first.key;
     }
     lastKey() {
       if (_root === null) return null;
-      return /* Unimplemented: DownCast: dynamic to K */ _last.key;
+      return /* Unimplemented: DownCast: dynamic to K */_last.key;
     }
     lastKeyBefore(key) {
       if (key === null) throw new core.ArgumentError(key);
@@ -2417,14 +2417,14 @@ var collection;
     constructor(map) {
       super(map);
     }
-    _getValue(node) { return /* Unimplemented: DownCast: dynamic to K */ node.key; }
+    _getValue(node) { return /* Unimplemented: DownCast: dynamic to K */node.key; }
   }
 
   class _SplayTreeValueIterator/* Unimplemented <K, V> */ extends _SplayTreeIterator/* Unimplemented <V> */ {
     constructor(map) {
       super(map);
     }
-    _getValue(node) { return /* Unimplemented: DownCast: dynamic to V */ node.value; }
+    _getValue(node) { return /* Unimplemented: DownCast: dynamic to V */node.value; }
   }
 
   class _SplayTreeNodeIterator/* Unimplemented <K> */ extends _SplayTreeIterator/* Unimplemented <_SplayTreeNode<K>> */ {
@@ -2434,7 +2434,7 @@ var collection;
     /*constructor*/ startAt(tree, startKey) {
       super.startAt(tree, startKey);
     }
-    _getValue(node) { return /* Unimplemented: DownCastDynamic: _SplayTreeNode<dynamic> to _SplayTreeNode<K> */ node; }
+    _getValue(node) { return dart.as(node, _SplayTreeNode); }
   }
   dart.defineNamedConstructor(_SplayTreeNodeIterator, "startAt");
 
@@ -2443,7 +2443,7 @@ var collection;
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       this._comparator = (compare === null) ? core.Comparable.compare : compare;
-      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type test: v is E);
+      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type for `is`: v is E */);
       super();
     }
     /*constructor*/ from(elements, compare, isValidKey) {
@@ -2462,11 +2462,11 @@ var collection;
     get isNotEmpty() { return _root !== null; }
     get first() {
       if (_count === 0) throw _internal.IterableElementError.noElement();
-      return /* Unimplemented: DownCast: dynamic to E */ _first.key;
+      return /* Unimplemented: DownCast: dynamic to E */_first.key;
     }
     get last() {
       if (_count === 0) throw _internal.IterableElementError.noElement();
-      return /* Unimplemented: DownCast: dynamic to E */ _last.key;
+      return /* Unimplemented: DownCast: dynamic to E */_last.key;
     }
     get single() {
       if (_count === 0) throw _internal.IterableElementError.noElement();
@@ -2474,29 +2474,29 @@ var collection;
       return _root.key;
     }
     contains(object) {
-      return this._validKey(object) && _splay(/* Unimplemented: DownCast: Object to E */ object) === 0;
+      return this._validKey(object) && _splay(/* Unimplemented: DownCast: Object to E */object) === 0;
     }
     add(element) {
       let compare = _splay(element);
       if (compare === 0) return false;
-      _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeNode<dynamic> to _SplayTreeNode<E> */ new _SplayTreeNode(element), compare);
+      _addNewRoot(dart.as(new _SplayTreeNode(element), _SplayTreeNode), compare);
       return true;
     }
     remove(object) {
       if (!this._validKey(object)) return false;
-      return _remove(/* Unimplemented: DownCast: Object to E */ object) !== null;
+      return _remove(/* Unimplemented: DownCast: Object to E */object) !== null;
     }
     addAll(elements) {
       for (let element of elements) {
         let compare = _splay(element);
         if (compare !== 0) {
-          _addNewRoot(/* Unimplemented: DownCastExact: _SplayTreeNode<dynamic> to _SplayTreeNode<E> */ new _SplayTreeNode(element), compare);
+          _addNewRoot(dart.as(new _SplayTreeNode(element), _SplayTreeNode), compare);
         }
       }
     }
     removeAll(elements) {
       for (let element of elements) {
-        if (this._validKey(element)) _remove(/* Unimplemented: DownCast: Object to E */ element);
+        if (this._validKey(element)) _remove(/* Unimplemented: DownCast: Object to E */element);
       }
     }
     retainAll(elements) {
@@ -2506,7 +2506,7 @@ var collection;
         if (modificationCount !== _modificationCount) {
           throw new core.ConcurrentModificationError(this);
         }
-        if (this._validKey(object) && _splay(/* Unimplemented: DownCast: Object to E */ object) === 0) retainSet.add(_root.key);
+        if (this._validKey(object) && _splay(/* Unimplemented: DownCast: Object to E */object) === 0) retainSet.add(_root.key);
       }
       if (retainSet._count !== _count) {
         _root = retainSet._root;
@@ -2516,7 +2516,7 @@ var collection;
     }
     lookup(object) {
       if (!this._validKey(object)) return null;
-      let comp = _splay(/* Unimplemented: DownCast: Object to E */ object);
+      let comp = _splay(/* Unimplemented: DownCast: Object to E */object);
       if (comp !== 0) return null;
       return _root.key;
     }

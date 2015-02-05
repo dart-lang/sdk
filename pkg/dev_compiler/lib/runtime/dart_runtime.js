@@ -34,39 +34,62 @@ var dart;
   }
   dart.dload = dload;
 
-  function dinvokef(f, args) {
+  function throwNoSuchMethod(obj, name, args, opt_func) {
+    if (obj === void 0) obj = opt_func;
+    throw new core.NoSuchMethodError(obj, name, args);
+  }
+
+  function checkAndCall(f, obj, args, name) {
+    if (!(f instanceof Function)) {
+      // Grab the `call` method if it's not a function.
+      if (f !== null) f = f.call;
+      if (!(f instanceof Function)) {
+        throwNoSuchMethod(obj, method, args);
+      }
+    }
     var formals = formalParameterList(f);
     // TODO(vsm): Type check args!  We need to encode sufficient type info on f.
     if (formals.length < args.length) {
-      throw new core.NoSuchMethodError(f, args);
+      throwNoSuchMethod(obj, name, args, f);
     } else if (formals.length > args.length) {
       for (var i = args.length; i < formals.length; ++i) {
-        if (formals[i].indexOf("opt$") != 0)
-          throw new core.NoSuchMethodError(f, args);
+        if (formals[i].indexOf("opt$") != 0) {
+          throwNoSuchMethod(obj, name, args, f);
+        }
       }
     }
-    return f.apply(void 0, args);
+    return f.apply(obj, args);
+  }
+
+  function dinvokef(f/*, ...args*/) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return checkAndCall(f, void 0, args, 'call');
   }
   dart.dinvokef = dinvokef;
 
-  // TODO(jmesserly): we could replace a lot of these with a generic "send".
-  // It's likely simpler and less code size.
+  function dinvoke(obj, method/*, ...args*/) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    return checkAndCall(obj[method], obj, args, method);
+  }
+  dart.dinvoke = dinvoke;
+
   function dindex(obj, index) {
-    if (!('get' in obj)) throw new core.NoSuchMethodError(obj, '[]', [index]);
-    // TODO(vsm): Type check arg
-    return obj.get(index);
+    return checkAndCall(obj.get, obj, [index], '[]');
   }
   dart.dindex = dindex;
 
+  function dsetindex(obj, index, value) {
+    return checkAndCall(obj.set, obj, [index, value], '[]=');
+  }
+  dart.dsetindex = dindex;
+
   function dbinary(left, op, right) {
-    if (!(op in left)) throw new core.NoSuchMethodError(obj, op, [right]);
-    // TODO(vsm): Type check arg
-    return left[op](right);
+    return checkAndCall(left[op], left, [right], op);
   }
   dart.dbinary = dbinary;
 
   function as(obj, type) {
-    if (obj == null || instanceOf(obj, type)) return obj;
+    if (obj == null || is(obj, type)) return obj;
     throw new dart_core.CastError();
   }
   dart.as = as;
