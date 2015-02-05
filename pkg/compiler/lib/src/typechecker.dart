@@ -1629,15 +1629,20 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType resultType = analyze(node.expression);
     if (!node.hasStar) {
       if (currentAsyncMarker.isAsync) {
-        resultType =
-            compiler.streamClass.thisType.createInstantiation(
-                <DartType>[resultType]);
+        resultType = compiler.coreTypes.streamType(resultType);
       } else {
-        resultType =
-            compiler.iterableClass.thisType.createInstantiation(
-                 <DartType>[resultType]);
+        resultType = compiler.coreTypes.iterableType(resultType);
+      }
+    } else {
+      if (currentAsyncMarker.isAsync) {
+        // The static type of expression must be assignable to Stream.
+        checkAssignable(node, resultType, compiler.coreTypes.streamType());
+      } else {
+        // The static type of expression must be assignable to Iterable.
+        checkAssignable(node, resultType, compiler.coreTypes.iterableType());
       }
     }
+    // The static type of the result must be assignable to the declared type.
     checkAssignable(node, resultType, expectedReturnType);
     return const StatementType();
   }

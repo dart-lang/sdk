@@ -2395,6 +2395,22 @@ class _CompilerCoreTypes implements CoreTypes {
 
   @override
   InterfaceType get stringType =>  stringClass.computeType(compiler);
+
+  @override
+  InterfaceType iterableType([DartType elementType = const DynamicType()]) {
+    return iterableClass.computeType(compiler)
+        .createInstantiation([elementType]);
+  }
+
+  @override
+  InterfaceType futureType([DartType elementType = const DynamicType()]) {
+    return futureClass.computeType(compiler).createInstantiation([elementType]);
+  }
+
+  @override
+  InterfaceType streamType([DartType elementType = const DynamicType()]) {
+    return streamClass.computeType(compiler).createInstantiation([elementType]);
+  }
 }
 
 typedef void InternalErrorFunction(Spannable location, String message);

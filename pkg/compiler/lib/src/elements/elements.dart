@@ -1157,16 +1157,16 @@ abstract class FunctionElement extends Element
 /// Enum for the synchronous/asynchronous function body modifiers.
 class AsyncMarker {
   /// The default function body marker.
-  static AsyncMarker SYNC = const AsyncMarker._();
+  static const AsyncMarker SYNC = const AsyncMarker._();
 
   /// The `sync*` function body marker.
-  static AsyncMarker SYNC_STAR = const AsyncMarker._(isYielding: true);
+  static const AsyncMarker SYNC_STAR = const AsyncMarker._(isYielding: true);
 
   /// The `async` function body marker.
-  static AsyncMarker ASYNC = const AsyncMarker._(isAsync: true);
+  static const AsyncMarker ASYNC = const AsyncMarker._(isAsync: true);
 
   /// The `async*` function body marker.
-  static AsyncMarker ASYNC_STAR =
+  static const AsyncMarker ASYNC_STAR =
       const AsyncMarker._(isAsync: true, isYielding: true);
 
   /// Is `true` if this marker defines the function body to have an

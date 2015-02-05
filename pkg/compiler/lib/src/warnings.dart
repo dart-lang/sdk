@@ -2085,7 +2085,7 @@ Please include the following information:
       examples: const [
         "main() async * {}",
         "main() sync * {}",
-        "main() async* { yield * 0; }"
+        "main() async* { yield * null; }"
       ]);
 
   static const MessageKind INVALID_SYNC_MODIFIER = const MessageKind(

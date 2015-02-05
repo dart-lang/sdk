@@ -2478,10 +2478,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     LocalFunctionElementX function = new LocalFunctionElementX(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
-    function.functionSignatureCache =
-        SignatureResolver.analyze(compiler, node.parameters, node.returnType,
-            function, registry, createRealParameters: true);
     ResolverTask.processAsyncMarker(compiler, function);
+    function.functionSignatureCache = SignatureResolver.analyze(
+        compiler,
+        node.parameters,
+        node.returnType,
+        function,
+        registry,
+        createRealParameters: true,
+        isFunctionExpression: !inFunctionDeclaration);
     checkLocalDefinitionName(node, function);
     registry.defineFunction(node, function);
     if (doAddToScope) {

@@ -40,4 +40,16 @@ abstract class CoreTypes {
   /// [keyType] and [valueType] as its type arguments.
   InterfaceType mapType([DartType keyType = const DynamicType(),
                          DartType valueType = const DynamicType()]);
+
+  /// Returns an instance of the `Iterable` type defined in 'dart:core' with
+  /// [elementType] as its type argument.
+  InterfaceType iterableType([DartType elementType = const DynamicType()]);
+
+  /// Returns an instance of the `Future` type defined in 'dart:async' with
+  /// [elementType] as its type argument.
+  InterfaceType futureType([DartType elementType = const DynamicType()]);
+
+  /// Returns an instance of the `Stream` type defined in 'dart:async' with
+  /// [elementType] as its type argument.
+  InterfaceType streamType([DartType elementType = const DynamicType()]);
 }
