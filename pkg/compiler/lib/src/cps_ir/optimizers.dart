@@ -14,6 +14,7 @@ import '../tree/tree.dart' show LiteralDartString;
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
 import '../types/types.dart' show TypeMask, TypesTask;
+import '../core_types.dart' show CoreTypes;
 import '../types/constants.dart' show computeTypeMask;
 import '../elements/elements.dart' show ClassElement, Element, Entity,
     FieldElement, FunctionElement, ParameterElement;
