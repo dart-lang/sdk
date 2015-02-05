@@ -5,6 +5,9 @@
 main(args) {
   print('hello');
   print('hello $args');
+  print('hello $args!');
+  print('hello ${args}1');
   print('hello ${args}'); //LINT
+  print('hello ${args}!'); //LINT
   print('hello ${args.length}');
 }
