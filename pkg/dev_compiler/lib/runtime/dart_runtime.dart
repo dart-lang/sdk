@@ -112,10 +112,21 @@ bool _isFunctionSubType(TypeMirror t1, TypeMirror t2) {
   final params2 = f2.parameters;
   final ret1 = f1.returnType;
   final ret2 = f2.returnType;
+  return _isFunctionSubTypeHelper(ret1, params1, ret2, params2);
+}
 
+bool _isFunctionSubTypeHelper(TypeMirror ret1, List<ParameterMirror> params1,
+    TypeMirror ret2, List<ParameterMirror> params2) {
   if (!_isSubType(ret1, ret2)) {
-    // Covariant return types.
-    return false;
+    // Covariant return types
+    // Note, void (which can only appear as a return type) is effectively
+    // treated as dynamic.  If the base return type is void, we allow any
+    // subtype return type.
+    // E.g., we allow:
+    //   () -> int <: () -> void
+    if (ret2.simpleName != const Symbol('void')) {
+      return false;
+    }
   }
 
   if (params1.length < params2.length) {
@@ -252,9 +263,7 @@ bool _isSubType(TypeMirror t1, TypeMirror t2) {
     return true;
   }
 
-  if (t1 is! FunctionTypeMirror || t2 is! FunctionTypeMirror) return false;
-
-  // Functions
+  // Function subtyping.
   // Note: it appears under the hood all Dart functions map to a class / hidden type
   // that:
   //  (a) subtypes Object (an internal _FunctionImpl in the VM)
@@ -271,5 +280,32 @@ bool _isSubType(TypeMirror t1, TypeMirror t2) {
   // - contravariant on parameters
   // - 'sensible' (?) rules on optional and/or named params
   // but doesn't properly mix with class subtyping yet.
-  return _isFunctionSubType(c1 as FunctionTypeMirror, c2 as FunctionTypeMirror);
+  //
+  // Note, a class type that implements a call method implicitly subtypes
+  // the function type of the call method.  However, the converse is not true:
+  // a function type does not subtype a class type with a call method.
+
+  // If c1 is not a proper function or a class type with call method,
+  // return false.
+  TypeMirror ret1;
+  List<ParameterMirror> params1;
+  // Note, a proper function has a call method, but it's not a regular method,
+  // so we break out the two cases.
+  if (c1 is FunctionTypeMirror) {
+    // Regular function
+    ret1 = c1.returnType;
+    params1 = c1.parameters;
+  } else {
+    var call1 = c1.instanceMembers[#call];
+    if (call1 == null || !call1.isRegularMethod) return false;
+    // Class that emulate a function
+    ret1 = call1.returnType;
+    params1 = call1.parameters;
+  }
+
+  // Any type that implements a call method implicitly subtypes Function.
+  if (_reflects(c2, Function)) return true;
+
+  // Check structural function subtyping
+  return _isFunctionSubTypeHelper(ret1, params1, c2.returnType, c2.parameters);
 }

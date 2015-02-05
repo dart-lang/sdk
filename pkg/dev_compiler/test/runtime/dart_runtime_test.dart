@@ -38,6 +38,14 @@ B bar6(B b, String s, String o) => null;
 B bar7(B b, String s, [Object o]) => null;
 B bar8(B b, String s, {Object p}) => null;
 
+class Bar {
+  B call(B b, String s) => null;
+}
+
+class Baz {
+  Foo call = (B b, String s) => null;
+}
+
 bool dartIs(expr, Type type) {
   var exprMirror = reflectType(expr.runtimeType);
   var typeMirror = reflectType(type);
@@ -221,6 +229,26 @@ void main() {
     checkType(bar8, bar6.runtimeType, false);
     checkType(bar7, bar8.runtimeType, false);
     checkType(bar8, bar7.runtimeType, false);
+  });
+
+  test('void', () {
+    checkType((x) => x, type((void _(x)) {}));
+  });
+
+  test('Function objects', () {
+    // Bar has a call method - it emulates the corresponding function.
+    var bar = new Bar();
+    checkType(bar, Bar);
+    checkType(bar, Function);
+    checkType(bar, Foo);
+    checkType(bar, type((B _(B _1, String _2)) {}));
+    checkType(bar, type((B _(String _1, String _2)) {}), false);
+
+    // Baz has a call getter that is a closure - this does not make it a
+    // function.
+    var baz = new Baz();
+    checkType(baz, Function, false);
+    checkType(baz, Foo, false);
   });
 
   test('arity', () {
