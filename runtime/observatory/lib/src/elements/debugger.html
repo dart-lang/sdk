@@ -57,7 +57,7 @@
         <top-nav-menu></top-nav-menu>
         <isolate-nav-menu isolate="{{ isolate }}">
 	</isolate-nav-menu>
-        <nav-menu link="{{ '/debugger' + isolate.link) }}" anchor="debugger" last="{{ true }}"></nav-menu>
+        <nav-menu link="{{ makeLink('/debugger', isolate) }}" anchor="debugger" last="{{ true }}"></nav-menu>
 	<nav-control></nav-control>
       </nav-bar>
 

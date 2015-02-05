@@ -21,12 +21,10 @@ JSONStream::JSONStream(intptr_t buf_size)
     : open_objects_(0),
       buffer_(buf_size),
       reply_port_(ILLEGAL_PORT),
-      command_(""),
-      arguments_(NULL),
-      num_arguments_(0),
-      option_keys_(NULL),
-      option_values_(NULL),
-      num_options_(0) {
+      method_(""),
+      param_keys_(NULL),
+      param_values_(NULL),
+      num_params_(0) {
 }
 
 
@@ -36,89 +34,35 @@ JSONStream::~JSONStream() {
 
 void JSONStream::Setup(Zone* zone,
                        Dart_Port reply_port,
-                       const GrowableObjectArray& path,
-                       const Array& option_keys,
-                       const Array& option_values) {
+                       const String& method,
+                       const Array& param_keys,
+                       const Array& param_values) {
   set_reply_port(reply_port);
+  method_ = method.ToCString();
 
-  // Setup JSONStream arguments and options. The arguments and options
-  // are zone allocated and will be freed immediately after handling the
-  // message.
-  const char** arguments = zone->Alloc<const char*>(path.Length());
   String& string_iterator = String::Handle();
-  for (intptr_t i = 0; i < path.Length(); i++) {
-    string_iterator ^= path.At(i);
-    arguments[i] = zone->MakeCopyOfString(string_iterator.ToCString());
-    if (i == 0) {
-      command_ = arguments[i];
-    }
-  }
-  SetArguments(arguments, path.Length());
-  if (option_keys.Length() > 0) {
-    const char** option_keys_native =
-        zone->Alloc<const char*>(option_keys.Length());
-    const char** option_values_native =
-        zone->Alloc<const char*>(option_keys.Length());
-    for (intptr_t i = 0; i < option_keys.Length(); i++) {
-      string_iterator ^= option_keys.At(i);
-      option_keys_native[i] =
+  if (param_keys.Length() > 0) {
+    ASSERT(param_keys.Length() == param_values.Length());
+    const char** param_keys_native =
+        zone->Alloc<const char*>(param_keys.Length());
+    const char** param_values_native =
+        zone->Alloc<const char*>(param_keys.Length());
+    for (intptr_t i = 0; i < param_keys.Length(); i++) {
+      string_iterator ^= param_keys.At(i);
+      param_keys_native[i] =
           zone->MakeCopyOfString(string_iterator.ToCString());
-      string_iterator ^= option_values.At(i);
-      option_values_native[i] =
+      string_iterator ^= param_values.At(i);
+      param_values_native[i] =
           zone->MakeCopyOfString(string_iterator.ToCString());
     }
-    SetOptions(option_keys_native, option_values_native, option_keys.Length());
+    SetParams(param_keys_native, param_values_native, param_keys.Length());
   }
   if (FLAG_trace_service) {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processing service request %s",
-              isolate_name, command_);
-    for (intptr_t i = 1; i < num_arguments(); i++) {
-      OS::Print("/%s", GetArgument(i));
-    }
-    OS::Print("\n");
-    setup_time_micros_ = OS::GetCurrentTimeMicros();
-  }
-}
-
-
-void JSONStream::SetupNew(Zone* zone,
-                          Dart_Port reply_port,
-                          const String& method,
-                          const Array& option_keys,
-                          const Array& option_values) {
-  set_reply_port(reply_port);
-  command_ = method.ToCString();
-
-  String& string_iterator = String::Handle();
-  if (option_keys.Length() > 0) {
-    ASSERT(option_keys.Length() == option_values.Length());
-    const char** option_keys_native =
-        zone->Alloc<const char*>(option_keys.Length());
-    const char** option_values_native =
-        zone->Alloc<const char*>(option_keys.Length());
-    for (intptr_t i = 0; i < option_keys.Length(); i++) {
-      string_iterator ^= option_keys.At(i);
-      option_keys_native[i] =
-          zone->MakeCopyOfString(string_iterator.ToCString());
-      string_iterator ^= option_values.At(i);
-      option_values_native[i] =
-          zone->MakeCopyOfString(string_iterator.ToCString());
-    }
-    SetOptions(option_keys_native, option_values_native, option_keys.Length());
-  }
-  if (FLAG_trace_service) {
-    Isolate* isolate = Isolate::Current();
-    ASSERT(isolate != NULL);
-    const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processing service request %s",
-              isolate_name, command_);
-    for (intptr_t i = 1; i < num_arguments(); i++) {
-      OS::Print("/%s", GetArgument(i));
-    }
-    OS::Print("\n");
+    OS::Print("Isolate %s processing service request %s\n",
+              isolate_name, method_);
     setup_time_micros_ = OS::GetCurrentTimeMicros();
   }
 }
@@ -151,36 +95,32 @@ void JSONStream::PostReply() {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processed service request %s",
-              isolate_name, command_);
-    for (intptr_t i = 1; i < num_arguments(); i++) {
-      OS::Print("/%s", GetArgument(i));
-    }
-    OS::Print(" in %" Pd64" us.\n", process_delta_micros);
+    OS::Print("Isolate %s processed service request %s in %" Pd64" us.\n",
+              isolate_name, method_, process_delta_micros);
   }
 }
 
 
-const char* JSONStream::LookupOption(const char* key) const {
-  for (int i = 0; i < num_options(); i++) {
-    if (!strcmp(key, option_keys_[i])) {
-      return option_values_[i];
+const char* JSONStream::LookupParam(const char* key) const {
+  for (int i = 0; i < num_params(); i++) {
+    if (!strcmp(key, param_keys_[i])) {
+      return param_values_[i];
     }
   }
   return NULL;
 }
 
 
-bool JSONStream::HasOption(const char* key) const {
+bool JSONStream::HasParam(const char* key) const {
   ASSERT(key);
-  return LookupOption(key) != NULL;
+  return LookupParam(key) != NULL;
 }
 
 
-bool JSONStream::OptionIs(const char* key, const char* value) const {
+bool JSONStream::ParamIs(const char* key, const char* value) const {
   ASSERT(key);
   ASSERT(value);
-  const char* key_value = LookupOption(key);
+  const char* key_value = LookupParam(key);
   return (key_value != NULL) && (strcmp(key_value, value) == 0);
 }
 
@@ -411,22 +351,12 @@ void JSONStream::set_reply_port(Dart_Port port) {
 }
 
 
-void JSONStream::SetArguments(const char** arguments, intptr_t num_arguments) {
-  if (num_arguments > 0) {
-    // Set command.
-    command_ = arguments[0];
-  }
-  arguments_ = arguments;
-  num_arguments_ = num_arguments;
-}
-
-
-void JSONStream::SetOptions(const char** option_keys,
-                            const char** option_values,
-                            intptr_t num_options) {
-  option_keys_ = option_keys;
-  option_values_ = option_values;
-  num_options_ = num_options;
+void JSONStream::SetParams(const char** param_keys,
+                           const char** param_values,
+                           intptr_t num_params) {
+  param_keys_ = param_keys;
+  param_values_ = param_values;
+  num_params_ = num_params;
 }
 
 

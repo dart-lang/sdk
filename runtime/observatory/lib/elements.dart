@@ -2,7 +2,6 @@ library observatory_elements;
 
 // Export elements.
 export 'package:observatory/src/elements/action_link.dart';
-export 'package:observatory/src/elements/breakpoint_list.dart';
 export 'package:observatory/src/elements/class_ref.dart';
 export 'package:observatory/src/elements/class_tree.dart';
 export 'package:observatory/src/elements/class_view.dart';
@@ -21,6 +20,7 @@ export 'package:observatory/src/elements/field_view.dart';
 export 'package:observatory/src/elements/flag_list.dart';
 export 'package:observatory/src/elements/function_ref.dart';
 export 'package:observatory/src/elements/function_view.dart';
+export 'package:observatory/src/elements/general_error.dart';
 export 'package:observatory/src/elements/heap_map.dart';
 export 'package:observatory/src/elements/heap_profile.dart';
 export 'package:observatory/src/elements/instance_ref.dart';

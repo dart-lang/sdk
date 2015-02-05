@@ -3,6 +3,17 @@
 //
 
 interface Service {
+  getVM() VM
+
+  getFlagList() FlagList
+
+  setFlag(name string, value string) Response
+
+  getObject(isolateId string, objectId string) Object
+
+  // The response is a subtype of Object or ObjectRef.
+  getObjectByAddress(address string, ref bool) Response
+
   // Returns the list of breakpoints for an isolate.
   getBreakpoints(isolateId string) BreakpointList
 
@@ -124,6 +135,16 @@ struct Response {
   // only when this type name differs from the <code>type</code>
   // property.
   _vmType string [optional]
+}
+
+
+struct VM extends Response {
+  placeholder int
+}
+
+
+struct FlagList extends Response {
+  placeholder int
 }
 
 

@@ -4,8 +4,7 @@
 
 part of service;
 
-/// A [ServiceObject] is an object known to the VM service and is tied
-/// to an owning [Isolate].
+/// A [ServiceObject] represents a persistent object within the vm.
 abstract class ServiceObject extends Observable {
   static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
     return o1.name.compareTo(o2.name);
@@ -89,9 +88,6 @@ abstract class ServiceObject extends Observable {
     return (type == 'Instance' &&
             !isMirrorReference && !isWeakProperty && !isClosure);
   }
-
-  /// The complete service url of this object.
-  @reflectable String get link => _owner.relativeLink(_id);
 
   /// Has this object been fully loaded?
   bool get loaded => _loaded;
@@ -282,11 +278,6 @@ abstract class ServiceObject extends Observable {
 
   // Updates internal state from [map]. [map] can be a reference.
   void _update(ObservableMap map, bool mapIsRef);
-
-  String relativeLink(String id) {
-    assert(id != null);
-    return "${link}/${id}";
-  }
 }
 
 abstract class Coverage {
@@ -294,7 +285,6 @@ abstract class Coverage {
   ServiceObjectOwner get owner;
   String get type;
   VM get vm;
-  String relativeLink(String id);
 
   /// Default handler for coverage data.
   void processCoverageData(List coverageData) {
@@ -329,9 +319,6 @@ abstract class ServiceObjectOwner extends ServiceObject {
   /// The result may come from the cache.  The result will not necessarily
   /// be [loaded].
   ServiceObject getFromMap(ObservableMap map);
-
-  /// Creates a link to [id] relative to [this].
-  String relativeLink(String id);
 }
 
 /// State for a VM being inspected.
@@ -340,9 +327,6 @@ abstract class VM extends ServiceObjectOwner {
   @reflectable Isolate get isolate => null;
 
   @reflectable Iterable<Isolate> get isolates => _isolateCache.values;
-
-  @reflectable String get link => '$id';
-  @reflectable String relativeLink(String id) => '$id';
 
   @observable String version = 'unknown';
   @observable String targetCPU;
@@ -450,42 +434,6 @@ abstract class VM extends ServiceObjectOwner {
       });
   }
 
-  Future<ServiceObject> getDeprecated(String id) {
-    assert(id.startsWith('/') == false);
-    // Isolates are handled specially, since they can cache sub-objects.
-    if (id.startsWith(_isolatesPrefix)) {
-      String isolateId = _parseIsolateId(id);
-      String objectId = _parseObjectId(id);
-      return getIsolate(isolateId).then((isolate) {
-        if (isolate == null) {
-          // The isolate does not exist.  Return the VM object instead.
-          //
-          // TODO(turnidge): Generate a service error?
-          return this;
-        }
-        if (objectId == null) {
-          return isolate.reload();
-        } else {
-          return isolate.getDeprecated(objectId);
-        }
-      });
-    }
-
-    var obj = _cache[id];
-    if (obj != null) {
-      return obj.reload();
-    }
-
-    // Cache miss.  Get the object from the vm directly.
-    return _getAsMapDeprecated(id).then((ObservableMap map) {
-      var obj = new ServiceObject._fromMap(this, map);
-      if (obj.canCache) {
-        _cache.putIfAbsent(id, () => obj);
-      }
-      return obj;
-    });
-  }
-
   dynamic _reviver(dynamic key, dynamic value) {
     return value;
   }
@@ -527,31 +475,6 @@ abstract class VM extends ServiceObjectOwner {
     return new Future.value(map);
   }
 
-  /// Gets [id] as an [ObservableMap] from the service directly. If
-  /// an error occurs, the future is completed as an error with a
-  /// ServiceError or ServiceException. Therefore any chained then() calls
-  /// will only receive a map encoding a valid ServiceObject.
-  Future<ObservableMap> _getAsMapDeprecated(String id) {
-    return getStringDeprecated(id).then((response) {
-      var map = _parseJSON(response);
-      if (Tracer.current != null) {
-        Tracer.current.trace("Received response for ${id}", map:map);
-      }
-      return _processMap(map);
-    }).catchError((error) {
-      // ServiceError, forward to VM's ServiceError stream.
-      errors.add(error);
-      return new Future.error(error);
-    }, test: (e) => e is ServiceError).catchError((exception) {
-      // ServiceException, forward to VM's ServiceException stream.
-      exceptions.add(exception);
-      return new Future.error(exception);
-    }, test: (e) => e is ServiceException);
-  }
-
-  /// Get [id] as a [String] from the service directly. See [getAsMap].
-  Future<String> getStringDeprecated(String id);
-
   // Implemented in subclass.
   Future<String> invokeRpcRaw(String method, Map params);
 
@@ -590,6 +513,10 @@ abstract class VM extends ServiceObjectOwner {
 
   Future<ObservableMap> _fetchDirect() {
     return invokeRpcNoUpgrade('getVM', {});
+  }
+
+  Future<ServiceObject> getFlagList() {
+    return invokeRpc('getFlagList', {});
   }
 
   /// Force the VM to disconnect.
@@ -754,8 +681,7 @@ class HeapSnapshot {
     var result = [];
     for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
       var address = v.addressForWordSize(isolate.vm.architectureBits ~/ 8);
-      result.add(isolate.getDeprecated(
-          'address/${address.toRadixString(16)}?ref=true').then((obj) {
+      result.add(isolate.getObjectByAddress(address.toRadixString(16)).then((obj) {
         obj.retainedSize = v.retainedSize;
         return new Future(() => obj);
       }));
@@ -772,8 +698,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @reflectable Isolate get isolate => this;
   @observable ObservableMap counters = new ObservableMap();
 
-  String get link => '/${_id}';
-
   @observable ServiceEvent pauseEvent = null;
   bool get _isPaused => pauseEvent != null;
 
@@ -788,9 +712,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   Isolate._empty(ServiceObjectOwner owner) : super._empty(owner) {
     assert(owner is VM);
   }
-
-  /// Creates a link to [id] relative to [this].
-  @reflectable String relativeLink(String id) => '/${this.id}/$id';
 
   static const TAG_ROOT_ID = 'code/tag-0';
 
@@ -890,25 +811,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return obj;
   }
 
-  Future<ServiceObject> getDeprecated(String id) {
-    // Do not allow null ids or empty ids.
-    assert(id != null && id != '');
-    var obj = _cache[id];
-    if (obj != null) {
-      return obj.reload();
-    }
-    // Cache miss.  Get the object from the vm directly.
-    return vm._getAsMapDeprecated(relativeLink(id)).then((ObservableMap map) {
-      var obj = new ServiceObject._fromMap(this, map);
-      if (obj.canCache) {
-        _cache.putIfAbsent(id, () => obj);
-      }
-      return obj;
-    });
-  }
-
   Future<ObservableMap> invokeRpcNoUpgrade(String method, Map params) {
-    params['isolate'] = id;
+    params['isolateId'] = id;
     return vm.invokeRpcNoUpgrade(method, params);
   }
 
@@ -1325,6 +1229,14 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'limit': limit.toString(),
     };
     return invokeRpc('getInstances', params);
+  }
+
+  Future<ServiceObject> getObjectByAddress(String address, [bool ref=true]) {
+    Map params = {
+      'address': address,
+      'ref': ref,
+    };
+    return invokeRpc('getObjectByAddress', params);
   }
 
   final ObservableMap<String, ServiceMetric> dartMetrics =

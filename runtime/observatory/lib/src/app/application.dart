@@ -103,6 +103,9 @@ class ObservatoryApplication extends Observable {
   }
 
   void _registerPages() {
+    _pageRegistry.add(new VMPage(this));
+    _pageRegistry.add(new FlagsPage(this));
+    _pageRegistry.add(new InspectPage(this));
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new DebuggerPage(this));
     _pageRegistry.add(new CpuProfilerPage(this));
@@ -111,9 +114,9 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new VMConnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
-    // Note that ServiceObjectPage must be the last entry in the list as it is
+    // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
-    _pageRegistry.add(new ServiceObjectPage(this));
+    _pageRegistry.add(new ErrorPage(this));
   }
 
   void _onError(ServiceError error) {
@@ -153,11 +156,12 @@ class ObservatoryApplication extends Observable {
     if (_traceView != null) {
       _traceView.tracer = Tracer.current;
     }
+    Uri uri = Uri.parse(url);
     for (var i = 0; i < _pageRegistry.length; i++) {
       var page = _pageRegistry[i];
-      if (page.canVisit(url)) {
+      if (page.canVisit(uri)) {
         _installPage(page);
-        page.visit(url, argsMap);
+        page.visit(uri, argsMap);
         return;
       }
     }

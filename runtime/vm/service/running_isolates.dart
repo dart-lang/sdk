@@ -26,11 +26,7 @@ class RunningIsolates implements MessageRouter {
   }
 
   Future<String> route(Message message) {
-    if (message.isOld) {
-      return routeOld(message);
-    }
-
-    String isolateParam = message.params['isolate'];
+    String isolateParam = message.params['isolateId'];
     int isolateId;
     if (!isolateParam.startsWith('isolates/')) {
       message.setErrorResponse('Malformed isolate id $isolateParam');
@@ -52,41 +48,6 @@ class RunningIsolates implements MessageRouter {
       message.setErrorResponse('Cannot find isolate id: $isolateId');
       return message.response;
     }
-    return isolate.route(message);
-  }
-
-  Future<String> routeOld(Message message) {
-    if (message.path.length == 0) {
-      message.setErrorResponse('No path.');
-      return message.response;
-    }
-    if (message.path[0] != 'isolates') {
-      message.setErrorResponse('Path must begin with /isolates/');
-      return message.response;
-    }
-    if (message.path.length < 2) {
-      message.setErrorResponse('An isolate id must be provided');
-      return message.response;
-    }
-    var isolateId;
-    if ((message.path[1] == 'root') && (_rootPortId != null)) {
-      isolateId = _rootPortId;
-    } else {
-      try {
-        isolateId = int.parse(message.path[1]);
-      } catch (e) {
-        message.setErrorResponse('Could not parse isolate id: $e');
-        return message.response;
-      }
-    }
-    assert(isolateId != null);
-    var isolate = isolates[isolateId];
-    if (isolate == null) {
-      message.setErrorResponse('Cannot find isolate id: $isolateId');
-      return message.response;
-    }
-    // Consume '/isolates/isolateId'
-    message.path.removeRange(0, 2);
     return isolate.route(message);
   }
 }

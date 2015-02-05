@@ -27,7 +27,7 @@ class ServiceRefElement extends ObservatoryElement {
     if (ref == null) {
       return 'NULL REF';
     }
-    return gotoLink(ref.link);
+    return gotoLink('/inspect', ref);
   }
 
   String get serviceId {

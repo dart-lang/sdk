@@ -201,14 +201,14 @@
 
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ '/debugger' + isolate.link }}"
+    <nav-menu link="{{ makeLink('/inspect', isolate) }}" anchor="{{ isolate.name }}" last="{{ last }}">
+      <nav-menu-item link="{{ makeLink('/debugger', isolate) }}"
                      anchor="debugger"></nav-menu-item>
-      <nav-menu-item link="{{ '/profiler' + isolate.link }}"
+      <nav-menu-item link="{{ makeLink('/profiler', isolate) }}"
                      anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ '/allocation-profiler' + isolate.link }}"
+      <nav-menu-item link="{{ makeLink('/allocation-profiler', isolate) }}"
                      anchor="allocation profile"></nav-menu-item>
-      <nav-menu-item link="{{ '/heap-map' + isolate.link }}"
+      <nav-menu-item link="{{ makeLink('/heap-map', isolate) }}"
                      anchor="heap map"></nav-menu-item>
       <content></content>
     </nav-menu>
@@ -217,7 +217,7 @@
 
 <polymer-element name="library-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ library.link }}"
+    <nav-menu link="{{ makeLink('/inspect', library) }}"
               anchor="{{ library.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
@@ -226,7 +226,7 @@
 
 <polymer-element name="class-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ cls.link }}"
+    <nav-menu link="{{ makeLink('/inspect', cls) }}"
               anchor="{{ cls.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
@@ -320,7 +320,7 @@
       <div class="item">
         Isolate
         <a class="link" on-click="{{ goto }}"
-           _href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
+           _href="{{ gotoLink('/inspect', event.isolate) }}">{{ event.isolate.name }}</a>
         is paused
         <template if="{{ event.breakpoint != null }}">
           at breakpoint

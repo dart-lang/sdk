@@ -857,15 +857,11 @@ class DartScope {
 
 static const char* ServiceRequestHandler(
     const char* name,
-    const char** arguments,
-    intptr_t num_arguments,
-    const char** option_keys,
-    const char** option_values,
-    intptr_t num_options,
+    const char** param_keys,
+    const char** param_values,
+    intptr_t num_params,
     void* user_data) {
   DartScope scope;
-  ASSERT(num_arguments > 0);
-  ASSERT(strncmp(arguments[0], "io", 2) == 0);
   // TODO(ajohnsen): Store the library/function in isolate data or user_data.
   Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
   if (Dart_IsError(dart_io_str)) return ServiceRequestError(dart_io_str);
@@ -876,15 +872,14 @@ static const char* ServiceRequestHandler(
   if (Dart_IsError(handler_function_name)) {
     return ServiceRequestError(handler_function_name);
   }
-  Dart_Handle paths = Dart_NewList(num_arguments - 1);
-  for (int i = 0; i < num_arguments - 1; i++) {
-    Dart_ListSetAt(paths, i, Dart_NewStringFromCString(arguments[i + 1]));
-  }
-  Dart_Handle keys = Dart_NewList(num_options);
-  Dart_Handle values = Dart_NewList(num_options);
-  for (int i = 0; i < num_options; i++) {
-    Dart_ListSetAt(keys, i, Dart_NewStringFromCString(option_keys[i]));
-    Dart_ListSetAt(values, i, Dart_NewStringFromCString(option_values[i]));
+  // TODO(johnmccutchan): paths is no longer used.  Update the io
+  // _serviceObjectHandler function to use json rpc.
+  Dart_Handle paths = Dart_NewList(0);
+  Dart_Handle keys = Dart_NewList(num_params);
+  Dart_Handle values = Dart_NewList(num_params);
+  for (int i = 0; i < num_params; i++) {
+    Dart_ListSetAt(keys, i, Dart_NewStringFromCString(param_keys[i]));
+    Dart_ListSetAt(values, i, Dart_NewStringFromCString(param_values[i]));
   }
   Dart_Handle args[] = {paths, keys, values};
   Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 3, args);

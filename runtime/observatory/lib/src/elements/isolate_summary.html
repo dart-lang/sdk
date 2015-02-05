@@ -152,39 +152,39 @@
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink('/debugger' + isolate.link) }}">debugger</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/debugger', isolate) }}">debugger</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/class-tree', isolate) }}">class hierarchy</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink('/profiler' + isolate.link) }}">cpu profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/profiler', isolate) }}">cpu profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink('/allocation-profiler' + isolate.link) }}">allocation profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/allocation-profiler', isolate) }}">allocation profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink('/heap-map' + isolate.link) }}">heap map</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/heap-map', isolate) }}">heap map</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('metrics')) }}">metrics</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/metrics', isolate) }}">metrics</a>
           </div>
         </div>
         <!-- Temporarily disabled until UI for dart:io is acceptable.
         <template if="{{ isolate.ioEnabled }}">
           <div class="memberItem">
             <div class="memberValue">
-              See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('io')) }}">dart:io</a>
+              See <a on-click="{{ goto }}" href="{{ gotoLink('/io', isolate) }}">dart:io</a>
             </div>
           </div>
         </template>

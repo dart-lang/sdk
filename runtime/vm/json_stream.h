@@ -31,15 +31,9 @@ class JSONStream : ValueObject {
 
   void Setup(Zone* zone,
              Dart_Port reply_port,
-             const GrowableObjectArray& path,
-             const Array& option_keys,
-             const Array& option_values);
-
-  void SetupNew(Zone* zone,
-                Dart_Port reply_port,
-                const String& method,
-                const Array& param_keys,
-                const Array& param_values);
+             const String& method,
+             const Array& param_keys,
+             const Array& param_values);
 
   void PostReply();
 
@@ -47,40 +41,31 @@ class JSONStream : ValueObject {
   const char* ToCString() { return buffer_.buf(); }
 
   void set_reply_port(Dart_Port port);
-  void SetArguments(const char** arguments, intptr_t num_arguments);
-  void SetOptions(const char** option_keys, const char** option_values,
-                  intptr_t num_options);
+
+  void SetParams(const char** param_keys, const char** param_values,
+                 intptr_t num_params);
 
   Dart_Port reply_port() const { return reply_port_; }
 
-  intptr_t num_arguments() const { return num_arguments_; }
-  const char* GetArgument(intptr_t i) const {
-    return arguments_[i];
+  intptr_t num_params() const { return num_params_; }
+  const char* GetParamKey(intptr_t i) const {
+    return param_keys_[i];
+  }
+  const char* GetParamValue(intptr_t i) const {
+    return param_values_[i];
   }
 
-  // TODO(turnidge): Rename "options" to "params".  That is the more
-  // appropriate name for json rpc.
-  intptr_t num_options() const { return num_options_; }
-  const char* GetOptionKey(intptr_t i) const {
-    return option_keys_[i];
-  }
-  const char* GetOptionValue(intptr_t i) const {
-    return option_values_[i];
-  }
+  const char* LookupParam(const char* key) const;
 
-  const char* LookupOption(const char* key) const;
+  bool HasParam(const char* key) const;
 
-  bool HasOption(const char* key) const;
-
-  // Returns true if there is an option with key and value, false
+  // Returns true if there is an param with key and value, false
   // otherwise.
-  bool OptionIs(const char* key, const char* value) const;
+  bool ParamIs(const char* key, const char* value) const;
 
-  // TODO(turnidge): Rename "command" to "method".  Better name for json rpc.
-  const char* command() const { return command_; }
-  const char** arguments() const { return arguments_; }
-  const char** option_keys() const { return option_keys_; }
-  const char** option_values() const { return option_values_; }
+  const char* method() const { return method_; }
+  const char** param_keys() const { return param_keys_; }
+  const char** param_values() const { return param_values_; }
 
  private:
   void Clear();
@@ -134,12 +119,10 @@ class JSONStream : ValueObject {
   intptr_t open_objects_;
   TextBuffer buffer_;
   Dart_Port reply_port_;
-  const char* command_;
-  const char** arguments_;
-  intptr_t num_arguments_;
-  const char** option_keys_;
-  const char** option_values_;
-  intptr_t num_options_;
+  const char* method_;
+  const char** param_keys_;
+  const char** param_values_;
+  intptr_t num_params_;
   int64_t setup_time_micros_;
 
   friend class JSONObject;

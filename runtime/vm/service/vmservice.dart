@@ -138,18 +138,13 @@ class VMService extends MessageRouter {
     if (message.completed) {
       return message.response;
     }
+    // TODO(turnidge): Update to json rpc.  BEFORE SUBMIT.
     if ((message.path.length == 1) && (message.path[0] == 'clients')) {
       _clientCollection(message);
       return message.response;
     }
-    if (message.isOld) {
-      if (message.path[0] == 'isolates') {
-        return runningIsolates.route(message);
-      }
-    } else {
-      if (message.params['isolate'] != null) {
-        return runningIsolates.route(message);
-      }
+    if (message.params['isolateId'] != null) {
+      return runningIsolates.route(message);
     }
     return message.sendToVM();
   }

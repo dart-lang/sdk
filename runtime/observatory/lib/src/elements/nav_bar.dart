@@ -83,21 +83,6 @@ class IsolateNavMenuElement extends ObservatoryElement {
   @published bool last = false;
   @published Isolate isolate;
 
-  void isolateChanged(oldValue) {
-    notifyPropertyChange(#hashLinkWorkaround, 0, 1);
-  }
-
-  // TODO(turnidge): Figure out why polymer needs this function.
-  @reflectable
-  String get hashLinkWorkaround {
-    if (isolate != null) {
-      return isolate.link;
-    } else {
-      return '';
-    }
-  }
-  @reflectable set hashLinkWorkaround(var x) { /* silence polymer */ }
-
   IsolateNavMenuElement.created() : super.created();
 }
 
