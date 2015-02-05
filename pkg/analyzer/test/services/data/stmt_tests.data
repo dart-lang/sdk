@@ -205,3 +205,59 @@ main() {
       00000000000000000000000000000000000000000000000000000000000,
       111);
 }
+>>>
+foo() async => 42;
+<<<
+foo() async => 42;
+>>>
+main() async {
+  await window.animationFrame;
+}
+<<<
+main() async {
+  await window.animationFrame;
+}
+>>>
+main() async* {
+  await window.animationFrame;
+}
+<<<
+main() async* {
+  await window.animationFrame;
+}
+>>>
+foo() async* {
+  var elements = await _post('elements', by);
+  int i = 0;
+  for (var element in elements) {
+    yield new WebElement._(driver, element['ELEMENT'], this, by, i);
+    i++;
+  }
+}
+<<<
+foo() async* {
+  var elements = await _post('elements', by);
+  int i = 0;
+  for (var element in elements) {
+    yield new WebElement._(driver, element['ELEMENT'], this, by, i);
+    i++;
+  }
+}
+>>>
+b06a() async { await for (var o in st) {} } 
+<<<
+b06a() async {
+  await for (var o in st) {}
+}
+>>>
+b07a() sync* { yield 0; }
+<<<
+b07a() sync* {
+  yield 0;
+}
+>>>
+b08a() sync* { yield* []; } 
+<<<
+b08a() sync* {
+  yield* [];
+}
