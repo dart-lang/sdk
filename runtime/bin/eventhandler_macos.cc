@@ -27,12 +27,6 @@
 namespace dart {
 namespace bin {
 
-static const int kInterruptMessageSize = sizeof(InterruptMessage);
-static const int kInfinityTimeout = -1;
-static const int kTimerId = -1;
-static const int kShutdownId = -2;
-
-
 bool SocketData::HasReadEvent() {
   return (mask_ & (1 << kInEvent)) != 0;
 }

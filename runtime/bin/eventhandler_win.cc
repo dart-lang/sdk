@@ -29,10 +29,6 @@ namespace bin {
 static const int kBufferSize = 64 * 1024;
 static const int kStdOverlappedBufferSize = 16 * 1024;
 
-static const int kInfinityTimeout = -1;
-static const int kTimeoutId = -1;
-static const int kShutdownId = -2;
-
 OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
                                                    Operation operation) {
   OverlappedBuffer* buffer =
@@ -1011,7 +1007,7 @@ void DatagramSocket::DoClose() {
 
 void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   ASSERT(this != NULL);
-  if (msg->id == kTimeoutId) {
+  if (msg->id == kTimerId) {
     // Change of timeout request. Just set the new timeout and port as the
     // completion thread will use the new timeout value for its next wait.
     timeout_queue_.UpdateTimeout(msg->dart_port, msg->data);

@@ -22,14 +22,6 @@
 namespace dart {
 namespace bin {
 
-class InterruptMessage {
- public:
-  intptr_t id;
-  Dart_Port dart_port;
-  int64_t data;
-};
-
-
 class SocketData {
  public:
   explicit SocketData(intptr_t fd)

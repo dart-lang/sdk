@@ -29,13 +29,6 @@ class ClientSocket;
 class ListenSocket;
 
 
-struct InterruptMessage {
-  intptr_t id;
-  Dart_Port dart_port;
-  int64_t data;
-};
-
-
 // An OverlappedBuffer encapsulates the OVERLAPPED structure and the
 // associated data buffer. For accept it also contains the pre-created
 // socket for the client.

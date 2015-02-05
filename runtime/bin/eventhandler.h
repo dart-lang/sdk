@@ -94,6 +94,78 @@ class TimeoutQueue {
   Timeout* timeouts_;
 };
 
+
+class InterruptMessage {
+ public:
+  intptr_t id;
+  Dart_Port dart_port;
+  int64_t data;
+};
+
+
+static const int kInterruptMessageSize = sizeof(InterruptMessage);
+static const int kInfinityTimeout = -1;
+static const int kTimerId = -1;
+static const int kShutdownId = -2;
+
+
+template<typename T>
+class CircularLinkedList {
+ public:
+  CircularLinkedList() : head_(NULL) {}
+
+  // Returns true if the list was empty.
+  bool Add(T t) {
+    Entry* e = new Entry(t);
+    if (head_ == NULL) {
+      // Empty list, make e head, and point to itself.
+      e->next_ = e;
+      e->prev_ = e;
+      head_ = e;
+      return true;
+    } else {
+      // Insert e as the last element in the list.
+      e->prev_ = head_->prev_;
+      e->next_ = head_;
+      e->prev_->next_ = e;
+      head_->prev_ = e;
+      return false;
+    }
+  }
+
+  void RemoveHead() {
+    Entry* e = head_;
+    if (e->next_ == e) {
+      head_ = NULL;
+    } else {
+      e->prev_->next_ = e->next_;
+      e->next_->prev_ = e->prev_;
+      head_ = e->next_;
+    }
+    delete e;
+  }
+
+  T head() const { return head_->t; }
+
+  bool HasHead() {
+    return head_ != NULL;
+  }
+
+  void Rotate() {
+    head_ = head_->next_;
+  }
+
+ private:
+  struct Entry {
+    explicit Entry(const T& t) : t(t) {}
+    const T t;
+    Entry* next_;
+    Entry* prev_;
+  };
+
+  Entry* head_;
+};
+
 }  // namespace bin
 }  // namespace dart
 

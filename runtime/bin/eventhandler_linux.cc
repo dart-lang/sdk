@@ -28,10 +28,6 @@
 namespace dart {
 namespace bin {
 
-static const int kInterruptMessageSize = sizeof(InterruptMessage);
-static const int kTimerId = -1;
-static const int kShutdownId = -2;
-
 
 intptr_t SocketData::GetPollEvents() {
   // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
