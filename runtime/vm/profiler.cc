@@ -31,8 +31,6 @@ namespace dart {
 #endif
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
-DEFINE_FLAG(charp, profile_dir, NULL,
-            "Enable writing profile data into specified directory.");
 DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int, profile_depth, 8,
@@ -541,7 +539,6 @@ class CodeRegion : public ZoneAllocated {
 
   void PrintToJSONArray(Isolate* isolate, JSONArray* events, bool full) {
     JSONObject obj(events);
-    obj.AddProperty("type", "CodeRegion");
     obj.AddProperty("kind", KindToCString(kind()));
     obj.AddPropertyF("inclusive_ticks", "%" Pd "", inclusive_ticks());
     obj.AddPropertyF("exclusive_ticks", "%" Pd "", exclusive_ticks());
@@ -1506,7 +1503,7 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
         ScopeStopwatch sw("CodeTableStream");
         // Serialize to JSON.
         JSONObject obj(stream);
-        obj.AddProperty("type", "Profile");
+        obj.AddProperty("type", "CpuProfile");
         obj.AddProperty("id", "profile");
         obj.AddProperty("samples", samples);
         obj.AddProperty("depth", static_cast<intptr_t>(FLAG_profile_depth));
@@ -1540,47 +1537,6 @@ void Profiler::PrintJSON(Isolate* isolate, JSONStream* stream,
   }
   // Enable profile interrupts.
   BeginExecution(isolate);
-}
-
-
-void Profiler::WriteProfile(Isolate* isolate) {
-  if (isolate == NULL) {
-    return;
-  }
-  if (!FLAG_profile) {
-    return;
-  }
-  ASSERT(initialized_);
-  if (FLAG_profile_dir == NULL) {
-    return;
-  }
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-  Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-  if ((file_open == NULL) || (file_close == NULL) || (file_write == NULL)) {
-    // Embedder has not provided necessary callbacks.
-    return;
-  }
-  // We will be looking up code objects within the isolate.
-  ASSERT(Isolate::Current() == isolate);
-  JSONStream stream(10 * MB);
-  intptr_t pid = OS::ProcessId();
-  PrintJSON(isolate, &stream, true, Profiler::kNoTags);
-  const char* format = "%s/dart-profile-%" Pd "-%" Pd ".json";
-  intptr_t len = OS::SNPrint(NULL, 0, format,
-                             FLAG_profile_dir, pid, isolate->main_port());
-  char* filename = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-  OS::SNPrint(filename, len + 1, format,
-              FLAG_profile_dir, pid, isolate->main_port());
-  void* f = file_open(filename, true);
-  if (f == NULL) {
-    // Cannot write.
-    return;
-  }
-  TextBuffer* buffer = stream.buffer();
-  ASSERT(buffer != NULL);
-  file_write(buffer->buf(), buffer->length(), f);
-  file_close(f);
 }
 
 

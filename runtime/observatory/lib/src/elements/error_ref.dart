@@ -5,7 +5,6 @@
 library error_ref_element;
 
 import 'package:polymer/polymer.dart';
-import 'package:observatory/service.dart';
 import 'service_ref.dart';
 
 @CustomTag('error-ref')

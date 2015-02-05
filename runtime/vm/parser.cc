@@ -361,9 +361,7 @@ Parser::Parser(const Script& script,
       async_temp_scope_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
-  if (FLAG_enable_type_checks) {
-    EnsureExpressionTemp();
-  }
+  EnsureExpressionTemp();
 }
 
 
@@ -1434,11 +1432,21 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   ArgumentListNode* no_args = new ArgumentListNode(token_pos);
   LoadLocalNode* receiver = new LoadLocalNode(token_pos, scope->VariableAt(0));
 
+  const Class& function_impl = Class::Handle(Type::Handle(
+      Isolate::Current()->object_store()->function_impl_type()).type_class());
+
+  const Class& owner = Class::Handle(Z, func.Owner());
+  ASSERT(!owner.IsNull());
   const String& name = String::Handle(Z, func.name());
-  const String& getter_name = String::ZoneHandle(Z,
-      Symbols::New(String::Handle(Z, Field::GetterName(name))));
-  InstanceCallNode* getter_call = new(Z) InstanceCallNode(
-      token_pos, receiver, getter_name, no_args);
+  AstNode* function_object = NULL;
+  if (owner.raw() == function_impl.raw() && name.Equals(Symbols::Call())) {
+    function_object = receiver;
+  } else {
+    const String& getter_name = String::ZoneHandle(Z,
+        Symbols::New(String::Handle(Z, Field::GetterName(name))));
+    function_object = new(Z) InstanceCallNode(
+        token_pos, receiver, getter_name, no_args);
+  }
 
   // Pass arguments 1..n to the closure call.
   ArgumentListNode* args = new(Z) ArgumentListNode(token_pos);
@@ -1457,13 +1465,11 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   }
   args->set_names(names);
 
-  const Class& owner = Class::Handle(Z, func.Owner());
-  ASSERT(!owner.IsNull());
   AstNode* result = NULL;
-  if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
-    result = new ClosureCallNode(token_pos, getter_call, args);
+  if (owner.raw() == function_impl.raw() && name.Equals(Symbols::Call())) {
+    result = new ClosureCallNode(token_pos, function_object, args);
   } else {
-    result = BuildClosureCall(token_pos, getter_call, args);
+    result = BuildClosureCall(token_pos, function_object, args);
   }
 
   ReturnNode* return_node = new ReturnNode(token_pos, result);
@@ -3077,9 +3083,14 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     error_param.name = &Symbols::AsyncOperationErrorParam();
     error_param.default_value = &Object::null_instance();
     error_param.type = &dynamic_type;
+    ParamDesc stack_trace_param;
+    stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
+    stack_trace_param.default_value = &Object::null_instance();
+    stack_trace_param.type = &dynamic_type;
     params.parameters->Add(result_param);
     params.parameters->Add(error_param);
-    params.num_optional_parameters += 2;
+    params.parameters->Add(stack_trace_param);
+    params.num_optional_parameters += 3;
     params.has_optional_positional_parameters = true;
     SetupDefaultsForOptionalParams(&params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
@@ -3119,7 +3130,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // Populate function scope with the formal parameters.
     AddFormalParamsToScope(&params, current_block_->scope);
 
-    if (FLAG_enable_type_checks &&
+    if (I->TypeChecksEnabled() &&
         (current_block_->scope->function_level() > 0)) {
       // We are parsing, but not compiling, a local function.
       // The instantiator may be required at run time for generic type checks.
@@ -6062,8 +6073,13 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
   error_param.default_value = &Object::null_instance();
   error_param.type = &dynamic_type;
   closure_params.parameters->Add(error_param);
+  ParamDesc stack_trace_param;
+  stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
+  stack_trace_param.default_value = &Object::null_instance();
+  stack_trace_param.type = &dynamic_type;
+  closure_params.parameters->Add(stack_trace_param);
   closure_params.has_optional_positional_parameters = true;
-  closure_params.num_optional_parameters += 2;
+  closure_params.num_optional_parameters += 3;
 
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
@@ -6555,7 +6571,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
   bool is_final = (CurrentToken() == Token::kFINAL);
   bool is_const = (CurrentToken() == Token::kCONST);
   const AbstractType& type = AbstractType::ZoneHandle(Z,
-      ParseConstFinalVarOrType(FLAG_enable_type_checks ?
+      ParseConstFinalVarOrType(I->TypeChecksEnabled() ?
           ClassFinalizer::kCanonicalize : ClassFinalizer::kIgnore));
   if (!IsIdentifier()) {
     ReportError("identifier expected");
@@ -7543,8 +7559,8 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-       FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
-                                 ClassFinalizer::kIgnore);
+       I->TypeChecksEnabled() ? ClassFinalizer::kCanonicalize :
+                                ClassFinalizer::kIgnore);
   }
   intptr_t loop_var_pos = TokenPos();
   const String* loop_var_name = ExpectIdentifier("variable name expected");
@@ -7593,7 +7609,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   AstNode* await_moveNext = new (Z) AwaitNode(stream_pos, iterator_moveNext);
   OpenBlock();
   AwaitTransformer at(current_block_->statements,
-                      parsed_function(),
+                      *parsed_function(),
                       async_temp_scope_);
   AstNode* transformed_await = at.Transform(await_moveNext);
   SequenceNode* await_preamble = CloseBlock();
@@ -7686,8 +7702,8 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-        FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
-                                  ClassFinalizer::kIgnore);
+        I->TypeChecksEnabled() ? ClassFinalizer::kCanonicalize :
+                                 ClassFinalizer::kIgnore);
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
@@ -7905,7 +7921,7 @@ AstNode* Parser::ParseAssertStatement() {
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
   const intptr_t condition_pos = TokenPos();
-  if (!FLAG_enable_asserts && !FLAG_enable_type_checks) {
+  if (!I->AssertsEnabled() && !I->TypeChecksEnabled()) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -9287,7 +9303,7 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
     // are created.
     OpenBlock();
     AwaitTransformer at(current_block_->statements,
-                        parsed_function(),
+                        *parsed_function(),
                         async_temp_scope_);
     AstNode* result = at.Transform(expr);
     SequenceNode* preamble = CloseBlock();
@@ -10815,7 +10831,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                     "include a type variable");
       }
     } else {
-      if (FLAG_error_on_bad_type) {
+      if (I->ErrorOnBadTypeEnabled()) {
         ReportError(type_pos,
                     "a list literal takes one type argument specifying "
                     "the element type");
@@ -10838,7 +10854,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     while (CurrentToken() != Token::kRBRACK) {
       const intptr_t element_pos = TokenPos();
       AstNode* element = ParseExpr(is_const, kConsumeCascades);
-      if (FLAG_enable_type_checks &&
+      if (I->TypeChecksEnabled() &&
           !is_const &&
           !element_type.IsDynamicType()) {
         element = new(Z) AssignableNode(element_pos,
@@ -10869,7 +10885,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (FLAG_enable_type_checks &&
+      if (I->TypeChecksEnabled() &&
           !element_type.IsDynamicType() &&
           (!elem->AsLiteralNode()->literal().IsNull() &&
            !elem->AsLiteralNode()->literal().IsInstanceOf(
@@ -11012,7 +11028,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                     "include a type variable");
       }
     } else {
-      if (FLAG_error_on_bad_type) {
+      if (I->ErrorOnBadTypeEnabled()) {
         ReportError(type_pos,
                     "a map literal takes two type arguments specifying "
                     "the key type and the value type");
@@ -11031,7 +11047,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const intptr_t key_pos = TokenPos();
     AstNode* key = ParseExpr(is_const, kConsumeCascades);
-    if (FLAG_enable_type_checks &&
+    if (I->TypeChecksEnabled() &&
         !is_const &&
         !key_type.IsDynamicType()) {
       key = new(Z) AssignableNode(
@@ -11054,7 +11070,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const intptr_t value_pos = TokenPos();
     AstNode* value = ParseExpr(is_const, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
-    if (FLAG_enable_type_checks &&
+    if (I->TypeChecksEnabled() &&
         !is_const &&
         !value_type.IsDynamicType()) {
       value = new(Z) AssignableNode(
@@ -11086,7 +11102,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (FLAG_enable_type_checks) {
+      if (I->TypeChecksEnabled()) {
         if ((i % 2) == 0) {
           // Check key type.
           arg_type = key_type.raw();
@@ -11411,7 +11427,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      if (FLAG_enable_type_checks && !redirect_type.IsSubtypeOf(type, NULL)) {
+      if (I->TypeChecksEnabled() && !redirect_type.IsSubtypeOf(type, NULL)) {
         // Additional type checking of the result is necessary.
         type_bound = type.raw();
       }

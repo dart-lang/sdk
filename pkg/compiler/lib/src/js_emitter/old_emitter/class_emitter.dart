@@ -12,9 +12,7 @@ class ClassEmitter extends CodeEmitterHelper {
   /**
    * Documentation wanted -- johnniwinther
    */
-  void emitClass(Class cls,
-                 ClassBuilder enclosingBuilder,
-                 Map<String, jsAst.Expression> additionalProperties) {
+  void emitClass(Class cls, ClassBuilder enclosingBuilder) {
     ClassElement classElement = cls.element;
 
     assert(invariant(classElement, classElement.isDeclaration));
@@ -43,9 +41,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitInstanceMembers(cls, builder);
     emitCallStubs(cls, builder);
     emitRuntimeTypeInformation(cls, builder);
-    if (additionalProperties != null) {
-      additionalProperties.forEach(builder.addProperty);
-    }
+    emitNativeInfo(cls, builder);
 
     if (classElement == backend.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
@@ -123,7 +119,7 @@ class ClassEmitter extends CodeEmitterHelper {
       bool needsFieldsForConstructor = !emitStatics && !classIsNative;
       if (needsFieldsForConstructor || needsAccessor) {
         var metadata =
-            emitter.metadataEmitter.buildMetadataFunction(fieldElement);
+            task.metadataCollector.buildMetadataFunction(fieldElement);
         if (metadata != null) {
           hasMetadata = true;
         } else {
@@ -167,7 +163,7 @@ class ClassEmitter extends CodeEmitterHelper {
         }
         if (backend.isAccessibleByReflection(fieldElement)) {
           DartType type = fieldElement.type;
-          reflectionMarker = '-${emitter.metadataEmitter.reifyType(type)}';
+          reflectionMarker = '-${task.metadataCollector.reifyType(type)}';
         }
         String builtFieldname = '$fieldName$fieldCode$reflectionMarker';
         builder.addField(builtFieldname);
@@ -236,16 +232,16 @@ class ClassEmitter extends CodeEmitterHelper {
 
     if (cls.onlyForRti || cls.isMixinApplication) return;
 
-    void visitMember(ClassElement enclosing, Element member) {
-      assert(invariant(classElement, member.isDeclaration));
-      if (member.isInstanceMember) {
-        emitter.containerBuilder.addMember(member, builder);
-      }
+    // TODO(herhut): This is a no-op. Should it be removed?
+    for (Field field in cls.fields) {
+      emitter.containerBuilder.addMemberField(field, builder);
     }
 
-    classElement.implementation.forEachMember(
-        visitMember,
-        includeBackendMembers: true);
+    for (Method method in cls.methods) {
+      assert(invariant(classElement, method.element.isDeclaration));
+      assert(invariant(classElement, method.element.isInstanceMember));
+      emitter.containerBuilder.addMemberMethod(method, builder);
+    }
 
     if (identical(classElement, compiler.objectClass)
         && compiler.enabledNoSuchMethod) {
@@ -271,13 +267,19 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
+  void emitNativeInfo(Class cls, ClassBuilder builder) {
+    if (cls.nativeInfo != null) {
+      builder.addProperty(namer.nativeSpecProperty, js.string(cls.nativeInfo));
+    }
+  }
+
   void emitClassBuilderWithReflectionData(Class cls,
                                           ClassBuilder classBuilder,
                                           ClassBuilder enclosingBuilder) {
     ClassElement classElement = cls.element;
     String className = cls.name;
 
-    var metadata = emitter.metadataEmitter.buildMetadataFunction(classElement);
+    var metadata = task.metadataCollector.buildMetadataFunction(classElement);
     if (metadata != null) {
       classBuilder.addProperty("@", metadata);
     }
@@ -330,10 +332,10 @@ class ClassEmitter extends CodeEmitterHelper {
       } else {
         List<int> types = <int>[];
         if (classElement.supertype != null) {
-          types.add(emitter.metadataEmitter.reifyType(classElement.supertype));
+          types.add(task.metadataCollector.reifyType(classElement.supertype));
         }
         for (DartType interface in classElement.interfaces) {
-          types.add(emitter.metadataEmitter.reifyType(interface));
+          types.add(task.metadataCollector.reifyType(interface));
         }
         enclosingBuilder.addProperty("+$reflectionName",
             new jsAst.ArrayInitializer(types.map(js.number).toList()));

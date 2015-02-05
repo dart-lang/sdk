@@ -93,7 +93,7 @@ class TransformerIsolate {
         // error message.
         var missingTransformer = idsToUrls.keys.firstWhere(
             (id) =>
-                firstErrorLine.startsWith("Uncaught Error: Failure getting ") &&
+                firstErrorLine.startsWith("Uncaught Error: Load Error: Failure getting ") &&
                     firstErrorLine.contains(idsToUrls[id].path),
             orElse: () => throw error);
         var packageUri = idToPackageUri(idsToAssetIds[missingTransformer]);

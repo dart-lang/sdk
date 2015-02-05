@@ -9,19 +9,46 @@ import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
 
+import 'js_emitter.dart' show MetadataCollector;
+
 import '../common.dart';
 
 class Program {
   final List<Fragment> fragments;
-  final List<Class> nativeClasses;
   final bool outputContainsConstantList;
+  final bool outputContainsNativeClasses;
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
 
+  // If this field is not `null` then its value must be emitted in the embedded
+  // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
+  final js.Expression typeToInterceptorMap;
+
+  // TODO(floitsch): we should store the metadata directly instead of storing
+  // the collector. However, the old emitter still updates the data.
+  final MetadataCollector _metadataCollector;
+
   Program(this.fragments,
-          this.nativeClasses,
-          this.outputContainsConstantList,
-          this.loadMap);
+          this.loadMap,
+          this.typeToInterceptorMap,
+          this._metadataCollector,
+          {this.outputContainsNativeClasses,
+           this.outputContainsConstantList}) {
+    assert(outputContainsNativeClasses != null);
+    assert(outputContainsConstantList != null);
+  }
+
+  /// A list of pretty-printed JavaScript expressions.
+  ///
+  /// This list must be emitted in the `METADATA` embedded global.
+  /// The list references constants and must hence be emitted after constants
+  /// have been initialized.
+  ///
+  /// Note: the metadata is derived from the task's `metadataCollector`. The
+  /// list must not be emitted before all operations on it are done. For
+  /// example, the old emitter generates metadata when emitting reflection
+  /// data.
+  List<String> get metadata => _metadataCollector.globalMetadata;
 
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
@@ -178,7 +205,12 @@ class Class implements FieldContainer {
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
+
+  /// Stub methods for this class that are call stubs for getters.
   final List<StubMethod> callStubs;
+
+  /// noSuchMethod stubs in the special case that the class is Object.
+  final List<StubMethod> noSuchMethodStubs;
   final List<Field> staticFieldsForReflection;
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
@@ -191,11 +223,15 @@ class Class implements FieldContainer {
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
+  /// Data that must be emitted with the class for native interop.
+  String nativeInfo;
+
   Class(this.element, this.name, this.holder,
         this.methods,
         this.fields,
         this.staticFieldsForReflection,
         this.callStubs,
+        this.noSuchMethodStubs,
         this.isChecks,
         this.functionTypeIndex,
         {this.onlyForRti,
@@ -236,6 +272,7 @@ class MixinApplication extends Class {
               instanceFields,
               staticFieldsForReflection,
               callStubs,
+              const <StubMethod>[],
               isChecks, functionTypeIndex,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated,
@@ -287,35 +324,120 @@ class Field {
   bool get needsInterceptedSetter => setterFlags > 1;
 }
 
-class Method {
+abstract class Method {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
-
   final String name;
   final js.Expression code;
-  final bool needsTearOff;
 
-  Method(this.element, this.name, this.code, {this.needsTearOff}) {
+  Method(this.element, this.name, this.code);
+}
+
+/// A method that corresponds to a method in the original Dart program.
+class DartMethod extends Method {
+  final bool needsTearOff;
+  final String tearOffName;
+  final List<ParameterStubMethod> parameterStubs;
+  final bool canBeApplied;
+  final bool canBeReflected;
+  final DartType type;
+
+  // If this method can be torn off, contains the name of the corresponding
+  // call method. For example, for the member `foo$1$name` it would be
+  // `call$1$name` (in unminified mode).
+  final String callName;
+
+  DartMethod(Element element, String name, js.Expression code,
+             this.parameterStubs, this.callName, this.type,
+             {this.needsTearOff, this.tearOffName, this.canBeApplied,
+             this.canBeReflected})
+      : super(element, name, code) {
     assert(needsTearOff != null);
+    assert(!needsTearOff || tearOffName != null);
+    assert(canBeApplied != null);
+    assert(canBeReflected != null);
   }
 }
 
+class InstanceMethod extends DartMethod {
+  /// An alternative name for this method. This is used to model calls to
+  /// a method via `super`. If [aliasName] is non-null, the emitter has to
+  /// ensure that this method is registered on the prototype under both [name]
+  /// and [aliasName].
+  final String aliasName;
+  final bool isClosure;
+
+
+  InstanceMethod(Element element, String name, js.Expression code,
+                 List<ParameterStubMethod> parameterStubs,
+                 String callName, DartType type,
+                 {bool needsTearOff,
+                  String tearOffName,
+                  this.aliasName,
+                  bool canBeApplied,
+                  bool canBeReflected,
+       this.isClosure})
+      : super(element, name, code, parameterStubs, callName, type,
+              needsTearOff: needsTearOff,
+              tearOffName: tearOffName,
+              canBeApplied: canBeApplied,
+              canBeReflected: canBeReflected) {
+    assert(isClosure != null);
+  }
+}
+
+/// A method that is generated by the backend and has not direct correspondence
+/// to a method in the original Dart program. Examples are getter and setter
+/// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
   StubMethod(String name, js.Expression code,
-             {bool needsTearOff, Element element })
-      : super(element, name, code, needsTearOff: needsTearOff);
+             {Element element})
+      : super(element, name, code);
 }
 
-class StaticMethod extends Method {
+/// A stub that adapts and redirects to the main method (the one containing)
+/// the actual code.
+///
+/// For example, given a method `foo$2(x, [y: 499])` a possible parameter
+/// stub-method could be `foo$1(x) => foo$2(x, 499)`.
+///
+/// ParameterStubMethods are always attached to (static or instance) methods.
+class ParameterStubMethod extends StubMethod {
+  /// The `call` name of this stub.
+  ///
+  /// When an instance method is torn off, it is invoked as a `call` member and
+  /// not it's original name anymore. The [callName] provides the stub's
+  /// name when it is used this way.
+  ///
+  /// If a stub's member can not be torn off, the [callName] is `null`.
+  String callName;
+
+  ParameterStubMethod(String name, this.callName, js.Expression code)
+      : super(name, code);
+}
+
+abstract class StaticMethod implements Method {
+  Holder get holder;
+}
+
+class StaticDartMethod extends DartMethod implements StaticMethod {
   final Holder holder;
-  StaticMethod(Element element, String name, this.holder, js.Expression code,
-               {bool needsTearOff})
-      : super(element, name, code, needsTearOff: needsTearOff);
+
+  StaticDartMethod(Element element, String name, this.holder,
+                   js.Expression code, List<ParameterStubMethod> parameterStubs,
+                   String callName, DartType type,
+                   {bool needsTearOff, String tearOffName, bool canBeApplied,
+                    bool canBeReflected})
+      : super(element, name, code, parameterStubs, callName, type,
+              needsTearOff: needsTearOff,
+              tearOffName : tearOffName,
+              canBeApplied : canBeApplied,
+              canBeReflected : canBeReflected);
 }
 
-class StaticStubMethod extends StaticMethod {
-  StaticStubMethod(String name, Holder holder, js.Expression code,
-                   {bool needsTearOff})
-      : super(null, name, holder, code, needsTearOff: needsTearOff);
+class StaticStubMethod extends StubMethod implements StaticMethod {
+  Holder holder;
+  StaticStubMethod(String name, this.holder, js.Expression code)
+      : super(name, code);
 }

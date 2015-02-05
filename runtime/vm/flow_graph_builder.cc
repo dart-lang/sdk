@@ -237,18 +237,18 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
 
 
 FlowGraphBuilder::FlowGraphBuilder(
-    ParsedFunction* parsed_function,
+    const ParsedFunction& parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     InlineExitCollector* exit_collector,
     intptr_t osr_id) :
         parsed_function_(parsed_function),
         ic_data_array_(ic_data_array),
-        num_copied_params_(parsed_function->num_copied_params()),
+        num_copied_params_(parsed_function.num_copied_params()),
         // All parameters are copied if any parameter is.
         num_non_copied_params_((num_copied_params_ == 0)
-            ? parsed_function->function().num_fixed_parameters()
+            ? parsed_function.function().num_fixed_parameters()
             : 0),
-        num_stack_locals_(parsed_function->num_stack_locals()),
+        num_stack_locals_(parsed_function.num_stack_locals()),
         exit_collector_(exit_collector),
         last_used_block_id_(0),  // 0 is used for the graph entry.
         try_index_(CatchClauseNode::kInvalidTryIndex),
@@ -748,13 +748,13 @@ Definition* EffectGraphVisitor::BuildStoreTemp(const LocalVariable& local,
 
 
 Definition* EffectGraphVisitor::BuildStoreExprTemp(Value* value) {
-  return BuildStoreTemp(*owner()->parsed_function()->expression_temp_var(),
+  return BuildStoreTemp(*owner()->parsed_function().expression_temp_var(),
                         value);
 }
 
 
 Definition* EffectGraphVisitor::BuildLoadExprTemp() {
-  return BuildLoadLocal(*owner()->parsed_function()->expression_temp_var());
+  return BuildLoadLocal(*owner()->parsed_function().expression_temp_var());
 }
 
 
@@ -825,13 +825,13 @@ void EffectGraphVisitor::BuildRestoreContext(const LocalVariable& variable) {
 
 Definition* EffectGraphVisitor::BuildStoreContext(Value* value) {
   return new(I) StoreLocalInstr(
-      *owner()->parsed_function()->current_context_var(), value);
+      *owner()->parsed_function().current_context_var(), value);
 }
 
 
 Definition* EffectGraphVisitor::BuildCurrentContext() {
   return new(I) LoadLocalInstr(
-      *owner()->parsed_function()->current_context_var());
+      *owner()->parsed_function().current_context_var());
 }
 
 
@@ -889,7 +889,8 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
-  if (FLAG_enable_type_checks || FLAG_enable_asserts) {
+  if (Isolate::Current()->TypeChecksEnabled() ||
+      Isolate::Current()->AssertsEnabled()) {
     value = Bind(new(I) AssertBooleanInstr(condition_token_pos(), value));
   }
   Value* constant_true = Bind(new(I) ConstantInstr(Bool::True()));
@@ -924,7 +925,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         false));  // No number check.
   } else {
     branch = new(I) BranchInstr(comp);
-    branch->set_is_checked(FLAG_enable_type_checks);
+    branch->set_is_checked(Isolate::Current()->TypeChecksEnabled());
   }
   AddInstruction(branch);
   CloseFragment();
@@ -934,7 +935,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
 
 
 void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
-  ASSERT(!FLAG_enable_type_checks);
+  ASSERT(!Isolate::Current()->TypeChecksEnabled());
   Value* constant_true = Bind(new(I) ConstantInstr(Bool::True()));
   StrictCompareInstr* comp =
       new(I) StrictCompareInstr(condition_token_pos(),
@@ -956,7 +957,7 @@ void TestGraphVisitor::ReturnDefinition(Definition* definition) {
     MergeBranchWithComparison(comp);
     return;
   }
-  if (!FLAG_enable_type_checks) {
+  if (!Isolate::Current()->TypeChecksEnabled()) {
     BooleanNegateInstr* neg = definition->AsBooleanNegate();
     if (neg != NULL) {
       MergeBranchWithNegate(neg);
@@ -1005,7 +1006,7 @@ void EffectGraphVisitor::Bailout(const char* reason) const {
 
 
 void EffectGraphVisitor::InlineBailout(const char* reason) const {
-  owner()->parsed_function()->function().set_is_inlinable(false);
+  owner()->function().set_is_inlinable(false);
   if (owner()->IsInlining()) owner()->Bailout(reason);
 }
 
@@ -1019,7 +1020,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   Value* return_value = for_value.value();
 
   if (node->inlined_finally_list_length() > 0) {
-    LocalVariable* temp = owner()->parsed_function()->finally_return_temp_var();
+    LocalVariable* temp = owner()->parsed_function().finally_return_temp_var();
     ASSERT(temp != NULL);
     Do(BuildStoreLocal(*temp, return_value));
     for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
@@ -1039,13 +1040,13 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // unchained so that captured variables can be inspected.
   // No debugger check is done in native functions or for return
   // statements for which there is no associated source position.
-  const Function& function = owner()->parsed_function()->function();
+  const Function& function = owner()->function();
   if ((node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
     AddInstruction(new(I) DebugStepCheckInstr(node->token_pos(),
                                               RawPcDescriptors::kRuntimeCall));
   }
 
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&
         ((function.kind() == RawFunction::kImplicitGetter) ||
@@ -1143,7 +1144,7 @@ void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
     ReturnDefinition(new(I) ConstantInstr(type));
   } else {
     const Class& instantiator_class = Class::ZoneHandle(
-        I, owner()->parsed_function()->function().Owner());
+        I, owner()->function().Owner());
     Value* instantiator_value = BuildInstantiatorTypeArguments(
         node->token_pos(), instantiator_class, NULL);
     ReturnDefinition(new(I) InstantiateTypeInstr(
@@ -1187,7 +1188,7 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 
   const bool eliminated = value->Type()->IsAssignableTo(dst_type);
   if (FLAG_trace_type_check_elimination) {
-    FlowGraphPrinter::PrintTypeCheck(*owner()->parsed_function(),
+    FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
                                      token_pos,
                                      value,
                                      dst_type,
@@ -1244,7 +1245,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     TestGraphVisitor for_left(owner(), node->left()->token_pos());
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
-    if (FLAG_enable_type_checks || FLAG_enable_asserts) {
+    if (Isolate::Current()->TypeChecksEnabled() ||
+        Isolate::Current()->AssertsEnabled()) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1309,7 +1311,8 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     ValueGraphVisitor for_right(owner());
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
-    if (FLAG_enable_type_checks|| FLAG_enable_asserts) {
+    if (Isolate::Current()->TypeChecksEnabled() ||
+        Isolate::Current()->AssertsEnabled()) {
       right_value =
           for_right.Bind(new(I) AssertBooleanInstr(node->right()->token_pos(),
                                                    right_value));
@@ -1396,7 +1399,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
     PushArgumentInstr** push_instantiator_result,
     PushArgumentInstr** push_instantiator_type_arguments_result) {
   const Class& instantiator_class = Class::Handle(
-      I, owner()->parsed_function()->function().Owner());
+      I, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   Value* instantiator_type_arguments = NULL;
@@ -1426,7 +1429,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
   const Class& instantiator_class = Class::Handle(
-      I, owner()->parsed_function()->function().Owner());
+      I, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   instantiator = BuildInstantiator(instantiator_class);
@@ -1484,6 +1487,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
 void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
                                         LocalVariable* continuation_result,
                                         LocalVariable* continuation_error,
+                                        LocalVariable* continuation_stack_trace,
                                         const intptr_t old_ctx_level,
                                         JoinEntryInstr* target) {
   // Building a jump consists of the following actions:
@@ -1500,6 +1504,8 @@ void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
       Bind(BuildLoadLocal(*continuation_result)));
   LocalVariable* temp_error_var = EnterTempLocalScope(
       Bind(BuildLoadLocal(*continuation_error)));
+  LocalVariable* temp_stack_trace_var = EnterTempLocalScope(
+      Bind(BuildLoadLocal(*continuation_stack_trace)));
   // Restore the saved continuation context.
   BuildRestoreContext(*old_context);
 
@@ -1538,7 +1544,18 @@ void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
       Scanner::kNoSourcePos);
   Do(store2);
 
+  context_val = Bind(new(I) LoadLocalInstr(*temp_context_var));
+  store_val = Bind(new(I) LoadLocalInstr(*temp_stack_trace_var));
+  StoreInstanceFieldInstr* store3 = new(I) StoreInstanceFieldInstr(
+      Context::variable_offset(continuation_stack_trace->index()),
+      context_val,
+      store_val,
+      kEmitStoreBarrier,
+      Scanner::kNoSourcePos);
+  Do(store3);
+
   Do(ExitTempLocalScope(temp_context_var));
+  Do(ExitTempLocalScope(temp_stack_trace_var));
   Do(ExitTempLocalScope(temp_error_var));
   Do(ExitTempLocalScope(temp_result_var));
 
@@ -1768,7 +1785,8 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         2,
         owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
-      if (FLAG_enable_type_checks || FLAG_enable_asserts) {
+      if (Isolate::Current()->TypeChecksEnabled() ||
+          Isolate::Current()->AssertsEnabled()) {
         Value* value = Bind(result);
         result = new(I) AssertBooleanInstr(node->token_pos(), value);
       }
@@ -1814,7 +1832,8 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     node->operand()->Visit(&for_value);
     Append(for_value);
     Value* value = for_value.value();
-    if (FLAG_enable_type_checks || FLAG_enable_asserts) {
+    if (Isolate::Current()->TypeChecksEnabled() ||
+        Isolate::Current()->AssertsEnabled()) {
       value =
           Bind(new(I) AssertBooleanInstr(node->operand()->token_pos(), value));
     }
@@ -2448,8 +2467,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     ASSERT(!function.HasCode());
     ASSERT(function.context_scope() == ContextScope::null());
     function.set_context_scope(context_scope);
-    const Class& cls = Class::Handle(
-        I, owner()->parsed_function()->function().Owner());
+    const Class& cls = Class::Handle(I, owner()->function().Owner());
     // The closure is now properly setup, add it to the lookup table.
     // It is possible that the compiler creates more than one function
     // object for the same closure, e.g. when inlining nodes from
@@ -2485,7 +2503,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
            Closure::type_arguments_offset());
     ASSERT(cls.instance_size() == Closure::InstanceSize());
     const Class& instantiator_class = Class::Handle(
-        I, owner()->parsed_function()->function().Owner());
+        I, owner()->function().Owner());
     type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
                                                     instantiator_class,
                                                     NULL);
@@ -2807,8 +2825,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
   ASSERT(instantiator_class.NumTypeParameters() > 0);
-  Function& outer_function =
-      Function::Handle(I, owner()->parsed_function()->function().raw());
+  Function& outer_function = Function::Handle(I, owner()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
@@ -2816,7 +2833,7 @@ Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
     return NULL;
   }
 
-  LocalVariable* instantiator = owner()->parsed_function()->instantiator();
+  LocalVariable* instantiator = owner()->parsed_function().instantiator();
   ASSERT(instantiator != NULL);
   Value* result = Bind(BuildLoadLocal(*instantiator));
   return result;
@@ -2844,8 +2861,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     type_arguments = type_arguments.Canonicalize();
     return Bind(new(I) ConstantInstr(type_arguments));
   }
-  Function& outer_function =
-      Function::Handle(I, owner()->parsed_function()->function().raw());
+  Function& outer_function = Function::Handle(I, owner()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
@@ -2853,7 +2869,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     // No instantiator for factories.
     ASSERT(instantiator == NULL);
     LocalVariable* instantiator_var =
-        owner()->parsed_function()->instantiator();
+        owner()->parsed_function().instantiator();
     ASSERT(instantiator_var != NULL);
     return Bind(BuildLoadLocal(*instantiator_var));
   }
@@ -2884,7 +2900,7 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   }
   // The type arguments are uninstantiated.
   const Class& instantiator_class = Class::ZoneHandle(
-      I, owner()->parsed_function()->function().Owner());
+      I, owner()->function().Owner());
   Value* instantiator_value =
       BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   const bool use_instantiator_type_args =
@@ -3190,7 +3206,7 @@ LoadLocalInstr* EffectGraphVisitor::BuildLoadThisVar(LocalScope* scope) {
 
 
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
-  const Function& function = owner()->parsed_function()->function();
+  const Function& function = owner()->function();
   if (!function.IsClosureFunction()) {
     MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
     switch (kind) {
@@ -3302,23 +3318,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
-      case MethodRecognizer::kBigint_setDigits: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LocalVariable* value_var =
-            node->scope()->LookupVariable(Symbols::Value(), true);
-        ASSERT(value_var != NULL);
-        Value* value = Bind(new(I) LoadLocalInstr(*value_var));
-        StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
-            Bigint::digits_offset(),
-            receiver,
-            value,
-            kEmitStoreBarrier,
-            node->token_pos());
-        Do(store);
-        ConstantInstr* null_const = new(I) ConstantInstr(
-            Object::ZoneHandle(I, Object::null()));
-        return ReturnDefinition(null_const);
-      }
       case MethodRecognizer::kBigint_getUsed: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         LoadFieldInstr* load = new(I) LoadFieldInstr(
@@ -3330,23 +3329,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
-      case MethodRecognizer::kBigint_setUsed: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LocalVariable* value_var =
-            node->scope()->LookupVariable(Symbols::Value(), true);
-        ASSERT(value_var != NULL);
-        Value* value = Bind(new(I) LoadLocalInstr(*value_var));
-        StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
-            Bigint::used_offset(),
-            receiver,
-            value,
-            kNoStoreBarrier,
-            node->token_pos());
-        Do(store);
-        ConstantInstr* null_const = new(I) ConstantInstr(
-            Object::ZoneHandle(I, Object::null()));
-        return ReturnDefinition(null_const);
-      }
       case MethodRecognizer::kBigint_getNeg: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         LoadFieldInstr* load = new(I) LoadFieldInstr(
@@ -3357,23 +3339,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_result_cid(kBoolCid);
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
-      }
-      case MethodRecognizer::kBigint_setNeg: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LocalVariable* value_var =
-            node->scope()->LookupVariable(Symbols::Value(), true);
-        ASSERT(value_var != NULL);
-        Value* value = Bind(new(I) LoadLocalInstr(*value_var));
-        StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
-            Bigint::neg_offset(),
-            receiver,
-            value,
-            kEmitStoreBarrier,
-            node->token_pos());
-        Do(store);
-        ConstantInstr* null_const = new(I) ConstantInstr(
-            Object::ZoneHandle(I, Object::null()));
-        return ReturnDefinition(null_const);
       }
       default:
         break;
@@ -3420,7 +3385,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     store_value = BuildAssignableValue(node->value()->token_pos(),
                                        store_value,
                                        node->local().type(),
@@ -3461,7 +3426,7 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     const AbstractType& type =
         AbstractType::ZoneHandle(I, node->field().type());
     const String& dst_name = String::ZoneHandle(I, node->field().name());
@@ -3711,7 +3676,7 @@ void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 bool EffectGraphVisitor::HasContextScope() const {
   const ContextScope& context_scope = ContextScope::Handle(
-      owner()->parsed_function()->function().context_scope());
+      owner()->function().context_scope());
   return !context_scope.IsNull() && (context_scope.num_variables() > 0);
 }
 
@@ -3740,7 +3705,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
   const bool is_top_level_sequence =
-      node == owner()->parsed_function()->node_sequence();
+      node == owner()->parsed_function().node_sequence();
   // The outermost function sequence cannot contain a label.
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
@@ -3769,7 +3734,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // the captured parameters from the frame into the context.
     if (is_top_level_sequence) {
       ASSERT(scope->context_level() == 1);
-      const Function& function = owner()->parsed_function()->function();
+      const Function& function = owner()->function();
       const int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
           (kParamEndSlotFromFp + num_params) : kFirstLocalSlotFromFp;
@@ -3807,7 +3772,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   // This check may be deleted if the generated code is leaf.
   // Native functions don't need a stack check at entry.
-  const Function& function = owner()->parsed_function()->function();
+  const Function& function = owner()->function();
   if (is_top_level_sequence && !function.is_native()) {
     // Always allocate CheckOverflowInstr so that deopt-ids match regardless
     // if we inline or not.
@@ -3823,8 +3788,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  if (FLAG_enable_type_checks && is_top_level_sequence) {
-    const Function& function = owner()->parsed_function()->function();
+  if (Isolate::Current()->TypeChecksEnabled() && is_top_level_sequence) {
+    const Function& function = owner()->function();
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsConstructor()) {
@@ -3856,8 +3821,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // If this node sequence is the body of an async closure leave room for a
   // preamble. The preamble is generated after visiting the body.
   GotoInstr* preamble_start = NULL;
-  if (is_top_level_sequence &&
-      (owner()->parsed_function()->function().is_async_closure())) {
+  if (is_top_level_sequence && (owner()->function().is_async_closure())) {
     JoinEntryInstr* preamble_end = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
     ASSERT(exit() != NULL);
@@ -3882,8 +3846,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // Continuation part:
   // After generating the CFG for the body we can create the preamble because we
   // know exactly how many continuation states we need.
-  if (is_top_level_sequence &&
-      (owner()->parsed_function()->function().is_async_closure())) {
+  if (is_top_level_sequence && (owner()->function().is_async_closure())) {
     ASSERT(preamble_start != NULL);
     // We are at the top level. Fetch the corresponding scope.
     LocalScope* top_scope = node->scope();
@@ -3906,6 +3869,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         Symbols::AsyncOperationParam(), false);
     LocalVariable* continuation_error = top_scope->LookupVariable(
         Symbols::AsyncOperationErrorParam(), false);
+    LocalVariable* continuation_stack_trace = top_scope->LookupVariable(
+        Symbols::AsyncOperationStackTraceParam(), false);
     for (intptr_t i = 0; i < num_await_states; i++) {
       check_jump_count = new(I) ComparisonNode(
           Scanner::kNoSourcePos,
@@ -3921,6 +3886,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       for_true.BuildAwaitJump(old_context,
                               continuation_result,
                               continuation_error,
+                              continuation_stack_trace,
                               (*owner()->await_levels())[i],
                               (*owner()->await_joins())[i]);
       Join(for_test, for_true, for_false);
@@ -4098,7 +4064,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   intptr_t args_pos = method_arguments->token_pos();
   LocalVariable* temp = NULL;
   if (save_last_arg) {
-    temp = owner()->parsed_function()->EnsureExpressionTemp();
+    temp = owner()->parsed_function().expression_temp_var();
   }
   ArgumentListNode* args =
       Parser::BuildNoSuchMethodArguments(args_pos,
@@ -4272,10 +4238,10 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
-    AstPrinter::PrintFunctionNodes(*parsed_function());
+    AstPrinter::PrintFunctionNodes(parsed_function());
   }
   if (FLAG_print_scopes) {
-    AstPrinter::PrintFunctionScope(*parsed_function());
+    AstPrinter::PrintFunctionScope(parsed_function());
   }
   TargetEntryInstr* normal_entry =
       new(I) TargetEntryInstr(AllocateBlockId(),
@@ -4283,7 +4249,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   graph_entry_ =
       new(I) GraphEntryInstr(parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this);
-  parsed_function()->node_sequence()->Visit(&for_effect);
+  parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
@@ -4303,7 +4269,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 void FlowGraphBuilder::PruneUnreachable() {
   ASSERT(osr_id_ != Isolate::kNoDeoptId);
-  Zone* zone = parsed_function()->zone();
+  Zone* zone = parsed_function().zone();
   BitVector* block_marks = new(zone) BitVector(zone, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);
@@ -4312,7 +4278,7 @@ void FlowGraphBuilder::PruneUnreachable() {
 
 
 void FlowGraphBuilder::Bailout(const char* reason) const {
-  const Function& function = parsed_function_->function();
+  const Function& function = parsed_function_.function();
   Report::MessageF(Report::kBailout,
                    Script::Handle(function.script()),
                    function.token_pos(),

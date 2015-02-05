@@ -111,4 +111,177 @@ class ClassStubGenerator {
 
     return generatedStubs;
   }
+
+  Map<String, Selector> computeSelectorsForNsmHandlers() {
+
+    Map<String, Selector> jsNames = <String, Selector>{};
+
+    // Do not generate no such method handlers if there is no class.
+    if (compiler.codegenWorld.directlyInstantiatedClasses.isEmpty) {
+      return jsNames;
+    }
+
+    void addNoSuchMethodHandlers(String ignore, Set<Selector> selectors) {
+      TypeMask objectSubclassTypeMask =
+          new TypeMask.subclass(compiler.objectClass, compiler.world);
+
+      for (Selector selector in selectors) {
+        TypeMask mask = selector.mask;
+        if (mask == null) mask = objectSubclassTypeMask;
+
+        if (!mask.needsNoSuchMethodHandling(selector, compiler.world)) {
+          continue;
+        }
+        String jsName = namer.invocationMirrorInternalName(selector);
+        jsNames[jsName] = selector;
+      }
+    }
+
+    compiler.codegenWorld.invokedNames.forEach(addNoSuchMethodHandlers);
+    compiler.codegenWorld.invokedGetters.forEach(addNoSuchMethodHandlers);
+    compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
+    return jsNames;
+  }
+
+  StubMethod generateStubForNoSuchMethod(String name, Selector selector) {
+    // Values match JSInvocationMirror in js-helper library.
+    int type = selector.invocationMirrorKind;
+    List<String> parameterNames =
+        new List.generate(selector.argumentCount, (i) => '\$$i');
+
+    List<jsAst.Expression> argNames =
+        selector.getOrderedNamedArguments().map((String name) =>
+            js.string(name)).toList();
+
+    String methodName = selector.invocationMirrorMemberName;
+    String internalName = namer.invocationMirrorInternalName(selector);
+
+    assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
+    jsAst.Expression expression =
+        js('''this.#noSuchMethodName(this,
+                    #createInvocationMirror(#methodName,
+                                            #internalName,
+                                            #type,
+                                            #arguments,
+                                            #namedArguments))''',
+           {'noSuchMethodName': namer.noSuchMethodName,
+            'createInvocationMirror':
+                backend.emitter.staticFunctionAccess(
+                    backend.getCreateInvocationMirror()),
+            'methodName':
+                js.string(compiler.enableMinification
+                    ? internalName : methodName),
+            'internalName': js.string(internalName),
+            'type': js.number(type),
+            'arguments':
+                new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
+            'namedArguments': new jsAst.ArrayInitializer(argNames)});
+
+    jsAst.Expression function;
+    if (backend.isInterceptedName(selector.name)) {
+      function = js(r'function($receiver, #) { return # }',
+                              [parameterNames, expression]);
+    } else {
+      function = js(r'function(#) { return # }', [parameterNames, expression]);
+    }
+    return new StubMethod(name, function);
+  }
+}
+
+/// Creates two JavaScript functions: `tearOffGetter` and `tearOff`.
+///
+/// `tearOffGetter` is internal and only used by `tearOff`.
+///
+/// `tearOff` takes the following arguments:
+///   * `funcs`: a list of functions. These are the functions representing the
+///    member that is torn off. There can be more than one, since a member
+///    can have several stubs.
+///    Each function must have the `$callName` property set.
+///   * `reflectionInfo`: contains reflective information, and the function
+///    type. TODO(floitsch): point to where this is specified.
+///   * `isStatic`.
+///   * `name`.
+///   * `isIntercepted.
+List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
+  Namer namer = backend.namer;
+  Compiler compiler = backend.compiler;
+
+  Element closureFromTearOff = backend.findHelper('closureFromTearOff');
+  String tearOffAccessText;
+  jsAst.Expression tearOffAccessExpression;
+  String tearOffGlobalObjectName;
+  String tearOffGlobalObject;
+  if (closureFromTearOff != null) {
+    // We need both the AST that references [closureFromTearOff] and a string
+    // for the NoCsp version that constructs a function.
+    tearOffAccessExpression =
+        backend.emitter.staticFunctionAccess(closureFromTearOff);
+    tearOffAccessText =
+        jsAst.prettyPrint(tearOffAccessExpression, compiler).getText();
+    tearOffGlobalObjectName = tearOffGlobalObject =
+        namer.globalObjectFor(closureFromTearOff);
+  } else {
+    // Default values for mocked-up test libraries.
+    tearOffAccessText =
+        r'''function() { throw 'Helper \'closureFromTearOff\' missing.' }''';
+    tearOffAccessExpression = js(tearOffAccessText);
+    tearOffGlobalObjectName = 'MissingHelperFunction';
+    tearOffGlobalObject = '($tearOffAccessText())';
+  }
+
+  jsAst.Statement tearOffGetter;
+  if (!compiler.useContentSecurityPolicy) {
+    // This template is uncached because it is constructed from code fragments
+    // that can change from compilation to compilation.  Some of these could be
+    // avoided, except for the string literals that contain the compiled access
+    // path to 'closureFromTearOff'.
+    tearOffGetter = js.uncachedStatementTemplate('''
+function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+  return isIntercepted
+      ? new Function("funcs", "reflectionInfo", "name",
+                     "$tearOffGlobalObjectName", "c",
+          "return function tearOff_" + name + (functionCounter++) + "(x) {" +
+            "if (c === null) c = $tearOffAccessText(" +
+                "this, funcs, reflectionInfo, false, [x], name);" +
+                "return new c(this, funcs[0], x, name);" +
+                "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
+      : new Function("funcs", "reflectionInfo", "name",
+                     "$tearOffGlobalObjectName", "c",
+          "return function tearOff_" + name + (functionCounter++)+ "() {" +
+            "if (c === null) c = $tearOffAccessText(" +
+                "this, funcs, reflectionInfo, false, [], name);" +
+                "return new c(this, funcs[0], null, name);" +
+                "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
+}''').instantiate([]);
+  } else {
+    tearOffGetter = js.statement('''
+      function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+        var cache = null;
+        return isIntercepted
+            ? function(x) {
+                if (cache === null) cache = #(
+                    this, funcs, reflectionInfo, false, [x], name);
+                return new cache(this, funcs[0], x, name);
+              }
+            : function() {
+                if (cache === null) cache = #(
+                    this, funcs, reflectionInfo, false, [], name);
+                return new cache(this, funcs[0], null, name);
+              };
+      }''', [tearOffAccessExpression, tearOffAccessExpression]);
+  }
+
+  jsAst.Statement tearOff = js.statement('''
+    function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
+      var cache;
+      return isStatic
+          ? function() {
+              if (cache === void 0) cache = #tearOff(
+                  this, funcs, reflectionInfo, true, [], name).prototype;
+              return cache;
+            }
+          : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
+    }''',  {'tearOff': tearOffAccessExpression});
+
+  return <jsAst.Statement>[tearOffGetter, tearOff];
 }

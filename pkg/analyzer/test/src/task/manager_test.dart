@@ -6,7 +6,6 @@ library test.src.task.manager_test;
 
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/src/task/targets.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
@@ -57,13 +56,13 @@ class TaskManagerTest extends EngineTestCase {
     TaskDescriptor descriptor =
         new TaskDescriptor('task', null, null, [result1]);
     manager.addTaskDescriptor(descriptor);
-    AnalysisTarget target = new SourceTarget(null);
+    AnalysisTarget target = new TestSource();
     expect(manager.findTask(target, result1), descriptor);
   }
 
   test_findTask_empty() {
     TaskManager manager = new TaskManager();
-    AnalysisTarget target = new SourceTarget(null);
+    AnalysisTarget target = new TestSource();
     expect(
         () => manager.findTask(target, result1),
         throwsA(new isInstanceOf<AnalysisException>()));
@@ -81,7 +80,7 @@ class TaskManagerTest extends EngineTestCase {
         new TaskDescriptor('task3', null, null, [result2]);
     manager.addTaskDescriptor(descriptor3);
 
-    AnalysisTarget target = new SourceTarget(null);
+    AnalysisTarget target = new TestSource();
     TaskDescriptor task = manager.findTask(target, result1);
     expect(task == descriptor1 || task == descriptor2, true);
   }
@@ -91,7 +90,7 @@ class TaskManagerTest extends EngineTestCase {
     TaskDescriptor descriptor =
         new TaskDescriptor('task', null, null, [result1]);
     manager.addTaskDescriptor(descriptor);
-    AnalysisTarget target = new SourceTarget(null);
+    AnalysisTarget target = new TestSource();
     expect(
         () => manager.findTask(target, result2),
         throwsA(new isInstanceOf<AnalysisException>()));

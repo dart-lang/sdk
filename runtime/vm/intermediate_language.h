@@ -1300,7 +1300,7 @@ class BackwardInstructionIterator : public ValueObject {
 
 class GraphEntryInstr : public BlockEntryInstr {
  public:
-  GraphEntryInstr(const ParsedFunction* parsed_function,
+  GraphEntryInstr(const ParsedFunction& parsed_function,
                   TargetEntryInstr* normal_entry,
                   intptr_t osr_id);
 
@@ -1349,7 +1349,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   TargetEntryInstr* normal_entry() const { return normal_entry_; }
 
   const ParsedFunction& parsed_function() const {
-    return *parsed_function_;
+    return parsed_function_;
   }
 
   const GrowableArray<CatchBlockEntryInstr*>& catch_entries() const {
@@ -1366,7 +1366,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual void ClearPredecessors() {}
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
-  const ParsedFunction* parsed_function_;
+  const ParsedFunction& parsed_function_;
   TargetEntryInstr* normal_entry_;
   GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   // Indirect targets are blocks reachable only through indirect gotos.
@@ -7921,7 +7921,7 @@ class Environment : public ZoneAllocated {
   static Environment* From(Isolate* isolate,
                            const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
-                           const ParsedFunction* parsed_function);
+                           const ParsedFunction& parsed_function);
 
   void set_locations(Location* locations) {
     ASSERT(locations_ == NULL);
@@ -7967,7 +7967,7 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
-  const Code& code() const { return parsed_function_->code(); }
+  const Code& code() const { return parsed_function_.code(); }
 
   Environment* DeepCopy(Isolate* isolate) const {
     return DeepCopy(isolate, Length());
@@ -7996,7 +7996,7 @@ class Environment : public ZoneAllocated {
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t deopt_id,
-              const ParsedFunction* parsed_function,
+              const ParsedFunction& parsed_function,
               Environment* outer)
       : values_(length),
         locations_(NULL),
@@ -8010,7 +8010,7 @@ class Environment : public ZoneAllocated {
   Location* locations_;
   const intptr_t fixed_parameter_count_;
   intptr_t deopt_id_;
-  const ParsedFunction* parsed_function_;
+  const ParsedFunction& parsed_function_;
   Environment* outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

@@ -25,6 +25,7 @@ DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, use_cha);
 
+
 bool ClassFinalizer::AllClassesFinalized() {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const GrowableObjectArray& classes =
@@ -373,7 +374,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (FLAG_error_on_bad_override) {
+  if (Isolate::Current()->ErrorOnBadOverrideEnabled()) {
     // Verify that the target is compatible with the redirecting factory.
     Error& error = Error::Handle();
     if (!target.HasCompatibleParametersWith(factory, &error)) {
@@ -983,7 +984,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       TypeArguments::Handle(isolate, parameterized_type.arguments());
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is mapped to the raw type.
-    if (FLAG_error_on_bad_type) {
+    if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
       const String& type_class_name =
           String::Handle(isolate, type_class.Name());
       ReportError(cls, parameterized_type.token_pos(),
@@ -1354,7 +1355,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
            !const_value.IsInstanceOf(type,
                                      Object::null_type_arguments(),
                                      &error))) {
-        if (FLAG_error_on_bad_type) {
+        if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
           const AbstractType& const_value_type = AbstractType::Handle(
               I, const_value.GetType());
           const String& const_value_type_name = String::Handle(
@@ -1417,7 +1418,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     function ^= array.At(i);
     ResolveAndFinalizeSignature(cls, function);
     name = function.name();
-    if (FLAG_error_on_bad_override &&  // Report signature conflicts only.
+    // Report signature conflicts only.
+    if (Isolate::Current()->ErrorOnBadOverrideEnabled() &&
         !function.is_static() && !function.IsConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.Length(); i++) {
@@ -2565,7 +2567,7 @@ void ClassFinalizer::CollectTypeArguments(
       }
       return;
     }
-    if (FLAG_error_on_bad_type) {
+    if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
       const String& type_class_name = String::Handle(type_class.Name());
       ReportError(cls, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
@@ -2988,7 +2990,7 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
           prev_error, script, type.token_pos(),
           Report::kMalformedType, Heap::kOld,
           format, args));
-  if (FLAG_error_on_bad_type) {
+  if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
     ReportError(error);
   }
   type.set_error(error);
@@ -3050,7 +3052,7 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
           Report::kMalboundedType, Heap::kOld,
           format, args));
   va_end(args);
-  if (FLAG_error_on_bad_type) {
+  if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
     ReportError(error);
   }
   type.set_error(error);

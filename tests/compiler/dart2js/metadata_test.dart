@@ -154,12 +154,9 @@ void testLibraryTags() {
 
     Uri uri = new Uri(scheme: 'source', path: 'main.dart');
 
-    Uri async = new Uri(scheme: 'dart', path: 'async');
-
     var compiler = compilerFor(source, uri)
         ..registerSource(partUri, partSource)
-        ..registerSource(libUri, libSource)
-        ..registerSource(async, 'class DeferredLibrary {}');
+        ..registerSource(libUri, libSource);
 
     asyncTest(() => compiler.runCompiler(uri).then((_) {
       compiler.enqueuer.resolution.queueIsClosed = false;

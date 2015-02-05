@@ -131,9 +131,12 @@ abstract class TestSuite {
   Map<String, String> _environmentOverrides;
 
   TestSuite(this.configuration, this.suiteName) {
-    _environmentOverrides = {
-        'DART_CONFIGURATION' : TestUtils.configurationDir(configuration)
-    };
+    TestUtils.buildDir(configuration);  // Sets configuration_directory.
+    if (configuration['configuration_directory'] != null) {
+      _environmentOverrides = {
+        'DART_CONFIGURATION' : configuration['configuration_directory']
+      };
+    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -2258,18 +2261,26 @@ class TestUtils {
     // is relative to the current working directory.
     // Thus, if we pass in an absolute path (e.g. '--build-directory=/tmp/out')
     // we get into trouble.
-    if (configuration['build_directory'] != '') {
-      return configuration['build_directory'];
+    if (configuration['build_directory'] == '') {
+      configuration['configuration_directory'] =
+          configurationDir(configuration);
+      configuration['build_directory'] =
+          outputDir(configuration) + configuration['configuration_directory'];
     }
-
-    return "${outputDir(configuration)}${configurationDir(configuration)}";
+    return configuration['build_directory'];
   }
 
-  static getValidOutputDir(Map configuration, String mode, String arch) {
+  static String configurationDir(Map configuration) {
+    // This returns the correct configuration directory (the last component
+    // of the output directory path) for regular dart checkouts.
+    // Dartium checkouts use the --build-directory option to pass in the
+    // correct build directory explicitly.
     // We allow our code to have been cross compiled, i.e., that there
     // is an X in front of the arch. We don't allow both a cross compiled
     // and a normal version to be present (except if you specifically pass
     // in the build_directory).
+    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
+    var arch = configuration['arch'].toUpperCase();
     var normal = '$mode$arch';
     var cross = '${mode}X$arch';
     var outDir = outputDir(configuration);
@@ -2283,20 +2294,6 @@ class TestUtils {
       return cross;
     }
     return normal;
-  }
-
-  static String configurationDir(Map configuration) {
-    // For regular dart checkouts, the configDir by default is mode+arch.
-    // For Dartium, the configDir by default is mode (as defined by the Chrome
-    // build setup). We can detect this because in the dartium checkout, the
-    // "output" directory is a sibling of the dart directory instead of a child.
-    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
-    var arch = configuration['arch'].toUpperCase();
-    if (currentWorkingDirectory != dartDir) {
-      return getValidOutputDir(configuration, mode, arch);
-    } else {
-      return mode;
-    }
   }
 
   /**

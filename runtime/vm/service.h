@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 
 #include "vm/allocation.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 
@@ -24,23 +25,30 @@ class String;
 
 class Service : public AllStatic {
  public:
+  static const char* kIsolateName;
+  static bool IsServiceIsolateName(const char* name);
+
   // Handles a message which is not directed to an isolate.
+  static void HandleRootMessageNew(const Array& message);
   static void HandleRootMessage(const Instance& message);
 
   // Handles a message which is directed to a particular isolate.
+  static void HandleIsolateMessageNew(Isolate* isolate, const Array& message);
   static void HandleIsolateMessage(Isolate* isolate, const Array& message);
 
   static Isolate* GetServiceIsolate(void* callback_data);
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();
 
-  static bool IsRunning() {
-    return port_ != ILLEGAL_PORT;
-  }
+  static bool IsRunning();
+  static void SetServicePort(Dart_Port port);
+  static void SetServiceIsolate(Isolate* isolate);
+  static bool HasServiceIsolate();
+  static bool IsServiceIsolate(Isolate* isolate);
 
-  static void set_port(Dart_Port port) {
-    port_ = port;
-  }
+  static Dart_Port WaitForLoadPort();
+  static Dart_Port LoadPort();
+  static void SetLoadPort(Dart_Port port);
 
   static void SetEventMask(uint32_t mask);
 
@@ -66,12 +74,18 @@ class Service : public AllStatic {
       Dart_ServiceRequestCallback callback,
       void* user_data);
 
-  static bool IsServiceIsolate(Isolate* isolate) {
-    return isolate == service_isolate_;
-  }
-
-  static void SendEchoEvent(Isolate* isolate);
+  static void SendEchoEvent(Isolate* isolate, const char* text);
   static void SendGraphEvent(Isolate* isolate);
+
+  static void MaybeInjectVMServiceLibrary(Isolate* isolate);
+
+  static void RunService();
+
+  static void FinishedInitializing();
+
+  static Dart_IsolateCreateCallback create_callback() {
+    return create_callback_;
+  }
 
  private:
   // These must be kept in sync with service/constants.dart
@@ -82,11 +96,13 @@ class Service : public AllStatic {
 
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);
+
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
                                        Dart_Handle url);
+
   static void SendEvent(intptr_t eventId, const Object& eventMessage);
   // Does not take ownership of 'data'.
   static void SendEvent(intptr_t eventId,
@@ -97,9 +113,13 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;
 
+
+  static Dart_IsolateCreateCallback create_callback_;
+  static Monitor* monitor_;
+  static bool initializing_;
   static Isolate* service_isolate_;
-  static Dart_LibraryTagHandler embedder_provided_handler_;
-  static Dart_Port port_;
+  static Dart_Port service_port_;
+  static Dart_Port load_port_;
   static uint32_t event_mask_;
 };
 

@@ -170,7 +170,7 @@ void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Breakpoint");
 
-  jsobj.AddPropertyF("id", "debug/breakpoints/%" Pd "", id());
+  jsobj.AddPropertyF("id", "breakpoints/%" Pd "", id());
   jsobj.AddProperty("breakpointNumber", id());
   jsobj.AddProperty("enabled", IsEnabled());
   jsobj.AddProperty("resolved", IsResolved());
@@ -1066,7 +1066,9 @@ void Debugger::Shutdown() {
     delete bpt;
   }
   // Signal isolate shutdown event.
-  SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
+  if (!Service::IsServiceIsolate(isolate_)) {
+    SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
+  }
 }
 
 
@@ -1122,8 +1124,7 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // that inline the function that contains the newly created breakpoint.
 // We currently don't have this info so we deoptimize all functions.
 void Debugger::DeoptimizeWorld() {
-  // Deoptimize all functions in stack activation frames.
-  DeoptimizeAll();
+  DeoptimizeFunctionsOnStack();
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
   const ClassTable& class_table = *isolate_->class_table();
@@ -2254,8 +2255,9 @@ void Debugger::Initialize(Isolate* isolate) {
     return;
   }
   isolate_ = isolate;
+
   // Use the isolate's control port as the isolate_id for debugging.
-  // This port will be used as a unique ID to represet the isolate in the
+  // This port will be used as a unique ID to represent the isolate in the
   // debugger wire protocol messages.
   isolate_id_ = isolate->main_port();
   initialized_ = true;
@@ -2264,7 +2266,9 @@ void Debugger::Initialize(Isolate* isolate) {
 
 void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
-  SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
+  if (!Service::IsServiceIsolate(isolate_)) {
+    SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
+  }
 }
 
 

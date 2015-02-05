@@ -10,7 +10,6 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
     ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
@@ -45,6 +44,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   bool _computeFastCalled = false;
   DartCompletionRequest request;
   DartCompletionCache cache;
+  DartCompletionManager _completionManager;
 
   void addResolvedUnit(String file, String code) {
     Source source = addSource(file, code);
@@ -485,13 +485,16 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   bool computeFast() {
     _computeFastCalled = true;
-    testUnit = context.parseCompilationUnit(testSource);
-    completionNode =
-        new NodeLocator.con1(completionOffset).searchWithin(testUnit);
-    request.unit = testUnit;
-    request.node = completionNode;
-    request.target = new CompletionTarget.forOffset(testUnit, completionOffset);
-    return computer.computeFast(request);
+    _completionManager = new DartCompletionManager(
+        context,
+        searchEngine,
+        testSource,
+        cache,
+        [computer]);
+    var result = _completionManager.computeFast(request);
+    expect(request.replacementOffset, isNotNull);
+    expect(request.replacementLength, isNotNull);
+    return result.isEmpty;
   }
 
   Future computeFull(assertFunction(bool result), {bool fullAnalysis: true}) {
@@ -531,16 +534,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
             request.unit = unit;
             request.node =
                 new NodeLocator.con1(completionOffset).searchWithin(unit);
-            if (request.node is SimpleIdentifier) {
-              request.replacementOffset = request.node.offset;
-              request.replacementLength = request.node.length;
-            } else {
-              request.replacementOffset = request.offset;
-              request.replacementLength = 0;
-            }
-            if (request.replacementOffset == null) {
-              fail('expected non null');
-            }
             resolved = true;
             if (!fullAnalysis) {
               break;
@@ -891,6 +884,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void main() {expect(^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -917,6 +912,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void main() {expect(^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -943,6 +940,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void main() {expect(^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -969,6 +968,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String bar() => true;''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -993,6 +994,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void main() {expect(foo: ^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
       assertNotSuggested('main');
@@ -1005,6 +1008,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {var b; X _c; foo() {var a; (a as ^).foo();}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertNotSuggested('b');
       assertNotSuggested('_c');
       assertSuggestImportedClass('Object');
@@ -1029,6 +1034,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {} main() {int a; int b = ^}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('a', 'int');
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalClass('A');
@@ -1045,6 +1052,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         ^ b = 1;}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('int');
       // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
@@ -1068,6 +1077,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         b = 1;}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('int');
       // Allow non-types preceding an identifier on LHS of assignment
@@ -1088,6 +1099,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         int^ b = 1;}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 3);
+      expect(request.replacementLength, 3);
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('int');
       // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
@@ -1111,6 +1124,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         b = 1;}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('int');
       // Allow non-types preceding an identifier on LHS of assignment
@@ -1126,9 +1141,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
     addTestSource('''
       class A {int x; int y() => 0;}
-      main(){A a; await ^}''');
+      main() async {A a; await ^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('a', 'A');
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalClass('A');
@@ -1142,6 +1159,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main() {int a = 1, b = ^ + 2;}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('a', 'int');
       assertSuggestImportedClass('Object');
       assertNotSuggested('b');
@@ -1154,6 +1173,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main() {int a = 1, b = 2 + ^;}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('a', 'int');
       assertSuggestImportedClass('Object');
       assertNotSuggested('b');
@@ -1204,6 +1225,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class Z { }''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
 
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
@@ -1284,6 +1307,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class Z { }''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
 
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
@@ -1340,6 +1365,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A extends E implements I with M {a() {^}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       // TODO (danrubel) prefer fields over getters
       // If add `get e1;` to interface I
       // then suggestions include getter e1 rather than field e1
@@ -1367,6 +1394,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A extends E implements I with M {a() {^}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalField('e1', null);
       assertSuggestLocalField('f1', null);
       assertSuggestLocalField('i1', 'int');
@@ -1393,6 +1422,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a.^.z}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
       assertNotSuggested('Object');
@@ -1415,6 +1446,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a..^z}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 1);
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
       assertNotSuggested('Object');
@@ -1437,6 +1470,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a..^ return}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
       assertNotSuggested('Object');
@@ -1456,6 +1491,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a^..b}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
       assertNotSuggested('b');
       assertNotSuggested('_c');
       assertSuggestLocalVariable('a', 'A');
@@ -1472,6 +1509,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestParameter('e', 'E');
       assertSuggestLocalMethod('a', 'A', null);
       assertSuggestImportedClass('Object');
@@ -1484,6 +1523,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {a() {try{var x;} catch (e, s) {^}}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestParameter('e', null);
       assertSuggestParameter('s', 'StackTrace');
       assertSuggestLocalMethod('a', 'A', null);
@@ -1503,6 +1544,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       A T;''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       CompletionSuggestion suggestionA = assertSuggestLocalClass(
           'A',
           relevance: COMPLETION_RELEVANCE_LOW,
@@ -1584,6 +1627,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {var b; X _c; foo() {A a; if (^) something}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalField('b', null);
       assertSuggestLocalField('_c', 'X');
       assertSuggestImportedClass('Object');
@@ -1598,6 +1643,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {var a; if (a.^) something}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationMethod('toString', 'Object', 'String');
       //TODO (danrubel) type for '_c' should be 'X' not null
       assertNotSuggested('Object');
@@ -1620,6 +1667,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {new X.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestNamedConstructor('c', 'X');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
@@ -1643,6 +1692,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {new X.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestNamedConstructor('c', 'X');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
@@ -1659,6 +1710,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {new String.fr^omCharCodes([]);}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 2);
+      expect(request.replacementLength, 13);
       assertSuggestNamedConstructor('fromCharCodes', 'String');
       assertNotSuggested('isEmpty');
       assertNotSuggested('isNotEmpty');
@@ -1678,6 +1731,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {new X.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestNamedConstructor('c', 'X');
       assertSuggestNamedConstructor('_d', 'X');
       assertNotSuggested('F1');
@@ -1697,6 +1752,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {new X.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestNamedConstructor('c', 'X');
       assertSuggestNamedConstructor('_d', 'X');
       assertNotSuggested('F1');
@@ -1719,6 +1776,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class C {foo(){^} void bar() {}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestImportedClass('A');
       assertSuggestImportedFunction('F1', '_B', false);
       assertSuggestLocalClass('C');
@@ -1777,6 +1836,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main(args) {for (int foo in bar) {^}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('foo', 'int');
       assertSuggestImportedClass('Object');
     });
@@ -1787,6 +1848,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main(args) {for (foo in bar) {^}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('foo', null);
       assertSuggestImportedClass('Object');
     });
@@ -1800,6 +1863,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {a(^) { }}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalFunction('foo', null);
       assertSuggestLocalMethod('a', 'A', null);
       assertSuggestLocalClass('A');
@@ -1814,6 +1879,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('i', 'int');
       assertSuggestImportedClass('Object');
     });
@@ -1824,6 +1891,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main() {for (int index = 0; i^)}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
       assertSuggestLocalVariable('index', 'int');
     });
   }
@@ -1833,6 +1902,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main() {List a; for (^)}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('a', 'List');
       assertSuggestImportedClass('Object');
       assertSuggestImportedClass('int');
@@ -1844,6 +1915,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
       assertSuggestLocalVariable('index', 'int');
     });
   }
@@ -1855,6 +1928,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {for (int index = 0; index < 10; ++i^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
       assertSuggestLocalVariable('index', 'int');
       assertSuggestLocalFunction('main', null);
       assertNotSuggested('bar');
@@ -1868,6 +1943,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String foo(List args) {x.then((R b) {^});}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       var f = assertSuggestLocalFunction('foo', 'String', false);
       if (f != null) {
         expect(f.element.isPrivate, isFalse);
@@ -1886,6 +1963,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main(){var a; if (^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('a', null);
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalClass('A');
@@ -1918,6 +1997,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class C {foo(){var f; {var x;} new ^}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestImportedClass('Object');
       assertSuggestImportedClass('A');
       assertSuggestLocalClass('B');
@@ -1937,6 +2018,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main() {String name; print("hello \$^");}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('name', 'String');
       assertSuggestImportedClass('Object');
     });
@@ -1958,6 +2041,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('main() {String name; print("hello \${name.^}");}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationGetter('length', 'int');
       assertNotSuggested('name');
       assertNotSuggested('Object');
@@ -1989,6 +2074,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {var x; if (x is ^) { }}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestImportedClass('X');
       assertSuggestLocalClass('Y');
       assertNotSuggested('x');
@@ -2006,6 +2093,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main(){var a; if (^ is A)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalVariable('a', null);
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalFunction('foo', null);
@@ -2022,6 +2111,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main(){var a; if (a is ^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertNotSuggested('a');
       assertNotSuggested('main');
       assertSuggestLocalClass('A');
@@ -2036,10 +2127,41 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main(){var a; if (a is Obj^)}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 3);
+      expect(request.replacementLength, 3);
       assertNotSuggested('a');
       assertNotSuggested('main');
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_keyword() {
+    addSource('/testB.dart', '''
+      lib B;
+      int newT1;
+      int T1;
+      nowIsIt() { }
+      class X {factory X.c(); factory X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      String newer() {}
+      var m;
+      main() {new^ X.c();}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 3);
+      expect(request.replacementLength, 3);
+      assertNotSuggested('c');
+      assertNotSuggested('_d');
+      // Imported suggestion are filtered by 1st character
+      assertSuggestImportedFunction('nowIsIt', null);
+      assertNotSuggested('T1');
+      // TODO (danrubel) this really should be TopLevelVar not getter/setter
+      assertSuggestTopLevelVarGetterSetter('newT1', 'int');
+      assertNotSuggested('z');
+      assertSuggestLocalTopLevelVar('m', 'dynamic');
+      assertSuggestLocalFunction('newer', 'String');
     });
   }
 
@@ -2057,6 +2179,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       CompletionSuggestion methodA = assertSuggestLocalMethod('a', 'A', 'Z');
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isFalse);
@@ -2084,6 +2208,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       CompletionSuggestion methodA = assertSuggestLocalMethod('_a', 'A', 'Z');
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isFalse);
@@ -2114,6 +2240,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       CompletionSuggestion methodA = assertSuggestLocalMethod(
           'a',
           'A',
@@ -2140,6 +2268,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {Z a(X x, [int y=1]) {^}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalFunction('foo', null);
       assertSuggestLocalFunction('bar', 'void');
       assertSuggestLocalMethod('a', 'A', 'Z');
@@ -2163,6 +2293,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationGetter('f', 'X');
       assertSuggestInvocationGetter('_g', null);
       assertNotSuggested('b');
@@ -2200,6 +2332,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {new ^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalClass('B');
       assertSuggestImportedClass('Object');
       assertSuggestImportedClass('X');
@@ -2231,6 +2365,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       var m;''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('Object');
       assertSuggestImportedClass('X');
@@ -2266,6 +2402,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('scA', 'String');
       assertSuggestInvocationField('scB', 'int');
       assertSuggestInvocationField('scI', null);
@@ -2305,6 +2443,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('sc', 'int');
       assertSuggestInvocationField('b', null, isDeprecated: true);
       assertNotSuggested('_c');
@@ -2338,6 +2478,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('sc', 'int');
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
@@ -2371,6 +2513,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {b.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationClass('X');
       assertSuggestInvocationClass('Y');
       assertSuggestInvocationTopLevelVar('T1', null);
@@ -2394,6 +2538,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       foo(X x) {x.^}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('y', 'M');
       assertNotSuggested('_z');
       assertNotSuggested('==');
@@ -2410,6 +2556,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X {foo(){A^.bar}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
       assertSuggestImportedClass('A');
       assertSuggestLocalClass('X');
       assertSuggestLocalMethod('foo', 'X', null);
@@ -2423,6 +2571,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {String x; int get foo {x.^}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationGetter('isEmpty', 'bool');
       assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
     });
@@ -2433,6 +2583,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {String x; int get foo {x.^ int y = 0;}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationGetter('isEmpty', 'bool');
       assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
     });
@@ -2443,6 +2595,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {a() {"hello".to^String().length}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 2);
+      expect(request.replacementLength, 8);
       assertSuggestInvocationGetter('length', 'int');
       assertNotSuggested('A');
       assertNotSuggested('a');
@@ -2456,6 +2610,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('class A {a() {"hello".length.^}}');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationGetter('isEven', 'bool');
       assertNotSuggested('A');
       assertNotSuggested('a');
@@ -2480,6 +2636,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');
@@ -2515,6 +2673,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');
@@ -2586,6 +2746,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class C {bar(){var f; {var x;} var e = ^}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestImportedClass('X');
       assertNotSuggested('_B');
       assertSuggestLocalClass('Y');
@@ -2613,6 +2775,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class C {bar(){var f; {var x;} var e = ^ var g}}''');
     computeFast();
     return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
       assertSuggestImportedClass('X');
       assertSuggestImportedFunction('foo1', null);
       assertNotSuggested('bar1');

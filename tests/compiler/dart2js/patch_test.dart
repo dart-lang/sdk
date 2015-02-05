@@ -13,12 +13,17 @@ import "mock_libraries.dart";
 import 'package:compiler/src/elements/modelx.dart';
 
 Future<Compiler> applyPatch(String script, String patch,
-                            {bool analyzeAll: false, bool analyzeOnly: false,
-                             bool runCompiler: false, String main: ""}) {
+                            {bool analyzeAll: false,
+                             bool analyzeOnly: false,
+                             bool runCompiler: false,
+                             String main: "",
+                             String patchVersion}) {
   Map<String, String> core = <String, String>{'script': script};
   MockCompiler compiler = new MockCompiler.internal(coreSource: core,
                                                     analyzeAll: analyzeAll,
-                                                    analyzeOnly: analyzeOnly);
+                                                    analyzeOnly: analyzeOnly,
+                                                    patchVersion: patchVersion);
+  compiler.diagnosticHandler = createHandler(compiler, '');
   var uri = Uri.parse("patch:core");
   compiler.registerSource(uri, "$DEFAULT_PATCH_CORE_SOURCE\n$patch");
   var future;
@@ -66,7 +71,8 @@ Element ensure(compiler,
     Expect.isNotNull(element.getter);
     element = element.getter;
   }
-  Expect.equals(expectIsPatched, element.isPatched);
+  Expect.equals(expectIsPatched, element.isPatched,
+      'Unexpected: $element.isPatched = ${element.isPatched}');
   if (expectIsPatched) {
     Expect.isNull(element.origin);
     Expect.isNotNull(element.patch);
@@ -125,6 +131,73 @@ testPatchFunction() {
     Expect.isTrue(compiler.errors.isEmpty,
                   "Unexpected errors: ${compiler.errors}");
   }));
+}
+
+
+testPatchVersioned() {
+  String oldPatch = "test(){return 'string';}";
+  String newPatch = "test(){return 'new and improved string';}";
+
+  String patchSource =
+      """
+      @patch_old $oldPatch 
+      @patch_new $newPatch 
+      """;
+
+  test(String patchVersion,
+       {String patchText,
+        bool expectIsPatched: true,
+        String expectedError,
+        String defaultPatch: '',
+        String expectedInternalError}) {
+    asyncTest(() => applyPatch(
+        "external test();",
+        """
+        $defaultPatch
+        $patchSource
+        """,
+        patchVersion: patchVersion).then((compiler) {
+      Element origin =
+          ensure(compiler, "test", compiler.coreLibrary.find,
+               expectIsPatched: expectIsPatched, checkHasBody: true);
+      if (expectIsPatched) {
+        AstElement patch =
+            ensure(compiler, "test", compiler.coreLibrary.patch.find,
+                expectIsPatch: true, checkHasBody: true);
+        Expect.equals(origin.patch, patch);
+        Expect.equals(patch.origin, origin);
+        Expect.equals(patchText, patch.node.toString());
+      }
+
+      compiler.analyzeElement(origin);
+      compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+
+      Expect.isTrue(compiler.warnings.isEmpty,
+                    "Unexpected warnings: ${compiler.warnings}");
+      if (expectedError != null) {
+        Expect.equals(expectedError,
+                      compiler.errors[0].message.toString());
+      } else {
+        Expect.isTrue(compiler.errors.isEmpty,
+                      "Unexpected errors: ${compiler.errors}");
+      }
+    }).catchError((error) {
+      if (expectedInternalError != null) {
+        Expect.equals(
+            'Internal Error: $expectedInternalError', error.toString());
+      } else {
+        throw error;
+      }
+    }));
+  }
+
+  test('old', patchText: oldPatch);
+  test('new', patchText: newPatch);
+  test('unknown', expectIsPatched: false,
+       expectedError: 'External method without an implementation.');
+  test('old',
+       defaultPatch: "@patch test(){}",
+       expectedInternalError: "Trying to patch a function more than once.");
 }
 
 testPatchConstructor() {
@@ -871,7 +944,7 @@ void testEffectiveTarget() {
   String patch = """
     @patch class B {
       B.patchTarget() : super();
-      factory B.reflectBack() : B.originTarget;
+      factory B.reflectBack() = B.originTarget;
     }
     """;
 
@@ -924,6 +997,8 @@ main() {
   testGhostMember();
   testInjectFunction();
   testPatchSignatureCheck();
+
+  testPatchVersioned();
 
   testExternalWithoutImplementationTopLevel();
   testExternalWithoutImplementationMember();

@@ -283,7 +283,7 @@ abstract class ContextManager {
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
   void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info) {
-    if (info.excludesResource(folder)) {
+    if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
       return;
     }
     List<Resource> children = folder.getChildren();
@@ -311,26 +311,28 @@ abstract class ContextManager {
 
   /**
    * Compute the appropriate package URI resolver for [folder], and store
-   * dependency information in [info].
+   * dependency information in [info]. Return `null` if no package map can
+   * be computed.
    */
   UriResolver _computePackageUriResolver(Folder folder, _ContextInfo info) {
-    UriResolver packageUriResolver;
     if (info.packageRoot != null) {
       info.packageMapDependencies = new Set<String>();
-      packageUriResolver =
-          new PackageUriResolver([new JavaFile(info.packageRoot)]);
+      return new PackageUriResolver([new JavaFile(info.packageRoot)]);
     } else {
       beginComputePackageMap();
       PackageMapInfo packageMapInfo =
           _packageMapProvider.computePackageMap(folder);
       endComputePackageMap();
       info.packageMapDependencies = packageMapInfo.dependencies;
-      packageUriResolver =
-          new PackageMapUriResolver(resourceProvider, packageMapInfo.packageMap);
+      if (packageMapInfo.packageMap == null) {
+        return null;
+      }
+      return new PackageMapUriResolver(
+          resourceProvider,
+          packageMapInfo.packageMap);
       // TODO(paulberry): if any of the dependencies is outside of [folder],
       // we'll need to watch their parent folders as well.
     }
-    return packageUriResolver;
   }
 
   /**
@@ -660,7 +662,7 @@ class _ContextInfo {
   }
 
   /**
-   * Returns `true` if [resource] is excldued, as it is in one of the children.
+   * Returns `true` if [resource] is excluded, as it is in one of the children.
    */
   bool excludesResource(Resource resource) {
     return excludes(resource.path);

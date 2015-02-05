@@ -470,7 +470,7 @@ const Object& Value::BoundConstant() const {
 }
 
 
-GraphEntryInstr::GraphEntryInstr(const ParsedFunction* parsed_function,
+GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
     : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
@@ -1940,7 +1940,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (FLAG_enable_type_checks || HasUses()) ? this : NULL;
+  return (Isolate::Current()->TypeChecksEnabled() || HasUses()) ? this : NULL;
 }
 
 
@@ -3002,7 +3002,7 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 Environment* Environment::From(Isolate* isolate,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
-                               const ParsedFunction* parsed_function) {
+                               const ParsedFunction& parsed_function) {
   Environment* env =
       new(isolate) Environment(definitions.length(),
                                fixed_parameter_count,
@@ -3261,7 +3261,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   //   v8 <- StringInterpolate(v2)
 
   // Don't compile-time fold when optimizing the interpolation function itself.
-  if (flow_graph->parsed_function()->function().raw() == CallFunction().raw()) {
+  if (flow_graph->function().raw() == CallFunction().raw()) {
     return this;
   }
 

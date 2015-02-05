@@ -36,7 +36,7 @@ class TypeVariableHandler {
 
   ClassElement get typeVariableClass => backend.typeVariableClass;
   CodeEmitterTask get task => backend.emitter;
-  MetadataEmitter get emitter => task.oldEmitter.metadataEmitter;
+  MetadataCollector get metadataCollector => task.metadataCollector;
   Compiler get compiler => backend.compiler;
 
   void registerClassWithTypeVariables(ClassElement cls) {
@@ -78,7 +78,7 @@ class TypeVariableHandler {
               new DartString.literal(currentTypeVariable.name)));
       ConstantExpression bound = new PrimitiveConstantExpression(
           backend.constantSystem.createInt(
-              emitter.reifyType(typeVariableElement.bound)));
+              metadataCollector.reifyType(typeVariableElement.bound)));
       ConstantExpression type = backend.constants.createTypeConstant(cls);
       List<AstConstant> arguments =
           [wrapConstant(type), wrapConstant(name), wrapConstant(bound)];
@@ -129,7 +129,7 @@ class TypeVariableHandler {
   }
 
   /**
-   * Adds [c] to [emitter.globalMetadata] and returns the index pointing to
+   * Adds [c] to [emitter.metadataCollector] and returns the index pointing to
    * the entry.
    *
    * If the corresponding type variable has already been encountered an
@@ -142,16 +142,16 @@ class TypeVariableHandler {
     int index;
     if (typeVariableConstants.containsKey(variable)) {
       index = typeVariableConstants[variable];
-      emitter.globalMetadata[index] = name;
+      metadataCollector.globalMetadata[index] = name;
     } else {
-      index = emitter.addGlobalMetadata(name);
+      index = metadataCollector.addGlobalMetadata(name);
       typeVariableConstants[variable] = index;
     }
     return index;
   }
 
   /**
-   * Returns the index pointing to the constant in [emitter.globalMetadata]
+   * Returns the index pointing to the constant in [emitter.metadataCollector]
    * representing this type variable.
    *
    * If the constant has not yet been constructed, an entry is  allocated in
@@ -166,8 +166,9 @@ class TypeVariableHandler {
     }
 
     // TODO(15613): Remove quotes.
-    emitter.globalMetadata.add('"Placeholder for ${variable}"');
-    return typeVariableConstants[variable] = emitter.globalMetadata.length - 1;
+    metadataCollector.globalMetadata.add('"Placeholder for ${variable}"');
+    return typeVariableConstants[variable] =
+        metadataCollector.globalMetadata.length - 1;
   }
 
   List<int> typeVariablesOf(ClassElement classElement) {

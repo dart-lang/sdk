@@ -170,12 +170,24 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
                                   Element target,
                                   List<js.Expression> arguments) {
     registry.registerStaticInvocation(target.declaration);
-    js.Expression elementAccess = glue.staticFunctionAccess(target);
-    List<js.Expression> compiledArguments =
-        selector.makeArgumentsList(target.implementation,
-                                   arguments,
-                                   compileConstant);
-    return new js.Call(elementAccess, compiledArguments);
+    if (target == glue.getInterceptorMethod) {
+      // This generates a call to the specialized interceptor function, which
+      // does not have a specialized element yet, but is emitted as a stub from
+      // the emitter in [InterceptorStubGenerator].
+      // TODO(karlklose): Either change [InvokeStatic] to take an [Entity]
+      //   instead of an [Element] and model the getInterceptor functions as
+      //   [Entity]s or add a specialized Tree-IR node for interceptor calls.
+      registry.registerUseInterceptor();
+      js.VariableUse interceptorLibrary = glue.getInterceptorLibrary();
+      return js.propertyCall(interceptorLibrary, selector.name, arguments);
+    } else {
+      js.Expression elementAccess = glue.staticFunctionAccess(target);
+      List<js.Expression> compiledArguments =
+          selector.makeArgumentsList(target.implementation,
+                                     arguments,
+                                     compileConstant);
+      return new js.Call(elementAccess, compiledArguments);
+    }
   }
 
   @override
@@ -189,10 +201,19 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
     Selector selector = node.selector;
-    // TODO(sigurdm): We should find a better place to register the call.
-    Selector call = new Selector.callClosureFrom(selector);
-    registry.registerDynamicInvocation(call);
-    registry.registerDynamicInvocation(selector);
+    if (selector.isGetter) {
+      registry.registerDynamicGetter(selector);
+    } else if (selector.isSetter) {
+      registry.registerDynamicSetter(selector);
+    } else {
+      assert(invariant(CURRENT_ELEMENT_SPANNABLE,
+          selector.isCall || selector.isOperator || selector.isIndex,
+          message: 'unexpected kind ${selector.kind}'));
+      // TODO(sigurdm): We should find a better place to register the call.
+      Selector call = new Selector.callClosureFrom(selector);
+      registry.registerDynamicInvocation(call);
+      registry.registerDynamicInvocation(selector);
+    }
   }
 
   @override

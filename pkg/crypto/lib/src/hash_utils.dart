@@ -103,8 +103,8 @@ abstract class _HashBase implements Hash {
   }
 
   // Convert a 32-bit word to four bytes.
-  Uint32List _wordToBytes(int word) {
-    Uint32List bytes = new Uint32List(_BYTES_PER_WORD);
+  List<int> _wordToBytes(int word) {
+    List bytes = new List<int>(_BYTES_PER_WORD);
     bytes[0] = (word >> (_bigEndianWords ? 24 : 0)) & _MASK_8;
     bytes[1] = (word >> (_bigEndianWords ? 16 : 8)) & _MASK_8;
     bytes[2] = (word >> (_bigEndianWords ? 8 : 16)) & _MASK_8;

@@ -90,10 +90,18 @@ class AnalysisDomainHandler implements RequestHandler {
 
   /// Implement the `analysis.getLibraryDependencies` request.
   Response getLibraryDependencies(Request request) {
-    Set<String> libraries = new LibraryDependencyCollector(
-        server.getAnalysisContexts()).collectLibraryDependencies();
-    return new AnalysisGetLibraryDependenciesResult(
-        libraries.toList(growable: false)).toResponse(request.id);
+    server.onAnalysisComplete.then((_) {
+      LibraryDependencyCollector collector =
+          new LibraryDependencyCollector(server.getAnalysisContexts());
+      Set<String> libraries = collector.collectLibraryDependencies();
+      Map<String, Map<String, List<String>>> packageMap =
+          collector.calculatePackageMap(server.folderMap);
+      server.sendResponse(new AnalysisGetLibraryDependenciesResult(
+          libraries.toList(growable: false),
+          packageMap).toResponse(request.id));
+    });
+    // delay response
+    return Response.DELAYED_RESPONSE;
   }
 
   @override

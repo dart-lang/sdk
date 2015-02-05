@@ -121,7 +121,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
   // Create and generate all preset blocks.
   entry_block_ =
       new(isolate) GraphEntryInstr(
-        parsed_function_,
+        *parsed_function_,
         new(isolate) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
         Isolate::kNoDeoptId);
   start_block_ =

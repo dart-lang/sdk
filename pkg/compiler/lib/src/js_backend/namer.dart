@@ -289,6 +289,8 @@ class Namer implements ClosureNamer {
 
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
+  String get noSuchMethodName => publicInstanceMethodNameByArity(
+      Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
   /**
    * Some closures must contain their name. The name is stored in
    * [STATIC_CLOSURE_NAME_NAME].
@@ -865,7 +867,7 @@ class Namer implements ClosureNamer {
   }
 
   String getStaticClosureName(Element element) {
-    assert(Elements.isStaticOrTopLevelFunction(element));
+    assert(invariant(element, Elements.isStaticOrTopLevelFunction(element)));
     return getMappedGlobalName("${getNameX(element)}\$closure");
   }
 

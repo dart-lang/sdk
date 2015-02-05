@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../mocks.dart';
 import '../reflective_tests.dart';
 
 
@@ -1029,7 +1030,7 @@ import 'bin/lib.dart';
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
-      [bool validateOnly = false]) {
+      {String id: '0', bool validateOnly: false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(
         RefactoringKind.RENAME,
@@ -1037,8 +1038,27 @@ class RenameTest extends _AbstractGetRefactoring_Test {
         findOffset(search),
         0,
         validateOnly,
-        options: options).toRequest('0');
+        options: options).toRequest(id);
     return serverChannel.sendRequest(request);
+  }
+
+  test_cancelPendingRequest() async {
+    addTestFile('''
+main() {
+  int test = 0;
+  print(test);
+}
+''');
+    // send the "1" request, but don't wait for it
+    Future<Response> futureA = sendRenameRequest('test =', 'nameA', id: '1');
+    // send the "2" request and wait for it
+    Response responseB = await sendRenameRequest('test =', 'nameB', id: '2');
+    // wait for the (delayed) "1" response
+    Response responseA = await futureA;
+    // "1" was cancelled
+    // "2" is successful
+    expect(responseA, isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
+    expect(responseB, isResponseSuccess('2'));
   }
 
   test_class() {
@@ -1094,7 +1114,7 @@ main() {
 }
 ''');
     return getRefactoringResult(() {
-      return sendRenameRequest('Test {}', 'NewName', true);
+      return sendRenameRequest('Test {}', 'NewName', validateOnly: true);
     }).then((result) {
       RenameFeedback feedback = result.feedback;
       assertResultProblemsOK(result);
@@ -1523,7 +1543,7 @@ main() {
 }
 ''');
     return getRefactoringResult(() {
-      return sendRenameRequest('test = 0', 'newName', false);
+      return sendRenameRequest('test = 0', 'newName');
     }).then((result) {
       List<RefactoringProblem> problems = result.finalProblems;
       expect(problems, hasLength(1));
@@ -1542,7 +1562,7 @@ main() {
 ''');
     // send the first request
     return getRefactoringResult(() {
-      return sendRenameRequest('initialName =', 'newName', true);
+      return sendRenameRequest('initialName =', 'newName', validateOnly: true);
     }).then((result) {
       RenameFeedback feedback = result.feedback;
       expect(feedback.oldName, 'initialName');
@@ -1556,7 +1576,7 @@ main() {
       // send the second request, with the same kind, file and offset
       return waitForTasksFinished().then((_) {
         return getRefactoringResult(() {
-          return sendRenameRequest('otherName =', 'newName', true);
+          return sendRenameRequest('otherName =', 'newName', validateOnly: true);
         }).then((result) {
           RenameFeedback feedback = result.feedback;
           // the refactoring was reset, so we don't get a stale result

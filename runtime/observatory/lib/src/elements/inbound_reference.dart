@@ -23,7 +23,7 @@ class InboundReferenceElement extends ObservatoryElement {
   // I.e., inbound references to 'source' for recursive pointer chasing.
   @observable ObservableList inboundReferences;
   Future<ServiceObject> fetchInboundReferences(arg) {
-    return source.isolate.get(source.id + "/inbound_references?limit=$arg")
+    return source.isolate.getInboundReferences(source, arg)
         .then((ServiceMap response) {
           inboundReferences = new ObservableList.from(response['references']);
         });

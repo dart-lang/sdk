@@ -6,6 +6,7 @@ library analysis.server;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math' show max;
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -66,7 +67,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '0.0.1';
+  static final String VERSION = '1.0.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -167,6 +168,24 @@ class AnalysisServer {
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
+   * Performance information before initial analysis is complete.
+   */
+  ServerPerformance performanceDuringStartup = new ServerPerformance();
+
+  /**
+   * Performance information after initial analysis is complete
+   * or `null` if the initial analysis is not yet complete
+   */
+  ServerPerformance performanceAfterStartup;
+
+  /**
+   * The class into which performance information is currently being recorded.
+   * During startup, this will be the same as [performanceDuringStartup]
+   * and after startup is complete, this switches to [performanceAfterStartup].
+   */
+  ServerPerformance _performance;
+
+  /**
    * The option possibly set from the server initialization which disables error notifications.
    */
   bool _noErrorNotification;
@@ -225,6 +244,7 @@ class AnalysisServer {
       PackageMapProvider packageMapProvider, this.index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
       this.instrumentationService, {this.rethrowExceptions: true}) {
+    _performance = performanceDuringStartup;
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue();
     contextDirectoryManager =
@@ -241,6 +261,12 @@ class AnalysisServer {
     _onPriorityChangeController =
         new StreamController<PriorityChangeEvent>.broadcast();
     running = true;
+    onAnalysisStarted.first.then((_) {
+      onAnalysisComplete.then((_) {
+        performanceAfterStartup = new ServerPerformance();
+        _performance = performanceAfterStartup;
+      });
+    });
     Notification notification = new ServerConnectedParams().toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
@@ -319,8 +345,11 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [AnalysisContext] that is used to analyze the given [path].
-   * Return `null` if there is no such context.
+   * Return the preferred [AnalysisContext] for analyzing the given [path].
+   * This will be the context that explicitly contains the path, if any such
+   * context exists, otherwise it will be the first analysis context that
+   * implicitly analyzes it.  Return `null` if no context is analyzing the
+   * path.
    */
   AnalysisContext getAnalysisContext(String path) {
     // try to find a containing context
@@ -334,8 +363,8 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [AnalysisContext] that is used to analyze the given [source].
-   * Return `null` if there is no such context.
+   * Return any [AnalysisContext] that is analyzing the given [source], either
+   * explicitly or implicitly.  Return `null` if there is no such context.
    */
   AnalysisContext getAnalysisContextForSource(Source source) {
     for (AnalysisContext context in folderMap.values) {
@@ -526,6 +555,7 @@ class AnalysisServer {
    * Handle a [request] that was read from the communication channel.
    */
   void handleRequest(Request request) {
+    _performance.logRequest(request);
     runZoned(() {
       int count = handlers.length;
       for (int i = 0; i < count; i++) {
@@ -833,20 +863,26 @@ class AnalysisServer {
    * Set the priority files to the given [files].
    */
   void setPriorityFiles(String requestId, List<String> files) {
+    // Note: when a file is a priority file, that information needs to be
+    // propagated to all contexts that analyze the file, so that all contexts
+    // will be able to do incremental resolution of the file.  See
+    // dartbug.com/22209.
     Map<AnalysisContext, List<Source>> sourceMap =
         new HashMap<AnalysisContext, List<Source>>();
     List<String> unanalyzed = new List<String>();
     files.forEach((file) {
-      AnalysisContext analysisContext = getAnalysisContext(file);
-      if (analysisContext == null) {
-        unanalyzed.add(file);
-      } else {
-        List<Source> sourceList = sourceMap[analysisContext];
-        if (sourceList == null) {
-          sourceList = <Source>[];
-          sourceMap[analysisContext] = sourceList;
+      AnalysisContext preferredContext = getAnalysisContext(file);
+      Source source = getSource(file);
+      bool contextFound = false;
+      for (AnalysisContext context in folderMap.values) {
+        if (context == preferredContext ||
+            context.getKindOf(source) != SourceKind.UNKNOWN) {
+          sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
+          contextFound = true;
         }
-        sourceList.add(getSource(file));
+      }
+      if (!contextFound) {
+        unanalyzed.add(file);
       }
     });
     if (unanalyzed.isNotEmpty) {
@@ -861,6 +897,9 @@ class AnalysisServer {
         sourceList = Source.EMPTY_ARRAY;
       }
       context.analysisPriorityOrder = sourceList;
+      // Schedule the context for analysis so that it has the opportunity to
+      // cache the AST's for the priority sources as soon as possible.
+      schedulePerformAnalysisOperation(context);
     });
     operationQueue.reschedule();
     Source firstSource = files.length > 0 ? getSource(files[0]) : null;
@@ -1134,8 +1173,61 @@ class ServerContextManager extends ContextManager {
   SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
     List<UriResolver> resolvers = <UriResolver>[
         new DartUriResolver(analysisServer.defaultSdk),
-        new ResourceUriResolver(resourceProvider),
-        packageUriResolver];
+        new ResourceUriResolver(resourceProvider)];
+    if (packageUriResolver != null) {
+      resolvers.add(packageUriResolver);
+    }
     return new SourceFactory(resolvers);
+  }
+}
+
+
+/**
+ * A class used by [AnalysisServer] to record performance information
+ * such as request latency.
+ */
+class ServerPerformance {
+
+  /**
+   * The creation time and the time when performance information
+   * started to be recorded here.
+   */
+  int startTime = new DateTime.now().millisecondsSinceEpoch;
+
+  /**
+   * The number of requests.
+   */
+  int requestCount = 0;
+
+  /**
+   * The total latency (milliseconds) for all recorded requests.
+   */
+  int requestLatency = 0;
+
+  /**
+   * The maximum latency (milliseconds) for all recorded requests.
+   */
+  int maxLatency = 0;
+
+  /**
+   * The number of requests with latency > 150 milliseconds.
+   */
+  int slowRequestCount = 0;
+
+  /**
+   * Log performation information about the given request.
+   */
+  void logRequest(Request request) {
+    ++requestCount;
+    if (request.clientRequestTime != null) {
+      int latency =
+          new DateTime.now().millisecondsSinceEpoch -
+          request.clientRequestTime;
+      requestLatency += latency;
+      maxLatency = max(maxLatency, latency);
+      if (latency > 150) {
+        ++slowRequestCount;
+      }
+    }
   }
 }

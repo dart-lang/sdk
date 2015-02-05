@@ -7,6 +7,7 @@ library analysis_server.src.status.ast_writer;
 import 'dart:convert';
 
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * A visitor that will produce an HTML representation of an AST structure.
@@ -21,6 +22,12 @@ class AstWriter extends UnifyingAstVisitor {
    * The current level of indentation.
    */
   int indentLevel = 0;
+
+  /**
+   * A list containing the exceptions that were caught while attempting to write
+   * out an AST structure.
+   */
+  List<CaughtException> exceptions = <CaughtException>[];
 
   /**
    * Initialize a newly created element writer to write the HTML representation
@@ -174,9 +181,21 @@ class AstWriter extends UnifyingAstVisitor {
    */
   void _writeProperty(String name, Object value) {
     if (value != null) {
+      String valueString = null;
+      try {
+        valueString = value.toString();
+      } catch (exception, stackTrace) {
+        exceptions.add(new CaughtException(exception, stackTrace));
+      }
       _indent(2);
       buffer.write('$name = ');
-      buffer.write(HTML_ESCAPE.convert(value.toString()));
+      if (valueString == null) {
+        buffer.write('<span style="color: #FF0000">');
+        buffer.write(HTML_ESCAPE.convert(value.runtimeType.toString()));
+        buffer.write('</span>');
+      } else {
+        buffer.write(HTML_ESCAPE.convert(valueString));
+      }
       buffer.write('<br>');
     }
   }

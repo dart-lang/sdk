@@ -11,6 +11,9 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
+[ $compiler != dartanalyzer && $compiler != dart2analyzer ]
+docgen/test/inherited_comments_test: Fail # issue 22233
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
@@ -29,6 +32,9 @@ analyzer/test/generated/element_test: Skip  # Times out
 analyzer/test/generated/parser_test: Skip  # Times out
 docgen/test/*: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
+
+[ $runtime == vm && $system == windows]
+analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 docgen/test/*: Skip # Too slow
@@ -49,7 +55,7 @@ analyzer/test/generated/engine_test: Skip # Slow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 
-analyzer/test/enum_test: Fail # Issue 21323
+analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
 
 analysis_server/test/*: Skip # Issue 22161
 analysis_server/test/search/element_references_test: Pass, Slow
@@ -175,6 +181,19 @@ docgen/test/*: Skip  # Uses dart:io
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
+
+[ $compiler == dartanalyzer ]
+analysis_server/test/edit/sort_members_test: StaticWarning # Issue 22252
+analysis_server/test/edit/assists_test: StaticWarning # Issue 22252
+analysis_server/test/edit/format_test: StaticWarning # Issue 22252
+analysis_server/test/edit/refactoring_test: StaticWarning # Issue 22252
+analysis_server/test/edit/fixes_test: StaticWarning # Issue 22252
+analysis_server/test/socket_server_test: StaticWarning # Issue 22252
+analysis_server/test/search/type_hierarchy_test: StaticWarning # Issue 22252
+analysis_server/test/search/top_level_declarations_test: StaticWarning # Issue 22252
+analysis_server/test/search/member_references_test: StaticWarning # Issue 22252
+analysis_server/test/search/member_declarations_test: StaticWarning # Issue 22252
+analysis_server/test/search/element_references_test: StaticWarning # Issue 22252
 
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.

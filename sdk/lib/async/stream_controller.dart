@@ -142,10 +142,15 @@ abstract class StreamController<T> implements StreamSink<T> {
   StreamSink<T> get sink;
 
   /**
-   * Whether the stream is closed for adding more events.
+   * Whether the stream controller is closed for adding more events.
    *
-   * If true, the "done" event might not have fired yet, but it has been
-   * scheduled, and it is too late to add more events.
+   * The controller becomes closed by calling the [close] method.
+   * New events cannot be added, by calling [add] or [addError],
+   * to a closed controller.
+   *
+   * If the controller is closed,
+   * the "done" event might not have been delivered yet,
+   * but it has been scheduled, and it is too late to add more events.
    */
   bool get isClosed;
 
@@ -157,8 +162,8 @@ abstract class StreamController<T> implements StreamSink<T> {
    * controller is considered paused as well.
    *
    * A broadcast stream controller is never considered paused. It always
-   * forwards its events to all uncanceled listeners, if any, and let them
-   * handle their own pausing.
+   * forwards its events to all uncanceled subscriptions, if any,
+   * and let the subscriptions handle their own pausing and buffering.
    */
   bool get isPaused;
 

@@ -251,6 +251,9 @@ abstract class Backend {
   /// Backend callback methods for the resolution phase.
   ResolutionCallbacks get resolutionCallbacks;
 
+  // TODO(johnniwinther): Move this to the JavaScriptBackend.
+  String get patchVersion => null;
+
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
   Iterable<ClassElement> classesRequiredForReflection = const [];
@@ -740,8 +743,8 @@ abstract class Compiler implements DiagnosticListener {
   /// `true` if async/await features are supported.
   final bool enableAsyncAwait;
 
-  /// `true` if enum declarations are supported.
-  final bool enableEnums;
+  /// `true` if the compiler uses the [JavaScriptBackend].
+  final bool emitJavaScript;
 
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
@@ -800,8 +803,8 @@ abstract class Compiler implements DiagnosticListener {
   ConstantValue proxyConstant;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  /// The constant for the [patch] variable defined in dart:_js_helper.
-  ConstantValue patchConstant;
+  /// The class for patch annotation defined in dart:_js_helper.
+  ClassElement patchAnnotationClass;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   ClassElement nativeAnnotationClass;
@@ -922,6 +925,7 @@ abstract class Compiler implements DiagnosticListener {
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
   static const String CREATE_INVOCATION_MIRROR =
       'createInvocationMirror';
+  static const String FROM_ENVIRONMENT = 'fromEnvironment';
 
   static const String RUNTIME_TYPE = 'runtimeType';
 
@@ -938,8 +942,6 @@ abstract class Compiler implements DiagnosticListener {
       Compiler.NO_SUCH_METHOD, null, Compiler.NO_SUCH_METHOD_ARG_COUNT);
   final Selector symbolValidatedConstructorSelector = new Selector.call(
       'validated', null, 1);
-  final Selector fromEnvironmentSelector = new Selector.callConstructor(
-      'fromEnvironment', null, 2);
 
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
@@ -1005,13 +1007,14 @@ abstract class Compiler implements DiagnosticListener {
             this.suppressWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
-            this.enableAsyncAwait: false,
-            this.enableEnums: false,
+            bool enableAsyncAwait: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
-      : this.disableTypeInferenceFlag =
+      : this.emitJavaScript = emitJavaScript,
+        this.enableAsyncAwait = enableAsyncAwait || !emitJavaScript,
+        this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,
         this.analyzeOnly =
             analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,
@@ -1245,6 +1248,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (uri == DART_NATIVE_TYPED_DATA) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
     } else if (uri == js_backend.JavaScriptBackend.DART_JS_HELPER) {
+      patchAnnotationClass = findRequiredElement(library, '_Patch');
       nativeAnnotationClass = findRequiredElement(library, 'Native');
     }
     return backend.onLibraryScanned(library, loader);
@@ -1327,14 +1331,6 @@ abstract class Compiler implements DiagnosticListener {
           resolver.constantCompiler.compileConstant(
               coreLibrary.find('proxy')).value;
 
-      // TODO(johnniwinther): Move this to the JavaScript backend.
-      LibraryElement jsHelperLibrary = loadedLibraries.getLibrary(
-              js_backend.JavaScriptBackend.DART_JS_HELPER);
-      if (jsHelperLibrary != null) {
-        patchConstant = resolver.constantCompiler.compileConstant(
-            jsHelperLibrary.find('patch')).value;
-      }
-
       if (preserveComments) {
         return libraryLoader.loadLibrary(DART_MIRRORS)
             .then((LibraryElement libraryElement) {
@@ -1354,6 +1350,10 @@ abstract class Compiler implements DiagnosticListener {
     return element;
   }
 
+  // TODO(johnniwinther): Move this to [PatchParser] when it is moved to the
+  // [JavaScriptBackend]. Currently needed for testing.
+  String get patchVersion => backend.patchVersion;
+
   void onClassResolved(ClassElement cls) {
     if (mirrorSystemClass == cls) {
       mirrorSystemGetNameFunction =
@@ -1362,16 +1362,17 @@ abstract class Compiler implements DiagnosticListener {
       symbolConstructor = cls.constructors.head;
     } else if (symbolImplementationClass == cls) {
       symbolValidatedConstructor = symbolImplementationClass.lookupConstructor(
-          symbolValidatedConstructorSelector);
+          symbolValidatedConstructorSelector.name);
     } else if (mirrorsUsedClass == cls) {
       mirrorsUsedConstructor = cls.constructors.head;
     } else if (intClass == cls) {
-      intEnvironment = intClass.lookupConstructor(fromEnvironmentSelector);
+      intEnvironment = intClass.lookupConstructor(FROM_ENVIRONMENT);
     } else if (stringClass == cls) {
       stringEnvironment =
-          stringClass.lookupConstructor(fromEnvironmentSelector);
+          stringClass.lookupConstructor(FROM_ENVIRONMENT);
     } else if (boolClass == cls) {
-      boolEnvironment = boolClass.lookupConstructor(fromEnvironmentSelector);
+      boolEnvironment =
+          boolClass.lookupConstructor(FROM_ENVIRONMENT);
     }
   }
 
@@ -1409,19 +1410,13 @@ abstract class Compiler implements DiagnosticListener {
   Element _unnamedListConstructor;
   Element get unnamedListConstructor {
     if (_unnamedListConstructor != null) return _unnamedListConstructor;
-    Selector callConstructor = new Selector.callConstructor(
-        "", listClass.library);
-    return _unnamedListConstructor =
-        listClass.lookupConstructor(callConstructor);
+    return _unnamedListConstructor = listClass.lookupDefaultConstructor();
   }
 
   Element _filledListConstructor;
   Element get filledListConstructor {
     if (_filledListConstructor != null) return _filledListConstructor;
-    Selector callConstructor = new Selector.callConstructor(
-        "filled", listClass.library);
-    return _filledListConstructor =
-        listClass.lookupConstructor(callConstructor);
+    return _filledListConstructor = listClass.lookupConstructor("filled");
   }
 
   /**
@@ -2123,7 +2118,7 @@ class CompilerTask {
       : this.compiler = compiler,
         watch = (compiler.verbose) ? new Stopwatch() : null;
 
-  String get name => 'Unknown task';
+  String get name => "Unknown task '${this.runtimeType}'";
   int get timing => (watch != null) ? watch.elapsedMilliseconds : 0;
 
   int get timingMicroseconds => (watch != null) ? watch.elapsedMicroseconds : 0;

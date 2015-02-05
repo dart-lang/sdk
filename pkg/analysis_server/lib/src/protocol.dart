@@ -810,6 +810,17 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent the
+   * REFACTORING_REQUEST_CANCELLED error condition.
+   */
+  Response.refactoringRequestCancelled(Request request)
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
+              'The `edit.getRefactoring` request was cancelled.'));
+
+  /**
+   * Initialize a newly created instance to represent the
    * SORT_MEMBERS_PARSE_ERRORS error condition.
    */
   Response.sortMembersParseErrors(Request request, int numErrors)

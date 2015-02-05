@@ -48,9 +48,9 @@ abstract class ListRangeIterator implements Iterator<int> {
   bool moveNext();
   int get current;
   int get position;
-  void backup([by]);
+  void backup([int by]);
   int get remaining;
-  void skip([count]);
+  void skip([int count]);
 }
 
 class _ListRangeIteratorImpl implements ListRangeIterator {

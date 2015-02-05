@@ -500,10 +500,6 @@ class ResolverTask extends CompilerTask {
         compiler.reportError(asyncModifier,
             MessageKind.EXPERIMENTAL_ASYNC_AWAIT,
             {'modifier': element.asyncMarker});
-      } else if (!compiler.analyzeOnly) {
-        compiler.reportError(asyncModifier,
-            MessageKind.EXPERIMENTAL_ASYNC_AWAIT,
-            {'modifier': element.asyncMarker});
       }
 
       if (asyncModifier.isAsynchronous) {
@@ -520,11 +516,19 @@ class ResolverTask extends CompilerTask {
         compiler.reportError(asyncModifier,
             MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
             {'modifier': element.asyncMarker});
-      } else if (functionExpression.body.asReturn() != null &&
+      } else {
+        if (element.isSetter) {
+          compiler.reportError(asyncModifier,
+              MessageKind.ASYNC_MODIFIER_ON_SETTER,
+              {'modifier': element.asyncMarker});
+
+        }
+        if (functionExpression.body.asReturn() != null &&
                  element.asyncMarker.isYielding) {
-        compiler.reportError(asyncModifier,
-            MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
-            {'modifier': element.asyncMarker});
+          compiler.reportError(asyncModifier,
+              MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+              {'modifier': element.asyncMarker});
+        }
       }
     }
   }
@@ -1465,7 +1469,7 @@ class InitializerResolver {
     Selector constructorSelector =
         visitor.getRedirectingThisOrSuperConstructorSelector(call);
     FunctionElement calledConstructor =
-        lookupTarget.lookupConstructor(constructorSelector);
+        lookupTarget.lookupConstructor(constructorSelector.name);
 
     final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
@@ -1500,10 +1504,9 @@ class InitializerResolver {
       ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
                                                              isSuperCall,
                                                              functionNode);
-      Selector constructorSelector = new Selector.callDefaultConstructor(
-          visitor.enclosingElement.library);
+      Selector constructorSelector = new Selector.callDefaultConstructor();
       Element calledConstructor = lookupTarget.lookupConstructor(
-          constructorSelector);
+          constructorSelector.name);
 
       final String className = lookupTarget.name;
       final bool isImplicitSuperCall = true;
@@ -2316,8 +2319,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           constructorName,
           enclosingElement.library);
     } else {
-      return new Selector.callDefaultConstructor(
-          enclosingElement.library);
+      return new Selector.callDefaultConstructor();
     }
   }
 
@@ -2333,7 +2335,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Selector selector =
           getRedirectingThisOrSuperConstructorSelector(initializers.head);
       final ClassElement classElement = constructor.enclosingClass;
-      return classElement.lookupConstructor(selector);
+      return classElement.lookupConstructor(selector.name);
     }
     return null;
   }
@@ -4268,10 +4270,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   @override
   DartType visitEnum(Enum node) {
-    if (!compiler.enableEnums) {
-      compiler.reportError(node, MessageKind.EXPERIMENTAL_ENUMS);
-    }
-
     if (element == null) {
       throw compiler.internalError(node, 'element is null');
     }
@@ -4800,9 +4798,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     throw 'not supported';
   }
 
-  failOrReturnErroneousElement(Element enclosing, Node diagnosticNode,
-                               String targetName, MessageKind kind,
-                               Map arguments) {
+  failOrReturnErroneousConstructorElement(
+      Element enclosing, Node diagnosticNode,
+      String targetName, MessageKind kind,
+      Map arguments) {
     if (kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
       registry.registerThrowNoSuchMethod();
     } else {
@@ -4813,29 +4812,20 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else {
       compiler.reportWarning(diagnosticNode, kind, arguments);
     }
-    return new ErroneousElementX(kind, arguments, targetName, enclosing);
-  }
-
-  Selector createConstructorSelector(String constructorName) {
-    return constructorName == ''
-        ? new Selector.callDefaultConstructor(
-            resolver.enclosingElement.library)
-        : new Selector.callConstructor(
-            constructorName,
-            resolver.enclosingElement.library);
+    return new ErroneousConstructorElementX(
+        kind, arguments, targetName, enclosing);
   }
 
   FunctionElement resolveConstructor(ClassElement cls,
                                      Node diagnosticNode,
                                      String constructorName) {
     cls.ensureResolved(compiler);
-    Selector selector = createConstructorSelector(constructorName);
-    Element result = cls.lookupConstructor(selector);
+    Element result = cls.lookupConstructor(constructorName);
     if (result == null) {
       String fullConstructorName = Elements.constructorNameForDiagnostics(
               cls.name,
               constructorName);
-      return failOrReturnErroneousElement(
+      return failOrReturnErroneousConstructorElement(
           cls,
           diagnosticNode,
           fullConstructorName,
@@ -4872,7 +4862,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         // The unnamed constructor may not exist, so [e] may become unresolved.
         element = resolveConstructor(cls, diagnosticNode, '');
       } else {
-        element = failOrReturnErroneousElement(
+        element = failOrReturnErroneousConstructorElement(
             element, diagnosticNode, element.name, MessageKind.NOT_A_TYPE,
             {'node': diagnosticNode});
       }
@@ -4922,7 +4912,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       element = prefix.lookupLocalMember(name.source);
       element = Elements.unwrap(element, compiler, node);
       if (element == null) {
-        return failOrReturnErroneousElement(
+        return failOrReturnErroneousConstructorElement(
             resolver.enclosingElement, name,
             name.source,
             MessageKind.CANNOT_RESOLVE,
@@ -4943,9 +4933,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     registry.useElement(node, element);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (element == null) {
-      return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
-                                          MessageKind.CANNOT_RESOLVE,
-                                          {'name': name});
+      return failOrReturnErroneousConstructorElement(
+          resolver.enclosingElement, node, name,
+          MessageKind.CANNOT_RESOLVE,
+          {'name': name});
     } else if (element.isErroneous) {
       return element;
     } else if (element.isTypedef) {

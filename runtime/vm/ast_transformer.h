@@ -41,7 +41,7 @@ class Thread;
 class AwaitTransformer : public AstNodeVisitor {
  public:
   AwaitTransformer(SequenceNode* preamble,
-                   ParsedFunction* const parsed_function,
+                   const ParsedFunction& parsed_function,
                    LocalScope* function_top);
 
 #define DECLARE_VISIT(BaseName)                                                \
@@ -69,7 +69,7 @@ class AwaitTransformer : public AstNodeVisitor {
   SequenceNode* preamble_;
   int32_t temp_cnt_;
   AstNode* result_;
-  ParsedFunction* const parsed_function_;
+  const ParsedFunction& parsed_function_;
   LocalScope* function_top_;
 
   Thread* thread_;

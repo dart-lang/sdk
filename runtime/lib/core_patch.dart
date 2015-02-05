@@ -5,10 +5,10 @@
 import "dart:math";
 import "dart:typed_data";
 
-// We need to pass the exception object as second parameter to the continuation.
-// See vm/ast_transformer.cc for usage.
+// We need to pass the exception and stack trace objects as second and third
+// parameter to the continuation.  See vm/ast_transformer.cc for usage.
 void  _asyncCatchHelper(catchFunction, continuation) {
-  catchFunction((e) => continuation(null, e));
+  catchFunction((e, s) => continuation(null, e, s));
 }
 
 // The members of this class are cloned and added to each class that

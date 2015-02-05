@@ -45,6 +45,19 @@ class CpsElementVisitor extends analyzer.SimpleElementVisitor<ir.Node> {
     VariableDeclaration variableDeclaration = node;
     return visitor.handleFieldDeclaration(element, variableDeclaration);
   }
+
+  @override
+  ir.ExecutableDefinition visitConstructorElement(
+      analyzer.ConstructorElement element) {
+    CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter, element);
+    if (!element.isFactory) {
+      ConstructorDeclaration constructorDeclaration = node;
+      return visitor.handleConstructorDeclaration(
+          element, constructorDeclaration);
+    }
+    // TODO(johnniwinther): Support factory constructors.
+    return null;
+  }
 }
 
 /// Visitor that converts analyzer AST nodes into CPS ir nodes.
@@ -63,6 +76,25 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   analyzer.LibraryElement get currentLibrary => element.library;
 
   ir.Node visit(AstNode node) => node.accept(this);
+
+  ir.ConstructorDefinition handleConstructorDeclaration(
+      analyzer.ConstructorElement constructor, ConstructorDeclaration node) {
+    FunctionBody body = node.body;
+    dart2js.ConstructorElement element = converter.convertElement(constructor);
+    return withBuilder(
+        new DartIrBuilder(DART_CONSTANT_SYSTEM,
+                          element,
+                          // TODO(johnniwinther): Supported closure variables.
+                          new NullCapturedVariableInfo()),
+        () {
+      irBuilder.buildFunctionHeader(
+          constructor.parameters.map(converter.convertElement));
+      // Visit the body directly to avoid processing the signature as
+      // expressions.
+      visit(node.body);
+      return irBuilder.makeConstructorDefinition(const [], const []);
+    });
+  }
 
   ir.FieldDefinition handleFieldDeclaration(
       analyzer.PropertyInducingElement field, VariableDeclaration node) {

@@ -147,6 +147,22 @@ void testSetRangeHelper(typed_data) {
 void testSetRange() {
   testSetRangeHelper(new Uint8List(3));
   testSetRangeHelper(new Uint8ClampedList(3));
+  testSetRangeHelper(new Uint16List(3));
+  testSetRangeHelper(new Int16List(3));
+
+  var list = new Uint8List(4);
+  list.setRange(0, 4, "abcd".codeUnits, 0);
+  Expect.listEquals(list, "abcd".codeUnits);
+  list = new Uint16List(4);
+  list.setRange(0, 4, "abcd".codeUnits, 0);
+  Expect.listEquals(list, "abcd".codeUnits);
+  list.setRange(0, 4, "\xff\u0100\uffff\x00".codeUnits, 0);
+  Expect.listEquals(list, "\xff\u0100\uffff\x00".codeUnits);
+  list = new Int16List(4);
+  list.setRange(0, 4, "abcd".codeUnits, 0);
+  Expect.listEquals(list, "abcd".codeUnits);
+  list.setRange(0, 4, "\xff\u0100\u7fff\x00".codeUnits, 0);
+  Expect.listEquals(list, "\xff\u0100\u7fff\x00".codeUnits);
 }
 
 class C {
@@ -429,6 +445,37 @@ testCreationFromList() {
   }
 }
 
+void testStrings() {
+  test(list) {
+    Uint16List uints = new Uint16List(list.length)..setAll(0, list);
+    String string = new String.fromCharCodes(list);
+    for (int i = 0; i < string.length; i++) {
+      for (int j = i; j < string.length; j++) {
+        int length = j - i;
+        {
+          Uint16List copy = new Uint16List(length);
+          copy.setRange(0, length, string.codeUnits, i);
+          Expect.listEquals(uints.sublist(i, j), copy);
+        }
+        {
+          Uint8List buffer = new Uint8List(length * 2 + 8);
+          Uint16List copy = new Uint16List.view(buffer.buffer, 4, length);
+          copy.setRange(0, length, string.codeUnits, i);
+          Expect.listEquals(uints.sublist(i, j), copy);
+        }
+        {
+          String copy = new String.fromCharCodes(uints, i, j);
+          Expect.equals(string.substring(i, j), copy);
+        }
+      }
+    }
+  }
+  test([]);
+  test([0x00, 0x7f, 0xff]);
+  test([0x00, 0xdfff, 0xffff]);
+  test([0xd800, 0xdc00, 0x20, 0xdbff, 0xdfff]);
+}
+
 main() {
   for (int i = 0; i < 20; i++) {
     testCreateUint8TypedData();
@@ -485,4 +532,6 @@ main() {
   testViewCreation();
   testWhere();
   testCreationFromList();
+  testStrings();
+  testSetRange();
 }

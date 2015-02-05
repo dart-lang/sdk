@@ -16,9 +16,8 @@ class LibraryViewElement extends ObservatoryElement {
 
   LibraryViewElement.created() : super.created();
 
-  Future<ServiceObject> eval(String text) {
-    return library.isolate.get(
-        library.id + "/eval?expr=${Uri.encodeComponent(text)}");
+  Future<ServiceObject> eval(String expression) {
+    return library.isolate.eval(library, expression);
   }
 
   void refresh(var done) {

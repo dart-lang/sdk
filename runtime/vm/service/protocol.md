@@ -148,7 +148,7 @@ those tools that need this level of internal access, such as the
 Observatory.
 
 For example, some responses will have the <code>_vmType</code>
-nnnproperty.  This provides the VM-internal type name of an object, and
+property.  This provides the VM-internal type name of an object, and
 is provided only when this type name differs from the
 <code>type</code> property.
 

@@ -153,7 +153,7 @@ class OpTypeTest {
 
   test_AwaitExpression() {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
-    addTestSource('main(){A a; await ^}');
+    addTestSource('main() async {A a; await ^}');
     assertOpType(returnValue: true, typeNames: true);
   }
 
@@ -471,6 +471,24 @@ class OpTypeTest {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^}}');
     assertOpType(typeNames: true);
+  }
+
+  test_InstanceCreationExpression_keyword() {
+    // InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource('class C {foo(){var f; {var x;} new^ }}');
+    assertOpType(
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true);
+  }
+
+  test_InstanceCreationExpression_keyword2() {
+    // InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource('class C {foo(){var f; {var x;} new^ C();}}');
+    assertOpType(
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true);
   }
 
   test_InterpolationExpression() {

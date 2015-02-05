@@ -66,7 +66,8 @@ class HeapMapElement extends ObservatoryElement {
   static const _MAX_CANVAS_HEIGHT = 6000;
 
   @observable String status;
-  @published ServiceMap fragmentation;
+  @published Isolate isolate;
+  @observable ServiceMap fragmentation;
 
   HeapMapElement.created() : super.created() {
   }
@@ -97,7 +98,11 @@ class HeapMapElement extends ObservatoryElement {
   void _updateClassList(classList, int freeClassId) {
     for (var member in classList['members']) {
       if (member is! Class) {
-        Logger.root.info('$member');
+        // TODO(turnidge): The printing for some of these non-class
+        // members is broken.  Fix this:
+        //
+        // Logger.root.info('$member');
+        Logger.root.info('Ignoring non-class in class list');
         continue;
       }
       var classId = int.parse(member.id.split('/').last);
@@ -156,7 +161,7 @@ class HeapMapElement extends ObservatoryElement {
   void _handleClick(MouseEvent event) {
     var address = _objectAt(event.offset).address.toRadixString(16);
     app.locationManager.go(app.locationManager.makeLink(
-        "${fragmentation.isolate.relativeLink('address/$address')}"));
+        "${isolate.relativeLink('address/$address')}"));
   }
 
   void _updateFragmentationData() {
@@ -211,11 +216,24 @@ class HeapMapElement extends ObservatoryElement {
     });
   }
 
-  void refresh(var done) {
-    if (fragmentation == null) {
+  void isolateChanged(oldValue) {
+    if (isolate == null) {
+      fragmentation = null;
       return;
     }
-    fragmentation.isolate.get('heapmap').then((ServiceMap response) {
+    isolate.invokeRpc('getHeapMap', {}).then((ServiceMap response) {
+      assert(response['type'] == 'HeapMap');
+      fragmentation = response;
+    }).catchError((e, st) {
+      Logger.root.info('$e $st');
+    });
+  }
+
+  void refresh(var done) {
+    if (isolate == null) {
+      return;
+    }
+    isolate.invokeRpc('getHeapMap', {}).then((ServiceMap response) {
       assert(response['type'] == 'HeapMap');
       fragmentation = response;
     }).catchError((e, st) {

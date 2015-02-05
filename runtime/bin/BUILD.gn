@@ -151,9 +151,15 @@ executable("gen_snapshot") {
   sources = [
     "gen_snapshot.cc",
     # Very limited native resolver provided.
+    "builtin_common.cc",
     "builtin_gen_snapshot.cc",
     "builtin.cc",
     "builtin.h",
+    "platform_android.cc",
+    "platform_linux.cc",
+    "platform_macos.cc",
+    "platform_win.cc",
+    "platform.h",
     # Include generated source files.
     "$target_gen_dir/builtin_gen.cc",
     "$target_gen_dir/io_gen.cc",

@@ -67,7 +67,9 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     computeMixinClass;
 
 import 'package:compiler/src/js_emitter/model.dart' show
-    Class;
+    Class,
+    Method;
+
 import 'package:compiler/src/js_emitter/program_builder.dart' show
     ProgramBuilder;
 
@@ -152,13 +154,14 @@ class IncrementalCompilerContext extends _IncrementalCompilerContext {
   }
 
   void _captureState(Compiler compiler) {
-    _emittedClasses = new Set.from(compiler.backend.emitter.neededClasses);
+    JavaScriptBackend backend = compiler.backend;
+    _emittedClasses = new Set.from(backend.emitter.neededClasses);
 
     _directlyInstantiatedClasses =
         new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
 
     List<ConstantValue> constants =
-        compiler.backend.emitter.outputConstantLists[
+        backend.emitter.outputConstantLists[
             compiler.deferredLoadTask.mainOutputUnit];
     if (constants == null) constants = <ConstantValue>[];
     _compiledConstants = new Set<ConstantValue>.identity()..addAll(constants);
@@ -931,17 +934,18 @@ if (this.pendingStubs) {
   }
 
   jsAst.Node computeMethodUpdateJs(Element element) {
-    MemberInfo info = containerBuilder.analyzeMemberMethod(element);
-    if (info == null) {
+    Method member = new ProgramBuilder(compiler, namer, emitter)
+        .buildMethodHackForIncrementalCompilation(element);
+    if (member == null) {
       compiler.internalError(element, '${element.runtimeType}');
     }
     ClassBuilder builder = new ClassBuilder(element, namer);
-    containerBuilder.addMemberMethodFromInfo(info, builder);
+    containerBuilder.addMemberMethod(member, builder);
     jsAst.Node partialDescriptor =
         builder.toObjectInitializer(emitClassDescriptor: false);
 
-    String name = info.name;
-    jsAst.Node function = info.code;
+    String name = member.name;
+    jsAst.Node function = member.code;
     bool isStatic = !element.isInstanceMember;
 
     /// Either a global object (non-instance members) or a prototype (instance
@@ -1475,7 +1479,7 @@ class EmitterHelper extends JsFeatures {
 
   List<String> computeFields(ClassElement classElement) {
     Class cls = new ProgramBuilder(compiler, namer, emitter)
-        .buildClassWithFieldsForTry(classElement);
+        .buildFieldsHackForIncrementalCompilation(classElement);
     // TODO(ahe): Rewrite for new emitter.
     ClassBuilder builder = new ClassBuilder(classElement, namer);
     classEmitter.emitFields(cls, builder);

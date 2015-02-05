@@ -20,13 +20,13 @@ import 'package:compiler/src/cps_ir/optimizers.dart';
 //  }
 
 String DEAD_VAL_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1 (Constant (Int 0)))
       (InvokeContinuation return (v1)))))
 """;
 String DEAD_VAL_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (InvokeContinuation return (v0))))
 """;
@@ -41,7 +41,7 @@ String DEAD_VAL_OUT = """
 //  }
 
 String ITERATIVE_DEAD_VAL1_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1 (Constant (Int 1)))
       (LetCont ((k0 (v2)
@@ -54,17 +54,17 @@ String ITERATIVE_DEAD_VAL1_OUT = ITERATIVE_DEAD_VAL1_IN;
 // Iterative dead-val. IR written by hand.
 
 String ITERATIVE_DEAD_VAL2_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1
         (CreateFunction
-          (FunctionDefinition f (i) return ()
+          (FunctionDefinition f (i) return
             (InvokeContinuation return (v0)))))
       (LetPrim (v2 (Constant (Int 0)))
         (InvokeContinuation return (v2))))))
 """;
 String ITERATIVE_DEAD_VAL2_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (InvokeContinuation return (v0))))
 """;
@@ -73,7 +73,7 @@ String ITERATIVE_DEAD_VAL2_OUT = """
 // IR written by hand.
 
 String DEAD_CONT_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v4 (Constant (Int 0)))
     (LetCont ((k0 (v0)
                 (InvokeConstructor List () return)))
@@ -85,7 +85,7 @@ String DEAD_CONT_IN = """
         (InvokeStatic print (v4) k1)))))
 """;
 String DEAD_CONT_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
                 (LetCont ((k1 (v2)
@@ -98,7 +98,7 @@ String DEAD_CONT_OUT = """
 // Iterative dead-cont. IR written by hand.
 
 String ITERATIVE_DEAD_CONT_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v4 (Constant (Int 0)))
     (LetCont ((k0 (v0)
                 (InvokeConstructor List () return)))
@@ -112,7 +112,7 @@ String ITERATIVE_DEAD_CONT_IN = """
           (InvokeStatic print (v4) k1))))))
 """;
 String ITERATIVE_DEAD_CONT_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
                 (LetCont ((k1 (v2)
@@ -126,7 +126,7 @@ String ITERATIVE_DEAD_CONT_OUT = """
 // IR written by hand.
 
 String BETA_CONT_LIN_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetCont ((k0 (v0)
               (LetCont ((k1 (v1)
                           (LetCont ((k2 (v2)
@@ -138,7 +138,7 @@ String BETA_CONT_LIN_IN = """
       (InvokeContinuation k0 (v4)))))
 """;
 String BETA_CONT_LIN_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
                 (LetCont ((k1 (v2)
@@ -151,7 +151,7 @@ String BETA_CONT_LIN_OUT = """
 // Beta-cont-lin with recursive continuation. IR written by hand.
 
 String RECURSIVE_BETA_CONT_LIN_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetCont ((rec k0 (v0)
               (InvokeContinuation rec k0 (v0))))
     (LetPrim (v1 (Constant (Int 0)))
@@ -162,7 +162,7 @@ String RECURSIVE_BETA_CONT_LIN_OUT = RECURSIVE_BETA_CONT_LIN_IN;
 // Beta-cont-lin used inside body. IR written by hand.
 
 String USED_BETA_CONT_LIN_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
                 (LetCont ((k1 (v2)
@@ -173,12 +173,12 @@ String USED_BETA_CONT_LIN_IN = """
                   (InvokeStatic print (v1) k1))))
       (LetPrim (v5
                  (CreateFunction
-                   (FunctionDefinition f () return ()
+                   (FunctionDefinition f () return
                      (InvokeContinuation return (v1)))))
         (InvokeContinuation k0 (v0))))))
 """;
 String USED_BETA_CONT_LIN_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((k0 (v1)
                 (LetCont ((k1 (v2)
@@ -199,7 +199,7 @@ String USED_BETA_CONT_LIN_OUT = """
 // TODO(kmillikin): To test continuation eta reduction, use eta redexes that are
 // not overlapping beta redexes.
 String ETA_CONT_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont ((rec k0 (v1)
                 (InvokeContinuation return (v0))))
@@ -207,12 +207,12 @@ String ETA_CONT_IN = """
                   (InvokeContinuation k0 (v2))))
         (LetPrim (v3
                    (CreateFunction
-                     (FunctionDefinition f () return ()
+                     (FunctionDefinition f () return
                        (InvokeContinuation k0 (v0)))))
           (InvokeContinuation k1 (v0)))))))
 """;
 String ETA_CONT_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (InvokeContinuation return (v0))))
 """;
@@ -223,7 +223,7 @@ String ETA_CONT_OUT = """
 
 // Parameter v1 is unused in k0.
 String DEAD_PARAMETER_IN = """
-(FunctionDefinition main (x) return ()
+(FunctionDefinition main (x) return
   (LetCont ((k0 (v0 v1 v2)
               (InvokeStatic foo (v0 v2) return)))
     (LetCont ((k1 ()
@@ -239,7 +239,7 @@ String DEAD_PARAMETER_IN = """
       (Branch (IsTrue x) k1 k2))))
 """;
 String DEAD_PARAMETER_OUT = """
-(FunctionDefinition main (x) return ()
+(FunctionDefinition main (x) return
   (LetCont ((k0 (v0 v1)
               (InvokeStatic foo (v0 v1) return)))
     (LetCont ((k1 ()
@@ -257,7 +257,7 @@ String DEAD_PARAMETER_OUT = """
 // Dead parameter reductions can create an eta-cont redex by removing unused
 // continuation parameters and thus creating the eta redex.
 String CREATE_ETA_CONT_IN = """
-(FunctionDefinition main (x) return ()
+(FunctionDefinition main (x) return
   (LetCont ((rec loop (v0)
               (InvokeContinuation rec loop (v0))))
     (LetCont ((created (v1 v2 v3)
@@ -275,7 +275,7 @@ String CREATE_ETA_CONT_IN = """
         (Branch (IsTrue x) then else)))))
 """;
 String CREATE_ETA_CONT_OUT = """
-(FunctionDefinition main (x) return ()
+(FunctionDefinition main (x) return
   (LetCont ((rec k0 (v0)
               (InvokeContinuation rec k0 (v0))))
     (LetCont ((k1 ()

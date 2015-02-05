@@ -1029,6 +1029,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
 
   Future cancel() {
     StreamSubscription subscription = _subscription;
+    if (subscription == null) return null;
     if (_state == _STATE_MOVING) {
       _Future<bool> hasNext = _futureOrPrefetch;
       _clear();

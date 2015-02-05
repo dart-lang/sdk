@@ -3580,6 +3580,37 @@ UNIT_TEST_CASE(CurrentIsolateData) {
 }
 
 
+TEST_CASE(IsolateSetCheckedMode) {
+  const char* kScriptChars =
+      "int bad1() {\n"
+      "  int foo = 'string';\n"
+      "  return foo;\n"
+      "}\n"
+      "\n"
+      "int good1() {\n"
+      "  int five = 5;\n"
+      "  return five;"
+      "}\n";
+  Dart_Handle result;
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  result = Dart_IsolateSetStrictCompilation(true);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, NewString("bad1"), 0, NULL);
+  EXPECT_ERROR(result, "Unhandled exception:\n"
+      "type 'String' is not a subtype of type 'int' of 'foo'");
+
+  result = Dart_Invoke(lib, NewString("good1"), 0, NULL);
+  EXPECT_VALID(result);
+
+  result = Dart_IsolateSetStrictCompilation(false);
+  EXPECT_ERROR(result, "Dart_IsolateSetStrictCompilation expects that the "
+                       "isolate has not yet compiled code.");
+}
+
+
 TEST_CASE(DebugName) {
   Dart_Handle debug_name = Dart_DebugName();
   EXPECT_VALID(debug_name);
@@ -5112,7 +5143,7 @@ TEST_CASE(Invoke) {
                "did not find static method 'Methods.staticMethod'");
 
   // Hidden static method.
-  name = PrivateLibName(lib, "_staticMethod");
+  name = NewString("_staticMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(type, name, 1, args);
@@ -5141,13 +5172,39 @@ TEST_CASE(Invoke) {
                "2 passed, 1 expected.");
 
   // Hidden top-level method.
-  name = PrivateLibName(lib, "_topMethod");
+  name = NewString("_topMethod");
   EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(lib, name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("hidden top !!!", str);
+}
+
+
+TEST_CASE(Invoke_PrivateStatic) {
+  const char* kScriptChars =
+      "class Methods {\n"
+      "  static _staticMethod(arg) => 'hidden static $arg';\n"
+      "}\n"
+      "\n";
+
+  // Shared setup.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle type = Dart_GetType(lib, NewString("Methods"), 0, NULL);
+  Dart_Handle result;
+  EXPECT_VALID(type);
+  Dart_Handle name = NewString("_staticMethod");
+  EXPECT_VALID(name);
+
+  Dart_Handle args[1];
+  args[0] = NewString("!!!");
+  result = Dart_Invoke(type, name, 1, args);
+  EXPECT_VALID(result);
+
+  const char* str = NULL;
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("hidden static !!!", str);
 }
 
 
@@ -7127,8 +7184,11 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   if (Dart_CurrentIsolate() != NULL) {
     Dart_ExitIsolate();
   }
-  Dart_Isolate isolate = TestCase::CreateTestIsolate();
+  Dart_Isolate isolate = TestCase::CreateTestIsolate(script_name);
   ASSERT(isolate != NULL);
+  if (Dart_IsServiceIsolate(isolate)) {
+    return isolate;
+  }
   Dart_EnterScope();
   Dart_Handle url = NewString(TestCase::url());
   Dart_Handle source = NewString(kScriptChars);
@@ -8721,6 +8781,102 @@ TEST_CASE(ExternalStringIndexOf) {
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(6, value);
+}
+
+TEST_CASE(StringFromExternalTypedData) {
+  const char* kScriptChars =
+    "test(external) {\n"
+    "  var str1 = new String.fromCharCodes(external);\n"
+    "  var str2 = new String.fromCharCodes(new List.from(external));\n"
+    "  if (str2 != str1) throw 'FAIL';\n"
+    "  return str1;\n"
+    "}\n"
+    "testView8(external) {\n"
+    "  return test(external.buffer.asUint8List());\n"
+    "}\n"
+    "testView16(external) {\n"
+    "  return test(external.buffer.asUint16List());\n"
+    "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, NULL);
+
+  {
+    uint8_t data[64];
+    for (int i = 0; i < 64; i++) {
+      data[i] = i * 4;
+    }
+    // LATIN-1 in external Uint8List.
+    Dart_Handle external = Dart_NewExternalTypedData(
+        Dart_TypedData_kUint8, data, 64);
+    EXPECT_VALID(external);
+    Dart_Handle dart_args[1];
+    dart_args[0] = external;
+    Dart_Handle result = Dart_Invoke(lib,
+                                     NewString("test"),
+                                     1,
+                                     dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+
+    result = Dart_Invoke(lib,
+                         NewString("testView8"),
+                         1,
+                         dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+  }
+
+  {
+    uint16_t data[64];
+    for (int i = 0; i < 64; i++) {
+      data[i] = i * 4;
+    }
+    // LATIN-1 in external Uint16List.
+    Dart_Handle external = Dart_NewExternalTypedData(
+        Dart_TypedData_kUint16, data, 64);
+    EXPECT_VALID(external);
+    Dart_Handle dart_args[1];
+    dart_args[0] = external;
+    Dart_Handle result = Dart_Invoke(lib,
+                                     NewString("test"),
+                                     1,
+                                     dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+
+    result = Dart_Invoke(lib,
+                         NewString("testView16"),
+                         1,
+                         dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+  }
+
+  {
+    uint16_t data[64];
+    for (int i = 0; i < 64; i++) {
+      data[i] = 0x2000 + i * 4;
+    }
+    // Non-LATIN-1 in external Uint16List.
+    Dart_Handle external = Dart_NewExternalTypedData(
+        Dart_TypedData_kUint16, data, 64);
+    EXPECT_VALID(external);
+    Dart_Handle dart_args[1];
+    dart_args[0] = external;
+    Dart_Handle result = Dart_Invoke(lib,
+                                     NewString("test"),
+                                     1,
+                                     dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+
+    result = Dart_Invoke(lib,
+                         NewString("testView16"),
+                         1,
+                         dart_args);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsString(result));
+  }
 }
 
 }  // namespace dart

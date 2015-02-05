@@ -4,7 +4,6 @@
 
 library metrics;
 
-import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
@@ -28,7 +27,7 @@ class MetricsPageElement extends ObservatoryElement {
         (page.selectedMetricId != null)) {
       selectedMetric = isolate.dartMetrics[page.selectedMetricId];
       if (selectedMetric == null) {
-        selectedMetric = isolate.vmMetrics[page.selectedMetricId];
+        selectedMetric = isolate.nativeMetrics[page.selectedMetricId];
       }
     }
     if ((selectedMetric == null) && (isolate != null)) {
@@ -61,7 +60,7 @@ class MetricsPageElement extends ObservatoryElement {
     selectedMetric = isolate.dartMetrics[id];
     if (selectedMetric == null) {
       // Check VM metrics.
-      selectedMetric = isolate.vmMetrics[id];
+      selectedMetric = isolate.nativeMetrics[id];
     }
     if (selectedMetric != null) {
       page.selectedMetricId = id;

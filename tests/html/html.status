@@ -18,6 +18,7 @@ mouse_event_test: Fail # Issue 20437
 storage_quota_test/missingenumcheck: Fail
 worker_api_test: Fail # Issue 10223
 two_scripts_htmltest: Fail # Issue 16603
+media_stream_test/constructors: Pass, Crash # Issue 22267
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
@@ -37,15 +38,14 @@ storage_quota_test: Fail # Support for promises.
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
-audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
-
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+# Dartium seems to lose the data from the dispatchEvent. 
+postmessage_structured_test/more_primitives: Fail
 async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
@@ -57,8 +57,6 @@ websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
-audiobuffersourcenode_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
-audiocontext_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issue 20524
 
@@ -117,9 +115,6 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 native_gc_test: Pass, Slow
 
-[ $compiler == dart2js && $runtime == drt && $system == macos]
-audiobuffersourcenode_test: Pass, Fail
-
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
@@ -133,6 +128,10 @@ scripts_htmltest: Skip # Times out on IE.  Issue 21537
 two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 localstorage_test: Pass, RuntimeError # Issue 22166
+storage_test: Pass, RuntimeError # Issue 22166
+transition_event_test/functional: Skip # Times out. Issue 22167
+request_animation_frame_test: Skip # Times out. Issue 22167
+postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -230,8 +229,6 @@ xsltprocessor_test/supported: Fail
 [ $runtime == ie10 ]
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 custom/element_upgrade_test: Fail # Issue 18247
-request_animation_frame_test: Skip # Times out. Issue 22167
-transition_event_test/functional: Skip # Times out. Issue 22167
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
@@ -273,7 +270,7 @@ input_element_test/supported_datetime-local: Fail
 touchevent_test/supported: Fail
 
 [ $runtime == safari && ($builder_tag == mac10_8 || $builder_tag == mac10_9) ]
-indexeddb_1_test/functional: RuntimeError # Issue 21433
+indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
@@ -367,7 +364,7 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # Issue 12958
 
-[ $compiler == dart2js &&  $runtime == chrome && ($system == windows || $system == linux)]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == drt) && ($system == windows || $system == linux)]
 css_test/functional: Fail # Issue 21710
 css_test/supportsPointConversions: Fail # Issue 21710
 

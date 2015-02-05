@@ -9,10 +9,16 @@ class Message {
   bool get completed => _completer.isCompleted;
   /// Future of response.
   Future<String> get response => _completer.future;
-  /// Path.
+
+  final bool isOld;
+
+  // In new messages.
+  final String method;
+
+  // In old messages.
   final List path = new List();
-  /// Options.
-  final Map options = new Map();
+
+  final Map params = new Map();
 
   void _setPath(List<String> pathSegments) {
     if (pathSegments == null) {
@@ -26,28 +32,51 @@ class Message {
     });
   }
 
-  Message.fromUri(Uri uri) {
+  Message.fromUri(Uri uri) : isOld = true {
     var split = uri.path.split('/');
     if (split.length == 0) {
       setErrorResponse('Invalid uri: $uri.');
       return;
     }
     _setPath(split);
-    options.addAll(uri.queryParameters);
+    params.addAll(uri.queryParameters);
   }
 
-  Message.fromMap(Map map) {
+  Message.fromJsonRpc(this.method, Map rpcParams)
+      : isOld = false {
+    params.addAll(rpcParams);
+  }
+
+  Message.fromMap(Map map) : isOld = true {
     _setPath(map['path']);
+    // TODO - turnidge - change this to params in sender.
     if (map['options'] != null) {
-      options.addAll(map['options']);
+      params.addAll(map['options']);
     }
   }
 
   dynamic toJson() {
     return {
       'path': path,
-      'options': options
+      'params': params
     };
+  }
+
+  // Calls toString on all non-String elements of [list]. We do this so all
+  // elements in the list are strings, making consumption by C++ simpler.
+  // This has a side effect that boolean literal values like true become 'true'
+  // and thus indistinguishable from the string literal 'true'.
+  List _makeAllString(List list) {
+    if (list == null) {
+      return null;
+    }
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] is String) {
+        continue;
+      }
+      list[i] = list[i].toString();
+    }
+    return list;
   }
 
   Future<String> send(SendPort sendPort) {
@@ -60,12 +89,12 @@ class Message {
         _completer.complete(value);
       }
     };
-    var keys = options.keys.toList(growable:false);
-    var values = options.values.toList(growable:false);
+    var keys = _makeAllString(params.keys.toList(growable:false));
+    var values = _makeAllString(params.values.toList(growable:false));
     var request = new List(5)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = path
+        ..[2] = (isOld ? path : method)
         ..[3] = keys
         ..[4] = values;
     sendIsolateServiceMessage(sendPort, request);
@@ -82,12 +111,12 @@ class Message {
         _completer.complete(value);
       }
     };
-    var keys = options.keys.toList(growable:false);
-    var values = options.values.toList(growable:false);
+    var keys = _makeAllString(params.keys.toList(growable:false));
+    var values = _makeAllString(params.values.toList(growable:false));
     var request = new List(5)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = path
+        ..[2] = (isOld ? path : method)
         ..[3] = keys
         ..[4] = values;
     sendRootServiceMessage(request);
@@ -105,7 +134,7 @@ class Message {
         'kind': 'RequestError',
         'message': error,
         'path': path,
-        'options': options
+        'params': params
     }));
   }
 }

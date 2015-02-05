@@ -5,26 +5,38 @@
 library dart2js.new_js_emitter.model_emitter;
 
 import '../../dart2jslib.dart' show Compiler;
+import '../../dart_types.dart' show DartType;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
     Namer,
     ConstantEmitter;
 
+import '../js_emitter.dart' show
+    NativeEmitter;
+
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
+    GET_TYPE_FROM_NAME,
     INITIALIZE_LOADED_HUNK,
+    INTERCEPTORS_BY_TAG,
     IS_HUNK_INITIALIZED,
-    IS_HUNK_LOADED;
+    IS_HUNK_LOADED,
+    LEAF_TAGS,
+    MANGLED_GLOBAL_NAMES,
+    METADATA,
+    TYPE_TO_INTERCEPTOR_MAP;
 
-import '../js_emitter.dart' show NativeGenerator;
+import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
+
 
 class ModelEmitter {
   final Compiler compiler;
   final Namer namer;
   final ConstantEmitter constantEmitter;
+  final NativeEmitter nativeEmitter;
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -34,7 +46,7 @@ class ModelEmitter {
 
   static const String deferredExtension = "part.js";
 
-  ModelEmitter(Compiler compiler, Namer namer)
+  ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
       : this.compiler = compiler,
         this.namer = namer,
         constantEmitter =
@@ -86,34 +98,70 @@ class ModelEmitter {
     elements.add(
         emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
 
-    js.Statement nativeBoilerplate;
+    js.Expression code = new js.ArrayInitializer(elements);
+
+    Map<String, dynamic> holes =
+      {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
+       'holders': emitHolders(fragment.holders),
+         'tearOff': buildTearOffCode(backend),
+         'parseFunctionDescriptor':
+           js.js.statement(parseFunctionDescriptorBoilerplate),
+       'cyclicThrow':
+         backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
+       'outputContainsConstantList': program.outputContainsConstantList,
+       'embeddedGlobals': emitEmbeddedGlobals(program),
+       'constants': emitConstants(fragment.constants),
+       'staticNonFinals':
+         emitStaticNonFinalFields(fragment.staticNonFinalFields),
+       'operatorIsPrefix': js.string(namer.operatorIsPrefix),
+       'eagerClasses': emitEagerClassInitializations(fragment.libraries),
+       'main': fragment.main,
+       'code': code};
+
+    holes.addAll(nativeHoles(program));
+
+    return js.js.statement(boilerplate, holes);
+  }
+
+  Map<String, dynamic> nativeHoles(Program program) {
+    Map<String, dynamic> nativeHoles = <String, dynamic>{};
+
+    js.Statement nativeIsolateAffinityTagInitialization;
     if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
-      nativeBoilerplate =
+      nativeIsolateAffinityTagInitialization =
           NativeGenerator.generateIsolateAffinityTagInitialization(
               backend,
               generateEmbeddedGlobalAccess,
               // TODO(floitsch): convertToFastObject.
               js.js("(function(x) { return x; })", []));
     } else {
-      nativeBoilerplate = js.js.statement(";");
+      nativeIsolateAffinityTagInitialization = js.js.statement(";");
     }
+    nativeHoles['nativeIsolateAffinityTagInitialization'] =
+        nativeIsolateAffinityTagInitialization;
 
-    js.Expression code = new js.ArrayInitializer(elements);
 
-    return js.js.statement(
-        boilerplate,
-        {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
-         'holders': emitHolders(fragment.holders),
-         'cyclicThrow':
-           backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
-         'outputContainsConstantList': program.outputContainsConstantList,
-         'embeddedGlobals': emitEmbeddedGlobals(program.loadMap),
-         'constants': emitConstants(fragment.constants),
-         'staticNonFinals': emitStaticNonFinalFields(fragment.staticNonFinalFields),
-         'nativeBoilerplate': nativeBoilerplate,
-         'eagerClasses': emitEagerClassInitializations(fragment.libraries),
-         'main': fragment.main,
-         'code': code});
+    js.Expression nativeInfoAccess = js.js('nativeInfo', []);
+    js.Expression constructorAccess = js.js('constructor', []);
+    Function subclassReadGenerator = (js.Expression subclass) {
+      return js.js('holdersMap[#][#].ensureResolved()', [subclass, subclass]);
+    };
+    js.Expression interceptorsByTagAccess =
+        generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG);
+    js.Expression leafTagsAccess =
+        generateEmbeddedGlobalAccess(LEAF_TAGS);
+    js.Statement nativeInfoHandler = nativeEmitter.buildNativeInfoHandler(
+        nativeInfoAccess,
+        constructorAccess,
+        subclassReadGenerator,
+        interceptorsByTagAccess,
+        leafTagsAccess);
+
+    nativeHoles['hasNativeClasses'] = program.outputContainsNativeClasses;
+    nativeHoles['hasNoNativeClasses'] = !program.outputContainsNativeClasses;
+    nativeHoles['nativeInfoHandler'] = nativeInfoHandler;
+
+    return nativeHoles;
   }
 
   js.Block emitHolders(List<Holder> holders) {
@@ -135,7 +183,8 @@ class ModelEmitter {
                     new js.ObjectInitializer(const []))).toList())),
         js.js.statement('var holders = #', new js.ArrayInitializer(
             holders.map((e) => new js.VariableUse(e.name))
-                   .toList(growable: false)))
+                   .toList(growable: false))),
+        js.js.statement('var holdersMap = Object.create(null)')
     ];
     return new js.Block(statements);
   }
@@ -146,13 +195,32 @@ class ModelEmitter {
     return js.js.uncachedExpressionTemplate('makeConstList(#)');
   }
 
-  js.Block emitEmbeddedGlobals(Map<String, List<Fragment>> loadMap) {
+  js.Block emitEmbeddedGlobals(Program program) {
     List<js.Property> globals = <js.Property>[];
 
-    if (loadMap.isNotEmpty) {
-      globals.addAll(emitLoadUrisAndHashes(loadMap));
+    if (program.loadMap.isNotEmpty) {
+      globals.addAll(emitLoadUrisAndHashes(program.loadMap));
       globals.add(emitIsHunkLoadedFunction());
       globals.add(emitInitializeLoadedHunk());
+    }
+
+    if (program.typeToInterceptorMap != null) {
+      globals.add(new js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP),
+                                  program.typeToInterceptorMap));
+    }
+
+    globals.add(new js.Property(js.string(MANGLED_GLOBAL_NAMES),
+                                js.js('Object.create(null)', [])));
+
+    globals.add(emitGetTypeFromName());
+
+    globals.add(emitMetadata(program));
+
+    if (program.outputContainsNativeClasses) {
+      globals.add(new js.Property(js.string(INTERCEPTORS_BY_TAG),
+                                  js.js('Object.create(null)', [])));
+      globals.add(new js.Property(js.string(LEAF_TAGS),
+                                  js.js('Object.create(null)', [])));
     }
 
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
@@ -216,6 +284,22 @@ class ModelEmitter {
     return new js.Property(js.string(INITIALIZE_LOADED_HUNK), function);
   }
 
+  js.Property emitGetTypeFromName() {
+    js.Expression function =
+        js.js( """function(name) {
+                    return holdersMap[name][name].ensureResolved();
+                  }""");
+    return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
+  }
+
+  js.Property emitMetadata(Program program) {
+    String metadataList = "[${program.metadata.join(",")}]";
+    js.Expression metadata =
+        js.js.uncachedExpressionTemplate(metadataList).instantiate([]);
+
+    return new js.Property(js.string(METADATA), metadata);
+  }
+
   js.Expression emitDeferredFragment(DeferredFragment fragment,
                                      List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
@@ -270,11 +354,26 @@ class ModelEmitter {
     return new js.Block(instantiations);
   }
 
+  // This string should be referenced wherever JavaScript code makes assumptions
+  // on the mixin format.
+  static final String nativeInfoDescription =
+      "A class is encoded as follows:"
+      "   [name, class-code, holder-index], or "
+      "   [name, class-code, native-info, holder-index].";
+
   js.Expression emitLibrary(Library library) {
-    Iterable staticDescriptors = library.statics.expand((e) =>
-        [ js.string(e.name), js.number(e.holder.index), emitStaticMethod(e) ]);
-    Iterable classDescriptors = library.classes.expand((e) =>
-        [ js.string(e.name), js.number(e.holder.index), emitClass(e) ]);
+    Iterable staticDescriptors = library.statics.expand(emitStaticMethod);
+
+    Iterable classDescriptors = library.classes.expand((Class cls) {
+      js.LiteralString name = js.string(cls.name);
+      js.LiteralNumber holderIndex = js.number(cls.holder.index);
+      js.Expression emittedClass = emitClass(cls);
+      if (cls.nativeInfo == null) {
+        return [name, emittedClass, holderIndex];
+      } else {
+        return [name, emittedClass, js.string(cls.nativeInfo), holderIndex];
+      }
+    });
 
     js.Expression staticArray =
         new js.ArrayInitializer(staticDescriptors.toList(growable: false));
@@ -314,8 +413,8 @@ class ModelEmitter {
 
     js.Expression fieldName = js.string(field.name);
     js.Expression code = js.js(getterTemplateFor(field.getterFlags), fieldName);
-    String getterName = "${namer.getterPrefix}${field.name}";
-    return new StubMethod(getterName, code, needsTearOff: false);
+    String getterName = "${namer.getterPrefix}${field.accessorName}";
+    return new StubMethod(getterName, code);
   }
 
   Method _generateSetter(Field field) {
@@ -330,7 +429,7 @@ class ModelEmitter {
     js.Expression fieldName = js.string(field.name);
     js.Expression code = js.js(setterTemplateFor(field.setterFlags), fieldName);
     String setterName = "${namer.setterPrefix}${field.name}";
-    return new StubMethod(setterName, code, needsTearOff: false);
+    return new StubMethod(setterName, code);
   }
 
   Iterable<Method> _generateGettersSetters(Class cls) {
@@ -363,10 +462,14 @@ class ModelEmitter {
     }
     Iterable<Method> methods = cls.methods;
     Iterable<Method> isChecks = cls.isChecks;
+    Iterable<Method> callStubs = cls.callStubs;
+    Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods =
-        [methods, isChecks, gettersSetters].expand((x) => x);
-    elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
+        [methods, isChecks, callStubs, noSuchMethodStubs, gettersSetters]
+            .expand((x) => x);
+    elements.addAll(allMethods.expand(emitInstanceMethod));
+
     return unparse(compiler, new js.ArrayInitializer(elements));
   }
 
@@ -375,8 +478,144 @@ class ModelEmitter {
     return unparse(compiler, field.code);
   }
 
-  js.Expression emitStaticMethod(StaticMethod method) {
-    return unparse(compiler, method.code);
+  /// JavaScript code template that implements parsing of a function descriptor.
+  /// Descriptors are used in place of the actual JavaScript function
+  /// definition in the output if additional information needs to be passed to
+  /// facilitate the generation of tearOffs at runtime. The format is an array
+  /// with the following fields:
+  ///
+  /// [Method.code]
+  /// [DartMethod.callName]
+  /// [DartMethod.tearOffName]
+  /// [JavaScriptBackend.isInterceptedMethod]
+  /// functionType
+  /// [InstanceMethod.aliasName]
+  ///
+  /// followed by
+  ///
+  /// [ParameterStubMethod.name]
+  /// [ParameterStubMethod.code]
+  ///
+  /// for each stub in [DartMethod.parameterStubs].
+
+  static final String parseFunctionDescriptorBoilerplate = r"""
+function parseFunctionDescriptor(proto, name, descriptor) {
+  if (descriptor instanceof Array) {
+    proto[name] = descriptor[0];
+    var funs = [descriptor[0]];
+    funs[0].$callName = descriptor[1];
+    for (var pos = 6; pos < descriptor.length; pos += 3) {
+      var stub = descriptor[pos + 2];
+      stub.$callName = descriptor[pos + 1];
+      proto[descriptor[pos]] = stub;
+      funs.push(stub);
+    }
+    if (descriptor[2] != null) {
+      var isIntercepted = descriptor[3];
+      var reflectionInfo = descriptor[4];
+      proto[descriptor[2]] = 
+          tearOff(funs, reflectionInfo, false, name, isIntercepted);
+    }
+    // Install the alias for super calls on the prototype chain.
+    if (descriptor[5] != null) {
+      proto[descriptor[5]] = descriptor[0];
+    }
+  } else {
+    proto[name] = descriptor;
+  }
+}
+""";
+
+  js.Expression _generateFunctionType(DartType memberType) {
+    if (memberType.containsTypeVariables) {
+      js.Expression thisAccess = js.js(r'this.$receiver');
+      return backend.rti.getSignatureEncoding(memberType, thisAccess);
+    } else {
+      return js.number(backend.emitter.metadataCollector.reifyType(memberType));
+    }
+  }
+
+  Iterable<js.Expression> emitInstanceMethod(Method method) {
+
+    List<js.Expression> makeNameCodePair(Method method) {
+      return [js.string(method.name), method.code];
+    }
+
+    List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
+      js.Expression callName = stub.callName == null
+          ? new js.LiteralNull()
+          : js.string(stub.callName);
+      return [js.string(stub.name), callName, stub.code];
+    }
+
+    if (method is InstanceMethod) {
+      if (method.needsTearOff || method.aliasName != null) {
+        /// See [parseFunctionDescriptorBoilerplate] for a full description of
+        /// the format.
+        // [name, [function, callName, tearOffName, isIntercepted, functionType,
+        //     aliasName, stub1_name, stub1_callName, stub1_code, ...]
+        bool isIntercepted = backend.isInterceptedMethod(method.element);
+        var data = [method.code];
+        data.add(js.string(method.callName));
+        data.add(js.string(method.tearOffName));
+        data.add(new js.LiteralBool(isIntercepted));
+        data.add(_generateFunctionType(method.type));
+        if (method.aliasName != null) {
+          data.add(js.string(method.aliasName));
+        } else {
+          data.add(new js.LiteralNull());
+        }
+        data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
+        return [js.string(method.name), new js.ArrayInitializer(data)];
+      } else {
+        // TODO(floitsch): not the most efficient way...
+        return ([method]..addAll(method.parameterStubs))
+            .expand(makeNameCodePair);
+      }
+    } else {
+      return makeNameCodePair(method);
+    }
+  }
+
+  Iterable<js.Expression> emitStaticMethod(StaticMethod method) {
+    js.Expression holderIndex = js.number(method.holder.index);
+    List<js.Expression> output = <js.Expression>[];
+
+    void _addMethod(Method method) {
+      js.Expression unparsed = unparse(compiler, method.code);
+      output.add(js.string(method.name));
+      output.add(holderIndex);
+      output.add(unparsed);
+    }
+
+    List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
+      js.Expression callName = stub.callName == null
+          ? new js.LiteralNull()
+          : js.string(stub.callName);
+      return [js.string(stub.name), callName, unparse(compiler, stub.code)];
+    }
+
+    _addMethod(method);
+    // TODO(floitsch): can there be anything else than a StaticDartMethod?
+    if (method is StaticDartMethod) {
+      if (method.needsTearOff) {
+        /// The format emitted is the same as for the parser specified at
+        /// [parseFunctionDescriptorBoilerplate] except for the missing
+        /// field whether the method is intercepted.
+        // [name, [function, callName, tearOffName, functionType,
+        //     stub1_name, stub1_callName, stub1_code, ...]
+        var data = [unparse(compiler, method.code)];
+        data.add(js.string(method.callName));
+        data.add(js.string(method.tearOffName));
+        data.add(_generateFunctionType(method.type));
+        data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
+        return [js.string(method.name), holderIndex,
+                new js.ArrayInitializer(data)];
+      } else {
+        method.parameterStubs.forEach(_addMethod);
+      }
+    }
+    return output;
   }
 
   static final String boilerplate = """
@@ -385,9 +624,12 @@ class ModelEmitter {
 #deferredInitializer;
 
 !function(start, program) {
-
   // Initialize holder objects.
   #holders;
+  var nativeInfos = Object.create(null);
+
+  // Counter to generate unique names for tear offs.
+  var functionCounter = 0;
 
   function setupProgram() {
     for (var i = 0; i < program.length - 1; i++) {
@@ -405,8 +647,27 @@ class ModelEmitter {
 
     var classes = library[1];
     for (var i = 0; i < classes.length; i += 3) {
-      var holderIndex = classes[i + 1];
-      setupClass(classes[i], holders[holderIndex], classes[i + 2]);
+      var name = classes[i];
+      var cls = classes[i + 1];
+
+      if (#hasNativeClasses) {
+        // $nativeInfoDescription.
+        var indexOrNativeInfo = classes[i + 2];
+        if (typeof indexOrNativeInfo == "number") {
+          var holderIndex = classes[i + 2];
+        } else {
+          nativeInfos[name] = indexOrNativeInfo;
+          holderIndex = classes[i + 3];
+          i++;
+        }
+      }
+
+      if (#hasNoNativeClasses) {
+        var holderIndex = classes[i + 2];
+      }
+
+      holdersMap[name] = holders[holderIndex];
+      setupClass(name, holders[holderIndex], cls);
     }
   }
 
@@ -421,11 +682,50 @@ class ModelEmitter {
   }
 
   function setupStatic(name, holder, descriptor) {
-    holder[name] = function() {
-      var method = compile(name, descriptor);
-      holder[name] = method;
-      return method.apply(this, arguments);
-    };
+    if (typeof descriptor == 'string') {
+      holder[name] = function() {
+        var method = compile(name, descriptor);
+        holder[name] = method;
+        return method.apply(this, arguments);
+      };
+    } else {
+      // Parse the tear off information and generate compile handlers.
+      // TODO(herhut): Share parser with instance methods.      
+      function compileAllStubs() {
+        var funs;
+        var fun = compile(name, descriptor[0]);
+        fun.\$callName = descriptor[1];
+        holder[name] = fun;
+        funs = [fun];
+        for (var pos = 4; pos < descriptor.length; pos += 3) {
+          var stubName = descriptor[pos];
+          fun = compile(stubName, descriptor[pos + 2]);
+          fun.\$callName = descriptor[pos + 1];
+          holder[stubName] = fun;
+          funs.push(fun);
+        }
+        if (descriptor[2] != null) {  // tear-off name.
+          // functions, reflectionInfo, isStatic, name, isIntercepted.
+          holder[descriptor[2]] = 
+              tearOff(funs, descriptor[3], true, name, false);
+        }
+      }
+
+      function setupCompileAllAndDelegateStub(name) {
+        holder[name] = function() {
+          compileAllStubs();
+          return holder[name].apply(this, arguments);
+        };
+      }
+
+      setupCompileAllAndDelegateStub(name);
+      for (var pos = 4; pos < descriptor.length; pos += 3) {
+        setupCompileAllAndDelegateStub(descriptor[pos]);
+      }
+      if (descriptor[2] != null) {  // tear-off name.
+        setupCompileAllAndDelegateStub(descriptor[2])
+      }
+    }
   }
 
   function setupLazyStatic(name, getterName, holder, descriptor) {
@@ -473,6 +773,10 @@ class ModelEmitter {
     holder[name] = patch;
   }
 
+  #tearOff;
+
+  #parseFunctionDescriptor;
+
   function compileConstructor(name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
@@ -481,16 +785,17 @@ class ModelEmitter {
     if (typeof descriptor[2] !== 'function') {
       constructor = compileMixinConstructor(name, prototype, descriptor);
       for (var i = 4; i < descriptor.length; i += 2) {
-        prototype[descriptor[i]] = descriptor[i + 1];
+        parseFunctionDescriptor(prototype, descriptor, descriptor[i + 1]);
       }
     } else {
       constructor = descriptor[2];
       for (var i = 3; i < descriptor.length; i += 2) {
-        prototype[descriptor[i]] = descriptor[i + 1];
+        parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
       }
     }
     constructor.builtin\$cls = name;  // Needed for RTI.
     constructor.prototype = prototype;
+    prototype[#operatorIsPrefix + name] = constructor;
     prototype.constructor = constructor;
     return constructor;
   }
@@ -546,19 +851,36 @@ class ModelEmitter {
     }
   }
 
+  if (#hasNativeClasses) {
+    function handleNativeClassInfos() {
+      for (var nativeClass in nativeInfos) {
+        var constructor = holdersMap[nativeClass][nativeClass].ensureResolved();
+        var nativeInfo = nativeInfos[nativeClass];
+        #nativeInfoHandler;
+      }
+    }
+  }
+
   setupProgram();
+
+  // Initialize constants.
+  #constants;
 
   // Initialize globals.
   #embeddedGlobals;
 
-  // Initialize constants.
-  #constants;
+  // TODO(floitsch): this order means that native classes may not be
+  // referenced from constants. I'm mostly afraid of things like using them as
+  // generic arguments (which should be fine, but maybe there are other
+  // similar things).
+  // Initialize natives.
+  if (#hasNativeClasses) handleNativeClassInfos();
 
   // Initialize static non-final fields.
   #staticNonFinals;
 
   // Add native boilerplate code.
-  #nativeBoilerplate;
+  #nativeIsolateAffinityTagInitialization;
 
   // Initialize eager classes.
   #eagerClasses;

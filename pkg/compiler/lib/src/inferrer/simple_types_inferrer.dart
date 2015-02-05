@@ -556,9 +556,7 @@ class SimpleTypeInferrerVisitor<T>
         if (!isConstructorRedirect
             && !seenSuperConstructorCall
             && !cls.isObject) {
-          Selector selector =
-              new Selector.callDefaultConstructor(analyzedElement.library);
-          FunctionElement target = cls.superclass.lookupConstructor(selector);
+          FunctionElement target = cls.superclass.lookupDefaultConstructor();
           analyzeSuperConstructorCall(target, new ArgumentsTypes([], {}));
           synthesizeForwardingCall(analyzedElement, target);
         }

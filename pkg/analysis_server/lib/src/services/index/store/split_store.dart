@@ -34,6 +34,11 @@ abstract class FileManager {
   void delete(String name);
 
   /**
+   * Returns names of all known nodes.
+   */
+  List<String> inspect_getAllNodeNames();
+
+  /**
    * Read the entire file contents as a list of bytes.
    */
   Future<List<int>> read(String name);
@@ -87,6 +92,13 @@ class FileNodeManager implements NodeManager {
           'Exception during reading index file ${name}',
           new CaughtException(exception, stackTrace));
     });
+  }
+
+  /**
+   * Returns names of all known nodes.
+   */
+  List<String> inspect_getAllNodeNames() {
+    return _fileManager.inspect_getAllNodeNames();
   }
 
   @override
@@ -280,6 +292,32 @@ class IndexNode {
   }
 
   /**
+   * Returns [InspectLocation]s for the element with the given ID.
+   */
+  List<InspectLocation> inspect_getRelations(String name, int elementId) {
+    List<InspectLocation> result = <InspectLocation>[];
+    _relations.forEach((RelationKeyData key, locations) {
+      if (key.elementId == elementId) {
+        for (LocationData location in locations) {
+          Relationship relationship =
+              _relationshipCodec.decode(key.relationshipId);
+          List<String> path =
+              _elementCodec.inspect_decodePath(location.elementId);
+          result.add(
+              new InspectLocation(
+                  name,
+                  relationship,
+                  path,
+                  location.offset,
+                  location.length,
+                  location.flags));
+        }
+      }
+    });
+    return result;
+  }
+
+  /**
    * Records that the given [element] and [location] have the given [relationship].
    *
    * [element] - the [Element] that is related to the location.
@@ -302,6 +340,19 @@ class IndexNode {
     // add new LocationData
     locationDatas.add(new LocationData.forObject(_elementCodec, location));
   }
+}
+
+
+class InspectLocation {
+  final String nodeName;
+  final Relationship relationship;
+  final List<String> path;
+  final int offset;
+  final int length;
+  final int flags;
+
+  InspectLocation(this.nodeName, this.relationship, this.path, this.offset,
+      this.length, this.flags);
 }
 
 
@@ -678,6 +729,45 @@ class SplitIndexStore implements IndexStore {
         allLocations.addAll(locations);
       }
       return allLocations;
+    });
+  }
+
+  /**
+   * Returns all relations with [Element]s with the given [name].
+   */
+  Future<Map<List<String>, List<InspectLocation>>>
+      inspect_getElementRelations(String name) {
+    Map<List<String>, List<InspectLocation>> result = <List<String>,
+        List<InspectLocation>>{};
+    // prepare elements
+    Map<int, List<String>> elementMap = _elementCodec.inspect_getElements(name);
+    // prepare relations with each element
+    List<Future> futures = <Future>[];
+    if (_nodeManager is FileNodeManager) {
+      List<String> nodeNames =
+          (_nodeManager as FileNodeManager).inspect_getAllNodeNames();
+      nodeNames.forEach((nodeName) {
+        Future<IndexNode> nodeFuture = _nodeManager.getNode(nodeName);
+        Future relationsFuture = nodeFuture.then((node) {
+          if (node != null) {
+            elementMap.forEach((int elementId, List<String> elementPath) {
+              List<InspectLocation> relations =
+                  node.inspect_getRelations(nodeName, elementId);
+              List<InspectLocation> resultLocations = result[elementPath];
+              if (resultLocations == null) {
+                resultLocations = <InspectLocation>[];
+                result[elementPath] = resultLocations;
+              }
+              resultLocations.addAll(relations);
+            });
+          }
+        });
+        futures.add(relationsFuture);
+      });
+    }
+    // wait for all nodex
+    return Future.wait(futures).then((_) {
+      return result;
     });
   }
 

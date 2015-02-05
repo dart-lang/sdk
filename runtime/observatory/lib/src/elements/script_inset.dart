@@ -155,13 +155,13 @@ class BreakpointToggleElement extends ObservatoryElement {
     }
     busy = true;
     if (line.bpt == null) {
-      // No breakpoint.  Set it.
-      line.script.isolate.setBreakpoint(line.script, line.line).then((_) {
+      // No breakpoint.  Add it.
+      line.script.isolate.addBreakpoint(line.script, line.line).then((_) {
           busy = false;
       });
     } else {
       // Existing breakpoint.  Remove it.
-      line.script.isolate.clearBreakpoint(line.bpt).then((_) {
+      line.script.isolate.removeBreakpoint(line.bpt).then((_) {
           busy = false;
       });
     }

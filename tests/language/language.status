@@ -7,6 +7,7 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
+async_await_syntax_test/b00a: MissingCompileTimeError # Issue 21404
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -18,20 +19,6 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 
 [ $compiler == dart2dart ]
-async_control_structures_test: CompileTimeError # Issue 22051
-async_test/none: CompileTimeError # Issue 22051
-async_test/type-mismatch1: CompileTimeError # Issue 22051
-async_test/type-mismatch2: CompileTimeError # Issue 22051
-async_test/type-mismatch3: CompileTimeError # Issue 22051
-async_test/type-mismatch4: CompileTimeError # Issue 22051
-await_backwards_compatibility_test/none: CompileTimeError # Issue 22051
-await_exceptions_test: CompileTimeError # Issue 22051
-await_for_test: CompileTimeError # Issue 22051
-await_future_test: CompileTimeError # Issue 22051
-await_nonfuture_test: CompileTimeError # Issue 22051
-await_regression_test: CompileTimeError # Issue 22051
-await_test: CompileTimeError # Issue 22051
-
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
 deferred_not_loaded_check_test: Fail # Issue 17523
@@ -41,21 +28,84 @@ deferred_shadow_load_library_test: Fail # Issue 17523
 deferred_closurize_load_library_test: Fail  # Issue 17523
 deferred_inlined_test: Fail  # Issue 17523
 deferred_optimized_test: Fail  # Issue 17523
-enum_test: Crash # Issue 21416/21417
 enum_mirror_test: Skip # Issue 11511.
 
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 
-[ $compiler == none || $compiler == dart2dart]
+[ $compiler == none || $compiler == dart2dart ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
-compile_time_constant_c_test/01: Fail # Issue 21000
 compile_time_constant12_test: Fail # Issue 21000
+async_await_syntax_test/a07a: CompileTimeError # Issue 21404
+async_await_syntax_test/a08a: CompileTimeError # Issue 21404
+async_await_syntax_test/a09a: CompileTimeError # Issue 21404
+async_await_syntax_test/a10a: CompileTimeError # Issue 21404
+async_await_syntax_test/b07a: CompileTimeError # Issue 21404
+async_await_syntax_test/b08a: CompileTimeError # Issue 21404
+async_await_syntax_test/b09a: CompileTimeError # Issue 21404
+async_await_syntax_test/b10a: CompileTimeError # Issue 21404
+async_await_syntax_test/c07a: CompileTimeError # Issue 21404
+async_await_syntax_test/c08a: CompileTimeError # Issue 21404
+async_await_syntax_test/c09a: CompileTimeError # Issue 21404
+async_await_syntax_test/c10a: CompileTimeError # Issue 21404
+async_await_syntax_test/d07a: CompileTimeError # Issue 21404
+async_await_syntax_test/d08a: CompileTimeError # Issue 21404
+async_await_syntax_test/d08b: CompileTimeError # Issue 21404
+async_await_syntax_test/d09a: CompileTimeError # Issue 21404
+async_await_syntax_test/d10a: CompileTimeError # Issue 21404
+
+[ $compiler == none || ($compiler == dart2dart && $builder_tag != new_backend) ]
+compile_time_constant_c_test/01: Fail # Issue 21000
+async_await_syntax_test/a03a: CompileTimeError # Issue 21404
+async_await_syntax_test/a04a: CompileTimeError # Issue 21404
+async_await_syntax_test/a11b: CompileTimeError # Issue 21404
+async_await_syntax_test/a11d: CompileTimeError # Issue 21404
+async_await_syntax_test/b03a: CompileTimeError # Issue 21404
+async_await_syntax_test/b04a: CompileTimeError # Issue 21404
+async_await_syntax_test/b11b: CompileTimeError # Issue 21404
+async_await_syntax_test/b11d: CompileTimeError # Issue 21404
+async_await_syntax_test/c03a: CompileTimeError # Issue 21404
+async_await_syntax_test/c04a: CompileTimeError # Issue 21404
+async_await_syntax_test/d03a: CompileTimeError # Issue 21404
+async_await_syntax_test/d04a: CompileTimeError # Issue 21404
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
+async_await_syntax_test/a03a: RuntimeError # Issue 21404
+async_await_syntax_test/a04a: RuntimeError # Issue 21404
+async_await_syntax_test/a07a: RuntimeError # Issue 21404
+async_await_syntax_test/a08a: RuntimeError # Issue 21404
+async_await_syntax_test/a09a: RuntimeError # Issue 21404
+async_await_syntax_test/a10a: RuntimeError # Issue 21404
+async_await_syntax_test/a11b: RuntimeError # Issue 21404
+async_await_syntax_test/a11d: RuntimeError # Issue 21404
+async_await_syntax_test/b00a: Fail  # Issue 21404
+async_await_syntax_test/b03a: RuntimeError # Issue 21404
+async_await_syntax_test/b04a: RuntimeError # Issue 21404
+async_await_syntax_test/b07a: RuntimeError # Issue 21404
+async_await_syntax_test/b08a: RuntimeError # Issue 21404
+async_await_syntax_test/b09a: RuntimeError # Issue 21404
+async_await_syntax_test/b10a: RuntimeError # Issue 21404
+async_await_syntax_test/b11b: RuntimeError # Issue 21404
+async_await_syntax_test/b11d: RuntimeError # Issue 21404
+async_await_syntax_test/c03a: RuntimeError # Issue 21404
+async_await_syntax_test/c04a: RuntimeError # Issue 21404
+async_await_syntax_test/c07a: RuntimeError # Issue 21404
+async_await_syntax_test/c08a: RuntimeError # Issue 21404
+async_await_syntax_test/c09a: RuntimeError # Issue 21404
+async_await_syntax_test/c10a: RuntimeError # Issue 21404
+async_await_syntax_test/d03a: RuntimeError # Issue 21404
+async_await_syntax_test/d04a: RuntimeError # Issue 21404
+async_await_syntax_test/d07a: RuntimeError # Issue 21404
+async_await_syntax_test/d08a: RuntimeError # Issue 21404
+async_await_syntax_test/d08b: RuntimeError # Issue 21404
+async_await_syntax_test/d09a: RuntimeError # Issue 21404
+async_await_syntax_test/d10a: RuntimeError # Issue 21404
+
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627

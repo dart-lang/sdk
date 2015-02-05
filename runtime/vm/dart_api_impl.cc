@@ -1204,12 +1204,10 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source,
-    Dart_ServiceIsolateCreateCalback service_create) {
+    Dart_EntropySource entropy_source) {
   const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown,
                                        file_open, file_read, file_write,
-                                       file_close, entropy_source,
-                                       service_create);
+                                       file_close, entropy_source);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;
@@ -1250,6 +1248,10 @@ static char* BuildIsolateName(const char* script_uri,
     } else {
       return strdup(main);
     }
+  }
+
+  if (Service::IsServiceIsolateName(script_uri)) {
+    return strdup(script_uri);
   }
 
   // Skip past any slashes and backslashes in the script uri.
@@ -1379,6 +1381,18 @@ DART_EXPORT void Dart_IsolateUnblocked() {
 DART_EXPORT void Dart_ExitIsolate() {
   CHECK_ISOLATE(Isolate::Current());
   Isolate::SetCurrent(NULL);
+}
+
+
+DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value) {
+  CHECK_ISOLATE(Isolate::Current());
+  Isolate* isolate = Isolate::Current();
+  if (isolate->has_compiled()) {
+    return Api::NewError(
+        "%s expects that the isolate has not yet compiled code.", CURRENT_FUNC);
+  }
+  Isolate::Current()->set_strict_compilation(value);
+  return Api::Null();
 }
 
 
@@ -1521,6 +1535,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     return error;
   }
   if (FLAG_print_class_table) {
+    HANDLESCOPE(isolate);
     isolate->class_table()->Print();
   }
   return Api::Success();
@@ -3859,6 +3874,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   // other operations (gc, compilation) are active.
   TIMERSCOPE(isolate, time_dart_execution);
 
+  isolate->set_has_compiled(true);
+
   const String& function_name = Api::UnwrapStringHandle(isolate, name);
   if (function_name.IsNull()) {
     RETURN_TYPE_ERROR(isolate, name, String);
@@ -3884,10 +3901,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     const Class& cls = Class::Handle(isolate, Type::Cast(obj).type_class());
     const Function& function = Function::Handle(
         isolate,
-        Resolver::ResolveStatic(cls,
-                                function_name,
-                                number_of_arguments,
-                                Object::empty_array()));
+        Resolver::ResolveStaticAllowPrivate(cls,
+                                            function_name,
+                                            number_of_arguments,
+                                            Object::empty_array()));
     if (function.IsNull()) {
       const String& cls_name = String::Handle(isolate, cls.Name());
       return Api::NewError("%s: did not find static method '%s.%s'.",
@@ -5406,13 +5423,14 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
 
 // --- Service support ---
 
-DART_EXPORT Dart_Isolate Dart_GetServiceIsolate(void* callback_data) {
-  return Api::CastIsolate(Service::GetServiceIsolate(callback_data));
+DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  return Service::IsServiceIsolate(iso);
 }
 
 
-DART_EXPORT bool Dart_IsServiceRunning() {
-  return Service::IsRunning();
+DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort() {
+  return Service::WaitForLoadPort();
 }
 
 

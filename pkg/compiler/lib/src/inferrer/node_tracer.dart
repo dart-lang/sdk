@@ -75,7 +75,7 @@ abstract class TracerVisitor<T extends TypeInformation>
   static const int MAX_ANALYSIS_COUNT = 16;
   final Setlet<Element> analyzedElements = new Setlet<Element>();
 
-  TracerVisitor(this.tracedType, inferrer)
+  TracerVisitor(this.tracedType, TypeGraphInferrerEngine inferrer)
       : this.inferrer = inferrer, this.compiler = inferrer.compiler;
 
   // Work list that gets populated with [TypeInformation] that could

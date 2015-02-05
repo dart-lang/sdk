@@ -90,6 +90,7 @@ const String DEFAULT_PATCH_CORE_SOURCE = r'''
 import 'dart:_js_helper';
 import 'dart:_interceptors';
 import 'dart:_isolate_helper';
+import 'dart:async';
 ''';
 
 const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
@@ -187,7 +188,10 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'numberOrStringSuperTypeCheck': 'numberOrStringSuperTypeCheck(value) {}',
   'numTypeCast': 'numTypeCast(value) {}',
   'numTypeCheck': 'numTypeCheck(value) {}',
-  'patch': 'const patch = 0;',
+  '_Patch': 'class _Patch { final tag; const _Patch(this.tag); }',
+  'patch': 'const patch = const _Patch(null);',
+  'patch_new': 'const patch_new = const _Patch("new");',
+  'patch_old': 'const patch_old = const _Patch("old");',
   'propertyTypeCast': 'propertyTypeCast(x) {}',
   'propertyTypeCheck': 'propertyTypeCheck(value, property) {}',
   'requiresPreamble': 'requiresPreamble() {}',
@@ -359,6 +363,7 @@ const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
 };
 
 const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
+  'DeferredLibrary': 'class DeferredLibrary {}',
   'Future': 'class Future<T> {}',
   'Stream': 'class Stream<T> {}',
 };

@@ -251,6 +251,11 @@ abstract class TaskDescriptor {
   CreateTaskInputs get createTaskInputs;
 
   /**
+   * Return the name of the task being described.
+   */
+  String get name;
+
+  /**
    * Return a list of the analysis results that will be computed by this task.
    */
   List<ResultDescriptor> get results;

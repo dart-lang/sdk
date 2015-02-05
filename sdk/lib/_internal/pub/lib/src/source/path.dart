@@ -95,10 +95,14 @@ class PathSource extends Source {
     // Resolve the path relative to the containing file path, and remember
     // whether the original path was relative or absolute.
     var isRelative = p.isRelative(description);
-    if (p.isRelative(description)) {
-      // Can't handle relative paths coming from pubspecs that are not on the
-      // local file system.
-      assert(containingPath != null);
+    if (isRelative) {
+      // Relative paths coming from pubspecs that are not on the local file
+      // system aren't allowed. This can happen if a hosted or git dependency
+      // has a path dependency.
+      if (containingPath == null) {
+        throw new FormatException('"$description" is a relative path, but this '
+            'isn\'t a local pubspec.');
+      }
 
       description = p.normalize(
           p.join(p.dirname(containingPath), description));

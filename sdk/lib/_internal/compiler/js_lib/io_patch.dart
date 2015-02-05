@@ -276,7 +276,7 @@ class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       bool detach: false}) {
+       ProcessStartMode mode: ProcessStartMode.NORMAL}) {
     throw new UnsupportedError("Process.start");
   }
 
@@ -304,6 +304,12 @@ class Process {
        Encoding stdoutEncoding: SYSTEM_ENCODING,
        Encoding stderrEncoding: SYSTEM_ENCODING}) {
     throw new UnsupportedError("Process.runSync");
+  }
+
+  @patch
+  static bool killPid(
+      int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+    throw new UnsupportedError("Process.killPid");
   }
 }
 
@@ -512,7 +518,7 @@ class Stdout {
 @patch
 class _FileSystemWatcher {
   @patch
-  static Stream<FileSystemEvent> watch(
+  static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
     throw new UnsupportedError("_FileSystemWatcher.watch");
   }

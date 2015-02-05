@@ -141,11 +141,8 @@ class _RawReceivePortImpl implements RawReceivePort {
     // so that we can run the immediate callbacks.
     handler(message);
     _runPendingImmediateCallback();
-
     // Event was handled. Now run expired timers.
-    if (runTimerClosure != null) {
-      runTimerClosure(_runPendingImmediateCallback);
-    }
+    _Timer._handleTimeout();
   }
 
   // Call into the VM to close the VM maintained mappings.

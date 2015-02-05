@@ -6,6 +6,7 @@ library source.package_map_resolver;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/asserts.dart' as asserts;
 
 
 /**
@@ -35,7 +36,10 @@ class PackageMapUriResolver extends UriResolver {
    * [packageMap] is a table mapping package names to the paths of the
    * directories containing the package
    */
-  PackageMapUriResolver(this.resourceProvider, this.packageMap);
+  PackageMapUriResolver(this.resourceProvider, this.packageMap) {
+    asserts.notNull(resourceProvider);
+    asserts.notNull(packageMap);
+  }
 
   @override
   Source resolveAbsolute(Uri uri) {

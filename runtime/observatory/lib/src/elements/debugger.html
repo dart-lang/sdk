@@ -54,9 +54,10 @@
 
     <div class="container">
       <nav-bar>
-	<top-nav-menu last="{{ true }}"></top-nav-menu>
-	<isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
+        <top-nav-menu></top-nav-menu>
+        <isolate-nav-menu isolate="{{ isolate }}">
 	</isolate-nav-menu>
+        <nav-menu link="{{ '/debugger' + isolate.link) }}" anchor="debugger" last="{{ true }}"></nav-menu>
 	<nav-control></nav-control>
       </nav-bar>
 
@@ -84,7 +85,7 @@
     </template>
     <template if="{{ stack != null }}">
       <ul class="list-group">
-        <template repeat="{{ frame in stack['members'] }}">
+        <template repeat="{{ frame in stack['frames'] }}">
           <li class="list-group-item">
             <debugger-frame frame="{{ frame }}"
                             expand="{{ frame['depth'] == activeFrame }}">

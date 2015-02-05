@@ -43,10 +43,13 @@ class NativeEmitter {
   }
 
   /**
-   * Prepares native classes for emission. Returns the reduced list of classes.
+   * Prepares native classes for emission. Returns the unneeded classes.
    *
    * Removes trivial classes (that can be represented by a super type) and
    * generates properties that have to be added to classes (native or not).
+   *
+   * Updates the `nativeInfo` field of the given classes. This data
+   * must be emitted with the corresponding classes.
    *
    * The interceptors are filtered to avoid emitting trivial interceptors.  For
    * example, if the program contains no code that can distinguish between the
@@ -60,22 +63,16 @@ class NativeEmitter {
    * improves performance when more classes can be treated as leaves.
    *
    * [classes] contains native classes, mixin applications, and user subclasses
-   * of native classes.  *Only* the native classes are returned. The order of
-   * the returned classes is unchanged. (That is, the returned output might
-   * just have classes removed).
-   *
-   * [allAdditionalProperties] is used to collect properties that are pushed up
-   * from the above optimizations onto a non-native class, e.g, `Interceptor`.
+   * of native classes.
    */
-  List<Class> prepareNativeClasses(
-      List<Class> classes,
-      Map<Class, Map<String, jsAst.Expression>> allAdditionalProperties) {
-    // Compute a pre-order traversal of the subclass forest.  We actually want a
-    // post-order traversal but it is easier to compute the pre-order and use it
-    // in reverse.
+  Set<Class> prepareNativeClasses(List<Class> classes) {
+    assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
 
+    // Compute a pre-order traversal of the subclass forest.  We actually want a
+    // post-order traversal but it is easier to compute the pre-order and use it
+    // in reverse.
     List<Class> preOrder = <Class>[];
     Set<Class> seen = new Set<Class>();
 
@@ -209,10 +206,8 @@ class NativeEmitter {
         String encoding = sb.toString();
 
         if (cls.isNative || encoding != '') {
-          Map<String, jsAst.Expression> properties =
-              allAdditionalProperties.putIfAbsent(cls,
-                  () => new Map<String, jsAst.Expression>());
-          properties[backend.namer.nativeSpecProperty] = js.string(encoding);
+          assert(cls.nativeInfo == null);
+          cls.nativeInfo = encoding;
         }
       }
       generateClassInfo(jsInterceptorClass);
@@ -229,8 +224,8 @@ class NativeEmitter {
     //assert(!classElement.hasBackendMembers);
 
     return classes
-        .where((Class cls) => cls.isNative && neededClasses.contains(cls))
-        .toList();
+        .where((Class cls) => cls.isNative && !neededClasses.contains(cls))
+        .toSet();
   }
 
   /**
@@ -276,12 +271,6 @@ class NativeEmitter {
         cls.callStubs.isEmpty &&
         !cls.superclass.isMixinApplication &&
         !cls.fields.any(needsAccessor);
-  }
-
-  void finishGenerateNativeClasses() {
-    // TODO(sra): Put specialized version of getNativeMethods on
-    // `Object.prototype` to avoid checking in `getInterceptor` and
-    // specializations.
   }
 
   void potentiallyConvertDartClosuresToJs(
@@ -349,6 +338,8 @@ class NativeEmitter {
       arguments = argumentsBuffer.sublist(1,
           indexOfLastOptionalArgumentInParameters + 1);
     } else {
+      // Native methods that are not intercepted must be static.
+      assert(invariant(member, member.isStatic));
       receiver = js('this');
       arguments = argumentsBuffer.sublist(0,
           indexOfLastOptionalArgumentInParameters + 1);
@@ -395,42 +386,95 @@ class NativeEmitter {
     return isSupertypeOfNativeClass(element);
   }
 
-  void assembleCode(CodeOutput targetOutput) {
-    List<jsAst.Property> objectProperties = <jsAst.Property>[];
-
-    jsAst.Property addProperty(String name, jsAst.Expression value) {
-      jsAst.Property prop = new jsAst.Property(js.string(name), value);
-      objectProperties.add(prop);
-      return prop;
-    }
-
-    if (hasNativeClasses) {
-      // If the native emitter has been asked to take care of the
-      // noSuchMethod handlers, we do that now.
-      if (handleNoSuchMethod) {
-        emitterTask.oldEmitter.nsmEmitter.emitNoSuchMethodHandlers(addProperty);
-      }
-    }
-
-    // If we have any properties to add to Object.prototype, we run
-    // through them and add them using defineProperty.
-    if (!objectProperties.isEmpty) {
-      jsAst.Expression init = js(r'''
-          (function(table) {
-            for(var key in table)
-              #(Object.prototype, key, table[key]);
-           })(#)''',
-          [ defPropFunction,
-            new jsAst.ObjectInitializer(objectProperties)]);
-
-      if (emitterTask.compiler.enableMinification) {
-        targetOutput.add(';');
-      }
-      targetOutput.addBuffer(jsAst.prettyPrint(
-          new jsAst.ExpressionStatement(init), compiler));
-      targetOutput.add('\n');
-    }
-
-    targetOutput.add('\n');
+  /// Returns a JavaScript template that fills the embedded globals referenced
+  /// by [interceptorsByTagAccess] and [leafTagsAccess].
+  ///
+  /// This code must be invoked for every class that has a native info before
+  /// the program starts.
+  ///
+  /// The [infoAccess] parameter must evaluate to an expression that contains
+  /// the info (as a JavaScript string).
+  ///
+  /// The [constructorAccess] parameter must evaluate to an expression that
+  /// contains the constructor of the class. The constructor's prototype must
+  /// be set up.
+  ///
+  /// The [subclassReadGenerator] function must evaluate to a JS expression
+  /// that returns a reference to the constructor (with evaluated prototype)
+  /// of the given JS expression.
+  ///
+  /// The [interceptorsByTagAccess] must point to the embedded global
+  /// [embeddedNames.INTERCEPTORS_BY_TAG] and must be initialized with an empty
+  /// JS Object (used as a map).
+  ///
+  /// Similarly, the [leafTagsAccess] must point to the embedded global
+  /// [embeddedNames.LEAF_TAGS] and must be initialized with an empty JS Object
+  /// (used as a map).
+  ///
+  /// Both variables are passed in (instead of creating the access here) to
+  /// make sure the caller is aware of these globals.
+  jsAst.Statement buildNativeInfoHandler(
+      jsAst.Expression infoAccess,
+      jsAst.Expression constructorAccess,
+      jsAst.Expression subclassReadGenerator(jsAst.Expression subclass),
+      jsAst.Expression interceptorsByTagAccess,
+      jsAst.Expression leafTagsAccess) {
+    jsAst.Expression subclassRead =
+        subclassReadGenerator(js('subclasses[i]', []));
+    return js.statement('''
+          // The native info looks like this:
+          //
+          // HtmlElement: {
+          //     "%": "HTMLDivElement|HTMLAnchorElement;HTMLElement;FancyButton"
+          //
+          // The first two semicolon-separated parts contain dispatch tags, the
+          // third contains the JavaScript names for classes.
+          //
+          // The tags indicate that JavaScript objects with the dispatch tags
+          // (usually constructor names) HTMLDivElement, HTMLAnchorElement and
+          // HTMLElement all map to the Dart native class named HtmlElement.
+          // The first set is for effective leaf nodes in the hierarchy, the
+          // second set is non-leaf nodes.
+          //
+          // The third part contains the JavaScript names of Dart classes that
+          // extend the native class. Here, FancyButton extends HtmlElement, so
+          // the runtime needs to know that window.HTMLElement.prototype is the
+          // prototype that needs to be extended in creating the custom element.
+          //
+          // The information is used to build tables referenced by
+          // getNativeInterceptor and custom element support.
+          {
+            var nativeSpec = #info.split(";");
+            if (nativeSpec[0]) {
+              var tags = nativeSpec[0].split("|");
+              for (var i = 0; i < tags.length; i++) {
+                #interceptorsByTagAccess[tags[i]] = #constructor;
+                #leafTagsAccess[tags[i]] = true;
+              }
+            }
+            if (nativeSpec[1]) {
+              tags = nativeSpec[1].split("|");
+              if (#allowNativesSubclassing) {
+                if (nativeSpec[2]) {
+                  var subclasses = nativeSpec[2].split("|");
+                  for (var i = 0; i < subclasses.length; i++) {
+                    var subclass = #subclassRead;
+                    subclass.#nativeSuperclassTagName = tags[0];
+                  }
+                }
+                for (i = 0; i < tags.length; i++) {
+                  #interceptorsByTagAccess[tags[i]] = #constructor;
+                  #leafTagsAccess[tags[i]] = false;
+                }
+              }
+            }
+          }
+    ''', {'info': infoAccess,
+          'constructor': constructorAccess,
+          'subclassRead': subclassRead,
+          'interceptorsByTagAccess': interceptorsByTagAccess,
+          'leafTagsAccess': leafTagsAccess,
+          'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
+          'allowNativesSubclassing': true});
   }
 }

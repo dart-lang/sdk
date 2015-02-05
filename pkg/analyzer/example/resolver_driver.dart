@@ -11,26 +11,40 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
-main(List<String> args) {
+const _usage =
+    'Usage: resolve_driver <path_to_sdk> <file_to_resolve> [<packages_root>]';
+
+void main(List<String> args) {
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
 
-  if (args.length != 2) {
-    print('Usage: resolve_driver [path_to_sdk] [file_to_resolve]');
+  if (args.length < 2 || args.length > 3) {
+    print(_usage);
     exit(0);
+  }
+
+  String packageRoot;
+  if (args.length == 3) {
+    packageRoot = args[2];
   }
 
   JavaSystemIO.setProperty("com.google.dart.sdk", args[0]);
   DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
 
-  AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-  context.sourceFactory =
-      new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
+  var resolvers = [new DartUriResolver(sdk), new FileUriResolver()];
+
+  if (packageRoot != null) {
+    var packageDirectory = new JavaFile(packageRoot);
+    resolvers.add(new PackageUriResolver([packageDirectory]));
+  }
+
+  AnalysisContext context = AnalysisEngine.instance.createAnalysisContext()
+    ..sourceFactory = new SourceFactory(resolvers);
+
   Source source = new FileBasedSource.con1(new JavaFile(args[1]));
-  //
-  ChangeSet changeSet = new ChangeSet();
-  changeSet.addedSource(source);
+  ChangeSet changeSet = new ChangeSet()..addedSource(source);
   context.applyChanges(changeSet);
   LibraryElement libElement = context.computeLibraryElement(source);
   print("libElement: $libElement");
@@ -43,19 +57,20 @@ main(List<String> args) {
 
 class _ASTVisitor extends GeneralizingAstVisitor {
   visitNode(AstNode node) {
-    String text = '${node.runtimeType} : <"$node">';
+    var lines = <String>['${node.runtimeType} : <"$node">'];
     if (node is SimpleIdentifier) {
       Element element = node.staticElement;
       if (element != null) {
-        text += " element: ${element.runtimeType}";
+        lines.add('  element: ${element.runtimeType}');
         LibraryElement library = element.library;
         if (library != null) {
-          text +=
-              " from ${element.library.definingCompilationUnit.source.fullName}";
+          var fullName =
+              element.library.definingCompilationUnit.source.fullName;
+          lines.add("  from $fullName");
         }
       }
     }
-    print(text);
+    print(lines.join('\n'));
     return super.visitNode(node);
   }
 }

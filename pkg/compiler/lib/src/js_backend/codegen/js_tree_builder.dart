@@ -42,10 +42,12 @@ class JsTreeBuilder extends Builder {
 
   Expression visitInterceptor(cps_ir.Interceptor node) {
     Element getInterceptor = _glue.getInterceptorMethod;
+    String name = _glue.getInterceptorName(node.interceptedClasses);
+    Selector selector = new Selector.call(name, null, 1);
     _glue.registerUseInterceptorInCodegen();
     return new InvokeStatic(
         getInterceptor,
-        new Selector.fromElement(getInterceptor),
+        selector,
         <Expression>[getVariableReference(node.input)]);
   }
 

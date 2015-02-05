@@ -455,6 +455,8 @@ Isolate::Isolate()
       debugger_(NULL),
       single_step_(false),
       resume_request_(false),
+      has_compiled_(false),
+      strict_compilation_(false),
       random_(),
       simulator_(NULL),
       long_jump_base_(NULL),
@@ -554,7 +556,7 @@ Isolate::Isolate(Isolate* original)
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
-  delete [] name_;
+  free(name_);
   delete heap_;
   delete object_store_;
   delete api_state_;
@@ -682,9 +684,13 @@ void Isolate::BuildName(const char* name_prefix) {
   if (name_prefix == NULL) {
     name_prefix = "isolate";
   }
+  if (Service::IsServiceIsolateName(name_prefix)) {
+    name_ = strdup(name_prefix);
+    return;
+  }
   const char* kFormat = "%s-%lld";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, name_prefix, main_port()) + 1;
-  name_ = new char[len];
+  name_ = reinterpret_cast<char*>(malloc(len));
   OS::SNPrint(name_, len, kFormat, name_prefix, main_port());
 }
 
@@ -1102,9 +1108,6 @@ void Isolate::Shutdown() {
     // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
 
-    // Write out profiler data if requested.
-    Profiler::WriteProfile(this);
-
     // Write out the coverage data if collection has been enabled.
     CodeCoverage::Write(this);
 
@@ -1146,7 +1149,6 @@ Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
-Dart_ServiceIsolateCreateCalback Isolate::service_create_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;

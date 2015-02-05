@@ -76,9 +76,8 @@ void main() {
     Expect.notEquals(ou_lib1, ou_lib2);
     Expect.notEquals(ou_lib4_1, ou_lib4_2);
     Expect.notEquals(ou_lib1, ou_lib4_2);
-    // InputElement is native, so it should not appear on a classList
-    Expect.isFalse(outputClassLists[outputUnitForElement(inputElement)]
-        .contains(inputElement));
+    // InputElement is native, so it should be in the mainOutputUnit.
+    Expect.equals(mainOutputUnit, outputUnitForElement(inputElement));
 
     var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
 

@@ -49,9 +49,9 @@ class Builder extends cps_ir.Visitor<Node> {
   /// Maps variable/parameter elements to the Tree variables that represent it.
   final Map<Local, List<Variable>> local2variables = <Local, List<Variable>>{};
 
-  /// Like [local2variables], except for closure variables.
-  final Map<cps_ir.ClosureVariable, Variable> local2closure =
-      <cps_ir.ClosureVariable, Variable>{};
+  /// Like [local2variables], except for mutable variables.
+  final Map<cps_ir.MutableVariable, Variable> local2mutable =
+      <cps_ir.MutableVariable, Variable>{};
 
   // Continuations with more than one use are replaced with Tree labels.  This
   // is the mapping from continuations to labels.
@@ -72,12 +72,22 @@ class Builder extends cps_ir.Visitor<Node> {
   /// variables.
   Variable phiTempVar;
 
-  Variable getClosureVariable(cps_ir.ClosureVariable irVariable) {
+  Variable addMutableVariable(cps_ir.MutableVariable irVariable) {
     if (irVariable.host != currentElement) {
-      return parent.getClosureVariable(irVariable);
+      return parent.addMutableVariable(irVariable);
     }
-    return local2closure.putIfAbsent(irVariable,
-        () => new Variable(currentElement, irVariable.hint));
+    assert(!local2mutable.containsKey(irVariable));
+    Variable variable = new Variable(currentElement, irVariable.hint);
+    local2mutable[irVariable] = variable;
+    return variable;
+  }
+
+  Variable getMutableVariableReference(
+        cps_ir.Reference<cps_ir.MutableVariable> reference) {
+    if (reference.definition.host != currentElement) {
+      return parent.getMutableVariableReference(reference);
+    }
+    return local2mutable[reference.definition];
   }
 
   /// Obtains the variable representing the given primitive. Returns null for
@@ -137,11 +147,11 @@ class Builder extends cps_ir.Visitor<Node> {
     return new FieldDefinition(node.element, body);
   }
 
-  Variable getFunctionParameter(cps_ir.Definition variable) {
+  Variable addFunctionParameter(cps_ir.Definition variable) {
     if (variable is cps_ir.Parameter) {
       return getVariable(variable);
     } else {
-      return getClosureVariable(variable as cps_ir.ClosureVariable);
+      return addMutableVariable(variable as cps_ir.MutableVariable);
     }
   }
 
@@ -149,7 +159,7 @@ class Builder extends cps_ir.Visitor<Node> {
     currentElement = node.element;
     List<Variable> parameters = <Variable>[];
     for (cps_ir.Definition p in node.parameters) {
-      Variable parameter = getFunctionParameter(p);
+      Variable parameter = addFunctionParameter(p);
       assert(parameter != null);
       ++parameter.writeCount; // Being a parameter counts as a write.
       parameters.add(parameter);
@@ -170,7 +180,7 @@ class Builder extends cps_ir.Visitor<Node> {
     currentElement = node.element;
     List<Variable> parameters = <Variable>[];
     for (cps_ir.Definition p in node.parameters) {
-      Variable parameter = getFunctionParameter(p);
+      Variable parameter = addFunctionParameter(p);
       assert(parameter != null);
       ++parameter.writeCount; // Being a parameter counts as a write.
       parameters.add(parameter);
@@ -431,19 +441,24 @@ class Builder extends cps_ir.Visitor<Node> {
     }
   }
 
-  Expression visitGetClosureVariable(cps_ir.GetClosureVariable node) {
-    return getClosureVariable(node.variable.definition);
+  Statement visitLetMutable(cps_ir.LetMutable node) {
+    Variable variable = addMutableVariable(node.variable);
+    Expression value = getVariableReference(node.value);
+    return new Assign(variable, value, visit(node.body), isDeclaration: true);
   }
 
-  Statement visitSetClosureVariable(cps_ir.SetClosureVariable node) {
-    Variable variable = getClosureVariable(node.variable.definition);
+  Expression visitGetMutableVariable(cps_ir.GetMutableVariable node) {
+    return getMutableVariableReference(node.variable);
+  }
+
+  Statement visitSetMutableVariable(cps_ir.SetMutableVariable node) {
+    Variable variable = getMutableVariableReference(node.variable);
     Expression value = getVariableReference(node.value);
-    return new Assign(variable, value, visit(node.body),
-                      isDeclaration: node.isDeclaration);
+    return new Assign(variable, value, visit(node.body));
   }
 
   Statement visitDeclareFunction(cps_ir.DeclareFunction node) {
-    Variable variable = getClosureVariable(node.variable.definition);
+    Variable variable = addMutableVariable(node.variable);
     FunctionDefinition function = makeSubFunction(node.definition);
     return new FunctionDeclaration(variable, function, visit(node.body));
   }

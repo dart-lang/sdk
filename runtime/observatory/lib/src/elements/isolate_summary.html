@@ -162,17 +162,17 @@
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/profiler' + isolate.link) }}">cpu profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/allocation-profiler' + isolate.link) }}">allocation profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/heap-map' + isolate.link) }}">heap map</a>
           </div>
         </div>
         <div class="memberItem">

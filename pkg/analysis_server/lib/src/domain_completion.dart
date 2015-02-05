@@ -63,7 +63,7 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Performance for the last priority change event.
    */
-  CompletionPerformance priorityChangedPerformance;
+  CompletionPerformance computeCachePerformance;
 
   /**
    * Initialize a new request handler for the given [server].
@@ -136,23 +136,23 @@ class CompletionDomainHandler implements RequestHandler {
    */
   void priorityChanged(PriorityChangeEvent event) {
     Source source = event.firstSource;
-    priorityChangedPerformance = new CompletionPerformance();
-    priorityChangedPerformance.source = source;
-    if (source != null) {
-      AnalysisContext context = server.getAnalysisContextForSource(source);
-      if (context != null) {
-        String computeTag = 'computeCache';
-        priorityChangedPerformance.logStartTime(computeTag);
-        CompletionManager manager = completionManagerFor(context, source);
-        manager.computeCache().then((bool success) {
-          priorityChangedPerformance.logElapseTime(computeTag);
-          priorityChangedPerformance.complete(
-              'priorityChanged caching: $success');
-        });
-        return;
-      }
+    CompletionPerformance performance = new CompletionPerformance();
+    computeCachePerformance = performance;
+    if (source == null) {
+      performance.complete('priorityChanged caching: no source');
+      return;
     }
-    priorityChangedPerformance.complete();
+    performance.source = source;
+    AnalysisContext context = server.getAnalysisContextForSource(source);
+    if (context != null) {
+      String computeTag = 'computeCache';
+      performance.logStartTime(computeTag);
+      CompletionManager manager = completionManagerFor(context, source);
+      manager.computeCache().then((bool success) {
+        performance.logElapseTime(computeTag);
+        performance.complete('priorityChanged caching: $success');
+      });
+    }
   }
 
   /**
@@ -204,10 +204,6 @@ class CompletionDomainHandler implements RequestHandler {
   void recordRequest(CompletionPerformance performance, AnalysisContext context,
       Source source, int offset) {
     performance.source = source;
-    if (priorityChangedPerformance != null &&
-        priorityChangedPerformance.source != source) {
-      priorityChangedPerformance = null;
-    }
     if (performanceListMaxLength == 0 || context == null || source == null) {
       return;
     }

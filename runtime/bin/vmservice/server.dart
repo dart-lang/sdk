@@ -30,20 +30,29 @@ class WebSocketClient extends Client {
         socket.close(NOT_MAP_ERROR_CODE, 'Message must be a JSON map.');
         return;
       }
-      var seq = map['seq'];
-      onMessage(seq, new Message.fromUri(Uri.parse(map['request'])));
+      var serial = map['id'];
+
+      // If the map contains 'params' then this is a JsonRPC message.
+      // We are currently in the process of switching the vmservice over to
+      // JsonRPC.
+      if (map['params'] != null) {
+        onMessage(serial, new Message.fromJsonRpc(map['method'],
+                                                  map['params']));
+      } else {
+        onMessage(serial, new Message.fromUri(Uri.parse(map['method'])));
+      }
     } else {
       socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
     }
   }
 
-  void post(var seq, dynamic response) {
+  void post(var serial, dynamic response) {
     try {
       Map map = {
-        'seq': seq,
+        'id': serial,
         'response': response
       };
-      if (seq == null && response is! String) {
+      if (serial == null && response is! String) {
         socket.add(response);
       } else {
         socket.add(JSON.encode(map));
@@ -69,7 +78,7 @@ class HttpRequestClient extends Client {
 
   HttpRequestClient(this.request, service) : super(service);
 
-  void post(var seq, String response) {
+  void post(var serial, String response) {
     request.response..headers.contentType = jsonContentType
                     ..write(response)
                     ..close();
@@ -165,15 +174,17 @@ class Server {
     return HttpServer.bind(_ip, _port).then((s) {
       _server = s;
       _server.listen(_requestHandler);
+      var ip = _server.address.address.toString();
       if (_displayMessages) {
-        var ip = _server.address.address.toString();
         var port = _server.port.toString();
         print('Observatory listening on http://$ip:$port');
       }
       // Server is up and running.
+      _notifyServerState(ip, _server.port);
       return this;
     }).catchError((e, st) {
       print('Could not start Observatory HTTP server:\n$e\n$st\n');
+      _notifyServerState("", 0);
       return this;
     });
   }
@@ -195,12 +206,17 @@ class Server {
         print('Observatory no longer listening on http://$ip:$port');
       }
       _server = null;
+      _notifyServerState("", 0);
       return this;
     }).catchError((e, st) {
       _server = null;
       print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
+      _notifyServerState("", 0);
       return this;
     });
   }
 
 }
+
+void _notifyServerState(String ip, int port)
+    native "VMServiceIO_NotifyServerState";

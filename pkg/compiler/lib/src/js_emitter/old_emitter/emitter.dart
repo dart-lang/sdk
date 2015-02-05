@@ -13,7 +13,6 @@ class OldEmitter implements Emitter {
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
   final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
-  final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
   final Set<ConstantValue> cachedEmittedConstants;
@@ -47,13 +46,9 @@ class OldEmitter implements Emitter {
       => task.outputClassLists;
   Map<OutputUnit, List<ConstantValue>> get outputConstantLists
       => task.outputConstantLists;
-  List<ClassElement> get nativeClasses => task.nativeClasses;
   final Map<String, String> mangledFieldNames = <String, String>{};
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
-
-  final Map<Class, Map<String, jsAst.Expression>> additionalProperties =
-      new Map<Class, Map<String, jsAst.Expression>>();
 
   List<TypedefElement> get typedefsNeededForReflection =>
       task.typedefsNeededForReflection;
@@ -106,7 +101,6 @@ class OldEmitter implements Emitter {
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
     interceptorEmitter.emitter = this;
-    metadataEmitter.emitter = this;
   }
 
   List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
@@ -324,7 +318,7 @@ class OldEmitter implements Emitter {
     bool hasIsolateSupport = compiler.hasIsolateSupport;
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
 
-    jsAst.Expression defineClass = js('''
+    jsAst.Expression defineClass = js(r'''
         function(name, fields) {
           var accessors = [];
 
@@ -339,23 +333,25 @@ class OldEmitter implements Emitter {
             if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
             var parameter = "parameter_" + field;
             str += parameter;
-            body += ("this." + field + " = " + parameter + ";\\n");
+            body += ("this." + field + " = " + parameter + ";\n");
           }
-          str += ") {\\n" + body + "}\\n";
-          str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
-          str += "\$desc=\$collectedClasses." + name + ";\\n";
-          str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n";
-          str += name + ".prototype = \$desc;\\n";
+          str += ") {\n" + body + "}\n";
+          str += name + ".builtin$cls=\"" + name + "\";\n";
+          str += "$desc=$collectedClasses." + name + ";\n";
+          str += "if($desc instanceof Array) $desc = \$desc[1];\n";
+          str += name + ".prototype = $desc;\n";
           if (typeof defineClass.name != "string") {
-            str += name + ".name=\\"" + name + "\\";\\n";
+            str += name + ".name=\"" + name + "\";\n";
           }
           if (#hasIsolateSupport) {
-            str += name + ".$fieldNamesProperty=[" + fieldNames + "];\\n";
+            str += name + "." + #fieldNamesProperty + "=[" + fieldNames
+                   + "];\n";
           }
           str += accessors.join("");
 
           return str;
-        }''', { 'hasIsolateSupport': hasIsolateSupport });
+        }''', { 'hasIsolateSupport': hasIsolateSupport,
+                'fieldNamesProperty': js.string(fieldNamesProperty)});
 
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction.
@@ -426,6 +422,7 @@ class OldEmitter implements Emitter {
               // Fix up the the Dart Object class' prototype.
               var prototype = constructor.prototype;
               prototype.constructor = constructor;
+              prototype.#isObject = constructor;
               return prototype;
             }
             tmp.prototype = superConstructor.prototype;
@@ -436,12 +433,16 @@ class OldEmitter implements Emitter {
                 object[member] = properties[member];
               }
             }
+            // Use a function for `true` here, as functions are stored in the
+            // hidden class and not as properties in the object.
+            object[#operatorIsPrefix + constructor.name] = constructor;
             object.constructor = constructor;
             constructor.prototype = object;
             return object;
           };
         }()
-      ''');
+      ''', { 'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
+             'isObject' : namer.operatorIs(compiler.objectClass) });
     if (compiler.hasIncrementalSupport) {
       result = js(
           r'#.inheritFrom = #', [namer.accessIncrementalHelper, result]);
@@ -449,15 +450,26 @@ class OldEmitter implements Emitter {
     return js(r'var inheritFrom = #', [result]);
   }
 
-  jsAst.Statement buildFinishClass() {
+  jsAst.Statement buildFinishClass(bool hasNativeClasses) {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
 
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
+
+    jsAst.Expression nativeInfoAccess = js('prototype[$specProperty]', []);
+    jsAst.Expression constructorAccess = js('constructor', []);
+    Function subclassReadGenerator =
+        (jsAst.Expression subclass) => js('allClasses[#]', subclass);
     jsAst.Expression interceptorsByTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
     jsAst.Expression leafTagsAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
+    jsAst.Statement nativeInfoHandler = nativeEmitter.buildNativeInfoHandler(
+        nativeInfoAccess,
+        constructorAccess,
+        subclassReadGenerator,
+        interceptorsByTagAccess,
+        leafTagsAccess);
 
     return js.statement('''
     {
@@ -504,63 +516,14 @@ class OldEmitter implements Emitter {
         var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
-        if (#hasNativeClasses) {
-          // The property looks like this:
-          //
-          // HtmlElement: {
-          //     "%": "HTMLDivElement|HTMLAnchorElement;HTMLElement;FancyButton"
-          //
-          // The first two semicolon-separated parts contain dispatch tags, the
-          // third contains the JavaScript names for classes.
-          //
-          // The tags indicate that JavaScript objects with the dispatch tags
-          // (usually constructor names) HTMLDivElement, HTMLAnchorElement and
-          // HTMLElement all map to the Dart native class named HtmlElement.
-          // The first set is for effective leaf nodes in the hierarchy, the
-          // second set is non-leaf nodes.
-          //
-          // The third part contains the JavaScript names of Dart classes that
-          // extend the native class. Here, FancyButton extends HtmlElement, so
-          // the runtime needs to know that window.HTMLElement.prototype is the
-          // prototype that needs to be extended in creating the custom element.
-          //
-          // The information is used to build tables referenced by
-          // getNativeInterceptor and custom element support.
-          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty)) {
-            var nativeSpec = prototype[$specProperty].split(";");
-            if (nativeSpec[0]) {
-              var tags = nativeSpec[0].split("|");
-              for (var i = 0; i < tags.length; i++) {
-                #interceptorsByTagAccess[tags[i]] = constructor;
-                #leafTagsAccess[tags[i]] = true;
-              }
-            }
-            if (nativeSpec[1]) {
-              tags = nativeSpec[1].split("|");
-              if (#allowNativesSubclassing) {
-                if (nativeSpec[2]) {
-                  var subclasses = nativeSpec[2].split("|");
-                  for (var i = 0; i < subclasses.length; i++) {
-                    var subclass = allClasses[subclasses[i]];
-                    subclass.#nativeSuperclassTagName = tags[0];
-                  }
-                }
-                for (i = 0; i < tags.length; i++) {
-                  #interceptorsByTagAccess[tags[i]] = constructor;
-                  #leafTagsAccess[tags[i]] = false;
-                }
-              }
-            }
-          }
-        }
+        if (#hasNativeClasses)
+          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty))
+            #nativeInfoHandler
       }
     }''', {'finishedClassesAccess': finishedClassesAccess,
            'needsMixinSupport': needsMixinSupport,
-           'hasNativeClasses': nativeClasses.isNotEmpty,
-           'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
-           'interceptorsByTagAccess': interceptorsByTagAccess,
-           'leafTagsAccess': leafTagsAccess,
-           'allowNativesSubclassing': true});
+           'hasNativeClasses': hasNativeClasses,
+           'nativeInfoHandler': nativeInfoHandler});
   }
 
   void emitFinishIsolateConstructorInvocation(CodeOutput output) {
@@ -722,8 +685,7 @@ class OldEmitter implements Emitter {
         ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
               ClassBuilder builder = new ClassBuilder(classElement, namer);
-              classEmitter.emitClass(
-                  cls, builder, additionalProperties[cls]);
+              classEmitter.emitClass(cls, builder);
               return builder;
             });
         invariant(classElement, cachedBuilder.fields.isEmpty);
@@ -732,22 +694,21 @@ class OldEmitter implements Emitter {
         invariant(classElement, cachedBuilder.fieldMetadata == null);
         enclosingBuilder.properties.addAll(cachedBuilder.properties);
       } else {
-        classEmitter.emitClass(
-            cls, enclosingBuilder, additionalProperties[cls]);
+        classEmitter.emitClass(cls, enclosingBuilder);
       }
     });
   }
 
   void emitStaticFunctions(Iterable<Method> staticFunctions) {
     if (staticFunctions == null) return;
-    // We need to filter out null-elements for the interceptors.
-    Iterable<Element> elements = staticFunctions
-        .where((Method method) => method.element != null)
-        .map((Method method) => method.element);
 
-    for (Element element in elements) {
+    for (Method method in staticFunctions) {
+      Element element = method.element;
+      // We need to filter out null-elements for the interceptors.
+      // TODO(floitsch): use the precomputed interceptors here.
+      if (element == null) continue;
       ClassBuilder builder = new ClassBuilder(element, namer);
-      containerBuilder.addMember(element, builder);
+      containerBuilder.addMemberMethod(method, builder);
       getElementDescriptor(element).properties.addAll(builder.properties);
     }
   }
@@ -831,6 +792,23 @@ class OldEmitter implements Emitter {
             js.string(namer.getNameX(element)),
             js.string(namer.getLazyInitializerName(element)),
             code]);
+  }
+
+  void emitMetadata(List<String> globalMetadata, CodeOutput output) {
+    String metadataAccess =
+        generateEmbeddedGlobalAccessString(embeddedNames.METADATA);
+    output.add('$metadataAccess$_=$_[');
+    for (String metadata in globalMetadata) {
+      if (metadata is String) {
+        if (metadata != 'null') {
+          output.add(metadata);
+        }
+      } else {
+        throw 'Unexpected value in metadata: ${Error.safeToString(metadata)}';
+      }
+      output.add(',$n');
+    }
+    output.add('];$n');
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
@@ -1024,6 +1002,8 @@ class OldEmitter implements Emitter {
     String isolate = namer.currentIsolate;
     jsAst.Expression allClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+    jsAst.Expression getTypeFromNameAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.GET_TYPE_FROM_NAME);
     jsAst.Expression interceptorsByTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
     jsAst.Expression leafTagsAccess =
@@ -1039,6 +1019,7 @@ class OldEmitter implements Emitter {
       function init() {
         $isolateProperties = Object.create(null);
         #allClasses = Object.create(null);
+        #getTypeFromName = function(name) {return #allClasses[name];};
         #interceptorsByTag = Object.create(null);
         #leafTags = Object.create(null);
         #finishedClasses = Object.create(null);
@@ -1131,6 +1112,7 @@ class OldEmitter implements Emitter {
       }
 
       }''', {'allClasses': allClassesAccess,
+            'getTypeFromName': getTypeFromNameAccess,
             'interceptorsByTag': interceptorsByTagAccess,
             'leafTags': leafTagsAccess,
             'finishedClasses': finishedClassesAccess,
@@ -1202,7 +1184,7 @@ class OldEmitter implements Emitter {
         library.getLibraryName() :
         "";
 
-    jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
+    jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
     jsAst.ObjectInitializer initializers = descriptor.toObjectInitializer();
 
@@ -1271,7 +1253,7 @@ class OldEmitter implements Emitter {
       LibraryElement library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
       DartType type = typedef.alias;
-      int typeIndex = metadataEmitter.reifyType(type);
+      int typeIndex = task.metadataCollector.reifyType(type);
       ClassBuilder builder = new ClassBuilder(typedef, namer);
       builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
                           js.number(typeIndex));
@@ -1375,8 +1357,7 @@ class OldEmitter implements Emitter {
   }
 
   void emitMainOutputUnit(Program program,
-                          Map<OutputUnit, String> deferredLoadHashes,
-                          CodeBuffer nativeBuffer) {
+                          Map<OutputUnit, String> deferredLoadHashes) {
     Fragment mainFragment = program.fragments.first;
     OutputUnit mainOutputUnit = mainFragment.outputUnit;
 
@@ -1489,10 +1470,11 @@ class OldEmitter implements Emitter {
       elementDescriptors.remove(library);
     }
 
+    bool hasNativeClasses = program.outputContainsNativeClasses;
     mainOutput
         ..addBuffer(
             jsAst.prettyPrint(
-                getReflectionDataParser(this, backend),
+                getReflectionDataParser(this, backend, hasNativeClasses),
                 compiler))
         ..add(n);
 
@@ -1527,13 +1509,12 @@ class OldEmitter implements Emitter {
     // Static field initializations require the classes and compile-time
     // constants to be set up.
     emitStaticNonFinalFieldInitializations(mainOutput, mainOutputUnit);
-    interceptorEmitter.emitMapTypeToInterceptor(mainOutput);
+    interceptorEmitter.emitTypeToInterceptorMap(program, mainOutput);
     emitLazilyInitializedStaticFields(mainOutput);
 
     mainOutput.add('\n');
-    mainOutput.addBuffer(nativeBuffer);
 
-    metadataEmitter.emitMetadata(mainOutput);
+    emitMetadata(task.metadataCollector.globalMetadata, mainOutput);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the
@@ -1765,32 +1746,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return emitDeferredCode(program, outputBuffers);
   }
 
-  CodeBuffer buildNativesBuffer(Program program) {
-    // Emit native classes on [nativeBuffer].
-    // TODO(johnniwinther): Avoid creating a [CodeBuffer].
-    final CodeBuffer nativeBuffer = new CodeBuffer();
-
-    if (program.nativeClasses.isEmpty) return nativeBuffer;
-
-
-    addComment('Native classes', nativeBuffer);
-
-    List<Class> neededClasses =
-        nativeEmitter.prepareNativeClasses(program.nativeClasses,
-                                           additionalProperties);
-
-    for (Class cls in neededClasses) {
-      assert(cls.isNative);
-      ClassBuilder enclosingBuilder = getElementDescriptor(cls.element);
-      emitClass(cls, enclosingBuilder);
-    }
-
-    nativeEmitter.finishGenerateNativeClasses();
-    nativeEmitter.assembleCode(nativeBuffer);
-
-    return nativeBuffer;
-  }
-
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram(
         storeFunctionTypesInMetadata: true);
@@ -1805,8 +1760,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     // itself.
     Map<OutputUnit, String> deferredLoadHashes =
         emitDeferredOutputUnits(program);
-    CodeBuffer nativeBuffer = buildNativesBuffer(program);
-    emitMainOutputUnit(program, deferredLoadHashes, nativeBuffer);
+    emitMainOutputUnit(program, deferredLoadHashes);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {

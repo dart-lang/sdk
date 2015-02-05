@@ -18,20 +18,19 @@ abstract class LineColumnProvider {
 /// [CodeOutputListener] that collects line information.
 class LineColumnCollector extends CodeOutputListener
     implements LineColumnProvider {
-  int lastLineStart = 0;
+  int length = 0;
   List<int> lineStarts = <int>[0];
 
   void _collect(String text) {
-    int offset = lastLineStart;
     int index = 0;
     while (index < text.length) {
       // Unix uses '\n' and Windows uses '\r\n', so this algorithm works for
       // both platforms.
       index = text.indexOf('\n', index) + 1;
       if (index <= 0) break;
-      lastLineStart = offset + index;
-      lineStarts.add(lastLineStart);
+      lineStarts.add(length + index);
     }
+    length += text.length;
   }
 
   @override
@@ -43,7 +42,7 @@ class LineColumnCollector extends CodeOutputListener
   int getLine(int offset) {
     List<int> starts = lineStarts;
     if (offset < 0 || starts.last <= offset) {
-      throw 'bad position #$offset in buffer with length ${lineStarts.last}.';
+      throw 'bad position #$offset in buffer with length ${length}.';
     }
     int first = 0;
     int count = starts.length;
@@ -68,6 +67,11 @@ class LineColumnCollector extends CodeOutputListener
 
   @override
   void onDone(int length) {
-    lineStarts.add(length);
+    lineStarts.add(length + 1);
+    this.length = length;
+  }
+
+  String toString() {
+    return 'lineStarts=$lineStarts,length=$length';
   }
 }

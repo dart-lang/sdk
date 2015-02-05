@@ -236,7 +236,6 @@ part 'service_object.dart';
 part 'socket.dart';
 part 'stdio.dart';
 part 'string_transformer.dart';
-part 'timer_impl.dart';
 part 'secure_socket.dart';
 part 'secure_server_socket.dart';
 part 'websocket.dart';

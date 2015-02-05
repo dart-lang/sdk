@@ -155,11 +155,13 @@ final Matcher isAnalysisGetLibraryDependenciesParams = isNull;
  *
  * {
  *   "libraries": List<FilePath>
+ *   "packageMap": Map<String, Map<String, List<FilePath>>>
  * }
  */
 final Matcher isAnalysisGetLibraryDependenciesResult = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.getLibraryDependencies result", {
-    "libraries": isListOf(isFilePath)
+    "libraries": isListOf(isFilePath),
+    "packageMap": isMapOf(isString, isMapOf(isString, isListOf(isFilePath)))
   }));
 
 /**
@@ -1800,6 +1802,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
+ *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
  *   SORT_MEMBERS_INVALID_FILE
@@ -1816,6 +1819,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
   "INVALID_REQUEST",
+  "REFACTORING_REQUEST_CANCELLED",
   "SERVER_ALREADY_STARTED",
   "SERVER_ERROR",
   "SORT_MEMBERS_INVALID_FILE",

@@ -13,7 +13,6 @@ import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 import '../cps_ir/optimizers.dart';
-import '../closure.dart' show ClosureClassElement;
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -108,7 +107,7 @@ class Reference<T extends Definition<T>> {
 /// Binding a value (primitive or constant): 'let val x = V in E'.  The bound
 /// value is in scope in the body.
 /// During one-pass construction a LetVal with an empty body is used to
-/// represent one-level context 'let val x = V in []'.
+/// represent the one-hole context 'let val x = V in []'.
 class LetPrim extends Expression implements InteriorNode {
   final Primitive primitive;
   Expression body;
@@ -134,7 +133,7 @@ class LetPrim extends Expression implements InteriorNode {
 /// The bound continuations are in scope in the body and the continuation
 /// parameters are in scope in the respective continuation bodies.
 /// During one-pass construction a LetCont whose first continuation has an empty
-/// body is used to represent the one-level context
+/// body is used to represent the one-hole context
 /// 'let cont ... k(v) = [] ... in E'.
 class LetCont extends Expression implements InteriorNode {
   List<Continuation> continuations;
@@ -153,6 +152,30 @@ class LetCont extends Expression implements InteriorNode {
   }
 
   accept(Visitor visitor) => visitor.visitLetCont(this);
+}
+
+/// Binding mutable variables.
+///
+/// let mutable v = P in E
+///
+/// [MutableVariable]s can be seen as ref cells that are not first-class
+/// values.  They are therefore not [Primitive]s and not bound by [LetPrim]
+/// to prevent unrestricted use of references to them.  During one-pass
+/// construction, a [LetMutable] with an empty body is use to represent the
+/// one-hole context 'let mutable v = P in []'.
+class LetMutable extends Expression implements InteriorNode {
+  final MutableVariable variable;
+  final Reference<Primitive> value;
+  Expression body;
+
+  LetMutable(this.variable, Primitive value)
+      : this.value = new Reference<Primitive>(value);
+
+  Expression plug(Expression expr) {
+    return body = expr;
+  }
+
+  accept(Visitor visitor) => visitor.visitLetMutable(this);
 }
 
 abstract class Invoke {
@@ -197,37 +220,70 @@ class InvokeStatic extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
+/// A [CallingConvention] codifies how arguments are matched to parameters when
+/// emitting code for a function call.
+class CallingConvention {
+  final String name;
+  const CallingConvention(this.name);
+  /// The normal way of calling a Dart function: Positional arguments are
+  /// matched with (mandatory and optional) positionals parameters from left to
+  /// right and named arguments are matched by name.
+  static const CallingConvention DART = const CallingConvention("Dart call");
+  /// Intercepted calls have an additional first argument that is the actual
+  /// receiver of the call.  See the documentation of [Interceptor] for more
+  /// information.
+  static const CallingConvention JS_INTERCEPTED =
+      const CallingConvention("intercepted JavaScript call");
+}
+
 /// Invoke a method, operator, getter, setter, or index getter/setter.
 /// Converting a method to a function object is treated as a getter invocation.
 class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
-  final Selector selector;
+  Selector selector;
+  CallingConvention callingConvention;
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
 
   InvokeMethod(Primitive receiver,
                Selector selector,
-               Continuation cont,
-               List<Primitive> args)
+               Continuation continuation,
+               List<Primitive> arguments)
       : this.internal(new Reference<Primitive>(receiver),
                       selector,
-                      new Reference<Continuation>(cont),
-                      _referenceList(args));
+                      new Reference<Continuation>(continuation),
+                      _referenceList(arguments));
 
   InvokeMethod.internal(this.receiver,
                         this.selector,
                         this.continuation,
-                        this.arguments) {
-    assert(selector != null);
-    assert(selector.kind == SelectorKind.CALL ||
-           selector.kind == SelectorKind.OPERATOR ||
-           (selector.kind == SelectorKind.GETTER && arguments.isEmpty) ||
-           (selector.kind == SelectorKind.SETTER && arguments.length == 1) ||
-           (selector.kind == SelectorKind.INDEX && arguments.length == 1) ||
-           (selector.kind == SelectorKind.INDEX && arguments.length == 2));
+                        this.arguments,
+                        [this.callingConvention = CallingConvention.DART]) {
+    assert(isValid);
   }
 
-  bool get isIntercepted => receiver.definition is Interceptor;
+  /// Returns whether the arguments match the selector under the given calling
+  /// convention.
+  ///
+  /// This check is designed to be used in an assert, as it also checks that the
+  /// selector, arguments, and calling convention have meaningful values.
+  bool get isValid {
+    if (selector == null || callingConvention == null) return false;
+    if (callingConvention != CallingConvention.DART &&
+        callingConvention != CallingConvention.JS_INTERCEPTED) {
+      return false;
+    }
+    int numberOfArguments =
+        callingConvention == CallingConvention.JS_INTERCEPTED
+            ? arguments.length - 1
+            : arguments.length;
+    return selector.kind == SelectorKind.CALL ||
+           selector.kind == SelectorKind.OPERATOR ||
+           (selector.kind == SelectorKind.GETTER && numberOfArguments == 0) ||
+           (selector.kind == SelectorKind.SETTER && numberOfArguments == 1) ||
+           (selector.kind == SelectorKind.INDEX && numberOfArguments == 1) ||
+           (selector.kind == SelectorKind.INDEX && numberOfArguments == 2);
+  }
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
@@ -351,54 +407,38 @@ class ConcatenateStrings extends Expression {
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
 
-/// Gets the value from a closure variable.
+/// Gets the value from a [MutableVariable].
 ///
-/// Closure variables can be seen as ref cells that are not first-class values.
-/// A [LetPrim] with a [GetClosureVariable] can then be seen as:
+/// [MutableVariable]s can be seen as ref cells that are not first-class
+/// values.  A [LetPrim] with a [GetMutableVariable] can then be seen as:
 ///
 ///   let prim p = ![variable] in [body]
 ///
-class GetClosureVariable extends Primitive {
-  final Reference<ClosureVariable> variable;
+class GetMutableVariable extends Primitive {
+  final Reference<MutableVariable> variable;
 
-  GetClosureVariable(ClosureVariable variable)
-      : this.variable = new Reference<ClosureVariable>(variable);
+  GetMutableVariable(MutableVariable variable)
+      : this.variable = new Reference<MutableVariable>(variable);
 
-  accept(Visitor visitor) => visitor.visitGetClosureVariable(this);
+  accept(Visitor visitor) => visitor.visitGetMutableVariable(this);
 }
 
-/// Assign or declare a closure variable.
+/// Assign a [MutableVariable].
 ///
-/// Closure variables can be seen as ref cells that are not first-class values.
-/// If [isDeclaration], this can seen as a let binding:
+/// [MutableVariable]s can be seen as ref cells that are not first-class
+/// values.  This can be seen as a dereferencing assignment:
 ///
-///   let [variable] = ref [value] in [body]
-///
-/// And otherwise, it can be seen as a dereferencing assignment:
-///
-///   { ![variable] := [value]; [body] }
-///
-/// Closure variables without a declaring [SetClosureVariable] are implicitly
-/// declared at the entry to the [variable]'s enclosing function.
-class SetClosureVariable extends Expression implements InteriorNode {
-  final Reference<ClosureVariable> variable;
+///   { [variable] := [value]; [body] }
+class SetMutableVariable extends Expression implements InteriorNode {
+  final Reference<MutableVariable> variable;
   final Reference<Primitive> value;
   Expression body;
 
-  /// If true, this declares a new copy of the closure variable. If so, all
-  /// uses of the closure variable must occur in the [body].
-  ///
-  /// There can be at most one declaration per closure variable. If there is no
-  /// declaration, only one copy exists (per function execution). It is best to
-  /// avoid declaring closure variables if it is not necessary.
-  final bool isDeclaration;
+  SetMutableVariable(MutableVariable variable, Primitive value)
+      : this.variable = new Reference<MutableVariable>(variable),
+        this.value = new Reference<Primitive>(value);
 
-  SetClosureVariable(ClosureVariable variable, Primitive value,
-                     {this.isDeclaration : false })
-      : this.value = new Reference<Primitive>(value),
-        this.variable = new Reference<ClosureVariable>(variable);
-
-  accept(Visitor visitor) => visitor.visitSetClosureVariable(this);
+  accept(Visitor visitor) => visitor.visitSetMutableVariable(this);
 
   Expression plug(Expression expr) {
     assert(body == null);
@@ -406,21 +446,20 @@ class SetClosureVariable extends Expression implements InteriorNode {
   }
 }
 
-/// Create a potentially recursive function and store it in a closure variable.
-/// The function can access itself using [GetClosureVariable] on [variable].
-/// There must not exist a [SetClosureVariable] to [variable].
+/// Create a potentially recursive function and store it in a [MutableVariable].
+/// The function can access itself using [GetMutableVariable] on [variable].
+/// There must not exist a [SetMutableVariable] to [variable].
 ///
 /// This can be seen as a let rec binding:
 ///
 ///   let rec [variable] = [definition] in [body]
 ///
 class DeclareFunction extends Expression implements InteriorNode {
-  final Reference<ClosureVariable> variable;
+  final MutableVariable variable;
   final FunctionDefinition definition;
   Expression body;
 
-  DeclareFunction(ClosureVariable variable, this.definition)
-      : this.variable = new Reference<ClosureVariable>(variable);
+  DeclareFunction(this.variable, this.definition);
 
   Expression plug(Expression expr) {
     assert(body == null);
@@ -634,7 +673,7 @@ class Parameter extends Primitive {
   // FunctionDefinition, parameters have an index into the list of parameters
   // bound by the parent.  This gives constant-time access to the continuation
   // from the parent.
-  int parent_index;
+  int parentIndex;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
@@ -704,15 +743,15 @@ class FieldDefinition extends Node implements ExecutableDefinition {
   bool get hasInitializer => body != null;
 }
 
-/// Identifies a closure variable.
-class ClosureVariable extends Definition {
-  /// Body of code that declares this closure variable.
+/// Identifies a mutable variable.
+class MutableVariable extends Definition {
+  /// Body of source code that declares this mutable variable.
   ExecutableElement host;
   Entity hint;
 
-  ClosureVariable(this.host, this.hint);
+  MutableVariable(this.host, this.hint);
 
-  accept(Visitor v) => v.visitClosureVariable(this);
+  accept(Visitor v) => v.visitMutableVariable(this);
 }
 
 class RunnableBody extends InteriorNode {
@@ -727,7 +766,7 @@ class RunnableBody extends InteriorNode {
 class FunctionDefinition extends Node
     implements ExecutableDefinition {
   final FunctionElement element;
-  /// Mixed list of [Parameter]s and [ClosureVariable]s.
+  /// Mixed list of [Parameter]s and [MutableVariable]s.
   final List<Definition> parameters;
   final RunnableBody body;
   final List<ConstDeclaration> localConstants;
@@ -735,22 +774,17 @@ class FunctionDefinition extends Node
   /// Values for optional parameters.
   final List<ConstantExpression> defaultParameterValues;
 
-  /// Closure variables declared by this function.
-  final List<ClosureVariable> closureVariables;
-
   FunctionDefinition(this.element,
       this.parameters,
       this.body,
       this.localConstants,
-      this.defaultParameterValues,
-      this.closureVariables);
+      this.defaultParameterValues);
 
   FunctionDefinition.abstract(this.element,
                               this.parameters,
                               this.defaultParameterValues)
       : body = null,
-        localConstants = const <ConstDeclaration>[],
-        closureVariables = const <ClosureVariable>[];
+        localConstants = const <ConstDeclaration>[];
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
   applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
@@ -787,10 +821,9 @@ class ConstructorDefinition extends FunctionDefinition {
                         RunnableBody body,
                         this.initializers,
                         List<ConstDeclaration> localConstants,
-                        List<ConstantExpression> defaultParameterValues,
-                        List<ClosureVariable> closureVariables)
+                        List<ConstantExpression> defaultParameterValues)
       : super(element, parameters, body, localConstants,
-              defaultParameterValues, closureVariables);
+              defaultParameterValues);
 
   // 'Abstract' here means "has no body" and is used to represent external
   // constructors.
@@ -836,6 +869,7 @@ abstract class Visitor<T> {
   // Expressions.
   T visitLetPrim(LetPrim node) => visitExpression(node);
   T visitLetCont(LetCont node) => visitExpression(node);
+  T visitLetMutable(LetMutable node) => visitExpression(node);
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
   T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
@@ -844,7 +878,7 @@ abstract class Visitor<T> {
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
   T visitTypeOperator(TypeOperator node) => visitExpression(node);
-  T visitSetClosureVariable(SetClosureVariable node) => visitExpression(node);
+  T visitSetMutableVariable(SetMutableVariable node) => visitExpression(node);
   T visitDeclareFunction(DeclareFunction node) => visitExpression(node);
   T visitSetField(SetField node) => visitExpression(node);
 
@@ -855,10 +889,10 @@ abstract class Visitor<T> {
   T visitThis(This node) => visitPrimitive(node);
   T visitReifyTypeVar(ReifyTypeVar node) => visitPrimitive(node);
   T visitCreateFunction(CreateFunction node) => visitPrimitive(node);
-  T visitGetClosureVariable(GetClosureVariable node) => visitPrimitive(node);
+  T visitGetMutableVariable(GetMutableVariable node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
-  T visitClosureVariable(ClosureVariable node) => visitDefinition(node);
+  T visitMutableVariable(MutableVariable node) => visitDefinition(node);
   T visitGetField(GetField node) => visitDefinition(node);
   T visitCreateBox(CreateBox node) => visitDefinition(node);
   T visitCreateInstance(CreateInstance node) => visitDefinition(node);
@@ -947,6 +981,14 @@ abstract class RecursiveVisitor extends Visitor {
     visit(node.body);
   }
 
+  processLetMutable(LetMutable node) {}
+  visitLetMutable(LetMutable node) {
+    processLetMutable(node);
+    visit(node.variable);
+    processReference(node.value);
+    visit(node.body);
+  }
+
   processInvokeStatic(InvokeStatic node) {}
   visitInvokeStatic(InvokeStatic node) {
     processInvokeStatic(node);
@@ -1006,9 +1048,10 @@ abstract class RecursiveVisitor extends Visitor {
     processReference(node.receiver);
   }
 
-  processSetClosureVariable(SetClosureVariable node) {}
-  visitSetClosureVariable(SetClosureVariable node) {
-    processSetClosureVariable(node);
+  processSetMutableVariable(SetMutableVariable node) {}
+  visitSetMutableVariable(SetMutableVariable node) {
+    processSetMutableVariable(node);
+    processReference(node.variable);
     processReference(node.value);
     visit(node.body);
   }
@@ -1016,6 +1059,7 @@ abstract class RecursiveVisitor extends Visitor {
   processDeclareFunction(DeclareFunction node) {}
   visitDeclareFunction(DeclareFunction node) {
     processDeclareFunction(node);
+    visit(node.variable);
     visit(node.definition);
     visit(node.body);
   }
@@ -1052,14 +1096,14 @@ abstract class RecursiveVisitor extends Visitor {
     visit(node.definition);
   }
 
-  processClosureVariable(node) {}
-  visitClosureVariable(ClosureVariable node) {
-    processClosureVariable(node);
+  processMutableVariable(node) {}
+  visitMutableVariable(MutableVariable node) {
+    processMutableVariable(node);
   }
 
-  processGetClosureVariable(GetClosureVariable node) {}
-  visitGetClosureVariable(GetClosureVariable node) {
-    processGetClosureVariable(node);
+  processGetMutableVariable(GetMutableVariable node) {}
+  visitGetMutableVariable(GetMutableVariable node) {
+    processGetMutableVariable(node);
   }
 
   processParameter(Parameter node) {}
@@ -1231,6 +1275,11 @@ class RegisterAllocator extends Visitor {
     visit(node.body);
   }
 
+  void visitLetMutable(LetMutable node) {
+    visit(node.body);
+    visitReference(node.value);
+  }
+
   void visitInvokeStatic(InvokeStatic node) {
     node.arguments.forEach(visitReference);
   }
@@ -1289,10 +1338,10 @@ class RegisterAllocator extends Visitor {
     new RegisterAllocator().visit(node.definition);
   }
 
-  void visitGetClosureVariable(GetClosureVariable node) {
+  void visitGetMutableVariable(GetMutableVariable node) {
   }
 
-  void visitSetClosureVariable(SetClosureVariable node) {
+  void visitSetMutableVariable(SetMutableVariable node) {
     visit(node.body);
     visitReference(node.value);
   }

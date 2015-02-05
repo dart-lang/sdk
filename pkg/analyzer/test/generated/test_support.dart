@@ -560,7 +560,7 @@ class TestLogger implements Logger {
 }
 
 
-class TestSource implements Source {
+class TestSource extends Source {
   String _name;
   String _contents;
   int modificationStamp = 0;

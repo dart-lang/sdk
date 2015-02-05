@@ -478,6 +478,32 @@ class B extends A {
     });
   }
 
+  test_mixin_ordering() {
+    // TODO(paulberry): The mixins are visited in the correct order, so we see
+    // M2.m() before M1.m(), as we should.  But the second (shadowed) result
+    // isn't being thrown out as it should.
+    addSource('/libA.dart', '''
+class B {}
+class M1 {
+  void m() {}
+}
+class M2 {
+  void m() {}
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+class C extends B with M1, M2 {
+  void f() {
+    ^
+  }
+}
+''');
+    return computeFull((bool result) {
+      assertSuggestMethod('m', 'M2', 'void');
+    });
+  }
+
   /**
    * Ensure that completions in one context don't appear in another
    */

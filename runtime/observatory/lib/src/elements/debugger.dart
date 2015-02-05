@@ -45,9 +45,9 @@ class DebuggerStackElement extends ObservatoryElement {
   @published int activeFrame = 0;
 
   isolateChanged(oldValue) {
-    isolate.get('stacktrace').then((result) {
+    isolate.getStack().then((result) {
         stack = result;
-      });
+    });
   }
 
   DebuggerStackElement.created() : super.created();

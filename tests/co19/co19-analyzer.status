@@ -4,8 +4,6 @@
 
 [ $compiler == dartanalyzer ]
 
-LibTest/core/RegExp/firstMatch_A01_t01: Fail
-
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 

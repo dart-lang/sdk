@@ -83,9 +83,8 @@ class IsolateViewElement extends ObservatoryElement {
   TagProfileChart tagProfileChart = new TagProfileChart();
   IsolateViewElement.created() : super.created();
 
-  Future<ServiceObject> eval(String text) {
-    return isolate.get(
-        isolate.rootLib.id + "/eval?expr=${Uri.encodeComponent(text)}");
+  Future<ServiceObject> eval(String expression) {
+    return isolate.eval(isolate.rootLib, expression);
   }
 
   void _updateTagProfile() {
@@ -131,7 +130,7 @@ class IsolateViewElement extends ObservatoryElement {
   }
 
   Future pause(_) {
-    return isolate.get("debug/pause").then((result) {
+    return isolate.pause().then((result) {
         // TODO(turnidge): Instead of asserting here, handle errors
         // properly.
         assert(result.type == 'Success');
@@ -140,7 +139,7 @@ class IsolateViewElement extends ObservatoryElement {
   }
 
   Future resume(_) {
-    return isolate.get("resume").then((result) {
+    return isolate.resume().then((result) {
         // TODO(turnidge): Instead of asserting here, handle errors
         // properly.
         assert(result.type == 'Success');

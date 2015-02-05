@@ -409,25 +409,9 @@ DEFINE_NATIVE_ENTRY(Bigint_getNeg, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Bigint_setNeg, 2) {
-  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  const Bool& neg = Bool::CheckedHandle(arguments->NativeArgAt(1));
-  bigint.set_neg(neg);
-  return Object::null();
-}
-
-
 DEFINE_NATIVE_ENTRY(Bigint_getUsed, 1) {
   const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
   return bigint.used();
-}
-
-
-DEFINE_NATIVE_ENTRY(Bigint_setUsed, 2) {
-  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  const Smi& used = Smi::CheckedHandle(arguments->NativeArgAt(1));
-  bigint.set_used(used);
-  return Object::null();
 }
 
 
@@ -437,18 +421,13 @@ DEFINE_NATIVE_ENTRY(Bigint_getDigits, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Bigint_setDigits, 2) {
-  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  const TypedData& digits = TypedData::CheckedHandle(arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Bigint_allocate, 4) {
+  // First arg is null type arguments, since class Bigint is not parameterized.
+  const Bool& neg = Bool::CheckedHandle(arguments->NativeArgAt(1));
+  const Smi& used = Smi::CheckedHandle(arguments->NativeArgAt(2));
+  const TypedData& digits = TypedData::CheckedHandle(arguments->NativeArgAt(3));
   ASSERT(!digits.IsNull());
-  bigint.set_digits(digits);
-  return Object::null();
-}
-
-
-DEFINE_NATIVE_ENTRY(Bigint_allocate, 1) {
-  // Argument is null type arguments, since class Bigint is not parameterized.
-  return Bigint::New();
+  return Bigint::New(neg.value(), used.Value(), digits);
 }
 
 }  // namespace dart

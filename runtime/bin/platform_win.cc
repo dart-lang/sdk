@@ -32,9 +32,18 @@ const char* Platform::OperatingSystem() {
 }
 
 
+const char* Platform::LibraryExtension() {
+  return "dll";
+}
+
+
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
+#if defined(PLATFORM_DISABLE_SOCKET)
+  return false;
+#else
   if (!Socket::Initialize()) return false;
   return gethostname(buffer, buffer_length) == 0;
+#endif
 }
 
 

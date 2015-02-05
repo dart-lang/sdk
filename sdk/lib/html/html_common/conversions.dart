@@ -392,8 +392,11 @@ convertDartToNative_ImageData(ImageData imageData) {
 bool isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
 bool isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);
 bool isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
-bool isJavaScriptSimpleObject(value) =>
-    JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
+bool isJavaScriptSimpleObject(value) {
+  var proto = JS('', 'Object.getPrototypeOf(#)', value);
+  return JS('bool', '# === Object.prototype', proto) ||
+      JS('bool', '# === null', proto);
+}
 bool isImmutableJavaScriptArray(value) =>
     JS('bool', r'!!(#.immutable$list)', value);
 

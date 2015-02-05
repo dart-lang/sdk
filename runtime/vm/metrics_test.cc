@@ -55,7 +55,8 @@ UNIT_TEST_CASE(Metric_OnDemand) {
   metric.PrintJSON(&js);
   const char* json = js.ToCString();
   EXPECT_STREQ("{\"type\":\"Counter\",\"name\":\"a.b.c\",\"description\":"
-               "\"foobar\",\"unit\":\"byte\",\"id\":\"metrics\\/vm\\/a.b.c\""
+               "\"foobar\",\"unit\":\"byte\","
+               "\"id\":\"metrics\\/native\\/a.b.c\""
                ",\"value\":99.000000}", json);
 }
 

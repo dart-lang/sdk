@@ -283,9 +283,6 @@ class MockServerChannel implements ServerCommunicationChannel {
     return responseController.stream.firstWhere((response) {
       return response.id == id;
     });
-//    return responseController.stream.firstWhere((response) {
-//      return response.id == id;
-//    });
   }
 }
 

@@ -211,6 +211,13 @@ abstract class ServiceObject extends Observable {
 
   Future<ServiceObject> _inProgressReload;
 
+  Future<ObservableMap> _fetchDirect() {
+    Map params = {
+      'objectId': id,
+    };
+    return isolate.invokeRpcNoUpgrade('getObject', params);
+  }
+
   /// Reload [this]. Returns a future which completes to [this] or
   /// a [ServiceError].
   Future<ServiceObject> reload() {
@@ -223,7 +230,7 @@ abstract class ServiceObject extends Observable {
       return new Future.value(this);
     }
     if (_inProgressReload == null) {
-      _inProgressReload = vm.getAsMap(link).then((ObservableMap map) {
+      _inProgressReload = _fetchDirect().then((ObservableMap map) {
           var mapType = _stripRef(map['type']);
           if (mapType != _type) {
             // If the type changes, return a new object instead of
@@ -298,14 +305,19 @@ abstract class Coverage {
   }
 
   Future refreshCoverage() {
-    return vm.getAsMap(relativeLink('coverage')).then((ObservableMap map) {
-      var coverageOwner = (type == 'Isolate') ? this : owner;
-      var coverage = new ServiceObject._fromMap(coverageOwner, map);
-      assert(coverage.type == 'CodeCoverage');
-      var coverageList = coverage['coverage'];
-      assert(coverageList != null);
-      processCoverageData(coverageList);
-    });
+    Map params = {};
+    if (this is! Isolate) {
+      params['targetId'] = id;
+    }
+    return isolate.invokeRpcNoUpgrade('getCoverage', params).then(
+        (ObservableMap map) {
+          var coverageOwner = (type == 'Isolate') ? this : owner;
+          var coverage = new ServiceObject._fromMap(coverageOwner, map);
+          assert(coverage.type == 'CodeCoverage');
+          var coverageList = coverage['coverage'];
+          assert(coverageList != null);
+          processCoverageData(coverageList);
+        });
   }
 }
 
@@ -375,7 +387,7 @@ abstract class VM extends ServiceObjectOwner {
 
       // Extract the owning isolate from the event itself.
       String owningIsolateId = map['isolate']['id'];
-      _getIsolate(owningIsolateId).then((owningIsolate) {
+      getIsolate(owningIsolateId).then((owningIsolate) {
           if (owningIsolate == null) {
             // TODO(koda): Do we care about GC events in VM isolate?
             Logger.root.severe(
@@ -414,7 +426,9 @@ abstract class VM extends ServiceObjectOwner {
     throw new UnimplementedError();
   }
 
-  Future<ServiceObject> _getIsolate(String isolateId) {
+  // Note that this function does not reload the isolate if it found
+  // in the cache.
+  Future<ServiceObject> getIsolate(String isolateId) {
     if (isolateId == '') {
       return new Future.value(null);
     }
@@ -424,6 +438,9 @@ abstract class VM extends ServiceObjectOwner {
     }
     // The isolate is not in the cache.  Reload the vm and see if the
     // requested isolate is found.
+    //
+    // TODO(turnidge): We don't want to reload all isolates so much.
+    // Doesn't scale well.  Change this to be more fine-grained.
     return reload().then((result) {
         if (result is! VM) {
           return null;
@@ -433,13 +450,13 @@ abstract class VM extends ServiceObjectOwner {
       });
   }
 
-  Future<ServiceObject> get(String id) {
+  Future<ServiceObject> getDeprecated(String id) {
     assert(id.startsWith('/') == false);
     // Isolates are handled specially, since they can cache sub-objects.
     if (id.startsWith(_isolatesPrefix)) {
       String isolateId = _parseIsolateId(id);
       String objectId = _parseObjectId(id);
-      return _getIsolate(isolateId).then((isolate) {
+      return getIsolate(isolateId).then((isolate) {
         if (isolate == null) {
           // The isolate does not exist.  Return the VM object instead.
           //
@@ -449,7 +466,7 @@ abstract class VM extends ServiceObjectOwner {
         if (objectId == null) {
           return isolate.reload();
         } else {
-          return isolate.get(objectId);
+          return isolate.getDeprecated(objectId);
         }
       });
     }
@@ -460,7 +477,7 @@ abstract class VM extends ServiceObjectOwner {
     }
 
     // Cache miss.  Get the object from the vm directly.
-    return getAsMap(id).then((ObservableMap map) {
+    return _getAsMapDeprecated(id).then((ObservableMap map) {
       var obj = new ServiceObject._fromMap(this, map);
       if (obj.canCache) {
         _cache.putIfAbsent(id, () => obj);
@@ -478,8 +495,13 @@ abstract class VM extends ServiceObjectOwner {
     try {
       var decoder = new JsonDecoder(_reviver);
       map = decoder.convert(response);
-    } catch (e, st) {
-      return null;
+    } catch (e) {
+      return toObservable({
+        'type': 'ServiceException',
+        'kind': 'JSONDecodeException',
+        'response': map,
+        'message': 'Could not decode JSON: $e',
+      });
     }
     return toObservable(map);
   }
@@ -490,10 +512,9 @@ abstract class VM extends ServiceObjectOwner {
       return new Future.error(
             new ServiceObject._fromMap(this, toObservable({
         'type': 'ServiceException',
-        'id': '',
-        'kind': 'FormatException',
+        'kind': 'ResponseFormatException',
         'response': map,
-        'message': 'Top level service responses must be service maps.',
+        'message': 'Top level service responses must be service maps: ${map}.',
       })));
     }
     // Preemptively capture ServiceError and ServiceExceptions.
@@ -506,27 +527,12 @@ abstract class VM extends ServiceObjectOwner {
     return new Future.value(map);
   }
 
-  Future<ObservableMap> _decodeError(e) {
-    return new Future.error(new ServiceObject._fromMap(this, toObservable({
-      'type': 'ServiceException',
-      'id': '',
-      'kind': 'DecodeException',
-      'response':
-          'This is likely a result of a known V8 bug. Although the '
-          'the bug has been fixed the fix may not be in your Chrome'
-          ' version. For more information see dartbug.com/18385. '
-          'Observatory is still functioning and you should try your'
-          ' action again.',
-      'message': 'Could not decode JSON: $e',
-    })));
-  }
-
   /// Gets [id] as an [ObservableMap] from the service directly. If
   /// an error occurs, the future is completed as an error with a
   /// ServiceError or ServiceException. Therefore any chained then() calls
   /// will only receive a map encoding a valid ServiceObject.
-  Future<ObservableMap> getAsMap(String id) {
-    return getString(id).then((response) {
+  Future<ObservableMap> _getAsMapDeprecated(String id) {
+    return getStringDeprecated(id).then((response) {
       var map = _parseJSON(response);
       if (Tracer.current != null) {
         Tracer.current.trace("Received response for ${id}", map:map);
@@ -544,7 +550,48 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   /// Get [id] as a [String] from the service directly. See [getAsMap].
-  Future<String> getString(String id);
+  Future<String> getStringDeprecated(String id);
+
+  // Implemented in subclass.
+  Future<String> invokeRpcRaw(String method, Map params);
+
+  Future<ObservableMap> invokeRpcNoUpgrade(String method, Map params) {
+    return invokeRpcRaw(method, params).then((String response) {
+      var map = _parseJSON(response);
+      if (Tracer.current != null) {
+        Tracer.current.trace("Received response for ${method}/${params}}",
+                             map:map);
+      }
+
+      // Check for ill-formed responses.
+      return _processMap(map);
+    }).catchError((error) {
+
+      // ServiceError, forward to VM's ServiceError stream.
+      errors.add(error);
+      return new Future.error(error);
+    }, test: (e) => e is ServiceError).catchError((exception) {
+
+      // ServiceException, forward to VM's ServiceException stream.
+      exceptions.add(exception);
+      return new Future.error(exception);
+    }, test: (e) => e is ServiceException);
+  }
+
+  Future<ServiceObject> invokeRpc(String method, Map params) {
+    return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
+	var obj = new ServiceObject._fromMap(this, response);
+        if (obj.canCache) {
+          _cache.putIfAbsent(id, () => obj);
+        }
+        return obj;
+    });
+  }
+
+  Future<ObservableMap> _fetchDirect() {
+    return invokeRpcNoUpgrade('getVM', {});
+  }
+
   /// Force the VM to disconnect.
   void disconnect();
   /// Completes when the VM first connects.
@@ -707,7 +754,7 @@ class HeapSnapshot {
     var result = [];
     for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
       var address = v.addressForWordSize(isolate.vm.architectureBits ~/ 8);
-      result.add(isolate.get(
+      result.add(isolate.getDeprecated(
           'address/${address.toRadixString(16)}?ref=true').then((obj) {
         obj.retainedSize = v.retainedSize;
         return new Future(() => obj);
@@ -754,7 +801,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void processProfile(ServiceMap profile) {
-    assert(profile.type == 'Profile');
+    assert(profile.type == 'CpuProfile');
     var codeTable = new List<Code>();
     var codeRegions = profile['codes'];
     for (var codeRegion in codeRegions) {
@@ -791,14 +838,16 @@ class Isolate extends ServiceObjectOwner with Coverage {
   /// Fetches and builds the class hierarchy for this isolate. Returns the
   /// Object class object.
   Future<Class> getClassHierarchy() {
-    return get('classes').then(_loadClasses).then(_buildClassHierarchy);
+    return invokeRpc('getClassList', {})
+        .then(_loadClasses)
+        .then(_buildClassHierarchy);
   }
 
   /// Given the class list, loads each class.
   Future<List<Class>> _loadClasses(ServiceMap classList) {
     assert(classList.type == 'ClassList');
     var futureClasses = [];
-    for (var cls in classList['members']) {
+    for (var cls in classList['classes']) {
       // Skip over non-class classes.
       if (cls is Class) {
         futureClasses.add(cls.load());
@@ -841,7 +890,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return obj;
   }
 
-  Future<ServiceObject> get(String id) {
+  Future<ServiceObject> getDeprecated(String id) {
     // Do not allow null ids or empty ids.
     assert(id != null && id != '');
     var obj = _cache[id];
@@ -849,13 +898,44 @@ class Isolate extends ServiceObjectOwner with Coverage {
       return obj.reload();
     }
     // Cache miss.  Get the object from the vm directly.
-    return vm.getAsMap(relativeLink(id)).then((ObservableMap map) {
+    return vm._getAsMapDeprecated(relativeLink(id)).then((ObservableMap map) {
       var obj = new ServiceObject._fromMap(this, map);
       if (obj.canCache) {
         _cache.putIfAbsent(id, () => obj);
       }
       return obj;
     });
+  }
+
+  Future<ObservableMap> invokeRpcNoUpgrade(String method, Map params) {
+    params['isolate'] = id;
+    return vm.invokeRpcNoUpgrade(method, params);
+  }
+
+  Future<ServiceObject> invokeRpc(String method, Map params) {
+    return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
+        var obj = new ServiceObject._fromMap(this, response);
+        if (obj.canCache) {
+          _cache.putIfAbsent(id, () => obj);
+        }
+	return obj;
+    });
+  }
+
+  Future<ServiceObject> getObject(String objectId) {
+    assert(objectId != null && objectId != '');
+    var obj = _cache[objectId];
+    if (obj != null) {
+      return obj.reload();
+    }
+    Map params = {
+      'objectId': objectId,
+    };
+    return isolate.invokeRpc('getObject', params);
+  }
+
+  Future<ObservableMap> _fetchDirect() {
+    return invokeRpcNoUpgrade('getIsolate', {});
   }
 
   @observable Class objectClass;
@@ -890,8 +970,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   Future<HeapSnapshot> fetchHeapSnapshot() {
     if (_snapshotFetch == null || _snapshotFetch.isCompleted) {
-      get('graph');
       _snapshotFetch = new Completer<HeapSnapshot>();
+      isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
     }
     return _snapshotFetch.future;
   }
@@ -986,11 +1066,12 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future<TagProfile> updateTagProfile() {
-    return vm.getAsMap(relativeLink('profile/tag')).then((ObservableMap m) {
-      var seconds = new DateTime.now().millisecondsSinceEpoch / 1000.0;
-      tagProfile._processTagProfile(seconds, m);
-      return tagProfile;
-    });
+    return isolate.invokeRpcNoUpgrade('getTagProfile', {}).then(
+      (ObservableMap map) {
+        var seconds = new DateTime.now().millisecondsSinceEpoch / 1000.0;
+        tagProfile._processTagProfile(seconds, map);
+        return tagProfile;
+      });
   }
 
   @reflectable CodeTrieNode profileTrieRoot;
@@ -1038,6 +1119,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return node;
   }
 
+  // TODO(turnidge): Make this an ObservableList instead.
   ServiceMap breakpoints;
 
   void _removeBreakpoint(ServiceMap bpt) {
@@ -1047,8 +1129,10 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (script.loaded) {
       var line = script.tokenToLine(tokenPos);
       assert(line != null);
-      assert(script.lines[line - 1].bpt == bpt);
-      script.lines[line - 1].bpt = null;
+      if (script.lines[line - 1] != null) {
+        assert(script.lines[line - 1].bpt == bpt);
+        script.lines[line - 1].bpt = null;
+      }
     }
   }
 
@@ -1090,7 +1174,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     // get stale breakpoints?
     if (_inProgressReloadBpts == null) {
       _inProgressReloadBpts =
-          get('debug/breakpoints').then((newBpts) {
+          invokeRpc('getBreakpoints', {}).then((newBpts) {
               _updateBreakpoints(newBpts);
           }).whenComplete(() {
               _inProgressReloadBpts = null;
@@ -1099,18 +1183,29 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return _inProgressReloadBpts;
   }
 
-  Future<ServiceObject> setBreakpoint(Script script, int line) {
-    return get(script.id + "/setBreakpoint?line=${line}").then((result) {
-        if (result is DartError) {
+  Future<ServiceObject> addBreakpoint(Script script, int line) {
+    // TODO(turnidge): Pass line as an int instead of a string.
+    return invokeRpc('addBreakpoint',
+                     { 'script': script.id, 'line': '$line' }).then((result) {
+        if (result is ServiceMap &&
+            result.type == 'Breakpoint' &&
+            result['resolved'] &&
+            script.loaded &&
+            script.tokenToLine(result['location']['tokenPos']) != line) {
           // Unable to set a breakpoint at desired line.
           script.lines[line - 1].possibleBpt = false;
         }
-        return reloadBreakpoints();
+        // TODO(turnidge): Instead of reloading all of the breakpoints,
+        // rely on events to update the breakpoint list.
+        return reloadBreakpoints().then((_) {
+            return result;
+        });
       });
   }
 
-  Future clearBreakpoint(ServiceMap bpt) {
-    return get('${bpt.id}/clear').then((result) {
+  Future removeBreakpoint(ServiceMap bpt) {
+    return invokeRpc('removeBreakpoint',
+                     { 'breakpointId': bpt.id }).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
@@ -1126,7 +1221,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future pause() {
-    return get("debug/pause").then((result) {
+    return invokeRpc('pause', {}).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
@@ -1136,7 +1231,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future resume() {
-    return get("debug/resume").then((result) {
+    return invokeRpc('resume', {}).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
@@ -1146,7 +1241,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future stepInto() {
-    return get("debug/resume?step=into").then((result) {
+    return invokeRpc('resume', {'step': 'into'}).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
@@ -1156,7 +1251,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future stepOver() {
-    return get("debug/resume?step=over").then((result) {
+    return invokeRpc('resume', {'step': 'over'}).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
@@ -1166,7 +1261,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future stepOut() {
-    return get("debug/resume?step=out").then((result) {
+    return invokeRpc('resume', {'step': 'out'}).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
@@ -1175,16 +1270,74 @@ class Isolate extends ServiceObjectOwner with Coverage {
       });
   }
 
+  Future<ServiceMap> getStack() {
+    return invokeRpc('getStack', {}).then((result) {
+        if (result is DartError) {
+          // TODO(turnidge): Handle this more gracefully.
+          Logger.root.severe(result.message);
+        }
+        return result;
+      });
+  }
+
+  Future<ServiceObject> eval(ServiceObject target,
+                             String expression) {
+    Map params = {
+      'targetId': target.id,
+      'expression': expression,
+    };
+    return invokeRpc('eval', params);
+  }
+
+  Future<ServiceObject> getRetainedSize(ServiceObject target) {
+    Map params = {
+      'targetId': target.id,
+    };
+    return invokeRpc('getRetainedSize', params);
+  }
+
+  Future<ServiceObject> getRetainingPath(ServiceObject target, var limit) {
+    Map params = {
+      'targetId': target.id,
+      'limit': limit.toString(),
+    };
+    return invokeRpc('getRetainingPath', params);
+  }
+
+  Future<ServiceObject> getInboundReferences(ServiceObject target, var limit) {
+    Map params = {
+      'targetId': target.id,
+      'limit': limit.toString(),
+    };
+    return invokeRpc('getInboundReferences', params);
+  }
+
+  Future<ServiceObject> getTypeArgumentsList(bool onlyWithInstantiations) {
+    Map params = {
+      'onlyWithInstantiations': onlyWithInstantiations,
+    };
+    return invokeRpc('getTypeArgumentsList', params);
+  }
+
+  Future<ServiceObject> getInstances(Class cls, var limit) {
+    Map params = {
+      'classId': cls.id,
+      'limit': limit.toString(),
+    };
+    return invokeRpc('getInstances', params);
+  }
+
   final ObservableMap<String, ServiceMetric> dartMetrics =
       new ObservableMap<String, ServiceMetric>();
 
-  final ObservableMap<String, ServiceMetric> vmMetrics =
+  final ObservableMap<String, ServiceMetric> nativeMetrics =
       new ObservableMap<String, ServiceMetric>();
 
   Future<ObservableMap<String, ServiceMetric>> _refreshMetrics(
-      String id,
+      String metricType,
       ObservableMap<String, ServiceMetric> metricsMap) {
-    return get(id).then((result) {
+    return invokeRpc('getIsolateMetricList',
+                     { 'type': metricType }).then((result) {
       if (result is DartError) {
         // TODO(turnidge): Handle this more gracefully.
         Logger.root.severe(result.message);
@@ -1193,8 +1346,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
       // Clear metrics map.
       metricsMap.clear();
       // Repopulate metrics map.
-      var members = result['members'];
-      for (var metric in members) {
+      var metrics = result['metrics'];
+      for (var metric in metrics) {
         metricsMap[metric.id] = metric;
       }
       return metricsMap;
@@ -1202,15 +1355,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future<ObservableMap<String, ServiceMetric>> refreshDartMetrics() {
-    return _refreshMetrics('metrics', dartMetrics);
+    return _refreshMetrics('Dart', dartMetrics);
   }
 
-  Future<ObservableMap<String, ServiceMetric>> refreshVMMetrics() {
-    return _refreshMetrics('metrics/vm', vmMetrics);
+  Future<ObservableMap<String, ServiceMetric>> refreshNativeMetrics() {
+    return _refreshMetrics('Native', nativeMetrics);
   }
 
   Future refreshMetrics() {
-    return refreshDartMetrics().then((_) => refreshVMMetrics());
+    return Future.wait([refreshDartMetrics(), refreshNativeMetrics()]);
   }
 
   String toString() => "Isolate($_id)";
@@ -1570,10 +1723,6 @@ class Class extends ServiceObject with Coverage {
     }
     subclasses.add(subclass);
     subclasses.sort(ServiceObject.LexicalSortName);
-  }
-
-  Future<ServiceObject> get(String command) {
-    return isolate.get(id + "/$command");
   }
 
   String toString() => 'Class($vmName)';
@@ -2406,8 +2555,6 @@ class Code extends ServiceObject {
   void updateProfileData(Map profileData,
                          List<Code> codeTable,
                          int sampleCount) {
-    // Assert we have a CodeRegion entry.
-    assert(profileData['type'] == 'CodeRegion');
     // Assert we are handed profile data for this code object.
     assert(profileData['code'] == this);
     totalSamplesInProfile = sampleCount;
@@ -2675,6 +2822,12 @@ class ServiceMetric extends ServiceObject {
     _removeOld();
   }
 
+  Future<ObservableMap> _fetchDirect() {
+    assert(owner is Isolate);
+    return isolate.invokeRpcNoUpgrade('getIsolateMetric', { 'metricId': id });
+  }
+
+
   void addSample(MetricSample sample) {
     samples.add(sample);
     _removeOld();
@@ -2752,7 +2905,7 @@ _convertNull(obj) {
 // Returns true if [map] is a service map. i.e. it has the following keys:
 // 'id' and a 'type'.
 bool _isServiceMap(ObservableMap m) {
-  return (m != null) && (m['id'] != null) && (m['type'] != null);
+  return (m != null) && (m['type'] != null);
 }
 
 bool _hasRef(String type) => type.startsWith('@');

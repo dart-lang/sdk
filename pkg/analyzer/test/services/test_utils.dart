@@ -4,14 +4,47 @@
 
 library test_utils;
 
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/parser.dart';
+
+/// Parse the given [source] as a statement and assert, if provided, that
+/// exactly a given set of [expectedErrorCodes] are encountered.
+Statement parseStatement(String source, [List<ErrorCode> expectedErrorCodes]) {
+
+  var listener = new _GatheringErrorListener();
+  var reader = new CharSequenceReader(source);
+  var scanner = new Scanner(null, reader, listener);
+  listener.setLineInfo(new _TestSource(), scanner.lineStarts);
+
+  var token = scanner.tokenize();
+  var parser = new Parser(null, listener);
+  var statement = parser.parseStatement(token);
+  expect(statement, isNotNull);
+
+  if (expectedErrorCodes != null) {
+    listener.expectErrors(expectedErrorCodes);
+  }
+
+  return statement;
+}
+
+
+Set<_MapEntry> _getMapEntrySet(Map m) {
+  var result = new Set();
+  m.forEach((k, v) {
+    result.add(new _MapEntry(k, v));
+  });
+  return result;
+}
+
+
+_unsupported() => throw new _UnsupportedOperationException();
 
 
 /// Instances of the class [_GatheringErrorListener] implement an error listener
@@ -22,18 +55,6 @@ class _GatheringErrorListener implements AnalysisErrorListener {
 
   /// A table mapping sources to the line information for the source.
   final Map<Source, LineInfo> _lineInfoMap = new Map<Source, LineInfo>();
-
-  void onError(AnalysisError error) {
-    _errors.add(error);
-  }
-
-
-  /// Sets the line information associated with the given source to the given
-  /// information.
-  void setLineInfo(Source source, List<int> lineStarts) {
-    _lineInfoMap[source] = new LineInfo(lineStarts);
-  }
-
 
   /// Asserts that the number of errors that have been gathered matches the
   /// number of errors that are given and that they have the expected error
@@ -122,15 +143,18 @@ class _GatheringErrorListener implements AnalysisErrorListener {
     }
   }
 
-}
+
+  void onError(AnalysisError error) {
+    _errors.add(error);
+  }
 
 
-Set<_MapEntry> _getMapEntrySet(Map m) {
-  var result = new Set();
-  m.forEach((k, v) {
-    result.add(new _MapEntry(k, v));
-  });
-  return result;
+  /// Sets the line information associated with the given source to the given
+  /// information.
+  void setLineInfo(Source source, List<int> lineStarts) {
+    _lineInfoMap[source] = new LineInfo(lineStarts);
+  }
+
 }
 
 
@@ -142,63 +166,38 @@ class _MapEntry<K, V> {
   V getValue() => _value;
 }
 
+class _TestSource extends Source {
 
-class _TestSource implements Source {
-
-  bool operator == (Object object) => object is _TestSource;
+  TimestampedData<String> get contents => _unsupported();
 
   AnalysisContext get context => _unsupported();
 
-  void getContentsToReceiver(Source_ContentReceiver receiver) => _unsupported();
+  String get encoding => _unsupported();
 
   String get fullName => _unsupported();
 
+  bool get isInSystemLibrary => _unsupported();
+
+  int get modificationStamp => _unsupported();
+
   String get shortName => _unsupported();
 
-  String get encoding => _unsupported();
-
-  int get modificationStamp =>_unsupported();
+  Uri get uri => _unsupported();
 
   UriKind get uriKind => _unsupported();
 
+  bool operator ==(Object object) => object is _TestSource;
+
   bool exists() => true;
 
-  bool get isInSystemLibrary => _unsupported();
-
-  Uri get uri => _unsupported();
+  void getContentsToReceiver(Source_ContentReceiver receiver) => _unsupported();
 
   Source resolve(String uri) => _unsupported();
 
   Uri resolveRelativeUri(Uri uri) => _unsupported();
-
-  TimestampedData<String> get contents => _unsupported();
 }
 
-
-_unsupported() => throw new _UnsupportedOperationException();
 
 class _UnsupportedOperationException implements Exception {
   String toString() => 'UnsupportedOperationException';
-}
-
-
-/// Parse the given [source] as a statement and assert, if provided, that
-/// exactly a given set of [expectedErrorCodes] are encountered.
-Statement parseStatement(String source, [List<ErrorCode> expectedErrorCodes]) {
-
-  var listener = new _GatheringErrorListener();
-  var reader = new CharSequenceReader(source);
-  var scanner = new Scanner(null, reader, listener);
-  listener.setLineInfo(new _TestSource(), scanner.lineStarts);
-
-  var token = scanner.tokenize();
-  var parser = new Parser(null, listener);
-  var statement = parser.parseStatement(token);
-  expect(statement, isNotNull);
-
-  if (expectedErrorCodes != null) {
-    listener.expectErrors(expectedErrorCodes);
-  }
-
-  return statement;
 }

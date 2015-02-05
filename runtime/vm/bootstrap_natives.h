@@ -58,12 +58,9 @@ namespace dart {
   V(Mint_bitLength, 1)                                                         \
   V(Mint_shlFromInt, 2)                                                        \
   V(Bigint_getNeg, 1)                                                          \
-  V(Bigint_setNeg, 2)                                                          \
   V(Bigint_getUsed, 1)                                                         \
-  V(Bigint_setUsed, 2)                                                         \
   V(Bigint_getDigits, 1)                                                       \
-  V(Bigint_setDigits, 2)                                                       \
-  V(Bigint_allocate, 1)                                                        \
+  V(Bigint_allocate, 4)                                                        \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \
@@ -109,6 +106,7 @@ namespace dart {
   V(OneByteString_allocate, 1)                                                 \
   V(OneByteString_allocateFromOneByteList, 3)                                  \
   V(OneByteString_setAt, 3)                                                    \
+  V(TwoByteString_allocateFromTwoByteList, 3)                                  \
   V(ExternalOneByteString_getCid, 0)                                           \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \

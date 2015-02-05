@@ -43,12 +43,13 @@ dt.typeDefinition {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">WORKING DRAFT - Version 0.3</h1>
+    <h1 style="color:#999999">Version 1.0.0</h1>
     <p>
-      This document contains a specification of the API provided by
-      the analysis server. The API in this document is currently under
-      development and should be expected to change. In some cases
-      those changes will be substantial.
+      This document contains a specification of the API provided by the
+      analysis server.  The API in this document is currently under
+      development.  Changes to the API will be accompanied by an update to the
+      protocol version number according to the principles of semantic
+      versioning <a href="http://semver.org/">http://semver.org/</a>.
     </p>
     <h2>Overview</h2>
     <p>
@@ -475,20 +476,28 @@ dt.typeDefinition {
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>libraries</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
+    "<b>packageMap</b>": Map&lt;String, Map&lt;String, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;&gt;
   }
 }</pre></div>
-            <p>
-              Return a list of all of the libraries referenced by any files in
-              existing analysis roots.
-            </p>
-            
+        <p>
+          Return library dependency information for use in client-side indexing
+          and package URI resolution.
+        </p>
+        
       <h4>Returns</h4><dl><dt class="field"><b><i>libraries ( List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
-                    
-                    <p>
-                      A list of the paths of library elements referenced by
-                      files in existing analysis roots.
-                    </p>
-                </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
+            
+              <p>
+                A list of the paths of library elements referenced by
+                files in existing analysis roots.
+              </p>
+            </dd><dt class="field"><b><i>packageMap ( Map&lt;String, Map&lt;String, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;&gt; )</i></b></dt><dd>
+              
+              <p>
+                A mapping from context source roots to package maps which map
+                package names to source directories for use in client-side
+                package URI resolution.
+              </p>
+            </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getNavigation"
   "params": {
@@ -586,10 +595,13 @@ dt.typeDefinition {
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
-          Sets the root paths used to determine which files to
-          analyze. The set of files to be analyzed are all of the
-          files in one of the root paths that are not also in one of
-          the excluded paths.
+          Sets the root paths used to determine which files to analyze. The set
+          of files to be analyzed are all of the files in one of the root paths
+          that are not either explicitly or implicitly excluded. A file is
+          explicitly excluded if it is in one of the excluded paths. A file is
+          implicitly excluded if it is in a subdirectory of one of the root
+          paths where the name of the subdirectory starts with a period (that
+          is, a hidden directory).
         </p>
         <p>
           Note that this request determines the set of requested
@@ -1508,12 +1520,16 @@ dt.typeDefinition {
           </dd><dt class="field"><b><i>selectionOffset ( int )</i></b></dt><dd>
             
             <p>
-              The offset of the current selection in the file.
+              The offset of the current selection in the file. In case
+              preserving, selection information is not required, 0 can be
+              specified for both selection offset and length.
             </p>
           </dd><dt class="field"><b><i>selectionLength ( int )</i></b></dt><dd>
             
             <p>
-              The length of the current selection in the file.
+              The length of the current selection in the file. In case
+              preserving, selection information is not required, 0 can be
+              specified for both selection offset and length.
             </p>
           </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>edits ( List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt; )</i></b></dt><dd>
             
@@ -1685,6 +1701,11 @@ dt.typeDefinition {
 }</pre></div>
         <p>
           Get the changes required to perform a refactoring.
+        </p>
+        <p>
+          If another refactoring request is received during the processing
+          of this one, an error of type <tt>REFACTORING_REQUEST_CANCELLED</tt>
+          will be generated.
         </p>
         
         
@@ -1905,6 +1926,24 @@ dt.typeDefinition {
         </p>
         <p>
           Exactly one of the file and uri fields must be provided.
+        </p>
+        <p>
+          If the file field is provided and the value is not the path of a file
+          (either the file does not exist or the path references something other
+          than a file), then an error of type <tt>MAP_URI_INVALID_FILE</tt> will
+          be generated.
+        </p>
+        <p>
+          If the uri field is provided and the value is not a valid URI or if
+          the URI references something that is not a file (either a file that
+          does not exist or something other than a file), then an error of type
+          <tt>MAP_URI_INVALID_URI</tt> will be generated.
+        </p>
+        <p>
+          If the contextRoot used to create the execution context is not a file
+          (either the file does not exist or the path references something other
+          than a file), then an error of type <tt>INVALID_EXECUTION_CONTEXT</tt>
+          will be generated.
         </p>
         
         
@@ -3054,6 +3093,12 @@ dt.typeDefinition {
             
             <p>
               A malformed request was received.
+            </p>
+          </dd><dt class="value">REFACTORING_REQUEST_CANCELLED</dt><dd>
+            
+            <p>
+              Another refactoring request was received during processing of
+              this one.
             </p>
           </dd><dt class="value">SERVER_ALREADY_STARTED</dt><dd>
             

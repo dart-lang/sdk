@@ -20,6 +20,32 @@ main() {
 
 @reflectiveTest
 class CompileTimeErrorCodeTest extends ResolverTestCase {
+  void fail_awaitInWrongContext_sync() {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) {
+  return await x;
+}''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
+  void fail_awaitInWrongContext_syncStar() {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) sync* {
+  yield await x;
+}''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
   void fail_compileTimeConstantRaisesException() {
     Source source = addSource(r'''
 ''');
@@ -220,6 +246,300 @@ class N {}''');
     verify([source]);
   }
 
+  void test_async_used_as_identifier_in_annotation() {
+    Source source = addSource('''
+const int async = 0;
+f() async {
+  g(@async x) {}
+  g(0);
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_argument_label() {
+    Source source = addSource('''
+@proxy
+class C {}
+f() async {
+  new C().g(async: 0);
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    // Note: we don't call verify([source]) because verify() doesn't understand
+    // about @proxy.
+  }
+
+  void test_async_used_as_identifier_in_async_method() {
+    Source source = addSource('''
+f() async {
+  var async = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_async_star_method() {
+    Source source = addSource('''
+f() async* {
+  var async = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_break_statement() {
+    Source source = addSource('''
+f() async {
+  while (true) {
+    break async;
+  }
+}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+            CompileTimeErrorCode.LABEL_UNDEFINED]);
+    // Note: we don't call verify([source]) because the reference to the
+    // "async" label is unresolved.
+  }
+
+  void test_async_used_as_identifier_in_cascaded_invocation() {
+    Source source = addSource('''
+class C {
+  int async() => 1;
+}
+f() async {
+  return new C()..async();
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_cascaded_setter_invocation() {
+    Source source = addSource('''
+class C {
+  void set async(int i) {}
+}
+f() async {
+  return new C()..async = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_catch_exception_argument() {
+    Source source = addSource('''
+g() {}
+f() async {
+  try {
+    g();
+  } catch (async) { }
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_catch_stacktrace_argument() {
+    Source source = addSource('''
+g() {}
+f() async {
+  try {
+    g();
+  } catch (e, async) { }
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_continue_statement() {
+    Source source = addSource('''
+f() async {
+  while (true) {
+    continue async;
+  }
+}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+            CompileTimeErrorCode.LABEL_UNDEFINED]);
+    // Note: we don't call verify([source]) because the reference to the
+    // "async" label is unresolved.
+  }
+
+  void test_async_used_as_identifier_in_for_statement() {
+    Source source = addSource('''
+var async;
+f() async {
+  for (async in []) {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_formal_parameter_name() {
+    Source source = addSource('''
+f() async {
+  g(int async) {}
+  g(0);
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_getter_name() {
+    Source source = addSource('''
+class C {
+  int get async => 1;
+}
+f() async {
+  return new C().async;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_invocation() {
+    Source source = addSource('''
+class C {
+  int async() => 1;
+}
+f() async {
+  return new C().async();
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_local_function_name() {
+    Source source = addSource('''
+f() async {
+  int async() => null;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_prefix() {
+    Source source = addSource('''
+import 'dart:async' as async;
+f() async {
+  return new async.Future.value(0);
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_setter_name() {
+    Source source = addSource('''
+class C {
+  void set async(int i) {}
+}
+f() async {
+  new C().async = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_statement_label() {
+    Source source = addSource('''
+f() async {
+  async: g();
+}
+g() {}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_string_interpolation() {
+    Source source = addSource(r'''
+int async = 1;
+f() async {
+  return "$async";
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_suffix() {
+    addNamedSource("/lib1.dart", r'''
+library lib1;
+int async;
+''');
+    Source source = addSource('''
+import 'lib1.dart' as l;
+f() async {
+  return l.async;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_switch_label() {
+    Source source = addSource('''
+f() async {
+  switch (0) {
+    async: case 0: break;
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_async_used_as_identifier_in_sync_star_method() {
+    Source source = addSource('''
+f() sync* {
+  var async = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
   void test_asyncForInWrongContext() {
     Source source = addSource(r'''
 f(list) {
@@ -231,23 +551,36 @@ f(list) {
     verify([source]);
   }
 
-  void test_awaitInWrongContext_sync() {
-    Source source = addSource(r'''
-f(x) {
-  return await x;
-}''');
+  void test_await_used_as_identifier_in_async_method() {
+    Source source = addSource('''
+f() async {
+  var await = 1;
+}
+''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
     verify([source]);
   }
 
-  void test_awaitInWrongContext_syncStar() {
-    Source source = addSource(r'''
-f(x) sync* {
-  yield await x;
-}''');
+  void test_await_used_as_identifier_in_async_star_method() {
+    Source source = addSource('''
+f() async* {
+  var await = 1;
+}
+''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_await_used_as_identifier_in_sync_star_method() {
+    Source source = addSource('''
+f() sync* {
+  var await = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
     verify([source]);
   }
 
@@ -647,8 +980,7 @@ library root;
 import 'lib1.dart' deferred as a;
 main() {
   const a.A();
-}'''],
-          <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
+}'''], <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
   }
 
   void test_constDeferredClass_namedConstructor() {
@@ -661,8 +993,7 @@ library root;
 import 'lib1.dart' deferred as a;
 main() {
   const a.A.b();
-}'''],
-          <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
+}'''], <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
   }
 
   void test_constEval_newInstance_constConstructor() {
@@ -5338,6 +5669,39 @@ class A {
     assertErrors(
         source,
         [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    verify([source]);
+  }
+
+  void test_yield_used_as_identifier_in_async_method() {
+    Source source = addSource('''
+f() async {
+  var yield = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_yield_used_as_identifier_in_async_star_method() {
+    Source source = addSource('''
+f() async* {
+  var yield = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  void test_yield_used_as_identifier_in_sync_star_method() {
+    Source source = addSource('''
+f() sync* {
+  var yield = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
     verify([source]);
   }
 

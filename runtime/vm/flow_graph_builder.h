@@ -139,18 +139,19 @@ class InlineExitCollector: public ZoneAllocated {
 
 
 // Build a flow graph from a parsed function's AST.
-class FlowGraphBuilder: public ValueObject {
+class FlowGraphBuilder : public ValueObject {
  public:
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
   // id of the OSR entry or Isolate::kNoDeoptId if not compiling for OSR.
-  FlowGraphBuilder(ParsedFunction* parsed_function,
+  FlowGraphBuilder(const ParsedFunction& parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    InlineExitCollector* exit_collector,
                    intptr_t osr_id);
 
   FlowGraph* BuildGraph();
 
-  ParsedFunction* parsed_function() const { return parsed_function_; }
+  const ParsedFunction& parsed_function() const { return parsed_function_; }
+  const Function& function() const { return parsed_function_.function(); }
   const ZoneGrowableArray<const ICData*>& ic_data_array() const {
     return ic_data_array_;
   }
@@ -202,11 +203,11 @@ class FlowGraphBuilder: public ValueObject {
   InlineExitCollector* exit_collector() const { return exit_collector_; }
 
   ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return parsed_function_->guarded_fields();
+    return parsed_function_.guarded_fields();
   }
 
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
-    return parsed_function_->deferred_prefixes();
+    return parsed_function_.deferred_prefixes();
   }
 
   intptr_t temp_count() const { return temp_count_; }
@@ -228,7 +229,7 @@ class FlowGraphBuilder: public ValueObject {
   // Returns address where the constant 'value' is stored or 0 if not found.
   static uword FindDoubleConstant(double value);
 
-  Isolate* isolate() const { return parsed_function()->isolate(); }
+  Isolate* isolate() const { return parsed_function().isolate(); }
 
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
@@ -241,7 +242,7 @@ class FlowGraphBuilder: public ValueObject {
     return parameter_count() + num_stack_locals_;
   }
 
-  ParsedFunction* parsed_function_;
+  const ParsedFunction& parsed_function_;
   const ZoneGrowableArray<const ICData*>& ic_data_array_;
 
   const intptr_t num_copied_params_;
@@ -469,6 +470,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildAwaitJump(LocalVariable* old_context,
                       LocalVariable* continuation_result,
                       LocalVariable* continuation_error,
+                      LocalVariable* continuation_stack_trace,
                       const intptr_t old_ctx_level,
                       JoinEntryInstr* target);
 

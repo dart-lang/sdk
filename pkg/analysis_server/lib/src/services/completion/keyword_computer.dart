@@ -35,39 +35,44 @@ class KeywordComputer extends DartCompletionComputer {
 class _KeywordVisitor extends GeneralizingAstVisitor {
   final DartCompletionRequest request;
 
+  /**
+   * The identifier visited or `null` if not visited.
+   */
+  SimpleIdentifier identifier;
+
   _KeywordVisitor(this.request);
 
   @override
   visitBlock(Block node) {
-    if (_isOffsetAfterNode(node)) {
-      node.parent.accept(this);
-    } else {
-      _addSuggestions(
-          [
-              Keyword.ASSERT,
-              Keyword.CASE,
-              Keyword.CONTINUE,
-              Keyword.DO,
-              Keyword.FACTORY,
-              Keyword.FINAL,
-              Keyword.FOR,
-              Keyword.IF,
-              Keyword.NEW,
-              Keyword.RETHROW,
-              Keyword.RETURN,
-              Keyword.SUPER,
-              Keyword.SWITCH,
-              Keyword.THIS,
-              Keyword.THROW,
-              Keyword.TRY,
-              Keyword.VAR,
-              Keyword.VOID,
-              Keyword.WHILE]);
-    }
+    _addSuggestions(
+        [
+            Keyword.ASSERT,
+            Keyword.CASE,
+            Keyword.CONTINUE,
+            Keyword.DO,
+            Keyword.FACTORY,
+            Keyword.FINAL,
+            Keyword.FOR,
+            Keyword.IF,
+            Keyword.NEW,
+            Keyword.RETHROW,
+            Keyword.RETURN,
+            Keyword.SUPER,
+            Keyword.SWITCH,
+            Keyword.THIS,
+            Keyword.THROW,
+            Keyword.TRY,
+            Keyword.VAR,
+            Keyword.VOID,
+            Keyword.WHILE]);
   }
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
+    // Don't suggest class name
+    if (node.name == identifier) {
+      return;
+    }
     // Inside the class declaration { }
     if (request.offset > node.leftBracket.offset) {
       _addSuggestions(
@@ -84,16 +89,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
               Keyword.VOID]);
       return;
     }
-    // Very simplistic suggestion because analyzer will warn if
-    // the extends / with / implements keywords are out of order
-    if (node.extendsClause == null) {
-      _addSuggestion(Keyword.EXTENDS, COMPLETION_RELEVANCE_HIGH);
-    } else if (node.withClause == null) {
-      _addSuggestion(Keyword.WITH, COMPLETION_RELEVANCE_HIGH);
-    }
-    if (node.implementsClause == null) {
-      _addSuggestion(Keyword.IMPLEMENTS, COMPLETION_RELEVANCE_HIGH);
-    }
+    _addClassDeclarationKeywords(node);
   }
 
   @override
@@ -154,16 +150,52 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
-    AstNode parent = node.getAncestor((n) => n is TopLevelVariableDeclaration);
-    if (parent is TopLevelVariableDeclaration) {
-      if (parent.variables != null &&
-          parent.variables.type != null &&
-          parent.variables.type.name == node) {
-        AstNode unit = node.getAncestor((n) => n is CompilationUnit);
-        if (unit is CompilationUnit) {
-          visitCompilationUnit(unit);
+    identifier = node;
+    node.parent.accept(this);
+  }
+
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (identifier != null && node.beginToken == identifier.beginToken) {
+      AstNode unit = node.parent;
+      if (unit is CompilationUnit) {
+        CompilationUnitMember previous;
+        for (CompilationUnitMember member in unit.declarations) {
+          if (member == node && previous is ClassDeclaration) {
+            if (previous.endToken.isSynthetic) {
+              // Partial keywords (simple identifirs) that are part of a
+              // class declaration can be parsed
+              // as a TypeName in a TopLevelVariableDeclaration
+              _addClassDeclarationKeywords(previous);
+              return;
+            }
+          }
+          previous = member;
         }
+        // Partial keywords (simple identifiers) can be parsed
+        // as a TypeName in a TopLevelVariableDeclaration
+        unit.accept(this);
       }
+    }
+  }
+
+  void visitTypeName(TypeName node) {
+    node.parent.accept(this);
+  }
+
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    node.parent.accept(this);
+  }
+
+  void _addClassDeclarationKeywords(ClassDeclaration node) {
+    // Very simplistic suggestion because analyzer will warn if
+    // the extends / with / implements keywords are out of order
+    if (node.extendsClause == null) {
+      _addSuggestion(Keyword.EXTENDS, COMPLETION_RELEVANCE_HIGH);
+    } else if (node.withClause == null) {
+      _addSuggestion(Keyword.WITH, COMPLETION_RELEVANCE_HIGH);
+    }
+    if (node.implementsClause == null) {
+      _addSuggestion(Keyword.IMPLEMENTS, COMPLETION_RELEVANCE_HIGH);
     }
   }
 

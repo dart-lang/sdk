@@ -7,5 +7,6 @@
   'sources': [
     'isolate_patch.dart',
     'isolate.cc',
+    'timer_impl.dart',
   ],
 }

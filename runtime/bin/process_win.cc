@@ -399,293 +399,329 @@ static int GenerateNames(wchar_t pipe_names[Count][kMaxPipeNameSize]) {
 }
 
 
+class ProcessStarter {
+ public:
+  ProcessStarter(const char* path,
+                 char* arguments[],
+                 intptr_t arguments_length,
+                 const char* working_directory,
+                 char* environment[],
+                 intptr_t environment_length,
+                 ProcessStartMode mode,
+                 intptr_t* in,
+                 intptr_t* out,
+                 intptr_t* err,
+                 intptr_t* id,
+                 intptr_t* exit_handler,
+                 char** os_error_message)
+      : path_(path),
+        working_directory_(working_directory),
+        mode_(mode),
+        in_(in),
+        out_(out),
+        err_(err),
+        id_(id),
+        exit_handler_(exit_handler),
+        os_error_message_(os_error_message) {
+    stdin_handles_[kReadHandle] = INVALID_HANDLE_VALUE;
+    stdin_handles_[kWriteHandle] = INVALID_HANDLE_VALUE;
+    stdout_handles_[kReadHandle] = INVALID_HANDLE_VALUE;
+    stdout_handles_[kWriteHandle] = INVALID_HANDLE_VALUE;
+    stderr_handles_[kReadHandle] = INVALID_HANDLE_VALUE;
+    stderr_handles_[kWriteHandle] = INVALID_HANDLE_VALUE;
+    exit_handles_[kReadHandle] = INVALID_HANDLE_VALUE;
+    exit_handles_[kWriteHandle] = INVALID_HANDLE_VALUE;
+
+    // Transform input strings to system format.
+    const wchar_t* system_path = StringUtils::Utf8ToWide(path_);
+    wchar_t** system_arguments = new wchar_t*[arguments_length];
+    for (int i = 0; i < arguments_length; i++) {
+       system_arguments[i] = StringUtils::Utf8ToWide(arguments[i]);
+    }
+
+    // Compute command-line length.
+    int command_line_length = wcslen(system_path);
+    for (int i = 0; i < arguments_length; i++) {
+      command_line_length += wcslen(system_arguments[i]);
+    }
+    // Account for null termination and one space per argument.
+    command_line_length += arguments_length + 1;
+
+    // Put together command-line string.
+    command_line_ = new wchar_t[command_line_length];
+    int len = 0;
+    int remaining = command_line_length;
+    int written =
+        _snwprintf(command_line_ + len, remaining, L"%s", system_path);
+    len += written;
+    remaining -= written;
+    ASSERT(remaining >= 0);
+    for (int i = 0; i < arguments_length; i++) {
+      written =
+          _snwprintf(
+              command_line_ + len, remaining, L" %s", system_arguments[i]);
+      len += written;
+      remaining -= written;
+      ASSERT(remaining >= 0);
+    }
+    free(const_cast<wchar_t*>(system_path));
+    for (int i = 0; i < arguments_length; i++) free(system_arguments[i]);
+    delete[] system_arguments;
+
+    // Create environment block if an environment is supplied.
+    environment_block_ = NULL;
+    if (environment != NULL) {
+      wchar_t** system_environment = new wchar_t*[environment_length];
+      // Convert environment strings to system strings.
+      for (intptr_t i = 0; i < environment_length; i++) {
+        system_environment[i] = StringUtils::Utf8ToWide(environment[i]);
+      }
+
+      // An environment block is a sequence of zero-terminated strings
+      // followed by a block-terminating zero char.
+      intptr_t block_size = 1;
+      for (intptr_t i = 0; i < environment_length; i++) {
+        block_size += wcslen(system_environment[i]) + 1;
+      }
+      environment_block_ = new wchar_t[block_size];
+      intptr_t block_index = 0;
+      for (intptr_t i = 0; i < environment_length; i++) {
+        intptr_t len = wcslen(system_environment[i]);
+        intptr_t result = _snwprintf(environment_block_ + block_index,
+                                     len,
+                                     L"%s",
+                                     system_environment[i]);
+        ASSERT(result == len);
+        block_index += len;
+        environment_block_[block_index++] = '\0';
+      }
+      // Block-terminating zero char.
+      environment_block_[block_index++] = '\0';
+      ASSERT(block_index == block_size);
+      for (intptr_t i = 0; i < environment_length; i++) {
+        free(system_environment[i]);
+      }
+      delete[] system_environment;
+    }
+
+    system_working_directory_ = NULL;
+    if (working_directory_ != NULL) {
+      system_working_directory_ = StringUtils::Utf8ToWide(working_directory_);
+    }
+
+    attribute_list_ = NULL;
+  }
+
+
+  ~ProcessStarter() {
+    // Deallocate command-line and environment block strings.
+    delete[] command_line_;
+    delete[] environment_block_;
+    if (system_working_directory_ != NULL) {
+      free(const_cast<wchar_t*>(system_working_directory_));
+    }
+    if (attribute_list_ != NULL) {
+      delete_proc_thread_attr_list(attribute_list_);
+      free(attribute_list_);
+    }
+  }
+
+
+  int Start() {
+    // Create pipes required.
+    int err = CreatePipes();
+    if (err != 0) return err;
+
+    // Setup info structures.
+    STARTUPINFOEXW startup_info;
+    ZeroMemory(&startup_info, sizeof(startup_info));
+    startup_info.StartupInfo.cb = sizeof(startup_info);
+    startup_info.StartupInfo.hStdInput = stdin_handles_[kReadHandle];
+    startup_info.StartupInfo.hStdOutput = stdout_handles_[kWriteHandle];
+    startup_info.StartupInfo.hStdError = stderr_handles_[kWriteHandle];
+    startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+
+    bool supports_proc_thread_attr_lists = EnsureInitialized();
+    if (supports_proc_thread_attr_lists) {
+      // Setup the handles to inherit. We only want to inherit the three handles
+      // for stdin, stdout and stderr.
+      SIZE_T size = 0;
+      // The call to determine the size of an attribute list always fails with
+      // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+      if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
+          GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+        return CleanupAndReturnError();
+      }
+      attribute_list_ =
+          reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
+      ZeroMemory(attribute_list_, size);
+      if (!init_proc_thread_attr_list(attribute_list_, 1, 0, &size)) {
+        return CleanupAndReturnError();
+      }
+      static const int kNumInheritedHandles = 3;
+      HANDLE inherited_handles[kNumInheritedHandles] =
+          { stdin_handles_[kReadHandle],
+            stdout_handles_[kWriteHandle],
+            stderr_handles_[kWriteHandle] };
+      if (!update_proc_thread_attr(attribute_list_,
+                                   0,
+                                   PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+                                   inherited_handles,
+                                   kNumInheritedHandles * sizeof(HANDLE),
+                                   NULL,
+                                   NULL)) {
+        return CleanupAndReturnError();
+      }
+      startup_info.lpAttributeList = attribute_list_;
+    }
+
+    PROCESS_INFORMATION process_info;
+    ZeroMemory(&process_info, sizeof(process_info));
+
+    // Create process.
+    DWORD creation_flags =
+        EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
+    if (mode_ != kNormal) {
+      creation_flags |= DETACHED_PROCESS;
+    }
+    BOOL result = CreateProcessW(NULL,   // ApplicationName
+                                 command_line_,
+                                 NULL,   // ProcessAttributes
+                                 NULL,   // ThreadAttributes
+                                 TRUE,   // InheritHandles
+                                 creation_flags,
+                                 environment_block_,
+                                 system_working_directory_,
+                                 reinterpret_cast<STARTUPINFOW*>(&startup_info),
+                                 &process_info);
+
+    if (result == 0) {
+      return CleanupAndReturnError();
+    }
+
+    CloseHandle(stdin_handles_[kReadHandle]);
+    CloseHandle(stdout_handles_[kWriteHandle]);
+    CloseHandle(stderr_handles_[kWriteHandle]);
+    if (mode_ == kNormal) {
+      ProcessInfoList::AddProcess(process_info.dwProcessId,
+                                  process_info.hProcess,
+                                  exit_handles_[kWriteHandle]);
+    }
+    if (mode_ != kDetached) {
+      // Connect the three stdio streams.
+      FileHandle* stdin_handle = new FileHandle(stdin_handles_[kWriteHandle]);
+      FileHandle* stdout_handle = new FileHandle(stdout_handles_[kReadHandle]);
+      FileHandle* stderr_handle = new FileHandle(stderr_handles_[kReadHandle]);
+      *in_ = reinterpret_cast<intptr_t>(stdout_handle);
+      *out_ = reinterpret_cast<intptr_t>(stdin_handle);
+      *err_ = reinterpret_cast<intptr_t>(stderr_handle);
+      if (mode_ == kNormal) {
+        FileHandle* exit_handle = new FileHandle(exit_handles_[kReadHandle]);
+        *exit_handler_ = reinterpret_cast<intptr_t>(exit_handle);
+      }
+    }
+
+    CloseHandle(process_info.hThread);
+
+    // Return process id.
+    *id_ = process_info.dwProcessId;
+    return 0;
+  }
+
+
+  int CreatePipes() {
+    // Generate unique pipe names for the four named pipes needed.
+    wchar_t pipe_names[4][kMaxPipeNameSize];
+    int status = GenerateNames<4>(pipe_names);
+    if (status != 0) {
+      SetOsErrorMessage(os_error_message_);
+      Log::PrintErr("UuidCreateSequential failed %d\n", status);
+      return status;
+    }
+
+    if (mode_ != kDetached) {
+      // Open pipes for stdin, stdout, stderr and for communicating the exit
+      // code.
+      if (!CreateProcessPipe(stdin_handles_, pipe_names[0], kInheritRead) ||
+          !CreateProcessPipe(stdout_handles_, pipe_names[1], kInheritWrite) ||
+          !CreateProcessPipe(stderr_handles_, pipe_names[2], kInheritWrite)) {
+        return CleanupAndReturnError();
+      }
+      // Only open exit code pipe for non detached processes.
+      if (mode_ == kNormal) {
+        if (!CreateProcessPipe(exit_handles_, pipe_names[3], kInheritNone)) {
+          return CleanupAndReturnError();
+        }
+      }
+    } else {
+      // Open NUL for stdin, stdout and stderr.
+      if ((stdin_handles_[kReadHandle] = OpenNul()) == INVALID_HANDLE_VALUE ||
+          (stdout_handles_[kWriteHandle] = OpenNul()) == INVALID_HANDLE_VALUE ||
+          (stderr_handles_[kWriteHandle] = OpenNul()) == INVALID_HANDLE_VALUE) {
+        return CleanupAndReturnError();
+      }
+    }
+    return 0;
+  }
+
+
+  int CleanupAndReturnError() {
+    int error_code = SetOsErrorMessage(os_error_message_);
+    CloseProcessPipes(
+        stdin_handles_, stdout_handles_, stderr_handles_, exit_handles_);
+    return error_code;
+  }
+
+
+  HANDLE stdin_handles_[2];
+  HANDLE stdout_handles_[2];
+  HANDLE stderr_handles_[2];
+  HANDLE exit_handles_[2];
+
+  const wchar_t* system_working_directory_;
+  wchar_t* command_line_;
+  wchar_t* environment_block_;
+  LPPROC_THREAD_ATTRIBUTE_LIST attribute_list_;
+
+  const char* path_;
+  const char* working_directory_;
+  ProcessStartMode mode_;
+  intptr_t* in_;
+  intptr_t* out_;
+  intptr_t* err_;
+  intptr_t* id_;
+  intptr_t* exit_handler_;
+  char** os_error_message_;
+};
+
+
 int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
                    char* environment[],
                    intptr_t environment_length,
-                   bool detach,
+                   ProcessStartMode mode,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
                    intptr_t* id,
                    intptr_t* exit_handler,
                    char** os_error_message) {
-  HANDLE stdin_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-  HANDLE stdout_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-  HANDLE stderr_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-  HANDLE exit_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-
-  // Generate unique pipe names for the four named pipes needed.
-  wchar_t pipe_names[4][kMaxPipeNameSize];
-  int status = GenerateNames<4>(pipe_names);
-  if (status != 0) {
-    SetOsErrorMessage(os_error_message);
-    Log::PrintErr("UuidCreateSequential failed %d\n", status);
-    return status;
-  }
-
-  if (!detach) {
-    // Open pipes for stdin, stdout, stderr and for communicating the exit
-    // code.
-    if (!CreateProcessPipe(stdin_handles, pipe_names[0], kInheritRead)) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-    if (!CreateProcessPipe(stdout_handles, pipe_names[1], kInheritWrite)) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-    if (!CreateProcessPipe(stderr_handles, pipe_names[2], kInheritWrite)) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-    if (!CreateProcessPipe(exit_handles, pipe_names[3], kInheritNone)) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-  } else {
-    // Open NUL for stdin, stdout and stderr.
-    stdin_handles[kReadHandle] = OpenNul();
-    if (stdin_handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-    stdout_handles[kWriteHandle] = OpenNul();
-    if (stdout_handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-    stderr_handles[kWriteHandle] = OpenNul();
-    if (stderr_handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-  }
-
-  // Setup info structures.
-  STARTUPINFOEXW startup_info;
-  ZeroMemory(&startup_info, sizeof(startup_info));
-  startup_info.StartupInfo.cb = sizeof(startup_info);
-  startup_info.StartupInfo.hStdInput = stdin_handles[kReadHandle];
-  startup_info.StartupInfo.hStdOutput = stdout_handles[kWriteHandle];
-  startup_info.StartupInfo.hStdError = stderr_handles[kWriteHandle];
-  startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
-
-  LPPROC_THREAD_ATTRIBUTE_LIST attribute_list = NULL;
-
-  bool supports_proc_thread_attr_lists = EnsureInitialized();
-  if (supports_proc_thread_attr_lists) {
-    // Setup the handles to inherit. We only want to inherit the three handles
-    // for stdin, stdout and stderr.
-    SIZE_T size = 0;
-    // The call to determine the size of an attribute list always fails with
-    // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-    if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
-        GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      return error_code;
-    }
-    attribute_list =
-        reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
-    ZeroMemory(attribute_list, size);
-    if (!init_proc_thread_attr_list(attribute_list, 1, 0, &size)) {
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      free(attribute_list);
-      return error_code;
-    }
-    static const int kNumInheritedHandles = 3;
-    HANDLE inherited_handles[kNumInheritedHandles] =
-        { stdin_handles[kReadHandle],
-          stdout_handles[kWriteHandle],
-          stderr_handles[kWriteHandle] };
-    if (!update_proc_thread_attr(attribute_list,
-                                 0,
-                                 PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-                                 inherited_handles,
-                                 kNumInheritedHandles * sizeof(HANDLE),
-                                 NULL,
-                                 NULL)) {
-      delete_proc_thread_attr_list(attribute_list);
-      int error_code = SetOsErrorMessage(os_error_message);
-      CloseProcessPipes(
-          stdin_handles, stdout_handles, stderr_handles, exit_handles);
-      free(attribute_list);
-      return error_code;
-    }
-    startup_info.lpAttributeList = attribute_list;
-  }
-
-  PROCESS_INFORMATION process_info;
-  ZeroMemory(&process_info, sizeof(process_info));
-
-  // Transform input strings to system format.
-  const wchar_t* system_path = StringUtils::Utf8ToWide(path);
-  wchar_t** system_arguments = new wchar_t*[arguments_length];
-  for (int i = 0; i < arguments_length; i++) {
-     system_arguments[i] = StringUtils::Utf8ToWide(arguments[i]);
-  }
-
-  // Compute command-line length.
-  int command_line_length = wcslen(system_path);
-  for (int i = 0; i < arguments_length; i++) {
-    command_line_length += wcslen(system_arguments[i]);
-  }
-  // Account for null termination and one space per argument.
-  command_line_length += arguments_length + 1;
-  static const int kMaxCommandLineLength = 32768;
-  if (command_line_length > kMaxCommandLineLength) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    free(const_cast<wchar_t*>(system_path));
-    for (int i = 0; i < arguments_length; i++) free(system_arguments[i]);
-    delete[] system_arguments;
-    if (supports_proc_thread_attr_lists) {
-      delete_proc_thread_attr_list(attribute_list);
-      free(attribute_list);
-    }
-    return error_code;
-  }
-
-  // Put together command-line string.
-  wchar_t* command_line = new wchar_t[command_line_length];
-  int len = 0;
-  int remaining = command_line_length;
-  int written = _snwprintf(command_line + len, remaining, L"%s", system_path);
-  len += written;
-  remaining -= written;
-  ASSERT(remaining >= 0);
-  for (int i = 0; i < arguments_length; i++) {
-    written =
-        _snwprintf(command_line + len, remaining, L" %s", system_arguments[i]);
-    len += written;
-    remaining -= written;
-    ASSERT(remaining >= 0);
-  }
-  free(const_cast<wchar_t*>(system_path));
-  for (int i = 0; i < arguments_length; i++) free(system_arguments[i]);
-  delete[] system_arguments;
-
-  // Create environment block if an environment is supplied.
-  wchar_t* environment_block = NULL;
-  if (environment != NULL) {
-    wchar_t** system_environment = new wchar_t*[environment_length];
-    // Convert environment strings to system strings.
-    for (intptr_t i = 0; i < environment_length; i++) {
-      system_environment[i] = StringUtils::Utf8ToWide(environment[i]);
-    }
-
-    // An environment block is a sequence of zero-terminated strings
-    // followed by a block-terminating zero char.
-    intptr_t block_size = 1;
-    for (intptr_t i = 0; i < environment_length; i++) {
-      block_size += wcslen(system_environment[i]) + 1;
-    }
-    environment_block = new wchar_t[block_size];
-    intptr_t block_index = 0;
-    for (intptr_t i = 0; i < environment_length; i++) {
-      intptr_t len = wcslen(system_environment[i]);
-      intptr_t result = _snwprintf(environment_block + block_index,
-                                   len,
-                                   L"%s",
-                                   system_environment[i]);
-      ASSERT(result == len);
-      block_index += len;
-      environment_block[block_index++] = '\0';
-    }
-    // Block-terminating zero char.
-    environment_block[block_index++] = '\0';
-    ASSERT(block_index == block_size);
-    for (intptr_t i = 0; i < environment_length; i++) {
-      free(system_environment[i]);
-    }
-    delete[] system_environment;
-  }
-
-  const wchar_t* system_working_directory = NULL;
-  if (working_directory != NULL) {
-    system_working_directory = StringUtils::Utf8ToWide(working_directory);
-  }
-
-  // Create process.
-  DWORD creation_flags =
-      EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
-  if (detach) {
-    creation_flags |= DETACHED_PROCESS;
-  }
-  BOOL result = CreateProcessW(NULL,   // ApplicationName
-                               command_line,
-                               NULL,   // ProcessAttributes
-                               NULL,   // ThreadAttributes
-                               TRUE,   // InheritHandles
-                               creation_flags,
-                               environment_block,
-                               system_working_directory,
-                               reinterpret_cast<STARTUPINFOW*>(&startup_info),
-                               &process_info);
-  // Deallocate command-line and environment block strings.
-  delete[] command_line;
-  delete[] environment_block;
-  if (system_working_directory != NULL) {
-    free(const_cast<wchar_t*>(system_working_directory));
-  }
-
-  if (supports_proc_thread_attr_lists) {
-    delete_proc_thread_attr_list(attribute_list);
-    free(attribute_list);
-  }
-
-  if (result == 0) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    return error_code;
-  }
-
-  CloseHandle(stdin_handles[kReadHandle]);
-  CloseHandle(stdout_handles[kWriteHandle]);
-  CloseHandle(stderr_handles[kWriteHandle]);
-  if (!detach) {
-    ProcessInfoList::AddProcess(process_info.dwProcessId,
-                                process_info.hProcess,
-                                exit_handles[kWriteHandle]);
-
-    // Connect the three std streams.
-    FileHandle* stdin_handle = new FileHandle(stdin_handles[kWriteHandle]);
-    FileHandle* stdout_handle = new FileHandle(stdout_handles[kReadHandle]);
-    FileHandle* stderr_handle = new FileHandle(stderr_handles[kReadHandle]);
-    FileHandle* exit_handle = new FileHandle(exit_handles[kReadHandle]);
-    *in = reinterpret_cast<intptr_t>(stdout_handle);
-    *out = reinterpret_cast<intptr_t>(stdin_handle);
-    *err = reinterpret_cast<intptr_t>(stderr_handle);
-    *exit_handler = reinterpret_cast<intptr_t>(exit_handle);
-  }
-
-  CloseHandle(process_info.hThread);
-
-  // Return process id.
-  *id = process_info.dwProcessId;
-  return 0;
+  ProcessStarter starter(path,
+                         arguments,
+                         arguments_length,
+                         working_directory,
+                         environment,
+                         environment_length,
+                         mode,
+                         in,
+                         out,
+                         err,
+                         id,
+                         exit_handler,
+                         os_error_message);
+  return starter.Start();
 }
 
 

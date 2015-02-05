@@ -88,7 +88,7 @@ var tests = [
     expect(lib.classes.length, equals(1));
     Class fooClass = lib.classes.first;
     fooId = fooClass.vmCid;
-    isolate.get('graph');
+    isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
     return completer.future;
   });
 },

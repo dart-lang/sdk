@@ -20,6 +20,7 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   { DartUtils::kIOLibURL, NULL, NULL, NULL, true  },
 };
 
+Dart_Port Builtin::load_port_ = ILLEGAL_PORT;
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   return DartUtils::NewError("Unreachable code in Builtin::Source (%d).", id);

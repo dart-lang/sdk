@@ -10,18 +10,16 @@ import 'test_helper.dart';
 var tests = [
 
 (Isolate isolate) =>
-  isolate.vm.get('_echo').then((result) {
-    expect(result['type'], equals("message"));
-    expect(result['id'], equals("_echo"));
-    expect(result.owner, equals(isolate.vm));
-}),
+  isolate.vm.invokeRpc('_echo', { 'text': 'hello'}).then((result) {
+    expect(result['type'], equals('_EchoResponse'));
+    expect(result['text'], equals('hello'));
+  }),
 
 (Isolate isolate) =>
-  isolate.get('_echo').then((result) {
-    expect(result['type'], equals("message"));
-    expect(result['id'], equals("_echo"));
-    expect(result.owner, equals(isolate));
-}),
+  isolate.invokeRpc('_echo', { 'text': 'hello'}).then((result) {
+    expect(result['type'], equals('_EchoResponse'));
+    expect(result['text'], equals('hello'));
+  }),
 
 (Isolate isolate) {
   Completer completer = new Completer();
@@ -34,7 +32,7 @@ var tests = [
       completer.complete();
     }
   });
-  isolate.get('_echo/event');
+  isolate.invokeRpc('_triggerEchoEvent', { 'text': 'hello' });
   return completer.future;
 },
 

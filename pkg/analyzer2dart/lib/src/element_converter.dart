@@ -8,10 +8,10 @@
 library analyzer2dart.element_converter;
 
 import 'package:compiler/src/elements/elements.dart' as dart2js;
-import 'package:compiler/src/elements/modelx.dart' as modelx;
 import 'package:compiler/src/util/util.dart' as util;
 import 'package:compiler/src/dart_types.dart' as dart2js;
 import 'package:analyzer/src/generated/element.dart' as analyzer;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 part 'modely.dart';
 

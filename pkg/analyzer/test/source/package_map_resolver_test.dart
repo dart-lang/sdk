@@ -10,48 +10,16 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
+import '../reflective_tests.dart';
+
 
 main() {
   groupSep = ' | ';
-  group('PackageMapUriResolverTest', () {
-    test('isPackageUri', () {
-      new _PackageMapUriResolverTest().test_isPackageUri();
-    });
-    test('isPackageUri_null_scheme', () {
-      new _PackageMapUriResolverTest().test_isPackageUri_null_scheme();
-    });
-    test('isPackageUri_other_scheme', () {
-      new _PackageMapUriResolverTest().test_isPackageUri_other_scheme();
-    });
-    test('resolve_multiple_folders', () {
-      new _PackageMapUriResolverTest().test_resolve_multiple_folders();
-    });
-    test('resolve_nonPackage', () {
-      new _PackageMapUriResolverTest().test_resolve_nonPackage();
-    });
-    test('resolve_OK', () {
-      new _PackageMapUriResolverTest().test_resolve_OK();
-    });
-    test('resolve_package_invalid_leadingSlash', () {
-      var inst = new _PackageMapUriResolverTest();
-      inst.test_resolve_package_invalid_leadingSlash();
-    });
-    test('resolve_package_invalid_noSlash', () {
-      new _PackageMapUriResolverTest().test_resolve_package_invalid_noSlash();
-    });
-    test('resolve_package_invalid_onlySlash', () {
-      new _PackageMapUriResolverTest().test_resolve_package_invalid_onlySlash();
-    });
-    test('resolve_package_notInMap', () {
-      new _PackageMapUriResolverTest().test_resolve_package_notInMap();
-    });
-    test('restoreAbsolute_OK', () {
-      new _PackageMapUriResolverTest().test_restoreAbsolute();
-    });
-  });
+  runReflectiveTests(_PackageMapUriResolverTest);
 }
 
 
+@reflectiveTest
 class _PackageMapUriResolverTest {
   static const Map EMPTY_MAP = const <String, List<Folder>>{};
   MemoryResourceProvider provider = new MemoryResourceProvider();
@@ -72,6 +40,18 @@ class _PackageMapUriResolverTest {
     Uri uri = Uri.parse('memfs:/foo.dart');
     expect(uri.scheme, 'memfs');
     expect(PackageMapUriResolver.isPackageUri(uri), isFalse);
+  }
+
+  void test_new_null_packageMap() {
+    expect(() {
+      new PackageMapUriResolver(provider, null);
+    }, throws);
+  }
+
+  void test_new_null_resourceProvider() {
+    expect(() {
+      new PackageMapUriResolver(null, <String, List<Folder>>{});
+    }, throws);
   }
 
   void test_resolve_multiple_folders() {

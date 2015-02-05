@@ -212,7 +212,7 @@ class _MemoryFile extends _MemoryResource implements File {
 /**
  * An in-memory implementation of [Source].
  */
-class _MemoryFileSource implements Source {
+class _MemoryFileSource extends Source {
   final _MemoryFile _file;
 
   final Uri uri;

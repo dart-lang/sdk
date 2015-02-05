@@ -172,7 +172,6 @@
         'lib/src/service/object.dart',
         'lib/tracer.dart',
         'web/index.html',
-        'web/index_devtools.html',
         'web/main.dart',
       ],
       'actions': [
@@ -187,8 +186,6 @@
           'outputs': [
             '<(PRODUCT_DIR)/observatory/build/web/index.html',
             '<(PRODUCT_DIR)/observatory/build/web/index.html_bootstrap.dart.js',
-            '<(PRODUCT_DIR)/observatory/build/web/index_devtools.html',
-            '<(PRODUCT_DIR)/observatory/build/web/index_devtools.html_bootstrap.dart.js',
           ],
           'action': [
             'python',
@@ -207,14 +204,10 @@
             '../../tools/observatory_tool.py',
             '<(PRODUCT_DIR)/observatory/build/web/index.html',
             '<(PRODUCT_DIR)/observatory/build/web/index.html_bootstrap.dart.js',
-            '<(PRODUCT_DIR)/observatory/build/web/index_devtools.html',
-            '<(PRODUCT_DIR)/observatory/build/web/index_devtools.html_bootstrap.dart.js',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/observatory/deployed/web/index.html',
             '<(PRODUCT_DIR)/observatory/deployed/web/index.html_bootstrap.dart.js',
-            '<(PRODUCT_DIR)/observatory/deployed/web/index_devtools.html',
-            '<(PRODUCT_DIR)/observatory/deployed/web/index_devtools.html_bootstrap.dart.js',
           ],
           'action': [
             'python',

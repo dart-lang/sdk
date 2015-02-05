@@ -4,6 +4,10 @@
 
 patch class Timer {
   /*patch*/ static Timer _createTimer(Duration duration, void callback()) {
+    // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.
+    if (_TimerFactory._factory == null) {
+      _TimerFactory._factory = VMLibraryHooks.timerFactory;
+    }
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }
@@ -14,6 +18,10 @@ patch class Timer {
 
   /*patch*/ static Timer _createPeriodicTimer(Duration duration,
                                               void callback(Timer timer)) {
+    // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.
+    if (_TimerFactory._factory == null) {
+      _TimerFactory._factory = VMLibraryHooks.timerFactory;
+    }
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }
@@ -27,12 +35,8 @@ typedef Timer _TimerFactoryClosure(int milliseconds,
                                    void callback(Timer timer),
                                    bool repeating);
 
+// Warning: Dartium sets _TimerFactory._factory instead of setting things up
+// through VMLibraryHooks.timerFactory.
 class _TimerFactory {
   static _TimerFactoryClosure _factory;
-}
-
-// TODO(ahe): Warning: this is NOT called by Dartium. Instead, it sets
-// [_TimerFactory._factory] directly.
-void _setTimerFactoryClosure(_TimerFactoryClosure closure) {
-  _TimerFactory._factory = closure;
 }

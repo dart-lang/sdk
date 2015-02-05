@@ -100,9 +100,7 @@ class Pubspec {
   List<PackageDep> get dependencies {
     if (_dependencies != null) return _dependencies;
     _dependencies = _parseDependencies('dependencies');
-    if (_devDependencies == null) {
-      _checkDependencyOverlap(_dependencies, devDependencies);
-    }
+    _checkDependencyOverlap(_dependencies, _devDependencies);
     return _dependencies;
   }
   List<PackageDep> _dependencies;
@@ -111,9 +109,7 @@ class Pubspec {
   List<PackageDep> get devDependencies {
     if (_devDependencies != null) return _devDependencies;
     _devDependencies = _parseDependencies('dev_dependencies');
-    if (_dependencies == null) {
-      _checkDependencyOverlap(dependencies, _devDependencies);
-    }
+    _checkDependencyOverlap(_dependencies, _devDependencies);
     return _devDependencies;
   }
   List<PackageDep> _devDependencies;
@@ -549,6 +545,9 @@ class Pubspec {
   /// dependency.
   void _checkDependencyOverlap(List<PackageDep> dependencies,
       List<PackageDep> devDependencies) {
+    if (dependencies == null) return;
+    if (devDependencies == null) return;
+
     var dependencyNames = dependencies.map((dep) => dep.name).toSet();
     var collisions =
         dependencyNames.intersection(devDependencies.map((dep) => dep.name).toSet());

@@ -59,9 +59,22 @@
   ],
   'conditions': [
     ['dart_io_support==1', {
+      'conditions': [
+        ['dart_io_secure_socket==1', {
+          'sources!' : [
+            'secure_socket_unsupported.cc',
+          ],
+        }, {  # else dart_io_secure_socket == 0
+          'sources!' : [
+            'net/nss_memio.cc',
+            'net/nss_memio.h',
+            'secure_socket.cc',
+            'secure_socket.h',
+          ],
+        }],
+      ],
       'sources!' : [
         'filter_unsupported.cc',
-        'secure_socket_unsupported.cc',
         'io_service_unsupported.cc',
       ],
     },{  # else dart_io_support == 0

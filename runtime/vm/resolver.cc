@@ -221,4 +221,36 @@ RawFunction* Resolver::ResolveStatic(const Class&  cls,
   return function.raw();
 }
 
+
+RawFunction* Resolver::ResolveStaticAllowPrivate(const Class&  cls,
+                                                 const String& function_name,
+                                                 intptr_t num_arguments,
+                                                 const Array& argument_names) {
+  ASSERT(!cls.IsNull());
+  if (FLAG_trace_resolving) {
+    OS::Print("ResolveStaticAllowPrivate '%s'\n", function_name.ToCString());
+  }
+  const Function& function =
+      Function::Handle(cls.LookupStaticFunctionAllowPrivate(function_name));
+  if (function.IsNull() ||
+      !function.AreValidArguments(num_arguments, argument_names, NULL)) {
+    // Return a null function to signal to the upper levels to throw a
+    // resolution error or maybe throw the error right here.
+    if (FLAG_trace_resolving) {
+      String& error_message = String::Handle(String::New("function not found"));
+      if (!function.IsNull()) {
+        // Obtain more detailed error message.
+        function.AreValidArguments(num_arguments,
+                                   argument_names,
+                                   &error_message);
+      }
+      OS::Print("ResolveStaticAllowPrivate error '%s': %s.\n",
+                function_name.ToCString(),
+                error_message.ToCString());
+    }
+    return Function::null();
+  }
+  return function.raw();
+}
+
 }  // namespace dart

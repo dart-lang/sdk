@@ -5,7 +5,7 @@
 library _js_helper;
 
 import 'dart:_js_embedded_names' show
-    ALL_CLASSES,
+    GET_TYPE_FROM_NAME,
     GET_ISOLATE_TAG,
     INTERCEPTED_NAMES,
     INTERCEPTORS_BY_TAG,
@@ -75,15 +75,8 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
-class _Patch {
-  const _Patch();
-}
-
-const _Patch patch = const _Patch();
-
-
 /// Marks the internal map in dart2js, so that internal libraries can is-check
-// them.
+/// them.
 abstract class InternalMap {
 }
 
@@ -1963,14 +1956,15 @@ abstract class Closure implements Function {
    *
    * Further assumes that [reflectionInfo] is the end of the array created by
    * [dart2js.js_emitter.ContainerBuilder.addMemberMethod] starting with
-   * required parameter count.
+   * required parameter count or, in case of the new emitter, the runtime
+   * representation of the function's type.
    *
    * Caution: this function may be called when building constants.
    * TODO(ahe): Don't call this function when building constants.
    */
   static fromTearOff(receiver,
                      List functions,
-                     List reflectionInfo,
+                     var reflectionInfo,
                      bool isStatic,
                      jsArguments,
                      String propertyName) {
@@ -1984,10 +1978,15 @@ abstract class Closure implements Function {
     String name = JS('String|Null', '#.\$stubName', function);
     String callName = JS('String|Null', '#.\$callName', function);
 
-    JS('', '#.\$reflectionInfo = #', function, reflectionInfo);
-    ReflectionInfo info = new ReflectionInfo(function);
+    var functionType;
+    if (reflectionInfo is List) {
+      JS('', '#.\$reflectionInfo = #', function, reflectionInfo);
+      ReflectionInfo info = new ReflectionInfo(function);
+      functionType = info.functionType;
+    } else {
+      functionType = reflectionInfo;
+    }
 
-    var functionType = info.functionType;
 
     // function tmp() {};
     // tmp.prototype = BC.prototype;
@@ -2329,7 +2328,8 @@ closureFromTearOff(receiver,
   return Closure.fromTearOff(
       receiver,
       JSArray.markFixedList(functions),
-      JSArray.markFixedList(reflectionInfo),
+      reflectionInfo is List ? JSArray.markFixedList(reflectionInfo)
+                             : reflectionInfo,
       JS('bool', '!!#', isStatic),
       jsArguments,
       JS('String', '#', name));
@@ -3148,8 +3148,8 @@ class RuntimeTypePlain extends RuntimeType {
   RuntimeTypePlain(this.name);
 
   toRti() {
-    var allClasses = JS_EMBEDDED_GLOBAL('', ALL_CLASSES);
-    var rti = JS('', '#[#]', allClasses, name);
+    var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
+    var rti = JS('', '#(#)', getTypeFromName, name);
     if (rti == null) throw "no type for '$name'";
     return rti;
   }
@@ -3166,8 +3166,8 @@ class RuntimeTypeGeneric extends RuntimeType {
 
   toRti() {
     if (rti != null) return rti;
-    var allClasses = JS_EMBEDDED_GLOBAL('', ALL_CLASSES);
-    var result = JS('JSExtendableArray', '[#[#]]', allClasses, name);
+    var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
+    var result = JS('JSExtendableArray', '[#(#)]', getTypeFromName, name);
     if (result[0] == null) {
       throw "no type for '$name<...>'";
     }

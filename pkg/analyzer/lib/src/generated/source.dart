@@ -10,6 +10,10 @@ library engine.source;
 import "dart:math" as math;
 import 'dart:collection';
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/task/model.dart';
+
 import 'engine.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -306,7 +310,7 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
 /**
  * An implementation of an non-existing [Source].
  */
-class NonExistingSource implements Source {
+class NonExistingSource extends Source {
   final String _name;
 
   final UriKind uriKind;
@@ -379,7 +383,7 @@ class NonExistingSource implements Source {
  * retained so that if those files are created at a later date the long-lived sources representing
  * those files will know that they now exist.
  */
-abstract class Source {
+abstract class Source implements AnalysisTarget {
   /**
    * An empty list of sources.
    */
@@ -405,6 +409,9 @@ abstract class Source {
    * See [SourceFactory.fromEncoding].
    */
   String get encoding;
+
+  @override
+  Source get source => this;
 
   /**
    * Return the full (long) version of the name that can be displayed to the user to denote this
@@ -593,6 +600,14 @@ class SourceFactory {
    */
   void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
     this._localSourcePredicate = localSourcePredicate;
+  }
+
+  /// A table mapping package names to paths of directories containing
+  /// the package (or [null] if there is no registered package URI resolver).
+  Map<String, List<Folder>> get packageMap {
+    PackageMapUriResolver resolver =
+        _resolvers.firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
+    return resolver != null ? resolver.packageMap : null;
   }
 
   /**

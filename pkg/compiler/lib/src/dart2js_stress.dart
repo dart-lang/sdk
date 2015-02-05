@@ -7,8 +7,6 @@ import "dart2js.dart" as dart2js;
 
 const ITERATIONS_FLAG_PREFIX = "--iterations=";
 void main(List<String> args) {
-  print("Reminder: for best performance, "
-        "dart2js should be run with the VM flag --heap_growth_rate=512");
   Stopwatch sw = new Stopwatch();
   int count = 0;
   int maxCount = null;

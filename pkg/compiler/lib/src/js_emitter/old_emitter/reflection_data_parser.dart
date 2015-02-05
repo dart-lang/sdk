@@ -18,12 +18,12 @@ const bool VALIDATE_DATA = false;
 String get parseReflectionDataName => 'parseReflectionData';
 
 jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
-                                         JavaScriptBackend backend) {
+                                         JavaScriptBackend backend,
+                                         bool hasNativeClasses) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   CodeEmitterTask emitter = backend.emitter;
 
-  String metadataField = '"${namer.metadataField}"';
   String reflectableField = namer.reflectableField;
   String reflectionInfoField = namer.reflectionInfoField;
   String reflectionNameField = namer.reflectionNameField;
@@ -352,8 +352,6 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   jsAst.Expression allClassesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
 
-  String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
-
   // Class descriptions are collected in a JS object.
   // 'finishClasses' takes all collected descriptions and sets up
   // the prototype.
@@ -414,7 +412,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 }''', {'allClasses': allClassesAccess,
        'debugFastObjects': DEBUG_FAST_OBJECTS,
        'isTreeShakingDisabled': backend.isTreeShakingDisabled,
-       'finishClassFunction': oldEmitter.buildFinishClass(),
+       'finishClassFunction': oldEmitter.buildFinishClass(hasNativeClasses),
        'trivialNsmHandlers': oldEmitter.buildTrivialNsmHandlers(),
        'inCspMode': compiler.useContentSecurityPolicy,
        'notInCspMode': !compiler.useContentSecurityPolicy});
@@ -454,91 +452,6 @@ function $parseReflectionDataName(reflectionData) {
       'finishClasses': finishClasses,
       'needsClassSupport': oldEmitter.needsClassSupport,
       'needsStructuredMemberInfo': oldEmitter.needsStructuredMemberInfo});
-}
-
-
-List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
-  Namer namer = backend.namer;
-  Compiler compiler = backend.compiler;
-
-  Element closureFromTearOff = backend.findHelper('closureFromTearOff');
-  String tearOffAccessText;
-  jsAst.Expression tearOffAccessExpression;
-  String tearOffGlobalObjectName;
-  String tearOffGlobalObject;
-  if (closureFromTearOff != null) {
-    // We need both the AST that references [closureFromTearOff] and a string
-    // for the NoCsp version that constructs a function.
-    tearOffAccessExpression =
-        backend.emitter.staticFunctionAccess(closureFromTearOff);
-    tearOffAccessText =
-        jsAst.prettyPrint(tearOffAccessExpression, compiler).getText();
-    tearOffGlobalObjectName = tearOffGlobalObject =
-        namer.globalObjectFor(closureFromTearOff);
-  } else {
-    // Default values for mocked-up test libraries.
-    tearOffAccessText =
-        r'''function() { throw 'Helper \'closureFromTearOff\' missing.' }''';
-    tearOffAccessExpression = js(tearOffAccessText);
-    tearOffGlobalObjectName = 'MissingHelperFunction';
-    tearOffGlobalObject = '($tearOffAccessText())';
-  }
-
-  jsAst.Statement tearOffGetter;
-  if (!compiler.useContentSecurityPolicy) {
-    // This template is uncached because it is constructed from code fragments
-    // that can change from compilation to compilation.  Some of these could be
-    // avoided, except for the string literals that contain the compiled access
-    // path to 'closureFromTearOff'.
-    tearOffGetter = js.uncachedStatementTemplate('''
-        function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
-          return isIntercepted
-              ? new Function("funcs", "reflectionInfo", "name",
-                             "$tearOffGlobalObjectName", "c",
-                  "return function tearOff_" + name + (functionCounter++)+ "(x) {" +
-                    "if (c === null) c = $tearOffAccessText(" +
-                        "this, funcs, reflectionInfo, false, [x], name);" +
-                    "return new c(this, funcs[0], x, name);" +
-                  "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
-              : new Function("funcs", "reflectionInfo", "name",
-                             "$tearOffGlobalObjectName", "c",
-                  "return function tearOff_" + name + (functionCounter++)+ "() {" +
-                    "if (c === null) c = $tearOffAccessText(" +
-                        "this, funcs, reflectionInfo, false, [], name);" +
-                    "return new c(this, funcs[0], null, name);" +
-                  "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
-        }''').instantiate([]);
-  } else {
-    tearOffGetter = js.statement('''
-        function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
-          var cache = null;
-          return isIntercepted
-              ? function(x) {
-                  if (cache === null) cache = #(
-                      this, funcs, reflectionInfo, false, [x], name);
-                  return new cache(this, funcs[0], x, name);
-                }
-              : function() {
-                  if (cache === null) cache = #(
-                      this, funcs, reflectionInfo, false, [], name);
-                  return new cache(this, funcs[0], null, name);
-                };
-        }''', [tearOffAccessExpression, tearOffAccessExpression]);
-  }
-
-  jsAst.Statement tearOff = js.statement('''
-    function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
-      var cache;
-      return isStatic
-          ? function() {
-              if (cache === void 0) cache = #tearOff(
-                  this, funcs, reflectionInfo, true, [], name).prototype;
-              return cache;
-            }
-          : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
-    }''',  {'tearOff': tearOffAccessExpression});
-
-  return <jsAst.Statement>[tearOffGetter, tearOff];
 }
 
 String readString(String array, String index) {

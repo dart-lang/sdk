@@ -1152,6 +1152,17 @@ class ScriptProcessorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `audioprocess` events to event
+   * handlers that are not necessarily instances of [ScriptProcessorNode].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  @DomName('ScriptProcessorNode.audioprocessEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
+
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable()
   int get bufferSize => _blink.BlinkScriptProcessorNode.instance.bufferSize_Getter_(this);
@@ -1160,6 +1171,19 @@ class ScriptProcessorNode extends AudioNode {
   @DocsEditable()
   @Experimental() // untriaged
   void setEventListener(EventListener eventListener) => _blink.BlinkScriptProcessorNode.instance.setEventListener_Callback_1_(this, eventListener);
+
+  /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
+/**
+   * Get a Stream that fires events when AudioProcessingEvents occur.
+   * This particular stream is special in that it only allows one listener to a
+   * given stream. Converting the returned Stream [asBroadcast] will likely ruin
+   * the soft-real-time properties which which these events are fired and can
+   * be processed.
+   */
+  @DomName('ScriptProcessorNode.onaudioprocess')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<AudioProcessingEvent> get onAudioProcess => audioProcessEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

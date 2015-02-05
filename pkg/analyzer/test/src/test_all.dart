@@ -7,11 +7,13 @@ library test.src;
 import 'package:unittest/unittest.dart';
 
 import 'task/test_all.dart' as task;
+import 'util/test_all.dart' as util;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
-  group('generated tests', () {
+  group('src tests', () {
     task.main();
+    util.main();
   });
 }

@@ -231,8 +231,8 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Return a list of all of the libraries referenced by any files in existing
-   * analysis roots.
+   * Return library dependency information for use in client-side indexing and
+   * package URI resolution.
    *
    * Returns
    *
@@ -240,6 +240,12 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the paths of library elements referenced by files in existing
    *   analysis roots.
+   *
+   * packageMap ( Map<String, Map<String, List<FilePath>>> )
+   *
+   *   A mapping from context source roots to package maps which map package
+   *   names to source directories for use in client-side package URI
+   *   resolution.
    */
   Future<AnalysisGetLibraryDependenciesResult> sendAnalysisGetLibraryDependencies() {
     return server.send("analysis.getLibraryDependencies", null)
@@ -324,7 +330,11 @@ abstract class IntegrationTestMixin {
   /**
    * Sets the root paths used to determine which files to analyze. The set of
    * files to be analyzed are all of the files in one of the root paths that
-   * are not also in one of the excluded paths.
+   * are not either explicitly or implicitly excluded. A file is explicitly
+   * excluded if it is in one of the excluded paths. A file is implicitly
+   * excluded if it is in a subdirectory of one of the root paths where the
+   * name of the subdirectory starts with a period (that is, a hidden
+   * directory).
    *
    * Note that this request determines the set of requested analysis roots. The
    * actual set of analysis roots at any given time is the intersection of this
@@ -1052,11 +1062,15 @@ abstract class IntegrationTestMixin {
    *
    * selectionOffset ( int )
    *
-   *   The offset of the current selection in the file.
+   *   The offset of the current selection in the file. In case preserving,
+   *   selection information is not required, 0 can be specified for both
+   *   selection offset and length.
    *
    * selectionLength ( int )
    *
-   *   The length of the current selection in the file.
+   *   The length of the current selection in the file. In case preserving,
+   *   selection information is not required, 0 can be specified for both
+   *   selection offset and length.
    *
    * Returns
    *
@@ -1181,6 +1195,9 @@ abstract class IntegrationTestMixin {
 
   /**
    * Get the changes required to perform a refactoring.
+   *
+   * If another refactoring request is received during the processing of this
+   * one, an error of type REFACTORING_REQUEST_CANCELLED will be generated.
    *
    * Parameters
    *
@@ -1350,6 +1367,21 @@ abstract class IntegrationTestMixin {
    * or map a file to the URI that it corresponds to in the execution context.
    *
    * Exactly one of the file and uri fields must be provided.
+   *
+   * If the file field is provided and the value is not the path of a file
+   * (either the file does not exist or the path references something other
+   * than a file), then an error of type MAP_URI_INVALID_FILE will be
+   * generated.
+   *
+   * If the uri field is provided and the value is not a valid URI or if the
+   * URI references something that is not a file (either a file that does not
+   * exist or something other than a file), then an error of type
+   * MAP_URI_INVALID_URI will be generated.
+   *
+   * If the contextRoot used to create the execution context is not a file
+   * (either the file does not exist or the path references something other
+   * than a file), then an error of type INVALID_EXECUTION_CONTEXT will be
+   * generated.
    *
    * Parameters
    *

@@ -341,7 +341,12 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--csp', passThrough),
     new OptionHandler('--enable-experimental-mirrors', passThrough),
     new OptionHandler('--enable-async', setEnableAsync),
-    new OptionHandler('--enable-enum', passThrough),
+    new OptionHandler('--enable-enum', (_) {
+      diagnosticHandler.info(
+          "Option '--enable-enum' is no longer needed. "
+          "Enums are supported by default.",
+          api.Diagnostic.HINT);
+    }),
     new OptionHandler('--allow-native-extensions', setAllowNativeExtensions),
     new OptionHandler('--generate-code-with-compile-time-errors', passThrough),
 
@@ -405,7 +410,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
   if (analyzeAll) analyzeOnly = true;
   if (!analyzeOnly) {
-    if (enableAsyncAwait) {
+    if (enableAsyncAwait && outputLanguage != OUTPUT_LANGUAGE_DART) {
       helpAndFail("Option '--enable-async' is currently only supported in "
                   "combination with the '--analyze-only' option.");
     }

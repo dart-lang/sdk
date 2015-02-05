@@ -20,7 +20,6 @@ import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
 import '../../scanner/scannerlib.dart' as scanner;
 import '../../elements/elements.dart';
-import '../../closure.dart';
 import '../../js/js.dart' as js;
 import '../../io/source_map_builder.dart';
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
@@ -62,8 +61,10 @@ class CspFunctionCompiler implements FunctionCompiler {
   js.Fun compile(CodegenWorkItem work) {
     types = new TypeMaskSystem(compiler);
     AstElement element = work.element;
+    JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
-      if (element.library.isPlatformLibrary) {
+      if (element.library.isPlatformLibrary ||
+          element.library == backend.interceptorsLibrary) {
         compiler.log('Using SSA compiler for platform element $element');
         return fallbackCompiler.compile(work);
       }
@@ -104,6 +105,13 @@ class CspFunctionCompiler implements FunctionCompiler {
     cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
     if (cpsNode == null) {
       giveUp('unable to build cps definition of $element');
+    }
+    if (element.isInstanceMember && !element.isGenerativeConstructorBody) {
+      Selector selector = new Selector.fromElement(cpsNode.element);
+      if (glue.isInterceptedSelector(selector)) {
+        giveUp('cannot compile methods that need interceptor calling '
+            'convention.');
+      }
     }
     traceGraph("IR Builder", cpsNode);
     new UnsugarVisitor(glue).rewrite(cpsNode);

@@ -69,14 +69,14 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
     }
     ExpectSubstringF(
         js.ToCString(),
-        "[{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/2\","
+        "[{\"type\":\"Breakpoint\",\"id\":\"breakpoints\\/2\","
         "\"breakpointNumber\":2,\"enabled\":true,\"resolved\":false,"
         "\"location\":{\"type\":\"Location\","
         "\"script\":{\"type\":\"@Script\","
         "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
         "\"name\":\"test-lib\","
         "\"kind\":\"script\"},\"tokenPos\":14}},"
-        "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
+        "{\"type\":\"Breakpoint\",\"id\":\"breakpoints\\/1\","
         "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
         "\"location\":{\"type\":\"Location\","
         "\"script\":{\"type\":\"@Script\","

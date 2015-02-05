@@ -740,7 +740,23 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       SetValue(instr, non_constant_);
     }
   } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle instanceof on constants.
+    if (value.IsInstance()) {
+      const Instance& instance = Instance::Cast(value);
+      const AbstractType& checked_type = instr->type();
+      if (instr->instantiator()->BindsToConstantNull() &&
+        instr->instantiator_type_arguments()->BindsToConstantNull()) {
+        const TypeArguments& checked_type_arguments = TypeArguments::Handle();
+        Error& bound_error = Error::Handle();
+        bool is_instance = instance.IsInstanceOf(checked_type,
+                                                 checked_type_arguments,
+                                                 &bound_error);
+        // Can only have bound error with generics.
+        ASSERT(bound_error.IsNull());
+        SetValue(instr, Bool::Get(instr->negate_result()
+                                  ? !is_instance : is_instance));
+        return;
+      }
+    }
     SetValue(instr, non_constant_);
   }
 }

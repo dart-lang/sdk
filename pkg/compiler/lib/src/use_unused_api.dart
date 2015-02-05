@@ -25,7 +25,9 @@ import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
 import 'io/code_output.dart' as io;
 import 'js/js.dart' as js;
+import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
+import 'js_emitter/program_builder.dart' as program_builder;
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/ssa.dart' as ssa;
 import 'tree/tree.dart' as tree;
@@ -53,6 +55,7 @@ void main(List<String> arguments) {
   useJs(new js.Blob(null));
   useJs(new js.NamedFunction(null, null));
   useJs(new js.ArrayHole());
+  useJsBackend(null);
   useConcreteTypesInferrer(null);
   useColor();
   useFilenames();
@@ -65,6 +68,7 @@ void main(List<String> arguments) {
   useTypes();
   useCodeEmitterTask(null);
   useScript(null);
+  useProgramBuilder(null);
 }
 
 useApi() {
@@ -170,6 +174,10 @@ useJs(js.Node node) {
   node.asVariableUse();
 }
 
+useJsBackend(js_backend.JavaScriptBackend backend) {
+  backend.assembleCode(null);
+}
+
 useConcreteTypesInferrer(concrete_types_inferrer.ConcreteTypesInferrer c) {
   c.debug();
 }
@@ -273,4 +281,9 @@ useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
 
 useScript(dart2jslib.Script script) {
   script.copyWithFile(null);
+}
+
+useProgramBuilder(program_builder.ProgramBuilder builder) {
+  builder.buildMethodHackForIncrementalCompilation(null);
+  builder.buildFieldsHackForIncrementalCompilation(null);
 }

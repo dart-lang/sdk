@@ -19,6 +19,7 @@ import 'js_emitter.dart' show
     ClassStubGenerator,
     CodeEmitterTask,
     InterceptorStubGenerator,
+    ParameterStubGenerator,
     TypeTestGenerator,
     TypeTestProperties;
 
@@ -58,6 +59,8 @@ class ProgramBuilder {
   /// update field-initializers to point to the ConstantModel.
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
+  Set<Class> _unneededNativeClasses;
+
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
@@ -74,20 +77,12 @@ class ProgramBuilder {
     // $ holder so we have to register that. Can we track if we have to?
     _registry.registerHolder(r'$');
 
-    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
-    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
-        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
-
-    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
-    outputs[0] = mainOutput;
-    outputs.setAll(1, deferredOutputs);
-
-    List<Class> nativeClasses = _task.nativeClasses
-        .map((ClassElement classElement) {
-          Class result = _classes[classElement];
-          return (result == null) ? _buildClass(classElement) : result;
-        })
-        .toList();
+    // We need to run the native-preparation before we build the output. The
+    // preparation code, in turn needs the classes to be set up.
+    // We thus build the classes before building their containers.
+    _task.outputClassLists.forEach((OutputUnit _, List<ClassElement> classes) {
+      classes.forEach(_buildClass);
+    });
 
     // Resolve the superclass references after we've processed all the classes.
     _classes.forEach((ClassElement element, Class c) {
@@ -101,12 +96,33 @@ class ProgramBuilder {
       }
     });
 
+    List<Class> nativeClasses = _task.nativeClassesAndSubclasses
+        .map((ClassElement classElement) => _classes[classElement])
+        .toList();
+
+    _unneededNativeClasses =
+        _task.nativeEmitter.prepareNativeClasses(nativeClasses);
+
+    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
+    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
+        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
+
+    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
+    outputs[0] = mainOutput;
+    outputs.setAll(1, deferredOutputs);
+
     _markEagerClasses();
 
-    return new Program(outputs,
-                       nativeClasses,
-                       _task.outputContainsConstantList,
-                       _buildLoadMap());
+    bool containsNativeClasses =
+        nativeClasses.length != _unneededNativeClasses.length;
+
+    return new Program(
+        outputs,
+        _buildLoadMap(),
+        _buildTypeToInterceptorMap(),
+        _task.metadataCollector,
+        outputContainsNativeClasses: containsNativeClasses,
+        outputContainsConstantList: _task.outputContainsConstantList);
   }
 
   void _markEagerClasses() {
@@ -115,11 +131,6 @@ class ProgramBuilder {
 
   /// Builds a map from loadId to outputs-to-load.
   Map<String, List<Fragment>> _buildLoadMap() {
-    List<OutputUnit> convertHunks(List<OutputUnit> hunks) {
-      return hunks.map((OutputUnit unit) => _outputs[unit])
-          .toList(growable: false);
-    }
-
     Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
     _compiler.deferredLoadTask.hunksToLoad
         .forEach((String loadId, List<OutputUnit> outputUnits) {
@@ -128,6 +139,12 @@ class ProgramBuilder {
           .toList(growable: false);
     });
     return loadMap;
+  }
+
+  js.Expression _buildTypeToInterceptorMap() {
+    InterceptorStubGenerator stubGenerator =
+        new InterceptorStubGenerator(_compiler, namer, backend);
+    return stubGenerator.generateTypeToInterceptorMap();
   }
 
   MainFragment _buildMainOutput(LibrariesMap librariesMap) {
@@ -211,7 +228,6 @@ class ProgramBuilder {
   }
 
   StaticField _buildLazyField(Element element) {
-    JavaScriptConstantCompiler handler = backend.constants;
     js.Expression code = backend.generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -252,7 +268,9 @@ class ProgramBuilder {
 
     List<Class> classes = elements
         .where((e) => e is ClassElement)
-        .map(_buildClass)
+        .map((ClassElement classElement) => _classes[classElement])
+        .where((Class cls) =>
+            !cls.isNative || !_unneededNativeClasses.contains(cls))
         .toList(growable: false);
 
     bool visitStatics = true;
@@ -262,25 +280,19 @@ class ProgramBuilder {
                        staticFieldsForReflection);
   }
 
-  /// HACK for Try.
+  /// HACK for Incremental Compilation.
   ///
   /// Returns a class that contains the fields of a class.
-  Class buildClassWithFieldsForTry(ClassElement element) {
-    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
+  Class buildFieldsHackForIncrementalCompilation(ClassElement element) {
+    assert(_compiler.hasIncrementalSupport);
 
-    List<Field> instanceFields =
-        onlyForRti ? const <Field>[] : _buildFields(element, false);
-
+    List<Field> instanceFields = _buildFields(element, false);
     String name = namer.getNameOfClass(element);
-    String holderName = namer.globalObjectFor(element);
-    Holder holder = _registry.registerHolder(holderName);
-    bool isInstantiated =
-        _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
     return new Class(
-        element, name, holder, [], instanceFields, [], [], [], null,
-        isDirectlyInstantiated: isInstantiated,
-        onlyForRti: onlyForRti,
+        element, name, null, [], instanceFields, [], [], [], [], null,
+        isDirectlyInstantiated: true,
+        onlyForRti: false,
         isNative: element.isNative);
   }
 
@@ -290,28 +302,42 @@ class ProgramBuilder {
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
 
+    ClassStubGenerator classStubGenerator =
+        new ClassStubGenerator(_compiler, namer, backend);
+
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
       assert(invariant(element, element == enclosing));
 
       if (Elements.isNonAbstractInstanceMember(member)) {
         js.Expression code = backend.generatedCode[member];
-        // TODO(kasperl): Figure out under which conditions code is null.
-        if (code != null) methods.add(_buildMethod(member, code));
+        // TODO(herhut): Remove once _buildMethod can no longer return null.
+        Method method = _buildMethod(member);
+        if (method != null) methods.add(method);
       }
       if (member.isGetter || member.isField) {
         Set<Selector> selectors =
             _compiler.codegenWorld.invokedNames[member.name];
         if (selectors != null && !selectors.isEmpty) {
-          ClassStubGenerator generator =
-              new ClassStubGenerator(_compiler, namer, backend);
+
           Map<String, js.Expression> callStubsForMember =
-              generator.generateCallStubsForGetter(member, selectors);
+              classStubGenerator.generateCallStubsForGetter(member, selectors);
           callStubsForMember.forEach((String name, js.Expression code) {
             callStubs.add(_buildStubMethod(name, code, element: member));
           });
         }
       }
+    }
+
+    List<StubMethod> noSuchMethodStubs = <StubMethod>[];
+    if (element == _compiler.objectClass) {
+      Map<String, Selector> selectors =
+          classStubGenerator.computeSelectorsForNsmHandlers();
+      selectors.forEach((String name, Selector selector) {
+        noSuchMethodStubs
+            .add(classStubGenerator.generateStubForNoSuchMethod(name,
+                                                                selector));
+      });
     }
 
     ClassElement implementation = element.implementation;
@@ -364,6 +390,7 @@ class ProgramBuilder {
                          name, holder, methods, instanceFields,
                          staticFieldsForReflection,
                          callStubs,
+                         noSuchMethodStubs,
                          isChecks,
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
@@ -374,10 +401,107 @@ class ProgramBuilder {
     return result;
   }
 
-  Method _buildMethod(FunctionElement element, js.Expression code) {
+  bool _methodNeedsStubs(FunctionElement method) {
+    return !method.functionSignature.optionalParameters.isEmpty;
+  }
+
+  bool _methodCanBeReflected(FunctionElement method) {
+    return backend.isAccessibleByReflection(method) ||
+        // During incremental compilation, we have to assume that reflection
+        // *might* get enabled.
+        _compiler.hasIncrementalSupport;
+  }
+
+  bool _methodCanBeApplied(FunctionElement method) {
+    return _compiler.enabledFunctionApply &&
+        _compiler.world.getMightBePassedToApply(method);
+  }
+
+  // TODO(herhut): Refactor incremental compilation and remove method.
+  Method buildMethodHackForIncrementalCompilation(FunctionElement element) {
+    assert(_compiler.hasIncrementalSupport);
+    if (element.isInstanceMember) {
+      return _buildMethod(element);
+    } else {
+      return _buildStaticMethod(element);
+    }
+  }
+
+  DartMethod _buildMethod(FunctionElement element) {
     String name = namer.getNameOfInstanceMember(element);
-    // TODO(floitsch): compute `needsTearOff`.
-    return new Method(element, name, code, needsTearOff: false);
+    js.Expression code = backend.generatedCode[element];
+
+    // TODO(kasperl): Figure out under which conditions code is null.
+    if (code == null) return null;
+
+    bool canTearOff = false;
+    String tearOffName;
+    bool isClosure = false;
+    bool isNotApplyTarget = !element.isFunction || element.isAccessor;
+
+    bool canBeReflected = _methodCanBeReflected(element);
+    bool needsStubs = _methodNeedsStubs(element);
+    bool canBeApplied = _methodCanBeApplied(element);
+
+    String aliasName = backend.isAliasedSuperMember(element)
+        ? namer.getNameOfAliasedSuperMember(element)
+        : null;
+
+    if (isNotApplyTarget) {
+      canTearOff = false;
+    } else {
+      if (element.enclosingClass.isClosure) {
+        canTearOff = false;
+        isClosure = true;
+      } else {
+        // Careful with operators.
+        canTearOff = universe.hasInvokedGetter(element, _compiler.world) ||
+            (canBeReflected && !element.isOperator);
+        assert(canTearOff ||
+               !universe.methodsNeedingSuperGetter.contains(element));
+        tearOffName = namer.getterName(element);
+      }
+    }
+
+    if (canTearOff) {
+      assert(invariant(element, !element.isGenerativeConstructor));
+      assert(invariant(element, !element.isGenerativeConstructorBody));
+      assert(invariant(element, !element.isConstructor));
+    }
+
+    String callName = null;
+    if (canTearOff) {
+      Selector callSelector =
+          new Selector.fromElement(element).toCallSelector();
+      callName = namer.invocationName(callSelector);
+    }
+
+    DartType memberType;
+    if (element.isGenerativeConstructorBody) {
+      // TODO(herhut): Why does this need to be normalized away? We never need
+      //               this information anyway as they cannot be torn off or
+      //               reflected.
+      var body = element;
+      memberType = body.constructor.type;
+    } else {
+      memberType = element.type;
+    }
+
+    return new InstanceMethod(element, name, code,
+        _generateParameterStubs(element, canTearOff), callName, memberType,
+        needsTearOff: canTearOff, tearOffName: tearOffName,
+        isClosure: isClosure, aliasName: aliasName,
+        canBeApplied: canBeApplied, canBeReflected: canBeReflected);
+  }
+
+  List<ParameterStubMethod> _generateParameterStubs(FunctionElement element,
+                                                    bool canTearOff) {
+
+    if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
+
+    ParameterStubGenerator generator =
+        new ParameterStubGenerator(_compiler, namer, backend);
+    return generator.generateParameterStubs(element, canTearOff: canTearOff);
   }
 
   /// Builds a stub method.
@@ -386,8 +510,7 @@ class ProgramBuilder {
   /// attribution.
   Method _buildStubMethod(String name, js.Expression code,
                           {Element element}) {
-    // TODO(floitsch): compute `needsTearOff`.
-    return new StubMethod(name, code, needsTearOff: false, element: element);
+    return new StubMethod(name, code, element: element);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -404,7 +527,7 @@ class ProgramBuilder {
     }
   }
 
-  Iterable<StaticMethod> _generateGetInterceptorMethods() {
+  Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
@@ -417,8 +540,7 @@ class ProgramBuilder {
     return names.map((String name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
-      // TODO(floitsch): compute `needsTearOff`.
-      return new StaticStubMethod(name, holder, code, needsTearOff: false);
+      return new StaticStubMethod(name, holder, code);
     });
   }
 
@@ -468,7 +590,7 @@ class ProgramBuilder {
     return fields;
   }
 
-  Iterable<StaticMethod> _generateOneShotInterceptors() {
+  Iterable<StaticStubMethod> _generateOneShotInterceptors() {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
@@ -478,20 +600,41 @@ class ProgramBuilder {
     List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
     return names.map((String name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
-      return new StaticStubMethod(name, holder, code, needsTearOff: false);
+      return new StaticStubMethod(name, holder, code);
     });
   }
 
-  StaticMethod _buildStaticMethod(FunctionElement element) {
+  StaticDartMethod _buildStaticMethod(FunctionElement element) {
     String name = namer.getNameOfMember(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
-    bool needsTearOff =
-        universe.staticFunctionsNeedingGetter.contains(element);
-    // TODO(floitsch): add tear-off name: namer.getStaticClosureName(element).
-    return new StaticMethod(element,
-                            name, _registry.registerHolder(holder), code,
-                            needsTearOff: needsTearOff);
+
+    bool isApplyTarget = !element.isConstructor && !element.isAccessor;
+    bool canBeApplied = _methodCanBeApplied(element);
+    bool canBeReflected = _methodCanBeReflected(element);
+
+    bool needsTearOff = isApplyTarget &&
+        (canBeReflected ||
+            universe.staticFunctionsNeedingGetter.contains(element));
+
+    String tearOffName =
+        needsTearOff ? namer.getStaticClosureName(element) : null;
+
+    String callName = null;
+    if (needsTearOff) {
+      Selector callSelector =
+          new Selector.fromElement(element).toCallSelector();
+      callName = namer.invocationName(callSelector);
+    }
+
+    return new StaticDartMethod(element,
+                                name, _registry.registerHolder(holder), code,
+                                _generateParameterStubs(element, needsTearOff),
+                                callName, element.type,
+                                needsTearOff: needsTearOff,
+                                tearOffName: tearOffName,
+                                canBeApplied: canBeApplied,
+                                canBeReflected: canBeReflected);
   }
 
   void _registerConstants(OutputUnit outputUnit,

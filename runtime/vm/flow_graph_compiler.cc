@@ -87,11 +87,12 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     FlowGraph* flow_graph,
+    const ParsedFunction& parsed_function,
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function)
       : isolate_(Isolate::Current()),
         assembler_(assembler),
-        parsed_function_(*flow_graph->parsed_function()),
+        parsed_function_(parsed_function),
         flow_graph_(*flow_graph),
         block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
         current_block_(NULL),
@@ -127,6 +128,8 @@ FlowGraphCompiler::FlowGraphCompiler(
         deopt_id_to_ic_data_(NULL),
         inlined_code_intervals_(NULL),
         inline_id_to_function_(inline_id_to_function) {
+  ASSERT(flow_graph->parsed_function().function().raw() ==
+         parsed_function.function().raw());
   if (!is_optimizing) {
     const intptr_t len = isolate()->deopt_id();
     deopt_id_to_ic_data_ = new(isolate()) ZoneGrowableArray<const ICData*>(len);
@@ -135,7 +138,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       (*deopt_id_to_ic_data_)[i] = NULL;
     }
     const Array& old_saved_icdata = Array::Handle(isolate(),
-        flow_graph->parsed_function()->function().ic_data_array());
+        flow_graph->function().ic_data_array());
     const intptr_t saved_len =
         old_saved_icdata.IsNull() ? 0 : old_saved_icdata.Length();
     for (intptr_t i = 0; i < saved_len; i++) {
@@ -901,7 +904,7 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 void FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
-  if (FLAG_intrinsify && !FLAG_enable_type_checks) {
+  if (FLAG_intrinsify && !I->TypeChecksEnabled()) {
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
@@ -936,7 +939,7 @@ void FlowGraphCompiler::TryIntrinsify() {
 
   EnterIntrinsicMode();
 
-  Intrinsifier::Intrinsify(&parsed_function(), this);
+  Intrinsifier::Intrinsify(parsed_function(), this);
 
   ExitIntrinsicMode();
   // "Deoptimization" from intrinsic continues here. All deoptimization
@@ -1479,13 +1482,16 @@ static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
 // Returns 'sorted' array in decreasing count order.
 // The expected number of elements to sort is less than 10.
 void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
-                                          GrowableArray<CidTarget>* sorted) {
+                                          GrowableArray<CidTarget>* sorted,
+                                          bool drop_smi) {
   ASSERT(ic_data.NumArgsTested() == 1);
   const intptr_t len = ic_data.NumberOfChecks();
   sorted->Clear();
 
   for (int i = 0; i < len; i++) {
-    sorted->Add(CidTarget(ic_data.GetReceiverClassIdAt(i),
+    intptr_t receiver_cid = ic_data.GetReceiverClassIdAt(i);
+    if (drop_smi && (receiver_cid == kSmiCid)) continue;
+    sorted->Add(CidTarget(receiver_cid,
                           &Function::ZoneHandle(ic_data.GetTargetAt(i)),
                           ic_data.GetCountAt(i)));
   }

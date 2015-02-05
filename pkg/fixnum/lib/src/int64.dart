@@ -469,7 +469,9 @@ class Int64 implements IntX {
     return false;
   }
 
-  int compareTo(Comparable other) {
+  int compareTo(IntX other) =>_compareTo(other);
+
+  int _compareTo(other) {
     Int64 o = _promote(other);
     int signa = _h >> (_BITS2 - 1);
     int signb = o._h >> (_BITS2 - 1);
@@ -494,21 +496,10 @@ class Int64 implements IntX {
     return 0;
   }
 
-  bool operator <(other) {
-    return this.compareTo(other) < 0;
-  }
-
-  bool operator <=(other) {
-    return this.compareTo(other) <= 0;
-  }
-
-  bool operator >(other) {
-    return this.compareTo(other) > 0;
-  }
-
-  bool operator >=(other) {
-    return this.compareTo(other) >= 0;
-  }
+  bool operator <(other) => _compareTo(other) < 0;
+  bool operator <=(other) => _compareTo(other) <= 0;
+  bool operator >(other) => this._compareTo(other) > 0;
+  bool operator >=(other) => _compareTo(other) >= 0;
 
   bool get isEven => (_l & 0x1) == 0;
   bool get isMaxValue => (_h == _MASK2 >> 1) && _m == _MASK && _l == _MASK;

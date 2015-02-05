@@ -200,7 +200,7 @@ class ShrinkingReducer extends PassMixin {
 
     Parameter parameter = task.node;
     Continuation continuation = parameter.parent;
-    int index = parameter.parent_index;
+    int index = parameter.parentIndex;
 
     // Remove the index'th argument from each invocation.
     Reference<Continuation> current = continuation.firstRef;
@@ -230,7 +230,7 @@ class ShrinkingReducer extends PassMixin {
     for (int i = index; i < parameters.length - 1; ++i) {
       Parameter p = parameters[i + 1];
       parameters[i] = p;
-      p.parent_index = i;
+      p.parentIndex = i;
     }
     parameters.removeLast();
 
@@ -468,7 +468,7 @@ class ParentVisitor extends RecursiveVisitor {
     int index = 0;
     node.parameters.forEach((Definition parameter) {
       parameter.parent = node;
-      if (parameter is Parameter) parameter.parent_index = index++;
+      if (parameter is Parameter) parameter.parentIndex = index++;
     });
   }
 
@@ -480,9 +480,9 @@ class ParentVisitor extends RecursiveVisitor {
   processConstructorDefinition(ConstructorDefinition node) {
     node.body.parent = node;
     int index = 0;
-    node.parameters.forEach((Parameter parameter) {
+    node.parameters.forEach((Definition parameter) {
       parameter.parent = node;
-      parameter.parent_index = index++;
+      if (parameter is Parameter) parameter.parentIndex = index++;
     });
     node.initializers.forEach((Initializer i) => i.parent = node);
   }
@@ -509,6 +509,12 @@ class ParentVisitor extends RecursiveVisitor {
       continuation.parent = node;
       continuation.parent_index = index++;
     });
+    node.body.parent = node;
+  }
+
+  processLetMutable(LetMutable node) {
+    node.variable.parent = node;
+    node.value.parent = node;
     node.body.parent = node;
   }
 
@@ -555,12 +561,14 @@ class ParentVisitor extends RecursiveVisitor {
     node.receiver.parent = node;
   }
 
-  processSetClosureVariable(SetClosureVariable node) {
+  processSetMutableVariable(SetMutableVariable node) {
+    node.variable.parent = node;
     node.body.parent = node;
     node.value.parent = node;
   }
 
   processDeclareFunction(DeclareFunction node) {
+    node.variable.parent = node;
     node.definition.parent = node;
     node.body.parent = node;
   }
@@ -587,7 +595,7 @@ class ParentVisitor extends RecursiveVisitor {
     int index = 0;
     node.parameters.forEach((Parameter parameter) {
       parameter.parent = node;
-      parameter.parent_index = index++;
+      parameter.parentIndex = index++;
     });
   }
 
@@ -616,6 +624,10 @@ class ParentVisitor extends RecursiveVisitor {
 
   processGetField(GetField node) {
     node.object.parent = node;
+  }
+
+  processGetMutableVariable(GetMutableVariable node) {
+    node.variable.parent = node;
   }
 
   processCreateInstance(CreateInstance node) {

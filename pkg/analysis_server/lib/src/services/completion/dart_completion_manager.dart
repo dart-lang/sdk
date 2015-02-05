@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 // TODO (danrubel) these are temporary constants as we transition completion
 // relevance from CompletionRelevance.LOW/DEFAULT/HIGH to int.
@@ -61,15 +62,18 @@ class DartCompletionManager extends CompletionManager {
   List<DartCompletionComputer> computers;
 
   DartCompletionManager(AnalysisContext context, this.searchEngine,
-      Source source, this.cache)
-      : super(context, source),
-        computers = [
+      Source source, this.cache, [this.computers])
+      : super(context, source) {
+    if (computers == null) {
+      computers = [
           new KeywordComputer(),
           new LocalComputer(),
           new ArgListComputer(),
           new CombinatorComputer(),
           new ImportedComputer(),
           new InvocationComputer()];
+    }
+  }
 
   /**
    * Create a new initialized Dart source completion manager
@@ -104,8 +108,19 @@ class DartCompletionManager extends CompletionManager {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
       request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
-      request.node.accept(new _ReplacementOffsetBuilder(request));
       request.target = new CompletionTarget.forOffset(unit, request.offset);
+
+      request.replacementOffset = request.offset;
+      request.replacementLength = 0;
+      var entity = request.target.entity;
+      Token token = entity is AstNode ? entity.beginToken : entity;
+      if (token != null &&
+          token.offset <= request.offset &&
+          (token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER)) {
+        request.replacementOffset = token.offset;
+        request.replacementLength = token.length;
+      }
+
       List<DartCompletionComputer> todo = new List.from(computers);
       todo.removeWhere((DartCompletionComputer c) {
         return request.performance.logElapseTime(
@@ -122,11 +137,12 @@ class DartCompletionManager extends CompletionManager {
   /**
    * If there is remaining work to be done, then wait for the unit to be
    * resolved and request that each remaining computer finish their work.
+   * Return a [Future] that completes when the last notification has been sent.
    */
-  void computeFull(DartCompletionRequest request,
+  Future computeFull(DartCompletionRequest request,
       List<DartCompletionComputer> todo) {
     request.performance.logStartTime('waitForAnalysis');
-    waitForAnalysis().then((CompilationUnit unit) {
+    return waitForAnalysis().then((CompilationUnit unit) {
       if (controller.isClosed) {
         return;
       }
@@ -181,7 +197,7 @@ class DartCompletionManager extends CompletionManager {
    * Send the current list of suggestions to the client.
    */
   void sendResults(DartCompletionRequest request, bool last) {
-    if (controller.isClosed) {
+    if (controller == null || controller.isClosed) {
       return;
     }
     controller.add(
@@ -313,23 +329,5 @@ class DartCompletionRequest extends CompletionRequest {
       _optype = new OpType.forCompletion(target, offset);
     }
     return _optype;
-  }
-}
-
-/**
- * Visitor used to determine the replacement offset and length
- * based upon the cursor location.
- */
-class _ReplacementOffsetBuilder extends SimpleAstVisitor {
-  final DartCompletionRequest request;
-
-  _ReplacementOffsetBuilder(this.request) {
-    request.replacementOffset = request.offset;
-    request.replacementLength = 0;
-  }
-
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    request.replacementOffset = node.offset;
-    request.replacementLength = node.length;
   }
 }

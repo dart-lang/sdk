@@ -193,7 +193,7 @@ class ContextManagerTest {
       subProjectA: {
         'foo': [resourceProvider.newFolder('/package/foo')]
       },
-      subProjectA: {
+      subProjectB: {
         'bar': [resourceProvider.newFolder('/package/bar')]
       },
     };
@@ -205,7 +205,7 @@ class ContextManagerTest {
     manager.assertContextFiles(subProjectA, [subProjectA_file]);
     manager.assertContextFiles(subProjectB, [subProjectB_file]);
     // verify package maps
-    _checkPackageMap(root, equals(packageMapProvider.packageMaps[root]));
+    _checkPackageMap(root, isNull);
     _checkPackageMap(
         subProjectA,
         equals(packageMapProvider.packageMaps[subProjectA]));
@@ -756,9 +756,9 @@ class ContextManagerTest {
    */
   void _checkPackageMap(String path, expectation) {
     UriResolver resolver = manager.currentContextPackageUriResolvers[path];
-    expect(resolver, new isInstanceOf<PackageMapUriResolver>());
-    PackageMapUriResolver packageMapUriResolver = resolver;
-    expect(packageMapUriResolver.packageMap, expectation);
+    Map<String, List<Folder>> packageMap =
+        resolver is PackageMapUriResolver ? resolver.packageMap : null;
+    expect(packageMap, expectation);
   }
 
   /**

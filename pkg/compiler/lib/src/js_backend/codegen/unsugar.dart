@@ -6,9 +6,9 @@ import '../../cps_ir/cps_ir_nodes.dart';
 import '../../cps_ir/optimizers.dart';
 import '../../constants/expressions.dart';
 import '../../constants/values.dart';
-import '../../elements/elements.dart' show ClassElement, FieldElement;
+import '../../elements/elements.dart' show ClassElement, FieldElement, Element;
 import '../../js_backend/codegen/glue.dart';
-import '../../dart2jslib.dart' show Selector;
+import '../../dart2jslib.dart' show Selector, World;
 
 /// Rewrites the initial CPS IR to make Dart semantics explicit and inserts
 /// special nodes that respect JavaScript behavior.
@@ -49,21 +49,19 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   processInvokeMethod(InvokeMethod node) {
     Selector selector = node.selector;
+    // TODO(karlklose):  should we rewrite all selectors?
     if (!_glue.isInterceptedSelector(selector)) return;
 
-    if (!selector.isCall && !selector.isOperator) {
-      // TODO(karlklose): handle special selectors.
-      return;
-    }
-
+    Primitive receiver = node.receiver.definition;
     Set<ClassElement> interceptedClasses =
         _glue.getInterceptedClassesOn(selector);
     _glue.registerSpecializedGetInterceptor(interceptedClasses);
 
-    Primitive receiver = node.receiver.definition;
     Primitive intercepted = new Interceptor(receiver, interceptedClasses);
     insertLetPrim(intercepted, node);
     node.arguments.insert(0, node.receiver);
+    node.callingConvention = CallingConvention.JS_INTERCEPTED;
+    assert(node.isValid);
     node.receiver = new Reference<Primitive>(intercepted);
   }
 

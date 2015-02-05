@@ -10,6 +10,7 @@ import 'arglist_computer_test.dart' as arglist_test;
 import 'combinator_computer_test.dart' as combinator_test;
 import 'completion_computer_test.dart' as completion_computer_test;
 import 'completion_manager_test.dart' as completion_manager_test;
+import 'completion_target_test.dart' as completion_target_test;
 import 'imported_computer_test.dart' as imported_test;
 import 'invocation_computer_test.dart' as invocation_test;
 import 'keyword_computer_test.dart' as keyword_test;
@@ -24,6 +25,7 @@ main() {
     combinator_test.main();
     completion_computer_test.main();
     completion_manager_test.main();
+    completion_target_test.main();
     imported_test.main();
     keyword_test.main();
     invocation_test.main();

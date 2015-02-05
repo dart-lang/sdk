@@ -193,6 +193,7 @@ abstract class CssClassSetImpl implements CssClassSet {
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {
+    // TODO(sra): Do this without reading the classes.
     modify((s) => s.clear());
   }
   // interface Set - END

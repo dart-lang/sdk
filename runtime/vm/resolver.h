@@ -49,11 +49,19 @@ class Resolver : public AllStatic {
                                     intptr_t num_arguments,
                                     const Array& argument_names);
 
-  // Resolve specified dart static function with specified arity.
+  // Resolve specified dart static function with specified arity. Only resolves
+  // public functions.
   static RawFunction* ResolveStatic(const Class&  cls,
                                     const String& function_name,
                                     intptr_t num_arguments,
                                     const Array& argument_names);
+
+  // Resolve specified dart static function with specified arity. Resolves both
+  // public and private functions.
+  static RawFunction* ResolveStaticAllowPrivate(const Class&  cls,
+                                                const String& function_name,
+                                                intptr_t num_arguments,
+                                                const Array& argument_names);
 };
 
 }  // namespace dart

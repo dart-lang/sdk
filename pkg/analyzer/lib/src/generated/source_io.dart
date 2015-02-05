@@ -86,8 +86,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 /**
  * Instances of the class `FileBasedSource` implement a source that represents a file.
  */
-class FileBasedSource implements Source {
-
+class FileBasedSource extends Source {
   /**
    * A function that changes the way that files are read off of disk.
    */

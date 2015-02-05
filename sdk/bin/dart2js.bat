@@ -26,9 +26,6 @@ if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
   set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --checked
 )
 
-rem See comments regarding options below in dart2js shell script.
-set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --heap_growth_rate=512
-
 rem We allow extra vm options to be passed in through an environment variable.
 if not "_%DART_VM_OPTIONS%_" == "__" (
   set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% %DART_VM_OPTIONS%

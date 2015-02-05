@@ -58,7 +58,9 @@ class Deprecated extends Object {
 }
 const Object deprecated = const Deprecated("next release");
 
-abstract class List<E> extends Object {
+abstract class Iterable<E> {}
+
+abstract class List<E> extends Object implements Iterable {
   void add(E value);
   E operator [](int index);
   void operator []=(int index, E value);
@@ -75,7 +77,7 @@ typedef int Comparator<T>(T a, T b);
   static const _MockSdkLibrary LIB_ASYNC =
       const _MockSdkLibrary('async', '/lib/async/async.dart', '''
 library dart.async;
-class Future {
+class Future<T> {
   static Future wait(List<Future> futures) => null;
 }
 

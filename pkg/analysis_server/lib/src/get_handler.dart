@@ -4,6 +4,7 @@
 
 library analysis_server.src.get_handler;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
@@ -16,6 +17,9 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index/local_index.dart';
+import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -77,6 +81,11 @@ class GetHandler {
   static const String ELEMENT_PATH = '/element';
 
   /**
+   * The path used to request information about elements with the given name.
+   */
+  static const String INDEX_ELEMENT_BY_NAME = '/index/element-by-name';
+
+  /**
    * The path used to request an overlay contents.
    */
   static const String OVERLAY_PATH = '/overlay';
@@ -85,6 +94,11 @@ class GetHandler {
    * The path used to request overlays information.
    */
   static const String OVERLAYS_PATH = '/overlays';
+
+  /**
+   * The path used to request overall performance information.
+   */
+  static const String PERFORMANCE_PATH = '/performance';
 
   /**
    * Query parameter used to represent the cache state to search for, when
@@ -108,6 +122,12 @@ class GetHandler {
    * Query parameter used to represent the index in the [_overlayContents].
    */
   static const String ID_PARAM = 'id';
+
+  /**
+   * Query parameter used to represent the name of elements to search for, when
+   * accessing [INDEX_ELEMENT_BY_NAME].
+   */
+  static const String INDEX_ELEMENT_NAME = 'name';
 
   /**
    * Query parameter used to represent the source to search for, when accessing
@@ -172,10 +192,14 @@ class GetHandler {
       _returnContextInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
+    } else if (path == INDEX_ELEMENT_BY_NAME) {
+      _returnIndexElementByName(request);
     } else if (path == OVERLAY_PATH) {
       _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
       _returnOverlaysInfo(request);
+    } else if (path == PERFORMANCE_PATH) {
+      _returnPerformance(request);
     } else {
       _returnUnknownRequest(request);
     }
@@ -282,7 +306,14 @@ class GetHandler {
           buffer.write('<p>null</p>');
           return;
         }
-        ast.accept(new AstWriter(buffer));
+        AstWriter writer = new AstWriter(buffer);
+        ast.accept(writer);
+        if (writer.exceptions.isNotEmpty) {
+          buffer.write('<h3>Exceptions while creating page</h3>');
+          for (CaughtException exception in writer.exceptions) {
+            _writeException(buffer, exception);
+          }
+        }
       });
     });
   }
@@ -315,7 +346,8 @@ class GetHandler {
 
     List<Folder> allContexts = <Folder>[];
     Map<Folder, SourceEntry> entryMap = new HashMap<Folder, SourceEntry>();
-    analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
+    analysisServer.folderMap.forEach(
+        (Folder folder, AnalysisContextImpl context) {
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source != null) {
         SourceEntry entry = context.getReadableSourceEntryOrNull(source);
@@ -325,7 +357,9 @@ class GetHandler {
         }
       }
     });
-    allContexts.sort((Folder firstFolder, Folder secondFolder) => firstFolder.path.compareTo(secondFolder.path));
+    allContexts.sort(
+        (Folder firstFolder, Folder secondFolder) =>
+            firstFolder.path.compareTo(secondFolder.path));
     AnalysisContextImpl context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
@@ -342,7 +376,8 @@ class GetHandler {
           } else {
             buffer.write('<br>');
           }
-          AnalysisContextImpl analyzingContext = analysisServer.folderMap[folder];
+          AnalysisContextImpl analyzingContext =
+              analysisServer.folderMap[folder];
           if (analyzingContext == context) {
             buffer.write(folder.path);
           } else {
@@ -483,7 +518,11 @@ class GetHandler {
     String value = request.requestedUri.queryParameters['index'];
     int index = value != null ? int.parse(value, onError: (_) => 0) : 0;
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Completion Stats', [], (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Completion Stats',
+          [],
+          (StringBuffer buffer) {
         _writeCompletionPerformanceDetail(buffer, index);
         _writeCompletionPerformanceList(buffer);
       });
@@ -680,6 +719,55 @@ class GetHandler {
     });
   }
 
+  /**
+   * Return a response containing information about elements with the given
+   * name.
+   */
+  Future _returnIndexElementByName(HttpRequest request) async {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server not running');
+    }
+    Index index = analysisServer.index;
+    String name = request.uri.queryParameters[INDEX_ELEMENT_NAME];
+    if (name == null) {
+      return _returnFailure(
+          request,
+          'Query parameter $INDEX_ELEMENT_NAME required');
+    }
+    if (index is LocalIndex) {
+      Map<List<String>, List<InspectLocation>> relations =
+          await index.findElementsByName(name);
+      _writeResponse(request, (StringBuffer buffer) {
+        _writePage(
+            buffer,
+            'Analysis Server - Index Elements',
+            ['Name: $name'],
+            (StringBuffer buffer) {
+          buffer.write('<table border="1">');
+          _writeRow(
+              buffer,
+              ['Element', 'Relationship', 'Location'],
+              header: true);
+          relations.forEach(
+              (List<String> elementPath, List<InspectLocation> relations) {
+            String elementLocation = elementPath.join(' ');
+            relations.forEach((InspectLocation location) {
+              var relString = location.relationship.identifier;
+              var locString =
+                  '${location.path} offset=${location.offset} '
+                      'length=${location.length} flags=${location.flags}';
+              _writeRow(buffer, [elementLocation, relString, locString]);
+            });
+          });
+          buffer.write('</table>');
+        });
+      });
+    } else {
+      return _returnFailure(request, 'LocalIndex expected, but $index found.');
+    }
+  }
+
   void _returnOverlayContents(HttpRequest request) {
     String idString = request.requestedUri.queryParameters[ID_PARAM];
     if (idString == null) {
@@ -738,6 +826,91 @@ class GetHandler {
   }
 
   /**
+   * Return a response displaying overall performance information.
+   */
+  void _returnPerformance(HttpRequest request) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server is not running');
+    }
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Performance',
+          [],
+          (StringBuffer buffer) {
+        buffer.write('<h3>Communication Performance</h3>');
+        _writeTwoColumns(buffer, (StringBuffer buffer) {
+          ServerPerformance perf = analysisServer.performanceDuringStartup;
+          int requestCount = perf.requestCount;
+          num averageLatency =
+              requestCount > 0 ? (perf.requestLatency / requestCount).round() : 0;
+          int maximumLatency = perf.maxLatency;
+          num slowRequestPercent =
+              requestCount > 0 ? (perf.slowRequestCount * 100 / requestCount).round() : 0;
+          buffer.write('<h4>Startup</h4>');
+          buffer.write('<table>');
+          _writeRow(
+              buffer,
+              [requestCount, 'requests'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [averageLatency, 'ms average latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [maximumLatency, 'ms maximum latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [slowRequestPercent, '% > 150 ms latency'],
+              classes: ["right", null]);
+          if (analysisServer.performanceAfterStartup != null) {
+            int startupTime =
+                analysisServer.performanceAfterStartup.startTime -
+                perf.startTime;
+            _writeRow(
+                buffer,
+                [startupTime, 'ms for initial analysis to complete']);
+          }
+          buffer.write('</table>');
+        }, (StringBuffer buffer) {
+          ServerPerformance perf = analysisServer.performanceAfterStartup;
+          if (perf == null) {
+            return;
+          }
+          int requestCount = perf.requestCount;
+          num averageLatency =
+              requestCount > 0 ? (perf.requestLatency * 10 / requestCount).round() / 10 : 0;
+          int maximumLatency = perf.maxLatency;
+          num slowRequestPercent =
+              requestCount > 0 ? (perf.slowRequestCount * 100 / requestCount).round() : 0;
+          buffer.write('<h4>Current</h4>');
+          buffer.write('<table>');
+          _writeRow(
+              buffer,
+              [requestCount, 'requests'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [averageLatency, 'ms average latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [maximumLatency, 'ms maximum latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [slowRequestPercent, '% > 150 ms latency'],
+              classes: ["right", null]);
+          buffer.write('</table>');
+        });
+      });
+    });
+  }
+
+  /**
    * Return a response indicating the status of the analysis server.
    */
   void _returnServerStatus(HttpRequest request) {
@@ -758,23 +931,20 @@ class GetHandler {
    * server.
    */
   void _returnUnknownRequest(HttpRequest request) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
-    response.headers.contentType = _htmlContent;
-    response.write('<html>');
-    response.write('<head>');
-    response.write('<title>Dart Analysis Server - Page Not Found</title>');
-    response.write('</head>');
-    response.write('<body>');
-    response.write('<h1>Page Not Found</h1>');
-    response.write('<p>Try one of these links instead:</p>');
-    response.write('<ul>');
-    response.write('<li><a href="$STATUS_PATH">Server Status</a></li>');
-    response.write('<li><a href="$COMPLETION_PATH">Completion Stats</a></li>');
-    response.write('<ul>');
-    response.write('</body>');
-    response.write('</html>');
-    response.close();
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server', [], (StringBuffer buffer) {
+        buffer.write('<h3>Pages</h3>');
+        buffer.write('<p>');
+        buffer.write(_makeLink(COMPLETION_PATH, {}, 'Completion data'));
+        buffer.write('</p>');
+        buffer.write('<p>');
+        buffer.write(_makeLink(PERFORMANCE_PATH, {}, 'Performance'));
+        buffer.write('</p>');
+        buffer.write('<p>');
+        buffer.write(_makeLink(STATUS_PATH, {}, 'Server status'));
+        buffer.write('</p>');
+      });
+    });
   }
 
   /**
@@ -886,28 +1056,24 @@ class GetHandler {
       buffer.write('<p>No completions yet</p>');
       return;
     }
-    buffer.write(
-        '<h3>Completion Performance Detail - ${performance.startTimeAndMs}</h3>');
+    buffer.write('<h3>Completion Performance Detail</h3>');
+    buffer.write('<p>${performance.startTimeAndMs} for ${performance.source}');
     buffer.write('<table>');
     _writeRow(buffer, ['Elapsed', '', 'Operation'], header: true);
     performance.operations.forEach((OperationPerformance op) {
       String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
       _writeRow(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
     });
-    if (handler.priorityChangedPerformance == null) {
-      buffer.write('<p>No priorityChanged caching</p>');
-    } else {
-      int len = handler.priorityChangedPerformance.operations.length;
-      if (len > 0) {
-        var op = handler.priorityChangedPerformance.operations[len - 1];
-        if (op != null) {
-          _writeRow(buffer, ['&nbsp;', '&nbsp;', '&nbsp;']);
-          String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
-          _writeRow(buffer, [elapsed, '&nbsp;&nbsp;', op.name]);
-        }
-      }
-    }
     buffer.write('</table>');
+    buffer.write('<p><b>Compute Cache Performance</b>: ');
+    if (handler.computeCachePerformance == null) {
+      buffer.write('none');
+    } else {
+      int elapsed = handler.computeCachePerformance.elapsedInMilliseconds;
+      Source source = handler.computeCachePerformance.source;
+      buffer.write(' $elapsed ms for $source');
+    }
+    buffer.write('</p>');
   }
 
   /**
@@ -916,7 +1082,7 @@ class GetHandler {
    */
   void _writeCompletionPerformanceList(StringBuffer buffer) {
     CompletionDomainHandler handler = _completionDomainHandler;
-    buffer.write('<h3>Completion Performance</h3>');
+    buffer.write('<h3>Completion Performance List</h3>');
     if (handler == null) {
       return;
     }
@@ -957,7 +1123,7 @@ class GetHandler {
               HTML_ESCAPE.convert(performance.snippet)]);
       ++index;
     }
-    ;
+
     buffer.write('</table>');
     buffer.write('''
       <p><strong>First (ms)</strong> - the number of milliseconds
@@ -1194,8 +1360,8 @@ class GetHandler {
    * one cell for each of the [columns], and will be a header row if [header] is
    * `true`.
    */
-  void _writeRow(StringBuffer buffer, List<Object> columns, {bool header:
-      false, List<String> classes}) {
+  void _writeRow(StringBuffer buffer, List<Object> columns, {bool header: false,
+      List<String> classes}) {
     buffer.write('<tr>');
     int count = columns.length;
     int maxClassIndex = classes == null ? 0 : classes.length - 1;
@@ -1247,6 +1413,12 @@ class GetHandler {
       buffer.write('<br>');
       buffer.write('Version: ');
       buffer.write(AnalysisServer.VERSION);
+      buffer.write('</p>');
+
+      buffer.write('<p><b>Performance Data</b></p>');
+      buffer.write('<p>');
+      buffer.write(
+          _makeLink(PERFORMANCE_PATH, {}, 'Communication performance'));
       buffer.write('</p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);

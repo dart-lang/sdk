@@ -515,7 +515,7 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
   if (field().is_final()) {
     return NULL;
   }
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     rhs = new AssignableNode(
         field().token_pos(),
         rhs,
@@ -574,7 +574,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     ASSERT(!getter.IsNull() &&
            (getter.kind() == RawFunction::kImplicitStaticFinalGetter));
 #endif
-    if (FLAG_enable_type_checks) {
+    if (Isolate::Current()->TypeChecksEnabled()) {
       rhs = new AssignableNode(
           field.token_pos(),
           rhs,

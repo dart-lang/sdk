@@ -620,6 +620,38 @@ class T {
 ''');
   }
 
+  void test_false_function_async_add() {
+    _assertDoesNotMatch(r'''
+main() {}
+''', r'''
+main() async {}
+''');
+  }
+
+  void test_false_function_async_remove() {
+    _assertDoesNotMatch(r'''
+main() async {}
+''', r'''
+main() {}
+''');
+  }
+
+  void test_false_function_generator_add() {
+    _assertDoesNotMatch(r'''
+main() async {}
+''', r'''
+main() async* {}
+''');
+  }
+
+  void test_false_function_generator_remove() {
+    _assertDoesNotMatch(r'''
+main() async* {}
+''', r'''
+main() async {}
+''');
+  }
+
   void test_false_functionTypeAlias_list_add() {
     _assertDoesNotMatch(r'''
 typedef A(int pa);
@@ -921,6 +953,54 @@ class A {
 const my_annotation = const Object();
 class A {
   void m() {}
+}
+''');
+  }
+
+  void test_false_method_async_add() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  m() {}
+}
+''', r'''
+class A {
+  m() async {}
+}
+''');
+  }
+
+  void test_false_method_async_remove() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  m() async {}
+}
+''', r'''
+class A {
+  m() {}
+}
+''');
+  }
+
+  void test_false_method_generator_add() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  m() async {}
+}
+''', r'''
+class A {
+  m() async* {}
+}
+''');
+  }
+
+  void test_false_method_generator_remove() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  m() async* {}
+}
+''', r'''
+class A {
+  m() async {}
 }
 ''');
   }
@@ -1771,6 +1851,18 @@ class MyAnnotation {
 class A {
   @MyAnnotation()
   void m() {}
+}
+''');
+  }
+
+  void test_true_method_async() {
+    _assertMatches(r'''
+class A {
+  m() async {}
+}
+''', r'''
+class A {
+  m() async {}
 }
 ''');
   }

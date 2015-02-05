@@ -515,8 +515,7 @@ int main(int argc, char** argv) {
                        DartUtils::ReadFile,
                        DartUtils::WriteFile,
                        DartUtils::CloseFile,
-                       DartUtils::EntropySource,
-                       NULL)) {
+                       DartUtils::EntropySource)) {
     Log::PrintErr("VM initialization failed\n");
     return 255;
   }
@@ -554,7 +553,8 @@ int main(int argc, char** argv) {
 
     // Prepare for script loading by setting up the 'print' and 'timer'
     // closures and setting up 'package root' for URI resolution.
-    result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
+    result =
+        DartUtils::PrepareForScriptLoading(package_root, false, builtin_lib);
     CHECK_RESULT(result);
     Dart_ExitScope();
 

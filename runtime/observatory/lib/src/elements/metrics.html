@@ -36,7 +36,7 @@
               </li>
             </template>
           </template>
-          <template repeat="{{ metric in isolate.vmMetrics.values }}">
+          <template repeat="{{ metric in isolate.nativeMetrics.values }}">
             <template if="{{ metric == selectedMetric }}">
               <li class="selected">
                 {{ metric.name }}

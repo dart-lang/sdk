@@ -1,5 +1,5 @@
 name: utf
-version: 0.9.0+1
+version: 0.9.0+2
 author: Dart Team <misc@dartlang.org>
 description: >
  A Unicode library. Intended for advanced use where the built-in facilities

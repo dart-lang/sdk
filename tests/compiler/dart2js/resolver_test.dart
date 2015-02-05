@@ -685,14 +685,7 @@ Future resolveConstructor(
     compiler.resolveStatement(statement);
     ClassElement classElement = compiler.mainApp.find(className);
     Element element;
-    if (constructor != '') {
-      element = classElement.lookupConstructor(
-          new Selector.callConstructor(constructor, classElement.library));
-    } else {
-      element = classElement.lookupConstructor(
-          new Selector.callDefaultConstructor(classElement.library));
-    }
-
+    element = classElement.lookupConstructor(constructor);
     FunctionExpression tree = (element as FunctionElement).node;
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, element,
@@ -819,7 +812,7 @@ Future testEnumDeclaration() {
                     'Unexpected warnings: ${compiler.warnings}');
       Expect.equals(1, compiler.errors.length,
                     'Unexpected errors: ${compiler.errors}');
-    }, enableEnums: true),
+    }),
 
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
@@ -830,7 +823,7 @@ Future testEnumDeclaration() {
                     'Unexpected warnings: ${compiler.warnings}');
       Expect.equals(0, compiler.errors.length,
                     'Unexpected errors: ${compiler.errors}');
-    }, enableEnums: true),
+    }),
 
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
@@ -843,7 +836,7 @@ Future testEnumDeclaration() {
                     compiler.warnings[0].message.kind);
       Expect.equals(0, compiler.errors.length,
                     'Unexpected errors: ${compiler.errors}');
-    }, enableEnums: true),
+    }),
 
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
@@ -854,7 +847,7 @@ Future testEnumDeclaration() {
                     'Unexpected warnings: ${compiler.warnings}');
       Expect.equals(0, compiler.errors.length,
                     'Unexpected errors: ${compiler.errors}');
-    }, enableEnums: true),
+    }),
 
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
@@ -867,7 +860,7 @@ Future testEnumDeclaration() {
                     'Unexpected errors: ${compiler.errors}');
       Expect.equals(MessageKind.CANNOT_INSTANTIATE_ENUM,
                     compiler.errors[0].message.kind);
-    }, enableEnums: true),
+    }),
 
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
@@ -880,7 +873,7 @@ Future testEnumDeclaration() {
                     'Unexpected errors: ${compiler.errors}');
       Expect.equals(MessageKind.CANNOT_INSTANTIATE_ENUM,
                     compiler.errors[0].message.kind);
-    }, enableEnums: true),
+    }),
   ]);
 }
 

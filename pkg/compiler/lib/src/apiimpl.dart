@@ -85,7 +85,6 @@ class Compiler extends leg.Compiler {
             enableExperimentalMirrors:
                 hasOption(options, '--enable-experimental-mirrors'),
             enableAsyncAwait: hasOption(options, '--enable-async'),
-            enableEnums: hasOption(options, '--enable-enum'),
             generateCodeWithCompileTimeErrors:
                 hasOption(options, '--generate-code-with-compile-time-errors'),
             allowNativeExtensions:
@@ -107,7 +106,7 @@ class Compiler extends leg.Compiler {
       throw new ArgumentError("[packageRoot] must end with a /.");
     }
     if (!analyzeOnly) {
-      if (enableAsyncAwait) {
+      if (enableAsyncAwait && emitJavaScript) {
         throw new ArgumentError(
             "--enable-async is currently only supported with --analyze-only");
       }

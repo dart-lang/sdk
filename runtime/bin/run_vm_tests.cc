@@ -102,7 +102,6 @@ static int Main(int argc, const char** argv) {
                                        dart::bin::DartUtils::ReadFile,
                                        dart::bin::DartUtils::WriteFile,
                                        dart::bin::DartUtils::CloseFile,
-                                       NULL,
                                        NULL);
   ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.

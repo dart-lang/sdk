@@ -129,8 +129,7 @@ class A{m(){Object x;x.!1/**/clear()''', <String>["1+toString"]);
 
     buildTests('testCommentSnippets020', '''
 classMap{}class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}''',
-        <String>["1+newt", "1+newf", "1+newz", "1-Map"],
-        failingTests: '1');
+        <String>["1+newt", "1+newf", "1+newz", "1-Map"]);
 
     buildTests('testCommentSnippets021', '''
 class Map{}class tst {var newt;void newf(){}test() {var newz;new !1/**/;}}''',

@@ -28,24 +28,14 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
     }
   }
 
-  void assertNoDeclaration(ElementKind kind, String className) {
-    result = findTopLevelResult(kind, className);
-    if (result != null) {
-      fail('Unexpected: kind=$kind in="$className"\nin\n' + results.join('\n'));
-    }
-  }
-
-  Future findMemberDeclarations(String name) {
-    return waitForTasksFinished().then((_) {
-      Request request =
-          new SearchFindMemberDeclarationsParams(name).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      var result =
-          new SearchFindMemberDeclarationsResult.fromResponse(response);
-      searchId = result.id;
-      results.clear();
-      return waitForSearchResults();
-    });
+  Future findMemberDeclarations(String name) async {
+    await waitForTasksFinished();
+    Request request =
+        new SearchFindMemberDeclarationsParams(name).toRequest('0');
+    Response response = await waitResponse(request);
+    var result = new SearchFindMemberDeclarationsResult.fromResponse(response);
+    searchId = result.id;
+    return waitForSearchResults();
   }
 
   SearchResult findTopLevelResult(ElementKind kind, String enclosingClass) {
@@ -59,7 +49,7 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
-  test_localVariable() {
+  test_localVariable() async {
     addTestFile('''
 class A {
   main() {
@@ -67,12 +57,11 @@ class A {
   }
 }
 ''');
-    return findMemberDeclarations('foo').then((_) {
-      expect(results, isEmpty);
-    });
+    await findMemberDeclarations('foo');
+    expect(results, isEmpty);
   }
 
-  test_localVariable_forIn() {
+  test_localVariable_forIn() async {
     addTestFile('''
 class A {
   main() {
@@ -81,12 +70,11 @@ class A {
   }
 }
 ''');
-    return findMemberDeclarations('foo').then((_) {
-      expect(results, isEmpty);
-    });
+    await findMemberDeclarations('foo');
+    expect(results, isEmpty);
   }
 
-  test_methodField() {
+  test_methodField() async {
     addTestFile('''
 class A {
   foo() {}
@@ -96,14 +84,13 @@ class B {
   int foo;
 }
 ''');
-    return findMemberDeclarations('foo').then((_) {
-      expect(results, hasLength(2));
-      assertHasDeclaration(ElementKind.METHOD, 'A');
-      assertHasDeclaration(ElementKind.FIELD, 'B');
-    });
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.FIELD, 'B');
   }
 
-  test_methodGetter() {
+  test_methodGetter() async {
     addTestFile('''
 class A {
   foo() {}
@@ -113,14 +100,13 @@ class B {
   get foo => null;
 }
 ''');
-    return findMemberDeclarations('foo').then((_) {
-      expect(results, hasLength(2));
-      assertHasDeclaration(ElementKind.METHOD, 'A');
-      assertHasDeclaration(ElementKind.GETTER, 'B');
-    });
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
   }
 
-  test_methodGetterSetter() {
+  test_methodGetterSetter() async {
     addTestFile('''
 class A {
   foo() {}
@@ -131,15 +117,14 @@ class B {
   set foo(x) {}
 }
 ''');
-    return findMemberDeclarations('foo').then((_) {
-      expect(results, hasLength(3));
-      assertHasDeclaration(ElementKind.METHOD, 'A');
-      assertHasDeclaration(ElementKind.GETTER, 'B');
-      assertHasDeclaration(ElementKind.SETTER, 'B');
-    });
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(3));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.GETTER, 'B');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
   }
 
-  test_methodMethod() {
+  test_methodMethod() async {
     addTestFile('''
 class A {
   foo() {}
@@ -149,14 +134,13 @@ class B {
   foo() {}
 }
 ''');
-    return findMemberDeclarations('foo').then((_) {
-      expect(results, hasLength(2));
-      assertHasDeclaration(ElementKind.METHOD, 'A');
-      assertHasDeclaration(ElementKind.METHOD, 'B');
-    });
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.METHOD, 'B');
   }
 
-  test_methodSetter() {
+  test_methodSetter() async {
     addTestFile('''
 class A {
   foo() {}
@@ -166,10 +150,9 @@ class B {
   set foo(x) {}
 }
 ''');
-    return findMemberDeclarations('foo').then((_) {
-      expect(results, hasLength(2));
-      assertHasDeclaration(ElementKind.METHOD, 'A');
-      assertHasDeclaration(ElementKind.SETTER, 'B');
-    });
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.METHOD, 'A');
+    assertHasDeclaration(ElementKind.SETTER, 'B');
   }
 }

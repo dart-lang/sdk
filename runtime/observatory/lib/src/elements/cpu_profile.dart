@@ -140,7 +140,9 @@ class ProfileCodeTrieNodeTreeRow extends TableTreeRow {
 @CustomTag('cpu-profile')
 class CpuProfileElement extends ObservatoryElement {
   CpuProfileElement.created() : super.created();
-  @published ServiceMap profile;
+  @published Isolate isolate;
+
+  @observable ServiceMap profile;
   @observable bool hideTagsChecked;
   @observable String sampleCount = '';
   @observable String refreshTime = '';
@@ -150,14 +152,52 @@ class CpuProfileElement extends ObservatoryElement {
   @observable String timeSpan = '';
   @reflectable double displayThreshold = 0.0002; // 0.02%.
 
-  @observable String tagSelector = 'uv';
+  @observable String tagSelector = 'UserVM';
 
   final _id = '#tableTree';
   TableTree tree;
 
   static const MICROSECONDS_PER_SECOND = 1000000.0;
 
-  void profileChanged(oldValue) {
+  void isolateChanged(oldValue) {
+    if (isolate == null) {
+      profile = null;
+      return;
+    }
+    isolate.invokeRpc('getCpuProfile', { 'tags': tagSelector })
+      .then((ServiceObject obj) {
+          print(obj);
+          // Assert we got back the a profile.
+          assert(obj.type == 'CpuProfile');
+          profile = obj;
+          _update();
+      });
+  }
+
+  @override
+  void attached() {
+    super.attached();
+    var tableBody = shadowRoot.querySelector('#tableTreeBody');
+    assert(tableBody != null);
+    tree = new TableTree(tableBody, 2);
+    _update();
+  }
+
+  void tagSelectorChanged(oldValue) {
+    isolateChanged(null);
+  }
+
+  void refresh(var done) {
+    isolate.invokeRpc('getCpuProfile', { 'tags': tagSelector })
+      .then((ServiceObject obj) {
+          // Assert we got back the a profile.
+          assert(obj.type == 'CpuProfile');
+          profile = obj;
+          _update();
+      }).whenComplete(done);
+  }
+
+  void _update() {
     if (profile == null) {
       return;
     }
@@ -172,36 +212,6 @@ class CpuProfileElement extends ObservatoryElement {
     displayCutoff = '${(displayThreshold * 100.0).toString()}%';
     profile.isolate.processProfile(profile);
     profile['threshold'] = displayThreshold;
-    _update();
-  }
-
-
-  @override
-  void attached() {
-    super.attached();
-    var tableBody = shadowRoot.querySelector('#tableTreeBody');
-    assert(tableBody != null);
-    tree = new TableTree(tableBody, 2);
-    _update();
-  }
-
-  void tagSelectorChanged(oldValue) {
-    refresh(null);
-  }
-
-  void refresh(var done) {
-    var request = 'profile?tags=$tagSelector';
-    profile.isolate.get(request).then((ServiceMap m) {
-      // Assert we got back the a profile.
-      assert(m.type == 'Profile');
-      profile = m;
-    }).whenComplete(done);
-  }
-
-  void _update() {
-    if (profile == null) {
-      return;
-    }
     _buildTree();
   }
 

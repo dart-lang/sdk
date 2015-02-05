@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class LibraryDependenciesTest extends AbstractContextTest {
 
-  test_Dependencies() {
+  test_LibraryDependencies() {
     addSource('/lib1.dart', 'import "lib2.dart";');
     addSource('/lib2.dart', 'import "lib1.dart";');
     addSource('/lib3.dart', 'import "lib2.dart";');
@@ -44,8 +44,11 @@ class LibraryDependenciesTest extends AbstractContextTest {
     expect(libs, contains('/lib6.dart'));
   }
 
+  test_PackageMaps() {
+    //TODO(pquitslund): add test
+  }
+
   void _performAnalysis() {
     while (context.performAnalysisTask().hasMoreWork);
   }
 }
-

@@ -12,6 +12,7 @@ import 'package:unittest/unittest.dart';
 import '../lib/src/package.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/source.dart';
+import '../lib/src/source/path.dart';
 import '../lib/src/source_registry.dart';
 import 'test_pub.dart';
 
@@ -44,6 +45,7 @@ main() {
   group('parse()', () {
     var sources = new SourceRegistry();
     sources.register(new MockSource());
+    sources.register(new PathSource());
 
     var throwsPubspecException =
       throwsA(new isInstanceOf<PubspecException>('PubspecException'));
@@ -160,16 +162,19 @@ dependencies:
     });
 
     test("throws if a package is in dependencies and dev_dependencies", () {
-      var contents = '''
+      expectPubspecException('''
 dependencies:
   foo:
     mock: ok
 dev_dependencies:
   foo:
     mock: ok
-''';
-      expectPubspecException(contents, (pubspec) => pubspec.dependencies);
-      expectPubspecException(contents, (pubspec) => pubspec.devDependencies);
+''', (pubspec) {
+        // This check only triggers if both [dependencies] and [devDependencies]
+        // are accessed.
+        pubspec.dependencies;
+        pubspec.devDependencies;
+      });
     });
 
     test("throws if it dependes on itself", () {
@@ -388,6 +393,16 @@ transformers:
 ''', sources);
       expect(pubspec.version, equals(Version.none));
       expect(pubspec.dependencies, isEmpty);
+    });
+
+    test("throws a useful error for unresolvable path dependencies", () {
+      expectPubspecException('''
+name: pkg
+dependencies:
+  from_path: {path: non_local_path}
+''', (pubspec) => pubspec.dependencies,
+          '"non_local_path" is a relative path, but this isn\'t a local '
+          'pubspec.');
     });
 
     group("environment", () {

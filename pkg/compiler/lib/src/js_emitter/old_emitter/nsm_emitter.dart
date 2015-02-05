@@ -19,102 +19,40 @@ class NsmEmitter extends CodeEmitterHelper {
   static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
-    // Do not generate no such method handlers if there is no class.
-    if (compiler.codegenWorld.directlyInstantiatedClasses.isEmpty) return;
 
-    String noSuchMethodName = namer.publicInstanceMethodNameByArity(
-        Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
+    ClassStubGenerator generator =
+        new ClassStubGenerator(compiler, namer, backend);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
-    Map<String, Selector> addedJsNames = new Map<String, Selector>();
-
-    void addNoSuchMethodHandlers(String ignore, Set<Selector> selectors) {
-      // Cache the object class and type.
-      ClassElement objectClass = compiler.objectClass;
-      DartType objectType = objectClass.rawType;
-
-      for (Selector selector in selectors) {
-        TypeMask mask = selector.mask;
-        if (mask == null) {
-          mask = new TypeMask.subclass(compiler.objectClass, compiler.world);
-        }
-
-        if (!mask.needsNoSuchMethodHandling(selector, compiler.world)) continue;
-        String jsName = namer.invocationMirrorInternalName(selector);
-        addedJsNames[jsName] = selector;
-        String reflectionName = emitter.getReflectionName(selector, jsName);
-        if (reflectionName != null) {
-          emitter.mangledFieldNames[jsName] = reflectionName;
-        }
-      }
-    }
-
-    compiler.codegenWorld.invokedNames.forEach(addNoSuchMethodHandlers);
-    compiler.codegenWorld.invokedGetters.forEach(addNoSuchMethodHandlers);
-    compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
+    Map<String, Selector> addedJsNames
+        = generator.computeSelectorsForNsmHandlers();
 
     // Set flag used by generateMethod helper below.  If we have very few
     // handlers we use addProperty for them all, rather than try to generate
     // them at runtime.
     bool haveVeryFewNoSuchMemberHandlers =
         (addedJsNames.length < VERY_FEW_NO_SUCH_METHOD_HANDLERS);
-
-    jsAst.Expression generateMethod(String jsName, Selector selector) {
-      // Values match JSInvocationMirror in js-helper library.
-      int type = selector.invocationMirrorKind;
-      List<String> parameterNames =
-          new List.generate(selector.argumentCount, (i) => '\$$i');
-
-      List<jsAst.Expression> argNames =
-          selector.getOrderedNamedArguments().map((String name) =>
-              js.string(name)).toList();
-
-      String methodName = selector.invocationMirrorMemberName;
-      String internalName = namer.invocationMirrorInternalName(selector);
-      String reflectionName = emitter.getReflectionName(selector, internalName);
-      if (!haveVeryFewNoSuchMemberHandlers &&
-          isTrivialNsmHandler(type, argNames, selector, internalName) &&
-          reflectionName == null) {
-        trivialNsmHandlers.add(selector);
-        return null;
-      }
-
-      assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
-      jsAst.Expression expression =
-          js('''this.#noSuchMethodName(this,
-                    #createInvocationMirror(#methodName,
-                                            #internalName,
-                                            #type,
-                                            #arguments,
-                                            #namedArguments))''',
-             {'noSuchMethodName': noSuchMethodName,
-              'createInvocationMirror':
-                  backend.emitter.staticFunctionAccess(
-                      backend.getCreateInvocationMirror()),
-              'methodName':
-                  js.string(compiler.enableMinification
-                      ? internalName : methodName),
-              'internalName': js.string(internalName),
-              'type': js.number(type),
-              'arguments':
-                  new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
-              'namedArguments': new jsAst.ArrayInitializer(argNames)});
-
-      if (backend.isInterceptedName(selector.name)) {
-        return js(r'function($receiver, #) { return # }',
-                  [parameterNames, expression]);
-      } else {
-        return js(r'function(#) { return # }', [parameterNames, expression]);
-      }
-    }
-
     for (String jsName in addedJsNames.keys.toList()..sort()) {
       Selector selector = addedJsNames[jsName];
-      jsAst.Expression method = generateMethod(jsName, selector);
-      if (method != null) {
-        addProperty(jsName, method);
-        String reflectionName = emitter.getReflectionName(selector, jsName);
+      String reflectionName = emitter.getReflectionName(selector, jsName);
+
+      if (reflectionName != null) {
+        emitter.mangledFieldNames[jsName] = reflectionName;
+      }
+
+      List<jsAst.Expression> argNames =
+               selector.getOrderedNamedArguments().map((String name) =>
+                   js.string(name)).toList();
+      int type = selector.invocationMirrorKind;
+      if (!haveVeryFewNoSuchMemberHandlers &&
+          isTrivialNsmHandler(type, argNames, selector, jsName) &&
+          reflectionName == null) {
+        trivialNsmHandlers.add(selector);
+      } else {
+        StubMethod method =
+            generator.generateStubForNoSuchMethod(jsName, selector);
+        addProperty(method.name, method.code);
         if (reflectionName != null) {
           bool accessible = compiler.world.allFunctions.filter(selector).any(
               (Element e) => backend.isAccessibleByReflection(e));
@@ -281,8 +219,6 @@ class NsmEmitter extends CodeEmitterHelper {
     ClassElement objectClass = compiler.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
         .staticFunctionAccess(backend.getCreateInvocationMirror());
-    String noSuchMethodName = namer.publicInstanceMethodNameByArity(
-        Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
     var type = 0;
     if (useDiffEncoding) {
       statements.add(js.statement('''{
@@ -386,7 +322,7 @@ class NsmEmitter extends CodeEmitterHelper {
         }
       }''', {
           'sliceOffsetParams': sliceOffsetParams,
-          'noSuchMethodName': noSuchMethodName,
+          'noSuchMethodName': namer.noSuchMethodName,
           'createInvocationMirror': createInvocationMirror,
           'names': minify ? 'shortNames' : 'longNames',
           'sliceOffsetArguments': sliceOffsetArguments}));

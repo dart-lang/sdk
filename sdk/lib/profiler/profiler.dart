@@ -186,14 +186,13 @@ class Metrics {
   }
 
   static String _printMetrics() {
-    var members = [];
+    var metrics = [];
     for (var metric in _metrics.values) {
-      members.add(metric._toJSON());
+      metrics.add(metric._toJSON());
     }
     var map = {
       'type': 'MetricList',
-      'id': 'metrics',
-      'members': members,
+      'metrics': metrics,
     };
     return JSON.encode(map);
   }

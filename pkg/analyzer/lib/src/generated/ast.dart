@@ -7934,7 +7934,12 @@ class FieldFormalParameter extends NormalFormalParameter {
       ..add(_parameters);
 
   @override
-  Token get endToken => identifier.endToken;
+  Token get endToken {
+    if (_parameters != null) {
+      return _parameters.endToken;
+    }
+    return identifier.endToken;
+  }
 
   @override
   bool get isConst =>

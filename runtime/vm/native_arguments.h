@@ -51,7 +51,7 @@ class Simulator;
   }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
-    DeoptimizeAll();                                                           \
+    DeoptimizeFunctionsOnStack();                                              \
   }
 
 #else

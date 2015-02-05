@@ -61,11 +61,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   final ErrorReporter _errorReporter;
 
   /**
+   * The type Future<Null>, which is needed for determining whether it is safe
+   * to have a bare "return;" in an async method.
+   */
+  final InterfaceType _futureNullType;
+
+  /**
    * Create a new instance of the [BestPracticesVerifier].
    *
    * @param errorReporter the error reporter
    */
-  BestPracticesVerifier(this._errorReporter);
+  BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider)
+      : _futureNullType = typeProvider.futureNullType;
 
   @override
   Object visitArgumentList(ArgumentList node) {
@@ -558,6 +565,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * statement on all branches. At the end of blocks with no return, Dart implicitly returns
    * `null`, avoiding these implicit returns is considered a best practice.
    *
+   * Note: for async functions/methods, this hint only applies when the
+   * function has a return type that Future<Null> is not assignable to.
+   *
    * @param node the binary expression to check
    * @param body the function body
    * @return `true` if and only if a hint code is generated on the passed node
@@ -572,9 +582,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (body is! BlockFunctionBody) {
       return false;
     }
+    // Generators are never required to have a return statement.
+    if (body.isGenerator) {
+      return false;
+    }
     // Check that the type is resolvable, and is not "void"
     DartType returnTypeType = returnType.type;
     if (returnTypeType == null || returnTypeType.isVoid) {
+      return false;
+    }
+    // For async, give no hint if Future<Null> is assignable to the return
+    // type.
+    if (body.isAsynchronous && _futureNullType.isAssignableTo(returnTypeType)) {
       return false;
     }
     // Check the block for a return statement, if not, create the hint
@@ -3888,6 +3907,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.leftHandSide) || _nodeExits(node.rightHandSide);
 
   @override
+  bool visitAwaitExpression(AwaitExpression node) =>
+      _nodeExits(node.expression);
+
+  @override
   bool visitBinaryExpression(BinaryExpression node) {
     Expression lhsExpression = node.leftOperand;
     sc.TokenType operatorType = node.operator.type;
@@ -4179,6 +4202,18 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
           return false;
         }
       }
+      // All of the members exit, determine whether there are possible cases
+      // that are not caught by the members.
+      DartType type = node.expression == null ? null : node.expression.bestType;
+      if (type is InterfaceType) {
+        ClassElement element = type.element;
+        if (element != null && element.isEnum) {
+          // If some of the enum values are not covered, then a warning will
+          // have already been generated, so there's no point in generating a
+          // hint.
+          return true;
+        }
+      }
       return hasDefault;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
@@ -4393,7 +4428,7 @@ class FunctionTypeScope extends EnclosedScope {
 class HintGenerator {
   final List<CompilationUnit> _compilationUnits;
 
-  final AnalysisContext _context;
+  final InternalAnalysisContext _context;
 
   final AnalysisErrorListener _errorListener;
 
@@ -4458,7 +4493,8 @@ class HintGenerator {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices
-    unit.accept(new BestPracticesVerifier(errorReporter));
+    unit.accept(
+        new BestPracticesVerifier(errorReporter, _context.typeProvider));
     unit.accept(new OverrideVerifier(_manager, errorReporter));
     // Find to-do comments
     new ToDoFinder(errorReporter).findIn(unit);
@@ -5960,11 +5996,13 @@ class InheritanceManager {
       }
     }
     //
-    // Include the members from the mixins in the resultMap
+    // Include the members from the mixins in the resultMap.  If there are
+    // multiple mixins, visit them in the order listed so that methods in later
+    // mixins will overwrite identically-named methods in earlier mixins.
     //
     List<InterfaceType> mixins = classElt.mixins;
-    for (int i = mixins.length - 1; i >= 0; i--) {
-      ClassElement mixinElement = mixins[i].element;
+    for (InterfaceType mixin in mixins) {
+      ClassElement mixinElement = mixin.element;
       if (mixinElement != null) {
         if (!visitedClasses.contains(mixinElement)) {
           visitedClasses.add(mixinElement);
@@ -5974,11 +6012,11 @@ class InheritanceManager {
             //
             // Substitute the super types down the hierarchy.
             //
-            _substituteTypeParametersDownHierarchy(mixins[i], map);
+            _substituteTypeParametersDownHierarchy(mixin, map);
             //
             // Include the members from the superclass in the resultMap.
             //
-            _recordMapWithClassMembers(map, mixins[i], false);
+            _recordMapWithClassMembers(map, mixin, false);
             //
             // Add the members from map into result map.
             //
@@ -7688,9 +7726,19 @@ class LibraryResolver {
   Source _coreLibrarySource;
 
   /**
+   * A Source object representing the async library (dart:async).
+   */
+  Source _asyncLibrarySource;
+
+  /**
    * The object representing the core library.
    */
   Library _coreLibrary;
+
+  /**
+   * The object representing the async library.
+   */
+  Library _asyncLibrary;
 
   /**
    * The object used to access the types from the core library.
@@ -7716,6 +7764,8 @@ class LibraryResolver {
     this._errorListener = new RecordingErrorListener();
     _coreLibrarySource =
         analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
+    _asyncLibrarySource =
+        analysisContext.sourceFactory.forUri(DartSdk.DART_ASYNC);
   }
 
   /**
@@ -7767,13 +7817,24 @@ class LibraryResolver {
     Library targetLibrary = _createLibraryWithUnit(librarySource, unit);
     _coreLibrary = _libraryMap[_coreLibrarySource];
     if (_coreLibrary == null) {
-      // This will be true unless the library being analyzed is the core
+      // This will only happen if the library being analyzed is the core
       // library.
       _coreLibrary = createLibrary(_coreLibrarySource);
       if (_coreLibrary == null) {
         LibraryResolver2.missingCoreLibrary(
             analysisContext,
             _coreLibrarySource);
+      }
+    }
+    _asyncLibrary = _libraryMap[_asyncLibrarySource];
+    if (_asyncLibrary == null) {
+      // This will only happen if the library being analyzed is the async
+      // library.
+      _asyncLibrary = createLibrary(_asyncLibrarySource);
+      if (_asyncLibrary == null) {
+        LibraryResolver2.missingAsyncLibrary(
+            analysisContext,
+            _asyncLibrarySource);
       }
     }
     //
@@ -7802,8 +7863,12 @@ class LibraryResolver {
     if (coreElement == null) {
       throw new AnalysisException("Could not resolve dart:core");
     }
+    LibraryElement asyncElement = _asyncLibrary.libraryElement;
+    if (asyncElement == null) {
+      throw new AnalysisException("Could not resolve dart:async");
+    }
     _buildDirectiveModels();
-    _typeProvider = new TypeProviderImpl(coreElement);
+    _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildTypeAliases();
     _buildTypeHierarchies();
     //
@@ -7847,13 +7912,24 @@ class LibraryResolver {
     Library targetLibrary = createLibrary(librarySource);
     _coreLibrary = _libraryMap[_coreLibrarySource];
     if (_coreLibrary == null) {
-      // This will be true unless the library being analyzed is the core
+      // This should only happen if the library being analyzed is the core
       // library.
       _coreLibrary = _createLibraryOrNull(_coreLibrarySource);
       if (_coreLibrary == null) {
         LibraryResolver2.missingCoreLibrary(
             analysisContext,
             _coreLibrarySource);
+      }
+    }
+    _asyncLibrary = _libraryMap[_asyncLibrarySource];
+    if (_asyncLibrary == null) {
+      // This should only happen if the library being analyzed is the async
+      // library.
+      _asyncLibrary = _createLibraryOrNull(_asyncLibrarySource);
+      if (_asyncLibrary == null) {
+        LibraryResolver2.missingAsyncLibrary(
+            analysisContext,
+            _asyncLibrarySource);
       }
     }
     //
@@ -7884,8 +7960,12 @@ class LibraryResolver {
     if (coreElement == null) {
       throw new AnalysisException("Could not resolve dart:core");
     }
+    LibraryElement asyncElement = _asyncLibrary.libraryElement;
+    if (asyncElement == null) {
+      throw new AnalysisException("Coulb not resolve dart:async");
+    }
     _buildDirectiveModels();
-    _typeProvider = new TypeProviderImpl(coreElement);
+    _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
     _buildTypeAliases();
     _buildTypeHierarchies();
@@ -7964,12 +8044,20 @@ class LibraryResolver {
   void _addToDependencyMap(Library library, HashMap<Library,
       List<Library>> dependencyMap, Set<Library> visitedLibraries) {
     if (visitedLibraries.add(library)) {
+      bool asyncFound = false;
       for (Library referencedLibrary in library.importsAndExports) {
         _addDependencyToMap(dependencyMap, library, referencedLibrary);
         _addToDependencyMap(referencedLibrary, dependencyMap, visitedLibraries);
+        if (identical(referencedLibrary, _asyncLibrary)) {
+          asyncFound = true;
+        }
       }
       if (!library.explicitlyImportsCore && !identical(library, _coreLibrary)) {
         _addDependencyToMap(dependencyMap, library, _coreLibrary);
+      }
+      if (!asyncFound && !identical(library, _asyncLibrary)) {
+        _addDependencyToMap(dependencyMap, library, _asyncLibrary);
+        _addToDependencyMap(_asyncLibrary, dependencyMap, visitedLibraries);
       }
     }
   }
@@ -8337,9 +8425,13 @@ class LibraryResolver {
       List<Source> importedSources, List<Source> exportedSources) {
     List<Library> importedLibraries = new List<Library>();
     bool explicitlyImportsCore = false;
+    bool importsAsync = false;
     for (Source importedSource in importedSources) {
       if (importedSource == _coreLibrarySource) {
         explicitlyImportsCore = true;
+      }
+      if (importedSource == _asyncLibrarySource) {
+        importsAsync = true;
       }
       Library importedLibrary = _libraryMap[importedSource];
       if (importedLibrary == null) {
@@ -8372,6 +8464,15 @@ class LibraryResolver {
       Library importedLibrary = _libraryMap[_coreLibrarySource];
       if (importedLibrary == null) {
         importedLibrary = _createLibraryOrNull(_coreLibrarySource);
+        if (importedLibrary != null) {
+          _computeLibraryDependencies(importedLibrary);
+        }
+      }
+    }
+    if (!importsAsync && _asyncLibrarySource != library.librarySource) {
+      Library importedLibrary = _libraryMap[_asyncLibrarySource];
+      if (importedLibrary == null) {
+        importedLibrary = _createLibraryOrNull(_asyncLibrarySource);
         if (importedLibrary != null) {
           _computeLibraryDependencies(importedLibrary);
         }
@@ -8558,9 +8659,19 @@ class LibraryResolver2 {
   Source _coreLibrarySource;
 
   /**
+   * A source object representing the async library (dart:async).
+   */
+  Source _asyncLibrarySource;
+
+  /**
    * The object representing the core library.
    */
   ResolvableLibrary _coreLibrary;
+
+  /**
+   * The object representing the async library.
+   */
+  ResolvableLibrary _asyncLibrary;
 
   /**
    * The object used to access the types from the core library.
@@ -8587,6 +8698,8 @@ class LibraryResolver2 {
     this._errorListener = new RecordingErrorListener();
     _coreLibrarySource =
         analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
+    _asyncLibrarySource =
+        analysisContext.sourceFactory.forUri(DartSdk.DART_ASYNC);
   }
 
   /**
@@ -8625,6 +8738,7 @@ class LibraryResolver2 {
     _libraryMap = _buildLibraryMap();
     ResolvableLibrary targetLibrary = _libraryMap[librarySource];
     _coreLibrary = _libraryMap[_coreLibrarySource];
+    _asyncLibrary = _libraryMap[_asyncLibrarySource];
     //
     // Build the element models representing the libraries being resolved.
     // This is done in three steps:
@@ -8648,8 +8762,12 @@ class LibraryResolver2 {
     if (coreElement == null) {
       missingCoreLibrary(analysisContext, _coreLibrarySource);
     }
+    LibraryElement asyncElement = _asyncLibrary.libraryElement;
+    if (asyncElement == null) {
+      missingAsyncLibrary(analysisContext, _asyncLibrarySource);
+    }
     _buildDirectiveModels();
-    _typeProvider = new TypeProviderImpl(coreElement);
+    _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
     _buildTypeAliases();
     _buildTypeHierarchies();
@@ -9063,6 +9181,16 @@ class LibraryResolver2 {
     } finally {
       timeCounter.stop();
     }
+  }
+
+  /**
+   * Report that the async library could not be resolved in the given
+   * [analysisContext] and throw an exception.  [asyncLibrarySource] is the source
+   * representing the async library.
+   */
+  static void missingAsyncLibrary(AnalysisContext analysisContext,
+      Source asyncLibrarySource) {
+    throw new AnalysisException("Could not resolve dart:async");
   }
 
   /**
@@ -13298,11 +13426,36 @@ abstract class TypeProvider {
   InterfaceType get functionType;
 
   /**
+   * Return the type representing 'Future<dynamic>'.
+   */
+  InterfaceType get futureDynamicType;
+
+  /**
+   * Return the type representing 'Future<Null>'.
+   */
+  InterfaceType get futureNullType;
+
+  /**
+   * Return the type representing the built-in type 'Future'.
+   */
+  InterfaceType get futureType;
+
+  /**
    * Return the type representing the built-in type 'int'.
    *
    * @return the type representing the built-in type 'int'
    */
   InterfaceType get intType;
+
+  /**
+   * Return the type representing the type 'Iterable<dynamic>'.
+   */
+  InterfaceType get iterableDynamicType;
+
+  /**
+   * Return the type representing the built-in type 'Iterable'.
+   */
+  InterfaceType get iterableType;
 
   /**
    * Return the type representing the built-in type 'List'.
@@ -13345,6 +13498,16 @@ abstract class TypeProvider {
    * @return the type representing the built-in type 'StackTrace'
    */
   InterfaceType get stackTraceType;
+
+  /**
+   * Return the type representing 'Stream<dynamic>'.
+   */
+  InterfaceType get streamDynamicType;
+
+  /**
+   * Return the type representing the built-in type 'Stream'.
+   */
+  InterfaceType get streamType;
 
   /**
    * Return the type representing the built-in type 'String'.
@@ -13409,9 +13572,34 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _functionType;
 
   /**
+   * The type representing 'Future<dynamic>'.
+   */
+  InterfaceType _futureDynamicType;
+
+  /**
+   * The type representing 'Future<Null>'.
+   */
+  InterfaceType _futureNullType;
+
+  /**
+   * The type representing the built-in type 'Future'.
+   */
+  InterfaceType _futureType;
+
+  /**
    * The type representing the built-in type 'int'.
    */
   InterfaceType _intType;
+
+  /**
+   * The type representing 'Iterable<dynamic>'.
+   */
+  InterfaceType _iterableDynamicType;
+
+  /**
+   * The type representing the built-in type 'Iterable'.
+   */
+  InterfaceType _iterableType;
 
   /**
    * The type representing the built-in type 'List'.
@@ -13444,6 +13632,16 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _stackTraceType;
 
   /**
+   * The type representing 'Stream<dynamic>'.
+   */
+  InterfaceType _streamDynamicType;
+
+  /**
+   * The type representing the built-in type 'Stream'.
+   */
+  InterfaceType _streamType;
+
+  /**
    * The type representing the built-in type 'String'.
    */
   InterfaceType _stringType;
@@ -13468,8 +13666,8 @@ class TypeProviderImpl implements TypeProvider {
    *
    * @param coreLibrary the element representing the core library (dart:core).
    */
-  TypeProviderImpl(LibraryElement coreLibrary) {
-    _initializeFrom(coreLibrary);
+  TypeProviderImpl(LibraryElement coreLibrary, LibraryElement asyncLibrary) {
+    _initializeFrom(coreLibrary, asyncLibrary);
   }
 
   @override
@@ -13491,7 +13689,22 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType get functionType => _functionType;
 
   @override
+  InterfaceType get futureDynamicType => _futureDynamicType;
+
+  @override
+  InterfaceType get futureNullType => _futureNullType;
+
+  @override
+  InterfaceType get futureType => _futureType;
+
+  @override
   InterfaceType get intType => _intType;
+
+  @override
+  InterfaceType get iterableDynamicType => _iterableDynamicType;
+
+  @override
+  InterfaceType get iterableType => _iterableType;
 
   @override
   InterfaceType get listType => _listType;
@@ -13510,6 +13723,12 @@ class TypeProviderImpl implements TypeProvider {
 
   @override
   InterfaceType get stackTraceType => _stackTraceType;
+
+  @override
+  InterfaceType get streamDynamicType => _streamDynamicType;
+
+  @override
+  InterfaceType get streamType => _streamType;
 
   @override
   InterfaceType get stringType => _stringType;
@@ -13546,26 +13765,36 @@ class TypeProviderImpl implements TypeProvider {
    *
    * @param library the library containing the definitions of the core types
    */
-  void _initializeFrom(LibraryElement library) {
-    Namespace namespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(library);
-    _boolType = _getType(namespace, "bool");
+  void _initializeFrom(LibraryElement coreLibrary,
+      LibraryElement asyncLibrary) {
+    Namespace coreNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLibrary);
+    Namespace asyncNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(asyncLibrary);
+    _boolType = _getType(coreNamespace, "bool");
     _bottomType = BottomTypeImpl.instance;
-    _deprecatedType = _getType(namespace, "Deprecated");
-    _doubleType = _getType(namespace, "double");
+    _deprecatedType = _getType(coreNamespace, "Deprecated");
+    _doubleType = _getType(coreNamespace, "double");
     _dynamicType = DynamicTypeImpl.instance;
-    _functionType = _getType(namespace, "Function");
-    _intType = _getType(namespace, "int");
-    _listType = _getType(namespace, "List");
-    _mapType = _getType(namespace, "Map");
-    _nullType = _getType(namespace, "Null");
-    _numType = _getType(namespace, "num");
-    _objectType = _getType(namespace, "Object");
-    _stackTraceType = _getType(namespace, "StackTrace");
-    _stringType = _getType(namespace, "String");
-    _symbolType = _getType(namespace, "Symbol");
-    _typeType = _getType(namespace, "Type");
+    _functionType = _getType(coreNamespace, "Function");
+    _futureType = _getType(asyncNamespace, "Future");
+    _intType = _getType(coreNamespace, "int");
+    _iterableType = _getType(coreNamespace, "Iterable");
+    _listType = _getType(coreNamespace, "List");
+    _mapType = _getType(coreNamespace, "Map");
+    _nullType = _getType(coreNamespace, "Null");
+    _numType = _getType(coreNamespace, "num");
+    _objectType = _getType(coreNamespace, "Object");
+    _stackTraceType = _getType(coreNamespace, "StackTrace");
+    _streamType = _getType(asyncNamespace, "Stream");
+    _stringType = _getType(coreNamespace, "String");
+    _symbolType = _getType(coreNamespace, "Symbol");
+    _typeType = _getType(coreNamespace, "Type");
     _undefinedType = UndefinedTypeImpl.instance;
+    _futureDynamicType = _futureType.substitute4(<DartType>[_dynamicType]);
+    _futureNullType = _futureType.substitute4(<DartType>[_nullType]);
+    _iterableDynamicType = _iterableType.substitute4(<DartType>[_dynamicType]);
+    _streamDynamicType = _streamType.substitute4(<DartType>[_dynamicType]);
   }
 }
 

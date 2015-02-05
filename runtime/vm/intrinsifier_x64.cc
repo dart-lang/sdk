@@ -33,7 +33,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     return;
   }
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
@@ -97,98 +97,12 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 }
 
 
-// Access growable object array at specified index.
-// On stack: growable array (+2), index (+1), return-address (+0).
-void Intrinsifier::GrowableArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // GrowableArray.
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check using _length field.
-  __ cmpq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));  // data.
-
-  // Note that RCX is Smi, i.e, times 4.
-  ASSERT(kSmiTagShift == 1);
-  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()));
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
-// Set value into growable object array at specified index.
-// On stack: growable array (+3), index (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArraySetIndexed(Assembler* assembler) {
-  if (FLAG_enable_type_checks) {
-    return;
-  }
-  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
-  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // GrowableArray.
-  Label fall_through;
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through);  // Non-smi index.
-  // Range check using _length field.
-  __ cmpq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through);
-  __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));  // data.
-  // Note that RCX is Smi, i.e, times 4.
-  ASSERT(kSmiTagShift == 1);
-  __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
-                     RDX);
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
-// Set length of growable object array. The length cannot
-// be greater than the length of the data container.
-// On stack: growable array (+2), length (+1), return-address (+0).
-void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
-  Label fall_through;
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
-  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
-  FieldAddress length_field(RAX, GrowableObjectArray::length_offset());
-  __ StoreIntoSmiField(length_field, RCX);
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
-// Set data of growable object array.
-// On stack: growable array (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableArraySetData(Assembler* assembler) {
-  if (FLAG_enable_type_checks) {
-    return;
-  }
-  Label fall_through;
-  __ movq(RBX, Address(RSP, + 1 * kWordSize));  /// Data.
-  __ testq(RBX, Immediate(kSmiTagMask));
-  __ j(ZERO, &fall_through);  // Data is Smi.
-  __ CompareClassId(RBX, kArrayCid);
-  __ j(NOT_EQUAL, &fall_through);
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
-  __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, GrowableObjectArray::data_offset()),
-                     RBX);
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
 // Add an element to growable array if it doesn't need to grow, otherwise
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
-  if (FLAG_enable_type_checks) return;
+  if (Isolate::Current()->TypeChecksEnabled()) return;
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
   __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
@@ -809,31 +723,6 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ StoreIntoObject(RCX, FieldAddress(RCX, Bigint::neg_offset()), RAX, false);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ StoreIntoObject(RCX, FieldAddress(RCX, Bigint::used_offset()), RAX);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ StoreIntoObject(RCX,
-                     FieldAddress(RCX, Bigint::digits_offset()), RAX, false);
-  __ ret();
-}
-
-
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -879,10 +768,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&last_carry);
-  __ movq(RAX, Immediate(0));
-  __ adcq(RAX, Immediate(0));
-  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
+  Label done;
+  __ j(NOT_CARRY, &done);
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()),
+          Immediate(1));
 
+  __ Bind(&done);
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }

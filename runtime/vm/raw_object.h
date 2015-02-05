@@ -497,8 +497,6 @@ class RawObject {
 #if defined(DEBUG)
     ValidateOverwrittenPointer(*addr);
 #endif  // DEBUG
-    // Ensure that this object contains the addr.
-    ASSERT(Contains(reinterpret_cast<uword>(addr)));
     VerifiedMemory::Write(const_cast<type*>(addr), value);
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;

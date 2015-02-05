@@ -23,6 +23,9 @@ var blacklist = [
   // Don't change the exit code, which may fool the test harness.
   'dart.io.exitCode',
 
+  // Don't kill random other processes.
+  'dart.io.Process.killPid',
+
   // Don't run blocking io calls.
   new RegExp(r".*Sync$"),
 

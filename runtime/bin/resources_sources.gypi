@@ -6,6 +6,7 @@
 {
   'sources': [
 # Standalone VM service sources.
+    'vmservice/loader.dart',
     'vmservice/resources.dart',
     'vmservice/server.dart',
     'vmservice/vmservice_io.dart',

@@ -17,6 +17,7 @@ class CodeEmitterTask extends CompilerTask {
   final Namer namer;
   final TypeTestRegistry typeTestRegistry;
   NativeEmitter nativeEmitter;
+  MetadataCollector metadataCollector;
   OldEmitter oldEmitter;
   Emitter emitter;
 
@@ -37,7 +38,7 @@ class CodeEmitterTask extends CompilerTask {
   /// This flag is updated in [computeNeededConstants].
   bool outputContainsConstantList = false;
 
-  final List<ClassElement> nativeClasses = <ClassElement>[];
+  final List<ClassElement> nativeClassesAndSubclasses = <ClassElement>[];
 
   /// Records if a type variable is read dynamically for type tests.
   final Set<TypeVariableElement> readTypeVariables =
@@ -51,12 +52,15 @@ class CodeEmitterTask extends CompilerTask {
       : super(compiler),
         this.namer = namer,
         this.typeTestRegistry = new TypeTestRegistry(compiler) {
+    nativeEmitter = new NativeEmitter(this);
     oldEmitter = new OldEmitter(compiler, namer, generateSourceMap, this);
     emitter = USE_NEW_EMITTER
-        ? new new_js_emitter.Emitter(compiler, namer)
+        ? new new_js_emitter.Emitter(compiler, namer, nativeEmitter)
         : oldEmitter;
-    nativeEmitter = new NativeEmitter(this);
+    metadataCollector = new MetadataCollector(compiler, emitter);
   }
+
+  String get name => 'Code emitter';
 
   /// Returns the closure expression of a static function.
   jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
@@ -338,13 +342,11 @@ class CodeEmitterTask extends CompilerTask {
       if (Elements.isNativeOrExtendsNative(element) &&
           !typeTestRegistry.rtiNeededClasses.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
-        nativeClasses.add(element);
-        if (!element.isNative) {
-          assert(invariant(element,
-                           !compiler.deferredLoadTask.isDeferred(element)));
-          outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
-              () => new List<ClassElement>()).add(element);
-        }
+        nativeClassesAndSubclasses.add(element);
+        assert(invariant(element,
+                         !compiler.deferredLoadTask.isDeferred(element)));
+        outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+            () => new List<ClassElement>()).add(element);
       } else {
         outputClassLists.putIfAbsent(
             compiler.deferredLoadTask.outputUnitForElement(element),

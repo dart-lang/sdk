@@ -3674,6 +3674,12 @@ class Parser {
    */
   SimpleIdentifier parseSimpleIdentifier() {
     if (_matchesIdentifier()) {
+      String lexeme = _currentToken.lexeme;
+      if ((_inAsync || _inGenerator) &&
+          (lexeme == 'async' || lexeme == 'await' || lexeme == 'yield')) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
+      }
       return new SimpleIdentifier(getAndAdvance());
     }
     _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
@@ -6078,6 +6084,9 @@ class Parser {
     } else {
       name = _createSyntheticIdentifier();
     }
+    if (commentAndMetadata.metadata.isNotEmpty) {
+      _reportErrorForNode(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, commentAndMetadata.metadata[0]);
+    }
     return new EnumConstantDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
@@ -6104,7 +6113,7 @@ class Parser {
     Token rightBracket = null;
     if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
-      if (_matchesIdentifier()) {
+      if (_matchesIdentifier() || _matches(TokenType.AT)) {
         constants.add(_parseEnumConstantDeclaration());
       } else if (_matches(TokenType.COMMA) &&
           _tokenMatchesIdentifier(_peek())) {
@@ -8612,7 +8621,7 @@ class Parser {
     } else if (_matches(TokenType.PLUS)) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return _createSyntheticIdentifier();
-    } else if (_matchesString(_AWAIT)) {
+    } else if (_inAsync && _matchesString(_AWAIT)) {
       return _parseAwaitExpression();
     }
     return _parsePostfixExpression();
@@ -10009,6 +10018,10 @@ class ParserErrorCode extends ErrorCode {
       'ABSTRACT_TYPEDEF',
       "Type aliases cannot be declared to be 'abstract'");
 
+  static const ParserErrorCode ANNOTATION_ON_ENUM_CONSTANT = const ParserErrorCode(
+      'ANNOTATION_ON_ENUM_CONSTANT',
+      "Enum constants cannot have annotations");
+
   static const ParserErrorCode ASSERT_DOES_NOT_TAKE_ASSIGNMENT =
       const ParserErrorCode(
           'ASSERT_DOES_NOT_TAKE_ASSIGNMENT',
@@ -10028,6 +10041,16 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode(
           'ASSERT_DOES_NOT_TAKE_RETHROW',
           "Assert cannot be called on rethrows");
+
+  /**
+   * 16.32 Identifier Reference: It is a compile-time error if any of the
+   * identifiers async, await, or yield is used as an identifier in a function
+   * body marked with either async, async*, or sync*.
+   */
+  static const ParserErrorCode ASYNC_KEYWORD_USED_AS_IDENTIFIER =
+      const ParserErrorCode(
+          'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
+          "The keywords 'async', 'await', and 'yield' may not be used as identifiers in an asynchronous or generator function.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'BREAK_OUTSIDE_OF_LOOP',

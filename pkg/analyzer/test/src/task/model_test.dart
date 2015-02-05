@@ -6,9 +6,7 @@ library test.src.task.model_test;
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/src/task/targets.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
@@ -27,7 +25,7 @@ main() {
 @reflectiveTest
 class AnalysisTaskTest extends EngineTestCase {
   test_getRequiredInput_missingKey() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
     task.inputs = {
       'a': 'b'
@@ -38,7 +36,7 @@ class AnalysisTaskTest extends EngineTestCase {
   }
 
   test_getRequiredInput_noInputs() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
     expect(
         () => task.getRequiredInput('x'),
@@ -46,7 +44,7 @@ class AnalysisTaskTest extends EngineTestCase {
   }
 
   test_getRequiredInput_valid() {
-    SourceTarget target = new SourceTarget(new TestSource());
+    AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
     String key = 'a';
     String value = 'b';
@@ -57,10 +55,9 @@ class AnalysisTaskTest extends EngineTestCase {
   }
 
   test_getRequiredSource() {
-    Source source = new TestSource();
-    SourceTarget target = new SourceTarget(source);
+    AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
-    expect(task.getRequiredSource(), source);
+    expect(task.getRequiredSource(), target);
   }
 }
 
@@ -114,7 +111,7 @@ class ResultDescriptorImplTest extends EngineTestCase {
   }
 
   test_inputFor() {
-    SourceTarget target = new SourceTarget(null);
+    AnalysisTarget target = new TestSource();
     ResultDescriptorImpl result = new ResultDescriptorImpl('result', null);
     TaskInput input = result.inputFor(target);
     expect(input, isNotNull);
@@ -151,7 +148,7 @@ class TaskDescriptorImplTest extends EngineTestCase {
     TaskDescriptorImpl descriptor =
         new TaskDescriptorImpl('name', buildTask, createTaskInputs, results);
     AnalysisContext context = null;
-    SourceTarget target = new SourceTarget(null);
+    AnalysisTarget target = new TestSource();
     Map<String, dynamic> inputs = {};
     AnalysisTask createTask = descriptor.createTask(context, target, inputs);
     expect(createTask, isNotNull);

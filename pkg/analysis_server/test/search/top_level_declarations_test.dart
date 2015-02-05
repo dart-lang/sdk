@@ -35,16 +35,14 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     }
   }
 
-  Future findTopLevelDeclarations(String pattern) {
-    return waitForTasksFinished().then((_) {
-      Request request =
-          new SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      searchId =
-          new SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
-      results.clear();
-      return waitForSearchResults();
-    });
+  Future findTopLevelDeclarations(String pattern) async {
+    await waitForTasksFinished();
+    Request request =
+        new SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
+    Response response = await waitResponse(request);
+    searchId =
+        new SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
+    return waitForSearchResults();
   }
 
   SearchResult findTopLevelResult(ElementKind kind, String name) {
@@ -57,7 +55,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
-  test_startEndPattern() {
+  test_startEndPattern() async {
     addTestFile('''
 class A {} // A
 class B = Object with A;
@@ -66,13 +64,12 @@ D() {}
 var E = null;
 class ABC {}
 ''');
-    return findTopLevelDeclarations('^[A-E]\$').then((_) {
-      assertHasDeclaration(ElementKind.CLASS, 'A');
-      assertHasDeclaration(ElementKind.CLASS, 'B');
-      assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'C');
-      assertHasDeclaration(ElementKind.FUNCTION, 'D');
-      assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'E');
-      assertNoDeclaration(ElementKind.CLASS, 'ABC');
-    });
+    await findTopLevelDeclarations('^[A-E]\$');
+    assertHasDeclaration(ElementKind.CLASS, 'A');
+    assertHasDeclaration(ElementKind.CLASS, 'B');
+    assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'C');
+    assertHasDeclaration(ElementKind.FUNCTION, 'D');
+    assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'E');
+    assertNoDeclaration(ElementKind.CLASS, 'ABC');
   }
 }

@@ -227,7 +227,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  if (FLAG_enable_type_checks) {
+  if (Isolate::Current()->TypeChecksEnabled()) {
     Error& bound_error = Error::Handle();
     type_arguments =
         type_arguments.InstantiateAndCanonicalizeFrom(instantiator,
@@ -532,7 +532,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
     }
     String& bound_error_message =  String::Handle();
     if (!bound_error.IsNull()) {
-      ASSERT(FLAG_enable_type_checks);
+      ASSERT(Isolate::Current()->TypeChecksEnabled());
       bound_error_message = String::New(bound_error.ToErrorCString());
     }
     if (src_type_name.Equals(dst_type_name)) {
@@ -739,9 +739,15 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
-
+  const Class& cache_class = Class::Handle(receiver_class.IsSignatureClass()
+      ? receiver_class.SuperClass()
+      : receiver_class.raw());
+  ASSERT(
+      !receiver_class.IsSignatureClass() ||
+      (receiver_class.SuperClass() == Type::Handle(
+       Isolate::Current()->object_store()->function_impl_type()).type_class()));
   const Function& target_function =
-      Function::Handle(receiver_class.GetInvocationDispatcher(
+      Function::Handle(cache_class.GetInvocationDispatcher(
           target_name,
           arguments_descriptor,
           RawFunction::kInvokeFieldDispatcher));
@@ -1169,7 +1175,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
   if (do_deopt) {
     // TODO(turnidge): Consider using DeoptimizeAt instead.
-    DeoptimizeAll();
+    DeoptimizeFunctionsOnStack();
   }
   if (do_stacktrace) {
     String& var_name = String::Handle();
@@ -1468,7 +1474,7 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
 
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
-void DeoptimizeAll() {
+void DeoptimizeFunctionsOnStack() {
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   Code& optimized_code = Code::Handle();

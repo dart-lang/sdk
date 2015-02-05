@@ -1,3 +1,4 @@
+
 <html>
   <head>
     <meta charset="UTF-8"/>
@@ -5,12 +6,13 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">WORKING DRAFT - Version <version>0.3</version></h1>
+    <h1 style="color:#999999">Version <version>1.0.0</version></h1>
     <p>
-      This document contains a specification of the API provided by
-      the analysis server. The API in this document is currently under
-      development and should be expected to change. In some cases
-      those changes will be substantial.
+      This document contains a specification of the API provided by the
+      analysis server.  The API in this document is currently under
+      development.  Changes to the API will be accompanied by an update to the
+      protocol version number according to the principles of semantic
+      versioning <a href="http://semver.org/">http://semver.org/</a>.
     </p>
     <h2>Overview</h2>
     <p>
@@ -369,19 +371,35 @@
         </result>
       </request>
       <request method="getLibraryDependencies">
-            <p>
-              Return a list of all of the libraries referenced by any files in
-              existing analysis roots.
-            </p>
-            <result>
-                <field name="libraries">
-                    <list><ref>FilePath</ref></list>
-                    <p>
-                      A list of the paths of library elements referenced by
-                      files in existing analysis roots.
-                    </p>
-                </field>
-            </result>
+        <p>
+          Return library dependency information for use in client-side indexing
+          and package URI resolution.
+        </p>
+        <result>
+          <field name="libraries">
+            <list><ref>FilePath</ref></list>
+              <p>
+                A list of the paths of library elements referenced by
+                files in existing analysis roots.
+              </p>
+            </field>
+            <field name="packageMap">
+              <map>
+                <key><ref>String</ref></key>
+                <value>
+                  <map>
+                    <key><ref>String</ref></key>
+                    <value><list><ref>FilePath</ref></list></value>
+                  </map>
+                </value>
+              </map>
+              <p>
+                A mapping from context source roots to package maps which map
+                package names to source directories for use in client-side
+                package URI resolution.
+              </p>
+            </field>
+        </result>
       </request>
       <request method="getNavigation">
         <p>
@@ -458,10 +476,13 @@
       </request>
       <request method="setAnalysisRoots">
         <p>
-          Sets the root paths used to determine which files to
-          analyze. The set of files to be analyzed are all of the
-          files in one of the root paths that are not also in one of
-          the excluded paths.
+          Sets the root paths used to determine which files to analyze. The set
+          of files to be analyzed are all of the files in one of the root paths
+          that are not either explicitly or implicitly excluded. A file is
+          explicitly excluded if it is in one of the excluded paths. A file is
+          implicitly excluded if it is in a subdirectory of one of the root
+          paths where the name of the subdirectory starts with a period (that
+          is, a hidden directory).
         </p>
         <p>
           Note that this request determines the set of requested
@@ -1283,13 +1304,17 @@
           <field name="selectionOffset">
             <ref>int</ref>
             <p>
-              The offset of the current selection in the file.
+              The offset of the current selection in the file. In case
+              preserving, selection information is not required, 0 can be
+              specified for both selection offset and length.
             </p>
           </field>
           <field name="selectionLength">
             <ref>int</ref>
             <p>
-              The length of the current selection in the file.
+              The length of the current selection in the file. In case
+              preserving, selection information is not required, 0 can be
+              specified for both selection offset and length.
             </p>
           </field>
           <!--
@@ -1436,6 +1461,11 @@
       <request method="getRefactoring">
         <p>
           Get the changes required to perform a refactoring.
+        </p>
+        <p>
+          If another refactoring request is received during the processing
+          of this one, an error of type <tt>REFACTORING_REQUEST_CANCELLED</tt>
+          will be generated.
         </p>
         <params>
           <field name="kind">
@@ -1633,6 +1663,24 @@
         </p>
         <p>
           Exactly one of the file and uri fields must be provided.
+        </p>
+        <p>
+          If the file field is provided and the value is not the path of a file
+          (either the file does not exist or the path references something other
+          than a file), then an error of type <tt>MAP_URI_INVALID_FILE</tt> will
+          be generated.
+        </p>
+        <p>
+          If the uri field is provided and the value is not a valid URI or if
+          the URI references something that is not a file (either a file that
+          does not exist or something other than a file), then an error of type
+          <tt>MAP_URI_INVALID_URI</tt> will be generated.
+        </p>
+        <p>
+          If the contextRoot used to create the execution context is not a file
+          (either the file does not exist or the path references something other
+          than a file), then an error of type <tt>INVALID_EXECUTION_CONTEXT</tt>
+          will be generated.
         </p>
         <params>
           <field name="id">
@@ -3042,6 +3090,13 @@
             <code>INVALID_REQUEST</code>
             <p>
               A malformed request was received.
+            </p>
+          </value>
+          <value>
+            <code>REFACTORING_REQUEST_CANCELLED</code>
+            <p>
+              Another refactoring request was received during processing of
+              this one.
             </p>
           </value>
           <value>

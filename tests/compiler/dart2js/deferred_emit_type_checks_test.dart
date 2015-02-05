@@ -31,10 +31,10 @@ void main() {
     String mainOutput = collector.getOutput('', 'js');
     String deferredOutput =  collector.getOutput('out_1', 'part.js');
     String isPrefix = compiler.backend.namer.operatorIsPrefix;
-    Expect.isTrue(deferredOutput.contains('${isPrefix}A: true'),
-        "Deferred output doesn't contain '${isPrefix}A: true':\n"
+    Expect.isTrue(deferredOutput.contains('${isPrefix}A: 1'),
+        "Deferred output doesn't contain '${isPrefix}A: 1':\n"
         "$deferredOutput");
-    Expect.isFalse(mainOutput.contains('${isPrefix}A: true'));
+    Expect.isFalse(mainOutput.contains('${isPrefix}A: 1'));
   }));
 }
 
@@ -52,7 +52,9 @@ void main() {
 """, "lib.dart": """
 class A<T> {}
 
-A<A> instance = new A<A>();
+class B<T> implements A<T> {}
+
+B<B> instance = new B<B>();
 
 bool f (Object o) {
   return o is A<A>;

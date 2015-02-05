@@ -57,6 +57,7 @@ class MockCompiler extends Compiler {
   final int expectedErrors;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
+  final String testedPatchVersion;
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
@@ -73,11 +74,13 @@ class MockCompiler extends Compiler {
        // affected by inlining support.
        bool disableInlining: true,
        bool trustTypeAnnotations: false,
-       bool enableEnums: false,
+       bool enableAsyncAwait: false,
        int this.expectedWarnings,
        int this.expectedErrors,
-       api.CompilerOutputProvider outputProvider})
+       api.CompilerOutputProvider outputProvider,
+       String patchVersion})
       : sourceFiles = new Map<String, SourceFile>(),
+        testedPatchVersion = patchVersion,
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
@@ -89,8 +92,8 @@ class MockCompiler extends Compiler {
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true,
-              enableEnums: enableEnums,
-              outputProvider: outputProvider) {
+              outputProvider: outputProvider,
+              enableAsyncAwait: enableAsyncAwait) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
@@ -113,6 +116,10 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
     registerSource(Compiler.DART_ASYNC,
                    buildLibrarySource(DEFAULT_ASYNC_LIBRARY));
+  }
+
+  String get patchVersion {
+    return testedPatchVersion != null ? testedPatchVersion : super.patchVersion;
   }
 
   /// Initialize the mock compiler with an empty main library.
@@ -267,10 +274,8 @@ class MockCompiler extends Compiler {
   }
 
   /// Create a new [MockCompiler] and apply it asynchronously to [f].
-  static Future create(f(MockCompiler compiler),
-                       {bool enableEnums: false}) {
-    MockCompiler compiler = new MockCompiler.internal(
-        enableEnums: enableEnums);
+  static Future create(f(MockCompiler compiler)) {
+    MockCompiler compiler = new MockCompiler.internal();
     return compiler.init().then((_) => f(compiler));
   }
 }

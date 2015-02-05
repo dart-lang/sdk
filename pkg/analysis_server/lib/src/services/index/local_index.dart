@@ -36,6 +36,14 @@ class LocalIndex extends Index {
   }
 
   /**
+   * Returns all relations with [Element]s with the given [name].
+   */
+  Future<Map<List<String>, List<InspectLocation>>>
+      findElementsByName(String name) {
+    return _store.inspect_getElementRelations(name);
+  }
+
+  /**
    * Returns a `Future<List<Location>>` that completes with the list of
    * [Location]s of the given [relationship] with the given [element].
    *

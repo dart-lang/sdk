@@ -11133,6 +11133,12 @@ class _FrozenElementList extends ListBase
       new _CssStyleDeclarationSet(this);
 
   void set classes(Iterable<String> value) {
+    // TODO(sra): This might be faster for Sets:
+    //
+    //     new _MultiElementCssClassSet(this).writeClasses(value)
+    //
+    // as the code below converts the Iterable[value] to a string multiple
+    // times.  Maybe compute the string and set className here.
     _nodeList.forEach((e) => e.classes = value);
   }
 
@@ -11929,6 +11935,8 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   CssClassSet get classes => new _ElementCssClassSet(this);
 
   void set classes(Iterable<String> value) {
+    // TODO(sra): Do this without reading the classes in clear() and addAll(),
+    // or writing the classes in clear().
     CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
@@ -18116,7 +18124,7 @@ class HttpRequest extends HttpRequestEventTarget {
   static Future<String> getString(String url,
       {bool withCredentials, void onProgress(ProgressEvent e)}) {
     return request(url, withCredentials: withCredentials,
-        onProgress: onProgress).then((xhr) => xhr.responseText);
+        onProgress: onProgress).then((HttpRequest xhr) => xhr.responseText);
   }
 
   /**
@@ -33199,7 +33207,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
-  int get pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(this);
+  double get _pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(this);
 
   /**
    * The distance this window has been scrolled vertically.
@@ -33215,7 +33223,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
-  int get pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(this);
+  double get _pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(this);
 
   @DomName('Window.parent')
   @DocsEditable()
@@ -33302,11 +33310,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.scrollX')
   @DocsEditable()
-  int get scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(this);
+  double get _scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(this);
 
   @DomName('Window.scrollY')
   @DocsEditable()
-  int get scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(this);
+  double get _scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(this);
 
   /**
    * This window's scroll bars.
@@ -34110,6 +34118,21 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     _moveTo(p.x, p.y);
   }
 
+  @DomName('Window.pageXOffset')
+  @DocsEditable()
+  int get pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(this).round();
+
+  @DomName('Window.pageYOffset')
+  @DocsEditable()
+  int get pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(this).round();
+
+  @DomName('Window.scrollX')
+  @DocsEditable()
+  int get scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(this).round();
+
+  @DomName('Window.scrollY')
+  @DocsEditable()
+  int get scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(this).round();
 }
 
 
@@ -36966,12 +36989,13 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
 
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
-    _elementCssClassSetIterable.forEach((e) => s.addAll(e.readClasses()));
+    _elementCssClassSetIterable.forEach(
+        (_ElementCssClassSet e) => s.addAll(e.readClasses()));
     return s;
   }
 
   void writeClasses(Set<String> s) {
-    var classes = new List.from(s).join(' ');
+    var classes = s.join(' ');
     for (Element e in _elementIterable) {
       e.className = classes;
     }
@@ -36987,7 +37011,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *       className property of this element.
    */
   modify( f(Set<String> s)) {
-    _elementCssClassSetIterable.forEach((e) => e.modify(f));
+    _elementCssClassSetIterable.forEach((_ElementCssClassSet e) => e.modify(f));
   }
 
   /**
@@ -36995,7 +37019,9 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * is.
    */
   bool toggle(String value, [bool shouldAdd]) =>
-      _modifyWithReturnValue((e) => e.toggle(value, shouldAdd));
+      _elementCssClassSetIterable.fold(false,
+          (bool changed, _ElementCssClassSet e) =>
+              e.toggle(value, shouldAdd) || changed);
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -37004,10 +37030,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) => _modifyWithReturnValue((e) => e.remove(value));
-
-  bool _modifyWithReturnValue(f) => _elementCssClassSetIterable.fold(
-      false, (prevValue, element) => f(element) || prevValue);
+  bool remove(Object value) => _elementCssClassSetIterable.fold(false,
+      (bool changed, _ElementCssClassSet e) => e.remove(value) || changed);
 }
 
 class _ElementCssClassSet extends CssClassSetImpl {
@@ -37030,7 +37054,6 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   void writeClasses(Set<String> s) {
-    List list = new List.from(s);
     _element.className = s.join(' ');
   }
 }

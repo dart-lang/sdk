@@ -47,9 +47,29 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType _functionType;
 
   /**
+   * The type representing 'Future<dynamic>'
+   */
+  InterfaceType _futureDynamicType;
+
+  /**
+   * The type representing 'Future<Null>'
+   */
+  InterfaceType _futureNullType;
+
+  /**
+   * The type representing the built-in type 'Future'
+   */
+  InterfaceType _futureType;
+
+  /**
    * The type representing the built-in type 'int'.
    */
   InterfaceType _intType;
+
+  /**
+   * The type representing 'Iterable<dynamic>'
+   */
+  InterfaceType _iterableDynamicType;
 
   /**
    * The type representing the built-in type 'Iterable'.
@@ -90,6 +110,16 @@ class TestTypeProvider implements TypeProvider {
    * The type representing the built-in type 'StackTrace'.
    */
   InterfaceType _stackTraceType;
+
+  /**
+   * The type representing 'Stream<dynamic>'.
+   */
+  InterfaceType _streamDynamicType;
+
+  /**
+   * The type representing the built-in type 'Stream'.
+   */
+  InterfaceType _streamType;
 
   /**
    * The type representing the built-in type 'String'.
@@ -172,6 +202,30 @@ class TestTypeProvider implements TypeProvider {
   }
 
   @override
+  InterfaceType get futureDynamicType {
+    if (_futureDynamicType == null) {
+      _futureDynamicType = futureType.substitute4(<DartType>[dynamicType]);
+    }
+    return _futureDynamicType;
+  }
+
+  @override
+  InterfaceType get futureNullType {
+    if (_futureNullType == null) {
+      _futureNullType = futureType.substitute4(<DartType>[nullType]);
+    }
+    return _futureNullType;
+  }
+
+  @override
+  InterfaceType get futureType {
+    if (_futureType == null) {
+      _futureType = ElementFactory.classElement2("Future", ["T"]).type;
+    }
+    return _futureType;
+  }
+
+  @override
   InterfaceType get intType {
     if (_intType == null) {
       _initializeNumericTypes();
@@ -179,18 +233,29 @@ class TestTypeProvider implements TypeProvider {
     return _intType;
   }
 
+  @override
+  InterfaceType get iterableDynamicType {
+    if (_iterableDynamicType == null) {
+      _iterableDynamicType = iterableType.substitute4(<DartType>[dynamicType]);
+    }
+    return _iterableDynamicType;
+  }
+
+  @override
   InterfaceType get iterableType {
     if (_iterableType == null) {
       ClassElementImpl iterableElement =
           ElementFactory.classElement2("Iterable", ["E"]);
       _iterableType = iterableElement.type;
       DartType eType = iterableElement.typeParameters[0].type;
-      iterableElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement(
-              "iterator",
-              false,
-              iteratorType.substitute4(<DartType>[eType])),
-          ElementFactory.getterElement("last", false, eType)];
+      _setAccessors(
+          iterableElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement(
+                  "iterator",
+                  false,
+                  iteratorType.substitute4(<DartType>[eType])),
+              ElementFactory.getterElement("last", false, eType)]);
       _propagateTypeArguments(iterableElement);
     }
     return _iterableType;
@@ -202,8 +267,10 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.classElement2("Iterator", ["E"]);
       _iteratorType = iteratorElement.type;
       DartType eType = iteratorElement.typeParameters[0].type;
-      iteratorElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("current", false, eType)];
+      _setAccessors(
+          iteratorElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("current", false, eType)]);
       _propagateTypeArguments(iteratorElement);
     }
     return _iteratorType;
@@ -221,8 +288,10 @@ class TestTypeProvider implements TypeProvider {
       InterfaceType iterableType =
           this.iterableType.substitute4(<DartType>[eType]);
       listElement.interfaces = <InterfaceType>[iterableType];
-      listElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("length", false, intType)];
+      _setAccessors(
+          listElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("length", false, intType)]);
       listElement.methods = <MethodElement>[
           ElementFactory.methodElement("[]", eType, [intType]),
           ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
@@ -240,8 +309,10 @@ class TestTypeProvider implements TypeProvider {
       _mapType = mapElement.type;
       DartType kType = mapElement.typeParameters[0].type;
       DartType vType = mapElement.typeParameters[1].type;
-      mapElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("length", false, intType)];
+      _setAccessors(
+          mapElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("length", false, intType)]);
       mapElement.methods = <MethodElement>[
           ElementFactory.methodElement("[]", vType, [objectType]),
           ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [kType, vType])];
@@ -277,9 +348,11 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.methodElement("toString", stringType),
           ElementFactory.methodElement("==", boolType, [_objectType]),
           ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])];
-      objectElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("hashCode", false, intType),
-          ElementFactory.getterElement("runtimeType", false, typeType)];
+      _setAccessors(
+          objectElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("hashCode", false, intType),
+              ElementFactory.getterElement("runtimeType", false, typeType)]);
     }
     return _objectType;
   }
@@ -293,17 +366,35 @@ class TestTypeProvider implements TypeProvider {
   }
 
   @override
+  InterfaceType get streamDynamicType {
+    if (_streamDynamicType == null) {
+      _streamDynamicType = streamType.substitute4(<DartType>[dynamicType]);
+    }
+    return _streamDynamicType;
+  }
+
+  @override
+  InterfaceType get streamType {
+    if (_streamType == null) {
+      _streamType = ElementFactory.classElement2("Stream", ["T"]).type;
+    }
+    return _streamType;
+  }
+
+  @override
   InterfaceType get stringType {
     if (_stringType == null) {
       _stringType = ElementFactory.classElement2("String").type;
       ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
-      stringElement.accessors = <PropertyAccessorElement>[
-          ElementFactory.getterElement("isEmpty", false, boolType),
-          ElementFactory.getterElement("length", false, intType),
-          ElementFactory.getterElement(
-              "codeUnits",
-              false,
-              listType.substitute4(<DartType>[intType]))];
+      _setAccessors(
+          stringElement,
+          <PropertyAccessorElement>[
+              ElementFactory.getterElement("isEmpty", false, boolType),
+              ElementFactory.getterElement("length", false, intType),
+              ElementFactory.getterElement(
+                  "codeUnits",
+                  false,
+                  listType.substitute4(<DartType>[intType]))]);
       stringElement.methods = <MethodElement>[
           ElementFactory.methodElement("+", _stringType, [_stringType]),
           ElementFactory.methodElement("toLowerCase", _stringType),
@@ -478,5 +569,16 @@ class TestTypeProvider implements TypeProvider {
       FunctionTypeImpl functionType = constructor.type as FunctionTypeImpl;
       functionType.typeArguments = typeArguments;
     }
+  }
+
+  /**
+   * Set the accessors for the given class [element] to the given [accessors]
+   * and also set the fields to those that correspond to the accessors.
+   */
+  void _setAccessors(ClassElementImpl element,
+      List<PropertyAccessorElement> accessors) {
+    element.accessors = accessors;
+    element.fields = accessors.map(
+        (PropertyAccessorElement accessor) => accessor.variable).toList();
   }
 }

@@ -197,7 +197,7 @@ class CallSites : public ValueObject {
                      FlowGraph* flow_graph)
         : call(call_arg),
           ratio(0.0),
-          caller(&flow_graph->parsed_function()->function()) {}
+          caller(&flow_graph->function()) {}
   };
 
   struct StaticCallInfo {
@@ -207,7 +207,7 @@ class CallSites : public ValueObject {
     StaticCallInfo(StaticCallInstr* value, FlowGraph* flow_graph)
         : call(value),
           ratio(0.0),
-          caller(&flow_graph->parsed_function()->function()) {}
+          caller(&flow_graph->function()) {}
   };
 
   struct ClosureCallInfo {
@@ -215,7 +215,7 @@ class CallSites : public ValueObject {
     const Function* caller;
     ClosureCallInfo(ClosureCallInstr* value, FlowGraph* flow_graph)
         : call(value),
-          caller(&flow_graph->parsed_function()->function()) {}
+          caller(&flow_graph->function()) {}
   };
 
   const GrowableArray<InstanceCallInfo>& instance_calls() const {
@@ -291,7 +291,7 @@ class CallSites : public ValueObject {
       FlowGraph* graph,
       intptr_t depth,
       GrowableArray<InlinedInfo>* inlined_info) {
-    const Function* caller = &graph->parsed_function()->function();
+    const Function* caller = &graph->function();
     Function& target  = Function::ZoneHandle();
     for (BlockIterator block_it = graph->postorder_iterator();
          !block_it.Done();
@@ -358,7 +358,7 @@ class CallSites : public ValueObject {
             // Method not inlined because inlining too deep and method
             // not recognized.
             if (FLAG_print_inlining_tree) {
-              const Function* caller = &graph->parsed_function()->function();
+              const Function* caller = &graph->function();
               const Function* target =
                   &Function::ZoneHandle(
                       instance_call->ic_data().GetTargetAt(0));
@@ -375,7 +375,7 @@ class CallSites : public ValueObject {
             // Method not inlined because inlining too deep and method
             // not recognized.
             if (FLAG_print_inlining_tree) {
-              const Function* caller = &graph->parsed_function()->function();
+              const Function* caller = &graph->function();
               const Function* target = &static_call->function();
               inlined_info->Add(InlinedInfo(
                   caller, target, depth + 1, static_call, "Too deep"));
@@ -534,7 +534,7 @@ class CallSiteInliner : public ValueObject {
   void InlineCalls() {
     // If inlining depth is less then one abort.
     if (FLAG_inlining_depth_threshold < 1) return;
-    if (caller_graph_->parsed_function()->function().deoptimization_counter() >=
+    if (caller_graph_->function().deoptimization_counter() >=
         FLAG_deoptimization_counter_inlining_threshold) {
       return;
     }
@@ -686,7 +686,7 @@ class CallSiteInliner : public ValueObject {
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new(Z) InlineExitCollector(caller_graph_, call);
-      FlowGraphBuilder builder(parsed_function,
+      FlowGraphBuilder builder(*parsed_function,
                                *ic_data_array,
                                exit_collector,
                                Isolate::kNoDeoptId);
@@ -851,7 +851,7 @@ class CallSiteInliner : public ValueObject {
       caller_graph()->AddToDeferredPrefixes(callee_graph->deferred_prefixes());
 
       FlowGraphInliner::SetInliningId(*callee_graph,
-          inliner_->NextInlineId(callee_graph->parsed_function()->function()));
+          inliner_->NextInlineId(callee_graph->function()));
       // We allocate a ZoneHandle for the unoptimized code so that it cannot be
       // disconnected from its function during the rest of compilation.
       Code::ZoneHandle(unoptimized_code.raw());
@@ -1472,10 +1472,12 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
         FlowGraph::kEffect);
     entry->set_last_instruction(result);
     exit_collector->AddExit(result);
+    ParsedFunction* temp_parsed_function =
+        new ParsedFunction(Thread::Current(), target);
     GraphEntryInstr* graph_entry =
-        new(Z) GraphEntryInstr(NULL,  // No parsed function.
-                                       entry,
-                                       Isolate::kNoDeoptId);  // No OSR id.
+        new(Z) GraphEntryInstr(*temp_parsed_function,
+                               entry,
+                               Isolate::kNoDeoptId);  // No OSR id.
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);
@@ -1690,7 +1692,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
 
 void PolymorphicInliner::Inline() {
   // Consider the polymorphic variants in order by frequency.
-  FlowGraphCompiler::SortICDataByCount(call_->ic_data(), &variants_);
+  FlowGraphCompiler::SortICDataByCount(call_->ic_data(),
+                                       &variants_,
+                                       /* drop_smi = */ false);
   for (intptr_t var_idx = 0; var_idx < variants_.length(); ++var_idx) {
     const Function& target = *variants_[var_idx].target;
     const intptr_t receiver_cid = variants_[var_idx].cid;
@@ -1733,7 +1737,7 @@ static uint16_t ClampUint16(intptr_t v) {
 
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
-  const Function& function = flow_graph->parsed_function()->function();
+  const Function& function = flow_graph->function();
   if (force || (function.optimized_instruction_count() == 0)) {
     GraphInfoCollector info;
     info.Collect(*flow_graph);
@@ -1788,7 +1792,7 @@ void FlowGraphInliner::Inline() {
   // We might later use it for an early bailout from the inlining.
   CollectGraphInfo(flow_graph_);
 
-  const Function& top = flow_graph_->parsed_function()->function();
+  const Function& top = flow_graph_->function();
   if ((FLAG_inlining_filter != NULL) &&
       (strstr(top.ToFullyQualifiedCString(), FLAG_inlining_filter) == NULL)) {
     return;
@@ -1799,7 +1803,7 @@ void FlowGraphInliner::Inline() {
   if (FLAG_trace_inlining &&
       (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
     OS::Print("Before Inlining of %s\n", flow_graph_->
-              parsed_function()->function().ToFullyQualifiedCString());
+              function().ToFullyQualifiedCString());
     FlowGraphPrinter printer(*flow_graph_);
     printer.PrintBlocks();
   }
@@ -1816,7 +1820,7 @@ void FlowGraphInliner::Inline() {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
         OS::Print("After Inlining of %s\n", flow_graph_->
-                  parsed_function()->function().ToFullyQualifiedCString());
+                  function().ToFullyQualifiedCString());
         FlowGraphPrinter printer(*flow_graph_);
         printer.PrintBlocks();
       }

@@ -126,7 +126,7 @@ class BacktrackingSolver {
   ///
   /// Completes with a list of specific package versions if successful or an
   /// error if it failed to find a solution.
-  Future<SolveResult> solve() async {
+  Future<SolveResult> solve() {
     var stopwatch = new Stopwatch();
 
     _logParameters();
@@ -135,35 +135,40 @@ class BacktrackingSolver {
     var overrides = _overrides.values.toList();
     overrides.sort((a, b) => a.name.compareTo(b.name));
 
-    try {
+    // TODO(nweiz): Use async/await here once
+    // https://github.com/dart-lang/async_await/issues/79 is fixed.
+    return new Future.sync(() {
       stopwatch.start();
 
       // Pre-cache the root package's known pubspec.
       cache.cache(new PackageId.root(root), root.pubspec);
 
       _validateSdkConstraint(root.pubspec);
-      var packages = await _traverseSolution();
+      return _traverseSolution();
+    }).then((packages) {
       var pubspecs = new Map.fromIterable(packages,
           key: (id) => id.name,
           value: (id) => cache.getCachedPubspec(id));
 
-      packages = await Future.wait(
-          packages.map((id) => sources[id.source].resolveId(id)));
-
-      return new SolveResult.success(sources, root, lockFile, packages,
-          overrides, pubspecs, _getAvailableVersions(packages),
-          attemptedSolutions);
-    } on SolveFailure catch (error) {
+      return Future.wait(
+              packages.map((id) => sources[id.source].resolveId(id)))
+          .then((packages) {
+        return new SolveResult.success(sources, root, lockFile, packages,
+            overrides, pubspecs, _getAvailableVersions(packages),
+            attemptedSolutions);
+      });
+    }).catchError((error) {
+      if (error is! SolveFailure) throw error;
       // Wrap a failure in a result so we can attach some other data.
       return new SolveResult.failure(sources, root, lockFile, overrides,
           error, attemptedSolutions);
-    } finally {
+    }).whenComplete(() {
       // Gather some solving metrics.
       var buffer = new StringBuffer();
       buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
       buffer.writeln(cache.describeResults());
       log.solver(buffer);
-    }
+    });
   }
 
   /// Generates a map containing all of the known available versions for each

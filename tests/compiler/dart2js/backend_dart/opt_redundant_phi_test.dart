@@ -19,7 +19,7 @@ import 'package:compiler/src/cps_ir/optimizers.dart';
 // }
 
 String READ_IN_LOOP_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1 (Constant (Int 0)))
       (LetCont
@@ -49,7 +49,7 @@ String READ_IN_LOOP_IN = """
 """;
 
 String READ_IN_LOOP_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1 (Constant (Int 0)))
       (LetCont
@@ -94,7 +94,7 @@ String READ_IN_LOOP_OUT = """
 // are removed from k5, and only then can k0 be optimized as well.
 
 const String INNER_LOOP_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1 (Constant (Int 0)))
       (LetCont
@@ -147,7 +147,7 @@ const String INNER_LOOP_IN = """
 """;
 
 const String INNER_LOOP_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 42)))
     (LetPrim (v1 (Constant (Int 0)))
       (LetCont
@@ -210,7 +210,7 @@ const String INNER_LOOP_OUT = """
 // }
 
 String BASIC_LOOP_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont
        ((rec k0 (v1)
@@ -245,7 +245,7 @@ String BASIC_LOOP_OUT = BASIC_LOOP_IN;
 // IR written by hand since this case is currently not being generated.
 
 String SCOPING_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetCont
       ((k0 (v1)
          (InvokeStatic print (v1) return)))
@@ -255,7 +255,7 @@ String SCOPING_IN = """
 """;
 
 String SCOPING_OUT = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont
         ((k0 ()
@@ -268,7 +268,7 @@ String SCOPING_OUT = """
 // IR written by hand.
 
 String NEVER_INVOKED_IN = """
-(FunctionDefinition main () return ()
+(FunctionDefinition main () return
   (LetPrim (v0 (Constant (Int 0)))
     (LetCont
         ((k0 (v1)

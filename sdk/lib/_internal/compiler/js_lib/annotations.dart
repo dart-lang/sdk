@@ -34,3 +34,18 @@ class Native {
   final String name;
   const Native(this.name);
 }
+
+class _Patch {
+  final String version;
+
+  const _Patch(this.version);
+}
+
+/// Annotation that marks the declaration as a patch.
+const _Patch patch = const _Patch(null);
+
+/// Annotation that marks the declaration as a patch for the old emitter.
+const _Patch patch_old = const _Patch('old');
+
+/// Annotation that marks the declaration as a patch for the new emitter.
+const _Patch patch_new = const _Patch('new');
