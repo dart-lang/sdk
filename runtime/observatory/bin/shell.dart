@@ -22,8 +22,8 @@ void repl(VM vm, Isolate isolate, String lastResult) {
   Map params = {
     'objectId': stdin.readLineSync(),
   };
-  isolate.invokeRpc('getObject', params).then((String result) {
-    repl(vm, prefix, result);
+  isolate.invokeRpcNoUpgrade('getObject', params).then((Map result) {
+    repl(vm, isolate, result.toString());
   });
 }
 

@@ -6,7 +6,6 @@ library general_error_element;
 
 import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
-import 'package:observatory/service.dart';
 
 /// Displays an error message
 @CustomTag('general-error')

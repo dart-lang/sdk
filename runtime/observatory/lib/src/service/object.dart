@@ -282,9 +282,8 @@ abstract class ServiceObject extends Observable {
 
 abstract class Coverage {
   // Following getters and functions will be provided by [ServiceObject].
-  ServiceObjectOwner get owner;
-  String get type;
-  VM get vm;
+  String get id;
+  Isolate get isolate;
 
   /// Default handler for coverage data.
   void processCoverageData(List coverageData) {
@@ -301,8 +300,7 @@ abstract class Coverage {
     }
     return isolate.invokeRpcNoUpgrade('getCoverage', params).then(
         (ObservableMap map) {
-          var coverageOwner = (type == 'Isolate') ? this : owner;
-          var coverage = new ServiceObject._fromMap(coverageOwner, map);
+          var coverage = new ServiceObject._fromMap(isolate, map);
           assert(coverage.type == 'CodeCoverage');
           var coverageList = coverage['coverage'];
           assert(coverageList != null);
