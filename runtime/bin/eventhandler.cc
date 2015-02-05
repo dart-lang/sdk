@@ -4,7 +4,9 @@
 
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
+#include "bin/lockers.h"
 #include "bin/socket.h"
+#include "bin/thread.h"
 
 #include "include/dart_api.h"
 
@@ -57,19 +59,40 @@ void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
 
 
 static EventHandler* event_handler = NULL;
+static Monitor *shutdown_monitor = NULL;
 
 
 void EventHandler::Start() {
   ASSERT(event_handler == NULL);
+  shutdown_monitor = new Monitor();
   event_handler = new EventHandler();
   event_handler->delegate_.Start(event_handler);
 }
 
 
+void EventHandler::NotifyShutdownDone() {
+  MonitorLocker ml(shutdown_monitor);
+  ml.Notify();
+}
+
+
 void EventHandler::Stop() {
   if (event_handler == NULL) return;
-  event_handler->delegate_.Shutdown();
+
+  // Wait until it has stopped.
+  {
+    MonitorLocker ml(shutdown_monitor);
+
+    // Signal to event handler that we want it to stop.
+    event_handler->delegate_.Shutdown();
+    ml.Wait(Monitor::kNoTimeout);
+  }
+
+  // Cleanup
+  delete event_handler;
   event_handler = NULL;
+  delete shutdown_monitor;
+  shutdown_monitor = NULL;
 }
 
 

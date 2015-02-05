@@ -299,25 +299,27 @@ void EventHandlerImplementation::Poll(uword args) {
   ThreadSignalBlocker signal_blocker(SIGPROF);
   static const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
-  EventHandlerImplementation* handler =
-      reinterpret_cast<EventHandlerImplementation*>(args);
-  ASSERT(handler != NULL);
-  while (!handler->shutdown_) {
-    int64_t millis = handler->GetTimeout();
+  EventHandler* handler = reinterpret_cast<EventHandler*>(args);
+  EventHandlerImplementation* handler_impl = &handler->delegate_;
+  ASSERT(handler_impl != NULL);
+
+  while (!handler_impl->shutdown_) {
+    int64_t millis = handler_impl->GetTimeout();
     ASSERT(millis == kInfinityTimeout || millis >= 0);
     if (millis > kMaxInt32) millis = kMaxInt32;
     intptr_t result = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
-        epoll_wait(handler->epoll_fd_, events, kMaxEvents, millis));
+        epoll_wait(handler_impl->epoll_fd_, events, kMaxEvents, millis));
     ASSERT(EAGAIN == EWOULDBLOCK);
     if (result == -1) {
       if (errno != EWOULDBLOCK) {
         perror("Poll failed");
       }
     } else {
-      handler->HandleTimeout();
-      handler->HandleEvents(events, result);
+      handler_impl->HandleTimeout();
+      handler_impl->HandleEvents(events, result);
     }
   }
+  handler->NotifyShutdownDone();
 }
 
 

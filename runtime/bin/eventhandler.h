@@ -120,6 +120,11 @@ class EventHandler {
   }
 
   /**
+   * Signal to main thread that event handler is done.
+   */
+  void NotifyShutdownDone();
+
+  /**
    * Start the event-handler.
    */
   static void Start();

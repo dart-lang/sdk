@@ -1295,6 +1295,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
+
   while (!handler_impl->shutdown_) {
     DWORD bytes;
     ULONG_PTR key;
@@ -1344,13 +1345,13 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       handler_impl->HandleIOCompletion(bytes, key, overlapped);
     }
   }
-  delete handler;
+  handler->NotifyShutdownDone();
 }
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = Thread::Start(EventHandlerEntry,
-                                   reinterpret_cast<uword>(handler));
+                             reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

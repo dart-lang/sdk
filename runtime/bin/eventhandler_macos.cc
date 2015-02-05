@@ -358,6 +358,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
+
   while (!handler_impl->shutdown_) {
     int64_t millis = handler_impl->GetTimeout();
     ASSERT(millis == kInfinityTimeout || millis >= 0);
@@ -387,14 +388,14 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       handler_impl->HandleEvents(events, result);
     }
   }
-  delete handler;
+  handler->NotifyShutdownDone();
 }
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result =
       Thread::Start(&EventHandlerImplementation::EventHandlerEntry,
-                          reinterpret_cast<uword>(handler));
+                    reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }
