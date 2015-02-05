@@ -30,35 +30,108 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
+  CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
+    return assertSuggestClassTypeAlias(name, relevance);
+  }
+
+  @override
   CompletionSuggestion assertSuggestLocalField(String name, String type,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_LOCAL_FIELD, bool deprecated: false}) {
     return assertSuggestField(
         name,
         type,
         relevance: relevance,
-        isDeprecated: isDeprecated);
+        isDeprecated: deprecated);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalFunction(String name,
+      String returnType, {bool deprecated: false, int relevance:
+      DART_RELEVANCE_LOCAL_FUNCTION}) {
+    return assertSuggestFunction(name, returnType, deprecated, relevance);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalFunctionTypeAlias(String name,
+      String returnType, {bool deprecated: false, int relevance:
+      COMPLETION_RELEVANCE_DEFAULT}) {
+    return assertSuggestFunctionTypeAlias(
+        name,
+        returnType,
+        deprecated,
+        relevance);
   }
 
   @override
   CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_LOCAL_ACCESSOR, bool deprecated: false}) {
     return assertSuggestGetter(
         name,
         returnType,
         relevance: relevance,
-        isDeprecated: isDeprecated);
+        isDeprecated: deprecated);
   }
 
   @override
   CompletionSuggestion assertSuggestLocalMethod(String name,
       String declaringType, String returnType, {int relevance:
-      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      DART_RELEVANCE_LOCAL_METHOD, bool deprecated: false}) {
     return assertSuggestMethod(
         name,
         declaringType,
         returnType,
         relevance: relevance,
-        isDeprecated: isDeprecated);
+        isDeprecated: deprecated);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalSetter(String name, {int relevance:
+      DART_RELEVANCE_LOCAL_ACCESSOR}) {
+    return assertSuggestSetter(name, relevance);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalTopLevelVar(String name,
+      String returnType, {int relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE}) {
+    return assertSuggestTopLevelVar(name, returnType, relevance);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalVariable(String name,
+      String returnType, {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
+    // Local variables should only be suggested by LocalComputer
+    CompletionSuggestion cs = assertSuggest(
+        name,
+        csKind: CompletionSuggestionKind.INVOCATION,
+        relevance: relevance);
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestParameter(String name, String returnType,
+      {int relevance: DART_RELEVANCE_PARAMETER}) {
+    CompletionSuggestion cs = assertSuggest(
+        name,
+        csKind: CompletionSuggestionKind.INVOCATION,
+        relevance: relevance);
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.PARAMETER));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(
+        element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
   }
 
   fail_mixin_ordering() {
@@ -373,7 +446,7 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    CompletionSuggestion suggestion = assertSuggestLocalFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -391,7 +464,7 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    CompletionSuggestion suggestion = assertSuggestLocalFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -409,7 +482,7 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    CompletionSuggestion suggestion = assertSuggestLocalFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -427,7 +500,7 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    CompletionSuggestion suggestion = assertSuggestLocalFunction('m', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -442,7 +515,7 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    CompletionSuggestion suggestion = assertSuggestLocalFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -460,7 +533,7 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    CompletionSuggestion suggestion = assertSuggestLocalFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -480,7 +553,8 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    CompletionSuggestion suggestion =
+        assertSuggestLocalMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -500,7 +574,8 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    CompletionSuggestion suggestion =
+        assertSuggestLocalMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -520,7 +595,8 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    CompletionSuggestion suggestion =
+        assertSuggestLocalMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -540,7 +616,8 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    CompletionSuggestion suggestion =
+        assertSuggestLocalMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -557,7 +634,8 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    CompletionSuggestion suggestion =
+        assertSuggestLocalMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -577,7 +655,8 @@ class B extends A {
 }
 ''');
     expect(computeFast(), isTrue);
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    CompletionSuggestion suggestion =
+        assertSuggestLocalMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');

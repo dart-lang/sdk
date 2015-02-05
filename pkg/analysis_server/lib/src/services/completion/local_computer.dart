@@ -207,8 +207,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClass(ClassDeclaration declaration) {
     bool isDeprecated = _isDeprecated(declaration);
-    CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, NO_RETURN_TYPE, isDeprecated);
+    CompletionSuggestion suggestion = _addSuggestion(
+        declaration.name,
+        NO_RETURN_TYPE,
+        isDeprecated,
+        COMPLETION_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS,
@@ -222,8 +225,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     bool isDeprecated = _isDeprecated(declaration);
-    CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, NO_RETURN_TYPE, isDeprecated);
+    CompletionSuggestion suggestion = _addSuggestion(
+        declaration.name,
+        NO_RETURN_TYPE,
+        isDeprecated,
+        COMPLETION_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS_TYPE_ALIAS,
@@ -241,8 +247,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
     bool isDeprecated = _isDeprecated(fieldDecl) || _isDeprecated(varDecl);
     TypeName type = fieldDecl.fields.type;
-    CompletionSuggestion suggestion =
-        _addSuggestion(varDecl.name, type, isDeprecated, classDecl: fieldDecl.parent);
+    CompletionSuggestion suggestion = _addSuggestion(
+        varDecl.name,
+        type,
+        isDeprecated,
+        DART_RELEVANCE_LOCAL_FIELD,
+        classDecl: fieldDecl.parent);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.FIELD,
@@ -260,22 +270,29 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     TypeName returnType = declaration.returnType;
     bool isDeprecated = _isDeprecated(declaration);
     protocol.ElementKind kind;
+    int defaultRelevance = COMPLETION_RELEVANCE_DEFAULT;
     if (declaration.isGetter) {
       kind = protocol.ElementKind.GETTER;
+      defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
     } else if (declaration.isSetter) {
       if (excludeVoidReturn) {
         return;
       }
       kind = protocol.ElementKind.SETTER;
       returnType = NO_RETURN_TYPE;
+      defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
     } else {
       if (excludeVoidReturn && _isVoid(returnType)) {
         return;
       }
       kind = protocol.ElementKind.FUNCTION;
+      defaultRelevance = DART_RELEVANCE_LOCAL_FUNCTION;
     }
-    CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, returnType, isDeprecated);
+    CompletionSuggestion suggestion = _addSuggestion(
+        declaration.name,
+        returnType,
+        isDeprecated,
+        defaultRelevance);
     if (suggestion != null) {
       FormalParameterList param = declaration.functionExpression.parameters;
       suggestion.element = _createElement(
@@ -296,8 +313,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     bool isDeprecated = _isDeprecated(declaration);
     TypeName returnType = declaration.returnType;
-    CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, returnType, isDeprecated);
+    CompletionSuggestion suggestion = _addSuggestion(
+        declaration.name,
+        returnType,
+        isDeprecated,
+        COMPLETION_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       // TODO (danrubel) determine parameters and return type
       suggestion.element = _createElement(
@@ -319,7 +339,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (typesOnly) {
       return;
     }
-    CompletionSuggestion suggestion = _addSuggestion(name, type, false);
+    CompletionSuggestion suggestion =
+        _addSuggestion(name, type, false, DART_RELEVANCE_LOCAL_VARIABLE);
     if (suggestion != null) {
       suggestion.element =
           _createElement(protocol.ElementKind.LOCAL_VARIABLE, name, returnType: type);
@@ -334,27 +355,32 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     protocol.ElementKind kind;
     String parameters;
     TypeName returnType = declaration.returnType;
+    int defaultRelevance = COMPLETION_RELEVANCE_DEFAULT;
     if (declaration.isGetter) {
       kind = protocol.ElementKind.GETTER;
       parameters = null;
+      defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
     } else if (declaration.isSetter) {
       if (excludeVoidReturn) {
         return;
       }
       kind = protocol.ElementKind.SETTER;
       returnType = NO_RETURN_TYPE;
+      defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
     } else {
       if (excludeVoidReturn && _isVoid(returnType)) {
         return;
       }
       kind = protocol.ElementKind.METHOD;
       parameters = declaration.parameters.toSource();
+      defaultRelevance = DART_RELEVANCE_LOCAL_METHOD;
     }
     bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
         returnType,
         isDeprecated,
+        defaultRelevance,
         classDecl: declaration.parent);
     if (suggestion != null) {
       suggestion.element = _createElement(
@@ -375,7 +401,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (typesOnly) {
       return;
     }
-    CompletionSuggestion suggestion = _addSuggestion(name, type, false);
+    CompletionSuggestion suggestion =
+        _addSuggestion(name, type, false, DART_RELEVANCE_PARAMETER);
     if (suggestion != null) {
       suggestion.element =
           _createElement(protocol.ElementKind.PARAMETER, name, returnType: type);
@@ -389,8 +416,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       return;
     }
     bool isDeprecated = _isDeprecated(varList) || _isDeprecated(varDecl);
-    CompletionSuggestion suggestion =
-        _addSuggestion(varDecl.name, varList.type, isDeprecated);
+    CompletionSuggestion suggestion = _addSuggestion(
+        varDecl.name,
+        varList.type,
+        isDeprecated,
+        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.TOP_LEVEL_VARIABLE,
@@ -436,13 +466,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName returnType,
-      bool isDeprecated, {ClassDeclaration classDecl}) {
+      bool isDeprecated, int defaultRelevance, {ClassDeclaration classDecl}) {
     if (id != null) {
       String completion = id.name;
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.INVOCATION,
-            isDeprecated ? COMPLETION_RELEVANCE_LOW : COMPLETION_RELEVANCE_DEFAULT,
+            isDeprecated ? COMPLETION_RELEVANCE_LOW : defaultRelevance,
             completion,
             completion.length,
             0,

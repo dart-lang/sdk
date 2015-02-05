@@ -186,7 +186,7 @@ abstract class ElementSuggestionBuilder {
   /**
    * Add a suggestion based upon the given element.
    */
-  void addSuggestion(Element element) {
+  void addSuggestion(Element element, {int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       LibraryElement elementLibrary = element.library;
       LibraryElement unitLibrary = request.unit.element.library;
@@ -205,7 +205,7 @@ abstract class ElementSuggestionBuilder {
         !_completions.add(completion)) {
       return;
     }
-    CompletionSuggestion suggestion = createSuggestion(element, kind: kind);
+    CompletionSuggestion suggestion = createSuggestion(element, kind: kind, relevance: relevance);
     if (suggestion != null) {
       request.suggestions.add(suggestion);
     }

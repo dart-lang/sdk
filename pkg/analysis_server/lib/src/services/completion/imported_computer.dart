@@ -111,7 +111,8 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
   /**
    * Add imported element suggestions.
    */
-  void _addElementSuggestions(List<Element> elements) {
+  void _addElementSuggestions(List<Element> elements, {int relevance:
+      COMPLETION_RELEVANCE_DEFAULT}) {
     elements.forEach((Element elem) {
       if (elem is! ClassElement) {
         if (typesOnly) {
@@ -126,7 +127,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
           }
         }
       }
-      addSuggestion(elem);
+      addSuggestion(elem, relevance: relevance);
     });
   }
 
@@ -149,14 +150,26 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
         String name = inheritedTypes.removeLast();
         ClassElement elem = cache.importedClassMap[name];
         if (visited.add(name) && elem != null) {
-          _addElementSuggestions(elem.fields);
-          _addElementSuggestions(elem.accessors);
-          _addElementSuggestions(elem.methods);
+          _addElementSuggestions(
+              elem.fields,
+              relevance: DART_RELEVANCE_INHERITED_FIELD);
+          _addElementSuggestions(
+              elem.accessors,
+              relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
+          _addElementSuggestions(
+              elem.methods,
+              relevance: DART_RELEVANCE_INHERITED_METHOD);
           elem.allSupertypes.forEach((InterfaceType type) {
             if (visited.add(type.name) && type.element != null) {
-              _addElementSuggestions(type.element.fields);
-              _addElementSuggestions(type.element.accessors);
-              _addElementSuggestions(type.element.methods);
+              _addElementSuggestions(
+                  type.element.fields,
+                  relevance: DART_RELEVANCE_INHERITED_FIELD);
+              _addElementSuggestions(
+                  type.element.accessors,
+                  relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
+              _addElementSuggestions(
+                  type.element.methods,
+                  relevance: DART_RELEVANCE_INHERITED_METHOD);
             }
           });
         }

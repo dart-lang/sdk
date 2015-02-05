@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/completion/dart_completion_cache.da
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
-import 'package:analysis_server/src/services/completion/local_computer.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -346,27 +345,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     }
   }
 
-  CompletionSuggestion assertSuggestLocalVariable(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    // Local variables should only be suggested by LocalComputer
-    if (computer is LocalComputer) {
-      CompletionSuggestion cs =
-          assertSuggest(name, csKind: kind, relevance: relevance);
-      expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-      protocol.Element element = cs.element;
-      expect(element, isNotNull);
-      expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
-      expect(element.name, equals(name));
-      expect(element.parameters, isNull);
-      expect(element.returnType, returnType != null ? returnType : 'dynamic');
-      assertHasNoParameterInfo(cs);
-      return cs;
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestMethod(String name, String declaringType,
       String returnType, {int relevance: COMPLETION_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
@@ -414,25 +392,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
-      CompletionSuggestionKind.INVOCATION]) {
-    // Parameters should only be suggested by LocalComputer
-    if (computer is LocalComputer) {
-      CompletionSuggestion cs =
-          assertSuggest(name, csKind: kind, relevance: relevance);
-      expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-      protocol.Element element = cs.element;
-      expect(element, isNotNull);
-      expect(element.kind, equals(protocol.ElementKind.PARAMETER));
-      expect(element.name, equals(name));
-      expect(element.parameters, isNull);
-      expect(
-          element.returnType,
-          equals(returnType != null ? returnType : 'dynamic'));
-      return cs;
-    } else {
-      return assertNotSuggested(name);
-    }
+      {int relevance: DART_RELEVANCE_PARAMETER}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestSetter(String name, [int relevance =
@@ -624,20 +585,6 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Subclasses override
   }
 
-  CompletionSuggestion assertLocalSuggestMethod(String name,
-      String declaringType, String returnType, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestMethod(
-          name,
-          declaringType,
-          returnType,
-          relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestImportedClass(String name, [int relevance =
       COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
@@ -649,7 +596,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedField(String name, String type,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+      {int relevance: DART_RELEVANCE_INHERITED_FIELD}) {
     return assertNotSuggested(name);
   }
 
@@ -686,35 +633,19 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedGetter(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is ImportedComputer) {
-      return assertSuggestGetter(name, returnType, relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestImportedMethod(String name,
-      String declaringType, String returnType, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is ImportedComputer) {
-      return assertSuggestMethod(
-          name,
-          declaringType,
-          returnType,
-          relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String declaringType, String returnType, {int relevance:
+      DART_RELEVANCE_INHERITED_METHOD}) {
+    return assertNotSuggested(name);
   }
 
-  CompletionSuggestion assertSuggestImportedSetter(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is ImportedComputer) {
-      return assertSuggestSetter(name, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+  CompletionSuggestion assertSuggestImportedSetter(String name, {int relevance:
+      DART_RELEVANCE_INHERITED_ACCESSOR}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestImportedTopLevelVar(String name,
@@ -793,70 +724,51 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestClassTypeAlias(name, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      {int relevance: COMPLETION_RELEVANCE_DEFAULT}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalField(String name, String type,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_LOCAL_FIELD, bool deprecated: false}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalFunction(String name,
-      String returnType, [bool isDeprecated = false, int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestFunction(name, returnType, isDeprecated, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {bool deprecated: false, int relevance:
+      DART_RELEVANCE_LOCAL_FUNCTION}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalFunctionTypeAlias(String name,
-      String returnType, [bool isDeprecated = false, int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestFunctionTypeAlias(
-          name,
-          returnType,
-          isDeprecated,
-          relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {bool deprecated: false, int relevance:
+      COMPLETION_RELEVANCE_DEFAULT}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_LOCAL_ACCESSOR, bool deprecated: false}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalMethod(String name,
       String declaringType, String returnType, {int relevance:
-      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      DART_RELEVANCE_LOCAL_METHOD, bool deprecated: false}) {
     return assertNotSuggested(name);
   }
 
-  CompletionSuggestion assertSuggestLocalSetter(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestSetter(name, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+  CompletionSuggestion assertSuggestLocalSetter(String name, {int relevance:
+      DART_RELEVANCE_LOCAL_ACCESSOR}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalTopLevelVar(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestTopLevelVar(name, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {int relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE}) {
+    return assertNotSuggested(name);
+  }
+
+  CompletionSuggestion assertSuggestLocalVariable(String name,
+      String returnType, {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestNonLocalClass(String name, [int relevance =
@@ -1230,8 +1142,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
-      assertLocalSuggestMethod('a', 'X', null);
-      assertLocalSuggestMethod('b', 'X', 'void');
+      assertSuggestLocalMethod('a', 'X', null);
+      assertSuggestLocalMethod('b', 'X', 'void');
       assertSuggestLocalFunction('localF', null);
       assertSuggestLocalVariable('f', null);
       // Don't suggest locals out of scope
@@ -1312,8 +1224,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
-      assertLocalSuggestMethod('a', 'X', null);
-      assertLocalSuggestMethod('b', 'X', 'void');
+      assertSuggestLocalMethod('a', 'X', null);
+      assertSuggestLocalMethod('b', 'X', 'void');
       assertSuggestLocalVariable('f', null);
       // Don't suggest locals out of scope
       assertNotSuggested('r');
@@ -1945,7 +1857,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      var f = assertSuggestLocalFunction('foo', 'String', false);
+      var f = assertSuggestLocalFunction('foo', 'String', deprecated: false);
       if (f != null) {
         expect(f.element.isPrivate, isFalse);
       }
@@ -2190,7 +2102,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
           'f',
           'X',
           relevance: COMPLETION_RELEVANCE_LOW,
-          isDeprecated: true);
+          deprecated: true);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
@@ -2219,7 +2131,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
           'f',
           'X',
           relevance: COMPLETION_RELEVANCE_LOW,
-          isDeprecated: true);
+          deprecated: true);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
@@ -2247,7 +2159,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
           'A',
           'Z',
           relevance: COMPLETION_RELEVANCE_LOW,
-          isDeprecated: true);
+          deprecated: true);
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isTrue);
         expect(methodA.element.isPrivate, isFalse);

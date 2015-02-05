@@ -214,7 +214,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   void _addSuggestions(List<Keyword> keywords, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
+      DART_RELEVANCE_KEYWORD]) {
     keywords.forEach((Keyword keyword) {
       _addSuggestion(keyword, relevance);
     });

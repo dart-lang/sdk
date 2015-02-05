@@ -22,7 +22,7 @@ main() {
 class KeywordComputerTest extends AbstractCompletionTest {
 
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords, [int relevance
-      = COMPLETION_RELEVANCE_DEFAULT]) {
+      = DART_RELEVANCE_KEYWORD]) {
     Set<Keyword> actualKeywords = new Set<Keyword>();
     request.suggestions.forEach((CompletionSuggestion s) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
