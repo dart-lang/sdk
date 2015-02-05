@@ -274,6 +274,16 @@ type_variable_conflict2_test/04: Fail # Issue 19725
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
+async_await_syntax_test/a04c: Fail
+async_await_syntax_test/a03b: Fail
+sync_generator2_test/07: Fail
+sync_generator2_test/08: Fail
+sync_generator2_test/10: Fail
+sync_generator2_test/20: Fail
+sync_generator2_test/30: Fail
+sync_generator2_test/51: Fail
+sync_generator2_test/52: Fail
+
 regress_13494_test: Fail # Issue 13494
 
 enum_duplicate_test/01: CompileTimeError # Issue 22169
@@ -327,6 +337,8 @@ function_subtype_call1_test: RuntimeError # Issue 21673
 function_subtype_call2_test: RuntimeError # Issue 21673
 
 [ $compiler == dart2dart && $minified ]
+sync_generator1_test: Fail
+sync_generator2_test/none: Fail
 cyclic_type_test/0*: Fail # Issue 12605.
 cyclic_type2_test: Fail # Issue 12605.
 super_getter_setter_test: Fail # Issue 11065.
