@@ -10,28 +10,25 @@ var constructors;
   }
 
   class C {
-    __init_named() {
+    /*constructor*/ named() {
     }
   }
-  C.named = function() { this.__init_named() };
-  C.named.prototype = C.prototype;
+  dart.defineNamedConstructor(C, "named");
 
   class C2 extends C {
-    __init_named() {
-      super.__init_named();
+    /*constructor*/ named() {
+      super.named();
     }
   }
-  C2.named = function() { this.__init_named() };
-  C2.named.prototype = C2.prototype;
+  dart.defineNamedConstructor(C2, "named");
 
   class D {
     constructor() {
     }
-    __init_named() {
+    /*constructor*/ named() {
     }
   }
-  D.named = function() { this.__init_named() };
-  D.named.prototype = D.prototype;
+  dart.defineNamedConstructor(D, "named");
 
   class E {
     constructor(name) {
@@ -61,12 +58,11 @@ var constructors;
     constructor() {
       this.name = "default";
     }
-    __init_named(name) {
+    /*constructor*/ named(name) {
       this.name = name;
     }
   }
-  I.named = function(name) { this.__init_named(name) };
-  I.named.prototype = I.prototype;
+  dart.defineNamedConstructor(I, "named");
 
   class J {
     constructor() {
@@ -79,12 +75,11 @@ var constructors;
     constructor() {
       this.s = "a";
     }
-    __init_withS(s) {
+    /*constructor*/ withS(s) {
       this.s = s;
     }
   }
-  K.withS = function(s) { this.__init_withS(s) };
-  K.withS.prototype = K.prototype;
+  dart.defineNamedConstructor(K, "withS");
 
   class L {
     constructor(foo) {
@@ -93,24 +88,22 @@ var constructors;
   }
 
   class M extends L {
-    __init_named(x) {
+    /*constructor*/ named(x) {
       L.call(this, x + 42);
     }
   }
-  M.named = function(x) { this.__init_named(x) };
-  M.named.prototype = M.prototype;
+  dart.defineNamedConstructor(M, "named");
 
   class N extends M {
-    __init_named(y) {
-      super.__init_named(y + 100);
+    /*constructor*/ named(y) {
+      super.named(y + 100);
     }
   }
-  N.named = function(y) { this.__init_named(y) };
-  N.named.prototype = N.prototype;
+  dart.defineNamedConstructor(N, "named");
 
   class P extends N {
     constructor(z) {
-      super.__init_named(z + 9000);
+      super.named(z + 9000);
     }
   }
 

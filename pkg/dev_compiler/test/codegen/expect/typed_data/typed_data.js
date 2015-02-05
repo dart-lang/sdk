@@ -8,12 +8,11 @@ var typed_data;
   }
 
   class Endianness {
-    __init__(_littleEndian) {
+    /*constructor*/ _(_littleEndian) {
       this._littleEndian = _littleEndian;
     }
   }
-  Endianness._ = function(_littleEndian) { this.__init__(_littleEndian) };
-  Endianness._.prototype = Endianness.prototype;
+  dart.defineNamedConstructor(Endianness, "_");
   Endianness.BIG_ENDIAN = new Endianness._(false);
   Endianness.LITTLE_ENDIAN = new Endianness._(true);
   dart.defineLazyProperties(Endianness, {
@@ -22,223 +21,194 @@ var typed_data;
 
   class ByteData {
     /* Unimplemented external factory ByteData(int length); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asByteData(offsetInBytes, length);
     }
   }
-  ByteData.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  ByteData.view.prototype = ByteData.prototype;
+  dart.defineNamedConstructor(ByteData, "view");
 
   class Int8List {
     /* Unimplemented external factory Int8List(int length); */
     /* Unimplemented external factory Int8List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt8List(offsetInBytes, length);
     }
   }
-  Int8List.fromList = function(elements) { this.__init_fromList(elements) };
-  Int8List.fromList.prototype = Int8List.prototype;
-  Int8List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Int8List.view.prototype = Int8List.prototype;
+  dart.defineNamedConstructor(Int8List, "fromList");
+  dart.defineNamedConstructor(Int8List, "view");
   Int8List.BYTES_PER_ELEMENT = 1;
 
   class Uint8List {
     /* Unimplemented external factory Uint8List(int length); */
     /* Unimplemented external factory Uint8List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint8List(offsetInBytes, length);
     }
   }
-  Uint8List.fromList = function(elements) { this.__init_fromList(elements) };
-  Uint8List.fromList.prototype = Uint8List.prototype;
-  Uint8List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Uint8List.view.prototype = Uint8List.prototype;
+  dart.defineNamedConstructor(Uint8List, "fromList");
+  dart.defineNamedConstructor(Uint8List, "view");
   Uint8List.BYTES_PER_ELEMENT = 1;
 
   class Uint8ClampedList {
     /* Unimplemented external factory Uint8ClampedList(int length); */
     /* Unimplemented external factory Uint8ClampedList.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint8ClampedList(offsetInBytes, length);
     }
   }
-  Uint8ClampedList.fromList = function(elements) { this.__init_fromList(elements) };
-  Uint8ClampedList.fromList.prototype = Uint8ClampedList.prototype;
-  Uint8ClampedList.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Uint8ClampedList.view.prototype = Uint8ClampedList.prototype;
+  dart.defineNamedConstructor(Uint8ClampedList, "fromList");
+  dart.defineNamedConstructor(Uint8ClampedList, "view");
   Uint8ClampedList.BYTES_PER_ELEMENT = 1;
 
   class Int16List {
     /* Unimplemented external factory Int16List(int length); */
     /* Unimplemented external factory Int16List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt16List(offsetInBytes, length);
     }
   }
-  Int16List.fromList = function(elements) { this.__init_fromList(elements) };
-  Int16List.fromList.prototype = Int16List.prototype;
-  Int16List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Int16List.view.prototype = Int16List.prototype;
+  dart.defineNamedConstructor(Int16List, "fromList");
+  dart.defineNamedConstructor(Int16List, "view");
   Int16List.BYTES_PER_ELEMENT = 2;
 
   class Uint16List {
     /* Unimplemented external factory Uint16List(int length); */
     /* Unimplemented external factory Uint16List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint16List(offsetInBytes, length);
     }
   }
-  Uint16List.fromList = function(elements) { this.__init_fromList(elements) };
-  Uint16List.fromList.prototype = Uint16List.prototype;
-  Uint16List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Uint16List.view.prototype = Uint16List.prototype;
+  dart.defineNamedConstructor(Uint16List, "fromList");
+  dart.defineNamedConstructor(Uint16List, "view");
   Uint16List.BYTES_PER_ELEMENT = 2;
 
   class Int32List {
     /* Unimplemented external factory Int32List(int length); */
     /* Unimplemented external factory Int32List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt32List(offsetInBytes, length);
     }
   }
-  Int32List.fromList = function(elements) { this.__init_fromList(elements) };
-  Int32List.fromList.prototype = Int32List.prototype;
-  Int32List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Int32List.view.prototype = Int32List.prototype;
+  dart.defineNamedConstructor(Int32List, "fromList");
+  dart.defineNamedConstructor(Int32List, "view");
   Int32List.BYTES_PER_ELEMENT = 4;
 
   class Uint32List {
     /* Unimplemented external factory Uint32List(int length); */
     /* Unimplemented external factory Uint32List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint32List(offsetInBytes, length);
     }
   }
-  Uint32List.fromList = function(elements) { this.__init_fromList(elements) };
-  Uint32List.fromList.prototype = Uint32List.prototype;
-  Uint32List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Uint32List.view.prototype = Uint32List.prototype;
+  dart.defineNamedConstructor(Uint32List, "fromList");
+  dart.defineNamedConstructor(Uint32List, "view");
   Uint32List.BYTES_PER_ELEMENT = 4;
 
   class Int64List {
     /* Unimplemented external factory Int64List(int length); */
     /* Unimplemented external factory Int64List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt64List(offsetInBytes, length);
     }
   }
-  Int64List.fromList = function(elements) { this.__init_fromList(elements) };
-  Int64List.fromList.prototype = Int64List.prototype;
-  Int64List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Int64List.view.prototype = Int64List.prototype;
+  dart.defineNamedConstructor(Int64List, "fromList");
+  dart.defineNamedConstructor(Int64List, "view");
   Int64List.BYTES_PER_ELEMENT = 8;
 
   class Uint64List {
     /* Unimplemented external factory Uint64List(int length); */
     /* Unimplemented external factory Uint64List.fromList(List<int> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint64List(offsetInBytes, length);
     }
   }
-  Uint64List.fromList = function(elements) { this.__init_fromList(elements) };
-  Uint64List.fromList.prototype = Uint64List.prototype;
-  Uint64List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Uint64List.view.prototype = Uint64List.prototype;
+  dart.defineNamedConstructor(Uint64List, "fromList");
+  dart.defineNamedConstructor(Uint64List, "view");
   Uint64List.BYTES_PER_ELEMENT = 8;
 
   class Float32List {
     /* Unimplemented external factory Float32List(int length); */
     /* Unimplemented external factory Float32List.fromList(List<double> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat32List(offsetInBytes, length);
     }
   }
-  Float32List.fromList = function(elements) { this.__init_fromList(elements) };
-  Float32List.fromList.prototype = Float32List.prototype;
-  Float32List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Float32List.view.prototype = Float32List.prototype;
+  dart.defineNamedConstructor(Float32List, "fromList");
+  dart.defineNamedConstructor(Float32List, "view");
   Float32List.BYTES_PER_ELEMENT = 4;
 
   class Float64List {
     /* Unimplemented external factory Float64List(int length); */
     /* Unimplemented external factory Float64List.fromList(List<double> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat64List(offsetInBytes, length);
     }
   }
-  Float64List.fromList = function(elements) { this.__init_fromList(elements) };
-  Float64List.fromList.prototype = Float64List.prototype;
-  Float64List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Float64List.view.prototype = Float64List.prototype;
+  dart.defineNamedConstructor(Float64List, "fromList");
+  dart.defineNamedConstructor(Float64List, "view");
   Float64List.BYTES_PER_ELEMENT = 8;
 
   class Float32x4List {
     /* Unimplemented external factory Float32x4List(int length); */
     /* Unimplemented external factory Float32x4List.fromList(List<Float32x4> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat32x4List(offsetInBytes, length);
     }
   }
-  Float32x4List.fromList = function(elements) { this.__init_fromList(elements) };
-  Float32x4List.fromList.prototype = Float32x4List.prototype;
-  Float32x4List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Float32x4List.view.prototype = Float32x4List.prototype;
+  dart.defineNamedConstructor(Float32x4List, "fromList");
+  dart.defineNamedConstructor(Float32x4List, "view");
   Float32x4List.BYTES_PER_ELEMENT = 16;
 
   class Int32x4List {
     /* Unimplemented external factory Int32x4List(int length); */
     /* Unimplemented external factory Int32x4List.fromList(List<Int32x4> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt32x4List(offsetInBytes, length);
     }
   }
-  Int32x4List.fromList = function(elements) { this.__init_fromList(elements) };
-  Int32x4List.fromList.prototype = Int32x4List.prototype;
-  Int32x4List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Int32x4List.view.prototype = Int32x4List.prototype;
+  dart.defineNamedConstructor(Int32x4List, "fromList");
+  dart.defineNamedConstructor(Int32x4List, "view");
   Int32x4List.BYTES_PER_ELEMENT = 16;
 
   class Float64x2List {
     /* Unimplemented external factory Float64x2List(int length); */
     /* Unimplemented external factory Float64x2List.fromList(List<Float64x2> elements); */
-    __init_view(buffer, offsetInBytes, length) {
+    /*constructor*/ view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat64x2List(offsetInBytes, length);
     }
   }
-  Float64x2List.fromList = function(elements) { this.__init_fromList(elements) };
-  Float64x2List.fromList.prototype = Float64x2List.prototype;
-  Float64x2List.view = function(buffer, offsetInBytes, length) { this.__init_view(buffer, offsetInBytes, length) };
-  Float64x2List.view.prototype = Float64x2List.prototype;
+  dart.defineNamedConstructor(Float64x2List, "fromList");
+  dart.defineNamedConstructor(Float64x2List, "view");
   Float64x2List.BYTES_PER_ELEMENT = 16;
 
   class Float32x4 {
@@ -248,14 +218,10 @@ var typed_data;
     /* Unimplemented external factory Float32x4.fromInt32x4Bits(Int32x4 x); */
     /* Unimplemented external factory Float32x4.fromFloat64x2(Float64x2 v); */
   }
-  Float32x4.splat = function(v) { this.__init_splat(v) };
-  Float32x4.splat.prototype = Float32x4.prototype;
-  Float32x4.zero = function() { this.__init_zero() };
-  Float32x4.zero.prototype = Float32x4.prototype;
-  Float32x4.fromInt32x4Bits = function(x) { this.__init_fromInt32x4Bits(x) };
-  Float32x4.fromInt32x4Bits.prototype = Float32x4.prototype;
-  Float32x4.fromFloat64x2 = function(v) { this.__init_fromFloat64x2(v) };
-  Float32x4.fromFloat64x2.prototype = Float32x4.prototype;
+  dart.defineNamedConstructor(Float32x4, "splat");
+  dart.defineNamedConstructor(Float32x4, "zero");
+  dart.defineNamedConstructor(Float32x4, "fromInt32x4Bits");
+  dart.defineNamedConstructor(Float32x4, "fromFloat64x2");
   Float32x4.XXXX = 0;
   Float32x4.XXXY = 64;
   Float32x4.XXXZ = 128;
@@ -518,10 +484,8 @@ var typed_data;
     /* Unimplemented external factory Int32x4.bool(bool x, bool y, bool z, bool w); */
     /* Unimplemented external factory Int32x4.fromFloat32x4Bits(Float32x4 x); */
   }
-  Int32x4.bool = function(x, y, z, w) { this.__init_bool(x, y, z, w) };
-  Int32x4.bool.prototype = Int32x4.prototype;
-  Int32x4.fromFloat32x4Bits = function(x) { this.__init_fromFloat32x4Bits(x) };
-  Int32x4.fromFloat32x4Bits.prototype = Int32x4.prototype;
+  dart.defineNamedConstructor(Int32x4, "bool");
+  dart.defineNamedConstructor(Int32x4, "fromFloat32x4Bits");
   Int32x4.XXXX = 0;
   Int32x4.XXXY = 64;
   Int32x4.XXXZ = 128;
@@ -785,12 +749,9 @@ var typed_data;
     /* Unimplemented external factory Float64x2.zero(); */
     /* Unimplemented external factory Float64x2.fromFloat32x4(Float32x4 v); */
   }
-  Float64x2.splat = function(v) { this.__init_splat(v) };
-  Float64x2.splat.prototype = Float64x2.prototype;
-  Float64x2.zero = function() { this.__init_zero() };
-  Float64x2.zero.prototype = Float64x2.prototype;
-  Float64x2.fromFloat32x4 = function(v) { this.__init_fromFloat32x4(v) };
-  Float64x2.fromFloat32x4.prototype = Float64x2.prototype;
+  dart.defineNamedConstructor(Float64x2, "splat");
+  dart.defineNamedConstructor(Float64x2, "zero");
+  dart.defineNamedConstructor(Float64x2, "fromFloat32x4");
 
   // Exports:
   typed_data.ByteBuffer = ByteBuffer;

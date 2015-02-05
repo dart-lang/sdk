@@ -201,17 +201,15 @@ var convert;
     constructor() {
       super();
     }
-    __init_withCallback(callback) {
+    /*constructor*/ withCallback(callback) {
       return new _ByteCallbackSink(callback);
     }
-    __init_from(sink) {
+    /*constructor*/ from(sink) {
       return new _ByteAdapterSink(sink);
     }
   }
-  ByteConversionSink.withCallback = function(callback) { this.__init_withCallback(callback) };
-  ByteConversionSink.withCallback.prototype = ByteConversionSink.prototype;
-  ByteConversionSink.from = function(sink) { this.__init_from(sink) };
-  ByteConversionSink.from.prototype = ByteConversionSink.prototype;
+  dart.defineNamedConstructor(ByteConversionSink, "withCallback");
+  dart.defineNamedConstructor(ByteConversionSink, "from");
 
   class ByteConversionSinkBase extends ByteConversionSink {
     addSlice(chunk, start, end, isLast) {
@@ -268,12 +266,11 @@ var convert;
   class ChunkedConversionSink/* Unimplemented <T> */ {
     constructor() {
     }
-    __init_withCallback(callback) {
+    /*constructor*/ withCallback(callback) {
       return new _SimpleCallbackSink(callback);
     }
   }
-  ChunkedConversionSink.withCallback = function(callback) { this.__init_withCallback(callback) };
-  ChunkedConversionSink.withCallback.prototype = ChunkedConversionSink.prototype;
+  dart.defineNamedConstructor(ChunkedConversionSink, "withCallback");
 
   class _SimpleCallbackSink/* Unimplemented <T> */ extends ChunkedConversionSink/* Unimplemented <T> */ {
     constructor(_callback) {
@@ -411,7 +408,7 @@ var convert;
 
   let HTML_ESCAPE = new HtmlEscape();
   class HtmlEscapeMode {
-    __init__(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
+    /*constructor*/ _(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
       this._name = _name;
       this.escapeLtGt = escapeLtGt;
       this.escapeQuot = escapeQuot;
@@ -420,8 +417,7 @@ var convert;
     }
     toString() { return this._name; }
   }
-  HtmlEscapeMode._ = function(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) { this.__init__(_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) };
-  HtmlEscapeMode._.prototype = HtmlEscapeMode.prototype;
+  dart.defineNamedConstructor(HtmlEscapeMode, "_");
   HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode._("unknown", true, true, true, true);
   HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode._("attribute", false, true, false, false);
   HtmlEscapeMode.ELEMENT = new HtmlEscapeMode._("element", true, false, false, true);
@@ -508,7 +504,7 @@ var convert;
       this._toEncodable = toEncodable;
       super();
     }
-    __init_withReviver(reviver) {
+    /*constructor*/ withReviver(reviver) {
       withReviver.call(this, {reviver: reviver});
     }
     decode(source, opt$) {
@@ -532,8 +528,7 @@ var convert;
       return new JsonDecoder(this._reviver);
     }
   }
-  JsonCodec.withReviver = function(reviver) { this.__init_withReviver(reviver) };
-  JsonCodec.withReviver.prototype = JsonCodec.prototype;
+  dart.defineNamedConstructor(JsonCodec, "withReviver");
 
   class JsonEncoder extends Converter/* Unimplemented <Object, String> */ {
     constructor(toEncodable) {
@@ -542,7 +537,7 @@ var convert;
       this._toEncodable = toEncodable;
       super();
     }
-    __init_withIndent(indent, toEncodable) {
+    /*constructor*/ withIndent(indent, toEncodable) {
       if (toEncodable === undefined) toEncodable = null;
       this.indent = indent;
       this._toEncodable = toEncodable;
@@ -565,8 +560,7 @@ var convert;
       return super.fuse(other);
     }
   }
-  JsonEncoder.withIndent = function(indent, toEncodable) { this.__init_withIndent(indent, toEncodable) };
-  JsonEncoder.withIndent.prototype = JsonEncoder.prototype;
+  dart.defineNamedConstructor(JsonEncoder, "withIndent");
 
   class JsonUtf8Encoder extends Converter/* Unimplemented <Object, List<int>> */ {
     constructor(indent, toEncodable, bufferSize) {
@@ -1218,30 +1212,26 @@ var convert;
     constructor() {
       super();
     }
-    __init_withCallback(callback) {
+    /*constructor*/ withCallback(callback) {
       return new _StringCallbackSink(callback);
     }
-    __init_from(sink) {
+    /*constructor*/ from(sink) {
       return new _StringAdapterSink(sink);
     }
-    __init_fromStringSink(sink) {
+    /*constructor*/ fromStringSink(sink) {
       return new _StringSinkConversionSink(sink);
     }
   }
-  StringConversionSink.withCallback = function(callback) { this.__init_withCallback(callback) };
-  StringConversionSink.withCallback.prototype = StringConversionSink.prototype;
-  StringConversionSink.from = function(sink) { this.__init_from(sink) };
-  StringConversionSink.from.prototype = StringConversionSink.prototype;
-  StringConversionSink.fromStringSink = function(sink) { this.__init_fromStringSink(sink) };
-  StringConversionSink.fromStringSink.prototype = StringConversionSink.prototype;
+  dart.defineNamedConstructor(StringConversionSink, "withCallback");
+  dart.defineNamedConstructor(StringConversionSink, "from");
+  dart.defineNamedConstructor(StringConversionSink, "fromStringSink");
 
   class ClosableStringSink extends core.StringSink {
-    __init_fromStringSink(sink, onClose) {
+    /*constructor*/ fromStringSink(sink, onClose) {
       return new _ClosableStringSink(sink, onClose);
     }
   }
-  ClosableStringSink.fromStringSink = function(sink, onClose) { this.__init_fromStringSink(sink, onClose) };
-  ClosableStringSink.fromStringSink.prototype = ClosableStringSink.prototype;
+  dart.defineNamedConstructor(ClosableStringSink, "fromStringSink");
 
   class _ClosableStringSink {
     constructor(_sink, _callback) {
@@ -1405,7 +1395,7 @@ var convert;
     constructor(sink, allowMalformed) {
       _Utf8ConversionSink.call(this, sink, new core.StringBuffer(), allowMalformed);
     }
-    __init__(_chunkedSink, stringBuffer, allowMalformed) {
+    /*constructor*/ _(_chunkedSink, stringBuffer, allowMalformed) {
       this._chunkedSink = _chunkedSink;
       this._decoder = new _Utf8Decoder(stringBuffer, allowMalformed);
       this._buffer = stringBuffer;
@@ -1435,8 +1425,7 @@ var convert;
       if (isLast) this.close();
     }
   }
-  _Utf8ConversionSink._ = function(_chunkedSink, stringBuffer, allowMalformed) { this.__init__(_chunkedSink, stringBuffer, allowMalformed) };
-  _Utf8ConversionSink._.prototype = _Utf8ConversionSink.prototype;
+  dart.defineNamedConstructor(_Utf8ConversionSink, "_");
 
   let UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
   let UNICODE_BOM_CHARACTER_RUNE = 65279;
@@ -1495,7 +1484,7 @@ var convert;
     constructor() {
       _Utf8Encoder.call(this, /* Unimplemented: DownCast: dynamic to int */ _DEFAULT_BYTE_BUFFER_SIZE);
     }
-    __init_withBufferSize(bufferSize) {
+    /*constructor*/ withBufferSize(bufferSize) {
       this._buffer = _createBuffer(bufferSize);
       this._carry = 0;
       this._bufferIndex = 0;
@@ -1551,8 +1540,7 @@ var convert;
       return stringIndex;
     }
   }
-  _Utf8Encoder.withBufferSize = function(bufferSize) { this.__init_withBufferSize(bufferSize) };
-  _Utf8Encoder.withBufferSize.prototype = _Utf8Encoder.prototype;
+  dart.defineNamedConstructor(_Utf8Encoder, "withBufferSize");
   _Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE = 1024;
 
   class _Utf8EncoderSink extends dart.mixin(_Utf8Encoder, StringConversionSinkMixin) {

@@ -212,13 +212,7 @@ var $_libraryName;
     for (ConstructorDeclaration member in ctors) {
       if (member.name != null) {
         var ctorName = member.name.name;
-
-        out.write('$name.$ctorName = function(');
-        _visitNode(member.parameters);
-        out.write(') { this.__init_$ctorName(');
-        _visitNode(member.parameters);
-        out.write(') };\n');
-        out.write('$name.$ctorName.prototype = $name.prototype;\n');
+        out.write('dart.defineNamedConstructor($name, "$ctorName");\n');
       }
     }
 
@@ -286,7 +280,7 @@ $name.prototype[Symbol.iterator] = function() {
     if (node.name != null) {
       // We generate named constructors as initializer methods in the class;
       // this allows use of `super` for instance methods/properties.
-      out.write('__init_${node.name.name}(');
+      out.write('/*constructor*/ ${node.name.name}(');
     } else {
       out.write('constructor(');
     }
@@ -387,7 +381,7 @@ $name.prototype[Symbol.iterator] = function() {
       _visitNode(args);
     } else {
       out.write('super');
-      if (superName != null) out.write('.__init_${superName.name}');
+      if (superName != null) out.write('.${superName.name}');
       out.write('(');
       _visitNode(args);
     }

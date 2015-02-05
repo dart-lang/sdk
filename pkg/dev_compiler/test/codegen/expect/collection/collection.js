@@ -19,34 +19,30 @@ var collection;
   class HashMap/* Unimplemented <K, V> */ {
     /* Unimplemented external factory HashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory HashMap.identity(); */
-    __init_from(other) {
+    /*constructor*/ from(other) {
       let result = new HashMap();
       other.forEach((k, v) => {
         result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
       });
       return result;
     }
-    __init_fromIterable(iterable, opt$) {
+    /*constructor*/ fromIterable(iterable, opt$) {
       let key = opt$.key === undefined ? null : opt$.key;
       let value = opt$.value === undefined ? null : opt$.value;
       let map = new HashMap();
       Maps._fillMapWithMappedIterable(map, iterable, key, value);
       return map;
     }
-    __init_fromIterables(keys, values) {
+    /*constructor*/ fromIterables(keys, values) {
       let map = new HashMap();
       Maps._fillMapWithIterables(map, keys, values);
       return map;
     }
   }
-  HashMap.identity = function() { this.__init_identity() };
-  HashMap.identity.prototype = HashMap.prototype;
-  HashMap.from = function(other) { this.__init_from(other) };
-  HashMap.from.prototype = HashMap.prototype;
-  HashMap.fromIterable = function(iterable, opt$) { this.__init_fromIterable(iterable, opt$) };
-  HashMap.fromIterable.prototype = HashMap.prototype;
-  HashMap.fromIterables = function(keys, values) { this.__init_fromIterables(keys, values) };
-  HashMap.fromIterables.prototype = HashMap.prototype;
+  dart.defineNamedConstructor(HashMap, "identity");
+  dart.defineNamedConstructor(HashMap, "from");
+  dart.defineNamedConstructor(HashMap, "fromIterable");
+  dart.defineNamedConstructor(HashMap, "fromIterables");
 
   class _HashSetBase/* Unimplemented <E> */ extends SetBase/* Unimplemented <E> */ {
     difference(other) {
@@ -69,16 +65,14 @@ var collection;
   class HashSet/* Unimplemented <E> */ {
     /* Unimplemented external factory HashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory HashSet.identity(); */
-    __init_from(elements) {
+    /*constructor*/ from(elements) {
       let result = new HashSet();
       for (let e of elements) result.add(e);
       return result;
     }
   }
-  HashSet.identity = function() { this.__init_identity() };
-  HashSet.identity.prototype = HashSet.prototype;
-  HashSet.from = function(elements) { this.__init_from(elements) };
-  HashSet.from.prototype = HashSet.prototype;
+  dart.defineNamedConstructor(HashSet, "identity");
+  dart.defineNamedConstructor(HashSet, "from");
 
   class IterableMixin/* Unimplemented <E> */ {
     map(f) { return new _internal.MappedIterable(this, f); }
@@ -550,39 +544,35 @@ var collection;
   class LinkedHashMap/* Unimplemented <K, V> */ {
     /* Unimplemented external factory LinkedHashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory LinkedHashMap.identity(); */
-    __init_from(other) {
+    /*constructor*/ from(other) {
       let result = new LinkedHashMap();
       other.forEach((k, v) => {
         result.set(k, /* Unimplemented: DownCast: dynamic to V */ v);
       });
       return result;
     }
-    __init_fromIterable(iterable, opt$) {
+    /*constructor*/ fromIterable(iterable, opt$) {
       let key = opt$.key === undefined ? null : opt$.key;
       let value = opt$.value === undefined ? null : opt$.value;
       let map = new LinkedHashMap();
       Maps._fillMapWithMappedIterable(map, iterable, key, value);
       return map;
     }
-    __init_fromIterables(keys, values) {
+    /*constructor*/ fromIterables(keys, values) {
       let map = new LinkedHashMap();
       Maps._fillMapWithIterables(map, keys, values);
       return map;
     }
   }
-  LinkedHashMap.identity = function() { this.__init_identity() };
-  LinkedHashMap.identity.prototype = LinkedHashMap.prototype;
-  LinkedHashMap.from = function(other) { this.__init_from(other) };
-  LinkedHashMap.from.prototype = LinkedHashMap.prototype;
-  LinkedHashMap.fromIterable = function(iterable, opt$) { this.__init_fromIterable(iterable, opt$) };
-  LinkedHashMap.fromIterable.prototype = LinkedHashMap.prototype;
-  LinkedHashMap.fromIterables = function(keys, values) { this.__init_fromIterables(keys, values) };
-  LinkedHashMap.fromIterables.prototype = LinkedHashMap.prototype;
+  dart.defineNamedConstructor(LinkedHashMap, "identity");
+  dart.defineNamedConstructor(LinkedHashMap, "from");
+  dart.defineNamedConstructor(LinkedHashMap, "fromIterable");
+  dart.defineNamedConstructor(LinkedHashMap, "fromIterables");
 
   class LinkedHashSet/* Unimplemented <E> */ {
     /* Unimplemented external factory LinkedHashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory LinkedHashSet.identity(); */
-    __init_from(elements) {
+    /*constructor*/ from(elements) {
       let result = new LinkedHashSet();
       for (let element of elements) {
         result.add(element);
@@ -590,10 +580,8 @@ var collection;
       return result;
     }
   }
-  LinkedHashSet.identity = function() { this.__init_identity() };
-  LinkedHashSet.identity.prototype = LinkedHashSet.prototype;
-  LinkedHashSet.from = function(elements) { this.__init_from(elements) };
-  LinkedHashSet.from.prototype = LinkedHashSet.prototype;
+  dart.defineNamedConstructor(LinkedHashSet, "identity");
+  dart.defineNamedConstructor(LinkedHashSet, "from");
 
   class LinkedList/* Unimplemented <E extends LinkedListEntry<E>> */ extends IterableBase/* Unimplemented <E> */ {
     constructor() {
@@ -1334,12 +1322,11 @@ var collection;
     constructor() {
       return new ListQueue();
     }
-    __init_from(elements) {
+    /*constructor*/ from(elements) {
       return new ListQueue.from(elements);
     }
   }
-  Queue.from = function(elements) { this.__init_from(elements) };
-  Queue.from.prototype = Queue.prototype;
+  dart.defineNamedConstructor(Queue, "from");
 
   class DoubleLinkedQueueEntry/* Unimplemented <E> */ {
     constructor(e) {
@@ -1409,7 +1396,7 @@ var collection;
       super();
       this._sentinel = new _DoubleLinkedQueueEntrySentinel();
     }
-    __init_from(elements) {
+    /*constructor*/ from(elements) {
       let list = /* Unimplemented: DownCastExact: DoubleLinkedQueue<dynamic> to Queue<E> */ new DoubleLinkedQueue();
       for (let e of elements) {
         list.addLast(e);
@@ -1513,8 +1500,7 @@ var collection;
     }
     toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
   }
-  DoubleLinkedQueue.from = function(elements) { this.__init_from(elements) };
-  DoubleLinkedQueue.from.prototype = DoubleLinkedQueue.prototype;
+  dart.defineNamedConstructor(DoubleLinkedQueue, "from");
 
   class _DoubleLinkedQueueIterator/* Unimplemented <E> */ {
     constructor(sentinel) {
@@ -1551,7 +1537,7 @@ var collection;
       dart.assert(_isPowerOf2(initialCapacity));
       this._table = new core.List(initialCapacity);
     }
-    __init_from(elements) {
+    /*constructor*/ from(elements) {
       if (/* Unimplemented IsExpression: elements is List */) {
         let length = elements.length;
         let queue = /* Unimplemented: DownCastExact: ListQueue<dynamic> to ListQueue<E> */ new ListQueue(length + 1);
@@ -1786,8 +1772,7 @@ var collection;
       this._head = 0;
     }
   }
-  ListQueue.from = function(elements) { this.__init_from(elements) };
-  ListQueue.from.prototype = ListQueue.prototype;
+  dart.defineNamedConstructor(ListQueue, "from");
   ListQueue._INITIAL_CAPACITY = 8;
 
   class _ListQueueIterator/* Unimplemented <E> */ {
@@ -2174,7 +2159,7 @@ var collection;
       this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented IsExpression: v is K */);
       super();
     }
-    __init_from(other, compare, isValidKey) {
+    /*constructor*/ from(other, compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       let result = new SplayTreeMap();
@@ -2183,7 +2168,7 @@ var collection;
       });
       return result;
     }
-    __init_fromIterable(iterable, opt$) {
+    /*constructor*/ fromIterable(iterable, opt$) {
       let key = opt$.key === undefined ? null : opt$.key;
       let value = opt$.value === undefined ? null : opt$.value;
       let compare = opt$.compare === undefined ? null : opt$.compare;
@@ -2192,7 +2177,7 @@ var collection;
       Maps._fillMapWithMappedIterable(map, iterable, key, value);
       return map;
     }
-    __init_fromIterables(keys, values, compare, isValidKey) {
+    /*constructor*/ fromIterables(keys, values, compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       let map = new SplayTreeMap(compare, isValidKey);
@@ -2200,7 +2185,7 @@ var collection;
       return map;
     }
     _compare(key1, key2) { return this._comparator(key1, key2); }
-    __init__internal() {
+    /*constructor*/ _internal() {
       this._comparator = null;
       this._validKey = null;
       _SplayTree.call(this);
@@ -2333,14 +2318,10 @@ var collection;
       return node.key;
     }
   }
-  SplayTreeMap.from = function(other, compare, isValidKey) { this.__init_from(other, compare, isValidKey) };
-  SplayTreeMap.from.prototype = SplayTreeMap.prototype;
-  SplayTreeMap.fromIterable = function(iterable, opt$) { this.__init_fromIterable(iterable, opt$) };
-  SplayTreeMap.fromIterable.prototype = SplayTreeMap.prototype;
-  SplayTreeMap.fromIterables = function(keys, values, compare, isValidKey) { this.__init_fromIterables(keys, values, compare, isValidKey) };
-  SplayTreeMap.fromIterables.prototype = SplayTreeMap.prototype;
-  SplayTreeMap._internal = function() { this.__init__internal() };
-  SplayTreeMap._internal.prototype = SplayTreeMap.prototype;
+  dart.defineNamedConstructor(SplayTreeMap, "from");
+  dart.defineNamedConstructor(SplayTreeMap, "fromIterable");
+  dart.defineNamedConstructor(SplayTreeMap, "fromIterables");
+  dart.defineNamedConstructor(SplayTreeMap, "_internal");
 
   class _SplayTreeIterator/* Unimplemented <T> */ {
     constructor(tree) {
@@ -2351,7 +2332,7 @@ var collection;
       this._currentNode = null;
       this._findLeftMostDescendent(tree._root);
     }
-    __init_startAt(tree, startKey) {
+    /*constructor*/ startAt(tree, startKey) {
       this._workList = new List.from([]);
       this._tree = tree;
       this._modificationCount = tree._modificationCount;
@@ -2403,8 +2384,7 @@ var collection;
       return true;
     }
   }
-  _SplayTreeIterator.startAt = function(tree, startKey) { this.__init_startAt(tree, startKey) };
-  _SplayTreeIterator.startAt.prototype = _SplayTreeIterator.prototype;
+  dart.defineNamedConstructor(_SplayTreeIterator, "startAt");
 
   class _SplayTreeKeyIterable/* Unimplemented <K> */ extends IterableBase/* Unimplemented <K> */ {
     constructor(_tree) {
@@ -2451,13 +2431,12 @@ var collection;
     constructor(tree) {
       super(tree);
     }
-    __init_startAt(tree, startKey) {
-      super.__init_startAt(tree, startKey);
+    /*constructor*/ startAt(tree, startKey) {
+      super.startAt(tree, startKey);
     }
     _getValue(node) { return /* Unimplemented: DownCastDynamic: _SplayTreeNode<dynamic> to _SplayTreeNode<K> */ node; }
   }
-  _SplayTreeNodeIterator.startAt = function(tree, startKey) { this.__init_startAt(tree, startKey) };
-  _SplayTreeNodeIterator.startAt.prototype = _SplayTreeNodeIterator.prototype;
+  dart.defineNamedConstructor(_SplayTreeNodeIterator, "startAt");
 
   class SplayTreeSet/* Unimplemented <E> */ extends dart.mixin(_SplayTree/* Unimplemented <E> */, IterableMixin/* Unimplemented <E> */, SetMixin/* Unimplemented <E> */) {
     constructor(compare, isValidKey) {
@@ -2467,7 +2446,7 @@ var collection;
       this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented IsExpression: v is E */);
       super();
     }
-    __init_from(elements, compare, isValidKey) {
+    /*constructor*/ from(elements, compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       let result = new SplayTreeSet(compare, isValidKey);
@@ -2574,8 +2553,7 @@ var collection;
     toSet() { return this._clone(); }
     toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
   }
-  SplayTreeSet.from = function(elements, compare, isValidKey) { this.__init_from(elements, compare, isValidKey) };
-  SplayTreeSet.from.prototype = SplayTreeSet.prototype;
+  dart.defineNamedConstructor(SplayTreeSet, "from");
 
   // Exports:
   collection.UnmodifiableListView = UnmodifiableListView;

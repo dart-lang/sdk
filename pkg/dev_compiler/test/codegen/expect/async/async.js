@@ -432,19 +432,19 @@ var async;
         /* Unimplemented TryStatement: try {result._complete(computation());} catch (e, s) {_completeWithErrorCallback(result, e, s);} */});
       return /* Unimplemented: DownCastDynamic: _Future<dynamic> to Future<T> */ result;
     }
-    __init_microtask(computation) {
+    /*constructor*/ microtask(computation) {
       let result = new _Future();
       scheduleMicrotask(() => {
         /* Unimplemented TryStatement: try {result._complete(computation());} catch (e, s) {_completeWithErrorCallback(result, e, s);} */});
       return /* Unimplemented: DownCastDynamic: _Future<dynamic> to Future<T> */ result;
     }
-    __init_sync(computation) {
+    /*constructor*/ sync(computation) {
       /* Unimplemented TryStatement: try {var result = computation(); return new Future<T>.value(result);} catch (error, stackTrace) {return new Future<T>.error(error, stackTrace);} */}
-    __init_value(value) {
+    /*constructor*/ value(value) {
       if (value === undefined) value = null;
       return new _Future.immediate(value);
     }
-    __init_error(error, stackTrace) {
+    /*constructor*/ error(error, stackTrace) {
       if (stackTrace === undefined) stackTrace = null;
       error = _nonNullError(error);
       if (!core.identical(Zone.current, _ROOT_ZONE)) {
@@ -456,7 +456,7 @@ var async;
       }
       return new _Future.immediateError(error, stackTrace);
     }
-    __init_delayed(duration, computation) {
+    /*constructor*/ delayed(duration, computation) {
       if (computation === undefined) computation = null;
       let result = new _Future();
       new Timer(duration, () => {
@@ -543,16 +543,11 @@ var async;
       return doneSignal;
     }
   }
-  Future.microtask = function(computation) { this.__init_microtask(computation) };
-  Future.microtask.prototype = Future.prototype;
-  Future.sync = function(computation) { this.__init_sync(computation) };
-  Future.sync.prototype = Future.prototype;
-  Future.value = function(value) { this.__init_value(value) };
-  Future.value.prototype = Future.prototype;
-  Future.error = function(error, stackTrace) { this.__init_error(error, stackTrace) };
-  Future.error.prototype = Future.prototype;
-  Future.delayed = function(duration, computation) { this.__init_delayed(duration, computation) };
-  Future.delayed.prototype = Future.prototype;
+  dart.defineNamedConstructor(Future, "microtask");
+  dart.defineNamedConstructor(Future, "sync");
+  dart.defineNamedConstructor(Future, "value");
+  dart.defineNamedConstructor(Future, "error");
+  dart.defineNamedConstructor(Future, "delayed");
   dart.defineLazyProperties(Future, {
     get _nullFuture() { return /* Unimplemented: DownCastExact: Future<dynamic> to _Future<dynamic> */ new Future.value(null) },
   });
@@ -575,12 +570,11 @@ var async;
     constructor() {
       return new _AsyncCompleter();
     }
-    __init_sync() {
+    /*constructor*/ sync() {
       return new _SyncCompleter();
     }
   }
-  Completer.sync = function() { this.__init_sync() };
-  Completer.sync.prototype = Completer.prototype;
+  dart.defineNamedConstructor(Completer, "sync");
 
   // Function _completeWithErrorCallback: (_Future<dynamic>, dynamic, dynamic) → void
   function _completeWithErrorCallback(result, error, stackTrace) {
@@ -637,28 +631,28 @@ var async;
   }
 
   class _FutureListener {
-    __init_then(result, onValue, errorCallback) {
+    /*constructor*/ then(result, onValue, errorCallback) {
       this.result = result;
       this.callback = onValue;
       this.errorCallback = errorCallback;
       this.state = (errorCallback === null) ? STATE_THEN : STATE_THEN_ONERROR;
       this._nextListener = null;
     }
-    __init_catchError(result, errorCallback, test) {
+    /*constructor*/ catchError(result, errorCallback, test) {
       this.result = result;
       this.errorCallback = errorCallback;
       this.callback = test;
       this.state = (test === null) ? STATE_CATCHERROR : STATE_CATCHERROR_TEST;
       this._nextListener = null;
     }
-    __init_whenComplete(result, onComplete) {
+    /*constructor*/ whenComplete(result, onComplete) {
       this.result = result;
       this.callback = onComplete;
       this.errorCallback = null;
       this.state = STATE_WHENCOMPLETE;
       this._nextListener = null;
     }
-    __init_chain(result) {
+    /*constructor*/ chain(result) {
       this.result = result;
       this.callback = null;
       this.errorCallback = null;
@@ -684,14 +678,10 @@ var async;
       return /* Unimplemented: DownCast: Function to () → dynamic */ this.callback;
     }
   }
-  _FutureListener.then = function(result, onValue, errorCallback) { this.__init_then(result, onValue, errorCallback) };
-  _FutureListener.then.prototype = _FutureListener.prototype;
-  _FutureListener.catchError = function(result, errorCallback, test) { this.__init_catchError(result, errorCallback, test) };
-  _FutureListener.catchError.prototype = _FutureListener.prototype;
-  _FutureListener.whenComplete = function(result, onComplete) { this.__init_whenComplete(result, onComplete) };
-  _FutureListener.whenComplete.prototype = _FutureListener.prototype;
-  _FutureListener.chain = function(result) { this.__init_chain(result) };
-  _FutureListener.chain.prototype = _FutureListener.prototype;
+  dart.defineNamedConstructor(_FutureListener, "then");
+  dart.defineNamedConstructor(_FutureListener, "catchError");
+  dart.defineNamedConstructor(_FutureListener, "whenComplete");
+  dart.defineNamedConstructor(_FutureListener, "chain");
   _FutureListener.MASK_VALUE = 1;
   _FutureListener.MASK_ERROR = 2;
   _FutureListener.MASK_TEST_ERROR = 4;
@@ -709,13 +699,13 @@ var async;
       this._state = _INCOMPLETE;
       this._resultOrListeners = null;
     }
-    __init_immediate(value) {
+    /*constructor*/ immediate(value) {
       this._zone = Zone.current;
       this._state = _INCOMPLETE;
       this._resultOrListeners = null;
       this._asyncComplete(value);
     }
-    __init_immediateError(error, stackTrace) {
+    /*constructor*/ immediateError(error, stackTrace) {
       if (stackTrace === undefined) stackTrace = null;
       this._zone = Zone.current;
       this._state = _INCOMPLETE;
@@ -1033,10 +1023,8 @@ var async;
       return result;
     }
   }
-  _Future.immediate = function(value) { this.__init_immediate(value) };
-  _Future.immediate.prototype = _Future.prototype;
-  _Future.immediateError = function(error, stackTrace) { this.__init_immediateError(error, stackTrace) };
-  _Future.immediateError.prototype = _Future.prototype;
+  dart.defineNamedConstructor(_Future, "immediate");
+  dart.defineNamedConstructor(_Future, "immediateError");
   _Future._INCOMPLETE = 0;
   _Future._PENDING_COMPLETE = 1;
   _Future._CHAINED = 2;
@@ -1119,7 +1107,7 @@ var async;
   class Stream/* Unimplemented <T> */ {
     constructor() {
     }
-    __init_fromFuture(future) {
+    /*constructor*/ fromFuture(future) {
       let controller = /* Unimplemented: DownCastExact: StreamController<T> to _StreamController<T> */ new StreamController({sync: true});
       future.then((value) => {
         controller._add(/* Unimplemented: DownCast: dynamic to T */ value);
@@ -1130,10 +1118,10 @@ var async;
       }});
       return controller.stream;
     }
-    __init_fromIterable(data) {
+    /*constructor*/ fromIterable(data) {
       return new _GeneratedStreamImpl(() => new _IterablePendingEvents(data));
     }
-    __init_periodic(period, computation) {
+    /*constructor*/ periodic(period, computation) {
       if (computation === undefined) computation = null;
       if (computation === null) computation = ((i) => null);
       let timer = null;
@@ -1175,7 +1163,7 @@ var async;
       }});
       return controller.stream;
     }
-    __init_eventTransformed(source, mapSink) {
+    /*constructor*/ eventTransformed(source, mapSink) {
       return /* Unimplemented: DownCastExact: _BoundSinkStream<dynamic, dynamic> to Stream<T> */ new _BoundSinkStream(source, mapSink);
     }
     get isBroadcast() { return false; }
@@ -1623,14 +1611,10 @@ var async;
       return controller.stream;
     }
   }
-  Stream.fromFuture = function(future) { this.__init_fromFuture(future) };
-  Stream.fromFuture.prototype = Stream.prototype;
-  Stream.fromIterable = function(data) { this.__init_fromIterable(data) };
-  Stream.fromIterable.prototype = Stream.prototype;
-  Stream.periodic = function(period, computation) { this.__init_periodic(period, computation) };
-  Stream.periodic.prototype = Stream.prototype;
-  Stream.eventTransformed = function(source, mapSink) { this.__init_eventTransformed(source, mapSink) };
-  Stream.eventTransformed.prototype = Stream.prototype;
+  dart.defineNamedConstructor(Stream, "fromFuture");
+  dart.defineNamedConstructor(Stream, "fromIterable");
+  dart.defineNamedConstructor(Stream, "periodic");
+  dart.defineNamedConstructor(Stream, "eventTransformed");
 
   class StreamSubscription/* Unimplemented <T> */ {
   }
@@ -1667,12 +1651,11 @@ var async;
     constructor(transformer) {
       return new _StreamSubscriptionTransformer(transformer);
     }
-    __init_fromHandlers(opt$) {
+    /*constructor*/ fromHandlers(opt$) {
       return new _StreamHandlerTransformer(opt$);
     }
   }
-  StreamTransformer.fromHandlers = function(opt$) { this.__init_fromHandlers(opt$) };
-  StreamTransformer.fromHandlers.prototype = StreamTransformer.prototype;
+  dart.defineNamedConstructor(StreamTransformer, "fromHandlers");
 
   class StreamIterator/* Unimplemented <T> */ {
     constructor(stream) {
@@ -1708,15 +1691,14 @@ var async;
       }
       return sync ? new _SyncStreamController(onListen, onPause, onResume, onCancel) : new _AsyncStreamController(onListen, onPause, onResume, onCancel);
     }
-    __init_broadcast(opt$) {
+    /*constructor*/ broadcast(opt$) {
       let onListen = opt$.onListen === undefined ? null : opt$.onListen;
       let onCancel = opt$.onCancel === undefined ? null : opt$.onCancel;
       let sync = opt$.sync === undefined ? false : opt$.sync;
       return sync ? new _SyncBroadcastStreamController(onListen, onCancel) : new _AsyncBroadcastStreamController(onListen, onCancel);
     }
   }
-  StreamController.broadcast = function(opt$) { this.__init_broadcast(opt$) };
-  StreamController.broadcast.prototype = StreamController.prototype;
+  dart.defineNamedConstructor(StreamController, "broadcast");
 
   class _StreamControllerLifecycle/* Unimplemented <T> */ {
     _recordPause(subscription) {
@@ -3178,7 +3160,7 @@ var async;
       }
       return Zone.current.createTimer(duration, Zone.current.bindCallback(callback, {runGuarded: true}));
     }
-    __init_periodic(duration, callback) {
+    /*constructor*/ periodic(duration, callback) {
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createPeriodicTimer(duration, callback);
       }
@@ -3190,8 +3172,7 @@ var async;
     /* Unimplemented external static Timer _createTimer(Duration duration, void callback()); */
     /* Unimplemented external static Timer _createPeriodicTimer(Duration duration, void callback(Timer timer)); */
   }
-  Timer.periodic = function(duration, callback) { this.__init_periodic(duration, callback) };
-  Timer.periodic.prototype = Timer.prototype;
+  dart.defineNamedConstructor(Timer, "periodic");
 
   class AsyncError {
     constructor(error, stackTrace) {
@@ -3212,7 +3193,7 @@ var async;
     constructor(opt$) {
       return new _ZoneSpecification(opt$);
     }
-    __init_from(other, opt$) {
+    /*constructor*/ from(other, opt$) {
       let handleUncaughtError = opt$.handleUncaughtError === undefined ? null : opt$.handleUncaughtError;
       let run = opt$.run === undefined ? null : opt$.run;
       let runUnary = opt$.runUnary === undefined ? null : opt$.runUnary;
@@ -3229,8 +3210,7 @@ var async;
       return new ZoneSpecification({handleUncaughtError: handleUncaughtError !== null ? handleUncaughtError : other.handleUncaughtError, run: run !== null ? run : other.run, runUnary: runUnary !== null ? runUnary : other.runUnary, runBinary: runBinary !== null ? runBinary : other.runBinary, registerCallback: registerCallback !== null ? registerCallback : other.registerCallback, registerUnaryCallback: registerUnaryCallback !== null ? registerUnaryCallback : other.registerUnaryCallback, registerBinaryCallback: registerBinaryCallback !== null ? registerBinaryCallback : other.registerBinaryCallback, errorCallback: errorCallback !== null ? errorCallback : other.errorCallback, scheduleMicrotask: scheduleMicrotask !== null ? scheduleMicrotask : other.scheduleMicrotask, createTimer: createTimer !== null ? createTimer : other.createTimer, createPeriodicTimer: createPeriodicTimer !== null ? createPeriodicTimer : other.createPeriodicTimer, print: print !== null ? print : other.print, fork: fork !== null ? fork : other.fork});
     }
   }
-  ZoneSpecification.from = function(other, opt$) { this.__init_from(other, opt$) };
-  ZoneSpecification.from.prototype = ZoneSpecification.prototype;
+  dart.defineNamedConstructor(ZoneSpecification, "from");
 
   class _ZoneSpecification {
     constructor(opt$) {
@@ -3267,7 +3247,7 @@ var async;
   }
 
   class Zone {
-    __init__() {
+    /*constructor*/ _() {
     }
     static get current() { return _current; }
     static _enter(zone) {
@@ -3282,8 +3262,7 @@ var async;
       Zone._current = previous;
     }
   }
-  Zone._ = function() { this.__init__() };
-  Zone._.prototype = Zone.prototype;
+  dart.defineNamedConstructor(Zone, "_");
   Zone.ROOT = /* Unimplemented: DownCast: dynamic to Zone */ _ROOT_ZONE;
   Zone._current = /* Unimplemented: DownCast: dynamic to Zone */ _ROOT_ZONE;
 

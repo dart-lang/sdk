@@ -221,4 +221,17 @@ var dart;
   }
   dart.assert = assert;
 
+  /**
+   * Given a class and an initializer method name, creates a constructor
+   * function with the same name. For example `new SomeClass.name(args)`.
+   */
+  function defineNamedConstructor(clazz, name) {
+    var proto = clazz.prototype;
+    var initMethod = proto[name];
+    var ctor = function() { return initMethod.apply(this, arguments); }
+    ctor.prototype = proto;
+    clazz[name] = ctor;
+  }
+  dart.defineNamedConstructor = defineNamedConstructor;
+
 })(dart || (dart = {}));

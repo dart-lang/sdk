@@ -292,7 +292,7 @@ var _internal;
       }
       return new MappedIterable._(iterable, function);
     }
-    __init__(_iterable, _f) {
+    /*constructor*/ _(_iterable, _f) {
       this._iterable = _iterable;
       this._f = _f;
       collection.IterableBase.call(this);
@@ -305,12 +305,11 @@ var _internal;
     get single() { return this._f(this._iterable.single); }
     elementAt(index) { return this._f(this._iterable.elementAt(index)); }
   }
-  MappedIterable._ = function(_iterable, _f) { this.__init__(_iterable, _f) };
-  MappedIterable._.prototype = MappedIterable.prototype;
+  dart.defineNamedConstructor(MappedIterable, "_");
 
   class EfficientLengthMappedIterable/* Unimplemented <S, T> */ extends MappedIterable/* Unimplemented <S, T> */ {
     constructor(iterable, function) {
-      super.__init__(/* Unimplemented: DownCastDynamic: Iterable<dynamic> to Iterable<S> */ iterable, function);
+      super._(/* Unimplemented: DownCastDynamic: Iterable<dynamic> to Iterable<S> */ iterable, function);
     }
   }
 
@@ -413,7 +412,7 @@ var _internal;
       }
       return new TakeIterable._(iterable, takeCount);
     }
-    __init__(_iterable, _takeCount) {
+    /*constructor*/ _(_iterable, _takeCount) {
       this._iterable = _iterable;
       this._takeCount = _takeCount;
       collection.IterableBase.call(this);
@@ -422,12 +421,11 @@ var _internal;
       return new TakeIterator(this._iterable.iterator, this._takeCount);
     }
   }
-  TakeIterable._ = function(_iterable, _takeCount) { this.__init__(_iterable, _takeCount) };
-  TakeIterable._.prototype = TakeIterable.prototype;
+  dart.defineNamedConstructor(TakeIterable, "_");
 
   class EfficientLengthTakeIterable/* Unimplemented <E> */ extends TakeIterable/* Unimplemented <E> */ {
     constructor(iterable, takeCount) {
-      super.__init__(iterable, takeCount);
+      super._(iterable, takeCount);
     }
     get length() {
       let iterableLength = _iterable.length;
@@ -496,7 +494,7 @@ var _internal;
       }
       return new SkipIterable._(iterable, count);
     }
-    __init__(_iterable, _skipCount) {
+    /*constructor*/ _(_iterable, _skipCount) {
       this._iterable = _iterable;
       this._skipCount = _skipCount;
       collection.IterableBase.call(this);
@@ -516,12 +514,11 @@ var _internal;
       return new SkipIterator(this._iterable.iterator, this._skipCount);
     }
   }
-  SkipIterable._ = function(_iterable, _skipCount) { this.__init__(_iterable, _skipCount) };
-  SkipIterable._.prototype = SkipIterable.prototype;
+  dart.defineNamedConstructor(SkipIterable, "_");
 
   class EfficientLengthSkipIterable/* Unimplemented <E> */ extends SkipIterable/* Unimplemented <E> */ {
     constructor(iterable, skipCount) {
-      super.__init__(iterable, skipCount);
+      super._(iterable, skipCount);
     }
     get length() {
       let length = _iterable.length - _skipCount;
@@ -1459,10 +1456,10 @@ var _internal;
 
   class Symbol {
     /* Unimplemented external const Symbol(String name); */
-    __init_unvalidated(_name) {
+    /*constructor*/ unvalidated(_name) {
       this._name = _name;
     }
-    __init_validated(name) {
+    /*constructor*/ validated(name) {
       this._name = validatePublicSymbol(name);
     }
     ['=='](other) { return /* Unimplemented IsExpression: other is Symbol */ && dart.equals(this._name, dart.dload(other, "_name")); }
@@ -1483,10 +1480,8 @@ var _internal;
       return (name.isEmpty || symbolPattern.hasMatch(name));
     }
   }
-  Symbol.unvalidated = function(_name) { this.__init_unvalidated(_name) };
-  Symbol.unvalidated.prototype = Symbol.prototype;
-  Symbol.validated = function(name) { this.__init_validated(name) };
-  Symbol.validated.prototype = Symbol.prototype;
+  dart.defineNamedConstructor(Symbol, "unvalidated");
+  dart.defineNamedConstructor(Symbol, "validated");
   Symbol.reservedWordRE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|" + "e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|" + "ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|" + "v(?:ar|oid)|w(?:hile|ith))";
   Symbol.publicIdentifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$][\w$]*";
   Symbol.identifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$_][\w$]*";

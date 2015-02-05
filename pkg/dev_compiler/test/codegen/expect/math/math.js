@@ -164,7 +164,7 @@ var math;
       this.height = (height['<'](0)) ? /* Unimplemented postfix operator: -height */ * 0 : height;
       super();
     }
-    __init_fromPoints(a, b) {
+    /*constructor*/ fromPoints(a, b) {
       let left = /* Unimplemented: DownCast: num to T */ min(a.x, b.x);
       let width = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.x, b.x), left);
       let top = /* Unimplemented: DownCast: num to T */ min(a.y, b.y);
@@ -172,8 +172,7 @@ var math;
       return new Rectangle(left, top, width, height);
     }
   }
-  Rectangle.fromPoints = function(a, b) { this.__init_fromPoints(a, b) };
-  Rectangle.fromPoints.prototype = Rectangle.prototype;
+  dart.defineNamedConstructor(Rectangle, "fromPoints");
 
   class MutableRectangle/* Unimplemented <T extends num> */ extends _RectangleBase/* Unimplemented <T> */ {
     constructor(left, top, width, height) {
@@ -183,7 +182,7 @@ var math;
       this._height = (height['<'](0)) ? _clampToZero(height) : height;
       super();
     }
-    __init_fromPoints(a, b) {
+    /*constructor*/ fromPoints(a, b) {
       let left = /* Unimplemented: DownCast: num to T */ min(a.x, b.x);
       let width = /* Unimplemented: DownCast: num to T */ core.num['-'](max(a.x, b.x), left);
       let top = /* Unimplemented: DownCast: num to T */ min(a.y, b.y);
@@ -201,8 +200,7 @@ var math;
       this._height = height;
     }
   }
-  MutableRectangle.fromPoints = function(a, b) { this.__init_fromPoints(a, b) };
-  MutableRectangle.fromPoints.prototype = MutableRectangle.prototype;
+  dart.defineNamedConstructor(MutableRectangle, "fromPoints");
 
   // Function _clampToZero: (num) → num
   function _clampToZero(value) {
