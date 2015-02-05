@@ -8,7 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
@@ -21,7 +21,7 @@ main() {
 
   setUp(() {
     var serverChannel = new MockServerChannel();
-    var resourceProvider = PhysicalResourceProvider.INSTANCE;
+    var resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
