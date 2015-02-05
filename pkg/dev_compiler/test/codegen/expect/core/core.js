@@ -506,7 +506,7 @@ var core;
       dart.assert(_hasValue);
       let target = Error.safeToString(this.indexable);
       let explanation = "index should be less than " + (this.length) + "";
-      if (dart.dbinary(invalidValue, "<"0)) {
+      if (dart.dbinary(invalidValue, "<", 0)) {
         explanation = "index must not be negative";
       }
       return "RangeError: " + (message) + " (" + (target) + "[" + (invalidValue) + "]): " + (explanation) + "";
@@ -1190,7 +1190,7 @@ var core;
     static parse(uri) {
       // Function isRegName: (int) → bool
       function isRegName(ch) {
-        return ch < 128 && (!dart.equals((dart.dbinary(dart.dindex(_regNameTable, ch >> 4), "&"(1 << (ch & 15)))), 0));
+        return ch < 128 && (!dart.equals((dart.dbinary(dart.dindex(_regNameTable, ch >> 4), "&", (1 << (ch & 15)))), 0));
       }
       let EOI = -1;
       let scheme = "";
@@ -1625,7 +1625,7 @@ var core;
       return _normalizeRegName(host, start, end);
     }
     static _isRegNameChar(char) {
-      return char < 127 && !dart.equals((dart.dbinary(dart.dindex(_regNameTable, char >> 4), "&"(1 << (char & 15)))), 0);
+      return char < 127 && !dart.equals((dart.dbinary(dart.dindex(_regNameTable, char >> 4), "&", (1 << (char & 15)))), 0);
     }
     static _normalizeRegName(host, start, end) {
       let buffer = null;
@@ -1795,24 +1795,24 @@ var core;
       return null;
     }
     static _isUnreservedChar(ch) {
-      return ch < 127 && (!dart.equals((dart.dbinary(dart.dindex(_unreservedTable, ch >> 4), "&"(1 << (ch & 15)))), 0));
+      return ch < 127 && (!dart.equals((dart.dbinary(dart.dindex(_unreservedTable, ch >> 4), "&", (1 << (ch & 15)))), 0));
     }
     static _escapeChar(char) {
-      dart.assert(dart.dbinary(char, "<="1114111));
+      dart.assert(dart.dbinary(char, "<=", 1114111));
       let hexDigits = "0123456789ABCDEF";
       let codeUnits = null;
-      if (dart.dbinary(char, "<"128)) {
+      if (dart.dbinary(char, "<", 128)) {
         codeUnits = new List(3);
         codeUnits.set(0, _PERCENT);
-        codeUnits.set(1, hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ dart.dbinary(char, ">>"4)));
-        codeUnits.set(2, hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ dart.dbinary(char, "&"15)));
+        codeUnits.set(1, hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ dart.dbinary(char, ">>", 4)));
+        codeUnits.set(2, hexDigits.codeUnitAt(/* Unimplemented: DownCast: dynamic to int */ dart.dbinary(char, "&", 15)));
       } else {
         let flag = 192;
         let encodedBytes = 2;
-        if (dart.dbinary(char, ">"2047)) {
+        if (dart.dbinary(char, ">", 2047)) {
           flag = 224;
           encodedBytes = 3;
-          if (dart.dbinary(char, ">"65535)) {
+          if (dart.dbinary(char, ">", 65535)) {
             encodedBytes = 4;
             flag = 240;
           }
@@ -1820,7 +1820,7 @@ var core;
         codeUnits = new List(3 * encodedBytes);
         let index = 0;
         while (--encodedBytes >= 0) {
-          let byte = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary((dart.dbinary((dart.dbinary(char, ">>"(6 * encodedBytes))), "&"63)), "|"flag);
+          let byte = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary((dart.dbinary((dart.dbinary(char, ">>", (6 * encodedBytes))), "&", 63)), "|", flag);
           codeUnits.set(index, _PERCENT);
           codeUnits.set(index + 1, hexDigits.codeUnitAt(byte >> 4));
           codeUnits.set(index + 2, hexDigits.codeUnitAt(byte & 15));
@@ -1884,10 +1884,10 @@ var core;
       return buffer.toString();
     }
     static _isSchemeCharacter(ch) {
-      return ch < 128 && (!dart.equals((dart.dbinary(dart.dindex(_schemeTable, ch >> 4), "&"(1 << (ch & 15)))), 0));
+      return ch < 128 && (!dart.equals((dart.dbinary(dart.dindex(_schemeTable, ch >> 4), "&", (1 << (ch & 15)))), 0));
     }
     static _isGeneralDelimiter(ch) {
-      return ch <= _RIGHT_BRACKET && (!dart.equals((dart.dbinary(dart.dindex(_genDelimitersTable, ch >> 4), "&"(1 << (ch & 15)))), 0));
+      return ch <= _RIGHT_BRACKET && (!dart.equals((dart.dbinary(dart.dindex(_genDelimitersTable, ch >> 4), "&", (1 << (ch & 15)))), 0));
     }
     get isAbsolute() { return !dart.equals(this.scheme, "") && dart.equals(this.fragment, ""); }
     _merge(base, reference) {
@@ -2089,7 +2089,7 @@ var core;
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
       function combine(part, current) {
-        return /* Unimplemented: DownCast: dynamic to int */ dart.dbinary((dart.dbinary(dart.dbinary(current, "*"31), "+"dart.dload(part, "hashCode"))), "&"1073741823);
+        return /* Unimplemented: DownCast: dynamic to int */ dart.dbinary((dart.dbinary(dart.dbinary(current, "*", 31), "+", dart.dload(part, "hashCode"))), "&", 1073741823);
       }
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }

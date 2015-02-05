@@ -1681,7 +1681,7 @@ var convert;
         let mask = _ONE_BYTE_LIMIT;
         for (let i = from; i < to; i++) {
           let unit = dart.dindex(units, i);
-          if (!dart.equals((dart.dbinary(unit, "&"mask)), unit)) return i - from;
+          if (!dart.equals((dart.dbinary(unit, "&", mask)), unit)) return i - from;
         }
         return to - from;
       }

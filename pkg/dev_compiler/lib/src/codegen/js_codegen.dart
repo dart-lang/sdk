@@ -973,7 +973,7 @@ $name.prototype[Symbol.iterator] = function() {
       // dynamic dispatch
       out.write('dart.dbinary(');
       lhs.accept(this);
-      out.write(', "${op.lexeme}"');
+      out.write(', "${op.lexeme}", ');
       rhs.accept(this);
       out.write(')');
     } else if (_isJSBuiltinType(dispatchType)) {

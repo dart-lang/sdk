@@ -478,7 +478,7 @@ var collection;
             count++;
             if (count > MAX_COUNT) {
               while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
-                length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+"OVERHEAD);
+                length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+", OVERHEAD);
                 count--;
               }
               parts.add("...");
@@ -496,7 +496,7 @@ var collection;
         length = ELLIPSIS_SIZE + OVERHEAD;
       }
       while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-        length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+"OVERHEAD);
+        length = /* Unimplemented: DownCast: dynamic to int */ dart.dbinary(dart.dload(parts.removeLast(), "length"), "+", OVERHEAD);
         if (elision === null) {
           elision = "...";
           length = ELLIPSIS_SIZE + OVERHEAD;
