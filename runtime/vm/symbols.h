@@ -71,7 +71,7 @@ class ObjectPointerVisitor;
   V(StringBase, "_StringBase")                                                 \
   V(Interpolate, "_interpolate")                                               \
   V(InterpolateSingle, "_interpolateSingle")                                   \
-  V(iterator, "iterator")                                                      \
+  V(Iterator, "iterator")                                                      \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(SavedTryContextVar, ":saved_try_context_var")                              \

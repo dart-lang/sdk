@@ -7944,7 +7944,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // Generate initialization of iterator variable.
   ArgumentListNode* no_args = new(Z) ArgumentListNode(collection_pos);
   AstNode* get_iterator = new(Z) InstanceGetterNode(
-      collection_pos, collection_expr, Symbols::iterator());
+      collection_pos, collection_expr, Symbols::Iterator());
   AstNode* iterator_init =
       new(Z) StoreLocalNode(collection_pos, iterator_var, get_iterator);
   current_block_->statements->Add(iterator_init);
