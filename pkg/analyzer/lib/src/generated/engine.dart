@@ -2253,6 +2253,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
+  /**
+   * Invalidates hints in the given [librarySource] and included parts.
+   */
+  void invalidateLibraryHints(Source librarySource) {
+    SourceEntry sourceEntry = _cache.get(librarySource);
+    if (sourceEntry is! DartEntry) {
+      return;
+    }
+    DartEntry dartEntry = sourceEntry;
+    // Prepare sources to invalidate hints in.
+    List<Source> sources = <Source>[librarySource];
+    sources.addAll(dartEntry.getValue(DartEntry.INCLUDED_PARTS));
+    // Invalidate hints.
+    for (Source source in sources) {
+      DartEntry dartEntry = _cache.get(source);
+      if (dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource) ==
+          CacheState.VALID) {
+        dartEntry.setStateInLibrary(
+            DartEntry.HINTS,
+            librarySource,
+            CacheState.INVALID);
+      }
+    }
+  }
+
   @override
   bool isClientLibrary(Source librarySource) {
     SourceEntry sourceEntry = _getReadableSourceEntry(librarySource);
@@ -5070,19 +5095,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (libraryElement == null) {
       return false;
     }
-    // prepare the existing library units
-    Map<Source, CompilationUnit> units = <Source, CompilationUnit>{};
-    for (CompilationUnitElement unitElement in libraryElement.units) {
-      Source unitSource = unitElement.source;
-      CompilationUnit unit =
-          getResolvedCompilationUnit2(unitSource, librarySource);
-      if (unit == null) {
-        return false;
-      }
-      units[unitSource] = unit;
-    }
     // prepare the existing unit
-    CompilationUnit oldUnit = units[unitSource];
+    CompilationUnit oldUnit =
+        getResolvedCompilationUnit2(unitSource, librarySource);
     if (oldUnit == null) {
       return false;
     }
@@ -5090,9 +5105,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     Stopwatch perfCounter = new Stopwatch()..start();
     PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
         typeProvider,
-        units,
         unitSource,
         dartEntry,
+        oldUnit,
         analysisOptions.incrementalApi);
     bool success = resolver.resolve(newCode);
     AnalysisEngine.instance.instrumentationService.logPerformance(
@@ -5110,14 +5125,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       incrementalResolutionValidation_lastUnit = oldUnit;
       return false;
     }
-    // prepare notices
-    units.forEach((Source source, CompilationUnit unit) {
-      DartEntry dartEntry = _cache.get(source);
-      LineInfo lineInfo = getLineInfo(source);
-      ChangeNoticeImpl notice = _getNotice(source);
-      notice.resolvedDartUnit = unit;
+    // prepare notice
+    {
+      LineInfo lineInfo = getLineInfo(unitSource);
+      ChangeNoticeImpl notice = _getNotice(unitSource);
+      notice.resolvedDartUnit = oldUnit;
       notice.setErrors(dartEntry.allErrors, lineInfo);
-    });
+    }
     // OK
     return true;
   }
@@ -9640,7 +9654,6 @@ class IncrementalAnalysisTask extends AnalysisTask {
         LibraryElement library = element.library;
         if (library != null) {
           IncrementalResolver resolver = new IncrementalResolver(
-              <Source, CompilationUnit>{},
               element,
               cache.offset,
               cache.oldLength,

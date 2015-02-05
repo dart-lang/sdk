@@ -787,11 +787,6 @@ class DeclarationMatchKind {
  */
 class IncrementalResolver {
   /**
-   * All resolved units of the [_definingLibrary].
-   */
-  final Map<Source, CompilationUnit> _units;
-
-  /**
    * The element of the compilation unit being resolved.
    */
   final CompilationUnitElement _definingUnit;
@@ -854,7 +849,7 @@ class IncrementalResolver {
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
-  IncrementalResolver(this._units, this._definingUnit, this._updateOffset,
+  IncrementalResolver(this._definingUnit, this._updateOffset,
       this._updateEndOld, this._updateEndNew) {
     _updateDelta = _updateEndNew - _updateEndOld;
     _definingLibrary = _definingUnit.library;
@@ -887,7 +882,7 @@ class IncrementalResolver {
       _resolveReferences(rootNode);
       // verify
       _verify(rootNode);
-      _generateHints(rootNode);
+      _context.invalidateLibraryHints(_librarySource);
       _generateLints(rootNode);
       // update entry errors
       _updateEntry();
@@ -976,33 +971,6 @@ class IncrementalResolver {
       node = node.parent;
     }
     throw new AnalysisException("Cannot resolve node: no resolvable node");
-  }
-
-  void _generateHints(AstNode node) {
-    LoggingTimer timer = logger.startTimer();
-    try {
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      // prepare a list of the library units
-      List<CompilationUnit> units;
-      {
-        CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-        _units[_source] = unit;
-        units = _units.values.toList();
-      }
-      // run the generator
-      AnalysisContext analysisContext = _definingLibrary.context;
-      HintGenerator hintGenerator =
-          new HintGenerator(units, analysisContext, errorListener);
-      hintGenerator.generateForLibrary();
-      // remember hints
-      for (Source source in _units.keys) {
-        List<AnalysisError> hints = errorListener.getErrorsForSource(source);
-        DartEntry entry = _context.getReadableSourceEntryOrNull(source);
-        entry.setValueInLibrary(DartEntry.HINTS, _librarySource, hints);
-      }
-    } finally {
-      timer.stop('generate hints');
-    }
   }
 
   void _generateLints(AstNode node) {
@@ -1189,9 +1157,9 @@ class IncrementalResolver {
 
 class PoorMansIncrementalResolver {
   final TypeProvider _typeProvider;
-  final Map<Source, CompilationUnit> _units;
   final Source _unitSource;
   final DartEntry _entry;
+  final CompilationUnit _oldUnit;
   CompilationUnitElement _unitElement;
 
   int _updateOffset;
@@ -1202,26 +1170,25 @@ class PoorMansIncrementalResolver {
   List<AnalysisError> _newScanErrors = <AnalysisError>[];
   List<AnalysisError> _newParseErrors = <AnalysisError>[];
 
-  PoorMansIncrementalResolver(this._typeProvider, this._units, this._unitSource,
-      this._entry, bool resolveApiChanges) {
+  PoorMansIncrementalResolver(this._typeProvider, this._unitSource,
+      this._entry, this._oldUnit, bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
   }
 
   /**
-   * Attempts to update [oldUnit] to the state corresponding to [newCode].
+   * Attempts to update [_oldUnit] to the state corresponding to [newCode].
    * Returns `true` if success, or `false` otherwise.
-   * The [oldUnit] might be damaged.
+   * The [_oldUnit] might be damaged.
    */
   bool resolve(String newCode) {
     logger.enter('diff/resolve $_unitSource');
     try {
       // prepare old unit
-      CompilationUnit oldUnit = _units[_unitSource];
-      if (!_areCurlyBracketsBalanced(oldUnit.beginToken)) {
+      if (!_areCurlyBracketsBalanced(_oldUnit.beginToken)) {
         logger.log('Unbalanced number of curly brackets in the old unit.');
         return false;
       }
-      _unitElement = oldUnit.element;
+      _unitElement = _oldUnit.element;
       // prepare new unit
       CompilationUnit newUnit = _parseUnit(newCode);
       if (!_areCurlyBracketsBalanced(newUnit.beginToken)) {
@@ -1230,9 +1197,9 @@ class PoorMansIncrementalResolver {
       }
       // find difference
       _TokenPair firstPair =
-          _findFirstDifferentToken(oldUnit.beginToken, newUnit.beginToken);
+          _findFirstDifferentToken(_oldUnit.beginToken, newUnit.beginToken);
       _TokenPair lastPair =
-          _findLastDifferentToken(oldUnit.endToken, newUnit.endToken);
+          _findLastDifferentToken(_oldUnit.endToken, newUnit.endToken);
       if (firstPair != null && lastPair != null) {
         int firstOffsetOld = firstPair.oldToken.offset;
         int firstOffsetNew = firstPair.newToken.offset;
@@ -1248,10 +1215,10 @@ class PoorMansIncrementalResolver {
           _updateOffset = beginOffsetOld - 1;
           _updateEndOld = endOffsetOld;
           _updateEndNew = endOffsetNew;
-          _updateDelta = newUnit.length - oldUnit.length;
+          _updateDelta = newUnit.length - _oldUnit.length;
           // A Dart documentation comment change.
           if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
-            bool success = _resolveComment(oldUnit, newUnit, firstPair);
+            bool success = _resolveComment(_oldUnit, newUnit, firstPair);
             logger.log('Documentation comment resolved: $success');
             return success;
           }
@@ -1261,7 +1228,6 @@ class PoorMansIncrementalResolver {
             _shiftTokens(firstPair.oldToken);
             {
               IncrementalResolver incrementalResolver = new IncrementalResolver(
-                  _units,
                   _unitElement,
                   _updateOffset,
                   _updateEndOld,
@@ -1277,7 +1243,7 @@ class PoorMansIncrementalResolver {
         }
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
-            _findNodeCovering(oldUnit, beginOffsetOld, endOffsetOld);
+            _findNodeCovering(_oldUnit, beginOffsetOld, endOffsetOld);
         AstNode newNode =
             _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew);
         logger.log(() => 'oldNode: $oldNode');
@@ -1325,7 +1291,7 @@ class PoorMansIncrementalResolver {
           Token oldBeginToken = _getBeginTokenNotComment(oldNode);
           Token newBeginToken = _getBeginTokenNotComment(newNode);
           if (oldBeginToken.previous.type == TokenType.EOF) {
-            oldUnit.beginToken = newBeginToken;
+            _oldUnit.beginToken = newBeginToken;
           } else {
             oldBeginToken.previous.setNext(newBeginToken);
           }
@@ -1334,7 +1300,6 @@ class PoorMansIncrementalResolver {
         }
         // perform incremental resolution
         IncrementalResolver incrementalResolver = new IncrementalResolver(
-            _units,
             _unitElement,
             _updateOffset,
             _updateEndOld,
@@ -1402,7 +1367,6 @@ class PoorMansIncrementalResolver {
     NodeReplacer.replace(oldComment, newComment);
     // update elements
     IncrementalResolver incrementalResolver = new IncrementalResolver(
-        _units,
         _unitElement,
         _updateOffset,
         _updateEndOld,
