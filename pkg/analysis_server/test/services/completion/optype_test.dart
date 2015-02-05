@@ -46,12 +46,30 @@ class OpTypeTest {
   void assertOpType({bool invocation: false, bool returnValue: false,
       bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
       bool caseLabel: false}) {
-    expect(visitor.includeInvocationSuggestions, equals(invocation));
-    expect(visitor.includeReturnValueSuggestions, equals(returnValue));
-    expect(visitor.includeTypeNameSuggestions, equals(typeNames));
-    expect(visitor.includeVoidReturnSuggestions, equals(voidReturn));
-    expect(visitor.includeStatementLabelSuggestions, equals(statementLabel));
-    expect(visitor.includeCaseLabelSuggestions, equals(caseLabel));
+    expect(
+        visitor.includeInvocationSuggestions,
+        equals(invocation),
+        reason: 'invocation');
+    expect(
+        visitor.includeReturnValueSuggestions,
+        equals(returnValue),
+        reason: 'returnValue');
+    expect(
+        visitor.includeTypeNameSuggestions,
+        equals(typeNames),
+        reason: 'typeNames');
+    expect(
+        visitor.includeVoidReturnSuggestions,
+        equals(voidReturn),
+        reason: 'voidReturn');
+    expect(
+        visitor.includeStatementLabelSuggestions,
+        equals(statementLabel),
+        reason: 'statementLabel');
+    expect(
+        visitor.includeCaseLabelSuggestions,
+        equals(caseLabel),
+        reason: 'caseLabel');
   }
 
   test_Annotation() {
@@ -467,6 +485,16 @@ class OpTypeTest {
     assertOpType();
   }
 
+  test_IndexExpression() {
+    addTestSource('class C {foo(){var f; {var x;} f[^]}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_IndexExpression2() {
+    addTestSource('class C {foo(){var f; {var x;} f[T^]}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_InstanceCreationExpression_imported() {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^}}');
@@ -476,19 +504,13 @@ class OpTypeTest {
   test_InstanceCreationExpression_keyword() {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ }}');
-    assertOpType(
-        returnValue: true,
-        typeNames: true,
-        voidReturn: true);
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_InstanceCreationExpression_keyword2() {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ C();}}');
-    assertOpType(
-        returnValue: true,
-        typeNames: true,
-        voidReturn: true);
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_InterpolationExpression() {

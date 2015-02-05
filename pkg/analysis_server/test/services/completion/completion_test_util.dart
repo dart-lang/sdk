@@ -114,8 +114,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggest(String completion,
       {CompletionSuggestionKind csKind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, protocol.ElementKind elemKind:
-      null, bool isDeprecated: false, bool isPotential: false}) {
+      int relevance: DART_RELEVANCE_DEFAULT, protocol.ElementKind elemKind: null,
+      bool isDeprecated: false, bool isPotential: false}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -260,9 +260,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestFunctionTypeAlias(String name,
-      String returnType, bool isDeprecated, [int relevance =
-      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
-      CompletionSuggestionKind.INVOCATION]) {
+      String returnType, bool isDeprecated, [int relevance = DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
         csKind: kind,
@@ -673,8 +672,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestInvocationGetter(String name,
-      String returnType, {int relevance: DART_RELEVANCE_DEFAULT,
-      bool isDeprecated: false}) {
+      String returnType, {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated:
+      false}) {
     if (computer is InvocationComputer) {
       return assertSuggestGetter(
           name,
@@ -1892,6 +1891,54 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertNoSuggestions();
+    });
+  }
+
+  test_IndexExpression() {
+    // ExpressionStatement  Block
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} f[^]}}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('x');
+      assertSuggestLocalVariable('f', null);
+      assertSuggestLocalMethod('foo', 'C', null);
+      assertSuggestLocalClass('C');
+      assertSuggestLocalFunction('F2', null);
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestImportedClass('A');
+      assertSuggestImportedFunction('F1', null);
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
+    });
+  }
+
+  test_IndexExpression2() {
+    // SimpleIdentifier IndexExpression ExpressionStatement  Block
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} f[T^]}}''');
+    computeFast();
+    return computeFull((bool result) {
+      // top level results are partially filtered based on first char
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
     });
   }
 

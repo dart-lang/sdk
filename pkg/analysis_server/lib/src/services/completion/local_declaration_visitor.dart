@@ -126,17 +126,6 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitExpressionStatement(ExpressionStatement node) {
-    Expression expression = node.expression;
-    if (expression is SimpleIdentifier) {
-      if (expression.end < offset) {
-        return finished;
-      }
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitForEachStatement(ForEachStatement node) {
     SimpleIdentifier id;
     TypeName type;

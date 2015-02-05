@@ -6,6 +6,7 @@ library services.completion.computer.dart.optype;
 
 import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation
@@ -247,6 +248,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
+    // Given f[], the parser drops the [] from the expression statement
+    // but the [] token is the CompletionTarget entity
+    if (entity is Token) {
+      Token token = entity;
+      if (token.lexeme == '[]' && offset == token.offset + 1) {
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
   }
 
   @override
@@ -303,6 +313,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
 
