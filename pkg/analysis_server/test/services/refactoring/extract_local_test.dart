@@ -768,6 +768,30 @@ main() {
 ''');
   }
 
+  test_singleExpression_inIfElseIf() {
+    indexTestUnit('''
+main(int p) {
+  if (p == 1) {
+    print(1);
+  } else if (p == 2) {
+    print(2);
+  }
+}
+''');
+    _createRefactoringForString('2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(int p) {
+  var res = 2;
+  if (p == 1) {
+    print(1);
+  } else if (p == res) {
+    print(res);
+  }
+}
+''');
+  }
+
   test_singleExpression_inMethod() {
     indexTestUnit('''
 class A {
