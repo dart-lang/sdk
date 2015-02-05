@@ -345,6 +345,7 @@ class Parser : public ValueObject {
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
   bool IsAwaitKeyword();
+  bool IsYieldKeyword();
 
   void SkipIf(Token::Kind);
   void SkipBlock();
@@ -558,12 +559,18 @@ class Parser : public ValueObject {
   void OpenFunctionBlock(const Function& func);
   void OpenAsyncClosure();
   RawFunction* OpenAsyncFunction(intptr_t formal_param_pos);
+  RawFunction* OpenSyncGeneratorFunction(intptr_t func_pos);
+  SequenceNode* CloseSyncGenFunction(const Function& closure,
+                                     SequenceNode* closure_node);
+  void AddSyncGenClosureParameters(ParamList* params);
   void OpenAsyncTryBlock();
   SequenceNode* CloseBlock();
   SequenceNode* CloseAsyncFunction(const Function& closure,
                                    SequenceNode* closure_node);
   SequenceNode* CloseAsyncClosure(SequenceNode* body);
   SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block);
+  void AddAsyncClosureParameters(ParamList* params);
+  void AddContinuationVariables();
   void AddAsyncClosureVariables();
 
 
@@ -786,8 +793,9 @@ class Parser : public ValueObject {
   // global variables.
   bool is_top_level_;
 
-  // await_is_keyword_ is true if we are parsing an async function. In this
-  // context async is not treated as identifier but as a keyword.
+  // await_is_keyword_ is true if we are parsing an async or generator
+  // function. In this context the identifiers await, async and yield
+  // are treated as keywords.
   bool await_is_keyword_;
 
   // The member currently being parsed during "top level" parsing.

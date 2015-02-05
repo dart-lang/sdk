@@ -5584,7 +5584,7 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 
 bool Function::CanBeInlined() const {
   return is_inlinable() &&
-         !is_async_closure() &&
+         !is_generated_body() &&
          HasCode() &&
          !Isolate::Current()->debugger()->HasBreakpoint(*this);
 }
@@ -6111,7 +6111,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
-  result.set_is_async_closure(false);
+  result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
   result.set_owner(owner);
@@ -12788,7 +12788,23 @@ void ContextScope::SetContextLevelAt(intptr_t scope_index,
 
 
 const char* ContextScope::ToCString() const {
-  return "ContextScope";
+  const char* format =
+      "%s\nvar %s  token-pos %" Pd "  ctx lvl %" Pd "  index %" Pd "";
+  const char* prev_cstr = "ContextScope:";
+  String& name = String::Handle();
+  for (int i = 0; i < num_variables(); i++) {
+    name = NameAt(i);
+    const char* cname = name.ToCString();
+    intptr_t pos = TokenIndexAt(i);
+    intptr_t idx = ContextIndexAt(i);
+    intptr_t lvl = ContextLevelAt(i);
+    intptr_t len =
+        OS::SNPrint(NULL, 0, format, prev_cstr, cname, pos, lvl, idx) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, prev_cstr, cname, pos, lvl, idx);
+    prev_cstr = chars;
+  }
+  return prev_cstr;
 }
 
 

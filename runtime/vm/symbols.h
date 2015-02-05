@@ -37,8 +37,13 @@ class ObjectPointerVisitor;
   V(Call, "call")                                                              \
   V(Current, "current")                                                        \
   V(MoveNext, "moveNext")                                                      \
+  V(IsYieldEach, "isYieldEach")                                                \
   V(Value, "value")                                                            \
   V(_EnumHelper, "_EnumHelper")                                                \
+  V(_SyncIterable, "_SyncIterable")                                            \
+  V(_SyncIterableConstructor, "_SyncIterable.")                                \
+  V(_SyncIterator, "_SyncIterator")                                            \
+  V(IteratorParameter, ":iterator")                                            \
   V(Values, "values")                                                          \
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
@@ -66,7 +71,7 @@ class ObjectPointerVisitor;
   V(StringBase, "_StringBase")                                                 \
   V(Interpolate, "_interpolate")                                               \
   V(InterpolateSingle, "_interpolateSingle")                                   \
-  V(GetIterator, "iterator")                                                   \
+  V(iterator, "iterator")                                                      \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
@@ -80,6 +85,8 @@ class ObjectPointerVisitor;
   V(LoadLibrary, "loadLibrary")                                                \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
   V(Async, "async")                                                            \
+  V(Sync, "sync")                                                              \
+  V(Yield, "yield")                                                            \
   V(AsyncCompleter, ":async_completer")                                        \
   V(AsyncOperation, ":async_op")                                               \
   V(AsyncOperationParam, ":async_result")                                      \

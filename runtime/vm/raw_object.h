@@ -699,8 +699,12 @@ class RawFunction : public RawObject {
   };
 
   enum AsyncModifier {
-    kNoModifier,
-    kAsync,
+    kNoModifier = 0x0,
+    kAsyncBit   = 0x1,
+    kGeneratorBit =  0x2,
+    kAsync      = kAsyncBit,
+    kSyncGen    = kGeneratorBit,
+    kAsyncGen   = kAsyncBit | kGeneratorBit,
   };
 
  private:

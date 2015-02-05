@@ -888,8 +888,14 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   }
 
   if (!HasReturnNode(node_sequence)) {
-    // Add implicit return node.
-    node_sequence->Add(new ReturnNode(func.end_token_pos()));
+    // Add implicit return node. The implicit return value of synchronous
+    // generator closures is false, to indicate that there are no more
+    // elements in the iterable. In other cases the implicit return value
+    // is null.
+    AstNode* return_value = func.IsSyncGenClosure()
+        ? new LiteralNode(func.end_token_pos(), Bool::False())
+        : new LiteralNode(func.end_token_pos(), Instance::ZoneHandle());
+    node_sequence->Add(new ReturnNode(func.end_token_pos(), return_value));
   }
   if (parsed_function->has_expression_temp_var()) {
     node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
@@ -3060,38 +3066,19 @@ SequenceNode* Parser::ParseFunc(const Function& func,
         &Symbols::TypeArgumentsParameter(),
         &Type::ZoneHandle(Z, Type::DynamicType()));
   }
+  // Expect the parameter list unless this is a getter function, or the
+  // body closure of an async or generator getter function.
   ASSERT((CurrentToken() == Token::kLPAREN) ||
          func.IsGetterFunction() ||
-         func.is_async_closure());
+         (func.is_generated_body() &&
+             Function::Handle(func.parent_function()).IsGetterFunction()));
   const bool allow_explicit_default_values = true;
   if (func.IsGetterFunction()) {
     // Populate function scope with the formal parameters. Since in this case
     // we are compiling a getter this will at most populate the receiver.
     AddFormalParamsToScope(&params, current_block_->scope);
-  } else if (func.is_async_closure()) {
-    // Async closures have two optional parameters:
-    // * A continuation result.
-    // * A continuation error.
-    //
-    // If the error!=null we rethrow the error at the next await.
-    const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
-    ParamDesc result_param;
-    result_param.name = &Symbols::AsyncOperationParam();
-    result_param.default_value = &Object::null_instance();
-    result_param.type = &dynamic_type;
-    ParamDesc error_param;
-    error_param.name = &Symbols::AsyncOperationErrorParam();
-    error_param.default_value = &Object::null_instance();
-    error_param.type = &dynamic_type;
-    ParamDesc stack_trace_param;
-    stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
-    stack_trace_param.default_value = &Object::null_instance();
-    stack_trace_param.type = &dynamic_type;
-    params.parameters->Add(result_param);
-    params.parameters->Add(error_param);
-    params.parameters->Add(stack_trace_param);
-    params.num_optional_parameters += 3;
-    params.has_optional_positional_parameters = true;
+  } else if (func.IsAsyncClosure()) {
+    AddAsyncClosureParameters(&params);
     SetupDefaultsForOptionalParams(&params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
@@ -3099,10 +3086,23 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
       // Parse and discard any formal parameters. They are accessed as
       // context variables.
-      ParamList parse_away;
+      ParamList discarded_params;
       ParseFormalParameterList(allow_explicit_default_values,
                                false,
-                               &parse_away);
+                               &discarded_params);
+    }
+  } else if (func.IsSyncGenClosure()) {
+    AddSyncGenClosureParameters(&params);
+    SetupDefaultsForOptionalParams(&params, default_parameter_values);
+    AddFormalParamsToScope(&params, current_block_->scope);
+    ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
+    if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
+      // Parse and discard any formal parameters. They are accessed as
+      // context variables.
+      ParamList discarded_params;
+      ParseFormalParameterList(allow_explicit_default_values,
+                               false,
+                               &discarded_params);
     }
   } else {
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
@@ -3144,24 +3144,38 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     }
   }
 
+  const intptr_t modifier_pos = TokenPos();
   RawFunction::AsyncModifier func_modifier = ParseFunctionModifier();
-  func.set_modifier(func_modifier);
+  if (!func.is_generated_body()) {
+    // Don't add a modifier to the closure representing the body of
+    // the asynchronous function or generator.
+    func.set_modifier(func_modifier);
+  }
 
   OpenBlock();  // Open a nested scope for the outermost function block.
 
-  Function& async_closure = Function::ZoneHandle(Z);
-  if (func.IsAsyncFunction() && !func.is_async_closure()) {
+  Function& generated_body_closure = Function::ZoneHandle(Z);
+  if (func.IsAsyncFunction()) {
+    ASSERT(!func.is_generated_body());
     // The code of an async function is synthesized. Disable debugging.
     func.set_is_debuggable(false);
-    async_closure = OpenAsyncFunction(func.token_pos());
-  } else if (func.is_async_closure()) {
+    generated_body_closure = OpenAsyncFunction(func.token_pos());
+  } else if (func.IsAsyncClosure()) {
     // The closure containing the body of an async function is debuggable.
     ASSERT(func.is_debuggable());
     OpenAsyncClosure();
+  } else if (func.IsSyncGenerator()) {
+    // The code of a sync generator is synthesized. Disable debugging.
+    func.set_is_debuggable(false);
+    generated_body_closure = OpenSyncGeneratorFunction(func.token_pos());
+  } else if (func.IsSyncGenClosure()) {
+    // The closure containing the body of a sync generator is debuggable.
+    ASSERT(func.is_debuggable());
+    // Nothing special to do.
   }
 
   BoolScope allow_await(&this->await_is_keyword_,
-                        func.IsAsyncFunction() || func.is_async_closure());
+                        func.IsAsyncOrGenerator() || func.is_generated_body());
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
@@ -3175,6 +3189,10 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     end_token_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
+    if (func.IsGenerator()) {
+      ReportError(modifier_pos,
+                  "=> style function may not be sync* or async* generator");
+    }
     ConsumeToken();
     if (String::Handle(Z, func.name()).Equals(
         Symbols::EqualOperator())) {
@@ -3221,11 +3239,16 @@ SequenceNode* Parser::ParseFunc(const Function& func,
          func.end_token_pos() == end_token_pos);
   func.set_end_token_pos(end_token_pos);
   SequenceNode* body = CloseBlock();
-  if (func.IsAsyncFunction() && !func.is_async_closure()) {
-    body = CloseAsyncFunction(async_closure, body);
-    async_closure.set_end_token_pos(end_token_pos);
-  } else if (func.is_async_closure()) {
+  if (func.IsAsyncFunction()) {
+    body = CloseAsyncFunction(generated_body_closure, body);
+    generated_body_closure.set_end_token_pos(end_token_pos);
+  } else if (func.IsAsyncClosure()) {
     body = CloseAsyncClosure(body);
+  } else if (func.IsSyncGenerator()) {
+    body = CloseSyncGenFunction(generated_body_closure, body);
+    generated_body_closure.set_end_token_pos(end_token_pos);
+  } else if (func.IsSyncGenClosure()) {
+    body->scope()->RecursivelyCaptureAllVariables();
   }
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
@@ -3544,11 +3567,12 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                 method->name->ToCString());
   }
 
+  const intptr_t modifier_pos = TokenPos();
   RawFunction::AsyncModifier async_modifier = ParseFunctionModifier();
   if ((method->IsFactoryOrConstructor() || method->IsSetter()) &&
-      async_modifier != RawFunction::kNoModifier) {
-    ReportError(method->name_pos,
-                "%s '%s' may not be async",
+      (async_modifier != RawFunction::kNoModifier)) {
+    ReportError(modifier_pos,
+                "%s '%s' may not be async, async* or sync*",
                 (method->IsSetter()) ? "setter" : "constructor",
                 method->name->ToCString());
   }
@@ -3583,6 +3607,11 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       method_end_pos = TokenPos();
       ExpectToken(Token::kRBRACE);
     } else {
+      if ((async_modifier & RawFunction::kGeneratorBit) != 0) {
+        ReportError(modifier_pos,
+                    "=> style function may not be sync* or async* generator");
+      }
+
       ConsumeToken();
       BoolScope allow_await(&this->await_is_keyword_,
                             async_modifier != RawFunction::kNoModifier);
@@ -3644,6 +3673,12 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->name->ToCString());
       }
     }
+  }
+
+  if (method->has_abstract && (async_modifier != RawFunction::kNoModifier)) {
+    ReportError(modifier_pos,
+                "abstract function '%s' may not be async, async* or sync*",
+                method->name->ToCString());
   }
 
   RawFunction::Kind function_kind;
@@ -5195,7 +5230,22 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
   if (CurrentLiteral()->raw() == Symbols::Async().raw()) {
     ConsumeToken();
-    return RawFunction::kAsync;
+    if (CurrentToken() == Token::kMUL) {
+      ReportError("async* generator functions are not yet supported");
+      ConsumeToken();
+      return RawFunction::kAsyncGen;
+    } else {
+      return RawFunction::kAsync;
+    }
+  } else if ((CurrentLiteral()->raw() == Symbols::Sync().raw()) &&
+      (LookaheadToken(1) == Token::kMUL)) {
+    const bool enableSyncStar = true;
+    if (!enableSyncStar) {
+      ReportError("sync* generator functions are not yet supported");
+    }
+    ConsumeToken();
+    ConsumeToken();
+    return RawFunction::kSyncGen;
   }
   return RawFunction::kNoModifier;
 }
@@ -5254,6 +5304,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   const bool allow_explicit_default_values = true;
   ParseFormalParameterList(allow_explicit_default_values, false, &params);
 
+  const intptr_t modifier_pos = TokenPos();
   RawFunction::AsyncModifier func_modifier = ParseFunctionModifier();
 
   intptr_t function_end_pos = function_pos;
@@ -5266,6 +5317,10 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     function_end_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
+    if ((func_modifier & RawFunction::kGeneratorBit) != 0) {
+      ReportError(modifier_pos,
+                  "=> style function may not be sync* or async* generator");
+    }
     ConsumeToken();
     BoolScope allow_await(&this->await_is_keyword_,
                           func_modifier != RawFunction::kNoModifier);
@@ -5395,7 +5450,12 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                 field_name->ToCString());
   }
 
+  const intptr_t modifier_pos = TokenPos();
   RawFunction::AsyncModifier func_modifier = ParseFunctionModifier();
+  if (!is_getter && (func_modifier != RawFunction::kNoModifier)) {
+    ReportError(modifier_pos,
+                "setter function cannot be async, async* or sync*");
+  }
 
   intptr_t accessor_end_pos = accessor_pos;
   bool is_native = false;
@@ -5915,7 +5975,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   }
 
   ASSERT(try_blocks_list_ != NULL);
-  if (innermost_function().is_async_closure() ||
+  if (innermost_function().IsAsyncClosure() ||
       innermost_function().IsAsyncFunction()) {
     if ((try_blocks_list_->outer_try_block() != NULL) &&
         (try_blocks_list_->outer_try_block()->try_block()
@@ -6020,15 +6080,175 @@ void Parser::OpenAsyncTryBlock() {
   OpenBlock();
   PushTryBlock(current_block_);
 
-  if (innermost_function().is_async_closure() ||
+  if (innermost_function().IsAsyncClosure() ||
       innermost_function().IsAsyncFunction()) {
     SetupSavedTryContext(context_var);
   }
 }
 
 
+void Parser::AddSyncGenClosureParameters(ParamList* params) {
+  // Create the parameter list for the body closure of a sync generator:
+  // 1) Implicit closure parameter;
+  // 2) Iterator
+  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
+  // Add implicit closure parameter if not already present.
+  if (params->parameters->length() == 0) {
+    params->AddFinalParameter(0, &Symbols::ClosureParameter(), &dynamic_type);
+  }
+  ParamDesc iterator_param;
+  iterator_param.name = &Symbols::IteratorParameter();
+  iterator_param.type = &dynamic_type;
+  params->parameters->Add(iterator_param);
+  params->num_fixed_parameters++;
+}
+
+
+RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
+  Function& body = Function::Handle(Z);
+  String& body_closure_name = String::Handle(Z);
+  bool is_new_closure = false;
+
+  AddContinuationVariables();
+
+  // Check whether a function for the body of this generator
+  // function has already been created by a previous
+  // compilation.
+  const Function& found_func = Function::Handle(
+      Z, current_class().LookupClosureFunction(func_pos));
+  if (!found_func.IsNull() &&
+      (found_func.token_pos() == func_pos) &&
+      (found_func.script() == innermost_function().script()) &&
+      (found_func.parent_function() == innermost_function().raw())) {
+    ASSERT(found_func.IsSyncGenClosure());
+    body = found_func.raw();
+    body_closure_name = body.name();
+  } else {
+    // Create the closure containing the body of this generator function.
+    String& generator_name = String::Handle(Z, innermost_function().name());
+    body_closure_name =
+        String::NewFormatted("<%s_sync_body>", generator_name.ToCString());
+    body_closure_name = Symbols::New(body_closure_name);
+    body = Function::NewClosureFunction(body_closure_name,
+                                        innermost_function(),
+                                        func_pos);
+    body.set_is_generated_body(true);
+    body.set_result_type(AbstractType::Handle(Type::DynamicType()));
+    is_new_closure = true;
+  }
+
+  ParamList closure_params;
+  AddSyncGenClosureParameters(&closure_params);
+
+  if (is_new_closure) {
+    // Add the parameters to the newly created closure.
+    AddFormalParamsToFunction(&closure_params, body);
+
+    // Create and set the signature class of the closure.
+    const String& sig = String::Handle(Z, body.Signature());
+    Class& sig_cls = Class::Handle(Z, library_.LookupLocalClass(sig));
+    if (sig_cls.IsNull()) {
+      sig_cls = Class::NewSignatureClass(sig, body, script_, body.token_pos());
+      library_.AddClass(sig_cls);
+    }
+    body.set_signature_class(sig_cls);
+    const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
+    if (!sig_type.IsFinalized()) {
+      ClassFinalizer::FinalizeType(
+          sig_cls, sig_type, ClassFinalizer::kCanonicalize);
+    }
+    ASSERT(AbstractType::Handle(Z, body.result_type()).IsResolved());
+    ASSERT(body.NumParameters() == closure_params.parameters->length());
+  }
+
+  OpenFunctionBlock(body);
+  AddFormalParamsToScope(&closure_params, current_block_->scope);
+  OpenBlock();
+
+  /*
+  async_temp_scope_ = current_block_->scope; // Is this needed?
+  */
+  return body.raw();
+}
+
+SequenceNode* Parser::CloseSyncGenFunction(const Function& closure,
+                                           SequenceNode* closure_body) {
+  // The block for the closure body has already been closed. Close the
+  // corresponding function block.
+  CloseBlock();
+
+  closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+
+  // :await_jump_var = -1;
+  LocalVariable* jump_var =
+      current_block_->scope->LookupVariable(Symbols::AwaitJumpVar(), false);
+  LiteralNode* init_value =
+      new(Z) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+  current_block_->statements->Add(
+      new(Z) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
+
+  // return new SyncIterable(body_closure);
+  const Class& iterable_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::_SyncIterable()));
+  ASSERT(!iterable_class.IsNull());
+  const Function& iterable_constructor = Function::ZoneHandle(Z,
+      iterable_class.LookupConstructorAllowPrivate(
+          Symbols::_SyncIterableConstructor()));
+  ASSERT(!iterable_constructor.IsNull());
+
+  const String& closure_name = String::Handle(Z, closure.name());
+  ASSERT(closure_name.IsSymbol());
+
+  ArgumentListNode* arguments = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
+  ClosureNode* closure_obj = new(Z) ClosureNode(
+      Scanner::kNoSourcePos, closure, NULL, closure_body->scope());
+  arguments->Add(closure_obj);
+  ConstructorCallNode* new_iterable =
+      new(Z) ConstructorCallNode(Scanner::kNoSourcePos,
+          TypeArguments::ZoneHandle(Z),
+          iterable_constructor,
+          arguments);
+  ReturnNode* return_node =
+      new (Z) ReturnNode(Scanner::kNoSourcePos, new_iterable);
+  current_block_->statements->Add(return_node);
+  return CloseBlock();
+}
+
+
+void Parser::AddAsyncClosureParameters(ParamList* params) {
+  // Async closures have two optional parameters:
+  // * A continuation result.
+  // * A continuation error.
+  // * A continuation stack trace.
+  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
+  // Add implicit closure parameter if not yet present.
+  if (params->parameters->length() == 0) {
+    params->AddFinalParameter(0, &Symbols::ClosureParameter(), &dynamic_type);
+  }
+  ParamDesc result_param;
+  result_param.name = &Symbols::AsyncOperationParam();
+  result_param.default_value = &Object::null_instance();
+  result_param.type = &dynamic_type;
+  params->parameters->Add(result_param);
+  ParamDesc error_param;
+  error_param.name = &Symbols::AsyncOperationErrorParam();
+  error_param.default_value = &Object::null_instance();
+  error_param.type = &dynamic_type;
+  params->parameters->Add(error_param);
+  ParamDesc stack_trace_param;
+  stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
+  stack_trace_param.default_value = &Object::null_instance();
+  stack_trace_param.type = &dynamic_type;
+  params->parameters->Add(stack_trace_param);
+  params->has_optional_positional_parameters = true;
+  params->num_optional_parameters += 3;
+}
+
+
 RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
   TRACE_PARSER("OpenAsyncFunction");
+  AddContinuationVariables();
   AddAsyncClosureVariables();
   Function& closure = Function::Handle(Z);
   bool is_new_closure = false;
@@ -6042,7 +6262,7 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
       (found_func.token_pos() == async_func_pos) &&
       (found_func.script() == innermost_function().script()) &&
       (found_func.parent_function() == innermost_function().raw())) {
-    ASSERT(found_func.is_async_closure());
+    ASSERT(found_func.IsAsyncClosure());
     closure = found_func.raw();
   } else {
     // Create the closure containing the body of this async function.
@@ -6054,33 +6274,13 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
         String::Handle(Z, Symbols::New(closure_name)),
         innermost_function(),
         async_func_pos);
-    closure.set_is_async_closure(true);
+    closure.set_is_generated_body(true);
     closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
     is_new_closure = true;
   }
   // Create the parameter list for the async body closure.
   ParamList closure_params;
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
-  closure_params.AddFinalParameter(
-      async_func_pos, &Symbols::ClosureParameter(), &dynamic_type);
-  ParamDesc result_param;
-  result_param.name = &Symbols::AsyncOperationParam();
-  result_param.default_value = &Object::null_instance();
-  result_param.type = &dynamic_type;
-  closure_params.parameters->Add(result_param);
-  ParamDesc error_param;
-  error_param.name = &Symbols::AsyncOperationErrorParam();
-  error_param.default_value = &Object::null_instance();
-  error_param.type = &dynamic_type;
-  closure_params.parameters->Add(error_param);
-  ParamDesc stack_trace_param;
-  stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
-  stack_trace_param.default_value = &Object::null_instance();
-  stack_trace_param.type = &dynamic_type;
-  closure_params.parameters->Add(stack_trace_param);
-  closure_params.has_optional_positional_parameters = true;
-  closure_params.num_optional_parameters += 3;
-
+  AddAsyncClosureParameters(&closure_params);
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
@@ -6110,12 +6310,10 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
 }
 
 
-void Parser::AddAsyncClosureVariables() {
-  // Add to AST:
+void Parser::AddContinuationVariables() {
+  // Add to current block's scope:
   //   var :await_jump_var;
   //   var :await_ctx_var;
-  //   var :async_op;
-  //   var :async_completer;
   const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* await_jump_var = new (Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
@@ -6127,12 +6325,20 @@ void Parser::AddAsyncClosureVariables() {
   current_block_->scope->AddVariable(await_ctx_var);
   current_block_->scope->CaptureVariable(Symbols::AwaitContextVar());
   await_ctx_var->set_is_captured();
-  LocalVariable* async_op_var = new (Z) LocalVariable(
+}
+
+
+void Parser::AddAsyncClosureVariables() {
+  // Add to current block's scope:
+  //   var :async_op;
+  //   var :async_completer;
+  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
+  LocalVariable* async_op_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
   current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
   async_op_var->set_is_captured();
-  LocalVariable* async_completer = new (Z) LocalVariable(
+  LocalVariable* async_completer = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
   current_block_->scope->AddVariable(async_completer);
   current_block_->scope->CaptureVariable(Symbols::AsyncCompleter());
@@ -6214,12 +6420,12 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   current_block_->statements->Add(store_completer);
 
   // :await_jump_var = -1;
-  LocalVariable* jump_var = current_block_->scope->LookupVariable(
-        Symbols::AwaitJumpVar(), false);
+  LocalVariable* jump_var =
+      current_block_->scope->LookupVariable(Symbols::AwaitJumpVar(), false);
   LiteralNode* init_value =
-    new(Z) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+      new(Z) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
   current_block_->statements->Add(
-      new (Z) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
+      new(Z) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
@@ -6476,8 +6682,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
                 "missing initialization of 'final' or 'const' variable");
   } else {
     // Initialize variable with null.
-    AstNode* null_expr = new(Z) LiteralNode(
-        ident_pos, Instance::ZoneHandle(Z));
+    AstNode* null_expr = new(Z) LiteralNode(ident_pos, Instance::ZoneHandle(Z));
     initialization = new(Z) StoreLocalNode(
         ident_pos, variable, null_expr);
   }
@@ -6907,7 +7112,11 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
 
 // Returns true if the current token is kIDENT or a pseudo-keyword.
 bool Parser::IsIdentifier() {
-  return Token::IsIdentifier(CurrentToken()) && !IsAwaitKeyword();
+  return Token::IsIdentifier(CurrentToken()) &&
+      !(await_is_keyword_ &&
+       ((CurrentLiteral()->raw() == Symbols::Await().raw()) ||
+       (CurrentLiteral()->raw() == Symbols::Async().raw()) ||
+       (CurrentLiteral()->raw() == Symbols::Yield().raw())));
 }
 
 
@@ -7056,7 +7265,8 @@ bool Parser::IsFunctionDeclaration() {
         (CurrentToken() == Token::kARROW) ||
         (is_top_level_ && IsLiteral("native")) ||
         is_external ||
-        (CurrentLiteral()->raw() == Symbols::Async().raw())) {
+        (CurrentLiteral()->raw() == Symbols::Async().raw()) ||
+        (CurrentLiteral()->raw() == Symbols::Sync().raw())) {
       SetPosition(saved_pos);
       return true;
     }
@@ -7546,6 +7756,12 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   ConsumeToken();  // for.
   ExpectToken(Token::kLPAREN);
 
+  if (!innermost_function().IsAsyncFunction() &&
+      !innermost_function().IsAsyncClosure()) {
+    ReportError(await_for_pos,
+                "await for loop is only allowed in async function");
+  }
+
   // Parse loop variable.
   bool loop_var_is_final = (CurrentToken() == Token::kFINAL);
   if (CurrentToken() == Token::kCONST) {
@@ -7728,7 +7944,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // Generate initialization of iterator variable.
   ArgumentListNode* no_args = new(Z) ArgumentListNode(collection_pos);
   AstNode* get_iterator = new(Z) InstanceGetterNode(
-      collection_pos, collection_expr, Symbols::GetIterator());
+      collection_pos, collection_expr, Symbols::iterator());
   AstNode* iterator_init =
       new(Z) StoreLocalNode(collection_pos, iterator_var, get_iterator);
   current_block_->statements->Add(iterator_init);
@@ -7979,7 +8195,7 @@ SequenceNode* Parser::ParseFinallyBlock() {
   // In case of async closures we need to restore the saved try index of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
-  if ((innermost_function().is_async_closure() ||
+  if ((innermost_function().IsAsyncClosure() ||
        innermost_function().IsAsyncFunction()) &&
       (try_blocks_list_ != NULL)) {
     // We need two unchain two scopes: finally clause, and the try block level.
@@ -8139,7 +8355,7 @@ SequenceNode* Parser::ParseCatchClauses(
     // In case of async closures we need to restore the saved try index of an
     // outer try block (if it exists).
     ASSERT(try_blocks_list_ != NULL);
-    if (innermost_function().is_async_closure() ||
+    if (innermost_function().IsAsyncClosure() ||
         innermost_function().IsAsyncFunction()) {
       if ((try_blocks_list_->outer_try_block() != NULL) &&
           (try_blocks_list_->outer_try_block()->try_block()
@@ -8247,7 +8463,7 @@ SequenceNode* Parser::ParseCatchClauses(
     // In case of async closures we need to restore the saved try index of an
     // outer try block (if it exists).
     ASSERT(try_blocks_list_ != NULL);
-    if (innermost_function().is_async_closure() ||
+    if (innermost_function().IsAsyncClosure() ||
         innermost_function().IsAsyncFunction()) {
       if ((try_blocks_list_->outer_try_block() != NULL) &&
           (try_blocks_list_->outer_try_block()->try_block()
@@ -8285,15 +8501,17 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
       async_saved_try_ctx_name, false);
   ASSERT(async_saved_try_ctx != NULL);
   ASSERT(saved_try_context != NULL);
-  current_block_->statements->Add(new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos, async_saved_try_ctx, new (Z) LoadLocalNode(
-          Scanner::kNoSourcePos, saved_try_context)));
+  current_block_->statements->Add(new(Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      async_saved_try_ctx,
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, saved_try_context)));
   parsed_function()->set_saved_try_ctx(saved_try_context);
   parsed_function()->set_async_saved_try_ctx_name(async_saved_try_ctx_name);
 }
 
 
-// Set up the currently relevant :saved_try_context_var on the stack:
+// Restore the currently relevant :saved_try_context_var on the stack
+// from the captured :async_saved_try_cts_var.
 // * Try blocks: Set the context variable for this try block.
 // * Catch/finally blocks: Set the context variable for any outer try block (if
 //   existent).
@@ -8381,7 +8599,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   PushTryBlock(current_block_);
   ExpectToken(Token::kLBRACE);
 
-  if (innermost_function().is_async_closure() ||
+  if (innermost_function().IsAsyncClosure() ||
       innermost_function().IsAsyncFunction()) {
     SetupSavedTryContext(context_var);
   }
@@ -8560,17 +8778,71 @@ AstNode* Parser::ParseStatement() {
     const intptr_t return_pos = TokenPos();
     ConsumeToken();
     if (CurrentToken() != Token::kSEMICOLON) {
+      const intptr_t expr_pos = TokenPos();
       if (current_function().IsConstructor() &&
           (current_block_->scope->function_level() == 0)) {
-        ReportError(return_pos,
-                    "return of a value not allowed in constructors");
+        ReportError(expr_pos,
+                    "return of a value is not allowed in constructors");
+      } else if (current_function().IsGenerator()) {
+        ReportError(expr_pos, "generator functions may not return a value");
       }
       AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
       statement = new(Z) ReturnNode(statement_pos, expr);
     } else {
-      statement = new(Z) ReturnNode(statement_pos);
+      if (current_function().IsSyncGenClosure() &&
+          (current_block_->scope->function_level() == 0)) {
+        // In a synchronous generator, return without an expression
+        // returns false, signaling that the iterator terminates and
+        // did not yield a value.
+        statement = new(Z) ReturnNode(statement_pos,
+            new(Z) LiteralNode(return_pos, Bool::False()));
+      } else {
+        statement = new(Z) ReturnNode(statement_pos);
+      }
     }
     AddNodeForFinallyInlining(statement);
+    ExpectSemicolon();
+  } else if (IsYieldKeyword()) {
+    bool is_yield_each = false;
+    ConsumeToken();
+    ASSERT(innermost_function().IsGenerator() ||
+           innermost_function().IsSyncGenClosure());
+    if (CurrentToken() == Token::kMUL) {
+      is_yield_each = true;
+      ConsumeToken();
+    }
+    AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
+    LocalVariable* iterator_param =
+        LookupLocalScope(Symbols::IteratorParameter());
+    ASSERT(iterator_param != NULL);
+    // Generate :iterator.current = expr;
+    AstNode* iterator =
+        new(Z) LoadLocalNode(Scanner::kNoSourcePos, iterator_param);
+    AstNode* store_current =
+        new(Z) InstanceSetterNode(Scanner::kNoSourcePos,
+                                  iterator,
+                                  String::ZoneHandle(Symbols::Current().raw()),
+                                  expr);
+    LetNode* yield = new(Z) LetNode(statement_pos);
+    yield->AddNode(store_current);
+    if (is_yield_each) {
+      // Generate :iterator.isYieldEach = true;
+      AstNode* set_is_yield_each =
+          new(Z) InstanceSetterNode(Scanner::kNoSourcePos,
+              iterator,
+              String::ZoneHandle(Symbols::IsYieldEach().raw()),
+              new(Z) LiteralNode(TokenPos(), Bool::True()));
+      yield->AddNode(set_is_yield_each);
+    }
+    AwaitMarkerNode* await_marker = new(Z) AwaitMarkerNode();
+    await_marker->set_scope(current_block_->scope);
+    yield->AddNode(await_marker);
+    // Return true to indicate that a value has been generated.
+    ReturnNode* return_true = new(Z) ReturnNode(statement_pos,
+        new(Z) LiteralNode(TokenPos(), Bool::True()));
+    return_true->set_return_type(ReturnNode::kContinuationTarget);
+    yield->AddNode(return_true);
+    statement = yield;
     ExpectSemicolon();
   } else if (token == Token::kIF) {
     statement = ParseIfStatement(label_name);
@@ -8754,6 +9026,12 @@ bool Parser::IsLiteral(const char* literal) {
 bool Parser::IsAwaitKeyword() {
   return await_is_keyword_ &&
          (CurrentLiteral()->raw() == Symbols::Await().raw());
+}
+
+
+bool Parser::IsYieldKeyword() {
+  return await_is_keyword_ &&
+         (CurrentLiteral()->raw() == Symbols::Yield().raw());
 }
 
 
@@ -9414,6 +9692,10 @@ AstNode* Parser::ParseUnaryExpr() {
   const intptr_t op_pos = TokenPos();
   if (IsAwaitKeyword()) {
     TRACE_PARSER("ParseAwaitExpr");
+    if (!innermost_function().IsAsyncFunction() &&
+        !innermost_function().IsAsyncClosure()) {
+      ReportError("await operator is only allowed in async function");
+    }
     ConsumeToken();
     parsed_function()->record_await();
     expr = new (Z) AwaitNode(op_pos, ParseUnaryExpr());

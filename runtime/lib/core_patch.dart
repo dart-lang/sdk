@@ -21,3 +21,54 @@ class _EnumHelper {
   static const List<String> _enum_names = null;
   String toString() => _enum_names[index];
 }
+
+typedef bool SyncGeneratorCallback(Iterator iterator);
+
+// _SyncIterable and _syncIterator are used by the compiler to
+// implement sync* generator functions. A sync* generator allocates
+// and returns a new _SyncIterable object.
+class _SyncIterable extends IterableBase {
+  // moveNextFn is the closurized body of the generator function.
+  final SyncGeneratorCallback moveNextFn;
+
+  const _SyncIterable(this.moveNextFn);
+
+  get iterator {
+    return new _SyncIterator(moveNextFn._clone());
+  }
+}
+
+class _SyncIterator implements Iterator {
+  bool isYieldEach;  // Set by generated code for the yield* statement.
+  Iterator yieldEachIterator;
+  var current;  // Set by generated code for the yield and yield* statement.
+  SyncGeneratorCallback moveNextFn;
+
+  _SyncIterator(this.moveNextFn);
+
+  bool moveNext() {
+    if (moveNextFn == null) {
+      return false;
+    }
+    while(true) {
+      if (yieldEachIterator != null) {
+        if (yieldEachIterator.moveNext()) {
+          current = yieldEachIterator.current;
+          return true;
+        }
+        yieldEachIterator = null;
+      }
+      isYieldEach = false;
+      if (!moveNextFn(this)) {
+        moveNextFn = null;
+        current = null;
+        return false;
+      }
+      if (isYieldEach && (current is Iterable)) {
+        yieldEachIterator = current.iterator;
+        continue;
+      }
+      return true;    
+    }
+  }
+}

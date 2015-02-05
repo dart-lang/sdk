@@ -7,7 +7,6 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
-async_await_syntax_test/b00a: MissingCompileTimeError # Issue 21404
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -19,6 +18,11 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 
 [ $compiler == dart2dart ]
+async_test/constructor2: MissingCompileTimeError # Issue 22051
+async_test/constructor3: MissingCompileTimeError # Issue 22051
+async_test/setter1: MissingCompileTimeError # Issue 22051
+sync_generator1_test: Fail # Issue 22051
+
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
 deferred_not_loaded_check_test: Fail # Issue 17523
@@ -41,68 +45,41 @@ cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
 compile_time_constant12_test: Fail # Issue 21000
-async_await_syntax_test/a07a: CompileTimeError # Issue 21404
-async_await_syntax_test/a08a: CompileTimeError # Issue 21404
 async_await_syntax_test/a09a: CompileTimeError # Issue 21404
 async_await_syntax_test/a10a: CompileTimeError # Issue 21404
-async_await_syntax_test/b07a: CompileTimeError # Issue 21404
-async_await_syntax_test/b08a: CompileTimeError # Issue 21404
 async_await_syntax_test/b09a: CompileTimeError # Issue 21404
 async_await_syntax_test/b10a: CompileTimeError # Issue 21404
-async_await_syntax_test/c07a: CompileTimeError # Issue 21404
-async_await_syntax_test/c08a: CompileTimeError # Issue 21404
 async_await_syntax_test/c09a: CompileTimeError # Issue 21404
 async_await_syntax_test/c10a: CompileTimeError # Issue 21404
-async_await_syntax_test/d07a: CompileTimeError # Issue 21404
-async_await_syntax_test/d08a: CompileTimeError # Issue 21404
-async_await_syntax_test/d08b: CompileTimeError # Issue 21404
 async_await_syntax_test/d09a: CompileTimeError # Issue 21404
 async_await_syntax_test/d10a: CompileTimeError # Issue 21404
 
 [ $compiler == none || ($compiler == dart2dart && $builder_tag != new_backend) ]
 compile_time_constant_c_test/01: Fail # Issue 21000
 async_await_syntax_test/a03a: CompileTimeError # Issue 21404
-async_await_syntax_test/a04a: CompileTimeError # Issue 21404
-async_await_syntax_test/a11b: CompileTimeError # Issue 21404
+async_await_syntax_test/a03b: CompileTimeError # Issue 21404
 async_await_syntax_test/a11d: CompileTimeError # Issue 21404
 async_await_syntax_test/b03a: CompileTimeError # Issue 21404
-async_await_syntax_test/b04a: CompileTimeError # Issue 21404
-async_await_syntax_test/b11b: CompileTimeError # Issue 21404
 async_await_syntax_test/b11d: CompileTimeError # Issue 21404
 async_await_syntax_test/c03a: CompileTimeError # Issue 21404
-async_await_syntax_test/c04a: CompileTimeError # Issue 21404
 async_await_syntax_test/d03a: CompileTimeError # Issue 21404
-async_await_syntax_test/d04a: CompileTimeError # Issue 21404
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
 async_await_syntax_test/a03a: RuntimeError # Issue 21404
-async_await_syntax_test/a04a: RuntimeError # Issue 21404
-async_await_syntax_test/a07a: RuntimeError # Issue 21404
+async_await_syntax_test/a03b: CompileTimeError # Issue 21404
 async_await_syntax_test/a08a: RuntimeError # Issue 21404
 async_await_syntax_test/a09a: RuntimeError # Issue 21404
 async_await_syntax_test/a10a: RuntimeError # Issue 21404
-async_await_syntax_test/a11b: RuntimeError # Issue 21404
 async_await_syntax_test/a11d: RuntimeError # Issue 21404
 async_await_syntax_test/b00a: Fail  # Issue 21404
 async_await_syntax_test/b03a: RuntimeError # Issue 21404
-async_await_syntax_test/b04a: RuntimeError # Issue 21404
-async_await_syntax_test/b07a: RuntimeError # Issue 21404
-async_await_syntax_test/b08a: RuntimeError # Issue 21404
 async_await_syntax_test/b09a: RuntimeError # Issue 21404
 async_await_syntax_test/b10a: RuntimeError # Issue 21404
-async_await_syntax_test/b11b: RuntimeError # Issue 21404
 async_await_syntax_test/b11d: RuntimeError # Issue 21404
 async_await_syntax_test/c03a: RuntimeError # Issue 21404
-async_await_syntax_test/c04a: RuntimeError # Issue 21404
-async_await_syntax_test/c07a: RuntimeError # Issue 21404
-async_await_syntax_test/c08a: RuntimeError # Issue 21404
 async_await_syntax_test/c09a: RuntimeError # Issue 21404
 async_await_syntax_test/c10a: RuntimeError # Issue 21404
 async_await_syntax_test/d03a: RuntimeError # Issue 21404
-async_await_syntax_test/d04a: RuntimeError # Issue 21404
-async_await_syntax_test/d07a: RuntimeError # Issue 21404
-async_await_syntax_test/d08a: RuntimeError # Issue 21404
-async_await_syntax_test/d08b: RuntimeError # Issue 21404
 async_await_syntax_test/d09a: RuntimeError # Issue 21404
 async_await_syntax_test/d10a: RuntimeError # Issue 21404
 

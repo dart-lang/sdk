@@ -15,6 +15,8 @@ await_future_test: CompileTimeError # Issue 21411
 await_nonfuture_test: CompileTimeError # Issue 21411
 await_regression_test: CompileTimeError # Issue 21411
 await_test: CompileTimeError # Issue 21411
+sync_generator1_test: Fail # Issue 21411
+sync_generator2_test/none: Fail # Issue 21411
 async_await_syntax_test/a01a: CompileTimeError # Issue 21411
 async_await_syntax_test/a02a: CompileTimeError # Issue 21411
 async_await_syntax_test/a03a: CompileTimeError # Issue 21411
@@ -63,6 +65,9 @@ async_await_syntax_test/d08a: CompileTimeError # Issue 21411
 async_await_syntax_test/d08b: CompileTimeError # Issue 21411
 async_await_syntax_test/d09a: CompileTimeError # Issue 21411
 async_await_syntax_test/d10a: CompileTimeError # Issue 21411
+async_await_syntax_test/a04c: CompileTimeError # Issue 22259
+async_await_syntax_test/a03b: CompileTimeError # Issue 22259
+
 
 [ $compiler == dart2js && $unchecked ]
 async_test/type-mismatch1: CompileTimeError # Issue 21411

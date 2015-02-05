@@ -74,4 +74,28 @@ DEFINE_NATIVE_ENTRY(FunctionImpl_hashCode, 1) {
   return Object::null();
 }
 
+
+DEFINE_NATIVE_ENTRY(FunctionImpl_clone, 1) {
+  const Instance& receiver = Instance::CheckedHandle(
+      isolate, arguments->NativeArgAt(0));
+  ASSERT(receiver.IsClosure());
+  if (receiver.IsClosure()) {
+    const Function& func =
+        Function::Handle(isolate, Closure::function(receiver));
+    const Context& ctx =
+        Context::Handle(isolate, Closure::context(receiver));
+    Context& cloned_ctx =
+        Context::Handle(isolate, Context::New(ctx.num_variables()));
+    cloned_ctx.set_parent(Context::Handle(isolate, ctx.parent()));
+    Object& inst = Object::Handle(isolate);
+    for (int i = 0; i < ctx.num_variables(); i++) {
+      inst = ctx.At(i);
+      cloned_ctx.SetAt(i, inst);
+    }
+    return Closure::New(func, cloned_ctx);
+  }
+  return Object::null();
+}
+
+
 }  // namespace dart
