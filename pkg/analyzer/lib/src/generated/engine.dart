@@ -1856,6 +1856,39 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  CompilationUnit ensureAnyResolvedDartUnit(Source source) {
+    SourceEntry sourceEntry = _cache.get(source);
+    if (sourceEntry is! DartEntry) {
+      return null;
+    }
+    DartEntry dartEntry = sourceEntry;
+    // Check if there is a resolved unit.
+    CompilationUnit unit = dartEntry.anyResolvedCompilationUnit;
+    if (unit != null) {
+      return unit;
+    }
+    // Invalidate the flushed RESOLVED_UNIT to force it eventually.
+    bool shouldBeScheduled = false;
+    List<Source> librariesContaining = dartEntry.containingLibraries;
+    for (Source librarySource in librariesContaining) {
+      if (dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) ==
+          CacheState.FLUSHED) {
+        dartEntry.setStateInLibrary(
+            DartEntry.RESOLVED_UNIT,
+            librarySource,
+            CacheState.INVALID);
+        shouldBeScheduled = true;
+      }
+    }
+    if (shouldBeScheduled) {
+      _workManager.add(source, SourcePriority.UNKNOWN);
+    }
+    // We cannot provide a resolved unit right now,
+    // but the future analysis will.
+    return null;
+  }
+
+  @override
   bool exists(Source source) {
     if (source == null) {
       return false;
@@ -2184,16 +2217,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
         }
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-          sourceEntry.setValue(SourceEntry.CONTENT, newContents);
-        }
+        sourceEntry.modificationTime =
+            _contentCache.getModificationStamp(source);
+        sourceEntry.setValue(SourceEntry.CONTENT, newContents);
       } else {
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-        }
+        sourceEntry.modificationTime =
+            _contentCache.getModificationStamp(source);
       }
     } else if (originalContents != null) {
       _incrementalAnalysisCache =
@@ -2201,17 +2230,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       changed = newContents != originalContents;
       // We are removing the overlay for the file, check if the file's
       // contents is the same as it was in the overlay.
-      if (sourceEntry != null) {
-        try {
-          TimestampedData<String> fileContents = getContents(source);
-          String fileContentsData = fileContents.data;
-          if (fileContentsData == originalContents) {
-            sourceEntry.modificationTime = fileContents.modificationTime;
-            sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
-            changed = false;
-          }
-        } catch (e) {
+      try {
+        TimestampedData<String> fileContents = getContents(source);
+        String fileContentsData = fileContents.data;
+        if (fileContentsData == originalContents) {
+          sourceEntry.modificationTime = fileContents.modificationTime;
+          sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
+          changed = false;
         }
+      } catch (e) {
       }
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
@@ -9703,6 +9730,13 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   CompilationUnit computeResolvableCompilationUnit(Source source);
 
   /**
+   * Return any resolved [CompilationUnit] for the given [source] if not
+   * flushed, otherwise return `null` and ensures that the [CompilationUnit]
+   * will be eventually returned to the client from [performAnalysisTask].
+   */
+  CompilationUnit ensureAnyResolvedDartUnit(Source source);
+
+  /**
    * Return context that owns the given source.
    *
    * @param source the source whose context is to be returned
@@ -9725,7 +9759,7 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * is the updated contents.  If [notify] is true, a source changed event is
    * triggered.
    *
-   * Normally it should not be necessary for clinets to call this function,
+   * Normally it should not be necessary for clients to call this function,
    * since it will be automatically invoked in response to a call to
    * [applyChanges] or [setContents].  However, if this analysis context is
    * sharing its content cache with other contexts, then the client must

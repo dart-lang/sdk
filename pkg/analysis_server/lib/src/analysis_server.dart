@@ -589,7 +589,8 @@ class AnalysisServer {
   }
 
   /**
-   * Returns `true` if there is a subscription for the given [server] and [file].
+   * Returns `true` if there is a subscription for the given [service] and
+   * [file].
    */
   bool hasAnalysisSubscription(AnalysisService service, String file) {
     Set<String> files = analysisServices[service];
@@ -699,9 +700,7 @@ class AnalysisServer {
    */
   void scheduleOperation(ServerOperation operation) {
     addOperation(operation);
-    if (!performOperationPending) {
-      _schedulePerformOperation();
-    }
+    _schedulePerformOperation();
   }
 
   /**
@@ -929,6 +928,15 @@ class AnalysisServer {
     });
   }
 
+  void test_flushResolvedUnit(String file) {
+    if (AnalysisEngine.isDartFileName(file)) {
+      AnalysisContextImpl context = getAnalysisContext(file);
+      Source source = getSource(file);
+      DartEntry dartEntry = context.getReadableSourceEntryOrNull(source);
+      dartEntry.flushAstStructures();
+    }
+  }
+
   /**
    * Implementation for `analysis.updateContent`.
    */
@@ -967,6 +975,7 @@ class AnalysisServer {
         throw new AnalysisException('Illegal change type');
       }
       _overlayState.setContents(source, newContents);
+      // Update all contexts.
       for (InternalAnalysisContext context in folderMap.values) {
         if (context.handleContentsChanged(
             source,
@@ -974,6 +983,28 @@ class AnalysisServer {
             newContents,
             true)) {
           schedulePerformAnalysisOperation(context);
+        } else {
+          // When the client sends any change for a source, we should resend
+          // subscribed notifications, even if there were no changes in the
+          // source contents.
+          // TODO(scheglov) consider checking if there are subscriptions.
+          if (AnalysisEngine.isDartFileName(file)) {
+            CompilationUnit dartUnit =
+                context.ensureAnyResolvedDartUnit(source);
+            if (dartUnit != null) {
+              AnalysisErrorInfo errorInfo = context.getErrors(source);
+              scheduleNotificationOperations(
+                  this,
+                  file,
+                  errorInfo.lineInfo,
+                  context,
+                  null,
+                  dartUnit,
+                  errorInfo.errors);
+            } else {
+              schedulePerformAnalysisOperation(context);
+            }
+          }
         }
       }
     });
@@ -1008,7 +1039,9 @@ class AnalysisServer {
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
-    assert(!performOperationPending);
+    if (performOperationPending) {
+      return;
+    }
     /*
      * TODO (danrubel) Rip out this workaround once the underlying problem
      * is fixed. Currently, the VM and dart:io do not deliver content

@@ -6048,6 +6048,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of dispose");
   }
   @override
+  CompilationUnit ensureAnyResolvedDartUnit(Source source) {
+    fail("Unexpected invocation of ensureAnyResolvedDartUnit");
+    return null;
+  }
+  @override
   bool exists(Source source) {
     fail("Unexpected invocation of exists");
     return false;
@@ -6210,6 +6215,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
+
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
