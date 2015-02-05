@@ -112,7 +112,7 @@ var core;
       if (isUtc === null) throw new ArgumentError(isUtc);
     }
     ['=='](other) {
-      if (!(/* Unimplemented IsExpression: other is DateTime */)) return false;
+      if (!(dart.is(other, DateTime))) return false;
       return (this.millisecondsSinceEpoch === dart.dload(other, "millisecondsSinceEpoch") && this.isUtc === dart.dload(other, "isUtc"));
     }
     isBefore(other) {
@@ -289,7 +289,7 @@ var core;
     get inMilliseconds() { return (this._duration / Duration.MICROSECONDS_PER_MILLISECOND).truncate(); }
     get inMicroseconds() { return this._duration; }
     ['=='](other) {
-      if (/* Unimplemented IsExpression: other is! Duration */) return false;
+      if (!dart.is(other, Duration)) return false;
       return this._duration === dart.dload(other, "_duration");
     }
     get hashCode() { return this._duration.hashCode; }
@@ -343,10 +343,10 @@ var core;
     constructor() {
     }
     static safeToString(object) {
-      if (/* Unimplemented IsExpression: object is num */ || /* Unimplemented IsExpression: object is bool */ || null === object) {
+      if (dart.is(object, num) || typeof object == "boolean" || null === object) {
         return object.toString();
       }
-      if (/* Unimplemented IsExpression: object is String */) {
+      if (typeof object == "string") {
         return _stringToSafeString(/* Unimplemented: DownCast: Object to String */ object);
       }
       return _objectToString(object);
@@ -635,7 +635,7 @@ var core;
         report = "" + (report) + ": " + (this.message) + "";
       }
       let offset = this.offset;
-      if (/* Unimplemented IsExpression: source is! String */) {
+      if (!(typeof this.source == "string")) {
         if (offset !== null) {
           report = " (at offset " + (offset) + ")";
         }
@@ -2082,7 +2082,7 @@ var core;
       return sb.toString();
     }
     ['=='](other) {
-      if (/* Unimplemented IsExpression: other is! Uri */) return false;
+      if (!dart.is(other, Uri)) return false;
       let uri = /* Unimplemented: DownCast: dynamic to Uri */ other;
       return dart.equals(this.scheme, uri.scheme) && this.hasAuthority === uri.hasAuthority && dart.equals(this.userInfo, uri.userInfo) && dart.equals(this.host, uri.host) && this.port === uri.port && dart.equals(this.path, uri.path) && this.hasQuery === uri.hasQuery && dart.equals(this.query, uri.query) && this.hasFragment === uri.hasFragment && dart.equals(this.fragment, uri.fragment);
     }

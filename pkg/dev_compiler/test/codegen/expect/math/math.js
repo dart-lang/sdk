@@ -11,12 +11,12 @@ var math;
   let SQRT2 = 1.4142135623730951;
   // Function min: (num, num) → num
   function min(a, b) {
-    if (/* Unimplemented IsExpression: a is! num */) throw new core.ArgumentError(a);
-    if (/* Unimplemented IsExpression: b is! num */) throw new core.ArgumentError(b);
+    if (!dart.is(a, core.num)) throw new core.ArgumentError(a);
+    if (!dart.is(b, core.num)) throw new core.ArgumentError(b);
     if (a > b) return b;
     if (a < b) return a;
-    if (/* Unimplemented IsExpression: b is double */) {
-      if (/* Unimplemented IsExpression: a is double */) {
+    if (typeof b == "number") {
+      if (typeof a == "number") {
         if (a === 0.0) {
           return (a + b) * a * b;
         }
@@ -29,12 +29,12 @@ var math;
 
   // Function max: (num, num) → num
   function max(a, b) {
-    if (/* Unimplemented IsExpression: a is! num */) throw new core.ArgumentError(a);
-    if (/* Unimplemented IsExpression: b is! num */) throw new core.ArgumentError(b);
+    if (!dart.is(a, core.num)) throw new core.ArgumentError(a);
+    if (!dart.is(b, core.num)) throw new core.ArgumentError(b);
     if (a > b) return a;
     if (a < b) return b;
-    if (/* Unimplemented IsExpression: b is double */) {
-      if (/* Unimplemented IsExpression: a is double */) {
+    if (typeof b == "number") {
+      if (typeof a == "number") {
         if (a === 0.0) {
           return a + b;
         }
@@ -79,7 +79,7 @@ var math;
     }
     toString() { return "Point(" + (this.x) + ", " + (this.y) + ")"; }
     ['=='](other) {
-      if (/* Unimplemented IsExpression: other is! Point */) return false;
+      if (!dart.is(other, Point)) return false;
       return dart.equals(this.x, dart.dload(other, "x")) && dart.equals(this.y, dart.dload(other, "y"));
     }
     get hashCode() { return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode); }
@@ -118,7 +118,7 @@ var math;
       return "Rectangle (" + (this.left) + ", " + (this.top) + ") " + (this.width) + " x " + (this.height) + "";
     }
     ['=='](other) {
-      if (/* Unimplemented IsExpression: other is! Rectangle */) return false;
+      if (!dart.is(other, Rectangle)) return false;
       return dart.equals(this.left, dart.dload(other, "left")) && dart.equals(this.top, dart.dload(other, "top")) && dart.equals(this.right, dart.dload(other, "right")) && dart.equals(this.bottom, dart.dload(other, "bottom"));
     }
     get hashCode() { return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode); }

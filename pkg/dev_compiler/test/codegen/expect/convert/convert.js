@@ -46,7 +46,7 @@ var convert;
       return /* Unimplemented: DownCastDynamic: List<dynamic> to List<int> */ result;
     }
     startChunkedConversion(sink) {
-      if (/* Unimplemented IsExpression: sink is! ByteConversionSink */) {
+      if (!dart.is(sink, ByteConversionSink)) {
         sink = new ByteConversionSink.from(sink);
       }
       return new _UnicodeSubsetEncoderSink(this._subsetMask, sink);
@@ -127,7 +127,7 @@ var convert;
     }
     startChunkedConversion(sink) {
       let stringSink = null;
-      if (/* Unimplemented IsExpression: sink is StringConversionSink */) {
+      if (dart.is(sink, StringConversionSink)) {
         stringSink = /* Unimplemented: DownCast: Sink<String> to StringConversionSink */ sink;
       } else {
         stringSink = new StringConversionSink.from(sink);
@@ -447,7 +447,7 @@ var convert;
       return /* Unimplemented: DownCast: dynamic to String */ result !== null ? result.toString() : null;
     }
     startChunkedConversion(sink) {
-      if (/* Unimplemented IsExpression: sink is! StringConversionSink */) {
+      if (!dart.is(sink, StringConversionSink)) {
         sink = new StringConversionSink.from(sink);
       }
       return new _HtmlEscapeSink(this, sink);
@@ -545,16 +545,16 @@ var convert;
     }
     convert(object) { return _JsonStringStringifier.stringify(object, /* Unimplemented: DownCast: Function to (dynamic) → dynamic */ this._toEncodable, this.indent); }
     startChunkedConversion(sink) {
-      if (/* Unimplemented IsExpression: sink is! StringConversionSink */) {
+      if (!dart.is(sink, StringConversionSink)) {
         sink = new StringConversionSink.from(sink);
-      } else if (/* Unimplemented IsExpression: sink is _Utf8EncoderSink */) {
+      } else if (dart.is(sink, _Utf8EncoderSink)) {
         return new _JsonUtf8EncoderSink(sink._sink, this._toEncodable, JsonUtf8Encoder._utf8Encode(this.indent), JsonUtf8Encoder.DEFAULT_BUFFER_SIZE);
       }
       return new _JsonEncoderSink(sink, this._toEncodable, this.indent);
     }
     bind(stream) { return /* Unimplemented: DownCastDynamic: Stream<dynamic> to Stream<String> */ super.bind(stream); }
     fuse(other) {
-      if (/* Unimplemented IsExpression: other is Utf8Encoder */) {
+      if (dart.is(other, Utf8Encoder)) {
         return new JsonUtf8Encoder(this.indent, this._toEncodable);
       }
       return super.fuse(other);
@@ -610,7 +610,7 @@ var convert;
     }
     startChunkedConversion(sink) {
       let byteSink = null;
-      if (/* Unimplemented IsExpression: sink is ByteConversionSink */) {
+      if (dart.is(sink, ByteConversionSink)) {
         byteSink = /* Unimplemented: DownCast: Sink<List<int>> to ByteConversionSink */ sink;
       } else {
         byteSink = new ByteConversionSink.from(sink);
@@ -737,7 +737,7 @@ var convert;
       this._checkCycle(object);
       /* Unimplemented TryStatement: try {var customJson = _toEncodable(object); if (!writeJsonValue(customJson)) {throw new JsonUnsupportedObjectError(object);} _removeSeen(object);} catch (e) {throw new JsonUnsupportedObjectError(object, cause: e);} */}
     writeJsonValue(object) {
-      if (/* Unimplemented IsExpression: object is num */) {
+      if (dart.is(object, core.num)) {
         if (/* Unimplemented postfix operator: !object.isFinite */) return false;
         this.writeNumber(/* Unimplemented: DownCast: dynamic to num */ object);
         return true;
@@ -750,17 +750,17 @@ var convert;
       } else if (object === null) {
         this.writeString("null");
         return true;
-      } else if (/* Unimplemented IsExpression: object is String */) {
+      } else if (typeof object == "string") {
         this.writeString(""");
         this.writeStringContent(/* Unimplemented: DownCast: dynamic to String */ object);
         this.writeString(""");
         return true;
-      } else if (/* Unimplemented IsExpression: object is List */) {
+      } else if (dart.is(object, core.List)) {
         this._checkCycle(object);
         this.writeList(/* Unimplemented: DownCast: dynamic to List<dynamic> */ object);
         this._removeSeen(object);
         return true;
-      } else if (/* Unimplemented IsExpression: object is Map */) {
+      } else if (dart.is(object, core.Map)) {
         this._checkCycle(object);
         this.writeMap(/* Unimplemented: DownCast: dynamic to Map<String, Object> */ object);
         this._removeSeen(object);
@@ -1069,7 +1069,7 @@ var convert;
     }
     startChunkedConversion(sink) {
       let stringSink = null;
-      if (/* Unimplemented IsExpression: sink is StringConversionSink */) {
+      if (dart.is(sink, StringConversionSink)) {
         stringSink = /* Unimplemented: DownCast: Sink<String> to StringConversionSink */ sink;
       } else {
         stringSink = new StringConversionSink.from(sink);
@@ -1144,7 +1144,7 @@ var convert;
       return lines;
     }
     startChunkedConversion(sink) {
-      if (/* Unimplemented IsExpression: sink is! StringConversionSink */) {
+      if (!dart.is(sink, StringConversionSink)) {
         sink = new StringConversionSink.from(sink);
       }
       return new _LineSplitterSink(sink);
@@ -1472,7 +1472,7 @@ var convert;
       return encoder._buffer.sublist(0, encoder._bufferIndex);
     }
     startChunkedConversion(sink) {
-      if (/* Unimplemented IsExpression: sink is! ByteConversionSink */) {
+      if (!dart.is(sink, ByteConversionSink)) {
         sink = new ByteConversionSink.from(sink);
       }
       return new _Utf8EncoderSink(sink);
@@ -1612,7 +1612,7 @@ var convert;
     }
     startChunkedConversion(sink) {
       let stringSink = null;
-      if (/* Unimplemented IsExpression: sink is StringConversionSink */) {
+      if (dart.is(sink, StringConversionSink)) {
         stringSink = /* Unimplemented: DownCast: Sink<String> to StringConversionSink */ sink;
       } else {
         stringSink = new StringConversionSink.from(sink);

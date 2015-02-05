@@ -38,6 +38,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   static final int _indexExpressionPrecedence =
       new IndexExpression.forTarget(null, null, null, null).precedence;
 
+  static final int _prefixExpressionPrecedence =
+      new PrefixExpression(null, null).precedence;
+
   JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules, this.out)
       : libraryInfo = libraryInfo,
         rules = rules,
@@ -116,6 +119,45 @@ var $_libraryName;
     out.write('${node.description}');
     out.write(' */ ');
     node.expression.accept(this);
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    // Generate `is` as `instanceof` or `typeof` depending on the RHS type.
+    var type = node.type.type;
+    if (type is! InterfaceType) {
+      out.write('/* Unimplemented type test: $node');
+      return;
+    }
+
+    if (node.notOperator != null) out.write('!');
+
+    var lhs = node.expression;
+    var typeofName = _jsTypeofName(type);
+    if (typeofName != null) {
+      if (node.notOperator != null) out.write('(');
+      out.write('typeof ');
+      // We're going to replace the `is` operator with higher-precedence prefix
+      // `typeof` operator, so add parens around the left side if necessary.
+      var needParens = lhs.precedence < _prefixExpressionPrecedence;
+      if (needParens) out.write('(');
+      lhs.accept(this);
+      if (needParens) out.write(')');
+      out.write(' == "$typeofName"');
+      if (node.notOperator != null) out.write(')');
+    } else {
+      // Always go through a runtime helper, because implicit interfaces.
+      out.write('dart.is(');
+      lhs.accept(this);
+      out.write(', ${_typeName(type)})');
+    }
+  }
+
+  String _jsTypeofName(DartType t) {
+    if (rules.isIntType(t) || rules.isDoubleType(t)) return 'number';
+    if (rules.isStringType(t)) return 'string';
+    if (rules.isBoolType(t)) return 'boolean';
+    return null;
   }
 
   @override

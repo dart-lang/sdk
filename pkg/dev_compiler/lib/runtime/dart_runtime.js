@@ -65,17 +65,17 @@ var dart;
   }
   dart.dbinary = dbinary;
 
-  function cast(obj, type) {
+  function as(obj, type) {
     if (obj == null || instanceOf(obj, type)) return obj;
     throw new dart_core.CastError();
   }
-  dart.cast = cast;
+  dart.as = as;
 
-  function instanceOf(obj, type) {
+  function is(obj, type) {
     // TODO(vsm): Implement.
     throw new dart_core.UnimplementedError();
   }
-  dart.instanceOf = instanceOf;
+  dart.is = is;
 
   function isGroundType(type) {
     // TODO(vsm): Implement.

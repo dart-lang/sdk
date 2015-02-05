@@ -287,7 +287,7 @@ var _internal;
 
   class MappedIterable/* Unimplemented <S, T> */ extends collection.IterableBase/* Unimplemented <T> */ {
     constructor(iterable, function) {
-      if (/* Unimplemented IsExpression: iterable is EfficientLength */) {
+      if (dart.is(iterable, EfficientLength)) {
         return new EfficientLengthMappedIterable(iterable, function);
       }
       return new MappedIterable._(iterable, function);
@@ -404,10 +404,10 @@ var _internal;
 
   class TakeIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(iterable, takeCount) {
-      if (/* Unimplemented IsExpression: takeCount is! int */ || takeCount < 0) {
+      if (!(typeof takeCount == "number") || takeCount < 0) {
         throw new core.ArgumentError(takeCount);
       }
-      if (/* Unimplemented IsExpression: iterable is EfficientLength */) {
+      if (dart.is(iterable, EfficientLength)) {
         return new EfficientLengthTakeIterable(iterable, takeCount);
       }
       return new TakeIterable._(iterable, takeCount);
@@ -439,7 +439,7 @@ var _internal;
       this._iterator = _iterator;
       this._remaining = _remaining;
       super();
-      dart.assert(/* Unimplemented IsExpression: _remaining is int */ && this._remaining >= 0);
+      dart.assert(typeof this._remaining == "number" && this._remaining >= 0);
     }
     moveNext() {
       this._remaining--;
@@ -489,7 +489,7 @@ var _internal;
 
   class SkipIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
     constructor(iterable, count) {
-      if (/* Unimplemented IsExpression: iterable is EfficientLength */) {
+      if (dart.is(iterable, EfficientLength)) {
         return new EfficientLengthSkipIterable(iterable, count);
       }
       return new SkipIterable._(iterable, count);
@@ -498,13 +498,13 @@ var _internal;
       this._iterable = _iterable;
       this._skipCount = _skipCount;
       collection.IterableBase.call(this);
-      if (/* Unimplemented IsExpression: _skipCount is! int */) {
+      if (!(typeof this._skipCount == "number")) {
         throw new core.ArgumentError.value(this._skipCount, "count is not an integer");
       }
       core.RangeError.checkNotNegative(this._skipCount, "count");
     }
     skip(count) {
-      if (/* Unimplemented IsExpression: _skipCount is! int */) {
+      if (!(typeof this._skipCount == "number")) {
         throw new core.ArgumentError.value(this._skipCount, "count is not an integer");
       }
       core.RangeError.checkNotNegative(this._skipCount, "count");
@@ -532,7 +532,7 @@ var _internal;
       this._iterator = _iterator;
       this._skipCount = _skipCount;
       super();
-      dart.assert(/* Unimplemented IsExpression: _skipCount is int */ && this._skipCount >= 0);
+      dart.assert(typeof this._skipCount == "number" && this._skipCount >= 0);
     }
     moveNext() {
       for (let i = 0; i < this._skipCount; i++) this._iterator.moveNext();
@@ -780,7 +780,7 @@ var _internal;
       throw IterableElementError.noElement();
     }
     static elementAt(iterable, index) {
-      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError.notNull("index");
+      if (!(typeof index == "number")) throw new core.ArgumentError.notNull("index");
       core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
       for (let element of iterable) {
@@ -876,7 +876,7 @@ var _internal;
       if (skipCount < 0) throw new core.ArgumentError(skipCount);
       let otherList = null;
       let otherStart = null;
-      if (/* Unimplemented IsExpression: from is List */) {
+      if (dart.is(from, core.List)) {
         otherList = /* Unimplemented: DownCast: Iterable<dynamic> to List<dynamic> */ from;
         otherStart = skipCount;
       } else {
@@ -890,7 +890,7 @@ var _internal;
     }
     static replaceRangeList(list, start, end, iterable) {
       _rangeCheck(list, start, end);
-      if (/* Unimplemented IsExpression: iterable is! EfficientLength */) {
+      if (!dart.is(iterable, EfficientLength)) {
         iterable = iterable.toList();
       }
       let removeLength = end - start;
@@ -921,7 +921,7 @@ var _internal;
     }
     static insertAllList(list, index, iterable) {
       core.RangeError.checkValueInInterval(index, 0, list.length, "index");
-      if (/* Unimplemented IsExpression: iterable is! EfficientLength */) {
+      if (!dart.is(iterable, EfficientLength)) {
         iterable = iterable.toList({growable: false});
       }
       let insertionLength = iterable.length;
@@ -1117,7 +1117,7 @@ var _internal;
     get isEmpty() { return this._values.isEmpty; }
     get isNotEmpty() { return this._values.isNotEmpty; }
     containsValue(value) { return this._values.contains(value); }
-    containsKey(key) { return /* Unimplemented IsExpression: key is int */ && key >= 0 && key < this.length; }
+    containsKey(key) { return typeof key == "number" && key >= 0 && key < this.length; }
     forEach(f) {
       let length = this._values.length;
       for (let i = 0; i < length; i++) {
@@ -1182,7 +1182,7 @@ var _internal;
     }
     static areEqual(a, b) {
       if (core.identical(a, b)) return true;
-      if (!(/* Unimplemented IsExpression: b is List */)) return false;
+      if (!(dart.is(b, core.List))) return false;
       let length = a.length;
       if (length !== dart.dload(b, "length")) return false;
       for (let i = 0; i < length; i++) {
@@ -1462,7 +1462,7 @@ var _internal;
     /*constructor*/ validated(name) {
       this._name = validatePublicSymbol(name);
     }
-    ['=='](other) { return /* Unimplemented IsExpression: other is Symbol */ && dart.equals(this._name, dart.dload(other, "_name")); }
+    ['=='](other) { return dart.is(other, Symbol) && dart.equals(this._name, dart.dload(other, "_name")); }
     get hashCode() {
       let arbitraryPrime = 664597;
       return 536870911 & (arbitraryPrime * this._name.hashCode);

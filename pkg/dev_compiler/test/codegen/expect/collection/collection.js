@@ -140,7 +140,7 @@ var collection;
     }
     toSet() { return new core.Set.from(this); }
     get length() {
-      dart.assert(/* Unimplemented IsExpression: this is! EfficientLength */);
+      dart.assert(!dart.is(this, _internal.EfficientLength));
       let count = 0;
       let it = iterator;
       while (it.moveNext()) {
@@ -226,7 +226,7 @@ var collection;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
-      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError.notNull("index");
+      if (!(typeof index == "number")) throw new core.ArgumentError.notNull("index");
       core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
       for (let element of this) {
@@ -306,7 +306,7 @@ var collection;
     }
     toSet() { return new core.Set.from(this); }
     get length() {
-      dart.assert(/* Unimplemented IsExpression: this is! EfficientLength */);
+      dart.assert(!dart.is(this, _internal.EfficientLength));
       let count = 0;
       let it = iterator;
       while (it.moveNext()) {
@@ -392,7 +392,7 @@ var collection;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
-      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError.notNull("index");
+      if (!(typeof index == "number")) throw new core.ArgumentError.notNull("index");
       core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
       for (let element of this) {
@@ -1012,7 +1012,7 @@ var collection;
       core.RangeError.checkNotNegative(skipCount, "skipCount");
       let otherList = null;
       let otherStart = null;
-      if (/* Unimplemented IsExpression: iterable is List */) {
+      if (dart.is(iterable, core.List)) {
         otherList = /* Unimplemented: DownCast: Iterable<E> to List<dynamic> */ iterable;
         otherStart = skipCount;
       } else {
@@ -1034,7 +1034,7 @@ var collection;
     }
     replaceRange(start, end, newContents) {
       core.RangeError.checkValidRange(start, end, this.length);
-      if (/* Unimplemented IsExpression: newContents is! EfficientLength */) {
+      if (!dart.is(newContents, _internal.EfficientLength)) {
         newContents = newContents.toList();
       }
       let removeLength = end - start;
@@ -1097,7 +1097,7 @@ var collection;
         this.add(element);
         return;
       }
-      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError(index);
+      if (!(typeof index == "number")) throw new core.ArgumentError(index);
       this.length++;
       this.setRange(index + 1, this.length, this, index);
       this.set(index, element);
@@ -1110,7 +1110,7 @@ var collection;
     }
     insertAll(index, iterable) {
       core.RangeError.checkValueInInterval(index, 0, length, "index");
-      if (/* Unimplemented IsExpression: iterable is EfficientLength */) {
+      if (dart.is(iterable, _internal.EfficientLength)) {
         iterable = iterable.toList();
       }
       let insertionLength = iterable.length;
@@ -1119,7 +1119,7 @@ var collection;
       this.setAll(index, iterable);
     }
     setAll(index, iterable) {
-      if (/* Unimplemented IsExpression: iterable is List */) {
+      if (dart.is(iterable, core.List)) {
         this.setRange(index, index + iterable.length, iterable);
       } else {
         for (let element of iterable) {
@@ -1538,7 +1538,7 @@ var collection;
       this._table = new core.List(initialCapacity);
     }
     /*constructor*/ from(elements) {
-      if (/* Unimplemented IsExpression: elements is List */) {
+      if (dart.is(elements, core.List)) {
         let length = elements.length;
         let queue = /* Unimplemented: DownCastExact: ListQueue<dynamic> to ListQueue<E> */ new ListQueue(length + 1);
         dart.assert(queue._table.length > length);
@@ -1548,7 +1548,7 @@ var collection;
         return queue;
       } else {
         let capacity = _INITIAL_CAPACITY;
-        if (/* Unimplemented IsExpression: elements is EfficientLength */) {
+        if (dart.is(elements, _internal.EfficientLength)) {
           capacity = elements.length;
         }
         let result = new ListQueue(capacity);
@@ -1600,7 +1600,7 @@ var collection;
       this._add(element);
     }
     addAll(elements) {
-      if (/* Unimplemented IsExpression: elements is List */) {
+      if (dart.is(elements, core.List)) {
         let list = /* Unimplemented: DownCast: Iterable<E> to List<dynamic> */ elements;
         let addCount = list.length;
         let length = this.length;
@@ -1989,7 +1989,7 @@ var collection;
       throw _internal.IterableElementError.noElement();
     }
     elementAt(index) {
-      if (/* Unimplemented IsExpression: index is! int */) throw new core.ArgumentError.notNull("index");
+      if (!(typeof index == "number")) throw new core.ArgumentError.notNull("index");
       core.RangeError.checkNotNegative(index, "index");
       let elementIndex = 0;
       for (let element of this) {
@@ -2148,7 +2148,7 @@ var collection;
   }
 
   class _TypeTest/* Unimplemented <T> */ {
-    test(v) { return /* Unimplemented IsExpression: v is T */; }
+    test(v) { return /* Unimplemented type test: v is T; }
   }
 
   class SplayTreeMap/* Unimplemented <K, V> */ extends _SplayTree/* Unimplemented <K> */ {
@@ -2156,7 +2156,7 @@ var collection;
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       this._comparator = (compare === null) ? core.Comparable.compare : compare;
-      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented IsExpression: v is K */);
+      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type test: v is K);
       super();
     }
     /*constructor*/ from(other, compare, isValidKey) {
@@ -2443,7 +2443,7 @@ var collection;
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       this._comparator = (compare === null) ? core.Comparable.compare : compare;
-      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented IsExpression: v is E */);
+      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type test: v is E);
       super();
     }
     /*constructor*/ from(elements, compare, isValidKey) {

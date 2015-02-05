@@ -3,7 +3,7 @@ var async;
   'use strict';
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
-    if (/* Unimplemented IsExpression: errorHandler is ZoneBinaryCallback */) {
+    if (/* Unimplemented type test: errorHandler is ZoneBinaryCallback) {
       return /* Unimplemented dynamic method call: errorHandler(error, stackTrace) */;
     } else {
       return /* Unimplemented dynamic method call: errorHandler(error) */;
@@ -12,7 +12,7 @@ var async;
 
   // Function _registerErrorHandler: (Function, Zone) → Function
   function _registerErrorHandler(errorHandler, zone) {
-    if (/* Unimplemented IsExpression: errorHandler is ZoneBinaryCallback */) {
+    if (/* Unimplemented type test: errorHandler is ZoneBinaryCallback) {
       return zone.registerBinaryCallback(/* Unimplemented: DownCast: Function to (dynamic, dynamic) → dynamic */ errorHandler);
     } else {
       return zone.registerUnaryCallback(/* Unimplemented: DownCast: Function to (dynamic) → dynamic */ errorHandler);
@@ -25,7 +25,7 @@ var async;
     }
     static _getBestStackTrace(error, stackTrace) {
       if (stackTrace !== null) return stackTrace;
-      if (/* Unimplemented IsExpression: error is Error */) {
+      if (dart.is(error, core.Error)) {
         return /* Unimplemented: DownCast: dynamic to StackTrace */ dart.dload(error, "stackTrace");
       }
       return null;
@@ -808,7 +808,7 @@ var async;
     }
     static _chainForeignFuture(source, target) {
       dart.assert(!target._isComplete);
-      dart.assert(/* Unimplemented IsExpression: source is! _Future */);
+      dart.assert(!dart.is(source, _Future));
       target._isChained = true;
       source.then((value) => {
         dart.assert(target._isChained);
@@ -821,7 +821,7 @@ var async;
     }
     static _chainCoreFuture(source, target) {
       dart.assert(!target._isComplete);
-      dart.assert(/* Unimplemented IsExpression: source is _Future */);
+      dart.assert(dart.is(source, _Future));
       target._isChained = true;
       let listener = new _FutureListener.chain(target);
       if (source._isComplete) {
@@ -832,8 +832,8 @@ var async;
     }
     _complete(value) {
       dart.assert(!this._isComplete);
-      if (/* Unimplemented IsExpression: value is Future */) {
-        if (/* Unimplemented IsExpression: value is _Future */) {
+      if (dart.is(value, Future)) {
+        if (dart.is(value, _Future)) {
           _chainCoreFuture(/* Unimplemented: DownCast: dynamic to _Future<dynamic> */ value, this);
         } else {
           _chainForeignFuture(/* Unimplemented: DownCast: dynamic to Future<dynamic> */ value, this);
@@ -846,7 +846,7 @@ var async;
     }
     _completeWithValue(value) {
       dart.assert(!this._isComplete);
-      dart.assert(/* Unimplemented IsExpression: value is! Future */);
+      dart.assert(!dart.is(value, Future));
       let listeners = this._removeListeners();
       this._setValue(/* Unimplemented: DownCast: dynamic to T */ value);
       _propagateToListeners(this, listeners);
@@ -861,9 +861,9 @@ var async;
     _asyncComplete(value) {
       dart.assert(!this._isComplete);
       if (value === null) {
-      } else if (/* Unimplemented IsExpression: value is Future */) {
+      } else if (dart.is(value, Future)) {
         let typedFuture = /* Unimplemented: DownCast: dynamic to Future<T> */ value;
-        if (/* Unimplemented IsExpression: typedFuture is _Future */) {
+        if (dart.is(typedFuture, _Future)) {
           let coreFuture = /* Unimplemented: DownCast: Future<T> to _Future<T> */ typedFuture;
           if (coreFuture._isComplete && coreFuture._hasError) {
             this._markPendingCompletion();
@@ -946,7 +946,7 @@ var async;
           // Function handleWhenCompleteCallback: () → void
           function handleWhenCompleteCallback() {
             let completeResult = null;
-            /* Unimplemented TryStatement: try {completeResult = zone.run(listener._whenCompleteAction);} catch (e, s) {if (hasError && identical(source._error.error, e)) {listenerValueOrError = source._error;} else {listenerValueOrError = new AsyncError(e, s);} listenerHasValue = false; return;} */if (/* Unimplemented IsExpression: completeResult is Future */) {
+            /* Unimplemented TryStatement: try {completeResult = zone.run(listener._whenCompleteAction);} catch (e, s) {if (hasError && identical(source._error.error, e)) {listenerValueOrError = source._error;} else {listenerValueOrError = new AsyncError(e, s);} listenerHasValue = false; return;} */if (dart.is(completeResult, Future)) {
               let result = listener.result;
               result._isChained = true;
               isPropagationAborted = true;
@@ -965,10 +965,10 @@ var async;
           }
           if (oldZone !== null) Zone._leave(oldZone);
           if (isPropagationAborted) return;
-          if (listenerHasValue && !core.identical(sourceValue, listenerValueOrError) && /* Unimplemented IsExpression: listenerValueOrError is Future */) {
+          if (listenerHasValue && !core.identical(sourceValue, listenerValueOrError) && dart.is(listenerValueOrError, Future)) {
             let chainSource = /* Unimplemented: DownCast: dynamic to Future<dynamic> */ listenerValueOrError;
             let result = listener.result;
-            if (/* Unimplemented IsExpression: chainSource is _Future */) {
+            if (dart.is(chainSource, _Future)) {
               if (chainSource._isComplete) {
                 result._isChained = true;
                 source = /* Unimplemented: DownCast: Future<dynamic> to _Future<dynamic> */ chainSource;
@@ -1184,12 +1184,12 @@ var async;
       // Function onListen: () → void
       function onListen() {
         let add = controller.add;
-        dart.assert(/* Unimplemented IsExpression: controller is _StreamController */ || /* Unimplemented IsExpression: controller is _BroadcastStreamController */);
+        dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
         let eventSink = controller;
         let addError = eventSink._addError;
         subscription = this.listen((event) => {
           let newValue = null;
-          /* Unimplemented TryStatement: try {newValue = convert(event);} catch (e, s) {controller.addError(e, s); return;} */if (/* Unimplemented IsExpression: newValue is Future */) {
+          /* Unimplemented TryStatement: try {newValue = convert(event);} catch (e, s) {controller.addError(e, s); return;} */if (dart.is(newValue, Future)) {
             subscription.pause();
             /* Unimplemented dynamic method call: newValue.then(add, onError: addError).whenComplete(subscription.resume) */;
           } else {
@@ -1217,7 +1217,7 @@ var async;
       let subscription = null;
       // Function onListen: () → void
       function onListen() {
-        dart.assert(/* Unimplemented IsExpression: controller is _StreamController */ || /* Unimplemented IsExpression: controller is _BroadcastStreamController */);
+        dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
         let eventSink = controller;
         subscription = this.listen((event) => {
           let newStream = null;
@@ -1534,7 +1534,7 @@ var async;
       return future;
     }
     elementAt(index) {
-      if (/* Unimplemented IsExpression: index is! int */ || index < 0) throw new core.ArgumentError(index);
+      if (!(typeof index == "number") || index < 0) throw new core.ArgumentError(index);
       let future = new _Future();
       let subscription = null;
       let elementIndex = 0;
@@ -1565,7 +1565,7 @@ var async;
       // Function onError: (dynamic, StackTrace) → void
       function onError(error, stackTrace) {
         timer.cancel();
-        dart.assert(/* Unimplemented IsExpression: controller is _StreamController */ || /* Unimplemented IsExpression: controller is _BroadcastStreamController */);
+        dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
         let eventSink = controller;
         /* Unimplemented dynamic method call: eventSink._addError(error, stackTrace) */;
         timer = zone.createTimer(timeLimit, /* Unimplemented: DownCast: Function to () → void */ timeout);
@@ -1962,7 +1962,7 @@ var async;
     get hashCode() { return this._controller.hashCode ^ 892482866; }
     ['=='](other) {
       if (core.identical(this, other)) return true;
-      if (/* Unimplemented IsExpression: other is! _ControllerStream */) return false;
+      if (!dart.is(other, _ControllerStream)) return false;
       let otherStream = /* Unimplemented: DownCast: Object to _ControllerStream<dynamic> */ other;
       return core.identical(otherStream._controller, this._controller);
     }
@@ -2225,7 +2225,7 @@ var async;
       function sendError() {
         if (this._isCanceled && !this._waitsForCancel) return;
         this._state = _STATE_IN_CALLBACK;
-        if (/* Unimplemented IsExpression: _onError is ZoneBinaryCallback */) {
+        if (/* Unimplemented type test: _onError is ZoneBinaryCallback) {
           this._zone.runBinaryGuarded(/* Unimplemented: DownCast: Function to (dynamic, dynamic) → dynamic */ this._onError, error, stackTrace);
         } else {
           this._zone.runUnaryGuarded(/* Unimplemented: DownCast: Function to (dynamic) → dynamic */ this._onError, error);
@@ -2235,7 +2235,7 @@ var async;
       if (this._cancelOnError) {
         this._state = _STATE_WAIT_FOR_CANCEL;
         this._cancel();
-        if (/* Unimplemented IsExpression: _cancelFuture is Future */) {
+        if (dart.is(this._cancelFuture, Future)) {
           this._cancelFuture.whenComplete(sendError);
         } else {
           sendError();
@@ -2258,7 +2258,7 @@ var async;
       }
       this._cancel();
       this._state = _STATE_WAIT_FOR_CANCEL;
-      if (/* Unimplemented IsExpression: _cancelFuture is Future */) {
+      if (dart.is(this._cancelFuture, Future)) {
         this._cancelFuture.whenComplete(sendDone);
       } else {
         sendDone();
@@ -2745,7 +2745,7 @@ var async;
   // Function _cancelAndError: (StreamSubscription<dynamic>, _Future<dynamic>, dynamic, StackTrace) → void
   function _cancelAndError(subscription, future, error, stackTrace) {
     let cancelFuture = subscription.cancel();
-    if (/* Unimplemented IsExpression: cancelFuture is Future */) {
+    if (dart.is(cancelFuture, Future)) {
       cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
     } else {
       future._completeError(error, stackTrace);
@@ -2768,7 +2768,7 @@ var async;
   // Function _cancelAndValue: (StreamSubscription<dynamic>, _Future<dynamic>, dynamic) → void
   function _cancelAndValue(subscription, future, value) {
     let cancelFuture = subscription.cancel();
-    if (/* Unimplemented IsExpression: cancelFuture is Future */) {
+    if (dart.is(cancelFuture, Future)) {
       cancelFuture.whenComplete(() => future._complete(value));
     } else {
       future._complete(value);
@@ -2909,7 +2909,7 @@ var async;
     constructor(source, count) {
       this._remaining = count;
       super(source);
-      if (/* Unimplemented IsExpression: count is! int */) throw new core.ArgumentError(count);
+      if (!(typeof count == "number")) throw new core.ArgumentError(count);
     }
     _handleData(inputEvent, sink) {
       if (this._remaining > 0) {
@@ -2941,7 +2941,7 @@ var async;
     constructor(source, count) {
       this._remaining = count;
       super(source);
-      if (/* Unimplemented IsExpression: count is! int */ || count < 0) throw new core.ArgumentError(count);
+      if (!(typeof count == "number") || count < 0) throw new core.ArgumentError(count);
     }
     _handleData(inputEvent, sink) {
       if (this._remaining > 0) {
@@ -3604,12 +3604,12 @@ var async;
     _internal.printToZone = _printToZone;
     if (specification === null) {
       specification = new ZoneSpecification();
-    } else if (/* Unimplemented IsExpression: specification is! _ZoneSpecification */) {
+    } else if (!dart.is(specification, _ZoneSpecification)) {
       throw new core.ArgumentError("ZoneSpecifications must be instantiated" + " with the provided constructor.");
     }
     let valueMap = null;
     if (zoneValues === null) {
-      if (/* Unimplemented IsExpression: zone is _Zone */) {
+      if (dart.is(zone, _Zone)) {
         valueMap = /* Unimplemented: DownCast: dynamic to Map<dynamic, dynamic> */ zone._map;
       } else {
         valueMap = new collection.HashMap();
