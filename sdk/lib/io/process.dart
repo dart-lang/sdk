@@ -23,7 +23,7 @@ class _ProcessUtils {
  *
  * The handling of exit codes is platform specific.
  *
- * On Linux and Mac OS an exit code for normal termination will always
+ * On Linux and OS X an exit code for normal termination will always
  * be in the range [0..255]. If an exit code outside this range is
  * set the actual exit code will be the lower 8 bits masked off and
  * treated as an unsigned value. E.g. using an exit code of -1 will
@@ -212,7 +212,7 @@ abstract class Process {
    *
    * The handling of exit codes is platform specific.
    *
-   * On Linux and Mac a normal exit code will be a positive value in
+   * On Linux and OS X a normal exit code will be a positive value in
    * the range [0..255]. If the process was terminated due to a signal
    * the exit code will be a negative value in the range [-255..-1],
    * where the absolute value of the exit code is the signal
@@ -255,7 +255,7 @@ abstract class Process {
    * precedence. Default is `true`.
    *
    * If [runInShell] is `true`, the process will be spawned through a system
-   * shell. On Linux and Mac OS, [:/bin/sh:] is used, while
+   * shell. On Linux and OS X, [:/bin/sh:] is used, while
    * [:%WINDIR%\system32\cmd.exe:] is used on Windows.
    *
    * Users must read all data coming on the [stdout] and [stderr]
@@ -320,7 +320,7 @@ abstract class Process {
    * precedence. Default is `true`.
    *
    * If [runInShell] is true, the process will be spawned through a system
-   * shell. On Linux and Mac OS, `/bin/sh` is used, while
+   * shell. On Linux and OS X, `/bin/sh` is used, while
    * `%WINDIR%\system32\cmd.exe` is used on Windows.
    *
    * The encoding used for decoding `stdout` and `stderr` into text is
