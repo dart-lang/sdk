@@ -317,3 +317,9 @@ main() async {
 main()  async  => 0;
 <<<
 main() async => 0;
+>>>
+enum Foo { BAR, BAZ }
+<<<
+enum Foo {
+  BAR, BAZ
+}
