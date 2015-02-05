@@ -85,3 +85,6 @@ dart/optimized_stacktrace_test: StaticWarning
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 dart/byte_array_test: RuntimeError # Issue 17612
+
+[ $runtime != vm ]
+dart/snapshot_version_test: SkippedByDesign  # Spawns processes
