@@ -86,7 +86,7 @@ class ObjectPointerVisitor;
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
   V(Async, "async")                                                            \
   V(Sync, "sync")                                                              \
-  V(Yield, "yield")                                                            \
+  V(YieldKw, "yield")                                                          \
   V(AsyncCompleter, ":async_completer")                                        \
   V(AsyncOperation, ":async_op")                                               \
   V(AsyncOperationParam, ":async_result")                                      \

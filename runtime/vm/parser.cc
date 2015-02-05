@@ -7116,7 +7116,7 @@ bool Parser::IsIdentifier() {
       !(await_is_keyword_ &&
        ((CurrentLiteral()->raw() == Symbols::Await().raw()) ||
        (CurrentLiteral()->raw() == Symbols::Async().raw()) ||
-       (CurrentLiteral()->raw() == Symbols::Yield().raw())));
+       (CurrentLiteral()->raw() == Symbols::YieldKw().raw())));
 }
 
 
@@ -9031,7 +9031,7 @@ bool Parser::IsAwaitKeyword() {
 
 bool Parser::IsYieldKeyword() {
   return await_is_keyword_ &&
-         (CurrentLiteral()->raw() == Symbols::Yield().raw());
+         (CurrentLiteral()->raw() == Symbols::YieldKw().raw());
 }
 
 
