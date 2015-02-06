@@ -147,6 +147,9 @@ class ResourceUriResolver extends UriResolver {
     return null;
   }
 
+  @override
+  Uri restoreAbsolute(Source source) => source.uri;
+
   /**
    * Return `true` if the given URI is a `file` URI.
    *

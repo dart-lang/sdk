@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -98,19 +99,36 @@ class ExecutionDomainHandler implements RequestHandler {
           'There is no execution context with an id of $contextId');
     }
     AnalysisContext context = server.getAnalysisContext(path);
-    if (params.file != null) {
-      if (params.uri != null) {
+    if (context == null) {
+      return new Response.invalidExecutionContext(request, contextId);
+    }
+    String file = params.file;
+    String uri = params.uri;
+    if (file != null) {
+      if (uri != null) {
         return new Response.invalidParameter(
             request,
             'file',
             'Either file or uri must be provided, but not both');
       }
-      Source source = server.getSource(params.file);
-      String uri = context.sourceFactory.restoreUri(source).toString();
+      Resource resource = server.resourceProvider.getResource(file);
+      if (!resource.exists) {
+        return new Response.invalidParameter(request, 'file', 'Must exist');
+      } else if (resource is! File) {
+        return new Response.invalidParameter(
+            request,
+            'file',
+            'Must not refer to a directory');
+      }
+      Source source = server.getSource(file);
+      uri = context.sourceFactory.restoreUri(source).toString();
       return new ExecutionMapUriResult(uri: uri).toResponse(request.id);
-    } else if (params.uri != null) {
-      Source source = context.sourceFactory.forUri(params.uri);
-      String file = source.fullName;
+    } else if (uri != null) {
+      Source source = context.sourceFactory.forUri(uri);
+      if (source == null) {
+        return new Response.invalidParameter(request, 'uri', 'Invalid URI');
+      }
+      file = source.fullName;
       return new ExecutionMapUriResult(file: file).toResponse(request.id);
     }
     return new Response.invalidParameter(

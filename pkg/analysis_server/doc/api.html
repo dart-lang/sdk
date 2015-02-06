@@ -43,7 +43,7 @@ dt.typeDefinition {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.0.0</h1>
+    <h1 style="color:#999999">Version 1.1.0</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -1874,7 +1874,8 @@ dt.typeDefinition {
       <h4>Parameters</h4><dl><dt class="field"><b><i>contextRoot ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
             
             <p>
-              The path of the Dart or HTML file that will be launched.
+              The path of the Dart or HTML file that will be launched, or the
+              path of the directory containing the file.
             </p>
           </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>id ( <a href="#type_ExecutionContextId">ExecutionContextId</a> )</i></b></dt><dd>
             
@@ -1925,25 +1926,27 @@ dt.typeDefinition {
           context.
         </p>
         <p>
-          Exactly one of the file and uri fields must be provided.
+          Exactly one of the file and uri fields must be provided. If both
+          fields are provided, then an error of type <tt>INVALID_PARAMETER</tt>
+          will be generated. Similarly, if neither field is provided, then an
+          error of type <tt>INVALID_PARAMETER</tt> will be generated.
         </p>
         <p>
           If the file field is provided and the value is not the path of a file
           (either the file does not exist or the path references something other
-          than a file), then an error of type <tt>MAP_URI_INVALID_FILE</tt> will
+          than a file), then an error of type <tt>INVALID_PARAMETER</tt> will
           be generated.
         </p>
         <p>
           If the uri field is provided and the value is not a valid URI or if
           the URI references something that is not a file (either a file that
           does not exist or something other than a file), then an error of type
-          <tt>MAP_URI_INVALID_URI</tt> will be generated.
+          <tt>INVALID_PARAMETER</tt> will be generated.
         </p>
         <p>
-          If the contextRoot used to create the execution context is not a file
-          (either the file does not exist or the path references something other
-          than a file), then an error of type <tt>INVALID_EXECUTION_CONTEXT</tt>
-          will be generated.
+          If the contextRoot used to create the execution context does not
+          exist, then an error of type <tt>INVALID_EXECUTION_CONTEXT</tt> will
+          be generated.
         </p>
         
         
@@ -3075,6 +3078,12 @@ dt.typeDefinition {
               An "analysis.getErrors" request specified a FilePath
               which does not match a file currently subject to
               analysis.
+            </p>
+          </dd><dt class="value">INVALID_EXECUTION_CONTEXT</dt><dd>
+            
+            <p>
+              The context root used to create an execution context does not
+              exist.
             </p>
           </dd><dt class="value">INVALID_OVERLAY_CHANGE</dt><dd>
             

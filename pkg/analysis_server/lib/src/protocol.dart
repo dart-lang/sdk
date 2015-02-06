@@ -763,6 +763,18 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent an error condition caused
+   * by a [request] that specifies an execution context whose context root does
+   * not exist.
+   */
+  Response.invalidExecutionContext(Request request, String contextId)
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.INVALID_EXECUTION_CONTEXT,
+              "Invalid execution context: $contextId"));
+
+  /**
+   * Initialize a newly created instance to represent an error condition caused
    * by a [request] that had invalid parameter.  [path] is the path to the
    * invalid parameter, in Javascript notation (e.g. "foo.bar" means that the
    * parameter "foo" contained a key "bar" whose value was the wrong type).
@@ -773,7 +785,7 @@ class Response {
           request.id,
           error: new RequestError(
               RequestErrorCode.INVALID_PARAMETER,
-              "Expected parameter $path to $expectation"));
+              "Invalid parameter '$path'. $expectation."));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -783,6 +795,17 @@ class Response {
       : this(
           '',
           error: new RequestError(RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * REFACTORING_REQUEST_CANCELLED error condition.
+   */
+  Response.refactoringRequestCancelled(Request request)
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
+              'The `edit.getRefactoring` request was cancelled.'));
 
   /**
    * Initialize a newly created instance to represent the SERVER_ERROR error
@@ -807,17 +830,6 @@ class Response {
           error: new RequestError(
               RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
               'Error during `edit.sortMembers`: invalid file.'));
-
-  /**
-   * Initialize a newly created instance to represent the
-   * REFACTORING_REQUEST_CANCELLED error condition.
-   */
-  Response.refactoringRequestCancelled(Request request)
-      : this(
-          request.id,
-          error: new RequestError(
-              RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
-              'The `edit.getRefactoring` request was cancelled.'));
 
   /**
    * Initialize a newly created instance to represent the

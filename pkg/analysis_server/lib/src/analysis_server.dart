@@ -67,7 +67,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.0.0';
+  static final String VERSION = '1.1.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -354,9 +354,13 @@ class AnalysisServer {
   AnalysisContext getAnalysisContext(String path) {
     // try to find a containing context
     for (Folder folder in folderMap.keys) {
-      if (folder.contains(path)) {
+      if (folder.path == path || folder.contains(path)) {
         return folderMap[folder];
       }
+    }
+    Resource resource = resourceProvider.getResource(path);
+    if (resource is Folder) {
+      return null;
     }
     // check if there is a context that analyzed this source
     return getAnalysisContextForSource(getSource(path));

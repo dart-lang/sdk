@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.0.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.1.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -1626,7 +1626,8 @@
           <field name="contextRoot">
             <ref>FilePath</ref>
             <p>
-              The path of the Dart or HTML file that will be launched.
+              The path of the Dart or HTML file that will be launched, or the
+              path of the directory containing the file.
             </p>
           </field>
         </params>
@@ -1662,25 +1663,27 @@
           context.
         </p>
         <p>
-          Exactly one of the file and uri fields must be provided.
+          Exactly one of the file and uri fields must be provided. If both
+          fields are provided, then an error of type <tt>INVALID_PARAMETER</tt>
+          will be generated. Similarly, if neither field is provided, then an
+          error of type <tt>INVALID_PARAMETER</tt> will be generated.
         </p>
         <p>
           If the file field is provided and the value is not the path of a file
           (either the file does not exist or the path references something other
-          than a file), then an error of type <tt>MAP_URI_INVALID_FILE</tt> will
+          than a file), then an error of type <tt>INVALID_PARAMETER</tt> will
           be generated.
         </p>
         <p>
           If the uri field is provided and the value is not a valid URI or if
           the URI references something that is not a file (either a file that
           does not exist or something other than a file), then an error of type
-          <tt>MAP_URI_INVALID_URI</tt> will be generated.
+          <tt>INVALID_PARAMETER</tt> will be generated.
         </p>
         <p>
-          If the contextRoot used to create the execution context is not a file
-          (either the file does not exist or the path references something other
-          than a file), then an error of type <tt>INVALID_EXECUTION_CONTEXT</tt>
-          will be generated.
+          If the contextRoot used to create the execution context does not
+          exist, then an error of type <tt>INVALID_EXECUTION_CONTEXT</tt> will
+          be generated.
         </p>
         <params>
           <field name="id">
@@ -3069,6 +3072,13 @@
               An "analysis.getErrors" request specified a FilePath
               which does not match a file currently subject to
               analysis.
+            </p>
+          </value>
+          <value>
+            <code>INVALID_EXECUTION_CONTEXT</code>
+            <p>
+              The context root used to create an execution context does not
+              exist.
             </p>
           </value>
           <value>
