@@ -24,7 +24,7 @@ main() {
 class InlineLocalTest extends RefactoringTest {
   InlineLocalRefactoringImpl refactoring;
 
-  test_access() {
+  test_access() async {
     indexTestUnit('''
 main() {
   int test = 1 + 2;
@@ -35,35 +35,32 @@ main() {
     _createRefactoring('test =');
     expect(refactoring.refactoringName, 'Inline Local Variable');
     // check initial conditions and access
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.variableName, 'test');
-      expect(refactoring.referenceCount, 2);
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.variableName, 'test');
+    expect(refactoring.referenceCount, 2);
   }
 
-  test_bad_selectionMethod() {
+  test_bad_selectionMethod() async {
     indexTestUnit(r'''
 main() {
 }
 ''');
     _createRefactoring('main() {');
-    return refactoring.checkInitialConditions().then((status) {
-      _assert_fatalError_selection(status);
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    _assert_fatalError_selection(status);
   }
 
-  test_bad_selectionParameter() {
+  test_bad_selectionParameter() async {
     indexTestUnit(r'''
 main(int test) {
 }
 ''');
     _createRefactoring('test) {');
-    return refactoring.checkInitialConditions().then((status) {
-      _assert_fatalError_selection(status);
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    _assert_fatalError_selection(status);
   }
 
-  test_bad_selectionVariable_hasAssignments_1() {
+  test_bad_selectionVariable_hasAssignments_1() async {
     indexTestUnit(r'''
 main() {
   int test = 0;
@@ -71,15 +68,14 @@ main() {
 }
 ''');
     _createRefactoring('test = 0');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedContextSearch: 'test = 1');
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedContextSearch: 'test = 1');
   }
 
-  test_bad_selectionVariable_hasAssignments_2() {
+  test_bad_selectionVariable_hasAssignments_2() async {
     indexTestUnit(r'''
 main() {
   int test = 0;
@@ -87,15 +83,14 @@ main() {
 }
 ''');
     _createRefactoring('test = 0');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedContextSearch: 'test += 1');
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedContextSearch: 'test += 1');
   }
 
-  test_bad_selectionVariable_notInBlock() {
+  test_bad_selectionVariable_notInBlock() async {
     indexTestUnit(r'''
 main() {
   if (true)
@@ -103,21 +98,19 @@ main() {
 }
 ''');
     _createRefactoring('test = 0');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_bad_selectionVariable_notInitialized() {
+  test_bad_selectionVariable_notInitialized() async {
     indexTestUnit(r'''
 main() {
   int test;
 }
 ''');
     _createRefactoring('test;');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
   test_OK_cascade_intoCascade() {

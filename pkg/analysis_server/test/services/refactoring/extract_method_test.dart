@@ -7,6 +7,7 @@ library test.services.refactoring.extract_method;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:unittest/unittest.dart';
@@ -362,7 +363,7 @@ main() {
         'Not all selected statements are enclosed by the same parent statement.');
   }
 
-  test_bad_parameterName_duplicate() {
+  test_bad_parameterName_duplicate() async {
     indexTestUnit('''
 main() {
   int v1 = 1;
@@ -374,19 +375,18 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // update parameters
-    return refactoring.checkInitialConditions().then((_) {
-      {
-        var parameters = _getParametersCopy();
-        expect(parameters, hasLength(2));
-        parameters[0].name = 'dup';
-        parameters[1].name = 'dup';
-        refactoring.parameters = parameters;
-      }
-      return _assertFinalConditionsError("Parameter 'dup' already exists");
-    });
+    await refactoring.checkInitialConditions();
+    {
+      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      expect(parameters, hasLength(2));
+      parameters[0].name = 'dup';
+      parameters[1].name = 'dup';
+      refactoring.parameters = parameters;
+    }
+    return _assertFinalConditionsError("Parameter 'dup' already exists");
   }
 
-  test_bad_parameterName_inUse() {
+  test_bad_parameterName_inUse() async {
     indexTestUnit('''
 main() {
   int v1 = 1;
@@ -398,16 +398,15 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // update parameters
-    return refactoring.checkInitialConditions().then((_) {
-      {
-        var parameters = _getParametersCopy();
-        expect(parameters, hasLength(2));
-        parameters[0].name = 'a';
-        refactoring.parameters = parameters;
-      }
-      return _assertFinalConditionsError(
-          "'a' is already used as a name in the selected code");
-    });
+    await refactoring.checkInitialConditions();
+    {
+      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      expect(parameters, hasLength(2));
+      parameters[0].name = 'a';
+      refactoring.parameters = parameters;
+    }
+    return _assertFinalConditionsError(
+        "'a' is already used as a name in the selected code");
   }
 
   test_bad_selectionEndsInSomeNode() {
@@ -611,7 +610,7 @@ main() {
         "Operation not applicable to a while statement's expression and body.");
   }
 
-  test_canExtractGetter_false_fieldAssignment() {
+  test_canExtractGetter_false_fieldAssignment() async {
     indexTestUnit('''
 class A {
   var f;
@@ -624,13 +623,12 @@ class A {
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.canCreateGetter, false);
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.canCreateGetter, false);
+    expect(refactoring.createGetter, false);
   }
 
-  test_canExtractGetter_false_hasParameters() {
+  test_canExtractGetter_false_hasParameters() async {
     indexTestUnit('''
 main(int p) {
   int a = p + 1;
@@ -638,13 +636,12 @@ main(int p) {
 ''');
     _createRefactoringForString('p + 1');
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.canCreateGetter, false);
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.canCreateGetter, false);
+    expect(refactoring.createGetter, false);
   }
 
-  test_canExtractGetter_false_returnNotUsed_assignment() {
+  test_canExtractGetter_false_returnNotUsed_assignment() async {
     indexTestUnit('''
 var topVar = 0;
 f(int p) {
@@ -653,13 +650,12 @@ f(int p) {
 ''');
     _createRefactoringForString('topVar = 5');
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.canCreateGetter, false);
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.canCreateGetter, false);
+    expect(refactoring.createGetter, false);
   }
 
-  test_canExtractGetter_false_returnNotUsed_noReturn() {
+  test_canExtractGetter_false_returnNotUsed_noReturn() async {
     indexTestUnit('''
 var topVar = 0;
 main() {
@@ -672,13 +668,12 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.canCreateGetter, false);
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.canCreateGetter, false);
+    expect(refactoring.createGetter, false);
   }
 
-  test_canExtractGetter_true() {
+  test_canExtractGetter_true() async {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -686,10 +681,9 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.canCreateGetter, true);
-      expect(refactoring.createGetter, true);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.canCreateGetter, true);
+    expect(refactoring.createGetter, true);
   }
 
   test_checkName() {
@@ -791,7 +785,7 @@ class A {
 ''');
   }
 
-  test_closure_bad_referencesLocalVariable() {
+  test_closure_bad_referencesLocalVariable() async {
     indexTestUnit('''
 process(f(x)) {}
 main() {
@@ -801,16 +795,15 @@ main() {
 ''');
     _createRefactoringForString('(x) => x * k');
     // check
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage:
-              'Cannot extract closure as method, it references 1 external variable(s).');
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            'Cannot extract closure as method, it references 1 external variable(s).');
   }
 
-  test_closure_bad_referencesParameter() {
+  test_closure_bad_referencesParameter() async {
     indexTestUnit('''
 process(f(x)) {}
 main(int k) {
@@ -819,13 +812,12 @@ main(int k) {
 ''');
     _createRefactoringForString('(x) => x * k');
     // check
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage:
-              'Cannot extract closure as method, it references 1 external variable(s).');
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            'Cannot extract closure as method, it references 1 external variable(s).');
   }
 
   test_fromTopLevelVariableInitializerClosure() {
@@ -849,7 +841,7 @@ num res() => 1 + X;
 ''');
   }
 
-  test_getExtractGetter_false_do() {
+  test_getExtractGetter_false_do() async {
     indexTestUnit('''
 main() {
 // start
@@ -863,12 +855,11 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, false);
   }
 
-  test_getExtractGetter_false_for() {
+  test_getExtractGetter_false_for() async {
     indexTestUnit('''
 main() {
 // start
@@ -882,12 +873,11 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, false);
   }
 
-  test_getExtractGetter_false_forEach() {
+  test_getExtractGetter_false_forEach() async {
     indexTestUnit('''
 main() {
 // start
@@ -901,12 +891,11 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, false);
   }
 
-  test_getExtractGetter_false_methodInvocation_expression() {
+  test_getExtractGetter_false_methodInvocation_expression() async {
     indexTestUnit('''
 main() {
   int v = calculateSomething() + 5;
@@ -915,12 +904,11 @@ int calculateSomething() => 42;
 ''');
     _createRefactoringForString('calculateSomething() + 5');
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, false);
   }
 
-  test_getExtractGetter_false_methodInvocation_statements() {
+  test_getExtractGetter_false_methodInvocation_statements() async {
     indexTestUnit('''
 main() {
 // start
@@ -932,12 +920,11 @@ int calculateSomething() => 42;
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, false);
   }
 
-  test_getExtractGetter_false_while() {
+  test_getExtractGetter_false_while() async {
     indexTestUnit('''
 main() {
 // start
@@ -951,12 +938,11 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, false);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, false);
   }
 
-  test_getExtractGetter_true_simpleBlock() {
+  test_getExtractGetter_true_simpleBlock() async {
     indexTestUnit('''
 main() {
 // start
@@ -967,12 +953,11 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, true);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, true);
   }
 
-  test_getExtractGetter_true_singleExpression() {
+  test_getExtractGetter_true_singleExpression() async {
     indexTestUnit('''
 main() {
 // start
@@ -983,9 +968,8 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.createGetter, true);
-    });
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, true);
   }
 
   test_getRefactoringName_function() {
@@ -1010,7 +994,7 @@ class A {
     expect(refactoring.refactoringName, 'Extract Method');
   }
 
-  test_names_singleExpression() {
+  test_names_singleExpression() async {
     indexTestUnit('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
@@ -1022,14 +1006,13 @@ main() {
 ''');
     _createRefactoringWithSuffix('getSelectedItem()', '); // marker');
     // check names
-    return refactoring.checkInitialConditions().then((_) {
-      expect(
-          refactoring.names,
-          unorderedEquals(['selectedItem', 'item', 'my', 'treeItem2']));
-    });
+    await refactoring.checkInitialConditions();
+    expect(
+        refactoring.names,
+        unorderedEquals(['selectedItem', 'item', 'my', 'treeItem2']));
   }
 
-  test_offsets_lengths() {
+  test_offsets_lengths() async {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -1038,15 +1021,14 @@ main() {
 ''');
     _createRefactoringForString('1 +  2');
     // apply refactoring
-    return refactoring.checkInitialConditions().then((_) {
-      expect(
-          refactoring.offsets,
-          unorderedEquals([findOffset('1 + 2'), findOffset('1 +  2')]));
-      expect(refactoring.lengths, unorderedEquals([5, 6]));
-    });
+    await refactoring.checkInitialConditions();
+    expect(
+        refactoring.offsets,
+        unorderedEquals([findOffset('1 + 2'), findOffset('1 +  2')]));
+    expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
-  test_returnType_expression() {
+  test_returnType_expression() async {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -1054,12 +1036,11 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     // do check
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.returnType, 'int');
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, 'int');
   }
 
-  test_returnType_statements() {
+  test_returnType_statements() async {
     indexTestUnit('''
 main() {
 // start
@@ -1070,12 +1051,11 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // do check
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.returnType, 'double');
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, 'double');
   }
 
-  test_returnType_statements_nullMix() {
+  test_returnType_statements_nullMix() async {
     indexTestUnit('''
 main(bool p) {
 // start
@@ -1088,12 +1068,11 @@ main(bool p) {
 ''');
     _createRefactoringForStartEndComments();
     // do check
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.returnType, 'int');
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, 'int');
   }
 
-  test_returnType_statements_void() {
+  test_returnType_statements_void() async {
     indexTestUnit('''
 main() {
 // start
@@ -1103,12 +1082,11 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // do check
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.returnType, 'void');
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, 'void');
   }
 
-  test_setExtractGetter() {
+  test_setExtractGetter() async {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -1116,20 +1094,17 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     // apply refactoring
-    return assertRefactoringConditionsOK().then((_) {
-      expect(refactoring.canCreateGetter, true);
-      expect(refactoring.createGetter, true);
-      return refactoring.createChange().then((SourceChange refactoringChange) {
-        this.refactoringChange = refactoringChange;
-        assertTestChangeResult('''
+    await assertRefactoringConditionsOK();
+    expect(refactoring.canCreateGetter, true);
+    expect(refactoring.createGetter, true);
+    refactoringChange = await refactoring.createChange();
+    assertTestChangeResult('''
 main() {
   int a = res;
 }
 
 int get res => 1 + 2;
 ''');
-      });
-    });
   }
 
   test_singleExpression() {
@@ -1609,7 +1584,7 @@ int res(int v1, int v2) => v1 + v2 + v1;
 ''');
   }
 
-  test_singleExpression_withVariables_doRename() {
+  test_singleExpression_withVariables_doRename() async {
     indexTestUnit('''
 main() {
   int v1 = 1;
@@ -1621,19 +1596,19 @@ main() {
 ''');
     _createRefactoringForString('v1 + v2 + v1');
     // apply refactoring
-    return refactoring.checkInitialConditions().then((_) {
-      {
-        var parameters = _getParametersCopy();
-        expect(parameters, hasLength(2));
-        expect(parameters[0].name, 'v1');
-        expect(parameters[1].name, 'v2');
-        parameters[0].name = 'par1';
-        parameters[1].name = 'param2';
-        refactoring.parameters = parameters;
-      }
-      return assertRefactoringFinalConditionsOK().then((_) {
-        refactoring.createGetter = false;
-        return _assertRefactoringChange('''
+    await refactoring.checkInitialConditions();
+    {
+      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      expect(parameters, hasLength(2));
+      expect(parameters[0].name, 'v1');
+      expect(parameters[1].name, 'v2');
+      parameters[0].name = 'par1';
+      parameters[1].name = 'param2';
+      refactoring.parameters = parameters;
+    }
+    await assertRefactoringFinalConditionsOK();
+    refactoring.createGetter = false;
+    return _assertRefactoringChange('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1644,11 +1619,9 @@ main() {
 
 int res(int par1, int param2) => par1 + param2 + par1;
 ''');
-      });
-    });
   }
 
-  test_singleExpression_withVariables_doReorder() {
+  test_singleExpression_withVariables_doReorder() async {
     indexTestUnit('''
 main() {
   int v1 = 1;
@@ -1660,19 +1633,19 @@ main() {
 ''');
     _createRefactoringForString('v1 + v2');
     // apply refactoring
-    return refactoring.checkInitialConditions().then((_) {
-      {
-        var parameters = _getParametersCopy();
-        expect(parameters, hasLength(2));
-        expect(parameters[0].name, 'v1');
-        expect(parameters[1].name, 'v2');
-        var parameter = parameters.removeAt(1);
-        parameters.insert(0, parameter);
-        refactoring.parameters = parameters;
-      }
-      return assertRefactoringFinalConditionsOK().then((_) {
-        refactoring.createGetter = false;
-        return _assertRefactoringChange('''
+    await refactoring.checkInitialConditions();
+    {
+      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      expect(parameters, hasLength(2));
+      expect(parameters[0].name, 'v1');
+      expect(parameters[1].name, 'v2');
+      var parameter = parameters.removeAt(1);
+      parameters.insert(0, parameter);
+      refactoring.parameters = parameters;
+    }
+    await assertRefactoringFinalConditionsOK();
+    refactoring.createGetter = false;
+    return _assertRefactoringChange('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1683,8 +1656,6 @@ main() {
 
 int res(int v2, int v1) => v1 + v2;
 ''');
-      });
-    });
   }
 
   test_singleExpression_withVariables_namedExpression() {
@@ -1710,7 +1681,7 @@ process({arg}) {}
 ''');
   }
 
-  test_singleExpression_withVariables_newType() {
+  test_singleExpression_withVariables_newType() async {
     indexTestUnit('''
 main() {
   int v1 = 1;
@@ -1721,21 +1692,21 @@ main() {
 ''');
     _createRefactoringForString('v1 + v2 + v3');
     // apply refactoring
-    return refactoring.checkInitialConditions().then((_) {
-      {
-        var parameters = _getParametersCopy();
-        expect(parameters, hasLength(3));
-        expect(parameters[0].name, 'v1');
-        expect(parameters[1].name, 'v2');
-        expect(parameters[2].name, 'v3');
-        parameters[0].type = 'num';
-        parameters[1].type = 'dynamic';
-        parameters[2].type = '';
-        refactoring.parameters = parameters;
-      }
-      return assertRefactoringFinalConditionsOK().then((_) {
-        refactoring.createGetter = false;
-        return _assertRefactoringChange('''
+    await refactoring.checkInitialConditions();
+    {
+      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      expect(parameters, hasLength(3));
+      expect(parameters[0].name, 'v1');
+      expect(parameters[1].name, 'v2');
+      expect(parameters[2].name, 'v3');
+      parameters[0].type = 'num';
+      parameters[1].type = 'dynamic';
+      parameters[2].type = '';
+      refactoring.parameters = parameters;
+    }
+    await assertRefactoringFinalConditionsOK();
+    refactoring.createGetter = false;
+    return _assertRefactoringChange('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1745,8 +1716,6 @@ main() {
 
 int res(num v1, v2, v3) => v1 + v2 + v3;
 ''');
-      });
-    });
   }
 
   test_singleExpression_withVariables_useBestType() {
@@ -1971,7 +1940,7 @@ myFunctionB() {
 ''');
   }
 
-  test_statements_definesVariable_twoUsedOutside() {
+  test_statements_definesVariable_twoUsedOutside() async {
     indexTestUnit('''
 main() {
 // start
@@ -1983,9 +1952,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
-    });
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
   test_statements_duplicate_absolutelySame() {
@@ -2404,49 +2372,44 @@ void res() {
 ''');
   }
 
-  Future _assertConditionsError(String message) {
-    return refactoring.checkAllConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: message);
-    });
+  Future _assertConditionsError(String message) async {
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: message);
   }
 
-  Future _assertConditionsFatal(String message) {
-    return refactoring.checkAllConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: message);
-    });
+  Future _assertConditionsFatal(String message) async {
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: message);
   }
 
-  Future _assertFinalConditionsError(String message) {
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: message);
-    });
+  Future _assertFinalConditionsError(String message) async {
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: message);
   }
 
-  Future _assertRefactoringChange(String expectedCode) {
-    return refactoring.createChange().then((SourceChange refactoringChange) {
-      this.refactoringChange = refactoringChange;
-      assertTestChangeResult(expectedCode);
-    });
+  Future _assertRefactoringChange(String expectedCode) async {
+    SourceChange refactoringChange = await refactoring.createChange();
+    this.refactoringChange = refactoringChange;
+    assertTestChangeResult(expectedCode);
   }
 
   /**
    * Checks that all conditions are OK and the result of applying the [Change]
    * to [testUnit] is [expectedCode].
    */
-  Future _assertSuccessfulRefactoring(String expectedCode) {
-    return assertRefactoringConditionsOK().then((_) {
-      refactoring.createGetter = false;
-      return _assertRefactoringChange(expectedCode);
-    });
+  Future _assertSuccessfulRefactoring(String expectedCode) async {
+    await assertRefactoringConditionsOK();
+    refactoring.createGetter = false;
+    return _assertRefactoringChange(expectedCode);
   }
 
   void _createRefactoring(int offset, int length) {

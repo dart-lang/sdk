@@ -5,6 +5,7 @@
 library test.services.refactoring.rename_constructor;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';
@@ -21,7 +22,7 @@ main() {
 
 @reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
-  test_checkFinalConditions_hasMember_constructor() {
+  test_checkFinalConditions_hasMember_constructor() async {
     indexTestUnit('''
 class A {
   A.test() {}
@@ -31,16 +32,15 @@ class A {
     _createConstructorDeclarationRefactoring('test() {}');
     // check status
     refactoring.newName = 'newName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: "Class 'A' already declares constructor with name 'newName'.",
-          expectedContextSearch: 'newName() {} // existing');
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Class 'A' already declares constructor with name 'newName'.",
+        expectedContextSearch: 'newName() {} // existing');
   }
 
-  test_checkFinalConditions_hasMember_method() {
+  test_checkFinalConditions_hasMember_method() async {
     indexTestUnit('''
 class A {
   A.test() {}
@@ -50,13 +50,12 @@ class A {
     _createConstructorDeclarationRefactoring('test() {}');
     // check status
     refactoring.newName = 'newName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: "Class 'A' already declares method with name 'newName'.",
-          expectedContextSearch: 'newName() {} // existing');
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Class 'A' already declares method with name 'newName'.",
+        expectedContextSearch: 'newName() {} // existing');
   }
 
   test_checkNewName() {

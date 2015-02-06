@@ -46,7 +46,7 @@ library my.app;
         expectedMessage: "The new name must be different than the current name.");
   }
 
-  test_createChange() {
+  test_createChange() async {
     Source unitSource = addSource('/part.dart', '''
 part of my.app;
 ''');
@@ -63,14 +63,13 @@ part 'part.dart';
     expect(refactoring.elementKindName, 'library');
     refactoring.newName = 'the.new.name';
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 library the.new.name;
 part 'part.dart';
-''').then((_) {
-      assertFileChangeResult('/part.dart', '''
+''');
+    assertFileChangeResult('/part.dart', '''
 part of the.new.name;
 ''');
-    });
   }
 
   void _createRenameRefactoring() {

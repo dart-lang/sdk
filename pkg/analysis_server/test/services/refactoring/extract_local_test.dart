@@ -7,6 +7,7 @@ library test.services.refactoring.extract_local;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:unittest/unittest.dart';
@@ -25,7 +26,7 @@ main() {
 class ExtractLocalTest extends RefactoringTest {
   ExtractLocalRefactoringImpl refactoring;
 
-  test_checkFinalConditions_sameVariable_after() {
+  test_checkFinalConditions_sameVariable_after() async {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -34,16 +35,15 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     // conflicting name
-    return refactoring.checkAllConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.WARNING,
-          expectedMessage:
-              "A variable with name 'res' is already defined in the visible scope.");
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.WARNING,
+        expectedMessage:
+            "A variable with name 'res' is already defined in the visible scope.");
   }
 
-  test_checkFinalConditions_sameVariable_before() {
+  test_checkFinalConditions_sameVariable_before() async {
     indexTestUnit('''
 main() {
   var res;
@@ -52,16 +52,15 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     // conflicting name
-    return refactoring.checkAllConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.WARNING,
-          expectedMessage:
-              "A variable with name 'res' is already defined in the visible scope.");
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.WARNING,
+        expectedMessage:
+            "A variable with name 'res' is already defined in the visible scope.");
   }
 
-  test_checkInitialConditions_assignmentLeftHandSize() {
+  test_checkInitialConditions_assignmentLeftHandSize() async {
     indexTestUnit('''
 main() {
   var v = 0;
@@ -70,15 +69,14 @@ main() {
 ''');
     _createRefactoringWithSuffix('v', ' = 1;');
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: 'Cannot extract the left-hand side of an assignment.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract the left-hand side of an assignment.');
   }
 
-  test_checkInitialConditions_methodName_reference() {
+  test_checkInitialConditions_methodName_reference() async {
     indexTestUnit('''
 main() {
   main();
@@ -86,15 +84,14 @@ main() {
 ''');
     _createRefactoringWithSuffix('main', '();');
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: 'Cannot extract a single method name.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract a single method name.');
   }
 
-  test_checkInitialConditions_nameOfProperty_prefixedIdentifier() {
+  test_checkInitialConditions_nameOfProperty_prefixedIdentifier() async {
     indexTestUnit('''
 main(p) {
   p.value; // marker
@@ -102,15 +99,14 @@ main(p) {
 ''');
     _createRefactoringWithSuffix('value', '; // marker');
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: 'Cannot extract name part of a property access.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract name part of a property access.');
   }
 
-  test_checkInitialConditions_nameOfProperty_propertyAccess() {
+  test_checkInitialConditions_nameOfProperty_propertyAccess() async {
     indexTestUnit('''
 main() {
   foo().length; // marker
@@ -119,15 +115,14 @@ String foo() => '';
 ''');
     _createRefactoringWithSuffix('length', '; // marker');
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: 'Cannot extract name part of a property access.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract name part of a property access.');
   }
 
-  test_checkInitialConditions_namePartOfDeclaration_variable() {
+  test_checkInitialConditions_namePartOfDeclaration_variable() async {
     indexTestUnit('''
 main() {
   int vvv = 0;
@@ -135,30 +130,28 @@ main() {
 ''');
     _createRefactoringWithSuffix('vvv', ' = 0;');
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: 'Cannot extract the name part of a declaration.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract the name part of a declaration.');
   }
 
-  test_checkInitialConditions_notPartOfFunction() {
+  test_checkInitialConditions_notPartOfFunction() async {
     indexTestUnit('''
 int a = 1 + 2;
 ''');
     _createRefactoringForString('1 + 2');
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage:
-              'Expression inside of function must be selected to activate this refactoring.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            'Expression inside of function must be selected to activate this refactoring.');
   }
 
-  test_checkInitialConditions_stringSelection_leadingQuote() {
+  test_checkInitialConditions_stringSelection_leadingQuote() async {
     indexTestUnit('''
 main() {
   var vvv = 'abc';
@@ -166,16 +159,15 @@ main() {
 ''');
     _createRefactoringForString("'a");
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage:
-              'Cannot extract only leading or trailing quote of string literal.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            'Cannot extract only leading or trailing quote of string literal.');
   }
 
-  test_checkInitialConditions_stringSelection_trailingQuote() {
+  test_checkInitialConditions_stringSelection_trailingQuote() async {
     indexTestUnit('''
 main() {
   var vvv = 'abc';
@@ -183,13 +175,12 @@ main() {
 ''');
     _createRefactoringForString("c'");
     // check conditions
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage:
-              'Cannot extract only leading or trailing quote of string literal.');
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            'Cannot extract only leading or trailing quote of string literal.');
   }
 
   test_checkLocalName() {
@@ -469,7 +460,7 @@ main() {
 ''');
   }
 
-  test_guessNames_fragmentExpression() {
+  test_guessNames_fragmentExpression() async {
     indexTestUnit('''
 main() {
   var a = 111 + 222 + 333 + 444;
@@ -477,12 +468,11 @@ main() {
 ''');
     _createRefactoringForString('222 + 333');
     // check guesses
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.names, isEmpty);
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.names, isEmpty);
   }
 
-  test_guessNames_singleExpression() {
+  test_guessNames_singleExpression() async {
     indexTestUnit('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
@@ -493,14 +483,13 @@ main() {
 ''');
     _createRefactoringWithSuffix('getSelectedItem()', '); // marker');
     // check guesses
-    return refactoring.checkInitialConditions().then((_) {
-      expect(
-          refactoring.names,
-          unorderedEquals(['selectedItem', 'item', 'my', 'treeItem']));
-    });
+    await refactoring.checkInitialConditions();
+    expect(
+        refactoring.names,
+        unorderedEquals(['selectedItem', 'item', 'my', 'treeItem']));
   }
 
-  test_guessNames_stringPart() {
+  test_guessNames_stringPart() async {
     indexTestUnit('''
 main() {
   var s = 'Hello Bob... welcome to Dart!';
@@ -508,9 +497,8 @@ main() {
 ''');
     _createRefactoringForString('Hello Bob');
     // check guesses
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
   }
 
   test_occurences_differentVariable() {
@@ -692,7 +680,7 @@ main() {
 ''');
   }
 
-  test_offsets_lengths() {
+  test_offsets_lengths() async {
     indexTestUnit('''
 int foo() => 42;
 main() {
@@ -701,13 +689,12 @@ main() {
 }
 ''');
     _createRefactoringWithSuffix('foo()', '; // marker');
-    // apply refactoring
-    return refactoring.checkInitialConditions().then((_) {
-      expect(
-          refactoring.offsets,
-          unorderedEquals([findOffset('foo();'), findOffset('foo( );')]));
-      expect(refactoring.lengths, unorderedEquals([5, 6]));
-    });
+    // check offsets
+    await refactoring.checkInitialConditions();
+    expect(
+        refactoring.offsets,
+        unorderedEquals([findOffset('foo();'), findOffset('foo( );')]));
+    expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
   test_singleExpression() {
@@ -955,26 +942,23 @@ main() {
 ''');
   }
 
-  Future _assertInitialConditions_fatal_selection() {
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: 'Expression must be selected to activate this refactoring.');
-    });
+  Future _assertInitialConditions_fatal_selection() async {
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Expression must be selected to activate this refactoring.');
   }
 
   /**
    * Checks that all conditions are OK and the result of applying the [Change]
    * to [testUnit] is [expectedCode].
    */
-  Future _assertSuccessfulRefactoring(String expectedCode) {
-    return assertRefactoringConditionsOK().then((_) {
-      return refactoring.createChange().then((SourceChange refactoringChange) {
-        this.refactoringChange = refactoringChange;
-        assertTestChangeResult(expectedCode);
-      });
-    });
+  Future _assertSuccessfulRefactoring(String expectedCode) async {
+    await assertRefactoringConditionsOK();
+    SourceChange refactoringChange = await refactoring.createChange();
+    this.refactoringChange = refactoringChange;
+    assertTestChangeResult(expectedCode);
   }
 
   void _createRefactoring(int offset, int length) {

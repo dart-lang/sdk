@@ -5,6 +5,7 @@
 library test.services.refactoring.rename_unit_member;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -19,7 +20,7 @@ main() {
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
-  test_checkFinalConditions_hasTopLevel_ClassElement() {
+  test_checkFinalConditions_hasTopLevel_ClassElement() async {
     indexTestUnit('''
 class Test {}
 class NewName {} // existing
@@ -27,16 +28,15 @@ class NewName {} // existing
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: "Library already declares class with name 'NewName'.",
-          expectedContextSearch: 'NewName {} // existing');
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Library already declares class with name 'NewName'.",
+        expectedContextSearch: 'NewName {} // existing');
   }
 
-  test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() {
+  test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() async {
     indexTestUnit('''
 class Test {}
 typedef NewName(); // existing
@@ -44,17 +44,16 @@ typedef NewName(); // existing
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage:
-              "Library already declares function type alias with name 'NewName'.",
-          expectedContextSearch: 'NewName(); // existing');
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Library already declares function type alias with name 'NewName'.",
+        expectedContextSearch: 'NewName(); // existing');
   }
 
-  test_checkFinalConditions_OK_qualifiedSuper_MethodElement() {
+  test_checkFinalConditions_OK_qualifiedSuper_MethodElement() async {
     indexTestUnit('''
 class Test {}
 class A {
@@ -69,12 +68,11 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowedBy_MethodElement() {
+  test_checkFinalConditions_shadowedBy_MethodElement() async {
     indexTestUnit('''
 class Test {}
 class A {
@@ -87,17 +85,16 @@ class A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage:
-              "Reference to renamed class will be shadowed by method 'A.NewName'.",
-          expectedContextSearch: 'NewName() {}');
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Reference to renamed class will be shadowed by method 'A.NewName'.",
+        expectedContextSearch: 'NewName() {}');
   }
 
-  test_checkFinalConditions_shadowsInSubClass_importedLib() {
+  test_checkFinalConditions_shadowsInSubClass_importedLib() async {
     indexTestUnit('''
 class Test {}
 ''');
@@ -116,15 +113,18 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: "Renamed class will shadow method 'A.NewName'.");
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Renamed class will shadow method 'A.NewName'.");
   }
 
-  test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() {
+
+
+
+
+      test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
     indexTestUnit('''
 class Test {}
 ''');
@@ -143,12 +143,11 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowsInSubClass_MethodElement() {
+  test_checkFinalConditions_shadowsInSubClass_MethodElement() async {
     indexTestUnit('''
 class Test {}
 class A {
@@ -163,16 +162,15 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: "Renamed class will shadow method 'A.NewName'.",
-          expectedContextSearch: 'NewName(); // super-ref');
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Renamed class will shadow method 'A.NewName'.",
+        expectedContextSearch: 'NewName(); // super-ref');
   }
 
-  test_checkFinalConditions_shadowsInSubClass_notImportedLib() {
+  test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
     indexUnit('/lib.dart', '''
 library my.lib;
 class A {
@@ -190,12 +188,11 @@ class Test {}
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowsInSubClass_notSubClass() {
+  test_checkFinalConditions_shadowsInSubClass_notSubClass() async {
     indexTestUnit('''
 class Test {}
 class A {
@@ -210,9 +207,8 @@ class B {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
   }
 
   test_checkNewName_ClassElement() {
