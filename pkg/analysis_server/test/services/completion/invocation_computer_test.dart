@@ -132,6 +132,41 @@ void f(C<int> c) {
     });
   }
 
+  test_local() {
+    addTestSource('foo() {String x = "bar"; x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_local_is() {
+    addTestSource('foo() {var x; if (x is String) x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_local_propogatedType() {
+    addTestSource('foo() {var x = "bar"; x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_param() {
+    addTestSource('foo(String x) {x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_param_is() {
+    addTestSource('foo(x) {if (x is String) x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
   test_method_parameters_mixed_required_and_named() {
     addTestSource('''
 class C {
