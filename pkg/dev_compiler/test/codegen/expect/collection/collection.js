@@ -413,7 +413,14 @@ var collection;
       }
       let parts = new List.from([]);
       _toStringVisiting.add(iterable);
-      /* Unimplemented TryStatement: try {_iterablePartsToStrings(iterable, parts);} finally {assert (identical(_toStringVisiting.last, iterable)); _toStringVisiting.removeLast();} */return (/* Unimplemented cascade on non-simple identifier: new StringBuffer(leftDelimiter)..writeAll(parts, ", ")..write(rightDelimiter) */).toString();
+      try {
+        _iterablePartsToStrings(iterable, parts);
+      }
+      finally {
+        dart.assert(core.identical(_toStringVisiting.last, iterable));
+        _toStringVisiting.removeLast();
+      }
+      return (/* Unimplemented cascade on non-simple identifier: new StringBuffer(leftDelimiter)..writeAll(parts, ", ")..write(rightDelimiter) */).toString();
     }
     static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
       if (leftDelimiter === undefined) leftDelimiter = "(";
@@ -423,7 +430,14 @@ var collection;
       }
       let buffer = new core.StringBuffer(leftDelimiter);
       _toStringVisiting.add(iterable);
-      /* Unimplemented TryStatement: try {buffer.writeAll(iterable, ", ");} finally {assert (identical(_toStringVisiting.last, iterable)); _toStringVisiting.removeLast();} */buffer.write(rightDelimiter);
+      try {
+        buffer.writeAll(iterable, ", ");
+      }
+      finally {
+        dart.assert(core.identical(_toStringVisiting.last, iterable));
+        _toStringVisiting.removeLast();
+      }
+      buffer.write(rightDelimiter);
       return buffer.toString();
     }
     static _isToStringVisiting(o) {
@@ -1292,7 +1306,26 @@ var collection;
         return "{...}";
       }
       let result = new core.StringBuffer();
-      /* Unimplemented TryStatement: try {IterableBase._toStringVisiting.add(m); result.write('{'); bool first = true; m.forEach((k, v) {if (!first) {result.write(', ');} first = false; result.write(k); result.write(': '); result.write(v);}); result.write('}');} finally {assert (identical(IterableBase._toStringVisiting.last, m)); IterableBase._toStringVisiting.removeLast();} */return result.toString();
+      try {
+        IterableBase._toStringVisiting.add(m);
+        result.write("{");
+        let first = true;
+        m.forEach((k, v) => {
+          if (!first) {
+            result.write(", ");
+          }
+          first = false;
+          result.write(k);
+          result.write(": ");
+          result.write(v);
+        });
+        result.write("}");
+      }
+      finally {
+        dart.assert(core.identical(IterableBase._toStringVisiting.last, m));
+        IterableBase._toStringVisiting.removeLast();
+      }
+      return result.toString();
     }
     static _id(x) { return x; }
     static _fillMapWithMappedIterable(map, iterable, key, value) {

@@ -257,4 +257,9 @@ var dart;
   }
   dart.defineNamedConstructor = defineNamedConstructor;
 
+  function stackTrace(exception) {
+    throw new dart_core.UnimplementedError();
+  }
+  dart.stackTrace = stackTrace;
+
 })(dart || (dart = {}));

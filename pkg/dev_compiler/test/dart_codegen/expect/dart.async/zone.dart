@@ -398,27 +398,21 @@ class _CustomZone extends _Zone {
     try {
       return run(f);
     } catch (e, s) {
-      return handleUncaughtError(e, DDC$RT.cast(s, dynamic, StackTrace,
-          "CastGeneral", """line 706, column 37 of dart:async/zone.dart: """,
-          s is StackTrace, true));
+      return handleUncaughtError(e, s);
     }
   }
   dynamic runUnaryGuarded(f(arg), arg) {
     try {
       return runUnary(f, arg);
     } catch (e, s) {
-      return handleUncaughtError(e, DDC$RT.cast(s, dynamic, StackTrace,
-          "CastGeneral", """line 714, column 37 of dart:async/zone.dart: """,
-          s is StackTrace, true));
+      return handleUncaughtError(e, s);
     }
   }
   dynamic runBinaryGuarded(f(arg1, arg2), arg1, arg2) {
     try {
       return runBinary(f, arg1, arg2);
     } catch (e, s) {
-      return handleUncaughtError(e, DDC$RT.cast(s, dynamic, StackTrace,
-          "CastGeneral", """line 722, column 37 of dart:async/zone.dart: """,
-          s is StackTrace, true));
+      return handleUncaughtError(e, s);
     }
   }
   ZoneCallback bindCallback(f(), {bool runGuarded: true}) {
@@ -735,9 +729,7 @@ class _RootZone extends _Zone {
       }
       return _rootRun(null, null, this, f);
     } catch (e, s) {
-      return handleUncaughtError(e, DDC$RT.cast(s, dynamic, StackTrace,
-          "CastGeneral", """line 1086, column 37 of dart:async/zone.dart: """,
-          s is StackTrace, true));
+      return handleUncaughtError(e, s);
     }
   }
   dynamic runUnaryGuarded(f(arg), arg) {
@@ -747,9 +739,7 @@ class _RootZone extends _Zone {
       }
       return _rootRunUnary(null, null, this, f, arg);
     } catch (e, s) {
-      return handleUncaughtError(e, DDC$RT.cast(s, dynamic, StackTrace,
-          "CastGeneral", """line 1097, column 37 of dart:async/zone.dart: """,
-          s is StackTrace, true));
+      return handleUncaughtError(e, s);
     }
   }
   dynamic runBinaryGuarded(f(arg1, arg2), arg1, arg2) {
@@ -759,9 +749,7 @@ class _RootZone extends _Zone {
       }
       return _rootRunBinary(null, null, this, f, arg1, arg2);
     } catch (e, s) {
-      return handleUncaughtError(e, DDC$RT.cast(s, dynamic, StackTrace,
-          "CastGeneral", """line 1108, column 37 of dart:async/zone.dart: """,
-          s is StackTrace, true));
+      return handleUncaughtError(e, s);
     }
   }
   ZoneCallback bindCallback(f(), {bool runGuarded: true}) {
@@ -843,10 +831,7 @@ dynamic runZoned(body(),
         if (identical(e, error)) {
           return parent.handleUncaughtError(zone, error, stackTrace);
         } else {
-          return parent.handleUncaughtError(zone, e, DDC$RT.cast(s, dynamic,
-              StackTrace, "CastGeneral",
-              """line 1233, column 54 of dart:async/zone.dart: """,
-              s is StackTrace, true));
+          return parent.handleUncaughtError(zone, e, s);
         }
       }
     };

@@ -343,9 +343,7 @@ class _IterablePendingEvents<T> extends _PendingEvents {
       isDone = !_iterator.moveNext();
     } catch (e, s) {
       _iterator = null;
-      dispatch._sendError(e, DDC$RT.cast(s, dynamic, StackTrace, "CastGeneral",
-          """line 545, column 30 of dart:async/stream_impl.dart: """,
-          s is StackTrace, true));
+      dispatch._sendError(e, s);
       return;
     }
     if (!isDone) {

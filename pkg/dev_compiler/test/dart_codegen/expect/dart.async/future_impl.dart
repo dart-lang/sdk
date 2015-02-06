@@ -536,10 +536,7 @@ class _Future<T> implements Future<T> {
         try {
           result._complete(zone.run(onTimeout));
         } catch (e, s) {
-          result._completeError(e, DDC$RT.cast(s, dynamic, StackTrace,
-              "CastGeneral",
-              """line 634, column 36 of dart:async/future_impl.dart: """,
-              s is StackTrace, true));
+          result._completeError(e, s);
         }
       });
     }

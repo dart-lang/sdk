@@ -437,7 +437,30 @@ var convert;
       for (let i = start; i < end; i++) {
         let ch = text.get(i);
         let replace = null;
-        /* Unimplemented SwitchStatement: switch (ch) {case '&': replace = '&amp;'; break; case '\u00A0': replace = '&nbsp;'; break; case '"': if (mode.escapeQuot) replace = '&quot;'; break; case "'": if (mode.escapeApos) replace = '&#x27;'; break; case '<': if (mode.escapeLtGt) replace = '&lt;'; break; case '>': if (mode.escapeLtGt) replace = '&gt;'; break; case '/': if (mode.escapeSlash) replace = '&#x2F;'; break;} */if (replace !== null) {
+        switch (ch) {
+          case "&":
+            replace = "&amp;";
+            break;
+          case " ":
+            replace = "&nbsp;";
+            break;
+          case """:
+            if (this.mode.escapeQuot) replace = "&quot;";
+            break;
+          case "'":
+            if (this.mode.escapeApos) replace = "&#x27;";
+            break;
+          case "<":
+            if (this.mode.escapeLtGt) replace = "&lt;";
+            break;
+          case ">":
+            if (this.mode.escapeLtGt) replace = "&gt;";
+            break;
+          case "/":
+            if (this.mode.escapeSlash) replace = "&#x2F;";
+            break;
+        }
+        if (replace !== null) {
           if (result === null) result = new core.StringBuffer(text.substring(start, i));
           result.write(replace);
         } else if (result !== null) {
@@ -706,7 +729,31 @@ var convert;
           if (i > offset) this.writeStringSlice(s, offset, i);
           offset = i + 1;
           this.writeCharCode(BACKSLASH);
-          /* Unimplemented SwitchStatement: switch (charCode) {case BACKSPACE: writeCharCode(CHAR_b); break; case TAB: writeCharCode(CHAR_t); break; case NEWLINE: writeCharCode(CHAR_n); break; case FORM_FEED: writeCharCode(CHAR_f); break; case CARRIAGE_RETURN: writeCharCode(CHAR_r); break; default: writeCharCode(CHAR_u); writeCharCode(CHAR_0); writeCharCode(CHAR_0); writeCharCode(hexDigit((charCode >> 4) & 0xf)); writeCharCode(hexDigit(charCode & 0xf)); break;} */} else if (charCode === QUOTE || charCode === BACKSLASH) {
+          switch (charCode) {
+            case BACKSPACE:
+              this.writeCharCode(CHAR_b);
+              break;
+            case TAB:
+              this.writeCharCode(CHAR_t);
+              break;
+            case NEWLINE:
+              this.writeCharCode(CHAR_n);
+              break;
+            case FORM_FEED:
+              this.writeCharCode(CHAR_f);
+              break;
+            case CARRIAGE_RETURN:
+              this.writeCharCode(CHAR_r);
+              break;
+            default:
+              this.writeCharCode(CHAR_u);
+              this.writeCharCode(CHAR_0);
+              this.writeCharCode(CHAR_0);
+              this.writeCharCode(hexDigit((charCode >> 4) & 15));
+              this.writeCharCode(hexDigit(charCode & 15));
+              break;
+          }
+        } else if (charCode === QUOTE || charCode === BACKSLASH) {
           if (i > offset) this.writeStringSlice(s, offset, i);
           offset = i + 1;
           this.writeCharCode(BACKSLASH);
@@ -735,7 +782,17 @@ var convert;
     writeObject(object) {
       if (this.writeJsonValue(object)) return;
       this._checkCycle(object);
-      /* Unimplemented TryStatement: try {var customJson = _toEncodable(object); if (!writeJsonValue(customJson)) {throw new JsonUnsupportedObjectError(object);} _removeSeen(object);} catch (e) {throw new JsonUnsupportedObjectError(object, cause: e);} */}
+      try {
+        let customJson = dart.dinvokef(this._toEncodable, object);
+        if (!this.writeJsonValue(customJson)) {
+          throw new JsonUnsupportedObjectError(object);
+        }
+        this._removeSeen(object);
+      }
+      catch (e) {
+        throw new JsonUnsupportedObjectError(object, {cause: e});
+      }
+    }
     writeJsonValue(object) {
       if (dart.is(object, core.num)) {
         if (/* Unimplemented postfix operator: !object.isFinite */) return false;

@@ -1335,6 +1335,92 @@ $name.prototype[Symbol.iterator] = function() {
   }
 
   @override
+  void visitTryStatement(TryStatement node) {
+    out.write('try ');
+    _visitNode(node.body);
+    if (node.body is! Block) out.write(' ');
+
+    var clauses = node.catchClauses;
+    if (clauses != null && clauses.isNotEmpty) {
+      // TODO(jmesserly): need a better way to get a temporary variable.
+      // This could incorrectly shadow a user's name.
+      var name = '\$e';
+
+      if (clauses.length == 1) {
+        // Special case for a single catch.
+        var clause = clauses.single;
+        if (clause.exceptionParameter != null) {
+          name = clause.exceptionParameter.name;
+        }
+      }
+
+      out.write('catch ($name) {\n', 2);
+      for (var clause in clauses) {
+        _visitCatchClause(clause, name);
+      }
+      out.write('}\n', -2);
+    }
+    _visitNode(node.finallyBlock, prefix: 'finally ');
+  }
+
+  void _visitCatchClause(CatchClause node, String varName) {
+    if (node.catchKeyword != null) {
+      if (node.exceptionType != null) {
+        var type = _typeName(node.exceptionType.type);
+        out.write('if (dart.is($varName, $type)) {\n', 2);
+      }
+
+      var name = node.exceptionParameter;
+      if (name != null && name.name != varName) {
+        out.write('let $name = $varName;\n');
+      }
+
+      if (node.stackTraceParameter != null) {
+        var stackName = node.stackTraceParameter.name;
+        out.write('let $stackName = dart.stackTrace($name);\n');
+      }
+    }
+
+    // If we can, avoid generating a nested { ... } block.
+    var body = node.body;
+    if (body is Block) {
+      body.statements.accept(this);
+    } else {
+      body.accept(this);
+    }
+
+    if (node.exceptionType != null) out.write('}\n', -2);
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _visitNodeList(node.labels, separator: " ", suffix: " ");
+    out.write("case ");
+    _visitNode(node.expression);
+    out.write(":\n", 2);
+    _visitNodeList(node.statements);
+    out.write('', -2);
+    // TODO(jmesserly): make sure we are statically checking fall through
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    _visitNodeList(node.labels, separator: " ", suffix: " ");
+    out.write("default:\n", 2);
+    _visitNodeList(node.statements);
+    out.write('', -2);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    out.write("switch (");
+    _visitNode(node.expression);
+    out.write(") {\n", 2);
+    _visitNodeList(node.members);
+    out.write("}\n", -2);
+  }
+
+  @override
   void visitLabel(Label node) {
     _visitNode(node.label);
     out.write(':');

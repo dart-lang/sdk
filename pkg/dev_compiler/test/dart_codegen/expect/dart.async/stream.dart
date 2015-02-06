@@ -102,10 +102,7 @@ abstract class Stream<T> {
         try {
           newValue = convert(event);
         } catch (e, s) {
-          controller.addError(e, DDC$RT.cast(s, dynamic, StackTrace,
-              "CastGeneral",
-              """line 327, column 38 of dart:async/stream.dart: """,
-              s is StackTrace, true));
+          controller.addError(e, s);
           return;
         }
         if (newValue is Future) {
@@ -150,10 +147,7 @@ abstract class Stream<T> {
         try {
           newStream = convert(event);
         } catch (e, s) {
-          controller.addError(e, DDC$RT.cast(s, dynamic, StackTrace,
-              "CastGeneral",
-              """line 386, column 38 of dart:async/stream.dart: """,
-              s is StackTrace, true));
+          controller.addError(e, s);
           return;
         }
         if (newStream != null) {
@@ -265,10 +259,7 @@ abstract class Stream<T> {
       try {
         buffer.write(element);
       } catch (e, s) {
-        _cancelAndErrorWithReplacement(subscription, result, e, DDC$RT.cast(s,
-            dynamic, StackTrace, "CastGeneral",
-            """line 571, column 67 of dart:async/stream.dart: """,
-            s is StackTrace, true));
+        _cancelAndErrorWithReplacement(subscription, result, e, s);
       }
     }, onError: (e) {
       result._completeError(e);
@@ -482,10 +473,7 @@ abstract class Stream<T> {
         try {
           throw IterableElementError.tooMany();
         } catch (e, s) {
-          _cancelAndErrorWithReplacement(subscription, future, e, DDC$RT.cast(s,
-              dynamic, StackTrace, "CastGeneral",
-              """line 980, column 69 of dart:async/stream.dart: """,
-              s is StackTrace, true));
+          _cancelAndErrorWithReplacement(subscription, future, e, s);
         }
         return;
       }
@@ -597,10 +585,7 @@ abstract class Stream<T> {
             try {
               throw IterableElementError.tooMany();
             } catch (e, s) {
-              _cancelAndErrorWithReplacement(subscription, future, e, DDC$RT
-                  .cast(s, dynamic, StackTrace, "CastGeneral",
-                      """line 1121, column 75 of dart:async/stream.dart: """,
-                      s is StackTrace, true));
+              _cancelAndErrorWithReplacement(subscription, future, e, s);
             }
             return;
           }

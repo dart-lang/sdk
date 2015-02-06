@@ -2204,7 +2204,20 @@ var core;
         error("expected a part after last `:`", end);
       }
       if (!atEnd) {
-        /* Unimplemented TryStatement: try {parts.add(parseHex(partStart, end));} catch (e) {try {List<int> last = parseIPv4Address(host.substring(partStart, end)); parts.add(last[0] << 8 | last[1]); parts.add(last[2] << 8 | last[3]);} catch (e) {error('invalid end of IPv6 address.', partStart);}} */}
+        try {
+          parts.add(parseHex(partStart, end));
+        }
+        catch (e) {
+          try {
+            let last = parseIPv4Address(host.substring(partStart, end));
+            parts.add(last.get(0) << 8 | last.get(1));
+            parts.add(last.get(2) << 8 | last.get(3));
+          }
+          catch (e) {
+            error("invalid end of IPv6 address.", partStart);
+          }
+        }
+      }
       if (wildcardSeen) {
         if (parts.length > 7) {
           error("an address with a wildcard must have less than 7 parts");

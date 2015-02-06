@@ -62,9 +62,7 @@ class _SinkTransformerStreamSubscription<S, T>
     try {
       _transformerSink.add(data);
     } catch (e, s) {
-      _addError(e, DDC$RT.cast(s, dynamic, StackTrace, "CastGeneral",
-          """line 121, column 20 of dart:async/stream_transformers.dart: """,
-          s is StackTrace, true));
+      _addError(e, s);
     }
   }
   void _handleError(error, [stackTrace]) {
@@ -80,9 +78,7 @@ class _SinkTransformerStreamSubscription<S, T>
             """line 130, column 26 of dart:async/stream_transformers.dart: """,
             stackTrace is StackTrace, true));
       } else {
-        _addError(e, DDC$RT.cast(s, dynamic, StackTrace, "CastGeneral",
-            """line 132, column 22 of dart:async/stream_transformers.dart: """,
-            s is StackTrace, true));
+        _addError(e, s);
       }
     }
   }
@@ -91,9 +87,7 @@ class _SinkTransformerStreamSubscription<S, T>
       _subscription = null;
       _transformerSink.close();
     } catch (e, s) {
-      _addError(e, DDC$RT.cast(s, dynamic, StackTrace, "CastGeneral",
-          """line 142, column 20 of dart:async/stream_transformers.dart: """,
-          s is StackTrace, true));
+      _addError(e, s);
     }
   }
 }

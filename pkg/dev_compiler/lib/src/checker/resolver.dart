@@ -97,14 +97,33 @@ InternalAnalysisContext _initContext() {
 /// type rules. This changes how types are promoted in conditional expressions
 /// and statements, and how types are computed on expressions.
 class RestrictedResolverVisitor extends ResolverVisitor {
+  final TypeProvider _typeProvider;
+
   RestrictedResolverVisitor(
       Library library, Source source, TypeProvider typeProvider)
-      : super.con1(library, source, typeProvider,
-          typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
+      : _typeProvider = typeProvider,
+        super.con1(library, source, typeProvider,
+            typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
 
   static ResolverVisitor constructor(
           Library library, Source source, TypeProvider typeProvider) =>
       new RestrictedResolverVisitor(library, source, typeProvider);
+
+  @override
+  visitCatchClause(CatchClause node) {
+    var stack = node.stackTraceParameter;
+    if (stack != null) {
+      // TODO(jmesserly): analyzer does not correctly associate StackTrace type.
+      // It happens too late in TypeResolverVisitor visitCatchClause.
+      var element = stack.staticElement;
+      if (element is VariableElementImpl && element.type == null) {
+        // From the language spec:
+        // The static type of p1 is T and the static type of p2 is StackTrace.
+        element.type = _typeProvider.stackTraceType;
+      }
+    }
+    return super.visitCatchClause(node);
+  }
 
   @override // removes type promotion
   void promoteTypes(Expression condition) {
@@ -116,13 +135,14 @@ class RestrictedResolverVisitor extends ResolverVisitor {
 /// in the restricted type system and to infer types for untyped local
 /// variables.
 class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
-  final DartType _bottomType;
+  final TypeProvider _typeProvider;
+
   RestrictedStaticTypeAnalyzer(ResolverVisitor r)
-      : _bottomType = r.typeProvider.bottomType,
+      : _typeProvider = r.typeProvider,
         super(r);
 
   @override // to infer type from initializers
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  visitVariableDeclaration(VariableDeclaration node) {
     _inferType(node);
     return super.visitVariableDeclaration(node);
   }
@@ -138,7 +158,7 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     VariableElementImpl element = node.element;
     if (element.type != dynamicType) return;
     var type = getStaticType(initializer);
-    if (type == _bottomType) return;
+    if (type == _typeProvider.bottomType) return;
     element.type = type;
   }
 

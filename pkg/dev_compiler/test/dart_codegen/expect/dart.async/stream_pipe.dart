@@ -5,14 +5,9 @@ _runUserCode(
   try {
     onSuccess(userCode());
   } catch (e, s) {
-    AsyncError replacement = Zone.current.errorCallback(e, DDC$RT.cast(s,
-        dynamic, StackTrace, "CastGeneral",
-        """line 14, column 60 of dart:async/stream_pipe.dart: """,
-        s is StackTrace, true));
+    AsyncError replacement = Zone.current.errorCallback(e, s);
     if (replacement == null) {
-      onError(e, DDC$RT.cast(s, dynamic, StackTrace, "CastGeneral",
-          """line 16, column 18 of dart:async/stream_pipe.dart: """,
-          s is StackTrace, true));
+      onError(e, s);
     } else {
       var error = _nonNullError(replacement.error);
       var stackTrace = replacement.stackTrace;

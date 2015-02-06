@@ -253,11 +253,7 @@ abstract class _StreamController<T>
               """line 542, column 20 of dart:async/stream_controller.dart: """,
               __x87 is Future<dynamic>, true))(_onCancel());
         } catch (e, s) {
-          result = new _Future()
-            .._asyncCompleteError(e, DDC$RT.cast(s, dynamic, StackTrace,
-                "CastGeneral",
-                """line 547, column 58 of dart:async/stream_controller.dart: """,
-                s is StackTrace, true));
+          result = new _Future().._asyncCompleteError(e, s);
         }
       } else {
         result = result.whenComplete(_onCancel);
@@ -361,10 +357,7 @@ Future _runGuarded(_NotificationHandler notificationHandler) {
         result is Future<dynamic>, true);
     return null;
   } catch (e, s) {
-    Zone.current.handleUncaughtError(e, DDC$RT.cast(s, dynamic, StackTrace,
-        "CastGeneral",
-        """line 668, column 41 of dart:async/stream_controller.dart: """,
-        s is StackTrace, true));
+    Zone.current.handleUncaughtError(e, s);
   }
 }
 class _ControllerStream<T> extends _StreamImpl<T> {
