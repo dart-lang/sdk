@@ -135,8 +135,27 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitConcatenateStrings(tree_ir.ConcatenateStrings node) {
-    return giveup(node);
-    // TODO: implement visitConcatenateStrings
+    js.Expression addStrings(js.Expression left, js.Expression right) {
+      return new js.Binary('+', left, right);
+    }
+
+    js.Expression toString(tree_ir.Expression input) {
+      bool useDirectly = input is tree_ir.Constant &&
+          (input.expression.value.isString ||
+           input.expression.value.isInt ||
+           input.expression.value.isBool);
+      js.Expression value = visit(input);
+      if (useDirectly) {
+        return value;
+      } else {
+        Element convertToString = glue.getStringConversion();
+        registry.registerStaticUse(convertToString);
+        js.Expression access = glue.staticFunctionAccess(convertToString);
+        return (new js.Call(access, <js.Expression>[value]));
+      }
+    }
+
+    return node.arguments.map(toString).reduce(addStrings);
   }
 
   @override

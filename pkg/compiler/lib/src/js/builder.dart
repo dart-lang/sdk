@@ -349,8 +349,8 @@ LiteralNumber number(num value) => js.number(value);
 ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
 ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
 Call propertyCall(Expression receiver,
-                    String fieldName,
-                    List<Expression> arguments) {
+                  String fieldName,
+                  List<Expression> arguments) {
   return js.propertyCall(receiver, fieldName, arguments);
 }
 
