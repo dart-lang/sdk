@@ -33,7 +33,6 @@ import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
 
 
-
 class ModelEmitter {
   final Compiler compiler;
   final Namer namer;
@@ -466,7 +465,9 @@ class ModelEmitter {
   // This string should be referenced wherever JavaScript code makes assumptions
   // on the mixin format.
   static final String mixinFormatDescription =
-      "Mixins have no constructor, but a reference to their mixin class.";
+      "Mixins have a reference to their mixin class at the place of the usual"
+      "constructor. If they are instantiated the constructor follows the"
+      "reference.";
 
   js.Expression emitClass(Class cls) {
     List elements = [js.string(cls.superclassName),
@@ -476,6 +477,9 @@ class ModelEmitter {
       MixinApplication mixin = cls;
       elements.add(js.string(mixin.mixinClass.name));
       elements.add(js.number(mixin.mixinClass.holder.index));
+      if (cls.isDirectlyInstantiated) {
+        elements.add(_generateConstructor(cls));
+      }
     } else {
       elements.add(_generateConstructor(cls));
     }
@@ -800,18 +804,28 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
     var constructor;
+    var functionsIndex;
     // $mixinFormatDescription.
     if (typeof descriptor[2] !== 'function') {
-      constructor = compileMixinConstructor(name, prototype, descriptor);
-      for (var i = 4; i < descriptor.length; i += 2) {
-        parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
+      fillPrototypeWithMixedIn(descriptor[2], descriptor[3], prototype);
+      // descriptor[4] contains the constructor if the mixin application is
+      // directly instantiated.
+      if (typeof descriptor[4] === 'function') {
+        constructor = descriptor[4];
+        functionsIndex = 5;
+      } else {
+        constructor = function() {};
+        functionsIndex = 4;
       }
     } else {
       constructor = descriptor[2];
-      for (var i = 3; i < descriptor.length; i += 2) {
-        parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
-      }
+      functionsIndex = 3;
     }
+
+    for (var i = functionsIndex; i < descriptor.length; i += 2) {
+      parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
+    }
+
     constructor.builtin\$cls = name;  // Needed for RTI.
     constructor.prototype = prototype;
     prototype[#operatorIsPrefix + name] = constructor;
@@ -819,10 +833,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     return constructor;
   }
 
-  function compileMixinConstructor(name, prototype, descriptor) {
-    // $mixinFormatDescription.
-    var mixinName = descriptor[2];
-    var mixinHolderIndex = descriptor[3];
+  function fillPrototypeWithMixedIn(mixinName, mixinHolderIndex, prototype) {
     var mixin = holders[mixinHolderIndex][mixinName].ensureResolved();
     var mixinPrototype = mixin.prototype;
 
@@ -832,10 +843,6 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       var p = mixinProperties[i];
       prototype[p] = mixinPrototype[p];
     }
-    // Since this is a mixin application the constructor will actually never
-    // be invoked. We only use its prototype for the application's subclasses. 
-    var constructor = function() {};
-    return constructor;
   }
 
   function determinePrototype(descriptor) {
