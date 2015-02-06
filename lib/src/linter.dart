@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -55,18 +54,8 @@ class LinterException implements Exception {
   /// Creates a new LinterException with an optional error [message].
   const LinterException([this.message]);
 
-  LinterException.forError(List<AnalysisError> errors)
-      : message = _createMessage(errors);
-
   String toString() =>
       message == null ? "LinterException" : "LinterException: $message";
-
-  //TODO: revisit
-  static String _createMessage(errors) {
-    var errorCode = errors[0].errorCode;
-    var phase = errorCode is ParserErrorCode ? 'parsing' : 'scanning';
-    return 'An error occured while $phase (${errorCode.name}).';
-  }
 }
 
 /// Linter options.
