@@ -1338,10 +1338,13 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigint()._compare(this) == 0;
   }
 
-  // Return pow(this, e) % m, with e >= 0, m > 0.
+  // Returns pow(this, e) % m, with e >= 0, m > 0.
   int modPow(int e, int m) {
-    if (e is! int || e < 0) throw new ArgumentError(e);
-    if (m is! int || m <= 0) throw new ArgumentError(m);
+    if (e is! int) throw new ArgumentError(e);
+    if (m is! int) throw new ArgumentError(m);
+    if (e < 0) throw new RangeError(e);
+    if (m <= 0) throw new RangeError(m);
+    if (e == 0) return 1;
     final m_used = m._used;
     final m_used2p2 = 2*m_used + 1 + 1;  // +1 for leading zero.
     final e_bitlen = e.bitLength;

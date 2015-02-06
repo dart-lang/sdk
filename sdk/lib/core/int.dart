@@ -103,6 +103,14 @@ abstract class int extends num {
    */
   int operator >>(int shiftAmount);
 
+  /**
+   * Returns this integer to the power of [exponent] modulo [modulus].
+   *
+   * The [exponent] must be non-negative and [modulus] must be
+   * positive.
+   */
+  int modPow(int exponent, int modulus);
+
   /** Returns true if and only if this integer is even. */
   bool get isEven;
 

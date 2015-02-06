@@ -265,25 +265,28 @@ class _IntegerImplementation extends _Num {
 
   _leftShiftWithMask32(count, mask)  native "Integer_leftShiftWithMask32";
 
-  // Return pow(this, e) % m.
+  // Returns pow(this, e) % m.
   int modPow(int e, int m) {
-    if (e is! int || e < 0) throw new ArgumentError(e);
-    if (m is! int || m <= 0) throw new ArgumentError(m);
+    if (e is! int) throw new ArgumentError(e);
+    if (m is! int) throw new ArgumentError(m);
+    if (e < 0) throw new RangeError(e);
+    if (m <= 0) throw new RangeError(m);
+    if (e == 0) return 1;
     if (e is _Bigint || m is _Bigint) {
       return _toBigint().modPow(e, m);
     }
     if (e < 1) return 1;
     int b = this;
     if (b < 0 || b > m) {
-      b = b % m;
+      b %= m;
     }
     int r = 1;
     while (e > 0) {
-     if ((e & 1) != 0) {
-       r = (r * b) % m;
-     }
-     e >>= 1;
-     b = (b * b) % m;
+      if (e.isOdd) {
+        r = (r * b) % m;
+      }
+      e >>= 1;
+      b = (b * b) % m;
     }
     return r;
   }
