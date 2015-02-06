@@ -336,7 +336,9 @@ void Intrinsifier::Integer_mul(Assembler* assembler) {
 //   - left > 0 && left < right
 // RAX: Tagged left (dividend).
 // RCX: Tagged right (divisor).
-// RAX: Untagged result (remainder).
+// Returns:
+//   RAX: Untagged fallthrough result (remainder to be adjusted), or
+//   RAX: Tagged return result (remainder).
 static void EmitRemainderOperation(Assembler* assembler) {
   Label return_zero, try_modulo, not_32bit, done;
   // Check for quick zero results.

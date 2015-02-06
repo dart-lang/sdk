@@ -378,7 +378,9 @@ void Intrinsifier::Integer_mul(Assembler* assembler) {
 //   - left > 0 && left < right
 // EAX: Tagged left (dividend).
 // EBX: Tagged right (divisor).
-// EDX: Untagged result (remainder).
+// Returns:
+//   EDX: Untagged fallthrough result (remainder to be adjusted), or
+//   EAX: Tagged return result (remainder).
 static void EmitRemainderOperation(Assembler* assembler) {
   Label return_zero, modulo;
   // Check for quick zero results.

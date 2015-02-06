@@ -381,8 +381,9 @@ void Intrinsifier::Integer_mul(Assembler* assembler) {
 //   - left > 0 && left < right
 // R1: Tagged left (dividend).
 // R0: Tagged right (divisor).
-// Returns with result in R0, OR:
-//   R1: Untagged result (remainder).
+// Returns:
+//   R1: Untagged fallthrough result (remainder to be adjusted), or
+//   R0: Tagged return result (remainder).
 static void EmitRemainderOperation(Assembler* assembler) {
   Label modulo;
   const Register left = R1;
