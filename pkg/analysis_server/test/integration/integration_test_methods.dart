@@ -314,13 +314,26 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Force the re-analysis of everything contained in the existing analysis
+   * Force the re-analysis of everything contained in the specified analysis
    * roots. This will cause all previously computed analysis results to be
    * discarded and recomputed, and will cause all subscribed notifications to
    * be re-sent.
+   *
+   * If no analysis roots are provided, then all current analysis roots will be
+   * re-analyzed. If an empty list of analysis roots is provided, then nothing
+   * will be re-analyzed. If the list contains one or more paths that are not
+   * currently analysis roots, then an error of type INVALID_ANALYSIS_ROOT will
+   * be generated.
+   *
+   * Parameters
+   *
+   * roots ( optional List<FilePath> )
+   *
+   *   A list of the analysis roots that are to be re-analyzed.
    */
-  Future sendAnalysisReanalyze() {
-    return server.send("analysis.reanalyze", null)
+  Future sendAnalysisReanalyze({List<String> roots}) {
+    var params = new AnalysisReanalyzeParams(roots: roots).toJson();
+    return server.send("analysis.reanalyze", params)
         .then((result) {
       expect(result, isNull);
       return null;
@@ -1047,7 +1060,9 @@ abstract class IntegrationTestMixin {
    * text is passed in so that the selection can be preserved across the
    * formatting operation. The updated selection will be as close to matching
    * the original as possible, but whitespace at the beginning or end of the
-   * selected region will be ignored.
+   * selected region will be ignored. If preserving selection information is
+   * not required, zero (0) can be specified for both the selection offset and
+   * selection length.
    *
    * If a request is made for a file which does not exist, or which is not
    * currently subject to analysis (e.g. because it is not associated with any
@@ -1062,15 +1077,11 @@ abstract class IntegrationTestMixin {
    *
    * selectionOffset ( int )
    *
-   *   The offset of the current selection in the file. In case preserving,
-   *   selection information is not required, 0 can be specified for both
-   *   selection offset and length.
+   *   The offset of the current selection in the file.
    *
    * selectionLength ( int )
    *
-   *   The length of the current selection in the file. In case preserving,
-   *   selection information is not required, 0 can be specified for both
-   *   selection offset and length.
+   *   The length of the current selection in the file.
    *
    * Returns
    *
