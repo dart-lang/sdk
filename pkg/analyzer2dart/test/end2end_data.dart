@@ -828,4 +828,16 @@ main() {
 }
 '''),
   ]),
+
+  const Group('Instance method', const <TestSpec>[
+    const TestSpec('''
+class C {
+  C() {}
+  foo() {}
+}
+main() {
+  return new C().foo();
+}
+'''),
+]),
 ];

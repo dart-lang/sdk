@@ -50,6 +50,9 @@ class ElementY extends dart2js.Element {
   @override
   bool get isLocal => false;
 
+  @override
+  bool get isSynthesized => false;
+
   unsupported(String method) {
     throw new UnsupportedError(
         "'$method' is unsupported on $this ($runtimeType)");
@@ -150,9 +153,6 @@ class ElementY extends dart2js.Element {
 
   @override
   bool get isNative => unsupported('isNative');
-
-  @override
-  bool get isSynthesized => unsupported('isSynthesized');
 
   @override
   bool get isTopLevel => unsupported('isTopLevel');
@@ -798,6 +798,9 @@ abstract class ClassMemberMixin implements ElementY {
 
   @override
   bool get isClassMember => true;
+
+  @override
+  bool get isTopLevel => false;
 }
 
 class ConstructorElementY extends ElementY
@@ -824,6 +827,9 @@ class ConstructorElementY extends ElementY
   @override
   bool get isStatic => false;
 
+  @override
+  bool get isSynthesized => element.isSynthetic;
+
   ConstructorElementY(ElementConverter converter,
                       analyzer.ConstructorElement element)
       : super(converter, element);
@@ -839,6 +845,38 @@ class ConstructorElementY extends ElementY
 
   @override
   get immediateRedirectionTarget => unsupported('immediateRedirectionTarget');
+
+  @override
+  get nestedClosures => unsupported('nestedClosures');
+}
+
+class InstanceMethodElementY extends ElementY
+    with AnalyzableElementY,
+         AstElementY,
+         FunctionElementMixin,
+         ClassMemberMixin
+    implements dart2js.MethodElement {
+
+  analyzer.MethodElement get element => super.element;
+
+  @override
+  dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
+
+  @override
+  bool get isStatic => element.isStatic;
+
+  @override
+  bool get isAbstract => element.isAbstract;
+
+  @override
+  bool get isFactoryConstructor => false;
+
+  @override
+  bool get isInstanceMember => true;
+
+  InstanceMethodElementY(ElementConverter converter,
+                         analyzer.MethodElement element)
+      : super(converter, element);
 
   @override
   get nestedClosures => unsupported('nestedClosures');

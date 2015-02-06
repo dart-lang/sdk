@@ -1406,4 +1406,30 @@ main() {
     (InvokeContinuation return (v0))))
 '''}),
   ]),
+
+  const Group('Instance method', const <TestSpec>[
+    const TestSpec('''
+class C {
+  C() {}
+  foo() {}
+}
+main() {
+  return new C().foo();
+}
+''',
+    const {
+'main': '''
+(FunctionDefinition main () return
+  (LetCont ((k0 (v0)
+      (LetCont ((k1 (v1)
+          (InvokeContinuation return (v1))))
+        (InvokeMethod v0 foo () k1))))
+    (InvokeConstructor C () k0)))
+''',
+'C.foo': '''
+(FunctionDefinition foo () return
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
+'''}),
+]),
 ];

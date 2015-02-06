@@ -35,7 +35,14 @@ class CpsElementVisitor extends analyzer.SimpleElementVisitor<ir.Node> {
     CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter, element);
     FunctionDeclaration functionDeclaration = node;
     return visitor.handleFunctionDeclaration(
-        element, functionDeclaration.functionExpression);
+        element, functionDeclaration.functionExpression.body);
+  }
+
+  @override
+  ir.FunctionDefinition visitMethodElement(analyzer.MethodElement element) {
+    CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter, element);
+    MethodDeclaration methodDeclaration = node;
+    return visitor.handleFunctionDeclaration(element, methodDeclaration.body);
   }
 
   @override
@@ -52,8 +59,13 @@ class CpsElementVisitor extends analyzer.SimpleElementVisitor<ir.Node> {
     CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter, element);
     if (!element.isFactory) {
       ConstructorDeclaration constructorDeclaration = node;
-      return visitor.handleConstructorDeclaration(
-          element, constructorDeclaration);
+      FunctionBody body;
+      if (constructorDeclaration != null) {
+        body = constructorDeclaration.body;
+      } else {
+        assert(element.isSynthetic);
+      }
+      return visitor.handleConstructorDeclaration(element, body);
     }
     // TODO(johnniwinther): Support factory constructors.
     return null;
@@ -78,8 +90,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   ir.Node visit(AstNode node) => node.accept(this);
 
   ir.ConstructorDefinition handleConstructorDeclaration(
-      analyzer.ConstructorElement constructor, ConstructorDeclaration node) {
-    FunctionBody body = node.body;
+      analyzer.ConstructorElement constructor, FunctionBody body) {
     dart2js.ConstructorElement element = converter.convertElement(constructor);
     return withBuilder(
         new DartIrBuilder(DART_CONSTANT_SYSTEM,
@@ -91,7 +102,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
           constructor.parameters.map(converter.convertElement));
       // Visit the body directly to avoid processing the signature as
       // expressions.
-      visit(node.body);
+      // Call to allow for `body == null` in case of synthesized constructors.
+      build(body);
       return irBuilder.makeConstructorDefinition(const [], const []);
     });
   }
@@ -112,7 +124,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   ir.FunctionDefinition handleFunctionDeclaration(
-      analyzer.FunctionElement function, FunctionExpression node) {
+      analyzer.ExecutableElement function, FunctionBody body) {
     dart2js.FunctionElement element = converter.convertElement(function);
     return withBuilder(
         new DartIrBuilder(DART_CONSTANT_SYSTEM,
@@ -124,7 +136,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
           function.parameters.map(converter.convertElement));
       // Visit the body directly to avoid processing the signature as
       // expressions.
-      visit(node.body);
+      visit(body);
       return irBuilder.makeFunctionDefinition(const []);
     });
   }
@@ -132,12 +144,13 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   @override
   ir.Primitive visitFunctionExpression(FunctionExpression node) {
     return irBuilder.buildFunctionExpression(
-        handleFunctionDeclaration(node.element, node));
+        handleFunctionDeclaration(node.element, node.body));
   }
 
   @override
   ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
-    return handleFunctionDeclaration(node.element, node.functionExpression);
+    return handleFunctionDeclaration(
+        node.element, node.functionExpression.body);
   }
 
   @override
@@ -146,7 +159,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     analyzer.FunctionElement function = functionDeclaration.element;
     dart2js.FunctionElement element = converter.convertElement(function);
     ir.FunctionDefinition definition = handleFunctionDeclaration(
-        function, functionDeclaration.functionExpression);
+        function, functionDeclaration.functionExpression.body);
     irBuilder.declareLocalFunction(element, definition);
   }
 
