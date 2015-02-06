@@ -25,7 +25,8 @@ main() {
             "suppressWarnings": true,
             "suppressHints": true,
             "suppressPackageWarnings": false,
-            "terse": true
+            "terse": true,
+            "sourceMaps": false
           }
         }]
       }),
