@@ -294,7 +294,7 @@ void r() {
     v.!1length;
     v.!2getKeys;
   }
-}''', <String>["1+length", "2-getKeys"], failingTests: '1');
+}''', <String>["1+length", "2-getKeys"]);
 
     // Type propagation.
     buildTests('testCommentSnippets052', '''
@@ -305,7 +305,7 @@ void r() {
     v.!1toUpperCase;
     v.!2getKeys;
   }
-}''', <String>["1+toUpperCase", "2-getKeys"], failingTests: '1');
+}''', <String>["1+toUpperCase", "2-getKeys"]);
 
     // Type propagation.
     buildTests('testCommentSnippets053', '''
@@ -316,7 +316,7 @@ void r() {
     v.!1toUpperCase;
     v.!2getKeys;
   }
-}''', <String>["1+toUpperCase", "2-getKeys"], failingTests: '1');
+}''', <String>["1+toUpperCase", "2-getKeys"]);
 
     buildTests('testCommentSnippets054', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
@@ -326,7 +326,7 @@ void r() {
     v.!2toUpperCase;
     v.!3getKeys;
   }
-}''', <String>["1+isEmpty", "2+toUpperCase", "3-getKeys"], failingTests: '12');
+}''', <String>["1+isEmpty", "2+toUpperCase", "3-getKeys"]);
 
     buildTests('testCommentSnippets055', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
@@ -345,16 +345,16 @@ void f(var v) {
     return;
   }
   v.!1toUpperCase;
-}''', <String>["1+toUpperCase"], failingTests: '1');
+}''', <String>["1+toUpperCase"]);
 
     // Type propagation.
     buildTests('testCommentSnippets057', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void f(var v) {
-  if ((v as String).length == 0) {
+  if ((v as String).!2length == 0) {
     v.!1toUpperCase;
   }
-}''', <String>["1+toUpperCase"], failingTests: '1');
+}''', <String>["1+toUpperCase", "2+length"]);
 
     buildTests('testCommentSnippets058', '''
 typedef vo!2id callback(int k);
@@ -388,7 +388,7 @@ void r(var v) {
   v.!1toUpperCase;
   assert(v is String);
   v.!2toUpperCase;
-}''', <String>["1-toUpperCase", "2+toUpperCase"], failingTests: '2');
+}''', <String>["1-toUpperCase", "2+toUpperCase"]);
 
     buildTests('testCommentSnippets064', '''
 class Spline {
@@ -756,8 +756,7 @@ class Q {
 
     buildTests('testCommentSnippets090', '''
 class X { f() { var a = 'x'; a.!1 }}''',
-        <String>["1+length"],
-        failingTests: '1');
+        <String>["1+length"]);
   }
 
   void buildCompletionTests() {
@@ -2246,8 +2245,7 @@ class A {
     buildTests(
         'test035',
         '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"],
-        failingTests: '1');
+        <String>["1+length"]);
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)

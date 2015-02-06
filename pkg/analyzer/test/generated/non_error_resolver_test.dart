@@ -487,6 +487,19 @@ Future f() async {}
     verify([source]);
   }
 
+  void test_async_return_flattens_futures() {
+    Source source = addSource('''
+import 'dart:async';
+Future<int> f() async {
+  return g();
+}
+Future<Future<int>> g() => null;
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_async_with_return() {
     Source source = addSource('''
 f() async {
@@ -535,6 +548,32 @@ f(list) async* {
   await for (var e in list) {
   }
 }''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_await_flattened() {
+    Source source = addSource('''
+import 'dart:async';
+Future<Future<int>> ffi() => null;
+f() async {
+  int b = await ffi();
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_await_simple() {
+    Source source = addSource('''
+import 'dart:async';
+Future<int> fi() => null;
+f() async {
+  int a = await fi();
+}
+''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);

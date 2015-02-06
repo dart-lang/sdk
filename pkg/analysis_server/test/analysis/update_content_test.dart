@@ -87,4 +87,43 @@ f() {}
       expect(filesErrors[barPath], isEmpty);
     });
   }
+
+  test_sendNoticesAfterNopChange() async {
+    createProject();
+    addTestFile('');
+    await server.onAnalysisComplete;
+    // add an overlay
+    server.updateContent('1', {
+      testFile: new AddContentOverlay('main() {} main() {}')
+    });
+    await server.onAnalysisComplete;
+    // clear errors and make a no-op change
+    filesErrors.clear();
+    server.updateContent('2', {
+      testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
+    });
+    await server.onAnalysisComplete;
+    // errors should have been resent
+    expect(filesErrors, isNotEmpty);
+  }
+
+  test_sendNoticesAfterNopChange_flushedUnit() async {
+    createProject();
+    addTestFile('');
+    await server.onAnalysisComplete;
+    // add an overlay
+    server.updateContent('1', {
+      testFile: new AddContentOverlay('main() {} main() {}')
+    });
+    await server.onAnalysisComplete;
+    // clear errors and make a no-op change
+    filesErrors.clear();
+    server.test_flushResolvedUnit(testFile);
+    server.updateContent('2', {
+      testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
+    });
+    await server.onAnalysisComplete;
+    // errors should have been resent
+    expect(filesErrors, isNotEmpty);
+  }
 }

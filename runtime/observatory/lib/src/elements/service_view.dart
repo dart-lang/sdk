@@ -26,10 +26,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         HeapProfileElement element = new Element.tag('heap-profile');
         element.profile = object;
         return element;
-      case 'BreakpointList':
-        BreakpointListElement element = new Element.tag('breakpoint-list');
-        element.msg = object;
-        return element;
       case 'Class':
         ClassViewElement element = new Element.tag('class-view');
         element.cls = object;

@@ -6,6 +6,7 @@ library services.completion.computer.dart.optype;
 
 import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation
@@ -193,6 +194,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   visitConstructorName(ConstructorName node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
@@ -212,6 +219,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (node.label == null || identical(entity, node.label)) {
       optype.includeStatementLabelSuggestions = true;
       optype.includeCaseLabelSuggestions = true;
+    }
+  }
+
+  @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (identical(entity, node.defaultValue)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -247,6 +262,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
+    // Given f[], the parser drops the [] from the expression statement
+    // but the [] token is the CompletionTarget entity
+    if (entity is Token) {
+      Token token = entity;
+      if (token.lexeme == '[]' && offset == token.offset + 1) {
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
   }
 
   @override
@@ -258,6 +282,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitForEachStatement(ForEachStatement node) {
+    if (identical(entity, node.identifier)) {
+      optype.includeTypeNameSuggestions = true;
+    }
+    if (identical(entity, node.loopVariable)) {
+      optype.includeTypeNameSuggestions = true;
+    }
+    if (identical(entity, node.inKeyword) && offset <= node.inKeyword.offset) {
+      if (node.identifier == null && node.loopVariable == null) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
     if (identical(entity, node.iterable)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
@@ -303,6 +338,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
 

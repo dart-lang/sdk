@@ -943,8 +943,10 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   }
 
   bool get hasCrashed {
-    // The Java dartc runner and dart2js exits with code 253 in case
-    // of unhandled exceptions.
+    // dart2js exits with code 253 in case of unhandled exceptions.
+    // The dart binary exits with code 253 in case of an API error such
+    // as an invalid snapshot file.
+    // In either case an exit code of 253 is considered a crash.
     if (exitCode == 253) return true;
     if (io.Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.

@@ -9851,6 +9851,30 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitAwaitExpression_flattened() {
+    // await e, where e has type Future<Future<int>>
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType futureIntType =
+        _typeProvider.futureType.substitute4(<DartType>[intType]);
+    InterfaceType futureFutureIntType =
+        _typeProvider.futureType.substitute4(<DartType>[futureIntType]);
+    Expression node =
+        AstFactory.awaitExpression(_resolvedVariable(futureFutureIntType, 'e'));
+    expect(_analyze(node), same(intType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitAwaitExpression_simple() {
+    // await e, where e has type Future<int>
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType futureIntType =
+        _typeProvider.futureType.substitute4(<DartType>[intType]);
+    Expression node =
+        AstFactory.awaitExpression(_resolvedVariable(futureIntType, 'e'));
+    expect(_analyze(node), same(intType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitBinaryExpression_equals() {
     // 2 == 3
     Expression node = AstFactory.binaryExpression(

@@ -100,7 +100,7 @@ class Platform {
   static final bool isLinux = (_operatingSystem == "linux");
 
   /**
-   * Returns true if the operating system is Mac OS.
+   * Returns true if the operating system is OS X.
    */
   static final bool isMacOS = (_operatingSystem == "macos");
 

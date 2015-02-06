@@ -7,6 +7,7 @@ library observatory_element;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/app.dart';
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 /// Base class for all Observatory custom elements.
@@ -91,9 +92,21 @@ class ObservatoryElement extends PolymerElement {
     event.stopPropagation();
   }
 
+  String makeLink(String url, [ServiceObject obj]) {
+    if (obj != null) {
+      if (obj is Isolate) {
+        url = '${url}?isolateId=${Uri.encodeComponent(obj.id)}';
+      } else {
+        url = ('${url}?isolateId=${Uri.encodeComponent(obj.isolate.id)}'
+               '&objectId=${Uri.encodeComponent(obj.id)}');
+      }
+    }
+    return url;
+  }
+
   /// Create a link that can be consumed by [goto].
-  String gotoLink(String url) {
-    return app.locationManager.makeLink(url);
+  String gotoLink(String url, [ServiceObject obj]) {
+    return app.locationManager.makeLink(makeLink(url, obj));
   }
 
   String formatTimePrecise(double time) => Utils.formatTimePrecise(time);

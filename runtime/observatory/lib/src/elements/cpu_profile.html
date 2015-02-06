@@ -11,7 +11,7 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
-      <nav-menu link="{{ '/profiler' + isolate.link }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ makeLink('/profiler', isolate) }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>

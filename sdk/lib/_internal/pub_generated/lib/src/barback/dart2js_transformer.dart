@@ -33,7 +33,8 @@ final _validOptions = new Set<String>.from(
         'suppressWarnings',
         'suppressHints',
         'suppressPackageWarnings',
-        'terse']);
+        'terse',
+        'sourceMaps']);
 
 /// A [Transformer] that uses dart2js's library API to transform Dart
 /// entrypoints in "web" to JavaScript.
@@ -49,7 +50,8 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   final BarbackSettings _settings;
 
   /// Whether source maps should be generated for the compiled JS.
-  bool get _generateSourceMaps => _settings.mode != BarbackMode.RELEASE;
+  bool get _generateSourceMaps =>
+      _configBool('sourceMaps', defaultsTo: _settings.mode != BarbackMode.RELEASE);
 
   Dart2JSTransformer.withSettings(this._environment, this._settings) {
     var invalidOptions =
@@ -158,7 +160,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
             'suppressPackageWarnings',
             defaultsTo: true),
         terse: _configBool('terse'),
-        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE);
+        includeSourceMapUrls: _generateSourceMaps);
   }
 
   /// Parses and returns the "commandLineOptions" configuration option.

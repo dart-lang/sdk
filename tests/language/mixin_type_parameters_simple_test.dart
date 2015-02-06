@@ -18,6 +18,9 @@ class A<T> extends S with M1<T> , M2<T> { }
 
 main() {
   var a = new A<int>();
+  // Getting "int" when calling toString() on the int type is not required.
+  // However, we want to keep the original names for the most common core types
+  // so we make sure to handle these specifically in the compiler.
   Expect.equals("int", a.m1().toString());
   Expect.equals("int", a.m2().toString());
   a = new A<String>();

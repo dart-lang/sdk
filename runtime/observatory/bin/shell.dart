@@ -11,17 +11,19 @@ import 'dart:io';
 // Simple demo for service_io library. Connects to localhost on the default
 // port, picks the first isolate, reads requests from stdin, and prints
 // results to stdout. Example session:
-// <<< prefix /isolates/1071334835
+// <<< isolate isolates/1071334835
 // >>> /classes/40
 // <<< {"type":"Class","id":"classes\/40","name":"num","user_name":"num",...
 // >>> /objects/0
 // >>> {"type":"Array","class":{"type":"@Class","id":"classes\/62",...
 
-void repl(VM vm, String prefix, String lastResult) {
+void repl(VM vm, Isolate isolate, String lastResult) {
   print(lastResult);
-  // TODO(turnidge): use the non-deprecated api here.
-  vm.getStringDeprecated(prefix + stdin.readLineSync()).then((String result) {
-    repl(vm, prefix, result);
+  Map params = {
+    'objectId': stdin.readLineSync(),
+  };
+  isolate.invokeRpcNoUpgrade('getObject', params).then((Map result) {
+    repl(vm, isolate, result.toString());
   });
 }
 
@@ -29,7 +31,6 @@ void main() {
   String addr = 'ws://localhost:8181/ws';
   new WebSocketVM(new WebSocketVMTarget(addr)).load().then((VM vm) {
     Isolate isolate = vm.isolates.first;
-    String prefix = '${isolate.link}';
-    repl(vm, prefix, 'prefix $prefix');
+    repl(vm, isolate, 'isolate ${isolate.id}');
   });
 }

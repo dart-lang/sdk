@@ -13,7 +13,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
-final String coverageScript = "tools/full-coverage.dart";
+final String coverageScript =
+    Platform.script.resolve('../../tools/full-coverage.dart').toFilePath();
 final String packageRoot = Platform.packageRoot;
 final List dartBaseArgs = ['--package-root=${packageRoot}', '--checked',];
 

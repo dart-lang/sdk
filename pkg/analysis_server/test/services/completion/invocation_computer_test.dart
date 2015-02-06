@@ -25,7 +25,7 @@ class InvocationComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     return assertSuggestField(
         name,
         type,
@@ -129,6 +129,41 @@ void f(C<int> c) {
       // the suggestion object.
       CompletionSuggestion suggestion = assertSuggestSetter('t');
       expect(suggestion.element.parameters, '(int value)');
+    });
+  }
+
+  test_local() {
+    addTestSource('foo() {String x = "bar"; x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_local_is() {
+    addTestSource('foo() {var x; if (x is String) x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_local_propogatedType() {
+    addTestSource('foo() {var x = "bar"; x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_param() {
+    addTestSource('foo(String x) {x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_param_is() {
+    addTestSource('foo(x) {if (x is String) x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
     });
   }
 

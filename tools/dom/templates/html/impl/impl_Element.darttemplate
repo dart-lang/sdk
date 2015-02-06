@@ -813,7 +813,13 @@ $endif
 
   @DomName('Element.localName')
   @DocsEditable()
+$if DART2JS
+  @Returns('String')
+  // Non-null for Elements.
+  String get localName => JS('String', '#', _localName);
+$else
   String get localName => _localName;
+$endif
 
   /**
    * A URI that identifies the XML namespace of this element.

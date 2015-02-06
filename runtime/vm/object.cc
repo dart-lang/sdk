@@ -5584,7 +5584,7 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 
 bool Function::CanBeInlined() const {
   return is_inlinable() &&
-         !is_async_closure() &&
+         !is_generated_body() &&
          HasCode() &&
          !Isolate::Current()->debugger()->HasBreakpoint(*this);
 }
@@ -6111,7 +6111,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
-  result.set_is_async_closure(false);
+  result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
   result.set_owner(owner);
@@ -12788,7 +12788,23 @@ void ContextScope::SetContextLevelAt(intptr_t scope_index,
 
 
 const char* ContextScope::ToCString() const {
-  return "ContextScope";
+  const char* format =
+      "%s\nvar %s  token-pos %" Pd "  ctx lvl %" Pd "  index %" Pd "";
+  const char* prev_cstr = "ContextScope:";
+  String& name = String::Handle();
+  for (int i = 0; i < num_variables(); i++) {
+    name = NameAt(i);
+    const char* cname = name.ToCString();
+    intptr_t pos = TokenIndexAt(i);
+    intptr_t idx = ContextIndexAt(i);
+    intptr_t lvl = ContextLevelAt(i);
+    intptr_t len =
+        OS::SNPrint(NULL, 0, format, prev_cstr, cname, pos, lvl, idx) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, prev_cstr, cname, pos, lvl, idx);
+    prev_cstr = chars;
+  }
+  return prev_cstr;
 }
 
 
@@ -13194,7 +13210,7 @@ void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawUnhandledException* UnhandledException::New(const Instance& exception,
-                                               const Instance& stacktrace,
+                                               const Stacktrace& stacktrace,
                                                Heap::Space space) {
   ASSERT(Object::unhandled_exception_class() != Class::null());
   UnhandledException& result = UnhandledException::Handle();
@@ -13222,7 +13238,7 @@ RawUnhandledException* UnhandledException::New(Heap::Space space) {
     result ^= raw;
   }
   result.set_exception(Object::null_instance());
-  result.set_stacktrace(Object::null_instance());
+  result.set_stacktrace(Stacktrace::Handle());
   return result.raw();
 }
 
@@ -13232,7 +13248,7 @@ void UnhandledException::set_exception(const Instance& exception) const {
 }
 
 
-void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
+void UnhandledException::set_stacktrace(const Stacktrace& stacktrace) const {
   StorePointer(&raw_ptr()->stacktrace_, stacktrace.raw());
 }
 
@@ -20099,6 +20115,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
                                    intptr_t frame_index) {
   const char* kFormatWithCol = "#%-6d %s (%s:%d:%d)\n";
   const char* kFormatNoCol = "#%-6d %s (%s:%d)\n";
+  const char* kFormatNoLine = "#%-6d %s (%s)\n";
   const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
   const Script& script = Script::Handle(isolate, function.script());
   const String& function_name =
@@ -20106,7 +20123,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
   const String& url = String::Handle(isolate, script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos >= 0) {
+  if (token_pos > 0) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {
@@ -20124,7 +20141,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
                 frame_index,
                 function_name.ToCString(),
                 url.ToCString(), line, column);
-  } else {
+  } else if (line >= 0) {
     len = OS::SNPrint(NULL, 0, kFormatNoCol,
                       frame_index, function_name.ToCString(),
                       url.ToCString(), line);
@@ -20132,6 +20149,14 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
     OS::SNPrint(chars, (len + 1), kFormatNoCol,
                 frame_index, function_name.ToCString(),
                 url.ToCString(), line);
+  } else {
+    len = OS::SNPrint(NULL, 0, kFormatNoLine,
+                      frame_index, function_name.ToCString(),
+                      url.ToCString());
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, (len + 1), kFormatNoLine,
+                frame_index, function_name.ToCString(),
+                url.ToCString());
   }
   frame_strings->Add(chars);
   return len;

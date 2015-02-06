@@ -261,13 +261,16 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
    * real parameters implementing the [ParameterElement] interface. Otherwise,
    * the parameters will only implement [FormalElement].
    */
-  static FunctionSignature analyze(Compiler compiler,
-                                   NodeList formalParameters,
-                                   Node returnNode,
-                                   FunctionTypedElement element,
-                                   ResolutionRegistry registry,
-                                   {MessageKind defaultValuesError,
-                                    bool createRealParameters: false}) {
+  static FunctionSignature analyze(
+      Compiler compiler,
+      NodeList formalParameters,
+      Node returnNode,
+      FunctionTypedElement element,
+      ResolutionRegistry registry,
+      {MessageKind defaultValuesError,
+       bool createRealParameters: false,
+       bool isFunctionExpression: false}) {
+
     SignatureResolver visitor = new SignatureResolver(compiler, element,
         registry, defaultValuesError: defaultValuesError,
         createRealParameters: createRealParameters);
@@ -308,7 +311,27 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         registry.registerIsCheck(returnType);
       }
     } else {
-      returnType = visitor.resolveReturnType(returnNode);
+      AsyncMarker asyncMarker = AsyncMarker.SYNC;
+      if (isFunctionExpression) {
+        // Use async marker to determine the return type of function
+        // expressions.
+        FunctionElement function = element;
+        asyncMarker = function.asyncMarker;
+      }
+      switch (asyncMarker) {
+      case AsyncMarker.SYNC:
+        returnType = visitor.resolveReturnType(returnNode);
+        break;
+      case AsyncMarker.SYNC_STAR:
+        returnType = compiler.coreTypes.iterableType();
+        break;
+      case AsyncMarker.ASYNC:
+        returnType = compiler.coreTypes.futureType();
+        break;
+      case AsyncMarker.ASYNC_STAR:
+        returnType = compiler.coreTypes.streamType();
+        break;
+      }
     }
 
     if (element.isSetter && (requiredParameterCount != 1 ||

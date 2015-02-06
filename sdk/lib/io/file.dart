@@ -729,7 +729,7 @@ abstract class RandomAccessFile {
    * *NOTE* file locking does have slight differences in behavior across
    * platforms:
    *
-   * On Linux and Mac OS this uses advisory locks, which have the
+   * On Linux and OS X this uses advisory locks, which have the
    * surprising semantics that all locks associated with a given file
    * are removed when *any* file descriptor for that file is closed by
    * the process. Note that this does not actually lock the file for
@@ -762,7 +762,7 @@ abstract class RandomAccessFile {
    * *NOTE* file locking does have slight differences in behavior across
    * platforms:
    *
-   * On Linux and Mac OS this uses advisory locks, which have the
+   * On Linux and OS X this uses advisory locks, which have the
    * surprising semantics that all locks associated with a given file
    * are removed when *any* file descriptor for that file is closed by
    * the process. Note that this does not actually lock the file for

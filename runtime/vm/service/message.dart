@@ -10,8 +10,6 @@ class Message {
   /// Future of response.
   Future<String> get response => _completer.future;
 
-  final bool isOld;
-
   // In new messages.
   final String method;
 
@@ -32,27 +30,8 @@ class Message {
     });
   }
 
-  Message.fromUri(Uri uri) : isOld = true {
-    var split = uri.path.split('/');
-    if (split.length == 0) {
-      setErrorResponse('Invalid uri: $uri.');
-      return;
-    }
-    _setPath(split);
-    params.addAll(uri.queryParameters);
-  }
-
-  Message.fromJsonRpc(this.method, Map rpcParams)
-      : isOld = false {
+  Message.fromJsonRpc(this.method, Map rpcParams) {
     params.addAll(rpcParams);
-  }
-
-  Message.fromMap(Map map) : isOld = true {
-    _setPath(map['path']);
-    // TODO - turnidge - change this to params in sender.
-    if (map['options'] != null) {
-      params.addAll(map['options']);
-    }
   }
 
   dynamic toJson() {
@@ -94,7 +73,7 @@ class Message {
     var request = new List(5)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = (isOld ? path : method)
+        ..[2] = method
         ..[3] = keys
         ..[4] = values;
     sendIsolateServiceMessage(sendPort, request);
@@ -116,7 +95,7 @@ class Message {
     var request = new List(5)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = (isOld ? path : method)
+        ..[2] = method
         ..[3] = keys
         ..[4] = values;
     sendRootServiceMessage(request);

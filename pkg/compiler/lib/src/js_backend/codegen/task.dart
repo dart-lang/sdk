@@ -32,7 +32,7 @@ import '../../tree_ir/optimization/optimization.dart';
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
 import 'js_tree_builder.dart';
 
-class CspFunctionCompiler implements FunctionCompiler {
+class CpsFunctionCompiler implements FunctionCompiler {
   final IrBuilderTask irBuilderTask;
   final ConstantSystem constantSystem;
   final Compiler compiler;
@@ -45,7 +45,7 @@ class CspFunctionCompiler implements FunctionCompiler {
 
   Tracer get tracer => compiler.tracer;
 
-  CspFunctionCompiler(Compiler compiler, JavaScriptBackend backend)
+  CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend)
       : irBuilderTask = new IrBuilderTask(compiler),
         fallbackCompiler = new ssa.SsaFunctionCompiler(backend, true),
         constantSystem = backend.constantSystem,

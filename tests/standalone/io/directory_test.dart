@@ -124,9 +124,9 @@ class DirectoryTest {
   }
 
   static void testListTooLongName() {
+    asyncStart();
     Directory.systemTemp.createTemp('dart_directory').then((d) {
       var errors = 0;
-      asyncStart();
       setupListHandlers(Stream<FileSystemEntity> stream) {
         stream.listen(
           (_) => Expect.fail("Listing of non-existing directory should fail"),

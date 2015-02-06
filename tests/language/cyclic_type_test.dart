@@ -28,6 +28,11 @@ class Derived1<U> extends Base<Derived2<U>> {}   /// 04: ok
 class Derived2<V> extends Base<Derived1<Derived2<V>>> {}   /// 04: ok
 
 main() {
+  // In the tests below we test that we get "int" and "bool" when calling
+  // toString() on the int and bool type respectively. This is not required
+  // behavior. However, we want to keep the original names for the most common
+  // core types so we make sure to handle these specifically in the compiler.
+
   var d;
   d = new Derived();  /// 00: continued
   Expect.equals("Derived", d.t.toString());  /// 00: continued
@@ -37,6 +42,7 @@ main() {
   Expect.equals("Derived<Derived>", d.t.toString());  /// 00: continued
 
   d = new Derived();  /// 01: continued
+
   Expect.equals("Derived<Derived<int>>", d.t.toString());  /// 01: continued
   d = new Derived<bool>();  /// 01: continued
   Expect.equals("Derived<Derived<int>>", d.t.toString());  /// 01: continued

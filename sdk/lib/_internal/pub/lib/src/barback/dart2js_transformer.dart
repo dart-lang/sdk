@@ -25,7 +25,7 @@ import 'asset_environment.dart';
 final _validOptions = new Set<String>.from([
   'commandLineOptions', 'checked', 'csp', 'minify', 'verbose', 'environment',
   'preserveUris', 'suppressWarnings', 'suppressHints',
-  'suppressPackageWarnings', 'terse'
+  'suppressPackageWarnings', 'terse', 'sourceMaps'
 ]);
 
 /// A [Transformer] that uses dart2js's library API to transform Dart
@@ -42,7 +42,8 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   final BarbackSettings _settings;
 
   /// Whether source maps should be generated for the compiled JS.
-  bool get _generateSourceMaps => _settings.mode != BarbackMode.RELEASE;
+  bool get _generateSourceMaps => _configBool('sourceMaps',
+      defaultsTo: _settings.mode != BarbackMode.RELEASE);
 
   Dart2JSTransformer.withSettings(this._environment, this._settings) {
     var invalidOptions = _settings.configuration.keys.toSet()
@@ -146,7 +147,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
         suppressPackageWarnings: _configBool(
             'suppressPackageWarnings', defaultsTo: true),
         terse: _configBool('terse'),
-        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE);
+        includeSourceMapUrls: _generateSourceMaps);
   }
 
   /// Parses and returns the "commandLineOptions" configuration option.

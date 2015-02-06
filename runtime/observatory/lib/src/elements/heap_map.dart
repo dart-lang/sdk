@@ -96,7 +96,7 @@ class HeapMapElement extends ObservatoryElement {
   }
 
   void _updateClassList(classList, int freeClassId) {
-    for (var member in classList['members']) {
+    for (var member in classList['classes']) {
       if (member is! Class) {
         // TODO(turnidge): The printing for some of these non-class
         // members is broken.  Fix this:
@@ -160,8 +160,13 @@ class HeapMapElement extends ObservatoryElement {
 
   void _handleClick(MouseEvent event) {
     var address = _objectAt(event.offset).address.toRadixString(16);
-    app.locationManager.go(app.locationManager.makeLink(
-        "${isolate.relativeLink('address/$address')}"));
+    isolate.getObjectByAddress(address).then((result) {
+      if (result is DartError) {
+        Logger.root.severe(result.message);
+      } else {
+        app.locationManager.go(gotoLink('/inspect', result));
+      }
+    });
   }
 
   void _updateFragmentationData() {

@@ -969,7 +969,7 @@ class FileTest {
     f.readAsString(encoding: UTF8).then((text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
-      var name = getDataFilename("tests/standalone/io/read_as_text.dat");
+      var name = getFilename("tests/standalone/io/read_as_text.dat");
       var f = new File(name);
       f.readAsString(encoding: UTF8).then((text) {
         Expect.equals(6, text.length);
@@ -1006,7 +1006,7 @@ class FileTest {
     var text = new File(name).readAsStringSync();
     Expect.isTrue(text.endsWith("42 bytes."));
     Expect.equals(42, text.length);
-    name = getDataFilename("tests/standalone/io/read_as_text.dat");
+    name = getFilename("tests/standalone/io/read_as_text.dat");
     text = new File(name).readAsStringSync();
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
@@ -1054,7 +1054,7 @@ class FileTest {
     var line = lines[0];
     Expect.isTrue(line.endsWith("42 bytes."));
     Expect.equals(42, line.length);
-    name = getDataFilename("tests/standalone/io/readline_test1.dat");
+    name = getFilename("tests/standalone/io/readline_test1.dat");
     lines = new File(name).readAsLinesSync();
     Expect.equals(10, lines.length);
   }
@@ -1274,11 +1274,12 @@ class FileTest {
 
   // Helper method to be able to run the test from the runtime
   // directory, or the top directory.
-  static String getFilename(String path) =>
-      new File(path).existsSync() ? path : 'runtime/$path';
-
-  static String getDataFilename(String path) =>
-      new File(path).existsSync() ? path : '../$path';
+  static String getFilename(String path) {
+    var testPath = Platform.script.resolve('../../../$path');
+    return new File.fromUri(testPath).existsSync()
+        ? testPath.toFilePath()
+        : Platform.script.resolve('../../../runtime/$path').toFilePath();
+  }
 
   // Main test entrypoint.
   static testMain() {

@@ -10,7 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -31,13 +31,14 @@ Matcher isExecutableFile(Source source, ExecutableKind kind) {
 
 main() {
   group('ExecutionDomainHandler', () {
+    MemoryResourceProvider provider = new MemoryResourceProvider();
     AnalysisServer server;
     ExecutionDomainHandler handler;
 
     setUp(() {
       server = new AnalysisServer(
           new MockServerChannel(),
-          PhysicalResourceProvider.INSTANCE,
+          provider,
           new MockPackageMapProvider(),
           null,
           new AnalysisServerOptions(),

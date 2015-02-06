@@ -15,10 +15,10 @@ a01b() async* => null;                       /// a01b: compile-time error
 a01c() sync* => null;                        /// a01c: compile-time error
 a02a() async {}                              /// a02a: ok
 a03a() async* {}                             /// a03a: ok
-a03b() async * {}                            /// a03b: compile-time error
+a03b() async * {}                            /// a03b: ok
 a04a() sync* {}                              /// a04a: ok
 a04b() sync {}                               /// a04b: compile-time error
-a04c() sync * {}                             /// a04c: compile-time error
+a04c() sync * {}                             /// a04c: ok
 a05a() async { await 0; }                    /// a05a: ok
 a05b() async {                               /// a05b: ok
   await(a) {};                               /// a05b: continued

@@ -1075,13 +1075,13 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   //
   // We distinguish those kinds of nodes via is_regular_return().
   //
-  if (function.is_async_closure() &&
+  if (function.IsAsyncClosure() &&
       (node->return_type() == ReturnNode::kRegular)) {
     // Temporary store the computed return value.
     Do(BuildStoreExprTemp(return_value));
 
-    LocalVariable* rcv_var = node->scope()->LookupVariable(
-        Symbols::AsyncCompleter(), false);
+    LocalVariable* rcv_var =
+        node->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
     ASSERT(rcv_var != NULL && rcv_var->is_captured());
     ZoneGrowableArray<PushArgumentInstr*>* arguments =
         new(I) ZoneGrowableArray<PushArgumentInstr*>(2);
@@ -1109,10 +1109,9 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     UnchainContexts(current_context_level);
   }
 
-
   AddReturnExit(node->token_pos(), return_value);
 
-  if (function.is_async_closure() &&
+  if ((function.IsAsyncClosure() || function.IsSyncGenClosure()) &&
       (node->return_type() == ReturnNode::kContinuationTarget)) {
     JoinEntryInstr* const join = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
@@ -1484,6 +1483,62 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
 }
 
 
+void EffectGraphVisitor::BuildYieldJump(LocalVariable* old_context,
+                                        LocalVariable* iterator_param,
+                                        const intptr_t old_ctx_level,
+                                        JoinEntryInstr* target) {
+  // Building a jump consists of the following actions:
+  // * Load the generator body's iterator parameter (:iterator)
+  //   from the current context into a temporary.
+  // * Restore the old context from :await_cxt_var.
+  // * Copy the iterator saved above into the restored context.
+  // * Append a Goto to the target's join.
+  ASSERT((iterator_param != NULL) && iterator_param->is_captured());
+  ASSERT((old_context != NULL) && old_context->is_captured());
+  // Before restoring the context we need to temporarily save the
+  // iterator parameter.
+  LocalVariable* temp_iterator_var =
+      EnterTempLocalScope(Bind(BuildLoadLocal(*iterator_param)));
+
+  // Restore the saved continuation context, i.e. the context that was
+  // saved into :await_ctx_var before the closure suspended.
+  BuildRestoreContext(*old_context);
+
+  // Store the continuation result and continuation error values into
+  // the restored context.
+
+  // FlowGraphBuilder is at top context level, but the continuation
+  // target has possibly been recorded in a nested context (old_ctx_level).
+  // We need to unroll manually here.
+  intptr_t delta =
+      old_ctx_level - iterator_param->owner()->context_level();
+  ASSERT(delta >= 0);
+  Value* context = Bind(BuildCurrentContext());
+  while (delta-- > 0) {
+    context = Bind(new(I) LoadFieldInstr(
+        context, Context::parent_offset(), Type::ZoneHandle(I, Type::null()),
+        Scanner::kNoSourcePos));
+  }
+  LocalVariable* temp_context_var = EnterTempLocalScope(context);
+
+  Value* context_val = Bind(new(I) LoadLocalInstr(*temp_context_var));
+  Value* store_val = Bind(new(I) LoadLocalInstr(*temp_iterator_var));
+  StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+      Context::variable_offset(iterator_param->index()),
+      context_val,
+      store_val,
+      kEmitStoreBarrier,
+      Scanner::kNoSourcePos);
+  Do(store);
+
+  Do(ExitTempLocalScope(temp_context_var));
+  Do(ExitTempLocalScope(temp_iterator_var));
+
+  // Goto saved join.
+  Goto(target);
+}
+
+
 void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
                                         LocalVariable* continuation_result,
                                         LocalVariable* continuation_error,
@@ -1491,31 +1546,37 @@ void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
                                         const intptr_t old_ctx_level,
                                         JoinEntryInstr* target) {
   // Building a jump consists of the following actions:
-  // * Record the current continuation result in a temporary.
-  // * Restore the old context.
-  // * Overwrite the old context's continuation result with the temporary.
+  // * Load the current continuation result parameter (:async_result)
+  //   and continuation error parameter (:async_error_param) from
+  //   the current context into temporaries.
+  // * Restore the old context from :await_cxt_var.
+  // * Copy the result and error parameters saved above into the restored
+  //   context.
   // * Append a Goto to the target's join.
   ASSERT((continuation_result != NULL) && continuation_result->is_captured());
   ASSERT((continuation_error != NULL) && continuation_error->is_captured());
   ASSERT((old_context != NULL) && old_context->is_captured());
   // Before restoring the continuation context we need to temporary save the
   // result and error parameter.
-  LocalVariable* temp_result_var = EnterTempLocalScope(
-      Bind(BuildLoadLocal(*continuation_result)));
-  LocalVariable* temp_error_var = EnterTempLocalScope(
-      Bind(BuildLoadLocal(*continuation_error)));
-  LocalVariable* temp_stack_trace_var = EnterTempLocalScope(
-      Bind(BuildLoadLocal(*continuation_stack_trace)));
-  // Restore the saved continuation context.
+  LocalVariable* temp_result_var =
+      EnterTempLocalScope(Bind(BuildLoadLocal(*continuation_result)));
+  LocalVariable* temp_error_var =
+      EnterTempLocalScope(Bind(BuildLoadLocal(*continuation_error)));
+  LocalVariable* temp_stack_trace_var =
+      EnterTempLocalScope(Bind(BuildLoadLocal(*continuation_stack_trace)));
+
+  // Restore the saved continuation context, i.e. the context that was
+  // saved into :await_ctx_var before the closure suspended.
   BuildRestoreContext(*old_context);
 
-  // Pass over the continuation result.
+  // Store the continuation result and continuation error values into
+  // the restored context.
 
   // FlowGraphBuilder is at top context level, but the await target has possibly
   // been recorded in a nested context (old_ctx_level). We need to unroll
   // manually here.
-  intptr_t delta = old_ctx_level -
-                   continuation_result->owner()->context_level();
+  intptr_t delta =
+      old_ctx_level - continuation_result->owner()->context_level();
   ASSERT(delta >= 0);
   Value* context = Bind(BuildCurrentContext());
   while (delta-- > 0) {
@@ -3702,6 +3763,7 @@ void EffectGraphVisitor::UnchainContexts(intptr_t n) {
 //                            label: SourceLabel }
 void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   LocalScope* scope = node->scope();
+  const Function& function = owner()->function();
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
   const bool is_top_level_sequence =
@@ -3734,7 +3796,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // the captured parameters from the frame into the context.
     if (is_top_level_sequence) {
       ASSERT(scope->context_level() == 1);
-      const Function& function = owner()->function();
       const int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
           (kParamEndSlotFromFp + num_params) : kFirstLocalSlotFromFp;
@@ -3772,7 +3833,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   // This check may be deleted if the generated code is leaf.
   // Native functions don't need a stack check at entry.
-  const Function& function = owner()->function();
   if (is_top_level_sequence && !function.is_native()) {
     // Always allocate CheckOverflowInstr so that deopt-ids match regardless
     // if we inline or not.
@@ -3789,7 +3849,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   }
 
   if (Isolate::Current()->TypeChecksEnabled() && is_top_level_sequence) {
-    const Function& function = owner()->function();
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsConstructor()) {
@@ -3818,10 +3877,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   }
 
   // Continuation part:
-  // If this node sequence is the body of an async closure leave room for a
-  // preamble. The preamble is generated after visiting the body.
+  // If this node sequence is the body of a function with continuations,
+  // leave room for a preamble.
+  // The preamble is generated after visiting the body.
   GotoInstr* preamble_start = NULL;
-  if (is_top_level_sequence && (owner()->function().is_async_closure())) {
+  if (is_top_level_sequence &&
+      (function.IsAsyncClosure() || function.IsSyncGenClosure())) {
     JoinEntryInstr* preamble_end = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
     ASSERT(exit() != NULL);
@@ -3844,33 +3905,28 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   }
 
   // Continuation part:
-  // After generating the CFG for the body we can create the preamble because we
-  // know exactly how many continuation states we need.
-  if (is_top_level_sequence && (owner()->function().is_async_closure())) {
+  // After generating the CFG for the body we can create the preamble
+  // because we know exactly how many continuation states we need.
+  if (is_top_level_sequence &&
+      (function.IsAsyncClosure() || function.IsSyncGenClosure())) {
     ASSERT(preamble_start != NULL);
     // We are at the top level. Fetch the corresponding scope.
     LocalScope* top_scope = node->scope();
     LocalVariable* jump_var = top_scope->LookupVariable(
         Symbols::AwaitJumpVar(), false);
     ASSERT(jump_var != NULL && jump_var->is_captured());
-
     Instruction* saved_entry = entry_;
     Instruction* saved_exit = exit_;
     entry_ = NULL;
     exit_ = NULL;
 
-    LoadLocalNode* load_jump_count = new(I) LoadLocalNode(
-        Scanner::kNoSourcePos, jump_var);
+    LoadLocalNode* load_jump_count =
+        new(I) LoadLocalNode(Scanner::kNoSourcePos, jump_var);
     ComparisonNode* check_jump_count;
     const intptr_t num_await_states = owner()->await_joins()->length();
+
     LocalVariable* old_context = top_scope->LookupVariable(
         Symbols::AwaitContextVar(), false);
-    LocalVariable* continuation_result = top_scope->LookupVariable(
-        Symbols::AsyncOperationParam(), false);
-    LocalVariable* continuation_error = top_scope->LookupVariable(
-        Symbols::AsyncOperationErrorParam(), false);
-    LocalVariable* continuation_stack_trace = top_scope->LookupVariable(
-        Symbols::AsyncOperationStackTraceParam(), false);
     for (intptr_t i = 0; i < num_await_states; i++) {
       check_jump_count = new(I) ComparisonNode(
           Scanner::kNoSourcePos,
@@ -3883,14 +3939,32 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       EffectGraphVisitor for_true(owner());
       EffectGraphVisitor for_false(owner());
 
-      for_true.BuildAwaitJump(old_context,
-                              continuation_result,
-                              continuation_error,
-                              continuation_stack_trace,
-                              (*owner()->await_levels())[i],
-                              (*owner()->await_joins())[i]);
-      Join(for_test, for_true, for_false);
+      if (function.IsAsyncClosure()) {
+        LocalVariable* result_param =
+            top_scope->LookupVariable(Symbols::AsyncOperationParam(), false);
+        LocalVariable* error_param =
+            top_scope->LookupVariable(Symbols::AsyncOperationErrorParam(),
+                                      false);
+        LocalVariable* stack_trace_param =
+            top_scope->LookupVariable(Symbols::AsyncOperationStackTraceParam(),
+                                      false);
+        for_true.BuildAwaitJump(old_context,
+                                result_param,
+                                error_param,
+                                stack_trace_param,
+                                (*owner()->await_levels())[i],
+                                (*owner()->await_joins())[i]);
+      } else {
+        ASSERT(function.IsSyncGenClosure());
+        LocalVariable* iterator_param =
+            top_scope->LookupVariable(Symbols::IteratorParameter(), false);
+        for_true.BuildYieldJump(old_context,
+                                iterator_param,
+                                (*owner()->await_levels())[i],
+                                (*owner()->await_joins())[i]);
+      }
 
+      Join(for_test, for_true, for_false);
       if (i == 0) {
         // Manually link up the preamble start.
         preamble_start->previous()->set_next(for_test.entry());

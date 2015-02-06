@@ -9,4 +9,6 @@ class _FunctionImpl implements Function {
   int get hashCode native "FunctionImpl_hashCode";
 
   _FunctionImpl get call => this;
+
+  _FunctionImpl _clone() native "FunctionImpl_clone";
 }

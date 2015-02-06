@@ -53,7 +53,7 @@
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-    <nav-menu link="{{ profile.isolate.relativeLink('allocationprofile') }}" anchor="allocation profile" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ makeLink('/allocation-profiler', profile.isolate) }}" anchor="allocation profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>

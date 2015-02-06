@@ -28,10 +28,6 @@
 namespace dart {
 namespace bin {
 
-static const int kInterruptMessageSize = sizeof(InterruptMessage);
-static const int kTimerId = -1;
-static const int kShutdownId = -2;
-
 
 intptr_t SocketData::GetPollEvents() {
   // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
@@ -197,8 +193,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
+      ASSERT((msg[i].data & COMMAND_MASK) != 0);
+
       SocketData* sd = GetSocketData(
-          msg[i].id, (msg[i].data & (1 << kListeningSocket)) != 0);
+          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         ASSERT(!sd->IsListeningSocket());
         // Close the socket for reading.
@@ -223,13 +221,18 @@ void EventHandlerImplementation::HandleInterruptFd() {
         if (sd->ReturnToken(msg[i].dart_port, count)) {
           AddToEpollInstance(epoll_fd_, sd);
         }
-      } else {
-        ASSERT_NO_COMMAND(msg[i].data);
+      } else if (IS_COMMAND(msg[i].data, kSetEventMaskCommand)) {
+        // `events` can only have kInEvent/kOutEvent flags set.
+        intptr_t events = msg[i].data & EVENT_MASK;
+        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+
         // Setup events to wait for.
         if (sd->AddPort(msg[i].dart_port)) {
-          sd->SetMask(msg[i].data);
+          sd->SetMask(events);
           AddToEpollInstance(epoll_fd_, sd);
         }
+      } else {
+        UNREACHABLE();
       }
     }
   }
@@ -315,6 +318,7 @@ void EventHandlerImplementation::Poll(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
+
   while (!handler_impl->shutdown_) {
     intptr_t result = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
         epoll_wait(handler_impl->epoll_fd_, events, kMaxEvents, -1));
@@ -327,13 +331,13 @@ void EventHandlerImplementation::Poll(uword args) {
       handler_impl->HandleEvents(events, result);
     }
   }
-  delete handler;
+  handler->NotifyShutdownDone();
 }
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = Thread::Start(&EventHandlerImplementation::Poll,
-                                   reinterpret_cast<uword>(handler));
+                             reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

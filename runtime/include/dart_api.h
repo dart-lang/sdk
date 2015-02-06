@@ -2770,29 +2770,21 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
  * a service request it can't handle and the service request command name
  * matches one of the embedder registered handlers.
  *
- * \param name The service request command name. Always the first entry
- *   in the arguments array. Will match the name the callback was
- *   registered with.
- * \param arguments The service request command arguments. Incoming service
- *   request paths are split like file system paths and flattened into an array
- *   (e.g. /foo/bar becomes the array ["foo", "bar"].
- * \param num_arguments The length of the arguments array.
- * \param option_keys Service requests can have options key-value pairs. The
+ * \param method The rpc method name.
+ * \param param_keys Service requests can have key-value pair parameters. The
  *   keys and values are flattened and stored in arrays.
- * \param option_values The values associated with the keys.
- * \param num_options The length of the option_keys and option_values array.
+ * \param param_values The values associated with the keys.
+ * \param num_params The length of the param_keys and param_values arrays.
  * \param user_data The user_data pointer registered with this handler.
  *
  * \return Returns a C string containing a valid JSON object. The returned
  * pointer will be freed by the VM by calling free.
  */
 typedef const char* (*Dart_ServiceRequestCallback)(
-    const char* name,
-    const char** arguments,
-    intptr_t num_arguments,
-    const char** option_keys,
-    const char** option_values,
-    intptr_t num_options,
+    const char* method,
+    const char** param_keys,
+    const char** param_values,
+    intptr_t num_params,
     void* user_data);
 
 /**

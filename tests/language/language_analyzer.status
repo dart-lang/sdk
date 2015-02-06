@@ -6,12 +6,12 @@
 await_backwards_compatibility_test/none: CompileTimeError # Issue 22052
 await_test: CompileTimeError # Issue 22052
 
+sync_generator2_test: Skip #
+
 async_test/type-mismatch2: MissingStaticWarning # Issue 22053
 async_test/type-mismatch3: MissingStaticWarning # Issue 22053
 async_test/type-mismatch4: MissingStaticWarning # Issue 22053
 
-async_await_syntax_test/a03b: MissingCompileTimeError # Issue 22234
-async_await_syntax_test/a04c: MissingCompileTimeError # Issue 22234
 async_await_syntax_test/a05c: CompileTimeError
 async_await_syntax_test/a05e: CompileTimeError
 async_await_syntax_test/a05f: MissingCompileTimeError

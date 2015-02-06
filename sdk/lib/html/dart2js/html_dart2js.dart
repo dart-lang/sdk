@@ -146,7 +146,7 @@ abstract class AbstractWorker extends Interceptor implements EventTarget {
   @DocsEditable()
   Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -247,9 +247,10 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @Experimental() // untriaged
   String username;
 
+
   @DomName('HTMLAnchorElement.toString')
   @DocsEditable()
-  String toString() native;
+  String toString() => JS('String', 'String(#)', this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -707,7 +708,7 @@ class ApplicationCacheErrorEvent extends Event {
   @Experimental() // untriaged
   final String url;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -804,10 +805,10 @@ class AreaElement extends HtmlElement implements UrlUtils {
   @Experimental() // untriaged
   String username;
 
+
   @DomName('HTMLAreaElement.toString')
   @DocsEditable()
-  @Experimental() // untriaged
-  String toString() native;
+  String toString() => JS('String', 'String(#)', this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8576,8 +8577,7 @@ class DomException extends Interceptor {
 
   @DomName('DOMException.toString')
   @DocsEditable()
-  String toString() native;
-
+  String toString() => JS('String', 'String(#)', this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11095,7 +11095,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.localName')
   @DocsEditable()
-  String get localName => _localName;
+  @Returns('String')
+  // Non-null for Elements.
+  String get localName => JS('String', '#', _localName);
 
   /**
    * A URI that identifies the XML namespace of this element.
@@ -19006,10 +19008,6 @@ class Location extends Interceptor implements LocationBase {
   @DocsEditable()
   void replace(String url) native;
 
-  @DomName('Location.toString')
-  @DocsEditable()
-  String toString() native;
-
 
   @DomName('Location.origin')
   String get origin {
@@ -19018,6 +19016,10 @@ class Location extends Interceptor implements LocationBase {
     }
     return '${this.protocol}//${this.host}';
   }
+
+  @DomName('Location.toString')
+  @DocsEditable()
+  String toString() => JS('String', 'String(#)', this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21926,7 +21928,10 @@ class Node extends EventTarget {
   /**
    * Print out a String representation of this Node.
    */
-  String toString() => nodeValue == null ? super.toString() : nodeValue;
+  String toString() {
+    String value = nodeValue;  // Fetch DOM Node property once.
+    return value == null ? super.toString() : value;
+  }
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -28896,6 +28901,11 @@ class Url extends Interceptor implements UrlUtils {
   static void revokeObjectUrl(String url) =>
       JS('void',
          '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
+
+  @DomName('URL.toString')
+  @DocsEditable()
+  String toString() => JS('String', 'String(#)', this);
+
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
@@ -28955,11 +28965,6 @@ class Url extends Interceptor implements UrlUtils {
   @DocsEditable()
   @Experimental() // untriaged
   String username;
-
-  @DomName('URL.toString')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String toString() native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

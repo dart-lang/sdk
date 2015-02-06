@@ -6,7 +6,6 @@ library tree_ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values;
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../dart_types.dart' show DartType, GenericType;
 import '../elements/elements.dart';
 import '../universe/universe.dart';

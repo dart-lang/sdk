@@ -238,8 +238,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // The lower bits of RETURN_TOKEN_COMMAND messages contains the number
   // of tokens returned.
   static const int RETURN_TOKEN_COMMAND = 11;
+  static const int SET_EVENT_MASK_COMMAND = 12;
   static const int FIRST_COMMAND = CLOSE_COMMAND;
-  static const int LAST_COMMAND = RETURN_TOKEN_COMMAND;
+  static const int LAST_COMMAND = SET_EVENT_MASK_COMMAND;
 
   // Type flag send to the eventhandler providing additional
   // information on the type of the file descriptor.
@@ -523,7 +524,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
 
-  _NativeSocket.listen() :  typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
+  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET {
+    isClosedWrite = true;
+  }
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
 
@@ -805,7 +808,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (write) issueWriteEvent();
     if (!flagsSent && !isClosing) {
       flagsSent = true;
-      int flags = 0;
+      int flags = 1 << SET_EVENT_MASK_COMMAND;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
       sendToEventHandler(flags);

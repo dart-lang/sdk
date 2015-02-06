@@ -27,12 +27,6 @@
 namespace dart {
 namespace bin {
 
-static const int kInterruptMessageSize = sizeof(InterruptMessage);
-static const int kInfinityTimeout = -1;
-static const int kTimerId = -1;
-static const int kShutdownId = -2;
-
-
 bool SocketData::HasReadEvent() {
   return (mask_ & (1 << kInEvent)) != 0;
 }
@@ -142,7 +136,8 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 }
 
 
-SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
+SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd,
+                                                      bool is_listening) {
   ASSERT(fd >= 0);
   HashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
@@ -151,7 +146,7 @@ SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
   if (sd == NULL) {
     // If there is no data in the hash map for this file descriptor a
     // new SocketData for the file descriptor is inserted.
-    sd = new SocketData(fd);
+    sd = new SocketData(fd, is_listening);
     entry->value = sd;
   }
   ASSERT(fd == sd->fd());
@@ -191,7 +186,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      SocketData* sd = GetSocketData(msg[i].id);
+      ASSERT((msg[i].data & COMMAND_MASK) != 0);
+
+      SocketData* sd = GetSocketData(
+          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         // Close the socket for reading.
         shutdown(sd->fd(), SHUT_RD);
@@ -213,14 +211,17 @@ void EventHandlerImplementation::HandleInterruptFd() {
             AddToKqueue(kqueue_fd_, sd);
           }
         }
-      } else {
-        ASSERT_NO_COMMAND(msg[i].data);
+      } else if (IS_COMMAND(msg[i].data, kSetEventMaskCommand)) {
+        // `events` can only have kInEvent/kOutEvent flags set.
+        intptr_t events = msg[i].data & EVENT_MASK;
+        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+
         // Setup events to wait for.
-        ASSERT((msg[i].data > 0) && (msg[i].data < kIntptrMax));
         ASSERT(sd->port() == 0);
-        sd->SetPortAndMask(msg[i].dart_port,
-                           static_cast<intptr_t>(msg[i].data));
+        sd->SetPortAndMask(msg[i].dart_port, events);
         AddToKqueue(kqueue_fd_, sd);
+      } else {
+        UNREACHABLE();
       }
     }
   }
@@ -358,6 +359,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
+
   while (!handler_impl->shutdown_) {
     int64_t millis = handler_impl->GetTimeout();
     ASSERT(millis == kInfinityTimeout || millis >= 0);
@@ -387,14 +389,14 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       handler_impl->HandleEvents(events, result);
     }
   }
-  delete handler;
+  handler->NotifyShutdownDone();
 }
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result =
       Thread::Start(&EventHandlerImplementation::EventHandlerEntry,
-                          reinterpret_cast<uword>(handler));
+                    reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

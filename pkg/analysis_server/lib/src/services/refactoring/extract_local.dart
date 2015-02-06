@@ -140,22 +140,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       }
       String eol = utils.endOfLine;
       // prepare location for declaration
-      AstNode target_;
-      {
-        List<AstNode> nodes = _findNodes(occurrences);
-        AstNode commonParent = getNearestCommonAncestor(nodes);
-        if (commonParent is Block) {
-          List<AstNode> firstParents = getParents(nodes[0]);
-          int commonIndex = firstParents.indexOf(commonParent);
-          target_ = firstParents[commonIndex + 1];
-        } else {
-          target_ = _getEnclosingExpressionBody(commonParent);
-          if (target_ == null) {
-            target_ = commonParent.getAncestor((node) => node is Statement);
-          }
-        }
-      }
-      AstNode target = target_;
+      AstNode target = _findDeclarationTarget(occurrences);
       // insert variable declaration
       if (target is Statement) {
         String prefix = utils.getNodePrefix(target);
@@ -311,6 +296,32 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       // done
       return tokenString;
     }).join(_TOKEN_SEPARATOR);
+  }
+
+  /**
+   * Return the [AstNode] to defined the variable before.
+   * It should be accessible by all the given [occurrences].
+   */
+  AstNode _findDeclarationTarget(List<SourceRange> occurrences) {
+    List<AstNode> nodes = _findNodes(occurrences);
+    AstNode commonParent = getNearestCommonAncestor(nodes);
+    // Block
+    if (commonParent is Block) {
+      List<AstNode> firstParents = getParents(nodes[0]);
+      int commonIndex = firstParents.indexOf(commonParent);
+      return firstParents[commonIndex + 1];
+    }
+    // ExpressionFunctionBody
+    AstNode expressionBody = _getEnclosingExpressionBody(commonParent);
+    if (expressionBody != null) {
+      return expressionBody;
+    }
+    // single Statement
+    AstNode target = commonParent.getAncestor((node) => node is Statement);
+    while (target.parent is! Block) {
+      target = target.parent;
+    }
+    return target;
   }
 
   /**

@@ -7,6 +7,8 @@ library engine.resolver.error_verifier;
 import "dart:math" as math;
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/static_type_analyzer.dart';
+
 import 'ast.dart';
 import 'constant.dart';
 import 'element.dart';
@@ -5885,10 +5887,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     DartType staticReturnType = getStaticType(returnExpression);
-    if (staticReturnType != null &&
-        _enclosingFunction.isAsynchronous &&
-        staticReturnType.element != _typeProvider.futureType.element) {
-      return _typeProvider.futureType.substitute4(<DartType>[staticReturnType]);
+    if (staticReturnType != null && _enclosingFunction.isAsynchronous) {
+      return _typeProvider.futureType.substitute4(
+          <DartType>[StaticTypeAnalyzer.flattenFutures(_typeProvider, staticReturnType)]);
     }
     return staticReturnType;
   }

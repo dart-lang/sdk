@@ -6,6 +6,11 @@ test/dart2js/compiles_generated_file_from_dependency_test: Pass, Slow
 test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 test/transformer/loads_a_diamond_transformer_dependency_graph_test: Pass, Slow
 
+test/global/binstubs/outdated_binstub_runs_pub_global_test: Fail  # 22284
+test/global/binstubs/outdated_snapshot_test: Fail  # 22284
+test/global/run/recompiles_if_sdk_is_out_of_date_test: Fail  # 22284
+test/snapshot/recompiles_if_the_sdk_is_out_of_date_test: Fail  # 22284
+
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip

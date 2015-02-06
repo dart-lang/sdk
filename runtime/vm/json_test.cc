@@ -390,25 +390,19 @@ TEST_CASE(JSON_JSONStream_DartString) {
 }
 
 
-TEST_CASE(JSON_JSONStream_Options) {
-  const char* arguments[] = {"a", "b", "c"};
-  const char* option_keys[] = {"dog", "cat"};
-  const char* option_values[] = {"apple", "banana"};
+TEST_CASE(JSON_JSONStream_Params) {
+  const char* param_keys[] = {"dog", "cat"};
+  const char* param_values[] = {"apple", "banana"};
 
   JSONStream js;
-  EXPECT(js.num_arguments() == 0);
-  js.SetArguments(&arguments[0], 3);
-  EXPECT(js.num_arguments() == 3);
-  EXPECT_STREQ("a", js.command());
-
-  EXPECT(js.num_options() == 0);
-  js.SetOptions(&option_keys[0], &option_values[0], 2);
-  EXPECT(js.num_options() == 2);
-  EXPECT(!js.HasOption("lizard"));
-  EXPECT(js.HasOption("dog"));
-  EXPECT(js.HasOption("cat"));
-  EXPECT(js.OptionIs("cat", "banana"));
-  EXPECT(!js.OptionIs("dog", "banana"));
+  EXPECT(js.num_params() == 0);
+  js.SetParams(&param_keys[0], &param_values[0], 2);
+  EXPECT(js.num_params() == 2);
+  EXPECT(!js.HasParam("lizard"));
+  EXPECT(js.HasParam("dog"));
+  EXPECT(js.HasParam("cat"));
+  EXPECT(js.ParamIs("cat", "banana"));
+  EXPECT(!js.ParamIs("dog", "banana"));
 }
 
 }  // namespace dart

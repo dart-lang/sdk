@@ -26,57 +26,25 @@ abstract class Page extends Observable {
     element = null;
   }
 
-  /// Called when the page should update its state based on [url].
+  /// Called when the page should update its state based on [uri].
   /// NOTE: Only called when the page is installed.
-  void visit(String url, Map argsMap) {
+  void visit(Uri uri, Map argsMap) {
     args = toObservable(argsMap);
-    _visit(url);
+    _visit(uri);
   }
 
   // Overridden by subclasses.
-  void _visit(String url);
+  void _visit(Uri uri);
 
-  /// Called to test whether this page can visit [url].
-  bool canVisit(String url);
+  /// Called to test whether this page can visit [uri].
+  bool canVisit(Uri uri);
 }
 
-/// A general service object viewer.
-class ServiceObjectPage extends Page {
-  ServiceObjectPage(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      /// Lazily create page.
-      element = new Element.tag('service-view');
-    }
-  }
-
-  void _visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    if (url == '') {
-      // Nothing requested.
-      return;
-    }
-    /// Request url from VM and display it.
-    app.vm.getDeprecated(url).then((obj) {
-      ServiceObjectViewElement serviceElement = element;
-      serviceElement.object = obj;
-    }).catchError((e) {
-      Logger.root.severe('ServiceObjectPage visit error: $e');
-    });
-  }
-
-  /// Catch all.
-  bool canVisit(String url) => true;
-}
-
-class IsolateSuffixPage extends Page {
-  final String pagePrefix;
+/// A [SimplePage] matches a single uri path and displays a single element.
+class SimplePage extends Page {
+  final String path;
   final String elementTagName;
-  String _isolateId;
-  String get isolateId => _isolateId;
-  IsolateSuffixPage(this.pagePrefix, this.elementTagName, app) : super(app);
+  SimplePage(this.path, this.elementTagName, app) : super(app);
 
   void onInstall() {
     if (element == null) {
@@ -84,30 +52,117 @@ class IsolateSuffixPage extends Page {
     }
   }
 
-  void _visit(String url) {
-    assert(url != null);
-    assert(canVisit(url));
-    _isolateId = url.substring(pagePrefix.length);
+  void _visit(Uri uri) {
+    assert(uri != null);
+    assert(canVisit(uri));
   }
 
-  Future<Isolate> getIsolate() {
-    return app.vm.getIsolate(isolateId).catchError((e) {
-      Logger.root.severe('$pagePrefix visit error: $e');
+  Future<Isolate> getIsolate(Uri uri) {
+    return app.vm.getIsolate(uri.queryParameters['isolateId']).catchError((e) {
+      Logger.root.severe('$path visit error: $e');
       return e;
     });
   }
 
-  bool canVisit(String url) => url.startsWith(pagePrefix);
+  bool canVisit(Uri uri) => uri.path == path;
+}
+
+/// Error page for unrecognized paths.
+class ErrorPage extends Page {
+  ErrorPage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      // Lazily create page.
+      element = new Element.tag('general-error');
+    }
+  }
+
+  void _visit(Uri uri) {
+    assert(element != null);
+    assert(canVisit(uri));
+
+    /*
+    if (uri.path == '') {
+      // Nothing requested.
+      return;
+    }
+    */
+
+    if (element != null) {
+      GeneralErrorElement serviceElement = element;
+      serviceElement.message = "Path '${uri.path}' not found";
+    }
+  }
+
+  /// Catch all.
+  bool canVisit(Uri uri) => true;
+}
+
+/// Top-level vm info page.
+class VMPage extends SimplePage {
+  VMPage(app) : super('vm', 'service-view', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    app.vm.reload().then((vm) {
+      if (element != null) {
+        ServiceObjectViewElement serviceElement = element;
+        serviceElement.object = vm;
+      }
+    }).catchError((e) {
+      Logger.root.severe('VMPage visit error: $e');
+    });
+  }
+}
+
+class FlagsPage extends SimplePage {
+  FlagsPage(app) : super('flags', 'flag-list', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    app.vm.getFlagList().then((flags) {
+      if (element != null) {
+        FlagListElement serviceElement = element;
+        serviceElement.flagList = flags;
+      }
+    }).catchError((e) {
+      Logger.root.severe('FlagsPage visit error: $e');
+    });
+  }
+}
+
+class InspectPage extends SimplePage {
+  InspectPage(app) : super('inspect', 'service-view', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      var objectId = uri.queryParameters['objectId'];
+      if (objectId == null) {
+        isolate.reload().then(_visitObject);
+      } else {
+        isolate.getObject(objectId).then(_visitObject);
+      }
+    });
+  }
+
+  void _visitObject(obj) {
+    if (element != null) {
+      ServiceObjectViewElement serviceElement = element;
+      serviceElement.object = obj;
+    }
+  }
 }
 
 
 /// Class tree page.
-class ClassTreePage extends IsolateSuffixPage {
-  ClassTreePage(app) : super('class-tree/', 'class-tree', app);
+class ClassTreePage extends SimplePage {
+  ClassTreePage(app) : super('class-tree', 'class-tree', app);
 
-  void _visit(String url) {
-    super._visit(url);
-    getIsolate().then((isolate) {
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
       if (element != null) {
         /// Update the page.
         ClassTreeElement page = element;
@@ -117,12 +172,12 @@ class ClassTreePage extends IsolateSuffixPage {
   }
 }
 
-class DebuggerPage extends IsolateSuffixPage {
-  DebuggerPage(app) : super('debugger/', 'debugger-page', app);
+class DebuggerPage extends SimplePage {
+  DebuggerPage(app) : super('debugger', 'debugger-page', app);
 
-  void _visit(String url) {
-    super._visit(url);
-    getIsolate().then((isolate) {
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
       if (element != null) {
         /// Update the page.
         DebuggerPageElement page = element;
@@ -132,12 +187,12 @@ class DebuggerPage extends IsolateSuffixPage {
   }
 }
 
-class CpuProfilerPage extends IsolateSuffixPage {
-  CpuProfilerPage(app) : super('profiler/', 'cpu-profile', app);
+class CpuProfilerPage extends SimplePage {
+  CpuProfilerPage(app) : super('profiler', 'cpu-profile', app);
 
-  void _visit(String url) {
-    super._visit(url);
-    getIsolate().then((isolate) {
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
       if (element != null) {
         /// Update the page.
         CpuProfileElement page = element;
@@ -147,13 +202,13 @@ class CpuProfilerPage extends IsolateSuffixPage {
   }
 }
 
-class AllocationProfilerPage extends IsolateSuffixPage {
+class AllocationProfilerPage extends SimplePage {
   AllocationProfilerPage(app)
-      : super('allocation-profiler/', 'heap-profile', app);
+      : super('allocation-profiler', 'heap-profile', app);
 
-  void _visit(String url) {
-    super._visit(url);
-    getIsolate().then((isolate) {
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
       if (element != null) {
         /// Update the page.
         HeapProfileElement page = element;
@@ -163,12 +218,12 @@ class AllocationProfilerPage extends IsolateSuffixPage {
   }
 }
 
-class HeapMapPage extends IsolateSuffixPage {
-  HeapMapPage(app) : super('heap-map/', 'heap-map', app);
+class HeapMapPage extends SimplePage {
+  HeapMapPage(app) : super('heap-map', 'heap-map', app);
 
-  void _visit(String url) {
-    super._visit(url);
-    getIsolate().then((isolate) {
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
       if (element != null) {
         /// Update the page.
         HeapMapElement page = element;
@@ -188,13 +243,14 @@ class ErrorViewPage extends Page {
     }
   }
 
-  void _visit(String url) {
+  void _visit(Uri uri) {
     assert(element != null);
-    assert(canVisit(url));
+    assert(canVisit(uri));
     (element as ServiceObjectViewElement).object = app.lastErrorOrException;
   }
 
-  bool canVisit(String url) => url.startsWith('error/');
+  // TODO(turnidge): How to test this page?
+  bool canVisit(Uri uri) => uri.path.startsWith('error/');
 }
 
 class VMConnectPage extends Page {
@@ -207,18 +263,16 @@ class VMConnectPage extends Page {
     assert(element != null);
   }
 
-  void _visit(String url) {
+  void _visit(Uri uri) {
     assert(element != null);
-    assert(canVisit(url));
+    assert(canVisit(uri));
   }
 
-  bool canVisit(String url) => url.startsWith('vm-connect/');
+  // TODO(turnidge): Update this to not have the trailing slash.
+  bool canVisit(Uri uri) => uri.path.startsWith('vm-connect/');
 }
 
 class MetricsPage extends Page {
-  static RegExp _matcher = new RegExp(r'isolates/.*/metrics');
-  static RegExp _isolateMatcher = new RegExp(r'isolates/.*/');
-
   // Page state, retained as long as ObservatoryApplication.
   String selectedMetricId;
 
@@ -266,20 +320,13 @@ class MetricsPage extends Page {
     throw new FallThroughError();
   }
 
-  String _isolateId(String url) {
-    // Grab isolate prefix.
-    String isolateId = _isolateMatcher.stringMatch(url);
-    // Remove the trailing slash.
-    return isolateId.substring(0, isolateId.length - 1);
-  }
-
-  void _visit(String url) {
+  void _visit(Uri uri) {
     assert(element != null);
-    assert(canVisit(url));
-    app.vm.getIsolate(_isolateId(url)).then((i) {
+    assert(canVisit(uri));
+    app.vm.getIsolate(uri.queryParameters['isolateId']).then((i) {
       (element as MetricsPageElement).isolate = i;
     });
   }
 
-  bool canVisit(String url) => _matcher.hasMatch(url);
+  bool canVisit(Uri uri) => uri.path == 'metrics';
 }

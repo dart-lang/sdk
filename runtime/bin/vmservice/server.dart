@@ -32,15 +32,7 @@ class WebSocketClient extends Client {
       }
       var serial = map['id'];
 
-      // If the map contains 'params' then this is a JsonRPC message.
-      // We are currently in the process of switching the vmservice over to
-      // JsonRPC.
-      if (map['params'] != null) {
-        onMessage(serial, new Message.fromJsonRpc(map['method'],
-                                                  map['params']));
-      } else {
-        onMessage(serial, new Message.fromUri(Uri.parse(map['method'])));
-      }
+      onMessage(serial, new Message.fromJsonRpc(map['method'], map['params']));
     } else {
       socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
     }

@@ -262,8 +262,8 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated
-      = false, bool isPotential = false]) {
+      [int relevance = DART_RELEVANCE_DEFAULT, bool isDeprecated = false,
+      bool isPotential = false]) {
     var cs;
     suggestions.forEach((s) {
       if (s.completion == completion) {
@@ -445,11 +445,11 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(
           CompletionSuggestionKind.KEYWORD,
           'import',
-          COMPLETION_RELEVANCE_HIGH);
+          DART_RELEVANCE_HIGH);
       assertHasResult(
           CompletionSuggestionKind.KEYWORD,
           'class',
-          COMPLETION_RELEVANCE_HIGH);
+          DART_RELEVANCE_HIGH);
     });
   }
 
@@ -469,9 +469,18 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'a');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
+      assertHasResult(
+          CompletionSuggestionKind.INVOCATION,
+          'a',
+          DART_RELEVANCE_LOCAL_FIELD);
+      assertHasResult(
+          CompletionSuggestionKind.INVOCATION,
+          'b',
+          DART_RELEVANCE_LOCAL_VARIABLE);
+      assertHasResult(
+          CompletionSuggestionKind.INVOCATION,
+          'x',
+          DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
@@ -486,7 +495,10 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementLength, equals(4));
       // Suggestions based upon imported elements are partially filtered
       //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'test');
+      assertHasResult(
+          CompletionSuggestionKind.INVOCATION,
+          'test',
+          DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
       assertNoResult('HtmlElement');
     });
   }

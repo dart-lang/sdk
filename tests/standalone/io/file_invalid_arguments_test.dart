@@ -99,7 +99,10 @@ void testFileSystemEntity() {
 }
 
 String getFilename(String path) {
-  return new File(path).existsSync() ? path : 'runtime/$path';
+  var testPath = Platform.script.resolve('../../../$path');
+  return new File.fromUri(testPath).existsSync()
+      ? testPath.toFilePath()
+      : Platform.script.resolve('../../../runtime/$path').toFilePath();
 }
 
 main() {

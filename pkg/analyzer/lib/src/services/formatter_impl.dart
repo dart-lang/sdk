@@ -507,7 +507,13 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitBlockFunctionBody(BlockFunctionBody node) {
-    token(node.keyword, followedBy: nonBreakingSpace);
+    // sync[*] or async[*]
+    token(node.keyword);
+    token(node.star);
+    if (node.keyword != null) {
+      nonBreakingSpace();
+    }
+
     visit(node.block);
   }
 
@@ -836,6 +842,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitForEachStatement(ForEachStatement node) {
+    token(node.awaitKeyword, followedBy: nonBreakingSpace);
     token(node.forKeyword);
     space();
     token(node.leftParenthesis);

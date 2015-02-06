@@ -46,12 +46,30 @@ class OpTypeTest {
   void assertOpType({bool invocation: false, bool returnValue: false,
       bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
       bool caseLabel: false}) {
-    expect(visitor.includeInvocationSuggestions, equals(invocation));
-    expect(visitor.includeReturnValueSuggestions, equals(returnValue));
-    expect(visitor.includeTypeNameSuggestions, equals(typeNames));
-    expect(visitor.includeVoidReturnSuggestions, equals(voidReturn));
-    expect(visitor.includeStatementLabelSuggestions, equals(statementLabel));
-    expect(visitor.includeCaseLabelSuggestions, equals(caseLabel));
+    expect(
+        visitor.includeInvocationSuggestions,
+        equals(invocation),
+        reason: 'invocation');
+    expect(
+        visitor.includeReturnValueSuggestions,
+        equals(returnValue),
+        reason: 'returnValue');
+    expect(
+        visitor.includeTypeNameSuggestions,
+        equals(typeNames),
+        reason: 'typeNames');
+    expect(
+        visitor.includeVoidReturnSuggestions,
+        equals(voidReturn),
+        reason: 'voidReturn');
+    expect(
+        visitor.includeStatementLabelSuggestions,
+        equals(statementLabel),
+        reason: 'statementLabel');
+    expect(
+        visitor.includeCaseLabelSuggestions,
+        equals(caseLabel),
+        reason: 'caseLabel');
   }
 
   test_Annotation() {
@@ -285,16 +303,34 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_ConditionalExpression_empty() {
-    // SimpleIdentifier  PrefixIdentifier  IfStatement
-    addTestSource('class A {foo() {A a; if (^) something}}');
+  test_ConditionalExpression_elseExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T1 : T^}}');
     assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ConditionalExpression_invocation() {
-    // SimpleIdentifier  PrefixIdentifier  IfStatement
-    addTestSource('main() {var a; if (a.^) something}');
-    assertOpType(invocation: true);
+  test_ConditionalExpression_elseExpression_empty() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T1 : ^}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ConditionalExpression_partial_thenExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T^}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ConditionalExpression_partial_thenExpression_empty() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? ^}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ConditionalExpression_thenExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T^ : c}}');
+    assertOpType(returnValue: true, typeNames: true);
   }
 
   test_ConstructorName() {
@@ -338,6 +374,12 @@ class OpTypeTest {
   test_Continue_no_label() {
     addTestSource('main() { foo: while (true) { continue ^; } }');
     assertOpType(statementLabel: true, caseLabel: true);
+  }
+
+  test_DefaultFormalParameter_named_expression() {
+    // DefaultFormalParameter FormalParameterList MethodDeclaration
+    addTestSource('class A {a(blat: ^) { }}');
+    assertOpType(returnValue: true, typeNames: true);
   }
 
   test_DoStatement() {
@@ -402,6 +444,42 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
+  test_ForEachStatement_iterable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (int foo in ^) {}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ForEachStatement_loopVariable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ in args) {}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_ForEachStatement_loopVariable_name() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (String ^ in args) {}}');
+    assertOpType();
+  }
+
+  test_ForEachStatement_loopVariable_name2() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (String f^ in args) {}}');
+    assertOpType();
+  }
+
+  test_ForEachStatement_loopVariable_type() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ foo in args) {}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_ForEachStatement_loopVariable_type2() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (S^ foo in args) {}}');
+    assertOpType(typeNames: true);
+  }
+
   test_FormalParameterList() {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(^) { }}');
@@ -453,6 +531,18 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true);
   }
 
+  test_IfStatement_empty() {
+    // SimpleIdentifier  PrefixIdentifier  IfStatement
+    addTestSource('class A {foo() {A a; if (^) something}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_IfStatement_invocation() {
+    // SimpleIdentifier  PrefixIdentifier  IfStatement
+    addTestSource('main() {var a; if (a.^) something}');
+    assertOpType(invocation: true);
+  }
+
   test_ImplementsClause() {
     // ImplementsClause  ClassDeclaration
     addTestSource('class x implements ^\n{}');
@@ -467,6 +557,16 @@ class OpTypeTest {
     assertOpType();
   }
 
+  test_IndexExpression() {
+    addTestSource('class C {foo(){var f; {var x;} f[^]}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_IndexExpression2() {
+    addTestSource('class C {foo(){var f; {var x;} f[T^]}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_InstanceCreationExpression_imported() {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^}}');
@@ -476,19 +576,13 @@ class OpTypeTest {
   test_InstanceCreationExpression_keyword() {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ }}');
-    assertOpType(
-        returnValue: true,
-        typeNames: true,
-        voidReturn: true);
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_InstanceCreationExpression_keyword2() {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ C();}}');
-    assertOpType(
-        returnValue: true,
-        typeNames: true,
-        voidReturn: true);
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_InterpolationExpression() {

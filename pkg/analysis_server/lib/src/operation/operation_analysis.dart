@@ -20,6 +20,68 @@ import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
+/**
+ * Schedules sending notifications for the given [file] using the resolved
+ * [resolvedDartUnit].
+ */
+void scheduleNotificationOperations(AnalysisServer server, String file,
+    LineInfo lineInfo, AnalysisContext context, CompilationUnit parsedDartUnit,
+    CompilationUnit resolvedDartUnit, List<AnalysisError> errors) {
+  // Only send notifications if the current context is the preferred
+  // context for the file.  This avoids redundant notification messages
+  // being sent to the client (see dartbug.com/22210).
+  // TODO(paulberry): note that there is a small risk that this will cause
+  // notifications to be lost if the preferred context for a file changes
+  // while analysis is in progress (e.g. because the client sent an
+  // analysis.setAnalysisRoots message).
+  if (server.getAnalysisContext(file) != context) {
+    return;
+  }
+  // Dart
+  CompilationUnit dartUnit =
+      resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
+  if (resolvedDartUnit != null) {
+    if (server.hasAnalysisSubscription(
+        protocol.AnalysisService.HIGHLIGHTS,
+        file)) {
+      server.scheduleOperation(
+          new _DartHighlightsOperation(file, resolvedDartUnit));
+    }
+    if (server.hasAnalysisSubscription(
+        protocol.AnalysisService.NAVIGATION,
+        file)) {
+      server.scheduleOperation(
+          new _DartNavigationOperation(file, resolvedDartUnit));
+    }
+    if (server.hasAnalysisSubscription(
+        protocol.AnalysisService.OCCURRENCES,
+        file)) {
+      server.scheduleOperation(
+          new _DartOccurrencesOperation(file, resolvedDartUnit));
+    }
+    if (server.hasAnalysisSubscription(
+        protocol.AnalysisService.OVERRIDES,
+        file)) {
+      server.scheduleOperation(
+          new _DartOverridesOperation(file, resolvedDartUnit));
+    }
+  }
+  if (dartUnit != null) {
+    if (server.hasAnalysisSubscription(
+        protocol.AnalysisService.OUTLINE,
+        file)) {
+      server.scheduleOperation(
+          new _DartOutlineOperation(file, lineInfo, dartUnit));
+    }
+  }
+  // errors
+  if (server.shouldSendErrorsNotificationFor(file)) {
+    server.scheduleOperation(
+        new _NotificationErrorsOperation(file, lineInfo, errors));
+  }
+}
+
+
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
   try {
@@ -173,61 +235,17 @@ class PerformAnalysisOperation extends ServerOperation {
       ChangeNotice notice = notices[i];
       Source source = notice.source;
       String file = source.fullName;
-      // Only send notifications if the current context is the preferred
-      // context for the file.  This avoids redundant notification messages
-      // being sent to the client (see dartbug.com/22210).
-      // TODO(paulberry): note that there is a small risk that this will cause
-      // notifications to be lost if the preferred context for a file changes
-      // while analysis is in progress (e.g. because the client sent an
-      // analysis.setAnalysisRoots message).
-      if (server.getAnalysisContext(file) != context) {
-        continue;
-      }
       // Dart
       CompilationUnit parsedDartUnit = notice.parsedDartUnit;
       CompilationUnit resolvedDartUnit = notice.resolvedDartUnit;
-      CompilationUnit dartUnit =
-          resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
-      if (resolvedDartUnit != null) {
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.HIGHLIGHTS,
-            file)) {
-          server.addOperation(
-              new _DartHighlightsOperation(file, resolvedDartUnit));
-        }
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.NAVIGATION,
-            file)) {
-          server.addOperation(
-              new _DartNavigationOperation(file, resolvedDartUnit));
-        }
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.OCCURRENCES,
-            file)) {
-          server.addOperation(
-              new _DartOccurrencesOperation(file, resolvedDartUnit));
-        }
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.OVERRIDES,
-            file)) {
-          server.addOperation(
-              new _DartOverridesOperation(file, resolvedDartUnit));
-        }
-      }
-      if (dartUnit != null) {
-        if (server.hasAnalysisSubscription(
-            protocol.AnalysisService.OUTLINE,
-            file)) {
-          LineInfo lineInfo = notice.lineInfo;
-          server.addOperation(
-              new _DartOutlineOperation(file, lineInfo, dartUnit));
-        }
-      }
-      // errors
-      if (server.shouldSendErrorsNotificationFor(file)) {
-        server.addOperation(
-            new _NotificationErrorsOperation(file, notice.lineInfo, notice.errors));
-      }
+      scheduleNotificationOperations(
+          server,
+          file,
+          notice.lineInfo,
+          context,
+          parsedDartUnit,
+          resolvedDartUnit,
+          notice.errors);
       // done
       server.fileAnalyzed(notice);
     }

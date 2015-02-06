@@ -272,6 +272,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   /**
    * Print out a String representation of this Node.
    */
-  String toString() => nodeValue == null ? super.toString() : nodeValue;
+  String toString() {
+    String value = nodeValue;  // Fetch DOM Node property once.
+    return value == null ? super.toString() : value;
+  }
 $!MEMBERS
 }

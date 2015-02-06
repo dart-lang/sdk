@@ -58,10 +58,7 @@ class _WebSocketRequest {
   final Map params;
   final Completer<String> completer;
 
-   _WebSocketRequest.old(this.method)
-      : params = null, completer = new Completer<String>();
-
-   _WebSocketRequest.rpc(this.method, this.params)
+  _WebSocketRequest(this.method, this.params)
       : completer = new Completer<String>();
 }
 
@@ -128,31 +125,6 @@ abstract class CommonWebSocketVM extends VM {
     _notifyDisconnect();
   }
 
-  Future<String> getStringDeprecated(String id) {
-    if (!_hasInitiatedConnect) {
-      _hasInitiatedConnect = true;
-      _webSocket.connect(
-          target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
-    }
-    return _makeRequest(id);
-  }
-
-  /// Add a request for [id] to pending requests.
-  Future<String> _makeRequest(String id) {
-    assert(_hasInitiatedConnect);
-    // Create request.
-    String serial = (_requestSerial++).toString();
-    var request = new _WebSocketRequest.old(id);
-    if (_webSocket.isOpen) {
-      // Already connected, send request immediately.
-      _sendRequest(serial, request);
-    } else {
-      // Not connected yet, add to delayed requests.
-      _delayedRequests[serial] = request;
-    }
-    return request.completer.future;
-  }
-
   Future<String> invokeRpcRaw(String method, Map params) {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
@@ -160,7 +132,7 @@ abstract class CommonWebSocketVM extends VM {
           target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
     }
     String serial = (_requestSerial++).toString();
-    var request = new _WebSocketRequest.rpc(method, params);
+    var request = new _WebSocketRequest(method, params);
     if (_webSocket.isOpen) {
       // Already connected, send request immediately.
       _sendRequest(serial, request);
@@ -289,7 +261,9 @@ abstract class CommonWebSocketVM extends VM {
   /// Send the request over WebSocket.
   void _sendRequest(String serial, _WebSocketRequest request) {
     assert (_webSocket.isOpen);
-    if (request.method != 'getTagProfile') {
+    if (request.method != 'getTagProfile' &&
+        request.method != 'getIsolateMetric' &&
+        request.method != 'getVMMetric') {
       Logger.root.info('GET ${request.method} from ${target.networkAddress}');
     }
     // Mark request as pending.

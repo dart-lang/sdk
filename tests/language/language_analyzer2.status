@@ -4,9 +4,6 @@
 
 [ $compiler == dart2analyzer ]
 
-async_await_syntax_test/a03b: MissingCompileTimeError # Issue 22234
-async_await_syntax_test/a04c: MissingCompileTimeError # Issue 22234
-
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
@@ -15,6 +12,8 @@ enum_syntax_test/03: Fail # 21649
 enum_syntax_test/04: Fail # 21649
 enum_syntax_test/05: Fail # 21649
 enum_syntax_test/06: Fail # 21649
+
+sync_generator1_test: Fail
 
 compile_time_constant_c_test/01: Fail # Issue 21000
 compile_time_constant12_test: Fail # Issue 21000

@@ -67,6 +67,8 @@ testIsolate() {
 }
 
 main() {
+  // This tests assumes paths relative to dart main directory
+  Directory.current = Platform.script.resolve('../../..').toFilePath();
   test();
   testIsolate();
 }

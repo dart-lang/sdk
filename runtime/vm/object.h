@@ -2152,6 +2152,28 @@ class Function : public Object {
     return modifier() == RawFunction::kAsync;
   }
 
+  bool IsAsyncClosure() const {
+    return is_generated_body() &&
+        Function::Handle(parent_function()).IsAsyncFunction();
+  }
+
+  bool IsGenerator() const {
+    return (modifier() & RawFunction::kGeneratorBit) != 0;
+  }
+
+  bool IsSyncGenerator() const {
+    return modifier() == RawFunction::kSyncGen;
+  }
+
+  bool IsSyncGenClosure() const {
+    return is_generated_body() &&
+        Function::Handle(parent_function()).IsSyncGenerator();
+  }
+
+  bool IsAsyncOrGenerator() const {
+    return modifier() != RawFunction::kNoModifier;
+  }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
@@ -2239,7 +2261,7 @@ class Function : public Object {
   V(External, is_external)                                                     \
   V(AllowsHoistingCheckClass, allows_hoisting_check_class)                     \
   V(AllowsBoundsCheckGeneralization, allows_bounds_check_generalization)       \
-  V(AsyncClosure, is_async_closure)                                            \
+  V(GeneratedBody, is_generated_body)                                          \
   V(AlwaysInline, always_inline)                                               \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
 
@@ -2262,6 +2284,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
     kRecognizedTagPos = kKindTagPos + kKindTagSize,
     kRecognizedTagSize = 8,
     kModifierPos = kRecognizedTagPos + kRecognizedTagSize,
+    kModifierSize = 2,
+    kLastModifierBitPos = kModifierPos + (kModifierSize - 1),
     // Single bit sized fields start here.
 #define DECLARE_BIT(name, _) k##name##Bit,
 FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
@@ -2277,11 +2301,14 @@ FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
 
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
+
   class RecognizedBits : public BitField<MethodRecognizer::Kind,
                                          kRecognizedTagPos,
                                          kRecognizedTagSize> {};
   class ModifierBits :
-      public BitField<RawFunction::AsyncModifier, kModifierPos, 1> {};  // NOLINT
+    public BitField<RawFunction::AsyncModifier,
+                   kModifierPos,
+                   kModifierSize> {};  // NOLINT
 
 #define DEFINE_BIT(name, _) \
   class name##Bit : public BitField<bool, k##name##Bit, 1> {};
@@ -4549,7 +4576,7 @@ class UnhandledException : public Error {
     return OFFSET_OF(RawUnhandledException, exception_);
   }
 
-  RawInstance* stacktrace() const { return raw_ptr()->stacktrace_; }
+  RawStacktrace* stacktrace() const { return raw_ptr()->stacktrace_; }
   static intptr_t stacktrace_offset() {
     return OFFSET_OF(RawUnhandledException, stacktrace_);
   }
@@ -4559,7 +4586,7 @@ class UnhandledException : public Error {
   }
 
   static RawUnhandledException* New(const Instance& exception,
-                                    const Instance& stacktrace,
+                                    const Stacktrace& stacktrace,
                                     Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
@@ -4568,7 +4595,7 @@ class UnhandledException : public Error {
   static RawUnhandledException* New(Heap::Space space = Heap::kNew);
 
   void set_exception(const Instance& exception) const;
-  void set_stacktrace(const Instance& stacktrace) const;
+  void set_stacktrace(const Stacktrace& stacktrace) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;

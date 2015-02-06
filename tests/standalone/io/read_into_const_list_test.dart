@@ -8,8 +8,13 @@
 import "package:expect/expect.dart";
 import "dart:io";
 
-String getFilename(String path) =>
-    new File(path).existsSync() ? path : 'runtime/$path';
+String getFilename(String path) {
+  var testPath = Platform.script.resolve('../../../$path');
+  return new File.fromUri(testPath).existsSync()
+      ? testPath.toFilePath()
+      : Platform.script.resolve('../../../runtime/$path').toFilePath();
+}
+
 
 void main() {
   var a = const [0];

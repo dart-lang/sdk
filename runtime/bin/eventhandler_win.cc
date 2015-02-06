@@ -29,10 +29,6 @@ namespace bin {
 static const int kBufferSize = 64 * 1024;
 static const int kStdOverlappedBufferSize = 16 * 1024;
 
-static const int kInfinityTimeout = -1;
-static const int kTimeoutId = -1;
-static const int kShutdownId = -2;
-
 OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
                                                    Operation operation) {
   OverlappedBuffer* buffer =
@@ -1011,87 +1007,107 @@ void DatagramSocket::DoClose() {
 
 void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   ASSERT(this != NULL);
-  if (msg->id == kTimeoutId) {
+  if (msg->id == kTimerId) {
     // Change of timeout request. Just set the new timeout and port as the
     // completion thread will use the new timeout value for its next wait.
     timeout_queue_.UpdateTimeout(msg->dart_port, msg->data);
   } else if (msg->id == kShutdownId) {
     shutdown_ = true;
   } else {
-    // No tokens to return on Windows.
-    if ((msg->data & (1 << kReturnTokenCommand)) != 0) return;
     Handle* handle = reinterpret_cast<Handle*>(msg->id);
     ASSERT(handle != NULL);
     if (handle->is_listen_socket()) {
       ListenSocket* listen_socket =
           reinterpret_cast<ListenSocket*>(handle);
       listen_socket->EnsureInitialized(this);
-      listen_socket->SetPortAndMask(msg->dart_port, msg->data);
 
       Handle::ScopedLock lock(listen_socket);
 
-      // If incoming connections are requested make sure to post already
-      // accepted connections.
-      if ((msg->data & (1 << kInEvent)) != 0) {
-        if (listen_socket->CanAccept()) {
-          int event_mask = (1 << kInEvent);
-          handle->set_mask(handle->mask() & ~event_mask);
-          DartUtils::PostInt32(handle->port(), event_mask);
+      if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
+        // No tokens to return on Windows.
+      } else if (IS_COMMAND(msg->data, kSetEventMaskCommand)) {
+        // `events` can only have kInEvent/kOutEvent flags set.
+        intptr_t events = msg->data & EVENT_MASK;
+        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+
+        listen_socket->SetPortAndMask(msg->dart_port, msg->data);
+
+        // If incoming connections are requested make sure to post already
+        // accepted connections.
+        if ((events & (1 << kInEvent)) != 0) {
+          if (listen_socket->CanAccept()) {
+            int event_mask = (1 << kInEvent);
+            handle->set_mask(handle->mask() & ~event_mask);
+            DartUtils::PostInt32(handle->port(), event_mask);
+          }
         }
+      } else if (IS_COMMAND(msg->data, kCloseCommand)) {
+        handle->SetPortAndMask(msg->dart_port, msg->data);
+        handle->Close();
+      } else {
+        UNREACHABLE();
       }
     } else {
       handle->EnsureInitialized(this);
 
       Handle::ScopedLock lock(handle);
 
-      // Only set mask if we turned on kInEvent or kOutEvent.
-      if ((msg->data & ((1 << kInEvent) | (1 << kOutEvent))) != 0) {
+      if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
+        // No tokens to return on Windows.
+      } else if (IS_COMMAND(msg->data, kSetEventMaskCommand)) {
+        // `events` can only have kInEvent/kOutEvent flags set.
+        intptr_t events = msg->data & EVENT_MASK;
+        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+
         handle->SetPortAndMask(msg->dart_port, msg->data);
-      }
 
-      // Issue a read.
-      if ((msg->data & (1 << kInEvent)) != 0) {
-        if (handle->is_datagram_socket()) {
-          handle->IssueRecvFrom();
-        } else if (handle->is_client_socket()) {
-          if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
-            handle->IssueRead();
-          }
-        } else {
-          handle->IssueRead();
-        }
-      }
-
-      // If out events (can write events) have been requested, and there
-      // are no pending writes, meaning any writes are already complete,
-      // post an out event immediately.
-      if ((msg->data & (1 << kOutEvent)) != 0) {
-        if (!handle->HasPendingWrite()) {
-          if (handle->is_client_socket()) {
+        // Issue a read.
+        if ((msg->data & (1 << kInEvent)) != 0) {
+          if (handle->is_datagram_socket()) {
+            handle->IssueRecvFrom();
+          } else if (handle->is_client_socket()) {
             if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
-              DartUtils::PostInt32(handle->port(), 1 << kOutEvent);
+              handle->IssueRead();
             }
           } else {
-            DartUtils::PostInt32(handle->port(), 1 << kOutEvent);
+            handle->IssueRead();
           }
         }
-      }
 
-      if (handle->is_client_socket()) {
+        // If out events (can write events) have been requested, and there
+        // are no pending writes, meaning any writes are already complete,
+        // post an out event immediately.
+        if ((msg->data & (1 << kOutEvent)) != 0) {
+          if (!handle->HasPendingWrite()) {
+            if (handle->is_client_socket()) {
+              if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
+                DartUtils::PostInt32(handle->port(), 1 << kOutEvent);
+              }
+            } else {
+              DartUtils::PostInt32(handle->port(), 1 << kOutEvent);
+            }
+          }
+        }
+      } else if (IS_COMMAND(msg->data, kShutdownReadCommand)) {
+        ASSERT(handle->is_client_socket());
+
         ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
         if ((msg->data & (1 << kShutdownReadCommand)) != 0) {
           client_socket->Shutdown(SD_RECEIVE);
         }
+      } else if (IS_COMMAND(msg->data, kShutdownWriteCommand)) {
+        ASSERT(handle->is_client_socket());
 
+        ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
         if ((msg->data & (1 << kShutdownWriteCommand)) != 0) {
           client_socket->Shutdown(SD_SEND);
         }
+      } else if (IS_COMMAND(msg->data, kCloseCommand)) {
+        handle->SetPortAndMask(msg->dart_port, msg->data);
+        handle->Close();
+      } else {
+        UNREACHABLE();
       }
-    }
-
-    if ((msg->data & (1 << kCloseCommand)) != 0) {
-      handle->SetPortAndMask(msg->dart_port, msg->data);
-      handle->Close();
     }
 
     DeleteIfClosed(handle);
@@ -1295,6 +1311,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
+
   while (!handler_impl->shutdown_) {
     DWORD bytes;
     ULONG_PTR key;
@@ -1344,13 +1361,13 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       handler_impl->HandleIOCompletion(bytes, key, overlapped);
     }
   }
-  delete handler;
+  handler->NotifyShutdownDone();
 }
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = Thread::Start(EventHandlerEntry,
-                                   reinterpret_cast<uword>(handler));
+                             reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

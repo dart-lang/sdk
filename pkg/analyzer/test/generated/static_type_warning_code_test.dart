@@ -54,6 +54,32 @@ f() {}''');
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
+  void test_await_flattened() {
+    Source source = addSource('''
+import 'dart:async';
+Future<Future<int>> ffi() => null;
+f() async {
+  Future<int> b = await ffi(); // Warning: int not assignable to Future<int>
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_await_simple() {
+    Source source = addSource('''
+import 'dart:async';
+Future<int> fi() => null;
+f() async {
+  String a = await fi(); // Warning: int not assignable to String
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
   void test_expectedOneListTypeArgument() {
     Source source = addSource(r'''
 main() {

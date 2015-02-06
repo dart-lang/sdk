@@ -819,12 +819,11 @@ void Service::RunService() {
 typedef bool (*IsolateMessageHandler)(Isolate* isolate, JSONStream* stream);
 
 struct IsolateMessageHandlerEntry {
-  const char* command;
+  const char* method;
   IsolateMessageHandler handler;
 };
 
-static IsolateMessageHandler FindIsolateMessageHandler(const char* command);
-static IsolateMessageHandler FindIsolateMessageHandlerNew(const char* command);
+static IsolateMessageHandler FindIsolateMessageHandler(const char* method);
 
 
 // A handler for a root (vm-global) request.
@@ -836,32 +835,26 @@ static IsolateMessageHandler FindIsolateMessageHandlerNew(const char* command);
 typedef bool (*RootMessageHandler)(JSONStream* stream);
 
 struct RootMessageHandlerEntry {
-  const char* command;
+  const char* method;
   RootMessageHandler handler;
 };
 
-static RootMessageHandler FindRootMessageHandler(const char* command);
-static RootMessageHandler FindRootMessageHandlerNew(const char* command);
+static RootMessageHandler FindRootMessageHandler(const char* method);
 
 
-static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
+static void PrintRequest(const JSONObject& obj, JSONStream* js) {
   JSONObject jsobj(&obj, "request");
+  jsobj.AddProperty("method", js->method());
   {
-    JSONArray jsarr(&jsobj, "arguments");
-    for (intptr_t i = 0; i < js->num_arguments(); i++) {
-      jsarr.AddValue(js->GetArgument(i));
+    JSONArray jsarr(&jsobj, "param_keys");
+    for (intptr_t i = 0; i < js->num_params(); i++) {
+      jsarr.AddValue(js->GetParamKey(i));
     }
   }
   {
-    JSONArray jsarr(&jsobj, "option_keys");
-    for (intptr_t i = 0; i < js->num_options(); i++) {
-      jsarr.AddValue(js->GetOptionKey(i));
-    }
-  }
-  {
-    JSONArray jsarr(&jsobj, "option_values");
-    for (intptr_t i = 0; i < js->num_options(); i++) {
-      jsarr.AddValue(js->GetOptionValue(i));
+    JSONArray jsarr(&jsobj, "param_values");
+    for (intptr_t i = 0; i < js->num_params(); i++) {
+      jsarr.AddValue(js->GetParamValue(i));
     }
   }
 }
@@ -885,7 +878,21 @@ static void PrintError(JSONStream* js,
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Error");
   jsobj.AddProperty("message", buffer);
-  PrintArgumentsAndOptions(jsobj, js);
+  PrintRequest(jsobj, js);
+}
+
+
+static void PrintMissingParamError(JSONStream* js,
+                                   const char* param) {
+  PrintError(js, "%s expects the '%s' parameter",
+             js->method(), param);
+}
+
+
+static void PrintInvalidParamError(JSONStream* js,
+                                   const char* param) {
+  PrintError(js, "%s: invalid '%s' parameter: %s",
+             js->method(), param, js->LookupParam(param));
 }
 
 
@@ -910,13 +917,14 @@ static void PrintErrorWithKind(JSONStream* js,
   jsobj.AddProperty("id", "");
   jsobj.AddProperty("kind", kind);
   jsobj.AddProperty("message", buffer);
-  PrintArgumentsAndOptions(jsobj, js);
+  PrintRequest(jsobj, js);
 }
 
 
-void Service::HandleIsolateMessageNew(Isolate* isolate, const Array& msg) {
+void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
+  ASSERT(msg.Length() == 5);
 
   {
     StackZone zone(isolate);
@@ -941,11 +949,11 @@ void Service::HandleIsolateMessageNew(Isolate* isolate, const Array& msg) {
     }
 
     IsolateMessageHandler handler =
-        FindIsolateMessageHandlerNew(method.ToCString());
+        FindIsolateMessageHandler(method.ToCString());
     {
       JSONStream js;
-      js.SetupNew(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-                  method, param_keys, param_values);
+      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+               method, param_keys, param_values);
       if (handler == NULL) {
         // Check for an embedder handler.
         EmbedderServiceHandler* e_handler =
@@ -953,85 +961,12 @@ void Service::HandleIsolateMessageNew(Isolate* isolate, const Array& msg) {
         if (e_handler != NULL) {
           EmbedderHandleMessage(e_handler, &js);
         } else {
-          if (FindRootMessageHandlerNew(method.ToCString()) != NULL) {
-            PrintError(&js, "%s expects no 'isolate' parameter\n",
+          if (FindRootMessageHandler(method.ToCString()) != NULL) {
+            PrintError(&js, "%s does not expect the 'isolateId' parameter",
                        method.ToCString());
           } else {
             PrintError(&js, "Unrecognized method: %s", method.ToCString());
           }
-        }
-        js.PostReply();
-      } else {
-        if (handler(isolate, &js)) {
-          // Handler returns true if the reply is ready to be posted.
-          // TODO(johnmccutchan): Support asynchronous replies.
-          js.PostReply();
-        }
-      }
-    }
-  }
-}
-
-
-void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
-  ASSERT(isolate != NULL);
-  ASSERT(!msg.IsNull());
-
-  {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
-
-    // Message is a list with five entries.
-    ASSERT(msg.Length() == 5);
-
-    Object& tmp = Object::Handle(isolate);
-    tmp = msg.At(2);
-    if (tmp.IsString()) {
-      return Service::HandleIsolateMessageNew(isolate, msg);
-    }
-
-    Instance& reply_port = Instance::Handle(isolate);
-    GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
-    Array& option_keys = Array::Handle(isolate);
-    Array& option_values = Array::Handle(isolate);
-    reply_port ^= msg.At(1);
-    path ^= msg.At(2);
-    option_keys ^= msg.At(3);
-    option_values ^= msg.At(4);
-
-    ASSERT(!path.IsNull());
-    ASSERT(!option_keys.IsNull());
-    ASSERT(!option_values.IsNull());
-    // Same number of option keys as values.
-    ASSERT(option_keys.Length() == option_values.Length());
-
-    if (!reply_port.IsSendPort()) {
-      FATAL("SendPort expected.");
-    }
-
-    String& path_segment = String::Handle();
-    if (path.Length() > 0) {
-      path_segment ^= path.At(0);
-    } else {
-      path_segment ^= Symbols::Empty().raw();
-    }
-    ASSERT(!path_segment.IsNull());
-    const char* path_segment_c = path_segment.ToCString();
-
-    IsolateMessageHandler handler =
-        FindIsolateMessageHandler(path_segment_c);
-    {
-      JSONStream js;
-      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-               path, option_keys, option_values);
-      if (handler == NULL) {
-        // Check for an embedder handler.
-        EmbedderServiceHandler* e_handler =
-            FindIsolateEmbedderHandler(path_segment_c);
-        if (e_handler != NULL) {
-          EmbedderHandleMessage(e_handler, &js);
-        } else {
-          PrintError(&js, "Unrecognized path");
         }
         js.PostReply();
       } else {
@@ -1072,8 +1007,8 @@ static bool HandleIsolateGetStack(Isolate* isolate, JSONStream* js) {
 
 static bool HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
   jsobj->AddProperty("type", "_EchoResponse");
-  if (js->HasOption("text")) {
-    jsobj->AddProperty("text", js->LookupOption("text"));
+  if (js->HasParam("text")) {
+    jsobj->AddProperty("text", js->LookupParam("text"));
   }
   return true;
 }
@@ -1098,7 +1033,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
 
 
 static bool HandleIsolateTriggerEchoEvent(Isolate* isolate, JSONStream* js) {
-  Service::SendEchoEvent(isolate, js->LookupOption("text"));
+  Service::SendEchoEvent(isolate, js->LookupParam("text"));
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
 }
@@ -1108,26 +1043,6 @@ static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
 }
-
-
-// Print an error message if there is no ID argument.
-#define REQUIRE_COLLECTION_ID(collection)                                      \
-  if (js->num_arguments() == 1) {                                              \
-    PrintError(js, "Must specify collection object id: /%s/id", collection);   \
-    return true;                                                               \
-  }
-
-
-#define CHECK_COLLECTION_ID_BOUNDS(collection, length, arg, id, js)            \
-  if (!GetIntegerId(arg, &id)) {                                               \
-    PrintError(js, "Must specify collection object id: %s/id", collection);    \
-    return true;                                                               \
-  }                                                                            \
-  if ((id < 0) || (id >= length)) {                                            \
-    PrintError(js, "%s id (%" Pd ") must be in [0, %" Pd ").", collection, id, \
-                                                               length);        \
-    return true;                                                               \
-  }
 
 
 static bool GetIntegerId(const char* s, intptr_t* id, int base = 10) {
@@ -1680,19 +1595,19 @@ static bool PrintInboundReferences(Isolate* isolate,
 
 static bool HandleIsolateGetInboundReferences(Isolate* isolate,
                                               JSONStream* js) {
-  const char* target_id = js->LookupOption("targetId");
+  const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'targetId' option");
+    PrintMissingParamError(js, "targetId");
     return true;
   }
-  const char* limit_cstr = js->LookupOption("limit");
+  const char* limit_cstr = js->LookupParam("limit");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'limit' option");
+    PrintMissingParamError(js, "limit");
     return true;
   }
   intptr_t limit;
-  if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
-    PrintError(js, "Invalid 'limit' option: %s", limit_cstr);
+  if (!GetIntegerId(limit_cstr, &limit)) {
+    PrintInvalidParamError(js, "limit");
     return true;
   }
 
@@ -1706,18 +1621,15 @@ static bool HandleIsolateGetInboundReferences(Isolate* isolate,
     if (lookup_result == ObjectIdRing::kCollected) {
       PrintErrorWithKind(
           js, "InboundReferencesCollected",
-          "attempt to find a retaining path for a collected object\n",
-          js->num_arguments());
+          "attempt to find a retaining path for a collected object\n");
       return true;
     } else if (lookup_result == ObjectIdRing::kExpired) {
       PrintErrorWithKind(
           js, "InboundReferencesExpired",
-          "attempt to find a retaining path for an expired object\n",
-          js->num_arguments());
+          "attempt to find a retaining path for an expired object\n");
       return true;
     }
-    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
-               target_id);
+    PrintInvalidParamError(js, "targetId");
     return true;
   }
   return PrintInboundReferences(isolate, &obj, limit, js);
@@ -1781,19 +1693,19 @@ static bool PrintRetainingPath(Isolate* isolate,
 
 static bool HandleIsolateGetRetainingPath(Isolate* isolate,
                                           JSONStream* js) {
-  const char* target_id = js->LookupOption("targetId");
+  const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'targetId' option");
+    PrintMissingParamError(js, "targetId");
     return true;
   }
-  const char* limit_cstr = js->LookupOption("limit");
+  const char* limit_cstr = js->LookupParam("limit");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'limit' option");
+    PrintMissingParamError(js, "limit");
     return true;
   }
   intptr_t limit;
-  if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
-    PrintError(js, "Invalid 'limit' option: %s", limit_cstr);
+  if (!GetIntegerId(limit_cstr, &limit)) {
+    PrintInvalidParamError(js, "limit");
     return true;
   }
 
@@ -1807,18 +1719,15 @@ static bool HandleIsolateGetRetainingPath(Isolate* isolate,
     if (lookup_result == ObjectIdRing::kCollected) {
       PrintErrorWithKind(
           js, "RetainingPathCollected",
-          "attempt to find a retaining path for a collected object\n",
-          js->num_arguments());
+          "attempt to find a retaining path for a collected object\n");
       return true;
     } else if (lookup_result == ObjectIdRing::kExpired) {
       PrintErrorWithKind(
           js, "RetainingPathExpired",
-          "attempt to find a retaining path for an expired object\n",
-          js->num_arguments());
+          "attempt to find a retaining path for an expired object\n");
       return true;
     }
-    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
-               target_id);
+    PrintInvalidParamError(js, "targetId");
     return true;
   }
   return PrintRetainingPath(isolate, &obj, limit, js);
@@ -1826,9 +1735,9 @@ static bool HandleIsolateGetRetainingPath(Isolate* isolate,
 
 
 static bool HandleIsolateGetRetainedSize(Isolate* isolate, JSONStream* js) {
-  const char* target_id = js->LookupOption("targetId");
+  const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'targetId' option");
+    PrintMissingParamError(js, "targetId");
     return true;
   }
   ObjectIdRing::LookupResult lookup_result;
@@ -1838,18 +1747,15 @@ static bool HandleIsolateGetRetainedSize(Isolate* isolate, JSONStream* js) {
     if (lookup_result == ObjectIdRing::kCollected) {
       PrintErrorWithKind(
           js, "RetainedCollected",
-          "attempt to calculate size retained by a collected object\n",
-          js->num_arguments());
+          "attempt to calculate size retained by a collected object\n");
       return true;
     } else if (lookup_result == ObjectIdRing::kExpired) {
       PrintErrorWithKind(
           js, "RetainedExpired",
-          "attempt to calculate size retained by an expired object\n",
-          js->num_arguments());
+          "attempt to calculate size retained by an expired object\n");
       return true;
     }
-    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
-               target_id);
+    PrintInvalidParamError(js, "targetId");
     return true;
   }
   if (obj.IsClass()) {
@@ -1868,43 +1774,22 @@ static bool HandleIsolateGetRetainedSize(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  PrintError(js, "Invalid 'targetId' value: id '%s' does not correspond to a "
-             "library, class, or instance", target_id);
-  return true;
-}
-
-
-static bool HandleClassesClosures(Isolate* isolate, const Class& cls,
-                                  JSONStream* js) {
-  intptr_t id;
-  if (js->num_arguments() > 4) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  if (!GetIntegerId(js->GetArgument(3), &id)) {
-    PrintError(js, "Must specify collection object id: closures/id");
-    return true;
-  }
-  Function& func = Function::Handle();
-  func ^= cls.ClosureFunctionFromIndex(id);
-  if (func.IsNull()) {
-    PrintError(js, "Closure function %" Pd " not found", id);
-    return true;
-  }
-  func.PrintJSON(js, false);
+  PrintError(js, "%s: Invalid 'targetId' parameter value: "
+             "id '%s' does not correspond to a "
+             "library, class, or instance", js->method(), target_id);
   return true;
 }
 
 
 static bool HandleIsolateEval(Isolate* isolate, JSONStream* js) {
-  const char* target_id = js->LookupOption("targetId");
+  const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'targetId' option");
+    PrintMissingParamError(js, "targetId");
     return true;
   }
-  const char* expr = js->LookupOption("expression");
+  const char* expr = js->LookupParam("expression");
   if (expr == NULL) {
-    PrintError(js, "Missing 'expression' option");
+    PrintMissingParamError(js, "expression");
     return true;
   }
   const String& expr_str = String::Handle(isolate, String::New(expr));
@@ -1917,8 +1802,7 @@ static bool HandleIsolateEval(Isolate* isolate, JSONStream* js) {
     } else if (lookup_result == ObjectIdRing::kExpired) {
       PrintSentinel(js, "objects/expired", "<expired>");
     } else {
-      PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
-                 target_id);
+      PrintInvalidParamError(js, "targetId");
     }
     return true;
   }
@@ -1950,173 +1834,9 @@ static bool HandleIsolateEval(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  PrintError(js, "Invalid 'targetId' value: id '%s' does not correspond to a "
-             "library, class, or instance", target_id);
-  return true;
-}
-
-
-static bool HandleClassesDispatchers(Isolate* isolate, const Class& cls,
-                                     JSONStream* js) {
-  intptr_t id;
-  if (js->num_arguments() > 4) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  if (!GetIntegerId(js->GetArgument(3), &id)) {
-    PrintError(js, "Must specify collection object id: dispatchers/id");
-    return true;
-  }
-  Function& func = Function::Handle();
-  func ^= cls.InvocationDispatcherFunctionFromIndex(id);
-  if (func.IsNull()) {
-    PrintError(js, "Dispatcher %" Pd " not found", id);
-    return true;
-  }
-  func.PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleFunctionSetSource(
-    Isolate* isolate, const Class& cls, const Function& func, JSONStream* js) {
-  if (js->LookupOption("source") == NULL) {
-    PrintError(js, "set_source expects a 'source' option\n");
-    return true;
-  }
-  const String& source =
-      String::Handle(String::New(js->LookupOption("source")));
-  const Object& result = Object::Handle(
-      Parser::ParseFunctionFromSource(cls, source));
-  if (result.IsError()) {
-    Error::Cast(result).PrintJSON(js, false);
-    return true;
-  }
-  if (!result.IsFunction()) {
-    PrintError(js, "source did not compile to a function.\n");
-    return true;
-  }
-
-  // Replace function.
-  cls.RemoveFunction(func);
-  cls.AddFunction(Function::Cast(result));
-
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Success");
-  jsobj.AddProperty("id", "");
-  return true;
-}
-
-
-static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
-                                   JSONStream* js) {
-  if (js->num_arguments() != 4 && js->num_arguments() != 5) {
-    PrintError(js, "Command should have 4 or 5 arguments");
-    return true;
-  }
-  const char* encoded_id = js->GetArgument(3);
-  String& id = String::Handle(isolate, String::New(encoded_id));
-  id = String::DecodeIRI(id);
-  if (id.IsNull()) {
-    PrintError(js, "Function id %s is malformed", encoded_id);
-    return true;
-  }
-  Function& func = Function::Handle(cls.LookupFunction(id));
-  if (func.IsNull()) {
-    PrintError(js, "Function %s not found", encoded_id);
-    return true;
-  }
-  if (js->num_arguments() == 4) {
-    func.PrintJSON(js, false);
-    return true;
-  } else {
-    const char* subcommand = js->GetArgument(4);
-    if (strcmp(subcommand, "set_source") == 0) {
-      return HandleFunctionSetSource(isolate, cls, func, js);
-    } else {
-      PrintError(js, "Invalid sub command %s", subcommand);
-      return true;
-    }
-  }
-  UNREACHABLE();
-  return true;
-}
-
-
-static bool HandleClassesImplicitClosures(Isolate* isolate, const Class& cls,
-                                          JSONStream* js) {
-  intptr_t id;
-  if (js->num_arguments() > 4) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  if (!GetIntegerId(js->GetArgument(3), &id)) {
-    PrintError(js, "Must specify collection object id: implicit_closures/id");
-    return true;
-  }
-  Function& func = Function::Handle();
-  func ^= cls.ImplicitClosureFunctionFromIndex(id);
-  if (func.IsNull()) {
-    PrintError(js, "Implicit closure function %" Pd " not found", id);
-    return true;
-  }
-  func.PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleClassesFields(Isolate* isolate, const Class& cls,
-                                JSONStream* js) {
-  intptr_t id;
-  if (js->num_arguments() > 4) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  if (!GetIntegerId(js->GetArgument(3), &id)) {
-    PrintError(js, "Must specify collection object id: fields/id");
-    return true;
-  }
-  Field& field = Field::Handle(cls.FieldFromIndex(id));
-  if (field.IsNull()) {
-    PrintError(js, "Field %" Pd " not found", id);
-    return true;
-  }
-  field.PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
-                               JSONStream* js) {
-  if (js->num_arguments() == 3) {
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "TypeList");
-    JSONArray members(&jsobj, "members");
-    const intptr_t num_types = cls.NumCanonicalTypes();
-    Type& type = Type::Handle();
-    for (intptr_t i = 0; i < num_types; i++) {
-      type = cls.CanonicalTypeFromIndex(i);
-      members.AddValue(type);
-    }
-    return true;
-  }
-  if (js->num_arguments() > 4) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  ASSERT(js->num_arguments() == 4);
-  intptr_t id;
-  if (!GetIntegerId(js->GetArgument(3), &id)) {
-    PrintError(js, "Must specify collection object id: types/id");
-    return true;
-  }
-  Type& type = Type::Handle();
-  type ^= cls.CanonicalTypeFromIndex(id);
-  if (type.IsNull()) {
-    PrintError(js, "Canonical type %" Pd " not found", id);
-    return true;
-  }
-  type.PrintJSON(js, false);
+  PrintError(js, "%s: Invalid 'targetId' parameter value: "
+             "id '%s' does not correspond to a "
+             "library, class, or instance", js->method(), target_id);
   return true;
 }
 
@@ -2154,26 +1874,26 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
 
 static bool HandleIsolateGetInstances(Isolate* isolate, JSONStream* js) {
-  const char* target_id = js->LookupOption("classId");
+  const char* target_id = js->LookupParam("classId");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'classId' option");
+    PrintMissingParamError(js, "classId");
     return true;
   }
-  const char* limit_cstr = js->LookupOption("limit");
+  const char* limit_cstr = js->LookupParam("limit");
   if (target_id == NULL) {
-    PrintError(js, "Missing 'limit' option");
+    PrintMissingParamError(js, "limit");
     return true;
   }
   intptr_t limit;
-  if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
-    PrintError(js, "Invalid 'limit' option: %s", limit_cstr);
+  if (!GetIntegerId(limit_cstr, &limit)) {
+    PrintInvalidParamError(js, "limit");
     return true;
   }
   const Object& obj =
       Object::Handle(LookupHeapObject(isolate, target_id, NULL));
   if (obj.raw() == Object::sentinel().raw() ||
       !obj.IsClass()) {
-    PrintError(js, "Invalid 'classId' value: no class with id '%s'", target_id);
+    PrintInvalidParamError(js, "classId");
     return true;
   }
   const Class& cls = Class::Cast(obj);
@@ -2199,60 +1919,15 @@ static bool HandleIsolateGetInstances(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleClasses(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() == 1) {
-    PrintError(js, "Invalid number of arguments.");
-    return true;
-  }
-  ASSERT(js->num_arguments() >= 2);
-  intptr_t id;
-  if (!GetIntegerId(js->GetArgument(1), &id)) {
-    PrintError(js, "Must specify collection object id: /classes/id");
-    return true;
-  }
-  ClassTable* table = isolate->class_table();
-  if (!table->IsValidIndex(id)) {
-    PrintError(js, "%" Pd " is not a valid class id.", id);
-    return true;
-  }
-  Class& cls = Class::Handle(table->At(id));
-  if (js->num_arguments() == 2) {
-    cls.PrintJSON(js, false);
-    return true;
-  } else if (js->num_arguments() >= 3) {
-    const char* second = js->GetArgument(2);
-    if (strcmp(second, "closures") == 0) {
-      return HandleClassesClosures(isolate, cls, js);
-    } else if (strcmp(second, "fields") == 0) {
-      return HandleClassesFields(isolate, cls, js);
-    } else if (strcmp(second, "functions") == 0) {
-      return HandleClassesFunctions(isolate, cls, js);
-    } else if (strcmp(second, "implicit_closures") == 0) {
-      return HandleClassesImplicitClosures(isolate, cls, js);
-    } else if (strcmp(second, "dispatchers") == 0) {
-      return HandleClassesDispatchers(isolate, cls, js);
-    } else if (strcmp(second, "types") == 0) {
-      return HandleClassesTypes(isolate, cls, js);
-    } else {
-      PrintError(js, "Invalid sub collection %s", second);
-      return true;
-    }
-  }
-  UNREACHABLE();
-  return true;
-}
-
-
 static bool HandleIsolateGetCoverage(Isolate* isolate, JSONStream* js) {
-  if (!js->HasOption("targetId")) {
+  if (!js->HasParam("targetId")) {
     CodeCoverage::PrintJSON(isolate, js, NULL);
     return true;
   }
-  const char* target_id = js->LookupOption("targetId");
+  const char* target_id = js->LookupParam("targetId");
   Object& obj = Object::Handle(LookupHeapObject(isolate, target_id, NULL));
   if (obj.raw() == Object::sentinel().raw()) {
-    PrintError(js, "Invalid 'targetId' value: no object with id '%s'",
-               target_id);
+    PrintInvalidParamError(js, "targetId");
     return true;
   }
   if (obj.IsScript()) {
@@ -2275,27 +1950,28 @@ static bool HandleIsolateGetCoverage(Isolate* isolate, JSONStream* js) {
     CodeCoverage::PrintJSON(isolate, js, &ff);
     return true;
   }
-  PrintError(js, "Invalid 'targetId' value: id '%s' does not correspond to a "
-             "script, library, class, or function", target_id);
+  PrintError(js, "%s: Invalid 'targetId' parameter value: "
+             "id '%s' does not correspond to a "
+             "script, library, class, or function", js->method(), target_id);
   return true;
 }
 
 
 static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
-  if (!js->HasOption("line")) {
-    PrintError(js, "Missing 'line' option");
+  if (!js->HasParam("line")) {
+    PrintMissingParamError(js, "line");
     return true;
   }
-  const char* line_option = js->LookupOption("line");
+  const char* line_param = js->LookupParam("line");
   intptr_t line = -1;
-  if (!GetIntegerId(line_option, &line)) {
-    PrintError(js, "Invalid 'line' value: %s is not an integer", line_option);
+  if (!GetIntegerId(line_param, &line)) {
+    PrintInvalidParamError(js, "line");
     return true;
   }
-  const char* script_id = js->LookupOption("script");
+  const char* script_id = js->LookupParam("script");
   Object& obj = Object::Handle(LookupHeapObject(isolate, script_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
-    PrintError(js, "Invalid 'script' value: no script with id '%s'", script_id);
+    PrintInvalidParamError(js, "script");
     return true;
   }
   const Script& script = Script::Cast(obj);
@@ -2303,7 +1979,7 @@ static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
   SourceBreakpoint* bpt =
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
-    PrintError(js, "Unable to set breakpoint at line %s", line_option);
+    PrintError(js, "Unable to set breakpoint at line %s", line_param);
     return true;
   }
   bpt->PrintJSON(js);
@@ -2312,16 +1988,15 @@ static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleIsolateRemoveBreakpoint(Isolate* isolate, JSONStream* js) {
-  if (!js->HasOption("breakpointId")) {
-    PrintError(js, "Missing 'breakpointId' option");
+  if (!js->HasParam("breakpointId")) {
+    PrintMissingParamError(js, "breakpointId");
     return true;
   }
-  const char* bpt_id = js->LookupOption("breakpointId");
+  const char* bpt_id = js->LookupParam("breakpointId");
   SourceBreakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
   if (bpt == NULL) {
     fprintf(stderr, "ERROR1");
-    PrintError(js, "Invalid 'breakpointId' value: no breakpoint with id '%s'",
-               bpt_id);
+    PrintInvalidParamError(js, "breakpointId");
     return true;
   }
   isolate->debugger()->RemoveBreakpoint(bpt->id());
@@ -2331,75 +2006,6 @@ static bool HandleIsolateRemoveBreakpoint(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Success");
   jsobj.AddProperty("id", "");
-  return true;
-}
-
-
-static bool HandleLibrariesScripts(Isolate* isolate,
-                                   const Library& lib,
-                                   JSONStream* js) {
-  if (js->num_arguments() > 5) {
-    PrintError(js, "Command too long");
-    return true;
-  } else if (js->num_arguments() < 4) {
-    PrintError(js, "Must specify collection object id: scripts/id");
-    return true;
-  }
-  const String& id = String::Handle(String::New(js->GetArgument(3)));
-  ASSERT(!id.IsNull());
-  // The id is the url of the script % encoded, decode it.
-  const String& requested_url = String::Handle(String::DecodeIRI(id));
-  Script& script = Script::Handle();
-  String& script_url = String::Handle();
-  const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-  ASSERT(!loaded_scripts.IsNull());
-  intptr_t i;
-  for (i = 0; i < loaded_scripts.Length(); i++) {
-    script ^= loaded_scripts.At(i);
-    ASSERT(!script.IsNull());
-    script_url ^= script.url();
-    if (script_url.Equals(requested_url)) {
-      break;
-    }
-  }
-  if (i == loaded_scripts.Length()) {
-    PrintError(js, "Script %s not found", requested_url.ToCString());
-    return true;
-  }
-  if (js->num_arguments() > 4) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  script.PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
-  // TODO(johnmccutchan): Support fields and functions on libraries.
-  REQUIRE_COLLECTION_ID("libraries");
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  ASSERT(!libs.IsNull());
-  intptr_t id = 0;
-  CHECK_COLLECTION_ID_BOUNDS("libraries", libs.Length(), js->GetArgument(1),
-                             id, js);
-  Library& lib = Library::Handle();
-  lib ^= libs.At(id);
-  ASSERT(!lib.IsNull());
-  if (js->num_arguments() == 2) {
-    lib.PrintJSON(js, false);
-    return true;
-  } else if (js->num_arguments() >= 3) {
-    const char* second = js->GetArgument(2);
-    if (strcmp(second, "scripts") == 0) {
-      return HandleLibrariesScripts(isolate, lib, js);
-    } else {
-      PrintError(js, "Invalid sub collection %s", second);
-      return true;
-    }
-  }
-  UNREACHABLE();
   return true;
 }
 
@@ -2500,18 +2106,17 @@ static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
 
 static bool HandleIsolateGetMetricList(Isolate* isolate, JSONStream* js) {
   bool native_metrics = false;
-  if (js->HasOption("type")) {
-    if (js->OptionIs("type", "Native")) {
+  if (js->HasParam("type")) {
+    if (js->ParamIs("type", "Native")) {
       native_metrics = true;
-    } else if (js->OptionIs("type", "Dart")) {
+    } else if (js->ParamIs("type", "Dart")) {
       native_metrics = false;
     } else {
-      PrintError(js, "Invalid 'type' option value: %s\n",
-                 js->LookupOption("type"));
+      PrintInvalidParamError(js, "type");
       return true;
     }
   } else {
-    PrintError(js, "Expected 'type' option.");
+    PrintMissingParamError(js, "type");
     return true;
   }
   if (native_metrics) {
@@ -2522,9 +2127,9 @@ static bool HandleIsolateGetMetricList(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleIsolateGetMetric(Isolate* isolate, JSONStream* js) {
-  const char* metric_id = js->LookupOption("metricId");
+  const char* metric_id = js->LookupParam("metricId");
   if (metric_id == NULL) {
-    PrintError(js, "Expected 'metricId' option.");
+    PrintMissingParamError(js, "metricId");
     return true;
   }
   // Verify id begins with "metrics/".
@@ -2553,114 +2158,16 @@ static bool HandleVMGetMetricList(JSONStream* js) {
 
 
 static bool HandleVMGetMetric(JSONStream* js) {
-  const char* metric_id = js->LookupOption("metricId");
+  const char* metric_id = js->LookupParam("metricId");
   if (metric_id == NULL) {
-    PrintError(js, "Expected 'metricId' option.");
+    PrintMissingParamError(js, "metricId");
   }
   return false;
 }
 
 
-static bool HandleObjects(Isolate* isolate, JSONStream* js) {
-  REQUIRE_COLLECTION_ID("objects");
-  if (js->num_arguments() != 2) {
-    PrintError(js, "expected at least 2 arguments but found %" Pd "\n",
-               js->num_arguments());
-    return true;
-  }
-  const char* arg = js->GetArgument(1);
-
-  // Handle special non-objects first.
-  if (strcmp(arg, "optimized-out") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      Symbols::OptimizedOut().PrintJSON(js, false);
-    }
-    return true;
-
-  } else if (strcmp(arg, "collected") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      PrintSentinel(js, "objects/collected", "<collected>");
-    }
-    return true;
-
-  } else if (strcmp(arg, "expired") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      PrintSentinel(js, "objects/expired", "<expired>");
-    }
-    return true;
-  }
-
-  // Lookup the object.
-  Object& obj = Object::Handle(isolate);
-  ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
-  obj = LookupObjectId(isolate, arg, &kind);
-  if (kind == ObjectIdRing::kInvalid) {
-    PrintError(js, "unrecognized object id '%s'", arg);
-    return true;
-  }
-
-  // Print.
-  if (kind == ObjectIdRing::kCollected) {
-    // The object has been collected by the gc.
-    PrintSentinel(js, "objects/collected", "<collected>");
-    return true;
-  } else if (kind == ObjectIdRing::kExpired) {
-    // The object id has expired.
-    PrintSentinel(js, "objects/expired", "<expired>");
-    return true;
-  }
-  obj.PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "ScriptList");
-  jsobj.AddProperty("id", "scripts");
-  JSONArray members(&jsobj, "members");
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  intptr_t num_libs = libs.Length();
-  Library &lib = Library::Handle();
-  Script& script = Script::Handle();
-  for (intptr_t i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    ASSERT(Smi::IsValid(lib.index()));
-    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-    ASSERT(!loaded_scripts.IsNull());
-    intptr_t num_scripts = loaded_scripts.Length();
-    for (intptr_t i = 0; i < num_scripts; i++) {
-      script ^= loaded_scripts.At(i);
-      members.AddValue(script);
-    }
-  }
-  return true;
-}
-
-
-static bool HandleScripts(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() == 1) {
-    // Enumerate all scripts.
-    return HandleScriptsEnumerate(isolate, js);
-  }
-  PrintError(js, "Command too long");
-  return true;
-}
-
-
 static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
-  const char* step_option = js->LookupOption("step");
+  const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
     JSONObject jsobj(js);
@@ -2676,15 +2183,15 @@ static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
     return true;
   }
   if (isolate->debugger()->PauseEvent() != NULL) {
-    if (step_option != NULL) {
-      if (strcmp(step_option, "into") == 0) {
+    if (step_param != NULL) {
+      if (strcmp(step_param, "into") == 0) {
         isolate->debugger()->SetSingleStep();
-      } else if (strcmp(step_option, "over") == 0) {
+      } else if (strcmp(step_param, "over") == 0) {
         isolate->debugger()->SetStepOver();
-      } else if (strcmp(step_option, "out") == 0) {
+      } else if (strcmp(step_param, "out") == 0) {
         isolate->debugger()->SetStepOut();
       } else {
-        PrintError(js, "Invalid 'step' option: %s", step_option);
+        PrintInvalidParamError(js, "step");
         return true;
       }
     }
@@ -2719,69 +2226,6 @@ static bool HandleIsolatePause(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleNullCode(uintptr_t pc, JSONStream* js) {
-  // TODO(turnidge): Consider adding/using Object::null_code() for
-  // consistent "type".
-  Object::null_object().PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleCode(Isolate* isolate, JSONStream* js) {
-  REQUIRE_COLLECTION_ID("code");
-  uword pc;
-  if (js->num_arguments() > 2) {
-    PrintError(js, "Command too long");
-    return true;
-  }
-  ASSERT(js->num_arguments() == 2);
-  static const char* kCollectedPrefix = "collected-";
-  static intptr_t kCollectedPrefixLen = strlen(kCollectedPrefix);
-  static const char* kNativePrefix = "native-";
-  static intptr_t kNativePrefixLen = strlen(kNativePrefix);
-  static const char* kReusedPrefix = "reused-";
-  static intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
-  const char* command = js->GetArgument(1);
-  if (strncmp(kCollectedPrefix, command, kCollectedPrefixLen) == 0) {
-    if (!GetUnsignedIntegerId(&command[kCollectedPrefixLen], &pc, 16)) {
-      PrintError(js, "Must specify code address: code/%sc0deadd0.",
-                 kCollectedPrefix);
-      return true;
-    }
-    return HandleNullCode(pc, js);
-  }
-  if (strncmp(kNativePrefix, command, kNativePrefixLen) == 0) {
-    if (!GetUnsignedIntegerId(&command[kNativePrefixLen], &pc, 16)) {
-      PrintError(js, "Must specify code address: code/%sc0deadd0.",
-                 kNativePrefix);
-      return true;
-    }
-    // TODO(johnmccutchan): Support native Code.
-    return HandleNullCode(pc, js);
-  }
-  if (strncmp(kReusedPrefix, command, kReusedPrefixLen) == 0) {
-    if (!GetUnsignedIntegerId(&command[kReusedPrefixLen], &pc, 16)) {
-      PrintError(js, "Must specify code address: code/%sc0deadd0.",
-                 kReusedPrefix);
-      return true;
-    }
-    return HandleNullCode(pc, js);
-  }
-  int64_t timestamp = 0;
-  if (!GetCodeId(command, &timestamp, &pc) || (timestamp < 0)) {
-    PrintError(js, "Malformed code id: %s", command);
-    return true;
-  }
-  Code& code = Code::Handle(Code::FindCode(pc, timestamp));
-  if (!code.IsNull()) {
-    code.PrintJSON(js, false);
-    return true;
-  }
-  PrintError(js, "Could not find code with id: %s", command);
-  return true;
-}
-
-
 static bool HandleIsolateGetTagProfile(Isolate* isolate, JSONStream* js) {
   JSONObject miniProfile(js);
   miniProfile.AddProperty("type", "TagProfile");
@@ -2792,23 +2236,22 @@ static bool HandleIsolateGetTagProfile(Isolate* isolate, JSONStream* js) {
 
 static bool HandleIsolateGetCpuProfile(Isolate* isolate, JSONStream* js) {
   // A full profile includes disassembly of all Dart code objects.
-  // TODO(johnmccutchan): Add sub command to trigger full code dump.
+  // TODO(johnmccutchan): Add option to trigger full code dump.
   bool full_profile = false;
-  const char* tags_option = js->LookupOption("tags");
   Profiler::TagOrder tag_order = Profiler::kUserVM;
-  if (js->HasOption("tags")) {
-    if (js->OptionIs("tags", "None")) {
+  if (js->HasParam("tags")) {
+    if (js->ParamIs("tags", "None")) {
       tag_order = Profiler::kNoTags;
-    } else if (js->OptionIs("tags", "UserVM")) {
+    } else if (js->ParamIs("tags", "UserVM")) {
       tag_order = Profiler::kUserVM;
-    } else if (js->OptionIs("tags", "UserOnly")) {
+    } else if (js->ParamIs("tags", "UserOnly")) {
       tag_order = Profiler::kUser;
-    } else if (js->OptionIs("tags", "VMUser")) {
+    } else if (js->ParamIs("tags", "VMUser")) {
       tag_order = Profiler::kVMUser;
-    } else if (js->OptionIs("tags", "VMOnly")) {
+    } else if (js->ParamIs("tags", "VMOnly")) {
       tag_order = Profiler::kVM;
     } else {
-      PrintError(js, "Invalid tags option value: %s\n", tags_option);
+      PrintInvalidParamError(js, "tags");
       return true;
     }
   }
@@ -2821,20 +2264,19 @@ static bool HandleIsolateGetAllocationProfile(Isolate* isolate,
                                               JSONStream* js) {
   bool should_reset_accumulator = false;
   bool should_collect = false;
-  if (js->HasOption("reset")) {
-    if (js->OptionIs("reset", "true")) {
+  if (js->HasParam("reset")) {
+    if (js->ParamIs("reset", "true")) {
       should_reset_accumulator = true;
     } else {
-      PrintError(js, "Unrecognized reset option '%s'",
-                 js->LookupOption("reset"));
+      PrintInvalidParamError(js, "reset");
       return true;
     }
   }
-  if (js->HasOption("gc")) {
-    if (js->OptionIs("gc", "full")) {
+  if (js->HasParam("gc")) {
+    if (js->ParamIs("gc", "full")) {
       should_collect = true;
     } else {
-      PrintError(js, "Unrecognized gc option '%s'", js->LookupOption("gc"));
+      PrintInvalidParamError(js, "gc");
       return true;
     }
   }
@@ -2907,15 +2349,20 @@ class ContainsAddressVisitor : public FindObjectVisitor {
 };
 
 
-static bool HandleAddress(Isolate* isolate, JSONStream* js) {
-  uword addr = 0;
-  if (js->num_arguments() != 2 ||
-      !GetUnsignedIntegerId(js->GetArgument(1), &addr, 16)) {
-    static const uword kExampleAddr = static_cast<uword>(kIntptrMax / 7);
-    PrintError(js, "Must specify address: address/" Px ".", kExampleAddr);
+static bool HandleIsolateGetObjectByAddress(Isolate* isolate, JSONStream* js) {
+  const char* addr_str = js->LookupParam("address");
+  if (addr_str == NULL) {
+    PrintMissingParamError(js, "address");
     return true;
   }
-  bool ref = js->HasOption("ref") && js->OptionIs("ref", "true");
+
+  // Handle heap objects.
+  uword addr = 0;
+  if (!GetUnsignedIntegerId(addr_str, &addr, 16)) {
+    PrintInvalidParamError(js, "address");
+    return true;
+  }
+  bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
   Object& object = Object::Handle(isolate);
   {
     NoGCScope no_gc;
@@ -2949,39 +2396,10 @@ static bool HandleIsolateRespondWithMalformedObject(Isolate* isolate,
 }
 
 
-static IsolateMessageHandlerEntry isolate_handlers[] = {
-  { "", HandleIsolate },                          // getObject
-  { "address", HandleAddress },                   // to do
-  { "classes", HandleClasses },                   // getObject
-  { "code", HandleCode },                         // getObject
-  { "libraries", HandleLibraries },               // getObject
-  { "objects", HandleObjects },                   // getObject
-  { "scripts", HandleScripts },                   // getObject
-};
-
-
-static IsolateMessageHandler FindIsolateMessageHandler(const char* command) {
-  intptr_t num_message_handlers = sizeof(isolate_handlers) /
-                                  sizeof(isolate_handlers[0]);
-  for (intptr_t i = 0; i < num_message_handlers; i++) {
-    const IsolateMessageHandlerEntry& entry = isolate_handlers[i];
-    if (strcmp(command, entry.command) == 0) {
-      return entry.handler;
-    }
-  }
-  if (FLAG_trace_service) {
-    OS::Print("vm-service: No isolate message handler for <%s>.\n", command);
-  }
-  return NULL;
-}
-
-
 static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
-  const char* id = js->LookupOption("objectId");
+  const char* id = js->LookupParam("objectId");
   if (id == NULL) {
-    // TODO(turnidge): Print the isolate here instead.
-    PrintError(js, "GetObject expects an 'objectId' parameter\n",
-               js->num_arguments());
+    PrintMissingParamError(js, "objectId");
     return true;
   }
 
@@ -2995,8 +2413,10 @@ static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
     return true;
   } else if (lookup_result == ObjectIdRing::kCollected) {
     PrintSentinel(js, "objects/collected", "<collected>");
+    return true;
   } else if (lookup_result == ObjectIdRing::kExpired) {
     PrintSentinel(js, "objects/expired", "<expired>");
+    return true;
   }
 
   // Handle non-heap objects.
@@ -3022,7 +2442,7 @@ static bool HandleIsolateGetClassList(Isolate* isolate, JSONStream* js) {
 static bool HandleIsolateGetTypeArgumentsList(Isolate* isolate,
                                               JSONStream* js) {
   bool only_with_instantiations = false;
-  if (js->OptionIs("onlyWithInstantiations", "true")) {
+  if (js->ParamIs("onlyWithInstantiations", "true")) {
     only_with_instantiations = true;
   }
   ObjectStore* object_store = isolate->object_store();
@@ -3051,6 +2471,7 @@ static bool HandleIsolateGetTypeArgumentsList(Isolate* isolate,
 static IsolateMessageHandlerEntry isolate_handlers_new[] = {
   { "getIsolate", HandleIsolate },
   { "getObject", HandleIsolateGetObject },
+  { "getObjectByAddress", HandleIsolateGetObjectByAddress },
   { "getBreakpoints", HandleIsolateGetBreakpoints },
   { "pause", HandleIsolatePause },
   { "resume", HandleIsolateResume },
@@ -3079,33 +2500,33 @@ static IsolateMessageHandlerEntry isolate_handlers_new[] = {
 };
 
 
-static IsolateMessageHandler FindIsolateMessageHandlerNew(const char* command) {
+static IsolateMessageHandler FindIsolateMessageHandler(const char* method) {
   intptr_t num_message_handlers = sizeof(isolate_handlers_new) /
                                   sizeof(isolate_handlers_new[0]);
   for (intptr_t i = 0; i < num_message_handlers; i++) {
     const IsolateMessageHandlerEntry& entry = isolate_handlers_new[i];
-    if (strcmp(command, entry.command) == 0) {
+    if (strcmp(method, entry.method) == 0) {
       return entry.handler;
     }
   }
   if (FLAG_trace_service) {
-    OS::Print("Service has no isolate message handler for <%s>\n", command);
+    OS::Print("Service has no isolate message handler for <%s>\n", method);
   }
   return NULL;
 }
 
 
-void Service::HandleRootMessageNew(const Array& msg) {
+void Service::HandleRootMessage(const Instance& msg_instance) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(!msg.IsNull());
+  ASSERT(!msg_instance.IsNull());
+  ASSERT(msg_instance.IsArray());
 
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
 
-    const Array& message = Array::Cast(msg);
-    // Message is a list with five entries.
-    ASSERT(message.Length() == 5);
+    const Array& msg = Array::Cast(msg_instance);
+    ASSERT(msg.Length() == 5);
 
     Instance& reply_port = Instance::Handle(isolate);
     String& method = String::Handle(isolate);
@@ -3126,11 +2547,11 @@ void Service::HandleRootMessageNew(const Array& msg) {
     }
 
     RootMessageHandler handler =
-        FindRootMessageHandlerNew(method.ToCString());
+        FindRootMessageHandler(method.ToCString());
     {
       JSONStream js;
-      js.SetupNew(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-                  method, param_keys, param_values);
+      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+               method, param_keys, param_values);
       if (handler == NULL) {
         // Check for an embedder handler.
         EmbedderServiceHandler* e_handler =
@@ -3138,90 +2559,11 @@ void Service::HandleRootMessageNew(const Array& msg) {
         if (e_handler != NULL) {
           EmbedderHandleMessage(e_handler, &js);
         } else {
-          if (FindIsolateMessageHandlerNew(method.ToCString()) != NULL) {
-            PrintError(&js, "%s expects an 'isolate' parameter\n",
-                       method.ToCString());
+          if (FindIsolateMessageHandler(method.ToCString()) != NULL) {
+            PrintMissingParamError(&js, "isolateId");
           } else {
             PrintError(&js, "Unrecognized method: %s", method.ToCString());
           }
-        }
-        js.PostReply();
-      } else {
-        if (handler(&js)) {
-          // Handler returns true if the reply is ready to be posted.
-          // TODO(johnmccutchan): Support asynchronous replies.
-          js.PostReply();
-        }
-      }
-    }
-  }
-}
-
-
-void Service::HandleRootMessage(const Instance& msg) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(!msg.IsNull());
-  ASSERT(msg.IsArray());
-
-  {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
-
-    const Array& message = Array::Cast(msg);
-    // Message is a list with five entries.
-    ASSERT(message.Length() == 5);
-
-    Object& tmp = Object::Handle(isolate);
-    tmp = message.At(2);
-    if (tmp.IsString()) {
-      return Service::HandleRootMessageNew(message);
-    }
-
-    Instance& reply_port = Instance::Handle(isolate);
-    GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
-    Array& option_keys = Array::Handle(isolate);
-    Array& option_values = Array::Handle(isolate);
-
-    reply_port ^= message.At(1);
-    path ^= message.At(2);
-    option_keys ^= message.At(3);
-    option_values ^= message.At(4);
-
-    ASSERT(!path.IsNull());
-    ASSERT(!option_keys.IsNull());
-    ASSERT(!option_values.IsNull());
-    // Path always has at least one entry in it.
-    ASSERT(path.Length() > 0);
-    // Same number of option keys as values.
-    ASSERT(option_keys.Length() == option_values.Length());
-
-    if (!reply_port.IsSendPort()) {
-      FATAL("SendPort expected.");
-    }
-
-    String& path_segment = String::Handle();
-    if (path.Length() > 0) {
-      path_segment ^= path.At(0);
-    } else {
-      path_segment ^= Symbols::Empty().raw();
-    }
-    ASSERT(!path_segment.IsNull());
-    const char* path_segment_c = path_segment.ToCString();
-
-    RootMessageHandler handler =
-        FindRootMessageHandler(path_segment_c);
-    {
-      JSONStream js;
-      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-               path, option_keys, option_values);
-      if (handler == NULL) {
-        // Check for an embedder handler.
-        EmbedderServiceHandler* e_handler =
-            FindRootEmbedderHandler(path_segment_c);
-        if (e_handler != NULL) {
-          EmbedderHandleMessage(e_handler, &js);
-        } else {
-          PrintError(&js, "Unrecognized path");
         }
         js.PostReply();
       } else {
@@ -3293,83 +2635,59 @@ static bool HandleVM(JSONStream* js) {
 }
 
 
-static bool HandleFlags(JSONStream* js) {
-  if (js->num_arguments() == 1) {
-    Flags::PrintJSON(js);
-    return true;
-  } else if (js->num_arguments() == 2) {
-    const char* arg = js->GetArgument(1);
-    if (strcmp(arg, "set") == 0) {
-      if (js->num_arguments() > 2) {
-        PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                   js->num_arguments());
-      } else {
-        if (js->HasOption("name") && js->HasOption("value")) {
-          JSONObject jsobj(js);
-          const char* flag_name = js->LookupOption("name");
-          const char* flag_value = js->LookupOption("value");
-          const char* error = NULL;
-          if (Flags::SetFlag(flag_name, flag_value, &error)) {
-            jsobj.AddProperty("type", "Success");
-            jsobj.AddProperty("id", "");
-          } else {
-            jsobj.AddProperty("type", "Failure");
-            jsobj.AddProperty("id", "");
-            jsobj.AddProperty("message", error);
-          }
-        } else {
-          PrintError(js, "expected to find 'name' and 'value' options");
-        }
-      }
-    }
-    return true;
-  } else {
-    PrintError(js, "Command too long");
-    return true;
-  }
+static bool HandleVMFlagList(JSONStream* js) {
+  Flags::PrintJSON(js);
+  return true;
 }
 
-static RootMessageHandlerEntry root_handlers[] = {
-  { "vm", HandleVM },
-  { "flags", HandleFlags },
-};
 
-
-static RootMessageHandler FindRootMessageHandler(const char* command) {
-  intptr_t num_message_handlers = sizeof(root_handlers) /
-                                  sizeof(root_handlers[0]);
-  for (intptr_t i = 0; i < num_message_handlers; i++) {
-    const RootMessageHandlerEntry& entry = root_handlers[i];
-    if (strcmp(command, entry.command) == 0) {
-      return entry.handler;
-    }
+static bool HandleVMSetFlag(JSONStream* js) {
+  const char* flag_name = js->LookupParam("name");
+  if (flag_name == NULL) {
+    PrintMissingParamError(js, "name");
+    return true;
   }
-  if (FLAG_trace_service) {
-    OS::Print("vm-service: No root message handler for <%s>.\n", command);
+  const char* flag_value = js->LookupParam("value");
+  if (flag_value == NULL) {
+    PrintMissingParamError(js, "value");
+    return true;
   }
-  return NULL;
+  JSONObject jsobj(js);
+  const char* error = NULL;
+  if (Flags::SetFlag(flag_name, flag_value, &error)) {
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
+    return true;
+  } else {
+    jsobj.AddProperty("type", "Failure");
+    jsobj.AddProperty("id", "");
+    jsobj.AddProperty("message", error);
+    return true;
+  }
 }
 
 
 static RootMessageHandlerEntry root_handlers_new[] = {
   { "getVM", HandleVM },
+  { "getFlagList", HandleVMFlagList },
+  { "setFlag", HandleVMSetFlag },
   { "getVMMetricList", HandleVMGetMetricList },
   { "getVMMetric", HandleVMGetMetric },
   { "_echo", HandleRootEcho },
 };
 
 
-static RootMessageHandler FindRootMessageHandlerNew(const char* command) {
+static RootMessageHandler FindRootMessageHandler(const char* method) {
   intptr_t num_message_handlers = sizeof(root_handlers_new) /
                                   sizeof(root_handlers_new[0]);
   for (intptr_t i = 0; i < num_message_handlers; i++) {
     const RootMessageHandlerEntry& entry = root_handlers_new[i];
-    if (strcmp(command, entry.command) == 0) {
+    if (strcmp(method, entry.method) == 0) {
       return entry.handler;
     }
   }
   if (FLAG_trace_service) {
-    OS::Print("vm-service: No root message handler for <%s>.\n", command);
+    OS::Print("vm-service: No root message handler for <%s>.\n", method);
   }
   return NULL;
 }
@@ -3456,12 +2774,10 @@ void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
   Dart_ServiceRequestCallback callback = handler->callback();
   ASSERT(callback != NULL);
   const char* r = NULL;
-  const char* name = js->command();
-  const char** arguments = js->arguments();
-  const char** keys = js->option_keys();
-  const char** values = js->option_values();
-  r = callback(name, arguments, js->num_arguments(), keys, values,
-               js->num_options(), handler->user_data());
+  const char* name = js->method();
+  const char** keys = js->param_keys();
+  const char** values = js->param_values();
+  r = callback(name, keys, values, js->num_params(), handler->user_data());
   ASSERT(r != NULL);
   // TODO(johnmccutchan): Allow for NULL returns?
   TextBuffer* buffer = js->buffer();

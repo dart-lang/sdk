@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/completion/dart_completion_cache.da
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
-import 'package:analysis_server/src/services/completion/local_computer.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -115,8 +114,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggest(String completion,
       {CompletionSuggestionKind csKind: CompletionSuggestionKind.INVOCATION,
-      int relevance: COMPLETION_RELEVANCE_DEFAULT, protocol.ElementKind elemKind:
-      null, bool isDeprecated: false, bool isPotential: false}) {
+      int relevance: DART_RELEVANCE_DEFAULT, protocol.ElementKind elemKind: null,
+      bool isDeprecated: false, bool isPotential: false}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -126,7 +125,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     }
     expect(cs.kind, equals(csKind));
     if (isDeprecated) {
-      expect(cs.relevance, equals(COMPLETION_RELEVANCE_LOW));
+      expect(cs.relevance, equals(DART_RELEVANCE_LOW));
     } else {
       expect(cs.relevance, equals(relevance));
     }
@@ -149,7 +148,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         paramTypes,
         cs.parameterNames,
         cs.parameterTypes);
-    expect(cs.relevance, COMPLETION_RELEVANCE_HIGH);
+    expect(cs.relevance, DART_RELEVANCE_HIGH);
   }
 
   void assertSuggestArgumentList_params(List<String> expectedNames,
@@ -181,7 +180,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestClass(String name, {int relevance:
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
       CompletionSuggestionKind.INVOCATION, bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(
         name,
@@ -199,7 +198,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestClassTypeAlias(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
@@ -214,7 +213,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestField(String name, String type,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
+      {int relevance: DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
       CompletionSuggestionKind.INVOCATION, bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(
         name,
@@ -236,7 +235,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
-      [bool isDeprecated = false, int relevance = COMPLETION_RELEVANCE_DEFAULT,
+      [bool isDeprecated = false, int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
@@ -261,9 +260,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestFunctionTypeAlias(String name,
-      String returnType, bool isDeprecated, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
-      CompletionSuggestionKind.INVOCATION]) {
+      String returnType, bool isDeprecated, [int relevance = DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
         csKind: kind,
@@ -289,7 +287,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestGetter(String name, String returnType,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
+      {int relevance: DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind:
       CompletionSuggestionKind.INVOCATION, bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(
         name,
@@ -311,7 +309,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestLabel(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.IDENTIFIER]) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
@@ -328,7 +326,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestLibraryPrefix(String prefix, [int relevance
-      = COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      = DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     // Library prefix should only be suggested by ImportedComputer
     if (computer is ImportedComputer) {
@@ -346,29 +344,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     }
   }
 
-  CompletionSuggestion assertSuggestLocalVariable(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    // Local variables should only be suggested by LocalComputer
-    if (computer is LocalComputer) {
-      CompletionSuggestion cs =
-          assertSuggest(name, csKind: kind, relevance: relevance);
-      expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-      protocol.Element element = cs.element;
-      expect(element, isNotNull);
-      expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
-      expect(element.name, equals(name));
-      expect(element.parameters, isNull);
-      expect(element.returnType, returnType != null ? returnType : 'dynamic');
-      assertHasNoParameterInfo(cs);
-      return cs;
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestMethod(String name, String declaringType,
-      String returnType, {int relevance: COMPLETION_RELEVANCE_DEFAULT,
+      String returnType, {int relevance: DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(
@@ -392,7 +369,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestNamedConstructor(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
+      String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     if (computer is InvocationComputer) {
       CompletionSuggestion cs =
@@ -414,29 +391,12 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
-      CompletionSuggestionKind.INVOCATION]) {
-    // Parameters should only be suggested by LocalComputer
-    if (computer is LocalComputer) {
-      CompletionSuggestion cs =
-          assertSuggest(name, csKind: kind, relevance: relevance);
-      expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-      protocol.Element element = cs.element;
-      expect(element, isNotNull);
-      expect(element.kind, equals(protocol.ElementKind.PARAMETER));
-      expect(element.name, equals(name));
-      expect(element.parameters, isNull);
-      expect(
-          element.returnType,
-          equals(returnType != null ? returnType : 'dynamic'));
-      return cs;
-    } else {
-      return assertNotSuggested(name);
-    }
+      {int relevance: DART_RELEVANCE_PARAMETER}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestSetter(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(
         name,
@@ -458,7 +418,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestTopLevelVar(String name, String returnType,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      [int relevance = DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
@@ -474,7 +434,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   void assertSuggestTopLevelVarGetterSetter(String name, String returnType,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+      [int relevance = DART_RELEVANCE_DEFAULT]) {
     if (computer is ImportedComputer) {
       assertSuggestGetter(name, returnType);
       assertSuggestSetter(name);
@@ -624,22 +584,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Subclasses override
   }
 
-  CompletionSuggestion assertLocalSuggestMethod(String name,
-      String declaringType, String returnType, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestMethod(
-          name,
-          declaringType,
-          returnType,
-          relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestImportedClass(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestClass(name, relevance: relevance, kind: kind);
@@ -649,13 +595,13 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedField(String name, String type,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+      {int relevance: DART_RELEVANCE_INHERITED_FIELD}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestImportedFunction(String name,
       String returnType, [bool isDeprecated = false, int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestFunction(
@@ -671,7 +617,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestImportedFunctionTypeAlias(String name,
       String returnType, [bool isDeprecated = false, int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestFunctionTypeAlias(
@@ -686,39 +632,23 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedGetter(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is ImportedComputer) {
-      return assertSuggestGetter(name, returnType, relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestImportedMethod(String name,
-      String declaringType, String returnType, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is ImportedComputer) {
-      return assertSuggestMethod(
-          name,
-          declaringType,
-          returnType,
-          relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String declaringType, String returnType, {int relevance:
+      DART_RELEVANCE_INHERITED_METHOD}) {
+    return assertNotSuggested(name);
   }
 
-  CompletionSuggestion assertSuggestImportedSetter(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is ImportedComputer) {
-      return assertSuggestSetter(name, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+  CompletionSuggestion assertSuggestImportedSetter(String name, {int relevance:
+      DART_RELEVANCE_INHERITED_ACCESSOR}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestImportedTopLevelVar(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT,
+      String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     if (computer is ImportedComputer) {
       return assertSuggestTopLevelVar(name, returnType, relevance, kind);
@@ -728,7 +658,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestInvocationClass(String name, [int relevance
-      = COMPLETION_RELEVANCE_DEFAULT]) {
+      = DART_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestClass(name, relevance: relevance);
     } else {
@@ -737,13 +667,13 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationGetter(String name,
-      String returnType, {int relevance: COMPLETION_RELEVANCE_DEFAULT,
-      bool isDeprecated: false}) {
+      String returnType, {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated:
+      false}) {
     if (computer is InvocationComputer) {
       return assertSuggestGetter(
           name,
@@ -757,7 +687,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestInvocationMethod(String name,
       String declaringType, String returnType, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
+      DART_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestMethod(
           name,
@@ -770,7 +700,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestInvocationSetter(String name, [int relevance
-      = COMPLETION_RELEVANCE_DEFAULT]) {
+      = DART_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestSetter(name);
     } else {
@@ -779,7 +709,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestInvocationTopLevelVar(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
+      String returnType, [int relevance = DART_RELEVANCE_DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestTopLevelVar(name, returnType, relevance);
     } else {
@@ -788,79 +718,60 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalClass(String name, {int relevance:
-      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
-      [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestClassTypeAlias(name, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalField(String name, String type,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_LOCAL_FIELD, bool deprecated: false}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalFunction(String name,
-      String returnType, [bool isDeprecated = false, int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestFunction(name, returnType, isDeprecated, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {bool deprecated: false, int relevance:
+      DART_RELEVANCE_LOCAL_FUNCTION}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalFunctionTypeAlias(String name,
-      String returnType, [bool isDeprecated = false, int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestFunctionTypeAlias(
-          name,
-          returnType,
-          isDeprecated,
-          relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {bool deprecated: false, int relevance:
+      DART_RELEVANCE_DEFAULT}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
-      {int relevance: COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_LOCAL_ACCESSOR, bool deprecated: false}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalMethod(String name,
       String declaringType, String returnType, {int relevance:
-      COMPLETION_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      DART_RELEVANCE_LOCAL_METHOD, bool deprecated: false}) {
     return assertNotSuggested(name);
   }
 
-  CompletionSuggestion assertSuggestLocalSetter(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestSetter(name, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+  CompletionSuggestion assertSuggestLocalSetter(String name, {int relevance:
+      DART_RELEVANCE_LOCAL_ACCESSOR}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalTopLevelVar(String name,
-      String returnType, [int relevance = COMPLETION_RELEVANCE_DEFAULT]) {
-    if (computer is LocalComputer) {
-      return assertSuggestTopLevelVar(name, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+      String returnType, {int relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE}) {
+    return assertNotSuggested(name);
+  }
+
+  CompletionSuggestion assertSuggestLocalVariable(String name,
+      String returnType, {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestNonLocalClass(String name, [int relevance =
-      COMPLETION_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
+      DART_RELEVANCE_DEFAULT, CompletionSuggestionKind kind =
       CompletionSuggestionKind.INVOCATION]) {
     return assertSuggestImportedClass(name, relevance, kind);
   }
@@ -1230,8 +1141,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
-      assertLocalSuggestMethod('a', 'X', null);
-      assertLocalSuggestMethod('b', 'X', 'void');
+      assertSuggestLocalMethod('a', 'X', null);
+      assertSuggestLocalMethod('b', 'X', 'void');
       assertSuggestLocalFunction('localF', null);
       assertSuggestLocalVariable('f', null);
       // Don't suggest locals out of scope
@@ -1312,8 +1223,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
-      assertLocalSuggestMethod('a', 'X', null);
-      assertLocalSuggestMethod('b', 'X', 'void');
+      assertSuggestLocalMethod('a', 'X', null);
+      assertSuggestLocalMethod('b', 'X', 'void');
       assertSuggestLocalVariable('f', null);
       // Don't suggest locals out of scope
       assertNotSuggested('r');
@@ -1324,8 +1235,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('_B');
       //assertSuggestImportedClass('C');
       // hidden element suggested as low relevance
-      assertSuggestImportedClass('D', COMPLETION_RELEVANCE_LOW);
-      assertSuggestImportedFunction('D1', null, true, COMPLETION_RELEVANCE_LOW);
+      assertSuggestImportedClass('D', DART_RELEVANCE_LOW);
+      assertSuggestImportedFunction('D1', null, true, DART_RELEVANCE_LOW);
       assertSuggestLocalFunction('D2', 'Z');
       //assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
@@ -1548,7 +1459,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementLength, 0);
       CompletionSuggestion suggestionA = assertSuggestLocalClass(
           'A',
-          relevance: COMPLETION_RELEVANCE_LOW,
+          relevance: DART_RELEVANCE_LOW,
           isDeprecated: true);
       if (suggestionA != null) {
         expect(suggestionA.element.isDeprecated, isTrue);
@@ -1621,35 +1532,120 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_ConditionalExpression_empty() {
-    // SimpleIdentifier  PrefixIdentifier  IfStatement
+  test_ConditionalExpression_elseExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
     addTestSource('''
-      class A {var b; X _c; foo() {A a; if (^) something}}''');
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} return a ? T1 : T^}}''');
     computeFast();
     return computeFull((bool result) {
-      expect(request.replacementOffset, completionOffset);
-      expect(request.replacementLength, 0);
-      assertSuggestLocalField('b', null);
-      assertSuggestLocalField('_c', 'X');
-      assertSuggestImportedClass('Object');
-      assertSuggestLocalClass('A');
-      assertNotSuggested('==');
+      // top level results are partially filtered based on first char
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
     });
   }
 
-  test_ConditionalExpression_invocation() {
-    // SimpleIdentifier  PrefixIdentifier  IfStatement
+  test_ConditionalExpression_elseExpression_empty() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
     addTestSource('''
-      main() {var a; if (a.^) something}''');
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} return a ? T1 : ^}}''');
     computeFast();
     return computeFull((bool result) {
-      expect(request.replacementOffset, completionOffset);
-      expect(request.replacementLength, 0);
-      assertSuggestInvocationMethod('toString', 'Object', 'String');
-      //TODO (danrubel) type for '_c' should be 'X' not null
-      assertNotSuggested('Object');
-      assertNotSuggested('A');
-      assertNotSuggested('==');
+      assertNotSuggested('x');
+      assertSuggestLocalVariable('f', null);
+      assertSuggestLocalMethod('foo', 'C', null);
+      assertSuggestLocalClass('C');
+      assertSuggestLocalFunction('F2', null);
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestImportedClass('A');
+      assertSuggestImportedFunction('F1', null);
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
+    });
+  }
+
+  test_ConditionalExpression_partial_thenExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} return a ? T^}}''');
+    computeFast();
+    return computeFull((bool result) {
+      // top level results are partially filtered based on first char
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
+    });
+  }
+
+  test_ConditionalExpression_partial_thenExpression_empty() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} return a ? ^}}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('x');
+      assertSuggestLocalVariable('f', null);
+      assertSuggestLocalMethod('foo', 'C', null);
+      assertSuggestLocalClass('C');
+      assertSuggestLocalFunction('F2', null);
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestImportedClass('A');
+      assertSuggestImportedFunction('F1', null);
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
+    });
+  }
+
+  test_ConditionalExpression_thenExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} return a ? T^ : c}}''');
+    computeFast();
+    return computeFull((bool result) {
+      // top level results are partially filtered based on first char
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
     });
   }
 
@@ -1763,6 +1759,25 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_DefaultFormalParameter_named_expression() {
+    // DefaultFormalParameter FormalParameterList MethodDeclaration
+    addTestSource('''
+      foo() { }
+      void bar() { }
+      class A {a(blat: ^) { }}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalFunction('foo', null);
+      assertSuggestLocalMethod('a', 'A', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('String');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertNotSuggested('bar');
+    });
+  }
+
   test_ExpressionStatement_identifier() {
     // SimpleIdentifier  ExpressionStatement  Block
     addSource('/testA.dart', '''
@@ -1838,6 +1853,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
+      assertSuggestParameter('args', null);
       assertSuggestLocalVariable('foo', 'int');
       assertSuggestImportedClass('Object');
     });
@@ -1850,8 +1866,59 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
+      assertSuggestParameter('args', null);
       assertSuggestLocalVariable('foo', null);
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_ForEachStatement_iterable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (int foo in ^) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestParameter('args', null);
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_ForEachStatement_loopVariable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ in args) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertNotSuggested('args');
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_ForEachStatement_loopVariable_type() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ foo in args) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertNotSuggested('args');
+      assertNotSuggested('foo');
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_ForEachStatement_loopVariable_type2() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (S^ foo in args) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      assertNotSuggested('args');
+      assertNotSuggested('foo');
+      assertSuggestImportedClass('String');
     });
   }
 
@@ -1945,7 +2012,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      var f = assertSuggestLocalFunction('foo', 'String', false);
+      var f = assertSuggestLocalFunction('foo', 'String', deprecated: false);
       if (f != null) {
         expect(f.element.isPrivate, isFalse);
       }
@@ -1953,6 +2020,22 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestParameter('args', 'List');
       assertSuggestParameter('b', 'R');
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_IfStatement() {
+    // SimpleIdentifier  IfStatement
+    addTestSource('''
+      class A {var b; X _c; foo() {A a; if (true) ^}}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalField('b', null);
+      assertSuggestLocalField('_c', 'X');
+      assertSuggestImportedClass('Object');
+      assertSuggestLocalClass('A');
+      assertNotSuggested('==');
     });
   }
 
@@ -1972,6 +2055,38 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_IfStatement_empty() {
+    // SimpleIdentifier  IfStatement
+    addTestSource('''
+      class A {var b; X _c; foo() {A a; if (^) something}}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalField('b', null);
+      assertSuggestLocalField('_c', 'X');
+      assertSuggestImportedClass('Object');
+      assertSuggestLocalClass('A');
+      assertNotSuggested('==');
+    });
+  }
+
+  test_IfStatement_invocation() {
+    // SimpleIdentifier  PrefixIdentifier  IfStatement
+    addTestSource('''
+      main() {var a; if (a.^) something}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestInvocationMethod('toString', 'Object', 'String');
+      //TODO (danrubel) type for '_c' should be 'X' not null
+      assertNotSuggested('Object');
+      assertNotSuggested('A');
+      assertNotSuggested('==');
+    });
+  }
+
   test_ImportDirective_dart() {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
@@ -1980,6 +2095,54 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertNoSuggestions();
+    });
+  }
+
+  test_IndexExpression() {
+    // ExpressionStatement  Block
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} f[^]}}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('x');
+      assertSuggestLocalVariable('f', null);
+      assertSuggestLocalMethod('foo', 'C', null);
+      assertSuggestLocalClass('C');
+      assertSuggestLocalFunction('F2', null);
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestImportedClass('A');
+      assertSuggestImportedFunction('F1', null);
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
+    });
+  }
+
+  test_IndexExpression2() {
+    // SimpleIdentifier IndexExpression ExpressionStatement  Block
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} f[T^]}}''');
+    computeFast();
+    return computeFull((bool result) {
+      // top level results are partially filtered based on first char
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
     });
   }
 
@@ -2189,8 +2352,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       CompletionSuggestion getterF = assertSuggestLocalGetter(
           'f',
           'X',
-          relevance: COMPLETION_RELEVANCE_LOW,
-          isDeprecated: true);
+          relevance: DART_RELEVANCE_LOW,
+          deprecated: true);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
@@ -2218,8 +2381,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       CompletionSuggestion getterF = assertSuggestLocalField(
           'f',
           'X',
-          relevance: COMPLETION_RELEVANCE_LOW,
-          isDeprecated: true);
+          relevance: DART_RELEVANCE_LOW,
+          deprecated: true);
       if (getterF != null) {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
@@ -2246,8 +2409,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
           'a',
           'A',
           'Z',
-          relevance: COMPLETION_RELEVANCE_LOW,
-          isDeprecated: true);
+          relevance: DART_RELEVANCE_LOW,
+          deprecated: true);
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isTrue);
         expect(methodA.element.isPrivate, isFalse);

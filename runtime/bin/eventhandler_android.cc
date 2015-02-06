@@ -34,11 +34,6 @@
 namespace dart {
 namespace bin {
 
-static const int kInterruptMessageSize = sizeof(InterruptMessage);
-static const int kInfinityTimeout = -1;
-static const int kTimerId = -1;
-static const int kShutdownId = -2;
-
 
 intptr_t SocketData::GetPollEvents() {
   // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
@@ -118,12 +113,14 @@ EventHandlerImplementation::EventHandlerImplementation()
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
+  VOID_TEMP_FAILURE_RETRY(close(epoll_fd_));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
 
 
-SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
+SocketData* EventHandlerImplementation::GetSocketData(
+    intptr_t fd, bool listening_socket) {
   ASSERT(fd >= 0);
   HashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
@@ -132,7 +129,7 @@ SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
   if (sd == NULL) {
     // If there is no data in the hash map for this file descriptor a
     // new SocketData for the file descriptor is inserted.
-    sd = new SocketData(fd);
+    sd = new SocketData(fd, listening_socket);
     entry->value = sd;
   }
   ASSERT(fd == sd->fd());
@@ -173,8 +170,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      SocketData* sd = GetSocketData(msg[i].id);
+      ASSERT((msg[i].data & COMMAND_MASK) != 0);
 
+      SocketData* sd = GetSocketData(
+          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         // Close the socket for reading.
         shutdown(sd->fd(), SHUT_RD);
@@ -198,11 +197,16 @@ void EventHandlerImplementation::HandleInterruptFd() {
             AddToEpollInstance(epoll_fd_, sd);
           }
         }
-      } else {
-        ASSERT_NO_COMMAND(msg[i].data);
+      } else if (IS_COMMAND(msg[i].data, kSetEventMaskCommand)) {
+        // `events` can only have kInEvent/kOutEvent flags set.
+        intptr_t events = msg[i].data & EVENT_MASK;
+        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+
         // Setup events to wait for.
-        sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
+        sd->SetPortAndMask(msg[i].dart_port, events);
         AddToEpollInstance(epoll_fd_, sd);
+      } else {
+        UNREACHABLE();
       }
     }
   }
@@ -299,25 +303,27 @@ void EventHandlerImplementation::Poll(uword args) {
   ThreadSignalBlocker signal_blocker(SIGPROF);
   static const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
-  EventHandlerImplementation* handler =
-      reinterpret_cast<EventHandlerImplementation*>(args);
-  ASSERT(handler != NULL);
-  while (!handler->shutdown_) {
-    int64_t millis = handler->GetTimeout();
+  EventHandler* handler = reinterpret_cast<EventHandler*>(args);
+  EventHandlerImplementation* handler_impl = &handler->delegate_;
+  ASSERT(handler_impl != NULL);
+
+  while (!handler_impl->shutdown_) {
+    int64_t millis = handler_impl->GetTimeout();
     ASSERT(millis == kInfinityTimeout || millis >= 0);
     if (millis > kMaxInt32) millis = kMaxInt32;
     intptr_t result = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
-        epoll_wait(handler->epoll_fd_, events, kMaxEvents, millis));
+        epoll_wait(handler_impl->epoll_fd_, events, kMaxEvents, millis));
     ASSERT(EAGAIN == EWOULDBLOCK);
     if (result == -1) {
       if (errno != EWOULDBLOCK) {
         perror("Poll failed");
       }
     } else {
-      handler->HandleTimeout();
-      handler->HandleEvents(events, result);
+      handler_impl->HandleTimeout();
+      handler_impl->HandleEvents(events, result);
     }
   }
+  handler->NotifyShutdownDone();
 }
 
 

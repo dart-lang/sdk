@@ -75,6 +75,30 @@ static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // being allocated.
 static int vm_service_server_port = -1;
 
+
+// Exit code indicating an API error.
+static const int kApiErrorExitCode = 253;
+// Exit code indicating a compilation error.
+static const int kCompilationErrorExitCode = 254;
+// Exit code indicating an unhandled error that is not a compilation error.
+static const int kErrorExitCode = 255;
+
+static void ErrorExit(int exit_code, const char* format, ...) {
+  va_list arguments;
+  va_start(arguments, format);
+  Log::VPrintErr(format, arguments);
+  va_end(arguments);
+  fflush(stderr);
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+
+  Dart_Cleanup();
+
+  exit(exit_code);
+}
+
+
 // The environment provided through the command line using -D options.
 static dart::HashMap* environment = NULL;
 
@@ -540,7 +564,8 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     *error = strdup(Dart_GetError(result));                                    \
-    *is_compile_error = Dart_IsCompilationError(result);                       \
+    *exit_code = Dart_IsCompilationError(result) ? kCompilationErrorExitCode : \
+        (Dart_IsApiError(result) ? kApiErrorExitCode : kErrorExitCode);        \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     return NULL;                                                               \
@@ -552,7 +577,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
                                                 const char* package_root,
                                                 char** error,
-                                                bool* is_compile_error) {
+                                                int* exit_code) {
   ASSERT(script_uri != NULL);
   IsolateData* isolate_data = new IsolateData(script_uri, package_root);
   Dart_Isolate isolate = NULL;
@@ -640,7 +665,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* package_root,
                                           void* data, char** error) {
   IsolateData* parent_isolate_data = reinterpret_cast<IsolateData*>(data);
-  bool is_compile_error = false;
+  int exit_code = 0;
   if (script_uri == NULL) {
     if (data == NULL) {
       *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
@@ -663,7 +688,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                      main,
                                      package_root,
                                      error,
-                                     &is_compile_error);
+                                     &exit_code);
 }
 
 
@@ -765,29 +790,6 @@ char* BuildIsolateName(const char* script_name,
   return buffer;
 }
 
-
-// Exit code indicating a compilation error.
-static const int kCompilationErrorExitCode = 254;
-
-// Exit code indicating an unhandled error that is not a compilation error.
-static const int kErrorExitCode = 255;
-
-static void ErrorExit(int exit_code, const char* format, ...) {
-  va_list arguments;
-  va_start(arguments, format);
-  Log::VPrintErr(format, arguments);
-  va_end(arguments);
-  fflush(stderr);
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
-
-  Dart_Cleanup();
-
-  exit(exit_code);
-}
-
-
 static void DartExitOnError(Dart_Handle error) {
   if (!Dart_IsError(error)) {
     return;
@@ -855,15 +857,11 @@ class DartScope {
 
 static const char* ServiceRequestHandler(
     const char* name,
-    const char** arguments,
-    intptr_t num_arguments,
-    const char** option_keys,
-    const char** option_values,
-    intptr_t num_options,
+    const char** param_keys,
+    const char** param_values,
+    intptr_t num_params,
     void* user_data) {
   DartScope scope;
-  ASSERT(num_arguments > 0);
-  ASSERT(strncmp(arguments[0], "io", 2) == 0);
   // TODO(ajohnsen): Store the library/function in isolate data or user_data.
   Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
   if (Dart_IsError(dart_io_str)) return ServiceRequestError(dart_io_str);
@@ -874,15 +872,14 @@ static const char* ServiceRequestHandler(
   if (Dart_IsError(handler_function_name)) {
     return ServiceRequestError(handler_function_name);
   }
-  Dart_Handle paths = Dart_NewList(num_arguments - 1);
-  for (int i = 0; i < num_arguments - 1; i++) {
-    Dart_ListSetAt(paths, i, Dart_NewStringFromCString(arguments[i + 1]));
-  }
-  Dart_Handle keys = Dart_NewList(num_options);
-  Dart_Handle values = Dart_NewList(num_options);
-  for (int i = 0; i < num_options; i++) {
-    Dart_ListSetAt(keys, i, Dart_NewStringFromCString(option_keys[i]));
-    Dart_ListSetAt(values, i, Dart_NewStringFromCString(option_values[i]));
+  // TODO(johnmccutchan): paths is no longer used.  Update the io
+  // _serviceObjectHandler function to use json rpc.
+  Dart_Handle paths = Dart_NewList(0);
+  Dart_Handle keys = Dart_NewList(num_params);
+  Dart_Handle values = Dart_NewList(num_params);
+  for (int i = 0; i < num_params; i++) {
+    Dart_ListSetAt(keys, i, Dart_NewStringFromCString(param_keys[i]));
+    Dart_ListSetAt(values, i, Dart_NewStringFromCString(param_values[i]));
   }
   Dart_Handle args[] = {paths, keys, values};
   Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 3, args);
@@ -982,18 +979,18 @@ void main(int argc, char** argv) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
-  bool is_compile_error = false;
+  int exit_code = 0;
   char* isolate_name = BuildIsolateName(script_name, "main");
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
                                                      commandline_package_root,
                                                      &error,
-                                                     &is_compile_error);
+                                                     &exit_code);
   if (isolate == NULL) {
     Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
-    exit(is_compile_error ? kCompilationErrorExitCode : kErrorExitCode);
+    exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
 
