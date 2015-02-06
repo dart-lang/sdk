@@ -167,6 +167,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     return buildConstant(glue.getConstantForVariable(parameter).value);
   }
 
+  // TODO(karlklose): get rid of the selector argument.
   js.Expression buildStaticInvoke(Selector selector,
                                   Element target,
                                   List<js.Expression> arguments) {
@@ -183,21 +184,29 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
       return js.propertyCall(interceptorLibrary, selector.name, arguments);
     } else {
       js.Expression elementAccess = glue.staticFunctionAccess(target);
-      List<js.Expression> compiledArguments =
-          selector.makeArgumentsList(target.implementation,
-                                     arguments,
-                                     compileConstant);
-      return new js.Call(elementAccess, compiledArguments);
+      return new js.Call(elementAccess, arguments);
     }
+  }
+
+  List<js.Expression> compileStaticArgumentList(
+      Selector selector,
+      Element target, /* TODO(karlklose): this should be the signature. */
+      List<tree_ir.Expression> arguments) {
+    return selector.makeArgumentsList(
+        target.implementation,
+        visitArguments(arguments),
+        compileConstant);
   }
 
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
     if (node.constant != null) return giveup(node);
     registry.registerInstantiatedClass(node.target.enclosingClass);
-    return buildStaticInvoke(node.selector,
-                             node.target,
-                             visitArguments(node.arguments));
+    Selector selector = node.selector;
+    FunctionElement target = node.target;
+    List<js.Expression> arguments =
+        compileStaticArgumentList(selector, target, node.arguments);
+    return buildStaticInvoke(selector, target, arguments);
   }
 
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
@@ -230,9 +239,11 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     if (node.target is! FunctionElement) {
       giveup(node, 'static getters and setters are not supported.');
     }
-    return buildStaticInvoke(node.selector,
-                             node.target,
-                             visitArguments(node.arguments));
+    Selector selector = node.selector;
+    FunctionElement target = node.target;
+    List<js.Expression> arguments =
+        compileStaticArgumentList(selector, target, node.arguments);
+    return buildStaticInvoke(selector, target, arguments);
   }
 
   @override
@@ -276,8 +287,9 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
       entries[2 * i] = visitExpression(node.entries[i].key);
       entries[2 * i + 1] = visitExpression(node.entries[i].value);
     }
-    List<js.Expression> args =
-        <js.Expression>[new js.ArrayInitializer(entries)];
+    List<js.Expression> args = entries.isEmpty
+         ? <js.Expression>[]
+         : <js.Expression>[new js.ArrayInitializer(entries)];
     return buildStaticInvoke(
         new Selector.call(constructor.name, constructor.library, 2),
         constructor,
