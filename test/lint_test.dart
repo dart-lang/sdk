@@ -9,12 +9,16 @@ import 'dart:io';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:dart_lint/src/io.dart';
 import 'package:dart_lint/src/linter.dart';
 import 'package:dart_lint/src/rules.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
+
+import '../bin/lint.dart' as dartlint;
+
 
 const String ruleDir = 'test/rules';
 
@@ -25,9 +29,9 @@ void defineLinterEngineTests() {
       test('duplicate rules', () {
         var registry = new MockRegistry();
         registry
-          ..registerLinter('r1', new MockLinter())
-          ..registerLinter('r1', new MockLinter())
-          ..expectWarnings(["Multiple linter rules registered to name 'r1'"]);
+            ..registerLinter('r1', new MockLinter())
+            ..registerLinter('r1', new MockLinter())
+            ..expectWarnings(["Multiple linter rules registered to name 'r1'"]);
       });
       test('empty to start', () {
         var registry = new MockRegistry();
@@ -76,13 +80,19 @@ void defineLinterEngineTests() {
         });
       }
 
-      _test('exception', 'EXCEPTION: LinterException: foo',
+      _test(
+          'exception',
+          'EXCEPTION: LinterException: foo',
           (r) => r.exception(new LinterException('foo')));
       _test('logError', 'ERROR: foo', (r) => r.logError('foo'));
-      _test('logError2', 'ERROR: foo',
+      _test(
+          'logError2',
+          'ERROR: foo',
           (r) => r.logError2('foo', new Exception()));
       _test('logInformation', 'INFO: foo', (r) => r.logInformation('foo'));
-      _test('logInformation2', 'INFO: foo',
+      _test(
+          'logInformation2',
+          'INFO: foo',
           (r) => r.logInformation2('foo', new Exception()));
       _test('warn', 'WARN: foo', (r) => r.warn('foo'));
     });
@@ -93,7 +103,8 @@ void defineLinterEngineTests() {
       });
       test('toString', () {
         expect(const LinterException().toString(), equals('LinterException'));
-        expect(const LinterException('foo').toString(),
+        expect(
+            const LinterException('foo').toString(),
             equals('LinterException: foo'));
       });
     });
@@ -103,12 +114,44 @@ void defineLinterEngineTests() {
         bool visited;
         var options =
             new LinterOptions(() => [new MockLinter((n) => visited = true)]);
-        new SourceLinter(options).lintLibrarySource(
-            libraryName: 'testLibrary',
-            libraryContents: 'library testLibrary;');
+        new SourceLinter(
+            options).lintLibrarySource(
+                libraryName: 'testLibrary',
+                libraryContents: 'library testLibrary;');
         expect(visited, isTrue);
       });
     });
+
+    group('main', () {
+      setUp(() => exitCode = 0);
+      tearDown(() => exitCode = 0);
+      test('smoke', () {
+        FileSystemEntity firstRuleTest =
+            new Directory(ruleDir).listSync().firstWhere((f) => isDartFile(f));
+        dartlint.main([firstRuleTest.path]);
+        expect(dartlint.isLinterErrorCode(exitCode), isFalse);
+      });
+      test('no args', () {
+        dartlint.main([]);
+        expect(exitCode, equals(dartlint.unableToProcessExitCode));
+      });
+      test('help', () {
+        dartlint.main(['-h']);
+        // Help shouldn't generate an error code
+        expect(dartlint.isLinterErrorCode(exitCode), isFalse);
+      });
+      test('unknown arg', () {
+        dartlint.main(['-XXXXX']);
+        expect(exitCode, equals(dartlint.unableToProcessExitCode));
+      });
+      test('bad path', () {
+        var badPath = new Directory(ruleDir).path + '/___NonExistent.dart';
+        dartlint.main([badPath]);
+        expect(exitCode, equals(dartlint.unableToProcessExitCode));
+      });
+    });
+
+
   });
 }
 
@@ -118,7 +161,7 @@ void defineRuleTests() {
   //TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
     for (var entry in new Directory(ruleDir).listSync()) {
-      if (entry is! File || !entry.path.endsWith('.dart')) continue;
+      if (entry is! File || !isDartFile(entry)) continue;
       var ruleName = p.basenameWithoutExtension(entry.path);
       testRule(ruleName, entry);
     }
@@ -134,7 +177,8 @@ void defineSanityTests() {
         expect(extractAnnotation('int x; //LINT'), isNotNull);
         expect(extractAnnotation('int x; // OK'), isNull);
         expect(extractAnnotation('int x;'), isNull);
-        expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
+        expect(
+            extractAnnotation('dynamic x; // LINT dynamic is bad').message,
             equals('dynamic is bad'));
         expect(extractAnnotation('dynamic x; //LINT').message, isNull);
         expect(extractAnnotation('dynamic x; //LINT ').message, isNull);
@@ -144,18 +188,28 @@ void defineSanityTests() {
       expect(
           new Annotation('Actual message (to be ignored)', ErrorType.LINT, 1),
           matchesAnnotation(null, ErrorType.LINT, 1));
-      expect(new Annotation('Message', ErrorType.LINT, 1),
+      expect(
+          new Annotation('Message', ErrorType.LINT, 1),
           matchesAnnotation('Message', ErrorType.LINT, 1));
     });
     test('inequality', () {
-      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
-              matchesAnnotation('Message', ErrorType.HINT, 1)),
+      expect(
+          () =>
+              expect(
+                  new Annotation('Message', ErrorType.LINT, 1),
+                  matchesAnnotation('Message', ErrorType.HINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
-      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
-              matchesAnnotation('Message2', ErrorType.LINT, 1)),
+      expect(
+          () =>
+              expect(
+                  new Annotation('Message', ErrorType.LINT, 1),
+                  matchesAnnotation('Message2', ErrorType.LINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
-      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
-              matchesAnnotation('Message', ErrorType.LINT, 2)),
+      expect(
+          () =>
+              expect(
+                  new Annotation('Message', ErrorType.LINT, 1),
+                  matchesAnnotation('Message', ErrorType.LINT, 2)),
           throwsA(new isInstanceOf<TestFailure>()));
     });
   });
@@ -185,9 +239,9 @@ main() {
   defineRuleTests();
 }
 
-AnnotationMatcher matchesAnnotation(
-    String message, ErrorType type, int lineNumber) =>
-        new AnnotationMatcher(new Annotation(message, type, lineNumber));
+AnnotationMatcher matchesAnnotation(String message, ErrorType type,
+    int lineNumber) =>
+    new AnnotationMatcher(new Annotation(message, type, lineNumber));
 
 void testRule(String ruleName, File file) {
   test('$ruleName', () {
@@ -218,9 +272,9 @@ void testRule(String ruleName, File file) {
   });
 }
 
-typedef nodeVisitor(AstNode node);
-
 typedef AstVisitor VisitorCallback();
+
+typedef nodeVisitor(AstNode node);
 
 class Annotation {
   final String message;
@@ -229,8 +283,10 @@ class Annotation {
 
   Annotation(this.message, this.type, this.lineNumber);
 
-  Annotation.forError(AnalysisError error, LineInfo lineInfo) : this(
-          error.message, error.errorCode.type,
+  Annotation.forError(AnalysisError error, LineInfo lineInfo)
+      : this(
+          error.message,
+          error.errorCode.type,
           lineInfo.getLocation(error.offset).lineNumber);
 
   Annotation.forLint([String message]) : this(message, ErrorType.LINT, null);
@@ -293,11 +349,6 @@ class MockRegistry extends RuleRegistry {
     expect((reporter as MockReporter).warnings, unorderedEquals(warnings));
   }
 }
-
-//class MockLinter extends Linter {
-//  @override
-//  AstVisitor getVisitor() => null;
-//}
 
 class MockReporter extends Reporter {
   var exceptions = <LinterException>[];
