@@ -2328,6 +2328,26 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_Literal_list() {
+    // ']'  ListLiteral  ArgumentList  MethodInvocation
+    addTestSource('main() {var Some; print([^]);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalVariable('Some', null);
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_Literal_list2() {
+    // SimpleIdentifier ListLiteral  ArgumentList  MethodInvocation
+    addTestSource('main() {var Some; print([S^]);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalVariable('Some', null);
+      assertSuggestImportedClass('String');
+    });
+  }
+
   test_Literal_string() {
     // SimpleStringLiteral  ExpressionStatement  Block
     addTestSource('class A {a() {"hel^lo"}}');

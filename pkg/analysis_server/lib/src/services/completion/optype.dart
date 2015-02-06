@@ -378,6 +378,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitListLiteral(ListLiteral node) {
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
   }
 
