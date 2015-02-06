@@ -20,7 +20,6 @@ import 'package:analyzer/src/error_formatter.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
@@ -228,7 +227,7 @@ class AnalysisDriver {
     if (printMode == 1) {
       _printErrorsAndPerf();
     } else if (printMode == 2) {
-      _printColdPerf();
+      //_printColdPerf();
     }
 
     // compute max severity and set exitCode
@@ -301,26 +300,6 @@ class AnalysisDriver {
     _addLibrarySources(library, libraries, units);
   }
 
-  _printColdPerf() {
-    // print cold VM performance numbers
-    int totalTime = JavaSystem.currentTimeMillis() - _startTime;
-    int ioTime = PerformanceStatistics.io.result;
-    int scanTime = PerformanceStatistics.scan.result;
-    int parseTime = PerformanceStatistics.parse.result;
-    int resolveTime = PerformanceStatistics.resolve.result;
-    int errorsTime = PerformanceStatistics.errors.result;
-    int hintsTime = PerformanceStatistics.hints.result;
-    stdout.writeln("io-cold:$ioTime");
-    stdout.writeln("scan-cold:$scanTime");
-    stdout.writeln("parse-cold:$parseTime");
-    stdout.writeln("resolve-cold:$resolveTime");
-    stdout.writeln("errors-cold:$errorsTime");
-    stdout.writeln("hints-cold:$hintsTime");
-    stdout.writeln("other-cold:${totalTime
-        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
-    stdout.writeln("total-cold:$totalTime");
-  }
-
   _printErrorsAndPerf() {
     // The following is a hack. We currently print out to stderr to ensure that
     // when in batch mode we print to stderr, this is because the prints from
@@ -335,26 +314,50 @@ class AnalysisDriver {
         new ErrorFormatter(sink, new _OptionsWrapper(_options), isDesiredError);
     formatter.formatErrors(errorInfos);
 
-    // print performance numbers
-    if (_options.perf || _options.warmPerf) {
-      int totalTime = JavaSystem.currentTimeMillis() - _startTime;
-      int ioTime = PerformanceStatistics.io.result;
-      int scanTime = PerformanceStatistics.scan.result;
-      int parseTime = PerformanceStatistics.parse.result;
-      int resolveTime = PerformanceStatistics.resolve.result;
-      int errorsTime = PerformanceStatistics.errors.result;
-      int hintsTime = PerformanceStatistics.hints.result;
-      stdout.writeln("io:$ioTime");
-      stdout.writeln("scan:$scanTime");
-      stdout.writeln("parse:$parseTime");
-      stdout.writeln("resolve:$resolveTime");
-      stdout.writeln("errors:$errorsTime");
-      stdout.writeln("hints:$hintsTime");
-      stdout.writeln("other:${totalTime
-      - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
-      stdout.writeln("total:$totalTime");
-    }
+    //_printWarmPerf();
   }
+
+//  _printColdPerf() {
+//    // print cold VM performance numbers
+//    int totalTime = JavaSystem.currentTimeMillis() - _startTime;
+//    int ioTime = PerformanceStatistics.io.result;
+//    int scanTime = PerformanceStatistics.scan.result;
+//    int parseTime = PerformanceStatistics.parse.result;
+//    int resolveTime = PerformanceStatistics.resolve.result;
+//    int errorsTime = PerformanceStatistics.errors.result;
+//    int hintsTime = PerformanceStatistics.hints.result;
+//    stdout.writeln("io-cold:$ioTime");
+//    stdout.writeln("scan-cold:$scanTime");
+//    stdout.writeln("parse-cold:$parseTime");
+//    stdout.writeln("resolve-cold:$resolveTime");
+//    stdout.writeln("errors-cold:$errorsTime");
+//    stdout.writeln("hints-cold:$hintsTime");
+//    stdout.writeln("other-cold:${totalTime
+//        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
+//    stdout.writeln("total-cold:$totalTime");
+//  }
+
+//  _printWarmPerf() {
+//    // print performance numbers
+//    if (_options.perf || _options.warmPerf) {
+//      int totalTime = JavaSystem.currentTimeMillis() - _startTime;
+//      int ioTime = PerformanceStatistics.io.result;
+//      int scanTime = PerformanceStatistics.scan.result;
+//      int parseTime = PerformanceStatistics.parse.result;
+//      int resolveTime = PerformanceStatistics.resolve.result;
+//      int errorsTime = PerformanceStatistics.errors.result;
+//      int hintsTime = PerformanceStatistics.hints.result;
+//      stdout.writeln("io:$ioTime");
+//      stdout.writeln("scan:$scanTime");
+//      stdout.writeln("parse:$parseTime");
+//      stdout.writeln("resolve:$resolveTime");
+//      stdout.writeln("errors:$errorsTime");
+//      stdout.writeln("hints:$hintsTime");
+//      stdout.writeln("other:${totalTime
+//      - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
+//      stdout.writeln("total:$totalTime");
+//    }
+//  }
 
   void _setOptions(AnalysisOptionsImpl analysisOptions) {
     analysisOptions.cacheSize = _options.cacheSize;
@@ -391,22 +394,6 @@ class AnalysisDriver {
 
   static int _currentTimeInMillis() =>
       new DateTime.now().millisecondsSinceEpoch;
-
-  static JavaFile _getPackageDirectoryFor(JavaFile sourceFile) {
-    // we are going to ask parent file, so get absolute path
-    sourceFile = sourceFile.getAbsoluteFile();
-    // look in the containing directories
-    JavaFile dir = sourceFile.getParentFile();
-    while (dir != null) {
-      JavaFile packagesDir = new JavaFile.relative(dir, "packages");
-      if (packagesDir.exists()) {
-        return packagesDir;
-      }
-      dir = dir.getParentFile();
-    }
-    // not found
-    return null;
-  }
 
   /// Returns the [Uri] for the given input file.
   /// Usually it is a `file:` [Uri], but if [file] is located in the `lib`
