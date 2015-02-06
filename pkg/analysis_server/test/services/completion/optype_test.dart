@@ -309,7 +309,6 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true);
   }
 
-
   test_ConditionalExpression_elseExpression_empty() {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T1 : ^}}');
@@ -443,6 +442,42 @@ class OpTypeTest {
     // Block  ForEachStatement
     addTestSource('main(args) {for (foo in bar) {^}}');
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_ForEachStatement_iterable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (int foo in ^) {}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ForEachStatement_loopVariable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ in args) {}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_ForEachStatement_loopVariable_name() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (String ^ in args) {}}');
+    assertOpType();
+  }
+
+  test_ForEachStatement_loopVariable_name2() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (String f^ in args) {}}');
+    assertOpType();
+  }
+
+  test_ForEachStatement_loopVariable_type() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ foo in args) {}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_ForEachStatement_loopVariable_type2() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (S^ foo in args) {}}');
+    assertOpType(typeNames: true);
   }
 
   test_FormalParameterList() {

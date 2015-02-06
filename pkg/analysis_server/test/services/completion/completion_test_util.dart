@@ -1853,6 +1853,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
+      assertSuggestParameter('args', null);
       assertSuggestLocalVariable('foo', 'int');
       assertSuggestImportedClass('Object');
     });
@@ -1865,8 +1866,59 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
+      assertSuggestParameter('args', null);
       assertSuggestLocalVariable('foo', null);
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_ForEachStatement_iterable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (int foo in ^) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestParameter('args', null);
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_ForEachStatement_loopVariable() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ in args) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertNotSuggested('args');
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_ForEachStatement_loopVariable_type() {
+    // SimpleIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (^ foo in args) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertNotSuggested('args');
+      assertNotSuggested('foo');
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_ForEachStatement_loopVariable_type2() {
+    // DeclaredIdentifier  ForEachStatement  Block
+    addTestSource('main(args) {for (S^ foo in args) {}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      assertNotSuggested('args');
+      assertNotSuggested('foo');
+      assertSuggestImportedClass('String');
     });
   }
 

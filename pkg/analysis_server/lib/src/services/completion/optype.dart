@@ -224,7 +224,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (entity == node.defaultValue) {
+    if (identical(entity, node.defaultValue)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -282,6 +282,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitForEachStatement(ForEachStatement node) {
+    if (identical(entity, node.identifier)) {
+      optype.includeTypeNameSuggestions = true;
+    }
+    if (identical(entity, node.loopVariable)) {
+      optype.includeTypeNameSuggestions = true;
+    }
+    if (identical(entity, node.inKeyword) && offset <= node.inKeyword.offset) {
+      if (node.identifier == null && node.loopVariable == null) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
     if (identical(entity, node.iterable)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
