@@ -24,6 +24,7 @@ class RawStacktrace;
 class RawString;
 class Script;
 class StackFrame;
+class Stacktrace;
 class String;
 
 class Exceptions : AllStatic {
@@ -33,7 +34,7 @@ class Exceptions : AllStatic {
   static void Throw(Isolate* isolate, const Instance& exception);
   static void ReThrow(Isolate* isolate,
                       const Instance& exception,
-                      const Instance& stacktrace);
+                      const Stacktrace& stacktrace);
   static void PropagateError(const Error& error);
 
   // Helpers to create and throw errors.

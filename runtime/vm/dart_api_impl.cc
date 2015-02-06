@@ -761,7 +761,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   if (obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, exception, Instance);
   }
-  const Instance& stacktrace = Instance::Handle(isolate);
+  const Stacktrace& stacktrace = Stacktrace::Handle(isolate);
   return Api::NewHandle(isolate, UnhandledException::New(obj, stacktrace));
 }
 
@@ -4373,16 +4373,16 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   const Instance* saved_exception;
-  const Instance* saved_stacktrace;
+  const Stacktrace* saved_stacktrace;
   {
     NoGCScope no_gc;
     RawInstance* raw_exception =
         Api::UnwrapInstanceHandle(isolate, exception).raw();
-    RawInstance* raw_stacktrace =
-        Api::UnwrapInstanceHandle(isolate, stacktrace).raw();
+    RawStacktrace* raw_stacktrace =
+        Api::UnwrapStacktraceHandle(isolate, stacktrace).raw();
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
-    saved_stacktrace = &Instance::Handle(raw_stacktrace);
+    saved_stacktrace = &Stacktrace::Handle(raw_stacktrace);
   }
   Exceptions::ReThrow(isolate, *saved_exception, *saved_stacktrace);
   return Api::NewError("Exception was not re thrown, internal error");

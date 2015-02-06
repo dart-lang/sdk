@@ -639,8 +639,8 @@ DEFINE_RUNTIME_ENTRY(Throw, 1) {
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
   const Instance& exception =
       Instance::CheckedHandle(isolate, arguments.ArgAt(0));
-  const Instance& stacktrace =
-      Instance::CheckedHandle(isolate, arguments.ArgAt(1));
+  const Stacktrace& stacktrace =
+      Stacktrace::CheckedHandle(isolate, arguments.ArgAt(1));
   Exceptions::ReThrow(isolate, exception, stacktrace);
 }
 

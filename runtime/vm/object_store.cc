@@ -150,7 +150,8 @@ bool ObjectStore::PreallocateObjects() {
   // Allocate pre-allocated unhandled exception object initialized with the
   // pre-allocated OutOfMemoryError.
   const UnhandledException& unhandled_exception = UnhandledException::Handle(
-      UnhandledException::New(Instance::Cast(result), Object::null_instance()));
+      UnhandledException::New(Instance::Cast(result),
+                              Stacktrace::Handle(isolate)));
   set_preallocated_unhandled_exception(unhandled_exception);
 
   const Array& code_array = Array::Handle(

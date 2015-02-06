@@ -361,7 +361,7 @@ RawStacktrace* Exceptions::CurrentStacktrace() {
 
 static void ThrowExceptionHelper(Isolate* isolate,
                                  const Instance& incoming_exception,
-                                 const Instance& existing_stacktrace,
+                                 const Stacktrace& existing_stacktrace,
                                  const bool is_rethrow) {
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(isolate, incoming_exception.raw());
@@ -426,7 +426,7 @@ static void ThrowExceptionHelper(Isolate* isolate,
         stacktrace = Stacktrace::New(code_array, pc_offset_array);
       } else {
         ASSERT(is_rethrow);
-        stacktrace ^= existing_stacktrace.raw();
+        stacktrace = existing_stacktrace.raw();
         if (pc_offset_array.Length() != 0) {
           // Skip the first frame during a rethrow. This is the catch clause
           // with the rethrow statement, which is not part of the original
@@ -573,13 +573,13 @@ void Exceptions::Throw(Isolate* isolate, const Instance& exception) {
     isolate->debugger()->SignalExceptionThrown(exception);
   }
   // Null object is a valid exception object.
-  ThrowExceptionHelper(isolate, exception, Instance::Handle(isolate), false);
+  ThrowExceptionHelper(isolate, exception, Stacktrace::Handle(isolate), false);
 }
 
 
 void Exceptions::ReThrow(Isolate* isolate,
                          const Instance& exception,
-                         const Instance& stacktrace) {
+                         const Stacktrace& stacktrace) {
   // Null object is a valid exception object.
   ThrowExceptionHelper(isolate, exception, stacktrace, true);
 }
@@ -593,7 +593,7 @@ void Exceptions::PropagateError(const Error& error) {
     // rethrow the exception in the normal fashion.
     const UnhandledException& uhe = UnhandledException::Cast(error);
     const Instance& exc = Instance::Handle(isolate, uhe.exception());
-    const Instance& stk = Instance::Handle(isolate, uhe.stacktrace());
+    const Stacktrace& stk = Stacktrace::Handle(isolate, uhe.stacktrace());
     Exceptions::ReThrow(isolate, exc, stk);
   } else {
     // Return to the invocation stub and return this error object.  The

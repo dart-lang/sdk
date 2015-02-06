@@ -1386,7 +1386,7 @@ class RawUnhandledException : public RawError {
     return reinterpret_cast<RawObject**>(&ptr()->exception_);
   }
   RawInstance* exception_;
-  RawInstance* stacktrace_;
+  RawStacktrace* stacktrace_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->stacktrace_);
   }
