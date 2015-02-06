@@ -4,7 +4,6 @@
 
 library analysis;
 
-import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
@@ -104,13 +103,6 @@ class AnalysisDriver {
     }
   }
 
-  /// Treats the [sourcePath] as the top level library and analyzes it using an
-  /// asynchronous algorithm over the analysis engine.
-  void analyzeAsync() {
-    _setupForAnalysis();
-    _analyzeAsync();
-  }
-
   /// Treats the [sourcePath] as the top level library and analyzes it using a
   /// synchronous algorithm over the analysis engine. If [printMode] is `0`,
 
@@ -171,42 +163,6 @@ class AnalysisDriver {
     for (LibraryElement child in library.exportedLibraries) {
       _addLibrarySources(child, libraries, units);
     }
-  }
-
-  /// The async version of the analysis
-  void _analyzeAsync() {
-    new Future(_context.performAnalysisTask).then((AnalysisResult result) {
-      List<ChangeNotice> notices = result.changeNotices;
-      if (result.hasMoreWork) {
-        // There is more work, record the set of sources, and then call self
-        // again to perform next task
-        for (ChangeNotice notice in notices) {
-          _sources.add(notice.source);
-          sourceErrorsMap[notice.source] = notice;
-        }
-        return _analyzeAsync();
-      }
-
-      // There are not any more tasks, set error code and print performance
-      // numbers.
-      //
-      // prepare errors
-      sourceErrorsMap.forEach((k, v) {
-        errorInfos.add(sourceErrorsMap[k]);
-      });
-
-      // print errors and performance numbers
-      _printErrorsAndPerf();
-
-      // compute max severity and set exitCode
-      ErrorSeverity status = maxErrorSeverity;
-      if (status == ErrorSeverity.WARNING && _options.warningsAreFatal) {
-        status = ErrorSeverity.ERROR;
-      }
-      exitCode = status.ordinal;
-    }).catchError((ex, st) {
-      AnalysisEngine.instance.logger.logError("$ex\n$st");
-    });
   }
 
   /// The sync version of analysis.
