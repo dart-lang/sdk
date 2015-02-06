@@ -49,16 +49,13 @@ class PackageMapUriResolver extends UriResolver {
     // Prepare path.
     String path = uri.path;
     // Prepare path components.
-    String pkgName;
-    String relPath;
     int index = path.indexOf('/');
     if (index == -1 || index == 0) {
       return null;
-    } else {
-      // <pkgName>/<relPath>
-      pkgName = path.substring(0, index);
-      relPath = path.substring(index + 1);
     }
+    // <pkgName>/<relPath>
+    String pkgName = path.substring(0, index);
+    String relPath = path.substring(index + 1);
     // Try to find an existing file.
     List<Folder> packageDirs = packageMap[pkgName];
     if (packageDirs != null) {

@@ -1977,7 +1977,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (AnalysisEngine.isHtmlFileName(sourceName)) {
         return computeHtmlElement(source);
       }
-    } on AnalysisException catch (exception) {
+    } catch (exception) {
+      // If the location cannot be decoded for some reason then the underlying
+      // cause should have been logged already and we can fall though to return
+      // null.
     }
     return null;
   }
