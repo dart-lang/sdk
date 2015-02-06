@@ -393,6 +393,7 @@ events_test: StaticWarning
 htmlelement_test: StaticWarning
 localstorage_test: StaticWarning
 mutationobserver_test: StaticWarning
+queryall_test: fail
 track_element_constructor_test: StaticWarning
 transferables_test: StaticWarning
 typed_arrays_range_checks_test: StaticWarning

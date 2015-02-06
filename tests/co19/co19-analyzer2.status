@@ -4,6 +4,9 @@
 
 [ $compiler == dart2analyzer ]
 
+WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
+LayoutTests/fast/forms/checkValidity-001_t01: fail
+
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
