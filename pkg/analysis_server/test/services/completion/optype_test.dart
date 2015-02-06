@@ -303,16 +303,35 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_ConditionalExpression_empty() {
-    // SimpleIdentifier  PrefixIdentifier  IfStatement
-    addTestSource('class A {foo() {A a; if (^) something}}');
+
+  test_ConditionalExpression_partial_thenExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T^}}');
     assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ConditionalExpression_invocation() {
-    // SimpleIdentifier  PrefixIdentifier  IfStatement
-    addTestSource('main() {var a; if (a.^) something}');
-    assertOpType(invocation: true);
+  test_ConditionalExpression_partial_thenExpression_empty() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? ^}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ConditionalExpression_elseExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T1 : T^}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ConditionalExpression_elseExpression_empty() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T1 : ^}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ConditionalExpression_thenExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addTestSource('class C {foo(){var f; {var x;} return a ? T^ : c}}');
+    assertOpType(returnValue: true, typeNames: true);
   }
 
   test_ConstructorName() {
@@ -469,6 +488,18 @@ class OpTypeTest {
     // SimpleIdentifier  IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (^)}');
     assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_IfStatement_empty() {
+    // SimpleIdentifier  PrefixIdentifier  IfStatement
+    addTestSource('class A {foo() {A a; if (^) something}}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_IfStatement_invocation() {
+    // SimpleIdentifier  PrefixIdentifier  IfStatement
+    addTestSource('main() {var a; if (a.^) something}');
+    assertOpType(invocation: true);
   }
 
   test_ImplementsClause() {
