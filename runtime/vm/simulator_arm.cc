@@ -811,9 +811,18 @@ class Redirection {
       : external_function_(external_function),
         call_kind_(call_kind),
         argument_count_(argument_count),
-        svc_instruction_(Instr::kSimulatorRedirectInstruction),
-        next_(list_) {
-    list_ = this;
+        svc_instruction_(Instr::kSimulatorRedirectInstruction) {
+    // Atomically prepend this element to the front of the global list.
+    // Note: Since elements are never removed, there is no ABA issue.
+    Redirection* list_head = list_;
+    do {
+      next_ = list_head;
+      list_head = reinterpret_cast<Redirection*>(
+          AtomicOperations::CompareAndSwapWord(
+              reinterpret_cast<uword*>(&list_),
+              reinterpret_cast<uword>(next_),
+              reinterpret_cast<uword>(this)));
+    } while (list_head != next_);
   }
 
   uword external_function_;

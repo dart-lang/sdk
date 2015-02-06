@@ -850,7 +850,17 @@ class Redirection {
         argument_count_(argument_count),
         hlt_instruction_(kRedirectInstruction),
         next_(list_) {
-    list_ = this;
+    // Atomically prepend this element to the front of the global list.
+    // Note: Since elements are never removed, there is no ABA issue.
+    Redirection* list_head = list_;
+    do {
+      next_ = list_head;
+      list_head = reinterpret_cast<Redirection*>(
+          AtomicOperations::CompareAndSwapWord(
+              reinterpret_cast<uword*>(&list_),
+              reinterpret_cast<uword>(next_),
+              reinterpret_cast<uword>(this)));
+    } while (list_head != next_);
   }
 
   uword external_function_;
