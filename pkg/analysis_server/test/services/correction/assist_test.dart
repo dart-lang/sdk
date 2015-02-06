@@ -531,6 +531,41 @@ main() {
     assertNoAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION);
   }
 
+  void test_addTypeAnnotation_parameter_BAD_hasExplicitType() {
+    _indexTestUnit('''
+foo(f(int p)) {}
+main() {
+  foo((num test) {});
+}
+''');
+    assertNoAssistAt('test', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_parameter_BAD_noPropagatedType() {
+    _indexTestUnit('''
+foo(f(p)) {}
+main() {
+  foo((test) {});
+}
+''');
+    assertNoAssistAt('test', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_parameter_OK() {
+    _indexTestUnit('''
+foo(f(int p)) {}
+main() {
+  foo((test) {});
+}
+''');
+    assertHasAssistAt('test', AssistKind.ADD_TYPE_ANNOTATION, '''
+foo(f(int p)) {}
+main() {
+  foo((int test) {});
+}
+''');
+  }
+
   void test_addTypeAnnotation_topLevelField_OK_int() {
     _indexTestUnit('''
 var V = 0;
