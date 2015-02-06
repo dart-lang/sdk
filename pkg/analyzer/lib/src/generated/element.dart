@@ -87,6 +87,9 @@ class BottomTypeImpl extends TypeImpl {
       identical(object, this);
 
   @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
+
+  @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
       Set<TypeImpl_TypePair> visitedTypePairs) =>
       true;
@@ -2177,6 +2180,9 @@ class DynamicTypeImpl extends TypeImpl {
   @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
       identical(object, this);
+
+  @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
@@ -4791,26 +4797,32 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  int get hashCode {
+  int get hashCode => internalHashCode(<DartType>[]);
+
+  @override
+  int internalHashCode(List<DartType> visitedTypes) {
     if (element == null) {
       return 0;
+    } else if (visitedTypes.contains(this)) {
+      return 3;
     }
+    visitedTypes.add(this);
     // Reference the arrays of parameters
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     Iterable<DartType> namedParameterTypes = this.namedParameterTypes.values;
     // Generate the hashCode
-    int hashCode = returnType.hashCode;
+    int code = (returnType as TypeImpl).internalHashCode(visitedTypes);
     for (int i = 0; i < normalParameterTypes.length; i++) {
-      hashCode = (hashCode << 1) + normalParameterTypes[i].hashCode;
+      code = (code << 1) + (normalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
     }
     for (int i = 0; i < optionalParameterTypes.length; i++) {
-      hashCode = (hashCode << 1) + optionalParameterTypes[i].hashCode;
+      code = (code << 1) + (optionalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
     }
     for (DartType type in namedParameterTypes) {
-      hashCode = (hashCode << 1) + type.hashCode;
+      code = (code << 1) + (type as TypeImpl).internalHashCode(visitedTypes);
     }
-    return hashCode;
+    return code;
   }
 
   @override
@@ -4935,7 +4947,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       internalEquals(object, new HashSet<ElementPair>());
 
   @override
-  void appendTo(StringBuffer buffer) {
+  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
+    if (!visitedTypes.add(this)) {
+      buffer.write(name == null ? '...' : name);
+      return;
+    }
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
@@ -4949,7 +4965,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         } else {
           needsComma = true;
         }
-        (type as TypeImpl).appendTo(buffer);
+        (type as TypeImpl).appendTo(buffer, visitedTypes);
       }
     }
     if (optionalParameterTypes.length > 0) {
@@ -4964,7 +4980,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         } else {
           needsComma = true;
         }
-        (type as TypeImpl).appendTo(buffer);
+        (type as TypeImpl).appendTo(buffer, visitedTypes);
       }
       buffer.write("]");
       needsComma = true;
@@ -4983,7 +4999,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         }
         buffer.write(name);
         buffer.write(": ");
-        (type as TypeImpl).appendTo(buffer);
+        (type as TypeImpl).appendTo(buffer, visitedTypes);
       });
       buffer.write("}");
       needsComma = true;
@@ -4993,7 +5009,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (returnType == null) {
       buffer.write("null");
     } else {
-      (returnType as TypeImpl).appendTo(buffer);
+      (returnType as TypeImpl).appendTo(buffer, visitedTypes);
     }
   }
 
@@ -6256,6 +6272,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
+
+  @override
   List<InterfaceType> get interfaces {
     ClassElement classElement = element;
     List<InterfaceType> interfaces = classElement.interfaces;
@@ -6335,7 +6354,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       internalEquals(object, new HashSet<ElementPair>());
 
   @override
-  void appendTo(StringBuffer buffer) {
+  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
+    if (!visitedTypes.add(this)) {
+      buffer.write(name == null ? '...' : name);
+      return;
+    }
     buffer.write(name);
     int argumentCount = typeArguments.length;
     if (argumentCount > 0) {
@@ -6344,7 +6367,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         if (i > 0) {
           buffer.write(", ");
         }
-        (typeArguments[i] as TypeImpl).appendTo(buffer);
+        (typeArguments[i] as TypeImpl).appendTo(buffer, visitedTypes);
       }
       buffer.write(">");
     }
@@ -9985,9 +10008,14 @@ abstract class TypeImpl implements DartType {
   bool get isVoid => false;
 
   /**
-   * Append a textual representation of this type to the given [buffer].
+   * Append a textual representation of this type to the given [buffer]. The set
+   * of [visitedTypes] is used to prevent infinite recusion.
    */
-  void appendTo(StringBuffer buffer) {
+  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
+    if (!visitedTypes.add(this)) {
+      buffer.write(name == null ? '...' : name);
+      return;
+    }
     if (name == null) {
       buffer.write("<unnamed type>");
     } else {
@@ -9999,6 +10027,8 @@ abstract class TypeImpl implements DartType {
   DartType getLeastUpperBound(DartType type) => null;
 
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs);
+
+  int internalHashCode(List<DartType> visitedTypes);
 
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
       Set<TypeImpl_TypePair> visitedTypePairs);
@@ -10127,7 +10157,7 @@ abstract class TypeImpl implements DartType {
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    appendTo(buffer);
+    appendTo(buffer, new HashSet<DartType>());
     return buffer.toString();
   }
 
@@ -10346,6 +10376,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       this == object;
 
   @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
+
+  @override
   bool internalIsMoreSpecificThan(DartType s, bool withDynamic,
       Set<TypeImpl_TypePair> visitedTypePairs) {
     //
@@ -10503,6 +10536,9 @@ class UndefinedTypeImpl extends TypeImpl {
       identical(object, this);
 
   @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
+
+  @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
       Set<TypeImpl_TypePair> visitedTypePairs) {
     // T is S
@@ -10583,6 +10619,9 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
   int get hashCode => _types.hashCode;
 
   @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
+
+  @override
   bool operator ==(Object other) {
     if (other == null || other is! UnionType) {
       return false;
@@ -10594,11 +10633,15 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
   }
 
   @override
-  void appendTo(StringBuffer buffer) {
+  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
+    if (!visitedTypes.add(this)) {
+      buffer.write(name == null ? '...' : name);
+      return;
+    }
     String prefix = "{";
     for (DartType type in _types) {
       buffer.write(prefix);
-      (type as TypeImpl).appendTo(buffer);
+      (type as TypeImpl).appendTo(buffer, visitedTypes);
       prefix = ",";
     }
     buffer.write("}");
@@ -11085,6 +11128,9 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   int get hashCode => 2;
+
+  @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
   bool get isVoid => true;

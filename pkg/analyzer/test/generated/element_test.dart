@@ -1709,6 +1709,14 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(namedParameters, hasLength(1));
     expect(namedParameters[namedParameterName], namedParameterType);
   }
+
+  void test_toString_recursive() {
+    FunctionElementImpl t = ElementFactory.functionElement("t");
+    FunctionElementImpl s = ElementFactory.functionElement("s");
+    t.returnType = s.type;
+    s.returnType = t.type;
+    expect(t.type.toString(), '() \u2192 () \u2192 ...');
+  }
 }
 
 @reflectiveTest
