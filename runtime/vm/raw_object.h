@@ -521,6 +521,8 @@ class RawObject {
   void InitializeSmi(RawSmi* const* addr, RawSmi* value) {
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
+    // This is an initializing store, so any previous content is OK.
+    VerifiedMemory::Accept(reinterpret_cast<uword>(addr), kWordSize);
     VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
   }
 
