@@ -161,7 +161,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable()
   factory AnchorElement({String href}) {
-    var e = document.createElement("a");
+    var e = JS('AnchorElement', '#', document.createElement("a"));
     if (href != null) e.href = href;
     return e;
   }
@@ -732,7 +732,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
 
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable()
-  factory AreaElement() => document.createElement("area");
+  factory AreaElement() => JS('AreaElement', '#', document.createElement("area"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -947,7 +947,7 @@ class BRElement extends HtmlElement {
 
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable()
-  factory BRElement() => document.createElement("br");
+  factory BRElement() => JS('BRElement', '#', document.createElement("br"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -987,7 +987,7 @@ class BaseElement extends HtmlElement {
 
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable()
-  factory BaseElement() => document.createElement("base");
+  factory BaseElement() => JS('BaseElement', '#', document.createElement("base"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1238,7 +1238,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
 
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable()
-  factory BodyElement() => document.createElement("body");
+  factory BodyElement() => JS('BodyElement', '#', document.createElement("body"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1325,7 +1325,7 @@ class ButtonElement extends HtmlElement {
 
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable()
-  factory ButtonElement() => document.createElement("button");
+  factory ButtonElement() => JS('ButtonElement', '#', document.createElement("button"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1513,7 +1513,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable()
   factory CanvasElement({int width, int height}) {
-    var e = document.createElement("canvas");
+    var e = JS('CanvasElement', '#', document.createElement("canvas"));
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -2742,7 +2742,7 @@ class ContentElement extends HtmlElement {
 
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable()
-  factory ContentElement() => document.createElement("content");
+  factory ContentElement() => JS('ContentElement', '#', document.createElement("content"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6693,7 +6693,7 @@ class DListElement extends HtmlElement {
 
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable()
-  factory DListElement() => document.createElement("dl");
+  factory DListElement() => JS('DListElement', '#', document.createElement("dl"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6719,7 +6719,7 @@ class DataListElement extends HtmlElement {
 
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable()
-  factory DataListElement() => document.createElement("datalist");
+  factory DataListElement() => JS('DataListElement', '#', document.createElement("datalist"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -7016,7 +7016,7 @@ class DetailsElement extends HtmlElement {
 
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable()
-  factory DetailsElement() => document.createElement("details");
+  factory DetailsElement() => JS('DetailsElement', '#', document.createElement("details"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -7455,7 +7455,7 @@ class DivElement extends HtmlElement {
 
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable()
-  factory DivElement() => document.createElement("div");
+  factory DivElement() => JS('DivElement', '#', document.createElement("div"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -13273,7 +13273,7 @@ class EmbedElement extends HtmlElement {
 
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable()
-  factory EmbedElement() => document.createElement("embed");
+  factory EmbedElement() => JS('EmbedElement', '#', document.createElement("embed"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -14047,7 +14047,7 @@ class FieldSetElement extends HtmlElement {
 
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable()
-  factory FieldSetElement() => document.createElement("fieldset");
+  factory FieldSetElement() => JS('FieldSetElement', '#', document.createElement("fieldset"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -14943,7 +14943,7 @@ class FormElement extends HtmlElement {
 
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable()
-  factory FormElement() => document.createElement("form");
+  factory FormElement() => JS('FormElement', '#', document.createElement("form"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -15883,7 +15883,7 @@ class HRElement extends HtmlElement {
 
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable()
-  factory HRElement() => document.createElement("hr");
+  factory HRElement() => JS('HRElement', '#', document.createElement("hr"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -15952,7 +15952,7 @@ class HeadElement extends HtmlElement {
 
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable()
-  factory HeadElement() => document.createElement("head");
+  factory HeadElement() => JS('HeadElement', '#', document.createElement("head"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -16025,27 +16025,27 @@ class HeadingElement extends HtmlElement {
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h1() => document.createElement("h1");
+  factory HeadingElement.h1() => JS('HeadingElement', '#', document.createElement("h1"));
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h2() => document.createElement("h2");
+  factory HeadingElement.h2() => JS('HeadingElement', '#', document.createElement("h2"));
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h3() => document.createElement("h3");
+  factory HeadingElement.h3() => JS('HeadingElement', '#', document.createElement("h3"));
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h4() => document.createElement("h4");
+  factory HeadingElement.h4() => JS('HeadingElement', '#', document.createElement("h4"));
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h5() => document.createElement("h5");
+  factory HeadingElement.h5() => JS('HeadingElement', '#', document.createElement("h5"));
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h6() => document.createElement("h6");
+  factory HeadingElement.h6() => JS('HeadingElement', '#', document.createElement("h6"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -16494,7 +16494,7 @@ class HtmlHtmlElement extends HtmlElement {
 
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable()
-  factory HtmlHtmlElement() => document.createElement("html");
+  factory HtmlHtmlElement() => JS('HtmlHtmlElement', '#', document.createElement("html"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17381,7 +17381,7 @@ class IFrameElement extends HtmlElement {
 
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable()
-  factory IFrameElement() => document.createElement("iframe");
+  factory IFrameElement() => JS('IFrameElement', '#', document.createElement("iframe"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17514,7 +17514,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable()
   factory ImageElement({String src, int width, int height}) {
-    var e = document.createElement("img");
+    var e = JS('ImageElement', '#', document.createElement("img"));
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -18692,7 +18692,7 @@ class KeygenElement extends HtmlElement {
 
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable()
-  factory KeygenElement() => document.createElement("keygen");
+  factory KeygenElement() => JS('KeygenElement', '#', document.createElement("keygen"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18772,7 +18772,7 @@ class LIElement extends HtmlElement {
 
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable()
-  factory LIElement() => document.createElement("li");
+  factory LIElement() => JS('LIElement', '#', document.createElement("li"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18798,7 +18798,7 @@ class LabelElement extends HtmlElement {
 
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable()
-  factory LabelElement() => document.createElement("label");
+  factory LabelElement() => JS('LabelElement', '#', document.createElement("label"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18832,7 +18832,7 @@ class LegendElement extends HtmlElement {
 
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable()
-  factory LegendElement() => document.createElement("legend");
+  factory LegendElement() => JS('LegendElement', '#', document.createElement("legend"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18858,7 +18858,7 @@ class LinkElement extends HtmlElement {
 
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable()
-  factory LinkElement() => document.createElement("link");
+  factory LinkElement() => JS('LinkElement', '#', document.createElement("link"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19056,7 +19056,7 @@ class MapElement extends HtmlElement {
 
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable()
-  factory MapElement() => document.createElement("map");
+  factory MapElement() => JS('MapElement', '#', document.createElement("map"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20249,7 +20249,7 @@ class MenuElement extends HtmlElement {
 
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable()
-  factory MenuElement() => document.createElement("menu");
+  factory MenuElement() => JS('MenuElement', '#', document.createElement("menu"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20470,7 +20470,7 @@ class MetaElement extends HtmlElement {
 
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable()
-  factory MetaElement() => document.createElement("meta");
+  factory MetaElement() => JS('MetaElement', '#', document.createElement("meta"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20546,7 +20546,7 @@ class MeterElement extends HtmlElement {
 
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable()
-  factory MeterElement() => document.createElement("meter");
+  factory MeterElement() => JS('MeterElement', '#', document.createElement("meter"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22607,7 +22607,7 @@ class OListElement extends HtmlElement {
 
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable()
-  factory OListElement() => document.createElement("ol");
+  factory OListElement() => JS('OListElement', '#', document.createElement("ol"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22645,7 +22645,7 @@ class ObjectElement extends HtmlElement {
 
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable()
-  factory ObjectElement() => document.createElement("object");
+  factory ObjectElement() => JS('ObjectElement', '#', document.createElement("object"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22731,7 +22731,7 @@ class OptGroupElement extends HtmlElement {
 
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable()
-  factory OptGroupElement() => document.createElement("optgroup");
+  factory OptGroupElement() => JS('OptGroupElement', '#', document.createElement("optgroup"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22834,7 +22834,7 @@ class OutputElement extends HtmlElement {
 
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable()
-  factory OutputElement() => document.createElement("output");
+  factory OutputElement() => JS('OutputElement', '#', document.createElement("output"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22965,7 +22965,7 @@ class ParagraphElement extends HtmlElement {
 
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable()
-  factory ParagraphElement() => document.createElement("p");
+  factory ParagraphElement() => JS('ParagraphElement', '#', document.createElement("p"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22988,7 +22988,7 @@ class ParamElement extends HtmlElement {
 
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable()
-  factory ParamElement() => document.createElement("param");
+  factory ParamElement() => JS('ParamElement', '#', document.createElement("param"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23714,7 +23714,7 @@ class PreElement extends HtmlElement {
 
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable()
-  factory PreElement() => document.createElement("pre");
+  factory PreElement() => JS('PreElement', '#', document.createElement("pre"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23762,7 +23762,7 @@ class ProgressElement extends HtmlElement {
 
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable()
-  factory ProgressElement() => document.createElement("progress");
+  factory ProgressElement() => JS('ProgressElement', '#', document.createElement("progress"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23889,7 +23889,7 @@ class QuoteElement extends HtmlElement {
 
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable()
-  factory QuoteElement() => document.createElement("q");
+  factory QuoteElement() => JS('QuoteElement', '#', document.createElement("q"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25066,7 +25066,7 @@ class ScriptElement extends HtmlElement {
 
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable()
-  factory ScriptElement() => document.createElement("script");
+  factory ScriptElement() => JS('ScriptElement', '#', document.createElement("script"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25181,7 +25181,7 @@ class SelectElement extends HtmlElement {
 
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable()
-  factory SelectElement() => document.createElement("select");
+  factory SelectElement() => JS('SelectElement', '#', document.createElement("select"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25657,7 +25657,7 @@ class ShadowElement extends HtmlElement {
 
   @DomName('HTMLShadowElement.HTMLShadowElement')
   @DocsEditable()
-  factory ShadowElement() => document.createElement("shadow");
+  factory ShadowElement() => JS('ShadowElement', '#', document.createElement("shadow"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26007,7 +26007,7 @@ class SourceElement extends HtmlElement {
 
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable()
-  factory SourceElement() => document.createElement("source");
+  factory SourceElement() => JS('SourceElement', '#', document.createElement("source"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26089,7 +26089,7 @@ class SpanElement extends HtmlElement {
 
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable()
-  factory SpanElement() => document.createElement("span");
+  factory SpanElement() => JS('SpanElement', '#', document.createElement("span"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27088,7 +27088,7 @@ class StyleElement extends HtmlElement {
 
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable()
-  factory StyleElement() => document.createElement("style");
+  factory StyleElement() => JS('StyleElement', '#', document.createElement("style"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27188,7 +27188,7 @@ class TableCaptionElement extends HtmlElement {
 
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable()
-  factory TableCaptionElement() => document.createElement("caption");
+  factory TableCaptionElement() => JS('TableCaptionElement', '#', document.createElement("caption"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27210,7 +27210,7 @@ class TableCellElement extends HtmlElement {
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable()
-  factory TableCellElement() => document.createElement("td");
+  factory TableCellElement() => JS('TableCellElement', '#', document.createElement("td"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27248,7 +27248,7 @@ class TableColElement extends HtmlElement {
 
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable()
-  factory TableColElement() => document.createElement("col");
+  factory TableColElement() => JS('TableColElement', '#', document.createElement("col"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27321,7 +27321,7 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable()
-  factory TableElement() => document.createElement("table");
+  factory TableElement() => JS('TableElement', '#', document.createElement("table"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27431,7 +27431,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable()
-  factory TableRowElement() => document.createElement("tr");
+  factory TableRowElement() => JS('TableRowElement', '#', document.createElement("tr"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27541,7 +27541,7 @@ class TemplateElement extends HtmlElement {
 
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
   @DocsEditable()
-  factory TemplateElement() => document.createElement("template");
+  factory TemplateElement() => JS('TemplateElement', '#', document.createElement("template"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27617,7 +27617,7 @@ class TextAreaElement extends HtmlElement {
 
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable()
-  factory TextAreaElement() => document.createElement("textarea");
+  factory TextAreaElement() => JS('TextAreaElement', '#', document.createElement("textarea"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28275,7 +28275,7 @@ class TitleElement extends HtmlElement {
 
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable()
-  factory TitleElement() => document.createElement("title");
+  factory TitleElement() => JS('TitleElement', '#', document.createElement("title"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28570,7 +28570,7 @@ class TrackElement extends HtmlElement {
 
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable()
-  factory TrackElement() => document.createElement("track");
+  factory TrackElement() => JS('TrackElement', '#', document.createElement("track"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28849,7 +28849,7 @@ class UListElement extends HtmlElement {
 
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable()
-  factory UListElement() => document.createElement("ul");
+  factory UListElement() => JS('UListElement', '#', document.createElement("ul"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29100,7 +29100,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable()
-  factory VideoElement() => document.createElement("video");
+  factory VideoElement() => JS('VideoElement', '#', document.createElement("video"));
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *

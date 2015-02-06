@@ -82,17 +82,17 @@ main() {
     });
   });
 
-  check(String name, bool fn(), [bool supported = true]) {
-    test(name, () {
-      var expectation = supported ? returnsNormally : throws;
-      expect(() {
-        expect(fn(), isTrue);
-      }, expectation);
-    });
-
-  }
 
   group('constructors', () {
+    check(String name, bool fn(), [bool supported = true]) {
+      test(name, () {
+        var expectation = supported ? returnsNormally : throws;
+        expect(() {
+          expect(fn(), isTrue);
+        }, expectation);
+      });
+    }
+
     check('a', () => new AnchorElement() is AnchorElement);
     check('area', () => new AreaElement() is AreaElement);
     check('audio', () => new AudioElement() is AudioElement);
@@ -184,5 +184,114 @@ main() {
     });
     check('video', () => new VideoElement() is VideoElement);
     check('unknown', () => new Element.tag('someunknown') is UnknownElement);
+  });
+
+  group('constructors_dynamic', () {
+    check(String name, create(), bool typeTest(e), [bool supported = true]) {
+      test(name, () {
+        var expectation = supported ? returnsNormally : throws;
+        expect(() {
+          expect(typeTest(create()), isTrue);
+        }, expectation);
+      });
+    }
+
+    check('a', () => new AnchorElement(), (e) => e is AnchorElement);
+    check('area', () => new AreaElement(), (e) => e is AreaElement);
+    check('audio', () => new AudioElement(), (e) => e is AudioElement);
+    check('body', () => new BodyElement(), (e) => e is BodyElement);
+    check('br', () => new BRElement(), (e) => e is BRElement);
+    check('base', () => new BaseElement(), (e) => e is BaseElement);
+    check('button', () => new ButtonElement(), (e) => e is ButtonElement);
+    check('canvas', () => new CanvasElement(), (e) => e is CanvasElement);
+    check('caption', () => new TableCaptionElement(),
+        (e) => e is TableCaptionElement);
+    check('content', () => new ContentElement(), (e) => e is ContentElement,
+        ContentElement.supported);
+    check('details', () => new DetailsElement(), (e) => e is DetailsElement,
+        DetailsElement.supported);
+    check('datalist', () => new DataListElement(), (e) => e is DataListElement,
+        DataListElement.supported);
+    check('dl', () => new DListElement(), (e) => e is DListElement);
+    check('div', () => new DivElement(), (e) => e is DivElement);
+    check('embed', () => new EmbedElement(), (e) => e is EmbedElement,
+        EmbedElement.supported);
+    check('fieldset', () => new FieldSetElement(), (e) => e is FieldSetElement);
+    check('form', () => new FormElement(), (e) => e is FormElement);
+    check('head', () => new HeadElement(), (e) => e is HeadElement);
+    check('hr', () => new HRElement(), (e) => e is HRElement);
+    check('html', () => new HtmlHtmlElement(), (e) => e is HtmlHtmlElement);
+    check('h1', () => new HeadingElement.h1(), (e) => e is HeadingElement);
+    check('h2', () => new HeadingElement.h2(), (e) => e is HeadingElement);
+    check('h3', () => new HeadingElement.h3(), (e) => e is HeadingElement);
+    check('h4', () => new HeadingElement.h4(), (e) => e is HeadingElement);
+    check('h5', () => new HeadingElement.h5(), (e) => e is HeadingElement);
+    check('h6', () => new HeadingElement.h6(), (e) => e is HeadingElement);
+    check('iframe', () => new IFrameElement(), (e) => e is IFrameElement);
+    check('img', () => new ImageElement(), (e) => e is ImageElement);
+    check('input', () => new InputElement(), (e) => e is InputElement);
+    check('keygen', () => new KeygenElement(), (e) => e is KeygenElement,
+        KeygenElement.supported);
+    check('li', () => new LIElement(), (e) => e is LIElement);
+    check('label', () => new LabelElement(), (e) => e is LabelElement);
+    check('legen', () => new LegendElement(), (e) => e is LegendElement);
+    check('link', () => new LinkElement(), (e) => e is LinkElement);
+    check('map', () => new MapElement(), (e) => e is MapElement);
+    check('menu', () => new MenuElement(), (e) => e is MenuElement);
+    check('meta', () => new MetaElement(), (e) => e is MetaElement);
+    check('meter', () => new MeterElement(), (e) => e is MeterElement,
+        MeterElement.supported);
+    check('del', () => new Element.tag('del'), (e) => e is ModElement);
+    check('ins', () => new Element.tag('ins'), (e) => e is ModElement);
+    check('object', () => new ObjectElement(), (e) => e is ObjectElement,
+        ObjectElement.supported);
+    check('ol', () => new OListElement(), (e) => e is OListElement);
+    check('optgroup', () => new OptGroupElement(), (e) => e is OptGroupElement);
+    check('option', () => new OptionElement(), (e) => e is OptionElement);
+    check('output', () => new OutputElement(), (e) => e is OutputElement,
+        OutputElement.supported);
+    check('p', () => new ParagraphElement(), (e) => e is ParagraphElement);
+    check('param', () => new ParamElement(), (e) => e is ParamElement);
+    check('pre', () => new PreElement(), (e) => e is PreElement);
+    check('progress', () => new ProgressElement(), (e) => e is ProgressElement,
+        ProgressElement.supported);
+    check('q', () => new QuoteElement(), (e) => e is QuoteElement);
+    check('script', () => new ScriptElement(), (e) => e is ScriptElement);
+    check('select', () => new SelectElement(), (e) => e is SelectElement);
+    check('shadow', () => new ShadowElement(), (e) => e is ShadowElement,
+        ShadowElement.supported);
+    check('source', () => new SourceElement(), (e) => e is SourceElement);
+    check('span', () => new SpanElement(), (e) => e is SpanElement);
+    check('style', () => new StyleElement(), (e) => e is StyleElement);
+    check('table', () => new TableElement(), (e) => e is TableElement);
+    check('template', () => new TemplateElement(), (e) => e is TemplateElement,
+        TemplateElement.supported);
+    check('textarea', () => new TextAreaElement(), (e) => e is TextAreaElement);
+    check('title', () => new TitleElement(), (e) => e is TitleElement);
+    check('td', () => new TableCellElement(), (e) => e is TableCellElement);
+    check('col', () => new TableColElement(), (e) => e is TableColElement);
+    check('colgroup', () => new Element.tag('colgroup'),
+        (e) => e is TableColElement);
+    check('tr', () => new TableRowElement(), (e) => e is TableRowElement);
+    check('tbody', () => new Element.tag('tbody'),
+        (e) => e is TableSectionElement);
+    check('tfoot', () => new Element.tag('tfoot'),
+        (e) => e is TableSectionElement);
+    check('thead', () => new Element.tag('thead'),
+        (e) => e is TableSectionElement);
+    check('track', () => new TrackElement(), (e) => e is TrackElement,
+        TrackElement.supported);
+    group('ul', () {
+      check('ul', () => new UListElement(), (e) => e is UListElement);
+
+      test('accepts li', () {
+        var ul = new UListElement();
+        var li = new LIElement();
+        ul.append(li);
+      });
+    });
+    check('video', () => new VideoElement(), (e) => e is VideoElement);
+    check('unknown', () => new Element.tag('someunknown'),
+        (e) => e is UnknownElement);
   });
 }

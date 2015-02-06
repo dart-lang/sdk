@@ -547,31 +547,29 @@ class HtmlDartGenerator(object):
       has_optional = any(param_info.is_optional
           for param_info in constructor_info.param_infos)
 
+      factory_expression = self.FactoryConstructorExpression(constructor_info,
+          factory_name, factory_constructor_name, factory_parameters)
+
       if not has_optional:
         self._members_emitter.Emit(
             '\n  $(METADATA)'
-            'factory $CTOR($PARAMS) => '
-            '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
+            'factory $CTOR($PARAMS) => $FACTORY_EXPRESSION;\n',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
             PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
-            FACTORY=factory_name,
-            METADATA=metadata,
-            CTOR_FACTORY_NAME=factory_constructor_name,
-            FACTORY_PARAMS=factory_parameters)
+            FACTORY_EXPRESSION=factory_expression,
+            METADATA=metadata)
       else:
         inits = self._members_emitter.Emit(
             '\n  $(METADATA)'
             'factory $CONSTRUCTOR($PARAMS) {\n'
-            '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+            '    var e = $FACTORY_EXPRESSION;\n'
             '$!INITS'
             '    return e;\n'
             '  }\n',
             CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
             METADATA=metadata,
-            FACTORY=factory_name,
-            CTOR_FACTORY_NAME=factory_constructor_name,
-            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
-            FACTORY_PARAMS=factory_parameters)
+            FACTORY_EXPRESSION=factory_expression,
+            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType))
 
         for index, param_info in enumerate(constructor_info.param_infos):
           if param_info.is_optional:
@@ -627,6 +625,14 @@ class HtmlDartGenerator(object):
           GenerateCall,
           IsOptional,
           overload_emitter)
+
+  def FactoryConstructorExpression(self, constructor_info,
+      factory_name, factory_constructor_name, factory_parameters):
+    return emitter.Format(
+        '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS)',
+        FACTORY=factory_name,
+        CTOR_FACTORY_NAME=factory_constructor_name,
+        FACTORY_PARAMS=factory_parameters);
 
   def _AddFutureifiedOperation(self, info, html_name):
     """Given a API function that uses callbacks, convert it to using Futures.
