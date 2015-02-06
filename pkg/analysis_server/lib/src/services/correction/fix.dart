@@ -47,6 +47,8 @@ class Fix {
  * An enumeration of possible quick fix kinds.
  */
 class FixKind {
+  static const ADD_ASYNC =
+      const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
   static const ADD_PACKAGE_DEPENDENCY =
       const FixKind('ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(

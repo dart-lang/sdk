@@ -198,12 +198,15 @@ class FixProcessor {
       _addFix_undefinedClass_useSimilar();
     }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
-      _addFix_createField();
-      _addFix_createGetter();
-      _addFix_createFunction_forFunctionType();
-      _addFix_importLibrary_withType();
-      _addFix_importLibrary_withTopLevelVariable();
-      _addFix_createLocalVariable();
+      bool isAsync = _addFix_addAsync();
+      if (!isAsync) {
+        _addFix_createField();
+        _addFix_createGetter();
+        _addFix_createFunction_forFunctionType();
+        _addFix_importLibrary_withType();
+        _addFix_importLibrary_withTopLevelVariable();
+        _addFix_createLocalVariable();
+      }
     }
     if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
       _addFix_useStaticAccess_method();
@@ -262,6 +265,22 @@ class FixProcessor {
     edits.clear();
     linkedPositionGroups.clear();
     exitPosition = null;
+  }
+
+  /**
+   * Returns `true` if the `async` proposal was added.
+   */
+  bool _addFix_addAsync() {
+    AstNode node = this.node;
+    if (_isAwaitNode()) {
+      FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+      if (body.keyword == null) {
+        _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+        _addFix(FixKind.ADD_ASYNC, []);
+        return true;
+      }
+    }
+    return false;
   }
 
   void _addFix_boolInsteadOfBoolean() {
@@ -1164,6 +1183,9 @@ class FixProcessor {
 
   void _addFix_insertSemicolon() {
     if (error.message.contains("';'")) {
+      if (_isAwaitNode()) {
+        return;
+      }
       int insertOffset = error.offset + error.length;
       _addInsertEdit(insertOffset, ';');
       _addFix(FixKind.INSERT_SEMICOLON, []);
@@ -2063,6 +2085,11 @@ class FixProcessor {
       return node is MethodDeclaration;
     });
     return method != null && method.isStatic;
+  }
+
+  bool _isAwaitNode() {
+    AstNode node = this.node;
+    return node is SimpleIdentifier && node.name == 'await';
   }
 
   _ConstructorLocation
