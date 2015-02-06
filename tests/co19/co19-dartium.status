@@ -12,7 +12,6 @@ LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeEr
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: Skip # Issue 20867
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Issue 20540
