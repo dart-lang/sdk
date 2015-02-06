@@ -6,6 +6,7 @@ library dart2js.new_js_emitter.model_emitter;
 
 import '../../dart2jslib.dart' show Compiler;
 import '../../dart_types.dart' show DartType;
+import '../../elements/elements.dart' show ClassElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
@@ -30,6 +31,7 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
 
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
+
 
 
 class ModelEmitter {
@@ -209,8 +211,7 @@ class ModelEmitter {
                                   program.typeToInterceptorMap));
     }
 
-    globals.add(new js.Property(js.string(MANGLED_GLOBAL_NAMES),
-                                js.js('Object.create(null)', [])));
+    globals.add(emitMangledGlobalNames());
 
     globals.add(emitGetTypeFromName());
 
@@ -232,6 +233,24 @@ class ModelEmitter {
                     new js.VariableDeclaration("init", allowRename: false),
                     globalsObject)]))];
     return new js.Block(statements);
+  }
+
+  js.Property emitMangledGlobalNames() {
+    List<js.Property> names = <js.Property>[];
+
+    // We want to keep the original names for the most common core classes when
+    // calling toString on them.
+    List<ClassElement> nativeClassesNeedingUnmangledName =
+        [compiler.intClass, compiler.doubleClass, compiler.numClass,
+         compiler.stringClass, compiler.boolClass, compiler.nullClass,
+         compiler.listClass];
+    nativeClassesNeedingUnmangledName.forEach((element) {
+        names.add(new js.Property(js.string(namer.getNameOfClass(element)),
+                                  js.string(element.name)));
+    });
+
+    return new js.Property(js.string(MANGLED_GLOBAL_NAMES),
+                           new js.ObjectInitializer(names));
   }
 
   List<js.Property> emitLoadUrisAndHashes(Map<String, List<Fragment>> loadMap) {
