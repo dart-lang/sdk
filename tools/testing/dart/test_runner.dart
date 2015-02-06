@@ -2624,6 +2624,15 @@ class ReplayingCommandExecutor implements CommandExecutor {
 
 bool shouldRetryCommand(CommandOutput output) {
   var command = output.command;
+  // We rerun tests on Safari because 6.2 and 7.1 are flaky. Issue 21434.
+  if (command is BrowserTestCommand &&
+      command.retry &&
+      command.browser == 'safari' &&
+      output is BrowserControllerTestOutcome &&
+      output._rawOutcome != Expectation.PASS) {
+    return true;
+  }
+
   if (!output.successful) {
     List<String> stdout, stderr;
 
