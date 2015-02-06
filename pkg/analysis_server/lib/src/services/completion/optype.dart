@@ -223,6 +223,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (entity == node.defaultValue) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     if (identical(entity, node.condition)) {
       optype.includeReturnValueSuggestions = true;

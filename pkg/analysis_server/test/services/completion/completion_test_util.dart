@@ -1532,54 +1532,6 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_ConditionalExpression_partial_thenExpression() {
-    // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
-      int T1;
-      F1() { }
-      class A {int x;}''');
-    addTestSource('''
-      import "/testA.dart";
-      int T2;
-      F2() { }
-      class B {int x;}
-      class C {foo(){var f; {var x;} return a ? T^}}''');
-    computeFast();
-    return computeFull((bool result) {
-      // top level results are partially filtered based on first char
-      assertSuggestLocalTopLevelVar('T2', 'int');
-      // TODO (danrubel) getter is being suggested instead of top level var
-      //assertSuggestImportedTopLevelVar('T1', 'int');
-    });
-  }
-
-  test_ConditionalExpression_partial_thenExpression_empty() {
-    // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
-      int T1;
-      F1() { }
-      class A {int x;}''');
-    addTestSource('''
-      import "/testA.dart";
-      int T2;
-      F2() { }
-      class B {int x;}
-      class C {foo(){var f; {var x;} return a ? ^}}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNotSuggested('x');
-      assertSuggestLocalVariable('f', null);
-      assertSuggestLocalMethod('foo', 'C', null);
-      assertSuggestLocalClass('C');
-      assertSuggestLocalFunction('F2', null);
-      assertSuggestLocalTopLevelVar('T2', 'int');
-      assertSuggestImportedClass('A');
-      assertSuggestImportedFunction('F1', null);
-      // TODO (danrubel) getter is being suggested instead of top level var
-      //assertSuggestImportedTopLevelVar('T1', 'int');
-    });
-  }
-
   test_ConditionalExpression_elseExpression() {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addSource('/testA.dart', '''
@@ -1613,6 +1565,54 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       F2() { }
       class B {int x;}
       class C {foo(){var f; {var x;} return a ? T1 : ^}}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('x');
+      assertSuggestLocalVariable('f', null);
+      assertSuggestLocalMethod('foo', 'C', null);
+      assertSuggestLocalClass('C');
+      assertSuggestLocalFunction('F2', null);
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestImportedClass('A');
+      assertSuggestImportedFunction('F1', null);
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
+    });
+  }
+
+  test_ConditionalExpression_partial_thenExpression() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} return a ? T^}}''');
+    computeFast();
+    return computeFull((bool result) {
+      // top level results are partially filtered based on first char
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      // TODO (danrubel) getter is being suggested instead of top level var
+      //assertSuggestImportedTopLevelVar('T1', 'int');
+    });
+  }
+
+  test_ConditionalExpression_partial_thenExpression_empty() {
+    // SimpleIdentifier  ConditionalExpression  ReturnStatement
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} return a ? ^}}''');
     computeFast();
     return computeFull((bool result) {
       assertNotSuggested('x');
@@ -1756,6 +1756,25 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('T1');
       assertNotSuggested('z');
       assertNotSuggested('m');
+    });
+  }
+
+  test_DefaultFormalParameter_named_expression() {
+    // DefaultFormalParameter FormalParameterList MethodDeclaration
+    addTestSource('''
+      foo() { }
+      void bar() { }
+      class A {a(blat: ^) { }}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalFunction('foo', null);
+      assertSuggestLocalMethod('a', 'A', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('String');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertNotSuggested('bar');
     });
   }
 
