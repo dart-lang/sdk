@@ -144,7 +144,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
           (input.expression.value.isString ||
            input.expression.value.isInt ||
            input.expression.value.isBool);
-      js.Expression value = visit(input);
+      js.Expression value = visitExpression(input);
       if (useDirectly) {
         return value;
       } else {
