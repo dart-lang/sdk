@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -51,8 +52,8 @@ class ServerOperationQueue {
   }
 
   /**
-   * Return the next operation to perform, or `null` if the queue is empty. This
-   * method does not change the queue.
+   * Return the next operation to perform, or `null` if the queue is empty.
+   * This method does not change the queue.
    */
   ServerOperation peek() {
     for (Queue<ServerOperation> queue in _queues) {
@@ -78,12 +79,41 @@ class ServerOperationQueue {
   }
 
   /**
+   * The given [source] if about to changed.
+   */
+  void sourceAboutToChange(Source source) {
+    for (Queue<ServerOperation> queue in _queues) {
+      queue.removeWhere((operation) {
+        if (operation is SourceSensitiveOperation) {
+          return operation.shouldBeDiscardedOnSourceChange(source);
+        }
+        return false;
+      });
+    }
+  }
+
+  /**
    * Returns the next operation to perform or `null` if empty.
    */
   ServerOperation take() {
     for (Queue<ServerOperation> queue in _queues) {
       if (!queue.isEmpty) {
         return queue.removeFirst();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns an operation that satisfies the given [test] or `null`.
+   */
+  ServerOperation takeIf(bool test(ServerOperation operation)) {
+    for (Queue<ServerOperation> queue in _queues) {
+      for (var operation in queue) {
+        if (test(operation)) {
+          queue.remove(operation);
+          return operation;
+        }
       }
     }
     return null;

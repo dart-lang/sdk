@@ -334,6 +334,21 @@ class AnalysisServer {
   }
 
   /**
+   * Performs all scheduled analysis operations.
+   */
+  void test_performAllAnalysisOperations() {
+    while (true) {
+      ServerOperation operation = operationQueue.takeIf((operation) {
+        return operation is PerformAnalysisOperation;
+      });
+      if (operation == null) {
+        break;
+      }
+      operation.perform(this);
+    }
+  }
+
+  /**
    * If the given notice applies to a file contained within an analysis root,
    * notify interested parties that the file has been (at least partially)
    * analyzed.
@@ -947,6 +962,8 @@ class AnalysisServer {
   void updateContent(String id, Map<String, dynamic> changes) {
     changes.forEach((file, change) {
       Source source = getSource(file);
+      operationQueue.sourceAboutToChange(source);
+      // Prepare the new contents.
       String oldContents = _overlayState.getContents(source);
       String newContents;
       if (change is AddContentOverlay) {

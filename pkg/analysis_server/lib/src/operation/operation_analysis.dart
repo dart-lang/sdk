@@ -264,11 +264,12 @@ class PerformAnalysisOperation extends ServerOperation {
       return;
     }
     for (ChangeNotice notice in notices) {
+      String file = notice.source.fullName;
       // Dart
       try {
         CompilationUnit dartUnit = notice.resolvedDartUnit;
         if (dartUnit != null) {
-          server.addOperation(new _DartIndexOperation(context, dartUnit));
+          server.addOperation(new _DartIndexOperation(context, file, dartUnit));
         }
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(exception, stackTrace);
@@ -277,7 +278,7 @@ class PerformAnalysisOperation extends ServerOperation {
       try {
         HtmlUnit htmlUnit = notice.resolvedHtmlUnit;
         if (htmlUnit != null) {
-          server.addOperation(new _HtmlIndexOperation(context, htmlUnit));
+          server.addOperation(new _HtmlIndexOperation(context, file, htmlUnit));
         }
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(exception, stackTrace);
@@ -298,11 +299,11 @@ class _DartHighlightsOperation extends _DartNotificationOperation {
 }
 
 
-class _DartIndexOperation extends ServerOperation {
+class _DartIndexOperation extends _SingleFileOperation {
   final AnalysisContext context;
   final CompilationUnit unit;
 
-  _DartIndexOperation(this.context, this.unit);
+  _DartIndexOperation(this.context, String file, this.unit) : super(file);
 
   @override
   ServerOperationPriority get priority {
@@ -328,11 +329,10 @@ class _DartNavigationOperation extends _DartNotificationOperation {
 }
 
 
-abstract class _DartNotificationOperation extends ServerOperation {
-  final String file;
+abstract class _DartNotificationOperation extends _SingleFileOperation {
   final CompilationUnit unit;
 
-  _DartNotificationOperation(this.file, this.unit);
+  _DartNotificationOperation(String file, this.unit) : super(file);
 
   @override
   ServerOperationPriority get priority {
@@ -376,11 +376,11 @@ class _DartOverridesOperation extends _DartNotificationOperation {
 }
 
 
-class _HtmlIndexOperation extends ServerOperation {
+class _HtmlIndexOperation extends _SingleFileOperation {
   final AnalysisContext context;
   final HtmlUnit unit;
 
-  _HtmlIndexOperation(this.context, this.unit);
+  _HtmlIndexOperation(this.context, String file, this.unit) : super(file);
 
   @override
   ServerOperationPriority get priority {
@@ -395,12 +395,12 @@ class _HtmlIndexOperation extends ServerOperation {
 }
 
 
-class _NotificationErrorsOperation extends ServerOperation {
-  final String file;
+class _NotificationErrorsOperation extends _SingleFileOperation {
   final LineInfo lineInfo;
   final List<AnalysisError> errors;
 
-  _NotificationErrorsOperation(this.file, this.lineInfo, this.errors);
+  _NotificationErrorsOperation(String file, this.lineInfo, this.errors)
+      : super(file);
 
   @override
   ServerOperationPriority get priority {
@@ -410,5 +410,17 @@ class _NotificationErrorsOperation extends ServerOperation {
   @override
   void perform(AnalysisServer server) {
     sendAnalysisNotificationErrors(server, file, lineInfo, errors);
+  }
+}
+
+
+abstract class _SingleFileOperation extends SourceSensitiveOperation {
+  final String file;
+
+  _SingleFileOperation(this.file);
+
+  @override
+  bool shouldBeDiscardedOnSourceChange(Source source) {
+    return source.fullName == file;
   }
 }
