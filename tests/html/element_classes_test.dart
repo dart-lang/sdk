@@ -198,7 +198,7 @@ main() {
 
   Element listElement;
 
-  ElementList listElementSetup() {
+  ElementList<Element> listElementSetup() {
     listElement = makeListElement();
     document.documentElement.children.add(listElement);
     return document.queryAll('li');

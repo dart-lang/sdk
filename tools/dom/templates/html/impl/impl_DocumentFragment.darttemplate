@@ -57,7 +57,7 @@ $endif
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList querySelectorAll(String selectors) =>
+  ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
 
@@ -115,7 +115,7 @@ $endif
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList queryAll(String relativeSelectors) {
+  ElementList<Element> queryAll(String relativeSelectors) {
     return querySelectorAll(relativeSelectors);
   }
 $!MEMBERS
