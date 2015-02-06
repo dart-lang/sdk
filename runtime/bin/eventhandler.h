@@ -25,6 +25,7 @@ enum MessageFlags {
   kShutdownReadCommand = 9,
   kShutdownWriteCommand = 10,
   kReturnTokenCommand = 11,
+  kSetEventMaskCommand = 12,
   kListeningSocket = 16,
   kPipe = 17,
 };
@@ -32,10 +33,19 @@ enum MessageFlags {
 #define COMMAND_MASK ((1 << kCloseCommand) | \
                       (1 << kShutdownReadCommand) | \
                       (1 << kShutdownWriteCommand) | \
-                      (1 << kReturnTokenCommand))
+                      (1 << kReturnTokenCommand) | \
+                      (1 << kSetEventMaskCommand))
+#define EVENT_MASK ((1 << kInEvent) | \
+                    (1 << kOutEvent) | \
+                    (1 << kErrorEvent) | \
+                    (1 << kCloseEvent) | \
+                    (1 << kDestroyedEvent))
 #define IS_COMMAND(data, command_bit) \
     ((data & COMMAND_MASK) == (1 << command_bit))  // NOLINT
-#define ASSERT_NO_COMMAND(data) ASSERT((data & COMMAND_MASK) == 0)  // NOLINT
+#define IS_EVENT(data, event_bit) \
+    ((data & EVENT_MASK) == (1 << event_bit))  // NOLINT
+#define IS_LISTENING_SOCKET(data) \
+    ((data & (1 << kListeningSocket)) != 0)  // NOLINT
 #define TOKEN_COUNT(data) (data & ((1 << kCloseCommand) - 1))
 
 class TimeoutQueue {

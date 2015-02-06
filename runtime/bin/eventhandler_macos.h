@@ -23,19 +23,20 @@ namespace bin {
 
 class SocketData {
  public:
-  explicit SocketData(intptr_t fd)
+  explicit SocketData(intptr_t fd, bool is_listening)
       : fd_(fd),
         port_(0),
         mask_(0),
         tracked_by_kqueue_(false),
-        tokens_(16) {
+        tokens_(16),
+        is_listening_(is_listening) {
     ASSERT(fd_ != -1);
   }
 
   bool HasReadEvent();
   bool HasWriteEvent();
 
-  bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
+  bool IsListeningSocket() { return is_listening_; }
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
     ASSERT(fd_ != -1);
@@ -69,6 +70,7 @@ class SocketData {
   intptr_t mask_;
   bool tracked_by_kqueue_;
   int tokens_;
+  bool is_listening_;
 };
 
 
@@ -79,7 +81,7 @@ class EventHandlerImplementation {
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
-  SocketData* GetSocketData(intptr_t fd);
+  SocketData* GetSocketData(intptr_t fd, bool is_listening);
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data);
   void Start(EventHandler* handler);
   void Shutdown();

@@ -193,8 +193,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
+      ASSERT((msg[i].data & COMMAND_MASK) != 0);
+
       SocketData* sd = GetSocketData(
-          msg[i].id, (msg[i].data & (1 << kListeningSocket)) != 0);
+          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         ASSERT(!sd->IsListeningSocket());
         // Close the socket for reading.
@@ -219,13 +221,18 @@ void EventHandlerImplementation::HandleInterruptFd() {
         if (sd->ReturnToken(msg[i].dart_port, count)) {
           AddToEpollInstance(epoll_fd_, sd);
         }
-      } else {
-        ASSERT_NO_COMMAND(msg[i].data);
+      } else if (IS_COMMAND(msg[i].data, kSetEventMaskCommand)) {
+        // `events` can only have kInEvent/kOutEvent flags set.
+        intptr_t events = msg[i].data & EVENT_MASK;
+        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+
         // Setup events to wait for.
         if (sd->AddPort(msg[i].dart_port)) {
-          sd->SetMask(msg[i].data);
+          sd->SetMask(events);
           AddToEpollInstance(epoll_fd_, sd);
         }
+      } else {
+        UNREACHABLE();
       }
     }
   }

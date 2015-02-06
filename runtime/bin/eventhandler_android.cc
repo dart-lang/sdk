@@ -113,12 +113,14 @@ EventHandlerImplementation::EventHandlerImplementation()
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
+  VOID_TEMP_FAILURE_RETRY(close(epoll_fd_));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
 
 
-SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
+SocketData* EventHandlerImplementation::GetSocketData(
+    intptr_t fd, bool listening_socket) {
   ASSERT(fd >= 0);
   HashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
@@ -127,7 +129,7 @@ SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
   if (sd == NULL) {
     // If there is no data in the hash map for this file descriptor a
     // new SocketData for the file descriptor is inserted.
-    sd = new SocketData(fd);
+    sd = new SocketData(fd, listening_socket);
     entry->value = sd;
   }
   ASSERT(fd == sd->fd());
@@ -168,8 +170,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      SocketData* sd = GetSocketData(msg[i].id);
+      ASSERT((msg[i].data & COMMAND_MASK) != 0);
 
+      SocketData* sd = GetSocketData(
+          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         // Close the socket for reading.
         shutdown(sd->fd(), SHUT_RD);
@@ -193,11 +197,16 @@ void EventHandlerImplementation::HandleInterruptFd() {
             AddToEpollInstance(epoll_fd_, sd);
           }
         }
-      } else {
-        ASSERT_NO_COMMAND(msg[i].data);
+      } else if (IS_COMMAND(msg[i].data, kSetEventMaskCommand)) {
+        // `events` can only have kInEvent/kOutEvent flags set.
+        intptr_t events = msg[i].data & EVENT_MASK;
+        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+
         // Setup events to wait for.
-        sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
+        sd->SetPortAndMask(msg[i].dart_port, events);
         AddToEpollInstance(epoll_fd_, sd);
+      } else {
+        UNREACHABLE();
       }
     }
   }
