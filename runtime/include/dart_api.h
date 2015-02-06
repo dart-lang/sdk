@@ -1933,9 +1933,15 @@ DART_EXPORT Dart_Handle Dart_NewByteBuffer(Dart_Handle typed_data);
  * \param data The internal data address is returned here.
  * \param len Size of the typed array is returned here.
  *
- * Note: When the internal address of the object is acquired any calls to a
- *       Dart API function that could potentially allocate an object or run
- *       any Dart code will return an error.
+ * Notes:
+ *   When the internal address of the object is acquired any calls to a
+ *   Dart API function that could potentially allocate an object or run
+ *   any Dart code will return an error.
+ *
+ *   Any Dart API functions for accessing the data should not be called
+ *   before the corresponding release. In particular, the object should
+ *   not be acquired again before its release. This leads to undefined
+ *   behavior.
  *
  * \return Success if the internal data address is acquired successfully.
  *   Otherwise, returns an error handle.

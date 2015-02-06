@@ -47,6 +47,8 @@ DEFINE_FLAG(bool, check_function_fingerprints, false,
             "Check function fingerprints");
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
+DEFINE_FLAG(bool, verify_acquired_data, false,
+            "Verify correct API acquire/release of typed data.");
 
 ThreadLocalKey Api::api_native_key_ = OSThread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -3449,6 +3451,20 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
       *data = data_obj.DataAddr(offset_in_bytes);
     }
   }
+  if (FLAG_verify_acquired_data) {
+    // For now, we just verify that acquire/release are properly matched
+    // per object.
+    // TODO(koda): Copy internal data to/from a side buffer which is unmapped
+    // on release to catch use-after-release bugs.
+    const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+    WeakTable* table = isolate->api_state()->acquired_table();
+    intptr_t current = table->GetValue(obj.raw());
+    if (current != 0) {
+      ASSERT(current == 1);
+      return Api::NewError("Data was already acquired for this object.");
+    }
+    table->SetValue(obj.raw(), 1);
+  }
   return Api::Success();
 }
 
@@ -3465,6 +3481,17 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   if (!RawObject::IsExternalTypedDataClassId(class_id)) {
     isolate->DecrementNoGCScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
+  }
+  if (FLAG_verify_acquired_data) {
+    const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+    WeakTable* table = isolate->api_state()->acquired_table();
+    intptr_t current = table->GetValue(obj.raw());
+    if (current != 1) {
+      ASSERT(current == 0);
+      return Api::NewError("Data was not acquired for this object.");
+    }
+    // Delete entry from table.
+    table->SetValue(obj.raw(), 0);
   }
   return Api::Success();
 }
