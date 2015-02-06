@@ -17,4 +17,10 @@ $if DART2JS
     return '${this.protocol}//${this.host}';
   }
 $endif
+
+$if DART2JS
+  @DomName('Location.toString')
+  @DocsEditable()
+  String toString() => JS('String', 'String(#)', this);
+$endif
 }

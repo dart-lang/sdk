@@ -43,7 +43,7 @@ class AsyncError implements Error {
 
   AsyncError(this.error, this.stackTrace);
 
-  String toString() => error.toString();
+  String toString() => '$error';
 }
 
 

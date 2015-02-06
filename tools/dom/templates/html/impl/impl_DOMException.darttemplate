@@ -41,4 +41,9 @@ $if DART2JS
   }
 $endif
 $!MEMBERS
+$if DART2JS
+  @DomName('DOMException.toString')
+  @DocsEditable()
+  String toString() => JS('String', 'String(#)', this);
+$endif
 }

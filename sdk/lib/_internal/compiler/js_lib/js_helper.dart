@@ -1829,7 +1829,7 @@ class _StackTrace implements StackTrace {
   _StackTrace(this._exception);
 
   String toString() {
-    if (_trace != null) return _trace;
+    if (_trace != null) return JS('String', '#', _trace);
 
     String trace;
     if (JS('bool', 'typeof # === "object"', _exception)) {
