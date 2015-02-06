@@ -475,7 +475,6 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
 
 
 void Scavenger::Epilogue(Isolate* isolate,
-                         ScavengerVisitor* visitor,
                          bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
@@ -818,33 +817,38 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
   Prologue(isolate, invoke_api_callbacks);
-  const bool prologue_weak_are_strong = !invoke_api_callbacks;
+  // The API prologue/epilogue may create/destroy zones, so we must not
+  // depend on zone allocations surviving beyond the epilogue callback.
+  {
+    StackZone zone(isolate);
+    // Setup the visitor and run the scavenge.
+    ScavengerVisitor visitor(isolate, this);
+    page_space->AcquireDataLock();
+    const bool prologue_weak_are_strong = !invoke_api_callbacks;
+    IterateRoots(isolate, &visitor, prologue_weak_are_strong);
+    int64_t start = OS::GetCurrentTimeMicros();
+    ProcessToSpace(&visitor);
+    int64_t middle = OS::GetCurrentTimeMicros();
+    IterateWeakReferences(isolate, &visitor);
+    ScavengerWeakVisitor weak_visitor(this, prologue_weak_are_strong);
+    // Include the prologue weak handles, since we must process any promotion.
+    const bool visit_prologue_weak_handles = true;
+    IterateWeakRoots(isolate, &weak_visitor, visit_prologue_weak_handles);
+    visitor.Finalize();
+    ProcessWeakTables();
+    page_space->ReleaseDataLock();
 
-  // Setup the visitor and run the scavenge.
-  ScavengerVisitor visitor(isolate, this);
-  page_space->AcquireDataLock();
-  IterateRoots(isolate, &visitor, prologue_weak_are_strong);
-  int64_t start = OS::GetCurrentTimeMicros();
-  ProcessToSpace(&visitor);
-  int64_t middle = OS::GetCurrentTimeMicros();
-  IterateWeakReferences(isolate, &visitor);
-  ScavengerWeakVisitor weak_visitor(this, prologue_weak_are_strong);
-  // Include the prologue weak handles, since we must process any promotion.
-  const bool visit_prologue_weak_handles = true;
-  IterateWeakRoots(isolate, &weak_visitor, visit_prologue_weak_handles);
-  visitor.Finalize();
-  ProcessWeakTables();
-  page_space->ReleaseDataLock();
-
-  // Scavenge finished. Run accounting and epilogue.
-  int64_t end = OS::GetCurrentTimeMicros();
-  heap_->RecordTime(kProcessToSpace, middle - start);
-  heap_->RecordTime(kIterateWeaks, end - middle);
-  stats_history_.Add(ScavengeStats(start, end,
-                                   usage_before, GetCurrentUsage(),
-                                   promo_candidate_words,
-                                   visitor.bytes_promoted() >> kWordSizeLog2));
-  Epilogue(isolate, &visitor, invoke_api_callbacks);
+    // Scavenge finished. Run accounting.
+    int64_t end = OS::GetCurrentTimeMicros();
+    heap_->RecordTime(kProcessToSpace, middle - start);
+    heap_->RecordTime(kIterateWeaks, end - middle);
+    stats_history_.Add(
+        ScavengeStats(start, end,
+                      usage_before, GetCurrentUsage(),
+                      promo_candidate_words,
+                      visitor.bytes_promoted() >> kWordSizeLog2));
+  }
+  Epilogue(isolate, invoke_api_callbacks);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
