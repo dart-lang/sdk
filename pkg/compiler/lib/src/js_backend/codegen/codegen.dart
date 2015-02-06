@@ -200,6 +200,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
+    checkStaticTargetIsValid(node, node.target);
+
     if (node.constant != null) return giveup(node);
     registry.registerInstantiatedClass(node.target.enclosingClass);
     Selector selector = node.selector;
@@ -234,8 +236,24 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
                            visitArguments(node.arguments));
   }
 
+  /// Checks that the target of the static call is not an [ErroneousElement].
+  ///
+  /// This helper should be removed and the code to generate the CPS IR for
+  /// the dart2js backend should construct a call to a helper that throw an
+  /// appropriate error message instead of the static call.
+  ///
+  /// See [SsaBuilder.visitStaticSend] as an example how to do this.
+  void checkStaticTargetIsValid(tree_ir.Node node, Element target) {
+    if (target.isErroneous) {
+      giveup(node, 'cannot generate error handling code'
+                   ' for call to unresolved target');
+    }
+  }
+
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
+    checkStaticTargetIsValid(node, node.target);
+
     if (node.target is! FunctionElement) {
       giveup(node, 'static getters and setters are not supported.');
     }
