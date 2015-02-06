@@ -452,6 +452,15 @@ class B extends A {
     assertNoFix(FixKind.CREATE_CONSTRUCTOR_SUPER);
   }
 
+  void test_createField_BAD_inSDK() {
+    _indexTestUnit('''
+main(List p) {
+  p.foo = 1;
+}
+''');
+    assertNoFix(FixKind.CREATE_FIELD);
+  }
+
   void test_createField_getter_multiLevel() {
     _indexTestUnit('''
 class A {
@@ -749,6 +758,15 @@ import 'my_file.dart';
     expect(fileEdit.file, '/my/project/bin/my_file.dart');
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits[0].replacement, contains('library my.file;'));
+  }
+
+  void test_createGetter_BAD_inSDK() {
+    _indexTestUnit('''
+main(List p) {
+  int v = p.foo;
+}
+''');
+    assertNoFix(FixKind.CREATE_GETTER);
   }
 
   void test_createGetter_multiLevel() {
@@ -2345,6 +2363,15 @@ main() {
   myFunction();
 }
 ''');
+  }
+
+  void test_undefinedMethod_create_BAD_inSDK() {
+    _indexTestUnit('''
+main() {
+  List.foo();
+}
+''');
+    assertNoFix(FixKind.CREATE_METHOD);
   }
 
   void test_undefinedMethod_create_generic_BAD() {

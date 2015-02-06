@@ -1631,6 +1631,9 @@ class FixProcessor {
 
   void _addFixToElement(FixKind kind, List args, Element element) {
     Source source = element.source;
+    if (source.isInSystemLibrary) {
+      return;
+    }
     String file = source.fullName;
     int fileStamp = element.context.getModificationStamp(source);
     _addFix(kind, args, file: file, fileStamp: fileStamp);
