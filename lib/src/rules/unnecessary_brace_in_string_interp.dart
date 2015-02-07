@@ -11,9 +11,7 @@ import 'package:analyzer/src/services/lint.dart';
 
 final RegExp alphaNumeric = new RegExp(r'^[a-zA-Z0-9]');
 
-const msg =
-    '''Interpolated simple identifiers (not followed by an alphanumeric string) do
-not need braces.''';
+const msg ='AVOID bracketed interpolation of simple identifiers';
 
 const name = 'UnnecessaryBraceInStringInterp';
 
