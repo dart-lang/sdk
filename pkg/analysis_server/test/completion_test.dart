@@ -229,8 +229,7 @@ class List{add(){}length(){}}class X{m(){List list; list.!1 zox();}}''',
 
     buildTests('testCommentSnippets042', '''
 class DateTime{static const int WED=3;int get day;}fd(){DateTime d=new DateTime.now();d.!1WED!2;}''',
-        <String>["1+day", "2-WED"],
-        failingTests: '2');
+        <String>["1+day", "2-WED"]);
 
     buildTests('testCommentSnippets043', '''
 class L{var k;void.!1}''', <String>["1-k"]);
@@ -642,8 +641,7 @@ class Map{static from()=>null;clear(){}}void main() { Map.!1 }''',
 
     buildTests('testCommentSnippets079', '''
 class Map{static from()=>null;clear(){}}void main() { Map s; s.!1 }''',
-        <String>["1-from", "1+clear"],
-        failingTests: '1'); // static method, instance method
+        <String>["1-from", "1+clear"]); // static method, instance method
 
     buildTests('testCommentSnippets080', '''
 class RuntimeError{var message;}void main() { RuntimeError.!1 }''',
@@ -1427,8 +1425,7 @@ main(B b, C c) {
   b.a.!1;
   c.!2;
 }''',
-        <String>["1-FIELD", "1+fieldA", "2+fieldC", "2+fieldA"],
-        failingTests: '1');
+        <String>["1-FIELD", "1+fieldA", "2+fieldC", "2+fieldA"]);
 
     buildTests('testCompletion_return_withIdentifierPrefix', '''
 f() { var vvv = 42; return v!1 }''', <String>["1+vvv"]);
@@ -2160,8 +2157,7 @@ class T {
             "C+g",
             "D+_m",
             "E+m",
-            "F+g"],
-        failingTests: '789');
+            "F+g"]);
 
     buildTests('test026', '''var aBcD; var x=ab!1''', <String>["1+aBcD"]);
 

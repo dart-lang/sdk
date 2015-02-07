@@ -2628,7 +2628,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationField('sc', 'int');
+      assertNotSuggested('sc');
       assertSuggestInvocationField('b', null, isDeprecated: true);
       assertNotSuggested('_c');
       assertSuggestInvocationGetter('d', 'X');
@@ -2663,7 +2663,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationField('sc', 'int');
+      assertNotSuggested('sc');
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');
