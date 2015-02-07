@@ -727,16 +727,6 @@ class Dart2JSBackend(HtmlDartGenerator):
   def IsConstructorArgumentOptional(self, argument):
     return argument.optional
 
-  def FactoryConstructorExpression(self, constructor_info,
-      factory_name, factory_constructor_name, factory_parameters):
-    expression = super(Dart2JSBackend, self).FactoryConstructorExpression(
-        constructor_info, factory_name, factory_constructor_name,
-        factory_parameters)
-    return emitter.Format(
-        "JS('$TYPE', '#', $VALUE)",
-        TYPE=self._DartType(constructor_info.type_name),
-        VALUE=expression)
-
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
     index = len(arguments)
     arguments = constructor_info.ParametersAsArgumentList(index)

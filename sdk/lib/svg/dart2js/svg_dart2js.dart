@@ -51,7 +51,7 @@ class AElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGAElement.SVGAElement')
   @DocsEditable()
-  factory AElement() => JS('AElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("a"));
+  factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -87,7 +87,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 
   @DomName('SVGAltGlyphElement.SVGAltGlyphElement')
   @DocsEditable()
-  factory AltGlyphElement() => JS('AltGlyphElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("altGlyph"));
+  factory AltGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("altGlyph");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -187,7 +187,7 @@ class AnimateElement extends AnimationElement {
 
   @DomName('SVGAnimateElement.SVGAnimateElement')
   @DocsEditable()
-  factory AnimateElement() => JS('AnimateElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("animate"));
+  factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -216,7 +216,7 @@ class AnimateMotionElement extends AnimationElement {
 
   @DomName('SVGAnimateMotionElement.SVGAnimateMotionElement')
   @DocsEditable()
-  factory AnimateMotionElement() => JS('AnimateMotionElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("animateMotion"));
+  factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -245,7 +245,7 @@ class AnimateTransformElement extends AnimationElement {
 
   @DomName('SVGAnimateTransformElement.SVGAnimateTransformElement')
   @DocsEditable()
-  factory AnimateTransformElement() => JS('AnimateTransformElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("animateTransform"));
+  factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -523,7 +523,7 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.SVGAnimationElement')
   @DocsEditable()
-  factory AnimationElement() => JS('AnimationElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("animation"));
+  factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -596,7 +596,7 @@ class CircleElement extends GeometryElement {
 
   @DomName('SVGCircleElement.SVGCircleElement')
   @DocsEditable()
-  factory CircleElement() => JS('CircleElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("circle"));
+  factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -631,7 +631,7 @@ class ClipPathElement extends GraphicsElement {
 
   @DomName('SVGClipPathElement.SVGClipPathElement')
   @DocsEditable()
-  factory ClipPathElement() => JS('ClipPathElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("clipPath"));
+  factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -658,7 +658,7 @@ class DefsElement extends GraphicsElement {
 
   @DomName('SVGDefsElement.SVGDefsElement')
   @DocsEditable()
-  factory DefsElement() => JS('DefsElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("defs"));
+  factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -681,7 +681,7 @@ class DescElement extends SvgElement {
 
   @DomName('SVGDescElement.SVGDescElement')
   @DocsEditable()
-  factory DescElement() => JS('DescElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("desc"));
+  factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -723,7 +723,7 @@ class EllipseElement extends GeometryElement {
 
   @DomName('SVGEllipseElement.SVGEllipseElement')
   @DocsEditable()
-  factory EllipseElement() => JS('EllipseElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("ellipse"));
+  factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -766,7 +766,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEBlendElement.SVGFEBlendElement')
   @DocsEditable()
-  factory FEBlendElement() => JS('FEBlendElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feBlend"));
+  factory FEBlendElement() => _SvgElementFactoryProvider.createSvgElement_tag("feBlend");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -854,7 +854,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
   @DomName('SVGFEColorMatrixElement.SVGFEColorMatrixElement')
   @DocsEditable()
-  factory FEColorMatrixElement() => JS('FEColorMatrixElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix"));
+  factory FEColorMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -938,7 +938,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
   @DomName('SVGFEComponentTransferElement.SVGFEComponentTransferElement')
   @DocsEditable()
-  factory FEComponentTransferElement() => JS('FEComponentTransferElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer"));
+  factory FEComponentTransferElement() => _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1091,7 +1091,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
   @DomName('SVGFEConvolveMatrixElement.SVGFEConvolveMatrixElement')
   @DocsEditable()
-  factory FEConvolveMatrixElement() => JS('FEConvolveMatrixElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix"));
+  factory FEConvolveMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1207,7 +1207,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
   @DomName('SVGFEDiffuseLightingElement.SVGFEDiffuseLightingElement')
   @DocsEditable()
-  factory FEDiffuseLightingElement() => JS('FEDiffuseLightingElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting"));
+  factory FEDiffuseLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1279,7 +1279,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
   @DomName('SVGFEDisplacementMapElement.SVGFEDisplacementMapElement')
   @DocsEditable()
-  factory FEDisplacementMapElement() => JS('FEDisplacementMapElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap"));
+  factory FEDisplacementMapElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1371,7 +1371,7 @@ class FEDistantLightElement extends SvgElement {
 
   @DomName('SVGFEDistantLightElement.SVGFEDistantLightElement')
   @DocsEditable()
-  factory FEDistantLightElement() => JS('FEDistantLightElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight"));
+  factory FEDistantLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1409,7 +1409,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEFloodElement.SVGFEFloodElement')
   @DocsEditable()
-  factory FEFloodElement() => JS('FEFloodElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feFlood"));
+  factory FEFloodElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFlood");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1461,7 +1461,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
 
   @DomName('SVGFEFuncAElement.SVGFEFuncAElement')
   @DocsEditable()
-  factory FEFuncAElement() => JS('FEFuncAElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feFuncA"));
+  factory FEFuncAElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncA");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1491,7 +1491,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
 
   @DomName('SVGFEFuncBElement.SVGFEFuncBElement')
   @DocsEditable()
-  factory FEFuncBElement() => JS('FEFuncBElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feFuncB"));
+  factory FEFuncBElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncB");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1521,7 +1521,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
 
   @DomName('SVGFEFuncGElement.SVGFEFuncGElement')
   @DocsEditable()
-  factory FEFuncGElement() => JS('FEFuncGElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feFuncG"));
+  factory FEFuncGElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncG");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1551,7 +1551,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
 
   @DomName('SVGFEFuncRElement.SVGFEFuncRElement')
   @DocsEditable()
-  factory FEFuncRElement() => JS('FEFuncRElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feFuncR"));
+  factory FEFuncRElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncR");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1581,7 +1581,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
   @DomName('SVGFEGaussianBlurElement.SVGFEGaussianBlurElement')
   @DocsEditable()
-  factory FEGaussianBlurElement() => JS('FEGaussianBlurElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur"));
+  factory FEGaussianBlurElement() => _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1649,7 +1649,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEImageElement.SVGFEImageElement')
   @DocsEditable()
-  factory FEImageElement() => JS('FEImageElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feImage"));
+  factory FEImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("feImage");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1711,7 +1711,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEMergeElement.SVGFEMergeElement')
   @DocsEditable()
-  factory FEMergeElement() => JS('FEMergeElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feMerge"));
+  factory FEMergeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMerge");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1763,7 +1763,7 @@ class FEMergeNodeElement extends SvgElement {
 
   @DomName('SVGFEMergeNodeElement.SVGFEMergeNodeElement')
   @DocsEditable()
-  factory FEMergeNodeElement() => JS('FEMergeNodeElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode"));
+  factory FEMergeNodeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1870,7 +1870,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 
   @DomName('SVGFEOffsetElement.SVGFEOffsetElement')
   @DocsEditable()
-  factory FEOffsetElement() => JS('FEOffsetElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feOffset"));
+  factory FEOffsetElement() => _SvgElementFactoryProvider.createSvgElement_tag("feOffset");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1934,7 +1934,7 @@ class FEPointLightElement extends SvgElement {
 
   @DomName('SVGFEPointLightElement.SVGFEPointLightElement')
   @DocsEditable()
-  factory FEPointLightElement() => JS('FEPointLightElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("fePointLight"));
+  factory FEPointLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("fePointLight");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1976,7 +1976,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 
   @DomName('SVGFESpecularLightingElement.SVGFESpecularLightingElement')
   @DocsEditable()
-  factory FESpecularLightingElement() => JS('FESpecularLightingElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting"));
+  factory FESpecularLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2044,7 +2044,7 @@ class FESpotLightElement extends SvgElement {
 
   @DomName('SVGFESpotLightElement.SVGFESpotLightElement')
   @DocsEditable()
-  factory FESpotLightElement() => JS('FESpotLightElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight"));
+  factory FESpotLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2106,7 +2106,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
   @DomName('SVGFETileElement.SVGFETileElement')
   @DocsEditable()
-  factory FETileElement() => JS('FETileElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feTile"));
+  factory FETileElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTile");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2162,7 +2162,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
   @DomName('SVGFETurbulenceElement.SVGFETurbulenceElement')
   @DocsEditable()
-  factory FETurbulenceElement() => JS('FETurbulenceElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence"));
+  factory FETurbulenceElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2262,7 +2262,7 @@ class FilterElement extends SvgElement implements UriReference {
 
   @DomName('SVGFilterElement.SVGFilterElement')
   @DocsEditable()
-  factory FilterElement() => JS('FilterElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("filter"));
+  factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2371,7 +2371,7 @@ class ForeignObjectElement extends GraphicsElement {
 
   @DomName('SVGForeignObjectElement.SVGForeignObjectElement')
   @DocsEditable()
-  factory ForeignObjectElement() => JS('ForeignObjectElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("foreignObject"));
+  factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2413,7 +2413,7 @@ class GElement extends GraphicsElement {
 
   @DomName('SVGGElement.SVGGElement')
   @DocsEditable()
-  factory GElement() => JS('GElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("g"));
+  factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2543,7 +2543,7 @@ class ImageElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGImageElement.SVGImageElement')
   @DocsEditable()
-  factory ImageElement() => JS('ImageElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("image"));
+  factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2772,7 +2772,7 @@ class LineElement extends GeometryElement {
 
   @DomName('SVGLineElement.SVGLineElement')
   @DocsEditable()
-  factory LineElement() => JS('LineElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("line"));
+  factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2811,7 +2811,7 @@ class LinearGradientElement extends _GradientElement {
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
   @DocsEditable()
-  factory LinearGradientElement() => JS('LinearGradientElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("linearGradient"));
+  factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2850,7 +2850,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGMarkerElement.SVGMarkerElement')
   @DocsEditable()
-  factory MarkerElement() => JS('MarkerElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("marker"));
+  factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2943,7 +2943,7 @@ class MaskElement extends SvgElement implements Tests {
 
   @DomName('SVGMaskElement.SVGMaskElement')
   @DocsEditable()
-  factory MaskElement() => JS('MaskElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("mask"));
+  factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3224,7 +3224,7 @@ class PathElement extends GeometryElement {
 
   @DomName('SVGPathElement.SVGPathElement')
   @DocsEditable()
-  factory PathElement() => JS('PathElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("path"));
+  factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4053,7 +4053,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
 
   @DomName('SVGPatternElement.SVGPatternElement')
   @DocsEditable()
-  factory PatternElement() => JS('PatternElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("pattern"));
+  factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4218,7 +4218,7 @@ class PolygonElement extends GeometryElement {
 
   @DomName('SVGPolygonElement.SVGPolygonElement')
   @DocsEditable()
-  factory PolygonElement() => JS('PolygonElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("polygon"));
+  factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4249,7 +4249,7 @@ class PolylineElement extends GeometryElement {
 
   @DomName('SVGPolylineElement.SVGPolylineElement')
   @DocsEditable()
-  factory PolylineElement() => JS('PolylineElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("polyline"));
+  factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4357,7 +4357,7 @@ class RadialGradientElement extends _GradientElement {
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
   @DocsEditable()
-  factory RadialGradientElement() => JS('RadialGradientElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("radialGradient"));
+  factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4433,7 +4433,7 @@ class RectElement extends GeometryElement {
 
   @DomName('SVGRectElement.SVGRectElement')
   @DocsEditable()
-  factory RectElement() => JS('RectElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("rect"));
+  factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4517,7 +4517,7 @@ class ScriptElement extends SvgElement implements UriReference {
 
   @DomName('SVGScriptElement.SVGScriptElement')
   @DocsEditable()
-  factory ScriptElement() => JS('ScriptElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("script"));
+  factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4553,7 +4553,7 @@ class SetElement extends AnimationElement {
 
   @DomName('SVGSetElement.SVGSetElement')
   @DocsEditable()
-  factory SetElement() => JS('SetElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("set"));
+  factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4579,7 +4579,7 @@ class StopElement extends SvgElement {
 
   @DomName('SVGStopElement.SVGStopElement')
   @DocsEditable()
-  factory StopElement() => JS('StopElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("stop"));
+  factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4707,7 +4707,7 @@ class StyleElement extends SvgElement {
 
   @DomName('SVGStyleElement.SVGStyleElement')
   @DocsEditable()
-  factory StyleElement() => JS('StyleElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("style"));
+  factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -5670,7 +5670,7 @@ class SwitchElement extends GraphicsElement {
 
   @DomName('SVGSwitchElement.SVGSwitchElement')
   @DocsEditable()
-  factory SwitchElement() => JS('SwitchElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("switch"));
+  factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -5693,7 +5693,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGSymbolElement.SVGSymbolElement')
   @DocsEditable()
-  factory SymbolElement() => JS('SymbolElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("symbol"));
+  factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -5726,7 +5726,7 @@ class TSpanElement extends TextPositioningElement {
 
   @DomName('SVGTSpanElement.SVGTSpanElement')
   @DocsEditable()
-  factory TSpanElement() => JS('TSpanElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("tspan"));
+  factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -5844,7 +5844,7 @@ class TextElement extends TextPositioningElement {
 
   @DomName('SVGTextElement.SVGTextElement')
   @DocsEditable()
-  factory TextElement() => JS('TextElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("text"));
+  factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -5967,7 +5967,7 @@ class TitleElement extends SvgElement {
 
   @DomName('SVGTitleElement.SVGTitleElement')
   @DocsEditable()
-  factory TitleElement() => JS('TitleElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("title"));
+  factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6214,7 +6214,7 @@ class UseElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGUseElement.SVGUseElement')
   @DocsEditable()
-  factory UseElement() => JS('UseElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("use"));
+  factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6259,7 +6259,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   @DomName('SVGViewElement.SVGViewElement')
   @DocsEditable()
-  factory ViewElement() => JS('ViewElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("view"));
+  factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6527,7 +6527,7 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
 
   @DomName('SVGCursorElement.SVGCursorElement')
   @DocsEditable()
-  factory _SVGCursorElement() => JS('_SVGCursorElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("cursor"));
+  factory _SVGCursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6692,7 +6692,7 @@ abstract class _SVGGlyphElement extends SvgElement {
 
   @DomName('SVGGlyphElement.SVGGlyphElement')
   @DocsEditable()
-  factory _SVGGlyphElement() => JS('_SVGGlyphElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("glyph"));
+  factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6736,7 +6736,7 @@ abstract class _SVGHKernElement extends SvgElement {
 
   @DomName('SVGHKernElement.SVGHKernElement')
   @DocsEditable()
-  factory _SVGHKernElement() => JS('_SVGHKernElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("hkern"));
+  factory _SVGHKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6758,7 +6758,7 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
 
   @DomName('SVGMPathElement.SVGMPathElement')
   @DocsEditable()
-  factory _SVGMPathElement() => JS('_SVGMPathElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("mpath"));
+  factory _SVGMPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -6802,7 +6802,7 @@ abstract class _SVGVKernElement extends SvgElement {
 
   @DomName('SVGVKernElement.SVGVKernElement')
   @DocsEditable()
-  factory _SVGVKernElement() => JS('_SVGVKernElement', '#', _SvgElementFactoryProvider.createSvgElement_tag("vkern"));
+  factory _SVGVKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
