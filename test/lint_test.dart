@@ -122,7 +122,7 @@ void defineLinterEngineTests() {
 
     group('kinds', () {
       test('factory', () {
-        var kinds = ['DO', 'DONT', "DON'T", 'AVOID', 'PREFER'];
+        var kinds = ['DO', 'DONT', "DON'T", 'AVOID', 'PREFER', 'CONSIDER'];
         kinds.map((n) => new Kind(n)).forEach((k) => expect(k.custom, isFalse));
       });
     });
