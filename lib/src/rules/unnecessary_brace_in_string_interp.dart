@@ -7,7 +7,7 @@ library unnecessary_brace_in_string_interp;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:dart_lint/src/linter.dart';
 
 final RegExp alphaNumeric = new RegExp(r'^[a-zA-Z0-9]');
 
@@ -18,7 +18,7 @@ const name = 'UnnecessaryBraceInStringInterp';
 bool isAlphaNumeric(Token token) =>
     token is StringToken && token.lexeme.startsWith(alphaNumeric);
 
-class UnnecessaryBraceInStringInterp extends Linter {
+class UnnecessaryBraceInStringInterp extends LintRule {
   @override
   AstVisitor getVisitor() => new Visitor(reporter);
 }

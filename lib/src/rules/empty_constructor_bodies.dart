@@ -6,13 +6,13 @@ library empty_constructor_bodies;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:dart_lint/src/linter.dart';
 
 const msg = 'DO use ; instead of {} for empty constructor bodies.';
 
 const name = 'EmptyConstructorBodies';
 
-class EmptyConstructorBodies extends Linter {
+class EmptyConstructorBodies extends LintRule {
   @override
   AstVisitor getVisitor() => new Visitor(reporter);
 }

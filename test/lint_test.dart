@@ -19,7 +19,6 @@ import 'package:unittest/unittest.dart';
 
 import '../bin/lint.dart' as dartlint;
 
-
 const String ruleDir = 'test/rules';
 
 /// Linter engine tests
@@ -29,9 +28,9 @@ void defineLinterEngineTests() {
       test('duplicate rules', () {
         var registry = new MockRegistry();
         registry
-            ..registerLinter('r1', new MockLinter())
-            ..registerLinter('r1', new MockLinter())
-            ..expectWarnings(["Multiple linter rules registered to name 'r1'"]);
+          ..registerLinter('r1', new MockLinter())
+          ..registerLinter('r1', new MockLinter())
+          ..expectWarnings(["Multiple linter rules registered to name 'r1'"]);
       });
       test('empty to start', () {
         var registry = new MockRegistry();
@@ -80,19 +79,13 @@ void defineLinterEngineTests() {
         });
       }
 
-      _test(
-          'exception',
-          'EXCEPTION: LinterException: foo',
+      _test('exception', 'EXCEPTION: LinterException: foo',
           (r) => r.exception(new LinterException('foo')));
       _test('logError', 'ERROR: foo', (r) => r.logError('foo'));
-      _test(
-          'logError2',
-          'ERROR: foo',
+      _test('logError2', 'ERROR: foo',
           (r) => r.logError2('foo', new Exception()));
       _test('logInformation', 'INFO: foo', (r) => r.logInformation('foo'));
-      _test(
-          'logInformation2',
-          'INFO: foo',
+      _test('logInformation2', 'INFO: foo',
           (r) => r.logInformation2('foo', new Exception()));
       _test('warn', 'WARN: foo', (r) => r.warn('foo'));
     });
@@ -103,9 +96,34 @@ void defineLinterEngineTests() {
       });
       test('toString', () {
         expect(const LinterException().toString(), equals('LinterException'));
-        expect(
-            const LinterException('foo').toString(),
+        expect(const LinterException('foo').toString(),
             equals('LinterException: foo'));
+      });
+    });
+
+    group('camel case', () {
+      test('humanize', () {
+        expect(new CamelCaseString('FooBar').humanized, equals('Foo Bar'));
+        expect(new CamelCaseString('Foo').humanized, equals('Foo'));
+      });
+      test('validation', () {
+        expect(() => new CamelCaseString('foo'),
+            throwsA(new isInstanceOf<ArgumentError>()));
+      });
+    });
+
+    group('groups', () {
+      test('factory', () {
+        expect(new Group('Style Guide').custom, isFalse);
+        expect(new Group('Styleguide').custom, isFalse);
+        expect(new Group('Kustom').custom, isTrue);
+      });
+    });
+
+    group('kinds', () {
+      test('factory', () {
+        var kinds = ['DO', 'DONT', "DON'T", 'AVOID', 'PREFER'];
+        kinds.map((n) => new Kind(n)).forEach((k) => expect(k.custom, isFalse));
       });
     });
 
@@ -114,10 +132,9 @@ void defineLinterEngineTests() {
         bool visited;
         var options =
             new LinterOptions(() => [new MockLinter((n) => visited = true)]);
-        new SourceLinter(
-            options).lintLibrarySource(
-                libraryName: 'testLibrary',
-                libraryContents: 'library testLibrary;');
+        new SourceLinter(options).lintLibrarySource(
+            libraryName: 'testLibrary',
+            libraryContents: 'library testLibrary;');
         expect(visited, isTrue);
       });
     });
@@ -150,8 +167,6 @@ void defineLinterEngineTests() {
         expect(exitCode, equals(dartlint.unableToProcessExitCode));
       });
     });
-
-
   });
 }
 
@@ -177,8 +192,7 @@ void defineSanityTests() {
         expect(extractAnnotation('int x; //LINT'), isNotNull);
         expect(extractAnnotation('int x; // OK'), isNull);
         expect(extractAnnotation('int x;'), isNull);
-        expect(
-            extractAnnotation('dynamic x; // LINT dynamic is bad').message,
+        expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
             equals('dynamic is bad'));
         expect(extractAnnotation('dynamic x; //LINT').message, isNull);
         expect(extractAnnotation('dynamic x; //LINT ').message, isNull);
@@ -188,28 +202,18 @@ void defineSanityTests() {
       expect(
           new Annotation('Actual message (to be ignored)', ErrorType.LINT, 1),
           matchesAnnotation(null, ErrorType.LINT, 1));
-      expect(
-          new Annotation('Message', ErrorType.LINT, 1),
+      expect(new Annotation('Message', ErrorType.LINT, 1),
           matchesAnnotation('Message', ErrorType.LINT, 1));
     });
     test('inequality', () {
-      expect(
-          () =>
-              expect(
-                  new Annotation('Message', ErrorType.LINT, 1),
-                  matchesAnnotation('Message', ErrorType.HINT, 1)),
+      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message', ErrorType.HINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
-      expect(
-          () =>
-              expect(
-                  new Annotation('Message', ErrorType.LINT, 1),
-                  matchesAnnotation('Message2', ErrorType.LINT, 1)),
+      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message2', ErrorType.LINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
-      expect(
-          () =>
-              expect(
-                  new Annotation('Message', ErrorType.LINT, 1),
-                  matchesAnnotation('Message', ErrorType.LINT, 2)),
+      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message', ErrorType.LINT, 2)),
           throwsA(new isInstanceOf<TestFailure>()));
     });
   });
@@ -239,9 +243,9 @@ main() {
   defineRuleTests();
 }
 
-AnnotationMatcher matchesAnnotation(String message, ErrorType type,
-    int lineNumber) =>
-    new AnnotationMatcher(new Annotation(message, type, lineNumber));
+AnnotationMatcher matchesAnnotation(
+    String message, ErrorType type, int lineNumber) =>
+        new AnnotationMatcher(new Annotation(message, type, lineNumber));
 
 void testRule(String ruleName, File file) {
   test('$ruleName', () {
@@ -272,9 +276,9 @@ void testRule(String ruleName, File file) {
   });
 }
 
-typedef AstVisitor VisitorCallback();
-
 typedef nodeVisitor(AstNode node);
+
+typedef AstVisitor VisitorCallback();
 
 class Annotation {
   final String message;
@@ -283,10 +287,8 @@ class Annotation {
 
   Annotation(this.message, this.type, this.lineNumber);
 
-  Annotation.forError(AnalysisError error, LineInfo lineInfo)
-      : this(
-          error.message,
-          error.errorCode.type,
+  Annotation.forError(AnalysisError error, LineInfo lineInfo) : this(
+          error.message, error.errorCode.type,
           lineInfo.getLocation(error.offset).lineNumber);
 
   Annotation.forLint([String message]) : this(message, ErrorType.LINT, null);

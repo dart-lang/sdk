@@ -6,14 +6,14 @@ library super_goes_last;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:dart_lint/src/linter.dart';
 
 const msg =
     'DO place the super() call last in a constructor initialization list.';
 
 const name = 'SuperGoesLast';
 
-class SuperGoesLast extends Linter {
+class SuperGoesLast extends LintRule {
   @override
   AstVisitor getVisitor() => new Visitor(reporter);
 }

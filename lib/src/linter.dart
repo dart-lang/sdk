@@ -15,6 +15,15 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:dart_lint/src/analysis.dart';
 import 'package:dart_lint/src/rules.dart';
 
+final _camelCaseMatcher = new RegExp('[A-Z][a-z]*');
+
+final _camelCaseTester = new RegExp('([A-Z]+[a-z0-9]+)+');
+
+String _humanize(String camelCase) =>
+    _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');
+
+bool _isCamelCase(String name) => _camelCaseTester.hasMatch(name);
+
 void _registerLinters(Iterable<Linter> linters) {
   if (linters != null) {
     LintGenerator.LINTERS.clear();
@@ -25,10 +34,21 @@ void _registerLinters(Iterable<Linter> linters) {
 typedef Printer(String msg);
 
 /// Describes a set of enabled rules.
-typedef Iterable<Linter> RuleSet();
+typedef Iterable<LintRule> RuleSet();
 
 typedef AnalysisDriver _DriverFactory();
 
+/// Describes a String in valid camel case format.
+class CamelCaseString {
+  final String value;
+  CamelCaseString(this.value) {
+    if (!_isCamelCase(value)) {
+      throw new ArgumentError('$value is not CamelCase');
+    }
+  }
+
+  String get humanized => _humanize(value);
+}
 
 /// Dart source linter.
 abstract class DartLinter {
@@ -41,10 +61,62 @@ abstract class DartLinter {
 
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile);
 
-  Iterable<AnalysisErrorInfo> lintLibrarySource({String libraryName,
-      String libraryContents});
+  Iterable<AnalysisErrorInfo> lintLibrarySource(
+      {String libraryName, String libraryContents});
 
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath);
+}
+
+class Group {
+
+  /// Defined rule groups.
+  static final Group STYLE_GUIDE = new Group._('Style Guide');
+
+  final String name;
+  final bool custom;
+  factory Group(String name) {
+    switch (name) {
+      case 'Styleguide':
+      case 'Style Guide':
+        return STYLE_GUIDE;
+      default:
+        return new Group._(name, custom: true);
+    }
+  }
+
+  Group._(this.name, {this.custom: false});
+}
+class Kind {
+
+  /// Defined rule kinds.
+  static final Kind DO = new Kind._('Do');
+  static final Kind DONT = new Kind._("Don't");
+  static final Kind PREFER = new Kind._('Prefer');
+  static final Kind AVOID = new Kind._('Avoid');
+  static final Kind CONSIDER = new Kind._('Consider');
+
+  final String name;
+  final bool custom;
+  factory Kind(String name) {
+    var label = name.toUpperCase();
+    switch (label) {
+      case 'DO':
+        return DO;
+      case 'DONT':
+      case "DON'T":
+        return DONT;
+      case 'PREFER':
+        return PREFER;
+      case 'AVOID':
+        return AVOID;
+      case 'CONSIDER':
+        return CONSIDER;
+      default:
+        return new Kind._(label, custom: true);
+    }
+  }
+
+  Kind._(this.name, {this.custom: false});
 }
 
 /// Thrown when an error occurs in linting.
@@ -68,6 +140,18 @@ class LinterOptions extends DriverOptions {
       (AnalysisError error) => error.errorCode.type == ErrorType.LINT;
   LinterOptions(this._enabledLints);
   Iterable<Linter> get enabledLints => _enabledLints();
+}
+
+/// Describes a lint rule.
+abstract class LintRule extends Linter {
+  /// Lint description (in markdown format).
+  String description;
+  /// Lint group (for example, 'Style Guide')
+  Group group;
+  /// Lint kind (DO|DON'T|PREFER|AVOID|CONSIDER)
+  Kind kind;
+  /// Lint name.
+  CamelCaseString name;
 }
 
 class PrintingReporter implements Reporter, Logger {
@@ -124,13 +208,10 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       _registerAndRun(() => new AnalysisDriver.forFile(sourceFile, options));
 
   @override
-  Iterable<AnalysisErrorInfo> lintLibrarySource({String libraryName,
-      String libraryContents}) =>
-      _registerAndRun(
-          () =>
-              new AnalysisDriver.forSource(
-                  new _StringSource(libraryContents, libraryName),
-                  options));
+  Iterable<AnalysisErrorInfo> lintLibrarySource(
+      {String libraryName, String libraryContents}) => _registerAndRun(
+          () => new AnalysisDriver.forSource(
+              new _StringSource(libraryContents, libraryName), options));
 
   @override
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath) =>
