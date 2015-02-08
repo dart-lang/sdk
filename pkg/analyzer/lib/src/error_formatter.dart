@@ -56,7 +56,8 @@ class ErrorFormatter {
       out.write(escapePipe(error.message));
     } else {
       String errorType = severity.displayName;
-      if (error.errorCode.type == ErrorType.HINT) {
+      if (error.errorCode.type == ErrorType.HINT ||
+          error.errorCode.type == ErrorType.LINT) {
         errorType = error.errorCode.type.displayName;
       }
       // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
