@@ -10030,6 +10030,70 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitFunctionExpression_async_block() {
+    // () async {}
+    InterfaceType intType = _typeProvider.intType;
+    BlockFunctionBody body = AstFactory.blockFunctionBody2();
+    body.keyword = TokenFactory.tokenFromString('async');
+    FunctionExpression node =
+        _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(
+        _typeProvider.futureDynamicType,
+        null,
+        null,
+        null,
+        resultType);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionExpression_async_expression() {
+    // () async => e, where e has type int
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType futureIntType =
+        _typeProvider.futureType.substitute4(<DartType>[intType]);
+    Expression expression = _resolvedVariable(intType, 'e');
+    ExpressionFunctionBody body = AstFactory.expressionFunctionBody(expression);
+    body.keyword = TokenFactory.tokenFromString('async');
+    FunctionExpression node =
+        _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(futureIntType, null, null, null, resultType);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionExpression_async_expression_flatten() {
+    // () async => e, where e has type Future<int>
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType futureIntType =
+        _typeProvider.futureType.substitute4(<DartType>[intType]);
+    Expression expression = _resolvedVariable(futureIntType, 'e');
+    ExpressionFunctionBody body = AstFactory.expressionFunctionBody(expression);
+    body.keyword = TokenFactory.tokenFromString('async');
+    FunctionExpression node =
+        _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(futureIntType, null, null, null, resultType);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionExpression_async_expression_flatten_twice() {
+    // () async => e, where e has type Future<Future<int>>
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType futureIntType =
+        _typeProvider.futureType.substitute4(<DartType>[intType]);
+    InterfaceType futureFutureIntType =
+        _typeProvider.futureType.substitute4(<DartType>[futureIntType]);
+    Expression expression = _resolvedVariable(futureFutureIntType, 'e');
+    ExpressionFunctionBody body = AstFactory.expressionFunctionBody(expression);
+    body.keyword = TokenFactory.tokenFromString('async');
+    FunctionExpression node =
+        _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(futureIntType, null, null, null, resultType);
+    _listener.assertNoErrors();
+  }
+
   void test_visitFunctionExpression_generator_async() {
     // () async* {}
     BlockFunctionBody body = AstFactory.blockFunctionBody2();
@@ -10864,7 +10928,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         expect(namedTypes[name], same(type));
       });
     }
-    expect(functionType.returnType, same(expectedReturnType));
+    expect(functionType.returnType, equals(expectedReturnType));
   }
 
   void _assertType(InterfaceTypeImpl expectedType,

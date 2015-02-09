@@ -339,6 +339,22 @@ main() {
     verify([source]);
   }
 
+  void test_async_flattened() {
+    Source source = addSource('''
+import 'dart:async';
+typedef Future<int> CreatesFutureInt();
+main() {
+  CreatesFutureInt createFutureInt = () async => f();
+  Future<int> futureInt = createFutureInt();
+  futureInt.then((int i) => print(i));
+}
+Future<int> f() => null;
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_async_future_dynamic_with_return() {
     Source source = addSource('''
 import 'dart:async';

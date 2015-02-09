@@ -1433,7 +1433,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       type = _dynamicType;
     }
     if (body.isAsynchronous) {
-      return _typeProvider.futureType.substitute4(<DartType>[type]);
+      return _typeProvider.futureType.substitute4(
+          <DartType>[flattenFutures(_typeProvider, type)]);
     } else {
       return type;
     }
