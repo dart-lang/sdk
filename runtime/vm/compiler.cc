@@ -65,8 +65,9 @@ DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-DECLARE_FLAG(bool, trace_patching);
+DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
+DECLARE_FLAG(bool, trace_patching);
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
 // separate helpers functions & `optimizing` args.
@@ -461,7 +462,11 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       // Maps inline_id_to_function[inline_id] -> function. Top scope
       // function has inline_id 0. The map is populated by the inliner.
       GrowableArray<const Function*> inline_id_to_function;
+      // For a given inlining-id(index) specifies the caller's inlining-id.
+      GrowableArray<intptr_t> caller_inline_id;
       inline_id_to_function.Add(&function);
+      // Top scope function has no caller (-1).
+      caller_inline_id.Add(-1);
       // Collect all instance fields that are loaded in the graph and
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
@@ -479,7 +484,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        FlowGraphInliner::SetInliningId(*flow_graph, 0);
+        FlowGraphInliner::SetInliningId(flow_graph, 0);
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
@@ -493,7 +498,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           optimizer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-          FlowGraphInliner inliner(flow_graph, &inline_id_to_function);
+          FlowGraphInliner inliner(flow_graph,
+                                   &inline_id_to_function,
+                                   &caller_inline_id);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -686,10 +693,12 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
       }
 
+      ASSERT(inline_id_to_function.length() == caller_inline_id.length());
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(&assembler, flow_graph,
                                        *parsed_function, optimized,
-                                       inline_id_to_function);
+                                       inline_id_to_function,
+                                       caller_inline_id);
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphcompiler_timer,
@@ -705,6 +714,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
         code.set_inlined_intervals(graph_compiler.inlined_code_intervals());
+        code.set_inlined_id_to_function(
+            Array::Handle(graph_compiler.InliningIdToFunction()));
         graph_compiler.FinalizePcDescriptors(code);
         graph_compiler.FinalizeDeoptInfo(code);
         graph_compiler.FinalizeStackmaps(code);
@@ -937,6 +948,9 @@ static void DisassembleCode(const Function& function, bool optimized) {
     }
     ISL_Print("}\n");
   }
+  if (optimized && FLAG_trace_inlining_intervals) {
+    code.DumpInlinedIntervals();
+  }
 }
 
 
@@ -1010,7 +1024,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       DisassembleCode(function, true);
       ISL_Print("*** END CODE\n");
     }
-
     return Error::null();
   } else {
     Error& error = Error::Handle();

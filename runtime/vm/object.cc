@@ -12173,6 +12173,12 @@ void Code::set_inlined_intervals(const Array& value) const {
 }
 
 
+void Code::set_inlined_id_to_function(const Array& value) const {
+  ASSERT(value.IsOld());
+  StorePointer(&raw_ptr()->inlined_id_to_function_, value.raw());
+}
+
+
 RawCode* Code::New(intptr_t pointer_offsets_length) {
   if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
     // This should be caught before we reach here.
@@ -12526,6 +12532,22 @@ RawStackmap* Code::GetStackmap(
 }
 
 
+intptr_t Code::GetCallerId(intptr_t inlined_id) const {
+  if (inlined_id < 0) return -1;
+  const Array& intervals = Array::Handle(inlined_intervals());
+  Smi& temp_smi = Smi::Handle();
+  for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
+       i += Code::kInlIntNumEntries) {
+    temp_smi ^= intervals.At(i + Code::kInlIntInliningId);
+    if (temp_smi.Value() == inlined_id) {
+      temp_smi ^= intervals.At(i + Code::kInlIntCallerId);
+      return temp_smi.Value();
+    }
+  }
+  return -1;
+}
+
+
 void Code::GetInlinedFunctionsAt(
     intptr_t offset, GrowableArray<Function*>* fs) const {
   fs->Clear();
@@ -12534,18 +12556,37 @@ void Code::GetInlinedFunctionsAt(
     // E.g., for code stubs.
     return;
   }
+  // First find the right interval. TODO(srdjan): use binary search since
+  // intervals are sorted.
   Smi& start = Smi::Handle();
   Smi& end = Smi::Handle();
-  Function& function = Function::Handle();
-  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
+  intptr_t found_interval_ix = intervals.Length() - Code::kInlIntNumEntries;
+  for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
+       i += Code::kInlIntNumEntries) {
     start ^= intervals.At(i + Code::kInlIntStart);
     if (!start.IsNull()) {
-      end ^= intervals.At(i + Code::kInlIntEnd);
+      end ^= intervals.At(i + Code::kInlIntNumEntries + Code::kInlIntStart);
       if ((start.Value() <= offset) && (offset < end.Value())) {
-        function ^= intervals.At(i + Code::kInlIntFunction);
-        fs->Add(&Function::ZoneHandle(function.raw()));
+        found_interval_ix = i;
+        break;
       }
     }
+  }
+
+  // Find all functions.
+  const Array& id_map = Array::Handle(inlined_id_to_function());
+  Smi& temp_smi = Smi::Handle();
+  temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntInliningId);
+  intptr_t inlining_id = temp_smi.Value();
+  ASSERT(inlining_id >= 0);
+  temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntCallerId);
+  intptr_t caller_id = temp_smi.Value();
+  while (inlining_id >= 0) {
+    Function& function = Function::ZoneHandle();
+    function  ^= id_map.At(inlining_id);
+    fs->Add(&function);
+    inlining_id = caller_id;
+    caller_id = GetCallerId(inlining_id);
   }
 }
 
@@ -12554,15 +12595,24 @@ void Code::DumpInlinedIntervals() const {
   OS::Print("Inlined intervals:\n");
   const Array& intervals = Array::Handle(inlined_intervals());
   Smi& start = Smi::Handle();
-  Smi& end = Smi::Handle();
-  Function& function = Function::Handle();
+  Smi& inlining_id = Smi::Handle();
+  Smi& caller_id = Smi::Handle();
   for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
     start ^= intervals.At(i + Code::kInlIntStart);
-    if (!start.IsNull()) {
-      end ^= intervals.At(i + Code::kInlIntEnd);
-      function ^= intervals.At(i + Code::kInlIntFunction);
-      OS::Print("%" Pd " .. %" Pd " %s\n",
-          start.Value(), end.Value(), function.ToQualifiedCString());
+    ASSERT(!start.IsNull());
+    if (start.IsNull()) continue;
+    inlining_id ^= intervals.At(i + Code::kInlIntInliningId);
+    caller_id ^= intervals.At(i + Code::kInlIntCallerId);
+    OS::Print("  %" Px " id: %" Pd " caller-id: %" Pd " \n",
+        start.Value(), inlining_id.Value(), caller_id.Value());
+  }
+  OS::Print("Inlined ids:\n");
+  const Array& id_map = Array::Handle(inlined_id_to_function());
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < id_map.Length(); i++) {
+    function ^= id_map.At(i);
+    if (!function.IsNull()) {
+      OS::Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
     }
   }
 }

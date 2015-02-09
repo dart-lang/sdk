@@ -27,30 +27,33 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, trace_inlining_intervals, false,
+    "Inlining interval diagnostics");
+DEFINE_FLAG(bool, enable_simd_inline, true,
+    "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
+    "The minimum invocation count for a function.");
+DEFINE_FLAG(int, optimization_counter_scale, 2000,
+    "The scale of invocation count, by size of the function.");
+DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
+
 DECLARE_FLAG(bool, code_comments);
+DECLARE_FLAG(int, deoptimize_every);
+DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
-DEFINE_FLAG(int, optimization_counter_scale, 2000,
-    "The scale of invocation count, by size of the function.");
-DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
-    "The minimum invocation count for a function.");
 DECLARE_FLAG(int, reoptimization_counter_threshold);
-DECLARE_FLAG(bool, use_cha);
-DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
-DECLARE_FLAG(int, deoptimize_every);
-DECLARE_FLAG(charp, deoptimize_filter);
+DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DEFINE_FLAG(bool, enable_simd_inline, true,
-    "Enable inlining of SIMD related method calls.");
-DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
 // Quick access to the locally defined isolate() method.
 #define I (isolate())
@@ -90,7 +93,8 @@ FlowGraphCompiler::FlowGraphCompiler(
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
-    const GrowableArray<const Function*>& inline_id_to_function)
+    const GrowableArray<const Function*>& inline_id_to_function,
+    const GrowableArray<intptr_t>& caller_inline_id)
       : isolate_(Isolate::Current()),
         assembler_(assembler),
         parsed_function_(parsed_function),
@@ -128,7 +132,8 @@ FlowGraphCompiler::FlowGraphCompiler(
         lazy_deopt_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
         inlined_code_intervals_(NULL),
-        inline_id_to_function_(inline_id_to_function) {
+        inline_id_to_function_(inline_id_to_function),
+        caller_inline_id_(caller_inline_id) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
   if (!is_optimizing) {
@@ -353,10 +358,11 @@ static void LoopInfoComment(
 struct IntervalStruct {
   // 'start' and 'end' are pc-offsets.
   intptr_t start;
-  intptr_t end;
   intptr_t inlining_id;
-  IntervalStruct(intptr_t s, intptr_t e, intptr_t id)
-      : start(s), end(e), inlining_id(id) {}
+  IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
+  void Dump() {
+    OS::Print("start: %" Px " id: %" Pd "",  start, inlining_id);
+  }
 };
 
 
@@ -395,7 +401,6 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->has_inlining_id() && is_optimizing()) {
         if (prev_inlining_id != instr->inlining_id()) {
           intervals.Add(IntervalStruct(prev_offset,
-                                       assembler()->CodeSize(),
                                        prev_inlining_id));
           prev_offset = assembler()->CodeSize();
           prev_inlining_id = instr->inlining_id();
@@ -425,53 +430,51 @@ void FlowGraphCompiler::VisitBlocks() {
     }
   }
 
-  intervals.Add(IntervalStruct(prev_offset, assembler()->CodeSize(),
-                               prev_inlining_id));
-  // Note that ranges [start..end] must be monotonically increasing in
-  // 'intervals' array.
-  inlined_code_intervals_ = &Array::ZoneHandle(Array::New(
-      (max_inlining_id + 1) * Code::kInlIntNumEntries, Heap::kOld));
+  if (inline_id_to_function_.length() > max_inlining_id + 1) {
+    // TODO(srdjan): Some inlined function can disappear,
+    // truncate 'inline_id_to_function_'.
+  }
 
+  intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+  inlined_code_intervals_ = &Array::ZoneHandle(Array::New(
+      intervals.length() * Code::kInlIntNumEntries, Heap::kOld));
   Smi& start_h = Smi::Handle();
-  Smi& end_h = Smi::Handle();
+  Smi& caller_inline_id = Smi::Handle();
+  Smi& inline_id = Smi::Handle();
   for (intptr_t i = 0; i < intervals.length(); i++) {
-    const intptr_t id = intervals[i].inlining_id;
-    end_h = Smi::New(intervals[i].end);
-    if (inlined_code_intervals_->At
-          (id * Code::kInlIntNumEntries + Code::kInlIntFunction) ==
-        Object::null()) {
-      start_h = Smi::New(intervals[i].start);
-      inlined_code_intervals_->SetAt(
-          id * Code::kInlIntNumEntries + Code::kInlIntStart, start_h);
-      inlined_code_intervals_->SetAt(
-          id * Code::kInlIntNumEntries + Code::kInlIntEnd, end_h);
+    if (FLAG_trace_inlining_intervals && is_optimizing()) {
       const Function* function =
           inline_id_to_function_.At(intervals[i].inlining_id);
-      inlined_code_intervals_->SetAt(
-          id * Code::kInlIntNumEntries + Code::kInlIntFunction, *function);
-    } else {
-      // Check for monotonic increase.
-#if defined(DEBUG)
-      Smi& temp = Smi::Handle();
-      temp ^= inlined_code_intervals_->At(
-          id *  Code::kInlIntNumEntries + Code::kInlIntStart);
-      start_h = Smi::New(intervals[i].start);
-      ASSERT(temp.Value() <= start_h.Value());
-      temp ^= inlined_code_intervals_->At(
-          id * Code::kInlIntNumEntries + Code::kInlIntEnd);
-      ASSERT(temp.Value() <= end_h.Value());
-      const Function* function =
-          inline_id_to_function_.At(intervals[i].inlining_id);
-      Function& f = Function::Handle();
-      f ^= inlined_code_intervals_->At(
-          id * Code::kInlIntNumEntries + Code::kInlIntFunction);
-      ASSERT(function->raw() == f.raw());
-#endif
-      inlined_code_intervals_->SetAt(
-          id * Code::kInlIntNumEntries + Code::kInlIntEnd, end_h);
+      intervals[i].Dump();
+      OS::Print(" %s parent %" Pd "\n",
+          function->ToQualifiedCString(),
+          caller_inline_id_[intervals[i].inlining_id]);
     }
+    const intptr_t id = intervals[i].inlining_id;
+    start_h = Smi::New(intervals[i].start);
+    inline_id = Smi::New(id);
+    caller_inline_id = Smi::New(caller_inline_id_[intervals[i].inlining_id]);
+
+    const intptr_t p = i * Code::kInlIntNumEntries;
+    inlined_code_intervals_->SetAt(p + Code::kInlIntStart, start_h);
+    inlined_code_intervals_->SetAt(p + Code::kInlIntInliningId, inline_id);
+    inlined_code_intervals_->SetAt(p + Code::kInlIntCallerId, caller_inline_id);
   }
   set_current_block(NULL);
+  if (FLAG_trace_inlining_intervals && is_optimizing()) {
+    OS::Print("Intervals:\n");
+    Smi& temp = Smi::Handle();
+    for (intptr_t i = 0; i < inlined_code_intervals_->Length();
+         i += Code::kInlIntNumEntries) {
+      temp ^= inlined_code_intervals_->At(i + Code::kInlIntStart);
+      ASSERT(!temp.IsNull());
+      OS::Print("% " Pd " start: %" Px " ", i, temp.Value());
+      temp ^= inlined_code_intervals_->At(i + Code::kInlIntInliningId);
+      OS::Print("inl-id: %" Pd " ", temp.Value());
+      temp ^= inlined_code_intervals_->At(i + Code::kInlIntCallerId);
+      OS::Print("caller-id: %" Pd " \n", temp.Value());
+    }
+  }
 }
 
 
@@ -1578,6 +1581,16 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
       UNREACHABLE();
       return Class::ZoneHandle();
   }
+}
+
+
+RawArray* FlowGraphCompiler::InliningIdToFunction() const {
+  const Array& res = Array::Handle(
+      Array::New(inline_id_to_function_.length(), Heap::kOld));
+  for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
+    res.SetAt(i, *inline_id_to_function_[i]);
+  }
+  return res.raw();
 }
 
 

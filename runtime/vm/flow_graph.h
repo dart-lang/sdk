@@ -287,6 +287,9 @@ class FlowGraph : public ZoneAllocated {
     return captured_parameters_;
   }
 
+  intptr_t inlining_id() const { return inlining_id_; }
+  void set_inlining_id(intptr_t value) { inlining_id_ = value; }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -363,6 +366,8 @@ class FlowGraph : public ZoneAllocated {
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;
+
+  intptr_t inlining_id_;
 };
 
 

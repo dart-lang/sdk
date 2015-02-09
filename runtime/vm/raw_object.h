@@ -951,6 +951,7 @@ class RawCode : public RawObject {
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* inlined_intervals_;
+  RawArray* inlined_id_to_function_;
   RawArray* comments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);

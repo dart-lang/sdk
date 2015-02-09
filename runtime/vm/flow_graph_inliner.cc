@@ -192,30 +192,33 @@ class CallSites : public ValueObject {
   struct InstanceCallInfo {
     PolymorphicInstanceCallInstr* call;
     double ratio;
-    const Function* caller;
+    const FlowGraph* caller_graph;
     InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg,
                      FlowGraph* flow_graph)
         : call(call_arg),
           ratio(0.0),
-          caller(&flow_graph->function()) {}
+          caller_graph(flow_graph) {}
+    const Function& caller() const { return caller_graph->function(); }
   };
 
   struct StaticCallInfo {
     StaticCallInstr* call;
     double ratio;
-    const Function* caller;
+    FlowGraph* caller_graph;
     StaticCallInfo(StaticCallInstr* value, FlowGraph* flow_graph)
         : call(value),
           ratio(0.0),
-          caller(&flow_graph->function()) {}
+          caller_graph(flow_graph) {}
+    const Function& caller() const { return caller_graph->function(); }
   };
 
   struct ClosureCallInfo {
     ClosureCallInstr* call;
-    const Function* caller;
+    FlowGraph* caller_graph;
     ClosureCallInfo(ClosureCallInstr* value, FlowGraph* flow_graph)
         : call(value),
-          caller(&flow_graph->function()) {}
+          caller_graph(flow_graph) {}
+    const Function& caller() const { return caller_graph->function(); }
   };
 
   const GrowableArray<InstanceCallInfo>& instance_calls() const {
@@ -404,13 +407,15 @@ class CallSites : public ValueObject {
 struct InlinedCallData {
   InlinedCallData(Definition* call,
                   GrowableArray<Value*>* arguments,
-                  const Function& caller)
+                  const Function& caller,
+                  intptr_t caller_inlining_id)
       : call(call),
         arguments(arguments),
         callee_graph(NULL),
         parameter_stubs(NULL),
         exit_collector(NULL),
-        caller(caller) { }
+        caller(caller),
+        caller_inlining_id_(caller_inlining_id) { }
 
   Definition* call;
   GrowableArray<Value*>* arguments;
@@ -418,6 +423,7 @@ struct InlinedCallData {
   ZoneGrowableArray<Definition*>* parameter_stubs;
   InlineExitCollector* exit_collector;
   const Function& caller;
+  const intptr_t caller_inlining_id_;
 };
 
 
@@ -427,7 +433,8 @@ class PolymorphicInliner : public ValueObject {
  public:
   PolymorphicInliner(CallSiteInliner* owner,
                      PolymorphicInstanceCallInstr* call,
-                     const Function& caller_function);
+                     const Function& caller_function,
+                     intptr_t caller_inlining_id);
 
   void Inline();
 
@@ -454,6 +461,7 @@ class PolymorphicInliner : public ValueObject {
   InlineExitCollector* exit_collector_;
 
   const Function& caller_function_;
+  const intptr_t caller_inlining_id_;
 };
 
 
@@ -852,8 +860,9 @@ class CallSiteInliner : public ValueObject {
       // caller's list of deferred prefixes.
       caller_graph()->AddToDeferredPrefixes(callee_graph->deferred_prefixes());
 
-      FlowGraphInliner::SetInliningId(*callee_graph,
-          inliner_->NextInlineId(callee_graph->function()));
+      FlowGraphInliner::SetInliningId(callee_graph,
+          inliner_->NextInlineId(callee_graph->function(),
+                                 call_data->caller_inlining_id_));
       // We allocate a ZoneHandle for the unoptimized code so that it cannot be
       // disconnected from its function during the rest of compilation.
       Code::ZoneHandle(unoptimized_code.raw());
@@ -1054,14 +1063,16 @@ class CallSiteInliner : public ValueObject {
             target.deoptimization_counter(),
             call_info[call_idx].ratio));
         PRINT_INLINING_TREE("Too cold",
-            call_info[call_idx].caller, &call->function(), call);
+            &call_info[call_idx].caller(), &call->function(), call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
-      InlinedCallData call_data(call, &arguments, *call_info[call_idx].caller);
+      InlinedCallData call_data(
+          call, &arguments, call_info[call_idx].caller(),
+          call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
         InlineCall(&call_data);
       }
@@ -1100,7 +1111,9 @@ class CallSiteInliner : public ValueObject {
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
-      InlinedCallData call_data(call, &arguments, *call_info[call_idx].caller);
+      InlinedCallData call_data(
+          call, &arguments, call_info[call_idx].caller(),
+          call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target,
                       call->argument_names(),
                       &call_data)) {
@@ -1117,8 +1130,10 @@ class CallSiteInliner : public ValueObject {
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
-        const Function& cl = *call_info[call_idx].caller;
-        PolymorphicInliner inliner(this, call, cl);
+        const Function& cl = call_info[call_idx].caller();
+        intptr_t caller_inlining_id =
+            call_info[call_idx].caller_graph->inlining_id();
+        PolymorphicInliner inliner(this, call, cl, caller_inlining_id);
         inliner.Inline();
         continue;
       }
@@ -1133,14 +1148,16 @@ class CallSiteInliner : public ValueObject {
             target.deoptimization_counter(),
             call_info[call_idx].ratio));
         PRINT_INLINING_TREE("Too cold",
-            call_info[call_idx].caller, &target, call);
+            &call_info[call_idx].caller(), &target, call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int arg_i = 0; arg_i < call->ArgumentCount(); ++arg_i) {
         arguments.Add(call->PushArgumentAt(arg_i)->value());
       }
-      InlinedCallData call_data(call, &arguments, *call_info[call_idx].caller);
+      InlinedCallData call_data(
+          call, &arguments, call_info[call_idx].caller(),
+          call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target,
                       call->instance_call()->argument_names(),
                       &call_data)) {
@@ -1260,7 +1277,8 @@ class CallSiteInliner : public ValueObject {
 
 PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
                                        PolymorphicInstanceCallInstr* call,
-                                       const Function& caller_function)
+                                       const Function& caller_function,
+                                       intptr_t caller_inlining_id)
     : owner_(owner),
       call_(call),
       num_variants_(call->ic_data().NumberOfChecks()),
@@ -1270,7 +1288,8 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       inlined_entries_(num_variants_),
       exit_collector_(new(Z)
           InlineExitCollector(owner->caller_graph(), call)),
-      caller_function_(caller_function) {
+      caller_function_(caller_function),
+      caller_inlining_id_(caller_inlining_id) {
 }
 
 
@@ -1368,7 +1387,9 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());
   }
-  InlinedCallData call_data(call_, &arguments, caller_function_);
+  InlinedCallData call_data(call_, &arguments,
+                            caller_function_,
+                            caller_inlining_id_);
   if (!owner_->TryInlining(target,
                            call_->instance_call()->argument_names(),
                            &call_data)) {
@@ -1746,9 +1767,11 @@ static bool ShouldTraceInlining(FlowGraph* flow_graph) {
 
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
-    GrowableArray<const Function*>* inline_id_to_function)
+    GrowableArray<const Function*>* inline_id_to_function,
+    GrowableArray<intptr_t>* caller_inline_id)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
+      caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)) {
 }
 
@@ -1767,9 +1790,13 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
 
 
 // TODO(srdjan): This is only needed when disassembling and/or profiling.
-void FlowGraphInliner::SetInliningId(const FlowGraph& flow_graph,
+// Sets inlining id for all instructions of this flow-graph, as well for the
+// FlowGraph itself.
+void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
                                      intptr_t inlining_id) {
-  for (BlockIterator block_it = flow_graph.postorder_iterator();
+  ASSERT(flow_graph->inlining_id() < 0);
+  flow_graph->set_inlining_id(inlining_id);
+  for (BlockIterator block_it = flow_graph->postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
     for (ForwardInstructionIterator it(block_it.Current());
@@ -1846,9 +1873,11 @@ void FlowGraphInliner::Inline() {
 }
 
 
-intptr_t FlowGraphInliner::NextInlineId(const Function& function) {
+intptr_t FlowGraphInliner::NextInlineId(const Function& function,
+                                        intptr_t parent_id) {
   const intptr_t id = inline_id_to_function_->length();
   inline_id_to_function_->Add(&function);
+  caller_inline_id_->Add(parent_id);
   return id;
 }
 

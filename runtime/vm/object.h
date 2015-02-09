@@ -4043,15 +4043,20 @@ class Code : public Object {
 
   enum InlinedIntervalEntries {
     kInlIntStart = 0,
-    kInlIntEnd = 1,
-    kInlIntFunction = 2,
-    kInlIntNumEntries = 3
+    kInlIntInliningId = 1,
+    kInlIntCallerId = 2,
+    kInlIntNumEntries = 3,
   };
 
   RawArray* inlined_intervals() const {
     return raw_ptr()->inlined_intervals_;
   }
   void set_inlined_intervals(const Array& value) const;
+
+  RawArray* inlined_id_to_function() const {
+    return raw_ptr()->inlined_id_to_function_;
+  }
+  void set_inlined_id_to_function(const Array& value) const;
 
   void GetInlinedFunctionsAt(
       intptr_t offset, GrowableArray<Function*>* fs) const;
@@ -4232,6 +4237,9 @@ class Code : public Object {
     NoGCScope no_gc;
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
+
+  // Currently slow, as it searches linearly through inlined_intervals().
+  intptr_t GetCallerId(intptr_t inlined_id) const;
 
   intptr_t BinarySearchInSCallTable(uword pc) const;
   static RawCode* LookupCodeInIsolate(Isolate* isolate, uword pc);

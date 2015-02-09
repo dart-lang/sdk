@@ -17,19 +17,20 @@ class Function;
 class FlowGraphInliner : ValueObject {
  public:
   FlowGraphInliner(FlowGraph* flow_graph,
-                   GrowableArray<const Function*>* inline_id_to_function);
+                   GrowableArray<const Function*>* inline_id_to_function,
+                   GrowableArray<intptr_t>* caller_inline_id);
 
   // The flow graph is destructively updated upon inlining.
   void Inline();
 
   // Compute graph info if it was not already computed or if 'force' is true.
   static void CollectGraphInfo(FlowGraph* flow_graph, bool force = false);
-  static void SetInliningId(const FlowGraph& flow_graph, intptr_t inlining_id);
+  static void SetInliningId(FlowGraph* flow_graph, intptr_t inlining_id);
 
   bool AlwaysInline(const Function& function);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
-  intptr_t NextInlineId(const Function& function);
+  intptr_t NextInlineId(const Function& function, intptr_t caller_id);
 
   bool trace_inlining() const { return trace_inlining_; }
 
@@ -38,6 +39,7 @@ class FlowGraphInliner : ValueObject {
 
   FlowGraph* flow_graph_;
   GrowableArray<const Function*>* inline_id_to_function_;
+  GrowableArray<intptr_t>* caller_inline_id_;
   const bool trace_inlining_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);

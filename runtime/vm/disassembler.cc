@@ -141,15 +141,19 @@ void Disassembler::Disassemble(uword start,
     if (old_comment_finger != comment_finger) {
       // Comment emitted, emit inlining information.
       code.GetInlinedFunctionsAt(offset, &inlined_functions);
-      // Skip top scope function printing.
-      for (intptr_t i = 1; i < inlined_functions.length(); i++) {
-        if (i == 1) {
-          formatter->Print("        ;; Inlined ");
+      // Skip top scope function printing (last entry in 'inlined_functions').
+      bool first = true;
+      for (intptr_t i = inlined_functions.length() - 2; i >= 0; i--) {
+        const char* name = inlined_functions[i]->ToQualifiedCString();
+        if (first) {
+          formatter->Print("        ;; Inlined [%s", name);
+          first = false;
+        } else {
+          formatter->Print(" -> %s", name);
         }
-        formatter->Print("-> %s ", inlined_functions[i]->ToQualifiedCString());
       }
-      if (inlined_functions.length() > 1) {
-        formatter->Print("\n");
+      if (!first) {
+        formatter->Print("]\n");
       }
     }
     int instruction_length;
