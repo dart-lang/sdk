@@ -472,30 +472,9 @@ void Assembler::LoadObject(Register rd, const Object& object) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset =
-        Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
-    LoadWordFromPoolOffset(rd, offset);
+        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
+    LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
   }
-}
-
-
-int32_t Assembler::AddObject(const Object& obj) {
-  ASSERT(obj.IsNotTemporaryScopedHandle());
-  ASSERT(obj.IsOld());
-  if (object_pool_.IsNull()) {
-    // The object pool cannot be used in the vm isolate.
-    ASSERT(Isolate::Current() != Dart::vm_isolate());
-    object_pool_ = GrowableObjectArray::New(Heap::kOld);
-  }
-
-  intptr_t index = object_pool_index_table_.Lookup(&obj);
-  if (index != ObjIndexPair::kNoIndex) {
-    return index;
-  }
-
-  object_pool_.Add(obj, Heap::kOld);
-  object_pool_index_table_.Insert(
-      ObjIndexPair(&obj, object_pool_.Length() - 1));
-  return object_pool_.Length() - 1;
 }
 
 
@@ -1153,23 +1132,6 @@ void Assembler::LeaveCallRuntimeFrame() {
     lwc1(reg, Address(SP, slot * kWordSize));
   }
   addiu(SP, SP, Immediate(kPushedRegistersSize));
-}
-
-
-int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
-  if (object_pool_.IsNull()) {
-    // The object pool cannot be used in the vm isolate.
-    ASSERT(Isolate::Current() != Dart::vm_isolate());
-    object_pool_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  const word address = label->address();
-  ASSERT(Utils::IsAligned(address, 4));
-  // The address is stored in the object array as a RawSmi.
-  const Smi& smi = Smi::Handle(Smi::New(address >> kSmiTagShift));
-  // Do not reuse an existing entry, since each reference may be patched
-  // independently.
-  object_pool_.Add(smi, Heap::kOld);
-  return object_pool_.Length() - 1;
 }
 
 

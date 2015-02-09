@@ -241,4 +241,63 @@ const Code::Comments& Assembler::GetCodeComments() const {
   return comments;
 }
 
+
+intptr_t ObjectPool::AddObject(const Object& obj, Patchability patchable) {
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  if (object_pool_.IsNull()) {
+    // The object pool cannot be used in the vm isolate.
+    object_pool_ = GrowableObjectArray::New(Heap::kOld);
+  }
+  object_pool_.Add(obj, Heap::kOld);
+  patchable_pool_entries_.Add(patchable);
+  if (patchable == kNotPatchable) {
+    // The object isn't patchable. Record the index for fast lookup.
+    object_pool_index_table_.Insert(
+        ObjIndexPair(&obj, object_pool_.Length() - 1));
+  }
+  return object_pool_.Length() - 1;
+}
+
+
+intptr_t ObjectPool::AddExternalLabel(const ExternalLabel* label,
+                                      Patchability patchable) {
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  const uword address = label->address();
+  ASSERT(Utils::IsAligned(address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
+  return AddObject(smi, patchable);
+}
+
+
+intptr_t ObjectPool::FindObject(const Object& obj, Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+
+  // If the object is not patchable, check if we've already got it in the
+  // object pool.
+  if (patchable == kNotPatchable && !object_pool_.IsNull()) {
+    intptr_t idx = object_pool_index_table_.Lookup(&obj);
+    if (idx != ObjIndexPair::kNoIndex) {
+      ASSERT(patchable_pool_entries_[idx] == kNotPatchable);
+      return idx;
+    }
+  }
+
+  return AddObject(obj, patchable);
+}
+
+
+intptr_t ObjectPool::FindExternalLabel(const ExternalLabel* label,
+                                       Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  const uword address = label->address();
+  ASSERT(Utils::IsAligned(address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
+  return FindObject(smi, patchable);
+}
+
+
 }  // namespace dart

@@ -27,73 +27,61 @@ DECLARE_FLAG(bool, inline_alloc);
 
 Assembler::Assembler(bool use_far_branches)
     : buffer_(),
-      object_pool_(GrowableObjectArray::Handle()),
-      patchable_pool_entries_(),
       prologue_offset_(-1),
       use_far_branches_(use_far_branches),
       comments_(),
       allow_constant_pool_(true) {
   if (Isolate::Current() != Dart::vm_isolate()) {
-    object_pool_ = GrowableObjectArray::New(Heap::kOld);
-
     // These objects and labels need to be accessible through every pool-pointer
     // at the same index.
-    object_pool_.Add(Object::null_object(), Heap::kOld);
-    patchable_pool_entries_.Add(kNotPatchable);
-    object_pool_index_table_.Insert(ObjIndexPair(&Object::null_object(), 0));
+    intptr_t index =
+        object_pool_.AddObject(Object::null_object(), kNotPatchable);
+    ASSERT(index == 0);
 
-    object_pool_.Add(Bool::True(), Heap::kOld);
-    patchable_pool_entries_.Add(kNotPatchable);
-    object_pool_index_table_.Insert(ObjIndexPair(&Bool::True(), 1));
+    index = object_pool_.AddObject(Bool::True(), kNotPatchable);
+    ASSERT(index == 1);
 
-    object_pool_.Add(Bool::False(), Heap::kOld);
-    patchable_pool_entries_.Add(kNotPatchable);
-    object_pool_index_table_.Insert(ObjIndexPair(&Bool::False(), 2));
+    index = object_pool_.AddObject(Bool::False(), kNotPatchable);
+    ASSERT(index == 2);
 
     const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
     StubCode* stub_code = Isolate::Current()->stub_code();
-
     if (stub_code->UpdateStoreBuffer_entry() != NULL) {
-      FindExternalLabel(&stub_code->UpdateStoreBufferLabel(), kNotPatchable);
+      object_pool_.AddExternalLabel(
+          &stub_code->UpdateStoreBufferLabel(), kNotPatchable);
     } else {
-      object_pool_.Add(vacant, Heap::kOld);
-      patchable_pool_entries_.Add(kNotPatchable);
+      object_pool_.AddObject(vacant, kNotPatchable);
     }
 
     if (stub_code->CallToRuntime_entry() != NULL) {
-      FindExternalLabel(&stub_code->CallToRuntimeLabel(), kNotPatchable);
+      object_pool_.AddExternalLabel(
+          &stub_code->CallToRuntimeLabel(), kNotPatchable);
     } else {
-      object_pool_.Add(vacant, Heap::kOld);
-      patchable_pool_entries_.Add(kNotPatchable);
+      object_pool_.AddObject(vacant, kNotPatchable);
     }
 
     // Create fixed object pool entries for debugger stubs.
     if (stub_code->ICCallBreakpoint_entry() != NULL) {
       intptr_t index =
-          FindExternalLabel(&stub_code->ICCallBreakpointLabel(),
-                            kNotPatchable);
+          object_pool_.AddExternalLabel(&stub_code->ICCallBreakpointLabel(),
+                                        kNotPatchable);
       ASSERT(index == kICCallBreakpointCPIndex);
     } else {
-      object_pool_.Add(vacant, Heap::kOld);
-      patchable_pool_entries_.Add(kNotPatchable);
+      object_pool_.AddObject(vacant, kNotPatchable);
     }
     if (stub_code->ClosureCallBreakpoint_entry() != NULL) {
-      intptr_t index =
-          FindExternalLabel(&stub_code->ClosureCallBreakpointLabel(),
-                            kNotPatchable);
+      intptr_t index = object_pool_.AddExternalLabel(
+          &stub_code->ClosureCallBreakpointLabel(), kNotPatchable);
       ASSERT(index == kClosureCallBreakpointCPIndex);
     } else {
-      object_pool_.Add(vacant, Heap::kOld);
-      patchable_pool_entries_.Add(kNotPatchable);
+      object_pool_.AddObject(vacant, kNotPatchable);
     }
     if (stub_code->RuntimeCallBreakpoint_entry() != NULL) {
-      intptr_t index =
-          FindExternalLabel(&stub_code->RuntimeCallBreakpointLabel(),
-                            kNotPatchable);
+      intptr_t index = object_pool_.AddExternalLabel(
+          &stub_code->RuntimeCallBreakpointLabel(), kNotPatchable);
       ASSERT(index == kRuntimeCallBreakpointCPIndex);
     } else {
-      object_pool_.Add(vacant, Heap::kOld);
-      patchable_pool_entries_.Add(kNotPatchable);
+      object_pool_.AddObject(vacant, kNotPatchable);
     }
   }
 }
@@ -424,59 +412,10 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, Register pp,
 }
 
 
-intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
-                                      Patchability patchable) {
-  // The object pool cannot be used in the vm isolate.
-  ASSERT(Isolate::Current() != Dart::vm_isolate());
-  ASSERT(!object_pool_.IsNull());
-  const uword address = label->address();
-  ASSERT(Utils::IsAligned(address, 4));
-  // The address is stored in the object array as a RawSmi.
-  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
-  if (patchable == kNotPatchable) {
-    // If the call site is not patchable, we can try to re-use an existing
-    // entry.
-    return FindObject(smi, kNotPatchable);
-  }
-  // If the call is patchable, do not reuse an existing entry since each
-  // reference may be patched independently.
-  object_pool_.Add(smi, Heap::kOld);
-  patchable_pool_entries_.Add(patchable);
-  return object_pool_.Length() - 1;
-}
-
-
-intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
-  // The object pool cannot be used in the vm isolate.
-  ASSERT(Isolate::Current() != Dart::vm_isolate());
-  ASSERT(!object_pool_.IsNull());
-
-  // If the object is not patchable, check if we've already got it in the
-  // object pool.
-  if (patchable == kNotPatchable) {
-    intptr_t idx = object_pool_index_table_.Lookup(&obj);
-    if (idx != ObjIndexPair::kNoIndex) {
-      ASSERT(patchable_pool_entries_[idx] == kNotPatchable);
-      return idx;
-    }
-  }
-
-  object_pool_.Add(obj, Heap::kOld);
-  patchable_pool_entries_.Add(patchable);
-  if (patchable == kNotPatchable) {
-    // The object isn't patchable. Record the index for fast lookup.
-    object_pool_index_table_.Insert(
-        ObjIndexPair(&obj, object_pool_.Length() - 1));
-  }
-  return object_pool_.Length() - 1;
-}
-
-
 intptr_t Assembler::FindImmediate(int64_t imm) {
   ASSERT(Isolate::Current() != Dart::vm_isolate());
-  ASSERT(!object_pool_.IsNull());
   const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(imm));
-  return FindObject(smi, kNotPatchable);
+  return object_pool_.FindObject(smi, kNotPatchable);
 }
 
 
@@ -527,7 +466,7 @@ void Assembler::LoadExternalLabel(Register dst,
   const int64_t target = static_cast<int64_t>(label->address());
   if (CanLoadImmediateFromPool(target, pp)) {
     const int32_t offset =
-        Array::element_offset(FindExternalLabel(label, patchable));
+        Array::element_offset(object_pool_.FindExternalLabel(label, patchable));
     LoadWordFromPoolOffset(dst, pp, offset);
   } else {
     LoadImmediate(dst, target, kNoPP);
@@ -540,7 +479,7 @@ void Assembler::LoadExternalLabelFixed(Register dst,
                                        Patchability patchable,
                                        Register pp) {
   const int32_t offset =
-      Array::element_offset(FindExternalLabel(label, patchable));
+      Array::element_offset(object_pool_.FindExternalLabel(label, patchable));
   LoadWordFromPoolOffsetFixed(dst, pp, offset);
 }
 
@@ -553,7 +492,7 @@ void Assembler::LoadIsolate(Register dst, Register pp) {
 void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
   if (CanLoadObjectFromPool(object)) {
     const int32_t offset =
-        Array::element_offset(FindObject(object, kNotPatchable));
+        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
     LoadWordFromPoolOffset(dst, pp, offset);
   } else {
     ASSERT((Isolate::Current() == Dart::vm_isolate()) ||

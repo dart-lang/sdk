@@ -316,7 +316,6 @@ class Assembler : public ValueObject {
  public:
   explicit Assembler(bool use_far_branches = false)
       : buffer_(),
-        object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
         use_far_branches_(use_far_branches),
         comments_(),
@@ -341,7 +340,7 @@ class Assembler : public ValueObject {
     ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const { return object_pool_; }
+  const GrowableObjectArray& object_pool() const { return object_pool_.data(); }
 
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -646,7 +645,6 @@ class Assembler : public ValueObject {
   // Load and Store.
   // These three do not clobber IP.
   void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
-  void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
@@ -959,10 +957,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
-
-  // Hashmap for fast lookup in object pool.
-  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+  ObjectPool object_pool_;  // Objects and patchable jump targets.
 
   int32_t prologue_offset_;
 
@@ -972,9 +967,6 @@ class Assembler : public ValueObject {
   // instead LoadImmediate should probably be used.
   void movw(Register rd, uint16_t imm16, Condition cond = AL);
   void movt(Register rd, uint16_t imm16, Condition cond = AL);
-
-  int32_t AddObject(const Object& obj);
-  int32_t AddExternalLabel(const ExternalLabel* label);
 
   void BindARMv6(Label* label);
   void BindARMv7(Label* label);

@@ -1587,8 +1587,8 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset =
-        Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
-    LoadWordFromPoolOffset(rd, offset, cond);
+        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
+    LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
   }
 }
 
@@ -2673,8 +2673,8 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset =
-      Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-  LoadWordFromPoolOffset(LR, offset);
+      Array::element_offset(object_pool_.FindExternalLabel(label, kPatchable));
+  LoadWordFromPoolOffset(LR, offset - kHeapObjectTag);
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -2710,22 +2710,6 @@ void Assembler::LoadPatchableImmediate(
 }
 
 
-void Assembler::LoadDecodableImmediate(
-    Register rd, int32_t value, Condition cond) {
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if ((version == ARMv5TE) || (version == ARMv6)) {
-    LoadPatchableImmediate(rd, value, cond);
-  } else {
-    ASSERT(version == ARMv7);
-    movw(rd, Utils::Low16Bits(value), cond);
-    const uint16_t value_high = Utils::High16Bits(value);
-    if (value_high != 0) {
-      movt(rd, value_high, cond);
-    }
-  }
-}
-
-
 void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -2733,7 +2717,7 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   } else if (Operand::CanHold(~value, &o)) {
     mvn(rd, o, cond);
   } else {
-    LoadDecodableImmediate(rd, value, cond);
+    LoadPatchableImmediate(rd, value, cond);
   }
 }
 
@@ -3019,7 +3003,7 @@ void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       sub(rd, rn, Operand(IP), cond);
     } else {
-      LoadDecodableImmediate(IP, value, cond);
+      LoadPatchableImmediate(IP, value, cond);
       add(rd, rn, Operand(IP), cond);
     }
   }
@@ -3045,7 +3029,7 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else {
-      LoadDecodableImmediate(IP, value, cond);
+      LoadPatchableImmediate(IP, value, cond);
       adds(rd, rn, Operand(IP), cond);
     }
   }
@@ -3071,7 +3055,7 @@ void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else {
-      LoadDecodableImmediate(IP, value, cond);
+      LoadPatchableImmediate(IP, value, cond);
       subs(rd, rn, Operand(IP), cond);
     }
   }
@@ -3540,44 +3524,6 @@ void Assembler::Stop(const char* message) {
   Emit(reinterpret_cast<int32_t>(message));
   Bind(&stop);
   svc(kStopMessageSvcCode);
-}
-
-
-int32_t Assembler::AddObject(const Object& obj) {
-  ASSERT(obj.IsNotTemporaryScopedHandle());
-  ASSERT(obj.IsOld());
-  if (object_pool_.IsNull()) {
-    // The object pool cannot be used in the vm isolate.
-    ASSERT(Isolate::Current() != Dart::vm_isolate());
-    object_pool_ = GrowableObjectArray::New(Heap::kOld);
-  }
-
-  intptr_t index = object_pool_index_table_.Lookup(&obj);
-  if (index != ObjIndexPair::kNoIndex) {
-    return index;
-  }
-
-  object_pool_.Add(obj, Heap::kOld);
-  object_pool_index_table_.Insert(
-      ObjIndexPair(&obj, object_pool_.Length() - 1));
-  return object_pool_.Length() - 1;
-}
-
-
-int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
-  if (object_pool_.IsNull()) {
-    // The object pool cannot be used in the vm isolate.
-    ASSERT(Isolate::Current() != Dart::vm_isolate());
-    object_pool_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  const word address = label->address();
-  ASSERT(Utils::IsAligned(address, 4));
-  // The address is stored in the object array as a RawSmi.
-  const Smi& smi = Smi::Handle(Smi::New(address >> kSmiTagShift));
-  // Do not reuse an existing entry, since each reference may be patched
-  // independently.
-  object_pool_.Add(smi, Heap::kOld);
-  return object_pool_.Length() - 1;
 }
 
 
