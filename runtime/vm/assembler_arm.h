@@ -645,6 +645,7 @@ class Assembler : public ValueObject {
   // Load and Store.
   // These three do not clobber IP.
   void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
+  void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);

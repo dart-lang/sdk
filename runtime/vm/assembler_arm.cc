@@ -2710,6 +2710,22 @@ void Assembler::LoadPatchableImmediate(
 }
 
 
+void Assembler::LoadDecodableImmediate(
+    Register rd, int32_t value, Condition cond) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
+    LoadPatchableImmediate(rd, value, cond);
+  } else {
+    ASSERT(version == ARMv7);
+    movw(rd, Utils::Low16Bits(value), cond);
+    const uint16_t value_high = Utils::High16Bits(value);
+    if (value_high != 0) {
+      movt(rd, value_high, cond);
+    }
+  }
+}
+
+
 void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -2717,7 +2733,7 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   } else if (Operand::CanHold(~value, &o)) {
     mvn(rd, o, cond);
   } else {
-    LoadPatchableImmediate(rd, value, cond);
+    LoadDecodableImmediate(rd, value, cond);
   }
 }
 
@@ -3003,7 +3019,7 @@ void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       sub(rd, rn, Operand(IP), cond);
     } else {
-      LoadPatchableImmediate(IP, value, cond);
+      LoadDecodableImmediate(IP, value, cond);
       add(rd, rn, Operand(IP), cond);
     }
   }
@@ -3029,7 +3045,7 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else {
-      LoadPatchableImmediate(IP, value, cond);
+      LoadDecodableImmediate(IP, value, cond);
       adds(rd, rn, Operand(IP), cond);
     }
   }
@@ -3055,7 +3071,7 @@ void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else {
-      LoadPatchableImmediate(IP, value, cond);
+      LoadDecodableImmediate(IP, value, cond);
       subs(rd, rn, Operand(IP), cond);
     }
   }

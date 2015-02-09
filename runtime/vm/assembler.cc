@@ -243,9 +243,9 @@ const Code::Comments& Assembler::GetCodeComments() const {
 
 
 intptr_t ObjectPool::AddObject(const Object& obj, Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
   ASSERT(Isolate::Current() != Dart::vm_isolate());
   if (object_pool_.IsNull()) {
-    // The object pool cannot be used in the vm isolate.
     object_pool_ = GrowableObjectArray::New(Heap::kOld);
   }
   object_pool_.Add(obj, Heap::kOld);
