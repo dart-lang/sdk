@@ -147,6 +147,9 @@ abstract class WebSocket implements Stream, StreamSink {
    *   - `upgrade`
    *
    * If any of these are passed in the `headers` map they will be ignored.
+   *
+   * If the `url` contains user information this will be passed as basic
+   * authentication when setting up the connection.
    */
   static Future<WebSocket> connect(String url,
                                    {Iterable<String> protocols,

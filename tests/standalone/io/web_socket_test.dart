@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import "dart:async";
+import "dart:convert";
 import "dart:io";
 import "dart:typed_data";
 
@@ -452,9 +453,6 @@ class SecurityConfiguration {
       var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
       var headers = {'My-Header': 'my-value',
                      'My-Header-Multiple': ['my-value-1', 'my-value-2']};
-      print(headers);
-      print(headers['My-Header-Multiple'] is Iterable);
-      print(headers['My-Header-Multiple'].length);
       WebSocket.connect(url, headers: headers).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
@@ -467,6 +465,40 @@ class SecurityConfiguration {
     });
   }
 
+
+  void testBasicAuthentication() {
+    var userInfo = 'user:password';
+
+    asyncStart();
+    asyncStart();
+    createServer().then((server) {
+      server.listen((request) {
+        Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
+        String auth =
+              CryptoUtils.bytesToBase64(UTF8.encode(userInfo));
+        Expect.equals('Basic $auth', request.headers['Authorization'][0]);
+        Expect.equals(1, request.headers['Authorization'].length);
+        WebSocketTransformer.upgrade(request).then((webSocket) {
+          webSocket.listen((_) { throw 'Unexpected'; },
+                           onDone: () { asyncEnd(); });
+          webSocket.add("Hello");
+        });
+      });
+
+      var url =
+          '${secure ? "wss" : "ws"}://$userInfo@$HOST_NAME:${server.port}/';
+      WebSocket.connect(url).then((websocket) {
+        return websocket.listen((message) {
+          Expect.equals("Hello", message);
+          return websocket.close();
+        }).asFuture();
+      }).then((_) {
+        return server.close();
+      }).whenComplete(() {
+        asyncEnd();
+      });
+    });
+  }
 
   void runTests() {
     testRequestResponseClientCloses(2, null, null, 1);
@@ -490,6 +522,7 @@ class SecurityConfiguration {
     testIndividualUpgrade(5);
     testFromUpgradedSocket();
     testAdditionalHeaders();
+    testBasicAuthentication();
   }
 }
 
