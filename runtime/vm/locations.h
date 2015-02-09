@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/bitfield.h"
+#include "vm/log.h"
 
 namespace dart {
 
@@ -516,7 +517,7 @@ class RegisterSet : public ValueObject {
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
       Register r = static_cast<Register>(i);
       if (ContainsRegister(r)) {
-        OS::Print("%s %s\n", Assembler::RegisterName(r),
+        ISL_Print("%s %s\n", Assembler::RegisterName(r),
                            IsTagged(r) ? "tagged" : "untagged");
       }
     }
@@ -524,7 +525,7 @@ class RegisterSet : public ValueObject {
     for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
       FpuRegister r = static_cast<FpuRegister>(i);
       if (ContainsFpuRegister(r)) {
-        OS::Print("%s\n", Assembler::FpuRegisterName(r));
+        ISL_Print("%s\n", Assembler::FpuRegisterName(r));
       }
     }
   }

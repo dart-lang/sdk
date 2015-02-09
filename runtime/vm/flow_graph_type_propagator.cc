@@ -74,13 +74,13 @@ void FlowGraphTypePropagator::Propagate() {
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
     if (FLAG_trace_type_propagation) {
-      OS::Print("recomputing type of v%" Pd ": %s\n",
+      ISL_Print("recomputing type of v%" Pd ": %s\n",
                 def->ssa_temp_index(),
                 def->Type()->ToCString());
     }
     if (def->RecomputeType()) {
       if (FLAG_trace_type_propagation) {
-        OS::Print("  ... new type %s\n", def->Type()->ToCString());
+        ISL_Print("  ... new type %s\n", def->Type()->ToCString());
       }
       for (Value::Iterator it(def->input_use_list());
            !it.Done();
@@ -260,7 +260,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   value->SetReachingType(type);
 
   if (FLAG_trace_type_propagation) {
-    OS::Print("reaching type to v%" Pd " for v%" Pd " is %s\n",
+    ISL_Print("reaching type to v%" Pd " for v%" Pd " is %s\n",
               value->instruction()->IsDefinition() ?
                   value->instruction()->AsDefinition()->ssa_temp_index() : -1,
               value->definition()->ssa_temp_index(),
@@ -680,7 +680,7 @@ bool PhiInstr::RecomputeType() {
   CompileType result = CompileType::None();
   for (intptr_t i = 0; i < InputCount(); i++) {
     if (FLAG_trace_type_propagation) {
-      OS::Print("  phi %" Pd " input %" Pd ": v%" Pd " has reaching type %s\n",
+      ISL_Print("  phi %" Pd " input %" Pd ": v%" Pd " has reaching type %s\n",
                 ssa_temp_index(),
                 i,
                 InputAt(i)->definition()->ssa_temp_index(),

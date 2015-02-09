@@ -81,10 +81,11 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
 
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
-  OS::Print("*** BEGIN CFG\n%s\n", phase);
+  LogBlock lb(Isolate::Current());
+  ISL_Print("*** BEGIN CFG\n%s\n", phase);
   FlowGraphPrinter printer(*flow_graph);
   printer.PrintBlocks();
-  OS::Print("*** END CFG\n");
+  ISL_Print("*** END CFG\n");
   fflush(stdout);
 }
 
@@ -93,19 +94,19 @@ void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
                                   bool print_locations) {
   // Print the block entry.
   PrintOneInstruction(block, print_locations);
-  OS::Print("\n");
+  ISL_Print("\n");
   // And all the successors in the block.
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
     PrintOneInstruction(current, print_locations);
-    OS::Print("\n");
+    ISL_Print("\n");
   }
 }
 
 
 void FlowGraphPrinter::PrintBlocks() {
   if (!function_.IsNull()) {
-    OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
+    ISL_Print("==== %s\n", function_.ToFullyQualifiedCString());
   }
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -131,10 +132,10 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
     instr->locs()->PrintTo(&f);
   }
   if (instr->lifetime_position() != -1) {
-    OS::Print("%3" Pd ": ", instr->lifetime_position());
+    ISL_Print("%3" Pd ": ", instr->lifetime_position());
   }
-  if (!instr->IsBlockEntry()) OS::Print("    ");
-  OS::Print("%s", str);
+  if (!instr->IsBlockEntry()) ISL_Print("    ");
+  ISL_Print("%s", str);
 }
 
 
@@ -148,7 +149,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
     if (value != NULL && value->reaching_type_ != NULL) {
       compile_type_name = value->reaching_type_->ToCString();
     }
-    OS::Print("%s type check: compile type %s is %s specific than "
+    ISL_Print("%s type check: compile type %s is %s specific than "
               "type '%s' of '%s'.\n",
                          eliminated ? "Eliminated" : "Generated",
                          compile_type_name,
@@ -222,9 +223,9 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
   char buffer[1024];
   BufferFormatter f(buffer, sizeof(buffer));
   PrintICDataHelper(&f, ic_data);
-  OS::Print("%s ", buffer);
+  ISL_Print("%s ", buffer);
   const Array& a = Array::Handle(ic_data.arguments_descriptor());
-  OS::Print(" arg-desc %" Pd "\n", a.Length());
+  ISL_Print(" arg-desc %" Pd "\n", a.Length());
 }
 
 

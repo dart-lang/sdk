@@ -7,6 +7,7 @@
 #include "vm/assembler.h"
 #include "vm/globals.h"
 #include "vm/os.h"
+#include "vm/log.h"
 #include "vm/json_stream.h"
 
 namespace dart {
@@ -18,15 +19,15 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              uword pc) {
   static const int kHexColumnWidth = 23;
   uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
-  OS::Print("%p    %s", pc_ptr, hex_buffer);
+  ISL_Print("%p    %s", pc_ptr, hex_buffer);
   int hex_length = strlen(hex_buffer);
   if (hex_length < kHexColumnWidth) {
     for (int i = kHexColumnWidth - hex_length; i > 0; i--) {
-      OS::Print(" ");
+      ISL_Print(" ");
     }
   }
-  OS::Print("%s", human_buffer);
-  OS::Print("\n");
+  ISL_Print("%s", human_buffer);
+  ISL_Print("\n");
 }
 
 

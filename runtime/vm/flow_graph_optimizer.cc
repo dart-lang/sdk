@@ -565,16 +565,16 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     EnsureSSATempIndex(graph, current_defn, replacement_defn);
 
     if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%" Pd " with v%" Pd "\n",
+      ISL_Print("Replacing v%" Pd " with v%" Pd "\n",
                 current_defn->ssa_temp_index(),
                 replacement_defn->ssa_temp_index());
     }
   } else if (FLAG_trace_optimization) {
     if (current_defn == NULL) {
-      OS::Print("Removing %s\n", current->DebugName());
+      ISL_Print("Removing %s\n", current->DebugName());
     } else {
       ASSERT(!current_defn->HasUses());
-      OS::Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
+      ISL_Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
     }
   }
   iterator->RemoveCurrentFromGraph();
@@ -4439,7 +4439,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
                    getter.usage_counter());
     if (!result) {
       if (FLAG_trace_optimization) {
-        OS::Print("Disabling unboxing of %s\n", field.ToCString());
+        ISL_Print("Disabling unboxing of %s\n", field.ToCString());
       }
       field.set_is_unboxing_candidate(false);
       field.DeoptimizeDependentCode();
@@ -4674,7 +4674,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     }
 
     if (FLAG_trace_smi_widening) {
-      OS::Print("analysing candidate: %s\n", op->ToCString());
+      ISL_Print("analysing candidate: %s\n", op->ToCString());
     }
     worklist.Clear();
     worklist.Add(op);
@@ -4686,14 +4686,14 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
       Definition* defn = worklist.definitions()[j];
 
       if (FLAG_trace_smi_widening) {
-        OS::Print("> %s\n", defn->ToCString());
+        ISL_Print("> %s\n", defn->ToCString());
       }
 
       if (defn->IsBinarySmiOp() &&
           BenefitsFromWidening(defn->AsBinarySmiOp())) {
         gain++;
         if (FLAG_trace_smi_widening) {
-          OS::Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
+          ISL_Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
         }
       }
 
@@ -4711,7 +4711,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // Mint operation produces untagged result. We avoid tagging.
           gain++;
           if (FLAG_trace_smi_widening) {
-            OS::Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
+            ISL_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
                    (input->Type()->ToCid() == kSmiCid)) {
@@ -4722,7 +4722,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // coalesced with untagging. Start coalescing them.
           gain--;
           if (FLAG_trace_smi_widening) {
-            OS::Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
+            ISL_Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         }
       }
@@ -4739,7 +4739,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           if (!instr->IsReturn() && !instr->IsPushArgument()) {
             gain--;
             if (FLAG_trace_smi_widening) {
-              OS::Print("v [%" Pd "] (u) %s\n",
+              ISL_Print("v [%" Pd "] (u) %s\n",
                         gain,
                         use->instruction()->ToCString());
             }
@@ -4757,14 +4757,14 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // sign extension operation.
           gain++;
           if (FLAG_trace_smi_widening) {
-            OS::Print("^ [%" Pd "] (u) %s\n",
+            ISL_Print("^ [%" Pd "] (u) %s\n",
                       gain,
                       use->instruction()->ToCString());
           }
         } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
           gain--;
           if (FLAG_trace_smi_widening) {
-            OS::Print("v [%" Pd "] (u) %s\n",
+            ISL_Print("v [%" Pd "] (u) %s\n",
                       gain,
                       use->instruction()->ToCString());
           }
@@ -4775,7 +4775,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     processed->AddAll(worklist.contains_vector());
 
     if (FLAG_trace_smi_widening) {
-      OS::Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
+      ISL_Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
     }
 
     if (gain > 0) {
@@ -4903,7 +4903,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
     current->AsCheckArrayBound()->set_licm_hoisted(true);
   }
   if (FLAG_trace_optimization) {
-    OS::Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
+    ISL_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
               current->DebugName(),
               current->GetDeoptId(),
               current->GetBlock()->block_id(),
@@ -5720,9 +5720,9 @@ class AliasedSet : public ZoneAllocated {
          !it.Done();
          it.Advance()) {
       if (comma) {
-        OS::Print(", ");
+        ISL_Print(", ");
       }
-      OS::Print("%s", places_[it.Current()]->ToCString());
+      ISL_Print("%s", places_[it.Current()]->ToCString());
       comma = true;
     }
   }
@@ -5817,16 +5817,16 @@ class AliasedSet : public ZoneAllocated {
     }
 
     if (FLAG_trace_load_optimization) {
-      OS::Print("Aliases KILL sets:\n");
+      ISL_Print("Aliases KILL sets:\n");
       for (intptr_t i = 0; i < aliases_.length(); ++i) {
         const Place* alias = aliases_[i];
         BitVector* kill = GetKilledSet(alias->id());
 
-        OS::Print("%s: ", alias->ToCString());
+        ISL_Print("%s: ", alias->ToCString());
         if (kill != NULL) {
           PrintSet(kill);
         }
-        OS::Print("\n");
+        ISL_Print("\n");
       }
     }
   }
@@ -6214,7 +6214,7 @@ static PhiPlaceMoves* ComputePhiMoves(
       BlockEntryInstr* block = phi->GetBlock();
 
       if (FLAG_trace_optimization) {
-        OS::Print("phi dependent place %s\n", place->ToCString());
+        ISL_Print("phi dependent place %s\n", place->ToCString());
       }
 
       Place input_place(*place);
@@ -6227,7 +6227,7 @@ static PhiPlaceMoves* ComputePhiMoves(
           map->Insert(result);
           places->Add(result);
           if (FLAG_trace_optimization) {
-            OS::Print("  adding place %s as %" Pd "\n",
+            ISL_Print("  adding place %s as %" Pd "\n",
                       result->ToCString(),
                       result->id());
           }
@@ -6283,7 +6283,7 @@ static AliasedSet* NumberPlaces(
         places->Add(result);
 
         if (FLAG_trace_optimization) {
-          OS::Print("numbering %s as %" Pd "\n",
+          ISL_Print("numbering %s as %" Pd "\n",
                     result->ToCString(),
                     result->id());
         }
@@ -6552,7 +6552,7 @@ class LoadOptimizer : public ValueObject {
           Definition* replacement = (*out_values)[place_id];
           EnsureSSATempIndex(graph_, defn, replacement);
           if (FLAG_trace_optimization) {
-            OS::Print("Replacing load v%" Pd " with v%" Pd "\n",
+            ISL_Print("Replacing load v%" Pd " with v%" Pd "\n",
                       defn->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -6760,18 +6760,18 @@ class LoadOptimizer : public ValueObject {
       }
 
       if (FLAG_trace_load_optimization) {
-        OS::Print("B%" Pd "\n", block->block_id());
-        OS::Print("  IN: ");
+        ISL_Print("B%" Pd "\n", block->block_id());
+        ISL_Print("  IN: ");
         aliased_set_->PrintSet(in_[preorder_number]);
-        OS::Print("\n");
+        ISL_Print("\n");
 
-        OS::Print("  KILL: ");
+        ISL_Print("  KILL: ");
         aliased_set_->PrintSet(kill_[preorder_number]);
-        OS::Print("\n");
+        ISL_Print("\n");
 
-        OS::Print("  OUT: ");
+        ISL_Print("  OUT: ");
         aliased_set_->PrintSet(out_[preorder_number]);
-        OS::Print("\n");
+        ISL_Print("\n");
       }
     }
 
@@ -6824,7 +6824,7 @@ class LoadOptimizer : public ValueObject {
 
       if (FLAG_trace_optimization) {
         for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
-          OS::Print("place %s is loop invariant for B%" Pd "\n",
+          ISL_Print("place %s is loop invariant for B%" Pd "\n",
                     aliased_set_->places()[it.Current()]->ToCString(),
                     header->block_id());
         }
@@ -6895,7 +6895,7 @@ class LoadOptimizer : public ValueObject {
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_trace_load_optimization) {
-      OS::Print("created pending phi %s for %s at B%" Pd "\n",
+      ISL_Print("created pending phi %s for %s at B%" Pd "\n",
                 phi->ToCString(),
                 aliased_set_->places()[place_id]->ToCString(),
                 block->block_id());
@@ -6934,7 +6934,7 @@ class LoadOptimizer : public ValueObject {
           EnsureSSATempIndex(graph_, load, replacement);
 
           if (FLAG_trace_optimization) {
-            OS::Print("Replacing load v%" Pd " with v%" Pd "\n",
+            ISL_Print("Replacing load v%" Pd " with v%" Pd "\n",
                       load->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -7123,7 +7123,7 @@ class LoadOptimizer : public ValueObject {
       }
 
       if (FLAG_trace_load_optimization) {
-        OS::Print("Replacing %s with congruent %s\n",
+        ISL_Print("Replacing %s with congruent %s\n",
                   a->ToCString(),
                   b->ToCString());
       }
@@ -7329,7 +7329,7 @@ class StoreOptimizer : public LivenessAnalysis {
             if (!live_in->Contains(instr->place_id()) &&
                 CanEliminateStore(instr)) {
               if (FLAG_trace_optimization) {
-                OS::Print(
+                ISL_Print(
                     "Removing dead store to place %" Pd " in block B%" Pd "\n",
                     instr->place_id(), block->block_id());
               }
@@ -7382,7 +7382,7 @@ class StoreOptimizer : public LivenessAnalysis {
     }
     if (FLAG_trace_load_optimization) {
       Dump();
-      OS::Print("---\n");
+      ISL_Print("---\n");
     }
   }
 
@@ -7416,7 +7416,7 @@ class StoreOptimizer : public LivenessAnalysis {
         if (!live_out->Contains(instr->place_id()) &&
             CanEliminateStore(instr)) {
           if (FLAG_trace_optimization) {
-            OS::Print("Removing dead store to place %" Pd " block B%" Pd "\n",
+            ISL_Print("Removing dead store to place %" Pd " block B%" Pd "\n",
                       instr->place_id(), block->block_id());
           }
           instr->RemoveFromGraph(/* ignored */ false);
@@ -7510,14 +7510,14 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
             phi->UnuseAllInputs();
             (*join->phis_)[i] = NULL;
             if (FLAG_trace_optimization) {
-              OS::Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
+              ISL_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
           } else if (phi->IsRedundant()) {
             phi->ReplaceUsesWith(phi->InputAt(0)->definition());
             phi->UnuseAllInputs();
             (*join->phis_)[i] = NULL;
             if (FLAG_trace_optimization) {
-              OS::Print("Removing redundant phi v%" Pd "\n",
+              ISL_Print("Removing redundant phi v%" Pd "\n",
                          phi->ssa_temp_index());
             }
           } else {
@@ -8060,7 +8060,7 @@ static bool IsAllocationSinkingCandidate(Definition* alloc,
        use = use->next_use()) {
     if (!IsSafeUse(use, check_type)) {
       if (FLAG_trace_optimization) {
-        OS::Print("use of %s at %s is unsafe for allocation sinking\n",
+        ISL_Print("use of %s at %s is unsafe for allocation sinking\n",
                   alloc->ToCString(),
                   use->instruction()->ToCString());
       }
@@ -8090,7 +8090,7 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
   ASSERT(IsAllocationSinkingCandidate(alloc, kStrictCheck));
 
   if (FLAG_trace_optimization) {
-    OS::Print("removing allocation from the graph: v%" Pd "\n",
+    ISL_Print("removing allocation from the graph: v%" Pd "\n",
               alloc->ssa_temp_index());
   }
 
@@ -8171,7 +8171,7 @@ void AllocationSinking::CollectCandidates() {
     Definition* alloc = candidates_[i];
     if (alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
-        OS::Print("discovered allocation sinking candidate: v%" Pd "\n",
+        ISL_Print("discovered allocation sinking candidate: v%" Pd "\n",
                   alloc->ssa_temp_index());
       }
 
@@ -8266,7 +8266,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
     Definition* alloc = candidates_[i];
     if (!alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
-        OS::Print("allocation v%" Pd " can't be eliminated\n",
+        ISL_Print("allocation v%" Pd " can't be eliminated\n",
                   alloc->ssa_temp_index());
       }
 

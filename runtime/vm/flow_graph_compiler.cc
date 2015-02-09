@@ -16,6 +16,7 @@
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
 #include "vm/locations.h"
+#include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"

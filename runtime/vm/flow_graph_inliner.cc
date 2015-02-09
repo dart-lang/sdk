@@ -551,13 +551,13 @@ class CallSiteInliner : public ValueObject {
                                          inlining_depth_,
                                          &inlined_info_);
     while (collected_call_sites_->HasCalls()) {
-      TRACE_INLINING(OS::Print("  Depth %" Pd " ----------\n",
+      TRACE_INLINING(ISL_Print("  Depth %" Pd " ----------\n",
                                inlining_depth_));
       if (collected_call_sites_->NumCalls() > FLAG_max_inlined_per_depth) {
         break;
       }
       if (FLAG_print_inlining_tree) {
-        OS::Print("**Depth % " Pd " calls to inline %" Pd "\n",
+        ISL_Print("**Depth % " Pd " calls to inline %" Pd "\n",
             inlining_depth_, collected_call_sites_->NumCalls());
       }
       // Swap collected and inlining arrays and clear the new collecting array.
@@ -602,7 +602,7 @@ class CallSiteInliner : public ValueObject {
   bool TryInlining(const Function& function,
                    const Array& argument_names,
                    InlinedCallData* call_data) {
-    TRACE_INLINING(OS::Print("  => %s (deopt count %d)\n",
+    TRACE_INLINING(ISL_Print("  => %s (deopt count %d)\n",
                              function.ToCString(),
                              function.deoptimization_counter()));
 
@@ -611,7 +611,7 @@ class CallSiteInliner : public ValueObject {
     const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Abort if the inlinable bit on the function is low.
     if (!function.CanBeInlined()) {
-      TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));
+      TRACE_INLINING(ISL_Print("     Bailout: not inlinable\n"));
       PRINT_INLINING_TREE("Not inlinable",
           &call_data->caller, &function, call_data->call);
       return false;
@@ -621,7 +621,7 @@ class CallSiteInliner : public ValueObject {
     if (function.deoptimization_counter() >=
         FLAG_deoptimization_counter_threshold) {
       function.set_is_inlinable(false);
-      TRACE_INLINING(OS::Print("     Bailout: deoptimization threshold\n"));
+      TRACE_INLINING(ISL_Print("     Bailout: deoptimization threshold\n"));
       PRINT_INLINING_TREE("Deoptimization threshold exceeded",
           &call_data->caller, &function, call_data->call);
       return false;
@@ -630,7 +630,7 @@ class CallSiteInliner : public ValueObject {
     const char* kNeverInlineAnnotation = "NeverInline";
     if (FLAG_enable_inlining_annotations &&
         HasAnnotation(function, kNeverInlineAnnotation)) {
-      TRACE_INLINING(OS::Print("     Bailout: NeverInline annotation\n"));
+      TRACE_INLINING(ISL_Print("     Bailout: NeverInline annotation\n"));
       return false;
     }
 
@@ -640,7 +640,7 @@ class CallSiteInliner : public ValueObject {
                         function.optimized_instruction_count(),
                         function.optimized_call_site_count(),
                         constant_arguments)) {
-      TRACE_INLINING(OS::Print("     Bailout: early heuristics with "
+      TRACE_INLINING(ISL_Print("     Bailout: early heuristics with "
                                "code size:  %" Pd ", "
                                "call sites: %" Pd ", "
                                "const args: %" Pd "\n",
@@ -658,7 +658,7 @@ class CallSiteInliner : public ValueObject {
     volatile bool is_recursive_call = IsCallRecursive(unoptimized_code, call);
     if (is_recursive_call &&
         inlining_recursion_depth_ >= FLAG_inlining_recursion_depth_threshold) {
-      TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
+      TRACE_INLINING(ISL_Print("     Bailout: recursive function\n"));
       PRINT_INLINING_TREE("Recursive function",
           &call_data->caller, &function, call_data->call);
       return false;
@@ -718,14 +718,14 @@ class CallSiteInliner : public ValueObject {
       // arrays so that actual arguments are in one-to-one with the formal
       // parameters.
       if (function.HasOptionalParameters()) {
-        TRACE_INLINING(OS::Print("     adjusting for optional parameters\n"));
+        TRACE_INLINING(ISL_Print("     adjusting for optional parameters\n"));
         if (!AdjustForOptionalParameters(*parsed_function,
                                          argument_names,
                                          arguments,
                                          param_stubs,
                                          callee_graph)) {
           function.set_is_inlinable(false);
-          TRACE_INLINING(OS::Print("     Bailout: optional arg mismatch\n"));
+          TRACE_INLINING(ISL_Print("     Bailout: optional arg mismatch\n"));
           PRINT_INLINING_TREE("Optional arg mismatch",
               &call_data->caller, &function, call_data->call);
           return false;
@@ -777,7 +777,7 @@ class CallSiteInliner : public ValueObject {
 
       if (FLAG_trace_inlining &&
           (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
-        OS::Print("Callee graph for inlining %s\n",
+        ISL_Print("Callee graph for inlining %s\n",
                   function.ToFullyQualifiedCString());
         FlowGraphPrinter printer(*callee_graph);
         printer.PrintBlocks();
@@ -807,7 +807,7 @@ class CallSiteInliner : public ValueObject {
           function.set_is_inlinable(false);
         }
         isolate()->set_deopt_id(prev_deopt_id);
-        TRACE_INLINING(OS::Print("     Bailout: heuristics with "
+        TRACE_INLINING(ISL_Print("     Bailout: heuristics with "
                                  "code size:  %" Pd ", "
                                  "call sites: %" Pd ", "
                                  "const args: %" Pd "\n",
@@ -857,7 +857,7 @@ class CallSiteInliner : public ValueObject {
       // We allocate a ZoneHandle for the unoptimized code so that it cannot be
       // disconnected from its function during the rest of compilation.
       Code::ZoneHandle(unoptimized_code.raw());
-      TRACE_INLINING(OS::Print("     Success\n"));
+      TRACE_INLINING(ISL_Print("     Success\n"));
       PRINT_INLINING_TREE(NULL,
           &call_data->caller, &function, call);
       return true;
@@ -866,7 +866,7 @@ class CallSiteInliner : public ValueObject {
       error = isolate()->object_store()->sticky_error();
       isolate()->object_store()->clear_sticky_error();
       isolate()->set_deopt_id(prev_deopt_id);
-      TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
+      TRACE_INLINING(ISL_Print("     Bailout: %s\n", error.ToErrorCString()));
       PRINT_INLINING_TREE("Bailout",
           &call_data->caller, &function, call);
       return false;
@@ -875,7 +875,7 @@ class CallSiteInliner : public ValueObject {
 
   void PrintInlinedInfo(const Function& top) {
     if (inlined_info_.length() > 0) {
-      OS::Print("Inlining into: '%s' growth: %f (%" Pd " -> %" Pd ")\n",
+      ISL_Print("Inlining into: '%s' growth: %f (%" Pd " -> %" Pd ")\n",
           top.ToFullyQualifiedCString(),
           GrowthFactor(),
           initial_size_,
@@ -908,9 +908,9 @@ class CallSiteInliner : public ValueObject {
           (info.caller->raw() == caller.raw()) &&
           !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
-          OS::Print("  ");
+          ISL_Print("  ");
         }
-        OS::Print("%" Pd " %s\n",
+        ISL_Print("%" Pd " %s\n",
             info.call_instr->GetDeoptId(),
             info.inlined->ToQualifiedCString());
         PrintInlinedInfoFor(*info.inlined, depth + 1);
@@ -928,9 +928,9 @@ class CallSiteInliner : public ValueObject {
           (info.caller->raw() == caller.raw()) &&
           !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
-          OS::Print("  ");
+          ISL_Print("  ");
         }
-        OS::Print("NO %" Pd " %s - %s\n",
+        ISL_Print("NO %" Pd " %s - %s\n",
             info.call_instr->GetDeoptId(),
             info.inlined->ToQualifiedCString(),
             info.bailout_reason);
@@ -1030,7 +1030,7 @@ class CallSiteInliner : public ValueObject {
   void InlineStaticCalls() {
     const GrowableArray<CallSites::StaticCallInfo>& call_info =
         inlining_call_sites_->static_calls();
-    TRACE_INLINING(OS::Print("  Static Calls (%" Pd ")\n", call_info.length()));
+    TRACE_INLINING(ISL_Print("  Static Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
       if (call->function().name() == Symbols::ListFactory().raw()) {
@@ -1048,7 +1048,7 @@ class CallSiteInliner : public ValueObject {
       const Function& target = call->function();
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
-        TRACE_INLINING(OS::Print(
+        TRACE_INLINING(ISL_Print(
             "  => %s (deopt count %d)\n     Bailout: cold %f\n",
             target.ToCString(),
             target.deoptimization_counter(),
@@ -1071,7 +1071,7 @@ class CallSiteInliner : public ValueObject {
   void InlineClosureCalls() {
     const GrowableArray<CallSites::ClosureCallInfo>& call_info =
         inlining_call_sites_->closure_calls();
-    TRACE_INLINING(OS::Print("  Closure Calls (%" Pd ")\n",
+    TRACE_INLINING(ISL_Print("  Closure Calls (%" Pd ")\n",
         call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       ClosureCallInstr* call = call_info[call_idx].call;
@@ -1093,7 +1093,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       if (target.IsNull()) {
-        TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
+        TRACE_INLINING(ISL_Print("     Bailout: non-closure operator\n"));
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
@@ -1112,7 +1112,7 @@ class CallSiteInliner : public ValueObject {
   void InlineInstanceCalls() {
     const GrowableArray<CallSites::InstanceCallInfo>& call_info =
         inlining_call_sites_->instance_calls();
-    TRACE_INLINING(OS::Print("  Polymorphic Instance Calls (%" Pd ")\n",
+    TRACE_INLINING(ISL_Print("  Polymorphic Instance Calls (%" Pd ")\n",
                              call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
@@ -1127,7 +1127,7 @@ class CallSiteInliner : public ValueObject {
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
-        TRACE_INLINING(OS::Print(
+        TRACE_INLINING(ISL_Print(
             "  => %s (deopt count %d)\n     Bailout: cold %f\n",
             target.ToCString(),
             target.deoptimization_counter(),
@@ -1788,7 +1788,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   const char* kAlwaysInlineAnnotation = "AlwaysInline";
   if (FLAG_enable_inlining_annotations &&
       HasAnnotation(function, kAlwaysInlineAnnotation)) {
-    TRACE_INLINING(OS::Print("AlwaysInline annotation for %s\n",
+    TRACE_INLINING(ISL_Print("AlwaysInline annotation for %s\n",
                              function.ToCString()));
     return true;
   }
@@ -1815,11 +1815,11 @@ void FlowGraphInliner::Inline() {
     return;
   }
 
-  TRACE_INLINING(OS::Print("Inlining calls in %s\n", top.ToCString()));
+  TRACE_INLINING(ISL_Print("Inlining calls in %s\n", top.ToCString()));
 
   if (trace_inlining() &&
       (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
-    OS::Print("Before Inlining of %s\n", flow_graph_->
+    ISL_Print("Before Inlining of %s\n", flow_graph_->
               function().ToFullyQualifiedCString());
     FlowGraphPrinter printer(*flow_graph_);
     printer.PrintBlocks();
@@ -1834,9 +1834,9 @@ void FlowGraphInliner::Inline() {
   if (inliner.inlined()) {
     flow_graph_->DiscoverBlocks();
     if (trace_inlining()) {
-      OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
+      ISL_Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
-        OS::Print("After Inlining of %s\n", flow_graph_->
+        ISL_Print("After Inlining of %s\n", flow_graph_->
                   function().ToFullyQualifiedCString());
         FlowGraphPrinter printer(*flow_graph_);
         printer.PrintBlocks();

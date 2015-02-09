@@ -8,6 +8,7 @@
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/log.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -224,9 +225,9 @@ const char* Location::ToCString() const {
 
 void Location::Print() const {
   if (kind() == kStackSlot) {
-    OS::Print("S%+" Pd "", stack_index());
+    ISL_Print("S%+" Pd "", stack_index());
   } else {
-    OS::Print("%s", Name());
+    ISL_Print("%s", Name());
   }
 }
 
