@@ -368,10 +368,18 @@ class AnalysisServer {
    */
   AnalysisContext getAnalysisContext(String path) {
     // try to find a containing context
+    Folder containingFolder = null;
     for (Folder folder in folderMap.keys) {
       if (folder.path == path || folder.contains(path)) {
-        return folderMap[folder];
+        if (containingFolder == null) {
+          containingFolder = folder;
+        } else if (containingFolder.path.length < folder.path.length) {
+          containingFolder = folder;
+        }
       }
+    }
+    if (containingFolder != null) {
+      return folderMap[containingFolder];
     }
     Resource resource = resourceProvider.getResource(path);
     if (resource is Folder) {
