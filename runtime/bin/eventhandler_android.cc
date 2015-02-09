@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_ANDROID)
 
 #include "bin/eventhandler.h"
+#include "bin/eventhandler_android.h"
 
 #include <errno.h>  // NOLINT
 #include <pthread.h>  // NOLINT
@@ -19,6 +20,8 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
+#include "bin/lockers.h"
+#include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
@@ -35,46 +38,50 @@ namespace dart {
 namespace bin {
 
 
-intptr_t SocketData::GetPollEvents() {
+intptr_t DescriptorInfo::GetPollEvents() {
   // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
   // triggered anyway.
   intptr_t events = 0;
-  if ((mask_ & (1 << kInEvent)) != 0) {
+  if ((Mask() & (1 << kInEvent)) != 0) {
     events |= EPOLLIN;
   }
-  if ((mask_ & (1 << kOutEvent)) != 0) {
+  if ((Mask() & (1 << kOutEvent)) != 0) {
     events |= EPOLLOUT;
   }
   return events;
 }
 
 
-// Unregister the file descriptor for a SocketData structure with epoll.
-static void RemoveFromEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
+// Unregister the file descriptor for a DescriptorInfo structure with
+// epoll.
+static void RemoveFromEpollInstance(intptr_t epoll_fd_,
+                                    DescriptorInfo* di) {
   VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
                                    EPOLL_CTL_DEL,
-                                   sd->fd(),
+                                   di->fd(),
                                    NULL));
 }
 
 
-static void AddToEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
+static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
   struct epoll_event event;
-  event.events = EPOLLRDHUP | sd->GetPollEvents();
-  if (!sd->IsListeningSocket()) {
+  event.events = EPOLLRDHUP | di->GetPollEvents();
+  if (!di->IsListeningSocket()) {
     event.events |= EPOLLET;
   }
-  event.data.ptr = sd;
+  event.data.ptr = di;
   int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
                                            EPOLL_CTL_ADD,
-                                           sd->fd(),
+                                           di->fd(),
                                            &event));
   if (status == -1) {
+    // TODO(dart:io): Verify that the dart end is handling this correctly.
+
     // Epoll does not accept the file descriptor. It could be due to
     // already closed file descriptor, or unuspported devices, such
     // as /dev/null. In such case, mark the file descriptor as closed,
     // so dart will handle it accordingly.
-    DartUtils::PostInt32(sd->port(), 1 << kCloseEvent);
+    di->NotifyAllDartPorts(1 << kCloseEvent);
   }
 }
 
@@ -95,7 +102,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   static const int kEpollInitialSize = 64;
   epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
-    FATAL("Failed creating epoll file descriptor");
+    FATAL1("Failed creating epoll file descriptor: %i", errno);
   }
   FDUtils::SetCloseOnExec(epoll_fd_);
   // Register the interrupt_fd with the epoll instance.
@@ -103,9 +110,9 @@ EventHandlerImplementation::EventHandlerImplementation()
   event.events = EPOLLIN;
   event.data.ptr = NULL;
   int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                            EPOLL_CTL_ADD,
-                                            interrupt_fds_[0],
-                                            &event));
+                                           EPOLL_CTL_ADD,
+                                           interrupt_fds_[0],
+                                           &event));
   if (status == -1) {
     FATAL("Failed adding interrupt fd to epoll instance");
   }
@@ -119,21 +126,44 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 }
 
 
-SocketData* EventHandlerImplementation::GetSocketData(
-    intptr_t fd, bool listening_socket) {
+void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
+                                                     DescriptorInfo *di) {
+  intptr_t new_mask = di->Mask();
+  if (old_mask != 0 && new_mask == 0) {
+    RemoveFromEpollInstance(epoll_fd_, di);
+  } else if (old_mask == 0 && new_mask != 0) {
+    AddToEpollInstance(epoll_fd_, di);
+  } else if (old_mask != 0 && new_mask != 0) {
+    if (di->IsListeningSocket()) {
+      ASSERT(old_mask == new_mask);
+    } else {
+      RemoveFromEpollInstance(epoll_fd_, di);
+      AddToEpollInstance(epoll_fd_, di);
+    }
+  }
+}
+
+
+DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
+    intptr_t fd, bool is_listening) {
   ASSERT(fd >= 0);
   HashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
-  SocketData* sd = reinterpret_cast<SocketData*>(entry->value);
-  if (sd == NULL) {
+  DescriptorInfo* di =
+      reinterpret_cast<DescriptorInfo*>(entry->value);
+  if (di == NULL) {
     // If there is no data in the hash map for this file descriptor a
-    // new SocketData for the file descriptor is inserted.
-    sd = new SocketData(fd, listening_socket);
-    entry->value = sd;
+    // new DescriptorInfo for the file descriptor is inserted.
+    if (is_listening) {
+      di = new DescriptorInfoMultiple(fd);
+    } else {
+      di = new DescriptorInfoSingle(fd);
+    }
+    entry->value = di;
   }
-  ASSERT(fd == sd->fd());
-  return sd;
+  ASSERT(fd == di->fd());
+  return di;
 }
 
 
@@ -154,7 +184,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
     if (result == -1) {
       perror("Interrupt message failure:");
     }
-    FATAL1("Interrupt message failure. Wrote %d bytes.", result);
+    FATAL1("Interrupt message failure. Wrote %" Pd " bytes.", result);
   }
 }
 
@@ -172,39 +202,62 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else {
       ASSERT((msg[i].data & COMMAND_MASK) != 0);
 
-      SocketData* sd = GetSocketData(
+      DescriptorInfo* di = GetDescriptorInfo(
           msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
+        ASSERT(!di->IsListeningSocket());
         // Close the socket for reading.
-        shutdown(sd->fd(), SHUT_RD);
+        VOID_NO_RETRY_EXPECTED(shutdown(di->fd(), SHUT_RD));
       } else if (IS_COMMAND(msg[i].data, kShutdownWriteCommand)) {
+        ASSERT(!di->IsListeningSocket());
         // Close the socket for writing.
-        shutdown(sd->fd(), SHUT_WR);
+        VOID_NO_RETRY_EXPECTED(shutdown(di->fd(), SHUT_WR));
       } else if (IS_COMMAND(msg[i].data, kCloseCommand)) {
-        // Close the socket and free system resources and move on to
-        // next message.
-        RemoveFromEpollInstance(epoll_fd_, sd);
-        intptr_t fd = sd->fd();
-        sd->Close();
-        socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
-        delete sd;
-        DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
+        // Close the socket and free system resources and move on to next
+        // message.
+        intptr_t old_mask = di->Mask();
+        Dart_Port port = msg[i].dart_port;
+        di->RemovePort(port);
+        intptr_t new_mask = di->Mask();
+        UpdateEpollInstance(old_mask, di);
+
+        intptr_t fd = di->fd();
+        if (di->IsListeningSocket()) {
+          // We only close the socket file descriptor from the operating
+          // system if there are no other dart socket objects which
+          // are listening on the same (address, port) combination.
+
+          // TODO(dart:io): This assumes that all sockets listen before we
+          // close.
+          // This needs to be synchronized with a global datastructure.
+          if (new_mask == 0) {
+            socket_map_.Remove(
+                GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+            di->Close();
+            delete di;
+          }
+        } else {
+          ASSERT(new_mask == 0);
+          socket_map_.Remove(
+              GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+          di->Close();
+          delete di;
+        }
+
+        DartUtils::PostInt32(port, 1 << kDestroyedEvent);
       } else if (IS_COMMAND(msg[i].data, kReturnTokenCommand)) {
         int count = TOKEN_COUNT(msg[i].data);
-
-        for (int i = 0; i < count; i++) {
-          if (sd->ReturnToken()) {
-            AddToEpollInstance(epoll_fd_, sd);
-          }
-        }
+        intptr_t old_mask = di->Mask();
+        di->ReturnTokens(msg[i].dart_port, count);
+        UpdateEpollInstance(old_mask, di);
       } else if (IS_COMMAND(msg[i].data, kSetEventMaskCommand)) {
         // `events` can only have kInEvent/kOutEvent flags set.
         intptr_t events = msg[i].data & EVENT_MASK;
         ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
 
-        // Setup events to wait for.
-        sd->SetPortAndMask(msg[i].dart_port, events);
-        AddToEpollInstance(epoll_fd_, sd);
+        intptr_t old_mask = di->Mask();
+        di->SetPortAndMask(msg[i].dart_port, msg[i].data & EVENT_MASK);
+        UpdateEpollInstance(old_mask, di);
       } else {
         UNREACHABLE();
       }
@@ -233,9 +286,9 @@ static void PrintEventMask(intptr_t fd, intptr_t events) {
 #endif
 
 intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
-                                                   SocketData* sd) {
+                                                   DescriptorInfo* di) {
 #ifdef DEBUG_POLL
-  PrintEventMask(sd->fd(), events);
+  PrintEventMask(di->fd(), events);
 #endif
   if (events & EPOLLERR) {
     // Return error only if EPOLLIN is present.
@@ -256,15 +309,14 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
     if (events[i].data.ptr == NULL) {
       interrupt_seen = true;
     } else {
-      SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
-      intptr_t event_mask = GetPollEvents(events[i].events, sd);
+      DescriptorInfo* di =
+          reinterpret_cast<DescriptorInfo*>(events[i].data.ptr);
+      intptr_t event_mask = GetPollEvents(events[i].events, di);
       if (event_mask != 0) {
-        if (sd->TakeToken()) {
-          // Took last token, remove from epoll.
-          RemoveFromEpollInstance(epoll_fd_, sd);
-        }
-        Dart_Port port = sd->port();
+        intptr_t old_mask = di->Mask();
+        Dart_Port port = di->NextNotifyDartPort(event_mask);
         ASSERT(port != 0);
+        UpdateEpollInstance(old_mask, di);
         DartUtils::PostInt32(port, event_mask);
       }
     }
@@ -329,7 +381,7 @@ void EventHandlerImplementation::Poll(uword args) {
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = Thread::Start(&EventHandlerImplementation::Poll,
-                                   reinterpret_cast<uword>(handler));
+                             reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }
@@ -343,7 +395,7 @@ void EventHandlerImplementation::Shutdown() {
 
 void EventHandlerImplementation::SendData(intptr_t id,
                                           Dart_Port dart_port,
-                                          intptr_t data) {
+                                          int64_t data) {
   WakeupHandler(id, dart_port, data);
 }
 
