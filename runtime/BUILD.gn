@@ -2,9 +2,20 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# TODO(zra): These build arguments should likely be moved to a gni file that is
+# included in BUILD.gn files that care about the values of the flags. For now,
+# since the GN build only happens as part of a Mojo build there is no need for
+# the indirection.
+declare_args() {
+  # Instead of using is_debug, we introduce a different flag for specifying a
+  # Debug build of Dart so that clients can still use a Release build of Dart
+  # while themselves doing a Debug build.
+  dart_debug = false
+}
+
 config("dart_config") {
   defines = []
-  if (is_debug) {
+  if (dart_debug) {
     defines += ["DEBUG"]
   } else {
     defines += ["NDEBUG"]
@@ -24,6 +35,16 @@ config("dart_config") {
     "-fno-rtti",
     "-fno-exceptions",
   ]
+
+  if (dart_debug) {
+    cflags += [
+      "-O1",
+    ]
+  } else {
+    cflags += [
+      "-O3",
+    ]
+  }
 }
 
 
@@ -82,6 +103,7 @@ action("generate_version_cc_file") {
 
 
 executable("libdart_dependency_helper") {
+  configs += [":dart_config"]
   deps = [
     "vm:libdart_lib_withcore",
     "vm:libdart_lib",
