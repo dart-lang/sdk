@@ -4,7 +4,7 @@ author: Dart Team <misc@dartlang.org>
 description: Style linter for Dart.
 homepage: https://github.com/dart-lang/dart_lint
 dependencies:
-  analyzer: '0.23.0'
+  analyzer: '0.24.0-dev.1'
   cli_util: '>=0.0.1 <0.1.0'
 dev_dependencies:
   markdown: '>=0.7.1+2 <0.8.0'
