@@ -35,7 +35,8 @@ class UnnecessaryBraceInStringInterp extends LintRule {
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,
-          kind: Kind.AVOID);
+          kind: Kind.AVOID,
+          maturity: Maturity.EXPERIMENTAL);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

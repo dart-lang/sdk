@@ -15,3 +15,7 @@ final Map<String, LintRule> ruleMap = {
   'super_goes_last': new SuperGoesLast(),
   'unnecessary_brace_in_string_interp': new UnnecessaryBraceInStringInterp()
 };
+
+/// Sorted list of contributed lint rules.
+final List<LintRule> rules =
+    new List<LintRule>.from(ruleMap.values, growable: false)..sort();

@@ -131,6 +131,51 @@ void defineLinterEngineTests() {
         expect(processFile(f), isFalse);
       });
     });
+
+    group('dtos', () {
+      group('hyperlink', () {
+        test('html', () {
+          Hyperlink link = new Hyperlink('dart', 'http://dartlang.org');
+          expect(link.html, equals('<a href="http://dartlang.org">dart</a>'));
+        });
+        test('html - strong', () {
+          Hyperlink link =
+              new Hyperlink('dart', 'http://dartlang.org', bold: true);
+          expect(link.html, equals(
+              '<a href="http://dartlang.org"><strong>dart</strong></a>'));
+        });
+      });
+      group('kind', () {
+        test('priority', () {
+          expect(Kind.supported, orderedEquals(
+              [Kind.DO, Kind.DONT, Kind.PREFER, Kind.AVOID, Kind.CONSIDER]));
+        });
+        test('comparing', () {
+          expect(Kind.DO.compareTo(Kind.DONT), equals(-1));
+        });
+      });
+      group('rule', () {
+        test('sorting', () {
+          expect(Kind.supported, orderedEquals(
+              [Kind.DO, Kind.DONT, Kind.PREFER, Kind.AVOID, Kind.CONSIDER]));
+        });
+        test('comparing', () {
+          LintRule r1 = new MockLintRule('Bar', Kind.DO);
+          LintRule r2 = new MockLintRule('Foo', Kind.DO);
+          expect(r1.compareTo(r2), equals(-1));
+        });
+      });
+      group('maturity', () {
+        test('comparing', () {
+          // Custom
+          Maturity m1 = new Maturity('Foo', ordinal: 0);
+          Maturity m2 = new Maturity('Bar', ordinal: 1);
+          expect(m1.compareTo(m2), equals(-1));
+          // Builtin
+          expect(Maturity.STABLE.compareTo(Maturity.EXPERIMENTAL), equals(-1));
+        });
+      });
+    });
   });
 }
 
@@ -304,6 +349,13 @@ class MockLinter extends LintRule {
 
   @override
   AstVisitor getVisitor() => visitorCallback();
+}
+
+class MockLintRule extends LintRule {
+  MockLintRule(String name, Kind kind) : super(name: name, kind: kind);
+
+  @override
+  AstVisitor getVisitor() => new MockVisitor(null);
 }
 
 class MockVisitor extends GeneralizingAstVisitor {

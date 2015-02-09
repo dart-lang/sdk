@@ -48,6 +48,8 @@ class CamelCaseString {
   }
 
   String get humanized => _humanize(value);
+
+  String toString() => value;
 }
 
 /// Dart source linter.
@@ -70,34 +72,77 @@ abstract class DartLinter {
 class Group {
 
   /// Defined rule groups.
-  static final Group STYLE_GUIDE = new Group._('Style Guide');
+  static const Group STYLE_GUIDE = const Group._('Style Guide',
+      link: const Hyperlink('See the <strong>Style Guide</strong>',
+          'https://www.dartlang.org/articles/style-guide/'));
 
   final String name;
   final bool custom;
-  factory Group(String name) {
+  final String description;
+  final Hyperlink link;
+
+  factory Group(String name, {String description, Hyperlink link}) {
     switch (name) {
       case 'Styleguide':
       case 'Style Guide':
         return STYLE_GUIDE;
       default:
-        return new Group._(name, custom: true);
+        return new Group._(name,
+            custom: true, description: description, link: link);
     }
   }
 
-  Group._(this.name, {this.custom: false});
+  const Group._(this.name, {this.custom: false, this.description, this.link});
 }
-class Kind {
+
+class Hyperlink {
+  final String label;
+  final String href;
+  final bool bold;
+  const Hyperlink(this.label, this.href, {this.bold: false});
+  String get html => '<a href="$href">${_emph(label)}</a>';
+  String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
+}
+
+class Kind implements Comparable<Kind> {
 
   /// Defined rule kinds.
-  static final Kind DO = new Kind._('Do');
-  static final Kind DONT = new Kind._("Don't");
-  static final Kind PREFER = new Kind._('Prefer');
-  static final Kind AVOID = new Kind._('Avoid');
-  static final Kind CONSIDER = new Kind._('Consider');
+  static const Kind DO = const Kind._('Do', ordinal: 0, description: '''
+**DO** guidelines describe practices that should always be followed. 
+There will almost never be a valid reason to stray from them.
+''');
+  static const Kind DONT = const Kind._("Don't", ordinal: 1, description: '''
+**DON'T** guidelines are the converse: things that are almost never a good idea. 
+You'll note there are few of these here. Guidelines like these in other 
+languages help to avoid the pitfalls that appear over time. Dart is new enough 
+that we can just fix those pitfalls directly instead of putting up ropes around 
+them.
+''');
+  static const Kind PREFER = const Kind._('Prefer', ordinal: 2, description: '''
+**PREFER** guidelines are practices that you should follow. However, there 
+may be circumstances where it makes sense to do otherwise. Just make sure you 
+understand the full implications of ignoring the guideline when you do.
+''');
+  static const Kind AVOID = const Kind._('Avoid', ordinal: 3, description: '''
+**AVOID** guidelines are the dual to "prefer": stuff you shouldn't do but where 
+there may be good reasons to on rare occasions.
+''');
+  static const Kind CONSIDER = const Kind._('Consider',
+      ordinal: 4, description: '''
+**CONSIDER** guidelines are practices that you might or might not want to 
+follow, depending on circumstances, precedents, and your own preference.
+''');
 
+  /// List of supported kinds in priority order.
+  static Iterable<Kind> get supported => [DO, DONT, PREFER, AVOID, CONSIDER];
   final String name;
   final bool custom;
-  factory Kind(String name) {
+  /// Description (in markdown).
+  final String description;
+
+  final int ordinal;
+
+  factory Kind(String name, {String description, int ordinal}) {
     var label = name.toUpperCase();
     switch (label) {
       case 'DO':
@@ -112,11 +157,50 @@ class Kind {
       case 'CONSIDER':
         return CONSIDER;
       default:
-        return new Kind._(label, custom: true);
+        return new Kind._(label,
+            custom: true, description: description, ordinal: ordinal);
     }
   }
 
-  Kind._(this.name, {this.custom: false});
+  const Kind._(this.name, {this.custom: false, this.description, this.ordinal});
+
+  @override
+  int compareTo(Kind other) => this.ordinal - other.ordinal;
+}
+
+/// Describes a lint rule.
+abstract class LintRule extends Linter implements Comparable<LintRule> {
+
+  /// Description (in markdown format) suitable for display in a detailed lint
+  /// description.
+  final String details;
+  /// Short description suitable for display in console output.
+  final String description;
+  /// Lint group (for example, 'Style Guide')
+  final Group group;
+  /// Lint kind (DO|DON'T|PREFER|AVOID|CONSIDER).
+  final Kind kind;
+  /// Lint maturity (STABLE|EXPERIMENTAL).
+  final Maturity maturity;
+  /// Lint name.
+  final CamelCaseString name;
+
+  LintRule({String name, this.group, this.kind, this.description, this.details,
+      this.maturity: Maturity.STABLE}) : name = new CamelCaseString(name);
+
+  @override
+  int compareTo(LintRule other) {
+    var k = kind.compareTo(other.kind);
+    if (k != 0) {
+      return k;
+    }
+    return name.value.compareTo(other.name.value);
+  }
+
+  void reportLint(AstNode node) {
+    reporter.reportErrorForNode(
+        new LintCode(name.value, description), node, []);
+  }
 }
 
 /// Thrown when an error occurs in linting.
@@ -142,28 +226,30 @@ class LinterOptions extends DriverOptions {
   Iterable<Linter> get enabledLints => _enabledLints();
 }
 
-/// Describes a lint rule.
-abstract class LintRule extends Linter {
+class Maturity implements Comparable<Maturity> {
+  static const Maturity STABLE = const Maturity._('STABLE', ordinal: 0);
+  static const Maturity EXPERIMENTAL =
+      const Maturity._('EXPERIMENTAL', ordinal: 1);
 
-  /// Description (in markdown format) suitable for display in a detailed lint
-  /// description.
-  final String details;
-  /// Short description suitable for display in console output.
-  final String description;
-  /// Lint group (for example, 'Style Guide')
-  final Group group;
-  /// Lint kind (DO|DON'T|PREFER|AVOID|CONSIDER)
-  final Kind kind;
-  /// Lint name.
-  final CamelCaseString name;
+  final String name;
+  final int ordinal;
 
-  LintRule({String name, this.group, this.kind, this.description, this.details})
-      : name = new CamelCaseString(name);
-
-  void reportLint(AstNode node) {
-    reporter.reportErrorForNode(
-        new LintCode(name.value, description), node, []);
+  factory Maturity(String name, {int ordinal}) {
+    var normalized = name.toUpperCase();
+    switch (normalized) {
+      case 'STABLE':
+        return STABLE;
+      case 'EXPERIMENTAL':
+        return EXPERIMENTAL;
+      default:
+        return new Maturity._(name, ordinal: ordinal);
+    }
   }
+
+  const Maturity._(this.name, {this.ordinal});
+
+  @override
+  int compareTo(Maturity other) => this.ordinal - other.ordinal;
 }
 
 class PrintingReporter implements Reporter, Logger {
