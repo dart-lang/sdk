@@ -38,9 +38,9 @@ void DisassembleToStdout::Print(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* p = reinterpret_cast<char*>(malloc(len+1));
+  char* p = reinterpret_cast<char*>(malloc(len + 1));
   va_start(args, format);
-  OS::VSNPrint(p, len, format, args);
+  OS::VSNPrint(p, (len + 1), format, args);
   va_end(args);
 
   ISL_Print("%s", p);
