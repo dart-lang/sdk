@@ -922,6 +922,34 @@ class A {
 ''');
   }
 
+  void test_createLocalVariable_functionType_named() {
+    _indexTestUnit('''
+typedef MY_FUNCTION(int p);
+foo(MY_FUNCTION f) {}
+main() {
+  foo(bar);
+}
+''');
+    assertHasFix(FixKind.CREATE_LOCAL_VARIABLE, '''
+typedef MY_FUNCTION(int p);
+foo(MY_FUNCTION f) {}
+main() {
+  MY_FUNCTION bar;
+  foo(bar);
+}
+''');
+  }
+
+  void test_createLocalVariable_functionType_synthetic() {
+    _indexTestUnit('''
+foo(f(int p)) {}
+main() {
+  foo(bar);
+}
+''');
+    assertNoFix(FixKind.CREATE_LOCAL_VARIABLE);
+  }
+
   void test_createLocalVariable_read_typeAssignment() {
     _indexTestUnit('''
 main() {

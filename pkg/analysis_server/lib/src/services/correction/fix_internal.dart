@@ -835,8 +835,13 @@ class FixProcessor {
     SourceBuilder sb = new SourceBuilder(file, target.offset);
     {
       // append type
-      DartType fieldType = _inferUndefinedExpressionType(node);
-      _appendType(sb, fieldType, groupId: 'TYPE', orVar: true);
+      DartType type = _inferUndefinedExpressionType(node);
+      if (!(type == null ||
+          type is InterfaceType ||
+          type is FunctionType && type.element != null && !type.element.isSynthetic)) {
+        return;
+      }
+      _appendType(sb, type, groupId: 'TYPE', orVar: true);
       // append name
       {
         sb.startPosition('NAME');
