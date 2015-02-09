@@ -19,7 +19,52 @@ class SsaFunctionCompiler implements FunctionCompiler {
   js.Fun compile(CodegenWorkItem work) {
     HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
-    return generator.generateCode(work, graph);
+    Element element = work.element;
+    js.Expression result = generator.generateCode(work, graph);
+    if (element is FunctionElement) {
+      JavaScriptBackend backend = builder.backend;
+
+      AsyncRewriter rewriter = null;
+      if (element.asyncMarker == AsyncMarker.ASYNC) {
+        rewriter = new AsyncRewriter(
+            backend.compiler,
+            backend.compiler.currentElement,
+            thenHelper:
+                backend.emitter.staticFunctionAccess(backend.getThenHelper()),
+            newCompleter: backend.emitter.staticFunctionAccess(
+                backend.getCompleterConstructor()),
+            safeVariableName: backend.namer.safeVariableName);
+      } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
+        rewriter = new AsyncRewriter(
+            backend.compiler,
+            backend.compiler.currentElement,
+            endOfIteration: backend.emitter.staticFunctionAccess(
+                backend.getEndOfIteration()),
+            newIterable: backend.emitter.staticFunctionAccess(
+                backend.getSyncStarIterableConstructor()),
+            yieldStarExpression: backend.emitter.staticFunctionAccess(
+                backend.getYieldStar()),
+            safeVariableName: backend.namer.safeVariableName);
+      }
+      else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
+        rewriter = new AsyncRewriter(
+            backend.compiler,
+            backend.compiler.currentElement,
+            streamHelper: backend.emitter.staticFunctionAccess(
+                backend.getStreamHelper()),
+            newController: backend.emitter.staticFunctionAccess(
+                backend.getASyncStarControllerConstructor()),
+            safeVariableName: backend.namer.safeVariableName,
+            yieldExpression: backend.emitter.staticFunctionAccess(
+                backend.getYieldSingle()),
+            yieldStarExpression: backend.emitter.staticFunctionAccess(
+                backend.getYieldStar()));
+      }
+      if (rewriter != null) {
+        result = rewriter.rewrite(result);
+      }
+    }
+    return result;
   }
 
   Iterable<CompilerTask> get tasks {
@@ -362,7 +407,7 @@ class LocalsHandler {
   bool isAccessedDirectly(Local local) {
     assert(local != null);
     return !redirectionMapping.containsKey(local)
-        && !closureData.usedVariablesInTry.contains(local);
+        && !closureData.variablesUsedInTryOrGenerator.contains(local);
   }
 
   bool isStoredInClosureField(Local local) {
@@ -379,8 +424,8 @@ class LocalsHandler {
     return redirectionMapping.containsKey(local);
   }
 
-  bool isUsedInTry(Local local) {
-    return closureData.usedVariablesInTry.contains(local);
+  bool isUsedInTryOrGenerator(Local local) {
+    return closureData.variablesUsedInTryOrGenerator.contains(local);
   }
 
   /**
@@ -422,7 +467,7 @@ class LocalsHandler {
       builder.add(lookup);
       return lookup;
     } else {
-      assert(isUsedInTry(local));
+      assert(isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
       HInstruction instruction = new HLocalGet(
           local, localValue, builder.backend.dynamicType);
@@ -478,7 +523,7 @@ class LocalsHandler {
       HInstruction box = readLocal(redirect.box);
       builder.add(new HFieldSet(redirect, box, value));
     } else {
-      assert(isUsedInTry(local));
+      assert(isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
       builder.add(new HLocalSet(local, localValue, value));
     }
@@ -5164,14 +5209,17 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitYield(ast.Yield node) {
-    // Dummy implementation.
     visit(node.expression);
-    pop();
+    HInstruction yielded = pop();
+    add(new HYield(yielded, node.hasStar));
   }
 
   visitAwait(ast.Await node) {
-    // Dummy implementation.
     visit(node.expression);
+    HInstruction awaited = pop();
+    // TODO(herhut): Improve this type.
+    push(new HAwait(awaited, new TypeMask.subclass(compiler.objectClass,
+                                                   compiler.world)));
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {
@@ -5315,7 +5363,78 @@ class SsaBuilder extends ResolvedVisitor {
     return new JumpHandler(this, element);
   }
 
+  buildAsyncForIn(ast.ForIn node) {
+    assert(node.isAsync);
+    // The async-for is implemented with a StreamIterator.
+    HInstruction streamIterator;
+
+    visit(node.expression);
+    HInstruction expression = pop();
+    pushInvokeStatic(node,
+                     backend.getStreamIteratorConstructor(),
+                     [expression, graph.addConstantNull(compiler)]);
+    streamIterator = pop();
+
+    void buildInitializer() {}
+
+    HInstruction buildCondition() {
+      Selector selector = elements.getMoveNextSelector(node);
+      pushInvokeDynamic(node, selector, [streamIterator]);
+      HInstruction future = pop();
+      push(new HAwait(future, new TypeMask.subclass(compiler.objectClass,
+                                                    compiler.world)));
+      return popBoolified();
+    }
+    void buildBody() {
+      Selector call = elements.getCurrentSelector(node);
+      pushInvokeDynamic(node, call, [streamIterator]);
+
+      ast.Node identifier = node.declaredIdentifier;
+      Element variable = elements.getForInVariable(node);
+      Selector selector = elements.getSelector(identifier);
+
+      HInstruction value = pop();
+      if (identifier.asSend() != null
+          && Elements.isInstanceSend(identifier, elements)) {
+        HInstruction receiver = generateInstanceSendReceiver(identifier);
+        assert(receiver != null);
+        generateInstanceSetterWithCompiledReceiver(
+            null,
+            receiver,
+            value,
+            selector: selector,
+            location: identifier);
+      } else {
+        generateNonInstanceSetter(
+            null, variable, value, location: identifier);
+      }
+      pop(); // Pop the value pushed by the setter call.
+
+      visit(node.body);
+    }
+
+    void buildUpdate() {};
+
+    buildProtectedByFinally(() {
+      handleLoop(node,
+                 buildInitializer,
+                 buildCondition,
+                 buildUpdate,
+                 buildBody);
+    }, () {
+      pushInvokeDynamic(node, new Selector.call("cancel", null, 0),
+          [streamIterator]);
+      push(new HAwait(pop(), new TypeMask.subclass(compiler.objectClass,
+          compiler.world)));
+      pop();
+    });
+  }
+
   visitForIn(ast.ForIn node) {
+    if (node.isAsync) {
+      return buildAsyncForIn(node);
+    }
+
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator;
     //   while ($iter.moveNext()) {
@@ -5851,6 +5970,85 @@ class SsaBuilder extends ResolvedVisitor {
     compiler.internalError(node, 'SsaFromAstMixin.visitCaseMatch.');
   }
 
+  /// Calls [buildTry] inside a synthetic try block with [buildFinally] in the
+  /// finally block.
+  void buildProtectedByFinally(void buildTry(), void buildFinally()) {
+    HBasicBlock enterBlock = openNewBlock();
+    HTry tryInstruction = new HTry();
+    close(tryInstruction);
+    bool oldInTryStatement = inTryStatement;
+    inTryStatement = true;
+
+    HBasicBlock startTryBlock;
+    HBasicBlock endTryBlock;
+    HBasicBlock startFinallyBlock;
+    HBasicBlock endFinallyBlock;
+
+    startTryBlock = graph.addNewBlock();
+    open(startTryBlock);
+    buildTry();
+    // We use a [HExitTry] instead of a [HGoto] for the try block
+    // because it will have two successors: the join block, and
+    // the finally block.
+    if (!isAborted()) endTryBlock = close(new HExitTry());
+    SubGraph bodyGraph = new SubGraph(startTryBlock, lastOpenedBlock);
+
+    SubGraph finallyGraph = null;
+
+    startFinallyBlock = graph.addNewBlock();
+    open(startFinallyBlock);
+    buildFinally();
+    if (!isAborted()) endFinallyBlock = close(new HGoto());
+    tryInstruction.finallyBlock = startFinallyBlock;
+    finallyGraph = new SubGraph(startFinallyBlock, lastOpenedBlock);
+
+    HBasicBlock exitBlock = graph.addNewBlock();
+
+    void addExitTrySuccessor(HBasicBlock successor) {
+      // Iterate over all blocks created inside this try/catch, and
+      // attach successor information to blocks that end with
+      // [HExitTry].
+      for (int i = startTryBlock.id; i < successor.id; i++) {
+        HBasicBlock block = graph.blocks[i];
+        var last = block.last;
+        if (last is HExitTry) {
+          block.addSuccessor(successor);
+        }
+      }
+    }
+
+    // Setup all successors. The entry block that contains the [HTry]
+    // has 1) the body 2) the finally, and 4) the exit
+    // blocks as successors.
+    enterBlock.addSuccessor(startTryBlock);
+    enterBlock.addSuccessor(startFinallyBlock);
+    enterBlock.addSuccessor(exitBlock);
+
+    // The body has the finally block as successor.
+    if (endTryBlock != null) {
+      endTryBlock.addSuccessor(startFinallyBlock);
+      endTryBlock.addSuccessor(exitBlock);
+    }
+
+    // The finally block has the exit block as successor.
+    endFinallyBlock.addSuccessor(exitBlock);
+
+    // If a block inside try/catch aborts (eg with a return statement),
+    // we explicitely mark this block a predecessor of the catch
+    // block and the finally block.
+    addExitTrySuccessor(startFinallyBlock);
+
+    open(exitBlock);
+    enterBlock.setBlockFlow(
+        new HTryBlockInformation(
+          wrapStatementGraph(bodyGraph),
+          null, // No catch-variable.
+          null, // No catchGraph.
+          wrapStatementGraph(finallyGraph)),
+        exitBlock);
+    inTryStatement = oldInTryStatement;
+  }
+
   visitTryStatement(ast.TryStatement node) {
     // Save the current locals. The catch block and the finally block
     // must not reuse the existing locals handler. None of the variables
@@ -6222,6 +6420,7 @@ class InlineWeeder extends ast.Visitor {
         new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
+    weeder.visit(functionExpression.asyncModifier);
     return !weeder.tooDifficult;
   }
 
@@ -6245,6 +6444,13 @@ class InlineWeeder extends ast.Visitor {
       tooDifficult = true;
     } else {
       node.visitChildren(this);
+    }
+  }
+
+  @override
+  void visitAsyncModifier(ast.AsyncModifier node) {
+    if (node.isYielding || node.isAsynchronous) {
+      tooDifficult = true;
     }
   }
 

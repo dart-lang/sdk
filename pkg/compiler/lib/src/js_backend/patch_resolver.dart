@@ -26,7 +26,6 @@ class PatchResolverTask extends CompilerTask {
       });
       checkMatchingPatchSignatures(element, patch);
       element = patch;
-      ResolverTask.processAsyncMarker(compiler, element);
     } else {
       compiler.reportError(
          element, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);

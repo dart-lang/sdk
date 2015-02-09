@@ -355,6 +355,19 @@ class Printer extends Indentation implements NodeVisitor {
     outSemicolonLn();
   }
 
+  visitDartYield(DartYield node) {
+    if (node.hasStar) {
+      outIndent("yield*");
+    } else {
+      outIndent("yield");
+    }
+    pendingSpace = true;
+    visitNestedExpression(node.expression, EXPRESSION,
+                          newInForInit: false, newAtStatementBegin: false);
+    outSemicolonLn();
+  }
+
+
   visitThrow(Throw node) {
     outIndent("throw");
     pendingSpace = true;

@@ -21,11 +21,18 @@ import 'dart:_js_embedded_names' show
 import 'dart:collection';
 import 'dart:_isolate_helper' show
     IsolateNatives,
-    leaveJsAsync,
     enterJsAsync,
-    isWorker;
+    isWorker,
+    leaveJsAsync;
 
-import 'dart:async' show Future, DeferredLoadException, Completer;
+import 'dart:async' show
+  Future,
+  DeferredLoadException,
+  Completer,
+  StreamController,
+  Stream,
+  StreamSubscription,
+  scheduleMicrotask;
 
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
@@ -3461,4 +3468,256 @@ void badMain() {
 
 void mainHasTooManyParameters() {
   throw new MainError("'main' expects too many parameters.");
+}
+
+/// Runtime support for async-await transformation.
+///
+/// This function is called by a transformed function on each await and return
+/// in the untransformed function, and before starting.
+///
+/// If [object] is not a future it will be wrapped in a `new Future.value`.
+///
+/// If [helperCallback] is null it indicates a return from the async function,
+/// and we complete the completer with object.
+///
+/// Otherwise [helperCallback] is set up to be called when the future is
+/// successfull and [errorCallback] if it is completed with an error.
+///
+/// If helperCallback or errorCallback throws we complete the completer with the
+/// error.
+///
+/// Returns the future of the completer for convenience of the first call.
+dynamic thenHelper(dynamic object,
+                   dynamic /* js function */ helperCallback,
+                   Completer completer,
+                   dynamic /* js function */ errorCallback) {
+  if (helperCallback == null) {
+    completer.complete(object);
+    return;
+  }
+  Future future = object is Future ? object : new Future.value(object);
+  future.then(_wrapJsFunctionForThenHelper(helperCallback, completer),
+              onError: (errorCallback == null)
+                  ? null
+                  : _wrapJsFunctionForThenHelper(errorCallback, completer));
+  return completer.future;
+}
+
+Function _wrapJsFunctionForThenHelper(dynamic /* js function */ function,
+                                      Completer completer) {
+  return (result) {
+    try {
+      JS('', '#(#)', function, result);
+    } catch (e, st) {
+      completer.completeError(e, st);
+    }
+  };
+}
+
+
+/// Implements the runtime support for async* functions.
+///
+/// Called by the transformed function for each original return, await, yield,
+/// yield* and before starting the function.
+///
+/// When the async* function wants to return it calls this function. with
+/// [helperCallback] == null, the streamHelper takes this as signal to close the
+/// stream.
+///
+/// If the async* function wants to do a yield or yield* it calls this function
+/// with [object] being an [IterationMarker]. In this case [errorCallback] has a
+/// special meaning; it is a callback that will run all enclosing finalizers.
+///
+/// In the case of a yield or yield*, if the stream subscription has been
+/// canceled [errorCallback] is scheduled.
+///
+/// If [object] is a single-yield [IterationMarker], adds the value of the
+/// [IterationMarker] to the stream. If the stream subscription has been
+/// paused, return early. Otherwise schedule the helper function to be
+/// executed again.
+///
+/// If [object] is a yield-star [IterationMarker], starts listening to the
+/// yielded stream, and adds all events and errors to our own controller (taking
+/// care if the subscription has been paused or canceled) - when the sub-stream
+/// is done, schedules [helperCallback] again.
+///
+/// If the async* function wants to do an await it calls this function with
+/// [object] not and [IterationMarker].
+///
+/// If [object] is not a [Future], it is wrapped in a `Future.value`.
+/// The [helperCallback] is called on successfull completion of the
+/// future.
+///
+/// If [helperCallback] or [errorCallback] throws the error is added to the
+/// stream.
+dynamic streamHelper(dynamic object,
+                     dynamic /* js function */ helperCallback,
+                     AsyncStarStreamController controller,
+                     dynamic /* js function */ errorCallback) {
+  if (helperCallback == null) {
+    // This happens on return from the async* function.
+    controller.close();
+    return null;
+  }
+
+  if (object is IterationMarker) {
+    if (controller.stopRunning) {
+      _wrapJsFunctionForStream(errorCallback, controller)();
+      return null;
+    }
+    if (object.state == IterationMarker.YIELD_SINGLE) {
+      controller.add(object.value);
+      // If the controller is paused we stop producing more values.
+      if (controller.isPaused) {
+        return null;
+      }
+      // TODO(sigurdm): We should not suspend here according to the spec.
+      scheduleMicrotask(() {
+          _wrapJsFunctionForStream(helperCallback, controller)(null);
+      });
+      return;
+    } else if (object.state == IterationMarker.YIELD_STAR) {
+      Stream stream = object.value;
+      controller.isAdding = true;
+      // Errors of [stream] are passed though to the main stream. (see
+      // [AsyncStreamController.addStream].
+      // TODO(sigurdm): The spec is not very clear here. Clarify with Gilad.
+      controller.addStream(stream).then((_) {
+        controller.isAdding = false;
+        _wrapJsFunctionForStream(helperCallback, controller)(null);
+      });
+      return null;
+    }
+  }
+
+  Future future = object is Future ? object : new Future.value(object);
+  future.then(_wrapJsFunctionForStream(helperCallback, controller),
+              onError: errorCallback == null
+                  ? null
+                  : _wrapJsFunctionForStream(errorCallback, controller));
+  return controller.stream;
+}
+
+/// A wrapper around a [StreamController] that remembers if that controller
+/// got a cancel.
+///
+/// Also has a subSubscription that when not null will provide events for the
+/// stream, and will be paused and resumed along with this controller.
+class AsyncStarStreamController {
+  StreamController controller;
+  Stream get stream => controller.stream;
+  bool stopRunning = false;
+  bool isAdding = false;
+  bool get isPaused => controller.isPaused;
+  add(event) => controller.add(event);
+  addStream(Stream stream) {
+    return controller.addStream(stream, cancelOnError: false);
+  }
+  addError(error, stackTrace) => controller.addError(error, stackTrace);
+  close() => controller.close();
+
+  AsyncStarStreamController(helperCallback) {
+    controller = new StreamController(
+      onResume: () {
+        if (!isAdding) {
+          streamHelper(null, helperCallback, this, null);
+        }
+      }, onCancel: () {
+        stopRunning = true;
+      });
+  }
+}
+
+makeAsyncStarController(helperCallback) {
+  return new AsyncStarStreamController(helperCallback);
+}
+
+Function _wrapJsFunctionForStream(dynamic /* js function */ function,
+                                  AsyncStarStreamController controller) {
+  return (result) {
+    try {
+      JS('', '#(#)', function, result);
+    } catch (e, st) {
+      controller.addError(e, st);
+    }
+  };
+}
+
+
+class IterationMarker {
+  static const YIELD_SINGLE = 0;
+  static const YIELD_STAR = 1;
+  static const ITERATION_ENDED = 2;
+
+  final value;
+  final int state;
+
+  IterationMarker._(this.state, this.value);
+
+  static yieldStar(dynamic /* Iterable or Stream */ values) {
+    return new IterationMarker._(YIELD_STAR, values);
+  }
+
+  static endOfIteration() {
+    return new IterationMarker._(ITERATION_ENDED, null);
+  }
+
+  static yieldSingle(dynamic value) {
+    return new IterationMarker._(YIELD_SINGLE, value);
+  }
+
+  toString() => "IterationMarker($state, $value)";
+}
+
+class SyncStarIterator implements Iterator {
+  final Function _helper;
+
+  // If [runningNested] this is the nested iterator, otherwise it is the
+  // current value.
+  dynamic _current = null;
+  bool _runningNested = false;
+
+  get current => _runningNested ? _current.current : _current;
+
+  SyncStarIterator(helper)
+      : _helper = ((arg) => JS('', '#(#)', helper, arg));
+
+  bool moveNext() {
+    if (_runningNested) {
+      if (_current.moveNext()) {
+        return true;
+      } else {
+        _runningNested = false;
+      }
+    }
+    _current = _helper(null);
+    if (_current is IterationMarker) {
+      if (_current.state == IterationMarker.ITERATION_ENDED) {
+        _current = null;
+        // Rely on [_helper] to repeatedly return `ITERATION_ENDED`.
+        return false;
+      } else {
+        assert(_current.state == IterationMarker.YIELD_STAR);
+        _current = _current.value.iterator;
+        _runningNested = true;
+        return moveNext();
+      }
+    }
+    return true;
+  }
+}
+
+/// An Iterable corresponding to a sync* method.
+///
+/// Each invocation of a sync* method will return a new instance of this class.
+class SyncStarIterable extends IterableBase {
+  // This is a function that will return a helper function that does the
+  // iteration of the sync*.
+  //
+  // Each invocation should give a helper with fresh state.
+  final dynamic /* js function */ _outerHelper;
+
+  SyncStarIterable(this._outerHelper);
+
+  Iterator get iterator => new SyncStarIterator(JS('', '#()', _outerHelper));
 }

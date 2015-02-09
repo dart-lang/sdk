@@ -435,6 +435,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) => new Return(makeExpression(arguments));
   }
 
+  Instantiator visitDartYield(DartYield node) {
+    Instantiator makeExpression = visit(node.expression);
+    return (arguments) => new DartYield(makeExpression(arguments), node.hasStar);
+  }
+
   Instantiator visitThrow(Throw node) {
     Instantiator makeExpression = visit(node.expression);
     return (arguments) => new Throw(makeExpression(arguments));
@@ -487,8 +492,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         new FunctionDeclaration(makeName(arguments), makeFunction(arguments));
   }
 
-  Instantiator visitLabeledStatement(LabeledStatement node) =>
-      TODO('visitLabeledStatement');
+  Instantiator visitLabeledStatement(LabeledStatement node) {
+    Instantiator makeBody = visit(node.body);
+    return (arguments) => new LabeledStatement(node.label, makeBody(arguments));
+  }
+
   Instantiator visitLiteralStatement(LiteralStatement node) =>
       TODO('visitLiteralStatement');
   Instantiator visitBlob(Blob node) =>

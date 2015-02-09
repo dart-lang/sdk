@@ -52,7 +52,16 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Fun buildJavaScriptFunction(FunctionElement element,
                                  List<js.Parameter> parameters,
                                  js.Block body) {
-    return attachPosition(new js.Fun(parameters, body), element);
+    js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
+        ? (element.asyncMarker.isYielding
+            ? const js.AsyncModifier.asyncStar()
+            : const js.AsyncModifier.async())
+        : (element.asyncMarker.isYielding
+            ? const js.AsyncModifier.syncStar()
+            : const js.AsyncModifier.sync());
+
+    return attachPosition(
+        new js.Fun(parameters, body, asyncModifier: asyncModifier), element);
   }
 
   js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
@@ -75,10 +84,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
+      FunctionElement element = work.element;
+      if (element.asyncMarker != AsyncMarker.SYNC) {
+        work.registry.registerAsyncMarker(element);
+      }
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       compiler.tracer.traceGraph("codegen", graph);
-      FunctionElement element = work.element;
       return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
     });
   }
@@ -1969,6 +1981,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  visitAwait(HAwait node) {
+    use(node.inputs[0]);
+    push(new js.Await(pop()), node);
+  }
+
+  visitYield(HYield node) {
+    use(node.inputs[0]);
+    pushStatement(new js.DartYield(pop(), node.hasStar), node);
+  }
+
   visitRangeConversion(HRangeConversion node) {
     // Range conversion instructions are removed by the value range
     // analyzer.
@@ -2047,7 +2069,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (helperName == 'wrapException') {
       pushStatement(new js.Throw(value));
     } else {
-      pushStatement(new js.Return(value));
+      Element element = work.element;
+      if (element is FunctionElement && element.asyncMarker.isYielding) {
+        // `return <expr>;` is illegal in a sync* or async* function.
+        // To have the the async-translator working, we avoid introducing
+        // `return` nodes.
+        pushStatement(new js.ExpressionStatement(value));
+      } else {
+        pushStatement(new js.Return(value));
+      }
     }
   }
 

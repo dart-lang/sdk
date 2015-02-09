@@ -31,6 +31,7 @@ import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
 import '../universe/universe.dart';
 import '../util/util.dart';
+import '../js/rewrite_async.dart';
 
 part 'builder.dart';
 part 'codegen.dart';

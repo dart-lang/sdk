@@ -209,6 +209,8 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'stringTypeCheck': 'stringTypeCheck(x) {}',
   'subtypeCast': 'subtypeCast(object, isField, checks, asField) {}',
   'subtypeOfRuntimeTypeCast': 'subtypeOfRuntimeTypeCast(object, type) {}',
+  'thenHelper':
+      'thenHelper(object, helperCallback, completer, errorCallback) {}',
   'throwAbstractClassInstantiationError':
       'throwAbstractClassInstantiationError(className) {}',
   'throwCyclicInit': 'throwCyclicInit(staticName) {}',
@@ -366,6 +368,8 @@ const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'DeferredLibrary': 'class DeferredLibrary {}',
   'Future': 'class Future<T> {}',
   'Stream': 'class Stream<T> {}',
+  'Completer': 'class Completer<T> {}',
+  'StreamIterator': 'class StreamIterator<T> {}',
 };
 
 const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{

@@ -6,6 +6,7 @@ part of ssa;
 
 abstract class HVisitor<R> {
   R visitAdd(HAdd node);
+  R visitAwait(HAwait node);
   R visitBitAnd(HBitAnd node);
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
@@ -71,6 +72,7 @@ abstract class HVisitor<R> {
   R visitTry(HTry node);
   R visitTypeConversion(HTypeConversion node);
   R visitTypeKnown(HTypeKnown node);
+  R visitYield(HYield node);
   R visitReadTypeVariable(HReadTypeVariable node);
   R visitFunctionType(HFunctionType node);
   R visitVoidType(HVoidType node);
@@ -354,6 +356,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitVoidType(HVoidType node) => visitInstruction(node);
   visitInterfaceType(HInterfaceType node) => visitInstruction(node);
   visitDynamicType(HDynamicType node) => visitInstruction(node);
+  visitAwait(HAwait node) => visitInstruction(node);
+  visitYield(HYield node) => visitInstruction(node);
 }
 
 class SubGraph {
@@ -2232,6 +2236,26 @@ class HThrowExpression extends HInstruction {
   toString() => 'throw expression';
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
   bool canThrow() => true;
+}
+
+class HAwait extends HInstruction {
+  HAwait(HInstruction value, TypeMask type)
+      : super(<HInstruction>[value], type);
+  toString() => 'await';
+  accept(HVisitor visitor) => visitor.visitAwait(this);
+  // An await will throw if its argument is not a real future.
+  bool canThrow() => true;
+  SideEffects sideEffects = new SideEffects();
+}
+
+class HYield extends HInstruction {
+  HYield(HInstruction value, this.hasStar)
+      : super(<HInstruction>[value], const TypeMask.nonNullEmpty());
+  bool hasStar;
+  toString() => 'yield';
+  accept(HVisitor visitor) => visitor.visitYield(this);
+  bool canThrow() => false;
+  SideEffects sideEffects = new SideEffects();
 }
 
 class HThrow extends HControlFlow {

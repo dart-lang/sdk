@@ -716,6 +716,8 @@ class MiniJsParser {
         return new LiteralNull();
       } else if (last == "function") {
         return parseFunctionExpression();
+      } else if (last == "this") {
+        return new This();
       } else {
         return new VariableUse(last);
       }
@@ -1116,9 +1118,12 @@ class MiniJsParser {
 
       if (lastToken == 'default') error("Default outside switch.");
 
+      if (lastToken == 'yield') return parseYield();
+
       if (lastToken == 'with') {
         error('Not implemented in mini parser');
       }
+
     }
 
     bool checkForInterpolatedStatement = lastCategory == HASH;
@@ -1151,6 +1156,13 @@ class MiniJsParser {
     Expression expression = parseExpression();
     expectSemicolon();
     return new Return(expression);
+  }
+
+  Statement parseYield() {
+    bool hasStar = acceptString('*');
+    Expression expression = parseExpression();
+    expectSemicolon();
+    return new DartYield(expression, hasStar);
   }
 
   Statement parseThrow() {

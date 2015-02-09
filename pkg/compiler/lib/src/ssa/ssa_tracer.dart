@@ -519,4 +519,12 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitDynamicType(HDynamicType node) {
     return "DynamicType";
   }
+
+  String visitAwait(HAwait node) {
+    return "await ${temporaryId(node.inputs[0])}";
+  }
+
+  String visitYield(HYield node) {
+    return "yield${node.hasStar ? "*" : ""} ${temporaryId(node.inputs[0])}";
+  }
 }

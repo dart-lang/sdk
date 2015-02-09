@@ -114,7 +114,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
   bool analyzeAll = false;
-  bool enableAsyncAwait = false;
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
   bool trustPrimitives = false;
@@ -189,11 +188,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   setAnalyzeAll(String argument) {
     analyzeAll = true;
-    passThrough(argument);
-  }
-
-  setEnableAsync(String argument) {
-    enableAsyncAwait = true;
     passThrough(argument);
   }
 
@@ -340,7 +334,12 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--show-package-warnings', passThrough),
     new OptionHandler('--csp', passThrough),
     new OptionHandler('--enable-experimental-mirrors', passThrough),
-    new OptionHandler('--enable-async', setEnableAsync),
+    new OptionHandler('--enable-async', (_) {
+      diagnosticHandler.info(
+          "Option '--enable-async' is no longer needed. "
+          "Async-await is supported by default.",
+          api.Diagnostic.HINT);
+    }),
     new OptionHandler('--enable-enum', (_) {
       diagnosticHandler.info(
           "Option '--enable-enum' is no longer needed. "
@@ -410,10 +409,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
   if (analyzeAll) analyzeOnly = true;
   if (!analyzeOnly) {
-    if (enableAsyncAwait && outputLanguage != OUTPUT_LANGUAGE_DART) {
-      helpAndFail("Option '--enable-async' is currently only supported in "
-                  "combination with the '--analyze-only' option.");
-    }
     if (allowNativeExtensions) {
       helpAndFail("Option '--allow-native-extensions' is only supported in "
                   "combination with the '--analyze-only' option.");

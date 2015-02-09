@@ -27,6 +27,7 @@ abstract class NodeVisitor<T> {
   T visitFunctionDeclaration(FunctionDeclaration node);
   T visitLabeledStatement(LabeledStatement node);
   T visitLiteralStatement(LiteralStatement node);
+  T visitDartYield(DartYield node);
 
   T visitBlob(Blob node);
   T visitLiteralExpression(LiteralExpression node);
@@ -169,6 +170,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitComment(Comment node) => null;
 
   T visitAwait(Await node) => visitExpression(node);
+  T visitDartYield(DartYield node) => visitStatement(node);
 }
 
 abstract class Node {
@@ -532,6 +534,24 @@ class LiteralStatement extends Statement {
   LiteralStatement _clone() => new LiteralStatement(code);
 }
 
+// Not a real javascript node, but represents the yield statement from a dart
+// program translated to javascript.
+class DartYield extends Statement {
+  final Expression expression;
+
+  final bool hasStar;
+
+  DartYield(this.expression, this.hasStar);
+
+  accept(NodeVisitor visitor) => visitor.visitDartYield(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    expression.accept(visitor);
+  }
+
+  DartYield _clone() => new DartYield(expression, hasStar);
+}
+
 abstract class Expression extends Node {
   int get precedenceLevel;
 
@@ -862,7 +882,7 @@ class Fun extends Expression {
     body.accept(visitor);
   }
 
-  Fun _clone() => new Fun(params, body);
+  Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
 
   int get precedenceLevel => CALL;
 }
@@ -870,11 +890,25 @@ class Fun extends Expression {
 class AsyncModifier {
   final bool isAsync;
   final bool isYielding;
+  final String description;
 
-  const AsyncModifier.sync() : isAsync = false, isYielding = false;
-  const AsyncModifier.async() : isAsync = true, isYielding = false;
-  const AsyncModifier.asyncStar() : isAsync = true, isYielding = true;
-  const AsyncModifier.syncStar() : isAsync = false, isYielding = true;
+  const AsyncModifier.sync()
+      : isAsync = false,
+        isYielding = false,
+        description = "sync";
+  const AsyncModifier.async()
+      : isAsync = true,
+        isYielding = false,
+        description = "async";
+  const AsyncModifier.asyncStar()
+      : isAsync = true,
+        isYielding = true,
+        description = "async*";
+  const AsyncModifier.syncStar()
+      : isAsync = false,
+        isYielding = true,
+        description = "sync*";
+  toString() => description;
 }
 
 class PropertyAccess extends Expression {

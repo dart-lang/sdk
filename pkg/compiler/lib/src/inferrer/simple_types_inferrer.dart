@@ -541,10 +541,11 @@ class SimpleTypeInferrerVisitor<T>
         locals.update(element, parameterType, node);
       });
       ClassElement cls = analyzedElement.enclosingClass;
+      Spannable spannable = node;
       if (analyzedElement.isSynthesized) {
-        node = analyzedElement;
+        spannable = analyzedElement;
         ConstructorElement constructor = analyzedElement;
-        synthesizeForwardingCall(node, constructor.definingConstructor);
+        synthesizeForwardingCall(spannable, constructor.definingConstructor);
       } else {
         visitingInitializers = true;
         visit(node.initializers);
@@ -570,7 +571,8 @@ class SimpleTypeInferrerVisitor<T>
           if (field.isFinal) return;
           T type = locals.fieldScope.readField(field);
           if (type == null && field.initializer == null) {
-            inferrer.recordTypeOfNonFinalField(node, field, types.nullType);
+            inferrer.recordTypeOfNonFinalField(
+                spannable, field, types.nullType);
           }
         });
       }
@@ -580,7 +582,12 @@ class SimpleTypeInferrerVisitor<T>
         locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
-      if (returnType == null) {
+      if (function.asyncMarker != AsyncMarker.SYNC) {
+        // TODO(herhut): Should be type Future/Iterable/Stream instead of
+        // dynamic.
+        returnType = inferrer.addReturnTypeFor(
+            analyzedElement, returnType, types.dynamicType);
+      } else if (returnType == null) {
         // No return in the body.
         returnType = locals.seenReturnOrThrow
             ? types.nonNullEmpty()  // Body always throws.
@@ -993,6 +1000,12 @@ class SimpleTypeInferrerVisitor<T>
       }
     }
     return null;
+  }
+
+  T visitAwait(ast.Await node) {
+    T futureType = node.expression.accept(this);
+    // TODO(herhut): Return a better type here if possible.
+    return types.dynamicType;
   }
 
   T visitStaticSend(ast.Send node) {

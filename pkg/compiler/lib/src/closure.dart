@@ -272,6 +272,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX {
                                 ClosureClassElement enclosing)
       : expression = other,
         super(name, other.kind, other.modifiers, enclosing, false) {
+    asyncMarker = other.asyncMarker;
     functionSignatureCache = other.functionSignature;
   }
 
@@ -347,7 +348,13 @@ class ClosureClassMap {
   // contain any nested closure.
   final Map<Node, ClosureScope> capturingScopes = new Map<Node, ClosureScope>();
 
-  final Set<Local> usedVariablesInTry = new Set<Local>();
+  /// Variables that are used in a try must be treated as boxed because the
+  /// control flow can be non-linear.
+  ///
+  /// Also parameters to a `sync*` generator must be boxed, because of the way
+  /// we rewrite sync* functions. See also comments in [useLocal].
+  /// TODO(johnniwinter): Add variables to this only if the variable is mutated.
+  final Set<Local> variablesUsedInTryOrGenerator = new Set<Local>();
 
   ClosureClassMap(this.closureElement,
                   this.closureClassElement,
@@ -427,6 +434,7 @@ class ClosureTranslator extends Visitor {
   int closureFieldCounter = 0;
   int boxedFieldCounter = 0;
   bool inTryStatement = false;
+
   final Map<Node, ClosureClassMap> closureMappingCache;
 
   // Map of captured variables. Initially they will map to `null`. If
@@ -588,9 +596,13 @@ class ClosureTranslator extends Visitor {
       // Note that nested (named) functions are immutable.
       if (variable != closureData.thisLocal &&
           variable != closureData.closureElement) {
-        // TODO(ngeoffray): only do this if the variable is mutated.
-        closureData.usedVariablesInTry.add(variable);
+        closureData.variablesUsedInTryOrGenerator.add(variable);
       }
+    } else if (variable is LocalParameterElement &&
+        variable.functionDeclaration.asyncMarker == AsyncMarker.SYNC_STAR) {
+      // Parameters in a sync* function are shared between each Iterator created
+      // by the Iterable returned by the function, therefore they must be boxed.
+      closureData.variablesUsedInTryOrGenerator.add(variable);
     }
   }
 

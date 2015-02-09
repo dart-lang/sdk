@@ -943,6 +943,7 @@ class JavaScriptBackend extends Backend {
       Element e = findHelper('boolConversionCheck');
       if (e != null) enqueue(world, e, registry);
     }
+
     if (TRACE_CALLS) {
       traceHelper = findHelper('traceHelper');
       assert(traceHelper != null);
@@ -1597,6 +1598,67 @@ class JavaScriptBackend extends Backend {
 
   Element getCyclicThrowHelper() {
     return findHelper("throwCyclicInit");
+  }
+
+  Element getThenHelper() {
+    return findHelper("thenHelper");
+  }
+
+  Element getYieldStar() {
+    ClassElement classElement = findHelper("IterationMarker");
+    classElement.ensureResolved(compiler);
+    return classElement.lookupLocalMember("yieldStar");
+  }
+
+  Element getYieldSingle() {
+    ClassElement classElement = findHelper("IterationMarker");
+    classElement.ensureResolved(compiler);
+    return classElement.lookupLocalMember("yieldSingle");
+  }
+
+  Element getStreamHelper() {
+    return findHelper("streamHelper");
+  }
+
+  Element getEndOfIteration() {
+    ClassElement classElement = findHelper("IterationMarker");
+    classElement.ensureResolved(compiler);
+    return classElement.lookupLocalMember("endOfIteration");
+  }
+
+  Element getSyncStarIterable() {
+    ClassElement classElement = findHelper("SyncStarIterable");
+    classElement.ensureResolved(compiler);
+    return classElement;
+  }
+
+  Element getSyncStarIterableConstructor() {
+    ClassElement classElement = getSyncStarIterable();
+    classElement.ensureResolved(compiler);
+    return classElement.lookupConstructor("");
+  }
+
+  Element getCompleterConstructor() {
+    ClassElement classElement = find(compiler.asyncLibrary, "Completer");
+    classElement.ensureResolved(compiler);
+    return classElement.lookupConstructor("");
+  }
+
+  Element getASyncStarController() {
+    ClassElement classElement = findHelper("AsyncStarStreamController");
+    classElement.ensureResolved(compiler);
+    return classElement;
+  }
+
+  Element getASyncStarControllerConstructor() {
+    ClassElement classElement = getASyncStarController();
+    return classElement.lookupConstructor("");
+  }
+
+  Element getStreamIteratorConstructor() {
+    ClassElement classElement = find(compiler.asyncLibrary, "StreamIterator");
+    classElement.ensureResolved(compiler);
+    return classElement.lookupConstructor("");
   }
 
   bool isNullImplementation(ClassElement cls) {
@@ -2333,6 +2395,28 @@ class JavaScriptBackend extends Backend {
     String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
     String extension = addExtension ? ".part.js" : "";
     return "${outName}_$name$extension";
+  }
+
+  void registerAsyncMarker(FunctionElement element,
+                           Enqueuer enqueuer,
+                           Registry registry) {
+    if (element.asyncMarker == AsyncMarker.ASYNC) {
+      enqueue(enqueuer, getThenHelper(), registry);
+      enqueue(enqueuer, getCompleterConstructor(), registry);
+      enqueue(enqueuer, getStreamIteratorConstructor(), registry);
+    } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
+      enqueuer.registerInstantiatedClass(getSyncStarIterable(), registry);
+      enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
+      enqueue(enqueuer, getEndOfIteration(), registry);
+      enqueue(enqueuer, getYieldStar(), registry);
+    } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
+      enqueuer.registerInstantiatedClass(getASyncStarController(), registry);
+      enqueue(enqueuer, getStreamHelper(), registry);
+      enqueue(enqueuer, getYieldSingle(), registry);
+      enqueue(enqueuer, getYieldStar(), registry);
+      enqueue(enqueuer, getASyncStarControllerConstructor(), registry);
+      enqueue(enqueuer, getStreamIteratorConstructor(), registry);
+    }
   }
 }
 

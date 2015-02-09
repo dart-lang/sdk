@@ -176,6 +176,11 @@ class CodegenRegistry extends Registry {
   void registerInstantiation(InterfaceType type) {
     world.registerInstantiatedType(type, this);
   }
+
+  void registerAsyncMarker(FunctionElement element) {
+    backend.registerAsyncMarker(element, world, this);
+  }
+
 }
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
@@ -229,6 +234,8 @@ abstract class Registry {
   void registerInstantiation(InterfaceType type);
 
   void registerGetOfStaticFunction(FunctionElement element);
+
+  void registerAsyncMarker(FunctionElement element);
 }
 
 abstract class Backend {
@@ -516,6 +523,10 @@ abstract class Backend {
   void forgetElement(Element element) {}
 
   void registerMainHasArguments(Enqueuer enqueuer) {}
+
+  void registerAsyncMarker(FunctionElement element,
+                             Enqueuer enqueuer,
+                             Registry registry) {}
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -740,12 +751,6 @@ abstract class Compiler implements DiagnosticListener {
 
   final bool suppressWarnings;
 
-  /// `true` if async/await features are supported.
-  final bool enableAsyncAwait;
-
-  /// `true` if the compiler uses the [JavaScriptBackend].
-  final bool emitJavaScript;
-
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
   final bool hasIncrementalSupport;
@@ -768,6 +773,7 @@ abstract class Compiler implements DiagnosticListener {
   CompilerTask measuredTask;
   Element _currentElement;
   LibraryElement coreLibrary;
+  LibraryElement asyncLibrary;
 
   LibraryElement mainApp;
   FunctionElement mainFunction;
@@ -1007,14 +1013,11 @@ abstract class Compiler implements DiagnosticListener {
             this.suppressWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
-            bool enableAsyncAwait: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
-      : this.emitJavaScript = emitJavaScript,
-        this.enableAsyncAwait = enableAsyncAwait || !emitJavaScript,
-        this.disableTypeInferenceFlag =
+      : this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,
         this.analyzeOnly =
             analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,
@@ -1242,6 +1245,7 @@ abstract class Compiler implements DiagnosticListener {
       mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
       mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
     } else if (uri == DART_ASYNC) {
+      asyncLibrary = library;
       deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
       _coreTypes.futureClass = findRequiredElement(library, 'Future');
       _coreTypes.streamClass = findRequiredElement(library, 'Stream');

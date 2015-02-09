@@ -367,4 +367,8 @@ class ResolutionRegistry extends Registry {
   bool isAssert(Send node) {
     return mapping.isAssert(node);
   }
+
+  void registerAsyncMarker(FunctionElement element) {
+    backend.registerAsyncMarker(element, world, this);
+  }
 }

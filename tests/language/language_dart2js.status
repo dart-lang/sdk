@@ -2,78 +2,21 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js ]
+sync_generator1_test: RuntimeError # Issue 22323
+syncstar_yield_test/copyParameters: RuntimeError # Issue 22322
+async_await_syntax_test/a03b: CompileTimeError # Issue 22234
+async_await_syntax_test/a04c: CompileTimeError # Issue 22234
+sync_generator2_test/07: MissingCompileTimeError # Issue 22324
+sync_generator2_test/08: MissingCompileTimeError # Issue 22324
+sync_generator2_test/10: MissingCompileTimeError # Issue 22324
+sync_generator2_test/20: MissingCompileTimeError # Issue 22324
+sync_generator2_test/30: MissingCompileTimeError # Issue 22324
+sync_generator2_test/51: MissingCompileTimeError # Issue 22324
+sync_generator2_test/52: MissingCompileTimeError # Issue 22324
+
 [ $compiler == dart2js && $csp && $browser ]
 deferred_mixin_test: RuntimeError # Issue 21863
-
-[ $compiler == dart2js ]
-async_control_structures_test: CompileTimeError # Issue 21411
-async_test/none: CompileTimeError # Issue 21411
-await_backwards_compatibility_test/none: CompileTimeError # Issue 21411
-await_exceptions_test: CompileTimeError # Issue 21411
-await_for_test: CompileTimeError # Issue 21411
-await_future_test: CompileTimeError # Issue 21411
-await_nonfuture_test: CompileTimeError # Issue 21411
-await_regression_test: CompileTimeError # Issue 21411
-await_test: CompileTimeError # Issue 21411
-sync_generator1_test: Fail # Issue 21411
-sync_generator2_test/none: Fail # Issue 21411
-async_await_syntax_test/a01a: CompileTimeError # Issue 21411
-async_await_syntax_test/a02a: CompileTimeError # Issue 21411
-async_await_syntax_test/a03a: CompileTimeError # Issue 21411
-async_await_syntax_test/a04a: CompileTimeError # Issue 21411
-async_await_syntax_test/a05a: CompileTimeError # Issue 21411
-async_await_syntax_test/a05b: CompileTimeError # Issue 21411
-async_await_syntax_test/a06a: CompileTimeError # Issue 21411
-async_await_syntax_test/a07a: CompileTimeError # Issue 21411
-async_await_syntax_test/a08a: CompileTimeError # Issue 21411
-async_await_syntax_test/a09a: CompileTimeError # Issue 21411
-async_await_syntax_test/a10a: CompileTimeError # Issue 21411
-async_await_syntax_test/a11b: CompileTimeError # Issue 21411
-async_await_syntax_test/a11c: CompileTimeError # Issue 21411
-async_await_syntax_test/a11d: CompileTimeError # Issue 21411
-async_await_syntax_test/b01a: CompileTimeError # Issue 21411
-async_await_syntax_test/b02a: CompileTimeError # Issue 21411
-async_await_syntax_test/b03a: CompileTimeError # Issue 21411
-async_await_syntax_test/b04a: CompileTimeError # Issue 21411
-async_await_syntax_test/b05a: CompileTimeError # Issue 21411
-async_await_syntax_test/b06a: CompileTimeError # Issue 21411
-async_await_syntax_test/b07a: CompileTimeError # Issue 21411
-async_await_syntax_test/b08a: CompileTimeError # Issue 21411
-async_await_syntax_test/b09a: CompileTimeError # Issue 21411
-async_await_syntax_test/b10a: CompileTimeError # Issue 21411
-async_await_syntax_test/b11b: CompileTimeError # Issue 21411
-async_await_syntax_test/b11c: CompileTimeError # Issue 21411
-async_await_syntax_test/b11d: CompileTimeError # Issue 21411
-async_await_syntax_test/c01a: CompileTimeError # Issue 21411
-async_await_syntax_test/c02a: CompileTimeError # Issue 21411
-async_await_syntax_test/c03a: CompileTimeError # Issue 21411
-async_await_syntax_test/c04a: CompileTimeError # Issue 21411
-async_await_syntax_test/c05a: CompileTimeError # Issue 21411
-async_await_syntax_test/c06a: CompileTimeError # Issue 21411
-async_await_syntax_test/c07a: CompileTimeError # Issue 21411
-async_await_syntax_test/c08a: CompileTimeError # Issue 21411
-async_await_syntax_test/c09a: CompileTimeError # Issue 21411
-async_await_syntax_test/c10a: CompileTimeError # Issue 21411
-async_await_syntax_test/d01a: CompileTimeError # Issue 21411
-async_await_syntax_test/d02a: CompileTimeError # Issue 21411
-async_await_syntax_test/d03a: CompileTimeError # Issue 21411
-async_await_syntax_test/d04a: CompileTimeError # Issue 21411
-async_await_syntax_test/d05a: CompileTimeError # Issue 21411
-async_await_syntax_test/d06a: CompileTimeError # Issue 21411
-async_await_syntax_test/d07a: CompileTimeError # Issue 21411
-async_await_syntax_test/d08a: CompileTimeError # Issue 21411
-async_await_syntax_test/d08b: CompileTimeError # Issue 21411
-async_await_syntax_test/d09a: CompileTimeError # Issue 21411
-async_await_syntax_test/d10a: CompileTimeError # Issue 21411
-async_await_syntax_test/a04c: CompileTimeError # Issue 22259
-async_await_syntax_test/a03b: CompileTimeError # Issue 22259
-
-
-[ $compiler == dart2js && $unchecked ]
-async_test/type-mismatch1: CompileTimeError # Issue 21411
-async_test/type-mismatch2: CompileTimeError # Issue 21411
-async_test/type-mismatch3: CompileTimeError # Issue 21411
-async_test/type-mismatch4: CompileTimeError # Issue 21411
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 symbol_literal_test/*: Fail # Issue 21825
@@ -274,15 +217,6 @@ type_variable_conflict2_test/04: Fail # Issue 19725
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
-async_await_syntax_test/a04c: Fail
-async_await_syntax_test/a03b: Fail
-sync_generator2_test/07: Fail
-sync_generator2_test/08: Fail
-sync_generator2_test/10: Fail
-sync_generator2_test/20: Fail
-sync_generator2_test/30: Fail
-sync_generator2_test/51: Fail
-sync_generator2_test/52: Fail
 
 regress_13494_test: Fail # Issue 13494
 
@@ -337,8 +271,6 @@ function_subtype_call1_test: RuntimeError # Issue 21673
 function_subtype_call2_test: RuntimeError # Issue 21673
 
 [ $compiler == dart2dart && $minified ]
-sync_generator1_test: Fail
-sync_generator2_test/none: Fail
 cyclic_type_test/0*: Fail # Issue 12605.
 cyclic_type2_test: Fail # Issue 12605.
 super_getter_setter_test: Fail # Issue 11065.
