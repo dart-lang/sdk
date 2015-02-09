@@ -2779,6 +2779,38 @@ main() {
 ''');
   }
 
+  void test_dartDoc_elegant_updateText_insertToken() {
+    _resolveUnit(r'''
+/// A
+/// [int]
+class Test {
+}
+''');
+    _updateAndValidate(r'''
+/// A
+///
+/// [int]
+class Test {
+}
+''');
+  }
+
+  void test_dartDoc_elegant_updateText_removeToken() {
+    _resolveUnit(r'''
+/// A
+///
+/// [int]
+class Test {
+}
+''');
+    _updateAndValidate(r'''
+/// A
+/// [int]
+class Test {
+}
+''');
+  }
+
   void test_endOfLineComment_add_beforeKeywordToken() {
     _resolveUnit(r'''
 main() {

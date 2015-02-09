@@ -1170,8 +1170,8 @@ class PoorMansIncrementalResolver {
   List<AnalysisError> _newScanErrors = <AnalysisError>[];
   List<AnalysisError> _newParseErrors = <AnalysisError>[];
 
-  PoorMansIncrementalResolver(this._typeProvider, this._unitSource,
-      this._entry, this._oldUnit, bool resolveApiChanges) {
+  PoorMansIncrementalResolver(this._typeProvider, this._unitSource, this._entry,
+      this._oldUnit, bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
   }
 
@@ -1426,21 +1426,29 @@ class PoorMansIncrementalResolver {
   }
 
   static _TokenDifferenceKind _compareToken(Token oldToken, Token newToken,
-      int delta) {
-    if (oldToken == null && newToken == null) {
-      return null;
-    }
-    if (oldToken == null || newToken == null) {
-      return _TokenDifferenceKind.CONTENT;
-    }
-    if (oldToken.type != newToken.type) {
-      return _TokenDifferenceKind.CONTENT;
-    }
-    if (oldToken.lexeme != newToken.lexeme) {
-      return _TokenDifferenceKind.CONTENT;
-    }
-    if (newToken.offset - oldToken.offset != delta) {
-      return _TokenDifferenceKind.OFFSET;
+      int delta, bool forComment) {
+    while (true) {
+      if (oldToken == null && newToken == null) {
+        return null;
+      }
+      if (oldToken == null || newToken == null) {
+        return _TokenDifferenceKind.CONTENT;
+      }
+      if (oldToken.type != newToken.type) {
+        return _TokenDifferenceKind.CONTENT;
+      }
+      if (oldToken.lexeme != newToken.lexeme) {
+        return _TokenDifferenceKind.CONTENT;
+      }
+      if (newToken.offset - oldToken.offset != delta) {
+        return _TokenDifferenceKind.OFFSET;
+      }
+      // continue if comment tokens are being checked
+      if (!forComment) {
+        break;
+      }
+      oldToken = oldToken.next;
+      newToken = newToken.next;
     }
     return null;
   }
@@ -1457,7 +1465,7 @@ class PoorMansIncrementalResolver {
       {
         Token oldComment = oldToken.precedingComments;
         Token newComment = newToken.precedingComments;
-        if (_compareToken(oldComment, newComment, 0) != null) {
+        if (_compareToken(oldComment, newComment, 0, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
           if (oldComment is DocumentationCommentToken ||
               newComment is DocumentationCommentToken) {
@@ -1467,7 +1475,8 @@ class PoorMansIncrementalResolver {
         }
       }
       // compare tokens
-      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, 0);
+      _TokenDifferenceKind diffKind =
+          _compareToken(oldToken, newToken, 0, false);
       if (diffKind != null) {
         return new _TokenPair(diffKind, oldToken, newToken);
       }
@@ -1483,7 +1492,8 @@ class PoorMansIncrementalResolver {
     int delta = newToken.offset - oldToken.offset;
     while (oldToken.previous != oldToken && newToken.previous != newToken) {
       // compare tokens
-      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, delta);
+      _TokenDifferenceKind diffKind =
+          _compareToken(oldToken, newToken, delta, false);
       if (diffKind != null) {
         return new _TokenPair(diffKind, oldToken.next, newToken.next);
       }
@@ -1491,7 +1501,7 @@ class PoorMansIncrementalResolver {
       {
         Token oldComment = oldToken.precedingComments;
         Token newComment = newToken.precedingComments;
-        if (_compareToken(oldComment, newComment, delta) != null) {
+        if (_compareToken(oldComment, newComment, delta, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
           if (oldComment is DocumentationCommentToken ||
               newComment is DocumentationCommentToken) {
