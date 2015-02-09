@@ -291,7 +291,8 @@ class InterceptorStubGenerator {
     Selector selector = backend.oneShotInterceptors[name];
     Set<ClassElement> classes =
         backend.getInterceptedClassesOn(selector.name);
-    String getInterceptorName = namer.nameForGetInterceptor(classes);
+    String getInterceptorName =
+        namer.getInterceptorName(backend.getInterceptorMethod, classes);
 
     List<String> parameterNames = <String>[];
     parameterNames.add('receiver');

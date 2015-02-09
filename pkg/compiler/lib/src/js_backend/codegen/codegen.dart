@@ -289,6 +289,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     if (node.target is ConstructorBodyElement) {
       // A constructor body cannot be overriden or intercepted, so we can
       // use the short form for this invocation.
+      // TODO(asgerf): prevent name clash between constructor bodies.
       return js.js('#.#(#)',
           [visitExpression(node.receiver),
            glue.instanceMethodName(node.target),

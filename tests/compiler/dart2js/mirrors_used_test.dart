@@ -85,7 +85,8 @@ void main() {
           compiler.listClass
         ];
     JavaScriptBackend backend = compiler.backend;
-    Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);
+    Iterable<String> nativeNames =
+        nativeClasses.map(backend.namer.getNameOfClass);
     expectedNames.addAll(nativeNames);
 
     Set recordedNames = new Set()

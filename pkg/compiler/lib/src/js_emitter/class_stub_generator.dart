@@ -62,7 +62,7 @@ class ClassStubGenerator {
       jsAst.Expression receiver =
           js(isInterceptorClass ? receiverArgumentName : 'this');
       if (member.isGetter) {
-        String getterName = namer.getterForElement(member);
+        String getterName = namer.getterName(member);
         if (isInterceptedMethod) {
           return js('this.#(#)', [getterName, receiver]);
         }

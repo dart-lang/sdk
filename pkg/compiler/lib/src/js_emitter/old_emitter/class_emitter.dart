@@ -22,7 +22,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassElement superclass = classElement.superclass;
     String superName = "";
     if (superclass != null) {
-      superName = namer.className(superclass);
+      superName = namer.getNameOfClass(superclass);
     }
 
     if (cls.isMixinApplication) {
@@ -46,9 +46,9 @@ class ClassEmitter extends CodeEmitterHelper {
     if (classElement == backend.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
+      String name = namer.getMappedInstanceName(Compiler.CALL_OPERATOR_NAME);
       jsAst.Fun function = js('function() { return this; }');
-      String name = namer.getterForPublicMember(Compiler.CALL_OPERATOR_NAME);
-      builder.addProperty(name, function);
+      builder.addProperty(namer.getterNameFromAccessorName(name), function);
     }
 
     emitTypeVariableReaders(classElement, builder);
@@ -72,7 +72,7 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression constructorAst =
         _stubGenerator.generateClassConstructor(classElement, fieldNames);
 
-    String constructorName = namer.className(classElement);
+    String constructorName = namer.getNameOfClass(classElement);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
     emitter.emitPrecompiledConstructor(
@@ -143,14 +143,14 @@ class ClassEmitter extends CodeEmitterHelper {
 
           if (field.needsInterceptedGetter) {
             emitter.interceptorEmitter.interceptorInvocationNames.add(
-                namer.getterForElement(fieldElement));
+                namer.getterName(fieldElement));
           }
           // TODO(16168): The setter creator only looks at the getter-name.
           // Even though the setter could avoid the interceptor convention we
           // currently still need to add the additional argument.
           if (field.needsInterceptedGetter || field.needsInterceptedSetter) {
             emitter.interceptorEmitter.interceptorInvocationNames.add(
-                namer.setterForElement(fieldElement));
+                namer.setterName(fieldElement));
           }
 
           int code = field.getterFlags + (field.setterFlags << 2);
@@ -494,7 +494,7 @@ class ClassEmitter extends CodeEmitterHelper {
                              ClassBuilder builder) {
     jsAst.Expression code = backend.generatedCode[member];
     assert(code != null);
-    String setterName = namer.deriveSetterName(accessorName);
+    String setterName = namer.setterNameFromAccessorName(accessorName);
     compiler.dumpInfoTask.registerElementAst(member,
         builder.addProperty(setterName, code));
     generateReflectionDataForFieldGetterOrSetter(
@@ -506,9 +506,9 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
 
-    String getterName = namer.deriveGetterName(accessorName);
+    String getterName = namer.getterNameFromAccessorName(accessorName);
     ClassElement cls = member.enclosingClass;
-    String className = namer.className(cls);
+    String className = namer.getNameOfClass(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(
@@ -525,9 +525,9 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);
 
-    String setterName = namer.deriveSetterName(accessorName);
+    String setterName = namer.setterNameFromAccessorName(accessorName);
     ClassElement cls = member.enclosingClass;
-    String className = namer.className(cls);
+    String className = namer.getNameOfClass(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(
@@ -570,7 +570,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitTypeVariableReader(ClassElement cls,
                               ClassBuilder builder,
                               TypeVariableElement element) {
-    String name = namer.nameForReadTypeVariable(element);
+    String name = namer.readTypeVariableName(element);
     int index = RuntimeTypes.getTypeVariableIndex(element);
     jsAst.Expression computeTypeVariable;
 

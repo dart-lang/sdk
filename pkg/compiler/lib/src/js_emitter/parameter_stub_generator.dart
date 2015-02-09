@@ -59,7 +59,7 @@ class ParameterStubGenerator {
     // If the method is intercepted, we need to also pass the actual receiver.
     int extraArgumentCount = isInterceptedMethod ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
-    // '$receiver' works because namer.safeVariableName used for getting parameter
+    // '$receiver' works because [:namer.safeName:] used for getting parameter
     // names never returns a name beginning with a single '$'.
     String receiverArgumentName = r'$receiver';
 
@@ -84,7 +84,7 @@ class ParameterStubGenerator {
 
     int parameterIndex = 0;
     parameters.orderedForEachParameter((ParameterElement element) {
-      String jsName = backend.namer.safeVariableName(element.name);
+      String jsName = backend.namer.safeName(element.name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
@@ -126,7 +126,7 @@ class ParameterStubGenerator {
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
         ClassElement superClass = member.enclosingClass;
-        String methodName = namer.instanceMethodName(member);
+        String methodName = namer.getNameOfInstanceMember(member);
         // When redirecting, we must ensure that we don't end up in a subclass.
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
         // Instead we need to call the statically resolved target.
@@ -140,7 +140,7 @@ class ParameterStubGenerator {
       } else {
         body = js.statement(
             'return this.#(#);',
-            [namer.instanceMethodName(member), argumentsBuffer]);
+            [namer.getNameOfInstanceMember(member), argumentsBuffer]);
       }
     } else {
       body = js.statement('return #(#)',
