@@ -33,9 +33,18 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
 
 void DisassembleToStdout::Print(const char* format, ...) {
   va_list args;
+
   va_start(args, format);
-  OS::VFPrint(stdout, format, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
+
+  char* p = reinterpret_cast<char*>(malloc(len+1));
+  va_start(args, format);
+  OS::VSNPrint(p, len, format, args);
+  va_end(args);
+
+  ISL_Print("%s", p);
+  free(p);
 }
 
 
