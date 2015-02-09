@@ -15,7 +15,6 @@ form_data_test/functional: Skip # Issue 19726
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
-storage_quota_test/missingenumcheck: Fail, Crash # Issue 22225
 worker_api_test: Fail # Issue 10223
 two_scripts_htmltest: Fail # Issue 16603
 media_stream_test/constructors: Pass, Crash # Issue 22267
