@@ -4,7 +4,10 @@
 
 boolified_operator_test: Fail # Issue 8001
 
-async_await_syntax_test: Skip # Not sure how/why test cases a03b, a04c fail.
+# Don't mark these tests as failing. Instead, fix the errors/warnings that they
+# report or update the whitelist in the test-files to temporarily allow
+# digression.
+async_await_syntax_test: Pass # DON'T CHANGE THIS LINE -- SEE ABOVE.
 
 # simple_function_subtype_test is temporarily(?) disabled due to new method for
 # building function type tests.

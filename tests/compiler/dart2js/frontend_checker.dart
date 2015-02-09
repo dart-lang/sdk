@@ -6,10 +6,11 @@
 // compile-time errors for the provided multitests.
 
 import 'dart:async';
+import 'dart:io';
 
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-
+import 'package:compiler/src/util/uri_extras.dart'
+    show relativize;
 import 'memory_compiler.dart';
 
 import '../../../tools/testing/dart/multitest.dart'
@@ -17,13 +18,24 @@ import '../../../tools/testing/dart/multitest.dart'
 import '../../../tools/testing/dart/path.dart'
     show Path;
 
-void check(List<String> testFiles,
+
+/// Check the analysis of the multitests in [testFiles] to result in the
+/// expected static warnings and compile-time errors.
+///
+/// [testFiles] is a map of the test files to be checked together with their
+/// associated white listing.
+///
+/// For instance if [testFiles] contain the mapping
+///     'language/async_await_syntax_test.dart': const ['a03b', 'a04b']
+/// the multitests in 'language/async_await_syntax_test.dart' are checked but
+/// the subtests 'a03b' and 'a04c' are expected to fail.
+void check(Map<String, List<String>> testFiles,
            {List<String> arguments: const <String>[],
             List<String> options: const <String>[]}) {
   bool outcomeMismatch = false;
   bool verbose = arguments.contains('-v');
   var cachedCompiler;
-  asyncTest(() => Future.forEach(testFiles, (String testFile) {
+  asyncTest(() => Future.forEach(testFiles.keys, (String testFile) {
     Map<String, String> testSources = {};
     Map<String, Set<String>> testOutcomes = {};
     String fileName = 'tests/$testFile';
@@ -31,6 +43,7 @@ void check(List<String> testFiles,
     return Future.forEach(testSources.keys, (String testName) {
       String testFileName = '$fileName/$testName';
       Set<String> expectedOutcome = testOutcomes[testName];
+      bool expectFailure = testFiles[testFile].contains(testName);
       DiagnosticCollector collector = new DiagnosticCollector();
       var compiler = compilerFor(
            {testFileName: testSources[testName]},
@@ -39,15 +52,16 @@ void check(List<String> testFiles,
            showDiagnostics: verbose,
            cachedCompiler: cachedCompiler);
       return compiler.run(Uri.parse('memory:$testFileName')).then((_) {
+        bool unexpectedResult = false;
         if (expectedOutcome.contains('compile-time error')) {
           if (collector.errors.isEmpty) {
             print('$testFileName: Missing compile-time error.');
-            outcomeMismatch = true;
+            unexpectedResult = true;
           }
         } else if (expectedOutcome.contains('static type warning')) {
           if (collector.warnings.isEmpty) {
             print('$testFileName: Missing static type warning.');
-            outcomeMismatch = true;
+            unexpectedResult = true;
           }
         } else {
           // Expect ok.
@@ -59,13 +73,38 @@ void check(List<String> testFiles,
             collector.warnings.forEach((message) {
               print('$testFileName: Unexpected warning: ${message.message}');
             });
-            outcomeMismatch = true;
+            unexpectedResult = true;
           }
+        }
+        if (expectFailure) {
+          if (unexpectedResult) {
+            unexpectedResult = false;
+          } else {
+            print('$testFileName: The test is white-listed '
+                  'and therefore expected to fail.');
+            unexpectedResult = true;
+          }
+        }
+        if (unexpectedResult) {
+          outcomeMismatch = true;
         }
         cachedCompiler = compiler;
       });
     });
   }).then((_) {
-    Expect.isFalse(outcomeMismatch, 'Outcome mismatch');
+    if (outcomeMismatch) {
+      String testFileName =
+            relativize(Uri.base, Platform.script, Platform.isWindows);
+      print('''
+
+===
+=== ERROR: Unexpected result of analysis.
+===
+=== Please update the white-listing in $testFileName
+===
+
+''');
+      exit(1);
+    }
   }));
 }

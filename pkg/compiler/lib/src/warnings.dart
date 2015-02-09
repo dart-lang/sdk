@@ -2075,16 +2075,6 @@ Please include the following information:
     " require a preamble file located in:\n"
     "  <sdk>/lib/_internal/compiler/js_lib/preambles.");
 
-  static const MessageKind INVALID_STARRED_KEYWORD = const MessageKind(
-      "Invalid '#{keyword}' keyword.",
-      options: const ['--enable-async'],
-      howToFix: "Try removing whitespace between '#{keyword}' and '*'.",
-      examples: const [
-        "main() async * {}",
-        "main() sync * {}",
-        "main() async* { yield * null; }"
-      ]);
-
   static const MessageKind INVALID_SYNC_MODIFIER = const MessageKind(
       "Invalid modifier 'sync'.",
       options: const ['--enable-async'],

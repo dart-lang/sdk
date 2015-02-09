@@ -7,9 +7,15 @@
 
 import 'frontend_checker.dart';
 
-const List<String> TESTS = const <String>[
-  'language/async_await_syntax_test.dart',
-];
+/// Map of test files to run together with their associated whitelist.
+///
+/// For instance
+///     'language/async_await_syntax_test.dart': const ['a03b', 'a04b']
+/// includes the multitest in 'language/async_await_syntax_test.dart' but
+/// expects the subtests 'a03b' and 'a04c' to fail.
+const Map<String, List<String>> TESTS = const <String, List<String>>{
+  'language/async_await_syntax_test.dart': const [],
+};
 
 void main(List<String> arguments) {
   check(TESTS, arguments: arguments, options: ['--enable-async']);
