@@ -23,6 +23,9 @@ class Thread;
     Isolate::Current()->Log()->Print(format, ##__VA_ARGS__)
 #endif
 
+#define ISL_VPrint(format, args) \
+    Isolate::Current()->Log()->VPrint(format, args)
+
 typedef void (*LogPrinter)(const char* str, ...);
 
 class Log {
@@ -31,6 +34,8 @@ class Log {
 
   // Append a formatted string to the log.
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
+  void VPrint(const char* format, va_list args);
 
   // Flush and truncate the log. The log is flushed starting at cursor
   // and truncated to cursor afterwards.

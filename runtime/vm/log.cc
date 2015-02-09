@@ -22,24 +22,39 @@ void Log::Print(const char* format, ...) {
   if (this == NoOpLog()) {
     return;
   }
-  // Measure.
+
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  VPrint(format, args);
   va_end(args);
+}
 
-  // Print string to buffer.
+
+void Log::VPrint(const char* format, va_list args) {
+  if (this == NoOpLog()) {
+    return;
+  }
+
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
+  // Print.
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
+  va_list print_args;
+  va_copy(print_args, args);
+  OS::VSNPrint(buffer, (len + 1), format, print_args);
+  va_end(print_args);
 
-  // Does not append the '\0' character.
+  // Append.
+  // NOTE: does not append the '\0' character.
   for (intptr_t i = 0; i < len; i++) {
     buffer_.Add(buffer[i]);
   }
   free(buffer);
+
   if ((manual_flush_ == 0) || FLAG_force_log_flush) {
     Flush();
   }
