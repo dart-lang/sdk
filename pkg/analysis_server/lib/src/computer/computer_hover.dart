@@ -68,6 +68,9 @@ class DartUnitHoverComputer {
    */
   HoverInformation compute() {
     AstNode node = new NodeLocator.con1(_offset).searchWithin(_unit);
+    if (node == null) {
+      return null;
+    }
     if (node.parent is TypeName &&
         node.parent.parent is ConstructorName &&
         node.parent.parent.parent is InstanceCreationExpression) {
