@@ -101,6 +101,7 @@ touchevent_test/supported: Pass, Fail # Issue 17061
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
 element_types_test/constructors: Skip # Times out. Issue 22050
+audiocontext_test/functional: Skip # Renderer crash. Issue 22327
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
