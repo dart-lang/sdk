@@ -11,12 +11,11 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:args/args.dart';
-import 'package:ddc/src/report.dart';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
-import 'package:ddc/src/checker/dart_sdk.dart'
-    show dartSdkDirectory, mockSdkSources;
+import 'package:ddc/src/report.dart';
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
@@ -31,6 +30,7 @@ final ArgParser argParser = new ArgParser()
       help: 'regular expression of file names to include', defaultsTo: null)
   ..addOption('exclude-pattern',
       help: 'regular expression of file names to exclude', defaultsTo: null)
+  ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
   ..addFlag('help', abbr: 'h', help: 'Display this message');
 
 void _showUsageAndExit() {
@@ -88,8 +88,8 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
       Process.runSync(
           checkoutFilesExecutable, [checkoutFilesArg]..addAll(_files.keys));
     }
-    _files.forEach((name, transacation) {
-      var nestedPrinter = transacation.commit()..build(name);
+    _files.forEach((name, transaction) {
+      var nestedPrinter = transaction.commit()..build(name);
       new File(name).writeAsStringSync(nestedPrinter.text, flush: true);
     });
   }
@@ -104,9 +104,15 @@ void main(List<String> argv) {
     _showUsageAndExit();
   }
 
+  var sdkDir = getSdkDir(argv);
+  if (sdkDir == null) {
+    print('Could not automatically find dart sdk path.');
+    print('Please pass in explicitly: --dart-sdk <path>');
+    exit(1);
+  }
+
   var filename = args.rest.first;
-  var typeResolver =
-      new TypeResolver(TypeResolver.sdkResolverFromDir(dartSdkDirectory));
+  var typeResolver = new TypeResolver.fromDir(sdkDir.path);
 
   Map json = JSON.decode(new File(filename).readAsStringSync());
   var summary = GlobalSummary.parse(json);

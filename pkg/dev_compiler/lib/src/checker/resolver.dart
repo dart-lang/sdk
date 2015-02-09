@@ -43,6 +43,16 @@ class TypeResolver {
     context.sourceFactory = new SourceFactory(resolvers);
   }
 
+  /// Creates a [TypeResolver] that uses a mock 'dart:' library contents.
+  TypeResolver.fromMock(Map<String, String> mockSources, [List otherResolvers])
+      : this(new MockDartSdk(mockSources, reportMissing: true).resolver,
+          otherResolvers);
+
+  /// Creates a [TypeResolver] that uses the SDK at the given [sdkPath].
+  TypeResolver.fromDir(String sdkPath, [List otherResolvers]) : this(
+          new DartUriResolver(
+              new DirectoryBasedDartSdk(new JavaFile(sdkPath))));
+
   /// Find the corresponding [Source] for [uri].
   Source findSource(Uri uri) {
     var source = _sources[uri];
@@ -66,21 +76,6 @@ class TypeResolver {
       }
     }
     return failure;
-  }
-
-  // TODO(jmesserly): in practice these are passed to `new TypeResolver` so
-  // that makes me think these should just be named constructors, rather than
-  // `new TypeResolver(TypeResolver.sdkResolverFromDir((...)) which repeats
-  // the name twice.
-
-  /// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
-  static DartUriResolver sdkResolverFromDir(String sdkPath) =>
-      new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath)));
-
-  /// Creates a [DartUriResolver] that uses a mock 'dart:' library contents.
-  static DartUriResolver sdkResolverFromMock(
-      Map<String, String> mockSdkSources) {
-    return new MockDartSdk(mockSdkSources, reportMissing: true).resolver;
   }
 }
 

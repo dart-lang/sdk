@@ -5,14 +5,15 @@ library ddc.test.codegen_test;
 
 import 'dart:io';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:ddc/devc.dart';
-import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 final ArgParser argParser = new ArgParser()
+  ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
   ..addFlag('dart-gen',
       abbr: 'd', help: 'Generate dart output', defaultsTo: false);
 
@@ -48,8 +49,7 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  var realSdk =
-      new TypeResolver(TypeResolver.sdkResolverFromDir(dartSdkDirectory));
+  var realSdk = new TypeResolver.fromDir(getSdkDir(arguments).path);
 
   // Validate that old output is gone before running.
   // TODO(jmesserly): it'd be nice to do all cleanup here, including removing
@@ -86,10 +86,11 @@ main(arguments) {
   }
 
   test('devc dart:core', () {
+    // Get the test SDK. We use a checked in copy so test expectations can be
+    // generated against a specific SDK version.
     // TODO(jmesserly): eventually we should track compiler messages.
     // For now we're just trying to get decent code generation.
-    var testSdk = new TypeResolver(
-        TypeResolver.sdkResolverFromDir(path.join(testDir, 'sdk')));
+    var testSdk = new TypeResolver.fromDir(path.join(testDir, 'sdk'));
 
     var result = compile('dart:core', testSdk,
         outputDir: actualDir,

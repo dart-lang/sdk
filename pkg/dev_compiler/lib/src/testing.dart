@@ -30,7 +30,7 @@ import 'package:ddc/devc.dart' show compile;
 ///   logging level were the error would be reported at, and `Type` is the
 ///   concrete subclass of [StaticInfo] that denotes the error.
 ///
-/// For example, to check that an assigment produces a warning about a boxing
+/// For example, to check that an assignment produces a warning about a boxing
 /// conversion, you can describe the test as follows:
 ///
 ///     testChecker({
@@ -41,17 +41,16 @@ import 'package:ddc/devc.dart' show compile;
 ///       '''
 ///     });
 ///
-CheckerResults testChecker(Map<String, String> testFiles, {bool mockSdk: true,
+CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
     CheckerReporter reporter, covariantGenerics: true, relaxedCasts: true}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
-  var dartUriResolver = mockSdk
-      ? TypeResolver.sdkResolverFromMock(mockSdkSources)
-      : TypeResolver.sdkResolverFromDir(dartSdkDirectory);
   var testUriResolver = new _TestUriResolver(testFiles);
-  var resolver = new TypeResolver(dartUriResolver, [testUriResolver]);
+  var resolver = sdkDir == null
+      ? new TypeResolver.fromMock(mockSdkSources, [testUriResolver])
+      : new TypeResolver.fromDir(sdkDir, [testUriResolver]);
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');

@@ -3,53 +3,9 @@
 /// definitions to provide mock sdks.
 library ddc.src.checker.dart_sdk;
 
-import 'dart:convert' as convert;
-import 'dart:io' show File, Link, Platform, Process;
-import 'package:path/path.dart' as path;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/// Attempts to provide the current Dart SDK directory.  Returns null if the SDK
-/// cannot be found.
-final String dartSdkDirectory = () {
-  bool isSdkDir(String dirname) =>
-      new File(path.join(dirname, 'lib', '_internal', 'libraries.dart'))
-          .existsSync();
-
-  String executable = Platform.executable;
-  if (path.split(executable).length == 1) {
-    // TODO(sigmund,blois): make this cross-platform.
-    // HACK: A single part, hope it's on the path.
-    executable = Process.runSync('which', ['dart'],
-        stdoutEncoding: convert.UTF8).stdout.trim();
-    // In case Dart is symlinked (e.g. homebrew on Mac) follow symbolic links.
-    var link = new Link(executable);
-    if (link.existsSync()) {
-      executable = link.resolveSymbolicLinksSync();
-    }
-    var sdkDir = path.dirname(path.dirname(executable));
-    if (isSdkDir(sdkDir)) return sdkDir;
-  }
-
-  var dartDir = path.dirname(path.absolute(executable));
-  // If there's a sub-dir named dart-sdk then we're most likely executing from
-  // a dart enlistment build directory.
-  if (isSdkDir(path.join(dartDir, 'dart-sdk'))) {
-    return path.join(dartDir, 'dart-sdk');
-  }
-  // If we can find libraries.dart then it's the root of the SDK.
-  if (isSdkDir(dartDir)) return dartDir;
-
-  var parts = path.split(dartDir);
-  // If the dart executable is within the sdk dir then get the root.
-  if (parts.contains('dart-sdk')) {
-    var dartSdkDir = path.joinAll(parts.take(parts.indexOf('dart-sdk') + 1));
-    if (isSdkDir(dartSdkDir)) return dartSdkDir;
-  }
-
-  return null;
-}();
 
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
 /// used to speed up execution when most of the core libraries is not needed.

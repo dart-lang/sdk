@@ -6,11 +6,11 @@ library ddc.bin.checker;
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:logging/logging.dart' show Logger, Level;
 
 import 'package:ddc/devc.dart';
-import 'package:ddc/src/checker/dart_sdk.dart'
-    show dartSdkDirectory, mockSdkSources;
+import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
@@ -55,13 +55,13 @@ void main(List<String> argv) {
   bool shouldMockSdk = args['mock-sdk'];
   String dartSdkPath;
   if (!shouldMockSdk) {
-    dartSdkPath = args['dart-sdk'];
-    if (dartSdkPath == null) dartSdkPath = dartSdkDirectory;
-    if (dartSdkPath == null) {
+    var sdkDir = getSdkDir(argv);
+    if (sdkDir == null) {
       print('Could not automatically find dart sdk path.');
       print('Please pass in explicitly: --dart-sdk <path>');
       exit(1);
     }
+    dartSdkPath = sdkDir.path;
   }
 
   if (args.rest.length == 0) {
@@ -75,9 +75,9 @@ void main(List<String> argv) {
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
   if (!args['dump-info']) setupLogger(level, print);
 
-  var typeResolver = new TypeResolver(shouldMockSdk
-      ? TypeResolver.sdkResolverFromMock(mockSdkSources)
-      : TypeResolver.sdkResolverFromDir(dartSdkPath));
+  var typeResolver = shouldMockSdk
+      ? new TypeResolver.fromMock(mockSdkSources)
+      : new TypeResolver.fromDir(dartSdkPath);
 
   var filename = args.rest.first;
   var result = compile(filename, typeResolver,

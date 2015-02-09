@@ -2,19 +2,18 @@
 library ddc.test.end_to_end;
 
 import 'dart:io';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:ddc/devc.dart' show compile;
 import 'package:ddc/src/report.dart';
-import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
-main() {
+main(args) {
   useCompactVMConfiguration();
-  var realSdk =
-      new TypeResolver(TypeResolver.sdkResolverFromDir(dartSdkDirectory));
 
+  var realSdk = new TypeResolver.fromDir(getSdkDir(args).path);
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
   test('checker can run on itself ', () {

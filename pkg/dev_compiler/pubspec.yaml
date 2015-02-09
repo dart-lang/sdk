@@ -6,6 +6,7 @@ dependencies:
       url: http://github.com/dart-lang/analyzer-for-ddc.git
       ref: master
   args: ^0.12.1
+  cli_util: ^0.0.1
   dart_style:
     git:
       url: http://github.com/dart-lang/dart_style.git

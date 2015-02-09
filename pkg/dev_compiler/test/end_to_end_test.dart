@@ -11,8 +11,7 @@ import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 main() {
-  var mockSdk =
-      new TypeResolver(TypeResolver.sdkResolverFromMock(mockSdkSources));
+  var mockSdk = new TypeResolver.fromMock(mockSdkSources);
 
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
