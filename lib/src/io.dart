@@ -13,7 +13,7 @@ import 'package:dart_lint/src/linter.dart';
 /// '.dart' extension.
 ///
 /// Returns `true` if successful or `false` if an error occurred.
-bool processFile(File file) {
+bool processFile(FileSystemEntity file) {
   var path = file.path;
 
   if (file is Link) {
@@ -21,7 +21,7 @@ bool processFile(File file) {
     return false;
   }
 
-  if (!path.endsWith('.dart')) {
+  if (!isDartFile(file)) {
     print('Skipping $path (unsupported extenstion)');
     return false;
   }

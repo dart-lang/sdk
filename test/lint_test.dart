@@ -120,6 +120,17 @@ void defineLinterEngineTests() {
         expect(exitCode, equals(dartlint.unableToProcessExitCode));
       });
     });
+
+    group('io', () {
+      test('link', () {
+        Link l = new Link('bogus');
+        expect(processFile(l), isFalse);
+      });
+      test('bad extension', () {
+        File f = new File('bogus.txt');
+        expect(processFile(f), isFalse);
+      });
+    });
   });
 }
 
