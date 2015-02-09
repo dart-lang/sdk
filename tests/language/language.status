@@ -8,8 +8,8 @@
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
 await_for_cancel_test: RuntimeError # Issue 21404
-asyncstar_yield_test: CompileTimeError # Issue 21404
-asyncstar_yieldstar_test: CompileTimeError # Issue 21404
+asyncstar_yield_test: Fail # Issue 21404
+asyncstar_yieldstar_test: Fail # Issue 21404
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633

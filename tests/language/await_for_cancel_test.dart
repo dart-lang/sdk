@@ -46,10 +46,16 @@ test2() async {
   }
 }
 
-main() async {
+test() async {
   await test1();
   await test2();
+}
 
+main() async {
+  asyncStart();
+  test().then((_) {
+    asyncEnd();
+  });
 }
 
 

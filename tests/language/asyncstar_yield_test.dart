@@ -15,7 +15,7 @@ Stream<int> foo1() async* {
 Stream<int> foo2() async* {
   int i = 0;
   while (true) {
-    await (new Future.delayed(new Duration(milliseconds: 0), () {}));
+    await (new Future.delayed(new Duration(milliseconds: 10), () {}));
     if (i > 10) return;
     yield i;
     i++;
@@ -57,8 +57,7 @@ Stream<int> foo4() async* {
   }
 }
 
-main () async {
-  asyncStart();
+test() async {
   Expect.listEquals([1, 20], await (foo1().toList()));
   Expect.listEquals([0, 1, 2, 3], await (foo2().take(4).toList()));
   Expect.listEquals([null, -1, 0, 1, 2, 3, 0, 1, 2, 3],
@@ -66,5 +65,11 @@ main () async {
   Expect.listEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
       await (foo4().take(10).toList()));
   Expect.isTrue(await (finalized.future));
-  asyncEnd();
+}
+
+main ()  {
+  asyncStart();
+  test().then((_) {
+    asyncEnd();
+  });
 }

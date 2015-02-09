@@ -31,9 +31,7 @@ foo2(Stream subStream) async* {
   yield* subStream;
 }
 
-main () async {
-  asyncStart();
-  print("starting");
+test() async {
   Expect.listEquals([0, 1],
       await (subStream(0).toList()));
   Completer<bool> finalized = new Completer<bool>();
@@ -92,6 +90,11 @@ main () async {
   Expect.isTrue(await pausedCompleter.future);
   Expect.isTrue(await resumedCompleter.future);
   Expect.isTrue(await canceledCompleter.future);
-  
-  asyncEnd();
+}
+
+main() {
+  asyncStart();
+  test().then((_) {
+    asyncEnd();
+  });
 }

@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $minified ] 
+await_future_test: Timeout # Issue 22328
+
 [ $compiler == dart2js ]
 sync_generator1_test: RuntimeError # Issue 22323
 syncstar_yield_test/copyParameters: RuntimeError # Issue 22322
@@ -14,6 +17,9 @@ sync_generator2_test/20: MissingCompileTimeError # Issue 22324
 sync_generator2_test/30: MissingCompileTimeError # Issue 22324
 sync_generator2_test/51: MissingCompileTimeError # Issue 22324
 sync_generator2_test/52: MissingCompileTimeError # Issue 22324
+
+[ $compiler == dart2js && $runtime == jsshell ]
+await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 
 [ $compiler == dart2js && $csp && $browser ]
 deferred_mixin_test: RuntimeError # Issue 21863
@@ -217,6 +223,20 @@ type_variable_conflict2_test/04: Fail # Issue 19725
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
+asyncstar_yield_test: CompileTimeError # Issue 21404
+asyncstar_yieldstar_test: CompileTimeError # Issue 21404
+
+sync_generator2_test/07: MissingCompileTimeError # Issue 22324
+sync_generator2_test/08: MissingCompileTimeError # Issue 22324
+sync_generator2_test/10: MissingCompileTimeError # Issue 22324
+sync_generator2_test/20: MissingCompileTimeError # Issue 22324
+sync_generator2_test/30: MissingCompileTimeError # Issue 22324
+sync_generator2_test/51: MissingCompileTimeError # Issue 22324
+sync_generator2_test/52: MissingCompileTimeError # Issue 22324
+async_await_syntax_test/a03b: CompileTimeError # Issue 22234
+async_await_syntax_test/a04c: CompileTimeError # Issue 22234
+await_for_cancel_test: RuntimeError # Issue 21404
+
 
 regress_13494_test: Fail # Issue 13494
 
