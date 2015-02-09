@@ -64,8 +64,10 @@ class _SyncIterator implements Iterator {
         current = null;
         return false;
       }
-      if (isYieldEach && (current is Iterable)) {
-        yieldEachIterator = current.iterator;
+      if (isYieldEach) {
+        // Spec mandates: it is a dynamic error if the class of [the object
+        // returned by yield*] does not implement Iterable.
+        yieldEachIterator = (current as Iterable).iterator;
         continue;
       }
       return true;    

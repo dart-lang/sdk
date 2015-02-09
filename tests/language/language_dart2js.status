@@ -10,7 +10,6 @@ language/async_test/none: RuntimeError # Issue 22332
 await_future_test: Timeout # Issue 22328
 
 [ $compiler == dart2js ]
-sync_generator1_test: RuntimeError # Issue 22323
 syncstar_yield_test/copyParameters: RuntimeError # Issue 22322
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
 sync_generator2_test/08: MissingCompileTimeError # Issue 22324

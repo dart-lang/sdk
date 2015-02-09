@@ -35,11 +35,15 @@ get sync sync* {  // sync is a legal identifier.
 }
 
 einsZwei() sync* {
-  yield* 1;
+  yield 1;
   yield* [2, 3];
   yield* [];
   yield 5;
   yield [6];
+}
+
+dreiVier() sync* {
+  yield* 3;  // Throws type error: yielded object is not an iterable.
 }
 
 main() {
@@ -74,5 +78,7 @@ main() {
 
     print(einsZwei());
     Expect.equals("(1, 2, 3, 5, [6])", einsZwei().toString());
+
+    Expect.throws(() => dreiVier().toString());
   }
 }
