@@ -3,6 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
+
+asyncstar_yield_test: fail
+
 await_backwards_compatibility_test/none: CompileTimeError # Issue 22052
 await_test: CompileTimeError # Issue 22052
 
