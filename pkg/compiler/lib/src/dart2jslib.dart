@@ -33,6 +33,7 @@ import 'elements/modelx.dart'
          DeferredLoaderGetterElementX;
 import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'io/code_output.dart' show CodeBuffer;
+import 'io/source_information.dart' show SourceInformation;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'library_loader.dart'

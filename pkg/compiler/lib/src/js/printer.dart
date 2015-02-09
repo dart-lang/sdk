@@ -112,18 +112,14 @@ class Printer extends Indentation implements NodeVisitor {
   }
 
   void beginSourceRange(Node node) {
-    if (node.sourcePosition != null) {
-      outBuffer.beginMappedRange();
-      outBuffer.setSourceLocation(node.sourcePosition);
+    if (node.sourceInformation != null) {
+      node.sourceInformation.beginMapping(outBuffer);
     }
   }
 
   void endSourceRange(Node node) {
-    if (node.endSourcePosition != null) {
-      outBuffer.setSourceLocation(node.endSourcePosition);
-    }
-    if (node.sourcePosition != null) {
-      outBuffer.endMappedRange();
+    if (node.sourceInformation != null) {
+      node.sourceInformation.endMapping(outBuffer);
     }
   }
 

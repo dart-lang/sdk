@@ -6,7 +6,7 @@ library dart2js.code_output;
 
 import 'dart:async';
 
-import 'source_map_builder.dart';
+import 'source_information.dart';
 
 class CodeOutputMarker {
   final int offsetDelta;

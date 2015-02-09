@@ -1910,12 +1910,9 @@ abstract class Compiler implements DiagnosticListener {
   SourceSpan spanFromHInstruction(HInstruction instruction) {
     Element element = _elementFromHInstruction(instruction);
     if (element == null) element = currentElement;
-    var position = instruction.sourcePosition;
+    SourceInformation position = instruction.sourceInformation;
     if (position == null) return spanFromElement(element);
-    Token token = position.token;
-    if (token == null) return spanFromElement(element);
-    Uri uri = element.compilationUnit.script.readableUri;
-    return spanFromTokens(token, token, uri);
+    return position.sourceSpan;
   }
 
   /**

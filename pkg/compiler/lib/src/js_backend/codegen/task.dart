@@ -11,17 +11,14 @@ import 'unsugar.dart';
 
 import '../js_backend.dart';
 import '../../dart2jslib.dart';
-import '../../io/source_file.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_builder.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../tree/tree.dart' as ast;
 import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
-import '../../scanner/scannerlib.dart' as scanner;
 import '../../elements/elements.dart';
 import '../../js/js.dart' as js;
-import '../../io/source_map_builder.dart';
+import '../../io/source_information.dart' show StartEndSourceInformation;
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../dart_backend/backend_ast_emitter.dart' as backend_ast_emitter;
 import '../../cps_ir/optimizers.dart';
@@ -207,36 +204,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   js.Node attachPosition(js.Node node, AstElement element) {
-    // TODO(sra): Attaching positions might be cleaner if the source position
-    // was on a wrapping node.
-    SourceFile sourceFile = sourceFileOfElement(element);
-    String name = element.name;
-    AstElement implementation = element.implementation;
-    ast.Node expression = implementation.node;
-    scanner.Token beginToken;
-    scanner.Token endToken;
-    if (expression == null) {
-      // Synthesized node. Use the enclosing element for the location.
-      beginToken = endToken = element.position;
-    } else {
-      beginToken = expression.getBeginToken();
-      endToken = expression.getEndToken();
-    }
-    // TODO(podivilov): find the right sourceFile here and remove offset
-    // checks below.
-    var sourcePosition, endSourcePosition;
-    if (beginToken.charOffset < sourceFile.length) {
-      sourcePosition =
-          new TokenSourceFileLocation(sourceFile, beginToken, name);
-    }
-    if (endToken.charOffset < sourceFile.length) {
-      endSourcePosition =
-          new TokenSourceFileLocation(sourceFile, endToken, name);
-    }
-    return node.withPosition(sourcePosition, endSourcePosition);
-  }
-
-  SourceFile sourceFileOfElement(Element element) {
-    return element.implementation.compilationUnit.script.file;
+    return node.withSourceInformation(
+        StartEndSourceInformation.computeSourceInformation(element));
   }
 }

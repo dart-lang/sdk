@@ -2491,9 +2491,19 @@ class SsaBuilder extends ResolvedVisitor {
 
   HInstruction attachPosition(HInstruction target, ast.Node node) {
     if (generateSourceMap && node != null) {
-      target.sourcePosition = sourceFileLocationForBeginToken(node);
+      target.sourceInformation = sourceInformationForBeginToken(node);
     }
     return target;
+  }
+
+  SourceInformation sourceInformationForBeginToken(ast.Node node) {
+    return new StartEndSourceInformation(sourceFileLocationForBeginToken(node));
+  }
+
+  SourceInformation sourceInformationForBeginEndToken(ast.Node node) {
+    return new StartEndSourceInformation(
+        sourceFileLocationForBeginToken(node),
+        sourceFileLocationForEndToken(node));
   }
 
   SourceFileLocation sourceFileLocationForBeginToken(ast.Node node) =>
@@ -2779,8 +2789,7 @@ class SsaBuilder extends ResolvedVisitor {
               wrapExpressionGraph(updateGraph),
               conditionBlock.loopInformation.target,
               conditionBlock.loopInformation.labels,
-              sourceFileLocationForBeginToken(loop),
-              sourceFileLocationForEndToken(loop));
+              sourceInformationForBeginEndToken(loop));
 
       startBlock.setBlockFlow(info, current);
       loopInfo.loopBlockInformation = info;
@@ -2997,8 +3006,7 @@ class SsaBuilder extends ResolvedVisitor {
               null,
               loopEntryBlock.loopInformation.target,
               loopEntryBlock.loopInformation.labels,
-              sourceFileLocationForBeginToken(node),
-              sourceFileLocationForEndToken(node));
+              sourceInformationForBeginEndToken(node));
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {

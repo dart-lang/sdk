@@ -16,37 +16,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
 
   js.Node attachPosition(js.Node node, AstElement element) {
-    // TODO(sra): Attaching positions might be cleaner if the source position
-    // was on a wrapping node.
-    SourceFile sourceFile = sourceFileOfElement(element);
-    String name = element.name;
-    AstElement implementation = element.implementation;
-    ast.Node expression = implementation.node;
-    Token beginToken;
-    Token endToken;
-    if (expression == null) {
-      // Synthesized node. Use the enclosing element for the location.
-      beginToken = endToken = element.position;
-    } else {
-      beginToken = expression.getBeginToken();
-      endToken = expression.getEndToken();
-    }
-    // TODO(podivilov): find the right sourceFile here and remove offset
-    // checks below.
-    var sourcePosition, endSourcePosition;
-    if (beginToken.charOffset < sourceFile.length) {
-      sourcePosition =
-          new TokenSourceFileLocation(sourceFile, beginToken, name);
-    }
-    if (endToken.charOffset < sourceFile.length) {
-      endSourcePosition =
-          new TokenSourceFileLocation(sourceFile, endToken, name);
-    }
-    return node.withPosition(sourcePosition, endSourcePosition);
-  }
-
-  SourceFile sourceFileOfElement(Element element) {
-    return element.implementation.compilationUnit.script.file;
+    return node.withSourceInformation(
+        StartEndSourceInformation.computeSourceInformation(element));
   }
 
   js.Fun buildJavaScriptFunction(FunctionElement element,
@@ -253,13 +224,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   js.Node attachLocation(js.Node jsNode, HInstruction instruction) {
-    return jsNode.withLocation(instruction.sourcePosition);
+    return attachSourceInformation(jsNode, instruction.sourceInformation);
   }
 
-  js.Node attachLocationRange(js.Node jsNode,
-                              SourceFileLocation sourcePosition,
-                              SourceFileLocation endSourcePosition) {
-    return jsNode.withPosition(sourcePosition, endSourcePosition);
+  js.Node attachSourceInformation(js.Node jsNode,
+                                  SourceInformation sourceInformation) {
+    return jsNode.withSourceInformation(sourceInformation);
   }
 
   void preGenerateMethod(HGraph graph) {
@@ -968,8 +938,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         compiler.internalError(condition.conditionExpression,
             'Unexpected loop kind: ${info.kind}.');
     }
-    js.Statement result =
-        attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
+    js.Statement result = attachSourceInformation(loop, info.sourceInformation);
     if (info.kind == HLoopBlockInformation.SWITCH_CONTINUE_LOOP) {
       String continueLabelString =
           backend.namer.implicitContinueLabelName(info.target);

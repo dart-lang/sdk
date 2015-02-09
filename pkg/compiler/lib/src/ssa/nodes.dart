@@ -763,7 +763,7 @@ class HBasicBlock extends HInstructionList {
 
 abstract class HInstruction implements Spannable {
   Entity sourceElement;
-  SourceFileLocation sourcePosition;
+  SourceInformation sourceInformation;
 
   final int id;
   static int idCounter;
@@ -2906,8 +2906,7 @@ class HLoopBlockInformation implements HStatementInformation {
   final HExpressionInformation updates;
   final JumpTarget target;
   final List<LabelDefinition> labels;
-  final SourceFileLocation sourcePosition;
-  final SourceFileLocation endSourcePosition;
+  final SourceInformation sourceInformation;
 
   HLoopBlockInformation(this.kind,
                         this.initializer,
@@ -2916,8 +2915,7 @@ class HLoopBlockInformation implements HStatementInformation {
                         this.updates,
                         this.target,
                         this.labels,
-                        this.sourcePosition,
-                        this.endSourcePosition) {
+                        this.sourceInformation) {
     assert(
         (kind == DO_WHILE_LOOP ? body.start : condition.start).isLoopHeader());
   }

@@ -174,11 +174,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 }
 
 abstract class Node {
-  get sourcePosition => _sourcePosition;
-  get endSourcePosition => _endSourcePosition;
+  SourceInformation get sourceInformation => _sourceInformation;
 
-  var _sourcePosition;
-  var _endSourcePosition;
+  SourceInformation _sourceInformation;
 
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
@@ -189,23 +187,16 @@ abstract class Node {
 
   // Returns a node equivalent to [this], but with new source position and end
   // source position.
-  Node withPosition(var sourcePosition, var endSourcePosition) {
-    if (sourcePosition == _sourcePosition &&
-        endSourcePosition == _endSourcePosition) {
+  Node withSourceInformation(SourceInformation sourceInformation) {
+    if (sourceInformation == _sourceInformation) {
       return this;
     }
     Node clone = _clone();
     // TODO(sra): Should existing data be 'sticky' if we try to overwrite with
     // `null`?
-    clone._sourcePosition = sourcePosition;
-    clone._endSourcePosition = endSourcePosition;
+    clone._sourceInformation = sourceInformation;
     return clone;
   }
-
-  // Returns a node equivalent to [this], but with new [this.sourcePositions],
-  // keeping the existing [endPosition]
-  Node withLocation(var sourcePosition) =>
-      withPosition(sourcePosition, this.endSourcePosition);
 
   VariableUse asVariableUse() => null;
 
@@ -229,9 +220,6 @@ class Program extends Node {
 
 abstract class Statement extends Node {
   Statement toStatement() => this;
-
-  Statement withPosition(var sourcePosition, var endSourcePosition) =>
-      super.withPosition(sourcePosition, endSourcePosition);
 }
 
 class Block extends Statement {
@@ -556,9 +544,6 @@ abstract class Expression extends Node {
   int get precedenceLevel;
 
   Statement toStatement() => new ExpressionStatement(this);
-
-  Expression withPosition(var sourcePosition, var endSourcePosition) =>
-      super.withPosition(sourcePosition, endSourcePosition);
 }
 
 /// Wrap a CodeBuffer as an expression.

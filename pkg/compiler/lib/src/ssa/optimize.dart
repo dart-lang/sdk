@@ -167,8 +167,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         if (replacement.sourceElement == null) {
           replacement.sourceElement = instruction.sourceElement;
         }
-        if (replacement.sourcePosition == null) {
-          replacement.sourcePosition = instruction.sourcePosition;
+        if (replacement.sourceInformation == null) {
+          replacement.sourceInformation = instruction.sourceInformation;
         }
         if (!replacement.isInBasicBlock()) {
           // The constant folding can return an instruction that is already
