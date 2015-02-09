@@ -32,7 +32,7 @@ class Thread {
   }
 
   // The log for this thread.
-  Log* Log() {
+  class Log* Log() {
     return reinterpret_cast<Isolate*>(this)->Log();
   }
 
