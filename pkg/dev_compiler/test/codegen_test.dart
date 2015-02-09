@@ -14,8 +14,8 @@ import 'package:unittest/unittest.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-  ..addFlag('dart-gen',
-      abbr: 'd', help: 'Generate dart output', defaultsTo: false);
+  ..addFlag(
+      'dart-gen', abbr: 'd', help: 'Generate dart output', defaultsTo: false);
 
 main(arguments) {
   if (arguments == null) arguments = [];

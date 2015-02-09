@@ -1127,24 +1127,95 @@ $name.prototype[Symbol.iterator] = function() {
   // respective visit methods.
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    // TODO(jmesserly): we need to handle the cascade target better. Ideally
-    // it should be assigned to a temp. Note that even simple identifier isn't
-    // safe in the face of getters.
-    if (node.target is! SimpleIdentifier) {
-      out.write('/* Unimplemented cascade on non-simple identifier: $node */');
-      return;
+    var savedCascadeTemp = _cascadeTarget;
+
+    var parent = node.parent;
+    var grandparent = parent.parent;
+    if (_isStateless(node.target, node)) {
+      // Special case: target is stateless, so we can just reuse it.
+      _cascadeTarget = node.target;
+
+      if (parent is ExpressionStatement) {
+        _visitNodeList(node.cascadeSections, separator: ';\n');
+      } else {
+        // Use comma expression. For example:
+        //    (sb.write(1), sb.write(2), sb)
+        out.write('(');
+        _visitNodeList(node.cascadeSections, separator: ', ', suffix: ', ');
+        _cascadeTarget.accept(this);
+        out.write(')');
+      }
+    } else if (parent is AssignmentExpression &&
+        grandparent is ExpressionStatement &&
+        _isStateless(parent.leftHandSide, node)) {
+
+      // Special case: assignment to a variable in a statement.
+      // We can reuse the variable to desugar it:
+      //    result = []..length = length;
+      // becomes:
+      //    result = [];
+      //    result.length = length;
+      _cascadeTarget = parent.leftHandSide;
+      node.target.accept(this);
+      out.write(';\n');
+      _visitNodeList(node.cascadeSections, separator: ';\n');
+    } else if (parent is VariableDeclaration &&
+        grandparent is VariableDeclarationList &&
+        grandparent.variables.last == parent) {
+
+      // Special case: variable declaration
+      // We can reuse the variable to desugar it:
+      //    var result = []..length = length;
+      // becomes:
+      //    var result = [];
+      //    result.length = length;
+      _cascadeTarget = parent.name;
+      node.target.accept(this);
+      out.write(';\n');
+      _visitNodeList(node.cascadeSections, separator: ';\n');
+    } else {
+      // In the general case we need to capture the target expression into
+      // a temporary. This uses a lambda to get a temporary scope, and it also
+      // remains valid in an expression context.
+      // TODO(jmesserly): need a better way to handle temps.
+      // TODO(jmesserly): special case for parent is ExpressionStatement?
+      _cascadeTarget =
+          new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, '_', 0));
+      _cascadeTarget.staticElement =
+          new LocalVariableElementImpl.forNode(_cascadeTarget);
+      _cascadeTarget.staticType = node.target.staticType;
+
+      out.write('((${_cascadeTarget.name}) => {\n', 2);
+      _visitNodeList(node.cascadeSections, separator: ';\n', suffix: ';\n');
+      if (node.parent is! ExpressionStatement) {
+        out.write('return ${_cascadeTarget.name};\n');
+      }
+      out.write('})(', -2);
+      node.target.accept(this);
+      out.write(')');
     }
 
-    var savedCascadeTemp = _cascadeTarget;
-    _cascadeTarget = node.target;
-    out.write('(', 2);
-    _visitNodeList(node.cascadeSections, separator: ',\n');
-    if (node.parent is! ExpressionStatement) {
-      if (node.cascadeSections.isNotEmpty) out.write(',\n');
-      _cascadeTarget.accept(this);
-    }
-    out.write(')', -2);
     _cascadeTarget = savedCascadeTemp;
+  }
+
+  /// True is the expression can be evaluated multiple times without causing
+  /// code execution. This is true for final fields. This can be true for local
+  /// variables, if:
+  /// * they are not assigned within the [context].
+  /// * they are not assigned in a function closure anywhere.
+  bool _isStateless(Expression node, [AstNode context]) {
+    if (node is SimpleIdentifier) {
+      var e = node.staticElement;
+      if (e is PropertyAccessorElement) e = e.variable;
+      if (e is VariableElementImpl && !e.isSynthetic) {
+        if (e.isFinal) return true;
+        if (e is LocalVariableElementImpl || e is ParameterElementImpl) {
+          // make sure the local isn't mutated in the context.
+          return !_isPotentiallyMutated(e, context);
+        }
+      }
+    }
+    return false;
   }
 
   @override
@@ -1673,6 +1744,55 @@ $name.prototype[Symbol.iterator] = function() {
   String _canonicalMethodInvoke(String name) {
     name = _canonicalMethodName(name);
     return name.startsWith('[') ? name : '.$name';
+  }
+}
+
+/// Returns true if the local variable is potentially mutated within [context].
+/// This accounts for closures that may have been created outside of [context].
+bool _isPotentiallyMutated(VariableElementImpl e, [AstNode context]) {
+  if (e.isPotentiallyMutatedInClosure) {
+    // TODO(jmesserly): this returns true incorrectly in some cases, because
+    // VariableResolverVisitor only checks that enclosingElement is not the
+    // function element, but enclosingElement can be something else in some
+    // cases (the block scope?). So it's more conservative than it could be.
+    return true;
+  }
+  if (e.isPotentiallyMutatedInScope) {
+    // Need to visit the context looking for assignment to this local.
+    if (context != null) {
+      var visitor = new _AssignmentFinder(e);
+      context.accept(visitor);
+      return visitor._potentiallyMutated;
+    }
+    return true;
+  }
+  return false;
+}
+
+/// Adapted from VariableResolverVisitor. Finds an assignment to a given
+/// local variable.
+class _AssignmentFinder extends RecursiveAstVisitor {
+  final VariableElementImpl _variable;
+  bool _potentiallyMutated = false;
+
+  _AssignmentFinder(this._variable);
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    // Ignore if qualified.
+    AstNode parent = node.parent;
+    if (parent is PrefixedIdentifier &&
+        identical(parent.identifier, node)) return;
+    if (parent is PropertyAccess &&
+        identical(parent.propertyName, node)) return;
+    if (parent is MethodInvocation &&
+        identical(parent.methodName, node)) return;
+    if (parent is ConstructorName) return;
+    if (parent is Label) return;
+
+    if (node.inSetterContext() && node.staticElement == _variable) {
+      _potentiallyMutated = true;
+    }
   }
 }
 

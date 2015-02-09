@@ -833,7 +833,10 @@ var core;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = null;
       if (growable) {
-        result = /* Unimplemented cascade on non-simple identifier: <E> []..length = length */;
+        result = ((_) => {
+          _.length = length;
+          return _;
+        })(new List.from([]));
       } else {
         result = new List(length);
       }
@@ -2072,12 +2075,12 @@ var core;
       }
       sb.write(this.path);
       if (this._query !== null) {
-        (sb.write("?"),
-          sb.write(this._query));
+        sb.write("?");
+        sb.write(this._query);
       }
       if (this._fragment !== null) {
-        (sb.write("#"),
-          sb.write(this._fragment));
+        sb.write("#");
+        sb.write(this._fragment);
       }
       return sb.toString();
     }

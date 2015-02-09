@@ -2042,7 +2042,10 @@ var async;
           }
           catch (e) {
             let s = dart.stackTrace(e);
-            result = /* Unimplemented cascade on non-simple identifier: new _Future().._asyncCompleteError(e, s) */;
+            result = ((_) => {
+              _._asyncCompleteError(e, s);
+              return _;
+            })(new _Future());
           }
         } else {
           result = result.whenComplete(this._onCancel);
@@ -2536,7 +2539,10 @@ var async;
     _createSubscription(onData, onError, onDone, cancelOnError) {
       if (this._isUsed) throw new core.StateError("Stream has already been listened to.");
       this._isUsed = true;
-      return /* Unimplemented cascade on non-simple identifier: new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError).._setPendingEvents(_pending()) */;
+      return ((_) => {
+        _._setPendingEvents(this._pending());
+        return _;
+      })(new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError));
     }
   }
 

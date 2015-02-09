@@ -59,7 +59,10 @@ var collection;
       }
       return result;
     }
-    toSet() { return /* Unimplemented cascade on non-simple identifier: _newSet()..addAll(this) */; }
+    toSet() { return ((_) => {
+      _.addAll(this);
+      return _;
+    })(this._newSet()); }
   }
 
   class HashSet/* Unimplemented <E> */ {
@@ -420,7 +423,11 @@ var collection;
         dart.assert(core.identical(_toStringVisiting.last, iterable));
         _toStringVisiting.removeLast();
       }
-      return (/* Unimplemented cascade on non-simple identifier: new StringBuffer(leftDelimiter)..writeAll(parts, ", ")..write(rightDelimiter) */).toString();
+      return (((_) => {
+        _.writeAll(parts, ", ");
+        _.write(rightDelimiter);
+        return _;
+      })(new core.StringBuffer(leftDelimiter))).toString();
     }
     static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
       if (leftDelimiter === undefined) leftDelimiter = "(";
@@ -857,7 +864,8 @@ var collection;
     join(separator) {
       if (separator === undefined) separator = "";
       if (length === 0) return "";
-      let buffer = /* Unimplemented cascade on non-simple identifier: new StringBuffer()..writeAll(this, separator) */;
+      let buffer = new core.StringBuffer();
+      buffer.writeAll(this, separator);
       return buffer.toString();
     }
     where(test) { return new _internal.WhereIterable(this, test); }
@@ -898,7 +906,10 @@ var collection;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = null;
       if (growable) {
-        result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
+        result = ((_) => {
+          _.length = length;
+          return _;
+        })(new core.List());
       } else {
         result = new core.List(length);
       }
@@ -995,7 +1006,8 @@ var collection;
       if (end === null) end = listLength;
       core.RangeError.checkValidRange(start, end, listLength);
       let length = end - start;
-      let result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
+      let result = new core.List();
+      result.length = length;
       for (let i = 0; i < length; i++) {
         result.set(i, this.get(start + i));
       }
@@ -1622,7 +1634,10 @@ var collection;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let list = null;
       if (growable) {
-        list = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
+        list = ((_) => {
+          _.length = this.length;
+          return _;
+        })(new core.List());
       } else {
         list = new core.List(this.length);
       }
@@ -1869,7 +1884,10 @@ var collection;
       return true;
     }
     union(other) {
-      return /* Unimplemented cascade on non-simple identifier: toSet()..addAll(other) */;
+      return ((_) => {
+        _.addAll(other);
+        return _;
+      })(this.toSet());
     }
     intersection(other) {
       let result = this.toSet();
@@ -1887,7 +1905,10 @@ var collection;
     }
     toList(opt$) {
       let growable = opt$.growable === undefined ? true : opt$.growable;
-      let result = growable ? (/* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */) : new core.List(this.length);
+      let result = growable ? (((_) => {
+        _.length = this.length;
+        return _;
+      })(new core.List())) : new core.List(this.length);
       let i = 0;
       for (let element of this) result.set(i++, element);
       return result;
@@ -2568,7 +2589,10 @@ var collection;
       return result;
     }
     union(other) {
-      return /* Unimplemented cascade on non-simple identifier: _clone()..addAll(other) */;
+      return ((_) => {
+        _.addAll(other);
+        return _;
+      })(this._clone());
     }
     _clone() {
       let set = new SplayTreeSet(this._comparator, this._validKey);
@@ -2578,7 +2602,11 @@ var collection;
     }
     _copyNode(node) {
       if (node === null) return null;
-      return /* Unimplemented cascade on non-simple identifier: new _SplayTreeNode<E>(node.key)..left = _copyNode(node.left)..right = _copyNode(node.right) */;
+      return ((_) => {
+        _.left = this._copyNode(node.left);
+        _.right = this._copyNode(node.right);
+        return _;
+      })(new _SplayTreeNode(node.key));
     }
     clear() {
       _clear();

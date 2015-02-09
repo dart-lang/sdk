@@ -30,14 +30,14 @@ var sunflower;
 
   class SunflowerSeedPainter {
     draw() {
-      (sunflower.context.beginPath(),
-        sunflower.context.lineWidth = 2,
-        sunflower.context.fillStyle = this.color,
-        sunflower.context.strokeStyle = this.color,
-        sunflower.context.arc(this.x, this.y, this.radius, 0, TAU, false),
-        sunflower.context.fill(),
-        sunflower.context.closePath(),
-        sunflower.context.stroke());
+      sunflower.context.beginPath();
+      sunflower.context.lineWidth = 2;
+      sunflower.context.fillStyle = this.color;
+      sunflower.context.strokeStyle = this.color;
+      sunflower.context.arc(this.x, this.y, this.radius, 0, TAU, false);
+      sunflower.context.fill();
+      sunflower.context.closePath();
+      sunflower.context.stroke();
     }
   }
 

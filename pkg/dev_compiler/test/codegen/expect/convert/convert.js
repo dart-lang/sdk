@@ -369,8 +369,7 @@ var convert;
       super();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(decoder, async.StreamTransformer)).fold(new core.StringBuffer(), (buffer, string) => (dart.dinvoke(buffer, "write", string),
-        buffer)).then((buffer) => dart.dinvoke(buffer, "toString")), async.Future);
+      return dart.as(byteStream.transform(dart.as(decoder, async.StreamTransformer)).fold(new core.StringBuffer(), (buffer, string) => (dart.dinvoke(buffer, "write", string), buffer)).then((buffer) => dart.dinvoke(buffer, "toString")), async.Future);
     }
     static getByName(name) {
       if (name === null) return null;

@@ -171,7 +171,10 @@ var _internal;
       let growable = opt$.growable === undefined ? true : opt$.growable;
       let result = null;
       if (growable) {
-        result = /* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */;
+        result = ((_) => {
+          _.length = this.length;
+          return _;
+        })(new core.List());
       } else {
         result = new core.List(this.length);
       }
@@ -253,7 +256,10 @@ var _internal;
       if (this._endOrLength !== null && this._endOrLength < end) end = this._endOrLength;
       let length = end - start;
       if (length < 0) length = 0;
-      let result = growable ? (/* Unimplemented cascade on non-simple identifier: new List<E>()..length = length */) : new core.List(length);
+      let result = growable ? (((_) => {
+        _.length = length;
+        return _;
+      })(new core.List())) : new core.List(length);
       for (let i = 0; i < length; i++) {
         result.set(i, this._iterable.elementAt(start + i));
         if (this._iterable.length < end) throw new core.ConcurrentModificationError(this);
