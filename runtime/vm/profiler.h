@@ -6,31 +6,24 @@
 #define VM_PROFILER_H_
 
 #include "vm/allocation.h"
+#include "vm/bitfield.h"
 #include "vm/code_observers.h"
 #include "vm/globals.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 
+// Profiler sampling and stack walking support.
+// NOTE: For service related code, see profile_service.h.
+
 namespace dart {
 
 // Forward declarations.
-class JSONArray;
-class JSONStream;
-class ProfilerCodeRegionTable;
 class Sample;
 class SampleBuffer;
 
-// Profiler
+
 class Profiler : public AllStatic {
  public:
-  enum TagOrder {
-    kNoTags,
-    kUser,
-    kUserVM,
-    kVM,
-    kVMUser
-  };
-
   static void InitOnce();
   static void Shutdown();
 
@@ -43,9 +36,6 @@ class Profiler : public AllStatic {
 
   static void BeginExecution(Isolate* isolate);
   static void EndExecution(Isolate* isolate);
-
-  static void PrintJSON(Isolate* isolate, JSONStream* stream,
-                        bool full, TagOrder tag_order);
 
   static SampleBuffer* sample_buffer() {
     return sample_buffer_;

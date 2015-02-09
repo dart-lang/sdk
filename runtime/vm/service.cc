@@ -25,7 +25,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
-#include "vm/profiler.h"
+#include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -2243,27 +2243,24 @@ static bool HandleIsolateGetTagProfile(Isolate* isolate, JSONStream* js) {
 }
 
 static bool HandleIsolateGetCpuProfile(Isolate* isolate, JSONStream* js) {
-  // A full profile includes disassembly of all Dart code objects.
-  // TODO(johnmccutchan): Add option to trigger full code dump.
-  bool full_profile = false;
-  Profiler::TagOrder tag_order = Profiler::kUserVM;
+  ProfilerService::TagOrder tag_order = ProfilerService::kUserVM;
   if (js->HasParam("tags")) {
     if (js->ParamIs("tags", "None")) {
-      tag_order = Profiler::kNoTags;
+      tag_order = ProfilerService::kNoTags;
     } else if (js->ParamIs("tags", "UserVM")) {
-      tag_order = Profiler::kUserVM;
+      tag_order = ProfilerService::kUserVM;
     } else if (js->ParamIs("tags", "UserOnly")) {
-      tag_order = Profiler::kUser;
+      tag_order = ProfilerService::kUser;
     } else if (js->ParamIs("tags", "VMUser")) {
-      tag_order = Profiler::kVMUser;
+      tag_order = ProfilerService::kVMUser;
     } else if (js->ParamIs("tags", "VMOnly")) {
-      tag_order = Profiler::kVM;
+      tag_order = ProfilerService::kVM;
     } else {
       PrintInvalidParamError(js, "tags");
       return true;
     }
   }
-  Profiler::PrintJSON(isolate, js, full_profile, tag_order);
+  ProfilerService::PrintJSON(js, tag_order);
   return true;
 }
 
