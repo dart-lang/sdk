@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $checked ]
+await_future_test: RuntimeError # Issue 22332
+language/async_test/none: RuntimeError # Issue 22332
+
 [ $compiler == dart2js && $minified ] 
 await_future_test: Timeout # Issue 22328
 

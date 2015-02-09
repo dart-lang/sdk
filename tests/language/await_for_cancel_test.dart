@@ -51,7 +51,7 @@ test() async {
   await test2();
 }
 
-main() async {
+main() {
   asyncStart();
   test().then((_) {
     asyncEnd();
