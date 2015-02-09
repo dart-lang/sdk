@@ -63,6 +63,9 @@ void defineLinterEngineTests() {
         expect(() => new CamelCaseString('foo'),
             throwsA(new isInstanceOf<ArgumentError>()));
       });
+      test('toString', () {
+        expect(new CamelCaseString('FooBar').toString(), equals('FooBar'));
+      });
     });
 
     group('groups', () {
@@ -77,6 +80,7 @@ void defineLinterEngineTests() {
       test('factory', () {
         var kinds = ['DO', 'DONT', "DON'T", 'AVOID', 'PREFER', 'CONSIDER'];
         kinds.map((n) => new Kind(n)).forEach((k) => expect(k.custom, isFalse));
+        expect(new Kind('Kustom').custom, isTrue);
       });
     });
 

@@ -65,8 +65,6 @@ abstract class DartLinter {
 
   Iterable<AnalysisErrorInfo> lintLibrarySource(
       {String libraryName, String libraryContents});
-
-  Iterable<AnalysisErrorInfo> lintPath(String sourcePath);
 }
 
 class Group {
@@ -310,10 +308,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       {String libraryName, String libraryContents}) => _registerAndRun(
           () => new AnalysisDriver.forSource(
               new _StringSource(libraryContents, libraryName), options));
-
-  @override
-  Iterable<AnalysisErrorInfo> lintPath(String sourcePath) =>
-      _registerAndRun(() => new AnalysisDriver.forPath(sourcePath, options));
 
   @override
   onError(AnalysisError error) => errors.add(error);
