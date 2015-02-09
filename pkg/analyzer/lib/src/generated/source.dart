@@ -439,17 +439,16 @@ abstract class Source implements AnalysisTarget {
   bool get isInSystemLibrary;
 
   /**
-   * Return the modification stamp for this source. A modification stamp is a non-negative integer
-   * with the property that if the contents of the source have not been modified since the last time
-   * the modification stamp was accessed then the same value will be returned, but if the contents
-   * of the source have been modified one or more times (even if the net change is zero) the stamps
-   * will be different.
+   * Return the modification stamp for this source, or a negative value if the
+   * source does not exist. A modification stamp is a non-negative integer with
+   * the property that if the contents of the source have not been modified
+   * since the last time the modification stamp was accessed then the same value
+   * will be returned, but if the contents of the source have been modified one
+   * or more times (even if the net change is zero) the stamps will be different.
    *
    * Clients should consider using the the method
-   * [AnalysisContext.getModificationStamp] because contexts can have local overrides
-   * of the content of a source that the source is not aware of.
-   *
-   * @return the modification stamp for this source
+   * [AnalysisContext.getModificationStamp] because contexts can have local
+   * overrides of the content of a source that the source is not aware of.
    */
   int get modificationStamp;
 
