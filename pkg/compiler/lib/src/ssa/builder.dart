@@ -3882,15 +3882,15 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(addConstantString(backend.namer.operatorIsPrefix));
     } else if (name == 'JS_OBJECT_CLASS_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
+      String name = backend.namer.runtimeTypeName(compiler.objectClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_NULL_CLASS_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
+      String name = backend.namer.runtimeTypeName(compiler.nullClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_FUNCTION_CLASS_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
+      String name = backend.namer.runtimeTypeName(compiler.functionClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
       // TODO(floitsch): this should be a JS_NAME.
@@ -4087,7 +4087,7 @@ class SsaBuilder extends ResolvedVisitor {
       // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
       // string concatenation in the implementation), and may prevent
       // segmentation of '$'.
-      String substitutionNameString = backend.namer.getNameForRti(cls);
+      String substitutionNameString = backend.namer.runtimeTypeName(cls);
       HInstruction substitutionName = graph.addConstantString(
           new ast.LiteralDartString(substitutionNameString), compiler);
       pushInvokeStatic(null,

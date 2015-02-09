@@ -1492,8 +1492,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitInterceptor(HInterceptor node) {
     registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-    String name = backend.namer.getInterceptorName(
-        backend.getInterceptorMethod, node.interceptedClasses);
+    String name = backend.namer.nameForGetInterceptor(node.interceptedClasses);
     var isolate = new js.VariableUse(
         backend.namer.globalObjectFor(backend.interceptorsLibrary));
     use(node.receiver);
@@ -1539,7 +1538,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitInvokeConstructorBody(HInvokeConstructorBody node) {
     use(node.inputs[0]);
     js.Expression object = pop();
-    String methodName = backend.namer.getNameOfInstanceMember(node.element);
+    String methodName = backend.namer.instanceMethodName(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs);
     push(js.propertyCall(object, methodName, arguments), node);
     registry.registerStaticUse(node.element);
@@ -1679,7 +1678,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           methodName = backend.namer.invocationName(selector);
         } else {
           assert(invariant(node, compiler.hasIncrementalSupport));
-          methodName = backend.namer.getNameOfInstanceMember(superMethod);
+          methodName = backend.namer.instanceMethodName(superMethod);
         }
         push(js.js('#.#.call(#)',
                    [backend.emitter.prototypeAccess(superClass,
@@ -1690,7 +1689,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(node.receiver);
         push(
           js.js('#.#(#)', [
-            pop(), backend.namer.getNameOfAliasedSuperMember(superMethod),
+            pop(), backend.namer.aliasedSuperMemberPropertyName(superMethod),
             visitArguments(node.inputs, start: 1)]), // Skip receiver argument.
           node);
       }
@@ -2633,7 +2632,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         backend.emitter.registerReadTypeVariable(element);
         push(js.js('#.#()',
-                [pop(), backend.namer.readTypeVariableName(element)]));
+                [pop(), backend.namer.nameForReadTypeVariable(element)]));
       }
     } else {
       push(js.js('#(#)', [

@@ -244,7 +244,7 @@ class ModelEmitter {
          compiler.stringClass, compiler.boolClass, compiler.nullClass,
          compiler.listClass];
     nativeClassesNeedingUnmangledName.forEach((element) {
-        names.add(new js.Property(js.string(namer.getNameOfClass(element)),
+        names.add(new js.Property(js.string(namer.className(element)),
                                   js.string(element.name)));
     });
 

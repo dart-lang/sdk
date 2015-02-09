@@ -543,7 +543,7 @@ class JavaScriptBackend extends Backend {
 
   String registerOneShotInterceptor(Selector selector) {
     Set<ClassElement> classes = getInterceptedClassesOn(selector.name);
-    String name = namer.getOneShotInterceptorName(selector, classes);
+    String name = namer.nameForGetOneShotInterceptor(selector, classes);
     if (!oneShotInterceptors.containsKey(name)) {
       registerSpecializedGetInterceptor(classes);
       oneShotInterceptors[name] = selector;
@@ -742,7 +742,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    String name = namer.getInterceptorName(getInterceptorMethod, classes);
+    String name = namer.nameForGetInterceptor(classes);
     if (classes.contains(jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
