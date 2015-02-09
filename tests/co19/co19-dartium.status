@@ -475,7 +475,6 @@ LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError # co19-rol
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/triangle_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/winding-enumeration_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/add-remove-stylesheets-at-once-minimal-recalc-style_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/collapsed-whitespace-reattach-in-style-recalc_t01: RuntimeError # co19-roll r761: Please triage this failure.
