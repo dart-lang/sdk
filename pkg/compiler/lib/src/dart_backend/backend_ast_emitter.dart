@@ -434,7 +434,7 @@ class ASTEmitter
   Expression makeAssignment(Expression target, Expression value) {
     // Try to print as compound assignment or increment
     if (value is BinaryOperator && isCompoundableOperator(value.operator)) {
-      Expression leftOperand = value.left;
+      Receiver leftOperand = value.left;
       Expression rightOperand = value.right;
       bool valid = false;
       if (isSameVariable(target, leftOperand)) {
