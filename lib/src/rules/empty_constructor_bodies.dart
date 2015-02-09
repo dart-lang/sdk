@@ -8,26 +8,35 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:dart_lint/src/linter.dart';
 
-const msg = 'DO use ; instead of {} for empty constructor bodies.';
-
-const name = 'EmptyConstructorBodies';
+const desc = 'DO use ; instead of {} for empty constructor bodies.';
 
 class EmptyConstructorBodies extends LintRule {
+
+  EmptyConstructorBodies()
+      : super(
+          name: 'EmptyConstructorBodies',
+          description: desc,
+          group: Group.STYLE_GUIDE,
+          kind: Kind.DO);
+
   @override
-  AstVisitor getVisitor() => new Visitor(reporter);
+  AstVisitor getVisitor() => new Visitor(this);
 }
 
 class Visitor extends SimpleAstVisitor {
-  ErrorReporter reporter;
+  LintRule rule;
 
-  Visitor(this.reporter);
+  Visitor(this.rule);
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.body is BlockFunctionBody) {
       Block block = (node.body as BlockFunctionBody).block;
       if (block.statements.length == 0) {
-        reporter.reportErrorForNode(new LintCode(name, msg), block, []);
+        rule.reporter.reportErrorForNode(
+            new LintCode(rule.name.value, rule.description),
+            block,
+            []);
       }
     }
   }

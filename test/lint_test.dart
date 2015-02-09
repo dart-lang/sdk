@@ -10,7 +10,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:dart_lint/src/io.dart';
 import 'package:dart_lint/src/linter.dart';
 import 'package:dart_lint/src/rules.dart';
@@ -24,51 +23,6 @@ const String ruleDir = 'test/rules';
 /// Linter engine tests
 void defineLinterEngineTests() {
   group('engine', () {
-    group('registry', () {
-      test('duplicate rules', () {
-        var registry = new MockRegistry();
-        registry
-          ..registerLinter('r1', new MockLinter())
-          ..registerLinter('r1', new MockLinter())
-          ..expectWarnings(["Multiple linter rules registered to name 'r1'"]);
-      });
-      test('empty to start', () {
-        var registry = new MockRegistry();
-        expect(registry.enabledLints, isEmpty);
-      });
-      test('new entries disabled by default', () {
-        var registry = new MockRegistry();
-        registry.registerLinter('my_first_lint', new MockLinter());
-        expect(registry.enabledLints, isEmpty);
-      });
-      test('enablement', () {
-        var registry = new MockRegistry();
-        var linter = new MockLinter();
-        registry.registerLinter('my_first_lint', linter);
-        registry.enable('my_first_lint');
-        expect(registry.enabledLints, contains(linter));
-      });
-      test('enablement - unregistered', () {
-        var registry = new MockRegistry();
-        registry.enable('unknown_rule');
-        registry.expectWarnings(
-            ["No rule registered to 'unknown_rule', cannot enable"]);
-      });
-      test('disablement', () {
-        var registry = new MockRegistry();
-        var linter = new MockLinter();
-        registry.registerLinter('my_first_lint', linter);
-        registry.disable('my_first_lint');
-        expect(registry.enabledLints, isEmpty);
-      });
-      test('disablement - unregistered', () {
-        var registry = new MockRegistry();
-        registry.disable('unknown_rule');
-        registry.expectWarnings(
-            ["No rule registered to 'unknown_rule', cannot disable"]);
-      });
-    });
-
     group('reporter', () {
       _test(String label, String expected, report(PrintingReporter r)) {
         test(label, () {
@@ -78,7 +32,6 @@ void defineLinterEngineTests() {
           expect(msg, expected);
         });
       }
-
       _test('exception', 'EXCEPTION: LinterException: foo',
           (r) => r.exception(new LinterException('foo')));
       _test('logError', 'ERROR: foo', (r) => r.logError('foo'));
@@ -326,45 +279,20 @@ class AnnotationMatcher extends Matcher {
   }
 }
 
-class MockLinter extends Linter {
+class MockLinter extends LintRule {
   VisitorCallback visitorCallback;
 
-  MockLinter([nodeVisitor v]) {
+  MockLinter([nodeVisitor v]) : super(
+          name: 'MockLint',
+          group: Group.STYLE_GUIDE,
+          kind: Kind.AVOID,
+          description: 'Desc',
+          details: 'And so on...') {
     visitorCallback = () => new MockVisitor(v);
   }
 
   @override
   AstVisitor getVisitor() => visitorCallback();
-}
-
-class MockRegistry extends RuleRegistry {
-  MockRegistry([List<Linter> lints]) : super(new MockReporter()) {
-    if (lints != null) {
-      for (int i = 0; i < lints.length; ++i) {
-        registerLinter('_linter_$i', lints[i]);
-        enable('_linter_$i');
-      }
-    }
-  }
-
-  expectWarnings(List<String> warnings) {
-    expect((reporter as MockReporter).warnings, unorderedEquals(warnings));
-  }
-}
-
-class MockReporter extends Reporter {
-  var exceptions = <LinterException>[];
-  var warnings = <String>[];
-
-  @override
-  void exception(LinterException exception) {
-    exceptions.add(exception);
-  }
-
-  @override
-  void warn(String message) {
-    warnings.add(message);
-  }
 }
 
 class MockVisitor extends GeneralizingAstVisitor {

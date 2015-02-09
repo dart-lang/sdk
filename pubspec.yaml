@@ -7,4 +7,5 @@ dependencies:
   analyzer: '0.23.0'
   cli_util: '>=0.0.1 <0.1.0'
 dev_dependencies:
+  markdown: '>=0.7.1+2 <0.8.0'
   unittest: '>=0.11.0 <0.12.0'

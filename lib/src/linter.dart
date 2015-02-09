@@ -61,8 +61,8 @@ abstract class DartLinter {
 
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile);
 
-  Iterable<AnalysisErrorInfo> lintLibrarySource(
-      {String libraryName, String libraryContents});
+  Iterable<AnalysisErrorInfo> lintLibrarySource({String libraryName,
+      String libraryContents});
 
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath);
 }
@@ -144,14 +144,20 @@ class LinterOptions extends DriverOptions {
 
 /// Describes a lint rule.
 abstract class LintRule extends Linter {
-  /// Lint description (in markdown format).
-  String description;
+
+  /// Longer description (in markdown format).
+  final String details;
+  /// Short description
+  final String description;
   /// Lint group (for example, 'Style Guide')
-  Group group;
+  final Group group;
   /// Lint kind (DO|DON'T|PREFER|AVOID|CONSIDER)
-  Kind kind;
+  final Kind kind;
   /// Lint name.
-  CamelCaseString name;
+  final CamelCaseString name;
+
+  LintRule({String name, this.group, this.kind, this.description, this.details})
+      : name = new CamelCaseString(name);
 }
 
 class PrintingReporter implements Reporter, Logger {
@@ -208,10 +214,13 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       _registerAndRun(() => new AnalysisDriver.forFile(sourceFile, options));
 
   @override
-  Iterable<AnalysisErrorInfo> lintLibrarySource(
-      {String libraryName, String libraryContents}) => _registerAndRun(
-          () => new AnalysisDriver.forSource(
-              new _StringSource(libraryContents, libraryName), options));
+  Iterable<AnalysisErrorInfo> lintLibrarySource({String libraryName,
+      String libraryContents}) =>
+      _registerAndRun(
+          () =>
+              new AnalysisDriver.forSource(
+                  new _StringSource(libraryContents, libraryName),
+                  options));
 
   @override
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath) =>

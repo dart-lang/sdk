@@ -8,20 +8,26 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:dart_lint/src/linter.dart';
 
-const msg =
+const desc =
     'DO place the super() call last in a constructor initialization list.';
 
-const name = 'SuperGoesLast';
-
 class SuperGoesLast extends LintRule {
+
+  SuperGoesLast()
+      : super(
+          name: 'SuperGoesLast',
+          description: desc,
+          group: Group.STYLE_GUIDE,
+          kind: Kind.DO);
+
   @override
-  AstVisitor getVisitor() => new Visitor(reporter);
+  AstVisitor getVisitor() => new Visitor(this);
 }
 
 class Visitor extends SimpleAstVisitor {
-  ErrorReporter reporter;
+  LintRule rule;
 
-  Visitor(this.reporter);
+  Visitor(this.rule);
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -30,7 +36,7 @@ class Visitor extends SimpleAstVisitor {
     for (int i = 0; i <= last; ++i) {
       ConstructorInitializer init = node.initializers[i];
       if (init is SuperConstructorInvocation && i != last) {
-        reporter.reportErrorForNode(new LintCode(name, msg), init, []);
+        rule.reporter.reportErrorForNode(new LintCode(rule.name.value, rule.description), init, []);
       }
     }
   }
