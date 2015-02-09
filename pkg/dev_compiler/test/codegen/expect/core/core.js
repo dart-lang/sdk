@@ -468,8 +468,8 @@ var core;
       if (value < 0) throw new RangeError.range(value, 0, null, name, message);
     }
     toString() {
-      if (!_hasValue) return "RangeError: " + (message) + "";
-      let value = Error.safeToString(invalidValue);
+      if (!this._hasValue) return "RangeError: " + (this.message) + "";
+      let value = Error.safeToString(this.invalidValue);
       let explanation = "";
       if (this.start === null) {
         if (this.end !== null) {
@@ -484,7 +484,7 @@ var core;
       } else {
         explanation = ": Only valid value is " + (this.start) + "";
       }
-      return "RangeError: " + (message) + " (" + (value) + ")" + (explanation) + "";
+      return "RangeError: " + (this.message) + " (" + (value) + ")" + (explanation) + "";
     }
   }
   dart.defineNamedConstructor(RangeError, "value");
@@ -503,13 +503,13 @@ var core;
     get start() { return 0; }
     get end() { return this.length - 1; }
     toString() {
-      dart.assert(_hasValue);
+      dart.assert(this._hasValue);
       let target = Error.safeToString(this.indexable);
       let explanation = "index should be less than " + (this.length) + "";
-      if (dart.dbinary(invalidValue, "<", 0)) {
+      if (dart.dbinary(this.invalidValue, "<", 0)) {
         explanation = "index must not be negative";
       }
-      return "RangeError: " + (message) + " (" + (target) + "[" + (invalidValue) + "]): " + (explanation) + "";
+      return "RangeError: " + (this.message) + " (" + (target) + "[" + (this.invalidValue) + "]): " + (explanation) + "";
     }
   }
 

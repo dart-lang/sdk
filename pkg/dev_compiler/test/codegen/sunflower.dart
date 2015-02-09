@@ -27,16 +27,13 @@ final CanvasRenderingContext2D context =
 // TODO(jmesserly): modified this example to use classes and mixins.
 class Circle {
   final num x, y, radius;
-  final String color;
 
-  Circle(this.x, this.y, this.radius, this.color);
+  Circle(this.x, this.y, this.radius);
 }
 
-abstract class SunflowerSeedPainter {
-  num get x;
-  num get y;
-  num get radius;
-  String get color;
+abstract class CirclePainter implements Circle {
+  // This demonstrates a field in a mixin.
+  String color = ORANGE;
 
   /// Draw a small circle representing a seed centered at (x,y).
   void draw() {
@@ -52,8 +49,11 @@ abstract class SunflowerSeedPainter {
   }
 }
 
-class SunflowerSeed extends Circle with SunflowerSeedPainter {
-  SunflowerSeed(num x, num y) : super(x, y, SEED_RADIUS, ORANGE);
+class SunflowerSeed extends Circle with CirclePainter {
+  SunflowerSeed(num x, num y, num radius, [String color])
+      : super(x, y, radius) {
+    if (color != null) this.color = color;
+  }
 }
 
 void main() {
@@ -70,7 +70,7 @@ void draw() {
     final num r = sqrt(i) * SCALE_FACTOR;
     final num x = centerX + r * cos(theta);
     final num y = centerY - r * sin(theta);
-    new SunflowerSeed(x, y).draw();
+    new SunflowerSeed(x, y, SEED_RADIUS).draw();
   }
   notes.textContent = "$seeds seeds";
 }

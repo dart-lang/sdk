@@ -645,8 +645,7 @@ $name.prototype[Symbol.iterator] = function() {
     if (e.enclosingElement is CompilationUnitElement &&
         (e.library != libraryInfo.library || _needsModuleGetter(e))) {
       out.write('${_jsLibraryName(e.library)}.');
-    } else if (currentClass != null &&
-        e.enclosingElement == currentClass.element) {
+    } else if (currentClass != null) {
       if (e is PropertyAccessorElement && !e.variable.isStatic ||
           e is ClassMemberElement && !e.isStatic && e is! ConstructorElement) {
         out.write('this.');

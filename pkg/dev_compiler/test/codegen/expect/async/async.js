@@ -31,11 +31,11 @@ var async;
       return null;
     }
     toString() {
-      let result = "Uncaught Error: " + (error) + "";
-      if (stackTrace !== null) {
+      let result = "Uncaught Error: " + (this.error) + "";
+      if (this.stackTrace !== null) {
         result = "
         Stack Trace:
-        " + (stackTrace) + "";
+        " + (this.stackTrace) + "";
       }
       return result;
     }
@@ -168,7 +168,7 @@ var async;
     }
     add(data) {
       if (!this._mayAddEvent) throw this._addEventError();
-      _sendData(data);
+      this._sendData(data);
     }
     addError(error, stackTrace) {
       if (stackTrace === undefined) stackTrace = null;
@@ -179,7 +179,7 @@ var async;
         error = _nonNullError(replacement.error);
         stackTrace = replacement.stackTrace;
       }
-      _sendError(error, stackTrace);
+      this._sendError(error, stackTrace);
     }
     close() {
       if (this.isClosed) {
@@ -189,7 +189,7 @@ var async;
       if (!this._mayAddEvent) throw this._addEventError();
       this._state = _STATE_CLOSED;
       let doneFuture = this._ensureDoneFuture();
-      _sendDone();
+      this._sendDone();
       return doneFuture;
     }
     get done() { return this._ensureDoneFuture(); }
@@ -201,10 +201,10 @@ var async;
       return this._addStreamState.addStreamFuture;
     }
     _add(data) {
-      _sendData(data);
+      this._sendData(data);
     }
     _addError(error, stackTrace) {
-      _sendError(error, stackTrace);
+      this._sendError(error, stackTrace);
     }
     _close() {
       dart.assert(this._isAddingStream);
@@ -260,36 +260,36 @@ var async;
       super(onListen, onCancel);
     }
     _sendData(data) {
-      if (_isEmpty) return;
-      if (_hasOneListener) {
-        _state = _BroadcastStreamController._STATE_FIRING;
-        let subscription = dart.as(_next, _BroadcastSubscription);
+      if (this._isEmpty) return;
+      if (this._hasOneListener) {
+        this._state = _BroadcastStreamController._STATE_FIRING;
+        let subscription = dart.as(this._next, _BroadcastSubscription);
         subscription._add(data);
-        _state = ~_BroadcastStreamController._STATE_FIRING;
-        if (_isEmpty) {
-          _callOnCancel();
+        this._state = ~_BroadcastStreamController._STATE_FIRING;
+        if (this._isEmpty) {
+          this._callOnCancel();
         }
         return;
       }
-      _forEachListener((subscription) => {
+      this._forEachListener((subscription) => {
         subscription._add(data);
       });
     }
     _sendError(error, stackTrace) {
-      if (_isEmpty) return;
-      _forEachListener((subscription) => {
+      if (this._isEmpty) return;
+      this._forEachListener((subscription) => {
         subscription._addError(error, stackTrace);
       });
     }
     _sendDone() {
-      if (!_isEmpty) {
-        _forEachListener(/* Unimplemented: ClosureWrapLiteral: (_BroadcastSubscription<T>) → dynamic to (_BufferingStreamSubscription<T>) → void */(subscription) => {
+      if (!this._isEmpty) {
+        this._forEachListener(/* Unimplemented: ClosureWrapLiteral: (_BroadcastSubscription<T>) → dynamic to (_BufferingStreamSubscription<T>) → void */(subscription) => {
           subscription._close();
         });
       } else {
-        dart.assert(_doneFuture !== null);
-        dart.assert(_doneFuture._mayComplete);
-        _doneFuture._asyncComplete(null);
+        dart.assert(this._doneFuture !== null);
+        dart.assert(this._doneFuture._mayComplete);
+        this._doneFuture._asyncComplete(null);
       }
     }
   }
@@ -299,27 +299,27 @@ var async;
       super(onListen, onCancel);
     }
     _sendData(data) {
-      for (let link = _next; !core.identical(link, this); link = link._next) {
+      for (let link = this._next; !core.identical(link, this); link = link._next) {
         let subscription = dart.as(link, _BroadcastSubscription);
         subscription._addPending(new _DelayedData(data));
       }
     }
     _sendError(error, stackTrace) {
-      for (let link = _next; !core.identical(link, this); link = link._next) {
+      for (let link = this._next; !core.identical(link, this); link = link._next) {
         let subscription = dart.as(link, _BroadcastSubscription);
         subscription._addPending(new _DelayedError(error, stackTrace));
       }
     }
     _sendDone() {
-      if (!_isEmpty) {
-        for (let link = _next; !core.identical(link, this); link = link._next) {
+      if (!this._isEmpty) {
+        for (let link = this._next; !core.identical(link, this); link = link._next) {
           let subscription = dart.as(link, _BroadcastSubscription);
           subscription._addPending(new _DelayedDone());
         }
       } else {
-        dart.assert(_doneFuture !== null);
-        dart.assert(_doneFuture._mayComplete);
-        _doneFuture._asyncComplete(null);
+        dart.assert(this._doneFuture !== null);
+        dart.assert(this._doneFuture._mayComplete);
+        this._doneFuture._asyncComplete(null);
       }
     }
   }
@@ -337,7 +337,7 @@ var async;
       this._pending.add(event);
     }
     add(data) {
-      if (!isClosed && _isFiring) {
+      if (!this.isClosed && this._isFiring) {
         this._addPendingEvent(new _DelayedData(data));
         return;
       }
@@ -348,20 +348,20 @@ var async;
     }
     addError(error, stackTrace) {
       if (stackTrace === undefined) stackTrace = null;
-      if (!isClosed && _isFiring) {
+      if (!this.isClosed && this._isFiring) {
         this._addPendingEvent(new _DelayedError(error, stackTrace));
         return;
       }
-      if (!_mayAddEvent) throw _addEventError();
-      _sendError(error, stackTrace);
+      if (!this._mayAddEvent) throw this._addEventError();
+      this._sendError(error, stackTrace);
       while (this._hasPending) {
         this._pending.handleNext(this);
       }
     }
     close() {
-      if (!isClosed && _isFiring) {
+      if (!this.isClosed && this._isFiring) {
         this._addPendingEvent(new _DelayedDone());
-        _state = _BroadcastStreamController._STATE_CLOSED;
+        this._state = _BroadcastStreamController._STATE_CLOSED;
         return super.done;
       }
       let result = super.close();
@@ -640,22 +640,22 @@ var async;
   class _AsyncCompleter/* Unimplemented <T> */ extends _Completer/* Unimplemented <T> */ {
     complete(value) {
       if (value === undefined) value = null;
-      if (!future._mayComplete) throw new core.StateError("Future already completed");
-      future._asyncComplete(value);
+      if (!this.future._mayComplete) throw new core.StateError("Future already completed");
+      this.future._asyncComplete(value);
     }
     _completeError(error, stackTrace) {
-      future._asyncCompleteError(error, stackTrace);
+      this.future._asyncCompleteError(error, stackTrace);
     }
   }
 
   class _SyncCompleter/* Unimplemented <T> */ extends _Completer/* Unimplemented <T> */ {
     complete(value) {
       if (value === undefined) value = null;
-      if (!future._mayComplete) throw new core.StateError("Future already completed");
-      future._complete(value);
+      if (!this.future._mayComplete) throw new core.StateError("Future already completed");
+      this.future._complete(value);
     }
     _completeError(error, stackTrace) {
-      future._completeError(error, stackTrace);
+      this.future._completeError(error, stackTrace);
     }
   }
 
@@ -1981,21 +1981,21 @@ var async;
     _closeUnchecked() {
       this._state = _STATE_CLOSED;
       if (this.hasListener) {
-        _sendDone();
+        this._sendDone();
       } else if (this._isInitialState) {
         this._ensurePendingEvents().add(new _DelayedDone());
       }
     }
     _add(value) {
       if (this.hasListener) {
-        _sendData(value);
+        this._sendData(value);
       } else if (this._isInitialState) {
         this._ensurePendingEvents().add(new _DelayedData(value));
       }
     }
     _addError(error, stackTrace) {
       if (this.hasListener) {
-        _sendError(error, stackTrace);
+        this._sendError(error, stackTrace);
       } else if (this._isInitialState) {
         this._ensurePendingEvents().add(new _DelayedError(error, stackTrace));
       }
@@ -2088,25 +2088,25 @@ var async;
 
   class _SyncStreamControllerDispatch/* Unimplemented <T> */ {
     _sendData(data) {
-      _subscription._add(data);
+      this._subscription._add(data);
     }
     _sendError(error, stackTrace) {
-      _subscription._addError(error, stackTrace);
+      this._subscription._addError(error, stackTrace);
     }
     _sendDone() {
-      _subscription._close();
+      this._subscription._close();
     }
   }
 
   class _AsyncStreamControllerDispatch/* Unimplemented <T> */ {
     _sendData(data) {
-      _subscription._addPending(new _DelayedData(data));
+      this._subscription._addPending(new _DelayedData(data));
     }
     _sendError(error, stackTrace) {
-      _subscription._addPending(new _DelayedError(error, stackTrace));
+      this._subscription._addPending(new _DelayedError(error, stackTrace));
     }
     _sendDone() {
-      _subscription._addPending(new _DelayedDone());
+      this._subscription._addPending(new _DelayedDone());
     }
   }
 
@@ -2240,7 +2240,7 @@ var async;
       this.varData = varData;
       super(dart.as(controller, _EventSink), source, cancelOnError);
       if (controller.isPaused) {
-        addSubscription.pause();
+        this.addSubscription.pause();
       }
     }
   }
@@ -2574,7 +2574,7 @@ var async;
       }
     }
     clear() {
-      if (isScheduled) cancelSchedule();
+      if (this.isScheduled) this.cancelSchedule();
       this._iterator = null;
     }
   }
@@ -2679,7 +2679,7 @@ var async;
       }
     }
     handleNext(dispatch) {
-      dart.assert(!isScheduled);
+      dart.assert(!this.isScheduled);
       let event = this.firstPendingEvent;
       this.firstPendingEvent = event.next;
       if (this.firstPendingEvent === null) {
@@ -2688,7 +2688,7 @@ var async;
       event.perform(dispatch);
     }
     clear() {
-      if (isScheduled) cancelSchedule();
+      if (this.isScheduled) this.cancelSchedule();
       this.firstPendingEvent = this.lastPendingEvent = null;
     }
   }
@@ -3054,11 +3054,11 @@ var async;
       this._subscription = this._stream._source.listen(this._handleData, {onError: this._handleError, onDone: this._handleDone});
     }
     _add(data) {
-      if (_isClosed) return;
+      if (this._isClosed) return;
       super._add(data);
     }
     _addError(error, stackTrace) {
-      if (_isClosed) return;
+      if (this._isClosed) return;
       super._addError(error, stackTrace);
     }
     _onPause() {
@@ -3340,19 +3340,19 @@ var async;
     }
     get _isSubscribed() { return this._subscription !== null; }
     _add(data) {
-      if (_isClosed) {
+      if (this._isClosed) {
         throw new core.StateError("Stream is already closed");
       }
       super._add(data);
     }
     _addError(error, stackTrace) {
-      if (_isClosed) {
+      if (this._isClosed) {
         throw new core.StateError("Stream is already closed");
       }
       super._addError(error, stackTrace);
     }
     _close() {
-      if (_isClosed) {
+      if (this._isClosed) {
         throw new core.StateError("Stream is already closed");
       }
       super._close();
@@ -3692,7 +3692,7 @@ var async;
     constructor() {
     }
     inSameErrorZone(otherZone) {
-      return core.identical(this, otherZone) || core.identical(errorZone, otherZone.errorZone);
+      return core.identical(this, otherZone) || core.identical(this.errorZone, otherZone.errorZone);
     }
   }
 

@@ -434,8 +434,8 @@ var _internal;
       super._(iterable, takeCount);
     }
     get length() {
-      let iterableLength = _iterable.length;
-      if (iterableLength > _takeCount) return _takeCount;
+      let iterableLength = this._iterable.length;
+      if (iterableLength > this._takeCount) return this._takeCount;
       return iterableLength;
     }
   }
@@ -527,7 +527,7 @@ var _internal;
       super._(iterable, skipCount);
     }
     get length() {
-      let length = _iterable.length - _skipCount;
+      let length = this._iterable.length - this._skipCount;
       if (length >= 0) return length;
       return 0;
     }

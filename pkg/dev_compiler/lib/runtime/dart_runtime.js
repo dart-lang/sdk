@@ -89,26 +89,28 @@ var dart;
   dart.dbinary = dbinary;
 
   function as(obj, type) {
-    if (obj == null || is(obj, type)) return obj;
-    throw new dart_core.CastError();
+    // TODO(vsm): Implement.
+    // if (obj == null || is(obj, type)) return obj;
+    // throw new core.CastError();
+    return obj;
   }
   dart.as = as;
 
   function is(obj, type) {
     // TODO(vsm): Implement.
-    throw new dart_core.UnimplementedError();
+    throw new core.UnimplementedError();
   }
   dart.is = is;
 
   function isGroundType(type) {
     // TODO(vsm): Implement.
-    throw new dart_core.UnimplementedError();
+    throw new core.UnimplementedError();
   }
   dart.isGroundType = isGroundType;
 
   function arity(f) {
     // TODO(vsm): Implement.
-    throw new dart_core.UnimplementedError();
+    throw new core.UnimplementedError();
   }
   dart.arity = arity;
 
@@ -189,17 +191,21 @@ var dart;
    * superclass (prototype).
    */
   function mixin(base/*, ...mixins*/) {
-    // Inherit statics from Base to simulate ES6 class inheritance
-    // Conceptually this is: `class Mixin extends base {}`
+    // Build the mixin constructor. This runs the superclass as well as each
+    // of the mixins' constructors.
+    var mixins = Array.prototype.slice.call(arguments, 1);
     function Mixin() {
       base.apply(this, arguments);
+      // Run mixin constructors. They cannot have arguments.
+      for (var i = 0; i< mixins.length; i++) mixins[i].call(this);
     }
+    // Inherit statics from Base to simulate ES6 class inheritance
+    // Conceptually this is: `class Mixin extends base {}`
     Mixin.__proto__ = base;
     Mixin.prototype = Object.create(base.prototype);
     // Copy each mixin, with later ones overwriting earlier entries.
-    for (var i = 1; i < arguments.length; i++) {
-      var from = arguments[i];
-      copyProperties(Mixin.prototype, from.prototype);
+    for (var i = 0; i< mixins.length; i++) {
+      copyProperties(Mixin.prototype, mixins[i].prototype);
     }
     return Mixin;
   }
@@ -258,7 +264,7 @@ var dart;
   dart.defineNamedConstructor = defineNamedConstructor;
 
   function stackTrace(exception) {
-    throw new dart_core.UnimplementedError();
+    throw new core.UnimplementedError();
   }
   dart.stackTrace = stackTrace;
 

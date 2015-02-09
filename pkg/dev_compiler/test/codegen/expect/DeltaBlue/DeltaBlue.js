@@ -80,23 +80,23 @@ var DeltaBlue;
       this.myOutput = myOutput;
       this.satisfied = false;
       super(strength);
-      addConstraint();
+      this.addConstraint();
     }
     addToGraph() {
       this.myOutput.addConstraint(this);
       this.satisfied = false;
     }
     chooseMethod(mark) {
-      this.satisfied = (this.myOutput.mark !== mark) && Strength.stronger(strength, this.myOutput.walkStrength);
+      this.satisfied = (this.myOutput.mark !== mark) && Strength.stronger(this.strength, this.myOutput.walkStrength);
     }
     isSatisfied() { return this.satisfied; }
     markInputs(mark) {
     }
     output() { return this.myOutput; }
     recalculate() {
-      this.myOutput.walkStrength = strength;
-      this.myOutput.stay = !isInput();
-      if (this.myOutput.stay) execute();
+      this.myOutput.walkStrength = this.strength;
+      this.myOutput.stay = !this.isInput();
+      if (this.myOutput.stay) this.execute();
     }
     markUnsatisfied() {
       this.satisfied = false;
@@ -134,19 +134,19 @@ var DeltaBlue;
       this.v2 = v2;
       this.direction = NONE;
       super(strength);
-      addConstraint();
+      this.addConstraint();
     }
     chooseMethod(mark) {
       if (this.v1.mark === mark) {
-        this.direction = (this.v2.mark !== mark && Strength.stronger(strength, this.v2.walkStrength)) ? FORWARD : NONE;
+        this.direction = (this.v2.mark !== mark && Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
       }
       if (this.v2.mark === mark) {
-        this.direction = (this.v1.mark !== mark && Strength.stronger(strength, this.v1.walkStrength)) ? BACKWARD : NONE;
+        this.direction = (this.v1.mark !== mark && Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
       }
       if (Strength.weaker(this.v1.walkStrength, this.v2.walkStrength)) {
-        this.direction = Strength.stronger(strength, this.v1.walkStrength) ? BACKWARD : NONE;
+        this.direction = Strength.stronger(this.strength, this.v1.walkStrength) ? BACKWARD : NONE;
       } else {
-        this.direction = Strength.stronger(strength, this.v2.walkStrength) ? FORWARD : BACKWARD;
+        this.direction = Strength.stronger(this.strength, this.v2.walkStrength) ? FORWARD : BACKWARD;
       }
     }
     addToGraph() {
@@ -162,9 +162,9 @@ var DeltaBlue;
     output() { return this.direction === FORWARD ? this.v2 : this.v1; }
     recalculate() {
       let ihn = this.input(), out = this.output();
-      out.walkStrength = Strength.weakest(strength, ihn.walkStrength);
+      out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = ihn.stay;
-      if (out.stay) execute();
+      if (out.stay) this.execute();
     }
     markUnsatisfied() {
       this.direction = NONE;
@@ -201,15 +201,15 @@ var DeltaBlue;
       this.scale.mark = this.offset.mark = mark;
     }
     execute() {
-      if (direction === FORWARD) {
-        v2.value = v1.value * this.scale.value + this.offset.value;
+      if (this.direction === FORWARD) {
+        this.v2.value = this.v1.value * this.scale.value + this.offset.value;
       } else {
-        v1.value = ((v2.value - this.offset.value) / this.scale.value).truncate();
+        this.v1.value = ((this.v2.value - this.offset.value) / this.scale.value).truncate();
       }
     }
     recalculate() {
-      let ihn = input(), out = output();
-      out.walkStrength = Strength.weakest(strength, ihn.walkStrength);
+      let ihn = this.input(), out = this.output();
+      out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = ihn.stay && this.scale.stay && this.offset.stay;
       if (out.stay) this.execute();
     }
@@ -220,7 +220,7 @@ var DeltaBlue;
       super(v1, v2, strength);
     }
     execute() {
-      output().value = input().value;
+      this.output().value = this.input().value;
     }
   }
 

@@ -20,15 +20,18 @@ var sunflower;
   });
 
   class Circle {
-    constructor(x, y, radius, color) {
+    constructor(x, y, radius) {
       this.x = x;
       this.y = y;
       this.radius = radius;
-      this.color = color;
     }
   }
 
-  class SunflowerSeedPainter {
+  class CirclePainter {
+    constructor() {
+      this.color = ORANGE;
+      super();
+    }
     draw() {
       sunflower.context.beginPath();
       sunflower.context.lineWidth = 2;
@@ -41,9 +44,11 @@ var sunflower;
     }
   }
 
-  class SunflowerSeed extends dart.mixin(Circle, SunflowerSeedPainter) {
-    constructor(x, y) {
-      super(x, y, SEED_RADIUS, ORANGE);
+  class SunflowerSeed extends dart.mixin(Circle, CirclePainter) {
+    constructor(x, y, radius, color) {
+      if (color === undefined) color = null;
+      super(x, y, radius);
+      if (color !== null) this.color = color;
     }
   }
 
@@ -62,7 +67,7 @@ var sunflower;
       let r = math.sqrt(i) * SCALE_FACTOR;
       let x = centerX + r * math.cos(theta);
       let y = centerY - r * math.sin(theta);
-      new SunflowerSeed(x, y).draw();
+      new SunflowerSeed(x, y, SEED_RADIUS).draw();
     }
     sunflower.notes.textContent = "" + (sunflower.seeds) + " seeds";
   }
@@ -77,7 +82,7 @@ var sunflower;
   sunflower.centerY = centerY;
   sunflower.querySelector = querySelector;
   sunflower.Circle = Circle;
-  sunflower.SunflowerSeedPainter = SunflowerSeedPainter;
+  sunflower.CirclePainter = CirclePainter;
   sunflower.SunflowerSeed = SunflowerSeed;
   sunflower.main = main;
   sunflower.draw = draw;

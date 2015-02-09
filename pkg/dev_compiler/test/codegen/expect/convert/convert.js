@@ -132,7 +132,7 @@ var convert;
       } else {
         stringSink = new StringConversionSink.from(sink);
       }
-      if (_allowInvalid) {
+      if (this._allowInvalid) {
         return new _ErrorHandlingAsciiDecoderSink(stringSink.asUtf8Sink(false));
       } else {
         return new _SimpleAsciiDecoderSink(stringSink);
@@ -369,7 +369,7 @@ var convert;
       super();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(decoder, async.StreamTransformer)).fold(new core.StringBuffer(), (buffer, string) => (dart.dinvoke(buffer, "write", string), buffer)).then((buffer) => dart.dinvoke(buffer, "toString")), async.Future);
+      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer)).fold(new core.StringBuffer(), (buffer, string) => (dart.dinvoke(buffer, "write", string), buffer)).then((buffer) => dart.dinvoke(buffer, "toString")), async.Future);
     }
     static getByName(name) {
       if (name === null) return null;
@@ -871,51 +871,51 @@ var convert;
     }
     writeList(list) {
       if (list.isEmpty) {
-        writeString("[]");
+        this.writeString("[]");
       } else {
-        writeString("[
+        this.writeString("[
         ");
         this._indentLevel++;
         this.writeIndentation(this._indentLevel);
-        writeObject(list.get(0));
+        this.writeObject(list.get(0));
         for (let i = 1; i < list.length; i++) {
-          writeString(",
+          this.writeString(",
           ");
           this.writeIndentation(this._indentLevel);
-          writeObject(list.get(i));
+          this.writeObject(list.get(i));
         }
-        writeString("
+        this.writeString("
         ");
         this._indentLevel--;
         this.writeIndentation(this._indentLevel);
-        writeString("]");
+        this.writeString("]");
       }
     }
     writeMap(map) {
       if (map.isEmpty) {
-        writeString("{}");
+        this.writeString("{}");
       } else {
-        writeString("{
+        this.writeString("{
         ");
         this._indentLevel++;
         let first = true;
         map.forEach(/* Unimplemented: ClosureWrapLiteral: (String, Object) → dynamic to (dynamic, dynamic) → void */(key, value) => {
           if (!first) {
-            writeString(",
+            this.writeString(",
             ");
           }
           this.writeIndentation(this._indentLevel);
-          writeString(""");
-          writeStringContent(key);
-          writeString("": ");
-          writeObject(value);
+          this.writeString(""");
+          this.writeStringContent(key);
+          this.writeString("": ");
+          this.writeObject(value);
           first = false;
         });
-        writeString("
+        this.writeString("
         ");
         this._indentLevel--;
         this.writeIndentation(this._indentLevel);
-        writeString("}");
+        this.writeString("}");
       }
     }
   }
@@ -959,7 +959,7 @@ var convert;
       super(sink, toEncodable);
     }
     writeIndentation(count) {
-      for (let i = 0; i < count; i++) writeString(this._indent);
+      for (let i = 0; i < count; i++) this.writeString(this._indent);
     }
   }
 
@@ -1070,20 +1070,20 @@ var convert;
       if (indentLength === 1) {
         let char = indent.get(0);
         while (count > 0) {
-          writeByte(char);
+          this.writeByte(char);
           count = 1;
         }
         return;
       }
       while (count > 0) {
         count--;
-        let end = index + indentLength;
-        if (end <= buffer.length) {
-          buffer.setRange(index, end, indent);
-          index = end;
+        let end = this.index + indentLength;
+        if (end <= this.buffer.length) {
+          this.buffer.setRange(this.index, end, indent);
+          this.index = end;
         } else {
           for (let i = 0; i < indentLength; i++) {
-            writeByte(indent.get(i));
+            this.writeByte(indent.get(i));
           }
         }
       }
@@ -1130,7 +1130,7 @@ var convert;
       } else {
         stringSink = new StringConversionSink.from(sink);
       }
-      if (!_allowInvalid) return new _Latin1DecoderSink(stringSink);
+      if (!this._allowInvalid) return new _Latin1DecoderSink(stringSink);
       return new _Latin1AllowInvalidDecoderSink(stringSink);
     }
   }
@@ -1176,16 +1176,16 @@ var convert;
       for (let i = start; i < end; i++) {
         let char = source.get(i);
         if (char > _LATIN1_MASK || char < 0) {
-          if (i > start) _addSliceToSink(source, start, i, false);
-          _addSliceToSink(dart.as(/* Unimplemented const */new List.from([65533]), core.List), 0, 1, false);
+          if (i > start) this._addSliceToSink(source, start, i, false);
+          this._addSliceToSink(dart.as(/* Unimplemented const */new List.from([65533]), core.List), 0, 1, false);
           start = i + 1;
         }
       }
       if (start < end) {
-        _addSliceToSink(source, start, end, isLast);
+        this._addSliceToSink(source, start, end, isLast);
       }
       if (isLast) {
-        close();
+        this.close();
       }
     }
   }
@@ -1401,13 +1401,13 @@ var convert;
       super(new core.StringBuffer());
     }
     close() {
-      let buffer = dart.as(_stringSink, core.StringBuffer);
+      let buffer = dart.as(this._stringSink, core.StringBuffer);
       let accumulated = buffer.toString();
       buffer.clear();
       this._callback(accumulated);
     }
     asUtf8Sink(allowMalformed) {
-      return new _Utf8StringSinkAdapter(this, _stringSink, allowMalformed);
+      return new _Utf8StringSinkAdapter(this, this._stringSink, allowMalformed);
     }
   }
 
@@ -1605,43 +1605,43 @@ var convert;
       super();
     }
     close() {
-      if (_carry !== 0) {
+      if (this._carry !== 0) {
         this.addSlice("", 0, 0, true);
         return;
       }
       this._sink.close();
     }
     addSlice(str, start, end, isLast) {
-      _bufferIndex = 0;
+      this._bufferIndex = 0;
       if (start === end && !isLast) {
         return;
       }
-      if (_carry !== 0) {
+      if (this._carry !== 0) {
         let nextCodeUnit = 0;
         if (start !== end) {
           nextCodeUnit = str.codeUnitAt(start);
         } else {
           dart.assert(isLast);
         }
-        let wasCombined = _writeSurrogate(_carry, nextCodeUnit);
+        let wasCombined = this._writeSurrogate(this._carry, nextCodeUnit);
         dart.assert(!wasCombined || start !== end);
         if (wasCombined) start++;
-        _carry = 0;
+        this._carry = 0;
       }
       do {
-        start = _fillBuffer(str, start, end);
+        start = this._fillBuffer(str, start, end);
         let isLastSlice = isLast && (start === end);
         if (start === end - 1 && _isLeadSurrogate(str.codeUnitAt(start))) {
-          if (isLast && _bufferIndex < _buffer.length - 3) {
-            let hasBeenCombined = _writeSurrogate(str.codeUnitAt(start), 0);
+          if (isLast && this._bufferIndex < this._buffer.length - 3) {
+            let hasBeenCombined = this._writeSurrogate(str.codeUnitAt(start), 0);
             dart.assert(!hasBeenCombined);
           } else {
-            _carry = str.codeUnitAt(start);
+            this._carry = str.codeUnitAt(start);
           }
           start++;
         }
-        this._sink.addSlice(_buffer, 0, _bufferIndex, isLastSlice);
-        _bufferIndex = 0;
+        this._sink.addSlice(this._buffer, 0, this._bufferIndex, isLastSlice);
+        this._bufferIndex = 0;
       }
       while (start < end);
       if (isLast) this.close();
