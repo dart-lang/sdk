@@ -59,7 +59,7 @@ void Log::Flush(const intptr_t cursor) {
   TerminateString();
   const char* str = &buffer_[cursor];
   ASSERT(str != NULL);
-  printer_(str);
+  printer_("%s", str);
   buffer_.TruncateTo(cursor);
 }
 

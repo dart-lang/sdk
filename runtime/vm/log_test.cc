@@ -17,8 +17,22 @@
 namespace dart {
 
 static const char* test_output_;
-static void TestPrinter(const char* print, ...) {
-  test_output_ = print;
+static void TestPrinter(const char* format, ...) {
+  // Measure.
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+
+  // Print string to buffer.
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  // Leaks buffer.
+  test_output_ = buffer;
 }
 
 class LogTestHelper : public AllStatic {
