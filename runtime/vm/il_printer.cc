@@ -12,7 +12,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
-
+DEFINE_FLAG(charp, print_flow_graph_filter, NULL,
+    "Print only IR of functions with matching names");
 
 void BufferFormatter::Print(const char* format, ...) {
   va_list args;
@@ -30,6 +31,52 @@ void BufferFormatter::VPrint(const char* format, va_list args) {
   if (written >= 0) {
     position_ += (available <= written) ? available : written;
   }
+}
+
+
+// Checks whether function's name matches the given filter, which is
+// a comma-separated list of strings.
+bool FlowGraphPrinter::PassesFilter(const char* filter,
+                                    const Function& function) {
+  if (filter == NULL) {
+    return true;
+  }
+
+  char* save_ptr;  // Needed for strtok_r.
+  const char* function_name = function.ToFullyQualifiedCString();
+  intptr_t function_name_len = strlen(function_name);
+
+  intptr_t len = strlen(filter) + 1;  // Length with \0.
+  char* filter_buffer = new char[len];
+  strncpy(filter_buffer, filter, len);  // strtok modifies arg 1.
+  char* token = strtok_r(filter_buffer, ",", &save_ptr);
+  bool found = false;
+  while (token != NULL) {
+    if (strstr(function_name, token) != NULL) {
+      found = true;
+      break;
+    }
+    const intptr_t token_len = strlen(token);
+    if (token[token_len - 1] == '%') {
+      if (function_name_len > token_len) {
+        const char* suffix = function_name +
+            (function_name_len - token_len + 1);
+        if (strncmp(suffix, token, token_len - 1) == 0) {
+          found = true;
+          break;
+        }
+      }
+    }
+    token = strtok_r(NULL, ",", &save_ptr);
+  }
+  delete[] filter_buffer;
+
+  return found;
+}
+
+
+bool FlowGraphPrinter::ShouldPrint(const Function& function) {
+  return PassesFilter(FLAG_print_flow_graph_filter, function);
 }
 
 

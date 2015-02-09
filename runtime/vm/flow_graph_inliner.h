@@ -17,9 +17,7 @@ class Function;
 class FlowGraphInliner : ValueObject {
  public:
   FlowGraphInliner(FlowGraph* flow_graph,
-                   GrowableArray<const Function*>* inline_id_to_function)
-      : flow_graph_(flow_graph), inline_id_to_function_(inline_id_to_function) {
-  }
+                   GrowableArray<const Function*>* inline_id_to_function);
 
   // The flow graph is destructively updated upon inlining.
   void Inline();
@@ -28,16 +26,19 @@ class FlowGraphInliner : ValueObject {
   static void CollectGraphInfo(FlowGraph* flow_graph, bool force = false);
   static void SetInliningId(const FlowGraph& flow_graph, intptr_t inlining_id);
 
-  static bool AlwaysInline(const Function& function);
+  bool AlwaysInline(const Function& function);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
   intptr_t NextInlineId(const Function& function);
+
+  bool trace_inlining() const { return trace_inlining_; }
 
  private:
   friend class CallSiteInliner;
 
   FlowGraph* flow_graph_;
   GrowableArray<const Function*>* inline_id_to_function_;
+  const bool trace_inlining_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);
 };

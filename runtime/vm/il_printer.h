@@ -60,6 +60,10 @@ class FlowGraphPrinter : public ValueObject {
   // Debugging helper function.
   static void PrintICData(const ICData& ic_data);
 
+  static bool ShouldPrint(const Function& function);
+
+  static bool PassesFilter(const char* filter, const Function& function);
+
  private:
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;

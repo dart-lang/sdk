@@ -6,6 +6,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"

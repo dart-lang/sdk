@@ -427,8 +427,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       }
 
       const bool print_flow_graph =
-          FLAG_print_flow_graph ||
-          (optimized && FLAG_print_flow_graph_optimized);
+          (FLAG_print_flow_graph ||
+          (optimized && FLAG_print_flow_graph_optimized)) &&
+          FlowGraphPrinter::ShouldPrint(function);
 
       if (print_flow_graph) {
         if (osr_id == Isolate::kNoDeoptId) {
@@ -999,9 +1000,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     isolate->debugger()->NotifyCompilation(function);
 
-    if (FLAG_disassemble) {
+    if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
       DisassembleCode(function, optimized);
-    } else if (FLAG_disassemble_optimized && optimized) {
+    } else if (FLAG_disassemble_optimized &&
+               optimized &&
+               FlowGraphPrinter::ShouldPrint(function)) {
       // TODO(fschneider): Print unoptimized code along with the optimized code.
       OS::Print("*** BEGIN CODE\n");
       DisassembleCode(function, true);

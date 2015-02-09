@@ -69,7 +69,7 @@ DECLARE_FLAG(bool, verify_compiler);
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
-    if (FLAG_trace_inlining) statement;                                        \
+    if (trace_inlining()) statement;                                           \
   } while (false)
 
 #define PRINT_INLINING_TREE(comment, caller, target, instance_call)            \
@@ -498,12 +498,14 @@ class CallSiteInliner : public ValueObject {
   Isolate* isolate() const { return caller_graph_->isolate(); }
   Zone* zone() const { return caller_graph_->zone(); }
 
+  bool trace_inlining() const { return inliner_->trace_inlining(); }
+
   // Inlining heuristics based on Cooper et al. 2008.
   bool ShouldWeInline(const Function& callee,
                       intptr_t instr_count,
                       intptr_t call_site_count,
                       intptr_t const_arg_count) {
-    if (FlowGraphInliner::AlwaysInline(callee)) {
+    if (inliner_->AlwaysInline(callee)) {
       return true;
     }
     if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
@@ -1044,7 +1046,7 @@ class CallSiteInliner : public ValueObject {
         }
       }
       const Function& target = call->function();
-      if (!FlowGraphInliner::AlwaysInline(target) &&
+      if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
         TRACE_INLINING(OS::Print(
             "  => %s (deopt count %d)\n     Bailout: cold %f\n",
@@ -1123,7 +1125,7 @@ class CallSiteInliner : public ValueObject {
 
       const ICData& ic_data = call->ic_data();
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-      if (!FlowGraphInliner::AlwaysInline(target) &&
+      if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
         TRACE_INLINING(OS::Print(
             "  => %s (deopt count %d)\n     Bailout: cold %f\n",
@@ -1736,6 +1738,21 @@ static uint16_t ClampUint16(intptr_t v) {
 }
 
 
+static bool ShouldTraceInlining(FlowGraph* flow_graph) {
+  const Function& top = flow_graph->parsed_function().function();
+  return FLAG_trace_inlining && FlowGraphPrinter::ShouldPrint(top);
+}
+
+
+FlowGraphInliner::FlowGraphInliner(
+    FlowGraph* flow_graph,
+    GrowableArray<const Function*>* inline_id_to_function)
+    : flow_graph_(flow_graph),
+      inline_id_to_function_(inline_id_to_function),
+      trace_inlining_(ShouldTraceInlining(flow_graph)) {
+}
+
+
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
   const Function& function = flow_graph->function();
   if (force || (function.optimized_instruction_count() == 0)) {
@@ -1800,7 +1817,7 @@ void FlowGraphInliner::Inline() {
 
   TRACE_INLINING(OS::Print("Inlining calls in %s\n", top.ToCString()));
 
-  if (FLAG_trace_inlining &&
+  if (trace_inlining() &&
       (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
     OS::Print("Before Inlining of %s\n", flow_graph_->
               function().ToFullyQualifiedCString());
@@ -1816,7 +1833,7 @@ void FlowGraphInliner::Inline() {
 
   if (inliner.inlined()) {
     flow_graph_->DiscoverBlocks();
-    if (FLAG_trace_inlining) {
+    if (trace_inlining()) {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
         OS::Print("After Inlining of %s\n", flow_graph_->
