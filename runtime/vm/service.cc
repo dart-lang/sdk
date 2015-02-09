@@ -287,6 +287,9 @@ void Service::SetServicePort(Dart_Port port) {
 void Service::SetServiceIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
   service_isolate_ = isolate;
+  if (service_isolate_ != NULL) {
+    service_isolate_->is_service_isolate_ = true;
+  }
 }
 
 

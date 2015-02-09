@@ -16,6 +16,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/heap.h"
 #include "vm/lockers.h"
+#include "vm/log.h"
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
@@ -46,7 +47,9 @@ DEFINE_FLAG(bool, pause_isolates_on_exit, false,
 DEFINE_FLAG(bool, break_at_isolate_spawn, false,
             "Insert a one-time breakpoint at the entrypoint for all spawned "
             "isolates");
-
+DEFINE_FLAG(charp, isolate_log_filter, NULL,
+            "Log isolates whose name include the filter. "
+            "Default: service isolate log messages are suppressed.");
 
 // Quick access to the locally defined isolate() method.
 #define I (isolate())
@@ -475,6 +478,8 @@ Isolate::Isolate()
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
+      is_service_isolate_(false),
+      log_(new class Log()),
       stacktrace_(NULL),
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
@@ -534,6 +539,8 @@ Isolate::Isolate(Isolate* original)
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
+      is_service_isolate_(false),
+      log_(new class Log()),
       stacktrace_(NULL),
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
@@ -571,6 +578,8 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
   delete spawn_state_;
+  delete log_;
+  log_ = NULL;
 }
 
 
@@ -692,6 +701,23 @@ void Isolate::BuildName(const char* name_prefix) {
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, name_prefix, main_port()) + 1;
   name_ = reinterpret_cast<char*>(malloc(len));
   OS::SNPrint(name_, len, kFormat, name_prefix, main_port());
+}
+
+
+Log* Isolate::Log() const {
+  if (FLAG_isolate_log_filter == NULL) {
+    if (is_service_isolate_) {
+      // By default, do not log for the service isolate.
+      return Log::NoOpLog();
+    }
+    return log_;
+  }
+  ASSERT(name_ != NULL);
+  if (strstr(name_, FLAG_isolate_log_filter) == NULL) {
+    // Filter does not match, do not log for this isolate.
+    return Log::NoOpLog();
+  }
+  return log_;
 }
 
 

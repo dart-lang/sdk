@@ -52,6 +52,7 @@ class IsolateProfilerData;
 class IsolateSpawnState;
 class InterruptableThreadState;
 class Library;
+class Log;
 class LongJumpScope;
 class MessageHandler;
 class Mutex;
@@ -167,6 +168,7 @@ class Isolate : public BaseIsolate {
   }
 
   const char* name() const { return name_; }
+  class Log* Log() const;
 
   int64_t start_time() const { return start_time_; }
 
@@ -693,6 +695,10 @@ class Isolate : public BaseIsolate {
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
 
+  // Log.
+  bool is_service_isolate_;
+  class Log* log_;
+
   // Status support.
   char* stacktrace_;
   intptr_t stack_frame_index_;
@@ -768,6 +774,8 @@ class Isolate : public BaseIsolate {
   friend class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
+
+  friend class Service;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

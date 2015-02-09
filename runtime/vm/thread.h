@@ -31,6 +31,11 @@ class Thread {
     return reinterpret_cast<Isolate*>(this);
   }
 
+  // The log for this thread.
+  Log* Log() {
+    return reinterpret_cast<Isolate*>(this)->Log();
+  }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
