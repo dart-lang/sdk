@@ -5,18 +5,51 @@
 library super_goes_last;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:dart_lint/src/linter.dart';
 
 const desc =
     'DO place the super() call last in a constructor initialization list.';
 
-class SuperGoesLast extends LintRule {
+const details = '''
+From the [style guide] (https://www.dartlang.org/articles/style-guide/):
 
-  SuperGoesLast()
-      : super(
+**DO** place the ``super()`` call last in a constructor initialization list.
+
+Field initializers are evaluated in the order that they appear in the 
+constructor initialization list. If you place a ``super()`` call in the 
+middle of an initializer list, the superclass's initializers will be evaluated 
+right then before evaluating the rest of the subclass's initializers.
+
+What it doesn't mean is that the superclass's constructor body will be executed 
+then. That always happens after all initializers are run regardless of where 
+``super()`` appears. It's vanishingly rare that the order of initializers 
+matters, so the placement of ``super()`` in the list almost never matters 
+either.
+
+Getting in the habit of placing it last improves consistency, visually 
+reinforces when the superclass's constructor body is run, and may help 
+performance.
+
+**GOOD:**
+```
+View(Style style, List children)
+    : _children = children,
+      super(style) {
+```
+
+**BAD:**
+```
+View(Style style, List children)
+    : super(style),
+      _children = children {
+```
+''';
+
+class SuperGoesLast extends LintRule {
+  SuperGoesLast() : super(
           name: 'SuperGoesLast',
           description: desc,
+          details: details,
           group: Group.STYLE_GUIDE,
           kind: Kind.DO);
 
@@ -34,9 +67,9 @@ class Visitor extends SimpleAstVisitor {
     var last = node.initializers.length - 1;
 
     for (int i = 0; i <= last; ++i) {
-      ConstructorInitializer init = node.initializers[i];
+      var init = node.initializers[i];
       if (init is SuperConstructorInvocation && i != last) {
-        rule.reporter.reportErrorForNode(new LintCode(rule.name.value, rule.description), init, []);
+        rule.reportLint(init);
       }
     }
   }

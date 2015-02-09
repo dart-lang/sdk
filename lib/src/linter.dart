@@ -61,8 +61,8 @@ abstract class DartLinter {
 
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile);
 
-  Iterable<AnalysisErrorInfo> lintLibrarySource({String libraryName,
-      String libraryContents});
+  Iterable<AnalysisErrorInfo> lintLibrarySource(
+      {String libraryName, String libraryContents});
 
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath);
 }
@@ -145,9 +145,10 @@ class LinterOptions extends DriverOptions {
 /// Describes a lint rule.
 abstract class LintRule extends Linter {
 
-  /// Longer description (in markdown format).
+  /// Description (in markdown format) suitable for display in a detailed lint
+  /// description.
   final String details;
-  /// Short description
+  /// Short description suitable for display in console output.
   final String description;
   /// Lint group (for example, 'Style Guide')
   final Group group;
@@ -158,6 +159,11 @@ abstract class LintRule extends Linter {
 
   LintRule({String name, this.group, this.kind, this.description, this.details})
       : name = new CamelCaseString(name);
+
+  void reportLint(AstNode node) {
+    reporter.reportErrorForNode(
+        new LintCode(name.value, description), node, []);
+  }
 }
 
 class PrintingReporter implements Reporter, Logger {
@@ -214,13 +220,10 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       _registerAndRun(() => new AnalysisDriver.forFile(sourceFile, options));
 
   @override
-  Iterable<AnalysisErrorInfo> lintLibrarySource({String libraryName,
-      String libraryContents}) =>
-      _registerAndRun(
-          () =>
-              new AnalysisDriver.forSource(
-                  new _StringSource(libraryContents, libraryName),
-                  options));
+  Iterable<AnalysisErrorInfo> lintLibrarySource(
+      {String libraryName, String libraryContents}) => _registerAndRun(
+          () => new AnalysisDriver.forSource(
+              new _StringSource(libraryContents, libraryName), options));
 
   @override
   Iterable<AnalysisErrorInfo> lintPath(String sourcePath) =>

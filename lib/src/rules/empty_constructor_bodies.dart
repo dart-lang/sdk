@@ -5,10 +5,35 @@
 library empty_constructor_bodies;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:dart_lint/src/linter.dart';
 
 const desc = 'DO use ; instead of {} for empty constructor bodies.';
+
+const details =
+'''
+From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+
+**DO** use ; instead of {} for empty constructor bodies.
+
+In Dart, a constructor with an empty body can be terminated with just a 
+semicolon. This is required for const constructors. For consistency and 
+brevity, other constructors should also do this.
+
+**GOOD:**
+```
+class Point {
+  int x, y;
+  Point(this.x, this.y);
+}
+```
+**BAD:**
+```
+class Point {
+  int x, y;
+  Point(this.x, this.y) {}
+}
+```
+''';
 
 class EmptyConstructorBodies extends LintRule {
 
@@ -16,6 +41,7 @@ class EmptyConstructorBodies extends LintRule {
       : super(
           name: 'EmptyConstructorBodies',
           description: desc,
+          details: details,
           group: Group.STYLE_GUIDE,
           kind: Kind.DO);
 
@@ -33,10 +59,7 @@ class Visitor extends SimpleAstVisitor {
     if (node.body is BlockFunctionBody) {
       Block block = (node.body as BlockFunctionBody).block;
       if (block.statements.length == 0) {
-        rule.reporter.reportErrorForNode(
-            new LintCode(rule.name.value, rule.description),
-            block,
-            []);
+        rule.reportLint(block);
       }
     }
   }
