@@ -288,6 +288,7 @@ class DebuggerEvent {
     kIsolateCreated = 4,
     kIsolateShutdown = 5,
     kIsolateInterrupted = 6,
+    kIsolateResumed = 7,
   };
 
   explicit DebuggerEvent(Isolate* isolate, EventType event_type)

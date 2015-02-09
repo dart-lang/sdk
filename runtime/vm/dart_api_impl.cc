@@ -1565,7 +1565,12 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
 
   ASSERT(isolate->GetAndClearResumeRequest() == false);
   isolate->message_handler()->HandleOOBMessages();
-  return isolate->GetAndClearResumeRequest();
+  bool resume = isolate->GetAndClearResumeRequest();
+  if (resume && Service::NeedsDebuggerEvents()) {
+    DebuggerEvent resumeEvent(isolate, DebuggerEvent::kIsolateResumed);
+    Service::HandleDebuggerEvent(&resumeEvent);
+  }
+  return resume;
 }
 
 

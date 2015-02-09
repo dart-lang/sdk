@@ -2176,6 +2176,10 @@ static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
     jsobj.AddProperty("id", "");
+    {
+      DebuggerEvent resumeEvent(isolate, DebuggerEvent::kIsolateResumed);
+      Service::HandleDebuggerEvent(&resumeEvent);
+    }
     return true;
   }
   if (isolate->message_handler()->paused_on_exit()) {
@@ -2183,6 +2187,7 @@ static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
     jsobj.AddProperty("id", "");
+    // We don't send a resume event because we will be exiting.
     return true;
   }
   if (isolate->debugger()->PauseEvent() != NULL) {

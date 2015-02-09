@@ -25,7 +25,10 @@
         line-height: 125%;
         white-space: pre;
       }
-      .sourceItemCurrent {
+      .currentLine {
+        background-color: #fff;
+      }
+      .currentCol {
         background-color: #6cf;
       }
       .hitsNone, .hitsNotExecuted, .hitsExecuted {
@@ -69,7 +72,13 @@
                   <div class="sourceItem">&nbsp;</div>
 
                   <template if="{{ line.line == currentLine }}">
-                    <div class="sourceItemCurrent">{{line.text}}</div>
+                    <div class="sourceItem"><span class="currentLine">{{
+                          clip(line.text,0,currentCol
+                        )}}</span><span class="currentCol">{{
+                          clip(line.text,currentCol,currentCol+1)
+                        }}</span><span class="currentLine">{{
+                          clip(line.text,currentCol+1)
+                        }}</span></div>
                   </template>
                   <template if="{{ line.line != currentLine }}">
                     <div class="sourceItem">{{line.text}}</div>

@@ -23,6 +23,7 @@ class ScriptInsetElement extends ObservatoryElement {
   @published int endPos;
 
   @observable int currentLine;
+  @observable int currentCol;
   @observable int startLine;
   @observable int endLine;
   @observable bool linesReady = false;
@@ -32,6 +33,16 @@ class ScriptInsetElement extends ObservatoryElement {
 
   String makeLineId(int line) {
     return 'line-$line';
+  }
+
+  String clip(String line, int start, [int limit]) {
+    try {
+      return line.substring(start, limit);
+    } catch (_) {
+      // NOTE(turnidge): Sometimes polymer updates give us garbage
+      // starts and limits during page updates.
+      return "OOB";
+    }
   }
 
   MutationObserver _observer;
@@ -108,6 +119,9 @@ class ScriptInsetElement extends ObservatoryElement {
     currentLine = (currentPos != null
                    ? script.tokenToLine(currentPos)
                    : null);
+    currentCol = (currentPos != null
+                  ? (script.tokenToCol(currentPos) - 1)  // make this 0-based.
+                  : null);
     endLine = (endPos != null
                ? script.tokenToLine(endPos)
                : script.lines.length);

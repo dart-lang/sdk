@@ -522,6 +522,8 @@ const char* DebuggerEvent::EventTypeToCString(EventType type) {
       return "IsolateShutdown";
     case kIsolateInterrupted:
       return "IsolateInterrupted";
+    case kIsolateResumed:
+      return "IsolateResumed";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -538,6 +540,7 @@ void DebuggerEvent::PrintJSON(JSONStream* js) const {
   jsobj.AddProperty("isolate", isolate());
   if ((type() == kBreakpointResolved || type() == kBreakpointReached) &&
       breakpoint() != NULL) {
+    // TODO(turnidge): Make this a breakpoint ref.
     jsobj.AddProperty("breakpoint", breakpoint());
   }
   if (type() == kExceptionThrown) {

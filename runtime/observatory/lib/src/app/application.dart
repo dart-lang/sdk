@@ -65,7 +65,11 @@ class ObservatoryApplication extends Observable {
   void _onEvent(ServiceEvent event) {
     switch(event.eventType) {
       case 'IsolateCreated':
-        // vm.reload();
+        // Ignore for now.
+        break;
+
+      case 'IsolateResumed':
+        event.isolate.pauseEvent = null;
         break;
 
       case 'IsolateShutdown':
@@ -73,7 +77,11 @@ class ObservatoryApplication extends Observable {
         // What if there are hundreds of them?  Coalesce multiple
         // shutdown events into one notification?
         removePauseEvents(event.isolate);
-        // vm.reload();
+
+        // TODO(turnidge): Reload the isolate for now in case it is
+        // paused.  We may need to distinguish an IsolateShutdown
+        // event from a "paused at isolate shutdown" event.
+        event.isolate.reload();
         break;
 
       case 'BreakpointResolved':
@@ -83,6 +91,7 @@ class ObservatoryApplication extends Observable {
       case 'BreakpointReached':
       case 'IsolateInterrupted':
       case 'ExceptionThrown':
+        event.isolate.pauseEvent = event;
         removePauseEvents(event.isolate);
         notifications.add(event);
         break;
