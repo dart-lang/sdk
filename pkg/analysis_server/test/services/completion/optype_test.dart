@@ -627,6 +627,18 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_Literal_list() {
+    // ']'  ListLiteral  ArgumentList  MethodInvocation
+    addTestSource('main() {var Some; print([^]);}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_Literal_list2() {
+    // SimpleIdentifier ListLiteral  ArgumentList  MethodInvocation
+    addTestSource('main() {var Some; print([S^]);}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_Literal_string() {
     // SimpleStringLiteral  ExpressionStatement  Block
     addTestSource('class A {a() {"hel^lo"}}');

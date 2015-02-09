@@ -153,20 +153,6 @@ void f(C<int> c) {
     });
   }
 
-  test_param() {
-    addTestSource('foo(String x) {x.^}');
-    return computeFull((bool result) {
-      assertSuggestGetter('length', 'int');
-    });
-  }
-
-  test_param_is() {
-    addTestSource('foo(x) {if (x is String) x.^}');
-    return computeFull((bool result) {
-      assertSuggestGetter('length', 'int');
-    });
-  }
-
   test_method_parameters_mixed_required_and_named() {
     addTestSource('''
 class C {
@@ -306,6 +292,92 @@ void main() {int y = new C().^}''');
     return computeFull((bool result) {
       CompletionSuggestion suggestion = assertSuggestSetter('x');
       assertHasNoParameterInfo(suggestion);
+    });
+  }
+
+  test_only_instance() {
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {new C().^}''');
+    return computeFull((bool result) {
+      assertSuggestInvocationField('f1', 'int');
+      assertNotSuggested('f2');
+      assertSuggestMethod('m1', 'C', null);
+      assertNotSuggested('m2');
+    });
+  }
+
+  test_only_instance2() {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {new C().^ print("something");}''');
+    return computeFull((bool result) {
+      assertSuggestInvocationField('f1', 'int');
+      assertNotSuggested('f2');
+      assertSuggestMethod('m1', 'C', null);
+      assertNotSuggested('m2');
+    });
+  }
+
+  test_only_static() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {C.^}''');
+    return computeFull((bool result) {
+      assertNotSuggested('f1');
+      assertSuggestInvocationField('f2', 'int');
+      assertNotSuggested('m1');
+      assertSuggestMethod('m2', 'C', null);
+    });
+  }
+
+  test_only_static2() {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {C.^ print("something");}''');
+    return computeFull((bool result) {
+      assertNotSuggested('f1');
+      assertSuggestInvocationField('f2', 'int');
+      assertNotSuggested('m1');
+      assertSuggestMethod('m2', 'C', null);
+    });
+  }
+
+  test_param() {
+    addTestSource('foo(String x) {x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
+    });
+  }
+
+  test_param_is() {
+    addTestSource('foo(x) {if (x is String) x.^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('length', 'int');
     });
   }
 

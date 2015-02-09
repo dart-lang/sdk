@@ -321,16 +321,21 @@ class InterfaceTypeSuggestionBuilder {
     // exceptions to handle getter/setter pairs).
     for (InterfaceType targetType in _getTypeOrdering(type)) {
       for (MethodElement method in targetType.methods) {
-        addSuggestion(method);
+        // Exclude static methods when completion on an instance
+        if (!method.isStatic) {
+          addSuggestion(method);
+        }
       }
       for (PropertyAccessorElement propertyAccessor in targetType.accessors) {
-        if (propertyAccessor.isSynthetic) {
-          // Avoid visiting a field twice
-          if (propertyAccessor.isGetter) {
-            addSuggestion(propertyAccessor.variable);
+        if (!propertyAccessor.isStatic) {
+          if (propertyAccessor.isSynthetic) {
+            // Avoid visiting a field twice
+            if (propertyAccessor.isGetter) {
+              addSuggestion(propertyAccessor.variable);
+            }
+          } else {
+            addSuggestion(propertyAccessor);
           }
-        } else {
-          addSuggestion(propertyAccessor);
         }
       }
     }

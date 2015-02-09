@@ -63,6 +63,11 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
     } else if (node is PropertyAccess) {
       node = (node as PropertyAccess).realTarget;
     }
+    if (node is Identifier && node.bestElement is ClassElement) {
+      node.bestElement.accept(
+          new _PrefixedIdentifierSuggestionBuilder(request));
+      return new Future.value(true);
+    }
     if (node is Expression) {
       InterfaceTypeSuggestionBuilder.suggestionsFor(request, node.bestType);
       return new Future.value(true);

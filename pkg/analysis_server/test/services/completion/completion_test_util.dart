@@ -2328,6 +2328,26 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_Literal_list() {
+    // ']'  ListLiteral  ArgumentList  MethodInvocation
+    addTestSource('main() {var Some; print([^]);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalVariable('Some', null);
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_Literal_list2() {
+    // SimpleIdentifier ListLiteral  ArgumentList  MethodInvocation
+    addTestSource('main() {var Some; print([S^]);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalVariable('Some', null);
+      assertSuggestImportedClass('String');
+    });
+  }
+
   test_Literal_string() {
     // SimpleStringLiteral  ExpressionStatement  Block
     addTestSource('class A {a() {"hel^lo"}}');
@@ -2608,7 +2628,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationField('sc', 'int');
+      assertNotSuggested('sc');
       assertSuggestInvocationField('b', null, isDeprecated: true);
       assertNotSuggested('_c');
       assertSuggestInvocationGetter('d', 'X');
@@ -2643,7 +2663,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationField('sc', 'int');
+      assertNotSuggested('sc');
       assertSuggestInvocationField('b', null);
       assertSuggestInvocationField('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');
