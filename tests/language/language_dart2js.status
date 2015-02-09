@@ -6,14 +6,12 @@
 await_future_test: RuntimeError # Issue 22332
 language/async_test/none: RuntimeError # Issue 22332
 
-[ $compiler == dart2js && $minified ] 
+[ $compiler == dart2js && $minified ]
 await_future_test: Timeout # Issue 22328
 
 [ $compiler == dart2js ]
 sync_generator1_test: RuntimeError # Issue 22323
 syncstar_yield_test/copyParameters: RuntimeError # Issue 22322
-async_await_syntax_test/a03b: CompileTimeError # Issue 22234
-async_await_syntax_test/a04c: CompileTimeError # Issue 22234
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
 sync_generator2_test/08: MissingCompileTimeError # Issue 22324
 sync_generator2_test/10: MissingCompileTimeError # Issue 22324
@@ -237,8 +235,6 @@ sync_generator2_test/20: MissingCompileTimeError # Issue 22324
 sync_generator2_test/30: MissingCompileTimeError # Issue 22324
 sync_generator2_test/51: MissingCompileTimeError # Issue 22324
 sync_generator2_test/52: MissingCompileTimeError # Issue 22324
-async_await_syntax_test/a03b: CompileTimeError # Issue 22234
-async_await_syntax_test/a04c: CompileTimeError # Issue 22234
 await_for_cancel_test: RuntimeError # Issue 21404
 
 
