@@ -10,10 +10,13 @@ import 'package:dart_lint/src/linter.dart';
 
 final RegExp alphaNumeric = new RegExp(r'^[a-zA-Z0-9]');
 
-const desc = 'AVOID bracketed interpolation of simple identifiers';
+const desc = 'AVOID using braces in interpolation when not needed.';
 
 const details = r'''
-AVOID bracketed interpolation of simple identifiers.
+**AVOID** using braces in interpolation when not needed. 
+
+If you're just interpolating a simple identifier, and it's not immediately 
+followed by more alphanumeric text, the ``{}`` can and should be omitted.
 
 **GOOD:**
 ```dart
