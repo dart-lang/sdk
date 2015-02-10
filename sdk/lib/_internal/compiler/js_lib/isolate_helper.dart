@@ -7,6 +7,7 @@ library _isolate_helper;
 import 'dart:_js_embedded_names' show
     CLASS_ID_EXTRACTOR,
     CLASS_FIELDS_EXTRACTOR,
+    CREATE_NEW_ISOLATE,
     CURRENT_SCRIPT,
     GLOBAL_FUNCTIONS,
     INITIALIZE_EMPTY_INSTANCE,
@@ -28,7 +29,6 @@ import 'dart:_js_helper' show
 
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
-                                   JS_CREATE_ISOLATE,
                                    JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_CURRENT_ISOLATE,
                                    JS_EMBEDDED_GLOBAL,
@@ -289,7 +289,8 @@ class _IsolateContext implements IsolateContext {
 
   /** Holds isolate globals (statics and top-level properties). */
   // native object containing all globals of an isolate.
-  final isolateStatics = JS_CREATE_ISOLATE();
+  final isolateStatics =
+      JS('', "#()", JS_EMBEDDED_GLOBAL('', CREATE_NEW_ISOLATE));
 
   final RawReceivePortImpl controlPort = new RawReceivePortImpl._controlPort();
 

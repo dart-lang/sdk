@@ -3884,16 +3884,6 @@ class SsaBuilder extends ResolvedVisitor {
                       effects: sideEffects));
   }
 
-  void handleForeignCreateIsolate(ast.Send node) {
-    if (!node.arguments.isEmpty) {
-      compiler.internalError(node.argumentsNode, 'Too many arguments.');
-    }
-    String constructorName = backend.namer.isolateName;
-    push(new HForeign(js.js.parseForeignJS("new $constructorName()"),
-                      backend.dynamicType,
-                      <HInstruction>[]));
-  }
-
   void handleForeignDartObjectJsConstructorFunction(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
@@ -3928,8 +3918,6 @@ class SsaBuilder extends ResolvedVisitor {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_CREATE_ISOLATE') {
-      handleForeignCreateIsolate(node);
     } else if (name == 'JS_OPERATOR_IS_PREFIX') {
       // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(backend.namer.operatorIsPrefix));

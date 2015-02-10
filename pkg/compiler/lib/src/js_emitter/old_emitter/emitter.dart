@@ -366,6 +366,12 @@ class OldEmitter implements Emitter {
     }
 
     if (hasIsolateSupport) {
+      jsAst.Expression createNewIsolateFunctionAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.CREATE_NEW_ISOLATE);
+      var createIsolateAssignment =
+          js('# = function() { return new ${namer.isolateName}(); }',
+             createNewIsolateFunctionAccess);
+
       jsAst.Expression classIdExtractorAccess =
           generateEmbeddedGlobalAccess(embeddedNames.CLASS_ID_EXTRACTOR);
       var classIdExtractorAssignment =
@@ -402,7 +408,8 @@ class OldEmitter implements Emitter {
         return o;
       }''', [ initializeEmptyInstanceAccess, allClassesAccess ]);
 
-      result.addAll([classIdExtractorAssignment,
+      result.addAll([createIsolateAssignment,
+                     classIdExtractorAssignment,
                      classFieldsExtractorAssignment,
                      instanceFromClassIdAssignment,
                      initializeEmptyInstanceAssignment]);
