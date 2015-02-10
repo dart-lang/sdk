@@ -4,7 +4,7 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../js/js.dart' as js show Expression, Statement;
+import '../js/js.dart' as js show Expression;
 import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
@@ -103,12 +103,12 @@ abstract class Fragment {
  * other [DeferredFragment]s.
  */
 class MainFragment extends Fragment {
-  final js.Statement invokeMain;
+  final js.Expression main;
   final List<Holder> holders;
 
   MainFragment(OutputUnit outputUnit,
                String outputFileName,
-               this.invokeMain,
+               this.main,
                List<Library> libraries,
                List<StaticField> staticNonFinalFields,
                List<StaticField> staticLazilyInitializedFields,

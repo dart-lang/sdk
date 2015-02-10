@@ -116,7 +116,7 @@ class ModelEmitter {
          emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
        'eagerClasses': emitEagerClassInitializations(fragment.libraries),
-       'invokeMain': fragment.invokeMain,
+       'main': fragment.main,
        'code': code};
 
     holes.addAll(nativeHoles(program));
@@ -932,7 +932,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   var end = Date.now();
   print('Setup: ' + (end - start) + ' ms.');
 
-  #invokeMain;  // Start main.
+  #main();  // Start main.
 
 }(Date.now(), #code)
 }""";

@@ -19,7 +19,6 @@ import 'js_emitter.dart' show
     ClassStubGenerator,
     CodeEmitterTask,
     InterceptorStubGenerator,
-    MainCallStubGenerator,
     ParameterStubGenerator,
     TypeTestGenerator,
     TypeTestProperties;
@@ -153,7 +152,7 @@ class ProgramBuilder {
     MainFragment result = new MainFragment(
         librariesMap.outputUnit,
         "",  // The empty string is the name for the main output file.
-        _buildInvokeMain(),
+        backend.emitter.staticFunctionAccess(_compiler.mainFunction),
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
@@ -161,12 +160,6 @@ class ProgramBuilder {
         _registry.holders.toList(growable: false));
     _outputs[librariesMap.outputUnit] = result;
     return result;
-  }
-
-  js.Statement _buildInvokeMain() {
-    MainCallStubGenerator generator =
-        new MainCallStubGenerator(_compiler, backend, backend.emitter);
-    return generator.generateInvokeMain();
   }
 
   DeferredFragment _buildDeferredOutput(MainFragment mainOutput,
