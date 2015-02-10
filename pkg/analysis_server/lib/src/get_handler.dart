@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 import 'analysis_server.dart';
 
@@ -44,9 +45,9 @@ typedef void HtmlGenerator(StringBuffer buffer);
  */
 class GetHandler {
   /**
-   * The path used to request the status of the analysis server as a whole.
+   * The path used to request overall performance information.
    */
-  static const String STATUS_PATH = '/status';
+  static const String ANALYSIS_PERFORMANCE_PATH = '/perf/analysis';
 
   /**
    * The path used to request information about a element model.
@@ -69,6 +70,11 @@ class GetHandler {
    * The path used to request code completion information.
    */
   static const String COMPLETION_PATH = '/completion';
+
+  /**
+   * The path used to request communication performance information.
+   */
+  static const String COMMUNICATION_PERFORMANCE_PATH = '/perf/communication';
 
   /**
    * The path used to request information about a specific context.
@@ -96,15 +102,9 @@ class GetHandler {
   static const String OVERLAYS_PATH = '/overlays';
 
   /**
-   * The path used to request overall performance information.
+   * The path used to request the status of the analysis server as a whole.
    */
-  static const String PERFORMANCE_PATH = '/performance';
-
-  /**
-   * Query parameter used to represent the cache state to search for, when
-   * accessing [CACHE_STATE_PATH].
-   */
-  static const String STATE_QUERY_PARAM = 'state';
+  static const String STATUS_PATH = '/status';
 
   /**
    * Query parameter used to represent the context to search for, when
@@ -134,6 +134,12 @@ class GetHandler {
    * [CACHE_ENTRY_PATH].
    */
   static const String SOURCE_QUERY_PARAM = 'entry';
+
+  /**
+   * Query parameter used to represent the cache state to search for, when
+   * accessing [CACHE_STATE_PATH].
+   */
+  static const String STATE_QUERY_PARAM = 'state';
 
   static final ContentType _htmlContent =
       new ContentType("text", "html", charset: "utf-8");
@@ -180,6 +186,8 @@ class GetHandler {
     String path = request.uri.path;
     if (path == STATUS_PATH) {
       _returnServerStatus(request);
+    } else if (path == ANALYSIS_PERFORMANCE_PATH) {
+      _returnAnalysisPerformance(request);
     } else if (path == AST_PATH) {
       _returnAst(request);
     } else if (path == CACHE_STATE_PATH) {
@@ -188,6 +196,8 @@ class GetHandler {
       _returnCacheEntry(request);
     } else if (path == COMPLETION_PATH) {
       _returnCompletionInfo(request);
+    } else if (path == COMMUNICATION_PERFORMANCE_PATH) {
+      _returnCommunicationPerformance(request);
     } else if (path == CONTEXT_PATH) {
       _returnContextInfo(request);
     } else if (path == ELEMENT_PATH) {
@@ -198,8 +208,6 @@ class GetHandler {
       _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
       _returnOverlaysInfo(request);
-    } else if (path == PERFORMANCE_PATH) {
-      _returnPerformance(request);
     } else {
       _returnUnknownRequest(request);
     }
@@ -243,6 +251,62 @@ class GetHandler {
       }
     }
     return null;
+  }
+
+  /**
+   * Return a response displaying overall performance information.
+   */
+  void _returnAnalysisPerformance(HttpRequest request) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server is not running');
+    }
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Analysis Performance',
+          [],
+          (StringBuffer buffer) {
+        void writeRow(TimeCounter counter, String label) {
+          _writeRow(buffer, [counter.result, label], classes: ["right", null]);
+        }
+
+        buffer.write('<h3>Analysis Performance</h3>');
+        buffer.write('<p><b>Time spent in each phase of analysis</b></p>');
+        buffer.write(
+            '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+        _writeRow(buffer, ['Time (in ms)', 'Analysis Phase'], header: true);
+        writeRow(PerformanceStatistics.io, 'io');
+        writeRow(PerformanceStatistics.scan, 'scan');
+        writeRow(PerformanceStatistics.parse, 'parse');
+        writeRow(PerformanceStatistics.resolve, 'resolve');
+        writeRow(PerformanceStatistics.errors, 'errors');
+        writeRow(PerformanceStatistics.hints, 'hints');
+        writeRow(PerformanceStatistics.lint, 'lint');
+        buffer.write('</table>');
+
+        Map<DataDescriptor, int> countMap = SourceEntry.unflushedCountMap;
+        buffer.write('<p><b>Number of times flushed data was re-created</b></p>');
+        if (countMap.isEmpty) {
+          buffer.write('<p>none</p>');
+        } else {
+          List<DataDescriptor> keys = countMap.keys.toList();
+          keys.sort(
+              (DataDescriptor first, DataDescriptor second) =>
+                  first.toString().compareTo(second.toString()));
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, ['Count', 'Data'], header: true);
+          for (DataDescriptor key in keys) {
+            _writeRow(
+                buffer,
+                [countMap[key], key.toString()],
+                classes: ["right", null]);
+          }
+          buffer.write('</table>');
+        }
+      });
+    });
   }
 
   /**
@@ -494,6 +558,91 @@ class GetHandler {
           buffer.write('<li>$link</li>');
         });
         buffer.write('</ul>');
+      });
+    });
+  }
+
+  /**
+   * Return a response displaying overall performance information.
+   */
+  void _returnCommunicationPerformance(HttpRequest request) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server is not running');
+    }
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(
+          buffer,
+          'Analysis Server - Communication Performance',
+          [],
+          (StringBuffer buffer) {
+        buffer.write('<h3>Communication Performance</h3>');
+        _writeTwoColumns(buffer, (StringBuffer buffer) {
+          ServerPerformance perf = analysisServer.performanceDuringStartup;
+          int requestCount = perf.requestCount;
+          num averageLatency =
+              requestCount > 0 ? (perf.requestLatency / requestCount).round() : 0;
+          int maximumLatency = perf.maxLatency;
+          num slowRequestPercent =
+              requestCount > 0 ? (perf.slowRequestCount * 100 / requestCount).round() : 0;
+          buffer.write('<h4>Startup</h4>');
+          buffer.write('<table>');
+          _writeRow(
+              buffer,
+              [requestCount, 'requests'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [averageLatency, 'ms average latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [maximumLatency, 'ms maximum latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [slowRequestPercent, '% > 150 ms latency'],
+              classes: ["right", null]);
+          if (analysisServer.performanceAfterStartup != null) {
+            int startupTime =
+                analysisServer.performanceAfterStartup.startTime -
+                perf.startTime;
+            _writeRow(
+                buffer,
+                [startupTime, 'ms for initial analysis to complete']);
+          }
+          buffer.write('</table>');
+        }, (StringBuffer buffer) {
+          ServerPerformance perf = analysisServer.performanceAfterStartup;
+          if (perf == null) {
+            return;
+          }
+          int requestCount = perf.requestCount;
+          num averageLatency =
+              requestCount > 0 ? (perf.requestLatency * 10 / requestCount).round() / 10 : 0;
+          int maximumLatency = perf.maxLatency;
+          num slowRequestPercent =
+              requestCount > 0 ? (perf.slowRequestCount * 100 / requestCount).round() : 0;
+          buffer.write('<h4>Current</h4>');
+          buffer.write('<table>');
+          _writeRow(
+              buffer,
+              [requestCount, 'requests'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [averageLatency, 'ms average latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [maximumLatency, 'ms maximum latency'],
+              classes: ["right", null]);
+          _writeRow(
+              buffer,
+              [slowRequestPercent, '% > 150 ms latency'],
+              classes: ["right", null]);
+          buffer.write('</table>');
+        });
       });
     });
   }
@@ -813,91 +962,6 @@ class GetHandler {
   }
 
   /**
-   * Return a response displaying overall performance information.
-   */
-  void _returnPerformance(HttpRequest request) {
-    AnalysisServer analysisServer = _server.analysisServer;
-    if (analysisServer == null) {
-      return _returnFailure(request, 'Analysis server is not running');
-    }
-    _writeResponse(request, (StringBuffer buffer) {
-      _writePage(
-          buffer,
-          'Analysis Server - Performance',
-          [],
-          (StringBuffer buffer) {
-        buffer.write('<h3>Communication Performance</h3>');
-        _writeTwoColumns(buffer, (StringBuffer buffer) {
-          ServerPerformance perf = analysisServer.performanceDuringStartup;
-          int requestCount = perf.requestCount;
-          num averageLatency =
-              requestCount > 0 ? (perf.requestLatency / requestCount).round() : 0;
-          int maximumLatency = perf.maxLatency;
-          num slowRequestPercent =
-              requestCount > 0 ? (perf.slowRequestCount * 100 / requestCount).round() : 0;
-          buffer.write('<h4>Startup</h4>');
-          buffer.write('<table>');
-          _writeRow(
-              buffer,
-              [requestCount, 'requests'],
-              classes: ["right", null]);
-          _writeRow(
-              buffer,
-              [averageLatency, 'ms average latency'],
-              classes: ["right", null]);
-          _writeRow(
-              buffer,
-              [maximumLatency, 'ms maximum latency'],
-              classes: ["right", null]);
-          _writeRow(
-              buffer,
-              [slowRequestPercent, '% > 150 ms latency'],
-              classes: ["right", null]);
-          if (analysisServer.performanceAfterStartup != null) {
-            int startupTime =
-                analysisServer.performanceAfterStartup.startTime -
-                perf.startTime;
-            _writeRow(
-                buffer,
-                [startupTime, 'ms for initial analysis to complete']);
-          }
-          buffer.write('</table>');
-        }, (StringBuffer buffer) {
-          ServerPerformance perf = analysisServer.performanceAfterStartup;
-          if (perf == null) {
-            return;
-          }
-          int requestCount = perf.requestCount;
-          num averageLatency =
-              requestCount > 0 ? (perf.requestLatency * 10 / requestCount).round() / 10 : 0;
-          int maximumLatency = perf.maxLatency;
-          num slowRequestPercent =
-              requestCount > 0 ? (perf.slowRequestCount * 100 / requestCount).round() : 0;
-          buffer.write('<h4>Current</h4>');
-          buffer.write('<table>');
-          _writeRow(
-              buffer,
-              [requestCount, 'requests'],
-              classes: ["right", null]);
-          _writeRow(
-              buffer,
-              [averageLatency, 'ms average latency'],
-              classes: ["right", null]);
-          _writeRow(
-              buffer,
-              [maximumLatency, 'ms maximum latency'],
-              classes: ["right", null]);
-          _writeRow(
-              buffer,
-              [slowRequestPercent, '% > 150 ms latency'],
-              classes: ["right", null]);
-          buffer.write('</table>');
-        });
-      });
-    });
-  }
-
-  /**
    * Return a response indicating the status of the analysis server.
    */
   void _returnServerStatus(HttpRequest request) {
@@ -925,7 +989,8 @@ class GetHandler {
         buffer.write(makeLink(COMPLETION_PATH, {}, 'Completion data'));
         buffer.write('</p>');
         buffer.write('<p>');
-        buffer.write(makeLink(PERFORMANCE_PATH, {}, 'Performance'));
+        buffer.write(
+            makeLink(COMMUNICATION_PERFORMANCE_PATH, {}, 'Performance'));
         buffer.write('</p>');
         buffer.write('<p>');
         buffer.write(makeLink(STATUS_PATH, {}, 'Server status'));
@@ -1017,6 +1082,11 @@ class GetHandler {
       int freq = AnalysisServer.performOperationDelayFreqency;
       String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
       buffer.write('<p><b>perform operation delay:</b> $delay</p>');
+
+      buffer.write('<p><b>Performance Data</b></p>');
+      buffer.write('<p>');
+      buffer.write(makeLink(ANALYSIS_PERFORMANCE_PATH, {}, 'Task data'));
+      buffer.write('</p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionMap(
           buffer,
@@ -1404,7 +1474,8 @@ class GetHandler {
 
       buffer.write('<p><b>Performance Data</b></p>');
       buffer.write('<p>');
-      buffer.write(makeLink(PERFORMANCE_PATH, {}, 'Communication performance'));
+      buffer.write(
+          makeLink(COMMUNICATION_PERFORMANCE_PATH, {}, 'Communication performance'));
       buffer.write('</p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);

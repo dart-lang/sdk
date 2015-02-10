@@ -10926,6 +10926,10 @@ class ResolutionState {
   void setValue(DataDescriptor /*<V>*/ descriptor, dynamic /*V*/ value) {
     CachedResult result =
         resultMap.putIfAbsent(descriptor, () => new CachedResult(descriptor));
+    if (result.state == CacheState.FLUSHED) {
+      int count = SourceEntry.unflushedCountMap[descriptor];
+      SourceEntry.unflushedCountMap[descriptor] = count == null ? 1 : count + 1;
+    }
     result.state = CacheState.VALID;
     result.value = value == null ? descriptor.defaultValue : value;
   }
@@ -11607,6 +11611,13 @@ abstract class SourceEntry {
   static int _EXPLICITLY_ADDED_FLAG = 0;
 
   /**
+   * A table mapping data descriptors to a count of the number of times a value
+   * of that kind was flushed and then re-created.
+   */
+  static final Map<DataDescriptor, int> unflushedCountMap =
+      new HashMap<DataDescriptor, int>();
+
+  /**
    * The most recent time at which the state of the source matched the state
    * represented by this entry.
    */
@@ -11796,6 +11807,10 @@ abstract class SourceEntry {
     _validateStateChange(descriptor, CacheState.VALID);
     CachedResult result =
         resultMap.putIfAbsent(descriptor, () => new CachedResult(descriptor));
+    if (result.state == CacheState.FLUSHED) {
+      int count = unflushedCountMap[descriptor];
+      unflushedCountMap[descriptor] = count == null ? 1 : count + 1;
+    }
     result.state = CacheState.VALID;
     result.value = value == null ? descriptor.defaultValue : value;
   }
