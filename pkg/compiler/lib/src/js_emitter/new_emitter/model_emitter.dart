@@ -17,6 +17,7 @@ import '../js_emitter.dart' show
     NativeEmitter;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
+    CREATE_NEW_ISOLATE,
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
     GET_TYPE_FROM_NAME,
@@ -61,14 +62,12 @@ class ModelEmitter {
   int emitProgram(Program program) {
     List<Fragment> fragments = program.fragments;
     MainFragment mainFragment = fragments.first;
-    js.Statement mainAst = emitMainFragment(program);
-    String mainCode = js.prettyPrint(mainAst, compiler).getText();
-    compiler.outputProvider(mainFragment.outputFileName, 'js')
-        ..add(buildGeneratedBy(compiler))
-        ..add(mainCode)
-        ..close();
-    int totalSize = mainCode.length;
 
+    int totalSize = 0;
+
+    // We have to emit the deferred fragments first, since we need their
+    // deferred hash (which depends on the output) when emitting the main
+    // fragment.
     fragments.skip(1).forEach((DeferredFragment deferredUnit) {
       js.Expression ast =
           emitDeferredFragment(deferredUnit, mainFragment.holders);
@@ -78,10 +77,19 @@ class ModelEmitter {
           ..add(code)
           ..close();
     });
+
+    js.Statement mainAst = emitMainFragment(program);
+    String mainCode = js.prettyPrint(mainAst, compiler).getText();
+    compiler.outputProvider(mainFragment.outputFileName, 'js')
+        ..add(buildGeneratedBy(compiler))
+        ..add(mainCode)
+        ..close();
+    totalSize += mainCode.length;
+
     return totalSize;
   }
 
-  js.LiteralString unparse(Compiler compiler, js.Expression value) {
+  js.LiteralString unparse(Compiler compiler, js.Node value) {
     String text = js.prettyPrint(value, compiler).getText();
     if (value is js.Fun) text = '($text)';
     return js.js.escapedString(text);
@@ -200,14 +208,20 @@ class ModelEmitter {
     List<js.Property> globals = <js.Property>[];
 
     if (program.loadMap.isNotEmpty) {
-      globals.addAll(emitLoadUrisAndHashes(program.loadMap));
-      globals.add(emitIsHunkLoadedFunction());
-      globals.add(emitInitializeLoadedHunk());
+      globals.addAll(emitEmbeddedGlobalsForDeferredLoading(program.loadMap));
     }
 
     if (program.typeToInterceptorMap != null) {
       globals.add(new js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP),
                                   program.typeToInterceptorMap));
+    }
+
+    if (program.hasIsolateSupport) {
+      String isolateName = namer.currentIsolate;
+      globals.add(
+          new js.Property(js.string(CREATE_NEW_ISOLATE),
+                          js.js('function () { return $isolateName; }')));
+      // TODO(floitsch): add remaining isolate functions.
     }
 
     globals.add(emitMangledGlobalNames());
@@ -252,12 +266,24 @@ class ModelEmitter {
                            new js.ObjectInitializer(names));
   }
 
-  List<js.Property> emitLoadUrisAndHashes(Map<String, List<Fragment>> loadMap) {
-    js.ArrayInitializer outputUris(List<Fragment> fragments) {
+  js.Statement emitDeferredInitializerGlobal(Map loadMap) {
+    if (loadMap.isEmpty) return new js.Block.empty();
+
+    return js.js.statement("""
+  if (typeof($deferredInitializersGlobal) === 'undefined')
+    var $deferredInitializersGlobal = Object.create(null);""");
+  }
+
+  Iterable<js.Property> emitEmbeddedGlobalsForDeferredLoading(
+      Map<String, List<Fragment>> loadMap) {
+
+    List<js.Property> globals = <js.Property>[];
+
+    js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
       return js.stringArray(fragments.map((DeferredFragment fragment) =>
-          "${fragment.outputFileName}$deferredExtension"));
+          "${fragment.outputFileName}.$deferredExtension"));
     }
-    js.ArrayInitializer outputHashes(List<Fragment> fragments) {
+    js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
       // TODO(floitsch): the hash must depend on the generated code.
       return js.numArray(
           fragments.map((DeferredFragment fragment) => fragment.hashCode));
@@ -268,38 +294,41 @@ class ModelEmitter {
     int count = 0;
     loadMap.forEach((String loadId, List<Fragment> fragmentList) {
       uris[count] =
-          new js.Property(js.string(loadId), outputUris(fragmentList));
+          new js.Property(js.string(loadId), fragmentUris(fragmentList));
       hashes[count] =
-          new js.Property(js.string(loadId), outputHashes(fragmentList));
+          new js.Property(js.string(loadId), fragmentHashes(fragmentList));
       count++;
     });
 
-    return <js.Property>[
-         new js.Property(js.string(DEFERRED_LIBRARY_URIS),
-                         new js.ObjectInitializer(uris)),
-         new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
-                         new js.ObjectInitializer(hashes))
-         ];
-  }
+    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_URIS),
+                                new js.ObjectInitializer(uris)));
+    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
+                                new js.ObjectInitializer(hashes)));
 
-  js.Statement emitDeferredInitializerGlobal(Map loadMap) {
-    if (loadMap.isEmpty) return new js.Block.empty();
-
-    return js.js.statement("""
-  if (typeof($deferredInitializersGlobal) === 'undefined')
-    var $deferredInitializersGlobal = Object.create(null);""");
-  }
-
-  js.Property emitIsHunkLoadedFunction() {
-    js.Expression function =
+    js.Expression isHunkLoadedFunction =
         js.js("function(hash) { return !!$deferredInitializersGlobal[hash]; }");
-    return new js.Property(js.string(IS_HUNK_LOADED), function);
-  }
+    globals.add(new js.Property(js.string(IS_HUNK_LOADED),
+                                isHunkLoadedFunction));
 
-  js.Property emitInitializeLoadedHunk() {
-    js.Expression function =
-        js.js("function(hash) { eval($deferredInitializersGlobal[hash]); }");
-    return new js.Property(js.string(INITIALIZE_LOADED_HUNK), function);
+    js.Expression isHunkInitializedFunction =
+        js.js("function(hash) { return false; }");
+    globals.add(new js.Property(js.string(IS_HUNK_INITIALIZED),
+                                isHunkInitializedFunction));
+
+    /// See [emitEmbeddedGlobalsForDeferredLoading] for the format of the
+    /// deferred hunk.
+    js.Expression initializeLoadedHunkFunction =
+        js.js("""
+          function(hash) {
+            var hunk = $deferredInitializersGlobal[hash];
+            $setupProgramName(hunk[0]);
+            eval(hunk[1]);
+          }""");
+
+    globals.add(new js.Property(js.string(INITIALIZE_LOADED_HUNK),
+                                initializeLoadedHunkFunction));
+
+    return globals;
   }
 
   js.Property emitGetTypeFromName() {
@@ -322,14 +351,30 @@ class ModelEmitter {
                                      List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
     // TODO(floitsch): the hash must depend on the output.
-    int hash = this.hashCode;
-    if (fragment.constants.isNotEmpty) {
-      throw new UnimplementedError("constants in deferred units");
-    }
-    js.ArrayInitializer content =
-        new js.ArrayInitializer(fragment.libraries.map(emitLibrary)
-                                                  .toList(growable: false));
-    return js.js("$deferredInitializersGlobal[$hash] = #", content);
+    int hash = fragment.hashCode;
+
+    List<js.Expression> deferredCode =
+        fragment.libraries.map(emitLibrary).toList();
+
+    deferredCode.add(
+        emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
+
+    js.ArrayInitializer deferredArray = new js.ArrayInitializer(deferredCode);
+
+    // This is the code that must be evaluated after all deferred classes have
+    // been setup.
+    js.Statement immediateCode = js.js.statement('''{
+          #constants;
+          #eagerClasses;
+        }''',
+        {'constants': emitConstants(fragment.constants),
+         'eagerClasses': emitEagerClassInitializations(fragment.libraries)});
+
+    js.LiteralString immediateString = unparse(compiler, immediateCode);
+    js.ArrayInitializer hunk =
+        new js.ArrayInitializer([deferredArray, immediateString]);
+
+    return js.js("$deferredInitializersGlobal[$hash] = #", hunk);
   }
 
   js.Block emitConstants(List<Constant> constants) {
@@ -659,6 +704,8 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     return output;
   }
 
+  static final String setupProgramName = "setupProgram";
+
   static final String boilerplate = """
 {
 // Declare deferred-initializer global.
@@ -672,7 +719,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   // Counter to generate unique names for tear offs.
   var functionCounter = 0;
 
-  function setupProgram() {
+  function $setupProgramName(program) {
     for (var i = 0; i < program.length - 1; i++) {
       setupLibrary(program[i]);
     }
@@ -905,7 +952,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     }
   }
 
-  setupProgram();
+  $setupProgramName(program);
 
   // Initialize constants.
   #constants;
@@ -930,7 +977,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   #eagerClasses;
 
   var end = Date.now();
-  print('Setup: ' + (end - start) + ' ms.');
+  // print('Setup: ' + (end - start) + ' ms.');
 
   #invokeMain;  // Start main.
 

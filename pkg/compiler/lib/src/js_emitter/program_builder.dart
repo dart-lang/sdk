@@ -123,7 +123,8 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
         outputContainsNativeClasses: containsNativeClasses,
-        outputContainsConstantList: _task.outputContainsConstantList);
+        outputContainsConstantList: _task.outputContainsConstantList,
+        hasIsolateSupport: _compiler.hasIsolateSupport);
   }
 
   void _markEagerClasses() {

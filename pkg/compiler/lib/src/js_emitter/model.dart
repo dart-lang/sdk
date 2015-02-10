@@ -17,6 +17,7 @@ class Program {
   final List<Fragment> fragments;
   final bool outputContainsConstantList;
   final bool outputContainsNativeClasses;
+  final bool hasIsolateSupport;
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
 
@@ -33,9 +34,11 @@ class Program {
           this.typeToInterceptorMap,
           this._metadataCollector,
           {this.outputContainsNativeClasses,
-           this.outputContainsConstantList}) {
+           this.outputContainsConstantList,
+           this.hasIsolateSupport}) {
     assert(outputContainsNativeClasses != null);
     assert(outputContainsConstantList != null);
+    assert(hasIsolateSupport != null);
   }
 
   /// A list of pretty-printed JavaScript expressions.
