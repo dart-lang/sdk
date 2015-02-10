@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
@@ -57,6 +58,10 @@ Map<String, String> _inverseMap(Map map) {
  */
 class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     ExtractMethodRefactoring {
+  static const ERROR_EXITS =
+      'Selected statements contain a return statement, but not all possible '
+          'execuion flows exit. Semantics may not be preserved.';
+
   final SearchEngine searchEngine;
   final CompilationUnit unit;
   final int selectionOffset;
@@ -572,7 +577,14 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     if (_selectionExpression != null) {
       _returnType = _selectionExpression.bestType;
     }
-    // may be ends with "return" statement
+    // verify that none or all execution flows end with a "return"
+    if (_selectionStatements != null) {
+      bool hasReturn = _selectionStatements.any(_mayEndWithReturnStatement);
+      if (hasReturn && !ExitDetector.exits(_selectionStatements.last)) {
+        result.addError(ERROR_EXITS);
+      }
+    }
+    // maybe ends with "return" statement
     if (_selectionStatements != null) {
       _ReturnTypeComputer returnTypeComputer = new _ReturnTypeComputer();
       _selectionStatements.forEach((statement) {
@@ -580,7 +592,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       });
       _returnType = returnTypeComputer.returnType;
     }
-    // may be single variable to return
+    // maybe single variable to return
     if (assignedUsedVariables.length == 1) {
       // we cannot both return variable and have explicit return statement
       if (_returnType != null) {
@@ -697,6 +709,15 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     var visitor = new _HasMethodInvocationVisitor();
     node.accept(visitor);
     return visitor.result;
+  }
+
+  /**
+   * Returns `true` if the given [statement] may end with a [ReturnStatement].
+   */
+  static bool _mayEndWithReturnStatement(Statement statement) {
+    _HasReturnStatementVisitor visitor = new _HasReturnStatementVisitor();
+    statement.accept(visitor);
+    return visitor.hasReturn;
   }
 }
 
@@ -865,6 +886,20 @@ class _HasMethodInvocationVisitor extends RecursiveAstVisitor {
 }
 
 
+class _HasReturnStatementVisitor extends RecursiveAstVisitor {
+  bool hasReturn = false;
+
+  @override
+  visitBlockFunctionBody(BlockFunctionBody node) {
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    hasReturn = true;
+  }
+}
+
+
 class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   final ExtractMethodRefactoringImpl ref;
   final _SourcePattern selectionPattern;
@@ -972,7 +1007,6 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   }
 }
 
-
 class _InitializeParametersVisitor extends GeneralizingAstVisitor<Object> {
   final ExtractMethodRefactoringImpl ref;
   final List<VariableElement> assignedUsedVariables;
@@ -1030,6 +1064,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<Object> {
     return null;
   }
 }
+
 
 class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor {
   final ExtractMethodRefactoringImpl ref;

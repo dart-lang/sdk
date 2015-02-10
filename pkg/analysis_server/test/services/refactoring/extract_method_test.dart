@@ -424,6 +424,21 @@ main() {
             "Extend selection to a valid range.");
   }
 
+  test_bad_statements_exit_notAllExecutionFlows() {
+    indexTestUnit('''
+main(int p) {
+// start
+  if (p == 0) {
+    return;
+  }
+// end
+  print(p);
+}
+''');
+    _createRefactoringForStartEndComments();
+    return _assertConditionsError(ExtractMethodRefactoringImpl.ERROR_EXITS);
+  }
+
   test_bad_statements_return_andAssignsVariable() {
     indexTestUnit('''
 main() {
@@ -2080,6 +2095,21 @@ void res() {
 ''');
   }
 
+  test_statements_exit_throws() async {
+    indexTestUnit('''
+main(int p) {
+// start
+  if (p == 0) {
+    return;
+  }
+  throw 'boo!';
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    await assertRefactoringConditionsOK();
+  }
+
   test_statements_inSwitchMember() {
     indexTestUnit('''
 class A {
@@ -2292,8 +2322,10 @@ int res() {
 main(bool b) {
 // start
   if (b) {
+    print(true);
     return <int>[];
   } else {
+    print(false);
     return <String>[];
   }
 // end
@@ -2310,8 +2342,10 @@ main(bool b) {
 
 List res(bool b) {
   if (b) {
+    print(true);
     return <int>[];
   } else {
+    print(false);
     return <String>[];
   }
 }

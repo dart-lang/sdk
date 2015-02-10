@@ -4331,6 +4331,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
     return false;
   }
+
+  /**
+   * Return `true` if the given [node] exits.
+   */
+  static bool exits(AstNode node) {
+    return new ExitDetector()._nodeExits(node);
+  }
 }
 
 /**
