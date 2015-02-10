@@ -67,11 +67,16 @@ class IrBuilderTask extends CompilerTask {
       // TODO(sigurdm): Support native functions for dart2js.
       assert(invariant(element, !element.isNative));
 
-      // TODO(kmillikin,sigurdm): Support constructors.
-      if (element is ConstructorElement && !element.isGenerativeConstructor) {
-        return false;
+      if (element is ConstructorElement) {
+        if (!element.isGenerativeConstructor) {
+          // TODO(kmillikin,sigurdm): Support constructors.
+          return false;
+        }
+        if (element.isSynthesized) {
+          // Do generate CPS for synthetic constructors.
+          return true;
+        }
       }
-
     } else if (element is! FieldElement) {
       compiler.internalError(element, "Unexpected element type $element");
     }

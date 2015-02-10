@@ -99,6 +99,18 @@ class B {}
     helper.assertNoInstantiatedClass('B');
   });
 
+  test('Super class instantiation', () {
+    var helper = new TreeShakerTestHelper('''
+main() {
+  var x = new B();
+}
+class A {}
+class B extends A {}
+''');
+    helper.assertHasInstantiatedClass('A');
+    helper.assertHasInstantiatedClass('B');
+  });
+
   test('Method invocation', () {
     var helper = new TreeShakerTestHelper('''
 main() {

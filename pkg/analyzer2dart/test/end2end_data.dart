@@ -820,9 +820,36 @@ main(a) {
 
   const Group('Constructors', const <TestSpec>[
     const TestSpec('''
+class C {}
+main() {
+  return new C();
+}
+'''),
+
+    const TestSpec('''
 class C {
   C() {}
 }
+main() {
+  return new C();
+}
+'''),
+
+    const TestSpec('''
+class B {}
+class C extends B {
+  C() {}
+}
+main() {
+  return new C();
+}
+'''),
+
+    const TestSpec('''
+class B {
+  B() {}
+}
+class C extends B {}
 main() {
   return new C();
 }

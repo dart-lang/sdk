@@ -1386,6 +1386,25 @@ main(x,foo) {
 
   const Group('Constructors', const <TestSpec>[
     const TestSpec('''
+class C {}
+main() {
+  return new C();
+}
+''',
+    const {
+'main': '''
+(FunctionDefinition main () return
+  (LetCont ((k0 (v0)
+      (InvokeContinuation return (v0))))
+    (InvokeConstructor C () k0)))
+''',
+'C.':  '''
+(FunctionDefinition  () return
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
+'''}),
+
+    const TestSpec('''
 class C {
   C() {}
 }
@@ -1401,6 +1420,60 @@ main() {
     (InvokeConstructor C () k0)))
 ''',
 'C.': '''
+(FunctionDefinition  () return
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
+'''}),
+
+    const TestSpec('''
+class B {}
+class C extends B {
+  C() {}
+}
+main() {
+  return new C();
+}
+''',
+    const {
+'main': '''
+(FunctionDefinition main () return
+  (LetCont ((k0 (v0)
+      (InvokeContinuation return (v0))))
+    (InvokeConstructor C () k0)))
+''',
+'B.':  '''
+(FunctionDefinition  () return
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
+''',
+'C.': '''
+(FunctionDefinition  () return
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
+'''}),
+
+    const TestSpec('''
+class B {
+  B() {}
+}
+class C extends B {}
+main() {
+  return new C();
+}
+''',
+    const {
+'main': '''
+(FunctionDefinition main () return
+  (LetCont ((k0 (v0)
+      (InvokeContinuation return (v0))))
+    (InvokeConstructor C () k0)))
+''',
+'B.': '''
+(FunctionDefinition  () return
+  (LetPrim (v0 (Constant (Null)))
+    (InvokeContinuation return (v0))))
+''',
+'C.':  '''
 (FunctionDefinition  () return
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
@@ -1431,5 +1504,5 @@ main() {
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''}),
-]),
+  ]),
 ];
