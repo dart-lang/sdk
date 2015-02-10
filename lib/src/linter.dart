@@ -15,9 +15,9 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:dart_lint/src/analysis.dart';
 import 'package:dart_lint/src/rules.dart';
 
-final _camelCaseMatcher = new RegExp('[A-Z][a-z]*');
+final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
 
-final _camelCaseTester = new RegExp('([A-Z]+[a-z0-9]+)+');
+final _camelCaseTester = new RegExp(r'^([_]*)([A-Z]+[a-z0-9]*)+$');
 
 String _humanize(String camelCase) =>
     _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');

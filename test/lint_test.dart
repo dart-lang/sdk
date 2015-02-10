@@ -17,6 +17,7 @@ import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 import '../bin/lint.dart' as dartlint;
+import 'package:dart_lint/src/rules/camel_case_types.dart';
 
 const String ruleDir = 'test/rules';
 
@@ -196,6 +197,31 @@ void defineRuleTests() {
   });
 }
 
+defineRuleUnitTests() {
+  group('names', () {
+    group('camel case', () {
+      group('upper', () {
+        var good = [
+          '_FooBar',
+          'FooBar',
+          '_Foo',
+          'Foo',
+          'F',
+          'FB',
+          'F1',
+          'FooBar1'
+        ];
+        good.forEach(
+            (s) => test('"$s"', () => expect(isUpperCamelCase(s), isTrue)));
+
+        var bad = ['fooBar', 'foo', 'f', '_f', 'F_B'];
+        bad.forEach(
+            (s) => test('"$s"', () => expect(isUpperCamelCase(s), isFalse)));
+      });
+    });
+  });
+}
+
 /// Test framework sanity
 void defineSanityTests() {
   group('test framework', () {
@@ -254,6 +280,7 @@ main() {
   defineSanityTests();
   defineLinterEngineTests();
   defineRuleTests();
+  defineRuleUnitTests();
 }
 
 AnnotationMatcher matchesAnnotation(
@@ -282,7 +309,9 @@ void testRule(String ruleName, File file) {
     List<Annotation> actual = [];
     lints.forEach((AnalysisErrorInfo info) {
       info.errors.forEach((AnalysisError error) {
-        actual.add(new Annotation.forError(error, info.lineInfo));
+        if (error.errorCode.type == ErrorType.LINT) {
+          actual.add(new Annotation.forError(error, info.lineInfo));
+        }
       });
     });
     expect(actual, unorderedMatches(expected));

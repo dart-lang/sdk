@@ -45,7 +45,6 @@ class CamelCaseTypes extends LintRule {
 }
 
 class Visitor extends SimpleAstVisitor {
-
   LintRule rule;
   Visitor(this.rule);
 
@@ -64,9 +63,4 @@ class Visitor extends SimpleAstVisitor {
   }
 }
 
-final separator = new RegExp(r'[$_]');
-final upperCase = new RegExp('[A-Z]');
-
-bool isUpperCamelCase(String s) => s.startsWith(upperCase) &&
-    !separator.hasMatch(s) &&
-    CamelCaseString.isCamelCase(s);
+bool isUpperCamelCase(String s) => CamelCaseString.isCamelCase(s);
