@@ -163,3 +163,9 @@ io/server_socket_reference_issue21383_and_issue21384_test: Skip # Not supported 
 
 [ $arch != ia32 && $arch != x64 && $arch != simarm && $mode == debug ]
 verified_mem_test: Skip  # Not yet implemented.
+
+[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+full_coverage_test: Skip  # Timeout.
+io/file_lock_test: Skip  # Timeout.
+io/test_runner_test: Skip  # Timeout.
+io/http_client_stays_alive_test: Skip  # Timeout.

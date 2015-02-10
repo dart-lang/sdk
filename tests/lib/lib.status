@@ -326,3 +326,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 
 [ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
+
+[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+mirrors/immutable_collections_test: Skip  # Timeout.
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.

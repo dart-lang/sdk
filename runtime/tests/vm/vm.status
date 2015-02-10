@@ -88,3 +88,6 @@ dart/byte_array_test: RuntimeError # Issue 17612
 
 [ $runtime != vm ]
 dart/snapshot_version_test: SkipByDesign  # Spawns processes
+
+[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+cc/Dart2JSCompileAll: Skip  # Timeout.
