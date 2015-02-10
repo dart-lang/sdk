@@ -23,9 +23,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, trace_sim_after, -1,
+DEFINE_FLAG(uint64_t, trace_sim_after, ULLONG_MAX,
             "Trace simulator execution after instruction count reached.");
-DEFINE_FLAG(int, stop_sim_at, -1,
+DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
 
@@ -209,10 +209,6 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
   }
   if (strcmp("pc", desc) == 0) {
     *value = sim_->get_pc();
-    return true;
-  }
-  if (strcmp("icount", desc) == 0) {
-    *value = sim_->get_icount();
     return true;
   }
   bool retval = SScanF(desc, "0x%x", value) == 1;
@@ -471,13 +467,16 @@ void SimulatorDebugger::Debug() {
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
           uint32_t value;
-          if (GetValue(arg1, &value)) {
+          if (strcmp(arg1, "icount") == 0) {
+            const uint64_t icount = sim_->get_icount();
+            OS::Print("icount: %"Pu64" 0x%"Px64"\n", icount, icount);
+          } else if (GetValue(arg1, &value)) {
             OS::Print("%s: %u 0x%x\n", arg1, value, value);
           } else {
             OS::Print("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("print <reg or value or *addr>\n");
+          OS::Print("print <reg or icount or value or *addr>\n");
         }
       } else if ((strcmp(cmd, "pf") == 0) ||
                  (strcmp(cmd, "printfloat") == 0)) {
@@ -594,11 +593,11 @@ void SimulatorDebugger::Debug() {
           OS::Print("Not at debugger stop.\n");
         }
       } else if (strcmp(cmd, "trace") == 0) {
-        if (FLAG_trace_sim_after == -1) {
+        if (FLAG_trace_sim_after == ULLONG_MAX) {
           FLAG_trace_sim_after = sim_->get_icount();
           OS::Print("execution tracing on\n");
         } else {
-          FLAG_trace_sim_after = -1;
+          FLAG_trace_sim_after = ULLONG_MAX;
           OS::Print("execution tracing off\n");
         }
       } else if (strcmp(cmd, "bt") == 0) {
@@ -1006,10 +1005,7 @@ uword Simulator::StackTop() const {
 
 
 bool Simulator::IsTracingExecution() const {
-  // Integer flag values are signed, so we must cast to unsigned.
-  // The default of -1 hence becomes the maximum unsigned value.
-  return (static_cast<uintptr_t>(icount_) >
-          static_cast<uintptr_t>(FLAG_trace_sim_after));
+  return icount_ > FLAG_trace_sim_after;
 }
 
 
@@ -1989,7 +1985,7 @@ void Simulator::DecodeCop1(Instr* instr) {
 
 void Simulator::InstructionDecode(Instr* instr) {
   if (IsTracingExecution()) {
-    OS::Print("%" Pd " ", icount_);
+    OS::Print("%"Pu64, icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);
@@ -2288,11 +2284,11 @@ void Simulator::ExecuteDelaySlot() {
   delay_slot_ = true;
   icount_++;
   Instr* instr = Instr::At(pc_ + Instr::kInstrSize);
-  if (FLAG_stop_sim_at != -1) {
-    if (static_cast<int>(icount_) == FLAG_stop_sim_at) {
+  if (FLAG_stop_sim_at != ULLONG_MAX) {
+    if (icount_ == FLAG_stop_sim_at) {
       SimulatorDebugger dbg(this);
       dbg.Stop(instr, "Instruction count reached");
-    } else if (reinterpret_cast<int>(instr) == FLAG_stop_sim_at) {
+    } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
       SimulatorDebugger dbg(this);
       dbg.Stop(instr, "Instruction address reached");
     }
@@ -2303,7 +2299,7 @@ void Simulator::ExecuteDelaySlot() {
 
 
 void Simulator::Execute() {
-  if (FLAG_stop_sim_at == -1) {
+  if (FLAG_stop_sim_at == ULLONG_MAX) {
     // Fast version of the dispatch loop without checking whether the simulator
     // should be stopping at a particular executed instruction.
     while (pc_ != kEndSimulatingPC) {
@@ -2321,10 +2317,10 @@ void Simulator::Execute() {
     while (pc_ != kEndSimulatingPC) {
       Instr* instr = Instr::At(pc_);
       icount_++;
-      if (static_cast<intptr_t>(icount_) == FLAG_stop_sim_at) {
+      if (icount_ == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction count reached");
-      } else if (reinterpret_cast<intptr_t>(instr) == FLAG_stop_sim_at) {
+      } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction address reached");
       } else if (IsIllegalAddress(pc_)) {

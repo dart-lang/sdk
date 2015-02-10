@@ -53,6 +53,11 @@ class Flags {
                           int default_value,
                           const char* comment);
 
+  static uint64_t Register_uint64_t(uint64_t* addr,
+                                    const char* name,
+                                    uint64_t default_value,
+                                    const char* comment);
+
   static const char* Register_charp(charp* addr,
                                     const char* name,
                                     const char* default_value,

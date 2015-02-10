@@ -26,6 +26,7 @@ class Flag {
   enum FlagType {
     kBoolean,
     kInteger,
+    kUint64,
     kString,
     kFunc,
     kNumFlagTypes
@@ -51,6 +52,10 @@ class Flag {
       }
       case kInteger: {
         OS::Print("%s: %d (%s)\n", name_, *this->int_ptr_, comment_);
+        break;
+      }
+      case kUint64: {
+        OS::Print("%s: %"Pu64" (%s)\n", name_, *this->uint64_ptr_, comment_);
         break;
       }
       case kString: {
@@ -81,6 +86,7 @@ class Flag {
     void* addr_;
     bool* bool_ptr_;
     int* int_ptr_;
+    uint64_t* uint64_ptr_;
     charp* charp_ptr_;
     FlagHandler handler_;
   };
@@ -158,6 +164,19 @@ int Flags::Register_int(int* addr,
 }
 
 
+uint64_t Flags::Register_uint64_t(uint64_t* addr,
+                                  const char* name,
+                                  uint64_t default_value,
+                                  const char* comment) {
+  ASSERT(Lookup(name) == NULL);
+
+  Flag* flag = new Flag(name, comment, addr, Flag::kUint64);
+  AddFlag(flag);
+
+  return default_value;
+}
+
+
 const char* Flags::Register_charp(charp* addr,
                                   const char* name,
                                   const char* default_value,
@@ -216,6 +235,21 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       int val = strtol(argument, &endptr, base);
       if (endptr == argument + len) {
         *flag->int_ptr_ = val;
+      } else {
+        return false;
+      }
+      break;
+    }
+    case Flag::kUint64: {
+      char* endptr = NULL;
+      const intptr_t len = strlen(argument);
+      int base = 10;
+      if ((len > 2) && (argument[0] == '0') && (argument[1] == 'x')) {
+        base = 16;
+      }
+      int64_t val = strtoll(argument, &endptr, base);
+      if (endptr == argument + len) {
+        *flag->uint64_ptr_ = static_cast<uint64_t>(val);
       } else {
         return false;
       }
@@ -403,6 +437,11 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
     case Flag::kInteger: {
       jsflag.AddProperty("flagType", "int");
       jsflag.AddPropertyF("valueAsString", "%d", *flag->int_ptr_);
+      break;
+    }
+    case Flag::kUint64: {
+      jsflag.AddProperty("flagType", "uint64_t");
+      jsflag.AddPropertyF("valueAsString", "%"Pu64, *flag->uint64_ptr_);
       break;
     }
     case Flag::kString: {
