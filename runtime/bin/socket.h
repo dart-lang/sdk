@@ -227,10 +227,11 @@ class Socket {
       intptr_t fd, const void* buffer, intptr_t num_bytes, RawAddr addr);
   static intptr_t RecvFrom(
       intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr);
-  static intptr_t Create(RawAddr addr);
-  static intptr_t Connect(intptr_t fd, RawAddr addr, const intptr_t port);
-  static intptr_t CreateConnect(RawAddr addr,
+  static intptr_t CreateConnect(const RawAddr& addr,
                                 const intptr_t port);
+  static intptr_t CreateBindConnect(const RawAddr& addr,
+                                    const intptr_t port,
+                                    const RawAddr& source_addr);
   static intptr_t CreateBindDatagram(
       RawAddr* addr, intptr_t port, bool reuseAddress);
   static intptr_t GetPort(intptr_t fd);

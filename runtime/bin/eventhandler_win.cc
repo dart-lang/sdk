@@ -875,7 +875,7 @@ void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
   if (data_ready_ != NULL) {
     OverlappedBuffer::DisposeBuffer(data_ready_);
   }
-  closed_ = true;
+  mark_closed();
 }
 
 

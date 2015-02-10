@@ -13,8 +13,9 @@ patch class RawServerSocket {
 
 
 patch class RawSocket {
-  /* patch */ static Future<RawSocket> connect(host, int port) {
-    return _RawSocket.connect(host, port);
+  /* patch */ static Future<RawSocket> connect(
+      host, int port, {sourceAddress}) {
+    return _RawSocket.connect(host, port, sourceAddress);
   }
 }
 
@@ -381,7 +382,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         });
   }
 
-  static Future<_NativeSocket> connect(host, int port) {
+  static Future<_NativeSocket> connect(host, int port, sourceAddress) {
+    if (sourceAddress != null && sourceAddress is! _InternetAddress) {
+      if (sourceAddress is String) {
+        sourceAddress = new InternetAddress(sourceAddress);
+      }
+    }
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return [host];
@@ -410,7 +416,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             var address = it.current;
             var socket = new _NativeSocket.normal();
             socket.address = address;
-            var result = socket.nativeCreateConnect(address._in_addr, port);
+            var result;
+            if (sourceAddress == null) {
+              result = socket.nativeCreateConnect(address._in_addr, port);
+            } else {
+              assert(sourceAddress is _InternetAddress);
+              result = socket.nativeCreateBindConnect(
+                  address._in_addr, port, sourceAddress._in_addr);
+            }
             if (result is OSError) {
               // Keep first error, if present.
               if (error == null) {
@@ -1116,6 +1129,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       native "Socket_SendTo";
   nativeCreateConnect(List<int> addr,
                       int port) native "Socket_CreateConnect";
+  nativeCreateBindConnect(
+      List<int> addr, int port, List<int> sourceAddr)
+      native "Socket_CreateBindConnect";
   nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only)
       native "ServerSocket_CreateBindListen";
   nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress)
@@ -1287,8 +1303,8 @@ class _RawSocket extends Stream<RawSocketEvent>
   // Flag to handle Ctrl-D closing of stdio on Mac OS.
   bool _isMacOSTerminalInput = false;
 
-  static Future<RawSocket> connect(host, int port) {
-    return _NativeSocket.connect(host, port)
+  static Future<RawSocket> connect(host, int port, sourceAddress) {
+    return _NativeSocket.connect(host, port, sourceAddress)
         .then((socket) => new _RawSocket(socket));
   }
 
@@ -1490,8 +1506,8 @@ class _ServerSocket extends Stream<Socket>
 
 
 patch class Socket {
-  /* patch */ static Future<Socket> connect(host, int port) {
-    return RawSocket.connect(host, port).then(
+  /* patch */ static Future<Socket> connect(host, int port, {sourceAddress}) {
+    return RawSocket.connect(host, port, sourceAddress: sourceAddress).then(
         (socket) => new _Socket(socket));
   }
 }

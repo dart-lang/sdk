@@ -458,6 +458,10 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   }
   bool is_connected() const { return connected_; }
 
+  void mark_closed() {
+    closed_ = true;
+  }
+
  private:
   bool LoadDisconnectEx();
 

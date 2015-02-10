@@ -1,0 +1,136 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+
+import "dart:async";
+import "dart:io";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+
+Future throws(Function f, Function check) async {
+  try {
+    await f();
+    Expect.fail('Did not throw');
+  } catch (e) {
+    if (check != null) {
+      if (!check(e)) {
+        Expect.fail('Unexpected: $e');
+      }
+    }
+  }
+}
+
+Future testArguments(connectFunction) async {
+  asyncStart();
+  var server = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  server.listen((_) { throw 'Connection unexpected'; },
+                onDone: () => asyncEnd());
+
+  asyncStart();
+  // Illegal type for sourceAddress.
+  for (var sourceAddress in ['www.google.com', 'abc']) {
+    await throws(() => connectFunction('127.0.0.1',
+                                       server.port,
+                                       sourceAddress: sourceAddress),
+                 (e) => e is ArgumentError);
+  }
+  // Unsupported local address.
+  for (var sourceAddress in ['8.8.8.8', new InternetAddress('8.8.8.8')]) {
+    await throws(() => connectFunction('127.0.0.1',
+                                       server.port,
+                                       sourceAddress: sourceAddress),
+                 (e) => e is SocketException);
+  }
+  // Address family mismatch.
+  for (var sourceAddress in ['::1', InternetAddress.LOOPBACK_IP_V6]) {
+    await throws(() => connectFunction('127.0.0.1',
+                                       server.port,
+                                       sourceAddress: sourceAddress),
+                 (e) => e is SocketException);
+  }
+  asyncEnd();
+  server.close();
+}
+
+// IPv4 addresses to use as source address when connecting locally.
+var ipV4SourceAddresses = [InternetAddress.LOOPBACK_IP_V4,
+                           InternetAddress.ANY_IP_V4,
+                           '127.0.0.1',
+                           '0.0.0.0'];
+
+// IPv6 addresses to use as source address when connecting locally.
+var ipV6SourceAddresses = [InternetAddress.LOOPBACK_IP_V6,
+                           InternetAddress.ANY_IP_V6,
+                           '::1',
+                           '::'];
+
+Future testConnect(InternetAddress bindAddress,
+                   bool v6Only,
+                   Function connectFunction,
+                   Function closeDestroyFunction) async {
+  asyncStart();
+  var server = await ServerSocket.bind(bindAddress, 0, v6Only: v6Only);
+  server.listen((s) {
+    s.destroy();
+    asyncEnd();
+  }, onDone: () => asyncEnd());
+
+  asyncStart();
+
+  // Connect with IPv4 source addesses.
+  for (var sourceAddress in ipV4SourceAddresses) {
+    if (!v6Only) {
+      asyncStart();  // Matching asyncEnd in server.listen above.
+      var s = await connectFunction(InternetAddress.LOOPBACK_IP_V4,
+                                   server.port,
+                                   sourceAddress: sourceAddress);
+      closeDestroyFunction(s);
+    } else {
+      // Cannot use an IPv6 source address to connect to IPv6 if
+      // v6Only is specified.
+      await throws(() => connectFunction(InternetAddress.LOOPBACK_IP_V4,
+                                         server.port,
+                                         sourceAddress: sourceAddress),
+                   (e) => e is SocketException);
+    }
+  }
+
+  // Connect with IPv6 source addesses.
+  for (var sourceAddress in ipV6SourceAddresses) {
+    if (bindAddress.type == InternetAddressType.IP_V6) {
+      asyncStart();  // Matching asyncEnd in server.listen above.
+      var s = await connectFunction(InternetAddress.LOOPBACK_IP_V6,
+                                    server.port,
+                                    sourceAddress: sourceAddress);
+      closeDestroyFunction(s);
+    } else {
+      // Cannot use an IPv6 source address to connect to IPv4.
+      await throws(() => connectFunction(InternetAddress.LOOPBACK_IP_V6,
+                                         server.port,
+                                         sourceAddress: sourceAddress),
+                   (e) => e is SocketException);
+    }
+  }
+
+  server.close();
+  asyncEnd();
+}
+
+main() {
+  testArguments(RawSocket.connect);
+  testArguments(Socket.connect);
+  testConnect(
+      InternetAddress.ANY_IP_V4, false, RawSocket.connect, (s) => s.close());
+  testConnect(
+      InternetAddress.ANY_IP_V4, false, Socket.connect, (s) => s.destroy());
+  testConnect(
+      InternetAddress.ANY_IP_V6, false, RawSocket.connect, (s) => s.close());
+  testConnect(
+      InternetAddress.ANY_IP_V6, false, Socket.connect, (s) => s.destroy());
+  testConnect(
+      InternetAddress.ANY_IP_V6, true, RawSocket.connect, (s) => s.close());
+  testConnect(
+      InternetAddress.ANY_IP_V6, true, Socket.connect, (s) => s.destroy());
+}

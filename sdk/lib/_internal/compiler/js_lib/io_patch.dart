@@ -378,7 +378,7 @@ class ServerSocket {
 @patch
 class RawSocket {
   @patch
-  static Future<RawSocket> connect(host, int port) {
+  static Future<RawSocket> connect(host, int port, {sourceAddress}) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
@@ -386,7 +386,7 @@ class RawSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> connect(host, int port) {
+  static Future<Socket> connect(host, int port, {sourceAddress}) {
     throw new UnsupportedError("Socket constructor");
   }
 }

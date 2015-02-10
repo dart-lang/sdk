@@ -57,6 +57,25 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
+  RawAddr addr;
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
+  Dart_Handle port_arg = Dart_GetNativeArgument(args, 2);
+  int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
+  RawAddr sourceAddr;
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 3), &sourceAddr);
+  intptr_t socket = Socket::CreateBindConnect(
+      addr, static_cast<intptr_t>(port), sourceAddr);
+  OSError error;
+  if (socket >= 0) {
+    Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
+  }
+}
+
+
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
