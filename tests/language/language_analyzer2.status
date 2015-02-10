@@ -13,6 +13,8 @@ enum_syntax_test/04: Fail # 21649
 enum_syntax_test/05: Fail # 21649
 enum_syntax_test/06: Fail # 21649
 
+sync_generator1_test: Fail
+
 compile_time_constant_c_test/01: Fail # Issue 21000
 compile_time_constant12_test: Fail # Issue 21000
 

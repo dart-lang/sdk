@@ -43,8 +43,7 @@ einsZwei() sync* {
 }
 
 dreiVier() sync* {
-  // Throws type error: yielded object is not an iterable.
-  yield* 3; /// 01: static type warning
+  yield* 3;  // Throws type error: yielded object is not an iterable.
 }
 
 main() {
@@ -80,6 +79,6 @@ main() {
     print(einsZwei());
     Expect.equals("(1, 2, 3, 5, [6])", einsZwei().toString());
 
-    Expect.throws(() => dreiVier().toString()); /// 01: continued
+    Expect.throws(() => dreiVier().toString());
   }
 }
