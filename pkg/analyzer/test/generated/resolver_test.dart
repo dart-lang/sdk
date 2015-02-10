@@ -10032,7 +10032,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitFunctionExpression_async_block() {
     // () async {}
-    InterfaceType intType = _typeProvider.intType;
     BlockFunctionBody body = AstFactory.blockFunctionBody2();
     body.keyword = TokenFactory.tokenFromString('async');
     FunctionExpression node =

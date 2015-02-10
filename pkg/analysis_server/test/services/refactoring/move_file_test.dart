@@ -6,7 +6,6 @@ library test.services.refactoring.move_files;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
