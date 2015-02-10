@@ -3550,26 +3550,26 @@ Function _wrapJsFunctionForThenHelper(dynamic /* js function */ function,
 ///
 /// If [helperCallback] or [errorCallback] throws the error is added to the
 /// stream.
-dynamic streamHelper(dynamic object,
+void streamHelper(dynamic object,
                      dynamic /* js function */ helperCallback,
                      AsyncStarStreamController controller,
                      dynamic /* js function */ errorCallback) {
   if (helperCallback == null) {
     // This happens on return from the async* function.
     controller.close();
-    return null;
+    return;
   }
 
   if (object is IterationMarker) {
     if (controller.stopRunning) {
       _wrapJsFunctionForStream(errorCallback, controller)();
-      return null;
+      return;
     }
     if (object.state == IterationMarker.YIELD_SINGLE) {
       controller.add(object.value);
       // If the controller is paused we stop producing more values.
       if (controller.isPaused) {
-        return null;
+        return;
       }
       // TODO(sigurdm): We should not suspend here according to the spec.
       scheduleMicrotask(() {
@@ -3586,7 +3586,7 @@ dynamic streamHelper(dynamic object,
         controller.isAdding = false;
         _wrapJsFunctionForStream(helperCallback, controller)(null);
       });
-      return null;
+      return;
     }
   }
 
@@ -3595,6 +3595,9 @@ dynamic streamHelper(dynamic object,
               onError: errorCallback == null
                   ? null
                   : _wrapJsFunctionForStream(errorCallback, controller));
+}
+
+Stream streamOfController(AsyncStarStreamController controller) {
   return controller.stream;
 }
 
@@ -3618,6 +3621,9 @@ class AsyncStarStreamController {
 
   AsyncStarStreamController(helperCallback) {
     controller = new StreamController(
+      onListen: () {
+        scheduleMicrotask(() => JS('', '#(null)', helperCallback));
+      },
       onResume: () {
         if (!isAdding) {
           streamHelper(null, helperCallback, this, null);

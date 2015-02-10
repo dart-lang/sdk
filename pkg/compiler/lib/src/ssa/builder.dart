@@ -52,6 +52,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
             backend.compiler.currentElement,
             streamHelper: backend.emitter.staticFunctionAccess(
                 backend.getStreamHelper()),
+            streamOfController: backend.emitter.staticFunctionAccess(
+                backend.getStreamOfController()),
             newController: backend.emitter.staticFunctionAccess(
                 backend.getASyncStarControllerConstructor()),
             safeVariableName: backend.namer.safeVariableName,

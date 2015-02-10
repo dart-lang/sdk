@@ -186,6 +186,11 @@ class AsyncRewriter extends js.NodeVisitor {
   /// Specific to async* methods.
   final js.Expression newController;
 
+  /// Used to get the `Stream` out of the [controllerName] variable.
+  ///
+  /// Specific to async* methods.
+  final js.Expression streamOfController;
+
   /// Contructor creating the Iterable for a sync* method. Called with
   /// [helperName].
   final js.Expression newIterable;
@@ -232,6 +237,7 @@ class AsyncRewriter extends js.NodeVisitor {
                 spannable,
                 {this.thenHelper,
                  this.streamHelper,
+                 this.streamOfController,
                  this.newCompleter,
                  this.newController,
                  this.endOfIteration,
@@ -589,8 +595,8 @@ class AsyncRewriter extends js.NodeVisitor {
       });
     } else if (isAsyncStar) {
       return js.js.statement(
-          "return #streamHelper(null, $helperName, $controllerName, null);", {
-        "streamHelper": streamHelper
+          "return #streamOfController($controllerName);", {
+        "streamOfController": streamOfController
       });
     } else {
       throw diagnosticListener.internalError(

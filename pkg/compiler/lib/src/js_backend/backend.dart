@@ -1620,6 +1620,10 @@ class JavaScriptBackend extends Backend {
     return findHelper("streamHelper");
   }
 
+  Element getStreamOfController() {
+    return findHelper("streamOfController");
+  }
+
   Element getEndOfIteration() {
     ClassElement classElement = findHelper("IterationMarker");
     classElement.ensureResolved(compiler);
@@ -2412,6 +2416,7 @@ class JavaScriptBackend extends Backend {
     } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
       enqueuer.registerInstantiatedClass(getASyncStarController(), registry);
       enqueue(enqueuer, getStreamHelper(), registry);
+      enqueue(enqueuer, getStreamOfController(), registry);
       enqueue(enqueuer, getYieldSingle(), registry);
       enqueue(enqueuer, getYieldStar(), registry);
       enqueue(enqueuer, getASyncStarControllerConstructor(), registry);
