@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.elements;
+part of elements;
 
 /// A [Name] represents the abstraction of a Dart identifier which takes privacy
 /// and setter into account.

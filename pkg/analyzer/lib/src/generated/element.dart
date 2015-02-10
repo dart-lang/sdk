@@ -9,8 +9,6 @@ library engine.element;
 
 import 'dart:collection';
 
-import 'package:sharedfrontend/elements.dart' as shared;
-
 import 'ast.dart';
 import 'constant.dart' show EvaluationResultImpl;
 import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
@@ -113,7 +111,7 @@ class BottomTypeImpl extends TypeImpl {
 /**
  * The interface `ClassElement` defines the behavior of elements that represent a class.
  */
-abstract class ClassElement implements Element, shared.ClassElement {
+abstract class ClassElement implements Element {
   /**
    * Return an array containing all of the accessors (getters and setters) declared in this class.
    *
@@ -2236,7 +2234,7 @@ class DynamicTypeImpl extends TypeImpl {
  * unnamed functions and exist in order to more accurately represent the semantic structure of the
  * program.
  */
-abstract class Element extends shared.Element {
+abstract class Element {
   /**
    * An Unicode right arrow.
    */
@@ -7129,7 +7127,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 /**
  * The interface `LibraryElement` defines the behavior of elements representing a library.
  */
-abstract class LibraryElement implements Element, shared.LibraryElement {
+abstract class LibraryElement implements Element {
   /**
    * Return the compilation unit that defines this library.
    *

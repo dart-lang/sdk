@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:compiler/src/universe/universe.dart';
-import 'package:sharedfrontend/src/access_semantics.dart';
 
 import 'closed_world.dart';
 import 'util.dart';
@@ -311,13 +310,13 @@ class TreeShakingVisitor extends SemanticVisitor {
   void handleDynamicAccess(AccessSemantics semantics) {
     if (semantics.isRead) {
       analysis.invokes.add(
-          new Selector.getter(semantics.name, null));
+          new Selector.getter(semantics.identifier.name, null));
     }
     if (semantics.isWrite) {
       // Selector.setter constructor uses the convention that setter names
       // don't end in '='.
       analysis.invokes.add(
-          new Selector.setter(semantics.name, null));
+          new Selector.setter(semantics.identifier.name, null));
     }
   }
 

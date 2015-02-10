@@ -10,8 +10,6 @@ import 'package:compiler/src/dart_types.dart' as dart2js;
 import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
-import 'package:sharedfrontend/elements.dart' as shared;
-import 'package:sharedfrontend/src/access_semantics.dart';
 
 import 'package:compiler/src/dart2jslib.dart'
     show DART_CONSTANT_SYSTEM;
@@ -402,7 +400,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // TODO(johnniwinther): Handle implicit `this`.
     ir.Primitive receiver = build(semantics.target);
     return irBuilder.buildDynamicGet(receiver,
-        new Selector.getter(semantics.name,
+        new Selector.getter(semantics.identifier.name,
                             converter.convertElement(element.library)));
   }
 
@@ -535,10 +533,9 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
              node.identifier.name, converter.convertElement(currentLibrary));
        } else if (accessSemantics.element != null) {
          variableElement = converter.convertElement(accessSemantics.element);
-         shared.Element library = accessSemantics.element.library;
          variableSelector = new Selector.setter(
              variableElement.name,
-             converter.convertElement(library));
+             converter.convertElement(accessSemantics.element.library));
        } else {
          giveUp(node, 'For-in of unresolved variable: $accessSemantics');
        }

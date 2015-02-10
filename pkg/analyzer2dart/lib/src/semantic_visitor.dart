@@ -6,7 +6,6 @@ library analyzer2dart.semantic_visitor;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:sharedfrontend/src/access_semantics.dart';
 
 import 'util.dart';
 import 'identifier_semantics.dart';
