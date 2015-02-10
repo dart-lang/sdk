@@ -598,7 +598,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     // Check the block for a return statement, if not, create the hint
     BlockFunctionBody blockFunctionBody = body as BlockFunctionBody;
-    if (!blockFunctionBody.accept(new ExitDetector())) {
+    if (!ExitDetector.exits(blockFunctionBody)) {
       _errorReporter.reportErrorForNode(
           HintCode.MISSING_RETURN,
           returnType,

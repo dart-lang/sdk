@@ -7342,9 +7342,8 @@ class ExitDetectorTest extends ParserTestCase {
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    ExitDetector detector = new ExitDetector();
     Statement statement = ParserTestCase.parseStatement(source);
-    expect(statement.accept(detector), same(expectedResult));
+    expect(ExitDetector.exits(statement), expectedResult);
   }
 
   void _assertTrue(String source) {
@@ -7378,7 +7377,7 @@ String f(E e) {
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
     Statement statement = body.block.statements[1];
-    expect(statement.accept(new ExitDetector()), false);
+    expect(ExitDetector.exits(statement), false);
   }
 
   void test_switch_withEnum_false_withDefault() {
@@ -7400,7 +7399,7 @@ String f(E e) {
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
     Statement statement = body.block.statements[1];
-    expect(statement.accept(new ExitDetector()), false);
+    expect(ExitDetector.exits(statement), false);
   }
 
   void test_switch_withEnum_true_noDefault() {
@@ -7420,7 +7419,7 @@ String f(E e) {
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
     Statement statement = body.block.statements[0];
-    expect(statement.accept(new ExitDetector()), true);
+    expect(ExitDetector.exits(statement), true);
   }
 
   void test_switch_withEnum_true_withDefault() {
@@ -7440,7 +7439,7 @@ String f(E e) {
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
     Statement statement = body.block.statements[0];
-    expect(statement.accept(new ExitDetector()), true);
+    expect(ExitDetector.exits(statement), true);
   }
 }
 
