@@ -507,12 +507,12 @@ class ModelEmitter {
   /// facilitate the generation of tearOffs at runtime. The format is an array
   /// with the following fields:
   ///
+  /// [InstanceMethod.aliasName] (optional).
   /// [Method.code]
   /// [DartMethod.callName]
-  /// [DartMethod.tearOffName]
-  /// [JavaScriptBackend.isInterceptedMethod]
-  /// functionType
-  /// [InstanceMethod.aliasName]
+  /// isInterceptedMethod (optional, present if [DartMethod.needsTearOff]).
+  /// [DartMethod.tearOffName] (optional, present if [DartMethod.needsTearOff]).
+  /// functionType (optional, present if [DartMethod.needsTearOff]).
   ///
   /// followed by
   ///
@@ -524,25 +524,40 @@ class ModelEmitter {
   static final String parseFunctionDescriptorBoilerplate = r"""
 function parseFunctionDescriptor(proto, name, descriptor) {
   if (descriptor instanceof Array) {
-    proto[name] = descriptor[0];
-    var funs = [descriptor[0]];
-    funs[0].$callName = descriptor[1];
-    for (var pos = 6; pos < descriptor.length; pos += 3) {
+    // 'pos' points to the last read entry.
+    var f, pos = -1;
+    var aliasOrFunction = descriptor[++pos];
+    if (typeof aliasOrFunction == "string") {
+      // Install the alias for super calls on the prototype chain.
+      proto[aliasOrFunction] = f = descriptor[++pos];
+    } else {
+      f = aliasOrFunction;
+    }
+
+    proto[name] = f;
+    var funs = [f];
+    f.$callName = descriptor[++pos];
+
+    var isInterceptedOrParameterStubName = descriptor[pos + 1];
+    var isIntercepted, tearOffName, reflectionInfo;
+    if (typeof isInterceptedOrParameterStubName == "boolean") {
+      isIntercepted = descriptor[++pos];
+      tearOffName = descriptor[++pos];
+      reflectionInfo = descriptor[++pos];
+    }
+
+    for (++pos; pos < descriptor.length; pos += 3) {
       var stub = descriptor[pos + 2];
       stub.$callName = descriptor[pos + 1];
       proto[descriptor[pos]] = stub;
       funs.push(stub);
     }
-    if (descriptor[2] != null) {
-      var isIntercepted = descriptor[3];
-      var reflectionInfo = descriptor[4];
-      proto[descriptor[2]] = 
+
+    if (tearOffName) {
+      proto[tearOffName] =
           tearOff(funs, reflectionInfo, false, name, isIntercepted);
     }
-    // Install the alias for super calls on the prototype chain.
-    if (descriptor[5] != null) {
-      proto[descriptor[5]] = descriptor[0];
-    }
+
   } else {
     proto[name] = descriptor;
   }
@@ -575,19 +590,22 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       if (method.needsTearOff || method.aliasName != null) {
         /// See [parseFunctionDescriptorBoilerplate] for a full description of
         /// the format.
-        // [name, [function, callName, tearOffName, isIntercepted, functionType,
-        //     aliasName, stub1_name, stub1_callName, stub1_code, ...]
-        bool isIntercepted = backend.isInterceptedMethod(method.element);
-        var data = [method.code];
-        data.add(js.string(method.callName));
-        data.add(js.string(method.tearOffName));
-        data.add(new js.LiteralBool(isIntercepted));
-        data.add(_generateFunctionType(method.type));
+        // [name, [aliasName, function, callName, isIntercepted, tearOffName,
+        // functionType, stub1_name, stub1_callName, stub1_code, ...]
+        var data = [];
         if (method.aliasName != null) {
           data.add(js.string(method.aliasName));
-        } else {
-          data.add(new js.LiteralNull());
         }
+        data.add(method.code);
+        data.add(js.string(method.callName));
+
+        if (method.needsTearOff) {
+          bool isIntercepted = backend.isInterceptedMethod(method.element);
+          data.add(new js.LiteralBool(isIntercepted));
+          data.add(js.string(method.tearOffName));
+          data.add(_generateFunctionType(method.type));
+        }
+
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
         return [js.string(method.name), new js.ArrayInitializer(data)];
       } else {
