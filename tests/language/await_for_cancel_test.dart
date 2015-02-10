@@ -6,10 +6,10 @@ import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-bool cancelled;
+bool canceled;
 
 test1() async {
-  cancelled = false;
+  canceled = false;
   try {
     StreamController controller = infiniteStreamController();
     outer: while(true) {
@@ -20,12 +20,12 @@ test1() async {
       }
     }
   } finally {
-    Expect.isTrue(cancelled);
+    Expect.isTrue(canceled);
   }
 }
 
 test2() async {
-  cancelled = false;
+  canceled = false;
   try {
     StreamController controller = infiniteStreamController();
     bool first = true;
@@ -42,7 +42,7 @@ test2() async {
       }
     }
   } finally {
-    Expect.isTrue(cancelled);
+    Expect.isTrue(canceled);
   }
 }
 
@@ -65,29 +65,27 @@ StreamController infiniteStreamController() {
   Timer timer;
   int counter = 0;
 
-  void tick(_) {
+  void tick() {
+    if (controller.isPaused) {
+      return;
+    }
+    if (canceled) {
+      return;
+    }
     counter++;
     controller.add(counter); // Ask stream to send counter values as event.
+    Timer.run(tick);
   }
 
   void startTimer() {
-    timer = new Timer.periodic(const Duration(milliseconds: 10), tick);
-  }
-
-  void stopTimer() {
-    if (timer != null) {
-      timer.cancel();
-      timer = null;
-    }
+    Timer.run(tick);
   }
 
   controller = new StreamController(
       onListen: startTimer,
-      onPause: stopTimer,
       onResume: startTimer,
       onCancel: () {
-        cancelled = true;
-        stopTimer();
+        canceled = true;
       });
 
   return controller;
