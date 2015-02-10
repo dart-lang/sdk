@@ -2401,12 +2401,14 @@ void Debugger::NotifyDoneLoading() {
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   while (bpt != NULL) {
     url = bpt->url();
+    bool found_match = false;
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       script = lib.LookupScript(url);
       if (!script.IsNull()) {
         // Found a script with matching url for this latent breakpoint.
         // Unlink the latent breakpoint from the list.
+        found_match = true;
         SourceBreakpoint* matched_bpt = bpt;
         bpt = bpt->next();
         if (prev_bpt == NULL) {
@@ -2470,6 +2472,16 @@ void Debugger::NotifyDoneLoading() {
           break;
         }
       }
+    }
+    if (!found_match) {
+      // No matching url found in any of the libraries.
+      if (FLAG_verbose_debug) {
+        OS::Print("No match found for latent breakpoint id "
+                  "%" Pd " with url '%s'\n",
+                  bpt->id(),
+                  url.ToCString());
+      }
+      bpt = bpt->next();
     }
   }
 }
