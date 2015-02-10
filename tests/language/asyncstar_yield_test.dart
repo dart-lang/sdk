@@ -15,7 +15,7 @@ Stream<int> foo1() async* {
 Stream<int> foo2() async* {
   int i = 0;
   while (true) {
-    await (new Future.delayed(new Duration(milliseconds: 10), () {}));
+    await (new Future.delayed(new Duration(milliseconds: 0), () {}));
     if (i > 10) return;
     yield i;
     i++;
