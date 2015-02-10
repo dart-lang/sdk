@@ -1408,8 +1408,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ir.Primitive value;
       // Load argument if provided.
       if (signature.optionalParametersAreNamed) {
-        int translatedIndex = selector.namedArguments.indexOf(param.name);
-        if (translatedIndex != -1) {
+        int nameIndex = selector.namedArguments.indexOf(param.name);
+        if (nameIndex != -1) {
+          int translatedIndex = selector.positionalArgumentCount + nameIndex;
           value = arguments[translatedIndex];
         }
       } else if (index < arguments.length) {
@@ -1418,7 +1419,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // Load default if argument was not provided.
       if (value == null) {
         if (param.initializer != null) {
-          value = visit(param.initializer);
+          value = inlineExpression(target, param.initializer);
         } else {
           value = irBuilder.buildNullLiteral();
         }

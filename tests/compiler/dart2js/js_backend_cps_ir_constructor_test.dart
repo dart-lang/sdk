@@ -138,6 +138,37 @@ function() {
   v4 = V.foo("x2");
   return new V.Sub(v0, v1, V.foo("y3"), v2, v4, v3);
 }"""),
+
+
+  const TestEntry.forMethod('generative_constructor(Foo#)', """
+class Bar {
+  Bar(x, {y, z: 'z', w: '_', q}) {
+    print(x);
+    print(y);
+    print(z);
+    print(w);
+    print(q);
+  }
+}
+class Foo extends Bar {
+  Foo() : super('x', y: 'y', w: 'w');
+}
+main() {
+  new Foo();
+}
+""",
+r"""
+function() {
+  var x, y, w, z, q, v0;
+  x = "x";
+  y = "y";
+  w = "w";
+  z = "z";
+  q = null;
+  v0 = new V.Foo();
+  v0.Bar$5$q$w$y$z(x, q, w, y, z);
+  return v0;
+}"""),
 ];
 
 void main() {
