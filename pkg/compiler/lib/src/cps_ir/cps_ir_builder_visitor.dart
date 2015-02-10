@@ -144,7 +144,27 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   ClosureScope getClosureScopeForNode(ast.Node node);
   ClosureEnvironment getClosureEnvironment();
 
+  /// Normalizes the argument list to a static invocation (i.e. where the target
+  /// element is known).
+  ///
+  /// For the JS backend, inserts default arguments and normalizes order of
+  /// named arguments.
+  ///
+  /// For the Dart backend, returns [arguments].
+  List<ir.Primitive> normalizeStaticArguments(
+      Selector selector,
+      FunctionElement target,
+      List<ir.Primitive> arguments);
 
+  /// Normalizes the argument list of a dynamic invocation (i.e. where the
+  /// target element is unknown).
+  ///
+  /// For the JS backend, normalizes order of named arguments.
+  ///
+  /// For the Dart backend, returns [arguments].
+  List<ir.Primitive> normalizeDynamicArguments(
+      Selector selector,
+      List<ir.Primitive> arguments);
 
   ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
                                           ast.FunctionExpression node) {
@@ -549,19 +569,14 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   ir.Primitive visitClosureSend(ast.Send node) {
     assert(irBuilder.isOpen);
     Element element = elements[node];
-    Selector closureSelector = elements.getSelector(node);
-    if (element == null) {
-      ir.Primitive closureTarget = visit(node.selector);
-      List<ir.Primitive> args =
-          node.arguments.mapToList(visit, growable:false);
-      return irBuilder.buildFunctionExpressionInvocation(
-          closureTarget, elements.getSelector(node), args);
-    } else {
-      List<ir.Primitive> args =
-          node.arguments.mapToList(visit, growable:false);
-      return irBuilder.buildLocalInvocation(
-          element, elements.getSelector(node), args);
-    }
+    Selector selector = elements.getSelector(node);
+    ir.Primitive receiver = (element == null)
+        ? visit(node.selector)
+        : irBuilder.buildLocalGet(element);
+    List<ir.Primitive> arguments = node.arguments.mapToList(visit);
+    arguments = normalizeDynamicArguments(selector, arguments);
+    return irBuilder.buildFunctionExpressionInvocation(
+        receiver, selector, arguments);
   }
 
   /// If [node] is null, returns this.
@@ -583,10 +598,8 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     assert(irBuilder.isOpen);
     Selector selector = elements.getSelector(node);
     ir.Primitive receiver = visitReceiver(node.receiver);
-    List<ir.Primitive> arguments = new List<ir.Primitive>();
-    for (ast.Node n in node.arguments) {
-      arguments.add(visit(n));
-    }
+    List<ir.Primitive> arguments = node.arguments.mapToList(visit);
+    arguments = normalizeDynamicArguments(selector, arguments);
     return irBuilder.buildDynamicInvocation(receiver, selector, arguments);
   }
 
@@ -712,9 +725,9 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
     Selector selector = elements.getSelector(node);
 
-    // TODO(lry): support default arguments, need support for locals.
     List<ir.Primitive> arguments =
         node.arguments.mapToList(visit, growable:false);
+    arguments = normalizeStaticArguments(selector, element, arguments);
     return irBuilder.buildStaticInvocation(element, selector, arguments);
   }
 
@@ -725,10 +738,8 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     } else {
       Selector selector = elements.getSelector(node);
       Element target = elements[node];
-      List<ir.Primitive> arguments = new List<ir.Primitive>();
-      for (ast.Node n in node.arguments) {
-        arguments.add(visit(n));
-      }
+      List<ir.Primitive> arguments = node.arguments.mapToList(visit);
+      arguments = normalizeStaticArguments(selector, target, arguments);
       return irBuilder.buildSuperInvocation(target, selector, arguments);
     }
   }
@@ -861,8 +872,9 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     Selector selector = elements.getSelector(node.send);
     DartType type = elements.getType(node);
     ast.Node selectorNode = node.send.selector;
-    List<ir.Definition> arguments =
+    List<ir.Primitive> arguments =
         node.send.arguments.mapToList(visit, growable:false);
+    arguments = normalizeStaticArguments(selector, element, arguments);
     return irBuilder.buildConstructorInvocation(
         element, selector, type, arguments);
   }
@@ -887,12 +899,9 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return irBuilder.buildStringConcatenation(arguments);
   }
 
-  ir.Primitive translateConstant(ast.Node node, [ConstantExpression constant]) {
+  ir.Primitive translateConstant(ast.Node node) {
     assert(irBuilder.isOpen);
-    if (constant == null) {
-      constant = getConstantForNode(node);
-    }
-    return irBuilder.buildConstantLiteral(constant);
+    return irBuilder.buildConstantLiteral(getConstantForNode(node));
   }
 
   ir.ExecutableDefinition nullIfGiveup(ir.ExecutableDefinition action()) {
@@ -1107,6 +1116,19 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
 
     return withBuilder(builder, () => _makeFunctionBody(element, node));
   }
+
+  List<ir.Primitive> normalizeStaticArguments(
+      Selector selector,
+      FunctionElement target,
+      List<ir.Primitive> arguments) {
+    return arguments;
+  }
+
+  List<ir.Primitive> normalizeDynamicArguments(
+      Selector selector,
+      List<ir.Primitive> arguments) {
+    return arguments;
+  }
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
@@ -1240,6 +1262,18 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         compiler,
         elementSourceFile(context));
     return visitor.withBuilder(irBuilder, () => visitor.visit(expression));
+  }
+
+  /// Builds the IR for a constant taken from a different [context].
+  ///
+  /// Such constants need to be compiled with a different [sourceFile] and
+  /// [elements] mapping.
+  ir.Primitive inlineConstant(AstElement context, ast.Expression exp) {
+    JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
+        context.resolvedAst.elements,
+        compiler,
+        elementSourceFile(context));
+    return visitor.withBuilder(irBuilder, () => visitor.translateConstant(exp));
   }
 
   /// Builds the IR for a given constructor.
@@ -1544,6 +1578,81 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     IrBuilder builder =
         new JsIrBuilder(compiler.backend.constantSystem, element);
     return withBuilder(builder, () => _makeFunctionBody(element, node));
+  }
+
+  /// Creates a primitive for the default value of [parameter].
+  ir.Primitive translateDefaultValue(ParameterElement parameter) {
+    if (parameter.initializer == null) {
+      return irBuilder.buildNullLiteral();
+    } else {
+      return inlineConstant(parameter.executableContext, parameter.initializer);
+    }
+  }
+
+  /// Inserts default arguments and normalizes order of named arguments.
+  List<ir.Primitive> normalizeStaticArguments(
+      Selector selector,
+      FunctionElement target,
+      List<ir.Primitive> arguments) {
+    target = target.implementation;
+    FunctionSignature signature = target.functionSignature;
+    if (!signature.optionalParametersAreNamed &&
+        signature.parameterCount == arguments.length) {
+      // Optimization: don't copy the argument list for trivial cases.
+      return arguments;
+    }
+
+    List<ir.Primitive> result = <ir.Primitive>[];
+    int i = 0;
+    signature.forEachRequiredParameter((ParameterElement element) {
+      result.add(arguments[i]);
+      ++i;
+    });
+
+    if (!signature.optionalParametersAreNamed) {
+      signature.forEachOptionalParameter((ParameterElement element) {
+        if (i < arguments.length) {
+          result.add(arguments[i]);
+          ++i;
+        } else {
+          result.add(translateDefaultValue(element));
+        }
+      });
+    } else {
+      int offset = i;
+      // Iterate over the optional parameters of the signature, and try to
+      // find them in [compiledNamedArguments]. If found, we use the
+      // value in the temporary list, otherwise the default value.
+      signature.orderedOptionalParameters.forEach((ParameterElement element) {
+        int nameIndex = selector.namedArguments.indexOf(element.name);
+        if (nameIndex != -1) {
+          int translatedIndex = offset + nameIndex;
+          result.add(arguments[translatedIndex]);
+        } else {
+          result.add(translateDefaultValue(element));
+        }
+      });
+    }
+    return result;
+  }
+
+  /// Normalizes order of named arguments.
+  List<ir.Primitive> normalizeDynamicArguments(
+      Selector selector,
+      List<ir.Primitive> arguments) {
+    assert(arguments.length == selector.argumentCount);
+    // Optimization: don't copy the argument list for trivial cases.
+    if (selector.namedArguments.isEmpty) return arguments;
+    List<ir.Primitive> result = <ir.Primitive>[];
+    for (int i=0; i < selector.positionalArgumentCount; i++) {
+      result.add(arguments[i]);
+    }
+    for (String argName in selector.getOrderedNamedArguments()) {
+      int nameIndex = selector.namedArguments.indexOf(argName);
+      int translatedIndex = selector.positionalArgumentCount + nameIndex;
+      result.add(arguments[translatedIndex]);
+    }
+    return result;
   }
 
 }
