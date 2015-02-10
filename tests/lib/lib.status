@@ -246,6 +246,7 @@ async/timer_test: Fail, Pass # Issue 15487
 async/multiple_timer_test: Fail, Pass # Issue 15487
 async/stream_periodic3_test: Fail, Pass # Issue 15487
 async/timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
+async/timer_isActive_test: Fail, Pass # Issue 22352
 mirrors/immutable_collections_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/mirrors_reader_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
