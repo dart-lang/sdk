@@ -92,6 +92,7 @@ part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
 part 'interceptor_stub_generator.dart';
+part 'main_call_stub_generator.dart';
 part 'metadata_collector.dart';
 part 'native_emitter.dart';
 part 'native_generator.dart';
