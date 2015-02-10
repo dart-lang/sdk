@@ -186,6 +186,11 @@ class CircularLinkedList {
     }
   }
 
+  void RemoveAll() {
+    while (HasHead()) {
+      RemoveHead();
+    }
+  }
 
   T head() const { return head_->t; }
 
@@ -233,6 +238,9 @@ class DescriptorInfoBase {
   // Removes a port from the interested listeners.
   virtual void RemovePort(Dart_Port port) = 0;
 
+  // Removes all ports from the interested listeners.
+  virtual void RemoveAllPorts() = 0;
+
   // Returns a port to which `events_ready` can be sent to. It will also
   // decrease the token count by 1 for this port.
   virtual Dart_Port NextNotifyDartPort(intptr_t events_ready) = 0;
@@ -266,8 +274,9 @@ class DescriptorInfoSingleMixin : public DI {
   static const int kTokenCount = 16;
 
  public:
-  explicit DescriptorInfoSingleMixin(intptr_t fd)
-      : DI(fd), port_(0), tokens_(kTokenCount), mask_(0) {}
+  explicit DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
+      : DI(fd), port_(0), tokens_(kTokenCount), mask_(0),
+        disable_tokens_(disable_tokens) {}
 
   virtual ~DescriptorInfoSingleMixin() { }
 
@@ -287,29 +296,41 @@ class DescriptorInfoSingleMixin : public DI {
     mask_ = 0;
   }
 
+  virtual void RemoveAllPorts() {
+    port_ = 0;
+    mask_ = 0;
+  }
+
   virtual Dart_Port NextNotifyDartPort(intptr_t events_ready) {
     ASSERT(IS_IO_EVENT(events_ready) ||
            IS_EVENT(events_ready, kDestroyedEvent));
-    tokens_--;
+    if (!disable_tokens_) {
+      tokens_--;
+    }
     return port_;
   }
 
   virtual void NotifyAllDartPorts(uintptr_t events) {
-    // Unexpected close or error events are the only ones we broadcast to all
-    // listeners and are the only ones where we do not count tokens.
+    // Unexpected close, asynchronous destroy or error events are the only
+    // ones we broadcast to all listeners.
     ASSERT(IS_EVENT(events, kCloseEvent) ||
-           IS_EVENT(events, kErrorEvent));
+           IS_EVENT(events, kErrorEvent) ||
+           IS_EVENT(events, kDestroyedEvent));
 
     if (port_ != 0) {
       DartUtils::PostInt32(port_, events);
     }
-    tokens_--;
+    if (!disable_tokens_) {
+      tokens_--;
+    }
   }
 
   virtual void ReturnTokens(Dart_Port port, int count) {
     ASSERT(port_ == port);
     ASSERT(tokens_ >= 0);
-    tokens_ += count;
+    if (!disable_tokens_) {
+      tokens_ += count;
+    }
     ASSERT(tokens_ <= kTokenCount);
   }
 
@@ -328,6 +349,7 @@ class DescriptorInfoSingleMixin : public DI {
   Dart_Port port_;
   int tokens_;
   intptr_t mask_;
+  bool disable_tokens_;
 };
 
 
@@ -372,8 +394,9 @@ class DescriptorInfoMultipleMixin : public DI {
   };
 
  public:
-  explicit DescriptorInfoMultipleMixin(intptr_t fd)
-      : DI(fd), tokens_map_(&SamePortValue, kTokenCount) {}
+  explicit DescriptorInfoMultipleMixin(intptr_t fd, bool disable_tokens)
+      : DI(fd), tokens_map_(&SamePortValue, kTokenCount),
+        disable_tokens_(disable_tokens) {}
 
   virtual ~DescriptorInfoMultipleMixin() {}
 
@@ -408,10 +431,10 @@ class DescriptorInfoMultipleMixin : public DI {
 
 #ifdef DEBUG
     // To ensure that all readers are ready.
-    PortEntry* root = reinterpret_cast<PortEntry*>(active_readers_.head());
-
     int ready_count = 0;
-    if (root != NULL) {
+
+    if (active_readers_.HasHead()) {
+      PortEntry* root = reinterpret_cast<PortEntry*>(active_readers_.head());
       PortEntry* current = root;
       do {
         ASSERT(current->IsReady());
@@ -420,6 +443,7 @@ class DescriptorInfoMultipleMixin : public DI {
         current = active_readers_.head();
       } while (current != root);
     }
+
     for (HashMap::Entry *entry = tokens_map_.Start();
          entry != NULL;
          entry = tokens_map_.Next(entry)) {
@@ -457,6 +481,17 @@ class DescriptorInfoMultipleMixin : public DI {
     }
   }
 
+  virtual void RemoveAllPorts() {
+    active_readers_.RemoveAll();
+    for (HashMap::Entry *entry = tokens_map_.Start();
+         entry != NULL;
+         entry = tokens_map_.Next(entry)) {
+      PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
+      delete pentry;
+    }
+    tokens_map_.Clear();
+  }
+
   virtual Dart_Port NextNotifyDartPort(intptr_t events_ready) {
     // We're only sending `kInEvents` if there are multiple listeners (which is
     // listening socktes).
@@ -467,7 +502,9 @@ class DescriptorInfoMultipleMixin : public DI {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(active_readers_.head());
 
       // Update token count.
-      pentry->token_count--;
+      if (!disable_tokens_) {
+        pentry->token_count--;
+      }
       if (pentry->token_count <= 0) {
         active_readers_.RemoveHead();
       } else {
@@ -480,10 +517,11 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void NotifyAllDartPorts(uintptr_t events) {
-    // Unexpected close or error events are the only ones we broadcast to all
-    // listeners and are the only ones where we do not count tokens.
+    // Unexpected close, asynchronous destroy or error events are the only
+    // ones we broadcast to all listeners.
     ASSERT(IS_EVENT(events, kCloseEvent) ||
-           IS_EVENT(events, kErrorEvent));
+           IS_EVENT(events, kErrorEvent) ||
+           IS_EVENT(events, kDestroyedEvent));
 
     for (HashMap::Entry *entry = tokens_map_.Start();
          entry != NULL;
@@ -493,7 +531,9 @@ class DescriptorInfoMultipleMixin : public DI {
 
       // Update token count.
       bool was_ready = pentry->IsReady();
-      pentry->token_count--;
+      if (!disable_tokens_) {
+        pentry->token_count--;
+      }
 
       if (was_ready && pentry->token_count <= 0) {
         active_readers_.Remove(pentry);
@@ -509,7 +549,9 @@ class DescriptorInfoMultipleMixin : public DI {
     PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
     bool was_ready = pentry->IsReady();
     ASSERT(pentry->token_count >= 0);
-    pentry->token_count += count;
+    if (!disable_tokens_) {
+      pentry->token_count += count;
+    }
     ASSERT(pentry->token_count <= kTokenCount);
     bool is_ready = pentry->token_count > 0 && pentry->IsReady();
     if (!was_ready && is_ready) {
@@ -537,6 +579,8 @@ class DescriptorInfoMultipleMixin : public DI {
   // A convenience mapping:
   //   Dart_Port -> struct PortEntry { dart_port, mask, token_count }
   HashMap tokens_map_;
+
+  bool disable_tokens_;
 };
 
 

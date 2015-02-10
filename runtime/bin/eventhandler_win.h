@@ -154,7 +154,7 @@ class OverlappedBuffer {
 
 // Abstract super class for holding information on listen and connected
 // sockets.
-class Handle {
+class Handle : public DescriptorInfoBase {
  public:
   enum Type {
     kFile,
@@ -218,7 +218,6 @@ class Handle {
     EventHandlerImplementation* event_handler) = 0;
 
   HANDLE handle() { return handle_; }
-  Dart_Port port() { return port_; }
 
   void Lock();
   void Unlock();
@@ -231,10 +230,6 @@ class Handle {
 
   bool IsHandleClosed() const { return handle_ == INVALID_HANDLE_VALUE; }
 
-  void SetPortAndMask(Dart_Port port, intptr_t mask) {
-    port_ = port;
-    mask_ = mask;
-  }
   Type type() { return type_; }
   bool is_file() { return type_ == kFile; }
   bool is_socket() { return type_ == kListenSocket ||
@@ -243,8 +238,6 @@ class Handle {
   bool is_listen_socket() { return type_ == kListenSocket; }
   bool is_client_socket() { return type_ == kClientSocket; }
   bool is_datagram_socket() { return type_ == kDatagramSocket; }
-  void set_mask(intptr_t mask) { mask_ = mask; }
-  intptr_t mask() { return mask_; }
 
   void MarkDoesNotSupportOverlappedIO() {
     flags_ |= (1 << kDoesNotSupportOverlappedIO);
@@ -267,15 +260,12 @@ class Handle {
     kError = 4
   };
 
-  explicit Handle(HANDLE handle);
-  Handle(HANDLE handle, Dart_Port port);
+  explicit Handle(intptr_t handle);
 
   virtual void HandleIssueError();
 
   Type type_;
   HANDLE handle_;
-  Dart_Port port_;  // Dart port to communicate events for this socket.
-  intptr_t mask_;  // Mask of events to report through the port.
   HANDLE completion_port_;
   EventHandlerImplementation* event_handler_;
 
@@ -291,12 +281,12 @@ class Handle {
 };
 
 
-class FileHandle : public Handle {
+class FileHandle : public DescriptorInfoSingleMixin<Handle> {
  public:
   explicit FileHandle(HANDLE handle)
-      : Handle(handle) { type_ = kFile; }
-  FileHandle(HANDLE handle, Dart_Port port)
-      : Handle(handle, port) { type_ = kFile; }
+      : DescriptorInfoSingleMixin(reinterpret_cast<intptr_t>(handle), true) {
+    type_ = kFile;
+  }
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual bool IsClosed();
@@ -332,10 +322,10 @@ class StdHandle : public FileHandle {
 };
 
 
-class DirectoryWatchHandle : public Handle {
+class DirectoryWatchHandle : public DescriptorInfoSingleMixin<Handle> {
  public:
   DirectoryWatchHandle(HANDLE handle, int events, bool recursive)
-      : Handle(handle),
+      : DescriptorInfoSingleMixin(reinterpret_cast<intptr_t>(handle), true),
         events_(events),
         recursive_(recursive) {
     type_ = kDirectoryWatch;
@@ -359,11 +349,8 @@ class SocketHandle : public Handle {
   SOCKET socket() const { return socket_; }
 
  protected:
-  explicit SocketHandle(SOCKET s)
-      : Handle(reinterpret_cast<HANDLE>(s)),
-        socket_(s) {}
-  SocketHandle(SOCKET s, Dart_Port port)
-      : Handle(reinterpret_cast<HANDLE>(s), port),
+  explicit SocketHandle(intptr_t s)
+      : Handle(s),
         socket_(s) {}
 
   virtual void HandleIssueError();
@@ -374,13 +361,14 @@ class SocketHandle : public Handle {
 
 
 // Information on listen sockets.
-class ListenSocket : public SocketHandle {
+class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
  public:
-  explicit ListenSocket(SOCKET s) : SocketHandle(s),
-                                    AcceptEx_(NULL),
-                                    pending_accept_count_(0),
-                                    accepted_head_(NULL),
-                                    accepted_tail_(NULL) {
+  explicit ListenSocket(intptr_t s) : DescriptorInfoMultipleMixin(s, true),
+                                      AcceptEx_(NULL),
+                                      pending_accept_count_(0),
+                                      accepted_head_(NULL),
+                                      accepted_tail_(NULL),
+                                      accepted_count_(0) {
     type_ = kListenSocket;
   }
   virtual ~ListenSocket() {
@@ -405,35 +393,36 @@ class ListenSocket : public SocketHandle {
 
   int pending_accept_count() { return pending_accept_count_; }
 
+  int accepted_count() { return accepted_count_; }
+
  private:
   bool LoadAcceptEx();
 
   LPFN_ACCEPTEX AcceptEx_;
+
+  // The number of asynchronous `IssueAccept` operations which haven't completed
+  // yet.
   int pending_accept_count_;
+
   // Linked list of accepted connections provided by completion code. Ready to
   // be handed over through accept.
   ClientSocket* accepted_head_;
   ClientSocket* accepted_tail_;
+
+  // The number of accepted connections which are waiting to be removed from
+  // this queue and processed by dart isolates.
+  int accepted_count_;
 };
 
 
 // Information on connected sockets.
-class ClientSocket : public SocketHandle {
+class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit ClientSocket(SOCKET s) : SocketHandle(s),
-                                    DisconnectEx_(NULL),
-                                    next_(NULL),
-                                    connected_(false),
-                                    closed_(false) {
-    LoadDisconnectEx();
-    type_ = kClientSocket;
-  }
-
-  ClientSocket(SOCKET s, Dart_Port port) : SocketHandle(s, port),
-                                           DisconnectEx_(NULL),
-                                           next_(NULL),
-                                           connected_(false),
-                                           closed_(false) {
+  explicit ClientSocket(intptr_t s) : DescriptorInfoSingleMixin(s, true),
+                                      DisconnectEx_(NULL),
+                                      next_(NULL),
+                                      connected_(false),
+                                      closed_(false) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
@@ -479,9 +468,9 @@ class ClientSocket : public SocketHandle {
 };
 
 
-class DatagramSocket : public SocketHandle {
+class DatagramSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit DatagramSocket(SOCKET s) : SocketHandle(s) {
+  explicit DatagramSocket(intptr_t s) : DescriptorInfoSingleMixin(s, true) {
     type_ = kDatagramSocket;
   }
 
@@ -516,6 +505,7 @@ class EventHandlerImplementation {
   void HandleInterrupt(InterruptMessage* msg);
   void HandleTimeout();
   void HandleAccept(ListenSocket* listen_socket, OverlappedBuffer* buffer);
+  void TryDispatchingPendingAccepts(ListenSocket *listen_socket);
   void HandleRead(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleRecvFrom(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleWrite(Handle* handle, int bytes, OverlappedBuffer* buffer);
