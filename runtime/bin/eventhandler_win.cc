@@ -885,10 +885,10 @@ void ClientSocket::ConnectComplete(OverlappedBuffer* buffer) {
   setsockopt(socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
   // If the port is set, we already listen for this socket in Dart.
   // Handle the cases here.
-  if (!IsClosedRead() && (Mask() & (1 << kInEvent) != 0)) {
+  if (!IsClosedRead() && ((Mask() & (1 << kInEvent)) != 0)) {
     IssueRead();
   }
-  if (!IsClosedWrite() && (Mask() & (1 << kOutEvent) != 0)) {
+  if (!IsClosedWrite() && ((Mask() & (1 << kOutEvent)) != 0)) {
     Dart_Port port = NextNotifyDartPort(1 << kOutEvent);
     DartUtils::PostInt32(port, 1 << kOutEvent);
   }
