@@ -408,22 +408,37 @@ class ProfilerDartStackWalker : public ValueObject {
 
   uword InitialReturnAddress() const {
     ASSERT(sp_ != NULL);
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(sp_, kWordSize);
+    ASAN_UNPOISON(sp_, kWordSize);
     return *(sp_);
   }
 
   uword* CallerPC() const {
     ASSERT(fp_ != NULL);
-    return reinterpret_cast<uword*>(*(fp_ + kSavedCallerPcSlotFromFp));
+    uword* caller_pc_ptr = fp_ + kSavedCallerPcSlotFromFp;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(caller_pc_ptr, kWordSize);
+    ASAN_UNPOISON(caller_pc_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*caller_pc_ptr);
   }
 
   uword* CallerFP() const {
     ASSERT(fp_ != NULL);
-    return reinterpret_cast<uword*>(*(fp_ + kSavedCallerFpSlotFromFp));
+    uword* caller_fp_ptr = fp_ + kSavedCallerFpSlotFromFp;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(caller_fp_ptr, kWordSize);
+    ASAN_UNPOISON(caller_fp_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*caller_fp_ptr);
   }
 
   uword* ExitLink() const {
     ASSERT(fp_ != NULL);
-    return reinterpret_cast<uword*>(*(fp_ + kExitLinkSlotFromEntryFp));
+    uword* exit_link_ptr = fp_ + kExitLinkSlotFromEntryFp;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(exit_link_ptr, kWordSize);
+    ASAN_UNPOISON(exit_link_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*exit_link_ptr);
   }
 
   bool ValidFramePointer() const {
