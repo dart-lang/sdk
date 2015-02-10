@@ -1619,7 +1619,7 @@ class AsyncRewriter extends js.NodeVisitor {
       if (initialization.value != null) {
         withExpression(initialization.value, (js.Expression value) {
           addStatement(new js.ExpressionStatement(
-              new js.Assignment(declaration, value)));
+              new js.Assignment(new js.VariableUse(declaration.name), value)));
         }, store: false);
       }
     }

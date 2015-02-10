@@ -6,9 +6,6 @@
 await_future_test: RuntimeError # Issue 22332
 async_test/none: RuntimeError # Issue 22332
 
-[ $compiler == dart2js && $minified ]
-await_future_test: Timeout # Issue 22328
-
 [ $compiler == dart2js ]
 syncstar_yield_test/copyParameters: RuntimeError # Issue 22322
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
