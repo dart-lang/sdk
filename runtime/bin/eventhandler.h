@@ -327,7 +327,6 @@ class DescriptorInfoSingleMixin : public DI {
 
   virtual void ReturnTokens(Dart_Port port, int count) {
     ASSERT(port_ == port);
-    ASSERT(tokens_ >= 0);
     if (!disable_tokens_) {
       tokens_ += count;
     }
@@ -548,7 +547,6 @@ class DescriptorInfoMultipleMixin : public DI {
 
     PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
     bool was_ready = pentry->IsReady();
-    ASSERT(pentry->token_count >= 0);
     if (!disable_tokens_) {
       pentry->token_count += count;
     }

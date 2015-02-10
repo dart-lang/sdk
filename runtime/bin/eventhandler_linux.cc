@@ -142,13 +142,10 @@ void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
     RemoveFromEpollInstance(epoll_fd_, di);
   } else if (old_mask == 0 && new_mask != 0) {
     AddToEpollInstance(epoll_fd_, di);
-  } else if (old_mask != 0 && new_mask != 0) {
-    if (di->IsListeningSocket()) {
-      ASSERT(old_mask == new_mask);
-    } else {
-      RemoveFromEpollInstance(epoll_fd_, di);
-      AddToEpollInstance(epoll_fd_, di);
-    }
+  } else if (old_mask != 0 && new_mask != 0 && old_mask != new_mask) {
+    ASSERT(!di->IsListeningSocket());
+    RemoveFromEpollInstance(epoll_fd_, di);
+    AddToEpollInstance(epoll_fd_, di);
   }
 }
 

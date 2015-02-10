@@ -21,56 +21,50 @@
 namespace dart {
 namespace bin {
 
-class SocketData {
+class DescriptorInfo : public DescriptorInfoBase {
  public:
-  explicit SocketData(intptr_t fd, bool is_listening)
-      : fd_(fd),
-        port_(0),
-        mask_(0),
-        tracked_by_kqueue_(false),
-        tokens_(16),
-        is_listening_(is_listening) {
-    ASSERT(fd_ != -1);
+  explicit DescriptorInfo(intptr_t fd)
+      : DescriptorInfoBase(fd), tracked_by_kqueue_(false) { }
+
+  virtual ~DescriptorInfo() { }
+
+  intptr_t GetPollEvents();
+
+  virtual void Close() {
+    VOID_TEMP_FAILURE_RETRY(close(fd_));
+    fd_ = -1;
   }
 
-  bool HasReadEvent();
-  bool HasWriteEvent();
-
-  bool IsListeningSocket() { return is_listening_; }
-
-  void SetPortAndMask(Dart_Port port, intptr_t mask) {
-    ASSERT(fd_ != -1);
-    port_ = port;
-    mask_ = mask;
-  }
-
-  intptr_t fd() { return fd_; }
-  Dart_Port port() { return port_; }
-  intptr_t mask() { return mask_; }
-  bool tracked_by_kqueue() { return tracked_by_kqueue_; }
   void set_tracked_by_kqueue(bool value) {
     tracked_by_kqueue_ = value;
   }
 
-  // Returns true if the last token was taken.
-  bool TakeToken() {
-    tokens_--;
-    return tokens_ == 0;
-  }
+  bool tracked_by_kqueue() { return tracked_by_kqueue_; }
 
-  // Returns true if the tokens was 0 before adding.
-  bool ReturnToken() {
-    tokens_++;
-    return tokens_ == 1;
-  }
+  bool HasReadEvent();
 
- private:
-  intptr_t fd_;
-  Dart_Port port_;
-  intptr_t mask_;
+  bool HasWriteEvent();
+
+ protected:
   bool tracked_by_kqueue_;
-  int tokens_;
-  bool is_listening_;
+};
+
+
+class DescriptorInfoSingle
+    : public DescriptorInfoSingleMixin<DescriptorInfo> {
+ public:
+  explicit DescriptorInfoSingle(intptr_t fd)
+      : DescriptorInfoSingleMixin(fd) {}
+  virtual ~DescriptorInfoSingle() {}
+};
+
+
+class DescriptorInfoMultiple
+    : public DescriptorInfoMultipleMixin<DescriptorInfo> {
+ public:
+  explicit DescriptorInfoMultiple(intptr_t fd)
+      : DescriptorInfoMultipleMixin(fd) {}
+  virtual ~DescriptorInfoMultiple() {}
 };
 
 
@@ -79,9 +73,11 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   ~EventHandlerImplementation();
 
+  void UpdateKQueueInstance(intptr_t old_mask, DescriptorInfo *di);
+
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
-  SocketData* GetSocketData(intptr_t fd, bool is_listening);
+  DescriptorInfo* GetDescriptorInfo(intptr_t fd, bool is_listening);
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data);
   void Start(EventHandler* handler);
   void Shutdown();
@@ -94,7 +90,7 @@ class EventHandlerImplementation {
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   void HandleInterruptFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
-  intptr_t GetEvents(struct kevent* event, SocketData* sd);
+  intptr_t GetEvents(struct kevent* event, DescriptorInfo* di);
   static void* GetHashmapKeyFromFd(intptr_t fd);
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
 
