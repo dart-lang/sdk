@@ -375,7 +375,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         const uint64_t imm = instr->ImmLogical();
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                    remaining_size_in_buffer(),
-                                   "0x%"Px64,
+                                   "0x%" Px64,
                                    imm);
         return 6;
       } else {
@@ -527,7 +527,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         }
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                    remaining_size_in_buffer(),
-                                   "0x%"Px64,
+                                   "0x%" Px64,
                                    imm);
         return ret;
       } else {
@@ -557,7 +557,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
           const int64_t dest = pc + off;
           buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                      remaining_size_in_buffer(),
-                                     "0x%"Px64,
+                                     "0x%" Px64,
                                      dest);
         } else {
           ASSERT(STRING_STARTS_WITH(format, "pcldr"));
@@ -566,7 +566,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
           const int64_t dest = pc + off;
           buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                      remaining_size_in_buffer(),
-                                     "0x%"Px64,
+                                     "0x%" Px64,
                                      dest);
         }
         return 5;

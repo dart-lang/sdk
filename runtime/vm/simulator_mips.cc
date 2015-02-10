@@ -469,7 +469,7 @@ void SimulatorDebugger::Debug() {
           uint32_t value;
           if (strcmp(arg1, "icount") == 0) {
             const uint64_t icount = sim_->get_icount();
-            OS::Print("icount: %"Pu64" 0x%"Px64"\n", icount, icount);
+            OS::Print("icount: %" Pu64 " 0x%" Px64 "\n", icount, icount);
           } else if (GetValue(arg1, &value)) {
             OS::Print("%s: %u 0x%x\n", arg1, value, value);
           } else {
@@ -1985,7 +1985,7 @@ void Simulator::DecodeCop1(Instr* instr) {
 
 void Simulator::InstructionDecode(Instr* instr) {
   if (IsTracingExecution()) {
-    OS::Print("%"Pu64, icount_);
+    OS::Print("%" Pu64, icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);

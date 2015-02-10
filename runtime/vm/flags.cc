@@ -55,7 +55,7 @@ class Flag {
         break;
       }
       case kUint64: {
-        OS::Print("%s: %"Pu64" (%s)\n", name_, *this->uint64_ptr_, comment_);
+        OS::Print("%s: %" Pu64 " (%s)\n", name_, *this->uint64_ptr_, comment_);
         break;
       }
       case kString: {
@@ -441,7 +441,7 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
     }
     case Flag::kUint64: {
       jsflag.AddProperty("flagType", "uint64_t");
-      jsflag.AddPropertyF("valueAsString", "%"Pu64, *flag->uint64_ptr_);
+      jsflag.AddPropertyF("valueAsString", "%" Pu64, *flag->uint64_ptr_);
       break;
     }
     case Flag::kString: {
