@@ -70,11 +70,21 @@ Future testConnect(InternetAddress bindAddress,
                    bool v6Only,
                    Function connectFunction,
                    Function closeDestroyFunction) async {
+  var successCount = 0;
+  if (!v6Only) successCount += ipV4SourceAddresses.length;
+  if (bindAddress.type == InternetAddressType.IP_V6) {
+     successCount += ipV6SourceAddresses.length;
+  }
+  var count = 0;
+  var allConnected = new Completer();
+  if (successCount == 0) allConnected.complete();
+
   asyncStart();
   var server = await ServerSocket.bind(bindAddress, 0, v6Only: v6Only);
   server.listen((s) {
     s.destroy();
-    asyncEnd();
+    count++;
+    if (count == successCount) allConnected.complete();
   }, onDone: () => asyncEnd());
 
   asyncStart();
@@ -82,7 +92,6 @@ Future testConnect(InternetAddress bindAddress,
   // Connect with IPv4 source addesses.
   for (var sourceAddress in ipV4SourceAddresses) {
     if (!v6Only) {
-      asyncStart();  // Matching asyncEnd in server.listen above.
       var s = await connectFunction(InternetAddress.LOOPBACK_IP_V4,
                                    server.port,
                                    sourceAddress: sourceAddress);
@@ -100,7 +109,6 @@ Future testConnect(InternetAddress bindAddress,
   // Connect with IPv6 source addesses.
   for (var sourceAddress in ipV6SourceAddresses) {
     if (bindAddress.type == InternetAddressType.IP_V6) {
-      asyncStart();  // Matching asyncEnd in server.listen above.
       var s = await connectFunction(InternetAddress.LOOPBACK_IP_V6,
                                     server.port,
                                     sourceAddress: sourceAddress);
@@ -114,7 +122,8 @@ Future testConnect(InternetAddress bindAddress,
     }
   }
 
-  server.close();
+  await allConnected.future;
+  await server.close();
   asyncEnd();
 }
 
