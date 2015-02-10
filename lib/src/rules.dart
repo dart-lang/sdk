@@ -10,9 +10,11 @@ import 'package:dart_lint/src/rules/super_goes_last.dart';
 import 'package:dart_lint/src/rules/type_init_formals.dart';
 import 'package:dart_lint/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:dart_lint/src/rules/one_member_abstracts.dart';
+import 'package:dart_lint/src/rules/camel_case_types.dart';
 
 /// Map of contributed lint rules.
 final Map<String, LintRule> ruleMap = {
+  'camel_case_types' : new CamelCaseTypes(),
   'empty_constructor_bodies': new EmptyConstructorBodies(),
   'one_member_abstracts' : new OneMemberAbstracts(),
   'super_goes_last': new SuperGoesLast(),

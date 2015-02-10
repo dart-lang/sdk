@@ -22,8 +22,6 @@ final _camelCaseTester = new RegExp('([A-Z]+[a-z0-9]+)+');
 String _humanize(String camelCase) =>
     _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');
 
-bool _isCamelCase(String name) => _camelCaseTester.hasMatch(name);
-
 void _registerLinters(Iterable<Linter> linters) {
   if (linters != null) {
     LintGenerator.LINTERS.clear();
@@ -42,7 +40,7 @@ typedef AnalysisDriver _DriverFactory();
 class CamelCaseString {
   final String value;
   CamelCaseString(this.value) {
-    if (!_isCamelCase(value)) {
+    if (!isCamelCase(value)) {
       throw new ArgumentError('$value is not CamelCase');
     }
   }
@@ -50,6 +48,8 @@ class CamelCaseString {
   String get humanized => _humanize(value);
 
   String toString() => value;
+
+  static bool isCamelCase(String name) => _camelCaseTester.hasMatch(name);
 }
 
 /// Dart source linter.
