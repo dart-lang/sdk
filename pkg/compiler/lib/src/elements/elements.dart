@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library elements;
+library dart2js.elements;
 
+import 'package:sharedfrontend/elements.dart' as shared;
 
 import '../constants/expressions.dart';
 import '../tree/tree.dart';
@@ -182,7 +183,7 @@ abstract class Entity implements Spannable {
  * is best if the backends avoid setting state directly in elements.
  * It is better to keep such state in a table on the side.
  */
-abstract class Element implements Entity {
+abstract class Element implements shared.Element, Entity {
   String get name;
   ElementKind get kind;
   Element get enclosingElement;
@@ -847,7 +848,7 @@ abstract class CompilationUnitElement extends Element {
 }
 
 abstract class LibraryElement extends Element
-    implements ScopeContainerElement, AnalyzableElement {
+    implements ScopeContainerElement, AnalyzableElement, shared.LibraryElement {
   /**
    * The canonical uri for this library.
    *
@@ -1303,7 +1304,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
 }
 
 abstract class ClassElement extends TypeDeclarationElement
-    implements ScopeContainerElement {
+    implements ScopeContainerElement, shared.ClassElement {
   int get id;
 
   /// The length of the longest inheritance path from [:Object:].

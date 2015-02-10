@@ -1,0 +1,7 @@
+name: sharedfrontend
+version: 0.1.0-dev
+author: Dart Team <misc@dartlang.org>
+description: Libraries shared between the dart analyzer and dart2js.
+homepage: http://www.dartlang.org
+environment:
+  sdk: '>=1.7.0 <2.0.0'

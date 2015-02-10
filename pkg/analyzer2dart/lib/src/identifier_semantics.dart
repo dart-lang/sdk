@@ -9,224 +9,13 @@ library analyzer2dart.identifierSemantics;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:sharedfrontend/elements.dart' as shared;
+import 'package:sharedfrontend/src/access_semantics.dart';
+
 
 // TODO(johnniwinther,paulberry): This should be a constant.
 final AccessSemanticsVisitor ACCESS_SEMANTICS_VISITOR =
     new AccessSemanticsVisitor();
-
-/**
- * Enum representing the different kinds of destinations which a property
- * access or method or function invocation might refer to.
- */
-class AccessKind {
-  /**
-   * The destination of the access is an instance method, property, or field
-   * of a class, and thus must be determined dynamically.
-   */
-  static const AccessKind DYNAMIC = const AccessKind._('DYNAMIC');
-
-  /**
-   * The destination of the access is a function that is defined locally within
-   * an enclosing function or method.
-   */
-  static const AccessKind LOCAL_FUNCTION = const AccessKind._('LOCAL_FUNCTION');
-
-  /**
-   * The destination of the access is a variable that is defined locally within
-   * an enclosing function or method.
-   */
-  static const AccessKind LOCAL_VARIABLE = const AccessKind._('LOCAL_VARIABLE');
-
-  /**
-   * The destination of the access is a variable that is defined as a parameter
-   * to an enclosing function or method.
-   */
-  static const AccessKind PARAMETER = const AccessKind._('PARAMETER');
-
-  /**
-   * The destination of the access is a field that is defined statically within
-   * a class, or a top level variable within a library.
-   */
-  static const AccessKind STATIC_FIELD = const AccessKind._('STATIC_FIELD');
-
-  /**
-   * The destination of the access is a method that is defined statically
-   * within a class, or at top level within a library.
-   */
-  static const AccessKind STATIC_METHOD = const AccessKind._('STATIC_METHOD');
-
-  /**
-   * The destination of the access is a property getter/setter that is defined
-   * statically within a class, or at top level within a library.
-   */
-  static const AccessKind STATIC_PROPERTY =
-      const AccessKind._('STATIC_PROPERTY');
-
-  /**
-   * The destination of the access is a toplevel class, function typedef, mixin
-   * application, or the built-in type "dynamic".
-   */
-  static const AccessKind TOPLEVEL_TYPE = const AccessKind._('TOPLEVEL_TYPE');
-
-  /**
-   * The destination of the access is a type parameter of the enclosing class.
-   */
-  static const AccessKind TYPE_PARAMETER = const AccessKind._('TYPE_PARAMETER');
-
-  final String name;
-
-  const AccessKind._(this.name);
-
-  String toString() => name;
-}
-
-/**
- * Data structure used to classify the semantics of a property access or method
- * or function invocation.
- */
-// TODO(paulberry,johnniwinther): Support index operations in AccessSemantics.
-class AccessSemantics {
-  /**
-   * The kind of access.
-   */
-  final AccessKind kind;
-
-  /**
-   * The identifier being used to access the property, method, or function.
-   */
-  final SimpleIdentifier identifier;
-
-  /**
-   * The element being accessed, if statically known.  This will be null if
-   * [kind] is DYNAMIC or if the element is undefined (e.g. an attempt to
-   * access a non-existent static method in a class).
-   */
-  final Element element;
-
-  /**
-   * The class containing the element being accessed, if this is a static
-   * reference to an element in a class.  This will be null if [kind] is
-   * DYNAMIC, LOCAL_FUNCTION, LOCAL_VARIABLE, PARAMETER, TOPLEVEL_CLASS, or
-   * TYPE_PARAMETER, or if the element being accessed is defined at toplevel
-   * within a library.
-   *
-   * Note: it is possible for [classElement] to be non-null and for [element]
-   * to be null; for example this occurs if the element being accessed is a
-   * non-existent static method or field inside an existing class.
-   */
-  final ClassElement classElement;
-
-  // TODO(paulberry): would it also be useful to store the libraryElement?
-
-  /**
-   * When [kind] is DYNAMIC, the expression whose runtime type determines the
-   * class in which [identifier] should be looked up.  Null if the expression
-   * is implicit "this".
-   *
-   * When [kind] is not DYNAMIC, this field is always null.
-   */
-  final Expression target;
-
-  /**
-   * True if this is an invocation of a method, or a call on a property.
-   */
-  final bool isInvoke;
-
-  AccessSemantics.dynamic(this.identifier, this.target, {this.isInvoke: false})
-      : kind = AccessKind.DYNAMIC,
-        element = null,
-        classElement = null;
-
-  AccessSemantics.localFunction(this.identifier, this.element, {this.isInvoke:
-      false})
-      : kind = AccessKind.LOCAL_FUNCTION,
-        classElement = null,
-        target = null;
-
-  AccessSemantics.localVariable(this.identifier, this.element, {this.isInvoke:
-      false})
-      : kind = AccessKind.LOCAL_VARIABLE,
-        classElement = null,
-        target = null;
-
-  AccessSemantics.parameter(this.identifier, this.element, {this.isInvoke:
-      false})
-      : kind = AccessKind.PARAMETER,
-        classElement = null,
-        target = null;
-
-  AccessSemantics.staticField(this.identifier, this.element, this.classElement,
-      {this.isInvoke: false})
-      : kind = AccessKind.STATIC_FIELD,
-        target = null;
-
-  AccessSemantics.staticMethod(this.identifier, this.element, this.classElement,
-      {this.isInvoke: false})
-      : kind = AccessKind.STATIC_METHOD,
-        target = null;
-
-  AccessSemantics.staticProperty(this.identifier, this.element,
-      this.classElement, {this.isInvoke: false})
-      : kind = AccessKind.STATIC_PROPERTY,
-        target = null;
-
-  AccessSemantics.toplevelType(this.identifier, this.element, {this.isInvoke:
-      false})
-      : kind = AccessKind.TOPLEVEL_TYPE,
-        classElement = null,
-        target = null;
-
-  AccessSemantics.typeParameter(this.identifier, this.element, {this.isInvoke:
-      false})
-      : kind = AccessKind.TYPE_PARAMETER,
-        classElement = null,
-        target = null;
-
-  /**
-   * True if this is a read access to a property, or a method tear-off.  Note
-   * that both [isRead] and [isWrite] will be true in the case of a
-   * read-modify-write operation (e.g. "+=").
-   */
-  bool get isRead => !isInvoke && identifier.inGetterContext();
-
-  /**
-   * True if this is a write access to a property, or an (erroneous) attempt to
-   * write to a method.  Note that both [isRead] and [isWrite] will be true in
-   * the case of a read-modify-write operation (e.g. "+=").
-   */
-  bool get isWrite => identifier.inSetterContext();
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('AccessSemantics[');
-    sb.write('kind=$kind,');
-    if (isRead && isWrite) {
-      assert(!isInvoke);
-      sb.write('read/write,');
-    } else if (isRead) {
-      sb.write('read,');
-    } else if (isWrite) {
-      sb.write('write,');
-    } else if (isInvoke) {
-      sb.write('call,');
-    }
-    if (element != null) {
-      sb.write('element=');
-      if (classElement != null) {
-        sb.write('${classElement.name}.');
-      }
-      sb.write('${element}');
-    } else {
-      if (target == null) {
-        sb.write('target=this.$identifier');
-      } else {
-        sb.write('target=$target.$identifier');
-      }
-    }
-    sb.write(']');
-    return sb.toString();
-  }
-}
 
 // TODO(johnniwinther,paulberry): This should extend a non-recursive visitor.
 class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
@@ -241,19 +30,19 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
       if (staticElement is FunctionElement) {
         if (staticElement.enclosingElement is CompilationUnitElement) {
           return new AccessSemantics.staticMethod(
-              node.methodName,
+              node.methodName.name,
               staticElement,
               null,
               isInvoke: true);
         } else {
           return new AccessSemantics.localFunction(
-              node.methodName,
+              node.methodName.name,
               staticElement,
               isInvoke: true);
         }
       } else if (staticElement is MethodElement && staticElement.isStatic) {
         return new AccessSemantics.staticMethod(
-            node.methodName,
+            node.methodName.name,
             staticElement,
             staticElement.enclosingElement,
             isInvoke: true);
@@ -261,52 +50,54 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
         if (staticElement.isSynthetic) {
           if (staticElement.enclosingElement is CompilationUnitElement) {
             return new AccessSemantics.staticField(
-                node.methodName,
+                node.methodName.name,
                 staticElement.variable,
                 null,
                 isInvoke: true);
           } else if (staticElement.isStatic) {
+            shared.Element classElement = staticElement.enclosingElement;
             return new AccessSemantics.staticField(
-                node.methodName,
+                node.methodName.name,
                 staticElement.variable,
-                staticElement.enclosingElement,
+                classElement,
                 isInvoke: true);
           }
         } else {
           if (staticElement.enclosingElement is CompilationUnitElement) {
             return new AccessSemantics.staticProperty(
-                node.methodName,
+                node.methodName.name,
                 staticElement,
                 null,
                 isInvoke: true);
           } else if (staticElement.isStatic) {
+            shared.Element classElement = staticElement.enclosingElement;
             return new AccessSemantics.staticProperty(
-                node.methodName,
+                node.methodName.name,
                 staticElement,
-                staticElement.enclosingElement,
+                classElement,
                 isInvoke: true);
           }
         }
       } else if (staticElement is LocalVariableElement) {
         return new AccessSemantics.localVariable(
-            node.methodName,
+            node.methodName.name,
             staticElement,
             isInvoke: true);
       } else if (staticElement is ParameterElement) {
         return new AccessSemantics.parameter(
-            node.methodName,
+            node.methodName.name,
             staticElement,
             isInvoke: true);
       } else if (staticElement is TypeParameterElement) {
         return new AccessSemantics.typeParameter(
-            node.methodName,
+            node.methodName.name,
             staticElement,
             isInvoke: true);
       } else if (staticElement is ClassElement ||
           staticElement is FunctionTypeAliasElement ||
           staticElement is DynamicElementImpl) {
         return new AccessSemantics.toplevelType(
-            node.methodName,
+            node.methodName.name,
             staticElement,
             isInvoke: true);
       }
@@ -315,37 +106,37 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
       if (targetStaticElement is PrefixElement) {
         if (staticElement == null) {
           return new AccessSemantics.dynamic(
-              node.methodName,
+              node.methodName.name,
               null,
               isInvoke: true);
         } else if (staticElement is PropertyAccessorElement) {
           if (staticElement.isSynthetic) {
             return new AccessSemantics.staticField(
-                node.methodName,
+                node.methodName.name,
                 staticElement.variable,
                 null,
                 isInvoke: true);
           } else {
             return new AccessSemantics.staticProperty(
-                node.methodName,
+                node.methodName.name,
                 staticElement,
                 null,
                 isInvoke: true);
           }
         } else if (staticElement is TypeParameterElement) {
           return new AccessSemantics.typeParameter(
-              node.methodName,
+              node.methodName.name,
               staticElement,
               isInvoke: true);
         } else if (staticElement is ClassElement ||
             staticElement is FunctionTypeAliasElement) {
           return new AccessSemantics.toplevelType(
-              node.methodName,
+              node.methodName.name,
               staticElement,
               isInvoke: true);
         } else {
           return new AccessSemantics.staticMethod(
-              node.methodName,
+              node.methodName.name,
               staticElement,
               null,
               isInvoke: true);
@@ -354,27 +145,28 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
         if (staticElement is PropertyAccessorElement) {
           if (staticElement.isSynthetic) {
             return new AccessSemantics.staticField(
-                node.methodName,
+                node.methodName.name,
                 staticElement.variable,
                 targetStaticElement,
                 isInvoke: true);
           } else {
             return new AccessSemantics.staticProperty(
-                node.methodName,
+                node.methodName.name,
                 staticElement,
                 targetStaticElement,
                 isInvoke: true);
           }
         } else {
           return new AccessSemantics.staticMethod(
-              node.methodName,
+              node.methodName.name,
               staticElement,
               targetStaticElement,
               isInvoke: true);
         }
       }
     }
-    return new AccessSemantics.dynamic(node.methodName, target, isInvoke: true);
+    return new AccessSemantics.dynamic(
+        node.methodName.name, target, isInvoke: true);
   }
 
   /**
@@ -393,7 +185,11 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
     if (node.target is Identifier) {
       return _classifyPrefixed(node.target, node.propertyName);
     } else {
-      return new AccessSemantics.dynamic(node.propertyName, node.realTarget);
+      return new AccessSemantics.dynamic(
+          node.propertyName.name,
+          node.realTarget,
+          isRead: node.propertyName.inGetterContext(),
+          isWrite: node.propertyName.inSetterContext());
     }
   }
 
@@ -429,48 +225,92 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
       if (staticElement.isSynthetic) {
         if (staticElement.enclosingElement is CompilationUnitElement) {
           return new AccessSemantics.staticField(
-              node,
+              node.name,
               staticElement.variable,
-              null);
+              null,
+              isRead: node.inGetterContext(),
+              isWrite: node.inSetterContext());
         } else if (staticElement.isStatic) {
+          shared.Element classElement = staticElement.enclosingElement;
           return new AccessSemantics.staticField(
-              node,
+              node.name,
               staticElement.variable,
-              staticElement.enclosingElement);
+              classElement,
+              isRead: node.inGetterContext(),
+              isWrite: node.inSetterContext());
         }
       } else {
         if (staticElement.enclosingElement is CompilationUnitElement) {
-          return new AccessSemantics.staticProperty(node, staticElement, null);
-        } else if (staticElement.isStatic) {
           return new AccessSemantics.staticProperty(
-              node,
+              node.name,
               staticElement,
-              staticElement.enclosingElement);
+              null,
+              isRead: node.inGetterContext(),
+              isWrite: node.inSetterContext());
+        } else if (staticElement.isStatic) {
+          shared.Element classElement = staticElement.enclosingElement;
+          return new AccessSemantics.staticProperty(
+              node.name,
+              staticElement,
+              classElement,
+              isRead: node.inGetterContext(),
+              isWrite: node.inSetterContext());
         }
       }
     } else if (staticElement is LocalVariableElement) {
-      return new AccessSemantics.localVariable(node, staticElement);
+      return new AccessSemantics.localVariable(
+          node.name,
+          staticElement,
+          isRead: node.inGetterContext(),
+          isWrite: node.inSetterContext());
     } else if (staticElement is ParameterElement) {
-      return new AccessSemantics.parameter(node, staticElement);
+      return new AccessSemantics.parameter(
+          node.name,
+          staticElement,
+          isRead: node.inGetterContext(),
+          isWrite: node.inSetterContext());
     } else if (staticElement is FunctionElement) {
       if (staticElement.enclosingElement is CompilationUnitElement) {
-        return new AccessSemantics.staticMethod(node, staticElement, null);
+        return new AccessSemantics.staticMethod(
+            node.name,
+            staticElement,
+            null,
+            isRead: node.inGetterContext(),
+            isWrite: node.inSetterContext());
       } else {
-        return new AccessSemantics.localFunction(node, staticElement);
+        return new AccessSemantics.localFunction(
+            node.name,
+            staticElement,
+            isRead: node.inGetterContext(),
+            isWrite: node.inSetterContext());
       }
     } else if (staticElement is MethodElement && staticElement.isStatic) {
       return new AccessSemantics.staticMethod(
-          node,
+          node.name,
           staticElement,
-          staticElement.enclosingElement);
+          staticElement.enclosingElement,
+          isRead: node.inGetterContext(),
+          isWrite: node.inSetterContext());
     } else if (staticElement is TypeParameterElement) {
-      return new AccessSemantics.typeParameter(node, staticElement);
+      return new AccessSemantics.typeParameter(
+          node.name,
+          staticElement,
+          isRead: node.inGetterContext(),
+          isWrite: node.inSetterContext());
     } else if (staticElement is ClassElement ||
         staticElement is FunctionTypeAliasElement ||
         staticElement is DynamicElementImpl) {
-      return new AccessSemantics.toplevelType(node, staticElement);
+      return new AccessSemantics.toplevelType(
+          node.name,
+          staticElement,
+          isRead: node.inGetterContext(),
+          isWrite: node.inSetterContext());
     }
-    return new AccessSemantics.dynamic(node, null);
+    return new AccessSemantics.dynamic(
+        node.name,
+        null,
+        isRead: node.inGetterContext(),
+        isWrite: node.inSetterContext());
   }
 
   /**
@@ -484,33 +324,69 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
       if (rhsElement is PropertyAccessorElement) {
         if (rhsElement.isSynthetic) {
           return new AccessSemantics.staticField(
-              rhs,
+              rhs.name,
               rhsElement.variable,
-              null);
+              null,
+              isRead: rhs.inGetterContext(),
+              isWrite: rhs.inSetterContext());
         } else {
-          return new AccessSemantics.staticProperty(rhs, rhsElement, null);
+          return new AccessSemantics.staticProperty(
+              rhs.name,
+              rhsElement,
+              null,
+              isRead: rhs.inGetterContext(),
+              isWrite: rhs.inSetterContext());
         }
       } else if (rhsElement is FunctionElement) {
-        return new AccessSemantics.staticMethod(rhs, rhsElement, null);
+        return new AccessSemantics.staticMethod(
+            rhs.name,
+            rhsElement,
+            null,
+            isRead: rhs.inGetterContext(),
+            isWrite: rhs.inSetterContext());
       } else if (rhsElement is ClassElement ||
-          rhsElement is FunctionTypeAliasElement) {
-        return new AccessSemantics.toplevelType(rhs, rhsElement);
+                 rhsElement is FunctionTypeAliasElement) {
+        return new AccessSemantics.toplevelType(
+            rhs.name,
+            rhsElement,
+            isRead: rhs.inGetterContext(),
+            isWrite: rhs.inSetterContext());
       } else {
-        return new AccessSemantics.dynamic(rhs, null);
+        return new AccessSemantics.dynamic(
+            rhs.name,
+            null,
+            isRead: rhs.inGetterContext(),
+            isWrite: rhs.inSetterContext());
       }
     } else if (lhsElement is ClassElement) {
       if (rhsElement is PropertyAccessorElement && rhsElement.isSynthetic) {
         return new AccessSemantics.staticField(
-            rhs,
+            rhs.name,
             rhsElement.variable,
-            lhsElement);
+            lhsElement,
+            isRead: rhs.inGetterContext(),
+            isWrite: rhs.inSetterContext());
       } else if (rhsElement is MethodElement) {
-        return new AccessSemantics.staticMethod(rhs, rhsElement, lhsElement);
+        return new AccessSemantics.staticMethod(
+            rhs.name,
+            rhsElement,
+            lhsElement,
+            isRead: rhs.inGetterContext(),
+            isWrite: rhs.inSetterContext());
       } else {
-        return new AccessSemantics.staticProperty(rhs, rhsElement, lhsElement);
+        return new AccessSemantics.staticProperty(
+            rhs.name,
+            rhsElement,
+            lhsElement,
+            isRead: rhs.inGetterContext(),
+            isWrite: rhs.inSetterContext());
       }
     } else {
-      return new AccessSemantics.dynamic(rhs, lhs);
+      return new AccessSemantics.dynamic(
+          rhs.name,
+          lhs,
+          isRead: rhs.inGetterContext(),
+          isWrite: rhs.inSetterContext());
     }
   }
 }

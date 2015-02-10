@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer2dart/src/identifier_semantics.dart';
 import 'package:unittest/unittest.dart';
+import 'package:sharedfrontend/src/access_semantics.dart';
 
 import 'mock_sdk.dart';
 
@@ -2296,7 +2297,7 @@ class Helper {
       } else {
         expect(semantics.target.toSource(), equals(expectedTarget));
       }
-      expect(semantics.identifier.name, equals(expectedName));
+      expect(semantics.name, equals(expectedName));
       expect(semantics.element, isNull);
       expect(semantics.classElement, isNull);
       expect(semantics.isRead, equals(isRead));
@@ -2319,8 +2320,8 @@ class Helper {
       count++;
       expect(node.toSource(), equals(expectedSource));
       expect(semantics.kind, equals(AccessKind.LOCAL_FUNCTION));
-      expect(semantics.identifier.name, equals(expectedName));
-      expect(semantics.element.displayName, equals(expectedName));
+      expect(semantics.name, equals(expectedName));
+      expect(displayName(semantics.element), equals(expectedName));
       expect(semantics.classElement, isNull);
       expect(semantics.target, isNull);
       expect(semantics.isRead, equals(isRead));
@@ -2390,13 +2391,13 @@ class Helper {
       count++;
       expect(node.toSource(), equals(expectedSource));
       expect(semantics.kind, equals(AccessKind.STATIC_FIELD));
-      expect(semantics.identifier.name, equals(expectedName));
-      expect(semantics.element.displayName, equals(expectedName));
+      expect(semantics.name, equals(expectedName));
+      expect(displayName(semantics.element), equals(expectedName));
       if (expectedClass == null) {
         expect(semantics.classElement, isNull);
       } else {
         expect(semantics.classElement, isNotNull);
-        expect(semantics.classElement.displayName, equals(expectedClass));
+        expect(displayName(semantics.classElement), equals(expectedClass));
       }
       expect(semantics.target, isNull);
       expect(semantics.isRead, equals(isRead));
@@ -2420,7 +2421,7 @@ class Helper {
       count++;
       expect(node.toSource(), equals(expectedSource));
       expect(semantics.kind, equals(AccessKind.STATIC_METHOD));
-      expect(semantics.identifier.name, equals(expectedName));
+      expect(semantics.name, equals(expectedName));
       if (expectedClass == null) {
         expect(semantics.classElement, isNull);
         if (defined) {
@@ -2428,13 +2429,13 @@ class Helper {
         }
       } else {
         expect(semantics.classElement, isNotNull);
-        expect(semantics.classElement.displayName, equals(expectedClass));
+        expect(displayName(semantics.classElement), equals(expectedClass));
         if (defined) {
           expect(semantics.element, new isInstanceOf<MethodElement>());
         }
       }
       if (defined) {
-        expect(semantics.element.displayName, equals(expectedName));
+        expect(displayName(semantics.element), equals(expectedName));
       } else {
         expect(semantics.element, isNull);
       }
@@ -2460,15 +2461,15 @@ class Helper {
       count++;
       expect(node.toSource(), equals(expectedSource));
       expect(semantics.kind, equals(AccessKind.STATIC_PROPERTY));
-      expect(semantics.identifier.name, equals(expectedName));
+      expect(semantics.name, equals(expectedName));
       if (expectedClass == null) {
         expect(semantics.classElement, isNull);
       } else {
         expect(semantics.classElement, isNotNull);
-        expect(semantics.classElement.displayName, equals(expectedClass));
+        expect(displayName(semantics.classElement), equals(expectedClass));
       }
       if (defined) {
-        expect(semantics.element.displayName, equals(expectedName));
+        expect(displayName(semantics.element), equals(expectedName));
       } else {
         expect(semantics.element, isNull);
       }
@@ -2534,3 +2535,8 @@ class TestVisitor extends RecursiveAstVisitor {
     }
   }
 }
+
+// TODO(johnniwinther): Remove this when the semantics of element names have
+// been resolved.
+/// Helper methods for accessing the [displayName] method without warning.
+String displayName(element) => element.displayName;
