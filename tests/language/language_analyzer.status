@@ -7,7 +7,6 @@
 await_backwards_compatibility_test/none: CompileTimeError # Issue 22052
 await_test: CompileTimeError # Issue 22052
 
-sync_generator1_test: StaticWarning
 sync_generator2_test/01: MissingCompileTimeError # Issue 22252
 sync_generator2_test/02: MissingCompileTimeError # Issue 22252
 sync_generator2_test/03: MissingCompileTimeError # Issue 22252
