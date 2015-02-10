@@ -6,6 +6,7 @@ library analysis_server.src.status.element_writer;
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/get_handler.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**
@@ -42,7 +43,18 @@ class ElementWriter extends GeneralizingElementVisitor {
     }
     buffer.write(' <span style="color:gray">(');
     buffer.write(element.runtimeType);
-    buffer.write(')</span><br>');
+    buffer.write(')</span>');
+    if (element is! LibraryElement) {
+      String name = element.name;
+      if (name != null) {
+        buffer.write('&nbsp;&nbsp;[');
+        buffer.write(GetHandler.makeLink(GetHandler.INDEX_ELEMENT_BY_NAME, {
+          'name': name
+        }, 'search index'));
+        buffer.write(']');
+      }
+    }
+    buffer.write('<br>');
     indentLevel++;
     try {
       element.visitChildren(this);

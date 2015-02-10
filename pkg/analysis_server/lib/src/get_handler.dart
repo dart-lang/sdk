@@ -246,19 +246,6 @@ class GetHandler {
   }
 
   /**
-   * Create a link to [path] with query parameters [params], with inner HTML
-   * [innerHtml]. If [hasError] is `true`, then the link will have the class
-   * 'error'.
-   */
-  String _makeLink(String path, Map<String, String> params, String innerHtml,
-      [bool hasError = false]) {
-    Uri uri = new Uri(path: path, queryParameters: params);
-    String href = HTML_ESCAPE.convert(uri.toString());
-    String classAttribute = hasError ? ' class="error"' : '';
-    return '<a href="$href"$classAttribute>$innerHtml</a>';
-  }
-
-  /**
    * Return a response containing information about an AST structure.
    */
   void _returnAst(HttpRequest request) {
@@ -381,7 +368,7 @@ class GetHandler {
           if (analyzingContext == context) {
             buffer.write(folder.path);
           } else {
-            buffer.write(_makeLink(CACHE_ENTRY_PATH, {
+            buffer.write(makeLink(CACHE_ENTRY_PATH, {
               CONTEXT_QUERY_PARAM: folder.path,
               SOURCE_QUERY_PARAM: sourceUri
             }, HTML_ESCAPE.convert(folder.path)));
@@ -485,7 +472,7 @@ class GetHandler {
       if (state != stateFilter || rowDesc.toString() != descriptorFilter) {
         return;
       }
-      String link = _makeLink(CACHE_ENTRY_PATH, {
+      String link = makeLink(CACHE_ENTRY_PATH, {
         CONTEXT_QUERY_PARAM: folder.path,
         SOURCE_QUERY_PARAM: source.uri.toString()
       }, HTML_ESCAPE.convert(source.fullName));
@@ -567,7 +554,7 @@ class GetHandler {
         if (exception != null) {
           exceptions.add(exception);
         }
-        String link = _makeLink(CACHE_ENTRY_PATH, {
+        String link = makeLink(CACHE_ENTRY_PATH, {
           CONTEXT_QUERY_PARAM: folder.path,
           SOURCE_QUERY_PARAM: source.uri.toString()
         }, sourceName, exception != null);
@@ -601,7 +588,7 @@ class GetHandler {
           buffer.write(links[fileName]);
           buffer.write('</td><td>');
           if (overlayMap.containsKey(fileName)) {
-            buffer.write(_makeLink(OVERLAY_PATH, {
+            buffer.write(makeLink(OVERLAY_PATH, {
               ID_PARAM: overlayMap[fileName].toString()
             }, 'overlay'));
           }
@@ -632,7 +619,7 @@ class GetHandler {
               CONTEXT_QUERY_PARAM: folder.path,
               DESCRIPTOR_QUERY_PARAM: row.name
             };
-            rowText.add(_makeLink(CACHE_STATE_PATH, params, text));
+            rowText.add(makeLink(CACHE_STATE_PATH, params, text));
           }
           _writeRow(buffer, rowText, classes: [null, "right"]);
         });
@@ -935,13 +922,13 @@ class GetHandler {
       _writePage(buffer, 'Analysis Server', [], (StringBuffer buffer) {
         buffer.write('<h3>Pages</h3>');
         buffer.write('<p>');
-        buffer.write(_makeLink(COMPLETION_PATH, {}, 'Completion data'));
+        buffer.write(makeLink(COMPLETION_PATH, {}, 'Completion data'));
         buffer.write('</p>');
         buffer.write('<p>');
-        buffer.write(_makeLink(PERFORMANCE_PATH, {}, 'Performance'));
+        buffer.write(makeLink(PERFORMANCE_PATH, {}, 'Performance'));
         buffer.write('</p>');
         buffer.write('<p>');
-        buffer.write(_makeLink(STATUS_PATH, {}, 'Server status'));
+        buffer.write(makeLink(STATUS_PATH, {}, 'Server status'));
         buffer.write('</p>');
       });
     });
@@ -1000,7 +987,7 @@ class GetHandler {
           buffer.write('<br>');
         }
         String key = folder.shortName;
-        buffer.write(_makeLink(CONTEXT_PATH, {
+        buffer.write(makeLink(CONTEXT_PATH, {
           CONTEXT_QUERY_PARAM: folder.path
         }, key, _hasException(folderMap[folder])));
       });
@@ -1104,7 +1091,7 @@ class GetHandler {
         header: true);
     int index = 0;
     for (CompletionPerformance performance in handler.performanceList) {
-      String link = _makeLink(COMPLETION_PATH, {
+      String link = makeLink(COMPLETION_PATH, {
         'index': '$index'
       }, '${performance.startTimeAndMs}');
       _writeRow(
@@ -1177,7 +1164,7 @@ class GetHandler {
     _writeTwoColumns(buffer, (StringBuffer buffer) {
       buffer.write('<p><b>Performance Data</b></p>');
       buffer.write('<p>');
-      buffer.write(_makeLink(COMPLETION_PATH, {}, 'Completion data'));
+      buffer.write(makeLink(COMPLETION_PATH, {}, 'Completion data'));
       buffer.write('</p>');
     }, (StringBuffer buffer) {
     });
@@ -1417,8 +1404,7 @@ class GetHandler {
 
       buffer.write('<p><b>Performance Data</b></p>');
       buffer.write('<p>');
-      buffer.write(
-          _makeLink(PERFORMANCE_PATH, {}, 'Communication performance'));
+      buffer.write(makeLink(PERFORMANCE_PATH, {}, 'Communication performance'));
       buffer.write('</p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
@@ -1547,15 +1533,28 @@ class GetHandler {
       buffer.write('</ul>');
     } else if (value is AstNode) {
       String link =
-          _makeLink(AST_PATH, linkParameters, value.runtimeType.toString());
+          makeLink(AST_PATH, linkParameters, value.runtimeType.toString());
       buffer.write('<i>$link</i>');
     } else if (value is Element) {
       String link =
-          _makeLink(ELEMENT_PATH, linkParameters, value.runtimeType.toString());
+          makeLink(ELEMENT_PATH, linkParameters, value.runtimeType.toString());
       buffer.write('<i>$link</i>');
     } else {
       buffer.write(HTML_ESCAPE.convert(value.toString()));
       buffer.write(' <i>(${value.runtimeType.toString()})</i>');
     }
+  }
+
+  /**
+   * Create a link to [path] with query parameters [params], with inner HTML
+   * [innerHtml]. If [hasError] is `true`, then the link will have the class
+   * 'error'.
+   */
+  static String makeLink(String path, Map<String, String> params,
+      String innerHtml, [bool hasError = false]) {
+    Uri uri = new Uri(path: path, queryParameters: params);
+    String href = HTML_ESCAPE.convert(uri.toString());
+    String classAttribute = hasError ? ' class="error"' : '';
+    return '<a href="$href"$classAttribute>$innerHtml</a>';
   }
 }

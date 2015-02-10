@@ -6,7 +6,9 @@ library analysis_server.src.status.ast_writer;
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/get_handler.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
@@ -195,6 +197,16 @@ class AstWriter extends UnifyingAstVisitor {
         buffer.write('</span>');
       } else {
         buffer.write(HTML_ESCAPE.convert(valueString));
+        if (value is Element && value is! LibraryElement) {
+          String name = value.name;
+          if (name != null) {
+            buffer.write('&nbsp;&nbsp;[');
+            buffer.write(GetHandler.makeLink(GetHandler.INDEX_ELEMENT_BY_NAME, {
+              'name': name
+            }, 'search index'));
+            buffer.write(']');
+          }
+        }
       }
       buffer.write('<br>');
     }
