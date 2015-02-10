@@ -84,7 +84,7 @@ intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
     return fd;
   }
 
-  Socket::SetNonBlocking(fd);
+  FDUtils::SetNonBlocking(fd);
 
   return Socket::Connect(fd, addr, port);
 }
@@ -305,7 +305,7 @@ intptr_t Socket::CreateBindDatagram(
     return -1;
   }
 
-  Socket::SetNonBlocking(fd);
+  FDUtils::SetNonBlocking(fd);
   return fd;
 }
 
@@ -365,7 +365,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     return -1;
   }
 
-  Socket::SetNonBlocking(fd);
+  FDUtils::SetNonBlocking(fd);
   return fd;
 }
 
@@ -400,7 +400,8 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       socket = kTemporaryFailure;
     }
   } else {
-    Socket::SetNonBlocking(socket);
+    FDUtils::SetCloseOnExec(socket);
+    FDUtils::SetNonBlocking(socket);
   }
   return socket;
 }
@@ -409,16 +410,6 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 void Socket::Close(intptr_t fd) {
   ASSERT(fd >= 0);
   VOID_TEMP_FAILURE_RETRY(close(fd));
-}
-
-
-bool Socket::SetNonBlocking(intptr_t fd) {
-  return FDUtils::SetNonBlocking(fd);
-}
-
-
-bool Socket::SetBlocking(intptr_t fd) {
-  return FDUtils::SetBlocking(fd);
 }
 
 

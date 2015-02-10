@@ -550,27 +550,6 @@ void Socket::Close(intptr_t fd) {
 }
 
 
-static bool SetBlockingHelper(intptr_t fd, bool blocking) {
-  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
-  u_long iMode = blocking ? 0 : 1;
-  int status = ioctlsocket(handle->socket(), FIONBIO, &iMode);
-  if (status != NO_ERROR) {
-    return false;
-  }
-  return true;
-}
-
-
-bool Socket::SetNonBlocking(intptr_t fd) {
-  return SetBlockingHelper(fd, false);
-}
-
-
-bool Socket::SetBlocking(intptr_t fd) {
-  return SetBlockingHelper(fd, true);
-}
-
-
 bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on;

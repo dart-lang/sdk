@@ -264,8 +264,8 @@ class FSEventsWatcher {
   Node* AddPath(const char* path, int events, bool recursive) {
     int fds[2];
     VOID_NO_RETRY_EXPECTED(pipe(fds));
-    Socket::SetNonBlocking(fds[0]);
-    Socket::SetBlocking(fds[1]);
+    FDUtils::SetNonBlocking(fds[0]);
+    FDUtils::SetBlocking(fds[1]);
 
     char base_path[PATH_MAX];
     realpath(path, base_path);
@@ -393,5 +393,3 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)
-
-

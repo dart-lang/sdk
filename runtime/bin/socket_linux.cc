@@ -427,8 +427,8 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       socket = kTemporaryFailure;
     }
   } else {
-    FDUtils::SetNonBlocking(socket);
     FDUtils::SetCloseOnExec(socket);
+    FDUtils::SetNonBlocking(socket);
   }
   return socket;
 }
