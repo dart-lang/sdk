@@ -47,7 +47,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() {
+  Future fillChange() async {
     // update declaration
     {
       PrefixElement prefix = element.prefix;
@@ -73,15 +73,14 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       }
     }
     // update references
-    return searchEngine.searchReferences(element).then((refMatches) {
-      List<SourceReference> references = getSourceReferences(refMatches);
-      for (SourceReference reference in references) {
-        if (newName.isEmpty) {
-          reference.addEdit(change, newName);
-        } else {
-          reference.addEdit(change, "${newName}.");
-        }
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference in references) {
+      if (newName.isEmpty) {
+        reference.addEdit(change, newName);
+      } else {
+        reference.addEdit(change, "${newName}.");
       }
-    });
+    }
   }
 }

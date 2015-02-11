@@ -169,14 +169,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
+  Future<RefactoringStatus> checkFinalConditions() async {
     RefactoringStatus result = new RefactoringStatus();
     result.addStatus(validateMethodName(name));
     result.addStatus(_checkParameterNames());
-    return _checkPossibleConflicts().then((status) {
-      result.addStatus(status);
-      return result;
-    });
+    RefactoringStatus status = await _checkPossibleConflicts();
+    result.addStatus(status);
+    return result;
   }
 
 

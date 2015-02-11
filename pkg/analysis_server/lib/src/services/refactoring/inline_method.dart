@@ -275,7 +275,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<RefactoringStatus> checkInitialConditions() {
+  Future<RefactoringStatus> checkInitialConditions() async {
     RefactoringStatus result = new RefactoringStatus();
     // prepare method information
     result.addStatus(_prepareMethod());
@@ -290,16 +290,14 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
     // analyze method body
     result.addStatus(_prepareMethodParts());
     // process references
-    return searchEngine.searchReferences(_methodElement).then((references) {
-      _referenceProcessors.clear();
-      for (SearchMatch reference in references) {
-        _ReferenceProcessor processor =
-            new _ReferenceProcessor(this, reference);
-        _referenceProcessors.add(processor);
-      }
-    }).then((_) {
-      return result;
-    });
+    List<SearchMatch> references =
+        await searchEngine.searchReferences(_methodElement);
+    _referenceProcessors.clear();
+    for (SearchMatch reference in references) {
+      _ReferenceProcessor processor = new _ReferenceProcessor(this, reference);
+      _referenceProcessors.add(processor);
+    }
+    return result;
   }
 
   @override
