@@ -2794,7 +2794,7 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTr
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection-not-application-textarea_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # Please triage this failure
@@ -6856,7 +6856,8 @@ LayoutTests/fast/text/find-quotes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/find-russian_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/find-soft-hyphen_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/find-spaces_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/font-ligatures-linebreak-word_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/font-ligature-letter-spacing_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/font-ligatures-linebreak_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/cjk-segmentation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/iso-8859-8_t01: RuntimeError # Please triage this failure
