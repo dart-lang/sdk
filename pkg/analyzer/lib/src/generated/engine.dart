@@ -4684,6 +4684,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CaughtException thrownException = task.exception;
     if (thrownException != null) {
       sourceEntry.recordContentError(thrownException);
+      // TODO(scheglov) should we add separate ContentErrorCode and
+      // SourceEntry.CONTENT_ERRORS entry?
+      if (sourceEntry is DartEntry) {
+        sourceEntry.setValue(
+            DartEntry.SCAN_ERRORS,
+            <AnalysisError>[
+                new AnalysisError.con1(
+                    source,
+                    ScannerErrorCode.UNABLE_GET_CONTENT,
+                    [thrownException.toString()])]);
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(sourceEntry.allErrors, null);
+      }
       _workManager.remove(source);
       throw new AnalysisException('<rethrow>', thrownException);
     }

@@ -1636,6 +1636,24 @@ void g() { f(null); }''');
         reason: "part resolved 3");
   }
 
+  void test_performAnalysisTask_getContentException_dart() {
+    // add source that throw an exception on "get content"
+    Source source = new _Source_getContent_throwException('test.dart');
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.addedSource(source);
+      _context.applyChanges(changeSet);
+    }
+    // prepare errors
+    _analyzeAll_assertFinished();
+    List<AnalysisError> errors = _context.getErrors(source).errors;
+    // validate errors
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.source, same(source));
+    expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
+  }
+
   void test_performAnalysisTask_importedLibraryAdd() {
     Source libASource =
         _addSource("/libA.dart", "library libA; import 'libB.dart';");
@@ -2218,7 +2236,6 @@ library test2;''');
     return false;
   }
 }
-
 
 class AnalysisContextImplTest_Source_exists_true extends TestSource {
   @override
@@ -3989,6 +4006,7 @@ class GenerateDartHintsTaskTestTV_accept extends TestTaskVisitor<bool> {
   bool visitGenerateDartHintsTask(GenerateDartHintsTask task) => true;
 }
 
+
 class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
   Source librarySource;
   Source partSource;
@@ -4115,11 +4133,11 @@ class GetContentTaskTest extends EngineTestCase {
   }
 }
 
-
 class GetContentTaskTestTV_accept extends TestTaskVisitor<bool> {
   @override
   bool visitGetContentTask(GetContentTask task) => true;
 }
+
 
 class GetContentTaskTestTV_perform_exception extends TestTaskVisitor<bool> {
   @override
@@ -4128,7 +4146,6 @@ class GetContentTaskTestTV_perform_exception extends TestTaskVisitor<bool> {
     return true;
   }
 }
-
 
 class GetContentTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
   InternalAnalysisContext context;
@@ -4999,11 +5016,11 @@ class LintGeneratorTest_Linter extends Linter with SimpleAstVisitor<Object> {
   }
 }
 
+
 class LintGeneratorTest_Linter_Null_Visitor extends Linter {
   @override
   AstVisitor getVisitor() => null;
 }
-
 
 @reflectiveTest
 class ParseDartTaskTest extends EngineTestCase {
@@ -7090,6 +7107,17 @@ class _AnalysisContextImplTest_test_applyChanges_removeContainer implements
   _AnalysisContextImplTest_test_applyChanges_removeContainer(this.libB);
   @override
   bool contains(Source source) => source == libB;
+}
+
+
+class _Source_getContent_throwException extends NonExistingSource {
+  _Source_getContent_throwException(String name)
+      : super(name, UriKind.FILE_URI);
+
+  @override
+  TimestampedData<String> get contents {
+    throw 'Read error';
+  }
 }
 
 
