@@ -285,25 +285,33 @@ class GetHandler {
         writeRow(PerformanceStatistics.lint, 'lint');
         buffer.write('</table>');
 
-        Map<DataDescriptor, int> countMap = SourceEntry.unflushedCountMap;
-        buffer.write('<p><b>Number of times flushed data was re-created</b></p>');
-        if (countMap.isEmpty) {
+        Map<DataDescriptor, Map<CacheState, int>> transitionMap = SourceEntry.transitionMap;
+        buffer.write('<p><b>Number of times a state transitioned to VALID (grouped by descriptor)</b></p>');
+        if (transitionMap.isEmpty) {
           buffer.write('<p>none</p>');
         } else {
-          List<DataDescriptor> keys = countMap.keys.toList();
-          keys.sort(
+          List<DataDescriptor> descriptors = transitionMap.keys.toList();
+          descriptors.sort(
               (DataDescriptor first, DataDescriptor second) =>
                   first.toString().compareTo(second.toString()));
-          buffer.write(
-              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-          _writeRow(buffer, ['Count', 'Data'], header: true);
-          for (DataDescriptor key in keys) {
-            _writeRow(
-                buffer,
-                [countMap[key], key.toString()],
-                classes: ["right", null]);
+          for (DataDescriptor key in descriptors) {
+            Map<CacheState, int> countMap = transitionMap[key];
+            List<CacheState> oldStates = countMap.keys.toList();
+            oldStates.sort(
+                (CacheState first, CacheState second) =>
+                    first.toString().compareTo(second.toString()));
+            buffer.write('<p>${key.toString()}</p>');
+            buffer.write(
+                '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+            _writeRow(buffer, ['Count', 'Previous State'], header: true);
+            for (CacheState state in oldStates) {
+              _writeRow(
+                  buffer,
+                  [countMap[state], state.toString()],
+                  classes: ["right", null]);
+            }
+            buffer.write('</table>');
           }
-          buffer.write('</table>');
         }
       });
     });

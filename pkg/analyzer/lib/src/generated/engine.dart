@@ -10944,10 +10944,7 @@ class ResolutionState {
   void setValue(DataDescriptor /*<V>*/ descriptor, dynamic /*V*/ value) {
     CachedResult result =
         resultMap.putIfAbsent(descriptor, () => new CachedResult(descriptor));
-    if (result.state == CacheState.FLUSHED) {
-      int count = SourceEntry.unflushedCountMap[descriptor];
-      SourceEntry.unflushedCountMap[descriptor] = count == null ? 1 : count + 1;
-    }
+    SourceEntry.countTransition(descriptor, result);
     result.state = CacheState.VALID;
     result.value = value == null ? descriptor.defaultValue : value;
   }
@@ -11639,10 +11636,10 @@ abstract class SourceEntry {
 
   /**
    * A table mapping data descriptors to a count of the number of times a value
-   * of that kind was flushed and then re-created.
+   * was set when in a given state.
    */
-  static final Map<DataDescriptor, int> unflushedCountMap =
-      new HashMap<DataDescriptor, int>();
+  static final Map<DataDescriptor, Map<CacheState, int>> transitionMap =
+      new HashMap<DataDescriptor, Map<CacheState, int>>();
 
   /**
    * The most recent time at which the state of the source matched the state
@@ -11842,12 +11839,21 @@ abstract class SourceEntry {
     _validateStateChange(descriptor, CacheState.VALID);
     CachedResult result =
         resultMap.putIfAbsent(descriptor, () => new CachedResult(descriptor));
-    if (result.state == CacheState.FLUSHED) {
-      int count = unflushedCountMap[descriptor];
-      unflushedCountMap[descriptor] = count == null ? 1 : count + 1;
-    }
+    countTransition(descriptor, result);
     result.state = CacheState.VALID;
     result.value = value == null ? descriptor.defaultValue : value;
+  }
+
+  /**
+   * Increment the count of the number of times that data represented by the
+   * given [descriptor] was transitioned from the current state (as found in the
+   * given [result] to a valid state.
+   */
+  static void countTransition(DataDescriptor descriptor, CachedResult result) {
+    Map<CacheState, int> countMap =
+        transitionMap.putIfAbsent(descriptor, () => new HashMap<CacheState, int>());
+    int count = countMap[result.state];
+    countMap[result.state] = count == null ? 1 : count + 1;
   }
 
   @override
