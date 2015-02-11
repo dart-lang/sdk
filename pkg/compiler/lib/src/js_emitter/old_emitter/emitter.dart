@@ -868,8 +868,8 @@ class OldEmitter implements Emitter {
         cachedEmittedConstants.add(constantValue);
       }
       jsAst.Expression init = buildConstantInitializer(constantValue);
-      constantOutput.addBuffer(jsAst.prettyPrint(init, compiler,
-                                         monitor: compiler.dumpInfoTask));
+      constantOutput.addBuffer(
+          jsAst.prettyPrint(init, compiler, monitor: compiler.dumpInfoTask));
       constantOutput.add('$N');
     }
     if (compiler.hasIncrementalSupport && isMainFragment) {
