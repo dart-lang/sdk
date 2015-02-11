@@ -7969,7 +7969,7 @@ class LibraryResolver {
     }
     LibraryElement asyncElement = _asyncLibrary.libraryElement;
     if (asyncElement == null) {
-      throw new AnalysisException("Coulb not resolve dart:async");
+      throw new AnalysisException("Could not resolve dart:async");
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
