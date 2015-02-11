@@ -531,11 +531,12 @@ class ModelEmitter {
     Iterable<Method> methods = cls.methods;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
+    Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods =
-        [methods, isChecks, callStubs, noSuchMethodStubs, gettersSetters]
-            .expand((x) => x);
+        [methods, isChecks, callStubs, typeVariableReaderStubs,
+         noSuchMethodStubs, gettersSetters].expand((x) => x);
     elements.addAll(allMethods.expand(emitInstanceMethod));
 
     return unparse(compiler, new js.ArrayInitializer(elements));

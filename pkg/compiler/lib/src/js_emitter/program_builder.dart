@@ -21,7 +21,7 @@ import 'js_emitter.dart' show
     InterceptorStubGenerator,
     MainCallStubGenerator,
     ParameterStubGenerator,
-    TypeTestGenerator,
+    RuntimeTypeGenerator,
     TypeTestProperties;
 
 import '../universe/universe.dart' show Universe;
@@ -298,7 +298,7 @@ class ProgramBuilder {
     String name = namer.getNameOfClass(element);
 
     return new Class(
-        element, name, null, [], instanceFields, [], [], [], [], null,
+        element, name, null, [], instanceFields, [], [], [], [], [], null,
         isDirectlyInstantiated: true,
         onlyForRti: false,
         isNative: element.isNative);
@@ -312,6 +312,8 @@ class ProgramBuilder {
 
     ClassStubGenerator classStubGenerator =
         new ClassStubGenerator(_compiler, namer, backend);
+    RuntimeTypeGenerator runtimeTypeGenerator =
+        new RuntimeTypeGenerator(_compiler, _task, namer);
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
@@ -337,6 +339,9 @@ class ProgramBuilder {
       }
     }
 
+    List<StubMethod> typeVariableReaderStubs =
+        runtimeTypeGenerator.generateTypeVariableReaderStubs(element);
+
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
     if (element == _compiler.objectClass) {
       Map<String, Selector> selectors =
@@ -361,10 +366,8 @@ class ProgramBuilder {
     List<Field> staticFieldsForReflection =
         onlyForRti ? const <Field>[] : _buildFields(element, true);
 
-    TypeTestGenerator generator =
-        new TypeTestGenerator(_compiler, _task, namer);
     TypeTestProperties typeTests =
-        generator.generateIsTests(
+        runtimeTypeGenerator.generateIsTests(
             element,
             storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
@@ -389,6 +392,7 @@ class ProgramBuilder {
                                     instanceFields,
                                     staticFieldsForReflection,
                                     callStubs,
+                                    typeVariableReaderStubs,
                                     isChecks,
                                     typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
@@ -398,6 +402,7 @@ class ProgramBuilder {
                          name, holder, methods, instanceFields,
                          staticFieldsForReflection,
                          callStubs,
+                         typeVariableReaderStubs,
                          noSuchMethodStubs,
                          isChecks,
                          typeTests.functionTypeIndex,

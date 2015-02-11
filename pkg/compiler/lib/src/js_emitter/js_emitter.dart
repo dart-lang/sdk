@@ -97,7 +97,7 @@ part 'metadata_collector.dart';
 part 'native_emitter.dart';
 part 'native_generator.dart';
 part 'parameter_stub_generator.dart';
-part 'type_test_generator.dart';
+part 'runtime_type_generator.dart';
 part 'type_test_registry.dart';
 
 part 'old_emitter/class_builder.dart';
