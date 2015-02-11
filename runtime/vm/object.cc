@@ -2721,7 +2721,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   }
   for (intptr_t i = 0; i < patch_len; i++) {
     func ^= patch_list.At(i);
-    if (func.IsConstructor() || func.IsFactory()) {
+    if (func.IsGenerativeConstructor() || func.IsFactory()) {
       // Do not preserve the original implicit constructor, if any.
       orig_implicit_ctor = Function::null();
     }
@@ -3840,7 +3840,7 @@ RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
       return func.raw();
     }
   } else if (kind == kConstructor) {
-    if (func.IsConstructor()) {
+    if (func.IsGenerativeConstructor()) {
       ASSERT(!func.is_static());
       return func.raw();
     }
@@ -5601,7 +5601,7 @@ intptr_t Function::NumImplicitParameters() const {
       ASSERT(IsFactory());
       return 1;  // Type arguments.
     } else {
-      ASSERT(IsConstructor());
+      ASSERT(IsGenerativeConstructor());
       return 2;  // Instance, phase.
     }
   }
@@ -6063,7 +6063,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
 // does not contain an explicit constructor or factory. The implicit
 // constructor has the same token position as the owner class.
 bool Function::IsImplicitConstructor() const {
-  return IsConstructor() && (token_pos() == end_token_pos());
+  return IsGenerativeConstructor() && (token_pos() == end_token_pos());
 }
 
 
@@ -6139,7 +6139,7 @@ RawFunction* Function::New(const String& name,
 
 
 RawFunction* Function::Clone(const Class& new_owner) const {
-  ASSERT(!IsConstructor());
+  ASSERT(!IsGenerativeConstructor());
   Function& clone = Function::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
   const Class& origin = Class::Handle(this->origin());

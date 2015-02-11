@@ -1876,7 +1876,7 @@ class Function : public Object {
 
   static const char* KindToCString(RawFunction::Kind kind);
 
-  bool IsConstructor() const {
+  bool IsGenerativeConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
   bool IsImplicitConstructor() const;

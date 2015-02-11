@@ -2606,7 +2606,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
 
 
 SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
-  ASSERT(func.IsConstructor());
+  ASSERT(func.IsGenerativeConstructor());
   ASSERT(func.Owner() == current_class().raw());
   const intptr_t ctor_pos = TokenPos();
   OpenFunctionBlock(func);
@@ -2707,7 +2707,7 @@ void Parser::CheckRecursiveInvocation() {
 SequenceNode* Parser::ParseConstructor(const Function& func,
                                        Array* default_parameter_values) {
   TRACE_PARSER("ParseConstructor");
-  ASSERT(func.IsConstructor());
+  ASSERT(func.IsGenerativeConstructor());
   ASSERT(!func.IsFactory());
   ASSERT(!func.is_static());
   ASSERT(!func.IsLocalFunction());
@@ -2881,7 +2881,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     if (init_statements->NodeAt(i)->IsStaticCallNode()) {
       StaticCallNode* static_call =
       init_statements->NodeAt(i)->AsStaticCallNode();
-      if (static_call->function().IsConstructor()) {
+      if (static_call->function().IsGenerativeConstructor()) {
         super_call = static_call;
         break;
       }
@@ -3034,14 +3034,14 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   parsed_function()->reset_saved_try_ctx_vars();
   LocalScope* saved_async_temp_scope = async_temp_scope_;
 
-  if (func.IsConstructor()) {
+  if (func.IsGenerativeConstructor()) {
     SequenceNode* statements = ParseConstructor(func, default_parameter_values);
     innermost_function_ = saved_innermost_function.raw();
     last_used_try_index_ = saved_try_index;
     return statements;
   }
 
-  ASSERT(!func.IsConstructor());
+  ASSERT(!func.IsGenerativeConstructor());
   OpenFunctionBlock(func);  // Build local scope for function.
 
   ParamList params;
@@ -8779,7 +8779,7 @@ AstNode* Parser::ParseStatement() {
     ConsumeToken();
     if (CurrentToken() != Token::kSEMICOLON) {
       const intptr_t expr_pos = TokenPos();
-      if (current_function().IsConstructor() &&
+      if (current_function().IsGenerativeConstructor() &&
           (current_block_->scope->function_level() == 0)) {
         ReportError(expr_pos,
                     "return of a value is not allowed in constructors");

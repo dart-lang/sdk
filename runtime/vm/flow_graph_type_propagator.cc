@@ -750,13 +750,13 @@ CompileType ParameterInstr::ComputeType() const {
   const AbstractType& type = scope->VariableAt(index())->type();
 
   // Parameter is the constructor phase.
-  if ((index() == 1) && function.IsConstructor()) {
+  if ((index() == 1) && function.IsGenerativeConstructor()) {
     return CompileType::FromAbstractType(type, CompileType::kNonNullable);
   }
 
   // Parameter is the receiver.
   if ((index() == 0) &&
-      (function.IsDynamicFunction() || function.IsConstructor())) {
+      (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
       return CompileType::FromAbstractType(type, CompileType::kNullable);
