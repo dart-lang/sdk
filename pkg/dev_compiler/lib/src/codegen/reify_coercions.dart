@@ -508,9 +508,15 @@ class TypeManager {
         return;
       }
       if (type is ParameterizedType) {
+        // TODO(leafp): The inner conditional (testing FunctionType, etc)
+        // can be eliminated after the roll to the next analyzer which fixes
+        // a bug in how they resolve type names.
         if (type.name != null && type.name != "") {
-          _ftList(type.typeArguments);
-          return;
+          if (type is! FunctionType ||
+              (type.element != null && type.element is FunctionTypeAlias)) {
+            _ftList(type.typeArguments);
+            return;
+          }
         }
         if (type is FunctionType) {
           _ftMap(type.namedParameterTypes);

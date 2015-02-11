@@ -803,7 +803,7 @@ class IterableMixinWorkaround<T> {
           """line 1001, column 36 of dart:_internal/iterable.dart: """,
           x1 is Comparable<dynamic>, true));
       return f == null ? null : c;
-    }, Comparable.compare, DDC$RT.type((__t8<T> _) {}), __t5, "Wrap",
+    }, Comparable.compare, __t8, __t5, "Wrap",
         """line 1001, column 36 of dart:_internal/iterable.dart: """,
         Comparable.compare is __t5);
     Sort.sort(list, compare);
@@ -952,4 +952,4 @@ abstract class IterableElementError {
   static StateError tooFew() => new StateError("Too few elements");
 }
 typedef int __t5(dynamic __u6, dynamic __u7);
-typedef int __t8<T>(Comparable<dynamic> __u9, Comparable<dynamic> __u10);
+typedef int __t8(Comparable<dynamic> __u9, Comparable<dynamic> __u10);
