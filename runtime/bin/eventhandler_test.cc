@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
-#include "platform/globals.h"
-#include "vm/unit_test.h"
-
 #include "bin/eventhandler.h"
+#include "platform/assert.h"
+#include "vm/unit_test.h"
 
 namespace dart {
 namespace bin {
