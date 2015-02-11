@@ -7,11 +7,11 @@ A Dart style linter.
 
 ## Installing
 
-Clone the dart_lint repo like this:
+Clone the `dart_lint` repo like this:
 
     git clone https://github.com/dart-lang/dart_lint.git
 
-When the source is more stable, we’ll push regular builds to `pub`.
+When the source is more mature, we’ll push regular builds to `pub`.
 
 ## Usage
 
