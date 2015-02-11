@@ -626,7 +626,7 @@ class RuneIterator implements BidirectionalIterator<int> {
    * If the iterator has hit either end, the [_currentCodePoint] is null
    * and [: _position == _nextPosition :].
    */
-  int _currentCodePoint;
+  num _currentCodePoint;
 
   /** Create an iterator positioned at the beginning of the string. */
   RuneIterator(String string)

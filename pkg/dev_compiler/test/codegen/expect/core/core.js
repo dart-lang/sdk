@@ -628,7 +628,7 @@ var core;
     constructor(message, source, offset) {
       if (message === undefined) message = "";
       if (source === undefined) source = null;
-      if (offset === undefined) offset = null;
+      if (offset === undefined) offset = -1;
       this.message = message;
       this.source = source;
       this.offset = offset;
@@ -640,15 +640,15 @@ var core;
       }
       let offset = this.offset;
       if (!(typeof this.source == "string")) {
-        if (offset !== null) {
+        if (offset !== -1) {
           report = " (at offset " + (offset) + ")";
         }
         return report;
       }
-      if (offset !== null && (offset < 0 || offset['>'](dart.dload(this.source, "length")))) {
-        offset = dart.as(null, int);
+      if (offset !== -1 && (offset < 0 || offset['>'](dart.dload(this.source, "length")))) {
+        offset = -1;
       }
-      if (offset === null) {
+      if (offset === -1) {
         let source = dart.as(this.source, String);
         if (source.length > 78) {
           source = String['+'](source.substring(0, 75), "...");
@@ -920,15 +920,25 @@ var core;
     static parse(input, onError) {
       if (onError === undefined) onError = null;
       let source = input.trim();
-      let result = int.parse(source, dart.as(onError: _returnNull, /* Unimplemented type (String) → int */));
-      if (result !== null) return result;
-      result = double.parse(source, dart.as(_returnNull, /* Unimplemented type (String) → double */));
-      if (result !== null) return result;
+      _parseError = false;
+      let result = int.parse(source, {onError: _onParseErrorInt});
+      if (!_parseError) return result;
+      _parseError = false;
+      result = double.parse(source, _onParseErrorDouble);
+      if (!_parseError) return result;
       if (onError === null) throw new FormatException(input);
       return onError(input);
     }
-    static _returnNull(_) { return null; }
+    static _onParseErrorInt(_) {
+      _parseError = true;
+      return 0;
+    }
+    static _onParseErrorDouble(_) {
+      _parseError = true;
+      return 0.0;
+    }
   }
+  num._parseError = false;
 
   class Object {
     constructor() {
@@ -1001,7 +1011,7 @@ var core;
         this._start = _now();
       } else {
         this._start = _now() - (this._stop - this._start);
-        this._stop = dart.as(null, int);
+        this._stop = null;
       }
     }
     stop() {
@@ -1019,7 +1029,7 @@ var core;
       if (this._start === null) {
         return 0;
       }
-      return (this._stop === null) ? (_now() - this._start) : (this._stop - this._start);
+      return dart.notNull((this._stop === null) ? (_now() - this._start) : (this._stop - this._start));
     }
     get elapsed() {
       return new Duration({microseconds: this.elapsedMicroseconds});
@@ -1109,9 +1119,9 @@ var core;
       RangeError.checkValueInInterval(rawIndex, 0, this.string.length, "rawIndex");
       this._checkSplitSurrogate(rawIndex);
       this._position = this._nextPosition = rawIndex;
-      this._currentCodePoint = dart.as(null, int);
+      this._currentCodePoint = null;
     }
-    get current() { return this._currentCodePoint; }
+    get current() { return dart.notNull(this._currentCodePoint); }
     get currentSize() { return this._nextPosition - this._position; }
     get currentAsString() {
       if (this._position === this._nextPosition) return null;
@@ -1121,7 +1131,7 @@ var core;
     moveNext() {
       this._position = this._nextPosition;
       if (this._position === this.string.length) {
-        this._currentCodePoint = dart.as(null, int);
+        this._currentCodePoint = null;
         return false;
       }
       let codeUnit = this.string.codeUnitAt(this._position);
@@ -1141,7 +1151,7 @@ var core;
     movePrevious() {
       this._nextPosition = this._position;
       if (this._position === 0) {
-        this._currentCodePoint = dart.as(null, int);
+        this._currentCodePoint = null;
         return false;
       }
       let position = this._position - 1;
@@ -1224,7 +1234,7 @@ var core;
     }
     get port() {
       if (this._port === null) return _defaultPort(this.scheme);
-      return this._port;
+      return dart.notNull(this._port);
     }
     static _defaultPort(scheme) {
       if (dart.equals(scheme, "http")) return 80;
@@ -1243,7 +1253,7 @@ var core;
       let scheme = "";
       let userinfo = "";
       let host = null;
-      let port = dart.as(null, int);
+      let port = null;
       let path = null;
       let query = null;
       let fragment = null;
@@ -1601,7 +1611,7 @@ var core;
       if (port !== null) {
         port = _makePort(port, scheme);
       } else {
-        port = this._port;
+        port = dart.notNull(this._port);
         if (schemeChanged) {
           port = _makePort(port, scheme);
         }
@@ -2030,7 +2040,7 @@ var core;
           }
           targetUserInfo = this._userInfo;
           targetHost = this._host;
-          targetPort = this._port;
+          targetPort = dart.notNull(this._port);
         }
       }
       let fragment = dart.as(reference.hasFragment ? reference.fragment : null, String);

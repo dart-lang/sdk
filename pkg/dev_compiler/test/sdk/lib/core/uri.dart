@@ -22,7 +22,7 @@ class Uri {
   // The port. Set to null if there is no port. Normalized to null if
   // the port is the default port for the scheme.
   // Set to the value of the default port if an empty port was supplied.
-  int _port;
+  num _port;
   // The path. Always non-null.
   String _path;
 
@@ -212,7 +212,7 @@ class Uri {
     String scheme = "";
     String userinfo = "";
     String host = null;
-    int port = null;
+    num port = null;
     String path = null;
     String query = null;
     String fragment = null;

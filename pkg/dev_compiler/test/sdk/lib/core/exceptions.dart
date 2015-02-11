@@ -76,7 +76,7 @@ class FormatException implements Exception {
    * Optionally also supply the actual [source] that had the incorrect format,
    * and an [offset] in the format where a problem was detected.
    */
-  const FormatException([this.message = "", this.source, this.offset]);
+  const FormatException([this.message = "", this.source, this.offset = -1]);
 
   /**
    * Returns a description of the format exception.
@@ -100,16 +100,16 @@ class FormatException implements Exception {
     }
     int offset = this.offset;
     if (source is! String) {
-      if (offset != null) {
+      if (offset != -1) {
         report += " (at offset $offset)";
       }
       return report;
     }
-    if (offset != null && (offset < 0 || offset > source.length)) {
-      offset = null;
+    if (offset != -1 && (offset < 0 || offset > source.length)) {
+      offset = -1;
     }
     // Source is string and offset is null or valid.
-    if (offset == null) {
+    if (offset == -1) {
       String source = this.source;
       if (source.length > 78) {
         source = source.substring(0, 75) + "...";

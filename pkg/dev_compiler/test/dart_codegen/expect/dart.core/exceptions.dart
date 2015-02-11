@@ -15,7 +15,7 @@ class FormatException implements Exception {
   final String message;
   final source;
   final int offset;
-  const FormatException([this.message = "", this.source, this.offset]);
+  const FormatException([this.message = "", this.source, this.offset = -1]);
   String toString() {
     String report = "FormatException";
     if (message != null && "" != message) {
@@ -23,21 +23,19 @@ class FormatException implements Exception {
     }
     int offset = this.offset;
     if (source is! String) {
-      if (offset != null) {
+      if (offset != -1) {
         report += " (at offset $offset)";
       }
       return report;
     }
-    if (offset != null && (offset < 0 || offset > source.length)) {
-      offset = ((__x3) => DDC$RT.cast(__x3, Null, int, "CastLiteral",
-          """line 109, column 16 of dart:core/exceptions.dart: """, __x3 is int,
-          true))(null);
+    if (offset != -1 && (offset < 0 || offset > source.length)) {
+      offset = -1;
     }
-    if (offset == null) {
-      String source = ((__x4) => DDC$RT.cast(__x4, dynamic, String,
+    if (offset == -1) {
+      String source = ((__x3) => DDC$RT.cast(__x3, dynamic, String,
           "CastGeneral",
           """line 113, column 23 of dart:core/exceptions.dart: """,
-          __x4 is String, true))(this.source);
+          __x3 is String, true))(this.source);
       if (source.length > 78) {
         source = source.substring(0, 75) + "...";
       }
@@ -47,8 +45,8 @@ class FormatException implements Exception {
     int lineStart = 0;
     bool lastWasCR;
     for (int i = 0; i < offset; i++) {
-      int char = ((__x5) => DDC$RT.cast(__x5, dynamic, int, "CastGeneral",
-          """line 123, column 18 of dart:core/exceptions.dart: """, __x5 is int,
+      int char = ((__x4) => DDC$RT.cast(__x4, dynamic, int, "CastGeneral",
+          """line 123, column 18 of dart:core/exceptions.dart: """, __x4 is int,
           true))(source.codeUnitAt(i));
       if (char == 0x0a) {
         if (lineStart != i || !lastWasCR) {
@@ -71,8 +69,8 @@ class FormatException implements Exception {
         """line 141, column 19 of dart:core/exceptions.dart: """,
         source.length is int, true);
     for (int i = offset; i < source.length; i++) {
-      int char = ((__x6) => DDC$RT.cast(__x6, dynamic, int, "CastGeneral",
-          """line 143, column 18 of dart:core/exceptions.dart: """, __x6 is int,
+      int char = ((__x5) => DDC$RT.cast(__x5, dynamic, int, "CastGeneral",
+          """line 143, column 18 of dart:core/exceptions.dart: """, __x5 is int,
           true))(source.codeUnitAt(i));
       if (char == 0x0a || char == 0x0d) {
         lineEnd = i;
@@ -98,9 +96,9 @@ class FormatException implements Exception {
         prefix = postfix = "...";
       }
     }
-    String slice = ((__x7) => DDC$RT.cast(__x7, dynamic, String, "CastGeneral",
+    String slice = ((__x6) => DDC$RT.cast(__x6, dynamic, String, "CastGeneral",
         """line 171, column 20 of dart:core/exceptions.dart: """,
-        __x7 is String, true))(source.substring(start, end));
+        __x6 is String, true))(source.substring(start, end));
     int markOffset = offset - start + prefix.length;
     return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
   }

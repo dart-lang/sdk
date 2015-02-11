@@ -2,8 +2,8 @@ part of dart.core;
 
 class Stopwatch {
   int get frequency => _frequency;
-  int _start;
-  int _stop;
+  num _start;
+  num _stop;
   Stopwatch() {
     _initTicker();
   }
@@ -13,9 +13,7 @@ class Stopwatch {
       _start = _now();
     } else {
       _start = _now() - (_stop - _start);
-      _stop = ((__x18) => DDC$RT.cast(__x18, Null, int, "CastLiteral",
-          """line 54, column 15 of dart:core/stopwatch.dart: """, __x18 is int,
-          true))(null);
+      _stop = null;
     }
   }
   void stop() {
@@ -33,7 +31,9 @@ class Stopwatch {
     if (_start == null) {
       return 0;
     }
-    return (_stop == null) ? (_now() - _start) : (_stop - _start);
+    return ((__x7) => DDC$RT.cast(__x7, num, int, "CastGeneral",
+        """line 102, column 12 of dart:core/stopwatch.dart: """, __x7 is int,
+        true))((_stop == null) ? (_now() - _start) : (_stop - _start));
   }
   Duration get elapsed {
     return new Duration(microseconds: elapsedMicroseconds);
