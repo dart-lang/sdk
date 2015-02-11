@@ -1963,10 +1963,10 @@ class SsaBuilder extends ResolvedVisitor {
         }
         Selector selector = new Selector.callDefaultConstructor();
         List<HInstruction> arguments =
-            selector.makeArgumentsList2(const Link<ast.Node>(),
-                                        target.implementation,
-                                        null,
-                                        handleConstantForOptionalParameter);
+            selector.makeArgumentsList(const Link<ast.Node>(),
+                                       target.implementation,
+                                       null,
+                                       handleConstantForOptionalParameter);
         inlineSuperOrRedirect(target,
                               arguments,
                               constructors,
@@ -3559,10 +3559,10 @@ class SsaBuilder extends ResolvedVisitor {
       return pop();
     }
 
-    return selector.makeArgumentsList2(arguments,
-                                       element,
-                                       compileArgument,
-                                       handleConstantForOptionalParameter);
+    return selector.makeArgumentsList(arguments,
+                                      element,
+                                      compileArgument,
+                                      handleConstantForOptionalParameter);
   }
 
   void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {

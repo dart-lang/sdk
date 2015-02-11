@@ -731,18 +731,9 @@ abstract class IrBuilder {
         (k) => new ir.ConcatenateStrings(k, arguments));
   }
 
-  /// Create an invocation of [local] where the argument structure is defined
-  /// by [selector] and the argument values are defined by [arguments].
-  ir.Primitive buildLocalInvocation(LocalElement local,
-                                    Selector selector,
-                                    List<ir.Definition> arguments) {
-    return _buildInvokeCall(buildLocalGet(local), selector, arguments);
-  }
-
-  /// Create an invocation of the [functionExpression] where the argument
-  /// structure are defined by [selector] and the argument values are defined by
-  /// [arguments].
-  ir.Primitive buildFunctionExpressionInvocation(
+  /// Create an invocation of the `call` method of [functionExpression], where
+  /// the named arguments are given by [selector].
+  ir.Primitive buildCallInvocation(
       ir.Primitive functionExpression,
       Selector selector,
       List<ir.Definition> arguments) {
