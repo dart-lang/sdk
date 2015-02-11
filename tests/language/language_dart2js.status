@@ -221,6 +221,7 @@ type_variable_conflict2_test/04: Fail # Issue 19725
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
+asyncstar_concat_test: CompileTimeError # Issue 21404
 asyncstar_yield_test: CompileTimeError # Issue 21404
 asyncstar_yieldstar_test: CompileTimeError # Issue 21404
 
