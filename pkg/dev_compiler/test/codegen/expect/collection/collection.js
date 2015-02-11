@@ -1,7 +1,8 @@
 var collection;
 (function (collection) {
   'use strict';
-  class UnmodifiableListView/* Unimplemented <E> */ extends _internal.UnmodifiableListBase/* Unimplemented <E> */ {
+  let UnmodifiableListView$ = dart.generic(function(E) {
+  class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {
     constructor(source) {
       this._source = source;
       super();
@@ -9,6 +10,9 @@ var collection;
     get length() { return this._source.length; }
     get(index) { return this._source.elementAt(index); }
   }
+  return UnmodifiableListView;
+  }); // end generic class
+  let UnmodifiableListView = UnmodifiableListView$(dynamic);
 
   // Function _defaultEquals: (dynamic, dynamic) → bool
   function _defaultEquals(a, b) { return dart.equals(a, b); }
@@ -16,13 +20,14 @@ var collection;
   // Function _defaultHashCode: (dynamic) → int
   function _defaultHashCode(a) { return dart.as(dart.dload(a, "hashCode"), core.int); }
 
-  class HashMap/* Unimplemented <K, V> */ {
+  let HashMap$ = dart.generic(function(K, V) {
+  class HashMap {
     /* Unimplemented external factory HashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory HashMap.identity(); */
     /*constructor*/ from(other) {
       let result = new HashMap();
       other.forEach((k, v) => {
-        result.set(k, /* Unimplemented: DownCast: dynamic to V */v);
+        result.set(k, dart.as(v, V));
       });
       return result;
     }
@@ -43,19 +48,23 @@ var collection;
   dart.defineNamedConstructor(HashMap, "from");
   dart.defineNamedConstructor(HashMap, "fromIterable");
   dart.defineNamedConstructor(HashMap, "fromIterables");
+  return HashMap;
+  }); // end generic class
+  let HashMap = HashMap$(dynamic, dynamic);
 
-  class _HashSetBase/* Unimplemented <E> */ extends SetBase/* Unimplemented <E> */ {
+  let _HashSetBase$ = dart.generic(function(E) {
+  class _HashSetBase extends SetBase$(E) {
     difference(other) {
       let result = this._newSet();
       for (let element of this) {
-        if (!other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */element);
+        if (!other.contains(element)) result.add(dart.as(element, E));
       }
       return result;
     }
     intersection(other) {
       let result = this._newSet();
       for (let element of this) {
-        if (other.contains(element)) result.add(/* Unimplemented: DownCast: dynamic to E */element);
+        if (other.contains(element)) result.add(dart.as(element, E));
       }
       return result;
     }
@@ -64,8 +73,12 @@ var collection;
       return _;
     })(this._newSet()); }
   }
+  return _HashSetBase;
+  }); // end generic class
+  let _HashSetBase = _HashSetBase$(dynamic);
 
-  class HashSet/* Unimplemented <E> */ {
+  let HashSet$ = dart.generic(function(E) {
+  class HashSet {
     /* Unimplemented external factory HashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory HashSet.identity(); */
     /*constructor*/ from(elements) {
@@ -76,8 +89,12 @@ var collection;
   }
   dart.defineNamedConstructor(HashSet, "identity");
   dart.defineNamedConstructor(HashSet, "from");
+  return HashSet;
+  }); // end generic class
+  let HashSet = HashSet$(dynamic);
 
-  class IterableMixin/* Unimplemented <E> */ {
+  let IterableMixin$ = dart.generic(function(E) {
+  class IterableMixin {
     map(f) { return new _internal.MappedIterable(this, f); }
     where(f) { return new _internal.WhereIterable(this, f); }
     expand(f) { return new _internal.ExpandIterable(this, f); }
@@ -170,7 +187,7 @@ var collection;
       if (!it.moveNext()) {
         throw _internal.IterableElementError.noElement();
       }
-      return /* Unimplemented: DownCast: dynamic to E */it.current;
+      return dart.as(it.current, E);
     }
     get last() {
       let it = this.iterator;
@@ -179,7 +196,7 @@ var collection;
       }
       let result = null;
       do {
-        result = /* Unimplemented: DownCast: dynamic to E */it.current;
+        result = dart.as(it.current, E);
       }
       while (it.moveNext());
       return result;
@@ -187,7 +204,7 @@ var collection;
     get single() {
       let it = this.iterator;
       if (!it.moveNext()) throw _internal.IterableElementError.noElement();
-      let result = /* Unimplemented: DownCast: dynamic to E */it.current;
+      let result = dart.as(it.current, E);
       if (it.moveNext()) throw _internal.IterableElementError.tooMany();
       return result;
     }
@@ -240,8 +257,12 @@ var collection;
     }
     toString() { return IterableBase.iterableToShortString(this, "(", ")"); }
   }
+  return IterableMixin;
+  }); // end generic class
+  let IterableMixin = IterableMixin$(dynamic);
 
-  class IterableBase/* Unimplemented <E> */ {
+  let IterableBase$ = dart.generic(function(E) {
+  class IterableBase {
     constructor() {
     }
     map(f) { return new _internal.MappedIterable(this, f); }
@@ -336,7 +357,7 @@ var collection;
       if (!it.moveNext()) {
         throw _internal.IterableElementError.noElement();
       }
-      return /* Unimplemented: DownCast: dynamic to E */it.current;
+      return dart.as(it.current, E);
     }
     get last() {
       let it = this.iterator;
@@ -345,7 +366,7 @@ var collection;
       }
       let result = null;
       do {
-        result = /* Unimplemented: DownCast: dynamic to E */it.current;
+        result = dart.as(it.current, E);
       }
       while (it.moveNext());
       return result;
@@ -353,7 +374,7 @@ var collection;
     get single() {
       let it = this.iterator;
       if (!it.moveNext()) throw _internal.IterableElementError.noElement();
-      let result = /* Unimplemented: DownCast: dynamic to E */it.current;
+      let result = dart.as(it.current, E);
       if (it.moveNext()) throw _internal.IterableElementError.tooMany();
       return result;
     }
@@ -533,8 +554,12 @@ var collection;
   dart.defineLazyProperties(IterableBase, {
     get _toStringVisiting() { return new List.from([]) },
   });
+  return IterableBase;
+  }); // end generic class
+  let IterableBase = IterableBase$(dynamic);
 
-  class HasNextIterator/* Unimplemented <E> */ {
+  let HasNextIterator$ = dart.generic(function(E) {
+  class HasNextIterator {
     constructor(_iterator) {
       this._iterator = _iterator;
       this._state = _NOT_MOVED_YET;
@@ -546,7 +571,7 @@ var collection;
     next() {
       if (!this.hasNext) throw new core.StateError("No more elements");
       dart.assert(this._state === _HAS_NEXT_AND_NEXT_IN_CURRENT);
-      let result = /* Unimplemented: DownCast: dynamic to E */this._iterator.current;
+      let result = dart.as(this._iterator.current, E);
       this._move();
       return result;
     }
@@ -561,14 +586,18 @@ var collection;
   HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
   HasNextIterator._NO_NEXT = 1;
   HasNextIterator._NOT_MOVED_YET = 2;
+  return HasNextIterator;
+  }); // end generic class
+  let HasNextIterator = HasNextIterator$(dynamic);
 
-  class LinkedHashMap/* Unimplemented <K, V> */ {
+  let LinkedHashMap$ = dart.generic(function(K, V) {
+  class LinkedHashMap {
     /* Unimplemented external factory LinkedHashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory LinkedHashMap.identity(); */
     /*constructor*/ from(other) {
       let result = new LinkedHashMap();
       other.forEach((k, v) => {
-        result.set(k, /* Unimplemented: DownCast: dynamic to V */v);
+        result.set(k, dart.as(v, V));
       });
       return result;
     }
@@ -589,8 +618,12 @@ var collection;
   dart.defineNamedConstructor(LinkedHashMap, "from");
   dart.defineNamedConstructor(LinkedHashMap, "fromIterable");
   dart.defineNamedConstructor(LinkedHashMap, "fromIterables");
+  return LinkedHashMap;
+  }); // end generic class
+  let LinkedHashMap = LinkedHashMap$(dynamic, dynamic);
 
-  class LinkedHashSet/* Unimplemented <E> */ {
+  let LinkedHashSet$ = dart.generic(function(E) {
+  class LinkedHashSet {
     /* Unimplemented external factory LinkedHashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
     /* Unimplemented external factory LinkedHashSet.identity(); */
     /*constructor*/ from(elements) {
@@ -603,8 +636,12 @@ var collection;
   }
   dart.defineNamedConstructor(LinkedHashSet, "identity");
   dart.defineNamedConstructor(LinkedHashSet, "from");
+  return LinkedHashSet;
+  }); // end generic class
+  let LinkedHashSet = LinkedHashSet$(dynamic);
 
-  class LinkedList/* Unimplemented <E extends LinkedListEntry<E>> */ extends IterableBase/* Unimplemented <E> */ {
+  let LinkedList$ = dart.generic(function(E) {
+  class LinkedList extends IterableBase$(E) {
     constructor() {
       this._modificationCount = 0;
       this._length = 0;
@@ -620,7 +657,7 @@ var collection;
       this._insertAfter(this._previous, entry);
     }
     addAll(entries) {
-      entries.forEach((entry) => this._insertAfter(this._previous, /* Unimplemented: DownCast: dynamic to E */entry));
+      entries.forEach((entry) => this._insertAfter(this._previous, dart.as(entry, E)));
     }
     remove(entry) {
       if (!dart.equals(entry._list, this)) return false;
@@ -633,7 +670,7 @@ var collection;
       this._modificationCount++;
       let next = this._next;
       while (!core.identical(next, this)) {
-        let entry = /* Unimplemented: DownCast: _LinkedListLink to E */next;
+        let entry = dart.as(next, E);
         next = entry._next;
         entry._next = entry._previous = entry._list = null;
       }
@@ -644,13 +681,13 @@ var collection;
       if (core.identical(this._next, this)) {
         throw new core.StateError("No such element");
       }
-      return /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
+      return dart.as(this._next, E);
     }
     get last() {
       if (core.identical(this._previous, this)) {
         throw new core.StateError("No such element");
       }
-      return /* Unimplemented: DownCast: _LinkedListLink to E */this._previous;
+      return dart.as(this._previous, E);
     }
     get single() {
       if (core.identical(this._previous, this)) {
@@ -659,13 +696,13 @@ var collection;
       if (!core.identical(this._previous, this._next)) {
         throw new core.StateError("Too many elements");
       }
-      return /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
+      return dart.as(this._next, E);
     }
     forEach(action) {
       let modificationCount = this._modificationCount;
       let current = this._next;
       while (!core.identical(current, this)) {
-        action(/* Unimplemented: DownCast: _LinkedListLink to E */current);
+        action(dart.as(current, E));
         if (modificationCount !== this._modificationCount) {
           throw new core.ConcurrentModificationError(this);
         }
@@ -695,8 +732,12 @@ var collection;
       entry._list = entry._next = entry._previous = null;
     }
   }
+  return LinkedList;
+  }); // end generic class
+  let LinkedList = LinkedList$(dynamic);
 
-  class _LinkedListIterator/* Unimplemented <E extends LinkedListEntry<E>> */ {
+  let _LinkedListIterator$ = dart.generic(function(E) {
+  class _LinkedListIterator {
     constructor(list) {
       this._list = list;
       this._modificationCount = list._modificationCount;
@@ -712,11 +753,14 @@ var collection;
       if (this._modificationCount !== this._list._modificationCount) {
         throw new core.ConcurrentModificationError(this);
       }
-      this._current = /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
+      this._current = dart.as(this._next, E);
       this._next = this._next._next;
       return true;
     }
   }
+  return _LinkedListIterator;
+  }); // end generic class
+  let _LinkedListIterator = _LinkedListIterator$(dynamic);
 
   class _LinkedListLink {
     constructor() {
@@ -726,7 +770,8 @@ var collection;
     }
   }
 
-  class LinkedListEntry/* Unimplemented <E extends LinkedListEntry<E>> */ {
+  let LinkedListEntry$ = dart.generic(function(E) {
+  class LinkedListEntry {
     constructor() {
       this._list = null;
       this._next = null;
@@ -739,12 +784,12 @@ var collection;
     }
     get next() {
       if (core.identical(this._next, this._list)) return null;
-      let result = /* Unimplemented: DownCast: _LinkedListLink to E */this._next;
+      let result = dart.as(this._next, E);
       return result;
     }
     get previous() {
       if (core.identical(this._previous, this._list)) return null;
-      return /* Unimplemented type for `as`: _previous as E */;
+      return dart.as(this._previous, E);
     }
     insertAfter(entry) {
       this._list._insertAfter(this, entry);
@@ -753,12 +798,20 @@ var collection;
       this._list._insertAfter(this._previous, entry);
     }
   }
+  return LinkedListEntry;
+  }); // end generic class
+  let LinkedListEntry = LinkedListEntry$(dynamic);
 
-  class ListBase/* Unimplemented <E> */ extends dart.mixin(core.Object, ListMixin/* Unimplemented <E> */) {
+  let ListBase$ = dart.generic(function(E) {
+  class ListBase extends dart.mixin(core.Object, ListMixin$(E)) {
     static listToString(list) { return IterableBase.iterableToFullString(list, "[", "]"); }
   }
+  return ListBase;
+  }); // end generic class
+  let ListBase = ListBase$(dynamic);
 
-  class ListMixin/* Unimplemented <E> */ {
+  let ListMixin$ = dart.generic(function(E) {
+  class ListMixin {
     get iterator() { return new _internal.ListIterator(this); }
     elementAt(index) { return this.get(index); }
     forEach(action) {
@@ -944,10 +997,10 @@ var collection;
       return false;
     }
     removeWhere(test) {
-      _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */test, false);
+      _filter(this, dart.as(test, /* Unimplemented type (dynamic) → bool */), false);
     }
     retainWhere(test) {
-      _filter(this, /* Unimplemented: ClosureWrap: (E) → bool to (dynamic) → bool */test, true);
+      _filter(this, dart.as(test, /* Unimplemented type (dynamic) → bool */), true);
     }
     static _filter(source, test, retainMatching) {
       let retained = new List.from([]);
@@ -983,7 +1036,7 @@ var collection;
         let defaultCompare = core.Comparable.compare;
         compare = defaultCompare;
       }
-      _internal.Sort.sort(this, /* Unimplemented: ClosureWrap: (E, E) → int to (dynamic, dynamic) → int */compare);
+      _internal.Sort.sort(this, dart.as(compare, /* Unimplemented type (dynamic, dynamic) → int */));
     }
     shuffle(random) {
       if (random === undefined) random = null;
@@ -1050,11 +1103,11 @@ var collection;
       }
       if (otherStart < start) {
         for (let i = length - 1; i >= 0; i--) {
-          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */otherList.get(otherStart + i));
+          this.set(start + i, dart.as(otherList.get(otherStart + i), E));
         }
       } else {
         for (let i = 0; i < length; i++) {
-          this.set(start + i, /* Unimplemented: DownCast: dynamic to E */otherList.get(otherStart + i));
+          this.set(start + i, dart.as(otherList.get(otherStart + i), E));
         }
       }
     }
@@ -1156,10 +1209,18 @@ var collection;
     get reversed() { return new _internal.ReversedListIterable(this); }
     toString() { return IterableBase.iterableToFullString(this, "[", "]"); }
   }
+  return ListMixin;
+  }); // end generic class
+  let ListMixin = ListMixin$(dynamic);
 
-  class MapBase extends dart.mixin(MapMixin/* Unimplemented <K, V> */) {}
+  let MapBase$ = dart.generic(function(K, V) {
+  class MapBase extends dart.mixin(MapMixin$(K, V)) {}
 
-  class MapMixin/* Unimplemented <K, V> */ {
+  return MapBase;
+  }); // end generic class
+  let MapBase = MapBase$(dynamic, dynamic);
+  let MapMixin$ = dart.generic(function(K, V) {
+  class MapMixin {
     forEach(action) {
       for (let key of this.keys) {
         action(key, this.get(key));
@@ -1189,10 +1250,18 @@ var collection;
     get values() { return new _MapBaseValueIterable(this); }
     toString() { return Maps.mapToString(this); }
   }
+  return MapMixin;
+  }); // end generic class
+  let MapMixin = MapMixin$(dynamic, dynamic);
 
-  class UnmodifiableMapBase extends dart.mixin(_UnmodifiableMapMixin/* Unimplemented <K, V> */) {}
+  let UnmodifiableMapBase$ = dart.generic(function(K, V) {
+  class UnmodifiableMapBase extends dart.mixin(_UnmodifiableMapMixin$(K, V)) {}
 
-  class _MapBaseValueIterable/* Unimplemented <V> */ extends IterableBase/* Unimplemented <V> */ {
+  return UnmodifiableMapBase;
+  }); // end generic class
+  let UnmodifiableMapBase = UnmodifiableMapBase$(dynamic, dynamic);
+  let _MapBaseValueIterable$ = dart.generic(function(V) {
+  class _MapBaseValueIterable extends IterableBase$(V) {
     constructor(_map) {
       this._map = _map;
       super();
@@ -1200,13 +1269,17 @@ var collection;
     get length() { return this._map.length; }
     get isEmpty() { return this._map.isEmpty; }
     get isNotEmpty() { return this._map.isNotEmpty; }
-    get first() { return /* Unimplemented: DownCast: dynamic to V */this._map.get(this._map.keys.first); }
-    get single() { return /* Unimplemented: DownCast: dynamic to V */this._map.get(this._map.keys.single); }
-    get last() { return /* Unimplemented: DownCast: dynamic to V */this._map.get(this._map.keys.last); }
+    get first() { return dart.as(this._map.get(this._map.keys.first), V); }
+    get single() { return dart.as(this._map.get(this._map.keys.single), V); }
+    get last() { return dart.as(this._map.get(this._map.keys.last), V); }
     get iterator() { return new _MapBaseValueIterator(this._map); }
   }
+  return _MapBaseValueIterable;
+  }); // end generic class
+  let _MapBaseValueIterable = _MapBaseValueIterable$(dynamic);
 
-  class _MapBaseValueIterator/* Unimplemented <V> */ {
+  let _MapBaseValueIterator$ = dart.generic(function(V) {
+  class _MapBaseValueIterator {
     constructor(map) {
       this._map = map;
       this._keys = map.keys.iterator;
@@ -1214,7 +1287,7 @@ var collection;
     }
     moveNext() {
       if (this._keys.moveNext()) {
-        this._current = /* Unimplemented: DownCast: dynamic to V */this._map.get(this._keys.current);
+        this._current = dart.as(this._map.get(this._keys.current), V);
         return true;
       }
       this._current = null;
@@ -1222,8 +1295,12 @@ var collection;
     }
     get current() { return this._current; }
   }
+  return _MapBaseValueIterator;
+  }); // end generic class
+  let _MapBaseValueIterator = _MapBaseValueIterator$(dynamic);
 
-  class _UnmodifiableMapMixin/* Unimplemented <K, V> */ {
+  let _UnmodifiableMapMixin$ = dart.generic(function(K, V) {
+  class _UnmodifiableMapMixin {
     set(key, value) {
       throw new core.UnsupportedError("Cannot modify unmodifiable map");
     }
@@ -1240,8 +1317,12 @@ var collection;
       throw new core.UnsupportedError("Cannot modify unmodifiable map");
     }
   }
+  return _UnmodifiableMapMixin;
+  }); // end generic class
+  let _UnmodifiableMapMixin = _UnmodifiableMapMixin$(dynamic, dynamic);
 
-  class MapView/* Unimplemented <K, V> */ {
+  let MapView$ = dart.generic(function(K, V) {
+  class MapView {
     constructor(map) {
       this._map = map;
     }
@@ -1269,9 +1350,16 @@ var collection;
     toString() { return this._map.toString(); }
     get values() { return this._map.values; }
   }
+  return MapView;
+  }); // end generic class
+  let MapView = MapView$(dynamic, dynamic);
 
-  class UnmodifiableMapView extends dart.mixin(_UnmodifiableMapMixin/* Unimplemented <K, V> */) {}
+  let UnmodifiableMapView$ = dart.generic(function(K, V) {
+  class UnmodifiableMapView extends dart.mixin(_UnmodifiableMapMixin$(K, V)) {}
 
+  return UnmodifiableMapView;
+  }); // end generic class
+  let UnmodifiableMapView = UnmodifiableMapView$(dynamic, dynamic);
   class Maps {
     static containsValue(map, value) {
       for (let v of map.values) {
@@ -1363,7 +1451,8 @@ var collection;
     }
   }
 
-  class Queue/* Unimplemented <E> */ {
+  let Queue$ = dart.generic(function(E) {
+  class Queue {
     constructor() {
       return new ListQueue();
     }
@@ -1372,8 +1461,12 @@ var collection;
     }
   }
   dart.defineNamedConstructor(Queue, "from");
+  return Queue;
+  }); // end generic class
+  let Queue = Queue$(dynamic);
 
-  class DoubleLinkedQueueEntry/* Unimplemented <E> */ {
+  let DoubleLinkedQueueEntry$ = dart.generic(function(E) {
+  class DoubleLinkedQueueEntry {
     constructor(e) {
       this._element = e;
       this._previous = null;
@@ -1414,8 +1507,12 @@ var collection;
       this._element = e;
     }
   }
+  return DoubleLinkedQueueEntry;
+  }); // end generic class
+  let DoubleLinkedQueueEntry = DoubleLinkedQueueEntry$(dynamic);
 
-  class _DoubleLinkedQueueEntrySentinel/* Unimplemented <E> */ extends DoubleLinkedQueueEntry/* Unimplemented <E> */ {
+  let _DoubleLinkedQueueEntrySentinel$ = dart.generic(function(E) {
+  class _DoubleLinkedQueueEntrySentinel extends DoubleLinkedQueueEntry$(E) {
     constructor() {
       super(null);
       this._link(this, this);
@@ -1433,8 +1530,12 @@ var collection;
       throw _internal.IterableElementError.noElement();
     }
   }
+  return _DoubleLinkedQueueEntrySentinel;
+  }); // end generic class
+  let _DoubleLinkedQueueEntrySentinel = _DoubleLinkedQueueEntrySentinel$(dynamic);
 
-  class DoubleLinkedQueue/* Unimplemented <E> */ extends IterableBase/* Unimplemented <E> */ {
+  let DoubleLinkedQueue$ = dart.generic(function(E) {
+  class DoubleLinkedQueue extends IterableBase$(E) {
     constructor() {
       this._sentinel = null;
       this._elementCount = 0;
@@ -1442,11 +1543,11 @@ var collection;
       this._sentinel = new _DoubleLinkedQueueEntrySentinel();
     }
     /*constructor*/ from(elements) {
-      let list = dart.as(new DoubleLinkedQueue(), Queue);
+      let list = dart.as(new DoubleLinkedQueue(), Queue$(E));
       for (let e of elements) {
         list.addLast(e);
       }
-      return dart.as(list, DoubleLinkedQueue);
+      return dart.as(list, DoubleLinkedQueue$(E));
     }
     get length() { return this._elementCount; }
     addLast(value) {
@@ -1546,8 +1647,12 @@ var collection;
     toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
   }
   dart.defineNamedConstructor(DoubleLinkedQueue, "from");
+  return DoubleLinkedQueue;
+  }); // end generic class
+  let DoubleLinkedQueue = DoubleLinkedQueue$(dynamic);
 
-  class _DoubleLinkedQueueIterator/* Unimplemented <E> */ {
+  let _DoubleLinkedQueueIterator$ = dart.generic(function(E) {
+  class _DoubleLinkedQueueIterator {
     constructor(sentinel) {
       this._sentinel = sentinel;
       this._nextEntry = sentinel._next;
@@ -1565,8 +1670,12 @@ var collection;
     }
     get current() { return this._current; }
   }
+  return _DoubleLinkedQueueIterator;
+  }); // end generic class
+  let _DoubleLinkedQueueIterator = _DoubleLinkedQueueIterator$(dynamic);
 
-  class ListQueue/* Unimplemented <E> */ extends IterableBase/* Unimplemented <E> */ {
+  let ListQueue$ = dart.generic(function(E) {
+  class ListQueue extends IterableBase$(E) {
     constructor(initialCapacity) {
       if (initialCapacity === undefined) initialCapacity = null;
       this._head = 0;
@@ -1585,10 +1694,10 @@ var collection;
     /*constructor*/ from(elements) {
       if (dart.is(elements, core.List)) {
         let length = elements.length;
-        let queue = dart.as(new ListQueue(length + 1), ListQueue);
+        let queue = dart.as(new ListQueue(length + 1), ListQueue$(E));
         dart.assert(queue._table.length > length);
         let sourceList = dart.as(elements, core.List);
-        queue._table.setRange(0, length, dart.as(sourceList, core.Iterable), 0);
+        queue._table.setRange(0, length, dart.as(sourceList, core.Iterable$(E)), 0);
         queue._tail = length;
         return queue;
       } else {
@@ -1654,17 +1763,17 @@ var collection;
         let length = this.length;
         if (length + addCount >= this._table.length) {
           this._preGrow(length + addCount);
-          this._table.setRange(length, length + addCount, dart.as(list, core.Iterable), 0);
+          this._table.setRange(length, length + addCount, dart.as(list, core.Iterable$(E)), 0);
           this._tail = addCount;
         } else {
           let endSpace = this._table.length - this._tail;
           if (addCount < endSpace) {
-            this._table.setRange(this._tail, this._tail + addCount, dart.as(list, core.Iterable), 0);
+            this._table.setRange(this._tail, this._tail + addCount, dart.as(list, core.Iterable$(E)), 0);
             this._tail = addCount;
           } else {
             let preSpace = addCount - endSpace;
-            this._table.setRange(this._tail, this._tail + endSpace, dart.as(list, core.Iterable), 0);
-            this._table.setRange(0, preSpace, dart.as(list, core.Iterable), endSpace);
+            this._table.setRange(this._tail, this._tail + endSpace, dart.as(list, core.Iterable$(E)), 0);
+            this._table.setRange(0, preSpace, dart.as(list, core.Iterable$(E)), endSpace);
             this._tail = preSpace;
           }
         }
@@ -1822,8 +1931,12 @@ var collection;
   }
   dart.defineNamedConstructor(ListQueue, "from");
   ListQueue._INITIAL_CAPACITY = 8;
+  return ListQueue;
+  }); // end generic class
+  let ListQueue = ListQueue$(dynamic);
 
-  class _ListQueueIterator/* Unimplemented <E> */ {
+  let _ListQueueIterator$ = dart.generic(function(E) {
+  class _ListQueueIterator {
     constructor(queue) {
       this._queue = queue;
       this._end = queue._tail;
@@ -1838,13 +1951,17 @@ var collection;
         this._current = null;
         return false;
       }
-      this._current = /* Unimplemented: DownCast: dynamic to E */this._queue._table.get(this._position);
+      this._current = dart.as(this._queue._table.get(this._position), E);
       this._position = (this._position + 1) & (this._queue._table.length - 1);
       return true;
     }
   }
+  return _ListQueueIterator;
+  }); // end generic class
+  let _ListQueueIterator = _ListQueueIterator$(dynamic);
 
-  class SetMixin/* Unimplemented <E> */ {
+  let SetMixin$ = dart.generic(function(E) {
+  class SetMixin {
     get isEmpty() { return this.length === 0; }
     get isNotEmpty() { return this.length !== 0; }
     clear() {
@@ -1868,14 +1985,14 @@ var collection;
       for (let element of this) {
         if (test(element)) toRemove.add(element);
       }
-      this.removeAll(dart.as(toRemove, core.Iterable));
+      this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
     }
     retainWhere(test) {
       let toRemove = new List.from([]);
       for (let element of this) {
         if (!test(element)) toRemove.add(element);
       }
-      this.removeAll(dart.as(toRemove, core.Iterable));
+      this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
     }
     containsAll(other) {
       for (let o of other) {
@@ -1918,7 +2035,7 @@ var collection;
       if (this.length > 1) throw _internal.IterableElementError.tooMany();
       let it = this.iterator;
       if (!it.moveNext()) throw _internal.IterableElementError.noElement();
-      let result = /* Unimplemented: DownCast: dynamic to E */it.current;
+      let result = dart.as(it.current, E);
       return result;
     }
     toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
@@ -1991,7 +2108,7 @@ var collection;
       if (!it.moveNext()) {
         throw _internal.IterableElementError.noElement();
       }
-      return /* Unimplemented: DownCast: dynamic to E */it.current;
+      return dart.as(it.current, E);
     }
     get last() {
       let it = this.iterator;
@@ -2000,7 +2117,7 @@ var collection;
       }
       let result = null;
       do {
-        result = /* Unimplemented: DownCast: dynamic to E */it.current;
+        result = dart.as(it.current, E);
       }
       while (it.moveNext());
       return result;
@@ -2053,27 +2170,43 @@ var collection;
       throw new core.RangeError.index(index, this, "index", null, elementIndex);
     }
   }
+  return SetMixin;
+  }); // end generic class
+  let SetMixin = SetMixin$(dynamic);
 
-  class SetBase/* Unimplemented <E> */ extends SetMixin/* Unimplemented <E> */ {
+  let SetBase$ = dart.generic(function(E) {
+  class SetBase extends SetMixin$(E) {
     static setToString(set) { return IterableBase.iterableToFullString(set, "{", "}"); }
   }
+  return SetBase;
+  }); // end generic class
+  let SetBase = SetBase$(dynamic);
 
-  class _SplayTreeNode/* Unimplemented <K> */ {
+  let _SplayTreeNode$ = dart.generic(function(K) {
+  class _SplayTreeNode {
     constructor(key) {
       this.key = key;
       this.left = null;
       this.right = null;
     }
   }
+  return _SplayTreeNode;
+  }); // end generic class
+  let _SplayTreeNode = _SplayTreeNode$(dynamic);
 
-  class _SplayTreeMapNode/* Unimplemented <K, V> */ extends _SplayTreeNode/* Unimplemented <K> */ {
+  let _SplayTreeMapNode$ = dart.generic(function(K, V) {
+  class _SplayTreeMapNode extends _SplayTreeNode$(K) {
     constructor(key, value) {
       this.value = value;
       super(key);
     }
   }
+  return _SplayTreeMapNode;
+  }); // end generic class
+  let _SplayTreeMapNode = _SplayTreeMapNode$(dynamic, dynamic);
 
-  class _SplayTree/* Unimplemented <K> */ {
+  let _SplayTree$ = dart.generic(function(K) {
+  class _SplayTree {
     constructor() {
       this._dummy = new _SplayTreeNode(null);
       this._root = null;
@@ -2138,7 +2271,7 @@ var collection;
         left.right = current;
         current = left;
       }
-      return dart.as(current, _SplayTreeNode);
+      return dart.as(current, _SplayTreeNode$(K));
     }
     _splayMax(node) {
       let current = node;
@@ -2148,7 +2281,7 @@ var collection;
         right.left = current;
         current = right;
       }
-      return dart.as(current, _SplayTreeNode);
+      return dart.as(current, _SplayTreeNode$(K));
     }
     _remove(key) {
       if (this._root === null) return null;
@@ -2200,17 +2333,25 @@ var collection;
       this._modificationCount++;
     }
   }
+  return _SplayTree;
+  }); // end generic class
+  let _SplayTree = _SplayTree$(dynamic);
 
-  class _TypeTest/* Unimplemented <T> */ {
-    test(v) { return /* Unimplemented type for `is`: v is T */; }
+  let _TypeTest$ = dart.generic(function(T) {
+  class _TypeTest {
+    test(v) { return dart.is(v, T); }
   }
+  return _TypeTest;
+  }); // end generic class
+  let _TypeTest = _TypeTest$(dynamic);
 
-  class SplayTreeMap/* Unimplemented <K, V> */ extends _SplayTree/* Unimplemented <K> */ {
+  let SplayTreeMap$ = dart.generic(function(K, V) {
+  class SplayTreeMap extends _SplayTree$(K) {
     constructor(compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       this._comparator = (compare === null) ? core.Comparable.compare : compare;
-      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type for `is`: v is K */);
+      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => dart.is(v, K));
       super();
     }
     /*constructor*/ from(other, compare, isValidKey) {
@@ -2218,7 +2359,7 @@ var collection;
       if (isValidKey === undefined) isValidKey = null;
       let result = new SplayTreeMap();
       other.forEach((k, v) => {
-        result.set(k, /* Unimplemented: DownCast: dynamic to V */v);
+        result.set(k, dart.as(v, V));
       });
       return result;
     }
@@ -2242,24 +2383,24 @@ var collection;
     /*constructor*/ _internal() {
       this._comparator = null;
       this._validKey = null;
-      _SplayTree.call(this);
+      _SplayTree$(K).call(this);
     }
     get(key) {
       if (key === null) throw new core.ArgumentError(key);
       if (!this._validKey(key)) return null;
       if (this._root !== null) {
-        let comp = this._splay(/* Unimplemented: DownCast: Object to K */key);
+        let comp = this._splay(dart.as(key, K));
         if (comp === 0) {
           let mapRoot = dart.as(this._root, _SplayTreeMapNode);
-          return /* Unimplemented: DownCast: dynamic to V */mapRoot.value;
+          return dart.as(mapRoot.value, V);
         }
       }
       return null;
     }
     remove(key) {
       if (!this._validKey(key)) return null;
-      let mapRoot = dart.as(this._remove(/* Unimplemented: DownCast: Object to K */key), _SplayTreeMapNode);
-      if (mapRoot !== null) return /* Unimplemented: DownCast: dynamic to V */mapRoot.value;
+      let mapRoot = dart.as(this._remove(dart.as(key, K)), _SplayTreeMapNode);
+      if (mapRoot !== null) return dart.as(mapRoot.value, V);
       return null;
     }
     set(key, value) {
@@ -2270,14 +2411,14 @@ var collection;
         mapRoot.value = value;
         return;
       }
-      this._addNewRoot(dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode), comp);
+      this._addNewRoot(dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode$(K)), comp);
     }
     putIfAbsent(key, ifAbsent) {
       if (key === null) throw new core.ArgumentError(key);
       let comp = this._splay(key);
       if (comp === 0) {
         let mapRoot = dart.as(this._root, _SplayTreeMapNode);
-        return /* Unimplemented: DownCast: dynamic to V */mapRoot.value;
+        return dart.as(mapRoot.value, V);
       }
       let modificationCount = this._modificationCount;
       let splayCount = this._splayCount;
@@ -2289,7 +2430,7 @@ var collection;
         comp = this._splay(key);
         dart.assert(comp !== 0);
       }
-      this._addNewRoot(dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode), comp);
+      this._addNewRoot(dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode$(K)), comp);
       return value;
     }
     addAll(other) {
@@ -2304,7 +2445,7 @@ var collection;
     forEach(f) {
       let nodes = new _SplayTreeNodeIterator(this);
       while (nodes.moveNext()) {
-        let node = dart.as(nodes.current, _SplayTreeMapNode);
+        let node = dart.as(nodes.current, _SplayTreeMapNode$(K, V));
         f(node.key, node.value);
       }
     }
@@ -2315,7 +2456,7 @@ var collection;
       this._clear();
     }
     containsKey(key) {
-      return this._validKey(key) && this._splay(/* Unimplemented: DownCast: Object to K */key) === 0;
+      return this._validKey(key) && this._splay(dart.as(key, K)) === 0;
     }
     containsValue(value) {
       let found = false;
@@ -2341,11 +2482,11 @@ var collection;
     }
     firstKey() {
       if (this._root === null) return null;
-      return /* Unimplemented: DownCast: dynamic to K */this._first.key;
+      return dart.as(this._first.key, K);
     }
     lastKey() {
       if (this._root === null) return null;
-      return /* Unimplemented: DownCast: dynamic to K */this._last.key;
+      return dart.as(this._last.key, K);
     }
     lastKeyBefore(key) {
       if (key === null) throw new core.ArgumentError(key);
@@ -2376,8 +2517,12 @@ var collection;
   dart.defineNamedConstructor(SplayTreeMap, "fromIterable");
   dart.defineNamedConstructor(SplayTreeMap, "fromIterables");
   dart.defineNamedConstructor(SplayTreeMap, "_internal");
+  return SplayTreeMap;
+  }); // end generic class
+  let SplayTreeMap = SplayTreeMap$(dynamic, dynamic);
 
-  class _SplayTreeIterator/* Unimplemented <T> */ {
+  let _SplayTreeIterator$ = dart.generic(function(T) {
+  class _SplayTreeIterator {
     constructor(tree) {
       this._workList = new List.from([]);
       this._tree = tree;
@@ -2439,8 +2584,12 @@ var collection;
     }
   }
   dart.defineNamedConstructor(_SplayTreeIterator, "startAt");
+  return _SplayTreeIterator;
+  }); // end generic class
+  let _SplayTreeIterator = _SplayTreeIterator$(dynamic);
 
-  class _SplayTreeKeyIterable/* Unimplemented <K> */ extends IterableBase/* Unimplemented <K> */ {
+  let _SplayTreeKeyIterable$ = dart.generic(function(K) {
+  class _SplayTreeKeyIterable extends IterableBase$(K) {
     constructor(_tree) {
       this._tree = _tree;
       super();
@@ -2456,8 +2605,12 @@ var collection;
       return set;
     }
   }
+  return _SplayTreeKeyIterable;
+  }); // end generic class
+  let _SplayTreeKeyIterable = _SplayTreeKeyIterable$(dynamic);
 
-  class _SplayTreeValueIterable/* Unimplemented <K, V> */ extends IterableBase/* Unimplemented <V> */ {
+  let _SplayTreeValueIterable$ = dart.generic(function(K, V) {
+  class _SplayTreeValueIterable extends IterableBase$(V) {
     constructor(_map) {
       this._map = _map;
       super();
@@ -2466,38 +2619,54 @@ var collection;
     get isEmpty() { return this._map._count === 0; }
     get iterator() { return new _SplayTreeValueIterator(this._map); }
   }
+  return _SplayTreeValueIterable;
+  }); // end generic class
+  let _SplayTreeValueIterable = _SplayTreeValueIterable$(dynamic, dynamic);
 
-  class _SplayTreeKeyIterator/* Unimplemented <K> */ extends _SplayTreeIterator/* Unimplemented <K> */ {
+  let _SplayTreeKeyIterator$ = dart.generic(function(K) {
+  class _SplayTreeKeyIterator extends _SplayTreeIterator$(K) {
     constructor(map) {
       super(map);
     }
-    _getValue(node) { return /* Unimplemented: DownCast: dynamic to K */node.key; }
+    _getValue(node) { return dart.as(node.key, K); }
   }
+  return _SplayTreeKeyIterator;
+  }); // end generic class
+  let _SplayTreeKeyIterator = _SplayTreeKeyIterator$(dynamic);
 
-  class _SplayTreeValueIterator/* Unimplemented <K, V> */ extends _SplayTreeIterator/* Unimplemented <V> */ {
+  let _SplayTreeValueIterator$ = dart.generic(function(K, V) {
+  class _SplayTreeValueIterator extends _SplayTreeIterator$(V) {
     constructor(map) {
       super(map);
     }
-    _getValue(node) { return /* Unimplemented: DownCast: dynamic to V */node.value; }
+    _getValue(node) { return dart.as(node.value, V); }
   }
+  return _SplayTreeValueIterator;
+  }); // end generic class
+  let _SplayTreeValueIterator = _SplayTreeValueIterator$(dynamic, dynamic);
 
-  class _SplayTreeNodeIterator/* Unimplemented <K> */ extends _SplayTreeIterator/* Unimplemented <_SplayTreeNode<K>> */ {
+  let _SplayTreeNodeIterator$ = dart.generic(function(K) {
+  class _SplayTreeNodeIterator extends _SplayTreeIterator$(_SplayTreeNode$(K)) {
     constructor(tree) {
       super(tree);
     }
     /*constructor*/ startAt(tree, startKey) {
       super.startAt(tree, startKey);
     }
-    _getValue(node) { return dart.as(node, _SplayTreeNode); }
+    _getValue(node) { return dart.as(node, _SplayTreeNode$(K)); }
   }
   dart.defineNamedConstructor(_SplayTreeNodeIterator, "startAt");
+  return _SplayTreeNodeIterator;
+  }); // end generic class
+  let _SplayTreeNodeIterator = _SplayTreeNodeIterator$(dynamic);
 
-  class SplayTreeSet/* Unimplemented <E> */ extends dart.mixin(_SplayTree/* Unimplemented <E> */, IterableMixin/* Unimplemented <E> */, SetMixin/* Unimplemented <E> */) {
+  let SplayTreeSet$ = dart.generic(function(E) {
+  class SplayTreeSet extends dart.mixin(_SplayTree$(E), IterableMixin$(E), SetMixin$(E)) {
     constructor(compare, isValidKey) {
       if (compare === undefined) compare = null;
       if (isValidKey === undefined) isValidKey = null;
       this._comparator = (compare === null) ? core.Comparable.compare : compare;
-      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => /* Unimplemented type for `is`: v is E */);
+      this._validKey = (isValidKey !== null) ? isValidKey : ((v) => dart.is(v, E));
       super();
     }
     /*constructor*/ from(elements, compare, isValidKey) {
@@ -2516,11 +2685,11 @@ var collection;
     get isNotEmpty() { return this._root !== null; }
     get first() {
       if (this._count === 0) throw _internal.IterableElementError.noElement();
-      return /* Unimplemented: DownCast: dynamic to E */this._first.key;
+      return dart.as(this._first.key, E);
     }
     get last() {
       if (this._count === 0) throw _internal.IterableElementError.noElement();
-      return /* Unimplemented: DownCast: dynamic to E */this._last.key;
+      return dart.as(this._last.key, E);
     }
     get single() {
       if (this._count === 0) throw _internal.IterableElementError.noElement();
@@ -2528,29 +2697,29 @@ var collection;
       return this._root.key;
     }
     contains(object) {
-      return this._validKey(object) && this._splay(/* Unimplemented: DownCast: Object to E */object) === 0;
+      return this._validKey(object) && this._splay(dart.as(object, E)) === 0;
     }
     add(element) {
       let compare = this._splay(element);
       if (compare === 0) return false;
-      this._addNewRoot(dart.as(new _SplayTreeNode(element), _SplayTreeNode), compare);
+      this._addNewRoot(dart.as(new _SplayTreeNode(element), _SplayTreeNode$(E)), compare);
       return true;
     }
     remove(object) {
       if (!this._validKey(object)) return false;
-      return this._remove(/* Unimplemented: DownCast: Object to E */object) !== null;
+      return this._remove(dart.as(object, E)) !== null;
     }
     addAll(elements) {
       for (let element of elements) {
         let compare = this._splay(element);
         if (compare !== 0) {
-          this._addNewRoot(dart.as(new _SplayTreeNode(element), _SplayTreeNode), compare);
+          this._addNewRoot(dart.as(new _SplayTreeNode(element), _SplayTreeNode$(E)), compare);
         }
       }
     }
     removeAll(elements) {
       for (let element of elements) {
-        if (this._validKey(element)) this._remove(/* Unimplemented: DownCast: Object to E */element);
+        if (this._validKey(element)) this._remove(dart.as(element, E));
       }
     }
     retainAll(elements) {
@@ -2560,7 +2729,7 @@ var collection;
         if (modificationCount !== this._modificationCount) {
           throw new core.ConcurrentModificationError(this);
         }
-        if (this._validKey(object) && this._splay(/* Unimplemented: DownCast: Object to E */object) === 0) retainSet.add(this._root.key);
+        if (this._validKey(object) && this._splay(dart.as(object, E)) === 0) retainSet.add(this._root.key);
       }
       if (retainSet._count !== this._count) {
         this._root = retainSet._root;
@@ -2570,7 +2739,7 @@ var collection;
     }
     lookup(object) {
       if (!this._validKey(object)) return null;
-      let comp = this._splay(/* Unimplemented: DownCast: Object to E */object);
+      let comp = this._splay(dart.as(object, E));
       if (comp !== 0) return null;
       return this._root.key;
     }
@@ -2615,32 +2784,60 @@ var collection;
     toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
   }
   dart.defineNamedConstructor(SplayTreeSet, "from");
+  return SplayTreeSet;
+  }); // end generic class
+  let SplayTreeSet = SplayTreeSet$(dynamic);
 
   // Exports:
   collection.UnmodifiableListView = UnmodifiableListView;
+  collection.UnmodifiableListView$ = UnmodifiableListView$;
   collection.HashMap = HashMap;
+  collection.HashMap$ = HashMap$;
   collection.HashSet = HashSet;
+  collection.HashSet$ = HashSet$;
   collection.IterableMixin = IterableMixin;
+  collection.IterableMixin$ = IterableMixin$;
   collection.IterableBase = IterableBase;
+  collection.IterableBase$ = IterableBase$;
   collection.HasNextIterator = HasNextIterator;
+  collection.HasNextIterator$ = HasNextIterator$;
   collection.LinkedHashMap = LinkedHashMap;
+  collection.LinkedHashMap$ = LinkedHashMap$;
   collection.LinkedHashSet = LinkedHashSet;
+  collection.LinkedHashSet$ = LinkedHashSet$;
   collection.LinkedList = LinkedList;
+  collection.LinkedList$ = LinkedList$;
   collection.LinkedListEntry = LinkedListEntry;
+  collection.LinkedListEntry$ = LinkedListEntry$;
   collection.ListBase = ListBase;
+  collection.ListBase$ = ListBase$;
   collection.ListMixin = ListMixin;
+  collection.ListMixin$ = ListMixin$;
+  collection.MapBase$ = MapBase$;
   collection.MapBase = MapBase;
   collection.MapMixin = MapMixin;
+  collection.MapMixin$ = MapMixin$;
+  collection.UnmodifiableMapBase$ = UnmodifiableMapBase$;
   collection.UnmodifiableMapBase = UnmodifiableMapBase;
   collection.MapView = MapView;
+  collection.MapView$ = MapView$;
+  collection.UnmodifiableMapView$ = UnmodifiableMapView$;
   collection.UnmodifiableMapView = UnmodifiableMapView;
   collection.Maps = Maps;
   collection.Queue = Queue;
+  collection.Queue$ = Queue$;
   collection.DoubleLinkedQueueEntry = DoubleLinkedQueueEntry;
+  collection.DoubleLinkedQueueEntry$ = DoubleLinkedQueueEntry$;
   collection.DoubleLinkedQueue = DoubleLinkedQueue;
+  collection.DoubleLinkedQueue$ = DoubleLinkedQueue$;
   collection.ListQueue = ListQueue;
+  collection.ListQueue$ = ListQueue$;
   collection.SetMixin = SetMixin;
+  collection.SetMixin$ = SetMixin$;
   collection.SetBase = SetBase;
+  collection.SetBase$ = SetBase$;
   collection.SplayTreeMap = SplayTreeMap;
+  collection.SplayTreeMap$ = SplayTreeMap$;
   collection.SplayTreeSet = SplayTreeSet;
+  collection.SplayTreeSet$ = SplayTreeSet$;
 })(collection || (collection = {}));

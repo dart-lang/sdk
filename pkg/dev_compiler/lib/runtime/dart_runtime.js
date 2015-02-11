@@ -268,4 +268,12 @@ var dart;
   }
   dart.stackTrace = stackTrace;
 
+  /** Memoize a generic type constructor function. */
+  function generic(typeConstructor) {
+    // TODO(jmesserly): implement this. Memoize so we return the same instance
+    // for the same type, and save the type arguments for easy reflection.
+    return typeConstructor;
+  }
+  dart.generic = generic;
+
 })(dart || (dart = {}));

@@ -23,7 +23,7 @@ var convert;
     get decoder() { return this._allowInvalid ? new AsciiDecoder({allowInvalid: true}) : new AsciiDecoder({allowInvalid: false}); }
   }
 
-  class _UnicodeSubsetEncoder extends Converter/* Unimplemented <String, List<int>> */ {
+  class _UnicodeSubsetEncoder extends Converter$(core.String, core.List$(core.int)) {
     constructor(_subsetMask) {
       this._subsetMask = _subsetMask;
       super();
@@ -43,7 +43,7 @@ var convert;
         }
         result.set(i, codeUnit);
       }
-      return dart.as(result, core.List);
+      return dart.as(result, core.List$(core.int));
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, ByteConversionSink)) {
@@ -51,7 +51,7 @@ var convert;
       }
       return new _UnicodeSubsetEncoderSink(this._subsetMask, sink);
     }
-    bind(stream) { return dart.as(super.bind(stream), async.Stream); }
+    bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.List$(core.int))); }
   }
 
   class AsciiEncoder extends _UnicodeSubsetEncoder {
@@ -84,7 +84,7 @@ var convert;
     }
   }
 
-  class _UnicodeSubsetDecoder extends Converter/* Unimplemented <List<int>, String> */ {
+  class _UnicodeSubsetDecoder extends Converter$(core.List$(core.int), core.String) {
     constructor(_allowInvalid, _subsetMask) {
       this._allowInvalid = _allowInvalid;
       this._subsetMask = _subsetMask;
@@ -117,7 +117,7 @@ var convert;
       }
       return buffer.toString();
     }
-    bind(stream) { return dart.as(super.bind(stream), async.Stream); }
+    bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.String)); }
   }
 
   class AsciiDecoder extends _UnicodeSubsetDecoder {
@@ -197,7 +197,7 @@ var convert;
     }
   }
 
-  class ByteConversionSink extends ChunkedConversionSink/* Unimplemented <List<int>> */ {
+  class ByteConversionSink extends ChunkedConversionSink$(core.List$(core.int)) {
     constructor() {
       super();
     }
@@ -263,7 +263,8 @@ var convert;
   }
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
 
-  class ChunkedConversionSink/* Unimplemented <T> */ {
+  let ChunkedConversionSink$ = dart.generic(function(T) {
+  class ChunkedConversionSink {
     constructor() {
     }
     /*constructor*/ withCallback(callback) {
@@ -271,8 +272,12 @@ var convert;
     }
   }
   dart.defineNamedConstructor(ChunkedConversionSink, "withCallback");
+  return ChunkedConversionSink;
+  }); // end generic class
+  let ChunkedConversionSink = ChunkedConversionSink$(dynamic);
 
-  class _SimpleCallbackSink/* Unimplemented <T> */ extends ChunkedConversionSink/* Unimplemented <T> */ {
+  let _SimpleCallbackSink$ = dart.generic(function(T) {
+  class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
     constructor(_callback) {
       this._accumulated = new List.from([]);
       this._callback = _callback;
@@ -285,16 +290,24 @@ var convert;
       this._callback(this._accumulated);
     }
   }
+  return _SimpleCallbackSink;
+  }); // end generic class
+  let _SimpleCallbackSink = _SimpleCallbackSink$(dynamic);
 
-  class _EventSinkAdapter/* Unimplemented <T> */ {
+  let _EventSinkAdapter$ = dart.generic(function(T) {
+  class _EventSinkAdapter {
     constructor(_sink) {
       this._sink = _sink;
     }
     add(data) { return this._sink.add(data); }
     close() { return this._sink.close(); }
   }
+  return _EventSinkAdapter;
+  }); // end generic class
+  let _EventSinkAdapter = _EventSinkAdapter$(dynamic);
 
-  class _ConverterStreamEventSink/* Unimplemented <S, T> */ {
+  let _ConverterStreamEventSink$ = dart.generic(function(S, T) {
+  class _ConverterStreamEventSink {
     constructor(converter, sink) {
       this._eventSink = sink;
       this._chunkedSink = converter.startChunkedConversion(sink);
@@ -306,8 +319,12 @@ var convert;
     }
     close() { return this._chunkedSink.close(); }
   }
+  return _ConverterStreamEventSink;
+  }); // end generic class
+  let _ConverterStreamEventSink = _ConverterStreamEventSink$(dynamic, dynamic);
 
-  class Codec/* Unimplemented <S, T> */ {
+  let Codec$ = dart.generic(function(S, T) {
+  class Codec {
     constructor() {
     }
     encode(input) { return this.encoder.convert(input); }
@@ -317,18 +334,26 @@ var convert;
     }
     get inverted() { return new _InvertedCodec(this); }
   }
+  return Codec;
+  }); // end generic class
+  let Codec = Codec$(dynamic, dynamic);
 
-  class _FusedCodec/* Unimplemented <S, M, T> */ extends Codec/* Unimplemented <S, T> */ {
-    get encoder() { return dart.as(this._first.encoder.fuse(this._second.encoder), Converter); }
-    get decoder() { return dart.as(this._second.decoder.fuse(this._first.decoder), Converter); }
+  let _FusedCodec$ = dart.generic(function(S, M, T) {
+  class _FusedCodec extends Codec$(S, T) {
+    get encoder() { return dart.as(this._first.encoder.fuse(this._second.encoder), Converter$(S, T)); }
+    get decoder() { return dart.as(this._second.decoder.fuse(this._first.decoder), Converter$(T, S)); }
     constructor(_first, _second) {
       this._first = _first;
       this._second = _second;
       super();
     }
   }
+  return _FusedCodec;
+  }); // end generic class
+  let _FusedCodec = _FusedCodec$(dynamic, dynamic, dynamic);
 
-  class _InvertedCodec/* Unimplemented <T, S> */ extends Codec/* Unimplemented <T, S> */ {
+  let _InvertedCodec$ = dart.generic(function(T, S) {
+  class _InvertedCodec extends Codec$(T, S) {
     constructor(codec) {
       this._codec = codec;
       super();
@@ -337,8 +362,12 @@ var convert;
     get decoder() { return this._codec.encoder; }
     get inverted() { return this._codec; }
   }
+  return _InvertedCodec;
+  }); // end generic class
+  let _InvertedCodec = _InvertedCodec$(dynamic, dynamic);
 
-  class Converter/* Unimplemented <S, T> */ {
+  let Converter$ = dart.generic(function(S, T) {
+  class Converter {
     constructor() {
     }
     fuse(other) {
@@ -351,25 +380,32 @@ var convert;
       return new async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
     }
   }
+  return Converter;
+  }); // end generic class
+  let Converter = Converter$(dynamic, dynamic);
 
-  class _FusedConverter/* Unimplemented <S, M, T> */ extends Converter/* Unimplemented <S, T> */ {
+  let _FusedConverter$ = dart.generic(function(S, M, T) {
+  class _FusedConverter extends Converter$(S, T) {
     constructor(_first, _second) {
       this._first = _first;
       this._second = _second;
       super();
     }
-    convert(input) { return /* Unimplemented: DownCast: dynamic to T */this._second.convert(this._first.convert(input)); }
+    convert(input) { return dart.as(this._second.convert(this._first.convert(input)), T); }
     startChunkedConversion(sink) {
       return this._first.startChunkedConversion(this._second.startChunkedConversion(sink));
     }
   }
+  return _FusedConverter;
+  }); // end generic class
+  let _FusedConverter = _FusedConverter$(dynamic, dynamic, dynamic);
 
-  class Encoding extends Codec/* Unimplemented <String, List<int>> */ {
+  class Encoding extends Codec$(core.String, core.List$(core.int)) {
     constructor() {
       super();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer)).fold(new core.StringBuffer(), (buffer, string) => (dart.dinvoke(buffer, "write", string), buffer)).then((buffer) => dart.dinvoke(buffer, "toString")), async.Future);
+      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dynamic))).fold(new core.StringBuffer(), (buffer, string) => (dart.dinvoke(buffer, "write", string), buffer)).then((buffer) => dart.dinvoke(buffer, "toString")), async.Future$(core.String));
     }
     static getByName(name) {
       if (name === null) return null;
@@ -421,7 +457,7 @@ var convert;
   HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode._("attribute", false, true, false, false);
   HtmlEscapeMode.ELEMENT = new HtmlEscapeMode._("element", true, false, false, true);
 
-  class HtmlEscape extends Converter/* Unimplemented <String, String> */ {
+  class HtmlEscape extends Converter$(core.String, core.String) {
     constructor(mode) {
       if (mode === undefined) mode = HtmlEscapeMode.UNKNOWN;
       this.mode = mode;
@@ -518,7 +554,7 @@ var convert;
   }
 
   let JSON = new JsonCodec();
-  class JsonCodec extends Codec/* Unimplemented <Object, String> */ {
+  class JsonCodec extends Codec$(core.Object, core.String) {
     constructor(opt$) {
       let reviver = opt$.reviver === undefined ? null : opt$.reviver;
       let toEncodable = opt$.toEncodable === undefined ? null : opt$.toEncodable;
@@ -552,7 +588,7 @@ var convert;
   }
   dart.defineNamedConstructor(JsonCodec, "withReviver");
 
-  class JsonEncoder extends Converter/* Unimplemented <Object, String> */ {
+  class JsonEncoder extends Converter$(core.Object, core.String) {
     constructor(toEncodable) {
       if (toEncodable === undefined) toEncodable = null;
       this.indent = null;
@@ -563,9 +599,9 @@ var convert;
       if (toEncodable === undefined) toEncodable = null;
       this.indent = indent;
       this._toEncodable = toEncodable;
-      Converter.call(this);
+      Converter$(core.Object, core.String).call(this);
     }
-    convert(object) { return _JsonStringStringifier.stringify(object, /* Unimplemented: DownCast: Function to (dynamic) → dynamic */this._toEncodable, this.indent); }
+    convert(object) { return _JsonStringStringifier.stringify(object, dart.as(this._toEncodable, /* Unimplemented type (dynamic) → dynamic */), this.indent); }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
         sink = new StringConversionSink.from(sink);
@@ -574,7 +610,7 @@ var convert;
       }
       return new _JsonEncoderSink(sink, this._toEncodable, this.indent);
     }
-    bind(stream) { return dart.as(super.bind(stream), async.Stream); }
+    bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.String)); }
     fuse(other) {
       if (dart.is(other, Utf8Encoder)) {
         return new JsonUtf8Encoder(this.indent, this._toEncodable);
@@ -584,7 +620,7 @@ var convert;
   }
   dart.defineNamedConstructor(JsonEncoder, "withIndent");
 
-  class JsonUtf8Encoder extends Converter/* Unimplemented <Object, List<int>> */ {
+  class JsonUtf8Encoder extends Converter$(core.Object, core.List$(core.int)) {
     constructor(indent, toEncodable, bufferSize) {
       if (indent === undefined) indent = null;
       if (toEncodable === undefined) toEncodable = null;
@@ -606,7 +642,7 @@ var convert;
       return UTF8.encode(string);
     }
     convert(object) {
-      let bytes = dart.as(new List.from([]), core.List);
+      let bytes = dart.as(new List.from([]), core.List$(core.List$(core.int)));
       // Function addChunk: (Uint8List, int, int) → void
       function addChunk(chunk, start, end) {
         if (start > 0 || end < chunk.length) {
@@ -615,7 +651,7 @@ var convert;
         }
         bytes.add(chunk);
       }
-      _JsonUtf8Stringifier.stringify(object, this._indent, /* Unimplemented: DownCast: Function to (Object) → dynamic */this._toEncodable, this._bufferSize, addChunk);
+      _JsonUtf8Stringifier.stringify(object, this._indent, dart.as(this._toEncodable, /* Unimplemented type (Object) → dynamic */), this._bufferSize, addChunk);
       if (bytes.length === 1) return bytes.get(0);
       let length = 0;
       for (let i = 0; i < bytes.length; i++) {
@@ -640,7 +676,7 @@ var convert;
       return new _JsonUtf8EncoderSink(byteSink, this._toEncodable, this._indent, this._bufferSize);
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream);
+      return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));
     }
     fuse(other) {
       return super.fuse(other);
@@ -648,7 +684,7 @@ var convert;
   }
   JsonUtf8Encoder.DEFAULT_BUFFER_SIZE = 256;
 
-  class _JsonEncoderSink extends ChunkedConversionSink/* Unimplemented <Object> */ {
+  class _JsonEncoderSink extends ChunkedConversionSink$(core.Object) {
     constructor(_sink, _toEncodable, _indent) {
       this._sink = _sink;
       this._toEncodable = _toEncodable;
@@ -662,14 +698,14 @@ var convert;
       }
       this._isDone = true;
       let stringSink = this._sink.asStringSink();
-      _JsonStringStringifier.printOn(o, stringSink, /* Unimplemented: DownCast: Function to (dynamic) → dynamic */this._toEncodable, this._indent);
+      _JsonStringStringifier.printOn(o, stringSink, dart.as(this._toEncodable, /* Unimplemented type (dynamic) → dynamic */), this._indent);
       stringSink.close();
     }
     close() {
     }
   }
 
-  class _JsonUtf8EncoderSink extends ChunkedConversionSink/* Unimplemented <Object> */ {
+  class _JsonUtf8EncoderSink extends ChunkedConversionSink$(core.Object) {
     constructor(_sink, _toEncodable, _indent, _bufferSize) {
       this._sink = _sink;
       this._toEncodable = _toEncodable;
@@ -686,7 +722,7 @@ var convert;
         throw new core.StateError("Only one call to add allowed");
       }
       this._isDone = true;
-      _JsonUtf8Stringifier.stringify(object, this._indent, /* Unimplemented: DownCast: Function to (Object) → dynamic */this._toEncodable, this._bufferSize, this._addChunk);
+      _JsonUtf8Stringifier.stringify(object, this._indent, dart.as(this._toEncodable, /* Unimplemented type (Object) → dynamic */), this._bufferSize, this._addChunk);
       this._sink.close();
     }
     close() {
@@ -697,7 +733,7 @@ var convert;
     }
   }
 
-  class JsonDecoder extends Converter/* Unimplemented <String, Object> */ {
+  class JsonDecoder extends Converter$(core.String, core.Object) {
     constructor(reviver) {
       if (reviver === undefined) reviver = null;
       this._reviver = reviver;
@@ -705,7 +741,7 @@ var convert;
     }
     convert(input) { return _parseJson(input, this._reviver); }
     /* Unimplemented external StringConversionSink startChunkedConversion(Sink<Object> sink); */
-    bind(stream) { return dart.as(super.bind(stream), async.Stream); }
+    bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.Object)); }
   }
 
   /* Unimplemented external _parseJson(String source, reviver(key, value)) ; */
@@ -818,7 +854,7 @@ var convert;
         return true;
       } else if (dart.is(object, core.Map)) {
         this._checkCycle(object);
-        this.writeMap(dart.as(object, core.Map));
+        this.writeMap(dart.as(object, core.Map$(core.String, core.Object)));
         this._removeSeen(object);
         return true;
       } else {
@@ -899,7 +935,7 @@ var convert;
         ");
         this._indentLevel++;
         let first = true;
-        map.forEach(/* Unimplemented: ClosureWrapLiteral: (String, Object) → dynamic to (dynamic, dynamic) → void */(key, value) => {
+        map.forEach(dart.as((key, value) => {
           if (!first) {
             this.writeString(",
             ");
@@ -910,7 +946,7 @@ var convert;
           this.writeString("": ");
           this.writeObject(value);
           first = false;
-        });
+        }, /* Unimplemented type (dynamic, dynamic) → void */));
         this.writeString("
         ");
         this._indentLevel--;
@@ -923,7 +959,7 @@ var convert;
   class _JsonStringStringifier extends _JsonStringifier {
     constructor(_sink, _toEncodable) {
       this._sink = _sink;
-      super(/* Unimplemented: DownCast: dynamic to (Object) → Object */_toEncodable);
+      super(dart.as(_toEncodable, /* Unimplemented type (Object) → Object */));
     }
     static stringify(object, toEncodable, indent) {
       let output = new core.StringBuffer();
@@ -969,7 +1005,7 @@ var convert;
       this.bufferSize = bufferSize;
       this.buffer = new typed_data.Uint8List(bufferSize);
       this.index = 0;
-      super(/* Unimplemented: DownCast: dynamic to (Object) → Object */toEncodable);
+      super(dart.as(toEncodable, /* Unimplemented type (Object) → Object */));
     }
     static stringify(object, indent, toEncodableFunction, bufferSize, addChunk) {
       let stringifier = null;
@@ -1177,7 +1213,7 @@ var convert;
         let char = source.get(i);
         if (char > _LATIN1_MASK || char < 0) {
           if (i > start) this._addSliceToSink(source, start, i, false);
-          this._addSliceToSink(dart.as(/* Unimplemented const */new List.from([65533]), core.List), 0, 1, false);
+          this._addSliceToSink(dart.as(/* Unimplemented const */new List.from([65533]), core.List$(core.int)), 0, 1, false);
           start = i + 1;
         }
       }
@@ -1190,7 +1226,7 @@ var convert;
     }
   }
 
-  class LineSplitter extends Converter/* Unimplemented <String, List<String>> */ {
+  class LineSplitter extends Converter$(core.String, core.List$(core.String)) {
     constructor() {
       super();
     }
@@ -1264,7 +1300,7 @@ var convert;
   _LineSplitterSink._LF = 10;
   _LineSplitterSink._CR = 13;
 
-  class StringConversionSink extends ChunkedConversionSink/* Unimplemented <String> */ {
+  class StringConversionSink extends ChunkedConversionSink$(core.String) {
     constructor() {
       super();
     }
@@ -1504,7 +1540,7 @@ var convert;
     }
   }
 
-  class Utf8Encoder extends Converter/* Unimplemented <String, List<int>> */ {
+  class Utf8Encoder extends Converter$(core.String, core.List$(core.int)) {
     constructor() {
       super();
     }
@@ -1533,7 +1569,7 @@ var convert;
       }
       return new _Utf8EncoderSink(sink);
     }
-    bind(stream) { return dart.as(super.bind(stream), async.Stream); }
+    bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.List$(core.int))); }
   }
 
   class _Utf8Encoder {
@@ -1648,7 +1684,7 @@ var convert;
     }
   }
 
-  class Utf8Decoder extends Converter/* Unimplemented <List<int>, String> */ {
+  class Utf8Decoder extends Converter$(core.List$(core.int), core.String) {
     constructor(opt$) {
       let allowMalformed = opt$.allowMalformed === undefined ? false : opt$.allowMalformed;
       this._allowMalformed = allowMalformed;
@@ -1675,7 +1711,7 @@ var convert;
       }
       return stringSink.asUtf8Sink(this._allowMalformed);
     }
-    bind(stream) { return dart.as(super.bind(stream), async.Stream); }
+    bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.String)); }
     /* Unimplemented external Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next); */
   }
 
@@ -1847,8 +1883,11 @@ var convert;
   convert.ByteConversionSink = ByteConversionSink;
   convert.ByteConversionSinkBase = ByteConversionSinkBase;
   convert.ChunkedConversionSink = ChunkedConversionSink;
+  convert.ChunkedConversionSink$ = ChunkedConversionSink$;
   convert.Codec = Codec;
+  convert.Codec$ = Codec$;
   convert.Converter = Converter;
+  convert.Converter$ = Converter$;
   convert.Encoding = Encoding;
   convert.HTML_ESCAPE = HTML_ESCAPE;
   convert.HtmlEscapeMode = HtmlEscapeMode;

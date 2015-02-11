@@ -72,7 +72,8 @@ var math;
     static hash4(a, b, c, d) { return finish(combine(combine(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int)), dart.as(c, core.int)), dart.as(d, core.int))); }
   }
 
-  class Point/* Unimplemented <T extends num> */ {
+  let Point$ = dart.generic(function(T) {
+  class Point {
     constructor(x, y) {
       this.x = x;
       this.y = y;
@@ -101,19 +102,23 @@ var math;
     squaredDistanceTo(other) {
       let dx = this.x['-'](other.x);
       let dy = this.y['-'](other.y);
-      return /* Unimplemented: DownCast: num to T */dx * dx + dy * dy;
+      return dart.as(dx * dx + dy * dy, T);
     }
   }
+  return Point;
+  }); // end generic class
+  let Point = Point$(dynamic);
 
   class Random {
     /* Unimplemented external factory Random([int seed]); */
   }
 
-  class _RectangleBase/* Unimplemented <T extends num> */ {
+  let _RectangleBase$ = dart.generic(function(T) {
+  class _RectangleBase {
     constructor() {
     }
-    get right() { return /* Unimplemented: DownCast: num to T */this.left['+'](this.width); }
-    get bottom() { return /* Unimplemented: DownCast: num to T */this.top['+'](this.height); }
+    get right() { return dart.as(this.left['+'](this.width), T); }
+    get bottom() { return dart.as(this.top['+'](this.height), T); }
     toString() {
       return "Rectangle (" + (this.left) + ", " + (this.top) + ") " + (this.width) + " x " + (this.height) + "";
     }
@@ -155,8 +160,12 @@ var math;
     get bottomRight() { return new Point(this.left['+'](this.width), this.top['+'](this.height)); }
     get bottomLeft() { return new Point(this.left, this.top['+'](this.height)); }
   }
+  return _RectangleBase;
+  }); // end generic class
+  let _RectangleBase = _RectangleBase$(dynamic);
 
-  class Rectangle/* Unimplemented <T extends num> */ extends _RectangleBase/* Unimplemented <T> */ {
+  let Rectangle$ = dart.generic(function(T) {
+  class Rectangle extends _RectangleBase$(T) {
     constructor(left, top, width, height) {
       this.left = left;
       this.top = top;
@@ -165,16 +174,20 @@ var math;
       super();
     }
     /*constructor*/ fromPoints(a, b) {
-      let left = /* Unimplemented: DownCast: num to T */min(a.x, b.x);
-      let width = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.x, b.x), left);
-      let top = /* Unimplemented: DownCast: num to T */min(a.y, b.y);
-      let height = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.y, b.y), top);
+      let left = dart.as(min(a.x, b.x), T);
+      let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
+      let top = dart.as(min(a.y, b.y), T);
+      let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
       return new Rectangle(left, top, width, height);
     }
   }
   dart.defineNamedConstructor(Rectangle, "fromPoints");
+  return Rectangle;
+  }); // end generic class
+  let Rectangle = Rectangle$(dynamic);
 
-  class MutableRectangle/* Unimplemented <T extends num> */ extends _RectangleBase/* Unimplemented <T> */ {
+  let MutableRectangle$ = dart.generic(function(T) {
+  class MutableRectangle extends _RectangleBase$(T) {
     constructor(left, top, width, height) {
       this.left = left;
       this.top = top;
@@ -183,24 +196,27 @@ var math;
       super();
     }
     /*constructor*/ fromPoints(a, b) {
-      let left = /* Unimplemented: DownCast: num to T */min(a.x, b.x);
-      let width = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.x, b.x), left);
-      let top = /* Unimplemented: DownCast: num to T */min(a.y, b.y);
-      let height = /* Unimplemented: DownCast: num to T */core.num['-'](max(a.y, b.y), top);
+      let left = dart.as(min(a.x, b.x), T);
+      let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
+      let top = dart.as(min(a.y, b.y), T);
+      let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
       return new MutableRectangle(left, top, width, height);
     }
     get width() { return this._width; }
     set width(width) {
-      if (width['<'](0)) width = /* Unimplemented: DownCast: num to T */_clampToZero(width);
+      if (width['<'](0)) width = dart.as(_clampToZero(width), T);
       this._width = width;
     }
     get height() { return this._height; }
     set height(height) {
-      if (height['<'](0)) height = /* Unimplemented: DownCast: num to T */_clampToZero(height);
+      if (height['<'](0)) height = dart.as(_clampToZero(height), T);
       this._height = height;
     }
   }
   dart.defineNamedConstructor(MutableRectangle, "fromPoints");
+  return MutableRectangle;
+  }); // end generic class
+  let MutableRectangle = MutableRectangle$(dynamic);
 
   // Function _clampToZero: (num) → num
   function _clampToZero(value) {
@@ -220,7 +236,10 @@ var math;
   math.min = min;
   math.max = max;
   math.Point = Point;
+  math.Point$ = Point$;
   math.Random = Random;
   math.Rectangle = Rectangle;
+  math.Rectangle$ = Rectangle$;
   math.MutableRectangle = MutableRectangle;
+  math.MutableRectangle$ = MutableRectangle$;
 })(math || (math = {}));

@@ -29,9 +29,13 @@ var core;
   }
   dart.defineNamedConstructor(bool, "fromEnvironment");
 
-  class Comparable/* Unimplemented <T> */ {
+  let Comparable$ = dart.generic(function(T) {
+  class Comparable {
     static compare(a, b) { return a.compareTo(b); }
   }
+  return Comparable;
+  }); // end generic class
+  let Comparable = Comparable$(dynamic);
 
   class DateTime {
     constructor(year, month, day, hour, minute, second, millisecond) {
@@ -717,12 +721,16 @@ var core;
     toString() { return "IntegerDivisionByZeroException"; }
   }
 
-  class Expando/* Unimplemented <T> */ {
+  let Expando$ = dart.generic(function(T) {
+  class Expando {
     /* Unimplemented external Expando([String name]); */
     toString() { return "Expando:" + (this.name) + ""; }
     /* Unimplemented external T operator [](Object object); */
     /* Unimplemented external void operator []=(Object object, T value); */
   }
+  return Expando;
+  }); // end generic class
+  let Expando = Expando$(dynamic);
 
   class Function {
     /* Unimplemented external static apply(Function function, List positionalArguments, [Map<Symbol, dynamic> namedArguments]); */
@@ -740,7 +748,8 @@ var core;
     get isAccessor() { return this.isGetter || this.isSetter; }
   }
 
-  class Iterable/* Unimplemented <E> */ {
+  let Iterable$ = dart.generic(function(E) {
+  class Iterable {
     constructor() {
     }
     /*constructor*/ generate(count, generator) {
@@ -765,8 +774,12 @@ var core;
       }
     };
   };
+  return Iterable;
+  }); // end generic class
+  let Iterable = Iterable$(dynamic);
 
-  class _GeneratorIterable/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
+  let _GeneratorIterable$ = dart.generic(function(E) {
+  class _GeneratorIterable extends collection.IterableBase$(E) {
     constructor(_end, generator) {
       this._end = _end;
       this._start = 0;
@@ -777,7 +790,7 @@ var core;
       this._start = _start;
       this._end = _end;
       this._generator = _generator;
-      collection.IterableBase.call(this);
+      collection.IterableBase$(E).call(this);
     }
     get iterator() { return new _GeneratorIterator(this._start, this._end, this._generator); }
     get length() { return this._end - this._start; }
@@ -798,8 +811,12 @@ var core;
     static _id(n) { return n; }
   }
   dart.defineNamedConstructor(_GeneratorIterable, "slice");
+  return _GeneratorIterable;
+  }); // end generic class
+  let _GeneratorIterable = _GeneratorIterable$(dynamic);
 
-  class _GeneratorIterator/* Unimplemented <E> */ {
+  let _GeneratorIterator$ = dart.generic(function(E) {
+  class _GeneratorIterator {
     constructor(_index, _end, _generator) {
       this._index = _index;
       this._end = _end;
@@ -818,14 +835,26 @@ var core;
     }
     get current() { return this._current; }
   }
+  return _GeneratorIterator;
+  }); // end generic class
+  let _GeneratorIterator = _GeneratorIterator$(dynamic);
 
-  class BidirectionalIterator/* Unimplemented <E> */ {
+  let BidirectionalIterator$ = dart.generic(function(E) {
+  class BidirectionalIterator {
   }
+  return BidirectionalIterator;
+  }); // end generic class
+  let BidirectionalIterator = BidirectionalIterator$(dynamic);
 
-  class Iterator/* Unimplemented <E> */ {
+  let Iterator$ = dart.generic(function(E) {
+  class Iterator {
   }
+  return Iterator;
+  }); // end generic class
+  let Iterator = Iterator$(dynamic);
 
-  class List/* Unimplemented <E> */ {
+  let List$ = dart.generic(function(E) {
+  class List {
     /* Unimplemented external factory List([int length]); */
     /* Unimplemented external factory List.filled(int length, E fill); */
     /* Unimplemented external factory List.from(Iterable elements, {bool growable : true}); */
@@ -849,8 +878,12 @@ var core;
   dart.defineNamedConstructor(List, "filled");
   dart.defineNamedConstructor(List, "from");
   dart.defineNamedConstructor(List, "generate");
+  return List;
+  }); // end generic class
+  let List = List$(dynamic);
 
-  class Map/* Unimplemented <K, V> */ {
+  let Map$ = dart.generic(function(K, V) {
+  class Map {
     constructor() {
       return new collection.LinkedHashMap();
     }
@@ -871,6 +904,9 @@ var core;
   dart.defineNamedConstructor(Map, "identity");
   dart.defineNamedConstructor(Map, "fromIterable");
   dart.defineNamedConstructor(Map, "fromIterables");
+  return Map;
+  }); // end generic class
+  let Map = Map$(dynamic, dynamic);
 
   class Null {
     /*constructor*/ _uninstantiable() {
@@ -884,9 +920,9 @@ var core;
     static parse(input, onError) {
       if (onError === undefined) onError = null;
       let source = input.trim();
-      let result = int.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → int */onError: _returnNull);
+      let result = int.parse(source, dart.as(onError: _returnNull, /* Unimplemented type (String) → int */));
       if (result !== null) return result;
-      result = double.parse(source, /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (String) → double */_returnNull);
+      result = double.parse(source, dart.as(_returnNull, /* Unimplemented type (String) → double */));
       if (result !== null) return result;
       if (onError === null) throw new FormatException(input);
       return onError(input);
@@ -924,7 +960,8 @@ var core;
     /* Unimplemented external factory RegExp(String source, {bool multiLine : false, bool caseSensitive : true}); */
   }
 
-  class Set/* Unimplemented <E> */ extends collection.IterableBase/* Unimplemented <E> */ {
+  let Set$ = dart.generic(function(E) {
+  class Set extends collection.IterableBase$(E) {
     constructor() {
       return new collection.LinkedHashSet();
     }
@@ -937,9 +974,16 @@ var core;
   }
   dart.defineNamedConstructor(Set, "identity");
   dart.defineNamedConstructor(Set, "from");
+  return Set;
+  }); // end generic class
+  let Set = Set$(dynamic);
 
-  class Sink/* Unimplemented <T> */ {
+  let Sink$ = dart.generic(function(T) {
+  class Sink {
   }
+  return Sink;
+  }); // end generic class
+  let Sink = Sink$(dynamic);
 
   class StackTrace {
   }
@@ -1001,7 +1045,7 @@ var core;
   dart.defineNamedConstructor(String, "fromCharCode");
   dart.defineNamedConstructor(String, "fromEnvironment");
 
-  class Runes extends collection.IterableBase/* Unimplemented <int> */ {
+  class Runes extends collection.IterableBase$(int) {
     constructor(string) {
       this.string = string;
       super();
@@ -1593,13 +1637,13 @@ var core;
     get pathSegments() {
       if (this._pathSegments === null) {
         let pathToSplit = !this.path.isEmpty && this.path.codeUnitAt(0) === _SLASH ? this.path.substring(1) : this.path;
-        this._pathSegments = dart.as(new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const */new List.from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List);
+        this._pathSegments = dart.as(new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const */new List.from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List$(String));
       }
       return this._pathSegments;
     }
     get queryParameters() {
       if (this._queryParameters === null) {
-        this._queryParameters = dart.as(new collection.UnmodifiableMapView(splitQueryString(this.query)), Map);
+        this._queryParameters = dart.as(new collection.UnmodifiableMapView(splitQueryString(this.query)), Map$(StringString));
       }
       return this._queryParameters;
     }
@@ -1718,7 +1762,7 @@ var core;
     }
     static _makeUserInfo(userInfo, start, end) {
       if (userInfo === null) return "";
-      return _normalize(userInfo, start, end, dart.as(_userinfoTable, List));
+      return _normalize(userInfo, start, end, dart.as(_userinfoTable, List$(int)));
     }
     static _makePath(path, start, end, pathSegments, ensureLeadingSlash, isFile) {
       if (path === null && pathSegments === null) return isFile ? "/" : "";
@@ -1727,9 +1771,9 @@ var core;
       }
       let result = null;
       if (path !== null) {
-        result = _normalize(path, start, end, dart.as(_pathCharOrSlashTable, List));
+        result = _normalize(path, start, end, dart.as(_pathCharOrSlashTable, List$(int)));
       } else {
-        result = pathSegments.map((s) => _uriEncode(dart.as(_pathCharTable, List), dart.as(s, String))).join("/");
+        result = pathSegments.map((s) => _uriEncode(dart.as(_pathCharTable, List$(int)), dart.as(s, String))).join("/");
       }
       if (dart.dload(result, "isEmpty")) {
         if (isFile) return "/";
@@ -1743,7 +1787,7 @@ var core;
       if (query !== null && queryParameters !== null) {
         throw new ArgumentError("Both query and queryParameters specified");
       }
-      if (query !== null) return _normalize(query, start, end, dart.as(_queryCharTable, List));
+      if (query !== null) return _normalize(query, start, end, dart.as(_queryCharTable, List$(int)));
       let result = new StringBuffer();
       let first = true;
       queryParameters.forEach((key, value) => {
@@ -1761,7 +1805,7 @@ var core;
     }
     static _makeFragment(fragment, start, end) {
       if (fragment === null) return null;
-      return _normalize(fragment, start, end, dart.as(_queryCharTable, List));
+      return _normalize(fragment, start, end, dart.as(_queryCharTable, List$(int)));
     }
     static _stringOrNullLength(s) { return (s === null) ? 0 : s.length; }
     static _isHexDigit(char) {
@@ -1923,7 +1967,7 @@ var core;
     }
     _removeDotSegments(path) {
       if (!this._hasDotSegments(path)) return path;
-      let output = dart.as(new List.from([]), List);
+      let output = dart.as(new List.from([]), List$(String));
       let appendSlash = false;
       for (let segment of path.split("/")) {
         appendSlash = false;
@@ -2103,11 +2147,11 @@ var core;
       }
     }
     static encodeComponent(component) {
-      return _uriEncode(dart.as(_unreserved2396Table, List), component);
+      return _uriEncode(dart.as(_unreserved2396Table, List$(int)), component);
     }
     static encodeQueryComponent(component, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
-      return _uriEncode(dart.as(_unreservedTable, List), component, {encoding: encoding, spaceToPlus: true});
+      return _uriEncode(dart.as(_unreservedTable, List$(int)), component, {encoding: encoding, spaceToPlus: true});
     }
     static decodeComponent(encodedComponent) {
       return _uriDecode(encodedComponent);
@@ -2117,7 +2161,7 @@ var core;
       return _uriDecode(encodedComponent, {plusToSpace: true, encoding: encoding});
     }
     static encodeFull(uri) {
-      return _uriEncode(dart.as(_encodeFullTable, List), uri);
+      return _uriEncode(dart.as(_encodeFullTable, List$(int)), uri);
     }
     static decodeFull(uri) {
       return _uriDecode(uri);
@@ -2136,7 +2180,7 @@ var core;
           dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
         }
         return map;
-      }), Map);
+      }), Map$(StringString));
     }
     static parseIPv4Address(host) {
       // Function error: (String) → void
@@ -2153,7 +2197,7 @@ var core;
           error("each part must be in the range of `0..255`");
         }
         return byte;
-      }).toList(), List);
+      }).toList(), List$(int));
     }
     static parseIPv6Address(host, start, end) {
       if (start === undefined) start = 0;
@@ -2176,7 +2220,7 @@ var core;
         return value;
       }
       if (host.length < 2) error("address is too short");
-      let parts = dart.as(new List.from([]), List);
+      let parts = dart.as(new List.from([]), List$(int));
       let wildcardSeen = false;
       let partStart = start;
       for (let i = start; i < end; i++) {
@@ -2244,7 +2288,7 @@ var core;
           index = 2;
         }
       }
-      return dart.as(bytes, List);
+      return dart.as(bytes, List$(int));
     }
     static _uriEncode(canonicalTable, text, opt$) {
       let encoding = opt$.encoding === undefined ? convert.UTF8 : opt$.encoding;
@@ -2303,7 +2347,7 @@ var core;
           bytes = text.codeUnits;
         }
       } else {
-        bytes = dart.as(new List(), List);
+        bytes = dart.as(new List(), List$(int));
         for (let i = 0; i < text.length; i++) {
           let codeUnit = text.codeUnitAt(i);
           if (codeUnit > 127) {
@@ -2375,6 +2419,7 @@ var core;
   core.proxy = proxy;
   core.bool = bool;
   core.Comparable = Comparable;
+  core.Comparable$ = Comparable$;
   core.DateTime = DateTime;
   core.double = double;
   core.Duration = Duration;
@@ -2400,14 +2445,20 @@ var core;
   core.FormatException = FormatException;
   core.IntegerDivisionByZeroException = IntegerDivisionByZeroException;
   core.Expando = Expando;
+  core.Expando$ = Expando$;
   core.Function = Function;
   core.int = int;
   core.Invocation = Invocation;
   core.Iterable = Iterable;
+  core.Iterable$ = Iterable$;
   core.BidirectionalIterator = BidirectionalIterator;
+  core.BidirectionalIterator$ = BidirectionalIterator$;
   core.Iterator = Iterator;
+  core.Iterator$ = Iterator$;
   core.List = List;
+  core.List$ = List$;
   core.Map = Map;
+  core.Map$ = Map$;
   core.Null = Null;
   core.num = num;
   core.Object = Object;
@@ -2416,7 +2467,9 @@ var core;
   core.Match = Match;
   core.RegExp = RegExp;
   core.Set = Set;
+  core.Set$ = Set$;
   core.Sink = Sink;
+  core.Sink$ = Sink$;
   core.StackTrace = StackTrace;
   core.Stopwatch = Stopwatch;
   core.String = String;

@@ -3,7 +3,7 @@ var async;
   'use strict';
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
-    if (/* Unimplemented type for `is`: errorHandler is ZoneBinaryCallback */) {
+    if (dart.is(errorHandler, ZoneBinaryCallback)) {
       return dart.dinvokef(errorHandler, error, stackTrace);
     } else {
       return dart.dinvokef(errorHandler, error);
@@ -12,10 +12,10 @@ var async;
 
   // Function _registerErrorHandler: (Function, Zone) → Function
   function _registerErrorHandler(errorHandler, zone) {
-    if (/* Unimplemented type for `is`: errorHandler is ZoneBinaryCallback */) {
-      return zone.registerBinaryCallback(/* Unimplemented: DownCast: Function to (dynamic, dynamic) → dynamic */errorHandler);
+    if (dart.is(errorHandler, ZoneBinaryCallback)) {
+      return zone.registerBinaryCallback(dart.as(errorHandler, /* Unimplemented type (dynamic, dynamic) → dynamic */));
     } else {
-      return zone.registerUnaryCallback(/* Unimplemented: DownCast: Function to (dynamic) → dynamic */errorHandler);
+      return zone.registerUnaryCallback(dart.as(errorHandler, /* Unimplemented type (dynamic) → dynamic */));
     }
   }
 
@@ -41,12 +41,16 @@ var async;
     }
   }
 
-  class _BroadcastStream/* Unimplemented <T> */ extends _ControllerStream/* Unimplemented <T> */ {
+  let _BroadcastStream$ = dart.generic(function(T) {
+  class _BroadcastStream extends _ControllerStream$(T) {
     constructor(controller) {
-      super(dart.as(controller, _StreamControllerLifecycle));
+      super(dart.as(controller, _StreamControllerLifecycle$(T)));
     }
     get isBroadcast() { return true; }
   }
+  return _BroadcastStream;
+  }); // end generic class
+  let _BroadcastStream = _BroadcastStream$(dynamic);
 
   class _BroadcastSubscriptionLink {
     constructor() {
@@ -56,12 +60,13 @@ var async;
     }
   }
 
-  class _BroadcastSubscription/* Unimplemented <T> */ extends _ControllerSubscription/* Unimplemented <T> */ {
+  let _BroadcastSubscription$ = dart.generic(function(T) {
+  class _BroadcastSubscription extends _ControllerSubscription$(T) {
     constructor(controller, onData, onError, onDone, cancelOnError) {
       this._eventState = null;
       this._next = null;
       this._previous = null;
-      super(dart.as(controller, _StreamControllerLifecycle), onData, onError, onDone, cancelOnError);
+      super(dart.as(controller, _StreamControllerLifecycle$(T)), onData, onError, onDone, cancelOnError);
       this._next = this._previous = this;
     }
     get _controller() { return dart.as(super._controller, _BroadcastStreamController); }
@@ -83,8 +88,12 @@ var async;
   _BroadcastSubscription._STATE_EVENT_ID = 1;
   _BroadcastSubscription._STATE_FIRING = 2;
   _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING = 4;
+  return _BroadcastSubscription;
+  }); // end generic class
+  let _BroadcastSubscription = _BroadcastSubscription$(dynamic);
 
-  class _BroadcastStreamController/* Unimplemented <T> */ {
+  let _BroadcastStreamController$ = dart.generic(function(T) {
+  class _BroadcastStreamController {
     constructor(_onListen, _onCancel) {
       this._onListen = _onListen;
       this._onCancel = _onCancel;
@@ -135,11 +144,11 @@ var async;
         return new _DoneStreamSubscription(onDone);
       }
       let subscription = new _BroadcastSubscription(this, onData, onError, onDone, cancelOnError);
-      this._addListener(dart.as(subscription, _BroadcastSubscription));
+      this._addListener(dart.as(subscription, _BroadcastSubscription$(T)));
       if (core.identical(this._next, this._previous)) {
         _runGuarded(this._onListen);
       }
-      return dart.as(subscription, StreamSubscription);
+      return dart.as(subscription, StreamSubscription$(T));
     }
     _recordCancel(subscription) {
       if (core.identical(subscription._next, subscription)) return null;
@@ -197,7 +206,7 @@ var async;
       let cancelOnError = opt$.cancelOnError === undefined ? true : opt$.cancelOnError;
       if (!this._mayAddEvent) throw this._addEventError();
       this._state = _STATE_ADDSTREAM;
-      this._addStreamState = dart.as(new _AddStreamState(this, stream, cancelOnError), _AddStreamState);
+      this._addStreamState = dart.as(new _AddStreamState(this, stream, cancelOnError), _AddStreamState$(T));
       return this._addStreamState.addStreamFuture;
     }
     _add(data) {
@@ -222,7 +231,7 @@ var async;
       this._state = _STATE_EVENT_ID | _STATE_FIRING;
       let link = this._next;
       while (!core.identical(link, this)) {
-        let subscription = dart.as(link, _BroadcastSubscription);
+        let subscription = dart.as(link, _BroadcastSubscription$(T));
         if (subscription._expectsEvent(id)) {
           subscription._eventState = _BroadcastSubscription._STATE_FIRING;
           action(subscription);
@@ -254,8 +263,12 @@ var async;
   _BroadcastStreamController._STATE_FIRING = 2;
   _BroadcastStreamController._STATE_CLOSED = 4;
   _BroadcastStreamController._STATE_ADDSTREAM = 8;
+  return _BroadcastStreamController;
+  }); // end generic class
+  let _BroadcastStreamController = _BroadcastStreamController$(dynamic);
 
-  class _SyncBroadcastStreamController/* Unimplemented <T> */ extends _BroadcastStreamController/* Unimplemented <T> */ {
+  let _SyncBroadcastStreamController$ = dart.generic(function(T) {
+  class _SyncBroadcastStreamController extends _BroadcastStreamController$(T) {
     constructor(onListen, onCancel) {
       super(onListen, onCancel);
     }
@@ -283,9 +296,9 @@ var async;
     }
     _sendDone() {
       if (!this._isEmpty) {
-        this._forEachListener(/* Unimplemented: ClosureWrapLiteral: (_BroadcastSubscription<T>) → dynamic to (_BufferingStreamSubscription<T>) → void */(subscription) => {
+        this._forEachListener(dart.as((subscription) => {
           subscription._close();
-        });
+        }, /* Unimplemented type (_BufferingStreamSubscription<T>) → void */));
       } else {
         dart.assert(this._doneFuture !== null);
         dart.assert(this._doneFuture._mayComplete);
@@ -293,27 +306,31 @@ var async;
       }
     }
   }
+  return _SyncBroadcastStreamController;
+  }); // end generic class
+  let _SyncBroadcastStreamController = _SyncBroadcastStreamController$(dynamic);
 
-  class _AsyncBroadcastStreamController/* Unimplemented <T> */ extends _BroadcastStreamController/* Unimplemented <T> */ {
+  let _AsyncBroadcastStreamController$ = dart.generic(function(T) {
+  class _AsyncBroadcastStreamController extends _BroadcastStreamController$(T) {
     constructor(onListen, onCancel) {
       super(onListen, onCancel);
     }
     _sendData(data) {
       for (let link = this._next; !core.identical(link, this); link = link._next) {
-        let subscription = dart.as(link, _BroadcastSubscription);
+        let subscription = dart.as(link, _BroadcastSubscription$(T));
         subscription._addPending(new _DelayedData(data));
       }
     }
     _sendError(error, stackTrace) {
       for (let link = this._next; !core.identical(link, this); link = link._next) {
-        let subscription = dart.as(link, _BroadcastSubscription);
+        let subscription = dart.as(link, _BroadcastSubscription$(T));
         subscription._addPending(new _DelayedError(error, stackTrace));
       }
     }
     _sendDone() {
       if (!this._isEmpty) {
         for (let link = this._next; !core.identical(link, this); link = link._next) {
-          let subscription = dart.as(link, _BroadcastSubscription);
+          let subscription = dart.as(link, _BroadcastSubscription$(T));
           subscription._addPending(new _DelayedDone());
         }
       } else {
@@ -323,8 +340,12 @@ var async;
       }
     }
   }
+  return _AsyncBroadcastStreamController;
+  }); // end generic class
+  let _AsyncBroadcastStreamController = _AsyncBroadcastStreamController$(dynamic);
 
-  class _AsBroadcastStreamController/* Unimplemented <T> */ extends _SyncBroadcastStreamController/* Unimplemented <T> */ {
+  let _AsBroadcastStreamController$ = dart.generic(function(T) {
+  class _AsBroadcastStreamController extends _SyncBroadcastStreamController$(T) {
     constructor(onListen, onCancel) {
       this._pending = null;
       super(onListen, onCancel);
@@ -376,8 +397,12 @@ var async;
       super._callOnCancel();
     }
   }
+  return _AsBroadcastStreamController;
+  }); // end generic class
+  let _AsBroadcastStreamController = _AsBroadcastStreamController$(dynamic);
 
-  class _DoneSubscription/* Unimplemented <T> */ {
+  let _DoneSubscription$ = dart.generic(function(T) {
+  class _DoneSubscription {
     constructor() {
       this._pauseCount = 0;
       super();
@@ -408,6 +433,9 @@ var async;
       return new _Future()
     }
   }
+  return _DoneSubscription;
+  }); // end generic class
+  let _DoneSubscription = _DoneSubscription$(dynamic);
 
   class DeferredLibrary {
     constructor(libraryName, opt$) {
@@ -425,7 +453,8 @@ var async;
     toString() { return "DeferredLoadException: '" + (this._s) + "'"; }
   }
 
-  class Future/* Unimplemented <T> */ {
+  let Future$ = dart.generic(function(T) {
+  class Future {
     constructor(computation) {
       let result = new _Future();
       Timer.run(() => {
@@ -437,7 +466,7 @@ var async;
           _completeWithErrorCallback(result, e, s);
         }
       });
-      return dart.as(result, Future);
+      return dart.as(result, Future$(T));
     }
     /*constructor*/ microtask(computation) {
       let result = new _Future();
@@ -450,7 +479,7 @@ var async;
           _completeWithErrorCallback(result, e, s);
         }
       });
-      return dart.as(result, Future);
+      return dart.as(result, Future$(T));
     }
     /*constructor*/ sync(computation) {
       try {
@@ -490,7 +519,7 @@ var async;
           _completeWithErrorCallback(result, e, s);
         }
       });
-      return dart.as(result, Future);
+      return dart.as(result, Future$(T));
     }
     static wait(futures, opt$) {
       let eagerError = opt$.eagerError === undefined ? false : opt$.eagerError;
@@ -526,7 +555,7 @@ var async;
       }
       for (let future of futures) {
         let pos = remaining++;
-        future.then(/* Unimplemented: ClosureWrapLiteral: (Object) → dynamic to (dynamic) → dynamic */(value) => {
+        future.then(dart.as((value) => {
           remaining--;
           if (values !== null) {
             values.set(pos, value);
@@ -543,10 +572,10 @@ var async;
               result._completeError(error, stackTrace);
             }
           }
-        }, {onError: handleError});
+        }, /* Unimplemented type (dynamic) → dynamic */), {onError: handleError});
       }
       if (remaining === 0) {
-        return dart.as(new Future.value(/* Unimplemented const */new List.from([])), Future);
+        return dart.as(new Future.value(/* Unimplemented const */new List.from([])), Future$(core.List));
       }
       values = new core.List(remaining);
       return result;
@@ -561,13 +590,13 @@ var async;
     static doWhile(f) {
       let doneSignal = new _Future();
       let nextIteration = null;
-      nextIteration = Zone.current.bindUnaryCallback(/* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */(keepGoing) => {
+      nextIteration = Zone.current.bindUnaryCallback(dart.as((keepGoing) => {
         if (keepGoing) {
-          new Future.sync(f).then(/* Unimplemented: DownCast: dynamic to (dynamic) → dynamic */nextIteration, {onError: doneSignal._completeError});
+          new Future.sync(f).then(dart.as(nextIteration, /* Unimplemented type (dynamic) → dynamic */), {onError: doneSignal._completeError});
         } else {
           doneSignal._complete(null);
         }
-      }, {runGuarded: true});
+      }, /* Unimplemented type (dynamic) → dynamic */), {runGuarded: true});
       dart.dinvokef(nextIteration, true);
       return doneSignal;
     }
@@ -580,6 +609,9 @@ var async;
   dart.defineLazyProperties(Future, {
     get _nullFuture() { return dart.as(new Future.value(null), _Future) },
   });
+  return Future;
+  }); // end generic class
+  let Future = Future$(dynamic);
 
   class TimeoutException {
     constructor(message, duration) {
@@ -595,7 +627,8 @@ var async;
     }
   }
 
-  class Completer/* Unimplemented <T> */ {
+  let Completer$ = dart.generic(function(T) {
+  class Completer {
     constructor() {
       return new _AsyncCompleter();
     }
@@ -604,6 +637,9 @@ var async;
     }
   }
   dart.defineNamedConstructor(Completer, "sync");
+  return Completer;
+  }); // end generic class
+  let Completer = Completer$(dynamic);
 
   // Function _completeWithErrorCallback: (_Future<dynamic>, dynamic, dynamic) → void
   function _completeWithErrorCallback(result, error, stackTrace) {
@@ -618,7 +654,8 @@ var async;
   // Function _nonNullError: (Object) → Object
   function _nonNullError(error) { return (error !== null) ? error : new core.NullThrownError(); }
 
-  class _Completer/* Unimplemented <T> */ {
+  let _Completer$ = dart.generic(function(T) {
+  class _Completer {
     constructor() {
       this.future = new _Future();
       super();
@@ -636,8 +673,12 @@ var async;
     }
     get isCompleted() { return !this.future._mayComplete; }
   }
+  return _Completer;
+  }); // end generic class
+  let _Completer = _Completer$(dynamic);
 
-  class _AsyncCompleter/* Unimplemented <T> */ extends _Completer/* Unimplemented <T> */ {
+  let _AsyncCompleter$ = dart.generic(function(T) {
+  class _AsyncCompleter extends _Completer$(T) {
     complete(value) {
       if (value === undefined) value = null;
       if (!this.future._mayComplete) throw new core.StateError("Future already completed");
@@ -647,8 +688,12 @@ var async;
       this.future._asyncCompleteError(error, stackTrace);
     }
   }
+  return _AsyncCompleter;
+  }); // end generic class
+  let _AsyncCompleter = _AsyncCompleter$(dynamic);
 
-  class _SyncCompleter/* Unimplemented <T> */ extends _Completer/* Unimplemented <T> */ {
+  let _SyncCompleter$ = dart.generic(function(T) {
+  class _SyncCompleter extends _Completer$(T) {
     complete(value) {
       if (value === undefined) value = null;
       if (!this.future._mayComplete) throw new core.StateError("Future already completed");
@@ -658,6 +703,9 @@ var async;
       this.future._completeError(error, stackTrace);
     }
   }
+  return _SyncCompleter;
+  }); // end generic class
+  let _SyncCompleter = _SyncCompleter$(dynamic);
 
   class _FutureListener {
     /*constructor*/ then(result, onValue, errorCallback) {
@@ -695,16 +743,16 @@ var async;
     get handlesComplete() { return (this.state === STATE_WHENCOMPLETE); }
     get _onValue() {
       dart.assert(this.handlesValue);
-      return /* Unimplemented: DownCast: Function to (dynamic) → dynamic */this.callback;
+      return dart.as(this.callback, _FutureOnValue);
     }
     get _onError() { return this.errorCallback; }
     get _errorTest() {
       dart.assert(this.hasErrorTest);
-      return /* Unimplemented: DownCast: Function to (dynamic) → bool */this.callback;
+      return dart.as(this.callback, _FutureErrorTest);
     }
     get _whenCompleteAction() {
       dart.assert(this.handlesComplete);
-      return /* Unimplemented: DownCast: Function to () → dynamic */this.callback;
+      return dart.as(this.callback, _FutureAction);
     }
   }
   dart.defineNamedConstructor(_FutureListener, "then");
@@ -722,7 +770,8 @@ var async;
   _FutureListener.STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
   _FutureListener.STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
 
-  class _Future/* Unimplemented <T> */ {
+  let _Future$ = dart.generic(function(T) {
+  class _Future {
     constructor() {
       this._zone = Zone.current;
       this._state = _INCOMPLETE;
@@ -759,7 +808,7 @@ var async;
       let onError = opt$.onError === undefined ? null : opt$.onError;
       let result = new _Future();
       if (!core.identical(result._zone, _ROOT_ZONE)) {
-        f = result._zone.registerUnaryCallback(/* Unimplemented: ClosureWrap: (T) → dynamic to (dynamic) → dynamic */f);
+        f = result._zone.registerUnaryCallback(dart.as(f, /* Unimplemented type (dynamic) → dynamic */));
         if (onError !== null) {
           onError = _registerErrorHandler(onError, result._zone);
         }
@@ -772,7 +821,7 @@ var async;
       let result = new _Future();
       if (!core.identical(result._zone, _ROOT_ZONE)) {
         onError = _registerErrorHandler(onError, result._zone);
-        if (test !== null) test = /* Unimplemented: ClosureWrap: (dynamic) → dynamic to (dynamic) → bool */result._zone.registerUnaryCallback(test);
+        if (test !== null) test = dart.as(result._zone.registerUnaryCallback(test), /* Unimplemented type (dynamic) → bool */);
       }
       this._addListener(new _FutureListener.catchError(result, onError, test));
       return result;
@@ -783,16 +832,16 @@ var async;
         action = result._zone.registerCallback(action);
       }
       this._addListener(new _FutureListener.whenComplete(result, action));
-      return dart.as(result, Future);
+      return dart.as(result, Future$(T));
     }
-    asStream() { return dart.as(new Stream.fromFuture(this), Stream); }
+    asStream() { return dart.as(new Stream.fromFuture(this), Stream$(T)); }
     _markPendingCompletion() {
       if (!this._mayComplete) throw new core.StateError("Future already completed");
       this._state = _PENDING_COMPLETE;
     }
     get _value() {
       dart.assert(this._isComplete && this._hasValue);
-      return /* Unimplemented: DownCast: dynamic to T */this._resultOrListeners;
+      return dart.as(this._resultOrListeners, T);
     }
     get _error() {
       dart.assert(this._isComplete && this._hasError);
@@ -869,7 +918,7 @@ var async;
         }
       } else {
         let listeners = this._removeListeners();
-        this._setValue(/* Unimplemented: DownCast: dynamic to T */value);
+        this._setValue(dart.as(value, T));
         _propagateToListeners(this, listeners);
       }
     }
@@ -877,7 +926,7 @@ var async;
       dart.assert(!this._isComplete);
       dart.assert(!dart.is(value, Future));
       let listeners = this._removeListeners();
-      this._setValue(/* Unimplemented: DownCast: dynamic to T */value);
+      this._setValue(dart.as(value, T));
       _propagateToListeners(this, listeners);
     }
     _completeError(error, stackTrace) {
@@ -891,9 +940,9 @@ var async;
       dart.assert(!this._isComplete);
       if (value === null) {
       } else if (dart.is(value, Future)) {
-        let typedFuture = dart.as(value, Future);
+        let typedFuture = dart.as(value, Future$(T));
         if (dart.is(typedFuture, _Future)) {
-          let coreFuture = dart.as(typedFuture, _Future);
+          let coreFuture = dart.as(typedFuture, _Future$(T));
           if (coreFuture._isComplete && coreFuture._hasError) {
             this._markPendingCompletion();
             this._zone.scheduleMicrotask(() => {
@@ -907,7 +956,7 @@ var async;
         }
         return;
       } else {
-        let typedValue = /* Unimplemented: DownCast: dynamic to T */value;
+        let typedValue = dart.as(value, T);
       }
       this._markPendingCompletion();
       this._zone.scheduleMicrotask(() => {
@@ -985,10 +1034,10 @@ var async;
             let errorCallback = listener._onError;
             if (matchesTest && errorCallback !== null) {
               try {
-                if (/* Unimplemented type for `is`: errorCallback is ZoneBinaryCallback */) {
-                  listenerValueOrError = zone.runBinary(/* Unimplemented: DownCast: Function to (dynamic, dynamic) → dynamic */errorCallback, asyncError.error, asyncError.stackTrace);
+                if (dart.is(errorCallback, ZoneBinaryCallback)) {
+                  listenerValueOrError = zone.runBinary(dart.as(errorCallback, /* Unimplemented type (dynamic, dynamic) → dynamic */), asyncError.error, asyncError.stackTrace);
                 } else {
-                  listenerValueOrError = zone.runUnary(/* Unimplemented: DownCast: Function to (dynamic) → dynamic */errorCallback, asyncError.error);
+                  listenerValueOrError = zone.runUnary(dart.as(errorCallback, /* Unimplemented type (dynamic) → dynamic */), asyncError.error);
                 }
               }
               catch (e) {
@@ -1119,6 +1168,9 @@ var async;
   _Future._CHAINED = 2;
   _Future._VALUE = 4;
   _Future._ERROR = 8;
+  return _Future;
+  }); // end generic class
+  let _Future = _Future$(dynamic);
 
   class _AsyncCallbackEntry {
     constructor(callback) {
@@ -1201,13 +1253,14 @@ var async;
     /* Unimplemented external static void _scheduleImmediate(void callback()); */
   }
 
-  class Stream/* Unimplemented <T> */ {
+  let Stream$ = dart.generic(function(T) {
+  class Stream {
     constructor() {
     }
     /*constructor*/ fromFuture(future) {
-      let controller = dart.as(new StreamController({sync: true}), _StreamController);
+      let controller = dart.as(new StreamController({sync: true}), _StreamController$(T));
       future.then((value) => {
-        controller._add(/* Unimplemented: DownCast: dynamic to T */value);
+        controller._add(dart.as(value, T));
         controller._closeUnchecked();
       }, {onError: (error, stackTrace) => {
         controller._addError(error, dart.as(stackTrace, core.StackTrace));
@@ -1261,7 +1314,7 @@ var async;
       return controller.stream;
     }
     /*constructor*/ eventTransformed(source, mapSink) {
-      return dart.as(new _BoundSinkStream(source, mapSink), Stream);
+      return dart.as(new _BoundSinkStream(source, mapSink), Stream$(T));
     }
     get isBroadcast() { return false; }
     asBroadcastStream(opt$) {
@@ -1375,9 +1428,9 @@ var async;
       let subscription = null;
       subscription = this.listen((element) => {
         if (seenFirst) {
-          _runUserCode(() => combine(value, element), /* Unimplemented: ClosureWrapLiteral: (T) → dynamic to (dynamic) → dynamic */(newValue) => {
+          _runUserCode(() => combine(value, element), dart.as((newValue) => {
             value = newValue;
-          }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, result));
+          }, /* Unimplemented type (dynamic) → dynamic */), dart.as(_cancelAndErrorClosure(subscription, result), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
         } else {
           value = element;
           seenFirst = true;
@@ -1404,7 +1457,7 @@ var async;
       subscription = this.listen((element) => {
         _runUserCode(() => combine(value, element), (newValue) => {
           value = newValue;
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, result));
+        }, dart.as(_cancelAndErrorClosure(subscription, result), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: (e, st) => {
         result._completeError(e, dart.as(st, core.StackTrace));
       }, onDone: () => {
@@ -1441,11 +1494,11 @@ var async;
       let future = new _Future();
       let subscription = null;
       subscription = this.listen((element) => {
-        _runUserCode(() => (dart.equals(element, needle)), /* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */(isMatch) => {
+        _runUserCode(() => (dart.equals(element, needle)), dart.as((isMatch) => {
           if (isMatch) {
             _cancelAndValue(subscription, future, true);
           }
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, future));
+        }, /* Unimplemented type (dynamic) → dynamic */), dart.as(_cancelAndErrorClosure(subscription, future), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: future._completeError, onDone: () => {
         future._complete(false);
       }, cancelOnError: true});
@@ -1456,7 +1509,7 @@ var async;
       let subscription = null;
       subscription = this.listen((element) => {
         _runUserCode(() => action(element), (_) => {
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, future));
+        }, dart.as(_cancelAndErrorClosure(subscription, future), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: future._completeError, onDone: () => {
         future._complete(null);
       }, cancelOnError: true});
@@ -1466,11 +1519,11 @@ var async;
       let future = new _Future();
       let subscription = null;
       subscription = this.listen((element) => {
-        _runUserCode(() => test(element), /* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */(isMatch) => {
+        _runUserCode(() => test(element), dart.as((isMatch) => {
           if (!isMatch) {
             _cancelAndValue(subscription, future, false);
           }
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, future));
+        }, /* Unimplemented type (dynamic) → dynamic */), dart.as(_cancelAndErrorClosure(subscription, future), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: future._completeError, onDone: () => {
         future._complete(true);
       }, cancelOnError: true});
@@ -1480,11 +1533,11 @@ var async;
       let future = new _Future();
       let subscription = null;
       subscription = this.listen((element) => {
-        _runUserCode(() => test(element), /* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */(isMatch) => {
+        _runUserCode(() => test(element), dart.as((isMatch) => {
           if (isMatch) {
             _cancelAndValue(subscription, future, true);
           }
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, future));
+        }, /* Unimplemented type (dynamic) → dynamic */), dart.as(_cancelAndErrorClosure(subscription, future), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: future._completeError, onDone: () => {
         future._complete(false);
       }, cancelOnError: true});
@@ -1535,20 +1588,20 @@ var async;
       return this.listen(null, {cancelOnError: true}).asFuture(futureValue)
     }
     take(count) {
-      return dart.as(new _TakeStream(this, count), Stream);
+      return dart.as(new _TakeStream(this, count), Stream$(T));
     }
     takeWhile(test) {
-      return dart.as(new _TakeWhileStream(this, test), Stream);
+      return dart.as(new _TakeWhileStream(this, test), Stream$(T));
     }
     skip(count) {
-      return dart.as(new _SkipStream(this, count), Stream);
+      return dart.as(new _SkipStream(this, count), Stream$(T));
     }
     skipWhile(test) {
-      return dart.as(new _SkipWhileStream(this, test), Stream);
+      return dart.as(new _SkipWhileStream(this, test), Stream$(T));
     }
     distinct(equals) {
       if (equals === undefined) equals = null;
-      return dart.as(new _DistinctStream(this, equals), Stream);
+      return dart.as(new _DistinctStream(this, equals), Stream$(T));
     }
     get first() {
       let future = new _Future();
@@ -1627,11 +1680,11 @@ var async;
       let future = new _Future();
       let subscription = null;
       subscription = this.listen((value) => {
-        _runUserCode(() => test(value), /* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */(isMatch) => {
+        _runUserCode(() => test(value), dart.as((isMatch) => {
           if (isMatch) {
             _cancelAndValue(subscription, future, value);
           }
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, future));
+        }, /* Unimplemented type (dynamic) → dynamic */), dart.as(_cancelAndErrorClosure(subscription, future), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: future._completeError, onDone: () => {
         if (defaultValue !== null) {
           _runUserCode(defaultValue, future._complete, future._completeError);
@@ -1654,12 +1707,12 @@ var async;
       let foundResult = false;
       let subscription = null;
       subscription = this.listen((value) => {
-        _runUserCode(() => true === test(value), /* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */(isMatch) => {
+        _runUserCode(() => true === test(value), dart.as((isMatch) => {
           if (isMatch) {
             foundResult = true;
             result = value;
           }
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, future));
+        }, /* Unimplemented type (dynamic) → dynamic */), dart.as(_cancelAndErrorClosure(subscription, future), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: future._completeError, onDone: () => {
         if (foundResult) {
           future._complete(result);
@@ -1685,7 +1738,7 @@ var async;
       let foundResult = false;
       let subscription = null;
       subscription = this.listen((value) => {
-        _runUserCode(() => true === test(value), /* Unimplemented: ClosureWrapLiteral: (bool) → dynamic to (dynamic) → dynamic */(isMatch) => {
+        _runUserCode(() => true === test(value), dart.as((isMatch) => {
           if (isMatch) {
             if (foundResult) {
               try {
@@ -1700,7 +1753,7 @@ var async;
             foundResult = true;
             result = value;
           }
-        }, /* Unimplemented: DownCast: dynamic to (dynamic, StackTrace) → dynamic */_cancelAndErrorClosure(subscription, future));
+        }, /* Unimplemented type (dynamic) → dynamic */), dart.as(_cancelAndErrorClosure(subscription, future), /* Unimplemented type (dynamic, StackTrace) → dynamic */));
       }, {onError: future._completeError, onDone: () => {
         if (foundResult) {
           future._complete(result);
@@ -1743,7 +1796,7 @@ var async;
       function onData(event) {
         timer.cancel();
         controller.add(event);
-        timer = zone.createTimer(timeLimit, /* Unimplemented: DownCast: Function to () → void */timeout);
+        timer = zone.createTimer(timeLimit, dart.as(timeout, /* Unimplemented type () → void */));
       }
       // Function onError: (dynamic, StackTrace) → void
       function onError(error, stackTrace) {
@@ -1751,7 +1804,7 @@ var async;
         dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
         let eventSink = controller;
         dart.dinvoke(eventSink, "_addError", error, stackTrace);
-        timer = zone.createTimer(timeLimit, /* Unimplemented: DownCast: Function to () → void */timeout);
+        timer = zone.createTimer(timeLimit, dart.as(timeout, /* Unimplemented type () → void */));
       }
       // Function onDone: () → void
       function onDone() {
@@ -1766,16 +1819,16 @@ var async;
             controller.addError(new TimeoutException("No stream event", timeLimit), null);
           };
         } else {
-          onTimeout = zone.registerUnaryCallback(/* Unimplemented: ClosureWrap: (EventSink<dynamic>) → void to (dynamic) → dynamic */onTimeout);
+          onTimeout = zone.registerUnaryCallback(dart.as(onTimeout, /* Unimplemented type (dynamic) → dynamic */));
           let wrapper = new _ControllerEventSinkWrapper(null);
           timeout = () => {
             wrapper._sink = controller;
-            zone.runUnaryGuarded(/* Unimplemented: ClosureWrap: (EventSink<dynamic>) → void to (dynamic) → dynamic */onTimeout, wrapper);
+            zone.runUnaryGuarded(dart.as(onTimeout, /* Unimplemented type (dynamic) → dynamic */), wrapper);
             wrapper._sink = null;
           };
         }
         subscription = this.listen(onData, {onError: onError, onDone: onDone});
-        timer = zone.createTimer(timeLimit, /* Unimplemented: DownCast: Function to () → void */timeout);
+        timer = zone.createTimer(timeLimit, dart.as(timeout, /* Unimplemented type () → void */));
       }
       // Function onCancel: () → Future<dynamic>
       function onCancel() {
@@ -1789,7 +1842,7 @@ var async;
         subscription.pause();
       }, () => {
         subscription.resume();
-        timer = zone.createTimer(timeLimit, /* Unimplemented: DownCast: Function to () → void */timeout);
+        timer = zone.createTimer(timeLimit, dart.as(timeout, /* Unimplemented type () → void */));
       }, onCancel);
       return controller.stream;
     }
@@ -1798,14 +1851,26 @@ var async;
   dart.defineNamedConstructor(Stream, "fromIterable");
   dart.defineNamedConstructor(Stream, "periodic");
   dart.defineNamedConstructor(Stream, "eventTransformed");
+  return Stream;
+  }); // end generic class
+  let Stream = Stream$(dynamic);
 
-  class StreamSubscription/* Unimplemented <T> */ {
+  let StreamSubscription$ = dart.generic(function(T) {
+  class StreamSubscription {
   }
+  return StreamSubscription;
+  }); // end generic class
+  let StreamSubscription = StreamSubscription$(dynamic);
 
-  class EventSink/* Unimplemented <T> */ {
+  let EventSink$ = dart.generic(function(T) {
+  class EventSink {
   }
+  return EventSink;
+  }); // end generic class
+  let EventSink = EventSink$(dynamic);
 
-  class StreamView/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
+  let StreamView$ = dart.generic(function(T) {
+  class StreamView extends Stream$(T) {
     constructor(_stream) {
       this._stream = _stream;
       super();
@@ -1823,14 +1888,26 @@ var async;
       return this._stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
     }
   }
+  return StreamView;
+  }); // end generic class
+  let StreamView = StreamView$(dynamic);
 
-  class StreamConsumer/* Unimplemented <S> */ {
+  let StreamConsumer$ = dart.generic(function(S) {
+  class StreamConsumer {
   }
+  return StreamConsumer;
+  }); // end generic class
+  let StreamConsumer = StreamConsumer$(dynamic);
 
-  class StreamSink/* Unimplemented <S> */ {
+  let StreamSink$ = dart.generic(function(S) {
+  class StreamSink {
   }
+  return StreamSink;
+  }); // end generic class
+  let StreamSink = StreamSink$(dynamic);
 
-  class StreamTransformer/* Unimplemented <S, T> */ {
+  let StreamTransformer$ = dart.generic(function(S, T) {
+  class StreamTransformer {
     constructor(transformer) {
       return new _StreamSubscriptionTransformer(transformer);
     }
@@ -1839,14 +1916,22 @@ var async;
     }
   }
   dart.defineNamedConstructor(StreamTransformer, "fromHandlers");
+  return StreamTransformer;
+  }); // end generic class
+  let StreamTransformer = StreamTransformer$(dynamic, dynamic);
 
-  class StreamIterator/* Unimplemented <T> */ {
+  let StreamIterator$ = dart.generic(function(T) {
+  class StreamIterator {
     constructor(stream) {
       return new _StreamIteratorImpl(stream);
     }
   }
+  return StreamIterator;
+  }); // end generic class
+  let StreamIterator = StreamIterator$(dynamic);
 
-  class _ControllerEventSinkWrapper/* Unimplemented <T> */ {
+  let _ControllerEventSinkWrapper$ = dart.generic(function(T) {
+  class _ControllerEventSinkWrapper {
     constructor(_sink) {
       this._sink = _sink;
     }
@@ -1861,8 +1946,12 @@ var async;
       this._sink.close();
     }
   }
+  return _ControllerEventSinkWrapper;
+  }); // end generic class
+  let _ControllerEventSinkWrapper = _ControllerEventSinkWrapper$(dynamic);
 
-  class StreamController/* Unimplemented <T> */ {
+  let StreamController$ = dart.generic(function(T) {
+  class StreamController {
     constructor(opt$) {
       let onListen = opt$.onListen === undefined ? null : opt$.onListen;
       let onPause = opt$.onPause === undefined ? null : opt$.onPause;
@@ -1870,7 +1959,7 @@ var async;
       let onCancel = opt$.onCancel === undefined ? null : opt$.onCancel;
       let sync = opt$.sync === undefined ? false : opt$.sync;
       if (onListen === null && onPause === null && onResume === null && onCancel === null) {
-        return dart.as(sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController(), StreamController);
+        return dart.as(sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController(), StreamController$(T));
       }
       return sync ? new _SyncStreamController(onListen, onPause, onResume, onCancel) : new _AsyncStreamController(onListen, onPause, onResume, onCancel);
     }
@@ -1882,22 +1971,30 @@ var async;
     }
   }
   dart.defineNamedConstructor(StreamController, "broadcast");
+  return StreamController;
+  }); // end generic class
+  let StreamController = StreamController$(dynamic);
 
-  class _StreamControllerLifecycle/* Unimplemented <T> */ {
+  let _StreamControllerLifecycle$ = dart.generic(function(T) {
+  class _StreamControllerLifecycle {
     _recordPause(subscription) {
     }
     _recordResume(subscription) {
     }
     _recordCancel(subscription) { return null; }
   }
+  return _StreamControllerLifecycle;
+  }); // end generic class
+  let _StreamControllerLifecycle = _StreamControllerLifecycle$(dynamic);
 
-  class _StreamController/* Unimplemented <T> */ {
+  let _StreamController$ = dart.generic(function(T) {
+  class _StreamController {
     constructor() {
       this._varData = null;
       this._state = _STATE_INITIAL;
       this._doneFuture = null;
     }
-    get stream() { return dart.as(new _ControllerStream(this), Stream); }
+    get stream() { return dart.as(new _ControllerStream(this), Stream$(T)); }
     get sink() { return new _StreamSinkWrapper(this); }
     get _isCanceled() { return (this._state & _STATE_CANCELED) !== 0; }
     get hasListener() { return (this._state & _STATE_SUBSCRIBED) !== 0; }
@@ -2025,7 +2122,7 @@ var async;
       subscription._guardCallback(() => {
         _runGuarded(this._onListen);
       });
-      return dart.as(subscription, StreamSubscription);
+      return dart.as(subscription, StreamSubscription$(T));
     }
     _recordCancel(subscription) {
       let result = null;
@@ -2085,8 +2182,12 @@ var async;
   _StreamController._STATE_SUBSCRIPTION_MASK = 3;
   _StreamController._STATE_CLOSED = 4;
   _StreamController._STATE_ADDSTREAM = 8;
+  return _StreamController;
+  }); // end generic class
+  let _StreamController = _StreamController$(dynamic);
 
-  class _SyncStreamControllerDispatch/* Unimplemented <T> */ {
+  let _SyncStreamControllerDispatch$ = dart.generic(function(T) {
+  class _SyncStreamControllerDispatch {
     _sendData(data) {
       this._subscription._add(data);
     }
@@ -2097,8 +2198,12 @@ var async;
       this._subscription._close();
     }
   }
+  return _SyncStreamControllerDispatch;
+  }); // end generic class
+  let _SyncStreamControllerDispatch = _SyncStreamControllerDispatch$(dynamic);
 
-  class _AsyncStreamControllerDispatch/* Unimplemented <T> */ {
+  let _AsyncStreamControllerDispatch$ = dart.generic(function(T) {
+  class _AsyncStreamControllerDispatch {
     _sendData(data) {
       this._subscription._addPending(new _DelayedData(data));
     }
@@ -2109,8 +2214,12 @@ var async;
       this._subscription._addPending(new _DelayedDone());
     }
   }
+  return _AsyncStreamControllerDispatch;
+  }); // end generic class
+  let _AsyncStreamControllerDispatch = _AsyncStreamControllerDispatch$(dynamic);
 
-  class _AsyncStreamController/* Unimplemented <T> */ extends dart.mixin(_StreamController/* Unimplemented <T> */, _AsyncStreamControllerDispatch/* Unimplemented <T> */) {
+  let _AsyncStreamController$ = dart.generic(function(T) {
+  class _AsyncStreamController extends dart.mixin(_StreamController$(T), _AsyncStreamControllerDispatch$(T)) {
     constructor(_onListen, _onPause, _onResume, _onCancel) {
       this._onListen = _onListen;
       this._onPause = _onPause;
@@ -2119,8 +2228,12 @@ var async;
       super();
     }
   }
+  return _AsyncStreamController;
+  }); // end generic class
+  let _AsyncStreamController = _AsyncStreamController$(dynamic);
 
-  class _SyncStreamController/* Unimplemented <T> */ extends dart.mixin(_StreamController/* Unimplemented <T> */, _SyncStreamControllerDispatch/* Unimplemented <T> */) {
+  let _SyncStreamController$ = dart.generic(function(T) {
+  class _SyncStreamController extends dart.mixin(_StreamController$(T), _SyncStreamControllerDispatch$(T)) {
     constructor(_onListen, _onPause, _onResume, _onCancel) {
       this._onListen = _onListen;
       this._onPause = _onPause;
@@ -2129,6 +2242,9 @@ var async;
       super();
     }
   }
+  return _SyncStreamController;
+  }); // end generic class
+  let _SyncStreamController = _SyncStreamController$(dynamic);
 
   class _NoCallbacks {
     get _onListen() { return null; }
@@ -2155,7 +2271,8 @@ var async;
     }
   }
 
-  class _ControllerStream/* Unimplemented <T> */ extends _StreamImpl/* Unimplemented <T> */ {
+  let _ControllerStream$ = dart.generic(function(T) {
+  class _ControllerStream extends _StreamImpl$(T) {
     constructor(_controller) {
       this._controller = _controller;
       super();
@@ -2169,8 +2286,12 @@ var async;
       return core.identical(otherStream._controller, this._controller);
     }
   }
+  return _ControllerStream;
+  }); // end generic class
+  let _ControllerStream = _ControllerStream$(dynamic);
 
-  class _ControllerSubscription/* Unimplemented <T> */ extends _BufferingStreamSubscription/* Unimplemented <T> */ {
+  let _ControllerSubscription$ = dart.generic(function(T) {
+  class _ControllerSubscription extends _BufferingStreamSubscription$(T) {
     constructor(_controller, onData, onError, onDone, cancelOnError) {
       this._controller = _controller;
       super(onData, onError, onDone, cancelOnError);
@@ -2185,8 +2306,12 @@ var async;
       this._controller._recordResume(this);
     }
   }
+  return _ControllerSubscription;
+  }); // end generic class
+  let _ControllerSubscription = _ControllerSubscription$(dynamic);
 
-  class _StreamSinkWrapper/* Unimplemented <T> */ {
+  let _StreamSinkWrapper$ = dart.generic(function(T) {
+  class _StreamSinkWrapper {
     constructor(_target) {
       this._target = _target;
     }
@@ -2204,11 +2329,15 @@ var async;
     }
     get done() { return this._target.done; }
   }
+  return _StreamSinkWrapper;
+  }); // end generic class
+  let _StreamSinkWrapper = _StreamSinkWrapper$(dynamic);
 
-  class _AddStreamState/* Unimplemented <T> */ {
+  let _AddStreamState$ = dart.generic(function(T) {
+  class _AddStreamState {
     constructor(controller, source, cancelOnError) {
       this.addStreamFuture = new _Future();
-      this.addSubscription = source.listen(/* Unimplemented: ClosureWrap: (T) → void to (dynamic) → void */controller._add, dart.as(onError: cancelOnError ? makeErrorHandler(controller) : controller._addError, core.Function), {onDone: controller._close, cancelOnError: cancelOnError});
+      this.addSubscription = source.listen(dart.as(controller._add, /* Unimplemented type (dynamic) → void */), dart.as(onError: cancelOnError ? makeErrorHandler(controller) : controller._addError, core.Function), {onDone: controller._close, cancelOnError: cancelOnError});
     }
     static makeErrorHandler(controller) { return (e, s) => {
       controller._addError(e, s);
@@ -2234,24 +2363,40 @@ var async;
       this.addStreamFuture._asyncComplete(null);
     }
   }
+  return _AddStreamState;
+  }); // end generic class
+  let _AddStreamState = _AddStreamState$(dynamic);
 
-  class _StreamControllerAddStreamState/* Unimplemented <T> */ extends _AddStreamState/* Unimplemented <T> */ {
+  let _StreamControllerAddStreamState$ = dart.generic(function(T) {
+  class _StreamControllerAddStreamState extends _AddStreamState$(T) {
     constructor(controller, varData, source, cancelOnError) {
       this.varData = varData;
-      super(dart.as(controller, _EventSink), source, cancelOnError);
+      super(dart.as(controller, _EventSink$(T)), source, cancelOnError);
       if (controller.isPaused) {
         this.addSubscription.pause();
       }
     }
   }
+  return _StreamControllerAddStreamState;
+  }); // end generic class
+  let _StreamControllerAddStreamState = _StreamControllerAddStreamState$(dynamic);
 
-  class _EventSink/* Unimplemented <T> */ {
+  let _EventSink$ = dart.generic(function(T) {
+  class _EventSink {
   }
+  return _EventSink;
+  }); // end generic class
+  let _EventSink = _EventSink$(dynamic);
 
-  class _EventDispatch/* Unimplemented <T> */ {
+  let _EventDispatch$ = dart.generic(function(T) {
+  class _EventDispatch {
   }
+  return _EventDispatch;
+  }); // end generic class
+  let _EventDispatch = _EventDispatch$(dynamic);
 
-  class _BufferingStreamSubscription/* Unimplemented <T> */ {
+  let _BufferingStreamSubscription$ = dart.generic(function(T) {
+  class _BufferingStreamSubscription {
     constructor(onData, onError, onDone, cancelOnError) {
       this._zone = Zone.current;
       this._state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0);
@@ -2281,7 +2426,7 @@ var async;
     }
     onData(handleData) {
       if (handleData === null) handleData = _nullDataHandler;
-      this._onData = this._zone.registerUnaryCallback(/* Unimplemented: ClosureWrap: (T) → void to (dynamic) → dynamic */handleData);
+      this._onData = this._zone.registerUnaryCallback(dart.as(handleData, /* Unimplemented type (dynamic) → dynamic */));
     }
     onError(handleError) {
       if (handleError === null) handleError = _nullErrorHandler;
@@ -2414,7 +2559,7 @@ var async;
       dart.assert(!this._inCallback);
       let wasInputPaused = this._isInputPaused;
       this._state = _STATE_IN_CALLBACK;
-      this._zone.runUnaryGuarded(/* Unimplemented: ClosureWrap: (T) → void to (dynamic) → dynamic */this._onData, data);
+      this._zone.runUnaryGuarded(dart.as(this._onData, /* Unimplemented type (dynamic) → dynamic */), data);
       this._state = ~_STATE_IN_CALLBACK;
       this._checkState(wasInputPaused);
     }
@@ -2427,10 +2572,10 @@ var async;
       function sendError() {
         if (this._isCanceled && !this._waitsForCancel) return;
         this._state = _STATE_IN_CALLBACK;
-        if (/* Unimplemented type for `is`: _onError is ZoneBinaryCallback */) {
-          this._zone.runBinaryGuarded(/* Unimplemented: DownCast: Function to (dynamic, dynamic) → dynamic */this._onError, error, stackTrace);
+        if (dart.is(this._onError, ZoneBinaryCallback)) {
+          this._zone.runBinaryGuarded(dart.as(this._onError, /* Unimplemented type (dynamic, dynamic) → dynamic */), error, stackTrace);
         } else {
-          this._zone.runUnaryGuarded(/* Unimplemented: DownCast: Function to (dynamic) → dynamic */this._onError, error);
+          this._zone.runUnaryGuarded(dart.as(this._onError, /* Unimplemented type (dynamic) → dynamic */), error);
         }
         this._state = ~_STATE_IN_CALLBACK;
       }
@@ -2512,8 +2657,12 @@ var async;
   _BufferingStreamSubscription._STATE_HAS_PENDING = 64;
   _BufferingStreamSubscription._STATE_PAUSE_COUNT = 128;
   _BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
+  return _BufferingStreamSubscription;
+  }); // end generic class
+  let _BufferingStreamSubscription = _BufferingStreamSubscription$(dynamic);
 
-  class _StreamImpl/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
+  let _StreamImpl$ = dart.generic(function(T) {
+  class _StreamImpl extends Stream$(T) {
     listen(onData, opt$) {
       let onError = opt$.onError === undefined ? null : opt$.onError;
       let onDone = opt$.onDone === undefined ? null : opt$.onDone;
@@ -2521,7 +2670,7 @@ var async;
       cancelOnError = core.identical(true, cancelOnError);
       let subscription = this._createSubscription(onData, onError, onDone, cancelOnError);
       this._onListen(subscription);
-      return dart.as(subscription, StreamSubscription);
+      return dart.as(subscription, StreamSubscription$(T));
     }
     _createSubscription(onData, onError, onDone, cancelOnError) {
       return new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
@@ -2529,8 +2678,12 @@ var async;
     _onListen(subscription) {
     }
   }
+  return _StreamImpl;
+  }); // end generic class
+  let _StreamImpl = _StreamImpl$(dynamic);
 
-  class _GeneratedStreamImpl/* Unimplemented <T> */ extends _StreamImpl/* Unimplemented <T> */ {
+  let _GeneratedStreamImpl$ = dart.generic(function(T) {
+  class _GeneratedStreamImpl extends _StreamImpl$(T) {
     constructor(_pending) {
       this._pending = _pending;
       this._isUsed = false;
@@ -2545,8 +2698,12 @@ var async;
       })(new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError));
     }
   }
+  return _GeneratedStreamImpl;
+  }); // end generic class
+  let _GeneratedStreamImpl = _GeneratedStreamImpl$(dynamic);
 
-  class _IterablePendingEvents/* Unimplemented <T> */ extends _PendingEvents {
+  let _IterablePendingEvents$ = dart.generic(function(T) {
+  class _IterablePendingEvents extends _PendingEvents {
     constructor(data) {
       this._iterator = data.iterator;
       super();
@@ -2578,6 +2735,9 @@ var async;
       this._iterator = null;
     }
   }
+  return _IterablePendingEvents;
+  }); // end generic class
+  let _IterablePendingEvents = _IterablePendingEvents$(dynamic);
 
   // Function _nullDataHandler: (dynamic) → void
   function _nullDataHandler(value) {
@@ -2600,7 +2760,8 @@ var async;
     }
   }
 
-  class _DelayedData/* Unimplemented <T> */ extends _DelayedEvent {
+  let _DelayedData$ = dart.generic(function(T) {
+  class _DelayedData extends _DelayedEvent {
     constructor(value) {
       this.value = value;
       super();
@@ -2609,6 +2770,9 @@ var async;
       dispatch._sendData(this.value);
     }
   }
+  return _DelayedData;
+  }); // end generic class
+  let _DelayedData = _DelayedData$(dynamic);
 
   class _DelayedError extends _DelayedEvent {
     constructor(error, stackTrace) {
@@ -2713,7 +2877,8 @@ var async;
     }
   }
 
-  class _DoneStreamSubscription/* Unimplemented <T> */ {
+  let _DoneStreamSubscription$ = dart.generic(function(T) {
+  class _DoneStreamSubscription {
     constructor(_onDone) {
       this._onDone = _onDone;
       this._zone = Zone.current;
@@ -2767,12 +2932,16 @@ var async;
   _DoneStreamSubscription._DONE_SENT = 1;
   _DoneStreamSubscription._SCHEDULED = 2;
   _DoneStreamSubscription._PAUSED = 4;
+  return _DoneStreamSubscription;
+  }); // end generic class
+  let _DoneStreamSubscription = _DoneStreamSubscription$(dynamic);
 
-  class _AsBroadcastStream/* Unimplemented <T> */ extends Stream/* Unimplemented <T> */ {
+  let _AsBroadcastStream$ = dart.generic(function(T) {
+  class _AsBroadcastStream extends Stream$(T) {
     constructor(_source, onListenHandler, onCancelHandler) {
       this._source = _source;
-      this._onListenHandler = Zone.current.registerUnaryCallback(/* Unimplemented: ClosureWrap: (StreamSubscription<dynamic>) → void to (dynamic) → dynamic */onListenHandler);
-      this._onCancelHandler = Zone.current.registerUnaryCallback(/* Unimplemented: ClosureWrap: (StreamSubscription<dynamic>) → void to (dynamic) → dynamic */onCancelHandler);
+      this._onListenHandler = Zone.current.registerUnaryCallback(dart.as(onListenHandler, /* Unimplemented type (dynamic) → dynamic */));
+      this._onCancelHandler = Zone.current.registerUnaryCallback(dart.as(onCancelHandler, /* Unimplemented type (dynamic) → dynamic */));
       this._zone = Zone.current;
       this._controller = null;
       this._subscription = null;
@@ -2796,7 +2965,7 @@ var async;
     _onCancel() {
       let shutdown = (this._controller === null) || this._controller.isClosed;
       if (this._onCancelHandler !== null) {
-        this._zone.runUnary(/* Unimplemented: ClosureWrap: (StreamSubscription<dynamic>) → void to (dynamic) → dynamic */this._onCancelHandler, new _BroadcastSubscriptionWrapper(this));
+        this._zone.runUnary(dart.as(this._onCancelHandler, /* Unimplemented type (dynamic) → dynamic */), new _BroadcastSubscriptionWrapper(this));
       }
       if (shutdown) {
         if (this._subscription !== null) {
@@ -2807,7 +2976,7 @@ var async;
     }
     _onListen() {
       if (this._onListenHandler !== null) {
-        this._zone.runUnary(/* Unimplemented: ClosureWrap: (StreamSubscription<dynamic>) → void to (dynamic) → dynamic */this._onListenHandler, new _BroadcastSubscriptionWrapper(this));
+        this._zone.runUnary(dart.as(this._onListenHandler, /* Unimplemented type (dynamic) → dynamic */), new _BroadcastSubscriptionWrapper(this));
       }
     }
     _cancelSubscription() {
@@ -2830,8 +2999,12 @@ var async;
       return this._subscription.isPaused;
     }
   }
+  return _AsBroadcastStream;
+  }); // end generic class
+  let _AsBroadcastStream = _AsBroadcastStream$(dynamic);
 
-  class _BroadcastSubscriptionWrapper/* Unimplemented <T> */ {
+  let _BroadcastSubscriptionWrapper$ = dart.generic(function(T) {
+  class _BroadcastSubscriptionWrapper {
     constructor(_stream) {
       this._stream = _stream;
     }
@@ -2863,8 +3036,12 @@ var async;
       throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
     }
   }
+  return _BroadcastSubscriptionWrapper;
+  }); // end generic class
+  let _BroadcastSubscriptionWrapper = _BroadcastSubscriptionWrapper$(dynamic);
 
-  class _StreamIteratorImpl/* Unimplemented <T> */ {
+  let _StreamIteratorImpl$ = dart.generic(function(T) {
+  class _StreamIteratorImpl {
     constructor(stream) {
       this._subscription = null;
       this._current = null;
@@ -2884,13 +3061,13 @@ var async;
         this._state = _STATE_MOVING;
         this._current = null;
         this._futureOrPrefetch = new _Future();
-        return dart.as(this._futureOrPrefetch, Future);
+        return dart.as(this._futureOrPrefetch, Future$(core.bool));
       } else {
         dart.assert(this._state >= _STATE_EXTRA_DATA);
         switch (this._state) {
           case _STATE_EXTRA_DATA:
             this._state = _STATE_FOUND;
-            this._current = /* Unimplemented: DownCast: dynamic to T */this._futureOrPrefetch;
+            this._current = dart.as(this._futureOrPrefetch, T);
             this._futureOrPrefetch = null;
             this._subscription.resume();
             return new _Future.immediate(true);
@@ -2913,7 +3090,7 @@ var async;
     cancel() {
       let subscription = this._subscription;
       if (this._state === _STATE_MOVING) {
-        let hasNext = dart.as(this._futureOrPrefetch, _Future);
+        let hasNext = dart.as(this._futureOrPrefetch, _Future$(core.bool));
         this._clear();
         hasNext._complete(false);
       } else {
@@ -2924,7 +3101,7 @@ var async;
     _onData(data) {
       if (this._state === _STATE_MOVING) {
         this._current = data;
-        let hasNext = dart.as(this._futureOrPrefetch, _Future);
+        let hasNext = dart.as(this._futureOrPrefetch, _Future$(core.bool));
         this._futureOrPrefetch = null;
         this._state = _STATE_FOUND;
         hasNext._complete(true);
@@ -2938,7 +3115,7 @@ var async;
     _onError(error, stackTrace) {
       if (stackTrace === undefined) stackTrace = null;
       if (this._state === _STATE_MOVING) {
-        let hasNext = dart.as(this._futureOrPrefetch, _Future);
+        let hasNext = dart.as(this._futureOrPrefetch, _Future$(core.bool));
         this._clear();
         hasNext._completeError(error, stackTrace);
         return;
@@ -2950,7 +3127,7 @@ var async;
     }
     _onDone() {
       if (this._state === _STATE_MOVING) {
-        let hasNext = dart.as(this._futureOrPrefetch, _Future);
+        let hasNext = dart.as(this._futureOrPrefetch, _Future$(core.bool));
         this._clear();
         hasNext._complete(false);
         return;
@@ -2966,6 +3143,9 @@ var async;
   _StreamIteratorImpl._STATE_EXTRA_DATA = 3;
   _StreamIteratorImpl._STATE_EXTRA_ERROR = 4;
   _StreamIteratorImpl._STATE_EXTRA_DONE = 5;
+  return _StreamIteratorImpl;
+  }); // end generic class
+  let _StreamIteratorImpl = _StreamIteratorImpl$(dynamic);
 
   // Function _runUserCode: (() → dynamic, (dynamic) → dynamic, (dynamic, StackTrace) → dynamic) → dynamic
   function _runUserCode(userCode, onSuccess, onError) {
@@ -3018,7 +3198,8 @@ var async;
     }
   }
 
-  class _ForwardingStream/* Unimplemented <S, T> */ extends Stream/* Unimplemented <T> */ {
+  let _ForwardingStream$ = dart.generic(function(S, T) {
+  class _ForwardingStream extends Stream$(T) {
     constructor(_source) {
       this._source = _source;
       super();
@@ -3045,8 +3226,12 @@ var async;
       sink._close();
     }
   }
+  return _ForwardingStream;
+  }); // end generic class
+  let _ForwardingStream = _ForwardingStream$(dynamic, dynamic);
 
-  class _ForwardingStreamSubscription/* Unimplemented <S, T> */ extends _BufferingStreamSubscription/* Unimplemented <T> */ {
+  let _ForwardingStreamSubscription$ = dart.generic(function(S, T) {
+  class _ForwardingStreamSubscription extends _BufferingStreamSubscription$(T) {
     constructor(_stream, onData, onError, onDone, cancelOnError) {
       this._stream = _stream;
       this._subscription = null;
@@ -3087,6 +3272,9 @@ var async;
       this._stream._handleDone(this);
     }
   }
+  return _ForwardingStreamSubscription;
+  }); // end generic class
+  let _ForwardingStreamSubscription = _ForwardingStreamSubscription$(dynamic, dynamic);
 
   // Function _addErrorWithReplacement: (_EventSink<dynamic>, dynamic, dynamic) → void
   function _addErrorWithReplacement(sink, error, stackTrace) {
@@ -3098,7 +3286,8 @@ var async;
     sink._addError(error, dart.as(stackTrace, core.StackTrace));
   }
 
-  class _WhereStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
+  let _WhereStream$ = dart.generic(function(T) {
+  class _WhereStream extends _ForwardingStream$(T, T) {
     constructor(source, test) {
       this._test = test;
       super(source);
@@ -3118,8 +3307,12 @@ var async;
       }
     }
   }
+  return _WhereStream;
+  }); // end generic class
+  let _WhereStream = _WhereStream$(dynamic);
 
-  class _MapStream/* Unimplemented <S, T> */ extends _ForwardingStream/* Unimplemented <S, T> */ {
+  let _MapStream$ = dart.generic(function(S, T) {
+  class _MapStream extends _ForwardingStream$(S, T) {
     constructor(source, transform) {
       this._transform = transform;
       super(source);
@@ -3127,7 +3320,7 @@ var async;
     _handleData(inputEvent, sink) {
       let outputEvent = null;
       try {
-        outputEvent = /* Unimplemented: DownCast: dynamic to T */this._transform(inputEvent);
+        outputEvent = dart.as(this._transform(inputEvent), T);
       }
       catch (e) {
         let s = dart.stackTrace(e);
@@ -3137,8 +3330,12 @@ var async;
       sink._add(outputEvent);
     }
   }
+  return _MapStream;
+  }); // end generic class
+  let _MapStream = _MapStream$(dynamic, dynamic);
 
-  class _ExpandStream/* Unimplemented <S, T> */ extends _ForwardingStream/* Unimplemented <S, T> */ {
+  let _ExpandStream$ = dart.generic(function(S, T) {
+  class _ExpandStream extends _ForwardingStream$(S, T) {
     constructor(source, expand) {
       this._expand = expand;
       super(source);
@@ -3155,8 +3352,12 @@ var async;
       }
     }
   }
+  return _ExpandStream;
+  }); // end generic class
+  let _ExpandStream = _ExpandStream$(dynamic, dynamic);
 
-  class _HandleErrorStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
+  let _HandleErrorStream$ = dart.generic(function(T) {
+  class _HandleErrorStream extends _ForwardingStream$(T, T) {
     constructor(source, onError, test) {
       this._transform = onError;
       this._test = test;
@@ -3192,8 +3393,12 @@ var async;
       }
     }
   }
+  return _HandleErrorStream;
+  }); // end generic class
+  let _HandleErrorStream = _HandleErrorStream$(dynamic);
 
-  class _TakeStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
+  let _TakeStream$ = dart.generic(function(T) {
+  class _TakeStream extends _ForwardingStream$(T, T) {
     constructor(source, count) {
       this._remaining = count;
       super(source);
@@ -3209,8 +3414,12 @@ var async;
       }
     }
   }
+  return _TakeStream;
+  }); // end generic class
+  let _TakeStream = _TakeStream$(dynamic);
 
-  class _TakeWhileStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
+  let _TakeWhileStream$ = dart.generic(function(T) {
+  class _TakeWhileStream extends _ForwardingStream$(T, T) {
     constructor(source, test) {
       this._test = test;
       super(source);
@@ -3233,8 +3442,12 @@ var async;
       }
     }
   }
+  return _TakeWhileStream;
+  }); // end generic class
+  let _TakeWhileStream = _TakeWhileStream$(dynamic);
 
-  class _SkipStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
+  let _SkipStream$ = dart.generic(function(T) {
+  class _SkipStream extends _ForwardingStream$(T, T) {
     constructor(source, count) {
       this._remaining = count;
       super(source);
@@ -3248,8 +3461,12 @@ var async;
       sink._add(inputEvent);
     }
   }
+  return _SkipStream;
+  }); // end generic class
+  let _SkipStream = _SkipStream$(dynamic);
 
-  class _SkipWhileStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
+  let _SkipWhileStream$ = dart.generic(function(T) {
+  class _SkipWhileStream extends _ForwardingStream$(T, T) {
     constructor(source, test) {
       this._test = test;
       this._hasFailed = false;
@@ -3276,8 +3493,12 @@ var async;
       }
     }
   }
+  return _SkipWhileStream;
+  }); // end generic class
+  let _SkipWhileStream = _SkipWhileStream$(dynamic);
 
-  class _DistinctStream/* Unimplemented <T> */ extends _ForwardingStream/* Unimplemented <T, T> */ {
+  let _DistinctStream$ = dart.generic(function(T) {
+  class _DistinctStream extends _ForwardingStream$(T, T) {
     constructor(source, equals) {
       this._previous = _SENTINEL;
       this._equals = equals;
@@ -3293,7 +3514,7 @@ var async;
           if (this._equals === null) {
             isEqual = (dart.equals(this._previous, inputEvent));
           } else {
-            isEqual = this._equals(/* Unimplemented: DownCast: dynamic to T */this._previous, inputEvent);
+            isEqual = this._equals(dart.as(this._previous, T), inputEvent);
           }
         }
         catch (e) {
@@ -3312,8 +3533,12 @@ var async;
     get _SENTINEL() { return new core.Object() },
     set _SENTINEL(x) {},
   });
+  return _DistinctStream;
+  }); // end generic class
+  let _DistinctStream = _DistinctStream$(dynamic);
 
-  class _EventSinkWrapper/* Unimplemented <T> */ {
+  let _EventSinkWrapper$ = dart.generic(function(T) {
+  class _EventSinkWrapper {
     constructor(_sink) {
       this._sink = _sink;
     }
@@ -3328,8 +3553,12 @@ var async;
       this._sink._close();
     }
   }
+  return _EventSinkWrapper;
+  }); // end generic class
+  let _EventSinkWrapper = _EventSinkWrapper$(dynamic);
 
-  class _SinkTransformerStreamSubscription/* Unimplemented <S, T> */ extends _BufferingStreamSubscription/* Unimplemented <T> */ {
+  let _SinkTransformerStreamSubscription$ = dart.generic(function(S, T) {
+  class _SinkTransformerStreamSubscription extends _BufferingStreamSubscription$(T) {
     constructor(source, mapper, onData, onError, onDone, cancelOnError) {
       this._transformerSink = null;
       this._subscription = null;
@@ -3405,15 +3634,23 @@ var async;
       }
     }
   }
+  return _SinkTransformerStreamSubscription;
+  }); // end generic class
+  let _SinkTransformerStreamSubscription = _SinkTransformerStreamSubscription$(dynamic, dynamic);
 
-  class _StreamSinkTransformer/* Unimplemented <S, T> */ {
+  let _StreamSinkTransformer$ = dart.generic(function(S, T) {
+  class _StreamSinkTransformer {
     constructor(_sinkMapper) {
       this._sinkMapper = _sinkMapper;
     }
     bind(stream) { return new _BoundSinkStream(stream, this._sinkMapper); }
   }
+  return _StreamSinkTransformer;
+  }); // end generic class
+  let _StreamSinkTransformer = _StreamSinkTransformer$(dynamic, dynamic);
 
-  class _BoundSinkStream/* Unimplemented <S, T> */ extends Stream/* Unimplemented <T> */ {
+  let _BoundSinkStream$ = dart.generic(function(S, T) {
+  class _BoundSinkStream extends Stream$(T) {
     get isBroadcast() { return this._stream.isBroadcast; }
     constructor(_stream, _sinkMapper) {
       this._stream = _stream;
@@ -3425,12 +3662,16 @@ var async;
       let onDone = opt$.onDone === undefined ? null : opt$.onDone;
       let cancelOnError = opt$.cancelOnError === undefined ? null : opt$.cancelOnError;
       cancelOnError = core.identical(true, cancelOnError);
-      let subscription = dart.as(new _SinkTransformerStreamSubscription(this._stream, this._sinkMapper, onData, onError, onDone, cancelOnError), StreamSubscription);
+      let subscription = dart.as(new _SinkTransformerStreamSubscription(this._stream, this._sinkMapper, onData, onError, onDone, cancelOnError), StreamSubscription$(T));
       return subscription;
     }
   }
+  return _BoundSinkStream;
+  }); // end generic class
+  let _BoundSinkStream = _BoundSinkStream$(dynamic, dynamic);
 
-  class _HandlerEventSink/* Unimplemented <S, T> */ {
+  let _HandlerEventSink$ = dart.generic(function(S, T) {
+  class _HandlerEventSink {
     constructor(_handleData, _handleError, _handleDone, _sink) {
       this._handleData = _handleData;
       this._handleError = _handleError;
@@ -3444,18 +3685,22 @@ var async;
     }
     close() { return this._handleDone(this._sink); }
   }
+  return _HandlerEventSink;
+  }); // end generic class
+  let _HandlerEventSink = _HandlerEventSink$(dynamic, dynamic);
 
-  class _StreamHandlerTransformer/* Unimplemented <S, T> */ extends _StreamSinkTransformer/* Unimplemented <S, T> */ {
+  let _StreamHandlerTransformer$ = dart.generic(function(S, T) {
+  class _StreamHandlerTransformer extends _StreamSinkTransformer$(S, T) {
     constructor(opt$) {
       let handleData = opt$.handleData === undefined ? null : opt$.handleData;
       let handleError = opt$.handleError === undefined ? null : opt$.handleError;
       let handleDone = opt$.handleDone === undefined ? null : opt$.handleDone;
-      super(/* Unimplemented: ClosureWrapLiteral: (EventSink<T>) → dynamic to (EventSink<T>) → EventSink<S> */(outputSink) => {
+      super(dart.as((outputSink) => {
         if (handleData === null) handleData = _defaultHandleData;
         if (handleError === null) handleError = _defaultHandleError;
         if (handleDone === null) handleDone = _defaultHandleDone;
         return new _HandlerEventSink(handleData, handleError, handleDone, outputSink);
-      });
+      }, _SinkMapper));
     }
     bind(stream) {
       return super.bind(stream);
@@ -3470,15 +3715,23 @@ var async;
       sink.close();
     }
   }
+  return _StreamHandlerTransformer;
+  }); // end generic class
+  let _StreamHandlerTransformer = _StreamHandlerTransformer$(dynamic, dynamic);
 
-  class _StreamSubscriptionTransformer/* Unimplemented <S, T> */ {
+  let _StreamSubscriptionTransformer$ = dart.generic(function(S, T) {
+  class _StreamSubscriptionTransformer {
     constructor(_transformer) {
       this._transformer = _transformer;
     }
     bind(stream) { return new _BoundSubscriptionStream(stream, this._transformer); }
   }
+  return _StreamSubscriptionTransformer;
+  }); // end generic class
+  let _StreamSubscriptionTransformer = _StreamSubscriptionTransformer$(dynamic, dynamic);
 
-  class _BoundSubscriptionStream/* Unimplemented <S, T> */ extends Stream/* Unimplemented <T> */ {
+  let _BoundSubscriptionStream$ = dart.generic(function(S, T) {
+  class _BoundSubscriptionStream extends Stream$(T) {
     constructor(_stream, _transformer) {
       this._stream = _stream;
       this._transformer = _transformer;
@@ -3496,6 +3749,9 @@ var async;
       return result;
     }
   }
+  return _BoundSubscriptionStream;
+  }); // end generic class
+  let _BoundSubscriptionStream = _BoundSubscriptionStream$(dynamic, dynamic);
 
   class Timer {
     constructor(duration, callback) {
@@ -3508,7 +3764,7 @@ var async;
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createPeriodicTimer(duration, callback);
       }
-      return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(/* Unimplemented: ClosureWrap: (Timer) → void to (dynamic) → dynamic */callback, {runGuarded: true}));
+      return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(dart.as(callback, /* Unimplemented type (dynamic) → dynamic */), {runGuarded: true}));
     }
     static run(callback) {
       new Timer(core.Duration.ZERO, callback);
@@ -3643,17 +3899,17 @@ var async;
     registerCallback(zone, f) {
       let implementation = this._delegationTarget._registerCallback;
       let implZone = implementation.zone;
-      return /* Unimplemented: DownCast: dynamic to () → dynamic */dart.dinvokef((implementation.function), implZone, _parentDelegate(implZone), zone, f);
+      return dart.as(dart.dinvokef((implementation.function), implZone, _parentDelegate(implZone), zone, f), ZoneCallback);
     }
     registerUnaryCallback(zone, f) {
       let implementation = this._delegationTarget._registerUnaryCallback;
       let implZone = implementation.zone;
-      return /* Unimplemented: DownCast: dynamic to (dynamic) → dynamic */dart.dinvokef((implementation.function), implZone, _parentDelegate(implZone), zone, f);
+      return dart.as(dart.dinvokef((implementation.function), implZone, _parentDelegate(implZone), zone, f), ZoneUnaryCallback);
     }
     registerBinaryCallback(zone, f) {
       let implementation = this._delegationTarget._registerBinaryCallback;
       let implZone = implementation.zone;
-      return /* Unimplemented: DownCast: dynamic to (dynamic, dynamic) → dynamic */dart.dinvokef((implementation.function), implZone, _parentDelegate(implZone), zone, f);
+      return dart.as(dart.dinvokef((implementation.function), implZone, _parentDelegate(implZone), zone, f), ZoneBinaryCallback);
     }
     errorCallback(zone, error, stackTrace) {
       let implementation = this._delegationTarget._errorCallback;
@@ -3838,19 +4094,19 @@ var async;
       let implementation = this._registerCallback;
       dart.assert(implementation !== null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return /* Unimplemented: DownCast: dynamic to () → dynamic */dart.dinvokef((implementation.function), implementation.zone, parentDelegate, this, f);
+      return dart.as(dart.dinvokef((implementation.function), implementation.zone, parentDelegate, this, f), ZoneCallback);
     }
     registerUnaryCallback(f) {
       let implementation = this._registerUnaryCallback;
       dart.assert(implementation !== null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return /* Unimplemented: DownCast: dynamic to (dynamic) → dynamic */dart.dinvokef((implementation.function), implementation.zone, parentDelegate, this, f);
+      return dart.as(dart.dinvokef((implementation.function), implementation.zone, parentDelegate, this, f), ZoneUnaryCallback);
     }
     registerBinaryCallback(f) {
       let implementation = this._registerBinaryCallback;
       dart.assert(implementation !== null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return /* Unimplemented: DownCast: dynamic to (dynamic, dynamic) → dynamic */dart.dinvokef((implementation.function), implementation.zone, parentDelegate, this, f);
+      return dart.as(dart.dinvokef((implementation.function), implementation.zone, parentDelegate, this, f), ZoneBinaryCallback);
     }
     errorCallback(error, stackTrace) {
       let implementation = this._errorCallback;
@@ -3967,7 +4223,7 @@ var async;
   // Function _rootCreatePeriodicTimer: (Zone, ZoneDelegate, Zone, Duration, (Timer) → void) → Timer
   function _rootCreatePeriodicTimer(self, parent, zone, duration, callback) {
     if (!core.identical(_ROOT_ZONE, zone)) {
-      callback = zone.bindUnaryCallback(/* Unimplemented: ClosureWrap: (Timer) → void to (dynamic) → dynamic */callback);
+      callback = zone.bindUnaryCallback(dart.as(callback, /* Unimplemented type (dynamic) → dynamic */));
     }
     return Timer._createPeriodicTimer(duration, callback);
   }
@@ -4157,10 +4413,10 @@ var async;
     if (onError !== null) {
       errorHandler = (self, parent, zone, error, stackTrace) => {
         try {
-          if (/* Unimplemented type for `is`: onError is ZoneBinaryCallback */) {
-            return self.parent.runBinary(/* Unimplemented: DownCast: Function to (dynamic, dynamic) → dynamic */onError, error, stackTrace);
+          if (dart.is(onError, ZoneBinaryCallback)) {
+            return self.parent.runBinary(dart.as(onError, /* Unimplemented type (dynamic, dynamic) → dynamic */), error, stackTrace);
           }
-          return self.parent.runUnary(/* Unimplemented: DownCast: Function to (dynamic) → dynamic */onError, error);
+          return self.parent.runUnary(dart.as(onError, /* Unimplemented type (dynamic) → dynamic */), error);
         }
         catch (e) {
           let s = dart.stackTrace(e);
@@ -4189,18 +4445,29 @@ var async;
   async.DeferredLibrary = DeferredLibrary;
   async.DeferredLoadException = DeferredLoadException;
   async.Future = Future;
+  async.Future$ = Future$;
   async.TimeoutException = TimeoutException;
   async.Completer = Completer;
+  async.Completer$ = Completer$;
   async.scheduleMicrotask = scheduleMicrotask;
   async.Stream = Stream;
+  async.Stream$ = Stream$;
   async.StreamSubscription = StreamSubscription;
+  async.StreamSubscription$ = StreamSubscription$;
   async.EventSink = EventSink;
+  async.EventSink$ = EventSink$;
   async.StreamView = StreamView;
+  async.StreamView$ = StreamView$;
   async.StreamConsumer = StreamConsumer;
+  async.StreamConsumer$ = StreamConsumer$;
   async.StreamSink = StreamSink;
+  async.StreamSink$ = StreamSink$;
   async.StreamTransformer = StreamTransformer;
+  async.StreamTransformer$ = StreamTransformer$;
   async.StreamIterator = StreamIterator;
+  async.StreamIterator$ = StreamIterator$;
   async.StreamController = StreamController;
+  async.StreamController$ = StreamController$;
   async.Timer = Timer;
   async.AsyncError = AsyncError;
   async.ZoneSpecification = ZoneSpecification;

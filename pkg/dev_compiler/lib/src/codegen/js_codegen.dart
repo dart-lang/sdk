@@ -101,11 +101,6 @@ var $_libraryName;
   void visitConversion(Conversion node) {
     var from = node.baseType;
     var to = node.convertedType;
-    if (to is! InterfaceType) {
-      out.write('/* Unimplemented: ${node.description} */');
-      node.expression.accept(this);
-      return;
-    }
 
     // num to int or num to double is just a null check.
     if (rules.isNumType(from) &&
@@ -125,31 +120,23 @@ var $_libraryName;
 
   @override
   void visitAsExpression(AsExpression node) {
-    var type = node.type.type;
-    if (type is InterfaceType) {
-      _writeCast(node.expression, type);
-    } else {
-      out.write('/* Unimplemented type for `as`: $node */');
-    }
+    _writeCast(node.expression, node.type.type);
   }
 
-  void _writeCast(Expression node, InterfaceType type) {
+  void _writeCast(Expression node, DartType type) {
     out.write('dart.as(');
     node.accept(this);
-    out.write(', ${_typeName(type)})');
+    out.write(', ');
+    _writeTypeName(type);
+    out.write(')');
   }
 
   @override
   void visitIsExpression(IsExpression node) {
     // Generate `is` as `instanceof` or `typeof` depending on the RHS type.
-    var type = node.type.type;
-    if (type is! InterfaceType) {
-      out.write('/* Unimplemented type for `is`: $node */');
-      return;
-    }
-
     if (node.notOperator != null) out.write('!');
 
+    var type = node.type.type;
     var lhs = node.expression;
     var typeofName = _jsTypeofName(type);
     if (typeofName != null) {
@@ -164,7 +151,9 @@ var $_libraryName;
       // Always go through a runtime helper, because implicit interfaces.
       out.write('dart.is(');
       lhs.accept(this);
-      out.write(', ${_typeName(type)})');
+      out.write(', ');
+      _writeTypeName(type);
+      out.write(')');
     }
   }
 
@@ -188,22 +177,55 @@ var $_libraryName;
   }
 
   @override
-  void visitTypeParameterList(TypeParameterList node) {
-    out.write('/* Unimplemented $node */');
-  }
-
-  @override
   void visitTypeArgumentList(TypeArgumentList node) {
-    out.write('/* Unimplemented $node */');
+    out.write('\$(');
+    _visitNodeList(node.arguments, separator: ', ');
+    out.write(')');
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     var name = node.name.name;
+    _beginTypeParameters(node.typeParameters, name);
     out.write('class $name extends dart.mixin(');
     _visitNodeList(node.withClause.mixinTypes, separator: ', ');
     out.write(') {}\n\n');
+    _endTypeParameters(node.typeParameters, name);
     if (isPublic(name)) _exports.add(name);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    out.write(node.name.name);
+  }
+
+  void _beginTypeParameters(TypeParameterList node, String name) {
+    if (node == null) return;
+    out.write('let ${name}\$ = dart.generic(function(');
+    _visitNodeList(node.typeParameters, separator: ', ');
+    // TODO(jmesserly): indent+2 instead of comment. Left for easier diffing.
+    out.write(') {\n');
+  }
+
+  void _endTypeParameters(TypeParameterList node, String name) {
+    if (node == null) return;
+    // Return the specialized class.
+    out.write('return $name;\n');
+    // TODO(jmesserly): indent-2 instead of comment. Left for easier diffing.
+    out.write('}); // end generic class\n');
+    // Construct the "default" version of the generic type for easy interop.
+    out.write('let $name = ${name}\$(');
+    for (int i = 0, len = node.typeParameters.length; i < len; i++) {
+      if (i > 0) out.write(', ');
+      // TODO(jmesserly): we may not want this to be `dynamic` if the generic
+      // has a lower bound, e.g. `<T extends SomeType>`.
+      // https://github.com/dart-lang/dart-dev-compiler/issues/38
+      out.write('dynamic');
+    }
+    out.write(');\n');
+    // TODO(jmesserly): is it worth exporting both names? Alternatively we could
+    // put the generic type constructor on the <dynamic> instance.
+    if (isPublic(name)) _exports.add('${name}\$');
   }
 
   @override
@@ -211,8 +233,9 @@ var $_libraryName;
     currentClass = node;
 
     var name = node.name.name;
+
+    _beginTypeParameters(node.typeParameters, name);
     out.write('class $name');
-    _visitNode(node.typeParameters);
 
     if (node.withClause != null) {
       out.write(' extends dart.mixin(');
@@ -304,6 +327,8 @@ $name.prototype[Symbol.iterator] = function() {
 };
 ''');
     }
+
+    _endTypeParameters(node.typeParameters, name);
 
     out.write('\n');
     currentClass = null;
@@ -407,13 +432,13 @@ $name.prototype[Symbol.iterator] = function() {
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     var parent = node.parent as ConstructorDeclaration;
-    String name;
+
     if (parent.name != null) {
-      name = parent.name.name;
+      out.write(parent.name.name);
     } else {
-      name = _typeName((parent.parent as ClassDeclaration).element.type);
+      _writeTypeName((parent.parent as ClassDeclaration).element.type);
     }
-    out.write('$name.call(this');
+    out.write('.call(this');
     _visitArgumentsWithCommaPrefix(node.argumentList);
     out.write(');\n');
   }
@@ -424,8 +449,8 @@ $name.prototype[Symbol.iterator] = function() {
     // If we're calling default super from a named initializer method, we need
     // to do ES5 style `TypeName.call(this, <args>)`, otherwise we use `super`.
     if (ctor.name != null && superName == null) {
-      var supertype = (ctor.parent as ClassDeclaration).element.supertype;
-      out.write('${_typeName(supertype)}.call(this');
+      _writeTypeName((ctor.parent as ClassDeclaration).element.supertype);
+      out.write('.call(this');
       if (args != null && args.arguments.isNotEmpty) out.write(', ');
       _visitNode(args);
     } else {
@@ -654,10 +679,36 @@ $name.prototype[Symbol.iterator] = function() {
     out.write(node.name);
   }
 
-  String _typeName(InterfaceType type) {
+  void _writeTypeName(DartType type) {
     var name = type.name;
     var lib = type.element.library;
-    return lib == currentLibrary ? name : '${_jsLibraryName(lib)}.$name';
+    if (name == '') {
+      // TODO(jmesserly): remove when we're using coercion reifier.
+      out.write('/* Unimplemented type $type */');
+      return;
+    }
+
+    if (lib != currentLibrary && lib != null) {
+      out.write(_jsLibraryName(lib));
+      out.write('.');
+    }
+    out.write(name);
+
+    if (type is ParameterizedType) {
+      // TODO(jmesserly): this is a workaround for an analyzer bug, see:
+      // https://github.com/dart-lang/dart-dev-compiler/commit/a212d59ad046085a626dd8d16881cdb8e8b9c3fa
+      if (type is! FunctionType || type.element is FunctionTypeAlias) {
+        var args = type.typeArguments;
+        if (args.any((a) => a != rules.provider.dynamicType)) {
+          out.write('\$(');
+          for (var arg in args) {
+            if (arg != args.first) out.write(', ');
+            _writeTypeName(arg);
+          }
+          out.write(')');
+        }
+      }
+    }
   }
 
   @override
@@ -1067,7 +1118,7 @@ $name.prototype[Symbol.iterator] = function() {
       // Infix notation is much more readable, which is a bit part of why
       // C# added its extension methods feature. However this would require
       // adding these methods to String.prototype/Number.prototype in JS.
-      out.write(_typeName(dispatchType));
+      _writeTypeName(dispatchType);
       out.write(_canonicalMethodInvoke(op.lexeme));
       out.write('(');
       lhs.accept(this);
@@ -1436,8 +1487,9 @@ $name.prototype[Symbol.iterator] = function() {
   void _visitCatchClause(CatchClause node, String varName) {
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
-        var type = _typeName(node.exceptionType.type);
-        out.write('if (dart.is($varName, $type)) {\n', 2);
+        out.write('if (dart.is($varName, ');
+        _writeTypeName(node.exceptionType.type);
+        out.write(')) {\n', 2);
       }
 
       var name = node.exceptionParameter;
