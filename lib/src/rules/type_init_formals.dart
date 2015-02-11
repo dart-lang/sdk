@@ -14,7 +14,7 @@ From the [style guide] (https://www.dartlang.org/articles/style-guide/):
 
 **DON'T** type annotate initializing formals.
 
-If a constructor parameter is using ``this.`` to initialize a field, then the 
+If a constructor parameter is using `this`. to initialize a field, then the 
 type of the parameter is understood to be the same type as the field.
 
 **GOOD:**

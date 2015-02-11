@@ -16,7 +16,7 @@ const details = r'''
 **AVOID** using braces in interpolation when not needed. 
 
 If you're just interpolating a simple identifier, and it's not immediately 
-followed by more alphanumeric text, the ``{}`` can and should be omitted.
+followed by more alphanumeric text, the `{}` can and should be omitted.
 
 **GOOD:**
 ```dart
@@ -38,8 +38,7 @@ class UnnecessaryBraceInStringInterp extends LintRule {
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,
-          kind: Kind.AVOID,
-          maturity: Maturity.EXPERIMENTAL);
+          kind: Kind.AVOID);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

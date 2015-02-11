@@ -20,13 +20,16 @@ semicolon. This is required for const constructors. For consistency and
 brevity, other constructors should also do this.
 
 **GOOD:**
+
 ```
 class Point {
   int x, y;
   Point(this.x, this.y);
 }
 ```
+
 **BAD:**
+
 ```
 class Point {
   int x, y;
