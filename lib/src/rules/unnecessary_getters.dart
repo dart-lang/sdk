@@ -59,14 +59,15 @@ class UnnecessaryGetters extends LintRule {
 }
 
 class Visitor extends SimpleAstVisitor {
-  final Map<String, MethodDeclaration> getters = {};
-  final Map<String, MethodDeclaration> setters = {};
 
   LintRule rule;
   Visitor(this.rule);
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
+
+    final Map<String, MethodDeclaration> getters = {};
+    final Map<String, MethodDeclaration> setters = {};
 
     // Filter on public methods
     var methods = node.members.where((m) => isPublicMethod(m));
