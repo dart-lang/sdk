@@ -66,7 +66,7 @@ namespace bin {
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
   V(ServerSocket_Accept, 2)                                                    \
-  V(ServerSocket_CreateBindListen, 5)                                          \
+  V(ServerSocket_CreateBindListen, 6)                                          \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_CreateBindConnect, 4)                                               \
   V(Socket_CreateBindDatagram, 4)                                              \
@@ -84,6 +84,7 @@ namespace bin {
   V(Socket_SetOption, 4)                                                       \
   V(Socket_JoinMulticast, 4)                                                   \
   V(Socket_LeaveMulticast, 4)                                                  \
+  V(Socket_MarkSocketAsSharedHack, 1)                                          \
   V(Socket_GetSocketId, 1)                                                     \
   V(Socket_SetSocketId, 2)                                                     \
   V(Stdin_ReadByte, 1)                                                         \

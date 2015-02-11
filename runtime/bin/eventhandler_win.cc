@@ -1018,12 +1018,17 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         listen_socket->SetPortAndMask(msg->dart_port, events);
         TryDispatchingPendingAccepts(listen_socket);
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
-        handle->SetPortAndMask(msg->dart_port, 0);
-        if (handle->Mask() == 0) {
-          // TODO(dart:io): This assumes that all sockets listen before we
-          // close.
-          // This needs to be synchronized with a global datastructure.
-          handle->Close();
+        listen_socket->SetPortAndMask(msg->dart_port, 0);
+        // We only close the socket file descriptor from the operating
+        // system if there are no other dart socket objects which
+        // are listening on the same (address, port) combination.
+        ListeningSocketRegistry *registry =
+            ListeningSocketRegistry::Instance();
+        MutexLocker locker(registry->mutex());
+        if (registry->CloseSafe(reinterpret_cast<intptr_t>(listen_socket))) {
+          ASSERT(listen_socket->Mask() == 0);
+          listen_socket->Close();
+          DeleteIfClosed(handle);
         }
       } else {
         UNREACHABLE();
@@ -1093,8 +1098,8 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       } else {
         UNREACHABLE();
       }
+      DeleteIfClosed(handle);
     }
-    DeleteIfClosed(handle);
   }
 }
 

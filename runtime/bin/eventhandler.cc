@@ -61,6 +61,9 @@ static Monitor *shutdown_monitor = NULL;
 
 
 void EventHandler::Start() {
+  // Initialize global socket registry.
+  ListeningSocketRegistry::Initialize();
+
   ASSERT(event_handler == NULL);
   shutdown_monitor = new Monitor();
   event_handler = new EventHandler();
@@ -91,6 +94,9 @@ void EventHandler::Stop() {
   event_handler = NULL;
   delete shutdown_monitor;
   shutdown_monitor = NULL;
+
+  // Destroy the global socket registry.
+  ListeningSocketRegistry::Cleanup();
 }
 
 

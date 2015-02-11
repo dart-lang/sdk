@@ -7,6 +7,7 @@
 #include "bin/dartutils.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
+#include "bin/lockers.h"
 #include "bin/utils.h"
 
 #include "platform/globals.h"
@@ -18,6 +19,170 @@ namespace dart {
 namespace bin {
 
 static const int kSocketIdNativeField = 0;
+
+
+ListeningSocketRegistry *globalTcpListeningSocketRegistry = NULL;
+
+
+void ListeningSocketRegistry::Initialize() {
+  ASSERT(globalTcpListeningSocketRegistry == NULL);
+  globalTcpListeningSocketRegistry = new ListeningSocketRegistry();
+}
+
+
+ListeningSocketRegistry *ListeningSocketRegistry::Instance() {
+  return globalTcpListeningSocketRegistry;
+}
+
+
+void ListeningSocketRegistry::Cleanup() {
+  delete globalTcpListeningSocketRegistry;
+  globalTcpListeningSocketRegistry = NULL;
+}
+
+
+Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
+                                                      RawAddr addr,
+                                                      intptr_t port,
+                                                      intptr_t backlog,
+                                                      bool v6_only,
+                                                      bool shared) {
+  MutexLocker ml(ListeningSocketRegistry::mutex_);
+
+  SocketsIterator it = sockets_by_port_.find(port);
+  OSSocket *first_os_socket = NULL;
+  if (it != sockets_by_port_.end()) {
+    first_os_socket = it->second;
+  }
+
+  if (first_os_socket != NULL) {
+    // There is already a socket listening on this port. We need to ensure
+    // that if there is one also listening on the same address, it was created
+    // with `shared = true`, ...
+
+    OSSocket *os_socket = it->second;
+    OSSocket *os_socket_same_addr = findOSSocketWithAddress(os_socket, addr);
+
+    if (os_socket_same_addr != NULL) {
+      if (!os_socket_same_addr->shared || !shared) {
+        OSError os_error(-1,
+                         "The shared flag to bind() needs to be `true` if "
+                         "binding multiple times on the same (address, port) "
+                         "combination.",
+                        OSError::kUnknown);
+        return DartUtils::NewDartOSError(&os_error);
+      }
+      if (os_socket_same_addr->v6_only != v6_only) {
+        OSError os_error(-1,
+                         "The v6Only flag to bind() needs to be the same if "
+                         "binding multiple times on the same (address, port) "
+                         "combination.",
+                        OSError::kUnknown);
+        return DartUtils::NewDartOSError(&os_error);
+      }
+
+      // This socket creation is the exact same as the one which originally
+      // created the socket. We therefore increment the refcount and reuse
+      // the file descriptor.
+      os_socket->ref_count++;
+
+      // We set as a side-effect the file descriptor on the dart socket_object.
+      Socket::SetSocketIdNativeField(socket_object, os_socket->socketfd);
+
+      return Dart_True();
+    }
+  }
+
+  // There is no socket listening on that (address, port), so we create new one.
+  intptr_t socketfd = ServerSocket::CreateBindListen(
+      addr, port, backlog, v6_only);
+  if (socketfd == -5) {
+    OSError os_error(-1, "Invalid host", OSError::kUnknown);
+    return DartUtils::NewDartOSError(&os_error);
+  }
+  if (socketfd < 0) {
+    OSError error;
+    return DartUtils::NewDartOSError(&error);
+  }
+  if (!ServerSocket::StartAccept(socketfd)) {
+    OSError os_error(-1, "Failed to start accept", OSError::kUnknown);
+    return DartUtils::NewDartOSError(&os_error);
+  }
+  intptr_t allocated_port = Socket::GetPort(socketfd);
+  ASSERT(allocated_port > 0);
+
+  OSSocket *os_socket =
+      new OSSocket(addr, allocated_port, v6_only, shared, socketfd);
+  os_socket->ref_count = 1;
+  os_socket->next = first_os_socket;
+  sockets_by_port_[allocated_port] = os_socket;
+  sockets_by_fd_[socketfd] = os_socket;
+
+  // We set as a side-effect the port on the dart socket_object.
+  Socket::SetSocketIdNativeField(socket_object, socketfd);
+
+  return Dart_True();
+}
+
+
+bool ListeningSocketRegistry::CloseSafe(intptr_t socketfd) {
+  ASSERT(!mutex_->TryLock());
+
+  SocketsIterator it = sockets_by_fd_.find(socketfd);
+  if (it != sockets_by_fd_.end()) {
+    OSSocket *os_socket = it->second;
+
+    ASSERT(os_socket->ref_count > 0);
+    os_socket->ref_count--;
+    if (os_socket->ref_count == 0) {
+      // We free the OS socket by removing it from two datastructures.
+      sockets_by_fd_.erase(socketfd);
+
+      OSSocket *prev = NULL;
+      OSSocket *current = sockets_by_port_[os_socket->port];
+      while (current != os_socket) {
+        ASSERT(current != NULL);
+        prev = current;
+        current = current->next;
+      }
+
+      if (prev == NULL && current->next == NULL) {
+        // Remove last element from the list.
+        sockets_by_port_.erase(os_socket->port);
+      } else if (prev == NULL) {
+        // Remove first element of the list.
+        sockets_by_port_[os_socket->port] = current->next;
+      } else {
+        // Remove element from the list which is not the first one.
+        prev->next = os_socket->next;
+      }
+
+      delete os_socket;
+      return true;
+    }
+    return false;
+  } else {
+    // It should be impossible for the event handler to close something that
+    // hasn't been created before.
+    UNREACHABLE();
+    return false;
+  }
+}
+
+
+Dart_Handle ListeningSocketRegistry::MarkSocketFdAsSharableHack(
+    intptr_t socketfd) {
+  MutexLocker ml(ListeningSocketRegistry::mutex_);
+
+  SocketsIterator it = sockets_by_fd_.find(socketfd);
+  if (it != sockets_by_fd_.end()) {
+    it->second->shared = true;
+    return Dart_True();
+  } else {
+    return Dart_False();
+  }
+}
+
 
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   const char* address =
@@ -395,20 +560,12 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
       0,
       65535);
   bool v6_only = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
-  intptr_t socket = ServerSocket::CreateBindListen(
-      addr, port, backlog, v6_only);
-  OSError error;
-  if (socket >= 0 && ServerSocket::StartAccept(socket)) {
-    Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
-    Dart_SetReturnValue(args, Dart_True());
-  } else {
-    if (socket == -5) {
-      OSError os_error(-1, "Invalid host", OSError::kUnknown);
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
-    } else {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
-    }
-  }
+  bool shared = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 5));
+
+  Dart_Handle socket_object = Dart_GetNativeArgument(args, 0);
+  Dart_Handle result = ListeningSocketRegistry::Instance()->CreateBindListen(
+      socket_object, addr, port, backlog, v6_only, shared);
+  Dart_SetReturnValue(args, result);
 }
 
 
@@ -694,6 +851,15 @@ void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
+}
+
+
+void FUNCTION_NAME(Socket_MarkSocketAsSharedHack)(Dart_NativeArguments args) {
+  intptr_t socketfd =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+
+  ListeningSocketRegistry *registry = ListeningSocketRegistry::Instance();
+  Dart_SetReturnValue(args, registry->MarkSocketFdAsSharableHack(socketfd));
 }
 
 

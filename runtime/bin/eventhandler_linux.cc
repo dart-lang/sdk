@@ -241,13 +241,15 @@ void EventHandlerImplementation::HandleInterruptFd() {
           // We only close the socket file descriptor from the operating
           // system if there are no other dart socket objects which
           // are listening on the same (address, port) combination.
+          ListeningSocketRegistry *registry =
+              ListeningSocketRegistry::Instance();
 
-          // TODO(dart:io): This assumes that all sockets listen before we
-          // close.
-          // This needs to be synchronized with a global datastructure.
-          if (new_mask == 0) {
-            socket_map_.Remove(
-                GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+          MutexLocker locker(registry->mutex());
+
+          if (registry->CloseSafe(fd)) {
+            ASSERT(new_mask == 0);
+            socket_map_.Remove(GetHashmapKeyFromFd(fd),
+                               GetHashmapHashFromFd(fd));
             di->Close();
             delete di;
           }
