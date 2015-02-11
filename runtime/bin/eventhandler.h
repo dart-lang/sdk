@@ -150,6 +150,8 @@ class CircularLinkedList {
   }
 
   void RemoveHead() {
+    ASSERT(head_ != NULL);
+
     Entry* e = head_;
     if (e->next_ == e) {
       head_ = NULL;
@@ -178,6 +180,11 @@ class CircularLinkedList {
           Entry *prev = current->prev_;
           prev->next_ = next;
           next->prev_ = prev;
+
+          if (current == head_) {
+            head_ = head_->next_;
+          }
+
           delete current;
           return;
         }
@@ -207,7 +214,7 @@ class CircularLinkedList {
 
  private:
   struct Entry {
-    explicit Entry(const T& t) : t(t) {}
+    explicit Entry(const T& t) : t(t), next_(NULL), prev_(NULL) {}
     const T t;
     Entry* next_;
     Entry* prev_;
