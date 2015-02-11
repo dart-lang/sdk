@@ -748,7 +748,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   Environment* env = instruction->env()->DeepCopy(isolate());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
-  intptr_t next_slot = StackSize();
+  intptr_t next_slot = StackSize() + env->CountArgsPushed();
   RegisterSet* regs = instruction->locs()->live_registers();
   intptr_t fpu_reg_slots[kNumberOfFpuRegisters];
   intptr_t cpu_reg_slots[kNumberOfCpuRegisters];
