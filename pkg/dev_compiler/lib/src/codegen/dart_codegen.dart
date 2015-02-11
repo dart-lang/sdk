@@ -2,11 +2,11 @@ library ddc.src.codegen.dart_codegen;
 
 import 'dart:io' show File;
 
-import 'package:analyzer/analyzer.dart' as analyzer;
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/java_core.dart' as java_core;
-import 'package:analyzer/src/generated/scanner.dart' show Token;
+import 'package:ddc_analyzer/analyzer.dart' as analyzer;
+import 'package:ddc_analyzer/src/generated/ast.dart';
+import 'package:ddc_analyzer/src/generated/element.dart';
+import 'package:ddc_analyzer/src/generated/java_core.dart' as java_core;
+import 'package:ddc_analyzer/src/generated/scanner.dart' show Token;
 import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:path/path.dart' as path;

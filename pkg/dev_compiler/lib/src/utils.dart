@@ -3,18 +3,18 @@ library ddc.src.utils;
 
 import 'dart:io';
 
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:ddc_analyzer/src/generated/ast.dart'
     show
         ImportDirective,
         ExportDirective,
         PartDirective,
         CompilationUnit,
         Identifier;
-import 'package:analyzer/src/generated/engine.dart'
+import 'package:ddc_analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
-import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/analyzer.dart' show parseDirectives;
+import 'package:ddc_analyzer/src/generated/source.dart' show Source;
+import 'package:ddc_analyzer/src/generated/element.dart';
+import 'package:ddc_analyzer/analyzer.dart' show parseDirectives;
 
 bool isDartPrivateLibrary(LibraryElement library) {
   var uri = library.source.uri;

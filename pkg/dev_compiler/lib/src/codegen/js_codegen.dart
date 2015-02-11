@@ -2,12 +2,12 @@ library ddc.src.codegen.js_codegen;
 
 import 'dart:io' show Directory;
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart'
+import 'package:ddc_analyzer/analyzer.dart';
+import 'package:ddc_analyzer/src/generated/ast.dart' hide ConstantEvaluator;
+import 'package:ddc_analyzer/src/generated/element.dart';
+import 'package:ddc_analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
-import 'package:analyzer/src/generated/constant.dart';
+import 'package:ddc_analyzer/src/generated/constant.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/checker/rules.dart';
