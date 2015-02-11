@@ -33,3 +33,10 @@ class OkToo {
     return _x;
   }
 }
+
+class _SuperClass {
+  int _field = 0;
+}
+class PublicClass extends _SuperClass {
+  int get field => _field; //OK
+}

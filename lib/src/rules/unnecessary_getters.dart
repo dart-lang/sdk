@@ -6,6 +6,7 @@ library unnecessary_getters;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:dart_lint/src/ast.dart';
 import 'package:dart_lint/src/linter.dart';
 
 const desc = '''
@@ -41,13 +42,8 @@ class Box {
 ```
 ''';
 
-
-bool isPublicMethod(ClassMember m) =>
-    m is MethodDeclaration && m.element.isPublic;
-
 class UnnecessaryGetters extends LintRule {
-  UnnecessaryGetters()
-      : super(
+  UnnecessaryGetters() : super(
           name: 'UnnecessaryGetters',
           description: desc,
           details: details,
@@ -59,40 +55,43 @@ class UnnecessaryGetters extends LintRule {
 }
 
 class Visitor extends SimpleAstVisitor {
-
   LintRule rule;
   Visitor(this.rule);
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-
-    final Map<String, MethodDeclaration> getters = {};
-    final Map<String, MethodDeclaration> setters = {};
+    Map<String, MethodDeclaration> getters = {};
+    Map<String, MethodDeclaration> setters = {};
 
     // Filter on public methods
-    var methods = node.members.where((m) => isPublicMethod(m));
+    var methods = node.members.where(isPublicMethod);
 
-    //Build getter/setter maps
+    // Build getter/setter maps
     for (var method in methods) {
       if (method.isGetter) {
-        var name = method.name.toString();
-        getters[name] = method;
+        getters[method.name.toString()] = method;
       } else if (method.isSetter) {
-        var name = method.name.toString();
-        setters[name] = method;
+        setters[method.name.toString()] = method;
       }
     }
 
     // Only select getters without setters
     var candidates = getters.keys.where((id) => !setters.keys.contains(id));
-    candidates.map((n) => getters[n]).forEach((g) => _visitGetter(g));
+    candidates.map((n) => getters[n]).forEach(_visitGetter);
   }
 
-  bool _check(Expression expression) {
+  bool _check(MethodDeclaration getter, Expression expression) {
     if (expression is SimpleIdentifier) {
       var staticElement = expression.staticElement;
       if (staticElement is PropertyAccessorElement) {
-        return staticElement.isSynthetic && staticElement.variable.isPrivate;
+        Element getterElement = getter.element;
+        // Skipping library level getters, test that the enclosing element is
+        // the same
+        if (staticElement.enclosingElement != null &&
+            (staticElement.enclosingElement ==
+                getterElement.enclosingElement)) {
+          return staticElement.isSynthetic && staticElement.variable.isPrivate;
+        }
       }
     }
     return false;
@@ -100,19 +99,21 @@ class Visitor extends SimpleAstVisitor {
 
   _visitGetter(MethodDeclaration getter) {
     if (getter.body is ExpressionFunctionBody) {
-      if (_check((getter.body as ExpressionFunctionBody).expression)) {
+      ExpressionFunctionBody body = getter.body;
+      if (_check(getter, body.expression)) {
         rule.reportLint(getter);
       }
     } else if (getter.body is BlockFunctionBody) {
-      Block block = (getter.body as BlockFunctionBody).block;
+      BlockFunctionBody body = getter.body;
+      Block block = body.block;
       if (block.statements.length == 1) {
         if (block.statements[0] is ReturnStatement) {
-          if (_check((block.statements[0] as ReturnStatement).expression)) {
+          ReturnStatement returnStatement = block.statements[0];
+          if (_check(getter, returnStatement.expression)) {
             rule.reportLint(getter);
           }
         }
       }
     }
   }
-
 }
