@@ -118,6 +118,9 @@ class DartCompletionManager extends CompletionManager {
       request.unit = unit;
       request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
       request.target = new CompletionTarget.forOffset(unit, request.offset);
+      if (request.node == null) {
+        return [];
+      }
 
       request.replacementOffset = request.offset;
       request.replacementLength = 0;
