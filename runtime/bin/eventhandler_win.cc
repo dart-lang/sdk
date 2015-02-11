@@ -1018,7 +1018,8 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         listen_socket->SetPortAndMask(msg->dart_port, events);
         TryDispatchingPendingAccepts(listen_socket);
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
-        listen_socket->SetPortAndMask(msg->dart_port, 0);
+        listen_socket->RemovePort(msg->dart_port);
+
         // We only close the socket file descriptor from the operating
         // system if there are no other dart socket objects which
         // are listening on the same (address, port) combination.
@@ -1030,6 +1031,8 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
           listen_socket->Close();
           DeleteIfClosed(handle);
         }
+
+        DartUtils::PostInt32(msg->dart_port, 1 << kDestroyedEvent);
       } else {
         UNREACHABLE();
       }
