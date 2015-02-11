@@ -4684,16 +4684,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CaughtException thrownException = task.exception;
     if (thrownException != null) {
       sourceEntry.recordContentError(thrownException);
-      // TODO(scheglov) should we add separate ContentErrorCode and
-      // SourceEntry.CONTENT_ERRORS entry?
-      if (sourceEntry is DartEntry) {
-        sourceEntry.setValue(
-            DartEntry.SCAN_ERRORS,
-            <AnalysisError>[
-                new AnalysisError.con1(
-                    source,
-                    ScannerErrorCode.UNABLE_GET_CONTENT,
-                    [thrownException.toString()])]);
+      {
+        sourceEntry.setValue(SourceEntry.CONTENT_ERRORS, task.errors);
         ChangeNoticeImpl notice = _getNotice(source);
         notice.setErrors(sourceEntry.allErrors, null);
       }
@@ -7885,7 +7877,8 @@ class DartEntry extends SourceEntry {
       new DataDescriptor<CompilationUnit>("DartEntry.RESOLVED_UNIT");
 
   /**
-   * The data descriptor representing the token stream.
+   * The data descriptor representing the errors resulting from scanning the
+   * source.
    */
   static final DataDescriptor<List<AnalysisError>> SCAN_ERRORS =
       new DataDescriptor<List<AnalysisError>>(
@@ -7932,6 +7925,7 @@ class DartEntry extends SourceEntry {
    */
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
+    errors.addAll(super.allErrors);
     errors.addAll(getValue(SCAN_ERRORS));
     errors.addAll(getValue(PARSE_ERRORS));
     ResolutionState state = _resolutionState;
@@ -9046,6 +9040,11 @@ class GetContentTask extends AnalysisTask {
   String _content;
 
   /**
+   * The errors that were produced by getting the source content.
+   */
+  final List<AnalysisError> errors = <AnalysisError>[];
+
+  /**
    * The time at which the contents of the source were last modified.
    */
   int _modificationTime = -1;
@@ -9109,6 +9108,11 @@ class GetContentTask extends AnalysisTask {
           _modificationTime,
           _content);
     } catch (exception, stackTrace) {
+      errors.add(
+          new AnalysisError.con1(
+              source,
+              ScannerErrorCode.UNABLE_GET_CONTENT,
+              [exception]));
       throw new AnalysisException(
           "Could not get contents of $source",
           new CaughtException(exception, stackTrace));
@@ -9180,6 +9184,7 @@ class HtmlEntry extends SourceEntry {
    */
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
+    errors.addAll(super.allErrors);
     errors.addAll(getValue(PARSE_ERRORS));
     errors.addAll(getValue(RESOLUTION_ERRORS));
     errors.addAll(getValue(HINTS));
@@ -11611,6 +11616,15 @@ abstract class SourceEntry {
       new DataDescriptor<String>("SourceEntry.CONTENT");
 
   /**
+   * The data descriptor representing the errors resulting from reading the
+   * source content.
+   */
+  static final DataDescriptor<List<AnalysisError>> CONTENT_ERRORS =
+      new DataDescriptor<List<AnalysisError>>(
+          "SourceEntry.CONTENT_ERRORS",
+          AnalysisError.NO_ERRORS);
+
+  /**
    * The data descriptor representing the line information.
    */
   static final DataDescriptor<LineInfo> LINE_INFO =
@@ -11655,11 +11669,18 @@ abstract class SourceEntry {
       new HashMap<DataDescriptor, CachedResult>();
 
   /**
+   * Return all of the errors associated with this entry.
+   */
+  List<AnalysisError> get allErrors {
+    return getValue(CONTENT_ERRORS);
+  }
+
+  /**
    * Get a list of all the library-independent descriptors for which values may
    * be stored in this SourceEntry.
    */
   List<DataDescriptor> get descriptors {
-    return <DataDescriptor>[SourceEntry.CONTENT, SourceEntry.LINE_INFO];
+    return <DataDescriptor>[CONTENT, CONTENT_ERRORS, LINE_INFO];
   }
 
   /**
@@ -11758,6 +11779,7 @@ abstract class SourceEntry {
    */
   void invalidateAllInformation() {
     setState(CONTENT, CacheState.INVALID);
+    setState(CONTENT_ERRORS, CacheState.INVALID);
     setState(LINE_INFO, CacheState.INVALID);
   }
 
@@ -11856,7 +11878,9 @@ abstract class SourceEntry {
    * Return `true` if the [descriptor] is valid for this entry.
    */
   bool _isValidDescriptor(DataDescriptor descriptor) {
-    return descriptor == CONTENT || descriptor == LINE_INFO;
+    return descriptor == CONTENT ||
+        descriptor == CONTENT_ERRORS ||
+        descriptor == LINE_INFO;
   }
 
   /**
@@ -11917,6 +11941,12 @@ abstract class SourceEntry {
     }
     needsSeparator =
         _writeStateDiffOn(buffer, needsSeparator, "content", CONTENT, oldEntry);
+    needsSeparator = _writeStateDiffOn(
+        buffer,
+        needsSeparator,
+        "contentErrors",
+        CONTENT_ERRORS,
+        oldEntry);
     needsSeparator =
         _writeStateDiffOn(buffer, needsSeparator, "lineInfo", LINE_INFO, oldEntry);
     return needsSeparator;
@@ -11930,6 +11960,7 @@ abstract class SourceEntry {
     buffer.write("time = ");
     buffer.write(modificationTime);
     _writeStateOn(buffer, "content", CONTENT);
+    _writeStateOn(buffer, "contentErrors", CONTENT_ERRORS);
     _writeStateOn(buffer, "lineInfo", LINE_INFO);
   }
 
