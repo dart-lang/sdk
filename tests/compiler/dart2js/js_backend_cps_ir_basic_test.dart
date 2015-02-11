@@ -54,14 +54,11 @@ main() {
 """,
 """
 function() {
-  var v0, v1;
   V.foo(0, "b");
   V.foo(1, 2);
   V.bar(3, "b", "c");
   V.bar(4, 5, "c");
-  v0 = 6;
-  v1 = 7;
-  V.bar(v0, "b", v1);
+  V.bar(6, "b", 7);
   V.bar(8, 9, 10);
   return null;
 }"""),

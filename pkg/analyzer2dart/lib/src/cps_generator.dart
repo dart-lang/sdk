@@ -217,10 +217,9 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                                      AccessSemantics semantics) {
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
-    ir.Primitive receiver = irBuilder.buildLocalGet(element);
     List<ir.Definition> arguments = visitArguments(node.argumentList);
-    return irBuilder.buildFunctionExpressionInvocation(
-      receiver,
+    return irBuilder.buildLocalInvocation(
+      element,
       createSelectorFromMethodInvocation(
           node.argumentList, node.methodName.name),
       arguments);

@@ -207,6 +207,16 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     }
   }
 
+  List<js.Expression> compileStaticArgumentList(
+      Selector selector,
+      Element target, /* TODO(karlklose): this should be the signature. */
+      List<tree_ir.Expression> arguments) {
+    return selector.makeArgumentsList(
+        target.implementation,
+        visitArguments(arguments),
+        compileConstant);
+  }
+
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
     checkStaticTargetIsValid(node, node.target);
@@ -215,7 +225,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     registry.registerInstantiatedClass(node.target.enclosingClass);
     Selector selector = node.selector;
     FunctionElement target = node.target;
-    List<js.Expression> arguments = visitArguments(node.arguments);
+    List<js.Expression> arguments =
+        compileStaticArgumentList(selector, target, node.arguments);
     return buildStaticInvoke(selector, target, arguments);
   }
 
@@ -267,7 +278,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     }
     Selector selector = node.selector;
     FunctionElement target = node.target;
-    List<js.Expression> arguments = visitArguments(node.arguments);
+    List<js.Expression> arguments =
+        compileStaticArgumentList(selector, target, node.arguments);
     return buildStaticInvoke(selector, target, arguments);
   }
 

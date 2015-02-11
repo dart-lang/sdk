@@ -676,10 +676,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           target.functionSignature.parameterCount,
           new ErroneousAstConstant(context, node));
     }
-    return selector.makeArgumentsList(arguments,
-                                      target,
-                                      compileArgument,
-                                      compileDefaultValue);
+    return selector.makeArgumentsList2(arguments,
+                                       target,
+                                       compileArgument,
+                                       compileDefaultValue);
   }
 
   AstConstant visitNewExpression(NewExpression node) {
