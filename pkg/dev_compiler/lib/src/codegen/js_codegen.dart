@@ -203,16 +203,14 @@ var $_libraryName;
     if (node == null) return;
     out.write('let ${name}\$ = dart.generic(function(');
     _visitNodeList(node.typeParameters, separator: ', ');
-    // TODO(jmesserly): indent+2 instead of comment. Left for easier diffing.
-    out.write(') {\n');
+    out.write(') {\n', 2);
   }
 
   void _endTypeParameters(TypeParameterList node, String name) {
     if (node == null) return;
     // Return the specialized class.
     out.write('return $name;\n');
-    // TODO(jmesserly): indent-2 instead of comment. Left for easier diffing.
-    out.write('}); // end generic class\n');
+    out.write('});\n', -2);
     // Construct the "default" version of the generic type for easy interop.
     out.write('let $name = ${name}\$(');
     for (int i = 0, len = node.typeParameters.length; i < len; i++) {

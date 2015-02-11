@@ -264,140 +264,140 @@ var convert;
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
 
   let ChunkedConversionSink$ = dart.generic(function(T) {
-  class ChunkedConversionSink {
-    constructor() {
+    class ChunkedConversionSink {
+      constructor() {
+      }
+      /*constructor*/ withCallback(callback) {
+        return new _SimpleCallbackSink(callback);
+      }
     }
-    /*constructor*/ withCallback(callback) {
-      return new _SimpleCallbackSink(callback);
-    }
-  }
-  dart.defineNamedConstructor(ChunkedConversionSink, "withCallback");
-  return ChunkedConversionSink;
-  }); // end generic class
+    dart.defineNamedConstructor(ChunkedConversionSink, "withCallback");
+    return ChunkedConversionSink;
+  });
   let ChunkedConversionSink = ChunkedConversionSink$(dynamic);
 
   let _SimpleCallbackSink$ = dart.generic(function(T) {
-  class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
-    constructor(_callback) {
-      this._accumulated = new List.from([]);
-      this._callback = _callback;
-      super();
+    class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
+      constructor(_callback) {
+        this._accumulated = new List.from([]);
+        this._callback = _callback;
+        super();
+      }
+      add(chunk) {
+        this._accumulated.add(chunk);
+      }
+      close() {
+        this._callback(this._accumulated);
+      }
     }
-    add(chunk) {
-      this._accumulated.add(chunk);
-    }
-    close() {
-      this._callback(this._accumulated);
-    }
-  }
-  return _SimpleCallbackSink;
-  }); // end generic class
+    return _SimpleCallbackSink;
+  });
   let _SimpleCallbackSink = _SimpleCallbackSink$(dynamic);
 
   let _EventSinkAdapter$ = dart.generic(function(T) {
-  class _EventSinkAdapter {
-    constructor(_sink) {
-      this._sink = _sink;
+    class _EventSinkAdapter {
+      constructor(_sink) {
+        this._sink = _sink;
+      }
+      add(data) { return this._sink.add(data); }
+      close() { return this._sink.close(); }
     }
-    add(data) { return this._sink.add(data); }
-    close() { return this._sink.close(); }
-  }
-  return _EventSinkAdapter;
-  }); // end generic class
+    return _EventSinkAdapter;
+  });
   let _EventSinkAdapter = _EventSinkAdapter$(dynamic);
 
   let _ConverterStreamEventSink$ = dart.generic(function(S, T) {
-  class _ConverterStreamEventSink {
-    constructor(converter, sink) {
-      this._eventSink = sink;
-      this._chunkedSink = converter.startChunkedConversion(sink);
+    class _ConverterStreamEventSink {
+      constructor(converter, sink) {
+        this._eventSink = sink;
+        this._chunkedSink = converter.startChunkedConversion(sink);
+      }
+      add(o) { return this._chunkedSink.add(o); }
+      addError(error, stackTrace) {
+        if (stackTrace === undefined) stackTrace = null;
+        this._eventSink.addError(error, stackTrace);
+      }
+      close() { return this._chunkedSink.close(); }
     }
-    add(o) { return this._chunkedSink.add(o); }
-    addError(error, stackTrace) {
-      if (stackTrace === undefined) stackTrace = null;
-      this._eventSink.addError(error, stackTrace);
-    }
-    close() { return this._chunkedSink.close(); }
-  }
-  return _ConverterStreamEventSink;
-  }); // end generic class
+    return _ConverterStreamEventSink;
+  });
   let _ConverterStreamEventSink = _ConverterStreamEventSink$(dynamic, dynamic);
 
   let Codec$ = dart.generic(function(S, T) {
-  class Codec {
-    constructor() {
+    class Codec {
+      constructor() {
+      }
+      encode(input) { return this.encoder.convert(input); }
+      decode(encoded) { return this.decoder.convert(encoded); }
+      fuse(other) {
+        return new _FusedCodec(this, other);
+      }
+      get inverted() { return new _InvertedCodec(this); }
     }
-    encode(input) { return this.encoder.convert(input); }
-    decode(encoded) { return this.decoder.convert(encoded); }
-    fuse(other) {
-      return new _FusedCodec(this, other);
-    }
-    get inverted() { return new _InvertedCodec(this); }
-  }
-  return Codec;
-  }); // end generic class
+    return Codec;
+  });
   let Codec = Codec$(dynamic, dynamic);
 
   let _FusedCodec$ = dart.generic(function(S, M, T) {
-  class _FusedCodec extends Codec$(S, T) {
-    get encoder() { return dart.as(this._first.encoder.fuse(this._second.encoder), Converter$(S, T)); }
-    get decoder() { return dart.as(this._second.decoder.fuse(this._first.decoder), Converter$(T, S)); }
-    constructor(_first, _second) {
-      this._first = _first;
-      this._second = _second;
-      super();
+    class _FusedCodec extends Codec$(S, T) {
+      get encoder() { return dart.as(this._first.encoder.fuse(this._second.encoder), Converter$(S, T)); }
+      get decoder() { return dart.as(this._second.decoder.fuse(this._first.decoder), Converter$(T, S)); }
+      constructor(_first, _second) {
+        this._first = _first;
+        this._second = _second;
+        super();
+      }
     }
-  }
-  return _FusedCodec;
-  }); // end generic class
+    return _FusedCodec;
+  });
   let _FusedCodec = _FusedCodec$(dynamic, dynamic, dynamic);
 
   let _InvertedCodec$ = dart.generic(function(T, S) {
-  class _InvertedCodec extends Codec$(T, S) {
-    constructor(codec) {
-      this._codec = codec;
-      super();
+    class _InvertedCodec extends Codec$(T, S) {
+      constructor(codec) {
+        this._codec = codec;
+        super();
+      }
+      get encoder() { return this._codec.decoder; }
+      get decoder() { return this._codec.encoder; }
+      get inverted() { return this._codec; }
     }
-    get encoder() { return this._codec.decoder; }
-    get decoder() { return this._codec.encoder; }
-    get inverted() { return this._codec; }
-  }
-  return _InvertedCodec;
-  }); // end generic class
+    return _InvertedCodec;
+  });
   let _InvertedCodec = _InvertedCodec$(dynamic, dynamic);
 
   let Converter$ = dart.generic(function(S, T) {
-  class Converter {
-    constructor() {
+    class Converter {
+      constructor() {
+      }
+      fuse(other) {
+        return new _FusedConverter(this, other);
+      }
+      startChunkedConversion(sink) {
+        throw new core.UnsupportedError("This converter does not support chunked conversions: " + (this) + "");
+      }
+      bind(source) {
+        return new async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
+      }
     }
-    fuse(other) {
-      return new _FusedConverter(this, other);
-    }
-    startChunkedConversion(sink) {
-      throw new core.UnsupportedError("This converter does not support chunked conversions: " + (this) + "");
-    }
-    bind(source) {
-      return new async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
-    }
-  }
-  return Converter;
-  }); // end generic class
+    return Converter;
+  });
   let Converter = Converter$(dynamic, dynamic);
 
   let _FusedConverter$ = dart.generic(function(S, M, T) {
-  class _FusedConverter extends Converter$(S, T) {
-    constructor(_first, _second) {
-      this._first = _first;
-      this._second = _second;
-      super();
+    class _FusedConverter extends Converter$(S, T) {
+      constructor(_first, _second) {
+        this._first = _first;
+        this._second = _second;
+        super();
+      }
+      convert(input) { return dart.as(this._second.convert(this._first.convert(input)), T); }
+      startChunkedConversion(sink) {
+        return this._first.startChunkedConversion(this._second.startChunkedConversion(sink));
+      }
     }
-    convert(input) { return dart.as(this._second.convert(this._first.convert(input)), T); }
-    startChunkedConversion(sink) {
-      return this._first.startChunkedConversion(this._second.startChunkedConversion(sink));
-    }
-  }
-  return _FusedConverter;
-  }); // end generic class
+    return _FusedConverter;
+  });
   let _FusedConverter = _FusedConverter$(dynamic, dynamic, dynamic);
 
   class Encoding extends Codec$(core.String, core.List$(core.int)) {

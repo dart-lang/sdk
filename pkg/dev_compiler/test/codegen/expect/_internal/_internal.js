@@ -6,1082 +6,1082 @@ var _internal;
   }
 
   let ListIterable$ = dart.generic(function(E) {
-  class ListIterable extends collection.IterableBase$(E) {
-    constructor() {
-      super();
-    }
-    get iterator() { return new ListIterator(this); }
-    forEach(action) {
-      let length = this.length;
-      for (let i = 0; i < length; i++) {
-        action(this.elementAt(i));
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
+    class ListIterable extends collection.IterableBase$(E) {
+      constructor() {
+        super();
       }
-    }
-    get isEmpty() { return this.length === 0; }
-    get first() {
-      if (this.length === 0) throw IterableElementError.noElement();
-      return this.elementAt(0);
-    }
-    get last() {
-      if (this.length === 0) throw IterableElementError.noElement();
-      return this.elementAt(this.length - 1);
-    }
-    get single() {
-      if (this.length === 0) throw IterableElementError.noElement();
-      if (this.length > 1) throw IterableElementError.tooMany();
-      return this.elementAt(0);
-    }
-    contains(element) {
-      let length = this.length;
-      for (let i = 0; i < length; i++) {
-        if (dart.equals(this.elementAt(i), element)) return true;
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
-      }
-      return false;
-    }
-    every(test) {
-      let length = this.length;
-      for (let i = 0; i < length; i++) {
-        if (!test(this.elementAt(i))) return false;
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
-      }
-      return true;
-    }
-    any(test) {
-      let length = this.length;
-      for (let i = 0; i < length; i++) {
-        if (test(this.elementAt(i))) return true;
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
-      }
-      return false;
-    }
-    firstWhere(test, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      let length = this.length;
-      for (let i = 0; i < length; i++) {
-        let element = this.elementAt(i);
-        if (test(element)) return element;
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
-      }
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    lastWhere(test, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      let length = this.length;
-      for (let i = length - 1; i >= 0; i--) {
-        let element = this.elementAt(i);
-        if (test(element)) return element;
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
-      }
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    singleWhere(test) {
-      let length = this.length;
-      let match = null;
-      let matchFound = false;
-      for (let i = 0; i < length; i++) {
-        let element = this.elementAt(i);
-        if (test(element)) {
-          if (matchFound) {
-            throw IterableElementError.tooMany();
-          }
-          matchFound = true;
-          match = element;
-        }
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
-      }
-      if (matchFound) return match;
-      throw IterableElementError.noElement();
-    }
-    join(separator) {
-      if (separator === undefined) separator = "";
-      let length = this.length;
-      if (!separator.isEmpty) {
-        if (length === 0) return "";
-        let first = "" + (this.elementAt(0)) + "";
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
-        }
-        let buffer = new core.StringBuffer(first);
-        for (let i = 1; i < length; i++) {
-          buffer.write(separator);
-          buffer.write(this.elementAt(i));
-          if (length !== this.length) {
-            throw new core.ConcurrentModificationError(this);
-          }
-        }
-        return buffer.toString();
-      } else {
-        let buffer = new core.StringBuffer();
+      get iterator() { return new ListIterator(this); }
+      forEach(action) {
+        let length = this.length;
         for (let i = 0; i < length; i++) {
-          buffer.write(this.elementAt(i));
+          action(this.elementAt(i));
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
           }
         }
-        return buffer.toString();
       }
-    }
-    where(test) { return super.where(test); }
-    map(f) { return new MappedListIterable(this, f); }
-    reduce(combine) {
-      let length = this.length;
-      if (length === 0) throw IterableElementError.noElement();
-      let value = this.elementAt(0);
-      for (let i = 1; i < length; i++) {
-        value = combine(value, this.elementAt(i));
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
+      get isEmpty() { return this.length === 0; }
+      get first() {
+        if (this.length === 0) throw IterableElementError.noElement();
+        return this.elementAt(0);
+      }
+      get last() {
+        if (this.length === 0) throw IterableElementError.noElement();
+        return this.elementAt(this.length - 1);
+      }
+      get single() {
+        if (this.length === 0) throw IterableElementError.noElement();
+        if (this.length > 1) throw IterableElementError.tooMany();
+        return this.elementAt(0);
+      }
+      contains(element) {
+        let length = this.length;
+        for (let i = 0; i < length; i++) {
+          if (dart.equals(this.elementAt(i), element)) return true;
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+        return false;
+      }
+      every(test) {
+        let length = this.length;
+        for (let i = 0; i < length; i++) {
+          if (!test(this.elementAt(i))) return false;
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+        return true;
+      }
+      any(test) {
+        let length = this.length;
+        for (let i = 0; i < length; i++) {
+          if (test(this.elementAt(i))) return true;
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+        return false;
+      }
+      firstWhere(test, opt$) {
+        let orElse = opt$.orElse === undefined ? null : opt$.orElse;
+        let length = this.length;
+        for (let i = 0; i < length; i++) {
+          let element = this.elementAt(i);
+          if (test(element)) return element;
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
+      }
+      lastWhere(test, opt$) {
+        let orElse = opt$.orElse === undefined ? null : opt$.orElse;
+        let length = this.length;
+        for (let i = length - 1; i >= 0; i--) {
+          let element = this.elementAt(i);
+          if (test(element)) return element;
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
+      }
+      singleWhere(test) {
+        let length = this.length;
+        let match = null;
+        let matchFound = false;
+        for (let i = 0; i < length; i++) {
+          let element = this.elementAt(i);
+          if (test(element)) {
+            if (matchFound) {
+              throw IterableElementError.tooMany();
+            }
+            matchFound = true;
+            match = element;
+          }
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+        if (matchFound) return match;
+        throw IterableElementError.noElement();
+      }
+      join(separator) {
+        if (separator === undefined) separator = "";
+        let length = this.length;
+        if (!separator.isEmpty) {
+          if (length === 0) return "";
+          let first = "" + (this.elementAt(0)) + "";
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+          let buffer = new core.StringBuffer(first);
+          for (let i = 1; i < length; i++) {
+            buffer.write(separator);
+            buffer.write(this.elementAt(i));
+            if (length !== this.length) {
+              throw new core.ConcurrentModificationError(this);
+            }
+          }
+          return buffer.toString();
+        } else {
+          let buffer = new core.StringBuffer();
+          for (let i = 0; i < length; i++) {
+            buffer.write(this.elementAt(i));
+            if (length !== this.length) {
+              throw new core.ConcurrentModificationError(this);
+            }
+          }
+          return buffer.toString();
         }
       }
-      return value;
-    }
-    fold(initialValue, combine) {
-      let value = initialValue;
-      let length = this.length;
-      for (let i = 0; i < length; i++) {
-        value = combine(value, this.elementAt(i));
-        if (length !== this.length) {
-          throw new core.ConcurrentModificationError(this);
+      where(test) { return super.where(test); }
+      map(f) { return new MappedListIterable(this, f); }
+      reduce(combine) {
+        let length = this.length;
+        if (length === 0) throw IterableElementError.noElement();
+        let value = this.elementAt(0);
+        for (let i = 1; i < length; i++) {
+          value = combine(value, this.elementAt(i));
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
         }
+        return value;
       }
-      return value;
+      fold(initialValue, combine) {
+        let value = initialValue;
+        let length = this.length;
+        for (let i = 0; i < length; i++) {
+          value = combine(value, this.elementAt(i));
+          if (length !== this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+        return value;
+      }
+      skip(count) { return new SubListIterable(this, count, null); }
+      skipWhile(test) { return super.skipWhile(test); }
+      take(count) { return new SubListIterable(this, 0, count); }
+      takeWhile(test) { return super.takeWhile(test); }
+      toList(opt$) {
+        let growable = opt$.growable === undefined ? true : opt$.growable;
+        let result = null;
+        if (growable) {
+          result = ((_) => {
+            _.length = this.length;
+            return _;
+          })(new core.List());
+        } else {
+          result = new core.List(this.length);
+        }
+        for (let i = 0; i < this.length; i++) {
+          result.set(i, this.elementAt(i));
+        }
+        return result;
+      }
+      toSet() {
+        let result = new core.Set();
+        for (let i = 0; i < this.length; i++) {
+          result.add(this.elementAt(i));
+        }
+        return result;
+      }
     }
-    skip(count) { return new SubListIterable(this, count, null); }
-    skipWhile(test) { return super.skipWhile(test); }
-    take(count) { return new SubListIterable(this, 0, count); }
-    takeWhile(test) { return super.takeWhile(test); }
-    toList(opt$) {
-      let growable = opt$.growable === undefined ? true : opt$.growable;
-      let result = null;
-      if (growable) {
-        result = ((_) => {
-          _.length = this.length;
-          return _;
-        })(new core.List());
-      } else {
-        result = new core.List(this.length);
-      }
-      for (let i = 0; i < this.length; i++) {
-        result.set(i, this.elementAt(i));
-      }
-      return result;
-    }
-    toSet() {
-      let result = new core.Set();
-      for (let i = 0; i < this.length; i++) {
-        result.add(this.elementAt(i));
-      }
-      return result;
-    }
-  }
-  return ListIterable;
-  }); // end generic class
+    return ListIterable;
+  });
   let ListIterable = ListIterable$(dynamic);
 
   let SubListIterable$ = dart.generic(function(E) {
-  class SubListIterable extends ListIterable$(E) {
-    constructor(_iterable, _start, _endOrLength) {
-      this._iterable = _iterable;
-      this._start = _start;
-      this._endOrLength = _endOrLength;
-      super();
-      core.RangeError.checkNotNegative(this._start, "start");
-      if (this._endOrLength !== null) {
-        core.RangeError.checkNotNegative(this._endOrLength, "end");
-        if (this._start > this._endOrLength) {
-          throw new core.RangeError.range(this._start, 0, this._endOrLength, "start");
+    class SubListIterable extends ListIterable$(E) {
+      constructor(_iterable, _start, _endOrLength) {
+        this._iterable = _iterable;
+        this._start = _start;
+        this._endOrLength = _endOrLength;
+        super();
+        core.RangeError.checkNotNegative(this._start, "start");
+        if (this._endOrLength !== null) {
+          core.RangeError.checkNotNegative(this._endOrLength, "end");
+          if (this._start > this._endOrLength) {
+            throw new core.RangeError.range(this._start, 0, this._endOrLength, "start");
+          }
         }
       }
-    }
-    get _endIndex() {
-      let length = this._iterable.length;
-      if (this._endOrLength === null || this._endOrLength > length) return length;
-      return this._endOrLength;
-    }
-    get _startIndex() {
-      let length = this._iterable.length;
-      if (this._start > length) return length;
-      return this._start;
-    }
-    get length() {
-      let length = this._iterable.length;
-      if (this._start >= length) return 0;
-      if (this._endOrLength === null || this._endOrLength >= length) {
-        return length - this._start;
+      get _endIndex() {
+        let length = this._iterable.length;
+        if (this._endOrLength === null || this._endOrLength > length) return length;
+        return this._endOrLength;
       }
-      return this._endOrLength - this._start;
-    }
-    elementAt(index) {
-      let realIndex = this._startIndex + index;
-      if (index < 0 || realIndex >= this._endIndex) {
-        throw new core.RangeError.index(index, this, "index");
+      get _startIndex() {
+        let length = this._iterable.length;
+        if (this._start > length) return length;
+        return this._start;
       }
-      return this._iterable.elementAt(realIndex);
-    }
-    skip(count) {
-      core.RangeError.checkNotNegative(count, "count");
-      let newStart = this._start + count;
-      if (this._endOrLength !== null && newStart >= this._endOrLength) {
-        return new EmptyIterable();
+      get length() {
+        let length = this._iterable.length;
+        if (this._start >= length) return 0;
+        if (this._endOrLength === null || this._endOrLength >= length) {
+          return length - this._start;
+        }
+        return this._endOrLength - this._start;
       }
-      return new SubListIterable(this._iterable, newStart, this._endOrLength);
-    }
-    take(count) {
-      core.RangeError.checkNotNegative(count, "count");
-      if (this._endOrLength === null) {
-        return new SubListIterable(this._iterable, this._start, this._start + count);
-      } else {
-        let newEnd = this._start + count;
-        if (this._endOrLength < newEnd) return this;
-        return new SubListIterable(this._iterable, this._start, newEnd);
+      elementAt(index) {
+        let realIndex = this._startIndex + index;
+        if (index < 0 || realIndex >= this._endIndex) {
+          throw new core.RangeError.index(index, this, "index");
+        }
+        return this._iterable.elementAt(realIndex);
+      }
+      skip(count) {
+        core.RangeError.checkNotNegative(count, "count");
+        let newStart = this._start + count;
+        if (this._endOrLength !== null && newStart >= this._endOrLength) {
+          return new EmptyIterable();
+        }
+        return new SubListIterable(this._iterable, newStart, this._endOrLength);
+      }
+      take(count) {
+        core.RangeError.checkNotNegative(count, "count");
+        if (this._endOrLength === null) {
+          return new SubListIterable(this._iterable, this._start, this._start + count);
+        } else {
+          let newEnd = this._start + count;
+          if (this._endOrLength < newEnd) return this;
+          return new SubListIterable(this._iterable, this._start, newEnd);
+        }
+      }
+      toList(opt$) {
+        let growable = opt$.growable === undefined ? true : opt$.growable;
+        let start = this._start;
+        let end = this._iterable.length;
+        if (this._endOrLength !== null && this._endOrLength < end) end = this._endOrLength;
+        let length = end - start;
+        if (length < 0) length = 0;
+        let result = growable ? (((_) => {
+          _.length = length;
+          return _;
+        })(new core.List())) : new core.List(length);
+        for (let i = 0; i < length; i++) {
+          result.set(i, this._iterable.elementAt(start + i));
+          if (this._iterable.length < end) throw new core.ConcurrentModificationError(this);
+        }
+        return dart.as(result, core.List$(E));
       }
     }
-    toList(opt$) {
-      let growable = opt$.growable === undefined ? true : opt$.growable;
-      let start = this._start;
-      let end = this._iterable.length;
-      if (this._endOrLength !== null && this._endOrLength < end) end = this._endOrLength;
-      let length = end - start;
-      if (length < 0) length = 0;
-      let result = growable ? (((_) => {
-        _.length = length;
-        return _;
-      })(new core.List())) : new core.List(length);
-      for (let i = 0; i < length; i++) {
-        result.set(i, this._iterable.elementAt(start + i));
-        if (this._iterable.length < end) throw new core.ConcurrentModificationError(this);
-      }
-      return dart.as(result, core.List$(E));
-    }
-  }
-  return SubListIterable;
-  }); // end generic class
+    return SubListIterable;
+  });
   let SubListIterable = SubListIterable$(dynamic);
 
   let ListIterator$ = dart.generic(function(E) {
-  class ListIterator {
-    constructor(iterable) {
-      this._iterable = iterable;
-      this._length = iterable.length;
-      this._index = 0;
-      this._current = null;
-    }
-    get current() { return this._current; }
-    moveNext() {
-      let length = this._iterable.length;
-      if (this._length !== length) {
-        throw new core.ConcurrentModificationError(this._iterable);
-      }
-      if (this._index >= length) {
+    class ListIterator {
+      constructor(iterable) {
+        this._iterable = iterable;
+        this._length = iterable.length;
+        this._index = 0;
         this._current = null;
-        return false;
       }
-      this._current = this._iterable.elementAt(this._index);
-      this._index++;
-      return true;
+      get current() { return this._current; }
+      moveNext() {
+        let length = this._iterable.length;
+        if (this._length !== length) {
+          throw new core.ConcurrentModificationError(this._iterable);
+        }
+        if (this._index >= length) {
+          this._current = null;
+          return false;
+        }
+        this._current = this._iterable.elementAt(this._index);
+        this._index++;
+        return true;
+      }
     }
-  }
-  return ListIterator;
-  }); // end generic class
+    return ListIterator;
+  });
   let ListIterator = ListIterator$(dynamic);
 
   let MappedIterable$ = dart.generic(function(S, T) {
-  class MappedIterable extends collection.IterableBase$(T) {
-    constructor(iterable, function) {
-      if (dart.is(iterable, EfficientLength)) {
-        return new EfficientLengthMappedIterable(iterable, function);
+    class MappedIterable extends collection.IterableBase$(T) {
+      constructor(iterable, function) {
+        if (dart.is(iterable, EfficientLength)) {
+          return new EfficientLengthMappedIterable(iterable, function);
+        }
+        return new MappedIterable._(iterable, function);
       }
-      return new MappedIterable._(iterable, function);
+      /*constructor*/ _(_iterable, _f) {
+        this._iterable = _iterable;
+        this._f = _f;
+        collection.IterableBase$(T).call(this);
+      }
+      get iterator() { return new MappedIterator(this._iterable.iterator, this._f); }
+      get length() { return this._iterable.length; }
+      get isEmpty() { return this._iterable.isEmpty; }
+      get first() { return this._f(this._iterable.first); }
+      get last() { return this._f(this._iterable.last); }
+      get single() { return this._f(this._iterable.single); }
+      elementAt(index) { return this._f(this._iterable.elementAt(index)); }
     }
-    /*constructor*/ _(_iterable, _f) {
-      this._iterable = _iterable;
-      this._f = _f;
-      collection.IterableBase$(T).call(this);
-    }
-    get iterator() { return new MappedIterator(this._iterable.iterator, this._f); }
-    get length() { return this._iterable.length; }
-    get isEmpty() { return this._iterable.isEmpty; }
-    get first() { return this._f(this._iterable.first); }
-    get last() { return this._f(this._iterable.last); }
-    get single() { return this._f(this._iterable.single); }
-    elementAt(index) { return this._f(this._iterable.elementAt(index)); }
-  }
-  dart.defineNamedConstructor(MappedIterable, "_");
-  return MappedIterable;
-  }); // end generic class
+    dart.defineNamedConstructor(MappedIterable, "_");
+    return MappedIterable;
+  });
   let MappedIterable = MappedIterable$(dynamic, dynamic);
 
   let EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
-  class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
-    constructor(iterable, function) {
-      super._(dart.as(iterable, core.Iterable$(S)), function);
+    class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
+      constructor(iterable, function) {
+        super._(dart.as(iterable, core.Iterable$(S)), function);
+      }
     }
-  }
-  return EfficientLengthMappedIterable;
-  }); // end generic class
+    return EfficientLengthMappedIterable;
+  });
   let EfficientLengthMappedIterable = EfficientLengthMappedIterable$(dynamic, dynamic);
 
   let MappedIterator$ = dart.generic(function(S, T) {
-  class MappedIterator extends core.Iterator$(T) {
-    constructor(_iterator, _f) {
-      this._iterator = _iterator;
-      this._f = _f;
-      this._current = null;
-      super();
-    }
-    moveNext() {
-      if (this._iterator.moveNext()) {
-        this._current = this._f(this._iterator.current);
-        return true;
+    class MappedIterator extends core.Iterator$(T) {
+      constructor(_iterator, _f) {
+        this._iterator = _iterator;
+        this._f = _f;
+        this._current = null;
+        super();
       }
-      this._current = null;
-      return false;
+      moveNext() {
+        if (this._iterator.moveNext()) {
+          this._current = this._f(this._iterator.current);
+          return true;
+        }
+        this._current = null;
+        return false;
+      }
+      get current() { return this._current; }
     }
-    get current() { return this._current; }
-  }
-  return MappedIterator;
-  }); // end generic class
+    return MappedIterator;
+  });
   let MappedIterator = MappedIterator$(dynamic, dynamic);
 
   let MappedListIterable$ = dart.generic(function(S, T) {
-  class MappedListIterable extends ListIterable$(T) {
-    constructor(_source, _f) {
-      this._source = _source;
-      this._f = _f;
-      super();
+    class MappedListIterable extends ListIterable$(T) {
+      constructor(_source, _f) {
+        this._source = _source;
+        this._f = _f;
+        super();
+      }
+      get length() { return this._source.length; }
+      elementAt(index) { return this._f(this._source.elementAt(index)); }
     }
-    get length() { return this._source.length; }
-    elementAt(index) { return this._f(this._source.elementAt(index)); }
-  }
-  return MappedListIterable;
-  }); // end generic class
+    return MappedListIterable;
+  });
   let MappedListIterable = MappedListIterable$(dynamic, dynamic);
 
   let WhereIterable$ = dart.generic(function(E) {
-  class WhereIterable extends collection.IterableBase$(E) {
-    constructor(_iterable, _f) {
-      this._iterable = _iterable;
-      this._f = _f;
-      super();
+    class WhereIterable extends collection.IterableBase$(E) {
+      constructor(_iterable, _f) {
+        this._iterable = _iterable;
+        this._f = _f;
+        super();
+      }
+      get iterator() { return new WhereIterator(this._iterable.iterator, this._f); }
     }
-    get iterator() { return new WhereIterator(this._iterable.iterator, this._f); }
-  }
-  return WhereIterable;
-  }); // end generic class
+    return WhereIterable;
+  });
   let WhereIterable = WhereIterable$(dynamic);
 
   let WhereIterator$ = dart.generic(function(E) {
-  class WhereIterator extends core.Iterator$(E) {
-    constructor(_iterator, _f) {
-      this._iterator = _iterator;
-      this._f = _f;
-      super();
-    }
-    moveNext() {
-      while (this._iterator.moveNext()) {
-        if (this._f(this._iterator.current)) {
-          return true;
-        }
+    class WhereIterator extends core.Iterator$(E) {
+      constructor(_iterator, _f) {
+        this._iterator = _iterator;
+        this._f = _f;
+        super();
       }
-      return false;
+      moveNext() {
+        while (this._iterator.moveNext()) {
+          if (this._f(this._iterator.current)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      get current() { return this._iterator.current; }
     }
-    get current() { return this._iterator.current; }
-  }
-  return WhereIterator;
-  }); // end generic class
+    return WhereIterator;
+  });
   let WhereIterator = WhereIterator$(dynamic);
 
   let ExpandIterable$ = dart.generic(function(S, T) {
-  class ExpandIterable extends collection.IterableBase$(T) {
-    constructor(_iterable, _f) {
-      this._iterable = _iterable;
-      this._f = _f;
-      super();
+    class ExpandIterable extends collection.IterableBase$(T) {
+      constructor(_iterable, _f) {
+        this._iterable = _iterable;
+        this._f = _f;
+        super();
+      }
+      get iterator() { return new ExpandIterator(this._iterable.iterator, this._f); }
     }
-    get iterator() { return new ExpandIterator(this._iterable.iterator, this._f); }
-  }
-  return ExpandIterable;
-  }); // end generic class
+    return ExpandIterable;
+  });
   let ExpandIterable = ExpandIterable$(dynamic, dynamic);
 
   let ExpandIterator$ = dart.generic(function(S, T) {
-  class ExpandIterator {
-    constructor(_iterator, _f) {
-      this._iterator = _iterator;
-      this._f = _f;
-      this._currentExpansion = dart.as(new EmptyIterator(), core.Iterator$(T));
-      this._current = null;
-    }
-    _nextExpansion() {
-    }
-    get current() { return this._current; }
-    moveNext() {
-      if (this._currentExpansion === null) return false;
-      while (!this._currentExpansion.moveNext()) {
+    class ExpandIterator {
+      constructor(_iterator, _f) {
+        this._iterator = _iterator;
+        this._f = _f;
+        this._currentExpansion = dart.as(new EmptyIterator(), core.Iterator$(T));
         this._current = null;
-        if (this._iterator.moveNext()) {
-          this._currentExpansion = null;
-          this._currentExpansion = dart.as(this._f(this._iterator.current).iterator, core.Iterator$(T));
-        } else {
-          return false;
-        }
       }
-      this._current = this._currentExpansion.current;
-      return true;
+      _nextExpansion() {
+      }
+      get current() { return this._current; }
+      moveNext() {
+        if (this._currentExpansion === null) return false;
+        while (!this._currentExpansion.moveNext()) {
+          this._current = null;
+          if (this._iterator.moveNext()) {
+            this._currentExpansion = null;
+            this._currentExpansion = dart.as(this._f(this._iterator.current).iterator, core.Iterator$(T));
+          } else {
+            return false;
+          }
+        }
+        this._current = this._currentExpansion.current;
+        return true;
+      }
     }
-  }
-  return ExpandIterator;
-  }); // end generic class
+    return ExpandIterator;
+  });
   let ExpandIterator = ExpandIterator$(dynamic, dynamic);
 
   let TakeIterable$ = dart.generic(function(E) {
-  class TakeIterable extends collection.IterableBase$(E) {
-    constructor(iterable, takeCount) {
-      if (!(typeof takeCount == "number") || takeCount < 0) {
-        throw new core.ArgumentError(takeCount);
+    class TakeIterable extends collection.IterableBase$(E) {
+      constructor(iterable, takeCount) {
+        if (!(typeof takeCount == "number") || takeCount < 0) {
+          throw new core.ArgumentError(takeCount);
+        }
+        if (dart.is(iterable, EfficientLength)) {
+          return new EfficientLengthTakeIterable(iterable, takeCount);
+        }
+        return new TakeIterable._(iterable, takeCount);
       }
-      if (dart.is(iterable, EfficientLength)) {
-        return new EfficientLengthTakeIterable(iterable, takeCount);
+      /*constructor*/ _(_iterable, _takeCount) {
+        this._iterable = _iterable;
+        this._takeCount = _takeCount;
+        collection.IterableBase$(E).call(this);
       }
-      return new TakeIterable._(iterable, takeCount);
+      get iterator() {
+        return new TakeIterator(this._iterable.iterator, this._takeCount);
+      }
     }
-    /*constructor*/ _(_iterable, _takeCount) {
-      this._iterable = _iterable;
-      this._takeCount = _takeCount;
-      collection.IterableBase$(E).call(this);
-    }
-    get iterator() {
-      return new TakeIterator(this._iterable.iterator, this._takeCount);
-    }
-  }
-  dart.defineNamedConstructor(TakeIterable, "_");
-  return TakeIterable;
-  }); // end generic class
+    dart.defineNamedConstructor(TakeIterable, "_");
+    return TakeIterable;
+  });
   let TakeIterable = TakeIterable$(dynamic);
 
   let EfficientLengthTakeIterable$ = dart.generic(function(E) {
-  class EfficientLengthTakeIterable extends TakeIterable$(E) {
-    constructor(iterable, takeCount) {
-      super._(iterable, takeCount);
+    class EfficientLengthTakeIterable extends TakeIterable$(E) {
+      constructor(iterable, takeCount) {
+        super._(iterable, takeCount);
+      }
+      get length() {
+        let iterableLength = this._iterable.length;
+        if (iterableLength > this._takeCount) return this._takeCount;
+        return iterableLength;
+      }
     }
-    get length() {
-      let iterableLength = this._iterable.length;
-      if (iterableLength > this._takeCount) return this._takeCount;
-      return iterableLength;
-    }
-  }
-  return EfficientLengthTakeIterable;
-  }); // end generic class
+    return EfficientLengthTakeIterable;
+  });
   let EfficientLengthTakeIterable = EfficientLengthTakeIterable$(dynamic);
 
   let TakeIterator$ = dart.generic(function(E) {
-  class TakeIterator extends core.Iterator$(E) {
-    constructor(_iterator, _remaining) {
-      this._iterator = _iterator;
-      this._remaining = _remaining;
-      super();
-      dart.assert(typeof this._remaining == "number" && this._remaining >= 0);
-    }
-    moveNext() {
-      this._remaining--;
-      if (this._remaining >= 0) {
-        return this._iterator.moveNext();
+    class TakeIterator extends core.Iterator$(E) {
+      constructor(_iterator, _remaining) {
+        this._iterator = _iterator;
+        this._remaining = _remaining;
+        super();
+        dart.assert(typeof this._remaining == "number" && this._remaining >= 0);
       }
-      this._remaining = -1;
-      return false;
+      moveNext() {
+        this._remaining--;
+        if (this._remaining >= 0) {
+          return this._iterator.moveNext();
+        }
+        this._remaining = -1;
+        return false;
+      }
+      get current() {
+        if (this._remaining < 0) return null;
+        return this._iterator.current;
+      }
     }
-    get current() {
-      if (this._remaining < 0) return null;
-      return this._iterator.current;
-    }
-  }
-  return TakeIterator;
-  }); // end generic class
+    return TakeIterator;
+  });
   let TakeIterator = TakeIterator$(dynamic);
 
   let TakeWhileIterable$ = dart.generic(function(E) {
-  class TakeWhileIterable extends collection.IterableBase$(E) {
-    constructor(_iterable, _f) {
-      this._iterable = _iterable;
-      this._f = _f;
-      super();
+    class TakeWhileIterable extends collection.IterableBase$(E) {
+      constructor(_iterable, _f) {
+        this._iterable = _iterable;
+        this._f = _f;
+        super();
+      }
+      get iterator() {
+        return new TakeWhileIterator(this._iterable.iterator, this._f);
+      }
     }
-    get iterator() {
-      return new TakeWhileIterator(this._iterable.iterator, this._f);
-    }
-  }
-  return TakeWhileIterable;
-  }); // end generic class
+    return TakeWhileIterable;
+  });
   let TakeWhileIterable = TakeWhileIterable$(dynamic);
 
   let TakeWhileIterator$ = dart.generic(function(E) {
-  class TakeWhileIterator extends core.Iterator$(E) {
-    constructor(_iterator, _f) {
-      this._iterator = _iterator;
-      this._f = _f;
-      this._isFinished = false;
-      super();
-    }
-    moveNext() {
-      if (this._isFinished) return false;
-      if (!this._iterator.moveNext() || !this._f(this._iterator.current)) {
-        this._isFinished = true;
-        return false;
+    class TakeWhileIterator extends core.Iterator$(E) {
+      constructor(_iterator, _f) {
+        this._iterator = _iterator;
+        this._f = _f;
+        this._isFinished = false;
+        super();
       }
-      return true;
+      moveNext() {
+        if (this._isFinished) return false;
+        if (!this._iterator.moveNext() || !this._f(this._iterator.current)) {
+          this._isFinished = true;
+          return false;
+        }
+        return true;
+      }
+      get current() {
+        if (this._isFinished) return null;
+        return this._iterator.current;
+      }
     }
-    get current() {
-      if (this._isFinished) return null;
-      return this._iterator.current;
-    }
-  }
-  return TakeWhileIterator;
-  }); // end generic class
+    return TakeWhileIterator;
+  });
   let TakeWhileIterator = TakeWhileIterator$(dynamic);
 
   let SkipIterable$ = dart.generic(function(E) {
-  class SkipIterable extends collection.IterableBase$(E) {
-    constructor(iterable, count) {
-      if (dart.is(iterable, EfficientLength)) {
-        return new EfficientLengthSkipIterable(iterable, count);
+    class SkipIterable extends collection.IterableBase$(E) {
+      constructor(iterable, count) {
+        if (dart.is(iterable, EfficientLength)) {
+          return new EfficientLengthSkipIterable(iterable, count);
+        }
+        return new SkipIterable._(iterable, count);
       }
-      return new SkipIterable._(iterable, count);
-    }
-    /*constructor*/ _(_iterable, _skipCount) {
-      this._iterable = _iterable;
-      this._skipCount = _skipCount;
-      collection.IterableBase$(E).call(this);
-      if (!(typeof this._skipCount == "number")) {
-        throw new core.ArgumentError.value(this._skipCount, "count is not an integer");
+      /*constructor*/ _(_iterable, _skipCount) {
+        this._iterable = _iterable;
+        this._skipCount = _skipCount;
+        collection.IterableBase$(E).call(this);
+        if (!(typeof this._skipCount == "number")) {
+          throw new core.ArgumentError.value(this._skipCount, "count is not an integer");
+        }
+        core.RangeError.checkNotNegative(this._skipCount, "count");
       }
-      core.RangeError.checkNotNegative(this._skipCount, "count");
-    }
-    skip(count) {
-      if (!(typeof this._skipCount == "number")) {
-        throw new core.ArgumentError.value(this._skipCount, "count is not an integer");
+      skip(count) {
+        if (!(typeof this._skipCount == "number")) {
+          throw new core.ArgumentError.value(this._skipCount, "count is not an integer");
+        }
+        core.RangeError.checkNotNegative(this._skipCount, "count");
+        return new SkipIterable._(this._iterable, this._skipCount + count);
       }
-      core.RangeError.checkNotNegative(this._skipCount, "count");
-      return new SkipIterable._(this._iterable, this._skipCount + count);
+      get iterator() {
+        return new SkipIterator(this._iterable.iterator, this._skipCount);
+      }
     }
-    get iterator() {
-      return new SkipIterator(this._iterable.iterator, this._skipCount);
-    }
-  }
-  dart.defineNamedConstructor(SkipIterable, "_");
-  return SkipIterable;
-  }); // end generic class
+    dart.defineNamedConstructor(SkipIterable, "_");
+    return SkipIterable;
+  });
   let SkipIterable = SkipIterable$(dynamic);
 
   let EfficientLengthSkipIterable$ = dart.generic(function(E) {
-  class EfficientLengthSkipIterable extends SkipIterable$(E) {
-    constructor(iterable, skipCount) {
-      super._(iterable, skipCount);
+    class EfficientLengthSkipIterable extends SkipIterable$(E) {
+      constructor(iterable, skipCount) {
+        super._(iterable, skipCount);
+      }
+      get length() {
+        let length = this._iterable.length - this._skipCount;
+        if (length >= 0) return length;
+        return 0;
+      }
     }
-    get length() {
-      let length = this._iterable.length - this._skipCount;
-      if (length >= 0) return length;
-      return 0;
-    }
-  }
-  return EfficientLengthSkipIterable;
-  }); // end generic class
+    return EfficientLengthSkipIterable;
+  });
   let EfficientLengthSkipIterable = EfficientLengthSkipIterable$(dynamic);
 
   let SkipIterator$ = dart.generic(function(E) {
-  class SkipIterator extends core.Iterator$(E) {
-    constructor(_iterator, _skipCount) {
-      this._iterator = _iterator;
-      this._skipCount = _skipCount;
-      super();
-      dart.assert(typeof this._skipCount == "number" && this._skipCount >= 0);
+    class SkipIterator extends core.Iterator$(E) {
+      constructor(_iterator, _skipCount) {
+        this._iterator = _iterator;
+        this._skipCount = _skipCount;
+        super();
+        dart.assert(typeof this._skipCount == "number" && this._skipCount >= 0);
+      }
+      moveNext() {
+        for (let i = 0; i < this._skipCount; i++) this._iterator.moveNext();
+        this._skipCount = 0;
+        return this._iterator.moveNext();
+      }
+      get current() { return this._iterator.current; }
     }
-    moveNext() {
-      for (let i = 0; i < this._skipCount; i++) this._iterator.moveNext();
-      this._skipCount = 0;
-      return this._iterator.moveNext();
-    }
-    get current() { return this._iterator.current; }
-  }
-  return SkipIterator;
-  }); // end generic class
+    return SkipIterator;
+  });
   let SkipIterator = SkipIterator$(dynamic);
 
   let SkipWhileIterable$ = dart.generic(function(E) {
-  class SkipWhileIterable extends collection.IterableBase$(E) {
-    constructor(_iterable, _f) {
-      this._iterable = _iterable;
-      this._f = _f;
-      super();
+    class SkipWhileIterable extends collection.IterableBase$(E) {
+      constructor(_iterable, _f) {
+        this._iterable = _iterable;
+        this._f = _f;
+        super();
+      }
+      get iterator() {
+        return new SkipWhileIterator(this._iterable.iterator, this._f);
+      }
     }
-    get iterator() {
-      return new SkipWhileIterator(this._iterable.iterator, this._f);
-    }
-  }
-  return SkipWhileIterable;
-  }); // end generic class
+    return SkipWhileIterable;
+  });
   let SkipWhileIterable = SkipWhileIterable$(dynamic);
 
   let SkipWhileIterator$ = dart.generic(function(E) {
-  class SkipWhileIterator extends core.Iterator$(E) {
-    constructor(_iterator, _f) {
-      this._iterator = _iterator;
-      this._f = _f;
-      this._hasSkipped = false;
-      super();
-    }
-    moveNext() {
-      if (!this._hasSkipped) {
-        this._hasSkipped = true;
-        while (this._iterator.moveNext()) {
-          if (!this._f(this._iterator.current)) return true;
-        }
+    class SkipWhileIterator extends core.Iterator$(E) {
+      constructor(_iterator, _f) {
+        this._iterator = _iterator;
+        this._f = _f;
+        this._hasSkipped = false;
+        super();
       }
-      return this._iterator.moveNext();
+      moveNext() {
+        if (!this._hasSkipped) {
+          this._hasSkipped = true;
+          while (this._iterator.moveNext()) {
+            if (!this._f(this._iterator.current)) return true;
+          }
+        }
+        return this._iterator.moveNext();
+      }
+      get current() { return this._iterator.current; }
     }
-    get current() { return this._iterator.current; }
-  }
-  return SkipWhileIterator;
-  }); // end generic class
+    return SkipWhileIterator;
+  });
   let SkipWhileIterator = SkipWhileIterator$(dynamic);
 
   let EmptyIterable$ = dart.generic(function(E) {
-  class EmptyIterable extends collection.IterableBase$(E) {
-    constructor() {
-      super();
+    class EmptyIterable extends collection.IterableBase$(E) {
+      constructor() {
+        super();
+      }
+      get iterator() { return dart.as(new EmptyIterator(), core.Iterator$(E)); }
+      forEach(action) {
+      }
+      get isEmpty() { return true; }
+      get length() { return 0; }
+      get first() {
+        throw IterableElementError.noElement();
+      }
+      get last() {
+        throw IterableElementError.noElement();
+      }
+      get single() {
+        throw IterableElementError.noElement();
+      }
+      elementAt(index) {
+        throw new core.RangeError.range(index, 0, 0, "index");
+      }
+      contains(element) { return false; }
+      every(test) { return true; }
+      any(test) { return false; }
+      firstWhere(test, opt$) {
+        let orElse = opt$.orElse === undefined ? null : opt$.orElse;
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
+      }
+      lastWhere(test, opt$) {
+        let orElse = opt$.orElse === undefined ? null : opt$.orElse;
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
+      }
+      singleWhere(test, opt$) {
+        let orElse = opt$.orElse === undefined ? null : opt$.orElse;
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
+      }
+      join(separator) {
+        if (separator === undefined) separator = "";
+        return ""
+      }
+      where(test) { return this; }
+      map(f) { return new EmptyIterable(); }
+      reduce(combine) {
+        throw IterableElementError.noElement();
+      }
+      fold(initialValue, combine) {
+        return initialValue;
+      }
+      skip(count) {
+        core.RangeError.checkNotNegative(count, "count");
+        return this;
+      }
+      skipWhile(test) { return this; }
+      take(count) {
+        core.RangeError.checkNotNegative(count, "count");
+        return this;
+      }
+      takeWhile(test) { return this; }
+      toList(opt$) {
+        let growable = opt$.growable === undefined ? true : opt$.growable;
+        return growable ? new List.from([]) : new core.List(0)
+      }
+      toSet() { return new core.Set(); }
     }
-    get iterator() { return dart.as(new EmptyIterator(), core.Iterator$(E)); }
-    forEach(action) {
-    }
-    get isEmpty() { return true; }
-    get length() { return 0; }
-    get first() {
-      throw IterableElementError.noElement();
-    }
-    get last() {
-      throw IterableElementError.noElement();
-    }
-    get single() {
-      throw IterableElementError.noElement();
-    }
-    elementAt(index) {
-      throw new core.RangeError.range(index, 0, 0, "index");
-    }
-    contains(element) { return false; }
-    every(test) { return true; }
-    any(test) { return false; }
-    firstWhere(test, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    lastWhere(test, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    singleWhere(test, opt$) {
-      let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    join(separator) {
-      if (separator === undefined) separator = "";
-      return ""
-    }
-    where(test) { return this; }
-    map(f) { return new EmptyIterable(); }
-    reduce(combine) {
-      throw IterableElementError.noElement();
-    }
-    fold(initialValue, combine) {
-      return initialValue;
-    }
-    skip(count) {
-      core.RangeError.checkNotNegative(count, "count");
-      return this;
-    }
-    skipWhile(test) { return this; }
-    take(count) {
-      core.RangeError.checkNotNegative(count, "count");
-      return this;
-    }
-    takeWhile(test) { return this; }
-    toList(opt$) {
-      let growable = opt$.growable === undefined ? true : opt$.growable;
-      return growable ? new List.from([]) : new core.List(0)
-    }
-    toSet() { return new core.Set(); }
-  }
-  return EmptyIterable;
-  }); // end generic class
+    return EmptyIterable;
+  });
   let EmptyIterable = EmptyIterable$(dynamic);
 
   let EmptyIterator$ = dart.generic(function(E) {
-  class EmptyIterator {
-    constructor() {
+    class EmptyIterator {
+      constructor() {
+      }
+      moveNext() { return false; }
+      get current() { return null; }
     }
-    moveNext() { return false; }
-    get current() { return null; }
-  }
-  return EmptyIterator;
-  }); // end generic class
+    return EmptyIterator;
+  });
   let EmptyIterator = EmptyIterator$(dynamic);
 
   let BidirectionalIterator$ = dart.generic(function(T) {
-  class BidirectionalIterator {
-  }
-  return BidirectionalIterator;
-  }); // end generic class
+    class BidirectionalIterator {
+    }
+    return BidirectionalIterator;
+  });
   let BidirectionalIterator = BidirectionalIterator$(dynamic);
 
   let IterableMixinWorkaround$ = dart.generic(function(T) {
-  class IterableMixinWorkaround {
-    static contains(iterable, element) {
-      for (let e of iterable) {
-        if (dart.equals(e, element)) return true;
-      }
-      return false;
-    }
-    static forEach(iterable, f) {
-      for (let e of iterable) {
-        f(e);
-      }
-    }
-    static any(iterable, f) {
-      for (let e of iterable) {
-        if (f(e)) return true;
-      }
-      return false;
-    }
-    static every(iterable, f) {
-      for (let e of iterable) {
-        if (!f(e)) return false;
-      }
-      return true;
-    }
-    static reduce(iterable, combine) {
-      let iterator = iterable.iterator;
-      if (!iterator.moveNext()) throw IterableElementError.noElement();
-      let value = iterator.current;
-      while (iterator.moveNext()) {
-        value = combine(value, iterator.current);
-      }
-      return value;
-    }
-    static fold(iterable, initialValue, combine) {
-      for (let element of iterable) {
-        initialValue = combine(initialValue, element);
-      }
-      return initialValue;
-    }
-    static removeWhereList(list, test) {
-      let retained = new List.from([]);
-      let length = list.length;
-      for (let i = 0; i < length; i++) {
-        let element = list.get(i);
-        if (!test(element)) {
-          retained.add(element);
+    class IterableMixinWorkaround {
+      static contains(iterable, element) {
+        for (let e of iterable) {
+          if (dart.equals(e, element)) return true;
         }
-        if (length !== list.length) {
-          throw new core.ConcurrentModificationError(list);
+        return false;
+      }
+      static forEach(iterable, f) {
+        for (let e of iterable) {
+          f(e);
         }
       }
-      if (retained.length === length) return;
-      list.length = retained.length;
-      for (let i = 0; i < retained.length; i++) {
-        list.set(i, retained.get(i));
-      }
-    }
-    static isEmpty(iterable) {
-      return !iterable.iterator.moveNext();
-    }
-    static first(iterable) {
-      let it = iterable.iterator;
-      if (!it.moveNext()) {
-        throw IterableElementError.noElement();
-      }
-      return it.current;
-    }
-    static last(iterable) {
-      let it = iterable.iterator;
-      if (!it.moveNext()) {
-        throw IterableElementError.noElement();
-      }
-      let result = null;
-      do {
-        result = it.current;
-      }
-      while (it.moveNext());
-      return result;
-    }
-    static single(iterable) {
-      let it = iterable.iterator;
-      if (!it.moveNext()) throw IterableElementError.noElement();
-      let result = it.current;
-      if (it.moveNext()) throw IterableElementError.tooMany();
-      return result;
-    }
-    static firstWhere(iterable, test, orElse) {
-      for (let element of iterable) {
-        if (test(element)) return element;
-      }
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    static lastWhere(iterable, test, orElse) {
-      let result = null;
-      let foundMatching = false;
-      for (let element of iterable) {
-        if (test(element)) {
-          result = element;
-          foundMatching = true;
+      static any(iterable, f) {
+        for (let e of iterable) {
+          if (f(e)) return true;
         }
+        return false;
       }
-      if (foundMatching) return result;
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    static lastWhereList(list, test, orElse) {
-      for (let i = list.length - 1; i >= 0; i--) {
-        let element = list.get(i);
-        if (test(element)) return element;
+      static every(iterable, f) {
+        for (let e of iterable) {
+          if (!f(e)) return false;
+        }
+        return true;
       }
-      if (orElse !== null) return orElse();
-      throw IterableElementError.noElement();
-    }
-    static singleWhere(iterable, test) {
-      let result = null;
-      let foundMatching = false;
-      for (let element of iterable) {
-        if (test(element)) {
-          if (foundMatching) {
-            throw IterableElementError.tooMany();
+      static reduce(iterable, combine) {
+        let iterator = iterable.iterator;
+        if (!iterator.moveNext()) throw IterableElementError.noElement();
+        let value = iterator.current;
+        while (iterator.moveNext()) {
+          value = combine(value, iterator.current);
+        }
+        return value;
+      }
+      static fold(iterable, initialValue, combine) {
+        for (let element of iterable) {
+          initialValue = combine(initialValue, element);
+        }
+        return initialValue;
+      }
+      static removeWhereList(list, test) {
+        let retained = new List.from([]);
+        let length = list.length;
+        for (let i = 0; i < length; i++) {
+          let element = list.get(i);
+          if (!test(element)) {
+            retained.add(element);
           }
-          result = element;
-          foundMatching = true;
+          if (length !== list.length) {
+            throw new core.ConcurrentModificationError(list);
+          }
+        }
+        if (retained.length === length) return;
+        list.length = retained.length;
+        for (let i = 0; i < retained.length; i++) {
+          list.set(i, retained.get(i));
         }
       }
-      if (foundMatching) return result;
-      throw IterableElementError.noElement();
-    }
-    static elementAt(iterable, index) {
-      if (!(typeof index == "number")) throw new core.ArgumentError.notNull("index");
-      core.RangeError.checkNotNegative(index, "index");
-      let elementIndex = 0;
-      for (let element of iterable) {
-        if (index === elementIndex) return element;
-        elementIndex++;
+      static isEmpty(iterable) {
+        return !iterable.iterator.moveNext();
       }
-      throw new core.RangeError.index(index, iterable, "index", null, elementIndex);
-    }
-    static join(iterable, separator) {
-      if (separator === undefined) separator = null;
-      let buffer = new core.StringBuffer();
-      buffer.writeAll(iterable, separator);
-      return buffer.toString();
-    }
-    static joinList(list, separator) {
-      if (separator === undefined) separator = null;
-      if (list.isEmpty) return "";
-      if (list.length === 1) return "" + (list.get(0)) + "";
-      let buffer = new core.StringBuffer();
-      if (separator.isEmpty) {
-        for (let i = 0; i < list.length; i++) {
-          buffer.write(list.get(i));
+      static first(iterable) {
+        let it = iterable.iterator;
+        if (!it.moveNext()) {
+          throw IterableElementError.noElement();
         }
-      } else {
-        buffer.write(list.get(0));
-        for (let i = 1; i < list.length; i++) {
-          buffer.write(separator);
-          buffer.write(list.get(i));
+        return it.current;
+      }
+      static last(iterable) {
+        let it = iterable.iterator;
+        if (!it.moveNext()) {
+          throw IterableElementError.noElement();
         }
-      }
-      return buffer.toString();
-    }
-    where(iterable, f) {
-      return new WhereIterable(iterable, f);
-    }
-    static map(iterable, f) {
-      return new MappedIterable(iterable, f);
-    }
-    static mapList(list, f) {
-      return new MappedListIterable(list, f);
-    }
-    static expand(iterable, f) {
-      return new ExpandIterable(iterable, f);
-    }
-    takeList(list, n) {
-      return new SubListIterable(list, 0, n);
-    }
-    takeWhile(iterable, test) {
-      return new TakeWhileIterable(iterable, test);
-    }
-    skipList(list, n) {
-      return new SubListIterable(list, n, null);
-    }
-    skipWhile(iterable, test) {
-      return new SkipWhileIterable(iterable, test);
-    }
-    reversedList(list) {
-      return new ReversedListIterable(list);
-    }
-    static sortList(list, compare) {
-      if (compare === null) compare = dart.as(core.Comparable.compare, /* Unimplemented type (dynamic, dynamic) → int */);
-      Sort.sort(list, compare);
-    }
-    static shuffleList(list, random) {
-      if (random === null) random = new math.Random();
-      let length = list.length;
-      while (length > 1) {
-        let pos = random.nextInt(length);
-        length = 1;
-        let tmp = list.get(length);
-        list.set(length, list.get(pos));
-        list.set(pos, tmp);
-      }
-    }
-    static indexOfList(list, element, start) {
-      return Lists.indexOf(list, element, start, list.length);
-    }
-    static lastIndexOfList(list, element, start) {
-      if (start === null) start = list.length - 1;
-      return Lists.lastIndexOf(list, element, start);
-    }
-    static _rangeCheck(list, start, end) {
-      core.RangeError.checkValidRange(start, end, list.length);
-    }
-    getRangeList(list, start, end) {
-      _rangeCheck(list, start, end);
-      return new SubListIterable(list, start, end);
-    }
-    static setRangeList(list, start, end, from, skipCount) {
-      _rangeCheck(list, start, end);
-      let length = end - start;
-      if (length === 0) return;
-      if (skipCount < 0) throw new core.ArgumentError(skipCount);
-      let otherList = null;
-      let otherStart = null;
-      if (dart.is(from, core.List)) {
-        otherList = dart.as(from, core.List);
-        otherStart = skipCount;
-      } else {
-        otherList = from.skip(skipCount).toList({growable: false});
-        otherStart = 0;
-      }
-      if (otherStart + length > otherList.length) {
-        throw IterableElementError.tooFew();
-      }
-      Lists.copy(otherList, otherStart, list, start, length);
-    }
-    static replaceRangeList(list, start, end, iterable) {
-      _rangeCheck(list, start, end);
-      if (!dart.is(iterable, EfficientLength)) {
-        iterable = iterable.toList();
-      }
-      let removeLength = end - start;
-      let insertLength = iterable.length;
-      if (removeLength >= insertLength) {
-        let delta = removeLength - insertLength;
-        let insertEnd = start + insertLength;
-        let newEnd = list.length - delta;
-        list.setRange(start, insertEnd, iterable);
-        if (delta !== 0) {
-          list.setRange(insertEnd, newEnd, list, end);
-          list.length = newEnd;
+        let result = null;
+        do {
+          result = it.current;
         }
-      } else {
-        let delta = insertLength - removeLength;
-        let newLength = list.length + delta;
-        let insertEnd = start + insertLength;
-        list.length = newLength;
-        list.setRange(insertEnd, newLength, list, end);
-        list.setRange(start, insertEnd, iterable);
+        while (it.moveNext());
+        return result;
       }
-    }
-    static fillRangeList(list, start, end, fillValue) {
-      _rangeCheck(list, start, end);
-      for (let i = start; i < end; i++) {
-        list.set(i, fillValue);
+      static single(iterable) {
+        let it = iterable.iterator;
+        if (!it.moveNext()) throw IterableElementError.noElement();
+        let result = it.current;
+        if (it.moveNext()) throw IterableElementError.tooMany();
+        return result;
       }
-    }
-    static insertAllList(list, index, iterable) {
-      core.RangeError.checkValueInInterval(index, 0, list.length, "index");
-      if (!dart.is(iterable, EfficientLength)) {
-        iterable = iterable.toList({growable: false});
+      static firstWhere(iterable, test, orElse) {
+        for (let element of iterable) {
+          if (test(element)) return element;
+        }
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
       }
-      let insertionLength = iterable.length;
-      list.length = insertionLength;
-      list.setRange(index + insertionLength, list.length, list, index);
-      for (let element of iterable) {
-        list.set(index++, element);
+      static lastWhere(iterable, test, orElse) {
+        let result = null;
+        let foundMatching = false;
+        for (let element of iterable) {
+          if (test(element)) {
+            result = element;
+            foundMatching = true;
+          }
+        }
+        if (foundMatching) return result;
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
       }
-    }
-    static setAllList(list, index, iterable) {
-      core.RangeError.checkValueInInterval(index, 0, list.length, "index");
-      for (let element of iterable) {
-        list.set(index++, element);
+      static lastWhereList(list, test, orElse) {
+        for (let i = list.length - 1; i >= 0; i--) {
+          let element = list.get(i);
+          if (test(element)) return element;
+        }
+        if (orElse !== null) return orElse();
+        throw IterableElementError.noElement();
       }
-    }
-    asMapList(l) {
-      return new ListMapView(l);
-    }
-    static setContainsAll(set, other) {
-      for (let element of other) {
-        if (!set.contains(element)) return false;
+      static singleWhere(iterable, test) {
+        let result = null;
+        let foundMatching = false;
+        for (let element of iterable) {
+          if (test(element)) {
+            if (foundMatching) {
+              throw IterableElementError.tooMany();
+            }
+            result = element;
+            foundMatching = true;
+          }
+        }
+        if (foundMatching) return result;
+        throw IterableElementError.noElement();
       }
-      return true;
-    }
-    static setIntersection(set, other, result) {
-      let smaller = null;
-      let larger = null;
-      if (set.length < other.length) {
-        smaller = set;
-        larger = other;
-      } else {
-        smaller = other;
-        larger = set;
+      static elementAt(iterable, index) {
+        if (!(typeof index == "number")) throw new core.ArgumentError.notNull("index");
+        core.RangeError.checkNotNegative(index, "index");
+        let elementIndex = 0;
+        for (let element of iterable) {
+          if (index === elementIndex) return element;
+          elementIndex++;
+        }
+        throw new core.RangeError.index(index, iterable, "index", null, elementIndex);
       }
-      for (let element of smaller) {
-        if (larger.contains(element)) {
-          result.add(element);
+      static join(iterable, separator) {
+        if (separator === undefined) separator = null;
+        let buffer = new core.StringBuffer();
+        buffer.writeAll(iterable, separator);
+        return buffer.toString();
+      }
+      static joinList(list, separator) {
+        if (separator === undefined) separator = null;
+        if (list.isEmpty) return "";
+        if (list.length === 1) return "" + (list.get(0)) + "";
+        let buffer = new core.StringBuffer();
+        if (separator.isEmpty) {
+          for (let i = 0; i < list.length; i++) {
+            buffer.write(list.get(i));
+          }
+        } else {
+          buffer.write(list.get(0));
+          for (let i = 1; i < list.length; i++) {
+            buffer.write(separator);
+            buffer.write(list.get(i));
+          }
+        }
+        return buffer.toString();
+      }
+      where(iterable, f) {
+        return new WhereIterable(iterable, f);
+      }
+      static map(iterable, f) {
+        return new MappedIterable(iterable, f);
+      }
+      static mapList(list, f) {
+        return new MappedListIterable(list, f);
+      }
+      static expand(iterable, f) {
+        return new ExpandIterable(iterable, f);
+      }
+      takeList(list, n) {
+        return new SubListIterable(list, 0, n);
+      }
+      takeWhile(iterable, test) {
+        return new TakeWhileIterable(iterable, test);
+      }
+      skipList(list, n) {
+        return new SubListIterable(list, n, null);
+      }
+      skipWhile(iterable, test) {
+        return new SkipWhileIterable(iterable, test);
+      }
+      reversedList(list) {
+        return new ReversedListIterable(list);
+      }
+      static sortList(list, compare) {
+        if (compare === null) compare = dart.as(core.Comparable.compare, /* Unimplemented type (dynamic, dynamic) → int */);
+        Sort.sort(list, compare);
+      }
+      static shuffleList(list, random) {
+        if (random === null) random = new math.Random();
+        let length = list.length;
+        while (length > 1) {
+          let pos = random.nextInt(length);
+          length = 1;
+          let tmp = list.get(length);
+          list.set(length, list.get(pos));
+          list.set(pos, tmp);
         }
       }
-      return result;
-    }
-    static setUnion(set, other, result) {
-      result.addAll(set);
-      result.addAll(other);
-      return result;
-    }
-    static setDifference(set, other, result) {
-      for (let element of set) {
-        if (!other.contains(element)) {
-          result.add(element);
+      static indexOfList(list, element, start) {
+        return Lists.indexOf(list, element, start, list.length);
+      }
+      static lastIndexOfList(list, element, start) {
+        if (start === null) start = list.length - 1;
+        return Lists.lastIndexOf(list, element, start);
+      }
+      static _rangeCheck(list, start, end) {
+        core.RangeError.checkValidRange(start, end, list.length);
+      }
+      getRangeList(list, start, end) {
+        _rangeCheck(list, start, end);
+        return new SubListIterable(list, start, end);
+      }
+      static setRangeList(list, start, end, from, skipCount) {
+        _rangeCheck(list, start, end);
+        let length = end - start;
+        if (length === 0) return;
+        if (skipCount < 0) throw new core.ArgumentError(skipCount);
+        let otherList = null;
+        let otherStart = null;
+        if (dart.is(from, core.List)) {
+          otherList = dart.as(from, core.List);
+          otherStart = skipCount;
+        } else {
+          otherList = from.skip(skipCount).toList({growable: false});
+          otherStart = 0;
+        }
+        if (otherStart + length > otherList.length) {
+          throw IterableElementError.tooFew();
+        }
+        Lists.copy(otherList, otherStart, list, start, length);
+      }
+      static replaceRangeList(list, start, end, iterable) {
+        _rangeCheck(list, start, end);
+        if (!dart.is(iterable, EfficientLength)) {
+          iterable = iterable.toList();
+        }
+        let removeLength = end - start;
+        let insertLength = iterable.length;
+        if (removeLength >= insertLength) {
+          let delta = removeLength - insertLength;
+          let insertEnd = start + insertLength;
+          let newEnd = list.length - delta;
+          list.setRange(start, insertEnd, iterable);
+          if (delta !== 0) {
+            list.setRange(insertEnd, newEnd, list, end);
+            list.length = newEnd;
+          }
+        } else {
+          let delta = insertLength - removeLength;
+          let newLength = list.length + delta;
+          let insertEnd = start + insertLength;
+          list.length = newLength;
+          list.setRange(insertEnd, newLength, list, end);
+          list.setRange(start, insertEnd, iterable);
         }
       }
-      return result;
+      static fillRangeList(list, start, end, fillValue) {
+        _rangeCheck(list, start, end);
+        for (let i = start; i < end; i++) {
+          list.set(i, fillValue);
+        }
+      }
+      static insertAllList(list, index, iterable) {
+        core.RangeError.checkValueInInterval(index, 0, list.length, "index");
+        if (!dart.is(iterable, EfficientLength)) {
+          iterable = iterable.toList({growable: false});
+        }
+        let insertionLength = iterable.length;
+        list.length = insertionLength;
+        list.setRange(index + insertionLength, list.length, list, index);
+        for (let element of iterable) {
+          list.set(index++, element);
+        }
+      }
+      static setAllList(list, index, iterable) {
+        core.RangeError.checkValueInInterval(index, 0, list.length, "index");
+        for (let element of iterable) {
+          list.set(index++, element);
+        }
+      }
+      asMapList(l) {
+        return new ListMapView(l);
+      }
+      static setContainsAll(set, other) {
+        for (let element of other) {
+          if (!set.contains(element)) return false;
+        }
+        return true;
+      }
+      static setIntersection(set, other, result) {
+        let smaller = null;
+        let larger = null;
+        if (set.length < other.length) {
+          smaller = set;
+          larger = other;
+        } else {
+          smaller = other;
+          larger = set;
+        }
+        for (let element of smaller) {
+          if (larger.contains(element)) {
+            result.add(element);
+          }
+        }
+        return result;
+      }
+      static setUnion(set, other, result) {
+        result.addAll(set);
+        result.addAll(other);
+        return result;
+      }
+      static setDifference(set, other, result) {
+        for (let element of set) {
+          if (!other.contains(element)) {
+            result.add(element);
+          }
+        }
+        return result;
+      }
     }
-  }
-  return IterableMixinWorkaround;
-  }); // end generic class
+    return IterableMixinWorkaround;
+  });
   let IterableMixinWorkaround = IterableMixinWorkaround$(dynamic);
 
   class IterableElementError {
@@ -1091,130 +1091,130 @@ var _internal;
   }
 
   let FixedLengthListMixin$ = dart.generic(function(E) {
-  class FixedLengthListMixin {
-    set length(newLength) {
-      throw new core.UnsupportedError("Cannot change the length of a fixed-length list");
+    class FixedLengthListMixin {
+      set length(newLength) {
+        throw new core.UnsupportedError("Cannot change the length of a fixed-length list");
+      }
+      add(value) {
+        throw new core.UnsupportedError("Cannot add to a fixed-length list");
+      }
+      insert(index, value) {
+        throw new core.UnsupportedError("Cannot add to a fixed-length list");
+      }
+      insertAll(at, iterable) {
+        throw new core.UnsupportedError("Cannot add to a fixed-length list");
+      }
+      addAll(iterable) {
+        throw new core.UnsupportedError("Cannot add to a fixed-length list");
+      }
+      remove(element) {
+        throw new core.UnsupportedError("Cannot remove from a fixed-length list");
+      }
+      removeWhere(test) {
+        throw new core.UnsupportedError("Cannot remove from a fixed-length list");
+      }
+      retainWhere(test) {
+        throw new core.UnsupportedError("Cannot remove from a fixed-length list");
+      }
+      clear() {
+        throw new core.UnsupportedError("Cannot clear a fixed-length list");
+      }
+      removeAt(index) {
+        throw new core.UnsupportedError("Cannot remove from a fixed-length list");
+      }
+      removeLast() {
+        throw new core.UnsupportedError("Cannot remove from a fixed-length list");
+      }
+      removeRange(start, end) {
+        throw new core.UnsupportedError("Cannot remove from a fixed-length list");
+      }
+      replaceRange(start, end, iterable) {
+        throw new core.UnsupportedError("Cannot remove from a fixed-length list");
+      }
     }
-    add(value) {
-      throw new core.UnsupportedError("Cannot add to a fixed-length list");
-    }
-    insert(index, value) {
-      throw new core.UnsupportedError("Cannot add to a fixed-length list");
-    }
-    insertAll(at, iterable) {
-      throw new core.UnsupportedError("Cannot add to a fixed-length list");
-    }
-    addAll(iterable) {
-      throw new core.UnsupportedError("Cannot add to a fixed-length list");
-    }
-    remove(element) {
-      throw new core.UnsupportedError("Cannot remove from a fixed-length list");
-    }
-    removeWhere(test) {
-      throw new core.UnsupportedError("Cannot remove from a fixed-length list");
-    }
-    retainWhere(test) {
-      throw new core.UnsupportedError("Cannot remove from a fixed-length list");
-    }
-    clear() {
-      throw new core.UnsupportedError("Cannot clear a fixed-length list");
-    }
-    removeAt(index) {
-      throw new core.UnsupportedError("Cannot remove from a fixed-length list");
-    }
-    removeLast() {
-      throw new core.UnsupportedError("Cannot remove from a fixed-length list");
-    }
-    removeRange(start, end) {
-      throw new core.UnsupportedError("Cannot remove from a fixed-length list");
-    }
-    replaceRange(start, end, iterable) {
-      throw new core.UnsupportedError("Cannot remove from a fixed-length list");
-    }
-  }
-  return FixedLengthListMixin;
-  }); // end generic class
+    return FixedLengthListMixin;
+  });
   let FixedLengthListMixin = FixedLengthListMixin$(dynamic);
 
   let UnmodifiableListMixin$ = dart.generic(function(E) {
-  class UnmodifiableListMixin {
-    set(index, value) {
-      throw new core.UnsupportedError("Cannot modify an unmodifiable list");
+    class UnmodifiableListMixin {
+      set(index, value) {
+        throw new core.UnsupportedError("Cannot modify an unmodifiable list");
+      }
+      set length(newLength) {
+        throw new core.UnsupportedError("Cannot change the length of an unmodifiable list");
+      }
+      setAll(at, iterable) {
+        throw new core.UnsupportedError("Cannot modify an unmodifiable list");
+      }
+      add(value) {
+        throw new core.UnsupportedError("Cannot add to an unmodifiable list");
+      }
+      insert(index, value) {
+        throw new core.UnsupportedError("Cannot add to an unmodifiable list");
+      }
+      insertAll(at, iterable) {
+        throw new core.UnsupportedError("Cannot add to an unmodifiable list");
+      }
+      addAll(iterable) {
+        throw new core.UnsupportedError("Cannot add to an unmodifiable list");
+      }
+      remove(element) {
+        throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
+      }
+      removeWhere(test) {
+        throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
+      }
+      retainWhere(test) {
+        throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
+      }
+      sort(compare) {
+        if (compare === undefined) compare = null;
+        throw new core.UnsupportedError("Cannot modify an unmodifiable list");
+      }
+      shuffle(random) {
+        if (random === undefined) random = null;
+        throw new core.UnsupportedError("Cannot modify an unmodifiable list");
+      }
+      clear() {
+        throw new core.UnsupportedError("Cannot clear an unmodifiable list");
+      }
+      removeAt(index) {
+        throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
+      }
+      removeLast() {
+        throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
+      }
+      setRange(start, end, iterable, skipCount) {
+        if (skipCount === undefined) skipCount = 0;
+        throw new core.UnsupportedError("Cannot modify an unmodifiable list");
+      }
+      removeRange(start, end) {
+        throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
+      }
+      replaceRange(start, end, iterable) {
+        throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
+      }
+      fillRange(start, end, fillValue) {
+        if (fillValue === undefined) fillValue = null;
+        throw new core.UnsupportedError("Cannot modify an unmodifiable list");
+      }
     }
-    set length(newLength) {
-      throw new core.UnsupportedError("Cannot change the length of an unmodifiable list");
-    }
-    setAll(at, iterable) {
-      throw new core.UnsupportedError("Cannot modify an unmodifiable list");
-    }
-    add(value) {
-      throw new core.UnsupportedError("Cannot add to an unmodifiable list");
-    }
-    insert(index, value) {
-      throw new core.UnsupportedError("Cannot add to an unmodifiable list");
-    }
-    insertAll(at, iterable) {
-      throw new core.UnsupportedError("Cannot add to an unmodifiable list");
-    }
-    addAll(iterable) {
-      throw new core.UnsupportedError("Cannot add to an unmodifiable list");
-    }
-    remove(element) {
-      throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
-    }
-    removeWhere(test) {
-      throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
-    }
-    retainWhere(test) {
-      throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
-    }
-    sort(compare) {
-      if (compare === undefined) compare = null;
-      throw new core.UnsupportedError("Cannot modify an unmodifiable list");
-    }
-    shuffle(random) {
-      if (random === undefined) random = null;
-      throw new core.UnsupportedError("Cannot modify an unmodifiable list");
-    }
-    clear() {
-      throw new core.UnsupportedError("Cannot clear an unmodifiable list");
-    }
-    removeAt(index) {
-      throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
-    }
-    removeLast() {
-      throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
-    }
-    setRange(start, end, iterable, skipCount) {
-      if (skipCount === undefined) skipCount = 0;
-      throw new core.UnsupportedError("Cannot modify an unmodifiable list");
-    }
-    removeRange(start, end) {
-      throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
-    }
-    replaceRange(start, end, iterable) {
-      throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
-    }
-    fillRange(start, end, fillValue) {
-      if (fillValue === undefined) fillValue = null;
-      throw new core.UnsupportedError("Cannot modify an unmodifiable list");
-    }
-  }
-  return UnmodifiableListMixin;
-  }); // end generic class
+    return UnmodifiableListMixin;
+  });
   let UnmodifiableListMixin = UnmodifiableListMixin$(dynamic);
 
   let FixedLengthListBase$ = dart.generic(function(E) {
-  class FixedLengthListBase extends dart.mixin(FixedLengthListMixin$(E)) {}
+    class FixedLengthListBase extends dart.mixin(FixedLengthListMixin$(E)) {}
 
-  return FixedLengthListBase;
-  }); // end generic class
+    return FixedLengthListBase;
+  });
   let FixedLengthListBase = FixedLengthListBase$(dynamic);
   let UnmodifiableListBase$ = dart.generic(function(E) {
-  class UnmodifiableListBase extends dart.mixin(UnmodifiableListMixin$(E)) {}
+    class UnmodifiableListBase extends dart.mixin(UnmodifiableListMixin$(E)) {}
 
-  return UnmodifiableListBase;
-  }); // end generic class
+    return UnmodifiableListBase;
+  });
   let UnmodifiableListBase = UnmodifiableListBase$(dynamic);
   class _ListIndicesIterable extends ListIterable$(core.int) {
     constructor(_backedList) {
@@ -1229,59 +1229,59 @@ var _internal;
   }
 
   let ListMapView$ = dart.generic(function(E) {
-  class ListMapView {
-    constructor(_values) {
-      this._values = _values;
-    }
-    get(key) { return dart.as(this.containsKey(key) ? this._values.get(key) : null, E); }
-    get length() { return this._values.length; }
-    get values() { return new SubListIterable(this._values, 0, null); }
-    get keys() { return new _ListIndicesIterable(this._values); }
-    get isEmpty() { return this._values.isEmpty; }
-    get isNotEmpty() { return this._values.isNotEmpty; }
-    containsValue(value) { return this._values.contains(value); }
-    containsKey(key) { return typeof key == "number" && key >= 0 && key < this.length; }
-    forEach(f) {
-      let length = this._values.length;
-      for (let i = 0; i < length; i++) {
-        f(i, this._values.get(i));
-        if (length !== this._values.length) {
-          throw new core.ConcurrentModificationError(this._values);
+    class ListMapView {
+      constructor(_values) {
+        this._values = _values;
+      }
+      get(key) { return dart.as(this.containsKey(key) ? this._values.get(key) : null, E); }
+      get length() { return this._values.length; }
+      get values() { return new SubListIterable(this._values, 0, null); }
+      get keys() { return new _ListIndicesIterable(this._values); }
+      get isEmpty() { return this._values.isEmpty; }
+      get isNotEmpty() { return this._values.isNotEmpty; }
+      containsValue(value) { return this._values.contains(value); }
+      containsKey(key) { return typeof key == "number" && key >= 0 && key < this.length; }
+      forEach(f) {
+        let length = this._values.length;
+        for (let i = 0; i < length; i++) {
+          f(i, this._values.get(i));
+          if (length !== this._values.length) {
+            throw new core.ConcurrentModificationError(this._values);
+          }
         }
       }
+      set(key, value) {
+        throw new core.UnsupportedError("Cannot modify an unmodifiable map");
+      }
+      putIfAbsent(key, ifAbsent) {
+        throw new core.UnsupportedError("Cannot modify an unmodifiable map");
+      }
+      remove(key) {
+        throw new core.UnsupportedError("Cannot modify an unmodifiable map");
+      }
+      clear() {
+        throw new core.UnsupportedError("Cannot modify an unmodifiable map");
+      }
+      addAll(other) {
+        throw new core.UnsupportedError("Cannot modify an unmodifiable map");
+      }
+      toString() { return collection.Maps.mapToString(this); }
     }
-    set(key, value) {
-      throw new core.UnsupportedError("Cannot modify an unmodifiable map");
-    }
-    putIfAbsent(key, ifAbsent) {
-      throw new core.UnsupportedError("Cannot modify an unmodifiable map");
-    }
-    remove(key) {
-      throw new core.UnsupportedError("Cannot modify an unmodifiable map");
-    }
-    clear() {
-      throw new core.UnsupportedError("Cannot modify an unmodifiable map");
-    }
-    addAll(other) {
-      throw new core.UnsupportedError("Cannot modify an unmodifiable map");
-    }
-    toString() { return collection.Maps.mapToString(this); }
-  }
-  return ListMapView;
-  }); // end generic class
+    return ListMapView;
+  });
   let ListMapView = ListMapView$(dynamic);
 
   let ReversedListIterable$ = dart.generic(function(E) {
-  class ReversedListIterable extends ListIterable$(E) {
-    constructor(_source) {
-      this._source = _source;
-      super();
+    class ReversedListIterable extends ListIterable$(E) {
+      constructor(_source) {
+        this._source = _source;
+        super();
+      }
+      get length() { return this._source.length; }
+      elementAt(index) { return this._source.elementAt(this._source.length - 1 - index); }
     }
-    get length() { return this._source.length; }
-    elementAt(index) { return this._source.elementAt(this._source.length - 1 - index); }
-  }
-  return ReversedListIterable;
-  }); // end generic class
+    return ReversedListIterable;
+  });
   let ReversedListIterable = ReversedListIterable$(dynamic);
 
   class UnmodifiableListError {

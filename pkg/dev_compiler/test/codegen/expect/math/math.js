@@ -73,40 +73,40 @@ var math;
   }
 
   let Point$ = dart.generic(function(T) {
-  class Point {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
+    class Point {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+      }
+      toString() { return "Point(" + (this.x) + ", " + (this.y) + ")"; }
+      ['=='](other) {
+        if (!dart.is(other, Point)) return false;
+        return dart.equals(this.x, dart.dload(other, "x")) && dart.equals(this.y, dart.dload(other, "y"));
+      }
+      get hashCode() { return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode); }
+      ['+'](other) {
+        return new Point(this.x['+'](other.x), this.y['+'](other.y));
+      }
+      ['-'](other) {
+        return new Point(this.x['-'](other.x), this.y['-'](other.y));
+      }
+      ['*'](factor) {
+        return new Point(this.x['*'](factor), this.y['*'](factor));
+      }
+      get magnitude() { return sqrt(this.x['*'](this.x) + this.y['*'](this.y)); }
+      distanceTo(other) {
+        let dx = this.x['-'](other.x);
+        let dy = this.y['-'](other.y);
+        return sqrt(dx * dx + dy * dy);
+      }
+      squaredDistanceTo(other) {
+        let dx = this.x['-'](other.x);
+        let dy = this.y['-'](other.y);
+        return dart.as(dx * dx + dy * dy, T);
+      }
     }
-    toString() { return "Point(" + (this.x) + ", " + (this.y) + ")"; }
-    ['=='](other) {
-      if (!dart.is(other, Point)) return false;
-      return dart.equals(this.x, dart.dload(other, "x")) && dart.equals(this.y, dart.dload(other, "y"));
-    }
-    get hashCode() { return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode); }
-    ['+'](other) {
-      return new Point(this.x['+'](other.x), this.y['+'](other.y));
-    }
-    ['-'](other) {
-      return new Point(this.x['-'](other.x), this.y['-'](other.y));
-    }
-    ['*'](factor) {
-      return new Point(this.x['*'](factor), this.y['*'](factor));
-    }
-    get magnitude() { return sqrt(this.x['*'](this.x) + this.y['*'](this.y)); }
-    distanceTo(other) {
-      let dx = this.x['-'](other.x);
-      let dy = this.y['-'](other.y);
-      return sqrt(dx * dx + dy * dy);
-    }
-    squaredDistanceTo(other) {
-      let dx = this.x['-'](other.x);
-      let dy = this.y['-'](other.y);
-      return dart.as(dx * dx + dy * dy, T);
-    }
-  }
-  return Point;
-  }); // end generic class
+    return Point;
+  });
   let Point = Point$(dynamic);
 
   class Random {
@@ -114,108 +114,108 @@ var math;
   }
 
   let _RectangleBase$ = dart.generic(function(T) {
-  class _RectangleBase {
-    constructor() {
-    }
-    get right() { return dart.as(this.left['+'](this.width), T); }
-    get bottom() { return dart.as(this.top['+'](this.height), T); }
-    toString() {
-      return "Rectangle (" + (this.left) + ", " + (this.top) + ") " + (this.width) + " x " + (this.height) + "";
-    }
-    ['=='](other) {
-      if (!dart.is(other, Rectangle)) return false;
-      return dart.equals(this.left, dart.dload(other, "left")) && dart.equals(this.top, dart.dload(other, "top")) && dart.equals(this.right, dart.dload(other, "right")) && dart.equals(this.bottom, dart.dload(other, "bottom"));
-    }
-    get hashCode() { return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode); }
-    intersection(other) {
-      let x0 = max(this.left, other.left);
-      let x1 = min(this.left['+'](this.width), other.left['+'](other.width));
-      if (x0 <= x1) {
-        let y0 = max(this.top, other.top);
-        let y1 = min(this.top['+'](this.height), other.top['+'](other.height));
-        if (y0 <= y1) {
-          return new Rectangle(x0, y0, x1 - x0, y1 - y0);
-        }
+    class _RectangleBase {
+      constructor() {
       }
-      return null;
+      get right() { return dart.as(this.left['+'](this.width), T); }
+      get bottom() { return dart.as(this.top['+'](this.height), T); }
+      toString() {
+        return "Rectangle (" + (this.left) + ", " + (this.top) + ") " + (this.width) + " x " + (this.height) + "";
+      }
+      ['=='](other) {
+        if (!dart.is(other, Rectangle)) return false;
+        return dart.equals(this.left, dart.dload(other, "left")) && dart.equals(this.top, dart.dload(other, "top")) && dart.equals(this.right, dart.dload(other, "right")) && dart.equals(this.bottom, dart.dload(other, "bottom"));
+      }
+      get hashCode() { return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode); }
+      intersection(other) {
+        let x0 = max(this.left, other.left);
+        let x1 = min(this.left['+'](this.width), other.left['+'](other.width));
+        if (x0 <= x1) {
+          let y0 = max(this.top, other.top);
+          let y1 = min(this.top['+'](this.height), other.top['+'](other.height));
+          if (y0 <= y1) {
+            return new Rectangle(x0, y0, x1 - x0, y1 - y0);
+          }
+        }
+        return null;
+      }
+      intersects(other) {
+        return (this.left['<='](other.left + other.width) && other.left <= this.left['+'](this.width) && this.top['<='](other.top + other.height) && other.top <= this.top['+'](this.height));
+      }
+      boundingBox(other) {
+        let right = max(this.left['+'](this.width), other.left['+'](other.width));
+        let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
+        let left = min(this.left, other.left);
+        let top = min(this.top, other.top);
+        return new Rectangle(left, top, right - left, bottom - top);
+      }
+      containsRectangle(another) {
+        return this.left['<='](another.left) && this.left['+'](this.width) >= another.left + another.width && this.top['<='](another.top) && this.top['+'](this.height) >= another.top + another.height;
+      }
+      containsPoint(another) {
+        return core.num['>='](another.x, this.left) && another.x <= this.left['+'](this.width) && core.num['>='](another.y, this.top) && another.y <= this.top['+'](this.height);
+      }
+      get topLeft() { return new Point(this.left, this.top); }
+      get topRight() { return new Point(this.left['+'](this.width), this.top); }
+      get bottomRight() { return new Point(this.left['+'](this.width), this.top['+'](this.height)); }
+      get bottomLeft() { return new Point(this.left, this.top['+'](this.height)); }
     }
-    intersects(other) {
-      return (this.left['<='](other.left + other.width) && other.left <= this.left['+'](this.width) && this.top['<='](other.top + other.height) && other.top <= this.top['+'](this.height));
-    }
-    boundingBox(other) {
-      let right = max(this.left['+'](this.width), other.left['+'](other.width));
-      let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
-      let left = min(this.left, other.left);
-      let top = min(this.top, other.top);
-      return new Rectangle(left, top, right - left, bottom - top);
-    }
-    containsRectangle(another) {
-      return this.left['<='](another.left) && this.left['+'](this.width) >= another.left + another.width && this.top['<='](another.top) && this.top['+'](this.height) >= another.top + another.height;
-    }
-    containsPoint(another) {
-      return core.num['>='](another.x, this.left) && another.x <= this.left['+'](this.width) && core.num['>='](another.y, this.top) && another.y <= this.top['+'](this.height);
-    }
-    get topLeft() { return new Point(this.left, this.top); }
-    get topRight() { return new Point(this.left['+'](this.width), this.top); }
-    get bottomRight() { return new Point(this.left['+'](this.width), this.top['+'](this.height)); }
-    get bottomLeft() { return new Point(this.left, this.top['+'](this.height)); }
-  }
-  return _RectangleBase;
-  }); // end generic class
+    return _RectangleBase;
+  });
   let _RectangleBase = _RectangleBase$(dynamic);
 
   let Rectangle$ = dart.generic(function(T) {
-  class Rectangle extends _RectangleBase$(T) {
-    constructor(left, top, width, height) {
-      this.left = left;
-      this.top = top;
-      this.width = (width['<'](0)) ? /* Unimplemented postfix operator: -width */ * 0 : width;
-      this.height = (height['<'](0)) ? /* Unimplemented postfix operator: -height */ * 0 : height;
-      super();
+    class Rectangle extends _RectangleBase$(T) {
+      constructor(left, top, width, height) {
+        this.left = left;
+        this.top = top;
+        this.width = (width['<'](0)) ? /* Unimplemented postfix operator: -width */ * 0 : width;
+        this.height = (height['<'](0)) ? /* Unimplemented postfix operator: -height */ * 0 : height;
+        super();
+      }
+      /*constructor*/ fromPoints(a, b) {
+        let left = dart.as(min(a.x, b.x), T);
+        let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
+        let top = dart.as(min(a.y, b.y), T);
+        let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
+        return new Rectangle(left, top, width, height);
+      }
     }
-    /*constructor*/ fromPoints(a, b) {
-      let left = dart.as(min(a.x, b.x), T);
-      let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
-      let top = dart.as(min(a.y, b.y), T);
-      let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
-      return new Rectangle(left, top, width, height);
-    }
-  }
-  dart.defineNamedConstructor(Rectangle, "fromPoints");
-  return Rectangle;
-  }); // end generic class
+    dart.defineNamedConstructor(Rectangle, "fromPoints");
+    return Rectangle;
+  });
   let Rectangle = Rectangle$(dynamic);
 
   let MutableRectangle$ = dart.generic(function(T) {
-  class MutableRectangle extends _RectangleBase$(T) {
-    constructor(left, top, width, height) {
-      this.left = left;
-      this.top = top;
-      this._width = (width['<'](0)) ? _clampToZero(width) : width;
-      this._height = (height['<'](0)) ? _clampToZero(height) : height;
-      super();
+    class MutableRectangle extends _RectangleBase$(T) {
+      constructor(left, top, width, height) {
+        this.left = left;
+        this.top = top;
+        this._width = (width['<'](0)) ? _clampToZero(width) : width;
+        this._height = (height['<'](0)) ? _clampToZero(height) : height;
+        super();
+      }
+      /*constructor*/ fromPoints(a, b) {
+        let left = dart.as(min(a.x, b.x), T);
+        let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
+        let top = dart.as(min(a.y, b.y), T);
+        let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
+        return new MutableRectangle(left, top, width, height);
+      }
+      get width() { return this._width; }
+      set width(width) {
+        if (width['<'](0)) width = dart.as(_clampToZero(width), T);
+        this._width = width;
+      }
+      get height() { return this._height; }
+      set height(height) {
+        if (height['<'](0)) height = dart.as(_clampToZero(height), T);
+        this._height = height;
+      }
     }
-    /*constructor*/ fromPoints(a, b) {
-      let left = dart.as(min(a.x, b.x), T);
-      let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
-      let top = dart.as(min(a.y, b.y), T);
-      let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
-      return new MutableRectangle(left, top, width, height);
-    }
-    get width() { return this._width; }
-    set width(width) {
-      if (width['<'](0)) width = dart.as(_clampToZero(width), T);
-      this._width = width;
-    }
-    get height() { return this._height; }
-    set height(height) {
-      if (height['<'](0)) height = dart.as(_clampToZero(height), T);
-      this._height = height;
-    }
-  }
-  dart.defineNamedConstructor(MutableRectangle, "fromPoints");
-  return MutableRectangle;
-  }); // end generic class
+    dart.defineNamedConstructor(MutableRectangle, "fromPoints");
+    return MutableRectangle;
+  });
   let MutableRectangle = MutableRectangle$(dynamic);
 
   // Function _clampToZero: (num) → num

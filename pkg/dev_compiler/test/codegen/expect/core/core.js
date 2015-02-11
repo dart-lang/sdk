@@ -30,11 +30,11 @@ var core;
   dart.defineNamedConstructor(bool, "fromEnvironment");
 
   let Comparable$ = dart.generic(function(T) {
-  class Comparable {
-    static compare(a, b) { return a.compareTo(b); }
-  }
-  return Comparable;
-  }); // end generic class
+    class Comparable {
+      static compare(a, b) { return a.compareTo(b); }
+    }
+    return Comparable;
+  });
   let Comparable = Comparable$(dynamic);
 
   class DateTime {
@@ -722,14 +722,14 @@ var core;
   }
 
   let Expando$ = dart.generic(function(T) {
-  class Expando {
-    /* Unimplemented external Expando([String name]); */
-    toString() { return "Expando:" + (this.name) + ""; }
-    /* Unimplemented external T operator [](Object object); */
-    /* Unimplemented external void operator []=(Object object, T value); */
-  }
-  return Expando;
-  }); // end generic class
+    class Expando {
+      /* Unimplemented external Expando([String name]); */
+      toString() { return "Expando:" + (this.name) + ""; }
+      /* Unimplemented external T operator [](Object object); */
+      /* Unimplemented external void operator []=(Object object, T value); */
+    }
+    return Expando;
+  });
   let Expando = Expando$(dynamic);
 
   class Function {
@@ -749,163 +749,163 @@ var core;
   }
 
   let Iterable$ = dart.generic(function(E) {
-  class Iterable {
-    constructor() {
-    }
-    /*constructor*/ generate(count, generator) {
-      if (generator === undefined) generator = null;
-      if (count <= 0) return new _internal.EmptyIterable();
-      return new _GeneratorIterable(count, generator);
-    }
-    join(separator) {
-      if (separator === undefined) separator = "";
-      let buffer = new StringBuffer();
-      buffer.writeAll(this, separator);
-      return buffer.toString();
-    }
-  }
-  dart.defineNamedConstructor(Iterable, "generate");
-  Iterable.prototype[Symbol.iterator] = function() {
-    var iterator = this.iterator;
-    return {
-      next: function() {
-        var done = iterator.moveNext();
-        return { done: done, current: done ? void 0 : iterator.current };
+    class Iterable {
+      constructor() {
       }
+      /*constructor*/ generate(count, generator) {
+        if (generator === undefined) generator = null;
+        if (count <= 0) return new _internal.EmptyIterable();
+        return new _GeneratorIterable(count, generator);
+      }
+      join(separator) {
+        if (separator === undefined) separator = "";
+        let buffer = new StringBuffer();
+        buffer.writeAll(this, separator);
+        return buffer.toString();
+      }
+    }
+    dart.defineNamedConstructor(Iterable, "generate");
+    Iterable.prototype[Symbol.iterator] = function() {
+      var iterator = this.iterator;
+      return {
+        next: function() {
+          var done = iterator.moveNext();
+          return { done: done, current: done ? void 0 : iterator.current };
+        }
+      };
     };
-  };
-  return Iterable;
-  }); // end generic class
+    return Iterable;
+  });
   let Iterable = Iterable$(dynamic);
 
   let _GeneratorIterable$ = dart.generic(function(E) {
-  class _GeneratorIterable extends collection.IterableBase$(E) {
-    constructor(_end, generator) {
-      this._end = _end;
-      this._start = 0;
-      this._generator = (generator !== null) ? generator : _id;
-      super();
+    class _GeneratorIterable extends collection.IterableBase$(E) {
+      constructor(_end, generator) {
+        this._end = _end;
+        this._start = 0;
+        this._generator = (generator !== null) ? generator : _id;
+        super();
+      }
+      /*constructor*/ slice(_start, _end, _generator) {
+        this._start = _start;
+        this._end = _end;
+        this._generator = _generator;
+        collection.IterableBase$(E).call(this);
+      }
+      get iterator() { return new _GeneratorIterator(this._start, this._end, this._generator); }
+      get length() { return this._end - this._start; }
+      skip(count) {
+        RangeError.checkNotNegative(count, "count");
+        if (count === 0) return this;
+        let newStart = this._start + count;
+        if (newStart >= this._end) return new _internal.EmptyIterable();
+        return new _GeneratorIterable.slice(newStart, this._end, this._generator);
+      }
+      take(count) {
+        RangeError.checkNotNegative(count, "count");
+        if (count === 0) return new _internal.EmptyIterable();
+        let newEnd = this._start + count;
+        if (newEnd >= this._end) return this;
+        return new _GeneratorIterable.slice(this._start, newEnd, this._generator);
+      }
+      static _id(n) { return n; }
     }
-    /*constructor*/ slice(_start, _end, _generator) {
-      this._start = _start;
-      this._end = _end;
-      this._generator = _generator;
-      collection.IterableBase$(E).call(this);
-    }
-    get iterator() { return new _GeneratorIterator(this._start, this._end, this._generator); }
-    get length() { return this._end - this._start; }
-    skip(count) {
-      RangeError.checkNotNegative(count, "count");
-      if (count === 0) return this;
-      let newStart = this._start + count;
-      if (newStart >= this._end) return new _internal.EmptyIterable();
-      return new _GeneratorIterable.slice(newStart, this._end, this._generator);
-    }
-    take(count) {
-      RangeError.checkNotNegative(count, "count");
-      if (count === 0) return new _internal.EmptyIterable();
-      let newEnd = this._start + count;
-      if (newEnd >= this._end) return this;
-      return new _GeneratorIterable.slice(this._start, newEnd, this._generator);
-    }
-    static _id(n) { return n; }
-  }
-  dart.defineNamedConstructor(_GeneratorIterable, "slice");
-  return _GeneratorIterable;
-  }); // end generic class
+    dart.defineNamedConstructor(_GeneratorIterable, "slice");
+    return _GeneratorIterable;
+  });
   let _GeneratorIterable = _GeneratorIterable$(dynamic);
 
   let _GeneratorIterator$ = dart.generic(function(E) {
-  class _GeneratorIterator {
-    constructor(_index, _end, _generator) {
-      this._index = _index;
-      this._end = _end;
-      this._generator = _generator;
-      this._current = null;
-    }
-    moveNext() {
-      if (this._index < this._end) {
-        this._current = this._generator(this._index);
-        this._index++;
-        return true;
-      } else {
+    class _GeneratorIterator {
+      constructor(_index, _end, _generator) {
+        this._index = _index;
+        this._end = _end;
+        this._generator = _generator;
         this._current = null;
-        return false;
       }
+      moveNext() {
+        if (this._index < this._end) {
+          this._current = this._generator(this._index);
+          this._index++;
+          return true;
+        } else {
+          this._current = null;
+          return false;
+        }
+      }
+      get current() { return this._current; }
     }
-    get current() { return this._current; }
-  }
-  return _GeneratorIterator;
-  }); // end generic class
+    return _GeneratorIterator;
+  });
   let _GeneratorIterator = _GeneratorIterator$(dynamic);
 
   let BidirectionalIterator$ = dart.generic(function(E) {
-  class BidirectionalIterator {
-  }
-  return BidirectionalIterator;
-  }); // end generic class
+    class BidirectionalIterator {
+    }
+    return BidirectionalIterator;
+  });
   let BidirectionalIterator = BidirectionalIterator$(dynamic);
 
   let Iterator$ = dart.generic(function(E) {
-  class Iterator {
-  }
-  return Iterator;
-  }); // end generic class
+    class Iterator {
+    }
+    return Iterator;
+  });
   let Iterator = Iterator$(dynamic);
 
   let List$ = dart.generic(function(E) {
-  class List {
-    /* Unimplemented external factory List([int length]); */
-    /* Unimplemented external factory List.filled(int length, E fill); */
-    /* Unimplemented external factory List.from(Iterable elements, {bool growable : true}); */
-    /*constructor*/ generate(length, generator, opt$) {
-      let growable = opt$.growable === undefined ? true : opt$.growable;
-      let result = null;
-      if (growable) {
-        result = ((_) => {
-          _.length = length;
-          return _;
-        })(new List.from([]));
-      } else {
-        result = new List(length);
+    class List {
+      /* Unimplemented external factory List([int length]); */
+      /* Unimplemented external factory List.filled(int length, E fill); */
+      /* Unimplemented external factory List.from(Iterable elements, {bool growable : true}); */
+      /*constructor*/ generate(length, generator, opt$) {
+        let growable = opt$.growable === undefined ? true : opt$.growable;
+        let result = null;
+        if (growable) {
+          result = ((_) => {
+            _.length = length;
+            return _;
+          })(new List.from([]));
+        } else {
+          result = new List(length);
+        }
+        for (let i = 0; i < length; i++) {
+          result.set(i, generator(i));
+        }
+        return result;
       }
-      for (let i = 0; i < length; i++) {
-        result.set(i, generator(i));
-      }
-      return result;
     }
-  }
-  dart.defineNamedConstructor(List, "filled");
-  dart.defineNamedConstructor(List, "from");
-  dart.defineNamedConstructor(List, "generate");
-  return List;
-  }); // end generic class
+    dart.defineNamedConstructor(List, "filled");
+    dart.defineNamedConstructor(List, "from");
+    dart.defineNamedConstructor(List, "generate");
+    return List;
+  });
   let List = List$(dynamic);
 
   let Map$ = dart.generic(function(K, V) {
-  class Map {
-    constructor() {
-      return new collection.LinkedHashMap();
+    class Map {
+      constructor() {
+        return new collection.LinkedHashMap();
+      }
+      /*constructor*/ from(other) {
+        return new collection.LinkedHashMap.from(other);
+      }
+      /*constructor*/ identity() {
+        return new collection.LinkedHashMap.identity();
+      }
+      /*constructor*/ fromIterable(iterable, opt$) {
+        return new collection.LinkedHashMap.fromIterable(iterable, opt$);
+      }
+      /*constructor*/ fromIterables(keys, values) {
+        return new collection.LinkedHashMap.fromIterables(keys, values);
+      }
     }
-    /*constructor*/ from(other) {
-      return new collection.LinkedHashMap.from(other);
-    }
-    /*constructor*/ identity() {
-      return new collection.LinkedHashMap.identity();
-    }
-    /*constructor*/ fromIterable(iterable, opt$) {
-      return new collection.LinkedHashMap.fromIterable(iterable, opt$);
-    }
-    /*constructor*/ fromIterables(keys, values) {
-      return new collection.LinkedHashMap.fromIterables(keys, values);
-    }
-  }
-  dart.defineNamedConstructor(Map, "from");
-  dart.defineNamedConstructor(Map, "identity");
-  dart.defineNamedConstructor(Map, "fromIterable");
-  dart.defineNamedConstructor(Map, "fromIterables");
-  return Map;
-  }); // end generic class
+    dart.defineNamedConstructor(Map, "from");
+    dart.defineNamedConstructor(Map, "identity");
+    dart.defineNamedConstructor(Map, "fromIterable");
+    dart.defineNamedConstructor(Map, "fromIterables");
+    return Map;
+  });
   let Map = Map$(dynamic, dynamic);
 
   class Null {
@@ -961,28 +961,28 @@ var core;
   }
 
   let Set$ = dart.generic(function(E) {
-  class Set extends collection.IterableBase$(E) {
-    constructor() {
-      return new collection.LinkedHashSet();
+    class Set extends collection.IterableBase$(E) {
+      constructor() {
+        return new collection.LinkedHashSet();
+      }
+      /*constructor*/ identity() {
+        return new collection.LinkedHashSet.identity();
+      }
+      /*constructor*/ from(elements) {
+        return new collection.LinkedHashSet.from(elements);
+      }
     }
-    /*constructor*/ identity() {
-      return new collection.LinkedHashSet.identity();
-    }
-    /*constructor*/ from(elements) {
-      return new collection.LinkedHashSet.from(elements);
-    }
-  }
-  dart.defineNamedConstructor(Set, "identity");
-  dart.defineNamedConstructor(Set, "from");
-  return Set;
-  }); // end generic class
+    dart.defineNamedConstructor(Set, "identity");
+    dart.defineNamedConstructor(Set, "from");
+    return Set;
+  });
   let Set = Set$(dynamic);
 
   let Sink$ = dart.generic(function(T) {
-  class Sink {
-  }
-  return Sink;
-  }); // end generic class
+    class Sink {
+    }
+    return Sink;
+  });
   let Sink = Sink$(dynamic);
 
   class StackTrace {
