@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js;
+part of js_ast;
 
 abstract class NodeVisitor<T> {
   T visitProgram(Program node);
@@ -29,7 +29,6 @@ abstract class NodeVisitor<T> {
   T visitLiteralStatement(LiteralStatement node);
   T visitDartYield(DartYield node);
 
-  T visitBlob(Blob node);
   T visitLiteralExpression(LiteralExpression node);
   T visitVariableDeclarationList(VariableDeclarationList node);
   T visitAssignment(Assignment node);
@@ -109,7 +108,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDefault(Default node) => visitNode(node);
 
   T visitExpression(Expression node) => visitNode(node);
-  T visitBlob(Blob node) => visitExpression(node);
   T visitVariableReference(VariableReference node) => visitExpression(node);
 
   T visitLiteralExpression(LiteralExpression node) => visitExpression(node);
@@ -173,10 +171,14 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDartYield(DartYield node) => visitStatement(node);
 }
 
-abstract class Node {
-  SourceInformation get sourceInformation => _sourceInformation;
+/// This tag interface has no behaviour but must be implemented by any class
+/// that is to be stored on a [Node] as source information.
+abstract class JavaScriptNodeSourceInformation {}
 
-  SourceInformation _sourceInformation;
+abstract class Node {
+  JavaScriptNodeSourceInformation get sourceInformation => _sourceInformation;
+
+  JavaScriptNodeSourceInformation _sourceInformation;
 
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
@@ -187,7 +189,8 @@ abstract class Node {
 
   // Returns a node equivalent to [this], but with new source position and end
   // source position.
-  Node withSourceInformation(SourceInformation sourceInformation) {
+  Node withSourceInformation(
+      JavaScriptNodeSourceInformation sourceInformation) {
     if (sourceInformation == _sourceInformation) {
       return this;
     }
@@ -522,8 +525,8 @@ class LiteralStatement extends Statement {
   LiteralStatement _clone() => new LiteralStatement(code);
 }
 
-// Not a real javascript node, but represents the yield statement from a dart
-// program translated to javascript.
+// Not a real JavaScript node, but represents the yield statement from a dart
+// program translated to JavaScript.
 class DartYield extends Statement {
   final Expression expression;
 
@@ -544,25 +547,6 @@ abstract class Expression extends Node {
   int get precedenceLevel;
 
   Statement toStatement() => new ExpressionStatement(this);
-}
-
-/// Wrap a CodeBuffer as an expression.
-class Blob extends Expression {
-  // TODO(ahe): This class is an aid to convert everything to ASTs, remove when
-  // not needed anymore.
-
-  final CodeBuffer buffer;
-
-  Blob(this.buffer);
-
-  accept(NodeVisitor visitor) => visitor.visitBlob(this);
-
-  void visitChildren(NodeVisitor visitor) {}
-
-  Blob _clone() => new Blob(buffer);
-
-  int get precedenceLevel => PRIMARY;
-
 }
 
 class LiteralExpression extends Expression {
@@ -947,9 +931,12 @@ class LiteralString extends Literal {
   /**
    * Constructs a LiteralString from a string value.
    *
-   * The constructor does not add the required quotes.  If [value] is
-   * not surrounded by quotes, the resulting object is invalid as a JS
-   * value.
+   * The constructor does not add the required quotes.  If [value] is not
+   * surrounded by quotes and property escaped, the resulting object is invalid
+   * as a JS value.
+   *
+   * TODO(sra): Introduce variants for known valid strings that don't allocate a
+   * new string just to add quotes.
    */
   LiteralString(this.value);
 
@@ -958,7 +945,7 @@ class LiteralString extends Literal {
 }
 
 class LiteralNumber extends Literal {
-  final String value;
+  final String value;  // Must be a valid JavaScript number literal.
 
   LiteralNumber(this.value);
 
@@ -1127,7 +1114,7 @@ class RegExpLiteral extends Expression {
 /**
  * An asynchronous await.
  *
- * Not part of javascript. We desugar this expression before outputting.
+ * Not part of JavaScript. We desugar this expression before outputting.
  * Should only occur in a [Fun] with `asyncModifier` async or asyncStar.
  */
 class Await extends Expression {

@@ -18,9 +18,12 @@ void testTransform(String source, String expected) {
       endOfIteration: new VariableUse("endOfIteration"),
       newIterable: new VariableUse("Iterator"),
       safeVariableName: (String name) => "__$name").rewrite(fun);
-  Printer printer = new Printer(new PrintDiagnosticListener(), null);
+ 
+  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
+  JavaScriptPrintingContext context = new SimpleJavaScriptPrintingContext();
+  Printer printer = new Printer(options, context);
   printer.visit(rewritten);
-  Expect.stringEquals(expected, printer.outBuffer.getText());
+  Expect.stringEquals(expected, context.getText());
 }
 
 main() {
