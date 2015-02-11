@@ -3588,12 +3588,16 @@ int _toUint32(int value) {
 
 
 int _toInt64(int value) {
-  return _toInt(value, 0xFFFFFFFFFFFFFFFF);  // TODO(regis): Avoid bigint mask.
+  // Avoid bigint mask when possible.
+  return (ClassID.getID(value) == ClassID.cidBigint) ?
+      _toInt(value, 0xFFFFFFFFFFFFFFFF) : value;
 }
 
 
 int _toUint64(int value) {
-  return value & 0xFFFFFFFFFFFFFFFF;  // TODO(regis): Avoid bigint mask.
+  // Avoid bigint mask when possible.
+  return (ClassID.getID(value) == ClassID.cidBigint) ?
+      _toInt(value, 0xFFFFFFFFFFFFFFFF) : value;
 }
 
 

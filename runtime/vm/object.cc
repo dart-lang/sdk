@@ -17113,8 +17113,6 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
 
 
 const char* Bigint::ToHexCString(uword (*allocator)(intptr_t size)) const {
-  NoGCScope no_gc;  // TODO(regis): Is this necessary?
-
   const intptr_t used = Used();
   if (used == 0) {
     const char* zero = "0x0";

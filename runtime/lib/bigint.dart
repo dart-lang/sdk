@@ -1167,7 +1167,7 @@ class _Bigint extends _IntegerImplementation implements int {
   // This method must support smi._toBigint()._shrFromInt(int).
   int _shrFromInt(int other) {
     if (_used == 0) return other;  // Shift amount is zero.
-    if (_neg) throw "negative shift amount";  // TODO(regis): What exception?
+    if (_neg) throw new RangeError(this);
     assert(_DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
     if ((_used > 2) || ((_used == 2) && (_digits[1] > 0x10000000))) {
@@ -1186,7 +1186,7 @@ class _Bigint extends _IntegerImplementation implements int {
   // An out of memory exception is thrown if the result cannot be allocated.
   int _shlFromInt(int other) {
     if (_used == 0) return other;  // Shift amount is zero.
-    if (_neg) throw "negative shift amount";  // TODO(regis): What exception?
+    if (_neg) throw new RangeError(this);
     assert(_DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
     if (_used > 2 || (_used == 2 && _digits[1] > 0x10000000)) {
@@ -1345,15 +1345,16 @@ class _Bigint extends _IntegerImplementation implements int {
     if (e < 0) throw new RangeError(e);
     if (m <= 0) throw new RangeError(m);
     if (e == 0) return 1;
+    e = e._toBigint();
+    m = m._toBigint();
     final m_used = m._used;
-    final m_used2p2 = 2*m_used + 1 + 1;  // +1 for leading zero.
+    final m_used2p2 = 2*m_used + 2;
     final e_bitlen = e.bitLength;
     if (e_bitlen <= 0) return 1;
     if ((e is! _Bigint) || m.isEven) {
       _Reduction z = (e_bitlen < 8 || m.isEven) ?
           new _Classic(m) : new _Montgomery(m);
       // TODO(regis): Should we use Barrett reduction for an even modulus?
-      var m_used = m._used;
       var r_digits = new Uint32List(m_used2p2);
       var r2_digits = new Uint32List(m_used2p2);
       var g_digits = new Uint32List(m_used + (m_used & 1));
@@ -1630,7 +1631,8 @@ class _Montgomery implements _Reduction {
     while (x_used > 0 && x_digits[x_used - 1] == 0) {
       --x_used;
     }
-    x_used = _Bigint._drShiftDigits(x_digits, x_used, m_used, x_digits);
+    // Shift right by m_used digits or, if processing pairs, by i (even) digits.
+    x_used = _Bigint._drShiftDigits(x_digits, x_used, i, x_digits);
     if (_Bigint._compareDigits(x_digits, x_used, m_digits, m_used) >= 0) {
       _Bigint._absSub(x_digits, x_used, m_digits, m_used, x_digits);
     }
@@ -1700,7 +1702,7 @@ class _Classic implements _Reduction {
     var digits;
     var used;
     if (x._neg || x._compare(_m) >= 0) {
-      var r = x.rem(_m);
+      var r = x._rem(_m);
       if (x._neg && !r._neg && r._used > 0) {
         r = _m._sub(r);
       }
@@ -1711,7 +1713,7 @@ class _Classic implements _Reduction {
       used = x._used;
       digits = x._digits;
     }
-    var i = used + (used + 1);  // Copy leading zero if any.
+    var i = used + (used & 1);  // Copy leading zero if any.
     while (--i >= 0) {
       r_digits[i] = digits[i];
     }
