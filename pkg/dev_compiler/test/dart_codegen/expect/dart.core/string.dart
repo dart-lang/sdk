@@ -85,9 +85,9 @@ class RuneIterator implements BidirectionalIterator<int> {
       throw new ArgumentError('Index inside surrogate pair: $index');
     }
   }
-  int get rawIndex => ((__x17) => DDC$RT.cast(__x17, dynamic, int,
+  int get rawIndex => ((__x19) => DDC$RT.cast(__x19, dynamic, int,
       "CastGeneral", """line 665, column 24 of dart:core/string.dart: """,
-      __x17 is int, true))((_position != _nextPosition) ? _position : null);
+      __x19 is int, true))((_position != _nextPosition) ? _position : null);
   void set rawIndex(int rawIndex) {
     RangeError.checkValidIndex(rawIndex, string, "rawIndex");
     reset(rawIndex);
@@ -97,7 +97,9 @@ class RuneIterator implements BidirectionalIterator<int> {
     RangeError.checkValueInInterval(rawIndex, 0, string.length, "rawIndex");
     _checkSplitSurrogate(rawIndex);
     _position = _nextPosition = rawIndex;
-    _currentCodePoint = null;
+    _currentCodePoint = ((__x20) => DDC$RT.cast(__x20, Null, int, "CastLiteral",
+        """line 696, column 26 of dart:core/string.dart: """, __x20 is int,
+        true))(null);
   }
   int get current => _currentCodePoint;
   int get currentSize => _nextPosition - _position;
@@ -109,7 +111,9 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool moveNext() {
     _position = _nextPosition;
     if (_position == string.length) {
-      _currentCodePoint = null;
+      _currentCodePoint = ((__x21) => DDC$RT.cast(__x21, Null, int,
+          "CastLiteral", """line 728, column 28 of dart:core/string.dart: """,
+          __x21 is int, true))(null);
       return false;
     }
     int codeUnit = string.codeUnitAt(_position);
@@ -129,7 +133,9 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool movePrevious() {
     _nextPosition = _position;
     if (_position == 0) {
-      _currentCodePoint = null;
+      _currentCodePoint = ((__x22) => DDC$RT.cast(__x22, Null, int,
+          "CastLiteral", """line 749, column 28 of dart:core/string.dart: """,
+          __x22 is int, true))(null);
       return false;
     }
     int position = _position - 1;

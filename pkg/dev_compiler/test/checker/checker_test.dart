@@ -29,6 +29,43 @@ main() {
     });
   });
 
+  test('Primitives', () {
+    testChecker({
+      '/main.dart': '''
+        void main() {
+          // TODO(vsm): This declaration should be an error.
+          int x;
+          // TODO(vsm): This declaration should be an error.
+          double y;
+          num z;
+          bool b;
+
+          // int is non-nullable
+          // TODO(vsm): This should be an error, not a warning.
+          x = /*warning:DownCastLiteral*/null;
+          x = 42;
+          x = /*info:DownCast*/z;
+
+          // double is non-nullable
+          // TODO(vsm): This should be an error, not a warning.
+          y = /*warning:DownCastLiteral*/null;
+          y = /*severe:StaticTypeError*/42;
+          y = 42.0;
+          y = /*info:DownCast*/z;
+
+          // num is nullable
+          z = null;
+          z = x;
+          z = y;
+
+          // bool is nullable
+          b = null;
+          b = true;
+        }
+      '''
+    });
+  });
+
   test('Unbound variable', () {
     testChecker({
       '/main.dart': '''

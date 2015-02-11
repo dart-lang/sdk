@@ -30,6 +30,36 @@ main() {
     });
   });
 
+  // Error when declared type is `int` and assigned null.
+  testChecker({
+    '/main.dart': '''
+      test1() {
+        int x = 3;
+        x = /*warning:DownCastLiteral*/null;
+      }
+    '''
+  });
+
+  // Error when inferred type is `int` and assigned null.
+  testChecker({
+    '/main.dart': '''
+      test1() {
+        var x = 3;
+        x = /*warning:DownCastLiteral*/null;
+      }
+    '''
+  });
+
+  // No error when declared type is `num` and assigned null.
+  testChecker({
+    '/main.dart': '''
+      test1() {
+        num x = 3;
+        x = null;
+      }
+    '''
+  });
+
   test('do not infer type on dynamic', () {
     testChecker({
       '/main.dart': '''

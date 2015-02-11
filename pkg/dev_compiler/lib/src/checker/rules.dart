@@ -27,6 +27,7 @@ abstract class TypeRules {
   bool isIntType(DartType t) => t == provider.intType;
   bool isNumType(DartType t) => t == provider.intType.superclass;
   bool isStringType(DartType t) => t == provider.stringType;
+  bool isPrimitiveType(DartType t) => false;
 
   StaticInfo checkAssignment(Expression expr, DartType t);
 
@@ -94,6 +95,8 @@ class RestrictedRules extends TypeRules {
     _reporter.log(new MissingTypeError(expr));
     return provider.dynamicType;
   }
+
+  bool isPrimitiveType(DartType t) => isIntType(t) || isDoubleType(t);
 
   // TODO(leafp): Revisit this.
   bool isGroundType(DartType t) {
@@ -225,9 +228,9 @@ class RestrictedRules extends TypeRules {
   bool isSubTypeOf(DartType t1, DartType t2) {
     if (t1 == t2) return true;
 
-    // Null can be assigned to anything else.
+    // Null can be assigned to anything non-primitive.
     // FIXME: Can this be anything besides null?
-    if (t1.isBottom) return true;
+    if (t1.isBottom) return !isPrimitiveType(t2);
     if (t2.isBottom) return false;
 
     if (t2.isDynamic) return true;

@@ -13,7 +13,9 @@ class Stopwatch {
       _start = _now();
     } else {
       _start = _now() - (_stop - _start);
-      _stop = null;
+      _stop = ((__x18) => DDC$RT.cast(__x18, Null, int, "CastLiteral",
+          """line 54, column 15 of dart:core/stopwatch.dart: """, __x18 is int,
+          true))(null);
     }
   }
   void stop() {

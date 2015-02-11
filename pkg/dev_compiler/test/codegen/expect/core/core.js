@@ -646,7 +646,7 @@ var core;
         return report;
       }
       if (offset !== null && (offset < 0 || offset['>'](dart.dload(this.source, "length")))) {
-        offset = null;
+        offset = dart.as(null, int);
       }
       if (offset === null) {
         let source = dart.as(this.source, String);
@@ -1001,7 +1001,7 @@ var core;
         this._start = _now();
       } else {
         this._start = _now() - (this._stop - this._start);
-        this._stop = null;
+        this._stop = dart.as(null, int);
       }
     }
     stop() {
@@ -1109,7 +1109,7 @@ var core;
       RangeError.checkValueInInterval(rawIndex, 0, this.string.length, "rawIndex");
       this._checkSplitSurrogate(rawIndex);
       this._position = this._nextPosition = rawIndex;
-      this._currentCodePoint = null;
+      this._currentCodePoint = dart.as(null, int);
     }
     get current() { return this._currentCodePoint; }
     get currentSize() { return this._nextPosition - this._position; }
@@ -1121,7 +1121,7 @@ var core;
     moveNext() {
       this._position = this._nextPosition;
       if (this._position === this.string.length) {
-        this._currentCodePoint = null;
+        this._currentCodePoint = dart.as(null, int);
         return false;
       }
       let codeUnit = this.string.codeUnitAt(this._position);
@@ -1141,7 +1141,7 @@ var core;
     movePrevious() {
       this._nextPosition = this._position;
       if (this._position === 0) {
-        this._currentCodePoint = null;
+        this._currentCodePoint = dart.as(null, int);
         return false;
       }
       let position = this._position - 1;
@@ -1243,7 +1243,7 @@ var core;
       let scheme = "";
       let userinfo = "";
       let host = null;
-      let port = null;
+      let port = dart.as(null, int);
       let path = null;
       let query = null;
       let fragment = null;
@@ -1648,7 +1648,7 @@ var core;
       return this._queryParameters;
     }
     static _makePort(port, scheme) {
-      if (port !== null && port === _defaultPort(scheme)) return null;
+      if (port !== null && port === _defaultPort(scheme)) return dart.as(null, int);
       return port;
     }
     static _makeHost(host, start, end, strictIPv6) {

@@ -286,7 +286,11 @@ class CoercionManager {
     var ttName = _tm.typeNameFromDartType(c.toType);
     var tt = _tm.typeExpression(ttName);
     var ft = _tm.typeExpressionFromDartType(c.fromType);
-    if (c.fromType.element.library != null &&
+    if (c.fromType.element == null) {
+      // Replace bottom with Null type.
+      var ftType = _rules.provider.nullType;
+      ft = _tm.typeExpressionFromDartType(ftType);
+    } else if (c.fromType.element.library != null &&
         utils.isDartPrivateLibrary(c.fromType.element.library)) {
       ft = AstBuilder.nullLiteral();
     }
