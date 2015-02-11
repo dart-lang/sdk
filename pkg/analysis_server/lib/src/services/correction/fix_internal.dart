@@ -192,7 +192,9 @@ class FixProcessor {
       _addFix_createMissingOverrides(missingOverrides);
       _addFix_createNoSuchMethod();
     }
-    if (errorCode == StaticWarningCode.UNDEFINED_CLASS) {
+    if (errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
+        errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
+        errorCode == StaticWarningCode.UNDEFINED_CLASS) {
       _addFix_importLibrary_withType();
       _addFix_createClass();
       _addFix_undefinedClass_useSimilar();

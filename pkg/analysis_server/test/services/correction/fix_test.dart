@@ -1846,6 +1846,21 @@ main() {
 ''');
   }
 
+  void test_importLibrarySdk_withType_AsExpression() {
+    _indexTestUnit('''
+main(p) {
+  p as Future;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main(p) {
+  p as Future;
+}
+''');
+  }
+
   void test_importLibrarySdk_withType_invocationTarget() {
     _indexTestUnit('''
 main() {
@@ -1857,6 +1872,21 @@ import 'dart:async';
 
 main() {
   Future.wait(null);
+}
+''');
+  }
+
+  void test_importLibrarySdk_withType_IsExpression() {
+    _indexTestUnit('''
+main(p) {
+  p is Future;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main(p) {
+  p is Future;
 }
 ''');
   }
