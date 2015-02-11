@@ -8,9 +8,9 @@ class DB {}
 
 class FooBar {}
 
-class Foo {}
-
 class _Foo {}
+
+class Foo extends _Foo {}
 
 typedef bool predicate(); //LINT
 
