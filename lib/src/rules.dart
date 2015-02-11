@@ -7,6 +7,7 @@ library rules;
 import 'package:dart_lint/src/linter.dart';
 import 'package:dart_lint/src/rules/camel_case_types.dart';
 import 'package:dart_lint/src/rules/empty_constructor_bodies.dart';
+import 'package:dart_lint/src/rules/library_names.dart';
 import 'package:dart_lint/src/rules/one_member_abstracts.dart';
 import 'package:dart_lint/src/rules/super_goes_last.dart';
 import 'package:dart_lint/src/rules/type_init_formals.dart';
@@ -17,6 +18,7 @@ import 'package:dart_lint/src/rules/unnecessary_getters.dart';
 final Map<String, LintRule> ruleMap = {
   'camel_case_types': new CamelCaseTypes(),
   'empty_constructor_bodies': new EmptyConstructorBodies(),
+  'library_names' : new LibraryNames(),
   'one_member_abstracts': new OneMemberAbstracts(),
   'super_goes_last': new SuperGoesLast(),
   'type_init_formals': new TypeInitFormals(),
