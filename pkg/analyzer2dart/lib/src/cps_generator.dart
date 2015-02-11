@@ -219,7 +219,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     dart2js.Element element = converter.convertElement(staticElement);
     ir.Primitive receiver = irBuilder.buildLocalGet(element);
     List<ir.Definition> arguments = visitArguments(node.argumentList);
-    return irBuilder.buildFunctionExpressionInvocation(
+    return irBuilder.buildCallInvocation(
       receiver,
       createSelectorFromMethodInvocation(
           node.argumentList, node.methodName.name),
@@ -243,7 +243,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       FunctionExpressionInvocation node) {
     ir.Primitive target = build(node.function);
     List<ir.Definition> arguments = visitArguments(node.argumentList);
-    return irBuilder.buildFunctionExpressionInvocation(
+    return irBuilder.buildCallInvocation(
         target,
         createSelectorFromMethodInvocation(node.argumentList, 'call'),
         arguments);
