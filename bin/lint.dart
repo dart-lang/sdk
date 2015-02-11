@@ -7,22 +7,22 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dart_lint/src/io.dart';
 
-
 const processFileFailedExitCode = 65;
 const unableToProcessExitCode = 64;
 
 isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
 
-
 void main(List<String> args) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
-  parser.addFlag(
-      "help",
-      abbr: "h",
-      negatable: false,
-      help: "Shows usage information.");
+  parser
+    ..addFlag("help",
+        abbr: "h", negatable: false, help: "Shows usage information.")
+    ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
+    ..addOption('package-root',
+        abbr: 'p',
+        help: 'Custom package root. (Discouraged.) Remove to use package information computed by pub.');
 
   var options;
   try {
@@ -48,7 +48,7 @@ void main(List<String> args) {
     var file = new File(path);
     if (file.existsSync()) {
       print("Linting $path...");
-      if (!processFile(file)) {
+      if (!lintFile(file)) {
         exitCode = processFileFailedExitCode;
       }
     } else {
@@ -59,14 +59,13 @@ void main(List<String> args) {
 }
 
 void printUsage(ArgParser parser, [String error]) {
-
   var message = "Lints Dart source files.";
   if (error != null) {
     message = error;
   }
 
   stdout.write('''$message
-Usage: dartlint <files>
+Usage: lint <library_files>
 ${parser.usage}
   
 For more information, see https://github.com/dart-lang/dart_lint

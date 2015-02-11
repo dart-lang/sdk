@@ -13,7 +13,7 @@ import 'package:dart_lint/src/linter.dart';
 /// '.dart' extension.
 ///
 /// Returns `true` if successful or `false` if an error occurred.
-bool processFile(FileSystemEntity file) {
+bool lintFile(FileSystemEntity file, {String dartSdkPath, String packageRoot}) {
   var path = file.path;
 
   if (file is Link) {
@@ -27,6 +27,12 @@ bool processFile(FileSystemEntity file) {
   }
 
   DartLinter linter = new DartLinter();
+  if (dartSdkPath != null) {
+    linter.options.dartSdkPath = dartSdkPath;
+  }
+  if (packageRoot != null) {
+    linter.options.packageRootPath = packageRoot;
+  }
 
   try {
    linter.lintFile(file);

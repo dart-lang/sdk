@@ -65,6 +65,8 @@ abstract class DartLinter {
 
   Iterable<AnalysisErrorInfo> lintLibrarySource(
       {String libraryName, String libraryContents});
+
+  LinterOptions get options;
 }
 
 class Group {
