@@ -633,11 +633,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 
-
-  // Add to isolate list.
-  AddIsolateTolist(result);
-
-
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
   SetCurrent(result);
@@ -683,6 +678,9 @@ Isolate* Isolate::Init(const char* name_prefix) {
                 "\tisolate:    %s\n", result->name());
     }
   }
+
+  // Add to isolate list.
+  AddIsolateTolist(result);
 
   return result;
 }
