@@ -8,13 +8,12 @@ import '../dart2jslib.dart' show SourceSpan;
 import '../elements/elements.dart' show AstElement;
 import '../scanner/scannerlib.dart' show Token;
 import '../tree/tree.dart' show Node;
-import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import 'code_output.dart';
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
 /// maps, through the backend.
-abstract class SourceInformation extends JavaScriptNodeSourceInformation {
+abstract class SourceInformation {
   SourceSpan get sourceSpan;
   void beginMapping(CodeOutput output);
   void endMapping(CodeOutput output);

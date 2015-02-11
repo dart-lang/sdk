@@ -5,7 +5,7 @@
 // Utilities for building JS ASTs at runtime.  Contains a builder class
 // and a parser that parses part of the language.
 
-part of js_ast;
+part of js;
 
 
 /**

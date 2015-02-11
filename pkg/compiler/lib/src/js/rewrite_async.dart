@@ -966,6 +966,11 @@ class AsyncRewriter extends js.NodeVisitor {
   }
 
   @override
+  js.Expression visitBlob(js.Blob node) {
+    return node;
+  }
+
+  @override
   void visitBlock(js.Block node) {
     for (js.Statement statement in node.statements) {
       visitStatement(statement);
@@ -1814,6 +1819,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
     bool left = visit(node.left);
     bool right = visit(node.right);
     return left || right;
+  }
+
+  @override
+  bool visitBlob(js.Blob node) {
+    return false;
   }
 
   @override
