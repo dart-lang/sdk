@@ -74,22 +74,19 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   /**
    * Asserts that [refactoring] initial/final conditions status is OK.
    */
-  Future assertRefactoringConditionsOK() {
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatusOK(status);
-      return refactoring.checkFinalConditions().then((status) {
-        assertRefactoringStatusOK(status);
-      });
-    });
+  Future assertRefactoringConditionsOK() async {
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatusOK(status);
+    status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
   }
 
   /**
    * Asserts that [refactoring] final conditions status is OK.
    */
-  Future assertRefactoringFinalConditionsOK() {
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
+  Future assertRefactoringFinalConditionsOK() async {
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
   }
 
   /**
@@ -129,13 +126,11 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    * Checks that all conditions of [refactoring] are OK and the result of
    * applying the [Change] to [testUnit] is [expectedCode].
    */
-  Future assertSuccessfulRefactoring(String expectedCode) {
-    return assertRefactoringConditionsOK().then((_) {
-      return refactoring.createChange().then((SourceChange change) {
-        this.refactoringChange = change;
-        assertTestChangeResult(expectedCode);
-      });
-    });
+  Future assertSuccessfulRefactoring(String expectedCode) async {
+    await assertRefactoringConditionsOK();
+    SourceChange change = await refactoring.createChange();
+    this.refactoringChange = change;
+    assertTestChangeResult(expectedCode);
   }
 
   /**

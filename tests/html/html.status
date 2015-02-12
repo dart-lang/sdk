@@ -15,7 +15,6 @@ form_data_test/functional: Skip # Issue 19726
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
-storage_quota_test/missingenumcheck: Fail
 worker_api_test: Fail # Issue 10223
 two_scripts_htmltest: Fail # Issue 16603
 media_stream_test/constructors: Pass, Crash # Issue 22267
@@ -101,6 +100,7 @@ touchevent_test/supported: Pass, Fail # Issue 17061
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
 element_types_test/constructors: Skip # Times out. Issue 22050
+audiocontext_test/functional: Skip # Renderer crash. Issue 22327
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -393,6 +393,7 @@ events_test: StaticWarning
 htmlelement_test: StaticWarning
 localstorage_test: StaticWarning
 mutationobserver_test: StaticWarning
+queryall_test: fail
 track_element_constructor_test: StaticWarning
 transferables_test: StaticWarning
 typed_arrays_range_checks_test: StaticWarning

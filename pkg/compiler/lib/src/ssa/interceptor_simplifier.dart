@@ -300,7 +300,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         if (backend.mayGenerateInstanceofCheck(user.typeExpression)) {
           HInstruction instanceofCheck = new HIs.instanceOf(
               user.typeExpression, user.expression, user.instructionType);
-          instanceofCheck.sourcePosition = user.sourcePosition;
+          instanceofCheck.sourceInformation = user.sourceInformation;
           instanceofCheck.sourceElement = user.sourceElement;
           return replaceUserWith(instanceofCheck);
         }
@@ -313,7 +313,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         inputs[0] = nullConstant;
         HOneShotInterceptor oneShotInterceptor = new HOneShotInterceptor(
             user.selector, inputs, user.instructionType, interceptedClasses);
-        oneShotInterceptor.sourcePosition = user.sourcePosition;
+        oneShotInterceptor.sourceInformation = user.sourceInformation;
         oneShotInterceptor.sourceElement = user.sourceElement;
         return replaceUserWith(oneShotInterceptor);
       }

@@ -49,6 +49,12 @@ abstract class AnalysisTarget {
  */
 abstract class AnalysisTask {
   /**
+   * A table mapping the types of analysis tasks to the number of times each
+   * kind of task has been performed.
+   */
+  static final Map<Type, int> countMap = new HashMap<Type, int>();
+
+  /**
    * A table mapping the types of analysis tasks to stopwatches used to compute
    * how much time was spent executing each kind of task.
    */
@@ -164,6 +170,8 @@ abstract class AnalysisTask {
    */
   void _safelyPerform() {
     try {
+      int count = countMap[runtimeType];
+      countMap[runtimeType] = count == null ? 1 : count + 1;
       Stopwatch stopwatch = stopwatchMap[runtimeType];
       if (stopwatch == null) {
         stopwatch = new Stopwatch();

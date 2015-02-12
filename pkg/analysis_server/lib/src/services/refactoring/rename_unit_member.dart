@@ -140,16 +140,13 @@ class _RenameUnitMemberValidator {
     elementKind = element.kind;
   }
 
-  Future<RefactoringStatus> validate() {
+  Future<RefactoringStatus> validate() async {
     _validateWillConflict();
-    List<Future> futures = <Future>[];
     if (isRename) {
-      futures.add(_validateWillBeShadowed());
+      await _validateWillBeShadowed();
     }
-    futures.add(_validateWillShadow());
-    return Future.wait(futures).then((_) {
-      return result;
-    });
+    await _validateWillShadow();
+    return result;
   }
 
   /**
@@ -179,29 +176,27 @@ class _RenameUnitMemberValidator {
   /**
    * Validates if any usage of [element] renamed to [name] will be shadowed.
    */
-  Future _validateWillBeShadowed() {
+  Future _validateWillBeShadowed() async {
     if (!isRename) {
-      return new Future.value();
+      return;
     }
-    return searchEngine.searchReferences(element).then((references) {
-      for (SearchMatch reference in references) {
-        Element refElement = reference.element;
-        ClassElement refClass =
-            refElement.getAncestor((e) => e is ClassElement);
-        if (refClass != null) {
-          visitChildren(refClass, (shadow) {
-            if (hasDisplayName(shadow, name)) {
-              String message = format(
-                  "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-                  getElementKindName(element),
-                  getElementKindName(shadow),
-                  getElementQualifiedName(shadow));
-              result.addError(message, newLocation_fromElement(shadow));
-            }
-          });
-        }
+    List<SearchMatch> references = await searchEngine.searchReferences(element);
+    for (SearchMatch reference in references) {
+      Element refElement = reference.element;
+      ClassElement refClass = refElement.getAncestor((e) => e is ClassElement);
+      if (refClass != null) {
+        visitChildren(refClass, (shadow) {
+          if (hasDisplayName(shadow, name)) {
+            String message = format(
+                "Reference to renamed {0} will be shadowed by {1} '{2}'.",
+                getElementKindName(element),
+                getElementKindName(shadow),
+                getElementQualifiedName(shadow));
+            result.addError(message, newLocation_fromElement(shadow));
+          }
+        });
       }
-    });
+    }
   }
 
   /**
@@ -223,40 +218,40 @@ class _RenameUnitMemberValidator {
   /**
    * Validates if renamed [element] will shadow any [Element] named [name].
    */
-  Future _validateWillShadow() {
-    return searchEngine.searchMemberDeclarations(name).then((declarations) {
-      return Future.forEach(declarations, (SearchMatch declaration) {
-        Element member = declaration.element;
-        ClassElement declaringClass = member.enclosingElement;
-        return searchEngine.searchReferences(member).then((memberReferences) {
-          for (SearchMatch memberReference in memberReferences) {
-            Element refElement = memberReference.element;
-            // cannot be shadowed if qualified
-            if (memberReference.isQualified) {
-              continue;
-            }
-            // cannot be shadowed if declared in the same class as reference
-            ClassElement refClass =
-                refElement.getAncestor((e) => e is ClassElement);
-            if (refClass == declaringClass) {
-              continue;
-            }
-            // ignore if not visible
-            if (!_isVisibleAt(element, memberReference)) {
-              continue;
-            }
-            // OK, reference will be shadowed be the element being renamed
-            String message = format(
-                isRename ?
-                    "Renamed {0} will shadow {1} '{2}'." :
-                    "Created {0} will shadow {1} '{2}'.",
-                elementKind.displayName,
-                getElementKindName(member),
-                getElementQualifiedName(member));
-            result.addError(message, newLocation_fromMatch(memberReference));
-          }
-        });
-      });
-    });
+  Future _validateWillShadow() async {
+    List<SearchMatch> declarations =
+        await searchEngine.searchMemberDeclarations(name);
+    for (SearchMatch declaration in declarations) {
+      Element member = declaration.element;
+      ClassElement declaringClass = member.enclosingElement;
+      List<SearchMatch> memberReferences =
+          await searchEngine.searchReferences(member);
+      for (SearchMatch memberReference in memberReferences) {
+        Element refElement = memberReference.element;
+        // cannot be shadowed if qualified
+        if (memberReference.isQualified) {
+          continue;
+        }
+        // cannot be shadowed if declared in the same class as reference
+        ClassElement refClass =
+            refElement.getAncestor((e) => e is ClassElement);
+        if (refClass == declaringClass) {
+          continue;
+        }
+        // ignore if not visible
+        if (!_isVisibleAt(element, memberReference)) {
+          continue;
+        }
+        // OK, reference will be shadowed be the element being renamed
+        String message = format(
+            isRename ?
+                "Renamed {0} will shadow {1} '{2}'." :
+                "Created {0} will shadow {1} '{2}'.",
+            elementKind.displayName,
+            getElementKindName(member),
+            getElementQualifiedName(member));
+        result.addError(message, newLocation_fromMatch(memberReference));
+      }
+    }
   }
 }

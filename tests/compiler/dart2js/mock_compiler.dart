@@ -92,8 +92,7 @@ class MockCompiler extends Compiler {
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true,
-              outputProvider: outputProvider,
-              enableAsyncAwait: enableAsyncAwait) {
+              outputProvider: outputProvider) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);

@@ -57,7 +57,7 @@ bool Socket::Initialize() {
 }
 
 
-intptr_t Socket::Create(RawAddr addr) {
+static intptr_t Create(RawAddr addr) {
   intptr_t fd;
   fd = NO_RETRY_EXPECTED(socket(addr.ss.ss_family, SOCK_STREAM, 0));
   if (fd < 0) {
@@ -68,7 +68,7 @@ intptr_t Socket::Create(RawAddr addr) {
 }
 
 
-intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
+static intptr_t Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
   SocketAddress::SetAddrPort(&addr, port);
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd, &addr.addr, SocketAddress::GetAddrLength(&addr)));
@@ -80,15 +80,34 @@ intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
 }
 
 
-intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
-  intptr_t fd = Socket::Create(addr);
+intptr_t Socket::CreateConnect(const RawAddr& addr, const intptr_t port) {
+  intptr_t fd = Create(addr);
   if (fd < 0) {
     return fd;
   }
 
-  Socket::SetNonBlocking(fd);
+  FDUtils::SetNonBlocking(fd);
 
-  return Socket::Connect(fd, addr, port);
+  return Connect(fd, addr, port);
+}
+
+
+intptr_t Socket::CreateBindConnect(const RawAddr& addr,
+                                   const intptr_t port,
+                                   const RawAddr& source_addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+
+  intptr_t result = TEMP_FAILURE_RETRY(
+      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(&source_addr)));
+  if (result != 0 && errno != EINPROGRESS) {
+    VOID_TEMP_FAILURE_RETRY(close(fd));
+    return -1;
+  }
+
+  return Connect(fd, addr, port);
 }
 
 
@@ -298,7 +317,7 @@ intptr_t Socket::CreateBindDatagram(
     return -1;
   }
 
-  Socket::SetNonBlocking(fd);
+  FDUtils::SetNonBlocking(fd);
   return fd;
 }
 
@@ -398,7 +417,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     return -1;
   }
 
-  Socket::SetNonBlocking(fd);
+  FDUtils::SetNonBlocking(fd);
   return fd;
 }
 
@@ -423,7 +442,8 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       socket = kTemporaryFailure;
     }
   } else {
-    Socket::SetNonBlocking(socket);
+    FDUtils::SetCloseOnExec(socket);
+    FDUtils::SetNonBlocking(socket);
   }
   return socket;
 }
@@ -432,16 +452,6 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 void Socket::Close(intptr_t fd) {
   ASSERT(fd >= 0);
   VOID_TEMP_FAILURE_RETRY(close(fd));
-}
-
-
-bool Socket::SetNonBlocking(intptr_t fd) {
-  return FDUtils::SetNonBlocking(fd);
-}
-
-
-bool Socket::SetBlocking(intptr_t fd) {
-  return FDUtils::SetBlocking(fd);
 }
 
 

@@ -20,12 +20,12 @@ class TypeTestProperties {
   final Map<String, jsAst.Node> properties = <String, jsAst.Node>{};
 }
 
-class TypeTestGenerator {
+class RuntimeTypeGenerator {
   final Compiler compiler;
   final CodeEmitterTask emitterTask;
   final Namer namer;
 
-  TypeTestGenerator(this.compiler, this.emitterTask, this.namer);
+  RuntimeTypeGenerator(this.compiler, this.emitterTask, this.namer);
 
   JavaScriptBackend get backend => compiler.backend;
   TypeTestRegistry get typeTestRegistry => emitterTask.typeTestRegistry;
@@ -263,5 +263,49 @@ class TypeTestGenerator {
       _generateInterfacesIsTests(superclass, generateIsTest,
                                  generateSubstitution, alreadyGenerated);
     }
+  }
+
+  List<StubMethod> generateTypeVariableReaderStubs(ClassElement classElement) {
+    List<StubMethod> stubs = <StubMethod>[];
+    List typeVariables = [];
+    ClassElement superclass = classElement;
+    while (superclass != null) {
+        for (TypeVariableType parameter in superclass.typeVariables) {
+          if (backend.emitter.readTypeVariables.contains(parameter.element)) {
+            stubs.add(
+                _generateTypeVariableReader(classElement, parameter.element));
+          }
+        }
+        superclass = superclass.superclass;
+      }
+
+    return stubs;
+  }
+
+  StubMethod _generateTypeVariableReader(ClassElement cls,
+                                         TypeVariableElement element) {
+    String name = namer.readTypeVariableName(element);
+    int index = RuntimeTypes.getTypeVariableIndex(element);
+    jsAst.Expression computeTypeVariable;
+
+    Substitution substitution =
+        backend.rti.computeSubstitution(
+            cls, element.typeDeclaration, alwaysGenerateFunction: true);
+    if (substitution != null) {
+      computeTypeVariable =
+          js(r'#.apply(null, this.$builtinTypeInfo)',
+             substitution.getCodeForVariable(index, backend.rti));
+    } else {
+      // TODO(ahe): These can be generated dynamically.
+      computeTypeVariable =
+          js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]',
+              js.number(index));
+    }
+    jsAst.Expression convertRtiToRuntimeType = backend.emitter
+         .staticFunctionAccess(backend.findHelper('convertRtiToRuntimeType'));
+
+    return new StubMethod(name,
+                          js('function () { return #(#) }',
+                             [convertRtiToRuntimeType, computeTypeVariable]));
   }
 }

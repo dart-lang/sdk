@@ -181,6 +181,8 @@ class InvokeConstructor extends Expression implements Invoke {
   final FunctionElement target;
   final List<Expression> arguments;
   final Selector selector;
+  /// TODO(karlklose): get rid of this field.  Instead use the constant's
+  /// expression to find the constructor to be called in dart2dart.
   final values.ConstantValue constant;
 
   InvokeConstructor(this.type, this.target, this.selector, this.arguments,
@@ -197,9 +199,8 @@ class InvokeConstructor extends Expression implements Invoke {
 /// Calls [toString] on each argument and concatenates the results.
 class ConcatenateStrings extends Expression {
   final List<Expression> arguments;
-  final values.ConstantValue constant;
 
-  ConcatenateStrings(this.arguments, [this.constant]);
+  ConcatenateStrings(this.arguments);
 
   accept(ExpressionVisitor visitor) => visitor.visitConcatenateStrings(this);
   accept1(ExpressionVisitor1 visitor, arg) {

@@ -775,9 +775,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
     }
-    if (uri.userInfo != "") {
-      throw new WebSocketException("Unsupported user info '${uri.userInfo}'");
-    }
 
     Random random = new Random();
     // Generate 16 random bytes.
@@ -796,6 +793,13 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
                   fragment: uri.fragment);
     return _httpClient.openUrl("GET", uri)
       .then((request) {
+        if (uri.userInfo != null && !uri.userInfo.isEmpty) {
+          // If the URL contains user information use that for basic
+          // authorization.
+          String auth =
+          _CryptoUtils.bytesToBase64(UTF8.encode(uri.userInfo));
+          request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+        }
         if (headers != null) {
           headers.forEach((field, value) => request.headers.add(field, value));
         }

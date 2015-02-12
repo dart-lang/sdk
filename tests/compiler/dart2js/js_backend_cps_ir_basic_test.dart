@@ -10,6 +10,36 @@ library basic_tests;
 import 'js_backend_cps_ir.dart';
 
 const List<TestEntry> tests = const [
+  const TestEntry(r"""
+main() {
+  var e = 1;
+  var l = [1, 2, 3];
+  var m = {'s': 1};
+
+  print('(' ')');
+  print('(${true})');
+  print('(${1})');
+  print('(${[1, 2, 3]})');
+  print('(${{'s': 1}})');
+  print('($e)');
+  print('($l)');
+  print('($m)');
+}""",r"""
+function() {
+  var e, l, m;
+  e = 1;
+  l = [1, 2, 3];
+  m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
+  P.print("()");
+  P.print("(" + true + ")");
+  P.print("(" + 1 + ")");
+  P.print("(" + H.S([1, 2, 3]) + ")");
+  P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
+  P.print("(" + H.S(e) + ")");
+  P.print("(" + H.S(l) + ")");
+  P.print("(" + H.S(m) + ")");
+  return null;
+}"""),
   const TestEntry("""
 foo(a, [b = "b"]) => b;
 bar(a, {b: "b", c: "c"}) => c;
@@ -24,11 +54,14 @@ main() {
 """,
 """
 function() {
+  var v0, v1;
   V.foo(0, "b");
   V.foo(1, 2);
   V.bar(3, "b", "c");
   V.bar(4, 5, "c");
-  V.bar(6, "b", 7);
+  v0 = 6;
+  v1 = 7;
+  V.bar(v0, "b", v1);
   V.bar(8, 9, 10);
   return null;
 }"""),

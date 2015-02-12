@@ -17,7 +17,7 @@ import tarfile
 import utils
 import uuid
 
-GCS_FOLDER = 'dart-crashes'
+GCS_FOLDER = 'dart-temp-crash-archive'
 GSUTIL='/b/build/scripts/slave/gsutil'
 
 def CreateTarball(input_dir, tarname):

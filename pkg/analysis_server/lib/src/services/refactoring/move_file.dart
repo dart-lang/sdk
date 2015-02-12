@@ -56,10 +56,10 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<SourceChange> createChange() {
+  Future<SourceChange> createChange() async {
     change = new SourceChange('Update File References');
     List<Source> librarySources = context.getLibrariesContaining(source);
-    return Future.forEach(librarySources, (Source librarySource) {
+    await Future.forEach(librarySources, (Source librarySource) async {
       CompilationUnitElement unitElement =
           context.getCompilationUnitElement(source, librarySource);
       if (unitElement != null) {
@@ -73,17 +73,16 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
           _updateUriReferences(library.parts);
         }
         // update reference to the unit
-        return searchEngine.searchReferences(unitElement).then((matches) {
-          List<SourceReference> references = getSourceReferences(matches);
-          for (SourceReference reference in references) {
-            String newUri = _computeNewUri(reference);
-            reference.addEdit(change, "'$newUri'");
-          }
-        });
+        List<SearchMatch> matches =
+            await searchEngine.searchReferences(unitElement);
+        List<SourceReference> references = getSourceReferences(matches);
+        for (SourceReference reference in references) {
+          String newUri = _computeNewUri(reference);
+          reference.addEdit(change, "'$newUri'");
+        }
       }
-    }).then((_) {
-      return change;
     });
+    return change;
   }
 
   @override

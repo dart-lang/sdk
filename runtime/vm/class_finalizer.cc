@@ -1420,7 +1420,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     name = function.name();
     // Report signature conflicts only.
     if (Isolate::Current()->ErrorOnBadOverrideEnabled() &&
-        !function.is_static() && !function.IsConstructor()) {
+        !function.is_static() && !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.Length(); i++) {
         super_class ^= interfaces.At(i);
@@ -2044,7 +2044,7 @@ void ClassFinalizer::CreateForwardingConstructors(
   Function& func = Function::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.IsConstructor()) {
+    if (func.IsGenerativeConstructor()) {
       // Build constructor name from mixin application class name
       // and name of cloned super class constructor.
       const String& ctor_name = String::Handle(func.name());
@@ -2130,7 +2130,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   const intptr_t num_functions = functions.Length();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.IsConstructor()) {
+    if (func.IsGenerativeConstructor()) {
       // A mixin class must not have explicit constructors.
       if (!func.IsImplicitConstructor()) {
         ReportError(cls, cls.token_pos(),

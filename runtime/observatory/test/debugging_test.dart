@@ -46,12 +46,12 @@ var tests = [
       isolate.vm.events.stream.listen((ServiceEvent event) {
         if (event.eventType.startsWith('Breakpoint')) {
           events.add(event);
-        }
-        if (events.length == 2) {
-          expect(events[0].eventType, equals('BreakpointResolved'));
-          expect(events[1].eventType, equals('BreakpointReached'));
-          print('Breakpoint reached');
-          completer.complete();
+          if (events.length == 2) {
+            expect(events[0].eventType, equals('BreakpointResolved'));
+            expect(events[1].eventType, equals('BreakpointReached'));
+            print('Breakpoint reached');
+            completer.complete();
+          }
         }
       });
 
@@ -63,8 +63,7 @@ var tests = [
           expect(m.type, equals('Breakpoint'));
           expect(m['location']['script'].id, equals(script.id));
           expect(m['location']['tokenPos'], equals(51));
-          expect(isolate.breakpoints.type, equals('BreakpointList'));
-          expect(isolate.breakpoints['breakpoints'].length, equals(1));
+          expect(isolate.breakpoints.length, equals(1));
           return completer.future;  // Wait for breakpoint events.
       });
     });
@@ -87,9 +86,9 @@ var tests = [
   isolate.vm.events.stream.listen((ServiceEvent event) {
     if (event.eventType.startsWith('Breakpoint')) {
       expect(event.eventType, equals('BreakpointReached'));
+      print('Breakpoint reached');
+      completer.complete();
     }
-    print('Breakpoint reached');
-    completer.complete();
   });
   
   return isolate.stepInto().then((isolate) {
@@ -108,10 +107,10 @@ var tests = [
 
 // Remove breakpoint
 (Isolate isolate) {
-  expect(isolate.breakpoints['breakpoints'].length, equals(1));
-  var bpt = isolate.breakpoints['breakpoints'][0];
+  expect(isolate.breakpoints.length, equals(1));
+  var bpt = isolate.breakpoints[0];
   return isolate.removeBreakpoint(bpt).then((_) {
-      expect(isolate.breakpoints['breakpoints'].length, equals(0));
+      expect(isolate.breakpoints.length, equals(0));
   });
 },
 

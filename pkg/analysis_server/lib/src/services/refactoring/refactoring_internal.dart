@@ -45,18 +45,14 @@ abstract class RefactoringImpl implements Refactoring {
   final List<String> potentialEditIds = <String>[];
 
   @override
-  Future<RefactoringStatus> checkAllConditions() {
+  Future<RefactoringStatus> checkAllConditions() async {
     RefactoringStatus result = new RefactoringStatus();
-    return checkInitialConditions().then((status) {
-      result.addStatus(status);
-      if (result.hasFatalError) {
-        return result;
-      }
-      return checkFinalConditions().then((status) {
-        result.addStatus(status);
-        return result;
-      });
-    });
+    result.addStatus(await checkInitialConditions());
+    if (result.hasFatalError) {
+      return result;
+    }
+    result.addStatus(await checkFinalConditions());
+    return result;
   }
 }
 

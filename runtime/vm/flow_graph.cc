@@ -6,6 +6,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
@@ -43,7 +44,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
     loop_invariant_loads_(NULL),
     guarded_fields_(parsed_function.guarded_fields()),
     deferred_prefixes_(parsed_function.deferred_prefixes()),
-    captured_parameters_(new(zone()) BitVector(zone(), variable_count())) {
+    captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
+    inlining_id_(-1) {
   DiscoverBlocks();
 }
 

@@ -598,7 +598,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     // Check the block for a return statement, if not, create the hint
     BlockFunctionBody blockFunctionBody = body as BlockFunctionBody;
-    if (!blockFunctionBody.accept(new ExitDetector())) {
+    if (!ExitDetector.exits(blockFunctionBody)) {
       _errorReporter.reportErrorForNode(
           HintCode.MISSING_RETURN,
           returnType,
@@ -4331,6 +4331,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
     return false;
   }
+
+  /**
+   * Return `true` if the given [node] exits.
+   */
+  static bool exits(AstNode node) {
+    return new ExitDetector()._nodeExits(node);
+  }
 }
 
 /**
@@ -7962,7 +7969,7 @@ class LibraryResolver {
     }
     LibraryElement asyncElement = _asyncLibrary.libraryElement;
     if (asyncElement == null) {
-      throw new AnalysisException("Coulb not resolve dart:async");
+      throw new AnalysisException("Could not resolve dart:async");
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);

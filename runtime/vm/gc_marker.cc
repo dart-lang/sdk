@@ -501,19 +501,23 @@ void GCMarker::MarkObjects(Isolate* isolate,
                            bool invoke_api_callbacks,
                            bool collect_code) {
   const bool visit_function_code = !collect_code;
-  MarkingStack marking_stack;
   Prologue(isolate, invoke_api_callbacks);
-  MarkingVisitor mark(
-      isolate, heap_, page_space, &marking_stack, visit_function_code);
-  IterateRoots(isolate, &mark, !invoke_api_callbacks);
-  DrainMarkingStack(isolate, &mark);
-  IterateWeakReferences(isolate, &mark);
-  MarkingWeakVisitor mark_weak;
-  IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
-  mark.Finalize();
-  ProcessWeakTables(page_space);
-  ProcessObjectIdTable(isolate);
-
+  // The API prologue/epilogue may create/destroy zones, so we must not
+  // depend on zone allocations surviving beyond the epilogue callback.
+  {
+    StackZone zone(isolate);
+    MarkingStack marking_stack;
+    MarkingVisitor mark(
+        isolate, heap_, page_space, &marking_stack, visit_function_code);
+    IterateRoots(isolate, &mark, !invoke_api_callbacks);
+    DrainMarkingStack(isolate, &mark);
+    IterateWeakReferences(isolate, &mark);
+    MarkingWeakVisitor mark_weak;
+    IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
+    mark.Finalize();
+    ProcessWeakTables(page_space);
+    ProcessObjectIdTable(isolate);
+  }
   Epilogue(isolate, invoke_api_callbacks);
 }
 

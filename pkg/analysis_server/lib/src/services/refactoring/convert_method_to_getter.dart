@@ -46,25 +46,25 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<SourceChange> createChange() {
+  Future<SourceChange> createChange() async {
     change = new SourceChange(refactoringName);
     // FunctionElement
     if (element is FunctionElement) {
       _updateElementDeclaration(element);
-      return _updateElementReferences(element).then((_) => change);
+      await _updateElementReferences(element);
     }
     // MethodElement
     if (element is MethodElement) {
       MethodElement method = element;
-      return getHierarchyMembers(searchEngine, method).then((elements) {
-        return Future.forEach(elements, (Element element) {
-          _updateElementDeclaration(element);
-          return _updateElementReferences(element);
-        });
-      }).then((_) => change);
+      Set<ClassMemberElement> elements =
+          await getHierarchyMembers(searchEngine, method);
+      await Future.forEach(elements, (Element element) {
+        _updateElementDeclaration(element);
+        return _updateElementReferences(element);
+      });
     }
-    // not reachable
-    return null;
+    // done
+    return change;
   }
 
   @override
@@ -114,27 +114,26 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
     }
   }
 
-  Future _updateElementReferences(Element element) {
-    return searchEngine.searchReferences(element).then((matches) {
-      List<SourceReference> references = getSourceReferences(matches);
-      for (SourceReference reference in references) {
-        Element refElement = reference.element;
-        SourceRange refRange = reference.range;
-        // prepare invocation
-        MethodInvocation invocation;
-        {
-          CompilationUnit refUnit = refElement.unit;
-          AstNode refNode =
-              new NodeLocator.con1(refRange.offset).searchWithin(refUnit);
-          invocation = refNode.getAncestor((node) => node is MethodInvocation);
-        }
-        // we need invocation
-        if (invocation != null) {
-          SourceRange range = rangeEndEnd(refRange, invocation);
-          SourceEdit edit = newSourceEdit_range(range, '');
-          doSourceChange_addElementEdit(change, refElement, edit);
-        }
+  Future _updateElementReferences(Element element) async {
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference in references) {
+      Element refElement = reference.element;
+      SourceRange refRange = reference.range;
+      // prepare invocation
+      MethodInvocation invocation;
+      {
+        CompilationUnit refUnit = refElement.unit;
+        AstNode refNode =
+            new NodeLocator.con1(refRange.offset).searchWithin(refUnit);
+        invocation = refNode.getAncestor((node) => node is MethodInvocation);
       }
-    });
+      // we need invocation
+      if (invocation != null) {
+        SourceRange range = rangeEndEnd(refRange, invocation);
+        SourceEdit edit = newSourceEdit_range(range, '');
+        doSourceChange_addElementEdit(change, refElement, edit);
+      }
+    }
   }
 }

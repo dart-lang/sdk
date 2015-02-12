@@ -154,7 +154,8 @@ Future analyze(List<Uri> uriList,
       currentDirectory.resolveUri(new Uri.file('${Platform.packageRoot}/'));
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
-  var options = <String>['--analyze-only', '--categories=Client,Server'];
+  var options = <String>['--analyze-only', '--categories=Client,Server',
+    '--show-package-warnings'];
   if (analyzeAll) options.add('--analyze-all');
   var compiler = new Compiler(
       provider.readStringFromUri,

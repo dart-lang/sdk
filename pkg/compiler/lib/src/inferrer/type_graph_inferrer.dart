@@ -45,6 +45,7 @@ import '../util/util.dart'
     show ImmutableEmptySet,
          Setlet,
          Spannable;
+import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 
 import 'inferrer_visitor.dart'
     show ArgumentsTypes,
@@ -558,6 +559,9 @@ class TypeGraphInferrerEngine
 
   TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
         : super(compiler, new TypeInformationSystem(compiler));
+
+  JavaScriptBackend get backend => compiler.backend;
+  Annotations get annotations => backend.annotations;
 
   /**
    * A set of selector names that [List] implements, that we know return

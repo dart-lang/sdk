@@ -9,6 +9,7 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -254,6 +255,37 @@ class ObjIndexPair {
  private:
   Key key_;
   Value value_;
+};
+
+
+enum Patchability {
+  kPatchable,
+  kNotPatchable,
+};
+
+
+class ObjectPool : public ValueObject {
+ public:
+  ObjectPool() : object_pool_(GrowableObjectArray::Handle()) { }
+
+  intptr_t AddObject(const Object& obj, Patchability patchable);
+  intptr_t AddExternalLabel(const ExternalLabel* label,
+                            Patchability patchable);
+
+  intptr_t FindObject(const Object& obj, Patchability patchable);
+  intptr_t FindExternalLabel(const ExternalLabel* label,
+                             Patchability patchable);
+  const GrowableObjectArray& data() const { return object_pool_; }
+
+ private:
+  // Objects and jump targets.
+  GrowableObjectArray& object_pool_;
+
+  // Patchability of pool entries.
+  GrowableArray<Patchability> patchable_pool_entries_;
+
+  // Hashmap for fast lookup in object pool.
+  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
 };
 
 }  // namespace dart

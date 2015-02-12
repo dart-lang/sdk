@@ -23,9 +23,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, trace_sim_after, -1,
+DEFINE_FLAG(uint64_t, trace_sim_after, ULLONG_MAX,
             "Trace simulator execution after instruction count reached.");
-DEFINE_FLAG(int, stop_sim_at, -1,
+DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
 
@@ -198,13 +198,9 @@ bool SimulatorDebugger::GetValue(char* desc, uint64_t* value) {
     *value = sim_->get_pc();
     return true;
   }
-  if (strcmp("icount", desc) == 0) {
-    *value = sim_->get_icount();
-    return true;
-  }
-  bool retval = SScanF(desc, "0x%"Px64, value) == 1;
+  bool retval = SScanF(desc, "0x%" Px64, value) == 1;
   if (!retval) {
-    retval = SScanF(desc, "%"Px64, value) == 1;
+    retval = SScanF(desc, "%" Px64, value) == 1;
   }
   return retval;
 }
@@ -481,13 +477,16 @@ void SimulatorDebugger::Debug() {
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
           uint64_t value;
-          if (GetValue(arg1, &value)) {
-            OS::Print("%s: %"Pu64" 0x%"Px64"\n", arg1, value, value);
+          if (strcmp(arg1, "icount") == 0) {
+            value = sim_->get_icount();
+            OS::Print("icount: %" Pu64 " 0x%" Px64 "\n", value, value);
+          } else if (GetValue(arg1, &value)) {
+            OS::Print("%s: %" Pu64 " 0x%" Px64 "\n", arg1, value, value);
           } else {
             OS::Print("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("print <reg or value or *addr>\n");
+          OS::Print("print <reg or icount or value or *addr>\n");
         }
       } else if ((strcmp(cmd, "pf") == 0) ||
                  (strcmp(cmd, "printfloat") == 0)) {
@@ -509,7 +508,7 @@ void SimulatorDebugger::Debug() {
           uint64_t long_value;
           if (GetDValue(arg1, &long_value)) {
             double dvalue = bit_cast<double, uint64_t>(long_value);
-            OS::Print("%s: %"Pu64" 0x%"Px64" %.8g\n",
+            OS::Print("%s: %" Pu64 " 0x%" Px64 " %.8g\n",
                 arg1, long_value, long_value, dvalue);
           } else {
             OS::Print("%s unrecognized\n", arg1);
@@ -534,8 +533,8 @@ void SimulatorDebugger::Debug() {
             const float sval1 = bit_cast<float, int32_t>(s1);
             const float sval2 = bit_cast<float, int32_t>(s2);
             const float sval3 = bit_cast<float, int32_t>(s3);
-            OS::Print("%s: %"Pu64" 0x%"Px64" %.8g\n", arg1, d0, d0, dval0);
-            OS::Print("%s: %"Pu64" 0x%"Px64" %.8g\n", arg1, d1, d1, dval1);
+            OS::Print("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, d0, d0, dval0);
+            OS::Print("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, d1, d1, dval1);
             OS::Print("%s: %d 0x%x %.8g\n", arg1, s0, s0, sval0);
             OS::Print("%s: %d 0x%x %.8g\n", arg1, s1, s1, sval1);
             OS::Print("%s: %d 0x%x %.8g\n", arg1, s2, s2, sval2);
@@ -561,7 +560,7 @@ void SimulatorDebugger::Debug() {
               obj.Print();
 #endif  // defined(DEBUG)
             } else {
-              OS::Print("0x%"Px64" is not an object reference\n", value);
+              OS::Print("0x%" Px64 " is not an object reference\n", value);
             }
           } else {
             OS::Print("%s unrecognized\n", arg1);
@@ -580,7 +579,7 @@ void SimulatorDebugger::Debug() {
             // No length parameter passed, assume 10 instructions.
             if (Simulator::IsIllegalAddress(start)) {
               // If start isn't a valid address, warn and use PC instead.
-              OS::Print("First argument yields invalid address: 0x%"Px64"\n",
+              OS::Print("First argument yields invalid address: 0x%" Px64 "\n",
                         start);
               OS::Print("Using PC instead\n");
               start = sim_->get_pc();
@@ -592,7 +591,7 @@ void SimulatorDebugger::Debug() {
           if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
             if (Simulator::IsIllegalAddress(start)) {
               // If start isn't a valid address, warn and use PC instead.
-              OS::Print("First argument yields invalid address: 0x%"Px64"\n",
+              OS::Print("First argument yields invalid address: 0x%" Px64 "\n",
                         start);
               OS::Print("Using PC instead\n");
               start = sim_->get_pc();
@@ -641,11 +640,11 @@ void SimulatorDebugger::Debug() {
           OS::Print("Not at debugger stop.\n");
         }
       } else if (strcmp(cmd, "trace") == 0) {
-        if (FLAG_trace_sim_after == -1) {
+        if (FLAG_trace_sim_after == ULLONG_MAX) {
           FLAG_trace_sim_after = sim_->get_icount();
           OS::Print("execution tracing on\n");
         } else {
-          FLAG_trace_sim_after = -1;
+          FLAG_trace_sim_after = ULLONG_MAX;
           OS::Print("execution tracing off\n");
         }
       } else if (strcmp(cmd, "bt") == 0) {
@@ -850,7 +849,17 @@ class Redirection {
         argument_count_(argument_count),
         hlt_instruction_(kRedirectInstruction),
         next_(list_) {
-    list_ = this;
+    // Atomically prepend this element to the front of the global list.
+    // Note: Since elements are never removed, there is no ABA issue.
+    Redirection* list_head = list_;
+    do {
+      next_ = list_head;
+      list_head = reinterpret_cast<Redirection*>(
+          AtomicOperations::CompareAndSwapWord(
+              reinterpret_cast<uword*>(&list_),
+              reinterpret_cast<uword>(next_),
+              reinterpret_cast<uword>(this)));
+    } while (list_head != next_);
   }
 
   uword external_function_;
@@ -1054,10 +1063,7 @@ uword Simulator::StackTop() const {
 
 
 bool Simulator::IsTracingExecution() const {
-  // Integer flag values are signed, so we must cast to unsigned.
-  // The default of -1 hence becomes the maximum unsigned value.
-  return (static_cast<uintptr_t>(icount_) >
-          static_cast<uintptr_t>(FLAG_trace_sim_after));
+  return icount_ > FLAG_trace_sim_after;
 }
 
 
@@ -3297,7 +3303,7 @@ void Simulator::DecodeDPSimd2(Instr* instr) {
 void Simulator::InstructionDecode(Instr* instr) {
   pc_modified_ = false;
   if (IsTracingExecution()) {
-    OS::Print("%" Pd " ", icount_);
+    OS::Print("%" Pu64, icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);
@@ -3330,7 +3336,7 @@ void Simulator::Execute() {
   // raw PC value and not the one used as input to arithmetic instructions.
   uword program_counter = get_pc();
 
-  if (FLAG_stop_sim_at == 0) {
+  if (FLAG_stop_sim_at == ULLONG_MAX) {
     // Fast version of the dispatch loop without checking whether the simulator
     // should be stopping at a particular executed instruction.
     while (program_counter != kEndSimulatingPC) {
@@ -3349,10 +3355,10 @@ void Simulator::Execute() {
     while (program_counter != kEndSimulatingPC) {
       Instr* instr = reinterpret_cast<Instr*>(program_counter);
       icount_++;
-      if (static_cast<intptr_t>(icount_) == FLAG_stop_sim_at) {
+      if (icount_ == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction count reached");
-      } else if (reinterpret_cast<intptr_t>(instr) == FLAG_stop_sim_at) {
+      } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction address reached");
       } else if (IsIllegalAddress(program_counter)) {

@@ -163,4 +163,9 @@ class ElementConverterVisitor
       analyzer.ConstructorElement input) {
     return new ConstructorElementY(converter, input);
   }
+
+  @override
+  dart2js.MethodElement visitMethodElement(analyzer.MethodElement input) {
+    return new InstanceMethodElementY(converter, input);
+  }
 }

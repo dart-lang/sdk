@@ -8277,7 +8277,7 @@ class Document extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList querySelectorAll(String selectors) {
+  ElementList<Element> querySelectorAll(String selectors) {
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
@@ -8297,7 +8297,7 @@ class Document extends Node
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList queryAll(String relativeSelectors) =>
+  ElementList<Element> queryAll(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.
@@ -8384,7 +8384,7 @@ class DocumentFragment extends Node implements ParentNode {
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList querySelectorAll(String selectors) =>
+  ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
 
@@ -8442,7 +8442,7 @@ class DocumentFragment extends Node implements ParentNode {
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList queryAll(String relativeSelectors) {
+  ElementList<Element> queryAll(String relativeSelectors) {
     return querySelectorAll(relativeSelectors);
   }
   // To suppress missing implicit constructor warnings.
@@ -10878,7 +10878,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList querySelectorAll(String selectors) =>
+  ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   /**
@@ -10897,7 +10897,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList queryAll(String relativeSelectors) =>
+  ElementList<Element> queryAll(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**
@@ -38498,7 +38498,7 @@ Element query(String relativeSelectors) => document.query(relativeSelectors);
  */
 @deprecated
 @Experimental()
-ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
+ElementList<Element> queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
 
 /**
  * Finds the first descendant element of this document that matches the
@@ -38535,7 +38535,7 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-ElementList querySelectorAll(String selectors) => document.querySelectorAll(selectors);
+ElementList<Element> querySelectorAll(String selectors) => document.querySelectorAll(selectors);
 
 /// A utility for changing the Dart wrapper type for elements.
 abstract class ElementUpgrader {

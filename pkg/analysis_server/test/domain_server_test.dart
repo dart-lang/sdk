@@ -40,7 +40,7 @@ main() {
       expect(response.toJson(), equals({
         Response.ID: '0',
         Response.RESULT: {
-          VERSION: '1.0.0'
+          VERSION: AnalysisServer.VERSION
         }
       }));
     });

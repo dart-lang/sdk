@@ -594,7 +594,7 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList querySelectorAll(String selectors) =>
+  ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   /**
@@ -613,7 +613,7 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList queryAll(String relativeSelectors) =>
+  ElementList<Element> queryAll(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**

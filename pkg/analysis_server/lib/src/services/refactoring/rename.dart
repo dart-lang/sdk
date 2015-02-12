@@ -157,9 +157,10 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<SourceChange> createChange() {
+  Future<SourceChange> createChange() async {
     change = new SourceChange(refactoringName);
-    return fillChange().then((_) => change);
+    await fillChange();
+    return change;
   }
 
   /**

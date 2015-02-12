@@ -33,6 +33,7 @@
     'directory_linux.cc',
     'directory_macos.cc',
     'directory_win.cc',
+    'eventhandler_test.cc',
     'extensions.h',
     'extensions.cc',
     'extensions_android.cc',

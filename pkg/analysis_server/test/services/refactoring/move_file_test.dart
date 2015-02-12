@@ -6,7 +6,6 @@ library test.services.refactoring.move_files;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -29,7 +28,7 @@ main() {
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 
-  test_definingUnit() {
+  test_definingUnit() async {
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/1111/b.dart';
     String pathC = '/project/000/1111/22/c.dart';
@@ -51,11 +50,11 @@ part '/absolute/uri.dart';
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
-    return _assertSuccessfulRefactoring().then((_) {
-      assertNoFileChange(pathA);
-      assertFileChangeResult(pathB, "import '22/new_name.dart';");
-      assertNoFileChange(pathC);
-      assertFileChangeResult(testFile, '''
+    await _assertSuccessfulRefactoring();
+    assertNoFileChange(pathA);
+    assertFileChangeResult(pathB, "import '22/new_name.dart';");
+    assertNoFileChange(pathC);
+    assertFileChangeResult(testFile, '''
 library lib;
 import 'dart:math';
 import 'c.dart';
@@ -63,10 +62,9 @@ export '../333/d.dart';
 part '../a.dart';
 part '/absolute/uri.dart';
 ''');
-    });
   }
 
-  test_importedLibrary() {
+  test_importedLibrary() async {
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/sub/folder/test.dart';
     addSource(pathA, '''
@@ -76,15 +74,14 @@ import 'sub/folder/test.dart';
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/new/folder/name/new_name.dart');
-    return _assertSuccessfulRefactoring().then((_) {
-      assertFileChangeResult(pathA, '''
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
 import '../new/folder/name/new_name.dart';
 ''');
-      assertNoFileChange(testFile);
-    });
+    assertNoFileChange(testFile);
   }
 
-  test_importedLibrary_down() {
+  test_importedLibrary_down() async {
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/test.dart';
     addSource(pathA, '''
@@ -94,15 +91,14 @@ import 'test.dart';
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
-    return _assertSuccessfulRefactoring().then((_) {
-      assertFileChangeResult(pathA, '''
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
 import '22/new_name.dart';
 ''');
-      assertNoFileChange(testFile);
-    });
+    assertNoFileChange(testFile);
   }
 
-  test_importedLibrary_package() {
+  test_importedLibrary_package() async {
     // configure packages
     testFile = '/packages/my_pkg/aaa/test.dart';
     provider.newFile(testFile, '');
@@ -123,15 +119,14 @@ import 'package:my_pkg/aaa/test.dart';
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/packages/my_pkg/bbb/ccc/new_name.dart');
-    return _assertSuccessfulRefactoring().then((_) {
-      assertFileChangeResult(pathA, '''
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
 import 'package:my_pkg/bbb/ccc/new_name.dart';
 ''');
-      assertNoFileChange(testFile);
-    });
+    assertNoFileChange(testFile);
   }
 
-  test_importedLibrary_up() {
+  test_importedLibrary_up() async {
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
@@ -141,15 +136,14 @@ import '22/test.dart';
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/new_name.dart');
-    return _assertSuccessfulRefactoring().then((_) {
-      assertFileChangeResult(pathA, '''
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
 import 'new_name.dart';
 ''');
-      assertNoFileChange(testFile);
-    });
+    assertNoFileChange(testFile);
   }
 
-  test_sourcedUnit() {
+  test_sourcedUnit() async {
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
@@ -159,15 +153,14 @@ part '22/test.dart';
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
-    return _assertSuccessfulRefactoring().then((_) {
-      assertFileChangeResult(pathA, '''
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
 part '22/new_name.dart';
 ''');
-      assertNoFileChange(testFile);
-    });
+    assertNoFileChange(testFile);
   }
 
-  test_sourcedUnit_multipleLibraries() {
+  test_sourcedUnit_multipleLibraries() async {
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/b.dart';
     testFile = '/project/000/1111/22/test.dart';
@@ -181,26 +174,22 @@ part '1111/22/test.dart';
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
-    return _assertSuccessfulRefactoring().then((_) {
-      assertFileChangeResult(pathA, '''
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
 part '22/new_name.dart';
 ''');
-      assertFileChangeResult(pathB, '''
+    assertFileChangeResult(pathB, '''
 part '1111/22/new_name.dart';
 ''');
-      assertNoFileChange(testFile);
-    });
+    assertNoFileChange(testFile);
   }
 
   /**
    * Checks that all conditions are OK.
    */
-  Future _assertSuccessfulRefactoring() {
-    return assertRefactoringConditionsOK().then((_) {
-      return refactoring.createChange().then((SourceChange refactoringChange) {
-        this.refactoringChange = refactoringChange;
-      });
-    });
+  Future _assertSuccessfulRefactoring() async {
+    await assertRefactoringConditionsOK();
+    refactoringChange = await refactoring.createChange();
   }
 
   void _createRefactoring(String newName) {

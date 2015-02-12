@@ -270,7 +270,8 @@ class FlowGraphCompiler : public ValueObject {
       FlowGraph* flow_graph,
       const ParsedFunction& parsed_function,
       bool is_optimizing,
-      const GrowableArray<const Function*>& inline_id_to_function);
+      const GrowableArray<const Function*>& inline_id_to_function,
+      const GrowableArray<intptr_t>& caller_inline_id);
 
   ~FlowGraphCompiler();
 
@@ -528,6 +529,8 @@ class FlowGraphCompiler : public ValueObject {
     return *inlined_code_intervals_;
   }
 
+  RawArray* InliningIdToFunction() const;
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -685,6 +688,7 @@ class FlowGraphCompiler : public ValueObject {
 
   const Array* inlined_code_intervals_;
   const GrowableArray<const Function*>& inline_id_to_function_;
+  const GrowableArray<intptr_t>& caller_inline_id_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

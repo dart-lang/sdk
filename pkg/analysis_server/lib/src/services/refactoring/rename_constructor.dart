@@ -50,17 +50,16 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() {
+  Future fillChange() async {
     String replacement = newName.isEmpty ? '' : '.${newName}';
     // update references
-    return searchEngine.searchReferences(element).then((matches) {
-      List<SourceReference> references = getSourceReferences(matches);
-      if (!element.isSynthetic) {
-        for (SourceReference reference in references) {
-          reference.addEdit(change, replacement);
-        }
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    List<SourceReference> references = getSourceReferences(matches);
+    if (!element.isSynthetic) {
+      for (SourceReference reference in references) {
+        reference.addEdit(change, replacement);
       }
-    });
+    }
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {

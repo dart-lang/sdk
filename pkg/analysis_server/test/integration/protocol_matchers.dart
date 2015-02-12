@@ -198,8 +198,15 @@ final Matcher isAnalysisGetNavigationResult = new LazyMatcher(() => new MatchesJ
 
 /**
  * analysis.reanalyze params
+ *
+ * {
+ *   "roots": optional List<FilePath>
+ * }
  */
-final Matcher isAnalysisReanalyzeParams = isNull;
+final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.reanalyze params", null, optionalFields: {
+    "roots": isListOf(isFilePath)
+  }));
 
 /**
  * analysis.reanalyze result
@@ -1799,6 +1806,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   CONTENT_MODIFIED
  *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
+ *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
@@ -1816,6 +1824,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "CONTENT_MODIFIED",
   "FORMAT_INVALID_FILE",
   "GET_ERRORS_INVALID_FILE",
+  "INVALID_EXECUTION_CONTEXT",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
   "INVALID_REQUEST",

@@ -366,6 +366,28 @@ class JSInt extends JSNumber implements int, double {
     return _bitCount(_spread(nonneg));
   }
 
+  // Returns pow(this, e) % m.
+  int modPow(int e, int m) {
+    if (e is! int) throw new ArgumentError(e);
+    if (m is! int) throw new ArgumentError(m);
+    if (e < 0) throw new RangeError(e);
+    if (m <= 0) throw new RangeError(m);
+    if (e == 0) return 1;
+    int b = this;
+    if (b < 0 || b > m) {
+      b %= m;
+    }
+    int r = 1;
+    while (e > 0) {
+      if (e.isOdd) {
+        r = (r * b) % m;
+      }
+      e ~/= 2;
+      b = (b * b) % m;
+    }
+    return r;
+  }
+
   // Assumes i is <= 32-bit and unsigned.
   static int _bitCount(int i) {
     // See "Hacker's Delight", section 5-1, "Counting 1-Bits".

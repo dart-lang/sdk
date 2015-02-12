@@ -5,6 +5,7 @@
 // VMOptions=--optimization-counter-threshold=5
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 
 import 'dart:async';
 
@@ -69,7 +70,7 @@ test2() async {
   return '!';
 }
 
-main() async {
+test() async {
   var result;
   for (int i = 0; i < 10; i++) {
     await test0();
@@ -77,4 +78,21 @@ main() async {
     result = await test2();
     Expect.equals('abcd', result);
   }
+  await 1;
+}
+
+foo() {
+  throw "Error";
+}
+
+awaitFoo() async {
+  await foo();
+}
+
+main() {
+  asyncStart();
+  test().then((_) => awaitFoo().then(
+          (_) => Expect.fail("Should have thrown"),
+          onError: (error) => Expect.equals("Error", error)))
+      .whenComplete(asyncEnd);
 }

@@ -5,6 +5,7 @@
 library operation;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -57,4 +58,17 @@ class ServerOperationPriority {
 
   @override
   String toString() => name;
+}
+
+
+/**
+ * [SourceSensitiveOperation] can decide if the operation should be discarded
+ * before a change is applied to a [Source].
+ */
+abstract class SourceSensitiveOperation extends ServerOperation {
+  /**
+   * The given [source] is about to be changed.
+   * Check if this [SourceSensitiveOperation] should be discarded.
+   */
+  bool shouldBeDiscardedOnSourceChange(Source source);
 }

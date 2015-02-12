@@ -745,11 +745,6 @@ class Assembler : public ValueObject {
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
 
-  enum Patchability {
-    kPatchable,
-    kNotPatchable,
-  };
-
   bool allow_constant_pool() const {
     return allow_constant_pool_;
   }
@@ -900,7 +895,7 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const { return object_pool_; }
+  const GrowableObjectArray& object_pool() const { return object_pool_.data(); }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -1033,13 +1028,7 @@ class Assembler : public ValueObject {
   AssemblerBuffer buffer_;
 
   // Objects and jump targets.
-  GrowableObjectArray& object_pool_;
-
-  // Patchability of pool entries.
-  GrowableArray<Patchability> patchable_pool_entries_;
-
-  // Hashmap for fast lookup in object pool.
-  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+  ObjectPool object_pool_;
 
   intptr_t prologue_offset_;
 
@@ -1061,9 +1050,6 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
   bool allow_constant_pool_;
 
-  intptr_t FindObject(const Object& obj, Patchability patchable);
-  intptr_t FindExternalLabel(const ExternalLabel* label,
-                             Patchability patchable);
   intptr_t FindImmediate(int64_t imm);
   void LoadExternalLabel(Register dst,
                          const ExternalLabel* label,

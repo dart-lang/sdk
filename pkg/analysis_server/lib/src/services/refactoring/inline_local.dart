@@ -66,7 +66,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<RefactoringStatus> checkInitialConditions() {
+  Future<RefactoringStatus> checkInitialConditions() async {
     RefactoringStatus result = new RefactoringStatus();
     // prepare variable
     {
@@ -96,22 +96,20 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       return new Future.value(result);
     }
     // prepare references
-    return searchEngine.searchReferences(_variableElement).then((references) {
-      this._references = references;
-      // should not have assignments
-      for (SearchMatch reference in _references) {
-        if (reference.kind != MatchKind.READ) {
-          String message = format(
-              "Local variable '{0}' is assigned more than once.",
-              [_variableElement.displayName]);
-          return new RefactoringStatus.fatal(
-              message,
-              newLocation_fromMatch(reference));
-        }
+    _references = await searchEngine.searchReferences(_variableElement);
+    // should not have assignments
+    for (SearchMatch reference in _references) {
+      if (reference.kind != MatchKind.READ) {
+        String message = format(
+            "Local variable '{0}' is assigned more than once.",
+            [_variableElement.displayName]);
+        return new RefactoringStatus.fatal(
+            message,
+            newLocation_fromMatch(reference));
       }
-      // done
-      return result;
-    });
+    }
+    // done
+    return result;
   }
 
   @override

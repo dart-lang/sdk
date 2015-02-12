@@ -18,6 +18,7 @@
 #include "vm/raw_object.h"
 #include "vm/os_thread.h"
 #include "vm/visitor.h"
+#include "vm/weak_table.h"
 
 #include "vm/handles_impl.h"
 
@@ -832,6 +833,8 @@ class ApiState {
 
   void DelayWeakReferenceSet(WeakReferenceSet* reference_set);
 
+  WeakTable* acquired_table() { return &acquired_table_; }
+
  private:
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
@@ -839,6 +842,7 @@ class ApiState {
   ApiLocalScope* reusable_scope_;
   ApiLocalScope* top_scope_;
   WeakReferenceSet* delayed_weak_reference_sets_;
+  WeakTable acquired_table_;
 
   // Persistent handles to important objects.
   PersistentHandle* null_;

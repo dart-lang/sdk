@@ -915,7 +915,7 @@ main() {
     //      some of these tests simply check that a method can be called.
     //   2. Some methods are implemented by mixins.
 
-    ElementList makeElementList() =>
+    ElementList<Element> makeElementList() =>
         (new Element.html("<div>Foo<br/><!--baz--><br/><br/></div>"))
         .queryAll('br');
 

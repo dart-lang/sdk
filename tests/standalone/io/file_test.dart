@@ -134,8 +134,6 @@ class FileTest {
 
   // Test for file stream buffered handling of large files.
   static void testReadWriteStreamLargeFile() {
-    asyncTestStarted();
-
     // Create the test data - arbitrary binary data.
     List<int> buffer = new List<int>(100000);
     for (var i = 0; i < buffer.length; ++i) {
@@ -148,44 +146,56 @@ class FileTest {
     output.add(buffer);
     output.add(buffer);
     output.flush().then((_) => output.close());
+
+    asyncTestStarted();
     output.done.then((_) {
       Stream input = file.openRead();
       int position = 0;
       final int expectedLength = 200000;
+
       // Start an independent asynchronous check on the length.
-      asyncTestStarted();
-      file.length().then((len) {
-        Expect.equals(expectedLength, len);
-        asyncTestDone('testReadWriteStreamLargeFile: length check');
-      });
+      Future lengthTest() {
+        asyncTestStarted();
+        return file.length().then((len) {
+          Expect.equals(expectedLength, len);
+          asyncTestDone('testReadWriteStreamLargeFile: length check');
+        });
+      }
 
       // Immediate read should read 0 bytes.
-      input.listen(
-        (d) {
-          for (int i = 0; i < d.length; ++i) {
-            Expect.equals(buffer[(i + position) % buffer.length], d[i]);
-          }
-          position += d.length;
-        },
-        onError: (error, trace) {
-          print('Error on input in testReadWriteStreamLargeFile');
-          print('with error $error');
-          if (trace != null) print("StackTrace: $trace");
-          throw error;
-        },
-        onDone: () {
-          Expect.equals(expectedLength, position);
-          testPipe(file, buffer)
-              .then((_) => file.delete())
-              .then((_) {
-                  asyncTestDone('testReadWriteStreamLargeFile: main test');
-              })
-              .catchError((e, trace) {
-                print('Exception while deleting ReadWriteStreamLargeFile file');
-                print('Exception $e');
-                if (trace != null) print("StackTrace: $trace");
-              });
-        });
+      Future contentTest() {
+        asyncTestStarted();
+        var completer = new Completer();
+        input.listen(
+          (data) {
+            for (int i = 0; i < data.length; ++i) {
+              Expect.equals(buffer[(i + position) % buffer.length], data[i]);
+            }
+            position += data.length;
+          },
+          onError: (error, trace) {
+            print('Error on input in testReadWriteStreamLargeFile');
+            print('with error $error');
+            if (trace != null) print("StackTrace: $trace");
+            throw error;
+          },
+          onDone: () {
+            Expect.equals(expectedLength, position);
+            testPipe(file, buffer).then((_) {
+              asyncTestDone('testReadWriteStreamLargeFile: main test');
+            }).catchError((error, trace) {
+              print('Exception while deleting ReadWriteStreamLargeFile file');
+              print('Exception $error');
+              if (trace != null) print("StackTrace: $trace");
+              throw error;
+            }).whenComplete(completer.complete);
+          });
+        return completer.future;
+      }
+
+      return Future.forEach([lengthTest, contentTest], (test) => test());
+    }).whenComplete(file.delete).whenComplete(() {
+      asyncTestDone('testReadWriteStreamLargeFile finished');
     });
   }
 

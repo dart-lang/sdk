@@ -90,7 +90,16 @@ class LocalReachabilityComputer {
       // constructor, in which case all we need to do is record the class as
       // being instantiated by this method.  TODO(paulberry): handle the
       // mixin case.
-      analysis.instantiates.add(method.enclosingElement);
+      ClassElement instantiatedClass = method.enclosingElement;
+      analysis.instantiates.add(instantiatedClass);
+      if (instantiatedClass.supertype != null) {
+        ClassElement superClass = instantiatedClass.supertype.element;
+        ConstructorElement superConstructor = superClass.unnamedConstructor;
+        if (superConstructor != null) {
+          // TODO(johnniwinther): Register instantiated type and selector.
+          analysis.calls.add(superConstructor);
+        }
+      }
     } else {
       // This is an executable element with no associated declaration in the
       // AST, and it's not a constructor.  TODO(paulberry): can this ever
@@ -369,7 +378,18 @@ class TreeShakingVisitor extends SemanticVisitor {
       // we don't need to, because the redirected-to constructor will take care
       // of that).
       if (node.initializers.length != 1 || node.initializers[0] is! RedirectingConstructorInvocation) {
+        ClassElement classElement = node.element.enclosingElement;
         analysis.instantiates.add(node.element.enclosingElement);
+        if (!node.initializers.any((i) => i is SuperConstructorInvocation)) {
+          if (classElement.supertype != null) {
+            ClassElement superClass = classElement.supertype.element;
+            ConstructorElement superConstructor = superClass.unnamedConstructor;
+            if (superConstructor != null) {
+              // TODO(johnniwinther): Register instantiated type and selector.
+              analysis.calls.add(superConstructor);
+            }
+          }
+        }
       }
     } else if (node.redirectedConstructor != null) {
       if (node.redirectedConstructor.staticElement == null) {

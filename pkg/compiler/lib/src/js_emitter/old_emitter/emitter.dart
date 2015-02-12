@@ -366,6 +366,12 @@ class OldEmitter implements Emitter {
     }
 
     if (hasIsolateSupport) {
+      jsAst.Expression createNewIsolateFunctionAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.CREATE_NEW_ISOLATE);
+      var createIsolateAssignment =
+          js('# = function() { return new ${namer.isolateName}(); }',
+             createNewIsolateFunctionAccess);
+
       jsAst.Expression classIdExtractorAccess =
           generateEmbeddedGlobalAccess(embeddedNames.CLASS_ID_EXTRACTOR);
       var classIdExtractorAssignment =
@@ -402,7 +408,8 @@ class OldEmitter implements Emitter {
         return o;
       }''', [ initializeEmptyInstanceAccess, allClassesAccess ]);
 
-      result.addAll([classIdExtractorAssignment,
+      result.addAll([createIsolateAssignment,
+                     classIdExtractorAssignment,
                      classFieldsExtractorAssignment,
                      instanceFromClassIdAssignment,
                      initializeEmptyInstanceAssignment]);
@@ -861,8 +868,8 @@ class OldEmitter implements Emitter {
         cachedEmittedConstants.add(constantValue);
       }
       jsAst.Expression init = buildConstantInitializer(constantValue);
-      constantOutput.addBuffer(jsAst.prettyPrint(init, compiler,
-                                         monitor: compiler.dumpInfoTask));
+      constantOutput.addBuffer(
+          jsAst.prettyPrint(init, compiler, monitor: compiler.dumpInfoTask));
       constantOutput.add('$N');
     }
     if (compiler.hasIncrementalSupport && isMainFragment) {
@@ -914,32 +921,8 @@ class OldEmitter implements Emitter {
                       backend.rti.getFunctionThatReturnsNullName]);
   }
 
-  /// Returns the code equivalent to:
-  ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
-  jsAst.Expression buildIsolateSetupClosure(Element appMain,
-                                            Element isolateMain) {
-    jsAst.Expression mainAccess = isolateStaticClosureAccess(appMain);
-    // Since we pass the closurized version of the main method to
-    // the isolate method, we must make sure that it exists.
-    return js('function(a){ #(#, a); }',
-        [backend.emitter.staticFunctionAccess(isolateMain), mainAccess]);
-  }
-
-  emitMain(CodeOutput output) {
+  emitMain(CodeOutput output, jsAst.Statement invokeMain) {
     if (compiler.isMockCompilation) return;
-    Element main = compiler.mainFunction;
-    jsAst.Expression mainCallClosure = null;
-    if (compiler.hasIsolateSupport) {
-      Element isolateMain =
-        backend.isolateHelperLibrary.find(JavaScriptBackend.START_ROOT_ISOLATE);
-      mainCallClosure = buildIsolateSetupClosure(main, isolateMain);
-    } else if (compiler.hasIncrementalSupport) {
-      mainCallClosure = js(
-          'function() { return #(); }',
-          backend.emitter.staticFunctionAccess(main));
-    } else {
-      mainCallClosure = backend.emitter.staticFunctionAccess(main);
-    }
 
     if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
       jsAst.Statement nativeBoilerPlate =
@@ -951,47 +934,8 @@ class OldEmitter implements Emitter {
           nativeBoilerPlate, compiler, monitor: compiler.dumpInfoTask));
     }
 
-    jsAst.Expression currentScriptAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
-
-    addComment('BEGIN invoke [main].', output);
-    // This code finds the currently executing script by listening to the
-    // onload event of all script tags and getting the first script which
-    // finishes. Since onload is called immediately after execution this should
-    // not substantially change execution order.
-    jsAst.Statement invokeMain = js.statement('''
-(function (callback) {
-  if (typeof document === "undefined") {
-    callback(null);
-    return;
-  }
-  if (document.currentScript) {
-    callback(document.currentScript);
-    return;
-  }
-
-  var scripts = document.scripts;
-  function onLoad(event) {
-    for (var i = 0; i < scripts.length; ++i) {
-      scripts[i].removeEventListener("load", onLoad, false);
-    }
-    callback(event.target);
-  }
-  for (var i = 0; i < scripts.length; ++i) {
-    scripts[i].addEventListener("load", onLoad, false);
-  }
-})(function(currentScript) {
-  #currentScript = currentScript;
-
-  if (typeof dartMainRunner === "function") {
-    dartMainRunner(#mainCallClosure, []);
-  } else {
-    #mainCallClosure([]);
-  }
-})''', {'currentScript': currentScriptAccess,
-        'mainCallClosure': mainCallClosure});
-
     output.add(';');
+    addComment('BEGIN invoke [main].', output);
     output.addBuffer(jsAst.prettyPrint(invokeMain,
                      compiler, monitor: compiler.dumpInfoTask));
     output.add(N);
@@ -1358,7 +1302,7 @@ class OldEmitter implements Emitter {
 
   void emitMainOutputUnit(Program program,
                           Map<OutputUnit, String> deferredLoadHashes) {
-    Fragment mainFragment = program.fragments.first;
+    MainFragment mainFragment = program.fragments.first;
     OutputUnit mainOutputUnit = mainFragment.outputUnit;
 
     LineColumnCollector lineColumnCollector;
@@ -1572,7 +1516,7 @@ class OldEmitter implements Emitter {
     jsAst.FunctionDeclaration precompiledFunctionAst =
         buildCspPrecompiledFunctionFor(mainOutputUnit);
     emitInitFunction(mainOutput);
-    emitMain(mainOutput);
+    emitMain(mainOutput, mainFragment.invokeMain);
     mainOutput.add('})()\n');
 
     if (compiler.useContentSecurityPolicy) {

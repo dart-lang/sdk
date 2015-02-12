@@ -17,6 +17,7 @@ import '../js_emitter.dart' show
     NativeEmitter;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
+    CREATE_NEW_ISOLATE,
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
     GET_TYPE_FROM_NAME,
@@ -31,7 +32,6 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
 
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
-
 
 
 class ModelEmitter {
@@ -62,14 +62,12 @@ class ModelEmitter {
   int emitProgram(Program program) {
     List<Fragment> fragments = program.fragments;
     MainFragment mainFragment = fragments.first;
-    js.Statement mainAst = emitMainFragment(program);
-    String mainCode = js.prettyPrint(mainAst, compiler).getText();
-    compiler.outputProvider(mainFragment.outputFileName, 'js')
-        ..add(buildGeneratedBy(compiler))
-        ..add(mainCode)
-        ..close();
-    int totalSize = mainCode.length;
 
+    int totalSize = 0;
+
+    // We have to emit the deferred fragments first, since we need their
+    // deferred hash (which depends on the output) when emitting the main
+    // fragment.
     fragments.skip(1).forEach((DeferredFragment deferredUnit) {
       js.Expression ast =
           emitDeferredFragment(deferredUnit, mainFragment.holders);
@@ -79,10 +77,19 @@ class ModelEmitter {
           ..add(code)
           ..close();
     });
+
+    js.Statement mainAst = emitMainFragment(program);
+    String mainCode = js.prettyPrint(mainAst, compiler).getText();
+    compiler.outputProvider(mainFragment.outputFileName, 'js')
+        ..add(buildGeneratedBy(compiler))
+        ..add(mainCode)
+        ..close();
+    totalSize += mainCode.length;
+
     return totalSize;
   }
 
-  js.LiteralString unparse(Compiler compiler, js.Expression value) {
+  js.LiteralString unparse(Compiler compiler, js.Node value) {
     String text = js.prettyPrint(value, compiler).getText();
     if (value is js.Fun) text = '($text)';
     return js.js.escapedString(text);
@@ -117,7 +124,7 @@ class ModelEmitter {
          emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
        'eagerClasses': emitEagerClassInitializations(fragment.libraries),
-       'main': fragment.main,
+       'invokeMain': fragment.invokeMain,
        'code': code};
 
     holes.addAll(nativeHoles(program));
@@ -201,14 +208,20 @@ class ModelEmitter {
     List<js.Property> globals = <js.Property>[];
 
     if (program.loadMap.isNotEmpty) {
-      globals.addAll(emitLoadUrisAndHashes(program.loadMap));
-      globals.add(emitIsHunkLoadedFunction());
-      globals.add(emitInitializeLoadedHunk());
+      globals.addAll(emitEmbeddedGlobalsForDeferredLoading(program.loadMap));
     }
 
     if (program.typeToInterceptorMap != null) {
       globals.add(new js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP),
                                   program.typeToInterceptorMap));
+    }
+
+    if (program.hasIsolateSupport) {
+      String isolateName = namer.currentIsolate;
+      globals.add(
+          new js.Property(js.string(CREATE_NEW_ISOLATE),
+                          js.js('function () { return $isolateName; }')));
+      // TODO(floitsch): add remaining isolate functions.
     }
 
     globals.add(emitMangledGlobalNames());
@@ -253,12 +266,24 @@ class ModelEmitter {
                            new js.ObjectInitializer(names));
   }
 
-  List<js.Property> emitLoadUrisAndHashes(Map<String, List<Fragment>> loadMap) {
-    js.ArrayInitializer outputUris(List<Fragment> fragments) {
+  js.Statement emitDeferredInitializerGlobal(Map loadMap) {
+    if (loadMap.isEmpty) return new js.Block.empty();
+
+    return js.js.statement("""
+  if (typeof($deferredInitializersGlobal) === 'undefined')
+    var $deferredInitializersGlobal = Object.create(null);""");
+  }
+
+  Iterable<js.Property> emitEmbeddedGlobalsForDeferredLoading(
+      Map<String, List<Fragment>> loadMap) {
+
+    List<js.Property> globals = <js.Property>[];
+
+    js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
       return js.stringArray(fragments.map((DeferredFragment fragment) =>
-          "${fragment.outputFileName}$deferredExtension"));
+          "${fragment.outputFileName}.$deferredExtension"));
     }
-    js.ArrayInitializer outputHashes(List<Fragment> fragments) {
+    js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
       // TODO(floitsch): the hash must depend on the generated code.
       return js.numArray(
           fragments.map((DeferredFragment fragment) => fragment.hashCode));
@@ -269,38 +294,41 @@ class ModelEmitter {
     int count = 0;
     loadMap.forEach((String loadId, List<Fragment> fragmentList) {
       uris[count] =
-          new js.Property(js.string(loadId), outputUris(fragmentList));
+          new js.Property(js.string(loadId), fragmentUris(fragmentList));
       hashes[count] =
-          new js.Property(js.string(loadId), outputHashes(fragmentList));
+          new js.Property(js.string(loadId), fragmentHashes(fragmentList));
       count++;
     });
 
-    return <js.Property>[
-         new js.Property(js.string(DEFERRED_LIBRARY_URIS),
-                         new js.ObjectInitializer(uris)),
-         new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
-                         new js.ObjectInitializer(hashes))
-         ];
-  }
+    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_URIS),
+                                new js.ObjectInitializer(uris)));
+    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
+                                new js.ObjectInitializer(hashes)));
 
-  js.Statement emitDeferredInitializerGlobal(Map loadMap) {
-    if (loadMap.isEmpty) return new js.Block.empty();
-
-    return js.js.statement("""
-  if (typeof($deferredInitializersGlobal) === 'undefined')
-    var $deferredInitializersGlobal = Object.create(null);""");
-  }
-
-  js.Property emitIsHunkLoadedFunction() {
-    js.Expression function =
+    js.Expression isHunkLoadedFunction =
         js.js("function(hash) { return !!$deferredInitializersGlobal[hash]; }");
-    return new js.Property(js.string(IS_HUNK_LOADED), function);
-  }
+    globals.add(new js.Property(js.string(IS_HUNK_LOADED),
+                                isHunkLoadedFunction));
 
-  js.Property emitInitializeLoadedHunk() {
-    js.Expression function =
-        js.js("function(hash) { eval($deferredInitializersGlobal[hash]); }");
-    return new js.Property(js.string(INITIALIZE_LOADED_HUNK), function);
+    js.Expression isHunkInitializedFunction =
+        js.js("function(hash) { return false; }");
+    globals.add(new js.Property(js.string(IS_HUNK_INITIALIZED),
+                                isHunkInitializedFunction));
+
+    /// See [emitEmbeddedGlobalsForDeferredLoading] for the format of the
+    /// deferred hunk.
+    js.Expression initializeLoadedHunkFunction =
+        js.js("""
+          function(hash) {
+            var hunk = $deferredInitializersGlobal[hash];
+            $setupProgramName(hunk[0]);
+            eval(hunk[1]);
+          }""");
+
+    globals.add(new js.Property(js.string(INITIALIZE_LOADED_HUNK),
+                                initializeLoadedHunkFunction));
+
+    return globals;
   }
 
   js.Property emitGetTypeFromName() {
@@ -323,14 +351,30 @@ class ModelEmitter {
                                      List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
     // TODO(floitsch): the hash must depend on the output.
-    int hash = this.hashCode;
-    if (fragment.constants.isNotEmpty) {
-      throw new UnimplementedError("constants in deferred units");
-    }
-    js.ArrayInitializer content =
-        new js.ArrayInitializer(fragment.libraries.map(emitLibrary)
-                                                  .toList(growable: false));
-    return js.js("$deferredInitializersGlobal[$hash] = #", content);
+    int hash = fragment.hashCode;
+
+    List<js.Expression> deferredCode =
+        fragment.libraries.map(emitLibrary).toList();
+
+    deferredCode.add(
+        emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
+
+    js.ArrayInitializer deferredArray = new js.ArrayInitializer(deferredCode);
+
+    // This is the code that must be evaluated after all deferred classes have
+    // been setup.
+    js.Statement immediateCode = js.js.statement('''{
+          #constants;
+          #eagerClasses;
+        }''',
+        {'constants': emitConstants(fragment.constants),
+         'eagerClasses': emitEagerClassInitializations(fragment.libraries)});
+
+    js.LiteralString immediateString = unparse(compiler, immediateCode);
+    js.ArrayInitializer hunk =
+        new js.ArrayInitializer([deferredArray, immediateString]);
+
+    return js.js("$deferredInitializersGlobal[$hash] = #", hunk);
   }
 
   js.Block emitConstants(List<Constant> constants) {
@@ -466,7 +510,9 @@ class ModelEmitter {
   // This string should be referenced wherever JavaScript code makes assumptions
   // on the mixin format.
   static final String mixinFormatDescription =
-      "Mixins have no constructor, but a reference to their mixin class.";
+      "Mixins have a reference to their mixin class at the place of the usual"
+      "constructor. If they are instantiated the constructor follows the"
+      "reference.";
 
   js.Expression emitClass(Class cls) {
     List elements = [js.string(cls.superclassName),
@@ -476,17 +522,21 @@ class ModelEmitter {
       MixinApplication mixin = cls;
       elements.add(js.string(mixin.mixinClass.name));
       elements.add(js.number(mixin.mixinClass.holder.index));
+      if (cls.isDirectlyInstantiated) {
+        elements.add(_generateConstructor(cls));
+      }
     } else {
       elements.add(_generateConstructor(cls));
     }
     Iterable<Method> methods = cls.methods;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
+    Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods =
-        [methods, isChecks, callStubs, noSuchMethodStubs, gettersSetters]
-            .expand((x) => x);
+        [methods, isChecks, callStubs, typeVariableReaderStubs,
+         noSuchMethodStubs, gettersSetters].expand((x) => x);
     elements.addAll(allMethods.expand(emitInstanceMethod));
 
     return unparse(compiler, new js.ArrayInitializer(elements));
@@ -503,12 +553,12 @@ class ModelEmitter {
   /// facilitate the generation of tearOffs at runtime. The format is an array
   /// with the following fields:
   ///
+  /// [InstanceMethod.aliasName] (optional).
   /// [Method.code]
   /// [DartMethod.callName]
-  /// [DartMethod.tearOffName]
-  /// [JavaScriptBackend.isInterceptedMethod]
-  /// functionType
-  /// [InstanceMethod.aliasName]
+  /// isInterceptedMethod (optional, present if [DartMethod.needsTearOff]).
+  /// [DartMethod.tearOffName] (optional, present if [DartMethod.needsTearOff]).
+  /// functionType (optional, present if [DartMethod.needsTearOff]).
   ///
   /// followed by
   ///
@@ -520,25 +570,40 @@ class ModelEmitter {
   static final String parseFunctionDescriptorBoilerplate = r"""
 function parseFunctionDescriptor(proto, name, descriptor) {
   if (descriptor instanceof Array) {
-    proto[name] = descriptor[0];
-    var funs = [descriptor[0]];
-    funs[0].$callName = descriptor[1];
-    for (var pos = 6; pos < descriptor.length; pos += 3) {
+    // 'pos' points to the last read entry.
+    var f, pos = -1;
+    var aliasOrFunction = descriptor[++pos];
+    if (typeof aliasOrFunction == "string") {
+      // Install the alias for super calls on the prototype chain.
+      proto[aliasOrFunction] = f = descriptor[++pos];
+    } else {
+      f = aliasOrFunction;
+    }
+
+    proto[name] = f;
+    var funs = [f];
+    f.$callName = descriptor[++pos];
+
+    var isInterceptedOrParameterStubName = descriptor[pos + 1];
+    var isIntercepted, tearOffName, reflectionInfo;
+    if (typeof isInterceptedOrParameterStubName == "boolean") {
+      isIntercepted = descriptor[++pos];
+      tearOffName = descriptor[++pos];
+      reflectionInfo = descriptor[++pos];
+    }
+
+    for (++pos; pos < descriptor.length; pos += 3) {
       var stub = descriptor[pos + 2];
       stub.$callName = descriptor[pos + 1];
       proto[descriptor[pos]] = stub;
       funs.push(stub);
     }
-    if (descriptor[2] != null) {
-      var isIntercepted = descriptor[3];
-      var reflectionInfo = descriptor[4];
-      proto[descriptor[2]] = 
+
+    if (tearOffName) {
+      proto[tearOffName] =
           tearOff(funs, reflectionInfo, false, name, isIntercepted);
     }
-    // Install the alias for super calls on the prototype chain.
-    if (descriptor[5] != null) {
-      proto[descriptor[5]] = descriptor[0];
-    }
+
   } else {
     proto[name] = descriptor;
   }
@@ -571,19 +636,22 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       if (method.needsTearOff || method.aliasName != null) {
         /// See [parseFunctionDescriptorBoilerplate] for a full description of
         /// the format.
-        // [name, [function, callName, tearOffName, isIntercepted, functionType,
-        //     aliasName, stub1_name, stub1_callName, stub1_code, ...]
-        bool isIntercepted = backend.isInterceptedMethod(method.element);
-        var data = [method.code];
-        data.add(js.string(method.callName));
-        data.add(js.string(method.tearOffName));
-        data.add(new js.LiteralBool(isIntercepted));
-        data.add(_generateFunctionType(method.type));
+        // [name, [aliasName, function, callName, isIntercepted, tearOffName,
+        // functionType, stub1_name, stub1_callName, stub1_code, ...]
+        var data = [];
         if (method.aliasName != null) {
           data.add(js.string(method.aliasName));
-        } else {
-          data.add(new js.LiteralNull());
         }
+        data.add(method.code);
+        data.add(js.string(method.callName));
+
+        if (method.needsTearOff) {
+          bool isIntercepted = backend.isInterceptedMethod(method.element);
+          data.add(new js.LiteralBool(isIntercepted));
+          data.add(js.string(method.tearOffName));
+          data.add(_generateFunctionType(method.type));
+        }
+
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
         return [js.string(method.name), new js.ArrayInitializer(data)];
       } else {
@@ -637,6 +705,8 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     return output;
   }
 
+  static final String setupProgramName = "setupProgram";
+
   static final String boilerplate = """
 {
 // Declare deferred-initializer global.
@@ -650,7 +720,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   // Counter to generate unique names for tear offs.
   var functionCounter = 0;
 
-  function setupProgram() {
+  function $setupProgramName(program) {
     for (var i = 0; i < program.length - 1; i++) {
       setupLibrary(program[i]);
     }
@@ -800,18 +870,28 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
     var constructor;
+    var functionsIndex;
     // $mixinFormatDescription.
     if (typeof descriptor[2] !== 'function') {
-      constructor = compileMixinConstructor(name, prototype, descriptor);
-      for (var i = 4; i < descriptor.length; i += 2) {
-        parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
+      fillPrototypeWithMixedIn(descriptor[2], descriptor[3], prototype);
+      // descriptor[4] contains the constructor if the mixin application is
+      // directly instantiated.
+      if (typeof descriptor[4] === 'function') {
+        constructor = descriptor[4];
+        functionsIndex = 5;
+      } else {
+        constructor = function() {};
+        functionsIndex = 4;
       }
     } else {
       constructor = descriptor[2];
-      for (var i = 3; i < descriptor.length; i += 2) {
-        parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
-      }
+      functionsIndex = 3;
     }
+
+    for (var i = functionsIndex; i < descriptor.length; i += 2) {
+      parseFunctionDescriptor(prototype, descriptor[i], descriptor[i + 1]);
+    }
+
     constructor.builtin\$cls = name;  // Needed for RTI.
     constructor.prototype = prototype;
     prototype[#operatorIsPrefix + name] = constructor;
@@ -819,10 +899,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     return constructor;
   }
 
-  function compileMixinConstructor(name, prototype, descriptor) {
-    // $mixinFormatDescription.
-    var mixinName = descriptor[2];
-    var mixinHolderIndex = descriptor[3];
+  function fillPrototypeWithMixedIn(mixinName, mixinHolderIndex, prototype) {
     var mixin = holders[mixinHolderIndex][mixinName].ensureResolved();
     var mixinPrototype = mixin.prototype;
 
@@ -832,10 +909,6 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       var p = mixinProperties[i];
       prototype[p] = mixinPrototype[p];
     }
-    // Since this is a mixin application the constructor will actually never
-    // be invoked. We only use its prototype for the application's subclasses. 
-    var constructor = function() {};
-    return constructor;
   }
 
   function determinePrototype(descriptor) {
@@ -880,7 +953,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     }
   }
 
-  setupProgram();
+  $setupProgramName(program);
 
   // Initialize constants.
   #constants;
@@ -905,9 +978,9 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   #eagerClasses;
 
   var end = Date.now();
-  print('Setup: ' + (end - start) + ' ms.');
+  // print('Setup: ' + (end - start) + ' ms.');
 
-  #main();  // Start main.
+  #invokeMain;  // Start main.
 
 }(Date.now(), #code)
 }""";

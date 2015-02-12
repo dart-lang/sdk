@@ -7,6 +7,10 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
+await_for_cancel_test: RuntimeError # Issue 21404
+asyncstar_yield_test: Fail # Issue 21404
+asyncstar_yieldstar_test: Fail # Issue 21404
+asyncstar_concat_test: Fail # Issue 21404
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -59,6 +63,7 @@ async_await_syntax_test/b03a: CompileTimeError # Issue 21404
 async_await_syntax_test/b11d: CompileTimeError # Issue 21404
 async_await_syntax_test/c03a: CompileTimeError # Issue 21404
 async_await_syntax_test/d03a: CompileTimeError # Issue 21404
+sync_generator3_test/test2: Fail # Issue 22300
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
 async_await_syntax_test/a03a: RuntimeError # Issue 21404

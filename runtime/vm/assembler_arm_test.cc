@@ -62,13 +62,13 @@ ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
 #if defined(USING_SIMULATOR)
   // ARMv7 is the default.
   HostCPUFeatures::set_arm_version(ARMv6);
-  __ LoadDecodableImmediate(R0, 0x12345678 << 1);
+  __ LoadPatchableImmediate(R0, 0x12345678 << 1);
   HostCPUFeatures::set_arm_version(ARMv7);
-  __ LoadDecodableImmediate(R1, 0x12345678);
+  __ LoadPatchableImmediate(R1, 0x12345678);
   __ sub(R0, R0, Operand(R1));
   __ bx(LR);
 #else
-  __ LoadDecodableImmediate(R0, 0x12345678);
+  __ LoadPatchableImmediate(R0, 0x12345678);
   __ bx(LR);
 #endif
 }

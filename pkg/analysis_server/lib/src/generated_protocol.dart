@@ -1008,25 +1008,70 @@ class AnalysisGetNavigationResult implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+
 /**
  * analysis.reanalyze params
+ *
+ * {
+ *   "roots": optional List<FilePath>
+ * }
  */
-class AnalysisReanalyzeParams {
-  Request toRequest(String id) {
-    return new Request(id, "analysis.reanalyze", null);
+class AnalysisReanalyzeParams implements HasToJson {
+  /**
+   * A list of the analysis roots that are to be re-analyzed.
+   */
+  List<String> roots;
+
+  AnalysisReanalyzeParams({this.roots});
+
+  factory AnalysisReanalyzeParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> roots;
+      if (json.containsKey("roots")) {
+        roots = jsonDecoder._decodeList(jsonPath + ".roots", json["roots"], jsonDecoder._decodeString);
+      }
+      return new AnalysisReanalyzeParams(roots: roots);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.reanalyze params");
+    }
   }
+
+  factory AnalysisReanalyzeParams.fromRequest(Request request) {
+    return new AnalysisReanalyzeParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (roots != null) {
+      result["roots"] = roots;
+    }
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "analysis.reanalyze", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
 
   @override
   bool operator==(other) {
     if (other is AnalysisReanalyzeParams) {
-      return true;
+      return _listEqual(roots, other.roots, (String a, String b) => a == b);
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 613039876;
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, roots.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 /**
@@ -3483,16 +3528,12 @@ class EditFormatParams implements HasToJson {
   String file;
 
   /**
-   * The offset of the current selection in the file. In case preserving,
-   * selection information is not required, 0 can be specified for both
-   * selection offset and length.
+   * The offset of the current selection in the file.
    */
   int selectionOffset;
 
   /**
-   * The length of the current selection in the file. In case preserving,
-   * selection information is not required, 0 can be specified for both
-   * selection offset and length.
+   * The length of the current selection in the file.
    */
   int selectionLength;
 
@@ -4583,7 +4624,8 @@ class EditSortMembersResult implements HasToJson {
  */
 class ExecutionCreateContextParams implements HasToJson {
   /**
-   * The path of the Dart or HTML file that will be launched.
+   * The path of the Dart or HTML file that will be launched, or the path of
+   * the directory containing the file.
    */
   String contextRoot;
 
@@ -9208,6 +9250,7 @@ class RequestError implements HasToJson {
  *   CONTENT_MODIFIED
  *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
+ *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
@@ -9240,6 +9283,11 @@ class RequestErrorCode implements Enum {
    * a file currently subject to analysis.
    */
   static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+
+  /**
+   * The context root used to create an execution context does not exist.
+   */
+  static const INVALID_EXECUTION_CONTEXT = const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
 
   /**
    * An analysis.updateContent request contained a ChangeContentOverlay object
@@ -9318,7 +9366,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -9332,6 +9380,8 @@ class RequestErrorCode implements Enum {
         return FORMAT_INVALID_FILE;
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
+      case "INVALID_EXECUTION_CONTEXT":
+        return INVALID_EXECUTION_CONTEXT;
       case "INVALID_OVERLAY_CHANGE":
         return INVALID_OVERLAY_CHANGE;
       case "INVALID_PARAMETER":

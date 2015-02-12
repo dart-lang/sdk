@@ -51,10 +51,10 @@ void main(List<String> arguments) {
   useSetlet(null);
   useImmutableEmptySet(null);
   useElementVisitor(new ElementVisitor());
-  useJs(new js.Program(null));
-  useJs(new js.Blob(null));
-  useJs(new js.NamedFunction(null, null));
-  useJs(new js.ArrayHole());
+  useJsNode(new js.Program(null));
+  useJsNode(new js.NamedFunction(null, null));
+  useJsNode(new js.ArrayHole());
+  useJsOther(new js.SimpleJavaScriptPrintingContext());
   useJsBackend(null);
   useConcreteTypesInferrer(null);
   useColor();
@@ -170,8 +170,12 @@ void useElementVisitor(ElementVisitor visitor) {
     ..visitWarnOnUseElement(null);
 }
 
-useJs(js.Node node) {
+useJsNode(js.Node node) {
   node.asVariableUse();
+}
+
+useJsOther(js.SimpleJavaScriptPrintingContext context) {
+  context.getText();
 }
 
 useJsBackend(js_backend.JavaScriptBackend backend) {

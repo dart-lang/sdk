@@ -44,6 +44,13 @@ const INITIALIZE_LOADED_HUNK = 'initializeLoadedHunk';
 const IS_HUNK_LOADED = 'isHunkLoaded';
 const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 const DEFERRED_INITIALIZED = 'deferredInitialized';
+
+/// Returns a function that creates a new Isolate (its static state).
+///
+/// (floitsch): Note that this will probably go away, since one JS heap will
+/// only contain one Dart isolate.
+const CREATE_NEW_ISOLATE = 'createNewIsolate';
+
 const CLASS_ID_EXTRACTOR = 'classIdExtractor';
 const CLASS_FIELDS_EXTRACTOR = 'classFieldsExtractor';
 const INSTANCE_FROM_CLASS_ID = "instanceFromClassId";

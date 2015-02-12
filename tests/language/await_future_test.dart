@@ -5,6 +5,7 @@
 // VMOptions=--optimization-counter-threshold=5
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 
 import 'dart:async';
 
@@ -181,7 +182,7 @@ awaitForIn() async {
   return k;
 }
 
-main() async {
+test() async {
   var result;
   for (int i = 0; i < 10; i++) {
     result = await foo();
@@ -225,4 +226,11 @@ main() async {
     result = await awaitForIn();
     Expect.equals('abc', result);
   }
+}
+
+main() {
+  asyncStart();
+  test().then((_) {
+    asyncEnd();
+  });
 }

@@ -1021,8 +1021,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return node;
   }
 
-  // TODO(turnidge): Make this an ObservableList instead.
-  ServiceMap breakpoints;
+  ObservableList breakpoints = new ObservableList();
 
   void _removeBreakpoint(ServiceMap bpt) {
     var script = bpt['location']['script'];
@@ -1058,7 +1057,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   void _updateBreakpoints(ServiceMap newBreakpoints) {
     // Remove all of the old breakpoints from the Script lines.
     if (breakpoints != null) {
-      for (var bpt in breakpoints['breakpoints']) {
+      for (var bpt in breakpoints) {
         _removeBreakpoint(bpt);
       }
     }
@@ -1066,7 +1065,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
     for (var bpt in newBreakpoints['breakpoints']) {
       _addBreakpoint(bpt);
     }
-    breakpoints = newBreakpoints;
+    breakpoints.clear();
+    breakpoints.addAll(newBreakpoints['breakpoints']);
+
+    // Sort the breakpoints by breakpointNumber.
+    breakpoints.sort((a, b) => (a['breakpointNumber'] - b['breakpointNumber']));
   }
 
   Future<ServiceObject> _inProgressReloadBpts;
@@ -1122,6 +1125,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
       });
   }
 
+  // TODO(turnidge): If the user invokes pause (or other rpcs) twice,
+  // they could get a race.  Consider returning an "in progress"
+  // future to avoid this.
   Future pause() {
     return invokeRpc('pause', {}).then((result) {
         if (result is DartError) {
@@ -1938,7 +1944,7 @@ class ScriptLine extends Observable {
     possibleBpt = !_isTrivialLine(text);
 
     // TODO(turnidge): This is not so efficient.  Consider improving.
-    for (var bpt in this.script.isolate.breakpoints['breakpoints']) {
+    for (var bpt in this.script.isolate.breakpoints) {
       var bptScript = bpt['location']['script'];
       var bptTokenPos = bpt['location']['tokenPos'];
       if (bptScript == this.script &&

@@ -247,7 +247,6 @@ class Scavenger {
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
   void Epilogue(Isolate* isolate,
-                ScavengerVisitor* visitor,
                 bool invoke_api_callbacks);
 
   bool IsUnreachable(RawObject** p);

@@ -227,7 +227,8 @@ abstract class RawServerSocket implements Stream<RawSocket> {
   external static Future<RawServerSocket> bind(address,
                                                int port,
                                                {int backlog: 0,
-                                                bool v6Only: false});
+                                                bool v6Only: false,
+                                                bool shared: false});
 
   /**
    * Returns the port used by this socket.
@@ -318,7 +319,8 @@ abstract class ServerSocket implements Stream<Socket> {
   external static Future<ServerSocket> bind(address,
                                             int port,
                                             {int backlog: 0,
-                                             bool v6Only: false});
+                                             bool v6Only: false,
+                                             bool shared: false});
 
   /**
    * Returns the port used by this socket.
@@ -453,8 +455,13 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * all returned [InternetAddress]es, until connected. Unless a
    * connection was established, the error from the first failing connection is
    * returned.
+   *
+   * The argument [sourceAddress] can be used to specify the local
+   * address to bind when making the connection. `sourceAddress` can either
+   * be a `String` or an `InternetAddress`. If a `String` is passed it must
+   * hold a numeric IP address.
    */
-  external static Future<RawSocket> connect(host, int port);
+  external static Future<RawSocket> connect(host, int port, {sourceAddress});
 
   /**
    * Returns the number of received and non-read bytes in the socket that
@@ -546,8 +553,13 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * all returned [InternetAddress]es, until connected. Unless a
    * connection was established, the error from the first failing connection is
    * returned.
+   *
+   * The argument [sourceAddress] can be used to specify the local
+   * address to bind when making the connection. `sourceAddress` can either
+   * be a `String` or an `InternetAddress`. If a `String` is passed it must
+   * hold a numeric IP address.
    */
-  external static Future<Socket> connect(host, int port);
+  external static Future<Socket> connect(host, int port, {sourceAddress});
 
   /**
    * Destroy the socket in both directions. Calling [destroy] will make the

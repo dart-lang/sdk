@@ -13,6 +13,7 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('nav-bar')
 class NavBarElement extends ObservatoryElement {
+  @published bool showNotify = true;
   @published bool pad = true;
 
   NavBarElement.created() : super.created();

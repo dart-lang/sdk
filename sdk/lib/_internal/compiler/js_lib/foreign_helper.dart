@@ -154,11 +154,6 @@ RAW_DART_FUNCTION_REF(Function function) {}
 void JS_SET_CURRENT_ISOLATE(isolate) {}
 
 /**
- * Creates an isolate and returns it.
- */
-JS_CREATE_ISOLATE() {}
-
-/**
  * Returns the JavaScript constructor function for Dart's Object class.
  * This can be used for type tests, as in
  *

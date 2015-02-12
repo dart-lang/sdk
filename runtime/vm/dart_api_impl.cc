@@ -47,6 +47,8 @@ DEFINE_FLAG(bool, check_function_fingerprints, false,
             "Check function fingerprints");
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
+DEFINE_FLAG(bool, verify_acquired_data, false,
+            "Verify correct API acquire/release of typed data.");
 
 ThreadLocalKey Api::api_native_key_ = OSThread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -1563,7 +1565,12 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
 
   ASSERT(isolate->GetAndClearResumeRequest() == false);
   isolate->message_handler()->HandleOOBMessages();
-  return isolate->GetAndClearResumeRequest();
+  bool resume = isolate->GetAndClearResumeRequest();
+  if (resume && Service::NeedsDebuggerEvents()) {
+    DebuggerEvent resumeEvent(isolate, DebuggerEvent::kIsolateResumed);
+    Service::HandleDebuggerEvent(&resumeEvent);
+  }
+  return resume;
 }
 
 
@@ -2677,7 +2684,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   ASSERT(result.IsFunction());
   Function& constructor = Function::Handle(isolate);
   constructor ^= result.raw();
-  if (!constructor.IsConstructor()) {
+  if (!constructor.IsGenerativeConstructor()) {
     const String& message = String::Handle(
         String::NewFormatted("%s: class '%s' is not a constructor.",
                              CURRENT_FUNC, class_name.ToCString()));
@@ -3144,7 +3151,7 @@ static Dart_Handle NewByteData(Isolate* isolate, intptr_t length) {
   ASSERT(!result.IsNull());
   ASSERT(result.IsFunction());
   const Function& factory = Function::Cast(result);
-  ASSERT(!factory.IsConstructor());
+  ASSERT(!factory.IsGenerativeConstructor());
 
   // Create the argument list.
   const Array& args = Array::Handle(isolate, Array::New(2));
@@ -3193,7 +3200,7 @@ static Dart_Handle NewExternalByteData(
   ASSERT(!result.IsNull());
   ASSERT(result.IsFunction());
   const Function& factory = Function::Cast(result);
-  ASSERT(!factory.IsConstructor());
+  ASSERT(!factory.IsGenerativeConstructor());
 
   // Create the argument list.
   const intptr_t num_args = 3;
@@ -3374,7 +3381,7 @@ DART_EXPORT Dart_Handle Dart_NewByteBuffer(Dart_Handle typed_data) {
   ASSERT(!result.IsNull());
   ASSERT(result.IsFunction());
   const Function& factory = Function::Cast(result);
-  ASSERT(!factory.IsConstructor());
+  ASSERT(!factory.IsGenerativeConstructor());
 
   // Create the argument list.
   const Array& args = Array::Handle(isolate, Array::New(2));
@@ -3449,6 +3456,20 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
       *data = data_obj.DataAddr(offset_in_bytes);
     }
   }
+  if (FLAG_verify_acquired_data) {
+    // For now, we just verify that acquire/release are properly matched
+    // per object.
+    // TODO(koda): Copy internal data to/from a side buffer which is unmapped
+    // on release to catch use-after-release bugs.
+    const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+    WeakTable* table = isolate->api_state()->acquired_table();
+    intptr_t current = table->GetValue(obj.raw());
+    if (current != 0) {
+      ASSERT(current == 1);
+      return Api::NewError("Data was already acquired for this object.");
+    }
+    table->SetValue(obj.raw(), 1);
+  }
   return Api::Success();
 }
 
@@ -3465,6 +3486,17 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   if (!RawObject::IsExternalTypedDataClassId(class_id)) {
     isolate->DecrementNoGCScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
+  }
+  if (FLAG_verify_acquired_data) {
+    const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+    WeakTable* table = isolate->api_state()->acquired_table();
+    intptr_t current = table->GetValue(obj.raw());
+    if (current != 1) {
+      ASSERT(current == 0);
+      return Api::NewError("Data was not acquired for this object.");
+    }
+    // Delete entry from table.
+    table->SetValue(obj.raw(), 0);
   }
   return Api::Success();
 }
@@ -3494,7 +3526,7 @@ static RawObject* ResolveConstructor(const char* current_func,
   const Function& constructor =
       Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
   if (constructor.IsNull() ||
-      (!constructor.IsConstructor() && !constructor.IsFactory())) {
+      (!constructor.IsGenerativeConstructor() && !constructor.IsFactory())) {
     const String& lookup_class_name = String::Handle(cls.Name());
     if (!class_name.Equals(lookup_class_name)) {
       // When the class name used to build the constructor name is
@@ -3516,7 +3548,7 @@ static RawObject* ResolveConstructor(const char* current_func,
       return ApiError::New(message);
     }
   }
-  int extra_args = (constructor.IsConstructor() ? 2 : 1);
+  int extra_args = (constructor.IsGenerativeConstructor() ? 2 : 1);
   String& error_message = String::Handle();
   if (!constructor.AreValidArgumentCounts(num_args + extra_args,
                                           0,
@@ -3619,17 +3651,17 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 
     cls = type_obj.type_class();
   }
-  if (constructor.IsConstructor()) {
+  if (constructor.IsGenerativeConstructor()) {
     // Create the new object.
     new_object = Instance::New(cls);
   }
 
   // Create the argument list.
   intptr_t arg_index = 0;
-  int extra_args = (constructor.IsConstructor() ? 2 : 1);
+  int extra_args = (constructor.IsGenerativeConstructor() ? 2 : 1);
   const Array& args =
       Array::Handle(isolate, Array::New(number_of_arguments + extra_args));
-  if (constructor.IsConstructor()) {
+  if (constructor.IsGenerativeConstructor()) {
     // Constructors get the uninitialized object and a constructor phase.
     if (!type_arguments.IsNull()) {
       // The type arguments will be null if the class has no type parameters, in
@@ -3665,7 +3697,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     return Api::NewHandle(isolate, result.raw());
   }
 
-  if (constructor.IsConstructor()) {
+  if (constructor.IsGenerativeConstructor()) {
     ASSERT(result.IsNull());
   } else {
     ASSERT(result.IsNull() || result.IsInstance());
@@ -3823,7 +3855,7 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
     Function::Handle(isolate, cls.LookupFunctionAllowPrivate(dot_name));
   const int extra_args = 2;
   if (!constructor.IsNull() &&
-      constructor.IsConstructor() &&
+      constructor.IsGenerativeConstructor() &&
       constructor.AreValidArgumentCounts(number_of_arguments + extra_args,
                                          0,
                                          NULL)) {

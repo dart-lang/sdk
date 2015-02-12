@@ -475,7 +475,7 @@ class Assembler : public ValueObject {
     ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const { return object_pool_; }
+  const GrowableObjectArray& object_pool() const { return object_pool_.data(); }
 
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -1299,11 +1299,6 @@ class Assembler : public ValueObject {
   static const int kClosureCallBreakpointCPIndex = 6;
   static const int kRuntimeCallBreakpointCPIndex = 7;
 
-  enum Patchability {
-    kPatchable,
-    kNotPatchable,
-  };
-
   bool allow_constant_pool() const {
     return allow_constant_pool_;
   }
@@ -1313,9 +1308,6 @@ class Assembler : public ValueObject {
 
   void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
   void LoadWordFromPoolOffsetFixed(Register dst, Register pp, uint32_t offset);
-  intptr_t FindExternalLabel(const ExternalLabel* label,
-                             Patchability patchable);
-  intptr_t FindObject(const Object& obj, Patchability patchable);
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadObjectFromPool(const Object& object);
   bool CanLoadImmediateFromPool(int64_t imm, Register pp);
@@ -1425,13 +1417,7 @@ class Assembler : public ValueObject {
   AssemblerBuffer buffer_;  // Contains position independent code.
 
   // Objects and patchable jump targets.
-  GrowableObjectArray& object_pool_;
-
-  // Patchability of pool entries.
-  GrowableArray<Patchability> patchable_pool_entries_;
-
-  // Hashmap for fast lookup in object pool.
-  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+  ObjectPool object_pool_;
 
   int32_t prologue_offset_;
 

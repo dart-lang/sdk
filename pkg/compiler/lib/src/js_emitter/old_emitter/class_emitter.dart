@@ -39,7 +39,8 @@ class ClassEmitter extends CodeEmitterHelper {
     emitCheckedClassSetters(cls, builder);
     emitClassGettersSettersForCSP(cls, builder);
     emitInstanceMembers(cls, builder);
-    emitCallStubs(cls, builder);
+    emitStubs(cls.callStubs, builder);
+    emitStubs(cls.typeVariableReaderStubs, builder);
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 
@@ -50,8 +51,6 @@ class ClassEmitter extends CodeEmitterHelper {
       jsAst.Fun function = js('function() { return this; }');
       builder.addProperty(namer.getterNameFromAccessorName(name), function);
     }
-
-    emitTypeVariableReaders(classElement, builder);
 
     emitClassBuilderWithReflectionData(cls, builder, enclosingBuilder);
   }
@@ -213,8 +212,8 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitCallStubs(Class cls, ClassBuilder builder) {
-    for (Method method in cls.callStubs) {
+  void emitStubs(Iterable<StubMethod> stubs, ClassBuilder builder) {
+    for (Method method in stubs) {
       jsAst.Property property = builder.addProperty(method.name, method.code);
       compiler.dumpInfoTask.registerElementAst(method.element, property);
     }
@@ -552,46 +551,5 @@ class ClassEmitter extends CodeEmitterHelper {
           js(backend.isAccessibleByReflection(member) ? '1' : '0');
       builder.addProperty('+$reflectionName', reflectable);
     }
-  }
-
-  void emitTypeVariableReaders(ClassElement cls, ClassBuilder builder) {
-    List typeVariables = [];
-    ClassElement superclass = cls;
-    while (superclass != null) {
-      for (TypeVariableType parameter in superclass.typeVariables) {
-        if (backend.emitter.readTypeVariables.contains(parameter.element)) {
-          emitTypeVariableReader(cls, builder, parameter.element);
-        }
-      }
-      superclass = superclass.superclass;
-    }
-  }
-
-  void emitTypeVariableReader(ClassElement cls,
-                              ClassBuilder builder,
-                              TypeVariableElement element) {
-    String name = namer.readTypeVariableName(element);
-    int index = RuntimeTypes.getTypeVariableIndex(element);
-    jsAst.Expression computeTypeVariable;
-
-    Substitution substitution =
-        backend.rti.computeSubstitution(
-            cls, element.typeDeclaration, alwaysGenerateFunction: true);
-    if (substitution != null) {
-      computeTypeVariable =
-          js(r'#.apply(null, this.$builtinTypeInfo)',
-             substitution.getCodeForVariable(index, backend.rti));
-    } else {
-      // TODO(ahe): These can be generated dynamically.
-      computeTypeVariable =
-          js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]',
-              js.number(index));
-    }
-    jsAst.Expression convertRtiToRuntimeType = emitter
-        .staticFunctionAccess(backend.findHelper('convertRtiToRuntimeType'));
-    compiler.dumpInfoTask.registerElementAst(element,
-        builder.addProperty(name,
-            js('function () { return #(#) }',
-                [convertRtiToRuntimeType, computeTypeVariable])));
   }
 }

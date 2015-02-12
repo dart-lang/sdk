@@ -28,7 +28,7 @@ void compileToDart(Driver driver, ConvertedWorld convertedWorld) {
           element,
           convertedWorld.getIr(element));
     },
-    shouldOutput: (_) => true,
+    shouldOutput: (Element element) => !element.isSynthesized,
     isSafeToRemoveTypeDeclarations: (_) => false);
 }
 

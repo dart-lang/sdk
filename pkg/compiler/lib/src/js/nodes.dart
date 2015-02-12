@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js;
+part of js_ast;
 
 abstract class NodeVisitor<T> {
   T visitProgram(Program node);
@@ -27,8 +27,8 @@ abstract class NodeVisitor<T> {
   T visitFunctionDeclaration(FunctionDeclaration node);
   T visitLabeledStatement(LabeledStatement node);
   T visitLiteralStatement(LiteralStatement node);
+  T visitDartYield(DartYield node);
 
-  T visitBlob(Blob node);
   T visitLiteralExpression(LiteralExpression node);
   T visitVariableDeclarationList(VariableDeclarationList node);
   T visitAssignment(Assignment node);
@@ -108,7 +108,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDefault(Default node) => visitNode(node);
 
   T visitExpression(Expression node) => visitNode(node);
-  T visitBlob(Blob node) => visitExpression(node);
   T visitVariableReference(VariableReference node) => visitExpression(node);
 
   T visitLiteralExpression(LiteralExpression node) => visitExpression(node);
@@ -169,14 +168,17 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitComment(Comment node) => null;
 
   T visitAwait(Await node) => visitExpression(node);
+  T visitDartYield(DartYield node) => visitStatement(node);
 }
 
-abstract class Node {
-  get sourcePosition => _sourcePosition;
-  get endSourcePosition => _endSourcePosition;
+/// This tag interface has no behaviour but must be implemented by any class
+/// that is to be stored on a [Node] as source information.
+abstract class JavaScriptNodeSourceInformation {}
 
-  var _sourcePosition;
-  var _endSourcePosition;
+abstract class Node {
+  JavaScriptNodeSourceInformation get sourceInformation => _sourceInformation;
+
+  JavaScriptNodeSourceInformation _sourceInformation;
 
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
@@ -187,23 +189,17 @@ abstract class Node {
 
   // Returns a node equivalent to [this], but with new source position and end
   // source position.
-  Node withPosition(var sourcePosition, var endSourcePosition) {
-    if (sourcePosition == _sourcePosition &&
-        endSourcePosition == _endSourcePosition) {
+  Node withSourceInformation(
+      JavaScriptNodeSourceInformation sourceInformation) {
+    if (sourceInformation == _sourceInformation) {
       return this;
     }
     Node clone = _clone();
     // TODO(sra): Should existing data be 'sticky' if we try to overwrite with
     // `null`?
-    clone._sourcePosition = sourcePosition;
-    clone._endSourcePosition = endSourcePosition;
+    clone._sourceInformation = sourceInformation;
     return clone;
   }
-
-  // Returns a node equivalent to [this], but with new [this.sourcePositions],
-  // keeping the existing [endPosition]
-  Node withLocation(var sourcePosition) =>
-      withPosition(sourcePosition, this.endSourcePosition);
 
   VariableUse asVariableUse() => null;
 
@@ -227,9 +223,6 @@ class Program extends Node {
 
 abstract class Statement extends Node {
   Statement toStatement() => this;
-
-  Statement withPosition(var sourcePosition, var endSourcePosition) =>
-      super.withPosition(sourcePosition, endSourcePosition);
 }
 
 class Block extends Statement {
@@ -532,32 +525,28 @@ class LiteralStatement extends Statement {
   LiteralStatement _clone() => new LiteralStatement(code);
 }
 
+// Not a real JavaScript node, but represents the yield statement from a dart
+// program translated to JavaScript.
+class DartYield extends Statement {
+  final Expression expression;
+
+  final bool hasStar;
+
+  DartYield(this.expression, this.hasStar);
+
+  accept(NodeVisitor visitor) => visitor.visitDartYield(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    expression.accept(visitor);
+  }
+
+  DartYield _clone() => new DartYield(expression, hasStar);
+}
+
 abstract class Expression extends Node {
   int get precedenceLevel;
 
   Statement toStatement() => new ExpressionStatement(this);
-
-  Expression withPosition(var sourcePosition, var endSourcePosition) =>
-      super.withPosition(sourcePosition, endSourcePosition);
-}
-
-/// Wrap a CodeBuffer as an expression.
-class Blob extends Expression {
-  // TODO(ahe): This class is an aid to convert everything to ASTs, remove when
-  // not needed anymore.
-
-  final CodeBuffer buffer;
-
-  Blob(this.buffer);
-
-  accept(NodeVisitor visitor) => visitor.visitBlob(this);
-
-  void visitChildren(NodeVisitor visitor) {}
-
-  Blob _clone() => new Blob(buffer);
-
-  int get precedenceLevel => PRIMARY;
-
 }
 
 class LiteralExpression extends Expression {
@@ -862,7 +851,7 @@ class Fun extends Expression {
     body.accept(visitor);
   }
 
-  Fun _clone() => new Fun(params, body);
+  Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
 
   int get precedenceLevel => CALL;
 }
@@ -870,11 +859,25 @@ class Fun extends Expression {
 class AsyncModifier {
   final bool isAsync;
   final bool isYielding;
+  final String description;
 
-  const AsyncModifier.sync() : isAsync = false, isYielding = false;
-  const AsyncModifier.async() : isAsync = true, isYielding = false;
-  const AsyncModifier.asyncStar() : isAsync = true, isYielding = true;
-  const AsyncModifier.syncStar() : isAsync = false, isYielding = true;
+  const AsyncModifier.sync()
+      : isAsync = false,
+        isYielding = false,
+        description = "sync";
+  const AsyncModifier.async()
+      : isAsync = true,
+        isYielding = false,
+        description = "async";
+  const AsyncModifier.asyncStar()
+      : isAsync = true,
+        isYielding = true,
+        description = "async*";
+  const AsyncModifier.syncStar()
+      : isAsync = false,
+        isYielding = true,
+        description = "sync*";
+  toString() => description;
 }
 
 class PropertyAccess extends Expression {
@@ -928,9 +931,12 @@ class LiteralString extends Literal {
   /**
    * Constructs a LiteralString from a string value.
    *
-   * The constructor does not add the required quotes.  If [value] is
-   * not surrounded by quotes, the resulting object is invalid as a JS
-   * value.
+   * The constructor does not add the required quotes.  If [value] is not
+   * surrounded by quotes and property escaped, the resulting object is invalid
+   * as a JS value.
+   *
+   * TODO(sra): Introduce variants for known valid strings that don't allocate a
+   * new string just to add quotes.
    */
   LiteralString(this.value);
 
@@ -939,7 +945,7 @@ class LiteralString extends Literal {
 }
 
 class LiteralNumber extends Literal {
-  final String value;
+  final String value;  // Must be a valid JavaScript number literal.
 
   LiteralNumber(this.value);
 
@@ -1108,7 +1114,7 @@ class RegExpLiteral extends Expression {
 /**
  * An asynchronous await.
  *
- * Not part of javascript. We desugar this expression before outputting.
+ * Not part of JavaScript. We desugar this expression before outputting.
  * Should only occur in a [Fun] with `asyncModifier` async or asyncStar.
  */
 class Await extends Expression {

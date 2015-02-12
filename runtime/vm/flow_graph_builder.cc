@@ -1056,7 +1056,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     // The body of a constructor cannot modify the type of the
     // constructed instance, which is passed in as an implicit parameter.
     // However, factories may create an instance of the wrong type.
-    if (!is_implicit_dynamic_getter && !function.IsConstructor()) {
+    if (!is_implicit_dynamic_getter && !function.IsGenerativeConstructor()) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(I, function.result_type());
       return_value = BuildAssignableValue(node->value()->token_pos(),
@@ -3851,7 +3851,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (Isolate::Current()->TypeChecksEnabled() && is_top_level_sequence) {
     const int num_params = function.NumParameters();
     int pos = 0;
-    if (function.IsConstructor()) {
+    if (function.IsGenerativeConstructor()) {
       // Skip type checking of receiver and phase for constructor functions.
       pos = 2;
     } else if (function.IsFactory() || function.IsDynamicFunction()) {

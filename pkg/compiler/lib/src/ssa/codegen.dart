@@ -16,43 +16,23 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
 
   js.Node attachPosition(js.Node node, AstElement element) {
-    // TODO(sra): Attaching positions might be cleaner if the source position
-    // was on a wrapping node.
-    SourceFile sourceFile = sourceFileOfElement(element);
-    String name = element.name;
-    AstElement implementation = element.implementation;
-    ast.Node expression = implementation.node;
-    Token beginToken;
-    Token endToken;
-    if (expression == null) {
-      // Synthesized node. Use the enclosing element for the location.
-      beginToken = endToken = element.position;
-    } else {
-      beginToken = expression.getBeginToken();
-      endToken = expression.getEndToken();
-    }
-    // TODO(podivilov): find the right sourceFile here and remove offset
-    // checks below.
-    var sourcePosition, endSourcePosition;
-    if (beginToken.charOffset < sourceFile.length) {
-      sourcePosition =
-          new TokenSourceFileLocation(sourceFile, beginToken, name);
-    }
-    if (endToken.charOffset < sourceFile.length) {
-      endSourcePosition =
-          new TokenSourceFileLocation(sourceFile, endToken, name);
-    }
-    return node.withPosition(sourcePosition, endSourcePosition);
-  }
-
-  SourceFile sourceFileOfElement(Element element) {
-    return element.implementation.compilationUnit.script.file;
+    return node.withSourceInformation(
+        StartEndSourceInformation.computeSourceInformation(element));
   }
 
   js.Fun buildJavaScriptFunction(FunctionElement element,
                                  List<js.Parameter> parameters,
                                  js.Block body) {
-    return attachPosition(new js.Fun(parameters, body), element);
+    js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
+        ? (element.asyncMarker.isYielding
+            ? const js.AsyncModifier.asyncStar()
+            : const js.AsyncModifier.async())
+        : (element.asyncMarker.isYielding
+            ? const js.AsyncModifier.syncStar()
+            : const js.AsyncModifier.sync());
+
+    return attachPosition(
+        new js.Fun(parameters, body, asyncModifier: asyncModifier), element);
   }
 
   js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
@@ -75,10 +55,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
+      FunctionElement element = work.element;
+      if (element.asyncMarker != AsyncMarker.SYNC) {
+        work.registry.registerAsyncMarker(element);
+      }
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       compiler.tracer.traceGraph("codegen", graph);
-      FunctionElement element = work.element;
       return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
     });
   }
@@ -241,13 +224,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   js.Node attachLocation(js.Node jsNode, HInstruction instruction) {
-    return jsNode.withLocation(instruction.sourcePosition);
+    return attachSourceInformation(jsNode, instruction.sourceInformation);
   }
 
-  js.Node attachLocationRange(js.Node jsNode,
-                              SourceFileLocation sourcePosition,
-                              SourceFileLocation endSourcePosition) {
-    return jsNode.withPosition(sourcePosition, endSourcePosition);
+  js.Node attachSourceInformation(js.Node jsNode,
+                                  SourceInformation sourceInformation) {
+    return jsNode.withSourceInformation(sourceInformation);
   }
 
   void preGenerateMethod(HGraph graph) {
@@ -956,8 +938,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         compiler.internalError(condition.conditionExpression,
             'Unexpected loop kind: ${info.kind}.');
     }
-    js.Statement result =
-        attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
+    js.Statement result = attachSourceInformation(loop, info.sourceInformation);
     if (info.kind == HLoopBlockInformation.SWITCH_CONTINUE_LOOP) {
       String continueLabelString =
           backend.namer.implicitContinueLabelName(info.target);
@@ -1969,6 +1950,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  visitAwait(HAwait node) {
+    use(node.inputs[0]);
+    push(new js.Await(pop()), node);
+  }
+
+  visitYield(HYield node) {
+    use(node.inputs[0]);
+    pushStatement(new js.DartYield(pop(), node.hasStar), node);
+  }
+
   visitRangeConversion(HRangeConversion node) {
     // Range conversion instructions are removed by the value range
     // analyzer.
@@ -2047,7 +2038,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (helperName == 'wrapException') {
       pushStatement(new js.Throw(value));
     } else {
-      pushStatement(new js.Return(value));
+      Element element = work.element;
+      if (element is FunctionElement && element.asyncMarker.isYielding) {
+        // `return <expr>;` is illegal in a sync* or async* function.
+        // To have the the async-translator working, we avoid introducing
+        // `return` nodes.
+        pushStatement(new js.ExpressionStatement(value));
+      } else {
+        pushStatement(new js.Return(value));
+      }
     }
   }
 

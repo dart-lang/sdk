@@ -14,6 +14,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
 
 
 main() {
@@ -28,7 +29,7 @@ class InlineMethodTest extends RefactoringTest {
   bool deleteSource;
   bool inlineAll;
 
-  test_access_FunctionElement() {
+  test_access_FunctionElement() async {
     indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -39,15 +40,14 @@ main() {
 ''');
     _createRefactoring('test(1, 2)');
     // validate state
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.refactoringName, 'Inline Function');
-      expect(refactoring.className, isNull);
-      expect(refactoring.methodName, 'test');
-      expect(refactoring.isDeclaration, isFalse);
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.refactoringName, 'Inline Function');
+    expect(refactoring.className, isNull);
+    expect(refactoring.methodName, 'test');
+    expect(refactoring.isDeclaration, isFalse);
   }
 
-  test_access_MethodElement() {
+  test_access_MethodElement() async {
     indexTestUnit(r'''
 class A {
   test(a, b) {
@@ -60,15 +60,14 @@ class A {
 ''');
     _createRefactoring('test(a, b)');
     // validate state
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.refactoringName, 'Inline Method');
-      expect(refactoring.className, 'A');
-      expect(refactoring.methodName, 'test');
-      expect(refactoring.isDeclaration, isTrue);
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.refactoringName, 'Inline Method');
+    expect(refactoring.className, 'A');
+    expect(refactoring.methodName, 'test');
+    expect(refactoring.isDeclaration, isTrue);
   }
 
-  test_bad_cascadeInvocation() {
+  test_bad_cascadeInvocation() async {
     indexTestUnit(r'''
 class A {
   foo() {}
@@ -82,14 +81,13 @@ main() {
 ''');
     _createRefactoring('test() {');
     // error
-    return refactoring.checkAllConditions().then((status) {
-      var location = new SourceRange(findOffset('..test()'), '..test()'.length);
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: 'Cannot inline cascade invocation.',
-          expectedContextRange: location);
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    var location = new SourceRange(findOffset('..test()'), '..test()'.length);
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: 'Cannot inline cascade invocation.',
+        expectedContextRange: location);
   }
 
   test_bad_constructor() {
@@ -103,7 +101,7 @@ class A {
     return _assertInvalidSelection();
   }
 
-  test_bad_deleteSource_inlineOne() {
+  test_bad_deleteSource_inlineOne() async {
     indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -114,18 +112,17 @@ main() {
 }
 ''');
     _createRefactoring('test(1, 2)');
-    // error
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatusOK(status);
-      refactoring.deleteSource = true;
-      refactoring.inlineAll = false;
-      return refactoring.checkFinalConditions().then((status) {
-        assertRefactoringStatus(
-            status,
-            RefactoringProblemSeverity.ERROR,
-            expectedMessage: 'All references must be inlined to remove the source.');
-      });
-    });
+    // initial conditions
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatusOK(status);
+    refactoring.deleteSource = true;
+    refactoring.inlineAll = false;
+    // final conditions
+    status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: 'All references must be inlined to remove the source.');
   }
 
   test_bad_notExecutableElement() {
@@ -776,7 +773,7 @@ main() {
 ''');
   }
 
-  test_initialMode_all() {
+  test_initialMode_all() async {
     indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -787,13 +784,12 @@ main() {
 ''');
     _createRefactoring('test(a, b)');
     // validate state
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.deleteSource, true);
-      expect(refactoring.inlineAll, true);
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.deleteSource, true);
+    expect(refactoring.inlineAll, true);
   }
 
-  test_initialMode_single() {
+  test_initialMode_single() async {
     indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -806,10 +802,9 @@ main() {
     _createRefactoring('test(1, 2)');
     deleteSource = false;
     // validate state
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.deleteSource, false);
-      expect(refactoring.inlineAll, false);
-    });
+    await refactoring.checkInitialConditions();
+    expect(refactoring.deleteSource, false);
+    expect(refactoring.inlineAll, false);
   }
 
   test_method_emptyBody() {
@@ -1104,7 +1099,7 @@ main() {
 ''');
   }
 
-  test_noArgument_required() {
+  test_noArgument_required() async {
     verifyNoTestUnitErrors = false;
     indexTestUnit(r'''
 test(a) {
@@ -1116,14 +1111,13 @@ main() {
 ''');
     _createRefactoring('test();');
     // error
-    return refactoring.checkAllConditions().then((status) {
-      var location = new SourceRange(findOffset('test();'), 'test()'.length);
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: 'No argument for the parameter "a".',
-          expectedContextRange: location);
-    });
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    var location = new SourceRange(findOffset('test();'), 'test()'.length);
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: 'No argument for the parameter "a".',
+        expectedContextRange: location);
   }
 
   test_reference_expressionBody() {
@@ -1393,22 +1387,20 @@ main(bool p, bool p2, bool p3) {
 ''');
   }
 
-  Future _assertConditionsError(String message) {
-    return refactoring.checkAllConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: message);
-    });
+  Future _assertConditionsError(String message) async {
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: message);
   }
 
-  Future _assertConditionsFatal(String message) {
-    return refactoring.checkAllConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: message);
-    });
+  Future _assertConditionsFatal(String message) async {
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: message);
   }
 
   Future _assertInvalidSelection() {
@@ -1416,23 +1408,23 @@ main(bool p, bool p2, bool p3) {
         'Method declaration or reference must be selected to activate this refactoring.');
   }
 
-  Future _assertSuccessfulRefactoring(String expectedCode) {
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatusOK(status);
-      if (deleteSource != null) {
-        refactoring.deleteSource = deleteSource;
-      }
-      if (inlineAll != null) {
-        refactoring.inlineAll = inlineAll;
-      }
-      return refactoring.checkFinalConditions().then((status) {
-        assertRefactoringStatusOK(status);
-        return refactoring.createChange().then((SourceChange change) {
-          this.refactoringChange = change;
-          assertTestChangeResult(expectedCode);
-        });
-      });
-    });
+  Future _assertSuccessfulRefactoring(String expectedCode) async {
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatusOK(status);
+    // configure
+    if (deleteSource != null) {
+      refactoring.deleteSource = deleteSource;
+    }
+    if (inlineAll != null) {
+      refactoring.inlineAll = inlineAll;
+    }
+    // final conditions
+    status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    // change
+    SourceChange change = await refactoring.createChange();
+    this.refactoringChange = change;
+    assertTestChangeResult(expectedCode);
   }
 
   void _createRefactoring(String search) {

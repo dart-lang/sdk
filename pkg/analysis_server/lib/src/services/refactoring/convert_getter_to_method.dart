@@ -47,28 +47,28 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<SourceChange> createChange() {
+  Future<SourceChange> createChange() async {
     change = new SourceChange(refactoringName);
     // function
     if (element.enclosingElement is CompilationUnitElement) {
       _updateElementDeclaration(element);
-      return _updateElementReferences(element).then((_) => change);
+      await _updateElementReferences(element);
     }
     // method
     if (element.enclosingElement is ClassElement) {
       FieldElement field = element.variable;
-      return getHierarchyMembers(searchEngine, field).then((elements) {
-        return Future.forEach(elements, (FieldElement field) {
-          PropertyAccessorElement getter = field.getter;
-          if (!getter.isSynthetic) {
-            _updateElementDeclaration(getter);
-            return _updateElementReferences(getter);
-          }
-        });
-      }).then((_) => change);
+      Set<ClassMemberElement> elements =
+          await getHierarchyMembers(searchEngine, field);
+      await Future.forEach(elements, (FieldElement field) {
+        PropertyAccessorElement getter = field.getter;
+        if (!getter.isSynthetic) {
+          _updateElementDeclaration(getter);
+          return _updateElementReferences(getter);
+        }
+      });
     }
-    // not reachable
-    return null;
+    // done
+    return change;
   }
 
   @override
@@ -106,16 +106,15 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implements
     }
   }
 
-  Future _updateElementReferences(Element element) {
-    return searchEngine.searchReferences(element).then((matches) {
-      List<SourceReference> references = getSourceReferences(matches);
-      for (SourceReference reference in references) {
-        Element refElement = reference.element;
-        SourceRange refRange = reference.range;
-        // insert "()"
-        var edit = new SourceEdit(refRange.end, 0, "()");
-        doSourceChange_addElementEdit(change, refElement, edit);
-      }
-    });
+  Future _updateElementReferences(Element element) async {
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference in references) {
+      Element refElement = reference.element;
+      SourceRange refRange = reference.range;
+      // insert "()"
+      var edit = new SourceEdit(refRange.end, 0, "()");
+      doSourceChange_addElementEdit(change, refElement, edit);
+    }
   }
 }

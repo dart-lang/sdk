@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -26,12 +27,15 @@ main() {
 }
 
 
+typedef bool AnalysisErrorFilter(AnalysisError error);
+
+
 @reflectiveTest
 class FixProcessorTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
 
-  bool checkHasSingleError = true;
+  AnalysisErrorFilter errorFilter = null;
 
   Fix fix;
   SourceChange change;
@@ -102,6 +106,59 @@ bool test() {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     verifyNoTestUnitErrors = false;
+  }
+
+  void test_addSync_blockFunctionBody() {
+    _indexTestUnit('''
+foo() {}
+main() {
+  await foo();
+}
+''');
+    List<AnalysisError> errors = context.computeErrors(testSource);
+    expect(errors, hasLength(2));
+    // ParserError: Expected to find ';'
+    {
+      AnalysisError error = errors[0];
+      expect(error.message, "Expected to find ';'");
+      List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
+      expect(fixes, isEmpty);
+    }
+    // Undefined name 'await'
+    {
+      AnalysisError error = errors[1];
+      expect(error.message, "Undefined name 'await'");
+      List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
+      // has exactly one fix
+      expect(fixes, hasLength(1));
+      Fix fix = fixes[0];
+      expect(fix.kind, FixKind.ADD_ASYNC);
+      // apply to "file"
+      List<SourceFileEdit> fileEdits = fix.change.edits;
+      expect(fileEdits, hasLength(1));
+      resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
+      // verify
+      expect(resultCode, '''
+foo() {}
+main() async {
+  await foo();
+}
+''');
+    }
+  }
+
+  void test_addSync_expressionFunctionBody() {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+    };
+    _indexTestUnit('''
+foo() {}
+main() => await foo();
+''');
+    assertHasFix(FixKind.ADD_ASYNC, '''
+foo() {}
+main() async => await foo();
+''');
   }
 
   void test_boolean() {
@@ -393,6 +450,15 @@ class B extends A {
 }
 ''');
     assertNoFix(FixKind.CREATE_CONSTRUCTOR_SUPER);
+  }
+
+  void test_createField_BAD_inSDK() {
+    _indexTestUnit('''
+main(List p) {
+  p.foo = 1;
+}
+''');
+    assertNoFix(FixKind.CREATE_FIELD);
   }
 
   void test_createField_getter_multiLevel() {
@@ -694,6 +760,15 @@ import 'my_file.dart';
     expect(fileEdit.edits[0].replacement, contains('library my.file;'));
   }
 
+  void test_createGetter_BAD_inSDK() {
+    _indexTestUnit('''
+main(List p) {
+  int v = p.foo;
+}
+''');
+    assertNoFix(FixKind.CREATE_GETTER);
+  }
+
   void test_createGetter_multiLevel() {
     _indexTestUnit('''
 class A {
@@ -836,7 +911,6 @@ class A {
   }
 }
 ''');
-    // TODO
     assertHasFix(FixKind.CREATE_GETTER, '''
 class A {
   get test => null;
@@ -846,6 +920,34 @@ class A {
   }
 }
 ''');
+  }
+
+  void test_createLocalVariable_functionType_named() {
+    _indexTestUnit('''
+typedef MY_FUNCTION(int p);
+foo(MY_FUNCTION f) {}
+main() {
+  foo(bar);
+}
+''');
+    assertHasFix(FixKind.CREATE_LOCAL_VARIABLE, '''
+typedef MY_FUNCTION(int p);
+foo(MY_FUNCTION f) {}
+main() {
+  MY_FUNCTION bar;
+  foo(bar);
+}
+''');
+  }
+
+  void test_createLocalVariable_functionType_synthetic() {
+    _indexTestUnit('''
+foo(f(int p)) {}
+main() {
+  foo(bar);
+}
+''');
+    assertNoFix(FixKind.CREATE_LOCAL_VARIABLE);
   }
 
   void test_createLocalVariable_read_typeAssignment() {
@@ -1744,6 +1846,21 @@ main() {
 ''');
   }
 
+  void test_importLibrarySdk_withType_AsExpression() {
+    _indexTestUnit('''
+main(p) {
+  p as Future;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main(p) {
+  p as Future;
+}
+''');
+  }
+
   void test_importLibrarySdk_withType_invocationTarget() {
     _indexTestUnit('''
 main() {
@@ -1755,6 +1872,21 @@ import 'dart:async';
 
 main() {
   Future.wait(null);
+}
+''');
+  }
+
+  void test_importLibrarySdk_withType_IsExpression() {
+    _indexTestUnit('''
+main(p) {
+  p is Future;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main(p) {
+  p is Future;
 }
 ''');
   }
@@ -1992,7 +2124,9 @@ import 'package:my_pkg/my_lib.dart';
   }
 
   void test_replaceVarWithDynamic() {
-    checkHasSingleError = false;
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;
+    };
     _indexTestUnit('''
 class A {
   Map<String, var> m;
@@ -2287,6 +2421,15 @@ main() {
   myFunction();
 }
 ''');
+  }
+
+  void test_undefinedMethod_create_BAD_inSDK() {
+    _indexTestUnit('''
+main() {
+  List.foo();
+}
+''');
+    assertNoFix(FixKind.CREATE_METHOD);
   }
 
   void test_undefinedMethod_create_generic_BAD() {
@@ -2714,9 +2857,10 @@ main() {
           error.errorCode == HintCode.UNUSED_FIELD ||
           error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE;
     });
-    if (checkHasSingleError) {
-      expect(errors, hasLength(1));
+    if (errorFilter != null) {
+      errors = errors.where(errorFilter).toList();
     }
+    expect(errors, hasLength(1));
     return errors[0];
   }
 

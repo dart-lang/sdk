@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/globals.h"
+#include "vm/log.h"
 
 namespace dart {
 
@@ -98,11 +99,13 @@ class Disassembler : public AllStatic {
                           uword end,
                           const Code& code) {
     DisassembleToStdout stdout_formatter;
+    LogBlock lb(Isolate::Current());
     Disassemble(start, end, &stdout_formatter, code);
   }
 
   static void Disassemble(uword start, uword end) {
     DisassembleToStdout stdout_formatter;
+    LogBlock lb(Isolate::Current());
     Disassemble(start, end, &stdout_formatter);
   }
 

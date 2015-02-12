@@ -129,7 +129,7 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
 }
 
 
-intptr_t Socket::Create(RawAddr addr) {
+static intptr_t Create(RawAddr addr) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {
     return -1;
@@ -152,23 +152,17 @@ intptr_t Socket::Create(RawAddr addr) {
 }
 
 
-intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
+static intptr_t Connect(
+    intptr_t fd, RawAddr addr, const intptr_t port, RawAddr bind_addr) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_client_socket());
   ClientSocket* handle = reinterpret_cast<ClientSocket*>(fd);
   SOCKET s = handle->socket();
 
-  RawAddr bind_addr;
-  memset(&bind_addr, 0, sizeof(bind_addr));
-  bind_addr.ss.ss_family = addr.ss.ss_family;
-  if (addr.ss.ss_family == AF_INET) {
-    bind_addr.in.sin_addr.s_addr = INADDR_ANY;
-  } else {
-    bind_addr.in6.sin6_addr = in6addr_any;
-  }
   int status = bind(
       s, &bind_addr.addr, SocketAddress::GetAddrLength(&bind_addr));
   if (status != NO_ERROR) {
     int rc = WSAGetLastError();
+    handle->mark_closed();  // Destructor asserts that socket is marked closed.
     delete handle;
     closesocket(s);
     SetLastError(rc);
@@ -223,13 +217,34 @@ intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
 }
 
 
-intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
-  intptr_t fd = Socket::Create(addr);
+intptr_t Socket::CreateConnect(const RawAddr& addr, const intptr_t port) {
+  intptr_t fd = Create(addr);
   if (fd < 0) {
     return fd;
   }
 
-  return Socket::Connect(fd, addr, port);
+  RawAddr bind_addr;
+  memset(&bind_addr, 0, sizeof(bind_addr));
+  bind_addr.ss.ss_family = addr.ss.ss_family;
+  if (addr.ss.ss_family == AF_INET) {
+    bind_addr.in.sin_addr.s_addr = INADDR_ANY;
+  } else {
+    bind_addr.in6.sin6_addr = in6addr_any;
+  }
+
+  return Connect(fd, addr, port, bind_addr);
+}
+
+
+intptr_t Socket::CreateBindConnect(const RawAddr& addr,
+                                   const intptr_t port,
+                                   const RawAddr& source_addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+
+  return Connect(fd, addr, port, source_addr);
 }
 
 
@@ -547,27 +562,6 @@ bool ServerSocket::StartAccept(intptr_t fd) {
 void Socket::Close(intptr_t fd) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
   client_socket->Close();
-}
-
-
-static bool SetBlockingHelper(intptr_t fd, bool blocking) {
-  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
-  u_long iMode = blocking ? 0 : 1;
-  int status = ioctlsocket(handle->socket(), FIONBIO, &iMode);
-  if (status != NO_ERROR) {
-    return false;
-  }
-  return true;
-}
-
-
-bool Socket::SetNonBlocking(intptr_t fd) {
-  return SetBlockingHelper(fd, false);
-}
-
-
-bool Socket::SetBlocking(intptr_t fd) {
-  return SetBlockingHelper(fd, true);
 }
 
 

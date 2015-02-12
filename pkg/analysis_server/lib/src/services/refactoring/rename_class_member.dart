@@ -82,7 +82,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() {
+  Future fillChange() async {
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
@@ -95,24 +95,24 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     // update references
     addReferenceEdits(_validator.references);
     // potential matches
-    return searchEngine.searchMemberReferences(oldName).then((nameMatches) {
-      List<SourceReference> nameRefs = getSourceReferences(nameMatches);
-      for (SourceReference reference in nameRefs) {
-        // ignore resolved reference, we have already updated it
-        if (reference.isResolved) {
+    List<SearchMatch> nameMatches =
+        await searchEngine.searchMemberReferences(oldName);
+    List<SourceReference> nameRefs = getSourceReferences(nameMatches);
+    for (SourceReference reference in nameRefs) {
+      // ignore resolved reference, we have already updated it
+      if (reference.isResolved) {
+        continue;
+      }
+      // check the element being renamed is accessible
+      {
+        LibraryElement whereLibrary = reference.element.library;
+        if (!element.isAccessibleIn(whereLibrary)) {
           continue;
         }
-        // check the element being renamed is accessible
-        {
-          LibraryElement whereLibrary = reference.element.library;
-          if (!element.isAccessibleIn(whereLibrary)) {
-            continue;
-          }
-        }
-        // add edit
-        reference.addEdit(change, newName, id: _newPotentialId());
       }
-    });
+      // add edit
+      reference.addEdit(change, newName, id: _newPotentialId());
+    }
   }
 
   String _newPotentialId() {
@@ -149,7 +149,7 @@ class _ClassMemberValidator {
         elementClass = element.enclosingElement,
         elementKind = element.kind;
 
-  Future<RefactoringStatus> validate() {
+  Future<RefactoringStatus> validate() async {
     RefactoringStatus result = new RefactoringStatus();
     // check if there is a member with "newName" in the same ClassElement
     for (Element newNameMember in getChildren(elementClass, name)) {
@@ -163,93 +163,85 @@ class _ClassMemberValidator {
     }
     // do chained computations
     Set<ClassElement> superClasses = getSuperClasses(elementClass);
-    Set<ClassElement> subClasses;
-    return _prepareReferences().then((_) {
-      return getSubClasses(searchEngine, elementClass).then((_subs) {
-        subClasses = _subs;
-      });
-    }).then((_) {
-      // check shadowing in hierarchy
-      return searchEngine.searchElementDeclarations(name).then((decls) {
-        for (SearchMatch decl in decls) {
-          Element nameElement = getSyntheticAccessorVariable(decl.element);
-          Element nameClass = nameElement.enclosingElement;
-          // renamed Element shadows member of superclass
-          if (superClasses.contains(nameClass)) {
-            result.addError(
-                format(
-                    isRename ?
-                        "Renamed {0} will shadow {1} '{2}'." :
-                        "Created {0} will shadow {1} '{2}'.",
-                    elementKind.displayName,
-                    getElementKindName(nameElement),
-                    getElementQualifiedName(nameElement)),
-                newLocation_fromElement(nameElement));
-          }
-          // renamed Element is shadowed by member of subclass
-          if (isRename && subClasses.contains(nameClass)) {
-            result.addError(
-                format(
-                    "Renamed {0} will be shadowed by {1} '{2}'.",
-                    elementKind.displayName,
-                    getElementKindName(nameElement),
-                    getElementQualifiedName(nameElement)),
-                newLocation_fromElement(nameElement));
-          }
-          // renamed Element is shadowed by local
-          if (nameElement is LocalElement) {
-            LocalElement localElement = nameElement;
-            ClassElement enclosingClass =
-                nameElement.getAncestor((element) => element is ClassElement);
-            if (enclosingClass == elementClass ||
-                subClasses.contains(enclosingClass)) {
-              for (SearchMatch reference in references) {
-                if (isReferenceInLocalRange(localElement, reference)) {
-                  result.addError(
-                      format(
-                          "Usage of renamed {0} will be shadowed by {1} '{2}'.",
-                          elementKind.displayName,
-                          getElementKindName(localElement),
-                          localElement.displayName),
-                      newLocation_fromMatch(reference));
-                }
-              }
+    await _prepareReferences();
+    Set<ClassElement> subClasses =
+        await getSubClasses(searchEngine, elementClass);
+    // check shadowing in hierarchy
+    List<SearchMatch> declarations =
+        await searchEngine.searchElementDeclarations(name);
+    for (SearchMatch declaration in declarations) {
+      Element nameElement = getSyntheticAccessorVariable(declaration.element);
+      Element nameClass = nameElement.enclosingElement;
+      // renamed Element shadows member of superclass
+      if (superClasses.contains(nameClass)) {
+        result.addError(
+            format(
+                isRename ?
+                    "Renamed {0} will shadow {1} '{2}'." :
+                    "Created {0} will shadow {1} '{2}'.",
+                elementKind.displayName,
+                getElementKindName(nameElement),
+                getElementQualifiedName(nameElement)),
+            newLocation_fromElement(nameElement));
+      }
+      // renamed Element is shadowed by member of subclass
+      if (isRename && subClasses.contains(nameClass)) {
+        result.addError(
+            format(
+                "Renamed {0} will be shadowed by {1} '{2}'.",
+                elementKind.displayName,
+                getElementKindName(nameElement),
+                getElementQualifiedName(nameElement)),
+            newLocation_fromElement(nameElement));
+      }
+      // renamed Element is shadowed by local
+      if (nameElement is LocalElement) {
+        LocalElement localElement = nameElement;
+        ClassElement enclosingClass =
+            nameElement.getAncestor((element) => element is ClassElement);
+        if (enclosingClass == elementClass ||
+            subClasses.contains(enclosingClass)) {
+          for (SearchMatch reference in references) {
+            if (isReferenceInLocalRange(localElement, reference)) {
+              result.addError(
+                  format(
+                      "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+                      elementKind.displayName,
+                      getElementKindName(localElement),
+                      localElement.displayName),
+                  newLocation_fromMatch(reference));
             }
           }
         }
-      });
-    }).then((_) => result);
+      }
+    }
+    // done
+    return result;
   }
 
   /**
    * Fills [elements] with [Element]s to rename.
    */
-  Future _prepareElements() {
+  Future _prepareElements() async {
     if (element is ClassMemberElement) {
-      return getHierarchyMembers(
-          searchEngine,
-          element).then((Set<Element> elements) {
-        this.elements = elements;
-      });
+      elements = await getHierarchyMembers(searchEngine, element);
     } else {
       elements = new Set.from([element]);
-      return new Future.value();
     }
   }
 
   /**
    * Fills [references] with all references to [elements].
    */
-  Future _prepareReferences() {
+  Future _prepareReferences() async {
     if (!isRename) {
       return new Future.value();
     }
-    return _prepareElements().then((_) {
-      return Future.forEach(elements, (Element element) {
-        return searchEngine.searchReferences(element).then((references) {
-          this.references.addAll(references);
-        });
-      });
+    await _prepareElements();
+    await Future.forEach(elements, (Element element) async {
+      List<SearchMatch> elementReferences =
+          await searchEngine.searchReferences(element);
+      references.addAll(elementReferences);
     });
   }
 }

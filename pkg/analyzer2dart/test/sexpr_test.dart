@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
 import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:unittest/unittest.dart';
@@ -20,8 +21,8 @@ import 'output_helper.dart';
 import 'test_helper.dart';
 import 'sexpr_data.dart';
 
-main() {
-  performTests(TEST_DATA, unittester, checkResult);
+main(List<String> args) {
+  performTests(TEST_DATA, unittester, checkResult, args);
 }
 
 checkResult(TestSpec result) {
@@ -41,13 +42,22 @@ checkResult(TestSpec result) {
   void checkOutput(String elementName,
                    dart2js.Element element,
                    String expectedOutput) {
-    expectedOutput = expectedOutput.trim();
-    String output = convertedWorld.getIr(element)
-        .accept(new SExpressionStringifier());
-    expect(output, equals(expectedOutput),
-        reason: "\nInput:\n${result.input}\n"
-                "Expected for '$elementName':\n$expectedOutput\n"
-                "Actual for '$elementName':\n$output\n");
+    ExecutableDefinition ir = convertedWorld.getIr(element);
+    if (expectedOutput == null) {
+      expect(ir, isNull,
+          reason: "\nInput:\n${result.input}\n"
+                  "No CPS IR expected for $element");
+    } else {
+      expect(ir, isNotNull,
+          reason: "\nInput:\n${result.input}\n"
+                  "No CPS IR for $element");
+      expectedOutput = expectedOutput.trim();
+      String output = ir.accept(new SExpressionStringifier());
+      expect(output, equals(expectedOutput),
+          reason: "\nInput:\n${result.input}\n"
+                  "Expected for '$elementName':\n$expectedOutput\n"
+                  "Actual for '$elementName':\n$output\n");
+    }
   }
 
   if (result.output is String) {

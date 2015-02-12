@@ -5,10 +5,9 @@
 library dart2js.source_map_builder;
 
 import '../util/util.dart';
-import '../scanner/scannerlib.dart' show Token;
 import '../util/uri_extras.dart' show relativize;
 import 'line_column_provider.dart';
-import 'source_file.dart';
+import 'source_information.dart' show SourceFileLocation;
 
 class SourceMapBuilder {
   static const int VLQ_BASE_SHIFT = 5;
@@ -229,43 +228,4 @@ class SourceMapEntry {
   int targetOffset;
 
   SourceMapEntry(this.sourceLocation, this.targetOffset);
-}
-
-abstract class SourceFileLocation {
-  SourceFile sourceFile;
-
-  SourceFileLocation(this.sourceFile) {
-    assert(isValid());
-  }
-
-  int line;
-
-  int get offset;
-
-  String getSourceUrl() => sourceFile.filename;
-
-  int getLine() {
-    if (line == null) line = sourceFile.getLine(offset);
-    return line;
-  }
-
-  int getColumn() => sourceFile.getColumn(getLine(), offset);
-
-  String getSourceName();
-
-  bool isValid() => offset < sourceFile.length;
-}
-
-class TokenSourceFileLocation extends SourceFileLocation {
-  final Token token;
-  final String name;
-
-  TokenSourceFileLocation(SourceFile sourceFile, this.token, this.name)
-    : super(sourceFile);
-
-  int get offset => token.charOffset;
-
-  String getSourceName() {
-    return name;
-  }
 }

@@ -176,7 +176,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       return;
     }
     children.add(element);
-    Logger.root.info('Viewing object of \'${type}\'');
   }
 }
 

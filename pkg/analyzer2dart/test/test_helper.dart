@@ -25,8 +25,16 @@ typedef TestGroup(Group group, RunTest check);
 typedef RunTest(TestSpecBase result);
 
 /// Test [data] using [testGroup] and [check].
-void performTests(List<Group> data, TestGroup testGroup, RunTest runTest) {
+void performTests(List<Group> data,
+                  TestGroup testGroup,
+                  RunTest runTest,
+                  List<String> groupsToRun) {
   for (Group group in data) {
+    if (groupsToRun.isNotEmpty &&
+        !groupsToRun.contains(group.name)) {
+      // Skip this group.
+      continue;
+    }
     testGroup(group, runTest);
   }
 }

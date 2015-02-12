@@ -6,15 +6,17 @@ patch class RawServerSocket {
   /* patch */ static Future<RawServerSocket> bind(address,
                                                   int port,
                                                   {int backlog: 0,
-                                                   bool v6Only: false}) {
-    return _RawServerSocket.bind(address, port, backlog, v6Only);
+                                                   bool v6Only: false,
+                                                   bool shared: false}) {
+    return _RawServerSocket.bind(address, port, backlog, v6Only, shared);
   }
 }
 
 
 patch class RawSocket {
-  /* patch */ static Future<RawSocket> connect(host, int port) {
-    return _RawSocket.connect(host, port);
+  /* patch */ static Future<RawSocket> connect(
+      host, int port, {sourceAddress}) {
+    return _RawSocket.connect(host, port, sourceAddress);
   }
 }
 
@@ -381,7 +383,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         });
   }
 
-  static Future<_NativeSocket> connect(host, int port) {
+  static Future<_NativeSocket> connect(host, int port, sourceAddress) {
+    if (sourceAddress != null && sourceAddress is! _InternetAddress) {
+      if (sourceAddress is String) {
+        sourceAddress = new InternetAddress(sourceAddress);
+      }
+    }
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return [host];
@@ -410,7 +417,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             var address = it.current;
             var socket = new _NativeSocket.normal();
             socket.address = address;
-            var result = socket.nativeCreateConnect(address._in_addr, port);
+            var result;
+            if (sourceAddress == null) {
+              result = socket.nativeCreateConnect(address._in_addr, port);
+            } else {
+              assert(sourceAddress is _InternetAddress);
+              result = socket.nativeCreateBindConnect(
+                  address._in_addr, port, sourceAddress._in_addr);
+            }
             if (result is OSError) {
               // Keep first error, if present.
               if (error == null) {
@@ -460,7 +474,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static Future<_NativeSocket> bind(host,
                                     int port,
                                     int backlog,
-                                    bool v6Only) {
+                                    bool v6Only,
+                                    bool shared) {
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return host;
@@ -475,10 +490,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         .then((address) {
           var socket = new _NativeSocket.listen();
           socket.address = address;
+
           var result = socket.nativeCreateBindListen(address._in_addr,
                                                      port,
                                                      backlog,
-                                                     v6Only);
+                                                     v6Only,
+                                                     shared);
           if (result is OSError) {
             throw new SocketException("Failed to create server socket",
                                       osError: result,
@@ -1116,7 +1133,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       native "Socket_SendTo";
   nativeCreateConnect(List<int> addr,
                       int port) native "Socket_CreateConnect";
-  nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only)
+  nativeCreateBindConnect(
+      List<int> addr, int port, List<int> sourceAddr)
+      native "Socket_CreateBindConnect";
+  nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only,
+                         bool shared)
       native "ServerSocket_CreateBindListen";
   nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress)
       native "Socket_CreateBindDatagram";
@@ -1134,6 +1155,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool nativeLeaveMulticast(
       List<int> addr, List<int> interfaceAddr, int interfaceIndex)
       native "Socket_LeaveMulticast";
+  bool _nativeMarkSocketAsSharedHack()
+      native "Socket_MarkSocketAsSharedHack";
 }
 
 
@@ -1142,19 +1165,21 @@ class _RawServerSocket extends Stream<RawSocket>
   final _NativeSocket _socket;
   StreamController<RawSocket> _controller;
   ReceivePort _referencePort;
+  bool _v6Only;
 
   static Future<_RawServerSocket> bind(address,
                                        int port,
                                        int backlog,
-                                       bool v6Only) {
+                                       bool v6Only,
+                                       bool shared) {
     if (port < 0 || port > 0xFFFF)
       throw new ArgumentError("Invalid port $port");
     if (backlog < 0) throw new ArgumentError("Invalid backlog $backlog");
-    return _NativeSocket.bind(address, port, backlog, v6Only)
-        .then((socket) => new _RawServerSocket(socket));
+    return _NativeSocket.bind(address, port, backlog, v6Only, shared)
+        .then((socket) => new _RawServerSocket(socket, v6Only));
   }
 
-  _RawServerSocket(this._socket);
+  _RawServerSocket(this._socket, this._v6Only);
 
   StreamSubscription<RawSocket> listen(void onData(RawSocket event),
                                        {Function onError,
@@ -1236,18 +1261,20 @@ class _RawServerSocket extends Stream<RawSocket>
 
   RawServerSocketReference get reference {
     if (_referencePort == null) {
+      bool successfull = _socket._nativeMarkSocketAsSharedHack();
       _referencePort = new ReceivePort();
       _referencePort.listen((sendPort) {
         sendPort.send(
-          [_socket.nativeGetSocketId(),
-           _socket.address,
-           _socket.localPort]);
+          [_socket.address,
+           _socket.port,
+           _v6Only]);
       });
     }
     return new _RawServerSocketReference(_referencePort.sendPort);
   }
 
   Map _toJSON(bool ref) => _socket._toJSON(ref);
+
   void set _owner(owner) { _socket.owner = owner; }
 }
 
@@ -1260,20 +1287,21 @@ class _RawServerSocketReference implements RawServerSocketReference {
   Future<RawServerSocket> create() {
     var port = new ReceivePort();
     _sendPort.send(port.sendPort);
-    return port.first.then((args) {
+    return port.first.then((List args) {
       port.close();
-      var native = new _NativeSocket.listen();
-      native.nativeSetSocketId(args[0]);
-      native.address = args[1];
-      native.localPort = args[2];
-      return new _RawServerSocket(native);
+
+      InternetAddress address = args[0];
+      int tcpPort = args[1];
+      bool v6Only = args[2];
+      return
+          RawServerSocket.bind(address, tcpPort, v6Only: v6Only, shared: true);
     });
   }
 
   int get hashCode => _sendPort.hashCode;
 
   bool operator==(Object other)
-    => other is _RawServerSocketReference && _sendPort == other._sendPort;
+      => other is _RawServerSocketReference && _sendPort == other._sendPort;
 }
 
 
@@ -1287,8 +1315,8 @@ class _RawSocket extends Stream<RawSocketEvent>
   // Flag to handle Ctrl-D closing of stdio on Mac OS.
   bool _isMacOSTerminalInput = false;
 
-  static Future<RawSocket> connect(host, int port) {
-    return _NativeSocket.connect(host, port)
+  static Future<RawSocket> connect(host, int port, sourceAddress) {
+    return _NativeSocket.connect(host, port, sourceAddress)
         .then((socket) => new _RawSocket(socket));
   }
 
@@ -1432,8 +1460,9 @@ patch class ServerSocket {
   /* patch */ static Future<ServerSocket> bind(address,
                                                int port,
                                                {int backlog: 0,
-                                                bool v6Only: false}) {
-    return _ServerSocket.bind(address, port, backlog, v6Only);
+                                                bool v6Only: false,
+                                                bool shared: false}) {
+    return _ServerSocket.bind(address, port, backlog, v6Only, shared);
   }
 }
 
@@ -1456,8 +1485,9 @@ class _ServerSocket extends Stream<Socket>
   static Future<_ServerSocket> bind(address,
                                     int port,
                                     int backlog,
-                                    bool v6Only) {
-    return _RawServerSocket.bind(address, port, backlog, v6Only)
+                                    bool v6Only,
+                                    bool shared) {
+    return _RawServerSocket.bind(address, port, backlog, v6Only, shared)
         .then((socket) => new _ServerSocket(socket));
   }
 
@@ -1485,13 +1515,14 @@ class _ServerSocket extends Stream<Socket>
   }
 
   Map _toJSON(bool ref) => _socket._toJSON(ref);
+
   void set _owner(owner) { _socket._owner = owner; }
 }
 
 
 patch class Socket {
-  /* patch */ static Future<Socket> connect(host, int port) {
-    return RawSocket.connect(host, port).then(
+  /* patch */ static Future<Socket> connect(host, int port, {sourceAddress}) {
+    return RawSocket.connect(host, port, sourceAddress: sourceAddress).then(
         (socket) => new _Socket(socket));
   }
 }

@@ -408,7 +408,7 @@ class Unparser extends Indentation implements Visitor {
     if (node.starToken != null) {
       write(node.starToken.value);
     }
-    space();
+    write(' ');
     visit(node.expression);
     write(node.endToken.value);
   }

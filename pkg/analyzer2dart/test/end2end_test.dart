@@ -21,8 +21,8 @@ import 'test_helper.dart' hide TestSpec;
 import 'output_helper.dart';
 import 'end2end_data.dart';
 
-main() {
-  performTests(TEST_DATA, unittester, checkResult);
+main(List<String> args) {
+  performTests(TEST_DATA, unittester, checkResult, args);
 }
 
 checkResult(TestSpec result) {

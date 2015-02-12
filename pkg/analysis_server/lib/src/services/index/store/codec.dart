@@ -93,8 +93,7 @@ class ElementCodec {
     List<int> path = _indexToPath[index];
     List<String> components = _getLocationComponents(path);
     ElementLocation location = new ElementLocationImpl.con3(components);
-    Element element = context.getElement(location);
-    return element;
+    return context.getElement(location);
   }
 
   /**

@@ -21,6 +21,8 @@ main() {
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
+  int serverErrorCount = 0;
+  int navigationCount = 0;
 
   @override
   void processNotification(Notification notification) {
@@ -28,6 +30,37 @@ class UpdateContentTest extends AbstractAnalysisTest {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
+    if (notification.event == ANALYSIS_NAVIGATION) {
+      navigationCount++;
+    }
+    if (notification.event == SERVER_ERROR) {
+      serverErrorCount++;
+    }
+  }
+
+  test_discardNotifications_onSourceChange() async {
+    createProject();
+    addTestFile('');
+    await server.onAnalysisComplete;
+    server.setAnalysisSubscriptions({
+      AnalysisService.NAVIGATION: [testFile].toSet()
+    });
+    // update file, analyze, but don't sent notifications
+    navigationCount = 0;
+    server.updateContent('1', {
+      testFile: new AddContentOverlay('foo() {}')
+    });
+    server.test_performAllAnalysisOperations();
+    expect(serverErrorCount, 0);
+    expect(navigationCount, 0);
+    // replace the file contents,
+    // should discard any pending notification operations
+    server.updateContent('2', {
+      testFile: new AddContentOverlay('bar() {}')
+    });
+    await server.onAnalysisComplete;
+    expect(serverErrorCount, 0);
+    expect(navigationCount, 1);
   }
 
   test_illegal_ChangeContentOverlay() {

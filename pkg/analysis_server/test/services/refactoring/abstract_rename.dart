@@ -75,25 +75,4 @@ class RenameRefactoringTest extends RefactoringTest {
     }
     return null;
   }
-
-//  /**
-//   * Asserts result of applying [change] to [testCode].
-//   */
-//  void assertTestChangeResult(Change change, String expected)
-//      {
-//    assertChangeResult(change, testSource, expected);
-//  }
-//
-//  /**
-//   * Asserts result of applying [change] to [source].
-//   */
-//  void assertChangeResult(Change change, Source source, String expected)
-//       {
-//    SourceChange sourceChange = getSourceChange(compositeChange, source);
-//    assertNotNull("No change for: " + source.toString(), sourceChange);
-//    String sourceResult = getChangeResult(context, source, sourceChange);
-//    assertEquals(expected, sourceResult);
-////    AnalysisContext context = getAnalysisContext();
-////    assertChangeResult(context, compositeChange, source, expected);
-//  }
 }

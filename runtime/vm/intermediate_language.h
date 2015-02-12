@@ -7967,6 +7967,16 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
+  intptr_t CountArgsPushed() {
+    intptr_t count = 0;
+    for (Environment::DeepIterator it(this); !it.Done(); it.Advance()) {
+      if (it.CurrentValue()->definition()->IsPushArgument()) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   const Code& code() const { return parsed_function_.code(); }
 
   Environment* DeepCopy(Isolate* isolate) const {

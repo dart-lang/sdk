@@ -715,17 +715,16 @@ abstract class AnalysisContext {
   LineInfo getLineInfo(Source source);
 
   /**
-   * Return the modification stamp for the given source. A modification stamp is a non-negative
-   * integer with the property that if the contents of the source have not been modified since the
-   * last time the modification stamp was accessed then the same value will be returned, but if the
-   * contents of the source have been modified one or more times (even if the net change is zero)
-   * the stamps will be different.
+   * Return the modification stamp for the [source], or a negative value if the
+   * source does not exist. A modification stamp is a non-negative integer with
+   * the property that if the contents of the source have not been modified
+   * since the last time the modification stamp was accessed then the same value
+   * will be returned, but if the contents of the source have been modified one
+   * or more times (even if the net change is zero) the stamps will be different.
    *
-   * This method should be used rather than the method [Source.getModificationStamp] because
-   * contexts can have local overrides of the content of a source that the source is not aware of.
-   *
-   * @param source the source whose modification stamp is to be returned
-   * @return the modification stamp for the source
+   * This method should be used rather than the method
+   * [Source.getModificationStamp] because contexts can have local overrides of
+   * the content of a source that the source is not aware of.
    */
   int getModificationStamp(Source source);
 
@@ -1977,7 +1976,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (AnalysisEngine.isHtmlFileName(sourceName)) {
         return computeHtmlElement(source);
       }
-    } on AnalysisException catch (exception) {
+    } catch (exception) {
+      // If the location cannot be decoded for some reason then the underlying
+      // cause should have been logged already and we can fall though to return
+      // null.
     }
     return null;
   }
@@ -4682,6 +4684,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CaughtException thrownException = task.exception;
     if (thrownException != null) {
       sourceEntry.recordContentError(thrownException);
+      {
+        sourceEntry.setValue(SourceEntry.CONTENT_ERRORS, task.errors);
+        ChangeNoticeImpl notice = _getNotice(source);
+        notice.setErrors(sourceEntry.allErrors, null);
+      }
       _workManager.remove(source);
       throw new AnalysisException('<rethrow>', thrownException);
     }
@@ -7870,7 +7877,8 @@ class DartEntry extends SourceEntry {
       new DataDescriptor<CompilationUnit>("DartEntry.RESOLVED_UNIT");
 
   /**
-   * The data descriptor representing the token stream.
+   * The data descriptor representing the errors resulting from scanning the
+   * source.
    */
   static final DataDescriptor<List<AnalysisError>> SCAN_ERRORS =
       new DataDescriptor<List<AnalysisError>>(
@@ -7917,6 +7925,7 @@ class DartEntry extends SourceEntry {
    */
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
+    errors.addAll(super.allErrors);
     errors.addAll(getValue(SCAN_ERRORS));
     errors.addAll(getValue(PARSE_ERRORS));
     ResolutionState state = _resolutionState;
@@ -9031,6 +9040,11 @@ class GetContentTask extends AnalysisTask {
   String _content;
 
   /**
+   * The errors that were produced by getting the source content.
+   */
+  final List<AnalysisError> errors = <AnalysisError>[];
+
+  /**
    * The time at which the contents of the source were last modified.
    */
   int _modificationTime = -1;
@@ -9094,6 +9108,11 @@ class GetContentTask extends AnalysisTask {
           _modificationTime,
           _content);
     } catch (exception, stackTrace) {
+      errors.add(
+          new AnalysisError.con1(
+              source,
+              ScannerErrorCode.UNABLE_GET_CONTENT,
+              [exception]));
       throw new AnalysisException(
           "Could not get contents of $source",
           new CaughtException(exception, stackTrace));
@@ -9165,6 +9184,7 @@ class HtmlEntry extends SourceEntry {
    */
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
+    errors.addAll(super.allErrors);
     errors.addAll(getValue(PARSE_ERRORS));
     errors.addAll(getValue(RESOLUTION_ERRORS));
     errors.addAll(getValue(HINTS));
@@ -10924,6 +10944,7 @@ class ResolutionState {
   void setValue(DataDescriptor /*<V>*/ descriptor, dynamic /*V*/ value) {
     CachedResult result =
         resultMap.putIfAbsent(descriptor, () => new CachedResult(descriptor));
+    SourceEntry.countTransition(descriptor, result);
     result.state = CacheState.VALID;
     result.value = value == null ? descriptor.defaultValue : value;
   }
@@ -11592,6 +11613,15 @@ abstract class SourceEntry {
       new DataDescriptor<String>("SourceEntry.CONTENT");
 
   /**
+   * The data descriptor representing the errors resulting from reading the
+   * source content.
+   */
+  static final DataDescriptor<List<AnalysisError>> CONTENT_ERRORS =
+      new DataDescriptor<List<AnalysisError>>(
+          "SourceEntry.CONTENT_ERRORS",
+          AnalysisError.NO_ERRORS);
+
+  /**
    * The data descriptor representing the line information.
    */
   static final DataDescriptor<LineInfo> LINE_INFO =
@@ -11603,6 +11633,13 @@ abstract class SourceEntry {
    * referenced by another source.
    */
   static int _EXPLICITLY_ADDED_FLAG = 0;
+
+  /**
+   * A table mapping data descriptors to a count of the number of times a value
+   * was set when in a given state.
+   */
+  static final Map<DataDescriptor, Map<CacheState, int>> transitionMap =
+      new HashMap<DataDescriptor, Map<CacheState, int>>();
 
   /**
    * The most recent time at which the state of the source matched the state
@@ -11629,11 +11666,18 @@ abstract class SourceEntry {
       new HashMap<DataDescriptor, CachedResult>();
 
   /**
+   * Return all of the errors associated with this entry.
+   */
+  List<AnalysisError> get allErrors {
+    return getValue(CONTENT_ERRORS);
+  }
+
+  /**
    * Get a list of all the library-independent descriptors for which values may
    * be stored in this SourceEntry.
    */
   List<DataDescriptor> get descriptors {
-    return <DataDescriptor>[SourceEntry.CONTENT, SourceEntry.LINE_INFO];
+    return <DataDescriptor>[CONTENT, CONTENT_ERRORS, LINE_INFO];
   }
 
   /**
@@ -11732,6 +11776,7 @@ abstract class SourceEntry {
    */
   void invalidateAllInformation() {
     setState(CONTENT, CacheState.INVALID);
+    setState(CONTENT_ERRORS, CacheState.INVALID);
     setState(LINE_INFO, CacheState.INVALID);
   }
 
@@ -11794,8 +11839,21 @@ abstract class SourceEntry {
     _validateStateChange(descriptor, CacheState.VALID);
     CachedResult result =
         resultMap.putIfAbsent(descriptor, () => new CachedResult(descriptor));
+    countTransition(descriptor, result);
     result.state = CacheState.VALID;
     result.value = value == null ? descriptor.defaultValue : value;
+  }
+
+  /**
+   * Increment the count of the number of times that data represented by the
+   * given [descriptor] was transitioned from the current state (as found in the
+   * given [result] to a valid state.
+   */
+  static void countTransition(DataDescriptor descriptor, CachedResult result) {
+    Map<CacheState, int> countMap =
+        transitionMap.putIfAbsent(descriptor, () => new HashMap<CacheState, int>());
+    int count = countMap[result.state];
+    countMap[result.state] = count == null ? 1 : count + 1;
   }
 
   @override
@@ -11826,7 +11884,9 @@ abstract class SourceEntry {
    * Return `true` if the [descriptor] is valid for this entry.
    */
   bool _isValidDescriptor(DataDescriptor descriptor) {
-    return descriptor == CONTENT || descriptor == LINE_INFO;
+    return descriptor == CONTENT ||
+        descriptor == CONTENT_ERRORS ||
+        descriptor == LINE_INFO;
   }
 
   /**
@@ -11887,6 +11947,12 @@ abstract class SourceEntry {
     }
     needsSeparator =
         _writeStateDiffOn(buffer, needsSeparator, "content", CONTENT, oldEntry);
+    needsSeparator = _writeStateDiffOn(
+        buffer,
+        needsSeparator,
+        "contentErrors",
+        CONTENT_ERRORS,
+        oldEntry);
     needsSeparator =
         _writeStateDiffOn(buffer, needsSeparator, "lineInfo", LINE_INFO, oldEntry);
     return needsSeparator;
@@ -11900,6 +11966,7 @@ abstract class SourceEntry {
     buffer.write("time = ");
     buffer.write(modificationTime);
     _writeStateOn(buffer, "content", CONTENT);
+    _writeStateOn(buffer, "contentErrors", CONTENT_ERRORS);
     _writeStateOn(buffer, "lineInfo", LINE_INFO);
   }
 

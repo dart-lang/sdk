@@ -81,6 +81,7 @@ class AssistProcessor {
     }
     // try to add proposals
     _addProposal_addTypeAnnotation_DeclaredIdentifier();
+    _addProposal_addTypeAnnotation_SimpleFormalParameter();
     _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
     _addProposal_convertToBlockFunctionBody();
@@ -310,6 +311,44 @@ class AssistProcessor {
     } else {
       _addInsertEdit(variable.offset, '$typeSource ');
     }
+    // add proposal
+    _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
+  }
+
+  void _addProposal_addTypeAnnotation_SimpleFormalParameter() {
+    AstNode node = this.node;
+    // should be the name of a simple parameter
+    if (node is! SimpleIdentifier || node.parent is! SimpleFormalParameter) {
+      _coverageMarker();
+      return;
+    }
+    SimpleIdentifier name = node;
+    SimpleFormalParameter parameter = node.parent;
+    // the parameter should not have a type
+    if (parameter.type != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare propagated type
+    DartType type = name.propagatedType;
+    // TODO(scheglov) If the parameter is in a method declaration, and if the
+    // method overrides a method that has a type for the corresponding
+    // parameter, it would be nice to copy down the type from the overridden
+    // method.
+    if (type is! InterfaceType) {
+      _coverageMarker();
+      return;
+    }
+    // prepare type source
+    String typeSource;
+    {
+      _configureTargetLocation(node);
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      typeSource = utils.getTypeSource(type, librariesToImport);
+      _addLibraryImports(librariesToImport);
+    }
+    // add edit
+    _addInsertEdit(name.offset, '$typeSource ');
     // add proposal
     _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
   }

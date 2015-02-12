@@ -19,8 +19,9 @@ import 'js_emitter.dart' show
     ClassStubGenerator,
     CodeEmitterTask,
     InterceptorStubGenerator,
+    MainCallStubGenerator,
     ParameterStubGenerator,
-    TypeTestGenerator,
+    RuntimeTypeGenerator,
     TypeTestProperties;
 
 import '../universe/universe.dart' show Universe;
@@ -122,7 +123,8 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
         outputContainsNativeClasses: containsNativeClasses,
-        outputContainsConstantList: _task.outputContainsConstantList);
+        outputContainsConstantList: _task.outputContainsConstantList,
+        hasIsolateSupport: _compiler.hasIsolateSupport);
   }
 
   void _markEagerClasses() {
@@ -152,7 +154,7 @@ class ProgramBuilder {
     MainFragment result = new MainFragment(
         librariesMap.outputUnit,
         "",  // The empty string is the name for the main output file.
-        backend.emitter.staticFunctionAccess(_compiler.mainFunction),
+        _buildInvokeMain(),
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
@@ -160,6 +162,12 @@ class ProgramBuilder {
         _registry.holders.toList(growable: false));
     _outputs[librariesMap.outputUnit] = result;
     return result;
+  }
+
+  js.Statement _buildInvokeMain() {
+    MainCallStubGenerator generator =
+        new MainCallStubGenerator(_compiler, backend, backend.emitter);
+    return generator.generateInvokeMain();
   }
 
   DeferredFragment _buildDeferredOutput(MainFragment mainOutput,
@@ -290,7 +298,7 @@ class ProgramBuilder {
     String name = namer.getNameOfClass(element);
 
     return new Class(
-        element, name, null, [], instanceFields, [], [], [], [], null,
+        element, name, null, [], instanceFields, [], [], [], [], [], null,
         isDirectlyInstantiated: true,
         onlyForRti: false,
         isNative: element.isNative);
@@ -304,6 +312,8 @@ class ProgramBuilder {
 
     ClassStubGenerator classStubGenerator =
         new ClassStubGenerator(_compiler, namer, backend);
+    RuntimeTypeGenerator runtimeTypeGenerator =
+        new RuntimeTypeGenerator(_compiler, _task, namer);
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
@@ -329,6 +339,9 @@ class ProgramBuilder {
       }
     }
 
+    List<StubMethod> typeVariableReaderStubs =
+        runtimeTypeGenerator.generateTypeVariableReaderStubs(element);
+
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
     if (element == _compiler.objectClass) {
       Map<String, Selector> selectors =
@@ -353,10 +366,8 @@ class ProgramBuilder {
     List<Field> staticFieldsForReflection =
         onlyForRti ? const <Field>[] : _buildFields(element, true);
 
-    TypeTestGenerator generator =
-        new TypeTestGenerator(_compiler, _task, namer);
     TypeTestProperties typeTests =
-        generator.generateIsTests(
+        runtimeTypeGenerator.generateIsTests(
             element,
             storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
@@ -381,6 +392,7 @@ class ProgramBuilder {
                                     instanceFields,
                                     staticFieldsForReflection,
                                     callStubs,
+                                    typeVariableReaderStubs,
                                     isChecks,
                                     typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
@@ -390,6 +402,7 @@ class ProgramBuilder {
                          name, holder, methods, instanceFields,
                          staticFieldsForReflection,
                          callStubs,
+                         typeVariableReaderStubs,
                          noSuchMethodStubs,
                          isChecks,
                          typeTests.functionTypeIndex,

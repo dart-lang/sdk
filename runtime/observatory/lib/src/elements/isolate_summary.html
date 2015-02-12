@@ -15,11 +15,12 @@
       <div class="flex-item-10-percent">
         <isolate-ref ref="{{ isolate }}"></isolate-ref>
       </div>
-      <div class="flex-item-30-percent">
+      <div class="flex-item-10-percent">
         <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
       </div>
-      <div class="flex-item-40-percent">
+      <div class="flex-item-60-percent">
         <isolate-location isolate="{{ isolate }}"></isolate-location>
+        [<a on-click="{{ goto }}" _href="{{ gotoLink('/debugger', isolate) }}">debug</a>]
       </div>
       <div class="flex-item-10-percent">
       </div>
@@ -42,21 +43,14 @@
   <template>
     <template if="{{ isolate.pauseEvent != null }}">
       <strong>paused</strong>
-      <action-link callback="{{ resume }}" label="resume"></action-link>
-
-      <action-link callback="{{ stepInto }}" label="step"></action-link>
-      <action-link callback="{{ stepOver }}" label="step&nbsp;over"></action-link>
-      <action-link callback="{{ stepOut }}" label="step&nbsp;out"></action-link>
     </template>
 
     <template if="{{ isolate.running }}">
       <strong>running</strong>
-      <action-link callback="{{ pause }}" label="pause"></action-link>
     </template>
 
     <template if="{{ isolate.idle }}">
       <strong>idle</strong>
-      <action-link callback="{{ pause }}" label="pause"></action-link>
     </template>
 
     <template if="{{ isolate.loading }}">

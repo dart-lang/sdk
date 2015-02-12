@@ -359,7 +359,8 @@ class RawServerSocket {
   static Future<RawServerSocket> bind(address,
                                       int port,
                                       {int backlog: 0,
-                                       bool v6Only: false}) {
+                                       bool v6Only: false,
+                                       bool shared: false}) {
     throw new UnsupportedError("RawServerSocket.bind");
   }
 }
@@ -370,7 +371,8 @@ class ServerSocket {
   static Future<ServerSocket> bind(address,
                                    int port,
                                    {int backlog: 0,
-                                    bool v6Only: false}) {
+                                    bool v6Only: false,
+                                    bool shared: false}) {
     throw new UnsupportedError("ServerSocket.bind");
   }
 }
@@ -378,7 +380,7 @@ class ServerSocket {
 @patch
 class RawSocket {
   @patch
-  static Future<RawSocket> connect(host, int port) {
+  static Future<RawSocket> connect(host, int port, {sourceAddress}) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
@@ -386,7 +388,7 @@ class RawSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> connect(host, int port) {
+  static Future<Socket> connect(host, int port, {sourceAddress}) {
     throw new UnsupportedError("Socket constructor");
   }
 }

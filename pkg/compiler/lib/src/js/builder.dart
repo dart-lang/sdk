@@ -5,7 +5,7 @@
 // Utilities for building JS ASTs at runtime.  Contains a builder class
 // and a parser that parses part of the language.
 
-part of js;
+part of js_ast;
 
 
 /**
@@ -349,8 +349,8 @@ LiteralNumber number(num value) => js.number(value);
 ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
 ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
 Call propertyCall(Expression receiver,
-                    String fieldName,
-                    List<Expression> arguments) {
+                  String fieldName,
+                  List<Expression> arguments) {
   return js.propertyCall(receiver, fieldName, arguments);
 }
 
@@ -716,6 +716,8 @@ class MiniJsParser {
         return new LiteralNull();
       } else if (last == "function") {
         return parseFunctionExpression();
+      } else if (last == "this") {
+        return new This();
       } else {
         return new VariableUse(last);
       }
@@ -1116,9 +1118,12 @@ class MiniJsParser {
 
       if (lastToken == 'default') error("Default outside switch.");
 
+      if (lastToken == 'yield') return parseYield();
+
       if (lastToken == 'with') {
         error('Not implemented in mini parser');
       }
+
     }
 
     bool checkForInterpolatedStatement = lastCategory == HASH;
@@ -1151,6 +1156,13 @@ class MiniJsParser {
     Expression expression = parseExpression();
     expectSemicolon();
     return new Return(expression);
+  }
+
+  Statement parseYield() {
+    bool hasStar = acceptString('*');
+    Expression expression = parseExpression();
+    expectSemicolon();
+    return new DartYield(expression, hasStar);
   }
 
   Statement parseThrow() {

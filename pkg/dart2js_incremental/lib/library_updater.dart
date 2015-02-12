@@ -995,9 +995,13 @@ if (this.pendingStubs) {
   }
 
   String prettyPrintJs(jsAst.Node node) {
-    jsAst.Printer printer = new jsAst.Printer(compiler, null);
+    jsAst.JavaScriptPrintingOptions options =
+        new jsAst.JavaScriptPrintingOptions();
+    jsAst.JavaScriptPrintingContext context =
+        new jsAst.Dart2JSJavaScriptPrintingContext(compiler, null);
+    jsAst.Printer printer = new jsAst.Printer(options, context);
     printer.blockOutWithoutBraces(node);
-    return printer.outBuffer.getText();
+    return context.outBuffer.getText();
   }
 
   String callNameFor(FunctionElement element) {

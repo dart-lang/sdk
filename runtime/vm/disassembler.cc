@@ -7,6 +7,7 @@
 #include "vm/assembler.h"
 #include "vm/globals.h"
 #include "vm/os.h"
+#include "vm/log.h"
 #include "vm/json_stream.h"
 
 namespace dart {
@@ -18,22 +19,22 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              uword pc) {
   static const int kHexColumnWidth = 23;
   uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
-  OS::Print("%p    %s", pc_ptr, hex_buffer);
+  ISL_Print("%p    %s", pc_ptr, hex_buffer);
   int hex_length = strlen(hex_buffer);
   if (hex_length < kHexColumnWidth) {
     for (int i = kHexColumnWidth - hex_length; i > 0; i--) {
-      OS::Print(" ");
+      ISL_Print(" ");
     }
   }
-  OS::Print("%s", human_buffer);
-  OS::Print("\n");
+  ISL_Print("%s", human_buffer);
+  ISL_Print("\n");
 }
 
 
 void DisassembleToStdout::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  OS::VFPrint(stdout, format, args);
+  ISL_VPrint(format, args);
   va_end(args);
 }
 
@@ -131,15 +132,19 @@ void Disassembler::Disassemble(uword start,
     if (old_comment_finger != comment_finger) {
       // Comment emitted, emit inlining information.
       code.GetInlinedFunctionsAt(offset, &inlined_functions);
-      // Skip top scope function printing.
-      for (intptr_t i = 1; i < inlined_functions.length(); i++) {
-        if (i == 1) {
-          formatter->Print("        ;; Inlined ");
+      // Skip top scope function printing (last entry in 'inlined_functions').
+      bool first = true;
+      for (intptr_t i = inlined_functions.length() - 2; i >= 0; i--) {
+        const char* name = inlined_functions[i]->ToQualifiedCString();
+        if (first) {
+          formatter->Print("        ;; Inlined [%s", name);
+          first = false;
+        } else {
+          formatter->Print(" -> %s", name);
         }
-        formatter->Print("-> %s ", inlined_functions[i]->ToQualifiedCString());
       }
-      if (inlined_functions.length() > 1) {
-        formatter->Print("\n");
+      if (!first) {
+        formatter->Print("]\n");
       }
     }
     int instruction_length;

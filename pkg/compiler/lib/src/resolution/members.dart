@@ -492,15 +492,11 @@ class ResolverTask extends CompilerTask {
   }
 
   static void processAsyncMarker(Compiler compiler,
-                                 BaseFunctionElementX element) {
+                                 BaseFunctionElementX element,
+                                 Registry registry) {
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
-      if (!compiler.enableAsyncAwait) {
-        compiler.reportError(asyncModifier,
-            MessageKind.EXPERIMENTAL_ASYNC_AWAIT,
-            {'modifier': element.asyncMarker});
-      }
 
       if (asyncModifier.isAsynchronous) {
         element.asyncMarker = asyncModifier.isYielding
@@ -530,6 +526,7 @@ class ResolverTask extends CompilerTask {
               {'modifier': element.asyncMarker});
         }
       }
+      registry.registerAsyncMarker(element);
     }
   }
 
@@ -556,6 +553,7 @@ class ResolverTask extends CompilerTask {
       ResolutionRegistry registry = visitor.registry;
       registry.defineFunction(tree, element);
       visitor.setupFunction(tree, element);
+      processAsyncMarker(compiler, element, registry);
 
       if (element.isGenerativeConstructor) {
         // Even if there is no initializer list we still have to do the
@@ -630,7 +628,6 @@ class ResolverTask extends CompilerTask {
       } else {
         element.parseNode(compiler);
         element.computeType(compiler);
-        processAsyncMarker(compiler, element);
         FunctionElementX implementation = element;
         if (element.isExternal) {
           implementation = compiler.backend.resolveExternalFunction(element);
@@ -2478,7 +2475,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     LocalFunctionElementX function = new LocalFunctionElementX(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
-    ResolverTask.processAsyncMarker(compiler, function);
+    ResolverTask.processAsyncMarker(compiler, function, registry);
     function.functionSignatureCache = SignatureResolver.analyze(
         compiler,
         node.parameters,

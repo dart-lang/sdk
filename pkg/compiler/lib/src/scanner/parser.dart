@@ -1512,15 +1512,6 @@ class Parser {
     return token;
   }
 
-  /// `async*` and `sync*` are parsed a two tokens, [token] and [star]. This
-  /// method checks that there is no whitespace between [token] and [star].
-  void checkStarredModifier(Token token, Token star, String name) {
-    if (star.charOffset > token.charOffset + token.charCount) {
-      listener.reportError(new TokenPair(token, star),
-          MessageKind.INVALID_STARRED_KEYWORD, {'keyword': name});
-    }
-  }
-
   Token parseAsyncModifier(Token token) {
     Token async;
     Token star;
@@ -1534,7 +1525,6 @@ class Parser {
         yieldIsKeyword = true;
         star = token;
         token = token.next;
-        checkStarredModifier(async, star, 'async*');
       }
     } else if (optional('sync', token)) {
       async = token;
@@ -1543,8 +1533,6 @@ class Parser {
         yieldIsKeyword = true;
         star = token;
         token = token.next;
-
-        checkStarredModifier(async, star, 'sync*');
       } else {
         listener.reportError(async,
             MessageKind.INVALID_SYNC_MODIFIER);
@@ -1617,7 +1605,6 @@ class Parser {
     if (optional('*', token)) {
       starToken = token;
       token = token.next;
-      checkStarredModifier(begin, starToken, 'yield*');
     }
     token = parseExpression(token);
     listener.endYieldStatement(begin, starToken, token);

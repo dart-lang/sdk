@@ -67,7 +67,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.0.0';
+  static final String VERSION = '1.1.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -334,6 +334,21 @@ class AnalysisServer {
   }
 
   /**
+   * Performs all scheduled analysis operations.
+   */
+  void test_performAllAnalysisOperations() {
+    while (true) {
+      ServerOperation operation = operationQueue.takeIf((operation) {
+        return operation is PerformAnalysisOperation;
+      });
+      if (operation == null) {
+        break;
+      }
+      operation.perform(this);
+    }
+  }
+
+  /**
    * If the given notice applies to a file contained within an analysis root,
    * notify interested parties that the file has been (at least partially)
    * analyzed.
@@ -353,10 +368,22 @@ class AnalysisServer {
    */
   AnalysisContext getAnalysisContext(String path) {
     // try to find a containing context
+    Folder containingFolder = null;
     for (Folder folder in folderMap.keys) {
-      if (folder.contains(path)) {
-        return folderMap[folder];
+      if (folder.path == path || folder.contains(path)) {
+        if (containingFolder == null) {
+          containingFolder = folder;
+        } else if (containingFolder.path.length < folder.path.length) {
+          containingFolder = folder;
+        }
       }
+    }
+    if (containingFolder != null) {
+      return folderMap[containingFolder];
+    }
+    Resource resource = resourceProvider.getResource(path);
+    if (resource is Folder) {
+      return null;
     }
     // check if there is a context that analyzed this source
     return getAnalysisContextForSource(getSource(path));
@@ -943,6 +970,8 @@ class AnalysisServer {
   void updateContent(String id, Map<String, dynamic> changes) {
     changes.forEach((file, change) {
       Source source = getSource(file);
+      operationQueue.sourceAboutToChange(source);
+      // Prepare the new contents.
       String oldContents = _overlayState.getContents(source);
       String newContents;
       if (change is AddContentOverlay) {
@@ -1204,12 +1233,11 @@ class ServerContextManager extends ContextManager {
    * [packageUriResolver].
    */
   SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
-    List<UriResolver> resolvers = <UriResolver>[
-        new DartUriResolver(analysisServer.defaultSdk),
-        new ResourceUriResolver(resourceProvider)];
-    if (packageUriResolver != null) {
-      resolvers.add(packageUriResolver);
-    }
+    UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
+    UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
+    List<UriResolver> resolvers = packageUriResolver != null ?
+        <UriResolver>[dartResolver, packageUriResolver, resourceResolver] :
+        <UriResolver>[dartResolver, resourceResolver];
     return new SourceFactory(resolvers);
   }
 }

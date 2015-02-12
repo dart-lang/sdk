@@ -406,14 +406,21 @@ class NoInlining {
 /// Annotation class for testing of dart2js. Use this as metadata on method
 /// declarations to make the type inferrer trust the parameter and return types,
 /// effectively asserting the runtime values will (at least) be subtypes of the
-/// annotated types.
+/// annotated types. 
+///
+/// While the actually inferred type is guaranteed to be a subtype of the 
+/// annotation, it often is more precise. In particular, if a method is only 
+/// called with `null`, the inferrer will still infer null. To ensure that
+/// the annotated type is also the inferred type, additionally use 
+/// [AssumeDynamic].
 class TrustTypeAnnotations {
   const TrustTypeAnnotations();
 }
 
 /// Annotation class for testing of dart2js. Use this as metadata on method
 /// declarations to disable closed world assumptions on parameters, effectively
-/// assuming that the runtime arguments could be any value.
+/// assuming that the runtime arguments could be any value. Note that the
+/// constraints due to [TrustTypeAnnotations] still apply. 
 class AssumeDynamic {
   const AssumeDynamic();
 }

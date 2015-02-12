@@ -71,7 +71,7 @@ static void ThrowNoSuchMethod(const Instance& receiver,
 
 static void EnsureConstructorsAreCompiled(const Function& func) {
   // Only generative constructors can have initializing formals.
-  if (!func.IsConstructor()) return;
+  if (!func.IsGenerativeConstructor()) return;
 
   Isolate* isolate = Isolate::Current();
   const Class& cls = Class::Handle(isolate, func.Owner());
@@ -256,7 +256,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   bool isConstructor = (func.kind() == RawFunction::kConstructor);
   args.SetAt(7, Bool::Get(isConstructor));
   args.SetAt(8, Bool::Get(isConstructor && func.is_const()));
-  args.SetAt(9, Bool::Get(isConstructor && func.IsConstructor()));
+  args.SetAt(9, Bool::Get(isConstructor && func.IsGenerativeConstructor()));
   args.SetAt(10, Bool::Get(isConstructor && func.is_redirecting()));
   args.SetAt(11, Bool::Get(isConstructor && func.IsFactory()));
 
@@ -1540,7 +1540,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       klass.LookupFunction(internal_constructor_name));
 
   if (lookup_constructor.IsNull() ||
-      !(lookup_constructor.IsConstructor() || lookup_constructor.IsFactory()) ||
+      (lookup_constructor.kind() != RawFunction::kConstructor) ||
       !lookup_constructor.is_reflectable()) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
@@ -1602,7 +1602,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
 
   const intptr_t num_explicit_args = explicit_args.Length();
   const intptr_t num_implicit_args =
-      redirected_constructor.IsConstructor() ? 2 : 1;
+      redirected_constructor.IsGenerativeConstructor() ? 2 : 1;
   const Array& args =
       Array::Handle(Array::New(num_implicit_args + num_explicit_args));
 
@@ -1633,7 +1633,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   }
 
   Instance& new_object = Instance::Handle();
-  if (redirected_constructor.IsConstructor()) {
+  if (redirected_constructor.IsGenerativeConstructor()) {
     // Constructors get the uninitialized object and a constructor phase. Note
     // we have delayed allocation until after the function type and argument
     // matching checks.
@@ -1664,7 +1664,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   // Factories may return null.
   ASSERT(result.IsInstance() || result.IsNull());
 
-  if (redirected_constructor.IsConstructor()) {
+  if (redirected_constructor.IsGenerativeConstructor()) {
     return new_object.raw();
   } else {
     return result.raw();
@@ -1840,7 +1840,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
   // We handle constructors in Dart code.
-  ASSERT(!func.IsConstructor());
+  ASSERT(!func.IsGenerativeConstructor());
   const AbstractType& type = AbstractType::Handle(func.result_type());
   return InstantiateType(type, instantiator);
 }

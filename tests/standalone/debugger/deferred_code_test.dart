@@ -39,6 +39,10 @@ var testScript = [
   MatchLine(22),
   MatchLocals({"loaded": "false"}),
   SetBreakpoint(10, url: "deferred_code_lib.dart"),
+  // Regression test: we used to have a bug that hung the debugger when
+  // processing latent brakepoints for urls that have no match.
+  // The BP below will not match any loaded file.
+  SetBreakpoint(10, url: "non_existing_file.dart"),
   Resume(),
   MatchFrame(0, "stopTheBuck"),  // Expect to be stopped in deferred library code.
   // MatchLine(10), // Line matching only works for the main script.

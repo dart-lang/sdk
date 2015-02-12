@@ -236,7 +236,6 @@ class Assembler : public ValueObject {
  public:
   explicit Assembler(bool use_far_branches = false)
       : buffer_(),
-        object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
         use_far_branches_(use_far_branches),
         delay_slot_available_(false),
@@ -263,7 +262,7 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const { return object_pool_; }
+  const GrowableObjectArray& object_pool() const { return object_pool_.data(); }
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
   }
@@ -927,9 +926,9 @@ class Assembler : public ValueObject {
 
   void BranchLinkPatchable(const ExternalLabel* label) {
     ASSERT(!in_delay_slot_);
-    const int32_t offset =
-        Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-    LoadWordFromPoolOffset(T9, offset);
+    const int32_t offset = Array::element_offset(
+        object_pool_.FindExternalLabel(label, kPatchable));
+    LoadWordFromPoolOffset(T9, offset - kHeapObjectTag);
     jalr(T9);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
@@ -1613,19 +1612,13 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;
-  GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
-
-  // Hashmap for fast lookup in object pool.
-  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+  ObjectPool object_pool_;  // Objects and patchable jump targets.
 
   intptr_t prologue_offset_;
 
   bool use_far_branches_;
   bool delay_slot_available_;
   bool in_delay_slot_;
-
-  int32_t AddObject(const Object& obj);
-  int32_t AddExternalLabel(const ExternalLabel* label);
 
   class CodeComment : public ZoneAllocated {
    public:

@@ -71,9 +71,11 @@ class JavaFile {
     return _newFile().existsSync();
   }
   int lastModified() {
-    if (!_newFile().existsSync()) return 0;
-    return _newFile().lastModifiedSync().millisecondsSinceEpoch;
-
+    try {
+      return _newFile().lastModifiedSync().millisecondsSinceEpoch;
+    } catch (exception) {
+      return -1;
+    }
   }
   List<JavaFile> listFiles() {
     var files = <JavaFile>[];

@@ -33,7 +33,9 @@
     </style>
     <nav>
       <ul>
-        <nav-notify events="{{ app.notifications }}"></nav-notify>
+        <template if="{{ showNotify }}">
+          <nav-notify events="{{ app.notifications }}"></nav-notify>
+        </template>
         <content></content>
       </ul>
     </nav>
@@ -274,7 +276,7 @@
         margin-top: 10px;
         margin-right: 10px;
         padding-right: 25px;
-        width: 200px;
+        width: 225px;
         color: #ddd;
         background: rgba(0,0,0,.6);
         border: solid 2px white;
@@ -323,21 +325,16 @@
            _href="{{ gotoLink('/inspect', event.isolate) }}">{{ event.isolate.name }}</a>
         is paused
         <template if="{{ event.breakpoint != null }}">
-          at breakpoint
+          at breakpoint {{ event.breakpoint['breakpointNumber'] }}
         </template>
         <template if="{{ event.eventType == 'ExceptionThrown' }}">
           at exception
         </template>
 
         <br><br>
-        <action-link callback="{{ resume }}" label="resume" color="white">
-        </action-link>
-        <action-link callback="{{ stepInto }}" label="step" color="white">
-        </action-link>
-        <action-link callback="{{ stepOver }}" label="step&nbsp;over"
-                     color="white"></action-link>
-        <action-link callback="{{ stepOut }}" label="step&nbsp;out"
-                     color="white"></action-link>
+        [<a class="link" on-click="{{ goto }}"
+            _href="{{ gotoLink('/debugger', event.isolate) }}">debug</a>]
+
         <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
       </div>
     </template>

@@ -2606,7 +2606,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
 
 
 SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
-  ASSERT(func.IsConstructor());
+  ASSERT(func.IsGenerativeConstructor());
   ASSERT(func.Owner() == current_class().raw());
   const intptr_t ctor_pos = TokenPos();
   OpenFunctionBlock(func);
@@ -2707,7 +2707,7 @@ void Parser::CheckRecursiveInvocation() {
 SequenceNode* Parser::ParseConstructor(const Function& func,
                                        Array* default_parameter_values) {
   TRACE_PARSER("ParseConstructor");
-  ASSERT(func.IsConstructor());
+  ASSERT(func.IsGenerativeConstructor());
   ASSERT(!func.IsFactory());
   ASSERT(!func.is_static());
   ASSERT(!func.IsLocalFunction());
@@ -2881,7 +2881,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     if (init_statements->NodeAt(i)->IsStaticCallNode()) {
       StaticCallNode* static_call =
       init_statements->NodeAt(i)->AsStaticCallNode();
-      if (static_call->function().IsConstructor()) {
+      if (static_call->function().IsGenerativeConstructor()) {
         super_call = static_call;
         break;
       }
@@ -3034,14 +3034,14 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   parsed_function()->reset_saved_try_ctx_vars();
   LocalScope* saved_async_temp_scope = async_temp_scope_;
 
-  if (func.IsConstructor()) {
+  if (func.IsGenerativeConstructor()) {
     SequenceNode* statements = ParseConstructor(func, default_parameter_values);
     innermost_function_ = saved_innermost_function.raw();
     last_used_try_index_ = saved_try_index;
     return statements;
   }
 
-  ASSERT(!func.IsConstructor());
+  ASSERT(!func.IsGenerativeConstructor());
   OpenFunctionBlock(func);  // Build local scope for function.
 
   ParamList params;
@@ -3171,7 +3171,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else if (func.IsSyncGenClosure()) {
     // The closure containing the body of a sync generator is debuggable.
     ASSERT(func.is_debuggable());
-    // Nothing special to do.
+    async_temp_scope_ = current_block_->scope;
   }
 
   BoolScope allow_await(&this->await_is_keyword_,
@@ -5975,21 +5975,20 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   }
 
   ASSERT(try_blocks_list_ != NULL);
-  if (innermost_function().IsAsyncClosure() ||
-      innermost_function().IsAsyncFunction()) {
-    if ((try_blocks_list_->outer_try_block() != NULL) &&
-        (try_blocks_list_->outer_try_block()->try_block()
-            ->scope->function_level() ==
-         current_block_->scope->function_level())) {
-      // We need to unchain three scope levels: catch clause, catch
-      // parameters, and the general try block.
-      RestoreSavedTryContext(
-          current_block_->scope->parent()->parent()->parent(),
-          try_blocks_list_->outer_try_block()->try_index(),
-          current_block_->statements);
-    } else {
-      parsed_function()->reset_saved_try_ctx_vars();
-    }
+  ASSERT(innermost_function().IsAsyncClosure() ||
+         innermost_function().IsAsyncFunction());
+  if ((try_blocks_list_->outer_try_block() != NULL) &&
+      (try_blocks_list_->outer_try_block()->try_block()
+          ->scope->function_level() ==
+       current_block_->scope->function_level())) {
+    // We need to unchain three scope levels: catch clause, catch
+    // parameters, and the general try block.
+    RestoreSavedTryContext(
+        current_block_->scope->parent()->parent()->parent(),
+        try_blocks_list_->outer_try_block()->try_index(),
+        current_block_->statements);
+  } else {
+    parsed_function()->reset_saved_try_ctx_vars();
   }
 
   // Complete the async future with an error.
@@ -6081,7 +6080,9 @@ void Parser::OpenAsyncTryBlock() {
   PushTryBlock(current_block_);
 
   if (innermost_function().IsAsyncClosure() ||
-      innermost_function().IsAsyncFunction()) {
+      innermost_function().IsAsyncFunction() ||
+      innermost_function().IsSyncGenClosure() ||
+      innermost_function().IsSyncGenerator()) {
     SetupSavedTryContext(context_var);
   }
 }
@@ -6164,10 +6165,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
   OpenFunctionBlock(body);
   AddFormalParamsToScope(&closure_params, current_block_->scope);
   OpenBlock();
-
-  /*
-  async_temp_scope_ = current_block_->scope; // Is this needed?
-  */
+  async_temp_scope_ = current_block_->scope;
   return body.raw();
 }
 
@@ -8196,7 +8194,9 @@ SequenceNode* Parser::ParseFinallyBlock() {
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
   if ((innermost_function().IsAsyncClosure() ||
-       innermost_function().IsAsyncFunction()) &&
+       innermost_function().IsAsyncFunction() ||
+       innermost_function().IsSyncGenClosure() ||
+       innermost_function().IsSyncGenerator()) &&
       (try_blocks_list_ != NULL)) {
     // We need two unchain two scopes: finally clause, and the try block level.
     RestoreSavedTryContext(current_block_->scope->parent()->parent(),
@@ -8356,7 +8356,9 @@ SequenceNode* Parser::ParseCatchClauses(
     // outer try block (if it exists).
     ASSERT(try_blocks_list_ != NULL);
     if (innermost_function().IsAsyncClosure() ||
-        innermost_function().IsAsyncFunction()) {
+        innermost_function().IsAsyncFunction() ||
+        innermost_function().IsSyncGenClosure() ||
+        innermost_function().IsSyncGenerator()) {
       if ((try_blocks_list_->outer_try_block() != NULL) &&
           (try_blocks_list_->outer_try_block()->try_block()
               ->scope->function_level() ==
@@ -8464,7 +8466,9 @@ SequenceNode* Parser::ParseCatchClauses(
     // outer try block (if it exists).
     ASSERT(try_blocks_list_ != NULL);
     if (innermost_function().IsAsyncClosure() ||
-        innermost_function().IsAsyncFunction()) {
+        innermost_function().IsAsyncFunction() ||
+        innermost_function().IsSyncGenClosure() ||
+        innermost_function().IsSyncGenerator()) {
       if ((try_blocks_list_->outer_try_block() != NULL) &&
           (try_blocks_list_->outer_try_block()->try_block()
               ->scope->function_level() ==
@@ -8495,6 +8499,7 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
       Scanner::kNoSourcePos,
       async_saved_try_ctx_name,
       Type::ZoneHandle(Z, Type::DynamicType()));
+  ASSERT(async_temp_scope_ != NULL);
   async_temp_scope_->AddVariable(async_saved_try_ctx);
   async_saved_try_ctx->set_is_captured();
   async_saved_try_ctx = current_block_->scope->LookupVariable(
@@ -8600,7 +8605,9 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   ExpectToken(Token::kLBRACE);
 
   if (innermost_function().IsAsyncClosure() ||
-      innermost_function().IsAsyncFunction()) {
+      innermost_function().IsAsyncFunction() ||
+      innermost_function().IsSyncGenClosure() ||
+      innermost_function().IsSyncGenerator()) {
     SetupSavedTryContext(context_var);
   }
 
@@ -8779,7 +8786,7 @@ AstNode* Parser::ParseStatement() {
     ConsumeToken();
     if (CurrentToken() != Token::kSEMICOLON) {
       const intptr_t expr_pos = TokenPos();
-      if (current_function().IsConstructor() &&
+      if (current_function().IsGenerativeConstructor() &&
           (current_block_->scope->function_level() == 0)) {
         ReportError(expr_pos,
                     "return of a value is not allowed in constructors");
@@ -8842,6 +8849,22 @@ AstNode* Parser::ParseStatement() {
         new(Z) LiteralNode(TokenPos(), Bool::True()));
     return_true->set_return_type(ReturnNode::kContinuationTarget);
     yield->AddNode(return_true);
+
+    // If this expression is part of a try block, also append the code for
+    // restoring the saved try context that lives on the stack.
+    const String& async_saved_try_ctx_name =
+        String::Handle(Z, parsed_function()->async_saved_try_ctx_name());
+    if (!async_saved_try_ctx_name.IsNull()) {
+      LocalVariable* async_saved_try_ctx =
+          current_block_->scope->LookupVariable(async_saved_try_ctx_name,
+                                                false);
+      ASSERT(async_saved_try_ctx != NULL);
+      yield->AddNode(new (Z) StoreLocalNode(
+          Scanner::kNoSourcePos,
+          parsed_function()->saved_try_ctx(),
+          new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
+    }
+
     statement = yield;
     ExpectSemicolon();
   } else if (token == Token::kIF) {

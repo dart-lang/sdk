@@ -392,8 +392,11 @@ class MemberTypeInformation extends ElementTypeInformation
 
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
     if (element.isField &&
-        !inferrer.compiler.backend.canBeUsedForGlobalOptimizations(element)) {
-      // Do not infer types for fields being assigned by synthesized calls.
+        (!inferrer.backend.canBeUsedForGlobalOptimizations(element) ||
+         inferrer.annotations.assumeDynamic(element))) {
+      // Do not infer types for fields that have a corresponding annotation or
+      // are assigned by synthesized calls
+
       giveUp(inferrer);
       return safeType(inferrer);
     }
@@ -437,7 +440,9 @@ class MemberTypeInformation extends ElementTypeInformation
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
-    if (!compiler.trustTypeAnnotations && !compiler.enableTypeAssertions) {
+    if (!compiler.trustTypeAnnotations &&
+        !compiler.enableTypeAssertions &&
+        !inferrer.annotations.trustTypeAnnotations(element)) {
       return mask;
     }
     if (element.isGenerativeConstructor ||
@@ -496,6 +501,7 @@ class MemberTypeInformation extends ElementTypeInformation
  */
 class ParameterTypeInformation extends ElementTypeInformation {
   ParameterElement get element => super.element;
+  FunctionElement get declaration => element.functionDeclaration;
 
   ParameterTypeInformation._internal(ParameterElement element,
                                      TypeInformationSystem types)
@@ -522,9 +528,10 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
-    if (!inferrer.compiler.backend.canBeUsedForGlobalOptimizations(element)) {
-      // Do not infer types for fields and parameters being assigned
-      // by synthesized calls.
+    if (!inferrer.backend.canBeUsedForGlobalOptimizations(element) ||
+        inferrer.annotations.assumeDynamic(declaration)) {
+      // Do not infer types for parameters that have a correspondign annotation
+      // or that are assigned by synthesized calls.
       giveUp(inferrer);
       return safeType(inferrer);
     }
@@ -567,7 +574,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
-    if (!compiler.trustTypeAnnotations) {
+    if (!compiler.trustTypeAnnotations &&
+        !inferrer.annotations.trustTypeAnnotations(declaration)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always

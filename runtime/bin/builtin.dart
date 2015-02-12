@@ -351,7 +351,7 @@ void _asyncLoadError(tag, uri, libraryUri, error) {
     // uri.
     libraryUri = uri;
   }
-  _asyncLoadErrorCallback(uri, libraryUri, new LoadError(error));
+  _asyncLoadErrorCallback(uri, libraryUri, new LoadError(error.toString()));
   _finishedOneLoadRequest(uri);
 }
 

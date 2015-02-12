@@ -40,6 +40,12 @@
         flex: 0 0 auto;
         overflow-y: auto;
       }
+      .splitter {
+        height: 0px;
+        margin: 0px;
+        font-size: 1px;
+        border-bottom: 1px solid #888;
+      }
       core-splitter {
         flex: 0 0 auto;
       }
@@ -53,26 +59,26 @@
     </style>
 
     <div class="container">
-      <nav-bar>
+      <nav-bar id="navbarDiv" showNotify="{{ false }}">
         <top-nav-menu></top-nav-menu>
         <isolate-nav-menu isolate="{{ isolate }}">
 	</isolate-nav-menu>
         <nav-menu link="{{ makeLink('/debugger', isolate) }}" anchor="debugger" last="{{ true }}"></nav-menu>
 	<nav-control></nav-control>
       </nav-bar>
-
-      <div id="stack" class="stack">
-	<debugger-stack isolate="{{ isolate }}"></debugger-stack>
+      <div id="stackDiv" class="stack">
+        <debugger-stack id="stackElement" isolate="{{ isolate }}"></debugger-stack>
       </div>
       <!--
       <core-splitter direction="up" allowOverflow=true></core-splitter>
-      <div class="console">
-	<debugger-console isolate="{{ isolate }}"></debugger-console>
-      </div>
-      <div class="commandline">
-	<debugger-input isolate="{{ isolate }}"></debugger-input>
-      </div>
       -->
+      <div id="splitterDiv"><hr class="splitter"></div>
+      <div id="consoleDiv" class="console">
+        <debugger-console id="console" isolate="{{ isolate }}"></debugger-console>
+      </div>
+      <div id="commandDiv" class="commandline">
+        <debugger-input id="commandline" isolate="{{ isolate }}"></debugger-input>
+      </div>
     </div>
   </template>
 </polymer-element>
@@ -80,20 +86,43 @@
 <polymer-element name="debugger-stack" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <template if="{{ stack == null }}">
-      Loading stack frames
+    <style>
+      .sampledMessage {
+        margin: 0px 20px 10px 20px;
+        font: 400 14px 'Montserrat', sans-serif;
+        line-height: 125%;
+      }
+      .splitter {
+        height: 0px;
+        margin: 0px;
+        font-size: 1px;
+        border-bottom: 1px dashed #888;
+      }
+      .noStack {
+        margin: 0px 20px 10px 20px;
+        font: normal 14px consolas, courier, monospace;
+        line-height: 125%;
+      }
+    </style>
+    <template if="{{ isSampled }}">
+      <div class="sampledMessage">
+        The program is not paused.  The stack trace below may be out of date.<br>
+        <br>
+        <action-link label="Pause Isolate" callback="{{ doPauseIsolate }}">
+        </action-link>
+        <action-link label="Refresh Stack" callback="{{ doRefreshStack }}">
+        </action-link>
+        <br>
+        <br>
+        <hr class="splitter">
+      </div>
     </template>
-    <template if="{{ stack != null }}">
-      <ul class="list-group">
-        <template repeat="{{ frame in stack['frames'] }}">
-          <li class="list-group-item">
-            <debugger-frame frame="{{ frame }}"
-                            expand="{{ frame['depth'] == activeFrame }}">
-            </debugger-frame>
-          </li>
-        </template>
-      </ul>
+    <template if="{{ !hasStack }}">
+      <div class="noStack">No stack</div>
     </template>
+    <ul id="frameList" class="list-group">
+      <!-- debugger-frame elements are added programmatically -->
+    </ul>
   </template>
 </polymer-element>
 
@@ -199,14 +228,24 @@
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
-      .textBox {
-        position: absolute;
-        bottom: 0px;
-        width: 100%;
+      .console {
+        margin: 0px 20px 10px 20px;
+      }
+      .normal {
+        font: normal 14px consolas, courier, monospace;
+        line-height: 125%;
+      }
+      .bold {
+        font: bold 14px consolas, courier, monospace;
+        line-height: 125%;
+      }
+      .spacer {
+        height: 20px;
       }
     </style>
-    <div>
-      Debugging console is not yet implemented.<br>
+    <div id="consoleText" class="console">
+      <!-- Console output is added programmatically here using the 'normal'
+           and 'bold' styles. -->
     </div>
   </template>
 </polymer-element>
@@ -216,11 +255,12 @@
     <link rel="stylesheet" href="css/shared.css">
     <style>
       .textBox {
-        font: 400 16px 'Montserrat', sans-serif;
-        width: 100%;
+        margin: 20px;
+        font: 400 16px consolas, courier, monospace;
+        width: 95%;
       }
     </style>
-    <input id="textBox" class="textBox" type="text" value="{{ text }}">
+    <input id="textBox" class="textBox" type="text" value="{{ text }}" autofocus>
   </template>
 </polymer-element>
 

@@ -25,7 +25,7 @@ $!MEMBERS
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList querySelectorAll(String selectors) {
+  ElementList<Element> querySelectorAll(String selectors) {
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
@@ -45,7 +45,7 @@ $!MEMBERS
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList queryAll(String relativeSelectors) =>
+  ElementList<Element> queryAll(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.

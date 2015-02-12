@@ -136,6 +136,34 @@ import "../foo/foo.dart";
     });
   }
 
+  test_getAnalysisContext_nested() {
+    String dir1Path = '/dir1';
+    String dir2Path = dir1Path + '/dir2';
+    String filePath = dir2Path + '/file.dart';
+    Folder dir1 = resourceProvider.newFolder(dir1Path);
+    Folder dir2 = resourceProvider.newFolder(dir2Path);
+    resourceProvider.newFile(filePath, 'library lib;');
+
+    AnalysisContext context1 = AnalysisEngine.instance.createAnalysisContext();
+    AnalysisContext context2 = AnalysisEngine.instance.createAnalysisContext();
+    server.folderMap[dir1] = context1;
+    server.folderMap[dir2] = context2;
+
+    expect(server.getAnalysisContext(filePath), context2);
+  }
+
+  test_getAnalysisContext_simple() {
+    String dirPath = '/dir';
+    String filePath = dirPath + '/file.dart';
+    Folder dir = resourceProvider.newFolder(dirPath);
+    resourceProvider.newFile(filePath, 'library lib;');
+
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    server.folderMap[dir] = context;
+
+    expect(server.getAnalysisContext(filePath), context);
+  }
+
   Future test_contextsChangedEvent() {
     resourceProvider.newFolder('/foo');
 

@@ -91,7 +91,7 @@ class Simulator {
   uword StackTop() const;
 
   // Accessor to the instruction counter.
-  intptr_t get_icount() const { return icount_; }
+  uint64_t get_icount() const { return icount_; }
 
   // The isolate's top_exit_frame_info refers to a Dart frame in the simulator
   // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
@@ -159,7 +159,7 @@ class Simulator {
 
   // Simulator support.
   char* stack_;
-  intptr_t icount_;
+  uint64_t icount_;
   bool delay_slot_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;

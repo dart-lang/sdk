@@ -7,6 +7,7 @@ library test.services.refactoring.convert_method_to_getter;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart' hide ElementKind;
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';
@@ -172,26 +173,23 @@ class A {
         'Only class methods or top-level functions can be converted to getters.');
   }
 
-  Future _assertInitialConditions_fatal(String message) {
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedMessage: message);
-    });
+  Future _assertInitialConditions_fatal(String message) async {
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: message);
   }
 
   /**
    * Checks that all conditions are OK and the result of applying the [Change]
    * to [testUnit] is [expectedCode].
    */
-  Future _assertSuccessfulRefactoring(String expectedCode) {
-    return assertRefactoringConditionsOK().then((_) {
-      return refactoring.createChange().then((SourceChange refactoringChange) {
-        this.refactoringChange = refactoringChange;
-        assertTestChangeResult(expectedCode);
-      });
-    });
+  Future _assertSuccessfulRefactoring(String expectedCode) async {
+    await assertRefactoringConditionsOK();
+    SourceChange refactoringChange = await refactoring.createChange();
+    this.refactoringChange = refactoringChange;
+    assertTestChangeResult(expectedCode);
   }
 
   void _createRefactoring(String elementName) {
