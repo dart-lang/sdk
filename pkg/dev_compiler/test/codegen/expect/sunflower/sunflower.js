@@ -16,7 +16,7 @@ var sunflower;
     get slider() { return dart.as(querySelector("#slider"), dom.InputElement) },
     get notes() { return querySelector("#notes") },
     get PHI() { return (math.sqrt(5) + 1) / 2 },
-    get context() { return dart.as((dart.as(querySelector("#canvas"), dom.CanvasElement)).getContext("2d"), dom.CanvasRenderingContext2D) },
+    get context() { return dart.as((dart.as(querySelector("#canvas"), dom.CanvasElement)).getContext('2d'), dom.CanvasRenderingContext2D) },
   });
 
   class Circle {
@@ -54,7 +54,7 @@ var sunflower;
 
   // Function main: () → void
   function main() {
-    sunflower.slider.addEventListener("change", (e) => draw());
+    sunflower.slider.addEventListener('change', (e) => draw());
     draw();
   }
 
@@ -69,7 +69,7 @@ var sunflower;
       let y = centerY - r * math.sin(theta);
       new SunflowerSeed(x, y, SEED_RADIUS).draw();
     }
-    sunflower.notes.textContent = "" + (sunflower.seeds) + " seeds";
+    sunflower.notes.textContent = `${sunflower.seeds} seeds`;
   }
 
   // Exports:

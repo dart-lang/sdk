@@ -584,10 +584,6 @@ $name.prototype[Symbol.iterator] = function() {
       out.write('set ');
     }
 
-    // V8 does not yet support ComputedPropertyName syntax in MethodDefinitions.
-    //
-    // MethodDefinition: https://people.mozilla.org/~jorendorff/es6-draft.html#sec-method-definitions
-    // PropertyName: https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object-initializer
     var name = _canonicalMethodName(node.name.name);
     out.write('$name(');
     _visitNode(node.parameters);
@@ -1624,38 +1620,88 @@ $name.prototype[Symbol.iterator] = function() {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    // TODO(jmesserly): this does not handle all quote styles
-    out.write('"${node.stringValue}"');
+    if (node.isSingleQuoted) {
+      var escaped = _escapeForJs(node.stringValue, "'");
+      out.write("'$escaped'");
+    } else {
+      var escaped = _escapeForJs(node.stringValue, '"');
+      out.write('"$escaped"');
+    }
   }
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    _visitNodeList(node.strings, separator: ' + ');
+    // These are typically used for splitting long strings across lines, so
+    // generate accordingly, with each on its own line and +4 indent.
+
+    // TODO(jmesserly): we could linebreak before the first string too, but
+    // that means inserting a linebreak in expression context, which might
+    // not be valid and leaves trailing whitespace.
+    for (int i = 0, last = node.strings.length - 1; i <= last; i++) {
+      if (i == 1) {
+        out.write(' +\n', 4);
+      } else if (i > 1) {
+        out.write(' +\n');
+      }
+      node.strings[i].accept(this);
+      if (i == last && i > 0) {
+        out.write('', -4);
+      }
+    }
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    _visitNodeList(node.elements, separator: ' + ');
+    out.write('`');
+    _visitNodeList(node.elements);
+    out.write('`');
   }
 
   @override
   void visitInterpolationString(InterpolationString node) {
-    out.write('"${node.value}"');
+    out.write(_escapeForJs(node.value, '`'));
+  }
+
+  /// Escapes the string from [value], handling escape sequences as needed.
+  /// The surrounding [quote] style must be supplied to know which quotes to
+  /// escape, but quotes are not added to the resulting string.
+  String _escapeForJs(String value, String quote) {
+    // Start by escaping the backslashes.
+    String escaped = value.replaceAll('\\', '\\\\');
+    // Do not escape unicode characters and ' because they are allowed in the
+    // string literal anyway.
+    return escaped.replaceAllMapped(new RegExp('\n|$quote|\b|\t|\v'), (m) {
+      switch (m.group(0)) {
+        case "\n":
+          return r"\n";
+        case "\b":
+          return r"\b";
+        case "\t":
+          return r"\t";
+        case "\f":
+          return r"\f";
+        case "\v":
+          return r"\v";
+        // Quotes are only replaced if they conflict with the containing quote
+        case '"':
+          return r'\"';
+        case "'":
+          return r"\'";
+        case "`":
+          return r"\`";
+      }
+    });
   }
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    // TODO(jmesserly): skip parens if not needed.
-    // TODO(jmesserly): we could also use ES6 template strings here:
-    // https://github.com/lukehoban/es6features#template-strings
-    out.write('(');
+    out.write('\${');
     node.expression.accept(this);
     // Assuming we implement toString() on our objects, we can avoid calling it
     // in most cases. Builtin types may differ though.
     // For example, Dart's concrete List type does not have the same toString
     // as Array.prototype.toString().
-    // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-addition-operator-plus-runtime-semantics-evaluation
-    out.write(')');
+    out.write('}');
   }
 
   @override

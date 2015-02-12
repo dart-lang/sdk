@@ -31,11 +31,9 @@ var async;
       return null;
     }
     toString() {
-      let result = "Uncaught Error: " + (this.error) + "";
+      let result = `Uncaught Error: ${this.error}`;
       if (this.stackTrace !== null) {
-        result = "
-        Stack Trace:
-        " + (this.stackTrace) + "";
+        result = `\nStack Trace:\n${this.stackTrace}`;
       }
       return result;
     }
@@ -450,7 +448,7 @@ var async;
     constructor(_s) {
       this._s = _s;
     }
-    toString() { return "DeferredLoadException: '" + (this._s) + "'"; }
+    toString() { return `DeferredLoadException: '${this._s}'`; }
   }
 
   let Future$ = dart.generic(function(T) {
@@ -621,8 +619,8 @@ var async;
     }
     toString() {
       let result = "TimeoutException";
-      if (this.duration !== null) result = "TimeoutException after " + (this.duration) + "";
-      if (this.message !== null) result = "" + (result) + ": " + (this.message) + "";
+      if (this.duration !== null) result = `TimeoutException after ${this.duration}`;
+      if (this.message !== null) result = `${result}: ${this.message}`;
       return result;
     }
   }
@@ -4244,7 +4242,8 @@ var async;
     if (specification === null) {
       specification = new ZoneSpecification();
     } else if (!dart.is(specification, _ZoneSpecification)) {
-      throw new core.ArgumentError("ZoneSpecifications must be instantiated" + " with the provided constructor.");
+      throw new core.ArgumentError("ZoneSpecifications must be instantiated" +
+          " with the provided constructor.");
     }
     let valueMap = null;
     if (zoneValues === null) {

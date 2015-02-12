@@ -78,7 +78,7 @@ var math;
         this.x = x;
         this.y = y;
       }
-      toString() { return "Point(" + (this.x) + ", " + (this.y) + ")"; }
+      toString() { return `Point(${this.x}, ${this.y})`; }
       ['=='](other) {
         if (!dart.is(other, Point)) return false;
         return dart.equals(this.x, dart.dload(other, "x")) && dart.equals(this.y, dart.dload(other, "y"));
@@ -120,7 +120,7 @@ var math;
       get right() { return dart.as(this.left['+'](this.width), T); }
       get bottom() { return dart.as(this.top['+'](this.height), T); }
       toString() {
-        return "Rectangle (" + (this.left) + ", " + (this.top) + ") " + (this.width) + " x " + (this.height) + "";
+        return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
       }
       ['=='](other) {
         if (!dart.is(other, Rectangle)) return false;

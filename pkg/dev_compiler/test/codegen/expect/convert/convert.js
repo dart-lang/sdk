@@ -74,7 +74,7 @@ var convert;
       for (let i = start; i < end; i++) {
         let codeUnit = source.codeUnitAt(i);
         if ((codeUnit & ~this._subsetMask) !== 0) {
-          throw new core.ArgumentError("Source contains invalid character with code point: " + (codeUnit) + ".");
+          throw new core.ArgumentError(`Source contains invalid character with code point: ${codeUnit}.`);
         }
       }
       this._sink.add(source.codeUnits.sublist(start, end));
@@ -101,7 +101,7 @@ var convert;
         let byte = bytes.get(i);
         if ((byte & ~this._subsetMask) !== 0) {
           if (!this._allowInvalid) {
-            throw new core.FormatException("Invalid value in input: " + (byte) + "");
+            throw new core.FormatException(`Invalid value in input: ${byte}`);
           }
           return this._convertInvalid(bytes, start, end);
         }
@@ -374,7 +374,7 @@ var convert;
         return new _FusedConverter(this, other);
       }
       startChunkedConversion(sink) {
-        throw new core.UnsupportedError("This converter does not support chunked conversions: " + (this) + "");
+        throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
       }
       bind(source) {
         return new async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
@@ -453,9 +453,9 @@ var convert;
     toString() { return this._name; }
   }
   dart.defineNamedConstructor(HtmlEscapeMode, "_");
-  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode._("unknown", true, true, true, true);
-  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode._("attribute", false, true, false, false);
-  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode._("element", true, false, false, true);
+  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode._('unknown', true, true, true, true);
+  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode._('attribute', false, true, false, false);
+  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode._('element', true, false, false, true);
 
   class HtmlEscape extends Converter$(core.String, core.String) {
     constructor(mode) {
@@ -473,26 +473,26 @@ var convert;
         let ch = text.get(i);
         let replace = null;
         switch (ch) {
-          case "&":
-            replace = "&amp;";
+          case '&':
+            replace = '&amp;';
             break;
-          case " ":
-            replace = "&nbsp;";
+          case ' ':
+            replace = '&nbsp;';
             break;
-          case """:
-            if (this.mode.escapeQuot) replace = "&quot;";
+          case '"':
+            if (this.mode.escapeQuot) replace = '&quot;';
             break;
           case "'":
-            if (this.mode.escapeApos) replace = "&#x27;";
+            if (this.mode.escapeApos) replace = '&#x27;';
             break;
-          case "<":
-            if (this.mode.escapeLtGt) replace = "&lt;";
+          case '<':
+            if (this.mode.escapeLtGt) replace = '&lt;';
             break;
-          case ">":
-            if (this.mode.escapeLtGt) replace = "&gt;";
+          case '>':
+            if (this.mode.escapeLtGt) replace = '&gt;';
             break;
-          case "/":
-            if (this.mode.escapeSlash) replace = "&#x2F;";
+          case '/':
+            if (this.mode.escapeSlash) replace = '&#x2F;';
             break;
         }
         if (replace !== null) {
@@ -834,18 +834,18 @@ var convert;
         this.writeNumber(dart.as(object, core.num));
         return true;
       } else if (core.identical(object, true)) {
-        this.writeString("true");
+        this.writeString('true');
         return true;
       } else if (core.identical(object, false)) {
-        this.writeString("false");
+        this.writeString('false');
         return true;
       } else if (object === null) {
-        this.writeString("null");
+        this.writeString('null');
         return true;
       } else if (typeof object == "string") {
-        this.writeString(""");
+        this.writeString('"');
         this.writeStringContent(dart.as(object, core.String));
-        this.writeString(""");
+        this.writeString('"');
         return true;
       } else if (dart.is(object, core.List)) {
         this._checkCycle(object);
@@ -862,27 +862,27 @@ var convert;
       }
     }
     writeList(list) {
-      this.writeString("[");
+      this.writeString('[');
       if (list.length > 0) {
         this.writeObject(list.get(0));
         for (let i = 1; i < list.length; i++) {
-          this.writeString(",");
+          this.writeString(',');
           this.writeObject(list.get(i));
         }
       }
-      this.writeString("]");
+      this.writeString(']');
     }
     writeMap(map) {
-      this.writeString("{");
-      let separator = """;
+      this.writeString('{');
+      let separator = '"';
       map.forEach((key, value) => {
         this.writeString(separator);
-        separator = ","";
+        separator = ',"';
         this.writeStringContent(key);
-        this.writeString("":");
+        this.writeString('":');
         this.writeObject(value);
       });
-      this.writeString("}");
+      this.writeString('}');
     }
   }
   _JsonStringifier.BACKSPACE = 8;
@@ -907,51 +907,45 @@ var convert;
     }
     writeList(list) {
       if (list.isEmpty) {
-        this.writeString("[]");
+        this.writeString('[]');
       } else {
-        this.writeString("[
-        ");
+        this.writeString('[\n');
         this._indentLevel++;
         this.writeIndentation(this._indentLevel);
         this.writeObject(list.get(0));
         for (let i = 1; i < list.length; i++) {
-          this.writeString(",
-          ");
+          this.writeString(',\n');
           this.writeIndentation(this._indentLevel);
           this.writeObject(list.get(i));
         }
-        this.writeString("
-        ");
+        this.writeString('\n');
         this._indentLevel--;
         this.writeIndentation(this._indentLevel);
-        this.writeString("]");
+        this.writeString(']');
       }
     }
     writeMap(map) {
       if (map.isEmpty) {
-        this.writeString("{}");
+        this.writeString('{}');
       } else {
-        this.writeString("{
-        ");
+        this.writeString('{\n');
         this._indentLevel++;
         let first = true;
         map.forEach(dart.as((key, value) => {
           if (!first) {
-            this.writeString(",
-            ");
+            this.writeString(",\n");
           }
           this.writeIndentation(this._indentLevel);
-          this.writeString(""");
+          this.writeString('"');
           this.writeStringContent(key);
-          this.writeString("": ");
+          this.writeString('": ');
           this.writeObject(value);
           first = false;
         }, /* Unimplemented type (dynamic, dynamic) → void */));
-        this.writeString("
-        ");
+        this.writeString('\n');
         this._indentLevel--;
         this.writeIndentation(this._indentLevel);
-        this.writeString("}");
+        this.writeString('}');
       }
     }
   }
@@ -1260,7 +1254,7 @@ var convert;
       if (isLast) this._sink.close();
     }
     close() {
-      this.addSlice("", 0, 0, true);
+      this.addSlice('', 0, 0, true);
     }
     static _addSlice(chunk, start, end, isLast, adder) {
       let pos = start;
@@ -1794,7 +1788,7 @@ var convert;
             if ((unit & 192) !== 128) {
               expectedUnits = 0;
               if (!this._allowMalformed) {
-                throw new core.FormatException("Bad UTF-8 encoding 0x" + (unit.toRadixString(16)) + "");
+                throw new core.FormatException(`Bad UTF-8 encoding 0x${unit.toRadixString(16)}`);
               }
               this._isFirstCharacter = false;
               this._stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -1808,14 +1802,15 @@ var convert;
           while (expectedUnits > 0);
           if (value <= _LIMITS.get(extraUnits - 1)) {
             if (!this._allowMalformed) {
-              throw new core.FormatException("Overlong encoding of 0x" + (value.toRadixString(16)) + "");
+              throw new core.FormatException(`Overlong encoding of 0x${value.toRadixString(16)}`);
             }
             expectedUnits = extraUnits = 0;
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           }
           if (value > _FOUR_BYTE_LIMIT) {
             if (!this._allowMalformed) {
-              throw new core.FormatException("Character outside valid Unicode range: " + "0x" + (value.toRadixString(16)) + "");
+              throw new core.FormatException("Character outside valid Unicode range: " +
+                  `0x${value.toRadixString(16)}`);
             }
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           }
@@ -1835,7 +1830,7 @@ var convert;
           let unit = codeUnits.get(i++);
           if (unit < 0) {
             if (!this._allowMalformed) {
-              throw new core.FormatException("Negative UTF-8 code unit: -0x" + ((-unit).toRadixString(16)) + "");
+              throw new core.FormatException(`Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}`);
             }
             this._stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
           } else {
@@ -1856,7 +1851,7 @@ var convert;
               continue loop;
             }
             if (!this._allowMalformed) {
-              throw new core.FormatException("Bad UTF-8 encoding 0x" + (unit.toRadixString(16)) + "");
+              throw new core.FormatException(`Bad UTF-8 encoding 0x${unit.toRadixString(16)}`);
             }
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
             expectedUnits = extraUnits = 0;

@@ -115,7 +115,7 @@ var _internal;
         let length = this.length;
         if (!separator.isEmpty) {
           if (length === 0) return "";
-          let first = "" + (this.elementAt(0)) + "";
+          let first = `${this.elementAt(0)}`;
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
           }
@@ -901,7 +901,7 @@ var _internal;
       static joinList(list, separator) {
         if (separator === undefined) separator = null;
         if (list.isEmpty) return "";
-        if (list.length === 1) return "" + (list.get(0)) + "";
+        if (list.length === 1) return `${list.get(0)}`;
         let buffer = new core.StringBuffer();
         if (separator.isEmpty) {
           for (let i = 0; i < list.length; i++) {
@@ -1355,7 +1355,7 @@ var _internal;
       core.RangeError.checkNotNegative(length);
       core.RangeError.checkNotNegative(start);
       if (start + length > a.length) {
-        let message = "" + (start) + " + " + (length) + " must be in the range [0.." + (a.length) + "]";
+        let message = `${start} + ${length} must be in the range [0..${a.length}]`;
         throw new core.RangeError.range(length, 0, a.length - start, "length", message);
       }
     }
@@ -1597,14 +1597,14 @@ var _internal;
       let arbitraryPrime = 664597;
       return 536870911 & (arbitraryPrime * this._name.hashCode);
     }
-    toString() { return "Symbol("" + (this._name) + "")"; }
+    toString() { return `Symbol("${this._name}")`; }
     static getName(symbol) { return symbol._name; }
     static validatePublicSymbol(name) {
       if (name.isEmpty || publicSymbolPattern.hasMatch(name)) return name;
-      if (name.startsWith("_")) {
-        throw new core.ArgumentError(""" + (name) + "" is a private identifier");
+      if (name.startsWith('_')) {
+        throw new core.ArgumentError(`"${name}" is a private identifier`);
       }
-      throw new core.ArgumentError(""" + (name) + "" is not a valid (qualified) symbol name");
+      throw new core.ArgumentError(`"${name}" is not a valid (qualified) symbol name`);
     }
     static isValidSymbol(name) {
       return (name.isEmpty || symbolPattern.hasMatch(name));
@@ -1612,13 +1612,20 @@ var _internal;
   }
   dart.defineNamedConstructor(Symbol, "unvalidated");
   dart.defineNamedConstructor(Symbol, "validated");
-  Symbol.reservedWordRE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|" + "e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|" + "ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|" + "v(?:ar|oid)|w(?:hile|ith))";
-  Symbol.publicIdentifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$][\w$]*";
-  Symbol.identifierRE = "(?!" + "" + (reservedWordRE) + "" + "\b(?!\$))[a-zA-Z$_][\w$]*";
-  Symbol.operatorRE = "(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+  Symbol.reservedWordRE = '(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|' +
+      'e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|' +
+      'ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|' +
+      'v(?:ar|oid)|w(?:hile|ith))';
+  Symbol.publicIdentifierRE = '(?!' +
+      `${reservedWordRE}` +
+      '\\b(?!\\$))[a-zA-Z$][\\w$]*';
+  Symbol.identifierRE = '(?!' +
+      `${reservedWordRE}` +
+      '\\b(?!\\$))[a-zA-Z$_][\\w$]*';
+  Symbol.operatorRE = '(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
   dart.defineLazyProperties(Symbol, {
-    get publicSymbolPattern() { return new core.RegExp("^(?:" + (operatorRE) + "$|" + (publicIdentifierRE) + "(?:=?$|[.](?!$)))+?$") },
-    get symbolPattern() { return new core.RegExp("^(?:" + (operatorRE) + "$|" + (identifierRE) + "(?:=?$|[.](?!$)))+?$") },
+    get publicSymbolPattern() { return new core.RegExp(`^(?:${operatorRE}$|${publicIdentifierRE}(?:=?$|[.](?!$)))+?$`) },
+    get symbolPattern() { return new core.RegExp(`^(?:${operatorRE}$|${identifierRE}(?:=?$|[.](?!$)))+?$`) },
   });
 
   // Exports:

@@ -4,12 +4,12 @@ var BenchmarkBase;
   class Expect {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {
-        throw "Values not equal: " + (expected) + " vs " + (actual) + "";
+        throw `Values not equal: ${expected} vs ${actual}`;
       }
     }
     static listEquals(expected, actual) {
       if (expected.length !== actual.length) {
-        throw "Lists have different lengths: " + (expected.length) + " vs " + (actual.length) + "";
+        throw `Lists have different lengths: ${expected.length} vs ${actual.length}`;
       }
       for (let i = 0; i < actual.length; i++) {
         equals(expected.get(i), actual.get(i));
@@ -64,7 +64,7 @@ var BenchmarkBase;
     }
     report() {
       let score = this.measure();
-      core.print("" + (this.name) + "(RunTime): " + (score) + " us.");
+      core.print(`${this.name}(RunTime): ${score} us.`);
     }
   }
 

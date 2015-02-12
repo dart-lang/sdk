@@ -56,7 +56,7 @@ var constructors;
 
   class I {
     constructor() {
-      this.name = "default";
+      this.name = 'default';
     }
     /*constructor*/ named(name) {
       this.name = name;
@@ -73,7 +73,7 @@ var constructors;
 
   class K {
     constructor() {
-      this.s = "a";
+      this.s = 'a';
     }
     /*constructor*/ withS(s) {
       this.s = s;

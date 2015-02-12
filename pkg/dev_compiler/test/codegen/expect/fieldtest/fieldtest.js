@@ -45,7 +45,7 @@ var fieldtest;
   });
 
   dart.copyProperties(fieldtest, {
-    get q() { return core.String['+'](core.String['+']("life, ", "the universe "), "and everything"); },
+    get q() { return core.String['+'](core.String['+']('life, ', 'the universe '), 'and everything'); },
     get z() { return 42; },
     set z(value) {
       fieldtest.y = dart.as(value, core.int);

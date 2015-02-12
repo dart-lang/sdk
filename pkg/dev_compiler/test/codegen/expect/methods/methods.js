@@ -36,7 +36,7 @@ var methods;
   }
 
   class Bar {
-    call(x) { return core.print("hello from " + (x) + ""); }
+    call(x) { return core.print(`hello from ${x}`); }
   }
 
   class Foo {

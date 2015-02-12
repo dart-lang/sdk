@@ -136,14 +136,14 @@ var collection;
         let buffer = new core.StringBuffer();
         if (separator === null || dart.equals(separator, "")) {
           do {
-            buffer.write("" + (iterator.current) + "");
+            buffer.write(`${iterator.current}`);
           }
           while (iterator.moveNext());
         } else {
-          buffer.write("" + (iterator.current) + "");
+          buffer.write(`${iterator.current}`);
           while (iterator.moveNext()) {
             buffer.write(separator);
-            buffer.write("" + (iterator.current) + "");
+            buffer.write(`${iterator.current}`);
           }
         }
         return buffer.toString();
@@ -255,7 +255,7 @@ var collection;
         }
         throw new core.RangeError.index(index, this, "index", null, elementIndex);
       }
-      toString() { return IterableBase.iterableToShortString(this, "(", ")"); }
+      toString() { return IterableBase.iterableToShortString(this, '(', ')'); }
     }
     return IterableMixin;
   });
@@ -306,14 +306,14 @@ var collection;
         let buffer = new core.StringBuffer();
         if (separator === null || dart.equals(separator, "")) {
           do {
-            buffer.write("" + (iterator.current) + "");
+            buffer.write(`${iterator.current}`);
           }
           while (iterator.moveNext());
         } else {
-          buffer.write("" + (iterator.current) + "");
+          buffer.write(`${iterator.current}`);
           while (iterator.moveNext()) {
             buffer.write(separator);
-            buffer.write("" + (iterator.current) + "");
+            buffer.write(`${iterator.current}`);
           }
         }
         return buffer.toString();
@@ -425,15 +425,15 @@ var collection;
         }
         throw new core.RangeError.index(index, this, "index", null, elementIndex);
       }
-      toString() { return iterableToShortString(this, "(", ")"); }
+      toString() { return iterableToShortString(this, '(', ')'); }
       static iterableToShortString(iterable, leftDelimiter, rightDelimiter) {
-        if (leftDelimiter === undefined) leftDelimiter = "(";
-        if (rightDelimiter === undefined) rightDelimiter = ")";
+        if (leftDelimiter === undefined) leftDelimiter = '(';
+        if (rightDelimiter === undefined) rightDelimiter = ')';
         if (_isToStringVisiting(iterable)) {
           if (dart.equals(leftDelimiter, "(") && dart.equals(rightDelimiter, ")")) {
             return "(...)";
           }
-          return "" + (leftDelimiter) + "..." + (rightDelimiter) + "";
+          return `${leftDelimiter}...${rightDelimiter}`;
         }
         let parts = new List.from([]);
         _toStringVisiting.add(iterable);
@@ -451,10 +451,10 @@ var collection;
         })(new core.StringBuffer(leftDelimiter))).toString();
       }
       static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
-        if (leftDelimiter === undefined) leftDelimiter = "(";
-        if (rightDelimiter === undefined) rightDelimiter = ")";
+        if (leftDelimiter === undefined) leftDelimiter = '(';
+        if (rightDelimiter === undefined) rightDelimiter = ')';
         if (_isToStringVisiting(iterable)) {
-          return "" + (leftDelimiter) + "..." + (rightDelimiter) + "";
+          return `${leftDelimiter}...${rightDelimiter}`;
         }
         let buffer = new core.StringBuffer(leftDelimiter);
         _toStringVisiting.add(iterable);
@@ -486,7 +486,7 @@ var collection;
         let it = iterable.iterator;
         while (length < LENGTH_LIMIT || count < HEAD_COUNT) {
           if (!it.moveNext()) return;
-          let next = "" + (it.current) + "";
+          let next = `${it.current}`;
           parts.add(next);
           length = next.length + OVERHEAD;
           count++;
@@ -504,10 +504,10 @@ var collection;
           count++;
           if (!it.moveNext()) {
             if (count <= HEAD_COUNT + 1) {
-              parts.add("" + (penultimate) + "");
+              parts.add(`${penultimate}`);
               return;
             }
-            ultimateString = "" + (penultimate) + "";
+            ultimateString = `${penultimate}`;
             penultimateString = dart.as(parts.removeLast(), core.String);
             length = ultimateString.length + OVERHEAD;
           } else {
@@ -527,8 +527,8 @@ var collection;
                 return;
               }
             }
-            penultimateString = "" + (penultimate) + "";
-            ultimateString = "" + (ultimate) + "";
+            penultimateString = `${penultimate}`;
+            ultimateString = `${ultimate}`;
             length = ultimateString.length + penultimateString.length + 2 * OVERHEAD;
           }
         }
@@ -679,22 +679,22 @@ var collection;
       }
       get first() {
         if (core.identical(this._next, this)) {
-          throw new core.StateError("No such element");
+          throw new core.StateError('No such element');
         }
         return dart.as(this._next, E);
       }
       get last() {
         if (core.identical(this._previous, this)) {
-          throw new core.StateError("No such element");
+          throw new core.StateError('No such element');
         }
         return dart.as(this._previous, E);
       }
       get single() {
         if (core.identical(this._previous, this)) {
-          throw new core.StateError("No such element");
+          throw new core.StateError('No such element');
         }
         if (!core.identical(this._previous, this._next)) {
-          throw new core.StateError("Too many elements");
+          throw new core.StateError('Too many elements');
         }
         return dart.as(this._next, E);
       }
@@ -712,7 +712,7 @@ var collection;
       get isEmpty() { return this._length === 0; }
       _insertAfter(entry, newEntry) {
         if (newEntry.list !== null) {
-          throw new core.StateError("LinkedListEntry is already in a LinkedList");
+          throw new core.StateError('LinkedListEntry is already in a LinkedList');
         }
         this._modificationCount++;
         newEntry._list = this;
@@ -804,7 +804,7 @@ var collection;
 
   let ListBase$ = dart.generic(function(E) {
     class ListBase extends dart.mixin(core.Object, ListMixin$(E)) {
-      static listToString(list) { return IterableBase.iterableToFullString(list, "[", "]"); }
+      static listToString(list) { return IterableBase.iterableToFullString(list, '[', ']'); }
     }
     return ListBase;
   });
@@ -1207,7 +1207,7 @@ var collection;
         }
       }
       get reversed() { return new _internal.ReversedListIterable(this); }
-      toString() { return IterableBase.iterableToFullString(this, "[", "]"); }
+      toString() { return IterableBase.iterableToFullString(this, '[', ']'); }
     }
     return ListMixin;
   });
@@ -1403,23 +1403,23 @@ var collection;
     static isNotEmpty(map) { return map.keys.isNotEmpty; }
     static mapToString(m) {
       if (IterableBase._isToStringVisiting(m)) {
-        return "{...}";
+        return '{...}';
       }
       let result = new core.StringBuffer();
       try {
         IterableBase._toStringVisiting.add(m);
-        result.write("{");
+        result.write('{');
         let first = true;
         m.forEach((k, v) => {
           if (!first) {
-            result.write(", ");
+            result.write(', ');
           }
           first = false;
           result.write(k);
-          result.write(": ");
+          result.write(': ');
           result.write(v);
         });
-        result.write("}");
+        result.write('}');
       }
       finally {
         dart.assert(core.identical(IterableBase._toStringVisiting.last, m));
@@ -1644,7 +1644,7 @@ var collection;
       get iterator() {
         return new _DoubleLinkedQueueIterator(this._sentinel);
       }
-      toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
+      toString() { return IterableBase.iterableToFullString(this, '{', '}'); }
     }
     dart.defineNamedConstructor(DoubleLinkedQueue, "from");
     return DoubleLinkedQueue;
@@ -2038,7 +2038,7 @@ var collection;
         let result = dart.as(it.current, E);
         return result;
       }
-      toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
+      toString() { return IterableBase.iterableToFullString(this, '{', '}'); }
       where(f) { return new _internal.WhereIterable(this, f); }
       expand(f) { return new _internal.ExpandIterable(this, f); }
       forEach(f) {
@@ -2073,14 +2073,14 @@ var collection;
         let buffer = new core.StringBuffer();
         if (separator === null || dart.equals(separator, "")) {
           do {
-            buffer.write("" + (iterator.current) + "");
+            buffer.write(`${iterator.current}`);
           }
           while (iterator.moveNext());
         } else {
-          buffer.write("" + (iterator.current) + "");
+          buffer.write(`${iterator.current}`);
           while (iterator.moveNext()) {
             buffer.write(separator);
-            buffer.write("" + (iterator.current) + "");
+            buffer.write(`${iterator.current}`);
           }
         }
         return buffer.toString();
@@ -2176,7 +2176,7 @@ var collection;
 
   let SetBase$ = dart.generic(function(E) {
     class SetBase extends SetMixin$(E) {
-      static setToString(set) { return IterableBase.iterableToFullString(set, "{", "}"); }
+      static setToString(set) { return IterableBase.iterableToFullString(set, '{', '}'); }
     }
     return SetBase;
   });
@@ -2781,7 +2781,7 @@ var collection;
         this._clear();
       }
       toSet() { return this._clone(); }
-      toString() { return IterableBase.iterableToFullString(this, "{", "}"); }
+      toString() { return IterableBase.iterableToFullString(this, '{', '}'); }
     }
     dart.defineNamedConstructor(SplayTreeSet, "from");
     return SplayTreeSet;

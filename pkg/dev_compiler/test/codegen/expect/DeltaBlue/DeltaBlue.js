@@ -370,7 +370,7 @@ var DeltaBlue;
       plan.execute();
       if (last.value !== i) {
         core.print("Chain test failed:");
-        core.print("Expected last value to be " + (i) + " but it was " + (last.value) + ".");
+        core.print(`Expected last value to be ${i} but it was ${last.value}.`);
       }
     }
   }
