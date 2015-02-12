@@ -6,7 +6,7 @@ library unnecessary_brace_in_string_interp;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/linter.dart';
 
 final RegExp alphaNumeric = new RegExp(r'^[a-zA-Z0-9]');
 

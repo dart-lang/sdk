@@ -5,7 +5,7 @@
 library one_member_abstracts;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/linter.dart';
 
 const desc =
     'AVOID defining a one-member abstract class when a simple function will do.';

@@ -6,7 +6,7 @@ library io;
 
 import 'dart:io';
 
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/linter.dart';
 
 
 /// Runs the linter on [file], skipping links and files not ending in the

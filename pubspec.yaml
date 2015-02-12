@@ -1,8 +1,8 @@
-name: dart_lint
+name: linter
 version: 0.0.1
 author: Dart Team <misc@dartlang.org>
 description: Style linter for Dart.
-homepage: https://github.com/dart-lang/dart_lint
+homepage: https://github.com/dart-lang/linter
 dependencies:
   analyzer: '0.24.0-dev.1'
   cli_util: '>=0.0.1 <0.1.0'

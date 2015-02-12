@@ -5,7 +5,7 @@
 library type_init_formals;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/linter.dart';
 
 const desc = "DON'T type annotate initializing formals";
 

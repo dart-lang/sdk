@@ -5,7 +5,7 @@
 library camel_case_types;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/linter.dart';
 
 const desc = 'DO name types using UpperCamelCase.';
 

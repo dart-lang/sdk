@@ -7,8 +7,8 @@ library docgen;
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dart_lint/src/linter.dart';
-import 'package:dart_lint/src/rules.dart';
+import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules.dart';
 import 'package:markdown/markdown.dart';
 
 /// Generates lint rule docs for publishing to http://dart-lang.github.io/

@@ -5,7 +5,7 @@
 library library_names;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/linter.dart';
 
 const desc =
     'DO name libraries and source files using lowercase_with_underscores.';

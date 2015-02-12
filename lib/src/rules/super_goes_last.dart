@@ -5,7 +5,7 @@
 library super_goes_last;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/linter.dart';
 
 const desc =
     'DO place the super() call last in a constructor initialization list.';

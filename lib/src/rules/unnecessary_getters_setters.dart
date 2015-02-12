@@ -5,9 +5,8 @@
 library unnecessary_getters_setters;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:dart_lint/src/ast.dart';
-import 'package:dart_lint/src/linter.dart';
+import 'package:linter/src/ast.dart';
+import 'package:linter/src/linter.dart';
 
 const desc = 'AVOID wrapping fields in getters and setters just to be "safe".';
 

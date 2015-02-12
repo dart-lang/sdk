@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dart_lint/src/io.dart';
+import 'package:linter/src/io.dart';
 
 const processFileFailedExitCode = 65;
 const unableToProcessExitCode = 64;

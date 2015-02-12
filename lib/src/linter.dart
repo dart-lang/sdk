@@ -12,8 +12,8 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:dart_lint/src/analysis.dart';
-import 'package:dart_lint/src/rules.dart';
+import 'package:linter/src/analysis.dart';
+import 'package:linter/src/rules.dart';
 
 final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
 

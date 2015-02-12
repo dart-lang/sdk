@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_lint.test.lint_test;
+library linter.test.lint_test;
 
 import 'dart:io';
 
@@ -10,15 +10,15 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:dart_lint/src/io.dart';
-import 'package:dart_lint/src/linter.dart';
-import 'package:dart_lint/src/rules.dart';
+import 'package:linter/src/io.dart';
+import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
-import '../bin/lint.dart' as dartlint;
-import 'package:dart_lint/src/rules/camel_case_types.dart';
-import 'package:dart_lint/src/rules/library_names.dart';
+import '../bin/linter.dart' as dartlint;
+import 'package:linter/src/rules/camel_case_types.dart';
+import 'package:linter/src/rules/library_names.dart';
 
 const String ruleDir = 'test/rules';
 

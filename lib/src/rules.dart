@@ -4,16 +4,16 @@
 
 library rules;
 
-import 'package:dart_lint/src/linter.dart';
-import 'package:dart_lint/src/rules/camel_case_types.dart';
-import 'package:dart_lint/src/rules/empty_constructor_bodies.dart';
-import 'package:dart_lint/src/rules/library_names.dart';
-import 'package:dart_lint/src/rules/one_member_abstracts.dart';
-import 'package:dart_lint/src/rules/super_goes_last.dart';
-import 'package:dart_lint/src/rules/type_init_formals.dart';
-import 'package:dart_lint/src/rules/unnecessary_brace_in_string_interp.dart';
-import 'package:dart_lint/src/rules/unnecessary_getters.dart';
-import 'package:dart_lint/src/rules/unnecessary_getters_setters.dart';
+import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules/camel_case_types.dart';
+import 'package:linter/src/rules/empty_constructor_bodies.dart';
+import 'package:linter/src/rules/library_names.dart';
+import 'package:linter/src/rules/one_member_abstracts.dart';
+import 'package:linter/src/rules/super_goes_last.dart';
+import 'package:linter/src/rules/type_init_formals.dart';
+import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
+import 'package:linter/src/rules/unnecessary_getters.dart';
+import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 
 /// Map of contributed lint rules.
 final Map<String, LintRule> ruleMap = {
