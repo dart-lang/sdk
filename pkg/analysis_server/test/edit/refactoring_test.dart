@@ -1029,8 +1029,8 @@ import 'bin/lib.dart';
 
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
-  Future<Response> sendRenameRequest(String search, String newName,
-      {String id: '0', bool validateOnly: false}) {
+  Future<Response> sendRenameRequest(String search, String newName, {String id:
+      '0', bool validateOnly: false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(
         RefactoringKind.RENAME,
@@ -1057,7 +1057,9 @@ main() {
     Response responseA = await futureA;
     // "1" was cancelled
     // "2" is successful
-    expect(responseA, isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
+    expect(
+        responseA,
+        isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
     expect(responseB, isResponseSuccess('2'));
   }
 
@@ -1326,6 +1328,27 @@ class A {
 ''');
   }
 
+  test_constructor_fromFactoryRedirectingConstructor_onClassName() {
+    addTestFile('''
+class A {
+  A() = B;
+}
+class B {
+  B() {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('B;', 'newName');
+    }, '''
+class A {
+  A() = B.newName;
+}
+class B {
+  B.newName() {}
+}
+''');
+  }
+
   test_constructor_fromInstanceCreation() {
     addTestFile('''
 class A {
@@ -1576,7 +1599,10 @@ main() {
       // send the second request, with the same kind, file and offset
       return waitForTasksFinished().then((_) {
         return getRefactoringResult(() {
-          return sendRenameRequest('otherName =', 'newName', validateOnly: true);
+          return sendRenameRequest(
+              'otherName =',
+              'newName',
+              validateOnly: true);
         }).then((result) {
           RenameFeedback feedback = result.feedback;
           // the refactoring was reset, so we don't get a stale result

@@ -400,8 +400,8 @@ class _RefactoringManager {
    * Initializes this context to perform a refactoring with the specified
    * parameters. The existing [Refactoring] is reused or created as needed.
    */
-  Future _init(RefactoringKind kind, String file,
-      int offset, int length) async {
+  Future _init(RefactoringKind kind, String file, int offset,
+      int length) async {
     await server.onAnalysisComplete;
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
@@ -488,13 +488,11 @@ class _RefactoringManager {
         if (element is FieldFormalParameterElement) {
           element = (element as FieldFormalParameterElement).field;
         }
-        // climb from "Class" in "new Class()" to "new Class()"
-        if (node.parent is TypeName &&
-            node.parent.parent is ConstructorName &&
-            node.parent.parent.parent is InstanceCreationExpression) {
-          InstanceCreationExpression creation = node.parent.parent.parent;
-          node = creation;
-          element = creation.staticElement;
+        // climb from "Class" in "new Class.named()" to "Class.named"
+        if (node.parent is TypeName && node.parent.parent is ConstructorName) {
+          ConstructorName constructor = node.parent.parent;
+          node = constructor;
+          element = constructor.staticElement;
         }
         // do create the refactoring
         refactoring = new RenameRefactoring(searchEngine, element);
