@@ -2704,7 +2704,9 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = _entryWithValidState(librarySource);
     entry.invalidateAllInformation();
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
-    expect(entry.getState(SourceEntry.CONTENT_ERRORS), same(CacheState.INVALID));
+    expect(
+        entry.getState(SourceEntry.CONTENT_ERRORS),
+        same(CacheState.INVALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
     expect(
         entry.getState(DartEntry.CONTAINING_LIBRARIES),
@@ -7153,6 +7155,9 @@ class _Source_getContent_throwException extends NonExistingSource {
   TimestampedData<String> get contents {
     throw 'Read error';
   }
+
+  @override
+  bool exists() => true;
 }
 
 

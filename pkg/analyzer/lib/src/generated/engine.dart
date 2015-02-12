@@ -5174,6 +5174,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (int i = 0; i < count; i++) {
       _sourceChanged(changedSources[i]);
     }
+    int removalCount = 0;
+    for (Source source in missingSources) {
+      if (getLibrariesContaining(source).isEmpty &&
+          getLibrariesDependingOn(source).isEmpty) {
+        _cache.remove(source);
+        removalCount++;
+      }
+    }
     int consistencyCheckEnd = JavaSystem.nanoTime();
     if (changedSources.length > 0 || missingSources.length > 0) {
       StringBuffer buffer = new StringBuffer();
@@ -5185,7 +5193,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       buffer.writeln(" inconsistent entries");
       buffer.write("  ");
       buffer.write(missingSources.length);
-      buffer.writeln(" missing sources");
+      buffer.write(" missing sources (");
+      buffer.write(removalCount);
+      buffer.writeln(" removed");
       for (Source source in missingSources) {
         buffer.write("    ");
         buffer.writeln(source.fullName);
@@ -11844,18 +11854,6 @@ abstract class SourceEntry {
     result.value = value == null ? descriptor.defaultValue : value;
   }
 
-  /**
-   * Increment the count of the number of times that data represented by the
-   * given [descriptor] was transitioned from the current state (as found in the
-   * given [result] to a valid state.
-   */
-  static void countTransition(DataDescriptor descriptor, CachedResult result) {
-    Map<CacheState, int> countMap =
-        transitionMap.putIfAbsent(descriptor, () => new HashMap<CacheState, int>());
-    int count = countMap[result.state];
-    countMap[result.state] = count == null ? 1 : count + 1;
-  }
-
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
@@ -12005,6 +12003,18 @@ abstract class SourceEntry {
     buffer.write(label);
     buffer.write(" = ");
     buffer.write(result == null ? CacheState.INVALID : result.state);
+  }
+
+  /**
+   * Increment the count of the number of times that data represented by the
+   * given [descriptor] was transitioned from the current state (as found in the
+   * given [result] to a valid state.
+   */
+  static void countTransition(DataDescriptor descriptor, CachedResult result) {
+    Map<CacheState, int> countMap =
+        transitionMap.putIfAbsent(descriptor, () => new HashMap<CacheState, int>());
+    int count = countMap[result.state];
+    countMap[result.state] = count == null ? 1 : count + 1;
   }
 }
 
