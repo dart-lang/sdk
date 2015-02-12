@@ -17,11 +17,11 @@ When the source is more mature, we’ll push regular builds to `pub`.
 
 Linter for Dart gives you feedback to help you keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforced lint rules (or "lints") are catalogued [here](http://dart-lang.github.io/linter/lints/).  When you run the linter all lints are enabled but don't worry, configuration, wherein you can specifically enable/disable lints, is in the [works](https://github.com/dart-lang/linter/issues/7).  While initial focus is on style lints, other lints that catch common programming errors are certainly of interest.  If you have ideas, please file a [feature request][tracker].
 
-Since we are currently in such active development, running from source is the best way to try `dart_lint` out.
+Since we are currently in such active development, running from source is the best way to try the `linter` out.
 
 Running it looks like this:
 
-    dart path_to_lint_clone/bin/lint.dart my_library.dart
+    dart path_to_lint_clone/bin/linter.dart my_library.dart
 
 With example output looking like this:
 
