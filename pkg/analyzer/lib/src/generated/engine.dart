@@ -1537,11 +1537,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     //
     // Then determine which cached results are no longer valid.
     //
-    bool addedDartSource = false;
     for (Source source in changeSet.addedSources) {
-      if (_sourceAvailable(source)) {
-        addedDartSource = true;
-      }
+      _sourceAvailable(source);
     }
     for (Source source in changeSet.changedSources) {
       if (_contentCache.getContents(source) != null) {
@@ -1569,36 +1566,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     for (Source source in removedSources) {
       _sourceRemoved(source);
-    }
-    if (addedDartSource) {
-      // TODO(brianwilkerson) This is hugely inefficient, but we need to
-      // re-analyze any libraries that might have been referencing the
-      // not-yet-existing source that was just added. Longer term we need to
-      // keep track of which libraries are referencing non-existing sources and
-      // only re-analyze those libraries.
-//      logInformation("Added Dart sources, invalidating all resolution information");
-      List<Source> sourcesToInvalidate = new List<Source>();
-      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-      while (iterator.moveNext()) {
-        Source source = iterator.key;
-        SourceEntry sourceEntry = iterator.value;
-        if (!source.isInSystemLibrary &&
-            (sourceEntry is DartEntry || sourceEntry is HtmlEntry)) {
-          sourcesToInvalidate.add(source);
-        }
-      }
-      int count = sourcesToInvalidate.length;
-      for (int i = 0; i < count; i++) {
-        Source source = sourcesToInvalidate[i];
-        SourceEntry entry = _getReadableSourceEntry(source);
-        if (entry is DartEntry) {
-          entry.invalidateParseInformation();
-          _workManager.add(source, _computePriority(entry));
-        } else if (entry is HtmlEntry) {
-          entry.invalidateParseInformation();
-          _workManager.add(source, SourcePriority.HTML);
-        }
-      }
     }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
   }
@@ -4441,27 +4408,46 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
+   * Given that the given [source] (with the corresponding [sourceEntry]) has
+   * been invalidated, invalidate all of the libraries that depend on it.
    */
-  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
-    Source source = task.source;
-    Source library = task.library;
-    DartEntry dartEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
+  void _propagateInvalidation(Source source, SourceEntry sourceEntry) {
+    if (sourceEntry is HtmlEntry) {
+      HtmlEntry htmlEntry = sourceEntry;
+      htmlEntry.modificationTime = getModificationStamp(source);
+      htmlEntry.invalidateAllInformation();
+      _cache.removedAst(source);
+      _workManager.add(source, SourcePriority.HTML);
+    } else if (sourceEntry is DartEntry) {
+      List<Source> containingLibraries = getLibrariesContaining(source);
+      List<Source> dependentLibraries = getLibrariesDependingOn(source);
+      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
+      for (Source containingLibrary in containingLibraries) {
+        _computeAllLibrariesDependingOn(
+            containingLibrary,
+            librariesToInvalidate);
+      }
+      for (Source dependentLibrary in dependentLibraries) {
+        _computeAllLibrariesDependingOn(
+            dependentLibrary,
+            librariesToInvalidate);
+      }
+      for (Source library in librariesToInvalidate) {
+        _invalidateLibraryResolution(library);
+      }
+      DartEntry dartEntry = _cache.get(source);
+      _removeFromParts(source, dartEntry);
+      dartEntry.modificationTime = getModificationStamp(source);
+      dartEntry.invalidateAllInformation();
+      _cache.removedAst(source);
+      _workManager.add(source, SourcePriority.UNKNOWN);
     }
-    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
-    dartEntry.setValueInLibrary(
-        DartEntry.BUILT_ELEMENT,
-        library,
-        task.unitElement);
-    ChangeNoticeImpl notice = _getNotice(source);
-    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(dartEntry.allErrors, lineInfo);
-    return dartEntry;
+    // reset unit in the notification, it is out of date now
+    ChangeNoticeImpl notice = _pendingNotices[source];
+    if (notice != null) {
+      notice.resolvedDartUnit = null;
+      notice.resolvedHtmlUnit = null;
+    }
   }
 
 //  /**
@@ -4541,6 +4527,30 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
+   */
+  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
+    Source source = task.source;
+    Source library = task.library;
+    DartEntry dartEntry = _cache.get(source);
+    CaughtException thrownException = task.exception;
+    if (thrownException != null) {
+      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
+      throw new AnalysisException('<rethrow>', thrownException);
+    }
+    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
+    dartEntry.setValueInLibrary(
+        DartEntry.BUILT_ELEMENT,
+        library,
+        task.unitElement);
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(dartEntry.allErrors, lineInfo);
+    return dartEntry;
+  }
 
   /**
    * Given a cache entry and a library element, record the library element and other information
@@ -4948,20 +4958,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create an entry for the newly added source. Return `true` if the new source is a Dart
-   * file.
+   * Create an entry for the newly added [source] and invalidate any sources
+   * that referenced the source before it existed.
    *
-   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
-   *
-   * @param source the source that has been added
-   * @return `true` if the new source is a Dart file
+   * <b>Note:</b> This method must only be invoked while we are synchronized on
+   * [cacheLock].
    */
-  bool _sourceAvailable(Source source) {
+  void _sourceAvailable(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
       sourceEntry = _createSourceEntry(source, true);
     } else {
-      _sourceChanged(source);
+      _propagateInvalidation(source, sourceEntry);
       sourceEntry = _cache.get(source);
     }
     if (sourceEntry is HtmlEntry) {
@@ -4969,13 +4977,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is DartEntry) {
       _workManager.add(source, _computePriority(sourceEntry as DartEntry));
     }
-    return sourceEntry is DartEntry;
   }
 
   /**
-   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
+   * Invalidate the [source] that was changed and any sources that referenced
+   * the source before it existed.
    *
-   * @param source the source that has been changed
+   * <b>Note:</b> This method must only be invoked while we are synchronized on
+   * [cacheLock].
    */
   void _sourceChanged(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
@@ -4986,36 +4995,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // to invalidate it again.
       return;
     }
-    if (sourceEntry is HtmlEntry) {
-      HtmlEntry htmlEntry = sourceEntry;
-      htmlEntry.modificationTime = getModificationStamp(source);
-      htmlEntry.invalidateAllInformation();
-      _cache.removedAst(source);
-      _workManager.add(source, SourcePriority.HTML);
-    } else if (sourceEntry is DartEntry) {
-      List<Source> containingLibraries = getLibrariesContaining(source);
-      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
-      for (Source containingLibrary in containingLibraries) {
-        _computeAllLibrariesDependingOn(
-            containingLibrary,
-            librariesToInvalidate);
-      }
-      for (Source library in librariesToInvalidate) {
-        _invalidateLibraryResolution(library);
-      }
-      DartEntry dartEntry = _cache.get(source);
-      _removeFromParts(source, dartEntry);
-      dartEntry.modificationTime = getModificationStamp(source);
-      dartEntry.invalidateAllInformation();
-      _cache.removedAst(source);
-      _workManager.add(source, SourcePriority.UNKNOWN);
-    }
-    // reset unit in the notification, it is out of date now
-    ChangeNoticeImpl notice = _pendingNotices[source];
-    if (notice != null) {
-      notice.resolvedDartUnit = null;
-      notice.resolvedHtmlUnit = null;
-    }
+    _propagateInvalidation(source, sourceEntry);
   }
 
   /**
