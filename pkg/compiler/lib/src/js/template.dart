@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js;
+part of js_ast;
 
 class TemplateManager {
   Map<String, Template> expressionTemplates = new Map<String, Template>();
@@ -499,8 +499,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitLiteralStatement(LiteralStatement node) =>
       TODO('visitLiteralStatement');
-  Instantiator visitBlob(Blob node) =>
-      TODO('visitBlob');
   Instantiator visitLiteralExpression(LiteralExpression node) =>
       TODO('visitLiteralExpression');
 
@@ -709,12 +707,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 }
 
 /**
- * InterpolatedNodeAnalysis extract [InterpolatedNode]s from AST.
+ * InterpolatedNodeAnalysis determines which AST trees contain
+ * [InterpolatedNode]s, and the names of the named interpolated nodes.
  */
 class InterpolatedNodeAnalysis extends BaseVisitor {
-  final Setlet<Node> containsInterpolatedNode = new Setlet<Node>();
-  final List<InterpolatedNode> interpolatedNodes = <InterpolatedNode>[];
-  final Setlet<String> holeNames = new Setlet<String>();
+  final Set<Node> containsInterpolatedNode = new Set<Node>();
+  final Set<String> holeNames = new Set<String>();
   int count = 0;
 
   InterpolatedNodeAnalysis();
@@ -734,7 +732,6 @@ class InterpolatedNodeAnalysis extends BaseVisitor {
   }
 
   visitInterpolatedNode(InterpolatedNode node) {
-    interpolatedNodes.add(node);
     containsInterpolatedNode.add(node);
     if (node.isNamed) holeNames.add(node.nameOrPosition);
     ++count;
