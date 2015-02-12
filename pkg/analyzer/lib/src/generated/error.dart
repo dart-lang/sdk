@@ -3806,7 +3806,9 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode AMBIGUOUS_IMPORT = const StaticWarningCode(
       'AMBIGUOUS_IMPORT',
-      "The name '{0}' is defined in the libraries {1}");
+      "The name '{0}' is defined in the libraries {1}",
+      "Consider using 'as prefix' for one of the import directives "
+          "or hiding the name from all but one of the imports.");
 
   /**
    * 12.11.1 New: It is a static warning if the static type of <i>a<sub>i</sub>,
