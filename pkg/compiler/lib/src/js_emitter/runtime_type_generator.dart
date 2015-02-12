@@ -284,7 +284,7 @@ class RuntimeTypeGenerator {
 
   StubMethod _generateTypeVariableReader(ClassElement cls,
                                          TypeVariableElement element) {
-    String name = namer.nameForReadTypeVariable(element);
+    String name = namer.readTypeVariableName(element);
     int index = RuntimeTypes.getTypeVariableIndex(element);
     jsAst.Expression computeTypeVariable;
 

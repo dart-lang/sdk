@@ -148,7 +148,8 @@ class OldEmitter implements Emitter {
       => '${namer.isolateName}.${lazyInitializerProperty}';
   String get initName => 'init';
 
-  String get makeConstListProperty => namer.internalGlobal('makeConstantList');
+  String get makeConstListProperty
+      => namer.getMappedInstanceName('makeConstantList');
 
   /// The name of the property that contains all field names.
   ///
@@ -158,9 +159,8 @@ class OldEmitter implements Emitter {
   /// For deferred loading we communicate the initializers via this global var.
   final String deferredInitializers = r"$dart_deferred_initializers";
 
-  /// Contains the global state that is needed to initialize and load a
-  /// deferred library.
-  String get globalsHolder => namer.internalGlobal("globalsHolder");
+  /// All the global state can be passed around with this variable.
+  String get globalsHolder => namer.getMappedGlobalName("globalsHolder");
 
   @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
@@ -173,7 +173,7 @@ class OldEmitter implements Emitter {
   }
 
   jsAst.PropertyAccess globalPropertyAccess(Element element) {
-    String name = namer.globalPropertyName(element);
+    String name = namer.getNameX(element);
     jsAst.PropertyAccess pa = new jsAst.PropertyAccess.field(
         new jsAst.VariableUse(namer.globalObjectFor(element)),
         name);
@@ -183,13 +183,13 @@ class OldEmitter implements Emitter {
   @override
   jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
      return jsAst.js('#.#', [namer.globalObjectFor(element),
-                             namer.lazyInitializerName(element)]);
+                             namer.getLazyInitializerName(element)]);
    }
 
   @override
   jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
      return jsAst.js('#.#()',
-         [namer.globalObjectFor(element), namer.staticClosureName(element)]);
+         [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
    }
 
   @override
@@ -725,7 +725,7 @@ class OldEmitter implements Emitter {
     void emitInitialization(Element element, jsAst.Expression initialValue) {
       jsAst.Expression init =
         js('$isolateProperties.# = #',
-            [namer.globalPropertyName(element), initialValue]);
+            [namer.getNameOfGlobalField(element), initialValue]);
       output.addBuffer(jsAst.prettyPrint(init, compiler,
                                          monitor: compiler.dumpInfoTask));
       output.add('$N');
@@ -796,8 +796,8 @@ class OldEmitter implements Emitter {
         [js(lazyInitializerName),
             js(isolateProperties),
             js.string(element.name),
-            js.string(namer.globalPropertyName(element)),
-            js.string(namer.lazyInitializerName(element)),
+            js.string(namer.getNameX(element)),
+            js.string(namer.getLazyInitializerName(element)),
             code]);
   }
 
@@ -1208,9 +1208,9 @@ class OldEmitter implements Emitter {
       // typedefs are only emitted with reflection, which requires lots of
       // classes.
       assert(compiler.objectClass != null);
-      builder.superName = namer.className(compiler.objectClass);
+      builder.superName = namer.getNameOfClass(compiler.objectClass);
       jsAst.Node declaration = builder.toObjectInitializer();
-      String mangledName = namer.globalPropertyName(typedef);
+      String mangledName = namer.getNameX(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
       getElementDescriptor(library)
           ..addProperty(mangledName, declaration)
