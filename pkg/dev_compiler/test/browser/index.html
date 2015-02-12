@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<meta charset="utf-8">
+<title>dart-dev-compiler browser tests</title>
+
+<!-- Mocha/Chai -->
+<link rel="stylesheet" href="../js_test_tools/mocha/mocha.css">
+<script src="../js_test_tools/mocha/mocha.js"></script>
+<script src="../js_test_tools/chai/chai.js"></script>
+<script src="../js_test_tools/mocha-htmltest.js"></script>
+
+<!-- Runtime code to test -->
+<script src="../../lib/runtime/dart_runtime.js"></script>
+
+<!-- tests -->
+<div id="mocha"></div>
+<script>mocha.setup({ui: 'tdd', slow: 1000});</script>
+<script src="runtime_tests.js"></script>
+<script>mocha.run();</script>

@@ -268,11 +268,45 @@ var dart;
   }
   dart.stackTrace = stackTrace;
 
+  /** The Symbol for storing type arguments on a specialized generic type. */
+  dart.typeSignature = Symbol('typeSignature');
+
   /** Memoize a generic type constructor function. */
   function generic(typeConstructor) {
-    // TODO(jmesserly): implement this. Memoize so we return the same instance
-    // for the same type, and save the type arguments for easy reflection.
-    return typeConstructor;
+    var length = typeConstructor.length;
+    if (length < 1) throw 'must have at least one generic type argument';
+
+    var resultMap = new Map();
+    function makeGenericType(/*...arguments*/) {
+      if (arguments.length != length) {
+        throw 'requires ' + length + ' type arguments';
+      }
+
+      var value = resultMap;
+      for (var i = 0; i < length; i++) {
+        var arg = arguments[i];
+        // TODO(jmesserly): assume `dynamic` here?
+        if (arg === void 0) throw 'undefined is not allowed as a type argument';
+
+        var map = value;
+        value = map.get(arg);
+        if (value === void 0) {
+          if (i + 1 == length) {
+            value = typeConstructor.apply(null, arguments);
+            // Save the type constructor and arguments for reflection.
+            if (value) {
+              var args = Array.prototype.slice.call(arguments);
+              value[dart.typeSignature] = [makeGenericType].concat(args);
+            }
+          } else {
+            value = new Map();
+          }
+          map.set(arg, value);
+        }
+      }
+      return value;
+    }
+    return makeGenericType;
   }
   dart.generic = generic;
 
