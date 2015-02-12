@@ -729,11 +729,11 @@ class _StringBase {
     if (match.end < this.length) {
       length += _addReplaceSlice(slices, match.end, this.length);
     }
-    bool replacementIsOneByte = _replacement._isOneByte;
+    bool replacementIsOneByte = replacement._isOneByte;
     if (replacementIsOneByte &&
         length < _maxJoinReplaceOneByteStringLength &&
         this._isOneByte) {
-      return _joinReplaceAllOneByteResult(this, matches, length);
+      return _joinReplaceAllOneByteResult(this, slices, length);
     }
     return _joinReplaceAllResult(this, slices, length, replacementIsOneByte);
   }
