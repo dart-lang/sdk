@@ -64,8 +64,8 @@ void printUsage(ArgParser parser, [String error]) {
     message = error;
   }
 
-  stdout.write('''$message
-Usage: lint <library_files>
+  stdout.writeln('''$message
+Usage: linter <library_files>
 ${parser.usage}
   
 For more information, see https://github.com/dart-lang/dart_lint

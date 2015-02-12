@@ -4,7 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 
-import 'lint_test.dart' as lint_test;
+import 'linter_test.dart' as linter_test;
 
 main() {
   // Tidy up the unittest output.
@@ -12,5 +12,5 @@ main() {
   formatStacks = true;
   // useCompactVMConfiguration();
 
-  lint_test.main();
+  linter_test.main();
 }
