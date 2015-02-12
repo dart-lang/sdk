@@ -66,15 +66,15 @@ class SocketAddress {
   const char* as_string() const { return as_string_; }
   const RawAddr& addr() const { return addr_; }
 
-  static intptr_t GetAddrLength(const RawAddr* addr) {
-    ASSERT(addr->ss.ss_family == AF_INET || addr->ss.ss_family == AF_INET6);
-    return addr->ss.ss_family == AF_INET6 ?
+  static intptr_t GetAddrLength(const RawAddr& addr) {
+    ASSERT(addr.ss.ss_family == AF_INET || addr.ss.ss_family == AF_INET6);
+    return addr.ss.ss_family == AF_INET6 ?
         sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
 
-  static intptr_t GetInAddrLength(const RawAddr* addr) {
-    ASSERT(addr->ss.ss_family == AF_INET || addr->ss.ss_family == AF_INET6);
-    return addr->ss.ss_family == AF_INET6 ?
+  static intptr_t GetInAddrLength(const RawAddr& addr) {
+    ASSERT(addr.ss.ss_family == AF_INET || addr.ss.ss_family == AF_INET6);
+    return addr.ss.ss_family == AF_INET6 ?
         sizeof(struct in6_addr) : sizeof(struct in_addr);
   }
 
@@ -132,39 +132,41 @@ class SocketAddress {
     }
   }
 
-  static intptr_t GetAddrPort(const RawAddr* addr) {
-    if (addr->ss.ss_family == AF_INET) {
-      return ntohs(addr->in.sin_port);
+  static intptr_t GetAddrPort(const RawAddr& addr) {
+    if (addr.ss.ss_family == AF_INET) {
+      return ntohs(addr.in.sin_port);
     } else {
-      return ntohs(addr->in6.sin6_port);
+      return ntohs(addr.in6.sin6_port);
     }
   }
 
-  static Dart_Handle ToTypedData(RawAddr* raw) {
-    int len = GetInAddrLength(raw);
+  static Dart_Handle ToTypedData(const RawAddr& addr) {
+    int len = GetInAddrLength(addr);
     Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
     if (Dart_IsError(result)) Dart_PropagateError(result);
     Dart_Handle err;
-    if (raw->addr.sa_family == AF_INET6) {
+    RawAddr& raw = const_cast<RawAddr&>(addr);
+    if (addr.addr.sa_family == AF_INET6) {
       err = Dart_ListSetAsBytes(
-          result, 0, reinterpret_cast<uint8_t*>(&raw->in6.sin6_addr), len);
+          result, 0, reinterpret_cast<uint8_t*>(&raw.in6.sin6_addr), len);
     } else {
       err = Dart_ListSetAsBytes(
-          result, 0, reinterpret_cast<uint8_t*>(&raw->in.sin_addr), len);
+          result, 0, reinterpret_cast<uint8_t*>(&raw.in.sin_addr), len);
     }
     if (Dart_IsError(err)) Dart_PropagateError(err);
     return result;
   }
 
-  static CObjectUint8Array* ToCObject(RawAddr* raw) {
-    int in_addr_len = SocketAddress::GetInAddrLength(raw);
+  static CObjectUint8Array* ToCObject(const RawAddr& addr) {
+    int in_addr_len = SocketAddress::GetInAddrLength(addr);
     void* in_addr;
+    RawAddr& raw = const_cast<RawAddr&>(addr);
     CObjectUint8Array* data =
         new CObjectUint8Array(CObject::NewUint8Array(in_addr_len));
-    if (raw->addr.sa_family == AF_INET6) {
-      in_addr = reinterpret_cast<void*>(&raw->in6.sin6_addr);
+    if (addr.addr.sa_family == AF_INET6) {
+      in_addr = reinterpret_cast<void*>(&raw.in6.sin6_addr);
     } else {
-      in_addr = reinterpret_cast<void*>(&raw->in.sin_addr);
+      in_addr = reinterpret_cast<void*>(&raw.in.sin_addr);
     }
     memmove(data->Buffer(), in_addr, in_addr_len);
     return data;
@@ -240,17 +242,23 @@ class Socket {
   static intptr_t Available(intptr_t fd);
   static intptr_t Read(intptr_t fd, void* buffer, intptr_t num_bytes);
   static intptr_t Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
+  // Send data on a socket. The port to send to is specified in the port
+  // component of the passed RawAddr structure. The RawAddr structure is only
+  // used for datagram sockets.
   static intptr_t SendTo(
-      intptr_t fd, const void* buffer, intptr_t num_bytes, RawAddr addr);
+      intptr_t fd, const void* buffer, intptr_t num_bytes, const RawAddr& addr);
   static intptr_t RecvFrom(
       intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr);
-  static intptr_t CreateConnect(const RawAddr& addr,
-                                const intptr_t port);
+  // Creates a socket which is bound and connected. The port to connect to is
+  // specified as the port component of the passed RawAddr structure.
+  static intptr_t CreateConnect(const RawAddr& addr);
+  // Creates a socket which is bound and connected. The port to connect to is
+  // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateBindConnect(const RawAddr& addr,
-                                    const intptr_t port,
                                     const RawAddr& source_addr);
-  static intptr_t CreateBindDatagram(
-      RawAddr* addr, intptr_t port, bool reuseAddress);
+  // Creates a datagram socket which is bound. The port to bind
+  // to is specified as the port component of the RawAddr structure.
+  static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
   static intptr_t GetPort(intptr_t fd);
   static SocketAddress* GetRemotePeer(intptr_t fd, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
@@ -265,23 +273,27 @@ class Socket {
   static bool SetMulticastHops(intptr_t fd, intptr_t protocol, int value);
   static bool GetBroadcast(intptr_t fd, bool* value);
   static bool SetBroadcast(intptr_t fd, bool value);
-  static bool JoinMulticast(
-      intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex);
-  static bool LeaveMulticast(
-      intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex);
+  static bool JoinMulticast(intptr_t fd,
+                            const RawAddr& addr,
+                            const RawAddr& interface,
+                            int interfaceIndex);
+  static bool LeaveMulticast(intptr_t fd,
+                             const RawAddr& addr,
+                             const RawAddr& interface,
+                             int interfaceIndex);
 
   // Perform a hostname lookup. Returns a AddressList of SocketAddress's.
   static AddressList<SocketAddress>* LookupAddress(const char* host,
                                                    int type,
                                                    OSError** os_error);
 
-  static bool ReverseLookup(RawAddr addr,
+  static bool ReverseLookup(const RawAddr& addr,
                             char* host,
                             intptr_t host_len,
                             OSError** os_error);
 
   static bool ParseAddress(int type, const char* address, RawAddr* addr);
-  static bool FormatNumericAddress(RawAddr* addr, char* address, int len);
+  static bool FormatNumericAddress(const RawAddr& addr, char* address, int len);
 
   // List interfaces. Returns a AddressList of InterfaceSocketAddress's.
   static AddressList<InterfaceSocketAddress>* ListInterfaces(
@@ -309,13 +321,15 @@ class ServerSocket {
 
   static intptr_t Accept(intptr_t fd);
 
+  // Creates a socket which is bound and listens. The port to listen on is
+  // specified in the port component of the passed RawAddr structure.
+  //
   // Returns a positive integer if the call is successful. In case of failure
   // it returns:
   //
   //   -1: system error (errno set)
   //   -5: invalid bindAddress
-  static intptr_t CreateBindListen(RawAddr addr,
-                                   intptr_t port,
+  static intptr_t CreateBindListen(const RawAddr& addr,
                                    intptr_t backlog,
                                    bool v6_only = false);
 
@@ -367,7 +381,6 @@ class ListeningSocketRegistry {
   // a new (potentially shared) socket.
   Dart_Handle CreateBindListen(Dart_Handle socket_object,
                                RawAddr addr,
-                               intptr_t port,
                                intptr_t backlog,
                                bool v6_only,
                                bool shared);

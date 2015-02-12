@@ -150,7 +150,7 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   ASSERT(!Dart_IsNull(protocols_handle));
 
   GetFilter(args)->Connect(host_name,
-                           &raw_addr,
+                           raw_addr,
                            static_cast<int>(port),
                            is_server,
                            certificate_name,
@@ -666,7 +666,7 @@ Dart_Handle SSLFilter::PeerCertificate() {
 
 
 void SSLFilter::Connect(const char* host_name,
-                        RawAddr* raw_addr,
+                        const RawAddr& raw_addr,
                         int port,
                         bool is_server,
                         const char* certificate_name,
@@ -835,13 +835,13 @@ void SSLFilter::Connect(const char* host_name,
   memset(&peername, 0, sizeof(peername));
   intptr_t len = SocketAddress::GetAddrLength(raw_addr);
   ASSERT(static_cast<size_t>(len) <= sizeof(peername));
-  memmove(&peername, &raw_addr->addr, len);
+  memmove(&peername, &raw_addr.addr, len);
 
   // Adjust the address family field for BSD, whose sockaddr
   // structure has a one-byte length and one-byte address family
   // field at the beginning.  PRNetAddr has a two-byte address
   // family field at the beginning.
-  peername.raw.family = raw_addr->addr.sa_family;
+  peername.raw.family = raw_addr.addr.sa_family;
 
   memio_SetPeerName(filter_, &peername);
 }

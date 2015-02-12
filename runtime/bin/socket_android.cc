@@ -26,17 +26,17 @@ namespace bin {
 SocketAddress::SocketAddress(struct sockaddr* sa) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   if (!Socket::FormatNumericAddress(
-          reinterpret_cast<RawAddr*>(sa), as_string_, INET6_ADDRSTRLEN)) {
+          *reinterpret_cast<RawAddr*>(sa), as_string_, INET6_ADDRSTRLEN)) {
     as_string_[0] = 0;
   }
-  socklen_t salen = GetAddrLength(reinterpret_cast<RawAddr*>(sa));
+  socklen_t salen = GetAddrLength(*reinterpret_cast<RawAddr*>(sa));
   memmove(reinterpret_cast<void *>(&addr_), sa, salen);
 }
 
 
-bool Socket::FormatNumericAddress(RawAddr* addr, char* address, int len) {
+bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
-  if (NO_RETRY_EXPECTED(getnameinfo(&addr->addr,
+  if (NO_RETRY_EXPECTED(getnameinfo(&addr.addr,
                                     salen,
                                     address,
                                     len,
@@ -55,7 +55,7 @@ bool Socket::Initialize() {
 }
 
 
-static intptr_t Create(RawAddr addr) {
+static intptr_t Create(const RawAddr& addr) {
   intptr_t fd;
   fd = NO_RETRY_EXPECTED(socket(addr.ss.ss_family, SOCK_STREAM, 0));
   if (fd < 0) {
@@ -66,10 +66,9 @@ static intptr_t Create(RawAddr addr) {
 }
 
 
-static intptr_t Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
-  SocketAddress::SetAddrPort(&addr, port);
+static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   intptr_t result = TEMP_FAILURE_RETRY(
-      connect(fd, &addr.addr, SocketAddress::GetAddrLength(&addr)));
+      connect(fd, &addr.addr, SocketAddress::GetAddrLength(addr)));
   if (result == 0 || errno == EINPROGRESS) {
     return fd;
   }
@@ -78,7 +77,7 @@ static intptr_t Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
 }
 
 
-intptr_t Socket::CreateConnect(const RawAddr& addr, const intptr_t port) {
+intptr_t Socket::CreateConnect(const RawAddr& addr) {
   intptr_t fd = Create(addr);
   if (fd < 0) {
     return fd;
@@ -86,12 +85,11 @@ intptr_t Socket::CreateConnect(const RawAddr& addr, const intptr_t port) {
 
   FDUtils::SetNonBlocking(fd);
 
-  return Connect(fd, addr, port);
+  return Connect(fd, addr);
 }
 
 
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
-                                   const intptr_t port,
                                    const RawAddr& source_addr) {
   intptr_t fd = Create(addr);
   if (fd < 0) {
@@ -99,13 +97,13 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   }
 
   intptr_t result = TEMP_FAILURE_RETRY(
-      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(&source_addr)));
+      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
   if (result != 0 && errno != EINPROGRESS) {
     VOID_TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }
 
-  return Connect(fd, addr, port);
+  return Connect(fd, addr);
 }
 
 
@@ -127,8 +125,8 @@ intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
-                     RawAddr* addr) {
+intptr_t Socket::RecvFrom(
+    intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr) {
   ASSERT(fd >= 0);
   socklen_t addr_len = sizeof(addr->ss);
   ssize_t read_bytes = TEMP_FAILURE_RETRY(
@@ -155,12 +153,12 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::SendTo(intptr_t fd, const void* buffer, intptr_t num_bytes,
-                   RawAddr addr) {
+intptr_t Socket::SendTo(
+    intptr_t fd, const void* buffer, intptr_t num_bytes, const RawAddr& addr) {
   ASSERT(fd >= 0);
   ssize_t written_bytes = TEMP_FAILURE_RETRY(
       sendto(fd, buffer, num_bytes, 0,
-             &addr.addr, SocketAddress::GetAddrLength(&addr)));
+             &addr.addr, SocketAddress::GetAddrLength(addr)));
   ASSERT(EAGAIN == EWOULDBLOCK);
   if (written_bytes == -1 && errno == EWOULDBLOCK) {
     // If the would block we need to retry and therefore return 0 as
@@ -178,7 +176,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
   if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &size))) {
     return 0;
   }
-  return SocketAddress::GetAddrPort(&raw);
+  return SocketAddress::GetAddrPort(raw);
 }
 
 
@@ -189,7 +187,7 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
     return NULL;
   }
-  *port = SocketAddress::GetAddrPort(&raw);
+  *port = SocketAddress::GetAddrPort(raw);
   return new SocketAddress(&raw.addr);
 }
 
@@ -264,14 +262,14 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
 }
 
 
-bool Socket::ReverseLookup(RawAddr addr,
+bool Socket::ReverseLookup(const RawAddr& addr,
                            char* host,
                            intptr_t host_len,
                            OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
   int status = NO_RETRY_EXPECTED(getnameinfo(
       &addr.addr,
-      SocketAddress::GetAddrLength(&addr),
+      SocketAddress::GetAddrLength(addr),
       host,
       host_len,
       NULL,
@@ -300,11 +298,10 @@ bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
 }
 
 
-intptr_t Socket::CreateBindDatagram(
-    RawAddr* addr, intptr_t port, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   intptr_t fd;
 
-  fd = NO_RETRY_EXPECTED(socket(addr->addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
+  fd = NO_RETRY_EXPECTED(socket(addr.addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
   if (fd < 0) return -1;
 
   FDUtils::SetCloseOnExec(fd);
@@ -315,10 +312,9 @@ intptr_t Socket::CreateBindDatagram(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
   }
 
-  SocketAddress::SetAddrPort(addr, port);
   if (NO_RETRY_EXPECTED(
           bind(fd,
-               &addr->addr,
+               &addr.addr,
                SocketAddress::GetAddrLength(addr))) < 0) {
     VOID_TEMP_FAILURE_RETRY(close(fd));
     return -1;
@@ -338,8 +334,7 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
 }
 
 
-intptr_t ServerSocket::CreateBindListen(RawAddr addr,
-                                        intptr_t port,
+intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
                                         intptr_t backlog,
                                         bool v6_only) {
   intptr_t fd;
@@ -359,20 +354,19 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));
   }
 
-  SocketAddress::SetAddrPort(&addr, port);
   if (NO_RETRY_EXPECTED(
           bind(fd,
                &addr.addr,
-               SocketAddress::GetAddrLength(&addr))) < 0) {
+               SocketAddress::GetAddrLength(addr))) < 0) {
     VOID_TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }
 
   // Test for invalid socket port 65535 (some browsers disallow it).
-  if (port == 0 && Socket::GetPort(fd) == 65535) {
+  if (SocketAddress::GetAddrPort(addr) == 0 && Socket::GetPort(fd) == 65535) {
     // Don't close the socket until we have created a new socket, ensuring
     // that we do not get the bad port number again.
-    intptr_t new_fd = CreateBindListen(addr, 0, backlog, v6_only);
+    intptr_t new_fd = CreateBindListen(addr, backlog, v6_only);
     int err = errno;
     VOID_TEMP_FAILURE_RETRY(close(fd));
     errno = err;
@@ -544,7 +538,7 @@ bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
 
 
 bool Socket::JoinMulticast(
-    intptr_t fd, RawAddr* addr, RawAddr*, int interfaceIndex) {
+    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
   int proto = addr->addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
@@ -555,11 +549,11 @@ bool Socket::JoinMulticast(
 
 
 bool Socket::LeaveMulticast(
-    intptr_t fd, RawAddr* addr, RawAddr*, int interfaceIndex) {
-  int proto = addr->addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
+  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr->ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
   return NO_RETRY_EXPECTED(setsockopt(
       fd, proto, MCAST_LEAVE_GROUP, &mreq, sizeof(mreq))) == 0;
 }
