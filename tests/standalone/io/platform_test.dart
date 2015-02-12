@@ -68,7 +68,7 @@ testIsolate() {
 
 
 testVersion() {
-  checkValidVersion(string version) {
+  checkValidVersion(String version) {
     RegExp re = new RegExp(r'(\d+)\.(\d+)\.(\d+)(-dev\.([^\.]*)\.([^\.]*))?');
     var match = re.firstMatch(version);
     Expect.isNotNull(match);
