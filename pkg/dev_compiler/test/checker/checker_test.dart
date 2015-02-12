@@ -1845,12 +1845,30 @@ main() {
                 m(A a) {}
             }
             class Parent extends Grandparent {
+                m(A a) {}
+            }
+
+            class Test extends Parent {
+                // Reported only once
+                /*severe:InvalidMethodOverride*/m(B a) {}
+            }
+         '''
+      });
+
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Grandparent {
+                m(A a) {}
+            }
+            class Parent extends Grandparent {
                 /*severe:InvalidMethodOverride*/m(B a) {}
             }
 
             class Test extends Parent {
-                // TODO(sigmund): don't report this redundant error?
-                /*severe:InvalidMethodOverride*/m(B a) {}
+                m(B a) {}
             }
          '''
       });
@@ -1897,6 +1915,37 @@ main() {
             }
 
             class T1 extends Base with M1, /*severe:InvalidMethodOverride*/M2 {}
+         '''
+      });
+    });
+
+    test('no duplicate mixin override', () {
+      // This is a regression test for a bug in an earlier implementation were
+      // names were hiding errors if the first mixin override looked correct,
+      // but subsequent ones did not.
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Base {
+                m(A a) {}
+            }
+
+            class M1 {
+                m(A a) {}
+            }
+
+            class M2 {
+                m(B a) {}
+            }
+
+            class M3 {
+                m(B a) {}
+            }
+
+            class T1 extends Base
+                with M1, /*severe:InvalidMethodOverride*/M2, M3 {}
          '''
       });
     });
@@ -1955,6 +2004,39 @@ main() {
 
             class T1 extends Object with /*severe:InvalidMethodOverride*/M
                implements I {}
+         '''
+      });
+    });
+
+    test('no errors if subclass correctly overrides base and interface', () {
+      // This is a case were it is incorrect to say that the base class
+      // incorrectly overrides the interface.
+      testChecker({
+        '/main.dart': '''
+            class A {}
+            class B {}
+
+            class Base {
+                m(A a) {}
+            }
+
+            class I1 {
+                m(B a) {}
+            }
+
+            class T1 /*severe:InvalidMethodOverride*/extends Base
+                implements I1 {}
+
+            class T2 extends Base implements I1 {
+                m(a) {}
+            }
+
+            class T3 extends Object with /*severe:InvalidMethodOverride*/Base
+                implements I1 {}
+
+            class T4 extends Object with Base implements I1 {
+                m(a) {}
+            }
          '''
       });
     });
@@ -2267,6 +2349,175 @@ main() {
 
               class T1 extends Base {
                   m(B a) {}
+              }
+           '''
+        });
+      });
+    });
+
+    group('no duplicate reports from overriding interfaces', () {
+      test('type overrides same method in multiple interfaces', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+              abstract class I2 implements I1 {
+                  m(A a);
+              }
+
+              class Base {
+              }
+
+              class T1 implements I2 {
+                /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+           '''
+        });
+      });
+
+      test('type and base type override same method in interface', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              class Base {
+                  m(B a);
+              }
+
+              // Note: no error reported in `extends Base` to avoid duplicating
+              // the error in T1.
+              class T1 extends Base implements I1 {
+                /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+
+              // If there is no error in the class, we do report the error at
+              // the base class:
+              class T2 /*severe:InvalidMethodOverride*/extends Base
+                  implements I1 {
+              }
+           '''
+        });
+      });
+
+      test('type and mixin override same method in interface', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              class M {
+                  m(B a);
+              }
+
+              class T1 extends Object with M implements I1 {
+                /*severe:InvalidMethodOverride*/m(B a) {}
+              }
+
+              class T2 extends Object with /*severe:InvalidMethodOverride*/M
+                  implements I1 {
+              }
+           '''
+        });
+      });
+
+      test('two grand types override same method in interface', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              class Grandparent {
+                  m(B a) {}
+              }
+
+              class Parent1 extends Grandparent {
+                  m(B a) {}
+              }
+              class Parent2 extends Grandparent {
+              }
+
+              // Note: otherwise both errors would be reported on this line
+              class T1 /*severe:InvalidMethodOverride*/extends Parent1
+                  implements I1 {
+              }
+              class T2 /*severe:InvalidMethodOverride*/extends Parent2
+                  implements I1 {
+              }
+           '''
+        });
+      });
+
+      test('two mixins override same method in interface', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              class M1 {
+                  m(B a) {}
+              }
+
+              class M2 {
+                  m(B a) {}
+              }
+
+              // Here we want to report both, because the error location is
+              // different.
+              // TODO(sigmund): should we merge these as well?
+              class T1 extends Object
+                  with /*severe:InvalidMethodOverride*/M1
+                  with /*severe:InvalidMethodOverride*/M2
+                  implements I1 {
+              }
+           '''
+        });
+      });
+
+      test('base type and mixin override same method in interface', () {
+        testChecker({
+          '/main.dart': '''
+              class A {}
+              class B {}
+
+              abstract class I1 {
+                  m(A a);
+              }
+
+              class Base {
+                  m(B a) {}
+              }
+
+              class M {
+                  m(B a) {}
+              }
+
+              // Here we want to report both, because the error location is
+              // different.
+              // TODO(sigmund): should we merge these as well?
+              class T1 /*severe:InvalidMethodOverride*/extends Base
+                  with /*severe:InvalidMethodOverride*/M
+                  implements I1 {
               }
            '''
         });
