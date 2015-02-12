@@ -33,7 +33,7 @@ class RuntimeTypes {
   JavaScriptBackend get backend => compiler.backend;
 
   String get getFunctionThatReturnsNullName
-      => backend.namer.getMappedInstanceName('functionThatReturnsNull');
+      => backend.namer.internalGlobal('functionThatReturnsNull');
 
   RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
@@ -403,7 +403,7 @@ class RuntimeTypes {
   String getTypeRepresentationForTypeConstant(DartType type) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
-    if (type.isDynamic) return namer.getRuntimeTypeName(null);
+    if (type.isDynamic) return namer.runtimeTypeName(null);
     String name = namer.uniqueNameForTypeConstantElement(type.element);
     if (!type.element.isClass) return name;
     InterfaceType interface = type;
@@ -543,7 +543,7 @@ class RuntimeTypes {
         getTypeEncoding(type, alwaysGenerateFunction: true);
     if (contextClass != null) {
       JavaScriptBackend backend = compiler.backend;
-      String contextName = backend.namer.getNameOfClass(contextClass);
+      String contextName = backend.namer.className(contextClass);
       return js('function () { return #(#, #, #); }',
           [ backend.emitter.staticFunctionAccess(backend.getComputeSignature()),
               encoding, this_, js.string(contextName) ]);

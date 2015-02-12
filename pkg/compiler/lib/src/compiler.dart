@@ -2223,6 +2223,9 @@ bool invariant(Spannable spannable, var condition, {var message: null}) {
 /// Returns `true` when [s] is private if used as an identifier.
 bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
 
+/// Returns `true` when [s] is public if used as an identifier.
+bool isPublicName(String s) => !isPrivateName(s);
+
 /// A sink that drains into /dev/null.
 class NullSink implements EventSink<String> {
   final String name;
