@@ -66,9 +66,51 @@ testIsolate() {
   });
 }
 
+
+testVersion() {
+  checkValidVersion(string version) {
+    RegExp re = new RegExp(r'(\d+)\.(\d+)\.(\d+)(-dev\.([^\.]*)\.([^\.]*))?');
+    var match = re.firstMatch(version);
+    Expect.isNotNull(match);
+    // Major version.
+    Expect.isTrue(int.parse(match.group(1)) == 1);
+    // Minor version.
+    Expect.isTrue(int.parse(match.group(2)) >= 9);
+    // Patch version.
+    Expect.isTrue(int.parse(match.group(3)) >= 0);
+    // Dev
+    if (match.group(4) != null) {
+      // Dev prerelease minor version
+      Expect.isTrue(int.parse(match.group(5)) >= 0);
+      // Dev prerelease patch version
+      Expect.isTrue(int.parse(match.group(6)) >= 0);
+    }
+  }
+  // Ensure we can match valid versions.
+  checkValidVersion('1.9.0');
+  checkValidVersion('1.9.0-dev.0.0');
+  checkValidVersion('1.9.0-edge');
+  checkValidVersion('1.9.0-edge.r41234');
+  // Test current version.
+  checkValidVersion(Platform.version);
+  // Test some invalid versions.
+  Expect.throws(() => checkValidVersion('1.9'));
+  Expect.throws(() => checkValidVersion('2.0.0'));
+  Expect.throws(() => checkValidVersion('..'));
+  Expect.throws(() => checkValidVersion('1..'));
+  Expect.throws(() => checkValidVersion('1.9.'));
+  Expect.throws(() => checkValidVersion('1.9.0-dev..'));
+  Expect.throws(() => checkValidVersion('1.9.0-dev..0'));
+  Expect.throws(() => checkValidVersion('1.9.0-dev.0.'));
+  Expect.throws(() => checkValidVersion('1.9.0-dev.x.y'));
+  Expect.throws(() => checkValidVersion('x'));
+  Expect.throws(() => checkValidVersion('x.y.z'));
+}
+
 main() {
   // This tests assumes paths relative to dart main directory
   Directory.current = Platform.script.resolve('../../..').toFilePath();
   test();
   testIsolate();
+  testVersion();
 }
