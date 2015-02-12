@@ -63,6 +63,7 @@ async_await_syntax_test/b03a: CompileTimeError # Issue 21404
 async_await_syntax_test/b11d: CompileTimeError # Issue 21404
 async_await_syntax_test/c03a: CompileTimeError # Issue 21404
 async_await_syntax_test/d03a: CompileTimeError # Issue 21404
+sync_generator3_test/test2: Fail # Issue 22300
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
 async_await_syntax_test/a03a: RuntimeError # Issue 21404
