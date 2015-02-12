@@ -1488,6 +1488,43 @@ static bool HandleIsolateEval(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_call_site_data_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("targetId", true),
+  NULL,
+};
+
+
+static bool HandleIsolateGetCallSiteData(Isolate* isolate, JSONStream* js) {
+  const char* target_id = js->LookupParam("targetId");
+  Object& obj = Object::Handle(LookupHeapObject(isolate, target_id, NULL));
+  if (obj.raw() == Object::sentinel().raw()) {
+    PrintInvalidParamError(js, "targetId");
+    return true;
+  }
+  if (obj.IsFunction()) {
+    const Function& func = Function::Cast(obj);
+    const GrowableObjectArray& ics =
+        GrowableObjectArray::Handle(func.CollectICsWithSourcePositions());
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "_CallSiteData");
+    jsobj.AddProperty("function", func);
+    JSONArray elements(&jsobj, "callSites");
+    Smi& line = Smi::Handle();
+    Smi& column = Smi::Handle();
+    ICData& ic_data = ICData::Handle();
+    for (intptr_t i = 0; i < ics.Length();) {
+      ic_data ^= ics.At(i++);
+      line ^= ics.At(i++);
+      column ^= ics.At(i++);
+      ic_data.PrintToJSONArray(&elements, line.Value(), column.Value());
+    }
+    return true;
+  }
+  return false;
+}
+
+
 class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
   GetInstancesVisitor(const Class& cls, const Array& storage)
@@ -2419,6 +2456,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "getBreakpoints", HandleIsolateGetBreakpoints,
     get_breakpoints_params },
+  { "getCallSiteData", HandleIsolateGetCallSiteData,
+    get_call_site_data_params },
   { "getClassList", HandleIsolateGetClassList,
     get_class_list_params },
   { "getCoverage", HandleIsolateGetCoverage,

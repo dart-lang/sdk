@@ -46,6 +46,9 @@ interface Service {
   // or function.
   getCoverage(isolateId string, targetId string) CodeCoverage
 
+  // Returns call site cache information for a function.
+  getCallSiteData(isolateId string, targetId string) _CallSiteData
+
   // Returns a full cpu profile for an isolate.
   //
   // <code>tagSelector</code> is optional with default 'UserVM'.
@@ -271,6 +274,26 @@ struct Stack extends Response {
 
 struct CodeCoverage extends Response {
   placeholder int
+}
+
+
+struct _CacheEntry {
+  receiverClass ClassRef
+  count         int
+}
+
+
+struct _CallSite {
+  name         string
+  line         int
+  column       int
+  cacheEntries []_CacheEntry
+}
+
+
+struct _CallSiteData extends Response {
+  function  FunctionRef
+  callSites []_CallSite
 }
 
 // A <code>TagProfile</code> is a limited profile encoded as parallel

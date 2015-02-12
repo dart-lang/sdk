@@ -6818,6 +6818,46 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+RawGrowableObjectArray* Function::CollectICsWithSourcePositions() const {
+  ZoneGrowableArray<const ICData*>* ic_data_array =
+      new ZoneGrowableArray<const ICData*>();
+  RestoreICDataMap(ic_data_array);
+  const Code& code = Code::Handle(unoptimized_code());
+  const PcDescriptors& descriptors = PcDescriptors::Handle(
+      code.pc_descriptors());
+
+  const intptr_t begin_pos = token_pos();
+  const intptr_t end_pos = end_token_pos();
+
+  const Script& script = Script::Handle(this->script());
+  const GrowableObjectArray& result =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+
+  PcDescriptors::Iterator iter(descriptors,
+      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
+  while (iter.MoveNext()) {
+    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
+    if (!ic_data->IsNull()) {
+      const intptr_t token_pos = iter.TokenPos();
+      // Filter out descriptors that do not map to tokens in the source code.
+      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+        continue;
+      }
+
+      intptr_t line = -1;
+      intptr_t column = -1;
+      script.GetTokenLocation(token_pos, &line, &column);
+
+      result.Add(*ic_data);
+      result.Add(Smi::Handle(Smi::New(line)));
+      result.Add(Smi::Handle(Smi::New(column)));
+    }
+  }
+
+  return result.raw();
+}
+
+
 void ClosureData::set_context_scope(const ContextScope& value) const {
   StorePointer(&raw_ptr()->context_scope_, value.raw());
 }
@@ -11830,6 +11870,31 @@ RawICData* ICData::New(const Function& owner,
 
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
+}
+
+
+void ICData::PrintToJSONArray(JSONArray* jsarray,
+                              intptr_t line,
+                              intptr_t column) const {
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle();
+
+  JSONObject jsobj(jsarray);
+  jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
+  jsobj.AddProperty("line", line);
+  jsobj.AddProperty("column", column);
+  // TODO(rmacnak): Figure out how to stringify DeoptReasons().
+  // jsobj.AddProperty("deoptReasons", ...);
+
+  JSONArray cache_entries(&jsobj, "cacheEntries");
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    intptr_t cid = GetReceiverClassIdAt(i);
+    cls ^= isolate->class_table()->At(cid);
+    intptr_t count = GetCountAt(i);
+    JSONObject cache_entry(&cache_entries);
+    cache_entry.AddProperty("receiverClass", cls);
+    cache_entry.AddProperty("count", count);
+  }
 }
 
 

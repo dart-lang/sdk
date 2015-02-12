@@ -1807,6 +1807,8 @@ class Function : public Object {
   }
   bool HasCode() const;
 
+  RawGrowableObjectArray* CollectICsWithSourcePositions() const;
+
   static intptr_t instructions_offset() {
     return OFFSET_OF(RawFunction, instructions_);
   }
@@ -3871,6 +3873,10 @@ class ICData : public Object {
   // when all checks are Mint or Smi.
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
+
+  void PrintToJSONArray(JSONArray* jsarray,
+                        intptr_t line,
+                        intptr_t column) const;
 
  private:
   RawArray* ic_data() const {
