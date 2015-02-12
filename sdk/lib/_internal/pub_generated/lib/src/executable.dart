@@ -277,7 +277,7 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
                   }
                 }, onError: completer0.completeError);
               }
-              if (recompile == null || exitCode != 255) {
+              if (recompile == null || exitCode != 253) {
                 completer0.complete(exitCode);
               } else {
                 join2();

@@ -186,9 +186,9 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
   }
 
   var exitCode = await runProcess(stdin1);
-  if (recompile == null || exitCode != 255) return exitCode;
+  if (recompile == null || exitCode != 253) return exitCode;
 
-  // Exit code 255 indicates that the snapshot version was out-of-date. If we
+  // Exit code 253 indicates that the snapshot version was out-of-date. If we
   // can recompile, do so.
   await recompile();
   return runProcess(stdin2);
