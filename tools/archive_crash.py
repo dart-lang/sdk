@@ -17,6 +17,8 @@ import tarfile
 import utils
 import uuid
 
+from glob import glob
+
 GCS_FOLDER = 'dart-temp-crash-archive'
 GSUTIL='/b/build/scripts/slave/gsutil'
 
@@ -35,12 +37,22 @@ def CopyToGCS(filename):
   print 'Dump now available in %s' % archived_filename
 
 def TEMPArchiveBuild():
-  d = '/b/build/slave/vm-linux-debug-x64-asan-be/build/dart/out/DebugX64/dart'
-  CopyToGCS(d)
+  if not 'PWD' in os.environ:
+    return
+  pwd = os.environ['PWD']
+  print pwd
+  if not 'vm-' in pwd:
+    return
+  if 'win' in pwd or 'release' in pwd:
+    return
+  files = glob('%s/out/Debug*/dart' % pwd)
+  files.extend(glob('%s/xcodebuild/Debug*/dart' % pwd))
+  print('Archiving: %s' % files)
+  for f in files:
+    CopyToGCS(f)
 
 def Main():
-  if 'PWD' in os.environ and 'x64-asan' in os.environ['PWD']:
-    TEMPArchiveBuild()
+  TEMPArchiveBuild()
   if utils.GuessOS() != 'linux':
     print 'Currently only archiving crash dumps on linux'
     return 0
