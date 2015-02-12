@@ -71,7 +71,7 @@ var collection;
       toSet() { return ((_) => {
         _.addAll(this);
         return _;
-      })(this._newSet()); }
+      }).bind(this)(this._newSet()); }
     }
     return _HashSetBase;
   });
@@ -448,7 +448,7 @@ var collection;
           _.writeAll(parts, ", ");
           _.write(rightDelimiter);
           return _;
-        })(new core.StringBuffer(leftDelimiter))).toString();
+        }).bind(this)(new core.StringBuffer(leftDelimiter))).toString();
       }
       static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === undefined) leftDelimiter = '(';
@@ -657,7 +657,7 @@ var collection;
         this._insertAfter(this._previous, entry);
       }
       addAll(entries) {
-        entries.forEach((entry) => this._insertAfter(this._previous, dart.as(entry, E)));
+        entries.forEach(((entry) => this._insertAfter(this._previous, dart.as(entry, E))).bind(this));
       }
       remove(entry) {
         if (!dart.equals(entry._list, this)) return false;
@@ -962,7 +962,7 @@ var collection;
           result = ((_) => {
             _.length = this.length;
             return _;
-          })(new core.List());
+          }).bind(this)(new core.List());
         } else {
           result = new core.List(this.length);
         }
@@ -1410,7 +1410,7 @@ var collection;
         IterableBase._toStringVisiting.add(m);
         result.write('{');
         let first = true;
-        m.forEach((k, v) => {
+        m.forEach(((k, v) => {
           if (!first) {
             result.write(', ');
           }
@@ -1418,7 +1418,7 @@ var collection;
           result.write(k);
           result.write(': ');
           result.write(v);
-        });
+        }).bind(this));
         result.write('}');
       }
       finally {
@@ -1746,7 +1746,7 @@ var collection;
           list = ((_) => {
             _.length = this.length;
             return _;
-          })(new core.List());
+          }).bind(this)(new core.List());
         } else {
           list = new core.List(this.length);
         }
@@ -2004,7 +2004,7 @@ var collection;
         return ((_) => {
           _.addAll(other);
           return _;
-        })(this.toSet());
+        }).bind(this)(this.toSet());
       }
       intersection(other) {
         let result = this.toSet();
@@ -2025,7 +2025,7 @@ var collection;
         let result = growable ? (((_) => {
           _.length = this.length;
           return _;
-        })(new core.List())) : new core.List(this.length);
+        }).bind(this)(new core.List())) : new core.List(this.length);
         let i = 0;
         for (let element of this) result.set(i++, element);
         return result;
@@ -2434,9 +2434,9 @@ var collection;
         return value;
       }
       addAll(other) {
-        other.forEach((key, value) => {
+        other.forEach(((key, value) => {
           this.set(key, value);
-        });
+        }).bind(this));
       }
       get isEmpty() {
         return (this._root === null);
@@ -2761,7 +2761,7 @@ var collection;
         return ((_) => {
           _.addAll(other);
           return _;
-        })(this._clone());
+        }).bind(this)(this._clone());
       }
       _clone() {
         let set = new SplayTreeSet(this._comparator, this._validKey);
@@ -2775,7 +2775,7 @@ var collection;
           _.left = this._copyNode(node.left);
           _.right = this._copyNode(node.right);
           return _;
-        })(new _SplayTreeNode(node.key));
+        }).bind(this)(new _SplayTreeNode(node.key));
       }
       clear() {
         this._clear();

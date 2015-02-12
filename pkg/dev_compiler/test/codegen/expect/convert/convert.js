@@ -377,7 +377,7 @@ var convert;
         throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
       }
       bind(source) {
-        return new async.Stream.eventTransformed(source, (sink) => new _ConverterStreamEventSink(this, sink));
+        return new async.Stream.eventTransformed(source, ((sink) => new _ConverterStreamEventSink(this, sink)).bind(this));
       }
     }
     return Converter;
@@ -875,13 +875,13 @@ var convert;
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach((key, value) => {
+      map.forEach(((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      });
+      }).bind(this));
       this.writeString('}');
     }
   }
@@ -931,7 +931,7 @@ var convert;
         this.writeString('{\n');
         this._indentLevel++;
         let first = true;
-        map.forEach(dart.as((key, value) => {
+        map.forEach(dart.as(((key, value) => {
           if (!first) {
             this.writeString(",\n");
           }
@@ -941,7 +941,7 @@ var convert;
           this.writeString('": ');
           this.writeObject(value);
           first = false;
-        }, /* Unimplemented type (dynamic, dynamic) → void */));
+        }).bind(this), /* Unimplemented type (dynamic, dynamic) → void */));
         this.writeString('\n');
         this._indentLevel--;
         this.writeIndentation(this._indentLevel);

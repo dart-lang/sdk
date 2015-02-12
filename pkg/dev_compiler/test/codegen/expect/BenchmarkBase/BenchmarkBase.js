@@ -53,12 +53,12 @@ var BenchmarkBase;
     }
     measure() {
       this.setup();
-      measureFor(() => {
+      measureFor((() => {
         this.warmup();
-      }, 100);
-      let result = measureFor(() => {
+      }).bind(this), 100);
+      let result = measureFor((() => {
         this.exercise();
-      }, 2000);
+      }).bind(this), 2000);
       this.teardown();
       return result;
     }

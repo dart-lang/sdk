@@ -175,7 +175,7 @@ var _internal;
           result = ((_) => {
             _.length = this.length;
             return _;
-          })(new core.List());
+          }).bind(this)(new core.List());
         } else {
           result = new core.List(this.length);
         }
@@ -264,7 +264,7 @@ var _internal;
         let result = growable ? (((_) => {
           _.length = length;
           return _;
-        })(new core.List())) : new core.List(length);
+        }).bind(this)(new core.List())) : new core.List(length);
         for (let i = 0; i < length; i++) {
           result.set(i, this._iterable.elementAt(start + i));
           if (this._iterable.length < end) throw new core.ConcurrentModificationError(this);

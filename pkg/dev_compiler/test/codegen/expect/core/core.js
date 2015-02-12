@@ -863,7 +863,7 @@ var core;
           result = ((_) => {
             _.length = length;
             return _;
-          })(new List.from([]));
+          }).bind(this)(new List.from([]));
         } else {
           result = new List(length);
         }
@@ -1797,7 +1797,7 @@ var core;
       if (query !== null) return _normalize(query, start, end, dart.as(_queryCharTable, List$(int)));
       let result = new StringBuffer();
       let first = true;
-      queryParameters.forEach((key, value) => {
+      queryParameters.forEach(((key, value) => {
         if (!first) {
           result.write("&");
         }
@@ -1807,7 +1807,7 @@ var core;
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
-      });
+      }).bind(this));
       return result.toString();
     }
     static _makeFragment(fragment, start, end) {

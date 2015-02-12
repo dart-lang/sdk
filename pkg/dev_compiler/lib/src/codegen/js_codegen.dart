@@ -642,12 +642,15 @@ $name.prototype[Symbol.iterator] = function() {
       out.write(') ');
       node.body.accept(this);
     } else {
+      var bindThis = _needsBindThis(node.body);
+      if (bindThis) out.write("(");
       out.write("(");
       _visitNode(node.parameters);
       out.write(") => ");
       var body = node.body;
       if (body is ExpressionFunctionBody) body = body.expression;
       body.accept(this);
+      if (bindThis) out.write(").bind(this)");
     }
   }
 
@@ -674,11 +677,8 @@ $name.prototype[Symbol.iterator] = function() {
     if (e.enclosingElement is CompilationUnitElement &&
         (e.library != libraryInfo.library || _needsModuleGetter(e))) {
       out.write('${_jsLibraryName(e.library)}.');
-    } else if (currentClass != null) {
-      if (e is PropertyAccessorElement && !e.variable.isStatic ||
-          e is ClassMemberElement && !e.isStatic && e is! ConstructorElement) {
-        out.write('this.');
-      }
+    } else if (currentClass != null && _needsImplicitThis(e)) {
+      out.write('this.');
     }
     out.write(node.name);
   }
@@ -1244,7 +1244,9 @@ $name.prototype[Symbol.iterator] = function() {
       if (node.parent is! ExpressionStatement) {
         out.write('return ${_cascadeTarget.name};\n');
       }
-      out.write('})(', -2);
+      out.write('})', -2);
+      if (_needsBindThis(node.cascadeSections)) out.write('.bind(this)');
+      out.write('(');
       node.target.accept(this);
       out.write(')');
     }
@@ -1850,6 +1852,18 @@ $name.prototype[Symbol.iterator] = function() {
     name = _canonicalMethodName(name);
     return name.startsWith('[') ? name : '.$name';
   }
+
+  bool _needsBindThis(node) {
+    if (currentClass == null) return false;
+    var visitor = _BindThisVisitor._instance;
+    visitor._bindThis = false;
+    node.accept(visitor);
+    return visitor._bindThis;
+  }
+
+  static bool _needsImplicitThis(Element e) =>
+      e is PropertyAccessorElement && !e.variable.isStatic ||
+          e is ClassMemberElement && !e.isStatic && e is! ConstructorElement;
 }
 
 /// Returns true if the local variable is potentially mutated within [context].
@@ -1898,6 +1912,25 @@ class _AssignmentFinder extends RecursiveAstVisitor {
     if (node.inSetterContext() && node.staticElement == _variable) {
       _potentiallyMutated = true;
     }
+  }
+}
+
+/// This is a workaround for V8 arrow function bindings being not yet
+/// implemented. See issue #43
+class _BindThisVisitor extends RecursiveAstVisitor {
+  static _BindThisVisitor _instance = new _BindThisVisitor();
+  bool _bindThis = false;
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (JSCodegenVisitor._needsImplicitThis(node.staticElement)) {
+      _bindThis = true;
+    }
+  }
+
+  @override
+  visitThisExpression(ThisExpression node) {
+    _bindThis = true;
   }
 }
 
