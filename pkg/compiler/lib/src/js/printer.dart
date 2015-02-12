@@ -2,102 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_ast;
+part of js;
 
-
-class JavaScriptPrintingOptions {
+class Printer extends Indentation implements NodeVisitor {
   final bool shouldCompressOutput;
-  final bool minifyLocalVariables;
-  final bool preferSemicolonToNewlineInMinifiedOutput;
-
-  JavaScriptPrintingOptions(
-      {this.shouldCompressOutput: false,
-       this.minifyLocalVariables: false,
-       this.preferSemicolonToNewlineInMinifiedOutput: false});
-}
-
-
-/// An environment in which JavaScript printing is done.  Provides emitting of
-/// text and pre- and post-visit callbacks.
-abstract class JavaScriptPrintingContext {
-  /// Signals an error.  This should happen only for serious internal errors.
-  void error(String message) { throw message; }
-
-  /// Adds [string] to the output.
-  void emit(String string);
-
-  /// Callback immediately before printing [node].  Whitespace may be printed
-  /// after this callback before the first non-whitespace character for [node].
-  void enterNode(Node node) {}
-  /// Callback after printing the last character representing [node].
-  void exitNode(Node node) {}
-}
-
-/// A simple implementation of [JavaScriptPrintingContext] suitable for tests.
-class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
-  final StringBuffer buffer = new StringBuffer();
-
-  void emit(String string) {
-    buffer.write(string);
-  }
-
-  String getText() => buffer.toString();
-}
-
-
-class Printer implements NodeVisitor {
-  final JavaScriptPrintingOptions options;
-  final JavaScriptPrintingContext context;
-  final bool shouldCompressOutput;
-  final DanglingElseVisitor danglingElseVisitor;
-  final LocalNamer localNamer;
-
+  leg.DiagnosticListener diagnosticListener;
+  CodeBuffer outBuffer;
   bool inForInit = false;
   bool atStatementBegin = false;
+  final DanglingElseVisitor danglingElseVisitor;
+  final LocalNamer localNamer;
   bool pendingSemicolon = false;
   bool pendingSpace = false;
-
-  // The current indentation level.
-  int _indentLevel = 0;
-  // A cache of all indentation strings used so far.
-  List<String> _indentList = <String>[""];
+  DumpInfoTask monitor = null;
 
   static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
   static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
 
-  Printer(JavaScriptPrintingOptions options,
-          JavaScriptPrintingContext context)
-      : options = options,
-        context = context,
-        shouldCompressOutput = options.shouldCompressOutput,
-        danglingElseVisitor = new DanglingElseVisitor(context),
-        localNamer = determineRenamer(options.shouldCompressOutput,
-                                      options.minifyLocalVariables);
+  Printer(leg.DiagnosticListener diagnosticListener, DumpInfoTask monitor,
+          { bool enableMinification: false, allowVariableMinification: true })
+      : shouldCompressOutput = enableMinification,
+        monitor = monitor,
+        diagnosticListener = diagnosticListener,
+        outBuffer = new CodeBuffer(),
+        danglingElseVisitor = new DanglingElseVisitor(diagnosticListener),
+        localNamer = determineRenamer(enableMinification,
+                                      allowVariableMinification);
 
   static LocalNamer determineRenamer(bool shouldCompressOutput,
                                      bool allowVariableMinification) {
     return (shouldCompressOutput && allowVariableMinification)
         ? new MinifyRenamer() : new IdentityNamer();
   }
-
-
-  // The current indentation string.
-  String get indentation {
-    // Lazily add new indentation strings as required.
-    while (_indentList.length <= _indentLevel) {
-      _indentList.add(_indentList.last + "  ");
-    }
-    return _indentList[_indentLevel];
-  }
-
-  void indentMore() {
-    _indentLevel++;
-  }
-
-  void indentLess() {
-    _indentLevel--;
-  }
-
 
   /// Always emit a newline, even under `enableMinification`.
   void forceLine() {
@@ -122,7 +58,7 @@ class Printer implements NodeVisitor {
     if (str != "") {
       if (pendingSemicolon) {
         if (!shouldCompressOutput) {
-          context.emit(";");
+          outBuffer.add(";");
         } else if (str != "}") {
           // We want to output newline instead of semicolon because it makes
           // the raw stack traces much easier to read and it also makes line-
@@ -135,21 +71,20 @@ class Printer implements NodeVisitor {
           // If we're using the new emitter where most pretty printed code
           // is escaped in strings, it is a lot easier to deal with semicolons
           // than newlines because the former doesn't need escaping.
-          if (options.preferSemicolonToNewlineInMinifiedOutput ||
-              expressionContinuationRegExp.hasMatch(str)) {
-            context.emit(";");
+          if (USE_NEW_EMITTER || expressionContinuationRegExp.hasMatch(str)) {
+            outBuffer.add(";");
           } else {
-            context.emit("\n");
+            outBuffer.add("\n");
           }
         }
       }
       if (pendingSpace &&
           (!shouldCompressOutput || identifierCharacterRegExp.hasMatch(str))) {
-        context.emit(" ");
+        outBuffer.add(" ");
       }
       pendingSpace = false;
       pendingSemicolon = false;
-      context.emit(str);
+      outBuffer.add(str);
       lastAddedString = str;
     }
   }
@@ -176,10 +111,26 @@ class Printer implements NodeVisitor {
     }
   }
 
+  void beginSourceRange(Node node) {
+    if (node.sourceInformation != null) {
+      node.sourceInformation.beginMapping(outBuffer);
+    }
+  }
+
+  void endSourceRange(Node node) {
+    if (node.sourceInformation != null) {
+      node.sourceInformation.endMapping(outBuffer);
+    }
+  }
+
   visit(Node node) {
-    context.enterNode(node);
+    beginSourceRange(node);
+    if (monitor != null) monitor.enteringAst(node, outBuffer.length);
+
     node.accept(this);
-    context.exitNode(node);
+
+    if (monitor != null) monitor.exitingAst(node, outBuffer.length);
+    endSourceRange(node);
   }
 
   visitCommaSeparated(List<Node> nodes, int hasRequiredType,
@@ -204,6 +155,10 @@ class Printer implements NodeVisitor {
     visitAll(program.body);
   }
 
+  visitBlob(Blob node) {
+    outBuffer.addBuffer(node.buffer);
+  }
+
   bool blockBody(Node body, {bool needsSeparation, bool needsNewline}) {
     if (body is Block) {
       spaceOut();
@@ -217,18 +172,16 @@ class Printer implements NodeVisitor {
     } else {
       lineOut();
     }
-    indentMore();
-    visit(body);
-    indentLess();
+    indentBlock(() => visit(body));
     return false;
   }
 
   void blockOutWithoutBraces(Node node) {
     if (node is Block) {
-      context.enterNode(node);
+      beginSourceRange(node);
       Block block = node;
       block.statements.forEach(blockOutWithoutBraces);
-      context.exitNode(node);
+      endSourceRange(node);
     } else {
       visit(node);
     }
@@ -236,15 +189,13 @@ class Printer implements NodeVisitor {
 
   void blockOut(Block node, bool shouldIndent, bool needsNewline) {
     if (shouldIndent) indent();
-    context.enterNode(node);
+    beginSourceRange(node);
     out("{");
     lineOut();
-    indentMore();
-    node.statements.forEach(blockOutWithoutBraces);
-    indentLess();
+    indentBlock(() => node.statements.forEach(blockOutWithoutBraces));
     indent();
     out("}");
-    context.exitNode(node);
+    endSourceRange(node);
     if (needsNewline) lineOut();
   }
 
@@ -456,9 +407,7 @@ class Printer implements NodeVisitor {
     out(")");
     spaceOut();
     outLn("{");
-    indentMore();
-    visitAll(node.cases);
-    indentLess();
+    indentBlock(() => visitAll(node.cases));
     outIndentLn("}");
   }
 
@@ -469,18 +418,14 @@ class Printer implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
     outLn(":");
     if (!node.body.statements.isEmpty) {
-      indentMore();
-      blockOutWithoutBraces(node.body);
-      indentLess();
+      indentBlock(() => blockOutWithoutBraces(node.body));
     }
   }
 
   visitDefault(Default node) {
     outIndentLn("default:");
     if (!node.body.statements.isEmpty) {
-      indentMore();
-      blockOutWithoutBraces(node.body);
-      indentLess();
+      indentBlock(() => blockOutWithoutBraces(node.body));
     }
   }
 
@@ -697,7 +642,8 @@ class Printer implements NodeVisitor {
         rightPrecedenceRequirement = UNARY;
         break;
       default:
-        context.error("Forgot operator: $op");
+        diagnosticListener
+            .internalError(NO_LOCATION_SPANNABLE, "Forgot operator: $op");
     }
 
     visitNestedExpression(left, leftPrecedenceRequirement,
@@ -934,7 +880,8 @@ class Printer implements NodeVisitor {
     List<String> parts = template.split('#');
     int inputsLength = inputs == null ? 0 : inputs.length;
     if (parts.length != inputsLength + 1) {
-      context.error('Wrong number of arguments for JS: $template');
+      diagnosticListener.internalError(NO_LOCATION_SPANNABLE,
+          'Wrong number of arguments for JS: $template');
     }
     // Code that uses JS must take care of operator precedences, and
     // put parenthesis if needed.
@@ -1061,14 +1008,15 @@ class VarCollector extends BaseVisitor {
  * as then-statement in an [If] that has an else branch.
  */
 class DanglingElseVisitor extends BaseVisitor<bool> {
-  JavaScriptPrintingContext context;
+  leg.DiagnosticListener diagnosticListener;
 
-  DanglingElseVisitor(this.context);
+  DanglingElseVisitor(this.diagnosticListener);
 
   bool visitProgram(Program node) => false;
 
   bool visitNode(Statement node) {
-    context.error("Forgot node: $node");
+    diagnosticListener
+        .internalError(NO_LOCATION_SPANNABLE, "Forgot node: $node");
     return null;
   }
 
@@ -1104,6 +1052,18 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitLiteralStatement(LiteralStatement node) => true;
 
   bool visitExpression(Expression node) => false;
+}
+
+
+CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
+                       {DumpInfoTask monitor,
+                        bool allowVariableMinification: true}) {
+  Printer printer =
+      new Printer(compiler, monitor,
+                  enableMinification: compiler.enableMinification,
+                  allowVariableMinification: allowVariableMinification);
+  printer.visit(node);
+  return printer.outBuffer;
 }
 
 
