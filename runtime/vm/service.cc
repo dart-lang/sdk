@@ -27,6 +27,7 @@
 #include "vm/port.h"
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
+#include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
@@ -34,816 +35,22 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
-DEFINE_FLAG(bool, trace_service_pause_events, false,
-            "Trace VM service isolate pause events.");
+DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, trace_service_pause_events);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, enable_asserts);
 
-struct ResourcesEntry {
-  const char* path_;
-  const char* resource_;
-  int length_;
-};
-
-extern ResourcesEntry __service_resources_[];
-
-class Resources {
- public:
-  static const int kNoSuchInstance = -1;
-  static int ResourceLookup(const char* path, const char** resource) {
-    ResourcesEntry* table = ResourceTable();
-    for (int i = 0; table[i].path_ != NULL; i++) {
-      const ResourcesEntry& entry = table[i];
-      if (strcmp(path, entry.path_) == 0) {
-        *resource = entry.resource_;
-        ASSERT(entry.length_ > 0);
-        return entry.length_;
-      }
-    }
-    return kNoSuchInstance;
-  }
-
-  static const char* Path(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* entry = At(idx);
-    if (entry == NULL) {
-      return NULL;
-    }
-    ASSERT(entry->path_ != NULL);
-    return entry->path_;
-  }
-
-  static int Length(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* entry = At(idx);
-    if (entry == NULL) {
-      return kNoSuchInstance;
-    }
-    ASSERT(entry->path_ != NULL);
-    return entry->length_;
-  }
-
-  static const uint8_t* Resource(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* entry = At(idx);
-    if (entry == NULL) {
-      return NULL;
-    }
-    return reinterpret_cast<const uint8_t*>(entry->resource_);
-  }
-
- private:
-  static ResourcesEntry* At(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* table = ResourceTable();
-    for (int i = 0; table[i].path_ != NULL; i++) {
-      if (idx == i) {
-        return &table[i];
-      }
-    }
-    return NULL;
-  }
-
-  static ResourcesEntry* ResourceTable() {
-    return &__service_resources_[0];
-  }
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
-};
-
-
-class EmbedderServiceHandler {
- public:
-  explicit EmbedderServiceHandler(const char* name) : name_(NULL),
-                                                      callback_(NULL),
-                                                      user_data_(NULL),
-                                                      next_(NULL) {
-    ASSERT(name != NULL);
-    name_ = strdup(name);
-  }
-
-  ~EmbedderServiceHandler() {
-    free(name_);
-  }
-
-  const char* name() const { return name_; }
-
-  Dart_ServiceRequestCallback callback() const { return callback_; }
-  void set_callback(Dart_ServiceRequestCallback callback) {
-    callback_ = callback;
-  }
-
-  void* user_data() const { return user_data_; }
-  void set_user_data(void* user_data) {
-    user_data_ = user_data;
-  }
-
-  EmbedderServiceHandler* next() const { return next_; }
-  void set_next(EmbedderServiceHandler* next) {
-    next_ = next;
-  }
-
- private:
-  char* name_;
-  Dart_ServiceRequestCallback callback_;
-  void* user_data_;
-  EmbedderServiceHandler* next_;
-};
-
-
-class LibraryCoverageFilter : public CoverageFilter {
- public:
-  explicit LibraryCoverageFilter(const Library& lib) : lib_(lib) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return lib.raw() == lib_.raw();
-  }
- private:
-  const Library& lib_;
-};
-
-
-class ScriptCoverageFilter : public CoverageFilter {
- public:
-  explicit ScriptCoverageFilter(const Script& script)
-      : script_(script) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return script.raw() == script_.raw();
-  }
- private:
-  const Script& script_;
-};
-
-
-class ClassCoverageFilter : public CoverageFilter {
- public:
-  explicit ClassCoverageFilter(const Class& cls) : cls_(cls) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return cls.raw() == cls_.raw();
-  }
- private:
-  const Class& cls_;
-};
-
-
-class FunctionCoverageFilter : public CoverageFilter {
- public:
-  explicit FunctionCoverageFilter(const Function& func) : func_(func) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return func.raw() == func_.raw();
-  }
- private:
-  const Function& func_;
-};
-
+// TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
+EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
+EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
+uint32_t Service::event_mask_ = 0;
+struct ServiceMethodDescriptor;
+ServiceMethodDescriptor* FindMethod(const char* method_name);
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
-
-
-static void SendIsolateServiceMessage(Dart_NativeArguments args) {
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  Isolate* isolate = arguments->isolate();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
-
-  // Set the type of the OOB message.
-  message.SetAt(0, Smi::Handle(isolate, Smi::New(Message::kServiceOOBMsg)));
-
-  // Serialize message.
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(message);
-
-  // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(sp.Id(), data, writer.BytesWritten(),
-                                   Message::kOOBPriority));
-}
-
-
-static void SendRootServiceMessage(Dart_NativeArguments args) {
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  Isolate* isolate = arguments->isolate();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(0));
-  Service::HandleRootMessage(message);
-}
-
-
-class ScopeStopwatch : public ValueObject {
- public:
-  explicit ScopeStopwatch(const char* name) : name_(name) {
-    start_ = OS::GetCurrentTimeMicros();
-  }
-
-  int64_t GetElapsed() const {
-    int64_t end = OS::GetCurrentTimeMicros();
-    ASSERT(end >= start_);
-    return end - start_;
-  }
-
-  ~ScopeStopwatch() {
-    int64_t elapsed = GetElapsed();
-    OS::Print("[%" Pd "] %s took %" Pd64 " micros.\n",
-              OS::ProcessId(), name_, elapsed);
-  }
-
- private:
-  const char* name_;
-  int64_t start_;
-};
-
-
-bool Service::IsRunning() {
-  MonitorLocker ml(monitor_);
-  return (service_port_ != ILLEGAL_PORT) && (service_isolate_ != NULL);
-}
-
-
-void Service::SetServicePort(Dart_Port port) {
-  MonitorLocker ml(monitor_);
-  service_port_ = port;
-}
-
-
-void Service::SetServiceIsolate(Isolate* isolate) {
-  MonitorLocker ml(monitor_);
-  service_isolate_ = isolate;
-  if (service_isolate_ != NULL) {
-    service_isolate_->is_service_isolate_ = true;
-  }
-}
-
-
-bool Service::HasServiceIsolate() {
-  MonitorLocker ml(monitor_);
-  return service_isolate_ != NULL;
-}
-
-
-bool Service::IsServiceIsolate(Isolate* isolate) {
-  MonitorLocker ml(monitor_);
-  return isolate == service_isolate_;
-}
-
-Dart_Port Service::WaitForLoadPort() {
-  MonitorLocker ml(monitor_);
-
-  while (initializing_ && (load_port_ == ILLEGAL_PORT)) {
-    ml.Wait();
-  }
-
-  return load_port_;
-}
-
-
-Dart_Port Service::LoadPort() {
-  MonitorLocker ml(monitor_);
-  return load_port_;
-}
-
-
-void Service::SetLoadPort(Dart_Port port) {
-  MonitorLocker ml(monitor_);
-  load_port_ = port;
-}
-
-
-void Service::SetEventMask(uint32_t mask) {
-  event_mask_ = mask;
-}
-
-
-static void SetEventMask(Dart_NativeArguments args) {
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  Isolate* isolate = arguments->isolate();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(0));
-  Service::SetEventMask(mask.AsTruncatedUint32Value());
-}
-
-
-// These must be kept in sync with service/constants.dart
-#define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
-#define VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID 2
-
-
-static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
-                                           const String& name) {
-  const Array& list = Array::Handle(Array::New(4));
-  ASSERT(!list.IsNull());
-  const Integer& code_int = Integer::Handle(Integer::New(code));
-  const Integer& port_int = Integer::Handle(Integer::New(port_id));
-  const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
-  list.SetAt(0, code_int);
-  list.SetAt(1, port_int);
-  list.SetAt(2, send_port);
-  list.SetAt(3, name);
-  return list.raw();
-}
-
-
-class RegisterRunningIsolatesVisitor : public IsolateVisitor {
- public:
-  explicit RegisterRunningIsolatesVisitor(Isolate* service_isolate)
-      : IsolateVisitor(),
-        register_function_(Function::Handle(service_isolate)),
-        service_isolate_(service_isolate) {
-    ASSERT(Service::IsServiceIsolate(Isolate::Current()));
-    // Get library.
-    const String& library_url = Symbols::DartVMService();
-    ASSERT(!library_url.IsNull());
-    const Library& library =
-        Library::Handle(Library::LookupLibrary(library_url));
-    ASSERT(!library.IsNull());
-    // Get function.
-    const String& function_name =
-        String::Handle(String::New("_registerIsolate"));
-    ASSERT(!function_name.IsNull());
-    register_function_ = library.LookupFunctionAllowPrivate(function_name);
-    ASSERT(!register_function_.IsNull());
-  }
-
-  virtual void VisitIsolate(Isolate* isolate) {
-    ASSERT(Service::IsServiceIsolate(Isolate::Current()));
-    if (Service::IsServiceIsolate(isolate) ||
-        (isolate == Dart::vm_isolate())) {
-      // We do not register the service or vm isolate.
-      return;
-    }
-    // Setup arguments for call.
-    Dart_Port port_id = isolate->main_port();
-    const Integer& port_int = Integer::Handle(Integer::New(port_id));
-    ASSERT(!port_int.IsNull());
-    const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
-    const String& name = String::Handle(String::New(isolate->name()));
-    ASSERT(!name.IsNull());
-    const Array& args = Array::Handle(Array::New(3));
-    ASSERT(!args.IsNull());
-    args.SetAt(0, port_int);
-    args.SetAt(1, send_port);
-    args.SetAt(2, name);
-    Object& r = Object::Handle(service_isolate_);
-    r = DartEntry::InvokeFunction(register_function_, args);
-    if (FLAG_trace_service) {
-      OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
-                name.ToCString(),
-                port_id);
-    }
-    ASSERT(!r.IsError());
-  }
-
- private:
-  Function& register_function_;
-  Isolate* service_isolate_;
-};
-
-
-static Dart_Port ExtractPort(Isolate* isolate, Dart_Handle receivePort) {
-  const ReceivePort& rp = Api::UnwrapReceivePortHandle(isolate, receivePort);
-  if (rp.IsNull()) {
-    return ILLEGAL_PORT;
-  }
-  return rp.Id();
-}
-
-
-static void OnStart(Dart_NativeArguments args) {
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  Isolate* isolate = arguments->isolate();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  {
-    if (FLAG_trace_service) {
-      OS::Print("vm-service: Booting dart:vmservice library.\n");
-    }
-    // Boot the dart:vmservice library.
-    Dart_EnterScope();
-    Dart_Handle url_str =
-        Dart_NewStringFromCString(Symbols::Name(Symbols::kDartVMServiceId));
-    Dart_Handle library = Dart_LookupLibrary(url_str);
-    ASSERT(Dart_IsLibrary(library));
-    Dart_Handle result =
-        Dart_Invoke(library, Dart_NewStringFromCString("boot"), 0, NULL);
-    ASSERT(!Dart_IsError(result));
-    Dart_Port port = ExtractPort(isolate, result);
-    ASSERT(port != ILLEGAL_PORT);
-    Service::SetServicePort(port);
-    Dart_ExitScope();
-  }
-
-  {
-    if (FLAG_trace_service) {
-      OS::Print("vm-service: Registering running isolates.\n");
-    }
-    // Register running isolates with service.
-    RegisterRunningIsolatesVisitor register_isolates(isolate);
-    Isolate::VisitIsolates(&register_isolates);
-  }
-}
-
-
-struct VmServiceNativeEntry {
-  const char* name;
-  int num_arguments;
-  Dart_NativeFunction function;
-};
-
-
-static VmServiceNativeEntry _VmServiceNativeEntries[] = {
-  {"VMService_SendIsolateServiceMessage", 2, SendIsolateServiceMessage},
-  {"VMService_SendRootServiceMessage", 1, SendRootServiceMessage},
-  {"VMService_SetEventMask", 1, SetEventMask},
-  {"VMService_OnStart", 0, OnStart },
-};
-
-
-static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
-                                                   int num_arguments,
-                                                   bool* auto_setup_scope) {
-  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
-  if (!obj.IsString()) {
-    return NULL;
-  }
-  const char* function_name = obj.ToCString();
-  ASSERT(function_name != NULL);
-  ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = true;
-  intptr_t n =
-      sizeof(_VmServiceNativeEntries) / sizeof(_VmServiceNativeEntries[0]);
-  for (intptr_t i = 0; i < n; i++) {
-    VmServiceNativeEntry entry = _VmServiceNativeEntries[i];
-    if ((strcmp(function_name, entry.name) == 0) &&
-        (num_arguments == entry.num_arguments)) {
-      return entry.function;
-    }
-  }
-  return NULL;
-}
-
-const char* Service::kIsolateName = "vm-service";
-EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
-EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
-Isolate* Service::service_isolate_ = NULL;
-Dart_Port Service::service_port_ = ILLEGAL_PORT;
-Dart_Port Service::load_port_ = ILLEGAL_PORT;
-Dart_IsolateCreateCallback Service::create_callback_ = NULL;
-Monitor* Service::monitor_ = NULL;
-bool Service::initializing_ = true;
-uint32_t Service::event_mask_ = 0;
-
-
-bool Service::IsServiceIsolateName(const char* name) {
-  ASSERT(name != NULL);
-  return strcmp(name, kIsolateName) == 0;
-}
-
-
-bool Service::SendIsolateStartupMessage() {
-  if (!IsRunning()) {
-    return false;
-  }
-  Isolate* isolate = Isolate::Current();
-  if (IsServiceIsolate(isolate)) {
-    return false;
-  }
-  ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
-  const String& name = String::Handle(String::New(isolate->name()));
-  ASSERT(!name.IsNull());
-  const Array& list = Array::Handle(
-      MakeServiceControlMessage(Dart_GetMainPortId(),
-                                VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID,
-                                name));
-  ASSERT(!list.IsNull());
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(list);
-  intptr_t len = writer.BytesWritten();
-  if (FLAG_trace_service) {
-    OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
-              name.ToCString(),
-              Dart_GetMainPortId());
-  }
-  return PortMap::PostMessage(
-      new Message(service_port_, data, len, Message::kNormalPriority));
-}
-
-
-bool Service::SendIsolateShutdownMessage() {
-  if (!IsRunning()) {
-    return false;
-  }
-  Isolate* isolate = Isolate::Current();
-  if (IsServiceIsolate(isolate)) {
-    return false;
-  }
-  ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
-  const String& name = String::Handle(String::New(isolate->name()));
-  ASSERT(!name.IsNull());
-  const Array& list = Array::Handle(
-      MakeServiceControlMessage(Dart_GetMainPortId(),
-                                VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID,
-                                name));
-  ASSERT(!list.IsNull());
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(list);
-  intptr_t len = writer.BytesWritten();
-  if (FLAG_trace_service) {
-    OS::Print("vm-service: Isolate %s %" Pd64 " deregistered.\n",
-              name.ToCString(),
-              Dart_GetMainPortId());
-  }
-  return PortMap::PostMessage(
-      new Message(service_port_, data, len, Message::kNormalPriority));
-}
-
-
-Dart_Handle Service::GetSource(const char* name) {
-  ASSERT(name != NULL);
-  int i = 0;
-  while (true) {
-    const char* path = Resources::Path(i);
-    if (path == NULL) {
-      break;
-    }
-    ASSERT(*path != '\0');
-    // Skip the '/'.
-    path++;
-    if (strcmp(name, path) == 0) {
-      const uint8_t* str = Resources::Resource(i);
-      intptr_t length = Resources::Length(i);
-      return Dart_NewStringFromUTF8(str, length);
-    }
-    i++;
-  }
-  return Dart_Null();
-}
-
-
-Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag,
-                                       Dart_Handle library,
-                                       Dart_Handle url) {
-  if (tag == Dart_kCanonicalizeUrl) {
-    // url is already canonicalized.
-    return url;
-  }
-  if (tag != Dart_kSourceTag) {
-    FATAL("Service::LibraryTagHandler encountered an unexpected tag.");
-  }
-  ASSERT(tag == Dart_kSourceTag);
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  Dart_Handle source = GetSource(url_string);
-  if (Dart_IsError(source)) {
-    return source;
-  }
-  return Dart_LoadSource(library, url, source, 0, 0);
-}
-
-
-void Service::MaybeInjectVMServiceLibrary(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->name() != NULL);
-  if (!Service::IsServiceIsolateName(isolate->name())) {
-    // Not service isolate.
-    return;
-  }
-  if (HasServiceIsolate()) {
-    // Service isolate already exists.
-    return;
-  }
-  SetServiceIsolate(isolate);
-
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-
-  // Register dart:vmservice library.
-  const String& url_str = String::Handle(Symbols::DartVMService().raw());
-  const Library& library = Library::Handle(Library::New(url_str));
-  library.Register();
-  library.set_native_entry_resolver(VmServiceNativeResolver);
-
-  // Temporarily install our library tag handler.
-  isolate->set_library_tag_handler(LibraryTagHandler);
-
-  // Get script source.
-  const char* resource = NULL;
-  const char* path = "/vmservice.dart";
-  intptr_t r = Resources::ResourceLookup(path, &resource);
-  ASSERT(r != Resources::kNoSuchInstance);
-  ASSERT(resource != NULL);
-  const String& source_str = String::Handle(
-      String::FromUTF8(reinterpret_cast<const uint8_t*>(resource), r));
-  ASSERT(!source_str.IsNull());
-  const Script& script = Script::Handle(
-    isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
-
-  // Compile script.
-  Dart_EnterScope();  // Need to enter scope for tag handler.
-  library.SetLoadInProgress();
-  const Error& error = Error::Handle(isolate,
-                                     Compiler::Compile(library, script));
-  ASSERT(error.IsNull());
-  Dart_Handle result = Dart_FinalizeLoading(false);
-  ASSERT(!Dart_IsError(result));
-  Dart_ExitScope();
-
-  // Uninstall our library tag handler.
-  isolate->set_library_tag_handler(NULL);
-}
-
-
-void Service::FinishedInitializing() {
-  MonitorLocker ml(monitor_);
-  initializing_ = false;
-  ml.NotifyAll();
-}
-
-
-static void ShutdownIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  ASSERT(Service::IsServiceIsolate(isolate));
-  {
-    // Print the error if there is one.  This may execute dart code to
-    // print the exception object, so we need to use a StartIsolateScope.
-    StartIsolateScope start_scope(isolate);
-    StackZone zone(isolate);
-    HandleScope handle_scope(isolate);
-    Error& error = Error::Handle();
-    error = isolate->object_store()->sticky_error();
-    if (!error.IsNull()) {
-      OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
-    }
-    Dart::RunShutdownCallback();
-  }
-  {
-    // Shut the isolate down.
-    SwitchIsolateScope switch_scope(isolate);
-    Dart::ShutdownIsolate();
-  }
-  Service::SetServiceIsolate(NULL);
-  Service::SetServicePort(ILLEGAL_PORT);
-  if (FLAG_trace_service) {
-    OS::Print("vm-service: Shutdown.\n");
-  }
-}
-
-
-class RunServiceTask : public ThreadPool::Task {
- public:
-  virtual void Run() {
-    ASSERT(Isolate::Current() == NULL);
-    char* error = NULL;
-    Isolate* isolate = NULL;
-
-    Dart_IsolateCreateCallback create_callback = Service::create_callback();
-    // TODO(johnmccutchan): Support starting up service isolate without embedder
-    // provided isolate creation callback.
-    if (create_callback == NULL) {
-      Service::FinishedInitializing();
-      return;
-    }
-
-    isolate =
-        reinterpret_cast<Isolate*>(create_callback(Service::kIsolateName,
-                                                   NULL,
-                                                   NULL,
-                                                   NULL,
-                                                   &error));
-    if (isolate == NULL) {
-      OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
-      Service::FinishedInitializing();
-      return;
-    }
-
-    Isolate::SetCurrent(NULL);
-
-    RunMain(isolate);
-
-    Service::FinishedInitializing();
-
-    isolate->message_handler()->Run(Dart::thread_pool(),
-                                    NULL,
-                                    ShutdownIsolate,
-                                    reinterpret_cast<uword>(isolate));
-  }
-
- protected:
-  void RunMain(Isolate* isolate) {
-    StartIsolateScope iso_scope(isolate);
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
-    // Invoke main which will return the loadScriptPort.
-    const Library& root_library =
-        Library::Handle(isolate, isolate->object_store()->root_library());
-    if (root_library.IsNull()) {
-      if (FLAG_trace_service) {
-        OS::Print("vm-service: Embedder did not install a script.");
-      }
-      // Service isolate is not supported by embedder.
-      return;
-    }
-    ASSERT(!root_library.IsNull());
-    const String& entry_name = String::Handle(isolate, String::New("main"));
-    ASSERT(!entry_name.IsNull());
-    const Function& entry =
-        Function::Handle(isolate,
-                         root_library.LookupFunctionAllowPrivate(entry_name));
-    if (entry.IsNull()) {
-      // Service isolate is not supported by embedder.
-      if (FLAG_trace_service) {
-        OS::Print("vm-service: Embedder did not provide a main function.");
-      }
-      return;
-    }
-    ASSERT(!entry.IsNull());
-    const Object& result =
-        Object::Handle(isolate,
-                       DartEntry::InvokeFunction(entry,
-                                                 Object::empty_array()));
-    ASSERT(!result.IsNull());
-    if (result.IsError()) {
-      // Service isolate did not initialize properly.
-      if (FLAG_trace_service) {
-        const Error& error = Error::Cast(result);
-        OS::Print("vm-service: Calling main resulted in an error: %s",
-                  error.ToErrorCString());
-      }
-      return;
-    }
-    ASSERT(result.IsReceivePort());
-    const ReceivePort& rp = ReceivePort::Cast(result);
-    Service::SetLoadPort(rp.Id());
-  }
-};
-
-
-void Service::RunService() {
-  ASSERT(monitor_ == NULL);
-  monitor_ = new Monitor();
-  ASSERT(monitor_ != NULL);
-  // Grab the isolate create callback here to avoid race conditions with tests
-  // that change this after Dart_Initialize returns.
-  create_callback_ = Isolate::CreateCallback();
-  Dart::thread_pool()->Run(new RunServiceTask());
-}
-
-// A handler for a per-isolate request.
-//
-// If a handler returns true, the reply is complete and ready to be
-// posted.  If a handler returns false, then it is responsible for
-// posting the reply (this can be used for asynchronous delegation of
-// the response handling).
-typedef bool (*IsolateMessageHandler)(Isolate* isolate, JSONStream* stream);
-
-struct IsolateMessageHandlerEntry {
-  const char* method;
-  IsolateMessageHandler handler;
-};
-
-static IsolateMessageHandler FindIsolateMessageHandler(const char* method);
-
-
-// A handler for a root (vm-global) request.
-//
-// If a handler returns true, the reply is complete and ready to be
-// posted.  If a handler returns false, then it is responsible for
-// posting the reply (this can be used for asynchronous delegation of
-// the response handling).
-typedef bool (*RootMessageHandler)(JSONStream* stream);
-
-struct RootMessageHandlerEntry {
-  const char* method;
-  RootMessageHandler handler;
-};
-
-static RootMessageHandler FindRootMessageHandler(const char* method);
-
 
 static void PrintRequest(const JSONObject& obj, JSONStream* js) {
   JSONObject jsobj(&obj, "request");
@@ -899,6 +106,11 @@ static void PrintInvalidParamError(JSONStream* js,
 }
 
 
+static void PrintUnrecognizedMethodError(JSONStream* js) {
+  PrintError(js, "unrecognized method: %s", js->method());
+}
+
+
 static void PrintErrorWithKind(JSONStream* js,
                                const char* kind,
                                const char* format, ...) {
@@ -921,130 +133,6 @@ static void PrintErrorWithKind(JSONStream* js,
   jsobj.AddProperty("kind", kind);
   jsobj.AddProperty("message", buffer);
   PrintRequest(jsobj, js);
-}
-
-
-void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
-  ASSERT(isolate != NULL);
-  ASSERT(!msg.IsNull());
-  ASSERT(msg.Length() == 5);
-
-  {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
-
-    Instance& reply_port = Instance::Handle(isolate);
-    String& method = String::Handle(isolate);
-    Array& param_keys = Array::Handle(isolate);
-    Array& param_values = Array::Handle(isolate);
-    reply_port ^= msg.At(1);
-    method ^= msg.At(2);
-    param_keys ^= msg.At(3);
-    param_values ^= msg.At(4);
-
-    ASSERT(!method.IsNull());
-    ASSERT(!param_keys.IsNull());
-    ASSERT(!param_values.IsNull());
-    ASSERT(param_keys.Length() == param_values.Length());
-
-    if (!reply_port.IsSendPort()) {
-      FATAL("SendPort expected.");
-    }
-
-    IsolateMessageHandler handler =
-        FindIsolateMessageHandler(method.ToCString());
-    {
-      JSONStream js;
-      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-               method, param_keys, param_values);
-      if (handler == NULL) {
-        // Check for an embedder handler.
-        EmbedderServiceHandler* e_handler =
-            FindIsolateEmbedderHandler(method.ToCString());
-        if (e_handler != NULL) {
-          EmbedderHandleMessage(e_handler, &js);
-        } else {
-          if (FindRootMessageHandler(method.ToCString()) != NULL) {
-            PrintError(&js, "%s does not expect the 'isolateId' parameter",
-                       method.ToCString());
-          } else {
-            PrintError(&js, "Unrecognized method: %s", method.ToCString());
-          }
-        }
-        js.PostReply();
-      } else {
-        if (handler(isolate, &js)) {
-          // Handler returns true if the reply is ready to be posted.
-          // TODO(johnmccutchan): Support asynchronous replies.
-          js.PostReply();
-        }
-      }
-    }
-  }
-}
-
-
-static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
-  isolate->PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleIsolateGetStack(Isolate* isolate, JSONStream* js) {
-  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Stack");
-  JSONArray jsarr(&jsobj, "frames");
-  intptr_t num_frames = stack->Length();
-  for (intptr_t i = 0; i < num_frames; i++) {
-    ActivationFrame* frame = stack->FrameAt(i);
-    JSONObject jsobj(&jsarr);
-    frame->PrintToJSONObject(&jsobj);
-    // TODO(turnidge): Implement depth differently -- differentiate
-    // inlined frames.
-    jsobj.AddProperty("depth", i);
-  }
-  return true;
-}
-
-
-static bool HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
-  jsobj->AddProperty("type", "_EchoResponse");
-  if (js->HasParam("text")) {
-    jsobj->AddProperty("text", js->LookupParam("text"));
-  }
-  return true;
-}
-
-
-void Service::SendEchoEvent(Isolate* isolate, const char* text) {
-  JSONStream js;
-  {
-    JSONObject jsobj(&js);
-    jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddProperty("eventType", "_Echo");
-    jsobj.AddProperty("isolate", isolate);
-    if (text != NULL) {
-      jsobj.AddProperty("text", text);
-    }
-  }
-  const String& message = String::Handle(String::New(js.ToCString()));
-  uint8_t data[] = {0, 128, 255};
-  // TODO(koda): Add 'testing' event family.
-  SendEvent(kEventFamilyDebug, message, data, sizeof(data));
-}
-
-
-static bool HandleIsolateTriggerEchoEvent(Isolate* isolate, JSONStream* js) {
-  Service::SendEchoEvent(isolate, js->LookupParam("text"));
-  JSONObject jsobj(js);
-  return HandleCommonEcho(&jsobj, js);
-}
-
-
-static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  return HandleCommonEcho(&jsobj, js);
 }
 
 
@@ -1110,6 +198,7 @@ static bool GetInteger64Id(const char* s, int64_t* id, int base = 10) {
   return true;
 }
 
+
 // Scans the string until the '-' character. Returns pointer to string
 // at '-' character. Returns NULL if not found.
 static const char* ScanUntilDash(const char* s) {
@@ -1151,6 +240,536 @@ static bool GetCodeId(const char* s, int64_t* timestamp, uword* address) {
     return false;
   }
   return true;
+}
+
+
+// TODO(johnmccutchan): Split into separate file and write unit tests.
+class MethodParameter {
+ public:
+  MethodParameter(const char* name, bool required)
+      : name_(name), required_(required) {
+  }
+
+  virtual ~MethodParameter() { }
+
+  virtual bool Validate(const char* value) const {
+    return true;
+  }
+
+  const char* name() const {
+    return name_;
+  }
+
+  bool required() const {
+    return required_;
+  }
+
+ private:
+  const char* name_;
+  bool required_;
+};
+
+
+class NoSuchParameter : public MethodParameter {
+ public:
+  explicit NoSuchParameter(const char* name)
+    : MethodParameter(name, false) {
+  }
+
+  virtual bool Validate(const char* value) const {
+    return (value == NULL);
+  }
+};
+
+
+#define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
+
+
+class BoolParameter : public MethodParameter {
+ public:
+  BoolParameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool Validate(const char* value) const {
+    if (value == NULL) {
+      return false;
+    }
+    return (strcmp("true", value) == 0) || (strcmp("false", value) == 0);
+  }
+
+  static bool Interpret(const char* value) {
+    return strcmp("true", value) == 0;
+  }
+};
+
+
+class IdParameter : public MethodParameter {
+ public:
+  IdParameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool Validate(const char* value) const {
+    return (value != NULL);
+  }
+};
+
+
+#define ISOLATE_PARAMETER new IdParameter("isolateId", true)
+
+
+class EnumParameter : public MethodParameter {
+ public:
+  EnumParameter(const char* name, bool required, const char** enums)
+      : MethodParameter(name, required),
+        enums_(enums) {
+  }
+
+  virtual bool Validate(const char* value) const {
+    if (value == NULL) {
+      return true;
+    }
+    for (intptr_t i = 0; enums_[i] != NULL; i++) {
+      if (strcmp(value, enums_[i]) == 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+ private:
+  const char** enums_;
+};
+
+
+// If the key is not found, this function returns the last element in the
+// values array. This can be used to encode the default value.
+template<typename T>
+T EnumMapper(const char* value, const char** enums, T* values) {
+  ASSERT(value != NULL);
+  intptr_t i = 0;
+  for (i = 0; enums[i] != NULL; i++) {
+    if (strcmp(value, enums[i]) == 0) {
+      return values[i];
+    }
+  }
+  // Default value.
+  return values[i];
+}
+
+
+typedef bool (*ServiceMethodEntry)(Isolate* isolate, JSONStream* js);
+
+
+struct ServiceMethodDescriptor {
+  const char* name;
+  const ServiceMethodEntry entry;
+  const MethodParameter* const * parameters;
+};
+
+
+// TODO(johnmccutchan): Do we reject unexpected parameters?
+static bool ValidateParameters(const MethodParameter* const* parameters,
+                              JSONStream* js) {
+  if (parameters == NULL) {
+    return true;
+  }
+  for (intptr_t i = 0; parameters[i] != NULL; i++) {
+    const MethodParameter* parameter = parameters[i];
+    const char* name = parameter->name();
+    const bool required = parameter->required();
+    const char* value = js->LookupParam(name);
+    const bool has_parameter = (value != NULL);
+    if (required && !has_parameter) {
+      PrintMissingParamError(js, name);
+      return false;
+    }
+    if (!parameter->Validate(value)) {
+      PrintInvalidParamError(js, name);
+      return false;
+    }
+  }
+  return true;
+}
+
+
+void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
+  ASSERT(isolate != NULL);
+  ASSERT(!msg.IsNull());
+  ASSERT(msg.Length() == 5);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+
+    Instance& reply_port = Instance::Handle(isolate);
+    String& method_name = String::Handle(isolate);
+    Array& param_keys = Array::Handle(isolate);
+    Array& param_values = Array::Handle(isolate);
+    reply_port ^= msg.At(1);
+    method_name ^= msg.At(2);
+    param_keys ^= msg.At(3);
+    param_values ^= msg.At(4);
+
+    ASSERT(!method_name.IsNull());
+    ASSERT(!param_keys.IsNull());
+    ASSERT(!param_values.IsNull());
+    ASSERT(param_keys.Length() == param_values.Length());
+
+    if (!reply_port.IsSendPort()) {
+      FATAL("SendPort expected.");
+    }
+
+    JSONStream js;
+    js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+             method_name, param_keys, param_values);
+
+    const char* c_method_name = method_name.ToCString();
+
+    ServiceMethodDescriptor* method = FindMethod(c_method_name);
+    if (method != NULL) {
+      if (!ValidateParameters(method->parameters, &js)) {
+        js.PostReply();
+        return;
+      }
+      if (method->entry(isolate, &js)) {
+        js.PostReply();
+      }
+      return;
+    }
+
+    EmbedderServiceHandler* handler = FindIsolateEmbedderHandler(c_method_name);
+    if (handler == NULL) {
+      handler = FindRootEmbedderHandler(c_method_name);
+    }
+
+    if (handler != NULL) {
+      EmbedderHandleMessage(handler, &js);
+      js.PostReply();
+      return;
+    }
+
+    PrintUnrecognizedMethodError(&js);
+    js.PostReply();
+    return;
+  }
+}
+
+
+void Service::HandleRootMessage(const Array& msg_instance) {
+  Isolate* isolate = Isolate::Current();
+  InvokeMethod(isolate, msg_instance);
+}
+
+
+void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
+  ASSERT(isolate != NULL);
+  InvokeMethod(isolate, msg);
+}
+
+
+bool Service::EventMaskHas(uint32_t mask) {
+  return (event_mask_ & mask) != 0;
+}
+
+
+bool Service::NeedsDebuggerEvents() {
+  return ServiceIsolate::IsRunning() && EventMaskHas(kEventFamilyDebugMask);
+}
+
+
+bool Service::NeedsGCEvents() {
+  return ServiceIsolate::IsRunning() && EventMaskHas(kEventFamilyGCMask);
+}
+
+
+void Service::SetEventMask(uint32_t mask) {
+  event_mask_ = mask;
+}
+
+
+void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
+  if (!ServiceIsolate::IsRunning()) {
+    return;
+  }
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  HANDLESCOPE(isolate);
+
+  // Construct a list of the form [eventId, eventMessage].
+  const Array& list = Array::Handle(Array::New(2));
+  ASSERT(!list.IsNull());
+  list.SetAt(0, Integer::Handle(Integer::New(eventId)));
+  list.SetAt(1, eventMessage);
+
+  // Push the event to port_.
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator, false);
+  writer.WriteMessage(list);
+  intptr_t len = writer.BytesWritten();
+  if (FLAG_trace_service) {
+    OS::Print("vm-service: Pushing event of type %" Pd ", len %" Pd "\n",
+              eventId, len);
+  }
+  // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
+  PortMap::PostMessage(
+      new Message(ServiceIsolate::Port(), data, len, Message::kNormalPriority));
+}
+
+
+void Service::SendEvent(intptr_t eventId,
+                        const String& meta,
+                        const uint8_t* data,
+                        intptr_t size) {
+  // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
+  const intptr_t meta_bytes = Utf8::Length(meta);
+  const intptr_t total_bytes = sizeof(uint64_t) + meta_bytes + size;
+  const TypedData& message = TypedData::Handle(
+      TypedData::New(kTypedDataUint8ArrayCid, total_bytes));
+  intptr_t offset = 0;
+  // TODO(koda): Rename these methods SetHostUint64, etc.
+  message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
+  offset += sizeof(uint64_t);
+  {
+    NoGCScope no_gc;
+    meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
+    offset += meta_bytes;
+  }
+  // TODO(koda): It would be nice to avoid this copy (requires changes to
+  // MessageWriter code).
+  {
+    NoGCScope no_gc;
+    memmove(message.DataAddr(offset), data, size);
+    offset += size;
+  }
+  ASSERT(offset == total_bytes);
+  SendEvent(eventId, message);
+}
+
+
+void Service::HandleGCEvent(GCEvent* event) {
+  JSONStream js;
+  event->PrintJSON(&js);
+  const String& message = String::Handle(String::New(js.ToCString()));
+  SendEvent(kEventFamilyGC, message);
+}
+
+
+void Service::HandleDebuggerEvent(DebuggerEvent* event) {
+  JSONStream js;
+  event->PrintJSON(&js);
+  const String& message = String::Handle(String::New(js.ToCString()));
+  SendEvent(kEventFamilyDebug, message);
+}
+
+
+class EmbedderServiceHandler {
+ public:
+  explicit EmbedderServiceHandler(const char* name) : name_(NULL),
+                                                      callback_(NULL),
+                                                      user_data_(NULL),
+                                                      next_(NULL) {
+    ASSERT(name != NULL);
+    name_ = strdup(name);
+  }
+
+  ~EmbedderServiceHandler() {
+    free(name_);
+  }
+
+  const char* name() const { return name_; }
+
+  Dart_ServiceRequestCallback callback() const { return callback_; }
+  void set_callback(Dart_ServiceRequestCallback callback) {
+    callback_ = callback;
+  }
+
+  void* user_data() const { return user_data_; }
+  void set_user_data(void* user_data) {
+    user_data_ = user_data;
+  }
+
+  EmbedderServiceHandler* next() const { return next_; }
+  void set_next(EmbedderServiceHandler* next) {
+    next_ = next;
+  }
+
+ private:
+  char* name_;
+  Dart_ServiceRequestCallback callback_;
+  void* user_data_;
+  EmbedderServiceHandler* next_;
+};
+
+
+void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
+                                    JSONStream* js) {
+  ASSERT(handler != NULL);
+  Dart_ServiceRequestCallback callback = handler->callback();
+  ASSERT(callback != NULL);
+  const char* r = NULL;
+  const char* name = js->method();
+  const char** keys = js->param_keys();
+  const char** values = js->param_values();
+  r = callback(name, keys, values, js->num_params(), handler->user_data());
+  ASSERT(r != NULL);
+  // TODO(johnmccutchan): Allow for NULL returns?
+  TextBuffer* buffer = js->buffer();
+  buffer->AddString(r);
+  free(const_cast<char*>(r));
+}
+
+
+void Service::RegisterIsolateEmbedderCallback(
+    const char* name,
+    Dart_ServiceRequestCallback callback,
+    void* user_data) {
+  if (name == NULL) {
+    return;
+  }
+  EmbedderServiceHandler* handler = FindIsolateEmbedderHandler(name);
+  if (handler != NULL) {
+    // Update existing handler entry.
+    handler->set_callback(callback);
+    handler->set_user_data(user_data);
+    return;
+  }
+  // Create a new handler.
+  handler = new EmbedderServiceHandler(name);
+  handler->set_callback(callback);
+  handler->set_user_data(user_data);
+
+  // Insert into isolate_service_handler_head_ list.
+  handler->set_next(isolate_service_handler_head_);
+  isolate_service_handler_head_ = handler;
+}
+
+
+EmbedderServiceHandler* Service::FindIsolateEmbedderHandler(
+    const char* name) {
+  EmbedderServiceHandler* current = isolate_service_handler_head_;
+  while (current != NULL) {
+    if (strcmp(name, current->name()) == 0) {
+      return current;
+    }
+    current = current->next();
+  }
+  return NULL;
+}
+
+
+void Service::RegisterRootEmbedderCallback(
+    const char* name,
+    Dart_ServiceRequestCallback callback,
+    void* user_data) {
+  if (name == NULL) {
+    return;
+  }
+  EmbedderServiceHandler* handler = FindRootEmbedderHandler(name);
+  if (handler != NULL) {
+    // Update existing handler entry.
+    handler->set_callback(callback);
+    handler->set_user_data(user_data);
+    return;
+  }
+  // Create a new handler.
+  handler = new EmbedderServiceHandler(name);
+  handler->set_callback(callback);
+  handler->set_user_data(user_data);
+
+  // Insert into root_service_handler_head_ list.
+  handler->set_next(root_service_handler_head_);
+  root_service_handler_head_ = handler;
+}
+
+
+EmbedderServiceHandler* Service::FindRootEmbedderHandler(
+    const char* name) {
+  EmbedderServiceHandler* current = root_service_handler_head_;
+  while (current != NULL) {
+    if (strcmp(name, current->name()) == 0) {
+      return current;
+    }
+    current = current->next();
+  }
+  return NULL;
+}
+
+
+static const MethodParameter* get_isolate_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
+  isolate->PrintJSON(js, false);
+  return true;
+}
+
+
+static const MethodParameter* get_stack_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool HandleIsolateGetStack(Isolate* isolate, JSONStream* js) {
+  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Stack");
+  JSONArray jsarr(&jsobj, "frames");
+  intptr_t num_frames = stack->Length();
+  for (intptr_t i = 0; i < num_frames; i++) {
+    ActivationFrame* frame = stack->FrameAt(i);
+    JSONObject jsobj(&jsarr);
+    frame->PrintToJSONObject(&jsobj);
+    // TODO(turnidge): Implement depth differently -- differentiate
+    // inlined frames.
+    jsobj.AddProperty("depth", i);
+  }
+  return true;
+}
+
+
+static bool HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
+  jsobj->AddProperty("type", "_EchoResponse");
+  if (js->HasParam("text")) {
+    jsobj->AddProperty("text", js->LookupParam("text"));
+  }
+  return true;
+}
+
+
+void Service::SendEchoEvent(Isolate* isolate, const char* text) {
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("type", "ServiceEvent");
+    jsobj.AddProperty("eventType", "_Echo");
+    jsobj.AddProperty("isolate", isolate);
+    if (text != NULL) {
+      jsobj.AddProperty("text", text);
+    }
+  }
+  const String& message = String::Handle(String::New(js.ToCString()));
+  uint8_t data[] = {0, 128, 255};
+  // TODO(koda): Add 'testing' event family.
+  SendEvent(kEventFamilyDebug, message, data, sizeof(data));
+}
+
+
+static bool HandleIsolateTriggerEchoEvent(Isolate* isolate, JSONStream* js) {
+  Service::SendEchoEvent(isolate, js->LookupParam("text"));
+  JSONObject jsobj(js);
+  return HandleCommonEcho(&jsobj, js);
+}
+
+
+static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  return HandleCommonEcho(&jsobj, js);
 }
 
 
@@ -1596,6 +1215,12 @@ static bool PrintInboundReferences(Isolate* isolate,
 }
 
 
+static const MethodParameter* get_inbound_references_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetInboundReferences(Isolate* isolate,
                                               JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
@@ -1694,6 +1319,13 @@ static bool PrintRetainingPath(Isolate* isolate,
   return true;
 }
 
+
+static const MethodParameter* get_retaining_path_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetRetainingPath(Isolate* isolate,
                                           JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
@@ -1735,6 +1367,12 @@ static bool HandleIsolateGetRetainingPath(Isolate* isolate,
   }
   return PrintRetainingPath(isolate, &obj, limit, js);
 }
+
+
+static const MethodParameter* get_retained_size_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateGetRetainedSize(Isolate* isolate, JSONStream* js) {
@@ -1782,6 +1420,12 @@ static bool HandleIsolateGetRetainedSize(Isolate* isolate, JSONStream* js) {
              "library, class, or instance", js->method(), target_id);
   return true;
 }
+
+
+static const MethodParameter* eval_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateEval(Isolate* isolate, JSONStream* js) {
@@ -1876,6 +1520,12 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 };
 
 
+static const MethodParameter* get_instances_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetInstances(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("classId");
   if (target_id == NULL) {
@@ -1922,6 +1572,69 @@ static bool HandleIsolateGetInstances(Isolate* isolate, JSONStream* js) {
 }
 
 
+class LibraryCoverageFilter : public CoverageFilter {
+ public:
+  explicit LibraryCoverageFilter(const Library& lib) : lib_(lib) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const Script& script,
+                               const Class& cls,
+                               const Function& func) const {
+    return lib.raw() == lib_.raw();
+  }
+ private:
+  const Library& lib_;
+};
+
+
+class ScriptCoverageFilter : public CoverageFilter {
+ public:
+  explicit ScriptCoverageFilter(const Script& script)
+      : script_(script) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const Script& script,
+                               const Class& cls,
+                               const Function& func) const {
+    return script.raw() == script_.raw();
+  }
+ private:
+  const Script& script_;
+};
+
+
+class ClassCoverageFilter : public CoverageFilter {
+ public:
+  explicit ClassCoverageFilter(const Class& cls) : cls_(cls) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const Script& script,
+                               const Class& cls,
+                               const Function& func) const {
+    return cls.raw() == cls_.raw();
+  }
+ private:
+  const Class& cls_;
+};
+
+
+class FunctionCoverageFilter : public CoverageFilter {
+ public:
+  explicit FunctionCoverageFilter(const Function& func) : func_(func) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const Script& script,
+                               const Class& cls,
+                               const Function& func) const {
+    return func.raw() == func_.raw();
+  }
+ private:
+  const Function& func_;
+};
+
+
+static const MethodParameter* get_coverage_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetCoverage(Isolate* isolate, JSONStream* js) {
   if (!js->HasParam("targetId")) {
     CodeCoverage::PrintJSON(isolate, js, NULL);
@@ -1960,6 +1673,12 @@ static bool HandleIsolateGetCoverage(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* add_breakpoint_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
   if (!js->HasParam("line")) {
     PrintMissingParamError(js, "line");
@@ -1988,6 +1707,12 @@ static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
   bpt->PrintJSON(js);
   return true;
 }
+
+
+static const MethodParameter* remove_breakpoint_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateRemoveBreakpoint(Isolate* isolate, JSONStream* js) {
@@ -2024,6 +1749,7 @@ static RawClass* GetMetricsClass(Isolate* isolate) {
   ASSERT(!metrics_cls.IsNull());
   return metrics_cls.raw();
 }
+
 
 
 static bool HandleNativeMetricsList(Isolate* isolate, JSONStream* js) {
@@ -2106,6 +1832,12 @@ static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
 }
 
 
+static const MethodParameter* get_metric_list_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetMetricList(Isolate* isolate, JSONStream* js) {
   bool native_metrics = false;
   if (js->HasParam("type")) {
@@ -2126,6 +1858,12 @@ static bool HandleIsolateGetMetricList(Isolate* isolate, JSONStream* js) {
   }
   return HandleDartMetricsList(isolate, js);
 }
+
+
+static const MethodParameter* get_metric_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateGetMetric(Isolate* isolate, JSONStream* js) {
@@ -2154,18 +1892,36 @@ static bool HandleIsolateGetMetric(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleVMGetMetricList(JSONStream* js) {
+static const MethodParameter* get_vm_metric_list_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool HandleVMGetMetricList(Isolate* isolate, JSONStream* js) {
   return false;
 }
 
 
-static bool HandleVMGetMetric(JSONStream* js) {
+static const MethodParameter* get_vm_metric_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool HandleVMGetMetric(Isolate* isolate, JSONStream* js) {
   const char* metric_id = js->LookupParam("metricId");
   if (metric_id == NULL) {
     PrintMissingParamError(js, "metricId");
   }
   return false;
 }
+
+
+static const MethodParameter* resume_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
@@ -2214,6 +1970,12 @@ static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_breakpoints_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetBreakpoints(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "BreakpointList");
@@ -2221,6 +1983,12 @@ static bool HandleIsolateGetBreakpoints(Isolate* isolate, JSONStream* js) {
   isolate->debugger()->PrintBreakpointsToJSONArray(&jsarr);
   return true;
 }
+
+
+static const MethodParameter* pause_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolatePause(Isolate* isolate, JSONStream* js) {
@@ -2233,6 +2001,12 @@ static bool HandleIsolatePause(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_tag_profile_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetTagProfile(Isolate* isolate, JSONStream* js) {
   JSONObject miniProfile(js);
   miniProfile.AddProperty("type", "TagProfile");
@@ -2241,27 +2015,46 @@ static bool HandleIsolateGetTagProfile(Isolate* isolate, JSONStream* js) {
   return true;
 }
 
+
+static const char* tags_enum_names[] = {
+  "None",
+  "UserVM",
+  "UserOnly",
+  "VMUser",
+  "VMOnly",
+  NULL,
+};
+
+
+static ProfilerService::TagOrder tags_enum_values[] = {
+  ProfilerService::kNoTags,
+  ProfilerService::kUserVM,
+  ProfilerService::kUser,
+  ProfilerService::kVMUser,
+  ProfilerService::kVM,
+  ProfilerService::kNoTags,  // Default value.
+};
+
+
+static const MethodParameter* get_cpu_profile_params[] = {
+  ISOLATE_PARAMETER,
+  new EnumParameter("tags", true, tags_enum_names),
+  NULL,
+};
+
+
 static bool HandleIsolateGetCpuProfile(Isolate* isolate, JSONStream* js) {
-  ProfilerService::TagOrder tag_order = ProfilerService::kUserVM;
-  if (js->HasParam("tags")) {
-    if (js->ParamIs("tags", "None")) {
-      tag_order = ProfilerService::kNoTags;
-    } else if (js->ParamIs("tags", "UserVM")) {
-      tag_order = ProfilerService::kUserVM;
-    } else if (js->ParamIs("tags", "UserOnly")) {
-      tag_order = ProfilerService::kUser;
-    } else if (js->ParamIs("tags", "VMUser")) {
-      tag_order = ProfilerService::kVMUser;
-    } else if (js->ParamIs("tags", "VMOnly")) {
-      tag_order = ProfilerService::kVM;
-    } else {
-      PrintInvalidParamError(js, "tags");
-      return true;
-    }
-  }
+  ProfilerService::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   ProfilerService::PrintJSON(js, tag_order);
   return true;
 }
+
+
+static const MethodParameter* get_allocation_profile_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateGetAllocationProfile(Isolate* isolate,
@@ -2297,10 +2090,22 @@ static bool HandleIsolateGetAllocationProfile(Isolate* isolate,
 }
 
 
+static const MethodParameter* get_heap_map_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetHeapMap(Isolate* isolate, JSONStream* js) {
   isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
   return true;
 }
+
+
+static const MethodParameter* request_heap_snapshot_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateRequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
@@ -2353,6 +2158,12 @@ class ContainsAddressVisitor : public FindObjectVisitor {
 };
 
 
+static const MethodParameter* get_object_by_address_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetObjectByAddress(Isolate* isolate, JSONStream* js) {
   const char* addr_str = js->LookupParam("address");
   if (addr_str == NULL) {
@@ -2400,6 +2211,12 @@ static bool HandleIsolateRespondWithMalformedObject(Isolate* isolate,
 }
 
 
+static const MethodParameter* get_object_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
   const char* id = js->LookupParam("objectId");
   if (id == NULL) {
@@ -2435,12 +2252,24 @@ static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_class_list_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
 static bool HandleIsolateGetClassList(Isolate* isolate, JSONStream* js) {
   ClassTable* table = isolate->class_table();
   JSONObject jsobj(js);
   table->PrintToJSONObject(&jsobj);
   return true;
 }
+
+
+static const MethodParameter* get_type_arguments_list_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
 
 
 static bool HandleIsolateGetTypeArgumentsList(Isolate* isolate,
@@ -2472,122 +2301,6 @@ static bool HandleIsolateGetTypeArgumentsList(Isolate* isolate,
 }
 
 
-static IsolateMessageHandlerEntry isolate_handlers_new[] = {
-  { "getIsolate", HandleIsolate },
-  { "getObject", HandleIsolateGetObject },
-  { "getObjectByAddress", HandleIsolateGetObjectByAddress },
-  { "getBreakpoints", HandleIsolateGetBreakpoints },
-  { "pause", HandleIsolatePause },
-  { "resume", HandleIsolateResume },
-  { "getStack", HandleIsolateGetStack },
-  { "getCpuProfile", HandleIsolateGetCpuProfile },
-  { "getTagProfile", HandleIsolateGetTagProfile },
-  { "getAllocationProfile", HandleIsolateGetAllocationProfile },
-  { "getHeapMap", HandleIsolateGetHeapMap },
-  { "addBreakpoint", HandleIsolateAddBreakpoint },
-  { "removeBreakpoint", HandleIsolateRemoveBreakpoint },
-  { "getCoverage", HandleIsolateGetCoverage },
-  { "eval", HandleIsolateEval },
-  { "getRetainedSize", HandleIsolateGetRetainedSize },
-  { "getRetainingPath", HandleIsolateGetRetainingPath },
-  { "getInboundReferences", HandleIsolateGetInboundReferences },
-  { "getInstances", HandleIsolateGetInstances },
-  { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot },
-  { "getClassList", HandleIsolateGetClassList },
-  { "getTypeArgumentsList", HandleIsolateGetTypeArgumentsList },
-  { "getIsolateMetricList", HandleIsolateGetMetricList },
-  { "getIsolateMetric", HandleIsolateGetMetric },
-  { "_echo", HandleIsolateEcho },
-  { "_triggerEchoEvent", HandleIsolateTriggerEchoEvent },
-  { "_respondWithMalformedJson", HandleIsolateRespondWithMalformedJson },
-  { "_respondWithMalformedObject", HandleIsolateRespondWithMalformedObject },
-};
-
-
-static IsolateMessageHandler FindIsolateMessageHandler(const char* method) {
-  intptr_t num_message_handlers = sizeof(isolate_handlers_new) /
-                                  sizeof(isolate_handlers_new[0]);
-  for (intptr_t i = 0; i < num_message_handlers; i++) {
-    const IsolateMessageHandlerEntry& entry = isolate_handlers_new[i];
-    if (strcmp(method, entry.method) == 0) {
-      return entry.handler;
-    }
-  }
-  if (FLAG_trace_service) {
-    OS::Print("Service has no isolate message handler for <%s>\n", method);
-  }
-  return NULL;
-}
-
-
-void Service::HandleRootMessage(const Instance& msg_instance) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(!msg_instance.IsNull());
-  ASSERT(msg_instance.IsArray());
-
-  {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
-
-    const Array& msg = Array::Cast(msg_instance);
-    ASSERT(msg.Length() == 5);
-
-    Instance& reply_port = Instance::Handle(isolate);
-    String& method = String::Handle(isolate);
-    Array& param_keys = Array::Handle(isolate);
-    Array& param_values = Array::Handle(isolate);
-    reply_port ^= msg.At(1);
-    method ^= msg.At(2);
-    param_keys ^= msg.At(3);
-    param_values ^= msg.At(4);
-
-    ASSERT(!method.IsNull());
-    ASSERT(!param_keys.IsNull());
-    ASSERT(!param_values.IsNull());
-    ASSERT(param_keys.Length() == param_values.Length());
-
-    if (!reply_port.IsSendPort()) {
-      FATAL("SendPort expected.");
-    }
-
-    RootMessageHandler handler =
-        FindRootMessageHandler(method.ToCString());
-    {
-      JSONStream js;
-      js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-               method, param_keys, param_values);
-      if (handler == NULL) {
-        // Check for an embedder handler.
-        EmbedderServiceHandler* e_handler =
-            FindRootEmbedderHandler(method.ToCString());
-        if (e_handler != NULL) {
-          EmbedderHandleMessage(e_handler, &js);
-        } else {
-          if (FindIsolateMessageHandler(method.ToCString()) != NULL) {
-            PrintMissingParamError(&js, "isolateId");
-          } else {
-            PrintError(&js, "Unrecognized method: %s", method.ToCString());
-          }
-        }
-        js.PostReply();
-      } else {
-        if (handler(&js)) {
-          // Handler returns true if the reply is ready to be posted.
-          // TODO(johnmccutchan): Support asynchronous replies.
-          js.PostReply();
-        }
-      }
-    }
-  }
-}
-
-
-static bool HandleRootEcho(JSONStream* js) {
-  JSONObject jsobj(js);
-  return HandleCommonEcho(&jsobj, js);
-}
-
-
 class ServiceIsolateVisitor : public IsolateVisitor {
  public:
   explicit ServiceIsolateVisitor(JSONArray* jsarr)
@@ -2597,7 +2310,8 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (isolate != Dart::vm_isolate() && !Service::IsServiceIsolate(isolate)) {
+    if ((isolate != Dart::vm_isolate()) &&
+        !ServiceIsolate::IsServiceIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -2607,8 +2321,13 @@ class ServiceIsolateVisitor : public IsolateVisitor {
 };
 
 
-static bool HandleVM(JSONStream* js) {
-  Isolate* isolate = Isolate::Current();
+static const MethodParameter* get_vm_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool HandleVM(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
   jsobj.AddProperty("id", "vm");
@@ -2639,13 +2358,25 @@ static bool HandleVM(JSONStream* js) {
 }
 
 
-static bool HandleVMFlagList(JSONStream* js) {
+static const MethodParameter* get_flag_list_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool HandleVMFlagList(Isolate* isolate, JSONStream* js) {
   Flags::PrintJSON(js);
   return true;
 }
 
 
-static bool HandleVMSetFlag(JSONStream* js) {
+static const MethodParameter* set_flags_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool HandleVMSetFlag(Isolate* isolate, JSONStream* js) {
   const char* flag_name = js->LookupParam("name");
   if (flag_name == NULL) {
     PrintMissingParamError(js, "name");
@@ -2671,198 +2402,87 @@ static bool HandleVMSetFlag(JSONStream* js) {
 }
 
 
-static RootMessageHandlerEntry root_handlers_new[] = {
-  { "getVM", HandleVM },
-  { "getFlagList", HandleVMFlagList },
-  { "setFlag", HandleVMSetFlag },
-  { "getVMMetricList", HandleVMGetMetricList },
-  { "getVMMetric", HandleVMGetMetric },
-  { "_echo", HandleRootEcho },
+static ServiceMethodDescriptor service_methods_[] = {
+  { "_echo", HandleIsolateEcho,
+    NULL },
+  { "_respondWithMalformedJson", HandleIsolateRespondWithMalformedJson,
+    NULL },
+  { "_respondWithMalformedObject", HandleIsolateRespondWithMalformedObject,
+    NULL },
+  { "_triggerEchoEvent", HandleIsolateTriggerEchoEvent,
+    NULL },
+  { "addBreakpoint", HandleIsolateAddBreakpoint,
+    add_breakpoint_params },
+  { "eval", HandleIsolateEval,
+    eval_params },
+  { "getAllocationProfile", HandleIsolateGetAllocationProfile,
+    get_allocation_profile_params },
+  { "getBreakpoints", HandleIsolateGetBreakpoints,
+    get_breakpoints_params },
+  { "getClassList", HandleIsolateGetClassList,
+    get_class_list_params },
+  { "getCoverage", HandleIsolateGetCoverage,
+    get_coverage_params },
+  { "getCpuProfile", HandleIsolateGetCpuProfile,
+    get_cpu_profile_params },
+  { "getFlagList", HandleVMFlagList ,
+    get_flag_list_params },
+  { "getHeapMap", HandleIsolateGetHeapMap,
+    get_heap_map_params },
+  { "getInboundReferences", HandleIsolateGetInboundReferences,
+    get_inbound_references_params },
+  { "getInstances", HandleIsolateGetInstances,
+    get_instances_params },
+  { "getIsolate", HandleIsolate,
+    get_isolate_params },
+  { "getIsolateMetric", HandleIsolateGetMetric,
+    get_metric_params },
+  { "getIsolateMetricList", HandleIsolateGetMetricList,
+    get_metric_list_params },
+  { "getObject", HandleIsolateGetObject,
+    get_object_params },
+  { "getObjectByAddress", HandleIsolateGetObjectByAddress,
+    get_object_by_address_params },
+  { "getRetainedSize", HandleIsolateGetRetainedSize,
+    get_retained_size_params },
+  { "getRetainingPath", HandleIsolateGetRetainingPath,
+    get_retaining_path_params },
+  { "getStack", HandleIsolateGetStack,
+    get_stack_params },
+  { "getTagProfile", HandleIsolateGetTagProfile,
+    get_tag_profile_params },
+  { "getTypeArgumentsList", HandleIsolateGetTypeArgumentsList,
+    get_type_arguments_list_params },
+  { "getVM", HandleVM ,
+    get_vm_params },
+  { "getVMMetric", HandleVMGetMetric,
+    get_vm_metric_params },
+  { "getVMMetricList", HandleVMGetMetricList,
+    get_vm_metric_list_params },
+  { "pause", HandleIsolatePause,
+    pause_params },
+  { "removeBreakpoint", HandleIsolateRemoveBreakpoint,
+    remove_breakpoint_params },
+  { "resume", HandleIsolateResume,
+    resume_params },
+  { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot,
+    request_heap_snapshot_params },
+  { "setFlag", HandleVMSetFlag ,
+    set_flags_params },
 };
 
 
-static RootMessageHandler FindRootMessageHandler(const char* method) {
-  intptr_t num_message_handlers = sizeof(root_handlers_new) /
-                                  sizeof(root_handlers_new[0]);
-  for (intptr_t i = 0; i < num_message_handlers; i++) {
-    const RootMessageHandlerEntry& entry = root_handlers_new[i];
-    if (strcmp(method, entry.method) == 0) {
-      return entry.handler;
+ServiceMethodDescriptor* FindMethod(const char* method_name) {
+  intptr_t num_methods = sizeof(service_methods_) /
+                         sizeof(service_methods_[0]);
+  for (intptr_t i = 0; i < num_methods; i++) {
+    ServiceMethodDescriptor& method = service_methods_[i];
+    if (strcmp(method_name, method.name) == 0) {
+      return &method;
     }
-  }
-  if (FLAG_trace_service) {
-    OS::Print("vm-service: No root message handler for <%s>.\n", method);
   }
   return NULL;
 }
 
-
-void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
-  if (!IsRunning()) {
-    return;
-  }
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
-
-  // Construct a list of the form [eventId, eventMessage].
-  const Array& list = Array::Handle(Array::New(2));
-  ASSERT(!list.IsNull());
-  list.SetAt(0, Integer::Handle(Integer::New(eventId)));
-  list.SetAt(1, eventMessage);
-
-  // Push the event to port_.
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(list);
-  intptr_t len = writer.BytesWritten();
-  if (FLAG_trace_service) {
-    OS::Print("vm-service: Pushing event of type %" Pd ", len %" Pd "\n",
-              eventId, len);
-  }
-  // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
-  PortMap::PostMessage(
-      new Message(service_port_, data, len, Message::kNormalPriority));
-}
-
-
-void Service::SendEvent(intptr_t eventId,
-                        const String& meta,
-                        const uint8_t* data,
-                        intptr_t size) {
-  // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
-  const intptr_t meta_bytes = Utf8::Length(meta);
-  const intptr_t total_bytes = sizeof(uint64_t) + meta_bytes + size;
-  const TypedData& message = TypedData::Handle(
-      TypedData::New(kTypedDataUint8ArrayCid, total_bytes));
-  intptr_t offset = 0;
-  // TODO(koda): Rename these methods SetHostUint64, etc.
-  message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
-  offset += sizeof(uint64_t);
-  {
-    NoGCScope no_gc;
-    meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
-    offset += meta_bytes;
-  }
-  // TODO(koda): It would be nice to avoid this copy (requires changes to
-  // MessageWriter code).
-  {
-    NoGCScope no_gc;
-    memmove(message.DataAddr(offset), data, size);
-    offset += size;
-  }
-  ASSERT(offset == total_bytes);
-  SendEvent(eventId, message);
-}
-
-
-void Service::HandleGCEvent(GCEvent* event) {
-  JSONStream js;
-  event->PrintJSON(&js);
-  const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyGC, message);
-}
-
-
-void Service::HandleDebuggerEvent(DebuggerEvent* event) {
-  JSONStream js;
-  event->PrintJSON(&js);
-  const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyDebug, message);
-}
-
-
-void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
-                                    JSONStream* js) {
-  ASSERT(handler != NULL);
-  Dart_ServiceRequestCallback callback = handler->callback();
-  ASSERT(callback != NULL);
-  const char* r = NULL;
-  const char* name = js->method();
-  const char** keys = js->param_keys();
-  const char** values = js->param_values();
-  r = callback(name, keys, values, js->num_params(), handler->user_data());
-  ASSERT(r != NULL);
-  // TODO(johnmccutchan): Allow for NULL returns?
-  TextBuffer* buffer = js->buffer();
-  buffer->AddString(r);
-  free(const_cast<char*>(r));
-}
-
-
-void Service::RegisterIsolateEmbedderCallback(
-    const char* name,
-    Dart_ServiceRequestCallback callback,
-    void* user_data) {
-  if (name == NULL) {
-    return;
-  }
-  EmbedderServiceHandler* handler = FindIsolateEmbedderHandler(name);
-  if (handler != NULL) {
-    // Update existing handler entry.
-    handler->set_callback(callback);
-    handler->set_user_data(user_data);
-    return;
-  }
-  // Create a new handler.
-  handler = new EmbedderServiceHandler(name);
-  handler->set_callback(callback);
-  handler->set_user_data(user_data);
-
-  // Insert into isolate_service_handler_head_ list.
-  handler->set_next(isolate_service_handler_head_);
-  isolate_service_handler_head_ = handler;
-}
-
-
-EmbedderServiceHandler* Service::FindIsolateEmbedderHandler(
-    const char* name) {
-  EmbedderServiceHandler* current = isolate_service_handler_head_;
-  while (current != NULL) {
-    if (strcmp(name, current->name()) == 0) {
-      return current;
-    }
-    current = current->next();
-  }
-  return NULL;
-}
-
-
-void Service::RegisterRootEmbedderCallback(
-    const char* name,
-    Dart_ServiceRequestCallback callback,
-    void* user_data) {
-  if (name == NULL) {
-    return;
-  }
-  EmbedderServiceHandler* handler = FindRootEmbedderHandler(name);
-  if (handler != NULL) {
-    // Update existing handler entry.
-    handler->set_callback(callback);
-    handler->set_user_data(user_data);
-    return;
-  }
-  // Create a new handler.
-  handler = new EmbedderServiceHandler(name);
-  handler->set_callback(callback);
-  handler->set_user_data(user_data);
-
-  // Insert into root_service_handler_head_ list.
-  handler->set_next(root_service_handler_head_);
-  root_service_handler_head_ = handler;
-}
-
-
-EmbedderServiceHandler* Service::FindRootEmbedderHandler(
-    const char* name) {
-  EmbedderServiceHandler* current = root_service_handler_head_;
-  while (current != NULL) {
-    if (strcmp(name, current->name()) == 0) {
-      return current;
-    }
-    current = current->next();
-  }
-  return NULL;
-}
 
 }  // namespace dart

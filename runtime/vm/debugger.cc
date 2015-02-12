@@ -19,6 +19,7 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/port.h"
+#include "vm/service_isolate.h"
 #include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -1069,7 +1070,7 @@ void Debugger::Shutdown() {
     delete bpt;
   }
   // Signal isolate shutdown event.
-  if (!Service::IsServiceIsolate(isolate_)) {
+  if (!ServiceIsolate::IsServiceIsolate(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
   }
 }
@@ -2131,7 +2132,7 @@ bool Debugger::IsDebuggable(const Function& func) {
   if (!func.is_debuggable()) {
     return false;
   }
-  if (Service::IsRunning()) {
+  if (ServiceIsolate::IsRunning()) {
     return true;
   }
   const Class& cls = Class::Handle(func.Owner());
@@ -2269,7 +2270,7 @@ void Debugger::Initialize(Isolate* isolate) {
 
 void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
-  if (!Service::IsServiceIsolate(isolate_)) {
+  if (!ServiceIsolate::IsServiceIsolate(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
   }
 }

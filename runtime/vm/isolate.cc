@@ -25,6 +25,7 @@
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
+#include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -691,7 +692,7 @@ void Isolate::BuildName(const char* name_prefix) {
   if (name_prefix == NULL) {
     name_prefix = "isolate";
   }
-  if (Service::IsServiceIsolateName(name_prefix)) {
+  if (ServiceIsolate::NameEquals(name_prefix)) {
     name_ = strdup(name_prefix);
     return;
   }
@@ -810,7 +811,7 @@ bool Isolate::MakeRunnable() {
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
   is_runnable_ = true;
-  if (!Service::IsServiceIsolate(this)) {
+  if (!ServiceIsolate::IsServiceIsolate(this)) {
     message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
     message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
   }

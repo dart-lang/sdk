@@ -30,6 +30,7 @@
 #include "vm/profiler.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/service_isolate.h"
 #include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -1252,7 +1253,7 @@ static char* BuildIsolateName(const char* script_uri,
     }
   }
 
-  if (Service::IsServiceIsolateName(script_uri)) {
+  if (ServiceIsolate::NameEquals(script_uri)) {
     return strdup(script_uri);
   }
 
@@ -5457,12 +5458,12 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
 
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  return Service::IsServiceIsolate(iso);
+  return ServiceIsolate::IsServiceIsolate(iso);
 }
 
 
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort() {
-  return Service::WaitForLoadPort();
+  return ServiceIsolate::WaitForLoadPort();
 }
 
 

@@ -775,7 +775,7 @@ class Isolate : public BaseIsolate {
 REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
-  friend class Service;
+  friend class ServiceIsolate;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
