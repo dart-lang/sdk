@@ -1035,6 +1035,9 @@ class DartCapturedVariables extends ast.Visitor
   visitFunctionExpression(ast.FunctionExpression node) {
     FunctionElement oldFunction = currentFunction;
     currentFunction = elements[node];
+    if (currentFunction.asyncMarker != AsyncMarker.SYNC) {
+      giveup(node, "cannot handle async/sync*/async* functions");
+    }
     if (node.initializers != null) {
       insideInitializer = true;
       visit(node.initializers);
@@ -1128,6 +1131,9 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   ir.FunctionDefinition buildFunction(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
     ast.FunctionExpression node = element.node;
+    if (element.asyncMarker != AsyncMarker.SYNC) {
+      giveup(null, 'cannot handle async-await');
+    }
 
     if (!element.isSynthesized) {
       assert(node != null);

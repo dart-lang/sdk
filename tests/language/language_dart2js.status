@@ -190,18 +190,14 @@ closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
 
 [ $compiler == dart2dart && $builder_tag == new_backend ]
-await_for_test: RuntimeError # Issue 22051
-await_regression_test: RuntimeError # Issue 22051
-async_await_syntax_test/a06a: RuntimeError # Issue 22051
-async_await_syntax_test/b06a: RuntimeError # Issue 22051
-async_await_syntax_test/c06a: RuntimeError # Issue 22051
-async_await_syntax_test/d06a: RuntimeError # Issue 22051
-async_control_structures_test: RuntimeError # Issue 22051
-async_test/none: RuntimeError # Issue 22051
-async_test/type-mismatch1: RuntimeError # Issue 22051
-async_test/type-mismatch2: RuntimeError # Issue 22051
-async_test/type-mismatch3: RuntimeError # Issue 22051
-async_test/type-mismatch4: RuntimeError # Issue 22051
+async_await_syntax_test/a03a: CompileTimeError # Issue 21404
+async_await_syntax_test/a03b: CompileTimeError # Issue 21404
+async_await_syntax_test/a11d: CompileTimeError # Issue 21404
+async_await_syntax_test/b03a: CompileTimeError # Issue 21404
+async_await_syntax_test/b11d: CompileTimeError # Issue 21404
+sync_generator3_test/test2: RuntimeError # Issue 21404
+async_await_syntax_test/c03a: CompileTimeError # Issue 21404
+async_await_syntax_test/d03a: CompileTimeError # Issue 21404
 
 [ $compiler == dart2dart && $builder_tag == new_backend && $minified == true ]
 # This test fails in minified, because the type-argument is
