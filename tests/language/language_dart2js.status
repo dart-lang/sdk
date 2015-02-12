@@ -2,10 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $checked ]
-await_future_test: RuntimeError # Issue 22332
-async_test/none: RuntimeError # Issue 22332
-
 [ $compiler == dart2js ]
 syncstar_yield_test/copyParameters: RuntimeError # Issue 22322
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
