@@ -21,9 +21,10 @@ class TestCompleteCommand extends Command {
   TestCompleteCommand(this.out, name, children) : super(name, children);
   StringBuffer out;
 
-  List<String> complete(List<String> args) {
+  Future<List<String>> complete(List<String> args) {
     var possibles = ['one ', 'two ', 'three '];
-    return possibles.where((possible) => possible.startsWith(args[0])).toList();
+    return new Future.value(
+        possibles.where((possible) => possible.startsWith(args[0])).toList());
   }
 
   Future run(List<String> args) {
@@ -49,79 +50,98 @@ void testCommandComplete() {
                            new TestCommand(null, 'chocula', [])])]);
 
   // Show all commands.
-  expect(cmd.completeCommand(''),
-         equals(['alpha ', 'game ', 'gamera ', 'count ']));
+  cmd.completeCommand('').then((result) {
+    expect(result, equals(['alpha ', 'game ', 'gamera ', 'count ']));
+  });
 
   // Substring completion.
-  expect(cmd.completeCommand('al'),
-         equals(['alpha ']));
+  cmd.completeCommand('al').then((result) {
+    expect(result, equals(['alpha ']));
+  });
 
   // Full string completion.
-  expect(cmd.completeCommand('alpha'),
-         equals(['alpha ']));
+  cmd.completeCommand('alpha').then((result) {
+    expect(result, equals(['alpha ']));
+  });
                       
   // Extra space, no subcommands.
-  expect(cmd.completeCommand('alpha '),
-         equals(['alpha ']));
+  cmd.completeCommand('alpha ').then((result) {
+    expect(result, equals(['alpha ']));
+  });
 
   // Ambiguous completion.
-  expect(cmd.completeCommand('g'),
-         equals(['game ', 'gamera ']));
+  cmd.completeCommand('g').then((result) {
+    expect(result, equals(['game ', 'gamera ']));
+  });
 
   // Ambiguous completion, exact match not preferred.
-  expect(cmd.completeCommand('game'),
-         equals(['game ', 'gamera ']));
+  cmd.completeCommand('game').then((result) {
+    expect(result, equals(['game ', 'gamera ']));
+  });
 
   // Show all subcommands.
-  expect(cmd.completeCommand('gamera '),
-         equals(['gamera london ', 'gamera tokyo ', 'gamera topeka ']));
+  cmd.completeCommand('gamera ').then((result) {
+    expect(result, equals(['gamera london ', 'gamera tokyo ', 'gamera topeka ']));
+  });
 
   // Subcommand completion.
-  expect(cmd.completeCommand('gamera l'),
-         equals(['gamera london ']));
+  cmd.completeCommand('gamera l').then((result) {
+    expect(result, equals(['gamera london ']));
+  });
 
   // Extra space, with subcommand.
-  expect(cmd.completeCommand('gamera london '),
-         equals(['gamera london ']));
+  cmd.completeCommand('gamera london ').then((result) {
+    expect(result, equals(['gamera london ']));
+  });
 
   // Ambiguous subcommand completion.
-  expect(cmd.completeCommand('gamera t'),
-         equals(['gamera tokyo ', 'gamera topeka ']));
+  cmd.completeCommand('gamera t').then((result) {
+    expect(result, equals(['gamera tokyo ', 'gamera topeka ']));
+  });
 
   // Ambiguous subcommand completion with substring prefix.
   // Note that the prefix is left alone.
-  expect(cmd.completeCommand('gamer t'),
-         equals(['gamer tokyo ', 'gamer topeka ']));
+  cmd.completeCommand('gamer t').then((result) {
+    expect(result, equals(['gamer tokyo ', 'gamer topeka ']));
+  });
 
   // Ambiguous but exact prefix is preferred.
-  expect(cmd.completeCommand('game chec'),
-         equals(['game checkers ']));
+  cmd.completeCommand('game chec').then((result) {
+    expect(result, equals(['game checkers ']));
+  });
 
   // Ambiguous non-exact prefix means no matches.
-  expect(cmd.completeCommand('gam chec'),
-         equals([]));
+  cmd.completeCommand('gam chec').then((result) {
+    expect(result, equals([]));
+  });
 
   // Locals + subcommands, show all.
-  expect(cmd.completeCommand('count '),
-         equals(['count chocula ',
-                 'count one ',
-                 'count two ',
-                 'count three ']));
+  cmd.completeCommand('count ').then((result) {
+      expect(result, equals(['count chocula ',
+                             'count one ',
+                             'count two ',
+                             'count three ']));
+  });
 
   // Locals + subcommands, single local match.
-  expect(cmd.completeCommand('count th '),
-         equals(['count three ']));
+  cmd.completeCommand('count th ').then((result) {
+    expect(result, equals(['count three ']));
+  });
 
   // Locals + subcommands, ambiguous local match.
-  expect(cmd.completeCommand('count t'),
-         equals(['count two ', 'count three ']));
+  cmd.completeCommand('count t').then((result) {
+    expect(result, equals(['count two ', 'count three ']));
+  });
 
   // Locals + subcommands, single command match.
-  expect(cmd.completeCommand('co choc'),
-         equals(['co chocula ']));
+  cmd.completeCommand('co choc').then((result) {
+    expect(result, equals(['co chocula ']));
+  });
 
   // We gobble spare spaces, even in the prefix.
-  expect(cmd.completeCommand('    game    chec'), equals(['game checkers ']));
+  cmd.completeCommand('    game    chec').then((result) {
+    expect(result, equals(['game checkers ']));
+  });
 }
 
 void testCommandRunSimple() {

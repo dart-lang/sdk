@@ -1816,6 +1816,14 @@ class ServiceFunction extends ServiceObject with Coverage {
     kind = FunctionKind.fromJSON(map['kind']);
     isDart = !kind.isFake();
 
+    if (parent == null) {
+      qualifiedName = (owningClass != null) ?
+          "${owningClass.name}.${name}" :
+          name;
+    } else {
+      qualifiedName = "${parent.qualifiedName}.${name}";
+    }
+
     if (mapIsRef) { return; }
 
     isStatic = map['static'];
@@ -1830,14 +1838,6 @@ class ServiceFunction extends ServiceObject with Coverage {
     isInlinable = map['inlinable'];
     deoptimizations = map['deoptimizations'];
     usageCounter = map['usageCounter'];
-
-    if (parent == null) {
-      qualifiedName = (owningClass != null) ?
-          "${owningClass.name}.${name}" :
-          name;
-    } else {
-      qualifiedName = "${parent.qualifiedName}.${name}";
-    }
 
   }
 }

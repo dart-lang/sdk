@@ -2004,7 +2004,6 @@ static bool HandleIsolateRemoveBreakpoint(Isolate* isolate, JSONStream* js) {
   }
   isolate->debugger()->RemoveBreakpoint(bpt->id());
 
-    fprintf(stderr, "SUCCESS");
   // TODO(turnidge): Consider whether the 'Success' type is proper.
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Success");

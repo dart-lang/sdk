@@ -40,7 +40,7 @@ abstract class _CommandBase {
   //
   // Given a list of arguments to this command, provide a list of
   // possible completions for those arguments.
-  List<String> complete(List<String> args) => [];
+  Future<List<String>> complete(List<String> args) => new Future.value([]);
 
   // Override in subclasses to provide command-specific execution.
   Future run(List<String> args);
@@ -82,16 +82,19 @@ abstract class _CommandBase {
   }
 
   // Builds a list of completions for this command.
-  List<String> _buildCompletions(List<String> args,
-                                 bool addEmptyString) {
-    var completions = complete(args.sublist(_depth, args.length));
-    if (addEmptyString && completions.isEmpty && args[args.length - 1] == '') {
-      // Special case allowance for an empty particle at the end of
-      // the command.
-      completions = [''];
-    }
-    var prefix = _concatArgs(args, _depth);
-    return completions.map((str) => '${prefix}${str}').toList();
+  Future<List<String>> _buildCompletions(List<String> args,
+                                         bool addEmptyString) {
+    return complete(args.sublist(_depth, args.length))
+      .then((completions) {
+        if (addEmptyString && completions.isEmpty &&
+            args[args.length - 1] == '') {
+          // Special case allowance for an empty particle at the end of
+          // the command.
+          completions = [''];
+        }
+        var prefix = _concatArgs(args, _depth);
+        return completions.map((str) => '${prefix}${str}').toList();
+      });
   }
 
 }
@@ -101,7 +104,7 @@ class RootCommand extends _CommandBase {
   RootCommand(List<Command> children) : super(children);
 
   // Provides a list of possible completions for a line of text.
-  List<String> completeCommand(String line) {
+  Future<List<String>> completeCommand(String line) {
     var args = _splitLine(line);
     bool showAll = line.endsWith(' ') || args.isEmpty;
     if (showAll) {
@@ -112,7 +115,7 @@ class RootCommand extends _CommandBase {
     var commands =  _match(args, false);
     if (commands.isEmpty) {
       // No matching commands.
-      return [];
+      return new Future.value([]);
     }
     int matchLen = commands[0]._depth;
     if (matchLen < args.length) {
@@ -125,7 +128,7 @@ class RootCommand extends _CommandBase {
       } else {
         // An ambiguous prefix match leaves us nowhere.  The user is
         // typing a bunch of stuff that we don't know how to complete.
-        return [];
+        return new Future.value([]);
       }
     }
 
@@ -137,9 +140,13 @@ class RootCommand extends _CommandBase {
     if (showAll && matchLen == args.length) {
       // If we are showing all possiblities, also include local
       // completions for the parent command.
-      completions.addAll(commands[0]._parent._buildCompletions(args, false));
+      return commands[0]._parent._buildCompletions(args, false)
+        .then((localCompletions) {
+          completions.addAll(localCompletions);
+          return completions;
+        });
     }
-    return completions;
+    return new Future.value(completions);
   }
 
   // Runs a command.

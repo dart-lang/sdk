@@ -8,12 +8,13 @@ import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/cli.dart';
+import 'package:observatory/debugger.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
-// TODO(turnidge): Move Debugger, DebuggerCommand to their own lib.
+// TODO(turnidge): Move Debugger, DebuggerCommand to debugger library.
 abstract class DebuggerCommand extends Command {
-  Debugger debugger;
+  ObservatoryDebugger debugger;
 
   DebuggerCommand(this.debugger, name, children)
       : super(name, children);
@@ -28,16 +29,15 @@ class HelpCommand extends DebuggerCommand {
     con.newline();
 
     // TODO(turnidge): Build a real help system.
-    List completions = debugger.cmd.completeCommand('');
-    completions = completions.map((s )=> s.trimRight()).toList();
-    completions.sort();
-    con.printLine(completions.toString());
-    con.newline();
-    con.printLine("Command prefixes are accepted (e.g. 'h' for 'help')");
-    con.printLine("Hit [TAB] to complete a command (try 'i[TAB][TAB]')");
-    con.printLine("Hit [ENTER] to repeat the last command");
-
-    return new Future.value(null);
+    return debugger.cmd.completeCommand('').then((completions) {
+      completions = completions.map((s) => s.trimRight()).toList();
+      completions.sort();
+      con.printLine(completions.toString());
+      con.newline();
+      con.printLine("Command prefixes are accepted (e.g. 'h' for 'help')");
+      con.printLine("Hit [TAB] to complete a command (try 'i[TAB][TAB]')");
+      con.printLine("Hit [ENTER] to repeat the last command");
+    });
   }
 }
 
@@ -126,6 +126,131 @@ class FinishCommand extends DebuggerCommand {
   }
 }
 
+class BreakCommand extends DebuggerCommand {
+  BreakCommand(Debugger debugger) : super(debugger, 'break', []);
+
+  Future run(List<String> args) {
+    if (args.length > 1) {
+      debugger.console.printLine('not implemented');
+      return new Future.value(null);
+    }
+    var arg = (args.length == 0 ? '' : args[0]);
+    return SourceLocation.parse(debugger, arg).then((loc) {
+      if (loc.valid) {
+        if (loc.function != null) {
+          debugger.console.printLine(
+              'Ignoring breakpoint at $loc: '
+              'Function entry breakpoints not yet implemented');
+          return null;
+        }
+        if (loc.col != null) {
+          // TODO(turnidge): Add tokenPos breakpoint support.
+          debugger.console.printLine(
+              'Ignoring column: '
+              'adding breakpoint at a specific column not yet implemented');
+        }
+        return debugger.isolate.addBreakpoint(loc.script, loc.line).then((result) {
+          if (result is DartError) {
+            debugger.console.printLine('Unable to set breakpoint at ${loc}');
+          } else {
+            // TODO(turnidge): Adding a duplicate breakpoint is
+            // currently ignored.  May want to change the protocol to
+            // inform us when this happens.
+
+            // The BreakpointResolved event prints resolved
+            // breakpoints already.  Just print the unresolved ones here.
+            ServiceMap bpt = result;
+            if (!bpt['resolved']) {
+              var script = bpt['location']['script'];
+              var bpId = bpt['breakpointNumber'];
+              var tokenPos = bpt['location']['tokenPos'];
+              return script.load().then((_) {
+                var line = script.tokenToLine(tokenPos);
+                var col = script.tokenToCol(tokenPos);
+                debugger.console.printLine(
+                    'Future breakpoint ${bpId} added at '
+                    '${script.name}:${line}:${col}');
+              });
+            }
+          }
+        });
+      } else {
+        debugger.console.printLine(loc.errorMessage);
+      }
+    });
+  }
+
+  Future<List<String>> complete(List<String> args) {
+    if (args.length != 1) {
+      return new Future.value([]);
+    }
+    // TODO - fix SourceLocation complete
+    return new Future.value(SourceLocation.complete(debugger, args[0]));
+  }
+}
+
+class ClearCommand extends DebuggerCommand {
+  ClearCommand(Debugger debugger) : super(debugger, 'clear', []);
+
+  Future run(List<String> args) {
+    if (args.length > 1) {
+      debugger.console.printLine('not implemented');
+      return new Future.value(null);
+    }
+    var arg = (args.length == 0 ? '' : args[0]);
+    return SourceLocation.parse(debugger, arg).then((loc) {
+      if (loc.valid) {
+        if (loc.function != null) {
+          debugger.console.printLine(
+              'Ignoring breakpoint at $loc: '
+              'Function entry breakpoints not yet implemented');
+          return null;
+        }
+        if (loc.col != null) {
+          // TODO(turnidge): Add tokenPos clear support.
+          debugger.console.printLine(
+              'Ignoring column: '
+              'clearing breakpoint at a specific column not yet implemented');
+        }
+
+        for (var bpt in debugger.isolate.breakpoints) {
+          var script = bpt['location']['script'];
+          if (script.id == loc.script.id) {
+            assert(script.loaded);
+            var line = script.tokenToLine(bpt['location']['tokenPos']);
+            if (line == loc.line) {
+              return debugger.isolate.removeBreakpoint(bpt).then((result) {
+                if (result is DartError) {
+                  debugger.console.printLine(
+                      'Unable to clear breakpoint at ${loc}: ${result.message}');
+                  return;
+                } else {
+                  // TODO(turnidge): Add a BreakpointRemoved event to
+                  // the service instead of printing here.
+                  var bpId = bpt['breakpointNumber'];
+                  debugger.console.printLine(
+                      'Breakpoint ${bpId} removed at ${loc}');
+                  return;
+                }
+              });
+            }
+          }
+        }
+        debugger.console.printLine('No breakpoint found at ${loc}');
+      } else {
+        debugger.console.printLine(loc.errorMessage);
+      }
+    });
+  }
+
+  Future<List<String>> complete(List<String> args) {
+    if (args.length != 1) {
+      return new Future.value([]);
+    }
+    return new Future.value(SourceLocation.complete(debugger, args[0]));
+  }
+}
+
 // TODO(turnidge): Add argument completion.
 class DeleteCommand extends DebuggerCommand {
   DeleteCommand(Debugger debugger) : super(debugger, 'delete', []);
@@ -177,8 +302,15 @@ class InfoBreakpointsCommand extends DebuggerCommand {
         var tokenPos = bpt['location']['tokenPos'];
         var line = script.tokenToLine(tokenPos);
         var col = script.tokenToCol(tokenPos);
+        var extras = new StringBuffer();
+        if (!bpt['resolved']) {
+          extras.write(' unresolved');
+        }
+        if (!bpt['enabled']) {
+          extras.write(' disabled');
+        }
         debugger.console.printLine(
-            'Breakpoint ${bpId} at ${script.name}:${line}:${col}');
+            'Breakpoint ${bpId} at ${script.name}:${line}:${col}${extras}');
       }
     });
   }
@@ -234,13 +366,14 @@ class RefreshCommand extends DebuggerCommand {
 }
 
 // Tracks the state for an isolate debugging session.
-class Debugger {
+class ObservatoryDebugger extends Debugger {
   RootCommand cmd;
   DebuggerConsoleElement console;
   DebuggerStackElement stackElement;
   ServiceMap stack;
+  int currentFrame = 0;
 
-  Debugger() {
+  ObservatoryDebugger() {
     cmd = new RootCommand([
         new HelpCommand(this),
         new PauseCommand(this),
@@ -248,6 +381,8 @@ class Debugger {
         new NextCommand(this),
         new StepCommand(this),
         new FinishCommand(this),
+        new BreakCommand(this),
+        new ClearCommand(this),
         new DeleteCommand(this),
         new InfoCommand(this),
         new RefreshCommand(this),
@@ -258,9 +393,19 @@ class Debugger {
     _isolate = iso;
     if (_isolate != null) {
       _isolate.reload().then((_) {
-        _isolate.vm.events.stream.listen(_onEvent);
-        _refreshStack(isolate.pauseEvent).then((_) {
-          reportStatus();
+        // TODO(turnidge): Currently the debugger relies on all libs
+        // being loaded.  Fix this.
+        var pending = [];
+        for (var lib in _isolate.libraries) {
+          if (!lib.loaded) {
+            pending.add(lib.load());
+          }
+        }
+        Future.wait(pending).then((_) {
+          _isolate.vm.events.stream.listen(_onEvent);
+          _refreshStack(isolate.pauseEvent).then((_) {
+            reportStatus();
+          });
         });
       });
     }
@@ -300,7 +445,6 @@ class Debugger {
       stack = result;
       // TODO(turnidge): Replace only the changed part of the stack to
       // reduce flicker.
-      // stackElement.stack = stack;
       stackElement.updateStack(stack, pauseEvent);
     });
   }
@@ -367,8 +511,17 @@ class Debugger {
         console.printLine('Continuing...');
         break;
 
-      case '_Graph':
       case 'BreakpointResolved':
+        var bpId = event.breakpoint['breakpointNumber'];
+        var script = event.breakpoint['location']['script'];
+        var tokenPos = event.breakpoint['location']['tokenPos'];
+        var line = script.tokenToLine(tokenPos);
+        var col = script.tokenToCol(tokenPos);
+        console.printLine(
+            'Breakpoint ${bpId} added at ${script.name}:${line}:${col}');
+        break;
+
+      case '_Graph':
       case 'IsolateCreated':
       case 'GC':
         // Ignore these events for now.
@@ -380,39 +533,55 @@ class Debugger {
     }
   }
 
-  String complete(String line) {
-    List<String> completions = cmd.completeCommand(line);
-    if (completions.length == 0) {
-      // No completions.  Leave the line alone.
-      return line;
-    } else if (completions.length == 1) {
-      // Unambiguous completion.
-      return completions[0];
-    } else {
-      // Ambigous completion.
-      completions = completions.map((s )=> s.trimRight()).toList();
-      completions.sort();
-      console.printBold(completions.toString());
-
-      // TODO(turnidge): Complete to common prefix of all completions.
-      return line;
+  static String _commonPrefix(String a, String b) {
+    int pos = 0;
+    while (pos < a.length && pos < b.length) {
+      if (a.codeUnitAt(pos) != b.codeUnitAt(pos)) {
+        break;
+      }
+      pos++;
     }
+    return a.substring(0, pos);
+  }
+
+  static String _foldCompletions(List<String> values) {
+    if (values.length == 0) {
+      return '';
+    }
+    var prefix = values[0];
+    for (int i = 1; i < values.length; i++) {
+      prefix = _commonPrefix(prefix, values[i]);
+    }
+    return prefix;
+  }
+
+  Future<String> complete(String line) {
+    return cmd.completeCommand(line).then((completions) {
+      if (completions.length == 0) {
+        // No completions.  Leave the line alone.
+        return line;
+      } else if (completions.length == 1) {
+        // Unambiguous completion.
+        return completions[0];
+      } else {
+        // Ambigous completion.
+        completions = completions.map((s )=> s.trimRight()).toList();
+        console.printBold(completions.toString());
+        return _foldCompletions(completions);
+      }
+    });
   }
 
   // TODO(turnidge): Implement real command line history.
   String lastCommand;
-  bool busy = false;
 
   Future run(String command) {
-    assert(!busy);
-    busy = true;
-    if (command == '') {
+    if (command == '' && lastCommand != null) {
       command = lastCommand;
     }
-    lastCommand = command;
     console.printBold('\$ $command');
     return cmd.runCommand(command).then((_) {
-      busy = false;
+      lastCommand = command;
     }).catchError((e) {
       console.printLine('ERROR $e');
     });
@@ -428,7 +597,7 @@ class DebuggerPageElement extends ObservatoryElement {
       debugger.isolate = isolate;
     }
   }
-  Debugger debugger = new Debugger();
+  ObservatoryDebugger debugger = new ObservatoryDebugger();
 
   DebuggerPageElement.created() : super.created();
 
@@ -468,7 +637,7 @@ class DebuggerStackElement extends ObservatoryElement {
   @published Isolate isolate;
   @observable bool hasStack = false;
   @observable bool isSampled = false;
-  Debugger debugger = null;
+  ObservatoryDebugger debugger;
 
   _addFrame(List frameList, ObservableMap frameInfo, bool expand) {
     DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
@@ -652,7 +821,12 @@ class DebuggerConsoleElement extends ObservatoryElement {
 class DebuggerInputElement extends ObservatoryElement {
   @published Isolate isolate;
   @published String text = '';
-  @observable Debugger debugger;
+  @observable ObservatoryDebugger debugger;
+  @observable bool busy = false;
+
+  void _notBusy() {
+    busy = false;
+  }
 
   @override
   void ready() {
@@ -660,19 +834,26 @@ class DebuggerInputElement extends ObservatoryElement {
     var textBox = $['textBox'];
     textBox.select();
     textBox.onKeyDown.listen((KeyboardEvent e) {
+        // TODO(turnidge): Ignore *all* key events while busy.
 	switch (e.keyCode) {
           case KeyCode.TAB:
             e.preventDefault();
-            int cursorPos = textBox.selectionStart;
-            var completion = debugger.complete(text.substring(0, cursorPos));
-            text = completion + text.substring(cursorPos);
-            // TODO(turnidge): Move the cursor to the end of the
-            // completion, rather than the end of the string.
+            if (!busy) {
+              busy = true;
+              int cursorPos = textBox.selectionStart;
+              debugger.complete(text.substring(0, cursorPos)).then((completion) {
+                text = completion + text.substring(cursorPos);
+                // TODO(turnidge): Move the cursor to the end of the
+                // completion, rather than the end of the string.
+              }).whenComplete(_notBusy);
+            }
             break;
           case KeyCode.ENTER:
-            if (!debugger.busy) {
-              debugger.run(text);
+            if (!busy) {
+              busy = true;
+              var command = text;
               text = '';
+              debugger.run(command).whenComplete(_notBusy);
             }
             break;
 	}
