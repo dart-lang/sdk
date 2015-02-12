@@ -72,7 +72,15 @@ intptr_t RawObject::SizeFromClass() const {
   ASSERT(IsHeapObject());
 
   intptr_t class_id = GetClassId();
-  RawClass* raw_class = isolate->class_table()->At(class_id);
+  ClassTable* class_table = isolate->class_table();
+#if defined(DEBUG)
+  if (!class_table->IsValidIndex(class_id) ||
+      !class_table->HasValidClassAt(class_id)) {
+    FATAL2("Invalid class id: %" Pd " from tags %" Px "\n",
+           class_id, ptr()->tags_);
+  }
+#endif  // DEBUG
+  RawClass* raw_class = class_table->At(class_id);
   ASSERT(raw_class->ptr()->id_ == class_id);
 
   // Get the instance size out of the class.
@@ -205,9 +213,14 @@ intptr_t RawObject::SizeFromClass() const {
     }
   }
   ASSERT(instance_size != 0);
+#if defined(DEBUG)
   uword tags = ptr()->tags_;
-  ASSERT((instance_size == SizeTag::decode(tags)) ||
-         (SizeTag::decode(tags) == 0));
+  intptr_t tags_size = SizeTag::decode(tags);
+  if ((instance_size != tags_size) && (tags_size != 0)) {
+    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
+           instance_size, tags_size, tags);
+  }
+#endif  // DEBUG
   return instance_size;
 }
 
