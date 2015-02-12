@@ -539,10 +539,10 @@ bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
 
 bool Socket::JoinMulticast(
     intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
-  int proto = addr->addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr->ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
   return NO_RETRY_EXPECTED(setsockopt(
       fd, proto, MCAST_JOIN_GROUP, &mreq, sizeof(mreq))) == 0;
 }
