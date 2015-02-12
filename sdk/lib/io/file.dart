@@ -34,16 +34,11 @@ const APPEND = FileMode.APPEND;
 
 
 /// Type of lock when requesting a lock on a file.
-class FileLock {
-  final int _lock;
-
+enum FileLock {
   /// Shared file lock.
-  static const SHARED = const FileLock._internal(0);
-
+  SHARED,
   /// Exclusive file lock.
-  static const EXCLUSIVE = const FileLock._internal(1);
-
-  const FileLock._internal(this._lock);
+  EXCLUSIVE
 }
 
 /**
