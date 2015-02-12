@@ -253,6 +253,11 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
 
 
 RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
+  // Wait for any concurrent GC tasks to finish before walking.
+  MonitorLocker ml(old_space_->tasks_lock());
+  while (old_space_->tasks() > 0) {
+    ml.Wait();
+  }
   return old_space_->FindObject(visitor, HeapPage::kData);
 }
 
