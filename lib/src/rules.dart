@@ -13,6 +13,7 @@ import 'package:dart_lint/src/rules/super_goes_last.dart';
 import 'package:dart_lint/src/rules/type_init_formals.dart';
 import 'package:dart_lint/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:dart_lint/src/rules/unnecessary_getters.dart';
+import 'package:dart_lint/src/rules/unnecessary_getters_setters.dart';
 
 /// Map of contributed lint rules.
 final Map<String, LintRule> ruleMap = {
@@ -24,6 +25,7 @@ final Map<String, LintRule> ruleMap = {
   'type_init_formals': new TypeInitFormals(),
   'unnecessary_brace_in_string_interp': new UnnecessaryBraceInStringInterp(),
   'unnecessary_getters': new UnnecessaryGetters(),
+  'unnecessary_getters_setters': new UnnecessaryGettersSetters()
 };
 
 /// Sorted list of contributed lint rules.
