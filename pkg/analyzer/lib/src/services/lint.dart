@@ -42,8 +42,7 @@ class LintGenerator {
       : _linters = linters != null ? linters : LINTERS;
 
   void generate() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.lint.start();
+    PerformanceTag prevTag = PerformanceStatistics.lint.makeCurrent();
     try {
       _compilationUnits.forEach((cu) {
         if (cu.element != null) {
@@ -51,7 +50,7 @@ class LintGenerator {
         }
       });
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 

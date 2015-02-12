@@ -801,8 +801,7 @@ class CompilationUnitBuilder {
    */
   CompilationUnitElementImpl buildCompilationUnit(Source source,
       CompilationUnit unit) {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag = PerformanceStatistics.resolve.makeCurrent();
     try {
       if (unit == null) {
         return null;
@@ -823,7 +822,7 @@ class CompilationUnitBuilder {
       holder.validate();
       return element;
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 }
@@ -4461,8 +4460,7 @@ class HintGenerator {
   }
 
   void generateForLibrary() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.hints.start();
+    PerformanceTag prevTag = PerformanceStatistics.hints.makeCurrent();
     try {
       for (int i = 0; i < _compilationUnits.length; i++) {
         CompilationUnitElement element = _compilationUnits[i].element;
@@ -4485,7 +4483,7 @@ class HintGenerator {
       _library.accept(
           new _UnusedElementsVerifier(_errorListener, _usedElementsVisitor.usedElements));
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8241,8 +8239,8 @@ class LibraryResolver {
    * @throws AnalysisException if any of the enum members could not be built
    */
   void _buildEnumMembers() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
@@ -8251,7 +8249,7 @@ class LibraryResolver {
         }
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8262,8 +8260,8 @@ class LibraryResolver {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildImplicitConstructors() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag=
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       ImplicitConstructorComputer computer =
           new ImplicitConstructorComputer(_typeProvider);
@@ -8278,7 +8276,7 @@ class LibraryResolver {
       }
       computer.compute();
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8289,8 +8287,8 @@ class LibraryResolver {
    * @throws AnalysisException if any of the function type aliases could not be resolved
    */
   void _buildTypeAliases() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       List<LibraryResolver_TypeAliasInfo> typeAliases =
           new List<LibraryResolver_TypeAliasInfo>();
@@ -8313,7 +8311,7 @@ class LibraryResolver {
         info._typeAlias.accept(visitor);
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8324,8 +8322,8 @@ class LibraryResolver {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildTypeHierarchies() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
@@ -8335,7 +8333,7 @@ class LibraryResolver {
         }
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8541,8 +8539,8 @@ class LibraryResolver {
    * Compute a value for all of the constants in the libraries being analyzed.
    */
   void _performConstantEvaluation() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       ConstantValueComputer computer =
           new ConstantValueComputer(_typeProvider, analysisContext.declaredVariables);
@@ -8581,7 +8579,7 @@ class LibraryResolver {
         }
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8605,8 +8603,8 @@ class LibraryResolver {
    *           the library cannot be analyzed
    */
   void _resolveReferencesAndTypesInLibrary(Library library) {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       for (Source source in library.compilationUnitSources) {
         CompilationUnit ast = library.getAST(source);
@@ -8617,7 +8615,7 @@ class LibraryResolver {
         ast.accept(visitor);
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8976,8 +8974,8 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the enum members could not be built
    */
   void _buildEnumMembers() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       for (ResolvableLibrary library in _librariesInCycle) {
         for (Source source in library.compilationUnitSources) {
@@ -8986,7 +8984,7 @@ class LibraryResolver2 {
         }
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -8997,8 +8995,8 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildImplicitConstructors() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       ImplicitConstructorComputer computer =
           new ImplicitConstructorComputer(_typeProvider);
@@ -9016,7 +9014,7 @@ class LibraryResolver2 {
       }
       computer.compute();
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -9046,8 +9044,8 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the function type aliases could not be resolved
    */
   void _buildTypeAliases() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       List<LibraryResolver2_TypeAliasInfo> typeAliases =
           new List<LibraryResolver2_TypeAliasInfo>();
@@ -9071,7 +9069,7 @@ class LibraryResolver2 {
         info._typeAlias.accept(visitor);
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -9082,8 +9080,8 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildTypeHierarchies() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       for (ResolvableLibrary library in _librariesInCycle) {
         for (ResolvableCompilationUnit unit in
@@ -9096,7 +9094,7 @@ class LibraryResolver2 {
         }
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -9119,8 +9117,8 @@ class LibraryResolver2 {
    * Compute a value for all of the constants in the libraries being analyzed.
    */
   void _performConstantEvaluation() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       ConstantValueComputer computer =
           new ConstantValueComputer(_typeProvider, analysisContext.declaredVariables);
@@ -9148,7 +9146,7 @@ class LibraryResolver2 {
         }
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -9172,8 +9170,8 @@ class LibraryResolver2 {
    *           the library cannot be analyzed
    */
   void _resolveReferencesAndTypesInLibrary(ResolvableLibrary library) {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
+    PerformanceTag prevTag =
+        PerformanceStatistics.resolve.makeCurrent();
     try {
       for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits)
           {
@@ -9186,7 +9184,7 @@ class LibraryResolver2 {
         ast.accept(visitor);
       }
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 

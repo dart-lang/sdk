@@ -267,8 +267,8 @@ class GetHandler {
           'Analysis Server - Analysis Performance',
           [],
           (StringBuffer buffer) {
-        void writeRow(TimeCounter counter, String label) {
-          _writeRow(buffer, [counter.result, label], classes: ["right", null]);
+        void writeRow(PerformanceTag tag) {
+          _writeRow(buffer, [tag.elapsedMs, tag.label], classes: ["right", null]);
         }
 
         buffer.write('<h3>Analysis Performance</h3>');
@@ -276,13 +276,7 @@ class GetHandler {
         buffer.write(
             '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
         _writeRow(buffer, ['Time (in ms)', 'Analysis Phase'], header: true);
-        writeRow(PerformanceStatistics.io, 'io');
-        writeRow(PerformanceStatistics.scan, 'scan');
-        writeRow(PerformanceStatistics.parse, 'parse');
-        writeRow(PerformanceStatistics.resolve, 'resolve');
-        writeRow(PerformanceStatistics.errors, 'errors');
-        writeRow(PerformanceStatistics.hints, 'hints');
-        writeRow(PerformanceStatistics.lint, 'lint');
+        PerformanceTag.all.forEach(writeRow);
         buffer.write('</table>');
 
         Map<DataDescriptor, Map<CacheState, int>> transitionMap = SourceEntry.transitionMap;

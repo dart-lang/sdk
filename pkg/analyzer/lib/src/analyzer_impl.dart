@@ -25,6 +25,7 @@ import 'generated/error.dart';
 import 'generated/java_io.dart';
 import 'generated/sdk_io.dart';
 import 'generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 DirectoryBasedDartSdk sdk;
 
@@ -299,20 +300,15 @@ class AnalyzerImpl {
   _printColdPerf() {
     // print cold VM performance numbers
     int totalTime = JavaSystem.currentTimeMillis() - startTime;
-    int ioTime = PerformanceStatistics.io.result;
-    int scanTime = PerformanceStatistics.scan.result;
-    int parseTime = PerformanceStatistics.parse.result;
-    int resolveTime = PerformanceStatistics.resolve.result;
-    int errorsTime = PerformanceStatistics.errors.result;
-    int hintsTime = PerformanceStatistics.hints.result;
-    stdout.writeln("io-cold:$ioTime");
-    stdout.writeln("scan-cold:$scanTime");
-    stdout.writeln("parse-cold:$parseTime");
-    stdout.writeln("resolve-cold:$resolveTime");
-    stdout.writeln("errors-cold:$errorsTime");
-    stdout.writeln("hints-cold:$hintsTime");
-    stdout.writeln("other-cold:${totalTime
-        - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
+    int otherTime = totalTime;
+    for (PerformanceTag tag in PerformanceTag.all) {
+      if (tag != PerformanceTag.UNKNOWN) {
+        int tagTime = tag.elapsedMs;
+        stdout.writeln('${tag.label}-cold:$tagTime');
+        otherTime -= tagTime;
+      }
+    }
+    stdout.writeln('other-cold:$otherTime');
     stdout.writeln("total-cold:$totalTime");
   }
 
@@ -333,20 +329,15 @@ class AnalyzerImpl {
     // print performance numbers
     if (options.perf || options.warmPerf) {
       int totalTime = JavaSystem.currentTimeMillis() - startTime;
-      int ioTime = PerformanceStatistics.io.result;
-      int scanTime = PerformanceStatistics.scan.result;
-      int parseTime = PerformanceStatistics.parse.result;
-      int resolveTime = PerformanceStatistics.resolve.result;
-      int errorsTime = PerformanceStatistics.errors.result;
-      int hintsTime = PerformanceStatistics.hints.result;
-      stdout.writeln("io:$ioTime");
-      stdout.writeln("scan:$scanTime");
-      stdout.writeln("parse:$parseTime");
-      stdout.writeln("resolve:$resolveTime");
-      stdout.writeln("errors:$errorsTime");
-      stdout.writeln("hints:$hintsTime");
-      stdout.writeln("other:${totalTime
-          - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime)}");
+      int otherTime = totalTime;
+      for (PerformanceTag tag in PerformanceTag.all) {
+        if (tag != PerformanceTag.UNKNOWN) {
+          int tagTime = tag.elapsedMs;
+          stdout.writeln('${tag.label}:$tagTime');
+          otherTime -= tagTime;
+        }
+      }
+      stdout.writeln('other:$otherTime');
       stdout.writeln("total:$totalTime");
     }
   }

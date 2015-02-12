@@ -28,6 +28,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -669,6 +670,7 @@ class AnalysisServer {
    */
   void performOperation() {
     assert(performOperationPending);
+    PerformanceTag.UNKNOWN.makeCurrent();
     performOperationPending = false;
     if (!running) {
       // An error has occurred, or the connection to the client has been
@@ -683,6 +685,7 @@ class AnalysisServer {
       // This can happen if the operation queue is cleared while the operation
       // loop is in progress.  No problem; we just need to exit the operation
       // loop and wait for the next operation to be added.
+      ServerPerformanceStatistics.idle.makeCurrent();
       return;
     }
     sendStatusNotification(operation);
@@ -700,6 +703,7 @@ class AnalysisServer {
       shutdown();
     } finally {
       if (!operationQueue.isEmpty) {
+        ServerPerformanceStatistics.intertask.makeCurrent();
         _schedulePerformOperation();
       } else {
         sendStatusNotification(null);
@@ -707,6 +711,7 @@ class AnalysisServer {
           _onAnalysisCompleteCompleter.complete();
           _onAnalysisCompleteCompleter = null;
         }
+        ServerPerformanceStatistics.idle.makeCurrent();
       }
     }
   }
@@ -1240,6 +1245,41 @@ class ServerContextManager extends ContextManager {
         <UriResolver>[dartResolver, resourceResolver];
     return new SourceFactory(resolvers);
   }
+}
+
+
+/**
+ * Container with global [AnalysisServer] performance statistics.
+ */
+class ServerPerformanceStatistics {
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._updateIndex.
+   */
+  static PerformanceTag index = new PerformanceTag('index');
+
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._sendNotices.
+   */
+  static PerformanceTag notices = new PerformanceTag('notices');
+
+  /**
+   * The [PerformanceTag] for time spent performing a _DartIndexOperation.
+   */
+  static PerformanceTag indexOperation = new PerformanceTag('indexOperation');
+
+  /**
+   * The [PerformanceTag] for time spent between calls to
+   * AnalysisServer.performOperation when the server is not idle.
+   */
+  static PerformanceTag intertask = new PerformanceTag('intertask');
+
+  /**
+   * The [PerformanceTag] for time spent between calls to
+   * AnalysisServer.performOperation when the server is idle.
+   */
+  static PerformanceTag idle = new PerformanceTag('idle');
 }
 
 

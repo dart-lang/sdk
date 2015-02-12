@@ -2331,6 +2331,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (int i = 0; i < noticeCount; i++) {
       ChangeNotice notice = notices[i];
       Source source = notice.source;
+
       // TODO(brianwilkerson) Figure out whether the compilation unit is always
       // resolved, or whether we need to decide whether to invoke the "parsed"
       // or "resolved" method. This might be better done when recording task
@@ -8782,8 +8783,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
 
   @override
   void internalPerform() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.errors.start();
+    PerformanceTag prevTag = PerformanceStatistics.errors.makeCurrent();
     try {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
@@ -8814,7 +8814,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
       _unit.accept(errorVerifier);
       _errors = errorListener.getErrorsForSource(source);
     } finally {
-      timeCounter.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -10046,8 +10046,7 @@ class ParseDartTask extends AnalysisTask {
     //
     // Then parse the token stream.
     //
-    TimeCounter_TimeCounterHandle timeCounterParse =
-        PerformanceStatistics.parse.start();
+    PerformanceTag prevTag = PerformanceStatistics.parse.makeCurrent();
     try {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(source, errorListener);
@@ -10083,7 +10082,7 @@ class ParseDartTask extends AnalysisTask {
       }
       _errors = errorListener.getErrorsForSource(source);
     } finally {
-      timeCounterParse.stop();
+      prevTag.makeCurrent();
     }
   }
 
@@ -10470,52 +10469,39 @@ class PendingFuture<T> {
  */
 class PerformanceStatistics {
   /**
-   * The [TimeCounter] for time spent in reading files.
+   * The [PerformanceTag] for time spent in reading files.
    */
-  static TimeCounter io = new TimeCounter();
+  static PerformanceTag io = new PerformanceTag('io');
 
   /**
-   * The [TimeCounter] for time spent in scanning.
+   * The [PerformanceTag] for time spent in scanning.
    */
-  static TimeCounter scan = new TimeCounter();
+  static PerformanceTag scan = new PerformanceTag('scan');
 
   /**
-   * The [TimeCounter] for time spent in parsing.
+   * The [PerformanceTag] for time spent in parsing.
    */
-  static TimeCounter parse = new TimeCounter();
+  static PerformanceTag parse = new PerformanceTag('parse');
 
   /**
-   * The [TimeCounter] for time spent in resolving.
+   * The [PerformanceTag] for time spent in resolving.
    */
-  static TimeCounter resolve = new TimeCounter();
+  static PerformanceTag resolve = new PerformanceTag('resolve');
 
   /**
-   * The [TimeCounter] for time spent in error verifier.
+   * The [PerformanceTag] for time spent in error verifier.
    */
-  static TimeCounter errors = new TimeCounter();
+  static PerformanceTag errors = new PerformanceTag('errors');
 
   /**
-   * The [TimeCounter] for time spent in hints generator.
+   * The [PerformanceTag] for time spent in hints generator.
    */
-  static TimeCounter hints = new TimeCounter();
+  static PerformanceTag hints = new PerformanceTag('hints');
 
   /**
-   * The [TimeCounter] for time spent in linting.
+   * The [PerformanceTag] for time spent in linting.
    */
-  static TimeCounter lint = new TimeCounter();
-
-  /**
-   * Reset all of the time counters to zero.
-   */
-  static void reset() {
-    io = new TimeCounter();
-    scan = new TimeCounter();
-    parse = new TimeCounter();
-    resolve = new TimeCounter();
-    errors = new TimeCounter();
-    hints = new TimeCounter();
-    lint = new TimeCounter();
-  }
+  static PerformanceTag lint = new PerformanceTag('lint');
 }
 
 /**
@@ -11286,8 +11272,7 @@ class ResolveDartUnitTask extends AnalysisTask {
     //
     // Perform additional error checking.
     //
-    TimeCounter_TimeCounterHandle counterHandleErrors =
-        PerformanceStatistics.errors.start();
+    PerformanceTag prevTag = PerformanceStatistics.errors.makeCurrent();
     try {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       ErrorVerifier errorVerifier = new ErrorVerifier(
@@ -11303,7 +11288,7 @@ class ResolveDartUnitTask extends AnalysisTask {
 //       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _libraryElement, typeProvider);
 //       unit.accept(constantVerifier);
     } finally {
-      counterHandleErrors.stop();
+      prevTag.makeCurrent();
     }
     //
     // Capture the results.
@@ -11533,8 +11518,7 @@ class ScanDartTask extends AnalysisTask {
   @override
   void internalPerform() {
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    TimeCounter_TimeCounterHandle timeCounterScan =
-        PerformanceStatistics.scan.start();
+    PerformanceTag prevTag = PerformanceStatistics.scan.makeCurrent();
     try {
       Scanner scanner =
           new Scanner(source, new CharSequenceReader(_content), errorListener);
@@ -11547,7 +11531,7 @@ class ScanDartTask extends AnalysisTask {
           "Exception",
           new CaughtException(exception, stackTrace));
     } finally {
-      timeCounterScan.stop();
+      prevTag.makeCurrent();
     }
   }
 }

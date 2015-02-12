@@ -7,64 +7,110 @@
 
 library engine.utilities.general;
 
+import 'dart:profiler';
+
 /**
- * Helper for measuring how much time is spent doing some operation.
+ * Helper class for gathering performance statistics.  This class is modeled on
+ * the UserTag class in dart:profiler so that it can interoperate easily with
+ * it.
  */
-class TimeCounter {
-  static final int NANOS_PER_MILLI = 1000 * 1000;
-  static final int NANOS_PER_MICRO = 1000;
-  static TimeCounter _current = null;
-  final Stopwatch _sw = new Stopwatch();
-
+abstract class PerformanceTag {
   /**
-   * @return the number of milliseconds spent between [start] and [stop].
+   * Return the [PerformanceTag] that is initially current.  This is intended
+   * to track time when the system is performing unknown operations.
    */
-  int get result => _sw.elapsedMilliseconds;
+  static PerformanceTag get UNKNOWN => _PerformanceTagImpl.UNKNOWN;
 
   /**
-   * Starts counting time.
+   * Return the current [PerformanceTag] for the isolate.
+   */
+  static PerformanceTag get current => _PerformanceTagImpl.current;
+
+  /**
+   * Create a [PerformanceTag] having the given [label].  A [UserTag] will also
+   * be created, having the same [label], so that performance information can
+   * be queried using the observatory.
+   */
+  factory PerformanceTag(String label) = _PerformanceTagImpl;
+
+  /**
+   * Return the label for this [PerformanceTag].
+   */
+  String get label;
+
+  /**
+   * Return a list of all [PerformanceTag]s which have been created.
+   */
+  static List<PerformanceTag> get all => _PerformanceTagImpl.all.toList();
+
+  /**
+   * Return the total number of milliseconds that this [PerformanceTag] has
+   * been the current [PerformanceTag] for the isolate.
    *
-   * @return the [TimeCounterHandle] that should be used to stop counting.
+   * This call is safe even if this [PerformanceTag] is current.
    */
-  TimeCounter_TimeCounterHandle start() {
-    return new TimeCounter_TimeCounterHandle(this);
+  int get elapsedMs;
+
+  /**
+   * Make this the current tag for the isolate, and return the previous tag.
+   */
+  PerformanceTag makeCurrent();
+
+  /**
+   * Reset the total time tracked by all [PerformanceTag]s to zero.
+   */
+  static void reset() {
+    for (_PerformanceTagImpl tag in _PerformanceTagImpl.all) {
+      tag.stopwatch.reset();
+    }
   }
 }
 
-/**
- * The handle object that should be used to stop and update counter.
- */
-class TimeCounter_TimeCounterHandle {
-  final TimeCounter _counter;
-  int _startMicros;
-  TimeCounter _prev;
+class _PerformanceTagImpl implements PerformanceTag {
+  /**
+   * The current performance tag for the isolate.
+   */
+  static _PerformanceTagImpl current = UNKNOWN;
 
-  TimeCounter_TimeCounterHandle(this._counter) {
-    // if there is some counter running, pause it
-    _prev = TimeCounter._current;
-    if (_prev != null) {
-      _prev._sw.stop();
-    }
-    TimeCounter._current = _counter;
-    // start this counter
-    _startMicros = _counter._sw.elapsedMicroseconds;
-    _counter._sw.start();
-  }
+  static final _PerformanceTagImpl UNKNOWN = new _PerformanceTagImpl('unknown');
 
   /**
-   * Stops counting time and updates counter.
+   * A list of all performance tags that have been created so far.
    */
-  int stop() {
-    _counter._sw.stop();
-    int elapsed =
-        (_counter._sw.elapsedMicroseconds - _startMicros) *
-        TimeCounter.NANOS_PER_MICRO;
-    // restore previous counter and resume it
-    TimeCounter._current = _prev;
-    if (_prev != null) {
-      _prev._sw.start();
-    }
-    // done
-    return elapsed;
+  static List<_PerformanceTagImpl> all = <_PerformanceTagImpl>[];
+
+  @override
+  String get label => userTag.label;
+
+  /**
+   * The [UserTag] associated with this [PerformanceTag].
+   */
+  final UserTag userTag;
+
+  /**
+   * Stopwatch tracking the amount of time this [PerformanceTag] has been the
+   * current tag for the isolate.
+   */
+  final Stopwatch stopwatch;
+
+  _PerformanceTagImpl(String label)
+      : userTag = new UserTag(label), stopwatch = new Stopwatch() {
+    all.add(this);
   }
+
+  @override
+  PerformanceTag makeCurrent() {
+    if (identical(this, current)) {
+      return current;
+    }
+    _PerformanceTagImpl previous = current;
+    previous.stopwatch.stop();
+    stopwatch.start();
+    current = this;
+    userTag.makeCurrent();
+    return previous;
+  }
+
+  @override
+  int get elapsedMs => stopwatch.elapsedMilliseconds;
 }

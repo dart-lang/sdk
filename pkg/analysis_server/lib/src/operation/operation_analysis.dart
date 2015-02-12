@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 /**
@@ -221,8 +222,14 @@ class PerformAnalysisOperation extends ServerOperation {
       return;
     }
     // process results
-    _sendNotices(server, notices);
-    _updateIndex(server, notices);
+    PerformanceTag prevTag = ServerPerformanceStatistics.notices.makeCurrent();
+    try {
+      _sendNotices(server, notices);
+      ServerPerformanceStatistics.index.makeCurrent();
+      _updateIndex(server, notices);
+    } finally {
+      prevTag.makeCurrent();
+    }
     // continue analysis
     server.addOperation(new PerformAnalysisOperation(context, true));
   }
@@ -312,8 +319,14 @@ class _DartIndexOperation extends _SingleFileOperation {
 
   @override
   void perform(AnalysisServer server) {
-    Index index = server.index;
-    index.indexUnit(context, unit);
+    PerformanceTag prevTag =
+        ServerPerformanceStatistics.indexOperation.makeCurrent();
+    try {
+      Index index = server.index;
+      index.indexUnit(context, unit);
+    } finally {
+      prevTag.makeCurrent();
+    }
   }
 }
 
