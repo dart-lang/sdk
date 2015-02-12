@@ -1029,7 +1029,6 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         if (registry->CloseSafe(reinterpret_cast<intptr_t>(listen_socket))) {
           ASSERT(listen_socket->Mask() == 0);
           listen_socket->Close();
-          DeleteIfClosed(handle);
         }
 
         DartUtils::PostInt32(msg->dart_port, 1 << kDestroyedEvent);
@@ -1038,7 +1037,6 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       }
     } else {
       handle->EnsureInitialized(this);
-
       Handle::ScopedLock lock(handle);
 
       if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
@@ -1101,8 +1099,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       } else {
         UNREACHABLE();
       }
-      DeleteIfClosed(handle);
     }
+
+    DeleteIfClosed(handle);
   }
 }
 
