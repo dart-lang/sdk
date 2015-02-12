@@ -76,6 +76,8 @@ class _MockSdkSource implements Source {
 
   String get encoding => "${uriKind.encoding}$uri";
 
+  Source get source => this;
+
   String get fullName => shortName;
 
   String get shortName => uri.path;
@@ -134,6 +136,11 @@ final Map<String, String> mockSdkSources = {
         class List<V> extends Object {}
         class Map<K, V> extends Object {}
         ''',
+  'dart:async': '''
+        class Future<T> {
+          Future then(callback) {}
+        }
+  ''',
   'dart:html': '''
         library dart.html;
         class HtmlElement {}

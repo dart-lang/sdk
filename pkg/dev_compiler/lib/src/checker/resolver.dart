@@ -9,6 +9,7 @@ import 'package:ddc_analyzer/src/generated/engine.dart';
 import 'package:ddc_analyzer/src/generated/error.dart';
 import 'package:ddc_analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:ddc_analyzer/src/generated/resolver.dart';
+import 'package:ddc_analyzer/src/generated/static_type_analyzer.dart';
 import 'package:ddc_analyzer/src/generated/sdk_io.dart'
     show DirectoryBasedDartSdk;
 import 'package:ddc_analyzer/src/generated/source.dart' show DartUriResolver;

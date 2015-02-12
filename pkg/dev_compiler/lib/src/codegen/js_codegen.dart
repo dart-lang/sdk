@@ -2,12 +2,12 @@ library ddc.src.codegen.js_codegen;
 
 import 'dart:io' show Directory;
 
-import 'package:ddc_analyzer/analyzer.dart';
+import 'package:ddc_analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:ddc_analyzer/src/generated/ast.dart' hide ConstantEvaluator;
+import 'package:ddc_analyzer/src/generated/constant.dart';
 import 'package:ddc_analyzer/src/generated/element.dart';
 import 'package:ddc_analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
-import 'package:ddc_analyzer/src/generated/constant.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/checker/rules.dart';
@@ -29,8 +29,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   SimpleIdentifier _cascadeTarget;
 
   ClassDeclaration currentClass;
+  ConstantEvaluator _constEvaluator;
 
-  final ConstantVisitor _constVisitor;
   final _exports = <String>[];
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
@@ -44,7 +44,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules, this.out)
       : libraryInfo = libraryInfo,
         rules = rules,
-        _constVisitor = new ConstantVisitor.con1(rules.provider),
         _libraryName = _jsLibraryName(libraryInfo.library);
 
   Element get currentLibrary => libraryInfo.library;
@@ -61,7 +60,10 @@ var $_libraryName;
       // TODO(jmesserly): this is needed because RestrictedTypeRules can send
       // messages to CheckerReporter, for things like missing types.
       // We should probably refactor so this can't happen.
-      reporter.enterSource(unit.element.source);
+
+      var source = unit.element.source;
+      _constEvaluator = new ConstantEvaluator(source, rules.provider);
+      reporter.enterSource(source);
       unit.accept(this);
       reporter.leaveSource();
     }
@@ -1434,7 +1436,7 @@ $name.prototype[Symbol.iterator] = function() {
       _visitNode(node.identifier);
     }
     out.write(' of ');
-    _visitNode(node.iterator);
+    _visitNode(node.iterable);
     out.write(') ');
     _visitNode(node.body);
   }
@@ -1666,9 +1668,9 @@ $name.prototype[Symbol.iterator] = function() {
   // list/map literals/regexp are also side effect free and fairly common
   // to use as field initializers.
   bool _isFieldInitConstant(VariableDeclaration field) =>
-      field.initializer == null || _computeConstant(field) is ValidResult;
+      field.initializer == null || _computeConstant(field).isValid;
 
-  EvaluationResultImpl _computeConstant(VariableDeclaration field) {
+  EvaluationResult _computeConstant(VariableDeclaration field) {
     // If the constant is already computed by ConstantEvaluator, just return it.
     VariableElementImpl element = field.element;
     var result = element.evaluationResult;
@@ -1681,7 +1683,7 @@ $name.prototype[Symbol.iterator] = function() {
     var initializer = field.initializer;
     if (initializer == null) return null;
 
-    return initializer.accept(_constVisitor);
+    return _constEvaluator.evaluate(initializer);
   }
 
   /// Returns true if [element] is a getter in JS, therefore needs

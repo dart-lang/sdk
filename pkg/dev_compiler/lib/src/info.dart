@@ -157,6 +157,9 @@ abstract class Conversion extends Expression implements StaticInfo {
 
   // Use same precedence as MethodInvocation.
   int get precedence => 15;
+
+  @override
+  Iterable get childEntities => new ChildEntities()..add(expression);
 }
 
 // A down cast from a subtype to a supertype.  This must be checked at
@@ -509,6 +512,11 @@ class RuntimeOperation extends Expression {
 
   // Use same precedence as MethodInvocation.
   int get precedence => 15;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+    ..add(opToken)
+    ..addAll(arguments);
 }
 
 /// A simple generalizing visitor interface for the conversion nodes.
