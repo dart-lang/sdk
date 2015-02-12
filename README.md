@@ -1,21 +1,21 @@
-# dart_lint
+# Linter for Dart
 
 A Dart style linter.
 
-[![Build Status](https://travis-ci.org/dart-lang/dart_lint.svg)](https://travis-ci.org/dart-lang/dart_lint)
-[![Coverage Status](https://coveralls.io/repos/dart-lang/dart_lint/badge.svg)](https://coveralls.io/r/dart-lang/dart_lint)
+[![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
+[![Coverage Status](https://coveralls.io/repos/dart-lang/linter/badge.svg)](https://coveralls.io/r/dart-lang/linter)
 
 ## Installing
 
-Clone the `dart_lint` repo like this:
+Clone the `linter` repo like this:
 
-    git clone https://github.com/dart-lang/dart_lint.git
+    git clone https://github.com/dart-lang/linter.git
 
 When the source is more mature, we’ll push regular builds to `pub`.
 
 ## Usage
 
-`dart_lint` gives you feedback to help you keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforced lint rules (or "lints") are catalogued [here](http://dart-lang.github.io/dart_lint/lints/).  When you run the linter all lints are enabled but don't worry, configuration, wherein you can specifically enable/disable lints, is in the [works](https://github.com/dart-lang/dart_lint/issues/7).  While initial focus is on style lints, other lints that catch common programming errors are certainly of interest.  If you have ideas, please file a [feature request][tracker].
+The linter for Dart gives you feedback to help you keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforced lint rules (or "lints") are catalogued [here](http://dart-lang.github.io/linter/lints/).  When you run the linter all lints are enabled but don't worry, configuration, wherein you can specifically enable/disable lints, is in the [works](https://github.com/dart-lang/linter/issues/7).  While initial focus is on style lints, other lints that catch common programming errors are certainly of interest.  If you have ideas, please file a [feature request][tracker].
 
 Since we are currently in such active development, running from source is the best way to try `dart_lint` out.
 
@@ -49,5 +49,5 @@ Feedback is, of course, greatly appreciated and contributions are welcome! Pleas
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: https://github.com/dart-lang/cli_util/issues
+[tracker]: https://github.com/dart-lang/linter/issues
 
