@@ -87,13 +87,6 @@ class _StringBase {
 
   int get hashCode native "String_getHashCode";
 
-  bool get _isOneByte {
-    // Alternatively return false and override it on one-byte string classes.
-    int id = ClassID.getID(this);
-    return id == ClassID.cidOneByteString ||
-           id == ClassID.cidExternalOneByteString;
-  }
-
   /**
    * Create the most efficient string representation for specified
    * [charCodes].
@@ -566,7 +559,9 @@ class _StringBase {
     if (startIndex is! int) {
       throw new ArgumentError("${startIndex} is not an int");
     }
-    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
+    if ((startIndex < 0) || (startIndex > this.length)) {
+      throw new RangeError.range(startIndex, 0, this.length);
+    }
     Iterator iterator =
         startIndex == 0 ? pattern.allMatches(this).iterator
                         : pattern.allMatches(this, startIndex).iterator;
@@ -613,12 +608,15 @@ class _StringBase {
       }
     }
     length += _addReplaceSlice(matches, startIndex, this.length);
-    bool replacementIsOneByte = replacement._isOneByte;
-    if (replacementIsOneByte &&
-        length < _maxJoinReplaceOneByteStringLength &&
-        this._isOneByte) {
+    bool replacementIsOneByte = (replacement is _OneByteString) ||
+                                (replacement is _ExternalOneByteString);
+    if (replacementIsOneByte && length < _maxJoinReplaceOneByteStringLength) {
       // TODO(lrn): Is there a cut-off point, or is runtime always faster?
-      return _joinReplaceAllOneByteResult(this, matches, length);
+      bool thisIsOneByte = (this is _OneByteString) ||
+                           (this is _ExternalOneByteString);
+      if (replacementIsOneByte && thisIsOneByte) {
+        return _joinReplaceAllOneByteResult(this, matches, length);
+      }
     }
     return _joinReplaceAllResult(this, matches, length,
                                  replacementIsOneByte);
@@ -690,52 +688,25 @@ class _StringBase {
     bool replacementStringsAreOneByte = true;
     for (Match match in pattern.allMatches(this)) {
       length += _addReplaceSlice(matches, startIndex, match.start);
-      var replacement = "${replace(match)}";
+      String replacement = replace(match).toString();
       matches.add(replacement);
       length += replacement.length;
-      replacementStringsAreOneByte =
-          replacementStringsAreOneByte && replacement._isOneByte;
+      replacementStringsAreOneByte = replacementStringsAreOneByte &&
+          (replacement is _OneByteString ||
+           replacement is _ExternalOneByteString);
       startIndex = match.end;
     }
-    if (matches.isEmpty) return this;
     length += _addReplaceSlice(matches, startIndex, this.length);
     if (replacementStringsAreOneByte &&
-        length < _maxJoinReplaceOneByteStringLength &&
-        this._isOneByte) {
-      return _joinReplaceAllOneByteResult(this, matches, length);
+        length < _maxJoinReplaceOneByteStringLength) {
+      bool thisIsOneByte = (this is _OneByteString) ||
+                           (this is _ExternalOneByteString);
+      if (thisIsOneByte) {
+        return _joinReplaceAllOneByteResult(this, matches, length);
+      }
     }
     return _joinReplaceAllResult(this, matches, length,
                                  replacementStringsAreOneByte);
-  }
-
-  String replaceFirstMapped(Pattern pattern, String replace(Match match),
-                            [int startIndex = 0]) {
-    if (pattern == null) throw new ArgumentError.notNull("pattern");
-    if (replace == null) throw new ArgumentError.notNull("replace");
-    if (startIndex == null) throw new ArgumentError.notNull("startIndex");
-    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
-
-    var matches = pattern.allMatches(this, startIndex).iterator;
-    if (!matches.moveNext()) return this;
-    var match = matches.current;
-    var replacement = "${replace(match)}";
-    var slices = [];
-    int length = 0;
-    if (match.start > 0) {
-      length += _addReplaceSlice(slices, 0, match.start);
-    }
-    slices.add(replacement);
-    length += replacement.length;
-    if (match.end < this.length) {
-      length += _addReplaceSlice(slices, match.end, this.length);
-    }
-    bool replacementIsOneByte = _replacement._isOneByte;
-    if (replacementIsOneByte &&
-        length < _maxJoinReplaceOneByteStringLength &&
-        this._isOneByte) {
-      return _joinReplaceAllOneByteResult(this, matches, length);
-    }
-    return _joinReplaceAllResult(this, slices, length, replacementIsOneByte);
   }
 
   static String _matchString(Match match) => match[0];
@@ -799,7 +770,7 @@ class _StringBase {
   static String _interpolateSingle(Object o) {
     final s = o.toString();
     if (s is! String) {
-      throw new ArgumentError(Error.safeToString(o));
+      throw new ArgumentError(o);
     }
     return s;
   }
@@ -821,7 +792,7 @@ class _StringBase {
         totalLength += s.length;
         i++;
       } else if (s is! String) {
-        throw new ArgumentError(Error.safeToString(e));
+        throw new ArgumentError(s);
       } else {
         // Handle remaining elements without checking for one-byte-ness.
         while (++i < numValues) {
@@ -829,7 +800,7 @@ class _StringBase {
           final s = e.toString();
           values[i] = s;
           if (s is! String) {
-            throw new ArgumentError(Error.safeToString(e));
+            throw new ArgumentError(s);
           }
         }
         return _concatRangeNative(values, 0, numValues);

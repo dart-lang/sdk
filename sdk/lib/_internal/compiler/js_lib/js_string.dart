@@ -73,16 +73,10 @@ class JSString extends Interceptor implements String, JSIndexable {
   String replaceFirst(Pattern from, String to, [int startIndex = 0]) {
     checkString(to);
     checkInt(startIndex);
-    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
+    if (startIndex < 0 || startIndex > this.length) {
+      throw new RangeError.range(startIndex, 0, this.length);
+    }
     return stringReplaceFirstUnchecked(this, from, to, startIndex);
-  }
-
-  String replaceFirstMapped(Pattern from, String replace(Match match),
-                            [int startIndex = 0]) {
-    checkNull(replace);
-    checkInt(startIndex);
-    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
-    return stringReplaceFirstMappedUnchecked(this, from, replace, startIndex);
   }
 
   List<String> split(Pattern pattern) {
