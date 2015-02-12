@@ -125,7 +125,9 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
   E lastWhere(bool test(E value), {E orElse()}) {
-    E result = null;
+    E result = ((__x0) => DDC$RT.cast(__x0, Null, E, "CastLiteral",
+        """line 159, column 16 of dart:collection/iterable.dart: """, __x0 is E,
+        false))(null);
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -138,7 +140,9 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
   E singleWhere(bool test(E value)) {
-    E result = null;
+    E result = ((__x1) => DDC$RT.cast(__x1, Null, E, "CastLiteral",
+        """line 173, column 16 of dart:collection/iterable.dart: """, __x1 is E,
+        false))(null);
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -290,7 +294,9 @@ abstract class IterableBase<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
   E lastWhere(bool test(E value), {E orElse()}) {
-    E result = null;
+    E result = ((__x2) => DDC$RT.cast(__x2, Null, E, "CastLiteral",
+        """line 355, column 16 of dart:collection/iterable.dart: """, __x2 is E,
+        false))(null);
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -303,7 +309,9 @@ abstract class IterableBase<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
   E singleWhere(bool test(E value)) {
-    E result = null;
+    E result = ((__x3) => DDC$RT.cast(__x3, Null, E, "CastLiteral",
+        """line 369, column 16 of dart:collection/iterable.dart: """, __x3 is E,
+        false))(null);
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -394,14 +402,14 @@ abstract class IterableBase<E> implements Iterable<E> {
     var ultimate = null;
     if (!it.moveNext()) {
       if (count <= HEAD_COUNT + TAIL_COUNT) return;
-      ultimateString = ((__x0) => DDC$RT.cast(__x0, dynamic, String,
+      ultimateString = ((__x4) => DDC$RT.cast(__x4, dynamic, String,
           "CastGeneral",
           """line 530, column 24 of dart:collection/iterable.dart: """,
-          __x0 is String, true))(parts.removeLast());
-      penultimateString = ((__x1) => DDC$RT.cast(__x1, dynamic, String,
+          __x4 is String, true))(parts.removeLast());
+      penultimateString = ((__x5) => DDC$RT.cast(__x5, dynamic, String,
           "CastGeneral",
           """line 531, column 27 of dart:collection/iterable.dart: """,
-          __x1 is String, true))(parts.removeLast());
+          __x5 is String, true))(parts.removeLast());
     } else {
       penultimate = it.current;
       count++;
@@ -411,10 +419,10 @@ abstract class IterableBase<E> implements Iterable<E> {
           return;
         }
         ultimateString = "$penultimate";
-        penultimateString = ((__x2) => DDC$RT.cast(__x2, dynamic, String,
+        penultimateString = ((__x6) => DDC$RT.cast(__x6, dynamic, String,
             "CastGeneral",
             """line 541, column 29 of dart:collection/iterable.dart: """,
-            __x2 is String, true))(parts.removeLast());
+            __x6 is String, true))(parts.removeLast());
         length += ultimateString.length + OVERHEAD;
       } else {
         ultimate = it.current;
@@ -427,10 +435,10 @@ abstract class IterableBase<E> implements Iterable<E> {
           if (count > MAX_COUNT) {
             while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD &&
                 count > HEAD_COUNT) {
-              length -= ((__x3) => DDC$RT.cast(__x3, dynamic, int,
+              length -= ((__x7) => DDC$RT.cast(__x7, dynamic, int,
                   "CastGeneral",
                   """line 562, column 25 of dart:collection/iterable.dart: """,
-                  __x3 is int, true))(parts.removeLast().length + OVERHEAD);
+                  __x7 is int, true))(parts.removeLast().length + OVERHEAD);
               count--;
             }
             parts.add("...");
@@ -449,9 +457,9 @@ abstract class IterableBase<E> implements Iterable<E> {
       length += ELLIPSIS_SIZE + OVERHEAD;
     }
     while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-      length -= ((__x4) => DDC$RT.cast(__x4, dynamic, int, "CastGeneral",
+      length -= ((__x8) => DDC$RT.cast(__x8, dynamic, int, "CastGeneral",
           """line 588, column 17 of dart:collection/iterable.dart: """,
-          __x4 is int, true))(parts.removeLast().length + OVERHEAD);
+          __x8 is int, true))(parts.removeLast().length + OVERHEAD);
       if (elision == null) {
         elision = "...";
         length += ELLIPSIS_SIZE + OVERHEAD;

@@ -13,14 +13,14 @@ abstract class Timer {
       return Zone.current.createPeriodicTimer(duration, callback);
     }
     return Zone.current.createPeriodicTimer(duration, Zone.current
-        .bindUnaryCallback(DDC$RT.wrap((void f(Timer __u118)) {
+        .bindUnaryCallback(DDC$RT.wrap((void f(Timer __u132)) {
       void c(Timer x0) => f(DDC$RT.cast(x0, dynamic, Timer, "CastParam",
           """line 80, column 50 of dart:async/timer.dart: """, x0 is Timer,
           true));
       return f == null ? null : c;
-    }, callback, __t121, __t119, "Wrap",
+    }, callback, __t135, __t133, "Wrap",
         """line 80, column 50 of dart:async/timer.dart: """,
-        callback is __t119), runGuarded: true));
+        callback is __t133), runGuarded: true));
   }
   static void run(void callback()) {
     new Timer(Duration.ZERO, callback);
@@ -31,5 +31,5 @@ abstract class Timer {
   external static Timer _createPeriodicTimer(
       Duration duration, void callback(Timer timer));
 }
-typedef dynamic __t119(dynamic __u120);
-typedef void __t121(Timer __u122);
+typedef dynamic __t133(dynamic __u134);
+typedef void __t135(Timer __u136);

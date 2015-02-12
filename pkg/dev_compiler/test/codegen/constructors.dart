@@ -47,7 +47,7 @@ class I {
 }
 
 class J {
-  int nonInitialized;
+  num nonInitialized;
   bool initialized;
 
   J() : initialized = true;

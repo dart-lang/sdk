@@ -56,7 +56,10 @@ class DoubleLinkedQueueEntry<E> {
   }
 }
 class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
-  _DoubleLinkedQueueEntrySentinel() : super(null) {
+  _DoubleLinkedQueueEntrySentinel() : super(((__x32) => DDC$RT.cast(__x32, Null,
+          E, "CastLiteral",
+          """line 164, column 45 of dart:collection/queue.dart: """, __x32 is E,
+          false))(null)) {
     _link(this, this);
   }
   E remove() {
@@ -79,11 +82,11 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
     _sentinel = new _DoubleLinkedQueueEntrySentinel<E>();
   }
   factory DoubleLinkedQueue.from(Iterable elements) {
-    Queue<E> list = ((__x25) => DDC$RT.cast(__x25,
+    Queue<E> list = ((__x33) => DDC$RT.cast(__x33,
         DDC$RT.type((DoubleLinkedQueue<dynamic> _) {}),
         DDC$RT.type((Queue<E> _) {}), "CastExact",
         """line 207, column 21 of dart:collection/queue.dart: """,
-        __x25 is Queue<E>, false))(new DoubleLinkedQueue());
+        __x33 is Queue<E>, false))(new DoubleLinkedQueue());
     for (final E e in elements) {
       list.addLast(e);
     }
@@ -202,7 +205,9 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
       _nextEntry = _nextEntry._next;
       return true;
     }
-    _current = null;
+    _current = ((__x34) => DDC$RT.cast(__x34, Null, E, "CastLiteral",
+        """line 348, column 16 of dart:collection/queue.dart: """, __x34 is E,
+        false))(null);
     _nextEntry = _sentinel = null;
     return false;
   }
@@ -228,11 +233,11 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
   factory ListQueue.from(Iterable elements) {
     if (elements is List) {
       int length = elements.length;
-      ListQueue<E> queue = ((__x26) => DDC$RT.cast(__x26,
+      ListQueue<E> queue = ((__x35) => DDC$RT.cast(__x35,
           DDC$RT.type((ListQueue<dynamic> _) {}),
           DDC$RT.type((ListQueue<E> _) {}), "CastExact",
           """line 399, column 28 of dart:collection/queue.dart: """,
-          __x26 is ListQueue<E>, false))(new ListQueue(length + 1));
+          __x35 is ListQueue<E>, false))(new ListQueue(length + 1));
       assert(queue._table.length > length);
       List sourceList = DDC$RT.cast(elements,
           DDC$RT.type((Iterable<dynamic> _) {}),
@@ -379,7 +384,9 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
   void clear() {
     if (_head != _tail) {
       for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
-        _table[i] = null;
+        _table[i] = ((__x36) => DDC$RT.cast(__x36, Null, E, "CastLiteral",
+            """line 553, column 21 of dart:collection/queue.dart: """,
+            __x36 is E, false))(null);
       }
       _head = _tail = 0;
       _modificationCount++;
@@ -399,7 +406,9 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
     if (_head == _tail) throw IterableElementError.noElement();
     _modificationCount++;
     E result = _table[_head];
-    _table[_head] = null;
+    _table[_head] = ((__x37) => DDC$RT.cast(__x37, Null, E, "CastLiteral",
+        """line 577, column 21 of dart:collection/queue.dart: """, __x37 is E,
+        false))(null);
     _head = (_head + 1) & (_table.length - 1);
     return result;
   }
@@ -408,7 +417,9 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
     _modificationCount++;
     _tail = (_tail - 1) & (_table.length - 1);
     E result = _table[_tail];
-    _table[_tail] = null;
+    _table[_tail] = ((__x38) => DDC$RT.cast(__x38, Null, E, "CastLiteral",
+        """line 587, column 21 of dart:collection/queue.dart: """, __x38 is E,
+        false))(null);
     return result;
   }
   static bool _isPowerOf2(int number) => (number & (number - 1)) == 0;
@@ -443,7 +454,9 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
         _table[i] = _table[prevOffset];
         i = prevOffset;
       }
-      _table[_head] = null;
+      _table[_head] = ((__x39) => DDC$RT.cast(__x39, Null, E, "CastLiteral",
+          """line 654, column 23 of dart:collection/queue.dart: """, __x39 is E,
+          false))(null);
       _head = (_head + 1) & mask;
       return (offset + 1) & mask;
     } else {
@@ -454,7 +467,9 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
         _table[i] = _table[nextOffset];
         i = nextOffset;
       }
-      _table[_tail] = null;
+      _table[_tail] = ((__x40) => DDC$RT.cast(__x40, Null, E, "CastLiteral",
+          """line 665, column 23 of dart:collection/queue.dart: """, __x40 is E,
+          false))(null);
       return offset;
     }
   }
@@ -505,11 +520,13 @@ class _ListQueueIterator<E> implements Iterator<E> {
   bool moveNext() {
     _queue._checkModification(_modificationCount);
     if (_position == _end) {
-      _current = null;
+      _current = ((__x41) => DDC$RT.cast(__x41, Null, E, "CastLiteral",
+          """line 735, column 18 of dart:collection/queue.dart: """, __x41 is E,
+          false))(null);
       return false;
     }
-    _current = ((__x27) => DDC$RT.cast(__x27, dynamic, E, "CastGeneral",
-        """line 738, column 16 of dart:collection/queue.dart: """, __x27 is E,
+    _current = ((__x42) => DDC$RT.cast(__x42, dynamic, E, "CastGeneral",
+        """line 738, column 16 of dart:collection/queue.dart: """, __x42 is E,
         false))(_queue._table[_position]);
     _position = (_position + 1) & (_queue._table.length - 1);
     return true;

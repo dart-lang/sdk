@@ -45,32 +45,36 @@ class _MapBaseValueIterable<V> extends IterableBase<V>
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
-  V get first => ((__x21) => DDC$RT.cast(__x21, dynamic, V, "CastGeneral",
-      """line 122, column 18 of dart:collection/maps.dart: """, __x21 is V,
+  V get first => ((__x26) => DDC$RT.cast(__x26, dynamic, V, "CastGeneral",
+      """line 122, column 18 of dart:collection/maps.dart: """, __x26 is V,
       false))(_map[_map.keys.first]);
-  V get single => ((__x22) => DDC$RT.cast(__x22, dynamic, V, "CastGeneral",
-      """line 123, column 19 of dart:collection/maps.dart: """, __x22 is V,
+  V get single => ((__x27) => DDC$RT.cast(__x27, dynamic, V, "CastGeneral",
+      """line 123, column 19 of dart:collection/maps.dart: """, __x27 is V,
       false))(_map[_map.keys.single]);
-  V get last => ((__x23) => DDC$RT.cast(__x23, dynamic, V, "CastGeneral",
-      """line 124, column 17 of dart:collection/maps.dart: """, __x23 is V,
+  V get last => ((__x28) => DDC$RT.cast(__x28, dynamic, V, "CastGeneral",
+      """line 124, column 17 of dart:collection/maps.dart: """, __x28 is V,
       false))(_map[_map.keys.last]);
   Iterator<V> get iterator => new _MapBaseValueIterator<V>(_map);
 }
 class _MapBaseValueIterator<V> implements Iterator<V> {
   final Iterator _keys;
   final Map _map;
-  V _current = null;
+  V _current = ((__x29) => DDC$RT.cast(__x29, Null, V, "CastLiteral",
+      """line 138, column 16 of dart:collection/maps.dart: """, __x29 is V,
+      false))(null);
   _MapBaseValueIterator(Map map)
       : _map = map,
         _keys = map.keys.iterator;
   bool moveNext() {
     if (_keys.moveNext()) {
-      _current = ((__x24) => DDC$RT.cast(__x24, dynamic, V, "CastGeneral",
-          """line 144, column 18 of dart:collection/maps.dart: """, __x24 is V,
+      _current = ((__x30) => DDC$RT.cast(__x30, dynamic, V, "CastGeneral",
+          """line 144, column 18 of dart:collection/maps.dart: """, __x30 is V,
           false))(_map[_keys.current]);
       return true;
     }
-    _current = null;
+    _current = ((__x31) => DDC$RT.cast(__x31, Null, V, "CastLiteral",
+        """line 147, column 16 of dart:collection/maps.dart: """, __x31 is V,
+        false))(null);
     return false;
   }
   V get current => _current;

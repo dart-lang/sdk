@@ -85,8 +85,8 @@ class RuneIterator implements BidirectionalIterator<int> {
       throw new ArgumentError('Index inside surrogate pair: $index');
     }
   }
-  int get rawIndex => ((__x8) => DDC$RT.cast(__x8, dynamic, int, "CastGeneral",
-      """line 665, column 24 of dart:core/string.dart: """, __x8 is int,
+  int get rawIndex => ((__x9) => DDC$RT.cast(__x9, dynamic, int, "CastGeneral",
+      """line 665, column 24 of dart:core/string.dart: """, __x9 is int,
       true))((_position != _nextPosition) ? _position : null);
   void set rawIndex(int rawIndex) {
     RangeError.checkValidIndex(rawIndex, string, "rawIndex");

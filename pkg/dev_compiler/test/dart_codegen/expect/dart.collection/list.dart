@@ -87,7 +87,9 @@ abstract class ListMixin<E> implements List<E> {
   }
   E singleWhere(bool test(E element)) {
     int length = this.length;
-    E match = null;
+    E match = ((__x9) => DDC$RT.cast(__x9, Null, E, "CastLiteral",
+        """line 151, column 15 of dart:collection/list.dart: """, __x9 is E,
+        false))(null);
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -183,24 +185,24 @@ abstract class ListMixin<E> implements List<E> {
     return false;
   }
   void removeWhere(bool test(E element)) {
-    _filter(this, DDC$RT.wrap((bool f(E __u5)) {
+    _filter(this, DDC$RT.wrap((bool f(E __u10)) {
       bool c(E x0) => f(DDC$RT.cast(x0, dynamic, E, "CastParam",
           """line 264, column 19 of dart:collection/list.dart: """, x0 is E,
           false));
       return f == null ? null : c;
-    }, test, DDC$RT.type((__t8<E> _) {}), __t6, "Wrap",
+    }, test, DDC$RT.type((__t13<E> _) {}), __t11, "Wrap",
         """line 264, column 19 of dart:collection/list.dart: """,
-        test is __t6), false);
+        test is __t11), false);
   }
   void retainWhere(bool test(E element)) {
-    _filter(this, DDC$RT.wrap((bool f(E __u10)) {
+    _filter(this, DDC$RT.wrap((bool f(E __u15)) {
       bool c(E x0) => f(DDC$RT.cast(x0, dynamic, E, "CastParam",
           """line 268, column 19 of dart:collection/list.dart: """, x0 is E,
           false));
       return f == null ? null : c;
-    }, test, DDC$RT.type((__t8<E> _) {}), __t6, "Wrap",
+    }, test, DDC$RT.type((__t13<E> _) {}), __t11, "Wrap",
         """line 268, column 19 of dart:collection/list.dart: """,
-        test is __t6), true);
+        test is __t11), true);
   }
   static void _filter(
       List source, bool test(var element), bool retainMatching) {
@@ -236,16 +238,16 @@ abstract class ListMixin<E> implements List<E> {
       var defaultCompare = Comparable.compare;
       compare = defaultCompare;
     }
-    Sort.sort(this, DDC$RT.wrap((int f(E __u11, E __u12)) {
+    Sort.sort(this, DDC$RT.wrap((int f(E __u16, E __u17)) {
       int c(E x0, E x1) => f(DDC$RT.cast(x0, dynamic, E, "CastParam",
           """line 309, column 21 of dart:collection/list.dart: """, x0 is E,
           false), DDC$RT.cast(x1, dynamic, E, "CastParam",
           """line 309, column 21 of dart:collection/list.dart: """, x1 is E,
           false));
       return f == null ? null : c;
-    }, compare, DDC$RT.type((__t16<E> _) {}), __t13, "Wrap",
+    }, compare, DDC$RT.type((__t21<E> _) {}), __t18, "Wrap",
         """line 309, column 21 of dart:collection/list.dart: """,
-        compare is __t13));
+        compare is __t18));
   }
   void shuffle([Random random]) {
     if (random == null) random = new Random();
@@ -310,17 +312,17 @@ abstract class ListMixin<E> implements List<E> {
     }
     if (otherStart < start) {
       for (int i = length - 1; i >= 0; i--) {
-        this[start + i] = ((__x19) => DDC$RT.cast(__x19, dynamic, E,
+        this[start + i] = ((__x24) => DDC$RT.cast(__x24, dynamic, E,
             "CastGeneral",
             """line 381, column 27 of dart:collection/list.dart: """,
-            __x19 is E, false))(otherList[otherStart + i]);
+            __x24 is E, false))(otherList[otherStart + i]);
       }
     } else {
       for (int i = 0; i < length; i++) {
-        this[start + i] = ((__x20) => DDC$RT.cast(__x20, dynamic, E,
+        this[start + i] = ((__x25) => DDC$RT.cast(__x25, dynamic, E,
             "CastGeneral",
             """line 385, column 27 of dart:collection/list.dart: """,
-            __x20 is E, false))(otherList[otherStart + i]);
+            __x25 is E, false))(otherList[otherStart + i]);
       }
     }
   }
@@ -420,7 +422,7 @@ abstract class ListMixin<E> implements List<E> {
   Iterable<E> get reversed => new ReversedListIterable<E>(this);
   String toString() => IterableBase.iterableToFullString(this, '[', ']');
 }
-typedef bool __t6(dynamic __u7);
-typedef bool __t8<E>(E __u9);
-typedef int __t13(dynamic __u14, dynamic __u15);
-typedef int __t16<E>(E __u17, E __u18);
+typedef bool __t11(dynamic __u12);
+typedef bool __t13<E>(E __u14);
+typedef int __t18(dynamic __u19, dynamic __u20);
+typedef int __t21<E>(E __u22, E __u23);

@@ -86,7 +86,7 @@ main() {
   test('infer type on var from field', () {
     testChecker({
       '/main.dart': '''
-      int x;
+      int x = 0;
 
       test1() {
         var a = x;
@@ -100,7 +100,7 @@ main() {
         c = 4;
       }
 
-      int y; // field def after use
+      int y = 0; // field def after use
       final z = 42; // should infer `int`
     '''
     });

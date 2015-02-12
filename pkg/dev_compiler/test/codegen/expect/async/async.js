@@ -63,7 +63,7 @@ var async;
   let _BroadcastSubscription$ = dart.generic(function(T) {
     class _BroadcastSubscription extends _ControllerSubscription$(T) {
       constructor(controller, onData, onError, onDone, cancelOnError) {
-        this._eventState = null;
+        this._eventState = dart.as(null, core.int);
         this._next = null;
         this._previous = null;
         super(dart.as(controller, _StreamControllerLifecycle$(T)), onData, onError, onDone, cancelOnError);
@@ -1273,7 +1273,7 @@ var async;
       }
       /*constructor*/ periodic(period, computation) {
         if (computation === undefined) computation = null;
-        if (computation === null) computation = ((i) => null);
+        if (computation === null) computation = dart.as(((i) => null), /* Unimplemented type (int) → T */);
         let timer = null;
         let computationCount = 0;
         let controller = null;
@@ -1621,7 +1621,7 @@ var async;
       }
       get last() {
         let future = new _Future();
-        let result = null;
+        let result = dart.as(null, T);
         let foundResult = false;
         let subscription = null;
         subscription = this.listen((value) => {
@@ -1644,7 +1644,7 @@ var async;
       }
       get single() {
         let future = new _Future();
-        let result = null;
+        let result = dart.as(null, T);
         let foundResult = false;
         let subscription = null;
         subscription = this.listen((value) => {
@@ -1703,7 +1703,7 @@ var async;
       lastWhere(test, opt$) {
         let defaultValue = opt$.defaultValue === undefined ? null : opt$.defaultValue;
         let future = new _Future();
-        let result = null;
+        let result = dart.as(null, T);
         let foundResult = false;
         let subscription = null;
         subscription = this.listen((value) => {
@@ -1734,7 +1734,7 @@ var async;
       }
       singleWhere(test) {
         let future = new _Future();
-        let result = null;
+        let result = dart.as(null, T);
         let foundResult = false;
         let subscription = null;
         subscription = this.listen((value) => {
@@ -3044,7 +3044,7 @@ var async;
     class _StreamIteratorImpl {
       constructor(stream) {
         this._subscription = null;
-        this._current = null;
+        this._current = dart.as(null, T);
         this._futureOrPrefetch = null;
         this._state = _STATE_FOUND;
         this._subscription = stream.listen(this._onData, {onError: this._onError, onDone: this._onDone, cancelOnError: true});
@@ -3059,7 +3059,7 @@ var async;
         }
         if (this._state === _STATE_FOUND) {
           this._state = _STATE_MOVING;
-          this._current = null;
+          this._current = dart.as(null, T);
           this._futureOrPrefetch = new _Future();
           return dart.as(this._futureOrPrefetch, Future$(core.bool));
         } else {
@@ -3084,7 +3084,7 @@ var async;
       _clear() {
         this._subscription = null;
         this._futureOrPrefetch = null;
-        this._current = null;
+        this._current = dart.as(null, T);
         this._state = _STATE_DONE;
       }
       cancel() {

@@ -473,11 +473,11 @@ $name.prototype[Symbol.iterator] = function() {
       NodeList<ConstructorInitializer> initializers]) {
 
     // Run field initializers if they can have side-effects.
-    var unsetFields = new Map<String, Expression>();
+    var unsetFields = new Map<String, VariableDeclaration>();
     for (var declaration in fields) {
       for (var field in declaration.fields.variables) {
         if (_isFieldInitConstant(field)) {
-          unsetFields[field.name.name] = field.initializer;
+          unsetFields[field.name.name] = field;
         } else {
           _visitNode(field, suffix: ';\n');
         }
@@ -510,12 +510,20 @@ $name.prototype[Symbol.iterator] = function() {
     }
 
     // Initialize all remaining fields
-    unsetFields.forEach((name, expression) {
+    unsetFields.forEach((name, field) {
       out.write('this.$name = ');
+      var expression = field.initializer;
       if (expression != null) {
         expression.accept(this);
       } else {
-        out.write('null');
+        var type = rules.elementType(field.element);
+        if (rules.maybePrimitiveType(type)) {
+          out.write('dart.as(null, ');
+          _writeTypeName(type);
+          out.write(')');
+        } else {
+          out.write('null');
+        }
       }
       out.write(';\n');
     });

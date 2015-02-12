@@ -354,8 +354,16 @@ class StaticTypeError extends StaticError {
 
   String get message =>
       'Type check failed: $node ($baseType) is not of type $expectedType';
+}
 
-  Level get level => Level.SEVERE;
+class InvalidVariableDeclaration extends StaticError {
+  final DartType expectedType;
+
+  InvalidVariableDeclaration(
+      TypeRules rules, VariableDeclaration declaration, this.expectedType)
+      : super(declaration);
+
+  String get message => 'Type check failed: null is not of type $expectedType';
 }
 
 class InvalidRuntimeCheckError extends StaticError {

@@ -154,9 +154,9 @@ class _MapStream<S, T> extends _ForwardingStream<S, T> {
   void _handleData(S inputEvent, _EventSink<T> sink) {
     T outputEvent;
     try {
-      outputEvent = ((__x109) => DDC$RT.cast(__x109, dynamic, T, "CastGeneral",
+      outputEvent = ((__x123) => DDC$RT.cast(__x123, dynamic, T, "CastGeneral",
           """line 235, column 21 of dart:async/stream_pipe.dart: """,
-          __x109 is T, false))(_transform(inputEvent));
+          __x123 is T, false))(_transform(inputEvent));
     } catch (e, s) {
       _addErrorWithReplacement(sink, e, s);
       return;

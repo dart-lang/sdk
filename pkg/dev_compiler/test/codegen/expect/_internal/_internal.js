@@ -92,7 +92,7 @@ var _internal;
       }
       singleWhere(test) {
         let length = this.length;
-        let match = null;
+        let match = dart.as(null, E);
         let matchFound = false;
         for (let i = 0; i < length; i++) {
           let element = this.elementAt(i);
@@ -282,7 +282,7 @@ var _internal;
         this._iterable = iterable;
         this._length = iterable.length;
         this._index = 0;
-        this._current = null;
+        this._current = dart.as(null, E);
       }
       get current() { return this._current; }
       moveNext() {
@@ -291,7 +291,7 @@ var _internal;
           throw new core.ConcurrentModificationError(this._iterable);
         }
         if (this._index >= length) {
-          this._current = null;
+          this._current = dart.as(null, E);
           return false;
         }
         this._current = this._iterable.elementAt(this._index);
@@ -344,7 +344,7 @@ var _internal;
       constructor(_iterator, _f) {
         this._iterator = _iterator;
         this._f = _f;
-        this._current = null;
+        this._current = dart.as(null, T);
         super();
       }
       moveNext() {
@@ -352,7 +352,7 @@ var _internal;
           this._current = this._f(this._iterator.current);
           return true;
         }
-        this._current = null;
+        this._current = dart.as(null, T);
         return false;
       }
       get current() { return this._current; }
@@ -428,7 +428,7 @@ var _internal;
         this._iterator = _iterator;
         this._f = _f;
         this._currentExpansion = dart.as(new EmptyIterator(), core.Iterator$(T));
-        this._current = null;
+        this._current = dart.as(null, T);
       }
       _nextExpansion() {
       }
@@ -436,7 +436,7 @@ var _internal;
       moveNext() {
         if (this._currentExpansion === null) return false;
         while (!this._currentExpansion.moveNext()) {
-          this._current = null;
+          this._current = dart.as(null, T);
           if (this._iterator.moveNext()) {
             this._currentExpansion = null;
             this._currentExpansion = dart.as(this._f(this._iterator.current).iterator, core.Iterator$(T));
@@ -509,7 +509,7 @@ var _internal;
         return false;
       }
       get current() {
-        if (this._remaining < 0) return null;
+        if (this._remaining < 0) return dart.as(null, E);
         return this._iterator.current;
       }
     }
@@ -549,7 +549,7 @@ var _internal;
         return true;
       }
       get current() {
-        if (this._isFinished) return null;
+        if (this._isFinished) return dart.as(null, E);
         return this._iterator.current;
       }
     }
@@ -739,7 +739,7 @@ var _internal;
       constructor() {
       }
       moveNext() { return false; }
-      get current() { return null; }
+      get current() { return dart.as(null, E); }
     }
     return EmptyIterator;
   });

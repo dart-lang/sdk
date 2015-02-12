@@ -4,6 +4,12 @@ class A {
   int x = 42;
 }
 
+class B<T> {
+  int x;
+  num y;
+  T z;
+}
+
 int foo(A a) {
   print(a.x);
   return a.x;

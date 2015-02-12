@@ -32,11 +32,23 @@ main() {
   test('Primitives', () {
     testChecker({
       '/main.dart': '''
+        int /*severe:InvalidVariableDeclaration*/a;
+        double /*severe:InvalidVariableDeclaration*/b;
+        num c;
+
+        class A {
+          int a;
+          double b;
+          num c;
+
+          static int /*severe:InvalidVariableDeclaration*/x;
+          static double /*severe:InvalidVariableDeclaration*/y;
+          static num z;
+        }
+
         void main() {
-          // TODO(vsm): This declaration should be an error.
-          int x;
-          // TODO(vsm): This declaration should be an error.
-          double y;
+          int /*severe:InvalidVariableDeclaration*/x;
+          double /*severe:InvalidVariableDeclaration*/y;
           num z;
           bool b;
 
@@ -61,6 +73,45 @@ main() {
           // bool is nullable
           b = null;
           b = true;
+        }
+      '''
+    });
+  });
+
+  test('Primitives and generics', () {
+    testChecker({
+      '/main.dart': '''
+        class A<T> {
+          // TODO(vsm): This needs a static info indicating a runtime
+          // check at construction.
+          T x;
+
+          // TODO(vsm): Should this be a different type of DownCast?
+          T foo() => /*warning:DownCastLiteral*/null;
+
+          void bar() {
+            int /*severe:InvalidVariableDeclaration*/x;
+            num y;
+            // TODO(vsm): This should be a runtime check:
+            // Transformed to: T z = cast(null, T)
+            T /*severe:InvalidVariableDeclaration*/z;
+          }
+        }
+
+        class B<T extends List> {
+          T x;
+
+          // T cannot be primitive.
+          T foo() => null;
+        }
+
+        class C<T extends num> {
+          // TODO(vsm): This needs a static info indicating a runtime
+          // check at construction.
+          T x;
+
+          // TODO(vsm): Should this be a different type of DownCast?
+          T foo() => /*warning:DownCastLiteral*/null;
         }
       '''
     });
@@ -96,8 +147,8 @@ main() {
       void main() {
          dynamic y;
          Object o;
-         int i;
-         double d;
+         int i = 0;
+         double d = 0.0;
          num n;
          A a;
          B b;
@@ -122,8 +173,8 @@ main() {
       void main() {
          dynamic y;
          Object o;
-         int i;
-         double d;
+         int i = 0;
+         double d = 0.0;
          num n;
          A a;
          B b;
@@ -148,8 +199,8 @@ main() {
       void main() {
          dynamic y;
          Object o;
-         int i;
-         double d;
+         int i = 0;
+         double d = 0.0;
          num n;
          A a;
          B b;
@@ -176,8 +227,8 @@ main() {
       void main() {
          dynamic y;
          Object o;
-         int i;
-         double d;
+         int i = 0;
+         double d = 0.0;
          num n;
          A a;
          B b;

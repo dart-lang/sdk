@@ -106,12 +106,12 @@ class _BoundSinkStream<S, T> extends Stream<T> {
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription<T> subscription = ((__x110) => DDC$RT.cast(__x110,
+    StreamSubscription<T> subscription = ((__x124) => DDC$RT.cast(__x124,
             DDC$RT.type(
                 (_SinkTransformerStreamSubscription<dynamic, dynamic> _) {}),
             DDC$RT.type((StreamSubscription<T> _) {}), "CastExact",
             """line 186, column 42 of dart:async/stream_transformers.dart: """,
-            __x110 is StreamSubscription<T>, false))(
+            __x124 is StreamSubscription<T>, false))(
         new _SinkTransformerStreamSubscription(
             _stream, _sinkMapper, onData, onError, onDone, cancelOnError));
     return subscription;
@@ -137,16 +137,16 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   _StreamHandlerTransformer({void handleData(S data, EventSink<T> sink),
       void handleError(Object error, StackTrace stackTrace, EventSink<T> sink),
       void handleDone(EventSink<T> sink)})
-      : super(((__x117) => DDC$RT.wrap((dynamic f(EventSink<T> __u112)) {
-        dynamic c(EventSink<T> x0) => ((__x111) => DDC$RT.cast(__x111, dynamic,
+      : super(((__x131) => DDC$RT.wrap((dynamic f(EventSink<T> __u126)) {
+        dynamic c(EventSink<T> x0) => ((__x125) => DDC$RT.cast(__x125, dynamic,
             DDC$RT.type((EventSink<S> _) {}), "CastResult",
             """line 233, column 15 of dart:async/stream_transformers.dart: """,
-            __x111 is EventSink<S>, false))(f(x0));
+            __x125 is EventSink<S>, false))(f(x0));
         return f == null ? null : c;
-      }, __x117, DDC$RT.type((__t115<T> _) {}),
-          DDC$RT.type((__t113<T, S> _) {}), "WrapLiteral",
+      }, __x131, DDC$RT.type((__t129<T> _) {}),
+          DDC$RT.type((__t127<T, S> _) {}), "WrapLiteral",
           """line 233, column 15 of dart:async/stream_transformers.dart: """,
-          __x117 is __t113<T, S>))((EventSink<T> outputSink) {
+          __x131 is __t127<T, S>))((EventSink<T> outputSink) {
         if (handleData == null) handleData = _defaultHandleData;
         if (handleError == null) handleError = _defaultHandleError;
         if (handleDone == null) handleDone = _defaultHandleDone;
@@ -189,5 +189,5 @@ class _BoundSubscriptionStream<S, T> extends Stream<T> {
     return result;
   }
 }
-typedef EventSink<S> __t113<T, S>(EventSink<T> __u114);
-typedef dynamic __t115<T>(EventSink<T> __u116);
+typedef EventSink<S> __t127<T, S>(EventSink<T> __u128);
+typedef dynamic __t129<T>(EventSink<T> __u130);

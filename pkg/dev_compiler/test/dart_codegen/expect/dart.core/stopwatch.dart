@@ -31,8 +31,8 @@ class Stopwatch {
     if (_start == null) {
       return 0;
     }
-    return ((__x7) => DDC$RT.cast(__x7, num, int, "CastGeneral",
-        """line 102, column 12 of dart:core/stopwatch.dart: """, __x7 is int,
+    return ((__x8) => DDC$RT.cast(__x8, num, int, "CastGeneral",
+        """line 102, column 12 of dart:core/stopwatch.dart: """, __x8 is int,
         true))((_stop == null) ? (_now() - _start) : (_stop - _start));
   }
   Duration get elapsed {

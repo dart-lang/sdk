@@ -28,6 +28,7 @@ abstract class TypeRules {
   bool isNumType(DartType t) => t == provider.intType.superclass;
   bool isStringType(DartType t) => t == provider.stringType;
   bool isPrimitiveType(DartType t) => false;
+  bool maybePrimitiveType(DartType t) => false;
 
   StaticInfo checkAssignment(Expression expr, DartType t);
 
@@ -84,10 +85,12 @@ class RestrictedRules extends TypeRules {
   final CheckerReporter _reporter;
   final bool covariantGenerics;
   final bool relaxedCasts;
+  final List<DartType> _primitives;
 
   RestrictedRules(TypeProvider provider, this._reporter,
       {this.covariantGenerics: true, this.relaxedCasts: true})
-      : super(provider);
+      : _primitives = [provider.intType, provider.doubleType],
+        super(provider) {}
 
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
@@ -96,7 +99,24 @@ class RestrictedRules extends TypeRules {
     return provider.dynamicType;
   }
 
-  bool isPrimitiveType(DartType t) => isIntType(t) || isDoubleType(t);
+  bool isPrimitiveType(DartType t) => _primitives.contains(t);
+
+  bool maybePrimitiveType(DartType t) {
+    // Return true iff t *may* be a primitive type.
+    // If t is a generic type parameter, return true if it may be
+    // instantiated as a primitive.
+    if (isPrimitiveType(t)) {
+      return true;
+    } else if (t is TypeParameterType) {
+      var bound = t.element.bound;
+      if (bound == null) {
+        return true;
+      }
+      return _primitives.any((DartType p) => isSubTypeOf(p, bound));
+    } else {
+      return false;
+    }
+  }
 
   // TODO(leafp): Revisit this.
   bool isGroundType(DartType t) {
@@ -230,7 +250,10 @@ class RestrictedRules extends TypeRules {
 
     // Null can be assigned to anything non-primitive.
     // FIXME: Can this be anything besides null?
-    if (t1.isBottom) return !isPrimitiveType(t2);
+    if (t1.isBottom) {
+      // Return false iff t2 *may* be a primitive type.
+      return !maybePrimitiveType(t2);
+    }
     if (t2.isBottom) return false;
 
     if (t2.isDynamic) return true;

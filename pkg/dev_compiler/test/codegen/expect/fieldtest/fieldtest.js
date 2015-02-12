@@ -8,6 +8,19 @@ var fieldtest;
     }
   }
 
+  let B$ = dart.generic(function(T) {
+    class B {
+      constructor() {
+        this.x = dart.as(null, core.int);
+        this.y = null;
+        this.z = dart.as(null, T);
+        super();
+      }
+    }
+    return B;
+  });
+  let B = B$(dynamic);
+
   // Function foo: (A) → int
   function foo(a) {
     core.print(a.x);
@@ -49,6 +62,8 @@ var fieldtest;
 
   // Exports:
   fieldtest.A = A;
+  fieldtest.B = B;
+  fieldtest.B$ = B$;
   fieldtest.foo = foo;
   fieldtest.bar = bar;
   fieldtest.baz = baz;

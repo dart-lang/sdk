@@ -118,9 +118,9 @@ class _ListIndicesIterable extends ListIterable<int> {
 class ListMapView<E> implements Map<int, E> {
   List<E> _values;
   ListMapView(this._values);
-  E operator [](int key) => ((__x11) => DDC$RT.cast(__x11, dynamic, E,
+  E operator [](int key) => ((__x18) => DDC$RT.cast(__x18, dynamic, E,
       "CastGeneral", """line 251, column 29 of dart:_internal/list.dart: """,
-      __x11 is E, false))(containsKey(key) ? _values[key] : null);
+      __x18 is E, false))(containsKey(key) ? _values[key] : null);
   int get length => _values.length;
   Iterable<E> get values => new SubListIterable<E>(_values, 0, null);
   Iterable<int> get keys => new _ListIndicesIterable(_values);

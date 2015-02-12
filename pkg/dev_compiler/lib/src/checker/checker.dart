@@ -468,6 +468,19 @@ class CodeChecker extends RecursiveAstVisitor {
         var initializer = variable.initializer;
         if (initializer != null) {
           variable.initializer = checkAssignment(initializer, dartType);
+        } else if (_rules.maybePrimitiveType(dartType)) {
+          var element = variable.element;
+          if (element is FieldElement && !element.isStatic) {
+            // Initialized - possibly implicitly - during construction.
+            // Handle this via a runtime check during code generation.
+
+            // TODO(vsm): Detect statically whether this can fail and
+            // report a static error (must fail) or warning (can fail).
+          } else {
+            var staticInfo =
+                new InvalidVariableDeclaration(_rules, variable, dartType);
+            _recordMessage(staticInfo);
+          }
         }
       }
     }

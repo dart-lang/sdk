@@ -821,7 +821,7 @@ var core;
         this._index = _index;
         this._end = _end;
         this._generator = _generator;
-        this._current = null;
+        this._current = dart.as(null, E);
       }
       moveNext() {
         if (this._index < this._end) {
@@ -829,7 +829,7 @@ var core;
           this._index++;
           return true;
         } else {
-          this._current = null;
+          this._current = dart.as(null, E);
           return false;
         }
       }

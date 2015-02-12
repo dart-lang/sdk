@@ -218,7 +218,7 @@ var collection;
       }
       lastWhere(test, opt$) {
         let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-        let result = null;
+        let result = dart.as(null, E);
         let foundMatching = false;
         for (let element of this) {
           if (test(element)) {
@@ -231,7 +231,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       singleWhere(test) {
-        let result = null;
+        let result = dart.as(null, E);
         let foundMatching = false;
         for (let element of this) {
           if (test(element)) {
@@ -388,7 +388,7 @@ var collection;
       }
       lastWhere(test, opt$) {
         let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-        let result = null;
+        let result = dart.as(null, E);
         let foundMatching = false;
         for (let element of this) {
           if (test(element)) {
@@ -401,7 +401,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       singleWhere(test) {
-        let result = null;
+        let result = dart.as(null, E);
         let foundMatching = false;
         for (let element of this) {
           if (test(element)) {
@@ -896,7 +896,7 @@ var collection;
       }
       singleWhere(test) {
         let length = this.length;
-        let match = null;
+        let match = dart.as(null, E);
         let matchFound = false;
         for (let i = 0; i < length; i++) {
           let element = this.get(i);
@@ -1283,14 +1283,14 @@ var collection;
       constructor(map) {
         this._map = map;
         this._keys = map.keys.iterator;
-        this._current = null;
+        this._current = dart.as(null, V);
       }
       moveNext() {
         if (this._keys.moveNext()) {
           this._current = dart.as(this._map.get(this._keys.current), V);
           return true;
         }
-        this._current = null;
+        this._current = dart.as(null, V);
         return false;
       }
       get current() { return this._current; }
@@ -1514,7 +1514,7 @@ var collection;
   let _DoubleLinkedQueueEntrySentinel$ = dart.generic(function(E) {
     class _DoubleLinkedQueueEntrySentinel extends DoubleLinkedQueueEntry$(E) {
       constructor() {
-        super(null);
+        super(dart.as(null, E));
         this._link(this, this);
       }
       remove() {
@@ -1656,7 +1656,7 @@ var collection;
       constructor(sentinel) {
         this._sentinel = sentinel;
         this._nextEntry = sentinel._next;
-        this._current = null;
+        this._current = dart.as(null, E);
       }
       moveNext() {
         if (!core.identical(this._nextEntry, this._sentinel)) {
@@ -1664,7 +1664,7 @@ var collection;
           this._nextEntry = this._nextEntry._next;
           return true;
         }
-        this._current = null;
+        this._current = dart.as(null, E);
         this._nextEntry = this._sentinel = null;
         return false;
       }
@@ -1818,7 +1818,7 @@ var collection;
       clear() {
         if (this._head !== this._tail) {
           for (let i = this._head; i !== this._tail; i = (i + 1) & (this._table.length - 1)) {
-            this._table.set(i, null);
+            this._table.set(i, dart.as(null, E));
           }
           this._head = this._tail = 0;
           this._modificationCount++;
@@ -1838,7 +1838,7 @@ var collection;
         if (this._head === this._tail) throw _internal.IterableElementError.noElement();
         this._modificationCount++;
         let result = this._table.get(this._head);
-        this._table.set(this._head, null);
+        this._table.set(this._head, dart.as(null, E));
         this._head = (this._head + 1) & (this._table.length - 1);
         return result;
       }
@@ -1847,7 +1847,7 @@ var collection;
         this._modificationCount++;
         this._tail = (this._tail - 1) & (this._table.length - 1);
         let result = this._table.get(this._tail);
-        this._table.set(this._tail, null);
+        this._table.set(this._tail, dart.as(null, E));
         return result;
       }
       static _isPowerOf2(number) { return (number & (number - 1)) === 0; }
@@ -1882,7 +1882,7 @@ var collection;
             this._table.set(i, this._table.get(prevOffset));
             i = prevOffset;
           }
-          this._table.set(this._head, null);
+          this._table.set(this._head, dart.as(null, E));
           this._head = (this._head + 1) & mask;
           return (offset + 1) & mask;
         } else {
@@ -1893,7 +1893,7 @@ var collection;
             this._table.set(i, this._table.get(nextOffset));
             i = nextOffset;
           }
-          this._table.set(this._tail, null);
+          this._table.set(this._tail, dart.as(null, E));
           return offset;
         }
       }
@@ -1942,13 +1942,13 @@ var collection;
         this._end = queue._tail;
         this._modificationCount = queue._modificationCount;
         this._position = queue._head;
-        this._current = null;
+        this._current = dart.as(null, E);
       }
       get current() { return this._current; }
       moveNext() {
         this._queue._checkModification(this._modificationCount);
         if (this._position === this._end) {
-          this._current = null;
+          this._current = dart.as(null, E);
           return false;
         }
         this._current = dart.as(this._queue._table.get(this._position), E);
@@ -2132,7 +2132,7 @@ var collection;
       }
       lastWhere(test, opt$) {
         let orElse = opt$.orElse === undefined ? null : opt$.orElse;
-        let result = null;
+        let result = dart.as(null, E);
         let foundMatching = false;
         for (let element of this) {
           if (test(element)) {
@@ -2145,7 +2145,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       singleWhere(test) {
-        let result = null;
+        let result = dart.as(null, E);
         let foundMatching = false;
         for (let element of this) {
           if (test(element)) {
@@ -2387,7 +2387,7 @@ var collection;
       }
       get(key) {
         if (key === null) throw new core.ArgumentError(key);
-        if (!this._validKey(key)) return null;
+        if (!this._validKey(key)) return dart.as(null, V);
         if (this._root !== null) {
           let comp = this._splay(dart.as(key, K));
           if (comp === 0) {
@@ -2395,13 +2395,13 @@ var collection;
             return dart.as(mapRoot.value, V);
           }
         }
-        return null;
+        return dart.as(null, V);
       }
       remove(key) {
-        if (!this._validKey(key)) return null;
+        if (!this._validKey(key)) return dart.as(null, V);
         let mapRoot = dart.as(this._remove(dart.as(key, K)), _SplayTreeMapNode);
         if (mapRoot !== null) return dart.as(mapRoot.value, V);
-        return null;
+        return dart.as(null, V);
       }
       set(key, value) {
         if (key === null) throw new core.ArgumentError(key);
@@ -2481,20 +2481,20 @@ var collection;
         return Maps.mapToString(this);
       }
       firstKey() {
-        if (this._root === null) return null;
+        if (this._root === null) return dart.as(null, K);
         return dart.as(this._first.key, K);
       }
       lastKey() {
-        if (this._root === null) return null;
+        if (this._root === null) return dart.as(null, K);
         return dart.as(this._last.key, K);
       }
       lastKeyBefore(key) {
         if (key === null) throw new core.ArgumentError(key);
-        if (this._root === null) return null;
+        if (this._root === null) return dart.as(null, K);
         let comp = this._splay(key);
         if (comp < 0) return this._root.key;
         let node = this._root.left;
-        if (node === null) return null;
+        if (node === null) return dart.as(null, K);
         while (node.right !== null) {
           node = node.right;
         }
@@ -2502,11 +2502,11 @@ var collection;
       }
       firstKeyAfter(key) {
         if (key === null) throw new core.ArgumentError(key);
-        if (this._root === null) return null;
+        if (this._root === null) return dart.as(null, K);
         let comp = this._splay(key);
         if (comp > 0) return this._root.key;
         let node = this._root.right;
-        if (node === null) return null;
+        if (node === null) return dart.as(null, K);
         while (node.left !== null) {
           node = node.left;
         }
@@ -2535,7 +2535,7 @@ var collection;
         this._workList = new List.from([]);
         this._tree = tree;
         this._modificationCount = tree._modificationCount;
-        this._splayCount = null;
+        this._splayCount = dart.as(null, core.int);
         this._currentNode = null;
         if (tree._root === null) return;
         let compare = tree._splay(startKey);
@@ -2547,7 +2547,7 @@ var collection;
         }
       }
       get current() {
-        if (this._currentNode === null) return null;
+        if (this._currentNode === null) return dart.as(null, T);
         return this._getValue(this._currentNode);
       }
       _findLeftMostDescendent(node) {
@@ -2738,9 +2738,9 @@ var collection;
         }
       }
       lookup(object) {
-        if (!this._validKey(object)) return null;
+        if (!this._validKey(object)) return dart.as(null, E);
         let comp = this._splay(dart.as(object, E));
-        if (comp !== 0) return null;
+        if (comp !== 0) return dart.as(null, E);
         return this._root.key;
       }
       intersection(other) {

@@ -88,7 +88,9 @@ abstract class ListIterable<E> extends IterableBase<E>
   }
   E singleWhere(bool test(E element)) {
     int length = this.length;
-    E match = null;
+    E match = ((__x0) => DDC$RT.cast(__x0, Null, E, "CastLiteral",
+        """line 125, column 15 of dart:_internal/iterable.dart: """, __x0 is E,
+        false))(null);
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       E element = elementAt(i);
@@ -273,7 +275,9 @@ class ListIterator<E> implements Iterator<E> {
       throw new ConcurrentModificationError(_iterable);
     }
     if (_index >= length) {
-      _current = null;
+      _current = ((__x1) => DDC$RT.cast(__x1, Null, E, "CastLiteral",
+          """line 338, column 18 of dart:_internal/iterable.dart: """,
+          __x1 is E, false))(null);
       return false;
     }
     _current = _iterable.elementAt(_index);
@@ -318,7 +322,9 @@ class MappedIterator<S, T> extends Iterator<T> {
       _current = _f(_iterator.current);
       return true;
     }
-    _current = null;
+    _current = ((__x2) => DDC$RT.cast(__x2, Null, T, "CastLiteral",
+        """line 393, column 16 of dart:_internal/iterable.dart: """, __x2 is T,
+        false))(null);
     return false;
   }
   T get current => _current;
@@ -362,10 +368,10 @@ class ExpandIterable<S, T> extends IterableBase<T> {
 class ExpandIterator<S, T> implements Iterator<T> {
   final Iterator<S> _iterator;
   final _ExpandFunction _f;
-  Iterator<T> _currentExpansion = ((__x0) => DDC$RT.cast(__x0, null,
+  Iterator<T> _currentExpansion = ((__x3) => DDC$RT.cast(__x3, null,
       DDC$RT.type((Iterator<T> _) {}), "CastExact",
       """line 463, column 35 of dart:_internal/iterable.dart: """,
-      __x0 is Iterator<T>, false))(const EmptyIterator());
+      __x3 is Iterator<T>, false))(const EmptyIterator());
   T _current;
   ExpandIterator(this._iterator, Iterable<T> this._f(S element));
   void _nextExpansion() {}
@@ -373,14 +379,16 @@ class ExpandIterator<S, T> implements Iterator<T> {
   bool moveNext() {
     if (_currentExpansion == null) return false;
     while (!_currentExpansion.moveNext()) {
-      _current = null;
+      _current = ((__x4) => DDC$RT.cast(__x4, Null, T, "CastLiteral",
+          """line 476, column 18 of dart:_internal/iterable.dart: """,
+          __x4 is T, false))(null);
       if (_iterator.moveNext()) {
         _currentExpansion = null;
-        _currentExpansion = ((__x1) => DDC$RT.cast(__x1,
+        _currentExpansion = ((__x5) => DDC$RT.cast(__x5,
             DDC$RT.type((Iterator<dynamic> _) {}),
             DDC$RT.type((Iterator<T> _) {}), "CastDynamic",
             """line 481, column 29 of dart:_internal/iterable.dart: """,
-            __x1 is Iterator<T>, false))(_f(_iterator.current).iterator);
+            __x5 is Iterator<T>, false))(_f(_iterator.current).iterator);
       } else {
         return false;
       }
@@ -431,7 +439,10 @@ class TakeIterator<E> extends Iterator<E> {
     return false;
   }
   E get current {
-    if (_remaining < 0) return null;
+    if (_remaining < 0) return ((__x6) => DDC$RT.cast(__x6, Null, E,
+        "CastLiteral",
+        """line 543, column 32 of dart:_internal/iterable.dart: """, __x6 is E,
+        false))(null);
     return _iterator.current;
   }
 }
@@ -457,7 +468,9 @@ class TakeWhileIterator<E> extends Iterator<E> {
     return true;
   }
   E get current {
-    if (_isFinished) return null;
+    if (_isFinished) return ((__x7) => DDC$RT.cast(__x7, Null, E, "CastLiteral",
+        """line 576, column 29 of dart:_internal/iterable.dart: """, __x7 is E,
+        false))(null);
     return _iterator.current;
   }
 }
@@ -536,10 +549,10 @@ class SkipWhileIterator<E> extends Iterator<E> {
 }
 class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
   const EmptyIterable();
-  Iterator<E> get iterator => ((__x2) => DDC$RT.cast(__x2, null,
+  Iterator<E> get iterator => ((__x8) => DDC$RT.cast(__x8, null,
       DDC$RT.type((Iterator<E> _) {}), "CastExact",
       """line 678, column 31 of dart:_internal/iterable.dart: """,
-      __x2 is Iterator<E>, false))(const EmptyIterator());
+      __x8 is Iterator<E>, false))(const EmptyIterator());
   void forEach(void action(E element)) {}
   bool get isEmpty => true;
   int get length => 0;
@@ -595,7 +608,9 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 class EmptyIterator<E> implements Iterator<E> {
   const EmptyIterator();
   bool moveNext() => false;
-  E get current => null;
+  E get current => ((__x9) => DDC$RT.cast(__x9, Null, E, "CastLiteral",
+      """line 752, column 20 of dart:_internal/iterable.dart: """, __x9 is E,
+      false))(null);
 }
 abstract class BidirectionalIterator<T> implements Iterator<T> {
   bool movePrevious();
@@ -794,7 +809,7 @@ class IterableMixinWorkaround<T> {
   }
   static void sortList(List list, int compare(a, b)) {
     if (compare == null) compare = DDC$RT.wrap(
-        (int f(Comparable<dynamic> __u3, Comparable<dynamic> __u4)) {
+        (int f(Comparable<dynamic> __u10, Comparable<dynamic> __u11)) {
       int c(Comparable<dynamic> x0, Comparable<dynamic> x1) => f(DDC$RT.cast(x0,
           dynamic, DDC$RT.type((Comparable<dynamic> _) {}), "CastParam",
           """line 1001, column 36 of dart:_internal/iterable.dart: """,
@@ -803,9 +818,9 @@ class IterableMixinWorkaround<T> {
           """line 1001, column 36 of dart:_internal/iterable.dart: """,
           x1 is Comparable<dynamic>, true));
       return f == null ? null : c;
-    }, Comparable.compare, __t8, __t5, "Wrap",
+    }, Comparable.compare, __t15, __t12, "Wrap",
         """line 1001, column 36 of dart:_internal/iterable.dart: """,
-        Comparable.compare is __t5);
+        Comparable.compare is __t12);
     Sort.sort(list, compare);
   }
   static void shuffleList(List list, Random random) {
@@ -951,5 +966,5 @@ abstract class IterableElementError {
   static StateError tooMany() => new StateError("Too many elements");
   static StateError tooFew() => new StateError("Too few elements");
 }
-typedef int __t5(dynamic __u6, dynamic __u7);
-typedef int __t8(Comparable<dynamic> __u9, Comparable<dynamic> __u10);
+typedef int __t12(dynamic __u13, dynamic __u14);
+typedef int __t15(Comparable<dynamic> __u16, Comparable<dynamic> __u17);
