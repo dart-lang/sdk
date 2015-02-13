@@ -14,6 +14,7 @@ import 'src/checker/rules.dart';
 import 'src/codegen/code_generator.dart' show CodeGenerator;
 import 'src/codegen/dart_codegen.dart';
 import 'src/codegen/js_codegen.dart';
+import 'src/options.dart';
 import 'src/report.dart';
 import 'src/info.dart' show LibraryInfo, CheckerResults;
 import 'src/utils.dart' show reachableSources, partsOf;
@@ -28,13 +29,9 @@ StreamSubscription setupLogger(Level level, printFn) {
 }
 
 /// Compiles [inputFile] writing output as specified by the arguments.
-/// [dumpInfoFile] will only be used if [dumpInfo] is true.
-CheckerResults compile(String inputFile, TypeResolver resolver,
-    {CheckerReporter reporter, bool checkSdk: false, bool formatOutput: false,
-    bool outputDart: false, String outputDir, bool dumpInfo: false,
-    String dumpInfoFile, String dumpSrcTo: null, bool forceCompile: false,
-    bool useColors: true, bool covariantGenerics: true,
-    bool relaxedCasts: true}) {
+CheckerResults compile(
+    String inputFile, TypeResolver resolver, CompilerOptions options,
+    [CheckerReporter reporter]) {
   Uri uri;
   if (inputFile.startsWith('dart:') || inputFile.startsWith('package:')) {
     uri = Uri.parse(inputFile);
@@ -43,20 +40,24 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
   }
 
   if (reporter == null) {
-    reporter = dumpInfo ? new SummaryReporter() : new LogReporter(useColors);
+    reporter = options.dumpInfo
+        ? new SummaryReporter()
+        : new LogReporter(options.useColors);
   }
 
   var libraries = <LibraryInfo>[];
   var rules = new RestrictedRules(resolver.context.typeProvider, reporter,
-      covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
+      options: options);
   var codeChecker = new CodeChecker(rules, reporter);
   var generators = <CodeGenerator>[];
-  if (dumpSrcTo != null) {
-    generators.add(new EmptyDartGenerator(dumpSrcTo, uri, rules, formatOutput));
+  if (options.dumpSrcDir != null) {
+    generators.add(new EmptyDartGenerator(
+        options.dumpSrcDir, uri, rules, options.formatOutput));
   }
+  var outputDir = options.outputDir;
   if (outputDir != null) {
-    var cg = outputDart
-        ? new DartGenerator(outputDir, uri, rules, formatOutput)
+    var cg = options.outputDart
+        ? new DartGenerator(outputDir, uri, rules, options.formatOutput)
         : new JSGenerator(outputDir, uri, rules);
     generators.add(cg);
   }
@@ -67,7 +68,7 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
   for (var source in reachableSources(rootSource, resolver.context)) {
     var entryUnit = resolver.context.resolveCompilationUnit2(source, source);
     var lib = entryUnit.element.enclosingElement;
-    if (!checkSdk && lib.isInSdk) continue;
+    if (!options.checkSdk && lib.isInSdk) continue;
     var current = new LibraryInfo(lib);
     reporter.enterLibrary(current);
     libraries.add(current);
@@ -90,21 +91,21 @@ CheckerResults compile(String inputFile, TypeResolver resolver,
 
     if (failureInLib) {
       failure = true;
-      if (!forceCompile) continue;
+      if (!options.forceCompile) continue;
     }
     for (var cg in generators) {
       cg.generateLibrary(units, current, reporter);
     }
   }
 
-  if (dumpInfo && reporter is SummaryReporter) {
+  if (options.dumpInfo && reporter is SummaryReporter) {
     print(summaryToString(reporter.result));
-    if (dumpInfoFile != null) {
-      new File(dumpInfoFile)
+    if (options.dumpInfoFile != null) {
+      new File(options.dumpInfoFile)
           .writeAsStringSync(JSON.encode(reporter.result.toJsonMap()));
     }
   }
-  return new CheckerResults(libraries, rules, failure || forceCompile);
+  return new CheckerResults(libraries, rules, failure || options.forceCompile);
 }
 
 final _log = new Logger('ddc');

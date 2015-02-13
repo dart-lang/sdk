@@ -5,6 +5,7 @@ import 'package:ddc_analyzer/src/generated/element.dart';
 import 'package:ddc_analyzer/src/generated/resolver.dart';
 
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart' show CheckerReporter;
 
 abstract class TypeRules {
@@ -83,14 +84,12 @@ class DartRules extends TypeRules {
 
 class RestrictedRules extends TypeRules {
   final CheckerReporter _reporter;
-  final bool covariantGenerics;
-  final bool relaxedCasts;
+  final RulesOptions options;
   final List<DartType> _primitives;
 
-  RestrictedRules(TypeProvider provider, this._reporter,
-      {this.covariantGenerics: true, this.relaxedCasts: true})
+  RestrictedRules(TypeProvider provider, this._reporter, {this.options})
       : _primitives = [provider.intType, provider.doubleType],
-        super(provider) {}
+        super(provider);
 
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
@@ -217,7 +216,7 @@ class RestrictedRules extends TypeRules {
       for (int i = 0; i < tArgs1.length; i++) {
         DartType t1 = tArgs1[i];
         DartType t2 = tArgs2[i];
-        if (covariantGenerics) {
+        if (options.covariantGenerics) {
           if (!isSubTypeOf(t1, t2)) return false;
         } else {
           if ((t1 != t2) && !t2.isDynamic) return false;
@@ -435,7 +434,7 @@ class RestrictedRules extends TypeRules {
     // are likely to succeed.  The canonical example is List<dynamic> and
     // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
     // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
-    if (relaxedCasts && fromT.isAssignableTo(toT)) {
+    if (options.relaxedCasts && fromT.isAssignableTo(toT)) {
       return Coercion.cast(fromT, toT);
     }
     return Coercion.error();

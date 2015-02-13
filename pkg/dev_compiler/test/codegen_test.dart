@@ -8,6 +8,7 @@ import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:ddc/devc.dart';
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+import 'package:ddc/src/options.dart';
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
@@ -65,11 +66,12 @@ main(arguments) {
     test('devc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      var result = compile(filePath, realSdk,
+      var options = new CompilerOptions(
           outputDir: actualDir,
           useColors: false,
           outputDart: dartGen,
           formatOutput: dartGen);
+      var result = compile(filePath, realSdk, options);
       var success = !result.failure;
 
       // Write compiler messages to disk.
@@ -92,12 +94,13 @@ main(arguments) {
     // For now we're just trying to get decent code generation.
     var testSdk = new TypeResolver.fromDir(path.join(testDir, 'sdk'));
 
-    var result = compile('dart:core', testSdk,
+    var options = new CompilerOptions(
         outputDir: actualDir,
         checkSdk: true,
         forceCompile: true,
         outputDart: dartGen,
         formatOutput: dartGen);
+    var result = compile('dart:core', testSdk, options);
 
     var coreDir = dartGen ? 'dart.core' : 'core';
     var outputDir = new Directory(path.join(actualDir, coreDir));

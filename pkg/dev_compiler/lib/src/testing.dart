@@ -14,6 +14,7 @@ import 'package:ddc/src/checker/dart_sdk.dart'
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:ddc/src/utils.dart';
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart';
 import 'package:ddc/devc.dart' show compile;
 
@@ -49,17 +50,17 @@ CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
   // Create a resolver that can load test files from memory.
   var testUriResolver = new _TestUriResolver(testFiles);
   var resolver = sdkDir == null
-      ? new TypeResolver.fromMock(mockSdkSources, [testUriResolver])
-      : new TypeResolver.fromDir(sdkDir, [testUriResolver]);
+      ? new TypeResolver.fromMock(mockSdkSources,
+          otherResolvers: [testUriResolver])
+      : new TypeResolver.fromDir(sdkDir, otherResolvers: [testUriResolver]);
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
-  var results = compile('/main.dart', resolver,
-      reporter: reporter,
-      covariantGenerics: covariantGenerics,
-      relaxedCasts: relaxedCasts);
+  var options = new CompilerOptions(
+      covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
+  var results = compile('/main.dart', resolver, options, reporter);
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};

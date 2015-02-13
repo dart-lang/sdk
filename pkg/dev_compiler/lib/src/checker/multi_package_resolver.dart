@@ -15,10 +15,8 @@ import 'package:path/path.dart' show join;
 /// packages with dotted names are expanded to a hierarchy of directories, and
 /// packages can be found on one or more locations.
 class MultiPackageResolver extends UriResolver {
-  static List<String> searchPaths =
-      // TODO(sigmund): make this a normal flag instead.
-      const String.fromEnvironment('package_paths', defaultValue: '')
-          .split(',');
+  final List<String> searchPaths;
+  MultiPackageResolver(this.searchPaths);
 
   @override
   Source resolveAbsolute(Uri uri) {

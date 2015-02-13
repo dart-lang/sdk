@@ -4,6 +4,7 @@ library ddc.test.end_to_end;
 import 'dart:io';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:ddc/devc.dart' show compile;
+import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart';
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:path/path.dart' as path;
@@ -17,6 +18,7 @@ main(args) {
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
   test('checker can run on itself ', () {
-    compile('$testDir/../all_tests.dart', realSdk, reporter: new LogReporter());
+    compile('$testDir/../all_tests.dart', realSdk, new CompilerOptions(),
+        new LogReporter());
   });
 }

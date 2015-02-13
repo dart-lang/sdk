@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:ddc/devc.dart' show compile;
 import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
@@ -16,7 +17,8 @@ main() {
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
   _check(testfile) {
-    compile('$testDir/$testfile.dart', mockSdk, reporter: new LogReporter());
+    compile('$testDir/$testfile.dart', mockSdk, new CompilerOptions(),
+        new LogReporter());
   }
 
   test('checker runs correctly (end-to-end)', () {

@@ -17,14 +17,12 @@ import 'package:ddc_analyzer/src/generated/source.dart' show Source;
 import 'package:ddc_analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart' as logger;
 
+import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 
 final _log = new logger.Logger('ddc.src.resolver');
-// TODO(sigmund): make into a proper flag
-const _useMultipackage =
-    const bool.fromEnvironment('use_multi_package', defaultValue: false);
 
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {
@@ -32,13 +30,15 @@ class TypeResolver {
 
   final Map<Uri, Source> _sources = <Uri, Source>{};
 
-  TypeResolver(DartUriResolver sdkResolver, [List otherResolvers]) {
+  TypeResolver(DartUriResolver sdkResolver,
+      {List otherResolvers, ResolverOptions options}) {
     var resolvers = [sdkResolver];
     if (otherResolvers == null) {
+      if (options == null) options = new ResolverOptions();
       resolvers.add(new FileUriResolver());
-      resolvers.add(_useMultipackage
-          ? new MultiPackageResolver()
-          : new PackageUriResolver([new JavaFile('packages/')]));
+      resolvers.add(options.useMultiPackage
+          ? new MultiPackageResolver(options.packagePaths)
+          : new PackageUriResolver([new JavaFile(options.packageRoot)]));
     } else {
       resolvers.addAll(otherResolvers);
     }
@@ -46,14 +46,17 @@ class TypeResolver {
   }
 
   /// Creates a [TypeResolver] that uses a mock 'dart:' library contents.
-  TypeResolver.fromMock(Map<String, String> mockSources, [List otherResolvers])
+  TypeResolver.fromMock(Map<String, String> mockSources,
+      {List otherResolvers, ResolverOptions options})
       : this(new MockDartSdk(mockSources, reportMissing: true).resolver,
-          otherResolvers);
+          otherResolvers: otherResolvers, options: options);
 
   /// Creates a [TypeResolver] that uses the SDK at the given [sdkPath].
-  TypeResolver.fromDir(String sdkPath, [List otherResolvers]) : this(
-          new DartUriResolver(
-              new DirectoryBasedDartSdk(new JavaFile(sdkPath))));
+  TypeResolver.fromDir(String sdkPath,
+      {List otherResolvers, ResolverOptions options})
+      : this(
+          new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath))),
+          otherResolvers: otherResolvers, options: options);
 
   /// Find the corresponding [Source] for [uri].
   Source findSource(Uri uri) {

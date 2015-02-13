@@ -12,6 +12,7 @@ import 'package:logging/logging.dart' show Logger, Level;
 import 'package:ddc/devc.dart';
 import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+import 'package:ddc/src/options.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addFlag(
@@ -37,6 +38,15 @@ final ArgParser argParser = new ArgParser()
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
   ..addFlag('relaxed-casts',
       help: 'Cast between Dart assignable types', defaultsTo: true)
+  ..addOption('package-root',
+      abbr: 'p',
+      help: 'Package root to resolve "package:" imports',
+      defaultsTo: 'packages/')
+  ..addFlag('use-multi-package',
+      help: 'Whether to use the multi-package resolver for "package:" imports',
+      defaultsTo: false)
+  ..addOption('package-paths', help: 'if using the multi-package resolver, '
+      'the list of directories where to look for packages.', defaultsTo: '')
   ..addFlag(
       'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false);
 
@@ -75,22 +85,29 @@ void main(List<String> argv) {
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
   if (!args['dump-info']) setupLogger(level, print);
 
+  var resolverOptions = new ResolverOptions(
+      useMultiPackage: args['use-multi-package'],
+      packageRoot: args['package-root'],
+      packagePaths: args['package-paths'].split(','));
+
   var typeResolver = shouldMockSdk
-      ? new TypeResolver.fromMock(mockSdkSources)
-      : new TypeResolver.fromDir(dartSdkPath);
+      ? new TypeResolver.fromMock(mockSdkSources, options: resolverOptions)
+      : new TypeResolver.fromDir(dartSdkPath, options: resolverOptions);
 
   var filename = args.rest.first;
-  var result = compile(filename, typeResolver,
+  var compilerOptions = new CompilerOptions(
       checkSdk: args['sdk-check'],
       covariantGenerics: args['covariant-generics'],
       dumpInfo: args['dump-info'],
       dumpInfoFile: args['dump-info-file'],
-      dumpSrcTo: args['dump-src-to'],
+      dumpSrcDir: args['dump-src-to'],
       forceCompile: args['force-compile'],
       formatOutput: args['dart-gen-fmt'],
       outputDart: args['dart-gen'],
       outputDir: args['out'],
       relaxedCasts: args['relaxed-casts'],
       useColors: useColors);
+
+  var result = compile(filename, typeResolver, compilerOptions);
   exit(result.failure ? 1 : 0);
 }
