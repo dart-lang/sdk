@@ -1498,9 +1498,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
 
   @override
   bool operator ==(Object object) =>
-      object != null &&
-          runtimeType == object.runtimeType &&
-          source == (object as CompilationUnitElementImpl).source;
+      object is CompilationUnitElementImpl && source == object.source;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
@@ -4814,10 +4812,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // Generate the hashCode
     int code = (returnType as TypeImpl).internalHashCode(visitedTypes);
     for (int i = 0; i < normalParameterTypes.length; i++) {
-      code = (code << 1) + (normalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
+      code = (code << 1) +
+          (normalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
     }
     for (int i = 0; i < optionalParameterTypes.length; i++) {
-      code = (code << 1) + (optionalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
+      code = (code << 1) +
+          (optionalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
     }
     for (DartType type in namedParameterTypes) {
       code = (code << 1) + (type as TypeImpl).internalHashCode(visitedTypes);
@@ -5654,11 +5654,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     if (identical(object, this)) {
       return true;
     }
-    if (object == null) {
-      return false;
-    }
-    return runtimeType == object.runtimeType &&
-        source == (object as HtmlElementImpl).source;
+    return object is HtmlElementImpl && source == object.source;
   }
 
   @override
@@ -7594,10 +7590,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   bool operator ==(Object object) =>
-      object != null &&
-          runtimeType == object.runtimeType &&
-          _definingCompilationUnit ==
-              (object as LibraryElementImpl).definingCompilationUnit;
+      object is LibraryElementImpl &&
+          _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
