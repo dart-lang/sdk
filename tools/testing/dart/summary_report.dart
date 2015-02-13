@@ -36,7 +36,8 @@ class SummaryReport {
     bool containsFail = expectations
         .any((expectation) => expectation.canBeOutcomeOf(Expectation.FAIL));
     bool containsPass = expectations.contains(Expectation.PASS);
-    bool containsSkip = expectations.contains(Expectation.SKIP);
+    bool containsSkip = expectations
+      .any((expectation) => expectation.canBeOutcomeOf(Expectation.SKIP));
     bool containsSkipByDesign =
         expectations.contains(Expectation.SKIP_BY_DESIGN);
     bool containsCrash = expectations.contains(Expectation.CRASH);
