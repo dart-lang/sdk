@@ -18,27 +18,80 @@ abstract class DebuggerCommand extends Command {
 
   DebuggerCommand(this.debugger, name, children)
       : super(name, children);
+
+  String get helpShort;
+  String get helpLong;
 }
 
+// TODO(turnidge): Rewrite HelpCommand so that it is a general utility
+// provided by the cli library.
 class HelpCommand extends DebuggerCommand {
   HelpCommand(Debugger debugger) : super(debugger, 'help', []);
 
   Future run(List<String> args) {
     var con = debugger.console;
-    con.printLine('List of commands:');
-    con.newline();
+    if (args.length == 0) {
+      // Print list of all top-level commands.
+      var commands = debugger.cmd.matchCommand([], false);
+      commands.sort((a, b) => a.name.compareTo(b.name));
+      con.print('List of commands:\n');
+      for (var command in commands) {
+        con.print('${command.name.padRight(12)} - ${command.helpShort}');
+      }
+      con.print(
+          "\nFor more information on a specific command type 'help <command>'\n"
+          "\n"
+          "Command prefixes are accepted (e.g. 'h' for 'help')\n"
+          "Hit [TAB] to complete a command (try 'i[TAB][TAB]')\n"
+          "Hit [ENTER] to repeat the last command\n");
+      return new Future.value(null);
+    } else {
+      // Print any matching commands.
+      var commands = debugger.cmd.matchCommand(args, true);
+      commands.sort((a, b) => a.name.compareTo(b.name));
+      if (commands.isEmpty) {
+        var line = args.join(' ');
+        con.print("No command matches '${line}'");
+        return new Future.value(null);
+      }
+      con.print('');
+      for (var command in commands) {
+        con.printBold(command.fullName);
+        con.print(command.helpLong);
 
-    // TODO(turnidge): Build a real help system.
-    return debugger.cmd.completeCommand('').then((completions) {
-      completions = completions.map((s) => s.trimRight()).toList();
-      completions.sort();
-      con.printLine(completions.toString());
-      con.newline();
-      con.printLine("Command prefixes are accepted (e.g. 'h' for 'help')");
-      con.printLine("Hit [TAB] to complete a command (try 'i[TAB][TAB]')");
-      con.printLine("Hit [ENTER] to repeat the last command");
-    });
+        var newArgs = [];
+        newArgs.addAll(args.take(args.length - 1));
+        newArgs.add(command.name);
+        newArgs.add('');
+        var subCommands = debugger.cmd.matchCommand(newArgs, false);
+        subCommands.remove(command);
+        if (subCommands.isNotEmpty) {
+          subCommands.sort((a, b) => a.name.compareTo(b.name));
+          con.print('Subcommands:\n');
+          for (var subCommand in subCommands) {
+            con.print('    ${subCommand.fullName.padRight(16)} '
+                      '- ${subCommand.helpShort}');
+          }
+          con.print('');
+        }
+      }
+      return new Future.value(null);
+    }
   }
+
+  Future<List<String>> complete(List<String> args) {
+    var commands = debugger.cmd.matchCommand(args, false);
+    var result = commands.map((command) => '${command.fullName} ');
+    return new Future.value(result);
+  }
+
+  String helpShort = 'List commands or provide details about a specific command';
+
+  String helpLong =
+      'List commands or provide details about a specific command.\n'
+      '\n'
+      'Syntax: help            - Show a list of all commands\n'
+      '        help <command>  - Help for a specific command\n';
 }
 
 class PauseCommand extends DebuggerCommand {
@@ -48,10 +101,17 @@ class PauseCommand extends DebuggerCommand {
     if (!debugger.isolatePaused()) {
       return debugger.isolate.pause();
     } else {
-      debugger.console.printLine('The program is already paused');
+      debugger.console.print('The program is already paused');
       return new Future.value(null);
     }
   }
+
+  String helpShort = 'Pause the isolate';
+
+  String helpLong =
+      'Pause the isolate.\n'
+      '\n'
+      'Syntax: pause\n';
 }
 
 class ContinueCommand extends DebuggerCommand {
@@ -63,10 +123,17 @@ class ContinueCommand extends DebuggerCommand {
           debugger.warnOutOfDate();
         });
     } else {
-      debugger.console.printLine('The program must be paused');
+      debugger.console.print('The program must be paused');
       return new Future.value(null);
     }
   }
+
+  String helpShort = 'Resume execution of the isolate';
+
+  String helpLong =
+      'Continue running the isolate.\n'
+      '\n'
+      'Syntax: continue\n';
 }
 
 class NextCommand extends DebuggerCommand {
@@ -76,19 +143,29 @@ class NextCommand extends DebuggerCommand {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
       if (event.eventType == 'IsolateCreated') {
-        debugger.console.printLine("Type 'continue' to start the isolate");
+        debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
       if (event.eventType == 'IsolateShutdown') {
-        debugger.console.printLine("Type 'continue' to exit the isolate");
+        debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
       return debugger.isolate.stepOver();
     } else {
-      debugger.console.printLine('The program is already running');
+      debugger.console.print('The program is already running');
       return new Future.value(null);
     }
   }
+
+  String helpShort =
+      'Continue running the isolate until it reaches the next source location '
+      'in the current function';
+
+  String helpLong =
+      'Continue running the isolate until it reaches the next source location '
+      'in the current function.\n'
+      '\n'
+      'Syntax: next\n';
 }
 
 class StepCommand extends DebuggerCommand {
@@ -98,19 +175,28 @@ class StepCommand extends DebuggerCommand {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
       if (event.eventType == 'IsolateCreated') {
-        debugger.console.printLine("Type 'continue' to start the isolate");
+        debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
       if (event.eventType == 'IsolateShutdown') {
-        debugger.console.printLine("Type 'continue' to exit the isolate");
+        debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
       return debugger.isolate.stepInto();
     } else {
-      debugger.console.printLine('The program is already running');
+      debugger.console.print('The program is already running');
       return new Future.value(null);
     }
   }
+
+  String helpShort =
+      'Continue running the isolate until it reaches the  next source location';
+
+  String helpLong =
+      'Continue running the isolate until it reaches the next source '
+      'location.\n'
+      '\n'
+      'Syntax: step\n';
 }
 
 class FinishCommand extends DebuggerCommand {
@@ -120,10 +206,18 @@ class FinishCommand extends DebuggerCommand {
     if (debugger.isolatePaused()) {
       return debugger.isolate.stepOut();
     } else {
-      debugger.console.printLine('The program is already running');
+      debugger.console.print('The program is already running');
       return new Future.value(null);
     }
   }
+
+  String helpShort =
+      'Continue running the isolate until the current function exits';
+
+  String helpLong =
+      'Continue running the isolate until the current function exits.\n'
+      '\n'
+      'Syntax: finish\n';
 }
 
 class BreakCommand extends DebuggerCommand {
@@ -131,27 +225,27 @@ class BreakCommand extends DebuggerCommand {
 
   Future run(List<String> args) {
     if (args.length > 1) {
-      debugger.console.printLine('not implemented');
+      debugger.console.print('not implemented');
       return new Future.value(null);
     }
     var arg = (args.length == 0 ? '' : args[0]);
     return SourceLocation.parse(debugger, arg).then((loc) {
       if (loc.valid) {
         if (loc.function != null) {
-          debugger.console.printLine(
+          debugger.console.print(
               'Ignoring breakpoint at $loc: '
               'Function entry breakpoints not yet implemented');
           return null;
         }
         if (loc.col != null) {
           // TODO(turnidge): Add tokenPos breakpoint support.
-          debugger.console.printLine(
+          debugger.console.print(
               'Ignoring column: '
               'adding breakpoint at a specific column not yet implemented');
         }
         return debugger.isolate.addBreakpoint(loc.script, loc.line).then((result) {
           if (result is DartError) {
-            debugger.console.printLine('Unable to set breakpoint at ${loc}');
+            debugger.console.print('Unable to set breakpoint at ${loc}');
           } else {
             // TODO(turnidge): Adding a duplicate breakpoint is
             // currently ignored.  May want to change the protocol to
@@ -167,7 +261,7 @@ class BreakCommand extends DebuggerCommand {
               return script.load().then((_) {
                 var line = script.tokenToLine(tokenPos);
                 var col = script.tokenToCol(tokenPos);
-                debugger.console.printLine(
+                debugger.console.print(
                     'Future breakpoint ${bpId} added at '
                     '${script.name}:${line}:${col}');
               });
@@ -175,7 +269,7 @@ class BreakCommand extends DebuggerCommand {
           }
         });
       } else {
-        debugger.console.printLine(loc.errorMessage);
+        debugger.console.print(loc.errorMessage);
       }
     });
   }
@@ -187,6 +281,34 @@ class BreakCommand extends DebuggerCommand {
     // TODO - fix SourceLocation complete
     return new Future.value(SourceLocation.complete(debugger, args[0]));
   }
+
+  String helpShort = 'Add a breakpoint by source location or function name';
+
+  String helpLong =
+      'Add a breakpoint by source location or function name.\n'
+      '\n'
+      'Syntax: break                       '
+      '- Break at the current position\n'
+      '        break <line>                '
+      '- Break at a line in the current script\n'
+      '                                    '
+      '  (e.g \'break 11\')\n'
+      '        break <line>:<col>          '
+      '- Break at a line:col in the current script\n'
+      '                                    '
+      '  (e.g \'break 11:8\')\n'
+      '        break <script>:<line>       '
+      '- Break at a line:col in a specific script\n'
+      '                                    '
+      '  (e.g \'break test.dart:11\')\n'
+      '        break <script>:<line>:<col> '
+      '- Break at a line:col in a specific script\n'
+      '                                    '
+      '  (e.g \'break test.dart:11:8\')\n'
+      '        break <function>            '
+      '- Break at the named function\n'
+      '                                    '
+      '  (e.g \'break main\' or \'break Class.someFunction\')\n';
 }
 
 class ClearCommand extends DebuggerCommand {
@@ -194,21 +316,21 @@ class ClearCommand extends DebuggerCommand {
 
   Future run(List<String> args) {
     if (args.length > 1) {
-      debugger.console.printLine('not implemented');
+      debugger.console.print('not implemented');
       return new Future.value(null);
     }
     var arg = (args.length == 0 ? '' : args[0]);
     return SourceLocation.parse(debugger, arg).then((loc) {
       if (loc.valid) {
         if (loc.function != null) {
-          debugger.console.printLine(
+          debugger.console.print(
               'Ignoring breakpoint at $loc: '
               'Function entry breakpoints not yet implemented');
           return null;
         }
         if (loc.col != null) {
           // TODO(turnidge): Add tokenPos clear support.
-          debugger.console.printLine(
+          debugger.console.print(
               'Ignoring column: '
               'clearing breakpoint at a specific column not yet implemented');
         }
@@ -221,14 +343,14 @@ class ClearCommand extends DebuggerCommand {
             if (line == loc.line) {
               return debugger.isolate.removeBreakpoint(bpt).then((result) {
                 if (result is DartError) {
-                  debugger.console.printLine(
+                  debugger.console.print(
                       'Unable to clear breakpoint at ${loc}: ${result.message}');
                   return;
                 } else {
                   // TODO(turnidge): Add a BreakpointRemoved event to
                   // the service instead of printing here.
                   var bpId = bpt['breakpointNumber'];
-                  debugger.console.printLine(
+                  debugger.console.print(
                       'Breakpoint ${bpId} removed at ${loc}');
                   return;
                 }
@@ -236,9 +358,9 @@ class ClearCommand extends DebuggerCommand {
             }
           }
         }
-        debugger.console.printLine('No breakpoint found at ${loc}');
+        debugger.console.print('No breakpoint found at ${loc}');
       } else {
-        debugger.console.printLine(loc.errorMessage);
+        debugger.console.print(loc.errorMessage);
       }
     });
   }
@@ -249,6 +371,34 @@ class ClearCommand extends DebuggerCommand {
     }
     return new Future.value(SourceLocation.complete(debugger, args[0]));
   }
+
+  String helpShort = 'Remove a breakpoint by source location or function name';
+
+  String helpLong =
+      'Remove a breakpoint by source location or function name.\n'
+      '\n'
+      'Syntax: clear                       '
+      '- Clear at the current position\n'
+      '        clear <line>                '
+      '- Clear at a line in the current script\n'
+      '                                    '
+      '  (e.g \'clear 11\')\n'
+      '        clear <line>:<col>          '
+      '- Clear at a line:col in the current script\n'
+      '                                    '
+      '  (e.g \'clear 11:8\')\n'
+      '        clear <script>:<line>       '
+      '- Clear at a line:col in a specific script\n'
+      '                                    '
+      '  (e.g \'clear test.dart:11\')\n'
+      '        clear <script>:<line>:<col> '
+      '- Clear at a line:col in a specific script\n'
+      '                                    '
+      '  (e.g \'clear test.dart:11:8\')\n'
+      '        clear <function>            '
+      '- Clear at the named function\n'
+      '                                    '
+      '  (e.g \'clear main\' or \'clear Class.someFunction\')\n';
 }
 
 // TODO(turnidge): Add argument completion.
@@ -257,7 +407,7 @@ class DeleteCommand extends DebuggerCommand {
 
   Future run(List<String> args) {
     if (args.length < 1) {
-      debugger.console.printLine('delete expects one or more arguments');
+      debugger.console.print('delete expects one or more arguments');
       return new Future.value(null);
     }
     List toDelete = [];
@@ -271,7 +421,7 @@ class DeleteCommand extends DebuggerCommand {
         }
       }
       if (bpt == null) {
-        debugger.console.printLine("Invalid breakpoint id '${id}'");
+        debugger.console.print("Invalid breakpoint id '${id}'");
         return new Future.value(null);
       }
       toDelete.add(bpt);
@@ -280,11 +430,19 @@ class DeleteCommand extends DebuggerCommand {
     for (var bpt in toDelete) {
       pending.add(debugger.isolate.removeBreakpoint(bpt).then((_) {
             var id = bpt['breakpointNumber'];
-            debugger.console.printLine("Removed breakpoint $id");
+            debugger.console.print("Removed breakpoint $id");
           }));
     }
     return Future.wait(pending);
   }
+
+  String helpShort = 'Remove a breakpoint by breakpoint id';
+
+  String helpLong =
+      'Remove a breakpoint by breakpoint id.\n'
+      '\n'
+      'Syntax: delete <bp-id>\n'
+      '        delete <bp-id> <bp-id> ...\n';
 }
 
 class InfoBreakpointsCommand extends DebuggerCommand {
@@ -294,7 +452,7 @@ class InfoBreakpointsCommand extends DebuggerCommand {
   Future run(List<String> args) {
     return debugger.isolate.reloadBreakpoints().then((_) {
       if (debugger.isolate.breakpoints.isEmpty) {
-        debugger.console.printLine('No breakpoints');
+        debugger.console.print('No breakpoints');
       }
       for (var bpt in debugger.isolate.breakpoints) {
         var bpId = bpt['breakpointNumber'];
@@ -309,11 +467,18 @@ class InfoBreakpointsCommand extends DebuggerCommand {
         if (!bpt['enabled']) {
           extras.write(' disabled');
         }
-        debugger.console.printLine(
+        debugger.console.print(
             'Breakpoint ${bpId} at ${script.name}:${line}:${col}${extras}');
       }
     });
   }
+
+  String helpShort = 'List all breakpoints';
+
+  String helpLong =
+      'List all breakpoints.\n'
+      '\n'
+      'Syntax: info breakpoints\n';
 }
 
 class InfoIsolatesCommand extends DebuggerCommand {
@@ -321,11 +486,19 @@ class InfoIsolatesCommand extends DebuggerCommand {
 
   Future run(List<String> args) {
     for (var isolate in debugger.isolate.vm.isolates) {
-      debugger.console.printLine(
-          "Isolate ${isolate.id} '${isolate.name}'");
+      String current = (isolate == debugger.isolate ? ' *' : '');
+      debugger.console.print(
+          "Isolate ${isolate.id} '${isolate.name}'${current}");
     }
     return new Future.value(null);
   }
+
+  String helpShort = 'List all isolates';
+
+  String helpLong =
+      'List all isolates.\n'
+      '\n'
+      'Syntax: info isolates\n';
 }
 
 class InfoCommand extends DebuggerCommand {
@@ -335,9 +508,16 @@ class InfoCommand extends DebuggerCommand {
   ]);
 
   Future run(List<String> args) {
-    debugger.console.printLine("Invalid info command");
+    debugger.console.print("'info' expects a subcommand (see 'help info')");
     return new Future.value(null);
   }
+
+  String helpShort = 'Show information on a variety of topics';
+
+  String helpLong =
+      'Show information on a variety of topics.\n'
+      '\n'
+      'Syntax: info <subcommand>\n';
 }
 
 class RefreshCoverageCommand extends DebuggerCommand {
@@ -348,21 +528,54 @@ class RefreshCoverageCommand extends DebuggerCommand {
     List pending = [];
     for (var script in scripts) {
       pending.add(script.refreshCoverage().then((_) {
-          debugger.console.printLine('Refreshed coverage for ${script.name}');
+          debugger.console.print('Refreshed coverage for ${script.name}');
         }));
     }
     return Future.wait(pending);
   }
+
+  String helpShort = 'Refresh code coverage information for current frames';
+
+  String helpLong =
+      'Refresh code coverage information for current frames.\n'
+      '\n'
+      'Syntax: refresh coverage\n\n';
+}
+
+class RefreshStackCommand extends DebuggerCommand {
+  RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', []);
+
+  Future run(List<String> args) {
+    Set<Script> scripts = debugger.stackElement.activeScripts();
+    List pending = [];
+    return debugger.refreshStack();
+  }
+
+  String helpShort = 'Refresh isolate stack';
+
+  String helpLong =
+      'Refresh isolate stack.\n'
+      '\n'
+      'Syntax: refresh stack\n';
 }
 
 class RefreshCommand extends DebuggerCommand {
   RefreshCommand(Debugger debugger) : super(debugger, 'refresh', [
       new RefreshCoverageCommand(debugger),
+      new RefreshStackCommand(debugger),
   ]);
 
   Future run(List<String> args) {
-    return debugger.refreshStack();
+    debugger.console.print("'refresh' expects a subcommand (see 'help refresh')");
+    return new Future.value(null);
   }
+
+  String helpShort = 'Refresh debugging information of various sorts';
+
+  String helpLong =
+      'Refresh debugging information of various sorts.\n'
+      '\n'
+      'Syntax: refresh <subcommand>\n';
 }
 
 // Tracks the state for an isolate debugging session.
@@ -451,22 +664,22 @@ class ObservatoryDebugger extends Debugger {
 
   void reportStatus() {
     if (_isolate.idle) {
-      console.printLine('Isolate is idle');
+      console.print('Isolate is idle');
     } else if (_isolate.running) {
-      console.printLine("Isolate is running (type 'pause' to interrupt)");
+      console.print("Isolate is running (type 'pause' to interrupt)");
     } else if (_isolate.pauseEvent != null) {
       _reportPause(_isolate.pauseEvent);
     } else {
-      console.printLine('Isolate is in unknown state');
+      console.print('Isolate is in unknown state');
     }
   }
 
   void _reportPause(ServiceEvent event) {
     if (event.eventType == 'IsolateCreated') {
-      console.printLine(
+      console.print(
           "Paused at isolate start (type 'continue' to start the isolate')");
     } else if (event.eventType == 'IsolateShutdown') {
-      console.printLine(
+      console.print(
           "Paused at isolate exit (type 'continue' to exit the isolate')");
     }
     if (stack['frames'].length > 0) {
@@ -477,13 +690,13 @@ class ObservatoryDebugger extends Debugger {
         var col = script.tokenToCol(frame['tokenPos']);
         if (event.breakpoint != null) {
           var bpId = event.breakpoint['breakpointNumber'];
-          console.printLine('Breakpoint ${bpId} at ${script.name}:${line}:${col}');
+          console.print('Breakpoint ${bpId} at ${script.name}:${line}:${col}');
         } else if (event.exception != null) {
           // TODO(turnidge): Test this.
-          console.printLine(
+          console.print(
               'Exception ${event.exception} at ${script.name}:${line}:${col}');
         } else {
-          console.printLine('Paused at ${script.name}:${line}:${col}');
+          console.print('Paused at ${script.name}:${line}:${col}');
         }
       });
     }
@@ -495,7 +708,7 @@ class ObservatoryDebugger extends Debugger {
     }
     switch(event.eventType) {
       case 'IsolateShutdown':
-        console.printLine('Isolate shutdown');
+        console.print('Isolate shutdown');
         isolate = null;
         break;
 
@@ -508,7 +721,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case 'IsolateResumed':
-        console.printLine('Continuing...');
+        console.print('Continuing...');
         break;
 
       case 'BreakpointResolved':
@@ -517,7 +730,7 @@ class ObservatoryDebugger extends Debugger {
         var tokenPos = event.breakpoint['location']['tokenPos'];
         var line = script.tokenToLine(tokenPos);
         var col = script.tokenToCol(tokenPos);
-        console.printLine(
+        console.print(
             'Breakpoint ${bpId} added at ${script.name}:${line}:${col}');
         break;
 
@@ -528,7 +741,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       default:
-        console.printLine('Unrecognized event: $event');
+        console.print('Unrecognized event: $event');
         break;
     }
   }
@@ -583,7 +796,7 @@ class ObservatoryDebugger extends Debugger {
     return cmd.runCommand(command).then((_) {
       lastCommand = command;
     }).catchError((e) {
-      console.printLine('ERROR $e');
+      console.print('ERROR $e');
     });
   }
 }
@@ -794,20 +1007,24 @@ class DebuggerConsoleElement extends ObservatoryElement {
 
   DebuggerConsoleElement.created() : super.created();
 
-  void printLine(String line) {
-    var div = new DivElement();
-    div.classes.add('normal');
-    div.appendText(line);
-    $['consoleText'].children.add(div);
-    div.scrollIntoView();
+  void print(String line, { bool newline:true }) {
+    var span = new SpanElement();
+    span.classes.add('normal');
+    span.appendText(line);
+    if (newline) {
+      span.appendText('\n');
+    }
+    $['consoleText'].children.add(span);
+    span.scrollIntoView();
   }
 
-  void printBold(String line) {
-    var div = new DivElement();
-    div.classes.add('bold');
-    div.appendText(line);
-    $['consoleText'].children.add(div);
-    div.scrollIntoView();
+  void printBold(String line, { bool newline:true }) {
+    var span = new SpanElement();
+    span.classes.add('bold');
+    span.appendText(line);
+    span.appendText('\n');
+    $['consoleText'].children.add(span);
+    span.scrollIntoView();
   }
 
   void newline() {

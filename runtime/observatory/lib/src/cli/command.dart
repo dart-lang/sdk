@@ -164,6 +164,16 @@ class RootCommand extends _CommandBase {
     }
   }
 
+  // Find all matching commands.  Useful for implementing help systems.
+  List<Command> matchCommand(List<String> args, bool preferExact) {
+    if (args.isEmpty) {
+      // Adding an empty string to the end causes us to match all
+      // subcommands of the last command.
+      args.add('');
+    }
+    return _match(args, preferExact);
+  }
+
   Future run(List<String> args) {
     throw 'should-not-execute-the-root-command';
   }
@@ -175,7 +185,14 @@ class RootCommand extends _CommandBase {
 abstract class Command extends _CommandBase {
   Command(this.name, List<Command> children) : super(children);
 
-  final name;
+  final String name;
+  String get fullName {
+    if (_parent is RootCommand) {
+      return name;
+    } else {
+      return '${_parent.fullName} $name';
+    }
+  }
 
   toString() => 'Command(${name})';
 }
