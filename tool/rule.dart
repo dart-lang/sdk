@@ -30,7 +30,6 @@ void generateTest(String libName, {String outDir}) {
   } else {
     print(generated);
   }
-
 }
 
 /// Generates rule and rule test stub files
@@ -38,10 +37,8 @@ void main([args]) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
   parser.addOption('out', abbr: 'o', help: 'Specifies project root.');
-  parser.addOption(
-      'library',
-      abbr: 'l',
-      help: 'Specifies lower_underscore rule library name.');
+  parser.addOption('library',
+      abbr: 'l', help: 'Specifies lower_underscore rule library name.');
 
   var options;
   try {
@@ -74,7 +71,6 @@ void main([args]) {
   // Generate test stub
   generateTest(libName, outDir: outDir);
 }
-
 
 void printUsage(ArgParser parser, [String error]) {
   var message = 'Generates rule stubs.';
