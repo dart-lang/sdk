@@ -807,6 +807,14 @@ class ObservatoryDebugger extends Debugger {
       console.print('ERROR $e\n$s');
     });
   }
+
+  String historyPrev(String command) {
+    return cmd.historyPrev(command);
+  }
+
+  String historyNext(String command) {
+    return cmd.historyNext(command);
+  }
 }
 
 @CustomTag('debugger-page')
@@ -1049,37 +1057,52 @@ class DebuggerInputElement extends ObservatoryElement {
   @observable ObservatoryDebugger debugger;
   @observable bool busy = false;
 
-  void _notBusy() {
-    busy = false;
-  }
-
   @override
   void ready() {
     super.ready();
     var textBox = $['textBox'];
     textBox.select();
     textBox.onKeyDown.listen((KeyboardEvent e) {
-        // TODO(turnidge): Ignore *all* key events while busy.
+        if (busy) {
+          e.preventDefault();
+          return;
+        }
+        busy = true;
 	switch (e.keyCode) {
           case KeyCode.TAB:
             e.preventDefault();
-            if (!busy) {
-              busy = true;
-              int cursorPos = textBox.selectionStart;
-              debugger.complete(text.substring(0, cursorPos)).then((completion) {
-                text = completion + text.substring(cursorPos);
-                // TODO(turnidge): Move the cursor to the end of the
-                // completion, rather than the end of the string.
-              }).whenComplete(_notBusy);
-            }
+            int cursorPos = textBox.selectionStart;
+            debugger.complete(text.substring(0, cursorPos)).then((completion) {
+              text = completion + text.substring(cursorPos);
+              // TODO(turnidge): Move the cursor to the end of the
+              // completion, rather than the end of the string.
+            }).whenComplete(() {
+              busy = false;
+            });
             break;
+
           case KeyCode.ENTER:
-            if (!busy) {
-              busy = true;
-              var command = text;
+            var command = text;
+            debugger.run(command).whenComplete(() {
               text = '';
-              debugger.run(command).whenComplete(_notBusy);
-            }
+              busy = false;
+            });
+            break;
+
+          case KeyCode.UP:
+            e.preventDefault();
+            text = debugger.historyPrev(text);
+            busy = false;
+            break;
+
+          case KeyCode.DOWN:
+            e.preventDefault();
+            text = debugger.historyNext(text);
+            busy = false;
+            break;
+
+          default:
+            busy = false;
             break;
 	}
       });

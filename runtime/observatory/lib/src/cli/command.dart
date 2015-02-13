@@ -151,6 +151,7 @@ class RootCommand extends _CommandBase {
 
   // Runs a command.
   Future runCommand(String line) {
+    _historyAdvance(line);
     var args = _splitLine(line);
     var commands =  _match(args, true);
     if (commands.isEmpty) {
@@ -172,6 +173,39 @@ class RootCommand extends _CommandBase {
       args.add('');
     }
     return _match(args, preferExact);
+  }
+
+  // Command line history always contains one slot to hold the current
+  // line, so we start off with one entry.
+  List<String> history = [''];
+  int historyPos = 0;
+
+  String historyPrev(String line) {
+    if (historyPos == 0) {
+      return line;
+    }
+    history[historyPos] = line;
+    historyPos--;
+    return history[historyPos];
+  }
+
+  String historyNext(String line) {
+    if (historyPos == history.length - 1) {
+      return line;
+    }
+    history[historyPos] = line;
+    historyPos++;
+    return history[historyPos];
+  }
+
+  void _historyAdvance(String line) {
+    // Replace the last history line.
+    historyPos = history.length - 1;
+    history[historyPos] = line;
+
+    // Create an empty spot for the next line.
+    history.add('');
+    historyPos++;
   }
 
   Future run(List<String> args) {
