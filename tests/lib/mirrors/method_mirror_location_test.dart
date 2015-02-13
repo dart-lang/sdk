@@ -33,7 +33,7 @@ class ClassInMainFile {
   method() {}
 }
 
-topLevelInMainFile() {}
+void topLevelInMainFile() {}
   spaceIdentedInMainFile() {}
 	tabIdentedInMainFile() {}
 

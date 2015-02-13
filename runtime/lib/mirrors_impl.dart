@@ -80,6 +80,9 @@ String _makeSignatureString(TypeMirror returnType,
   return buf.toString();
 }
 
+SourceLocation _location(reflectee)
+    native "DeclarationMirror_location";
+
 List _metadata(reflectee)
     native 'DeclarationMirror_metadata';
 
@@ -325,9 +328,9 @@ class _SyntheticAccessor implements MethodMirror {
         [new _SyntheticSetterParameter(this, this._target)]);
   }
 
+  SourceLocation get location => null;
   List<InstanceMirror> get metadata => emptyList;
   String get source => null;
-  SourceLocation get location => null;
 }
 
 class _SyntheticSetterParameter implements ParameterMirror {
@@ -349,8 +352,8 @@ class _SyntheticSetterParameter implements ParameterMirror {
   bool get isPrivate => false;
   bool get hasDefaultValue => false;
   InstanceMirror get defaultValue => null;
+  SourceLocation get location => null;
   List<InstanceMirror> get metadata => emptyList;
-  SourceLocation get location => throw new UnimplementedError();
 }
 
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
@@ -637,7 +640,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   final bool isTopLevel = true;
 
   SourceLocation get location {
-    throw new UnimplementedError('ClassMirror.location is not implemented');
+    return _location(_reflectee);
   }
 
   ClassMirror _trueSuperclassField;
@@ -1044,6 +1047,10 @@ abstract class _LocalDeclarationMirror extends _LocalMirror
 
   bool get isPrivate => _n(simpleName).startsWith('_');
 
+  SourceLocation get location {
+    return _location(_reflectee);
+  }
+
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
@@ -1075,11 +1082,6 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
 
   bool get isStatic => false;
   bool get isTopLevel => false;
-
-  SourceLocation get location {
-    throw new UnimplementedError(
-        'TypeVariableMirror.location is not implemented');
-  }
 
   TypeMirror _upperBound = null;
   TypeMirror get upperBound {
@@ -1153,10 +1155,6 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
       _owner = _LocalClassMirror._library(_reflectee);
     }
     return _owner;
-  }
-
-  SourceLocation get location {
-    throw new UnimplementedError('TypedefMirror.location is not implemented');
   }
 
   TypeMirror _referent = null;
@@ -1264,10 +1262,6 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
 
   Type get _instantiator => null;
 
-  SourceLocation get location {
-    throw new UnimplementedError('LibraryMirror.location is not implemented');
-  }
-
   Map<Symbol, DeclarationMirror> _declarations;
   Map<Symbol, DeclarationMirror> get declarations {
     if (_declarations != null) return _declarations;
@@ -1281,6 +1275,10 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
       _cachedMembers = _makeMemberMap(_computeMembers(_reflectee));
     }
     return _cachedMembers;
+  }
+
+  SourceLocation get location {
+    return _location(_reflectee);
   }
 
   List<InstanceMirror> get metadata {
@@ -1400,14 +1398,6 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   bool get isTopLevel => owner is LibraryMirror;
   bool get isSynthetic => false;
 
-  SourceLocation _location;
-  SourceLocation get location {
-    if (_location == null) {
-      _location = _MethodMirror_location(_reflectee);
-    }
-    return _location;
-  }
-
   Type get _instantiator {
     var o = owner;
     while (o is MethodMirror) o = o.owner;
@@ -1490,9 +1480,6 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
 
   static String _MethodMirror_source(reflectee)
       native "MethodMirror_source";
-
-  static SourceLocation _MethodMirror_location(reflectee)
-      native "MethodMirror_location";
 }
 
 class _LocalVariableMirror extends _LocalDeclarationMirror
@@ -1512,10 +1499,6 @@ class _LocalVariableMirror extends _LocalDeclarationMirror
       : super(reflectee, _s(simpleName));
 
   bool get isTopLevel => owner is LibraryMirror;
-
-  SourceLocation get location {
-    throw new UnimplementedError('VariableMirror.location is not implemented');
-  }
 
   Type get _instantiator {
     return owner._instantiator;
@@ -1574,6 +1557,10 @@ class _LocalParameterMirror extends _LocalVariableMirror
 
   bool get hasDefaultValue => _defaultValueReflectee != null;
 
+  SourceLocation get location {
+    throw new UnsupportedError("ParameterMirror.location unimplemented");
+  }
+
   List<InstanceMirror> get metadata {
     if (_unmirroredMetadata == null) return emptyList;
     return new UnmodifiableListView(_unmirroredMetadata.map(reflect));
@@ -1611,6 +1598,7 @@ class _SpecialTypeMirror extends _LocalMirror
 
   DeclarationMirror get owner => null;
 
+  SourceLocation get location => null;
   List<InstanceMirror> get metadata => emptyList;
 
   bool get hasReflectedType => simpleName == #dynamic;
@@ -1624,10 +1612,6 @@ class _SpecialTypeMirror extends _LocalMirror
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
-
-  SourceLocation get location {
-    throw new UnimplementedError('TypeMirror.location is not implemented');
-  }
 
   Symbol get qualifiedName => simpleName;
 

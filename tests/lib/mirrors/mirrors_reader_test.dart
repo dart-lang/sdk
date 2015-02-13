@@ -33,6 +33,9 @@ class RuntimeMirrorsReader extends MirrorsReader {
   bool allowUnsupported(var receiver, String tag, UnsupportedError exception) {
     if (mirrorSystemType == '_LocalMirrorSystem') {
       // VM mirror system.
+      if (tag.endsWith('location')) {
+        return receiver is ParameterMirror;
+      }
     } else if (mirrorSystemType == 'JsMirrorSystem') {
       // Dart2js runtime mirror system.
       if (tag.endsWith('.metadata')) {
@@ -48,9 +51,6 @@ class RuntimeMirrorsReader extends MirrorsReader {
 
     if (mirrorSystemType == '_LocalMirrorSystem') {
       // VM mirror system.
-      if (receiver is DeclarationMirror && tag == 'location') {
-        return receiver is! MethodMirror;
-      }
     } else if (mirrorSystemType == 'JsMirrorSystem') {
       // Dart2js runtime mirror system.
       if (receiver is DeclarationMirror && tag == 'location') {

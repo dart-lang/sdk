@@ -1902,23 +1902,86 @@ static RawInstance* CreateSourceLocation(const String& uri,
 }
 
 
-DEFINE_NATIVE_ENTRY(MethodMirror_location, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  const Function& func = Function::Handle(ref.GetFunctionReferent());
-  if (func.IsImplicitConstructor() || func.IsSignatureFunction()) {
-    // These are synthetic methods; they have no source.
-    return Instance::null();
+DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
+  Object& decl = Object::Handle();
+  if (reflectee.IsMirrorReference()) {
+    const MirrorReference& decl_ref = MirrorReference::Cast(reflectee);
+    decl = decl_ref.referent();
+  } else if (reflectee.IsTypeParameter()) {
+    decl = reflectee.raw();
+  } else {
+    UNREACHABLE();
   }
-  const Script& script = Script::Handle(func.script());
+
+  Script& script = Script::Handle();
+  intptr_t token_pos = Scanner::kNoSourcePos;
+
+  if (decl.IsFunction()) {
+    const Function& func = Function::Cast(decl);
+    if (func.IsImplicitConstructor() || func.IsSignatureFunction()) {
+      // These are synthetic methods; they have no source.
+      return Instance::null();
+    }
+    script = func.script();
+    token_pos = func.token_pos();
+  } else if (decl.IsClass()) {
+    const Class& cls = Class::Cast(decl);
+    const bool is_typedef = cls.IsSignatureClass() &&
+                            !cls.IsCanonicalSignatureClass();
+    if (cls.is_synthesized_class() &&
+        !is_typedef &&
+        !cls.is_mixin_app_alias() &&
+        !cls.is_enum_class()) {
+      return Instance::null();  // Synthetic.
+    }
+    script = cls.script();
+    token_pos = cls.token_pos();
+  } else if (decl.IsField()) {
+    const Field& field = Field::Cast(decl);
+    const Class& owner = Class::Handle(field.owner());
+    script = owner.script();
+    token_pos = field.token_pos();
+  } else if (decl.IsTypeParameter()) {
+    const TypeParameter& type_var = TypeParameter::Cast(decl);
+    const Class& owner = Class::Handle(type_var.parameterized_class());
+    script = owner.script();
+    token_pos = type_var.token_pos();
+  } else if (decl.IsLibrary()) {
+    const Library& lib = Library::Cast(decl);
+    if (lib.raw() == Library::NativeWrappersLibrary()) {
+      return Instance::null();  // No source.
+    }
+    const Array& scripts = Array::Handle(lib.LoadedScripts());
+    for (intptr_t i = 0; i < scripts.Length(); i++) {
+      script ^= scripts.At(i);
+      if (script.kind() == RawScript::kLibraryTag) break;
+    }
+    ASSERT(!script.IsNull());
+    const String& libname = String::Handle(lib.name());
+    if (libname.Length() == 0) {
+      // No library declaration.
+      const String& uri = String::Handle(script.url());
+      return CreateSourceLocation(uri, 1, 1);
+    }
+    const TokenStream& stream = TokenStream::Handle(script.tokens());
+    TokenStream::Iterator tkit(stream, 0);
+    if (tkit.CurrentTokenKind() == Token::kSCRIPTTAG) tkit.Advance();
+    token_pos = tkit.CurrentPosition();
+  }
+
+  ASSERT(!script.IsNull());
+  ASSERT(token_pos != Scanner::kNoSourcePos);
+
   const String& uri = String::Handle(script.url());
   intptr_t from_line = 0;
   intptr_t from_col = 0;
   if (script.HasSource()) {
-    script.GetTokenLocation(func.token_pos(), &from_line, &from_col);
+    script.GetTokenLocation(token_pos, &from_line, &from_col);
   } else {
     // Avoid the slow path of printing the token stream when precise source
     // information is not available.
-    script.GetTokenLocation(func.token_pos(), &from_line, NULL);
+    script.GetTokenLocation(token_pos, &from_line, NULL);
   }
   // We should always have at least the line number.
   ASSERT(from_line != 0);

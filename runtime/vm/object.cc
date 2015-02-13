@@ -1421,7 +1421,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, false, cls, 0);            \
+  field = Field::New(field_name, true, false, true, true, cls, 0);             \
   value = Smi::New(k##clazz##Cid);                                             \
   field.set_value(value);                                                      \
   field.set_type(Type::Handle(Type::IntType()));                               \
@@ -3058,6 +3058,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_num_native_fields(field_count);
     cls.set_is_finalized();
     cls.set_is_type_finalized();
+    cls.set_is_synthesized_class();
     library.AddClass(cls);
     return cls.raw();
   } else {

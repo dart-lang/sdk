@@ -18,6 +18,7 @@ math/random_big_test: RuntimeError  # Using bigint seeds for random.
 
 mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
+mirrors/class_mirror_location_test: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
@@ -74,6 +75,7 @@ mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this. When
 mirrors/mirrors_nsm_test/dart2js: RuntimeError # Issue 19353
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test: RuntimeError # Issue 12464
+mirrors/other_declarations_location_test: CompileTimeError # Issue 10905
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 6490
 mirrors/private_symbol_test: CompileTimeError # Issue 13597

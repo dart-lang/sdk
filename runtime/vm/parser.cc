@@ -4158,8 +4158,10 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
                                   const Class& toplevel_class,
                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseEnumDeclaration");
+  const intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos
+                                                      : TokenPos();
   ConsumeToken();
-  const intptr_t enum_pos = TokenPos();
+  const intptr_t name_pos = TokenPos();
   String* enum_name =
       ExpectUserDefinedTypeIdentifier("enum type name expected");
   if (FLAG_trace_parser) {
@@ -4186,10 +4188,10 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
 
   Object& obj = Object::Handle(Z, library_.LookupLocalObject(*enum_name));
   if (!obj.IsNull()) {
-    ReportError(enum_pos, "'%s' is already defined", enum_name->ToCString());
+    ReportError(name_pos, "'%s' is already defined", enum_name->ToCString());
   }
   Class& cls = Class::Handle(Z);
-  cls = Class::New(*enum_name, script_, enum_pos);
+  cls = Class::New(*enum_name, script_, declaration_pos);
   cls.set_library(library_);
   library_.AddClass(cls);
   cls.set_is_synthesized_class();
@@ -4208,6 +4210,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
   bool is_abstract = false;
+  intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos : TokenPos();
   if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
@@ -4231,7 +4234,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       ReportError(classname_pos, "missing class '%s' cannot be patched",
                   class_name.ToCString());
     }
-    cls = Class::New(class_name, script_, classname_pos);
+    cls = Class::New(class_name, script_, declaration_pos);
     library_.AddClass(cls);
   } else {
     if (!obj.IsClass()) {
@@ -4247,7 +4250,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       // otherwise the generic signature classes it defines will not match the
       // patched generic signature classes. Therefore, new signature classes
       // will be introduced and the original ones will not get finalized.
-      cls = Class::New(class_name, script_, classname_pos);
+      cls = Class::New(class_name, script_, declaration_pos);
       cls.set_library(library_);
     } else {
       // Not patching a class, but it has been found. This must be one of the
@@ -4259,7 +4262,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       }
       // Pre-registered classes need their scripts connected at this time.
       cls.set_script(script_);
-      cls.set_token_pos(classname_pos);
+      cls.set_token_pos(declaration_pos);
     }
   }
   ASSERT(!cls.IsNull());
@@ -4399,6 +4402,15 @@ void Parser::ParseClassDefinition(const Class& cls) {
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
+  SkipMetadata();
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kABSTRACT) {
+    ConsumeToken();
+  }
+  ExpectToken(Token::kCLASS);
   const intptr_t class_pos = TokenPos();
   ClassDesc members(cls, class_name, false, class_pos);
   while (CurrentToken() != Token::kLBRACE) {
@@ -4447,6 +4459,9 @@ void Parser::ParseClassDefinition(const Class& cls) {
 void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
   CompilerStats::num_classes_compiled++;
+
+  SkipMetadata();
+  ExpectToken(Token::kENUM);
 
   const String& enum_name = String::Handle(Z, cls.Name());
   ClassDesc enum_members(cls, enum_name, false, cls.token_pos());
@@ -4784,6 +4799,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                           const Class& toplevel_class,
                           intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
+  intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos : TokenPos();
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinAppAlias()) {
@@ -4826,7 +4842,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
       Class::NewSignatureClass(*alias_name,
                                Function::Handle(Z),
                                script_,
-                               alias_name_pos));
+                               declaration_pos));
   library_.AddClass(function_type_alias);
   set_current_class(function_type_alias);
   // Parse the type parameters of the function type.
@@ -4993,6 +5009,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
       ConsumeToken();
       const intptr_t metadata_pos = SkipMetadata();
       const intptr_t type_parameter_pos = TokenPos();
+      const intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos
+                                                          : type_parameter_pos;
       String& type_parameter_name =
           *ExpectUserDefinedTypeIdentifier("type parameter expected");
       // Check for duplicate type parameters.
@@ -5018,7 +5036,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           index,
                                           type_parameter_name,
                                           type_parameter_bound,
-                                          type_parameter_pos);
+                                          declaration_pos);
       type_parameters_array.Add(type_parameter);
       if (metadata_pos >= 0) {
         library_.AddTypeParameterMetadata(type_parameter, metadata_pos);
