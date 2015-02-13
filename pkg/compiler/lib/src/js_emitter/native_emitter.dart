@@ -22,11 +22,6 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionElement> nativeMethods;
 
-  // Do we need the native emitter to take care of handling
-  // noSuchMethod for us? This flag is set to true in the emitter if
-  // it finds any native class that needs noSuchMethod handling.
-  bool handleNoSuchMethod = false;
-
   NativeEmitter(CodeEmitterTask emitterTask)
       : this.emitterTask = emitterTask,
         subtypes = new Map<ClassElement, List<ClassElement>>(),

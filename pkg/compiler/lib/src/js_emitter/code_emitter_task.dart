@@ -283,24 +283,7 @@ class CodeEmitterTask extends CompilerTask {
         .toSet();
     neededClasses.addAll(mixinClasses);
 
-    // 3. If we need noSuchMethod support, we run through all needed
-    // classes to figure out if we need the support on any native
-    // class. If so, we let the native emitter deal with it.
-    if (compiler.enabledNoSuchMethod) {
-      String noSuchMethodName = Compiler.NO_SUCH_METHOD;
-      Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
-      for (ClassElement element in neededClasses) {
-        if (!element.isNative) continue;
-        Element member = element.lookupLocalMember(noSuchMethodName);
-        if (member == null) continue;
-        if (noSuchMethodSelector.applies(member, compiler.world)) {
-          nativeEmitter.handleNoSuchMethod = true;
-          break;
-        }
-      }
-    }
-
-    // 4. Find all classes needed for rti.
+    // 3. Find all classes needed for rti.
     // It is important that this is the penultimate step, at this point,
     // neededClasses must only contain classes that have been resolved and
     // codegen'd. The rtiNeededClasses may contain additional classes, but
@@ -335,7 +318,7 @@ class CodeEmitterTask extends CompilerTask {
       neededClasses.add(compiler.listClass);
     }
 
-    // 5. Finally, sort the classes.
+    // 4. Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     for (ClassElement element in sortedClasses) {

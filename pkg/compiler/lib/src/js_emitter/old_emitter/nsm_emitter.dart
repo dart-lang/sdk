@@ -280,11 +280,6 @@ class NsmEmitter extends CodeEmitterHelper {
           '  objectClassObject = objectClassObject[1];'));
     }
 
-    // TODO(9631): This is no longer valid for native methods.
-    String whatToPatch = emitter.nativeEmitter.handleNoSuchMethod ?
-                         "Object.prototype" :
-                         "objectClassObject";
-
     List<jsAst.Expression> sliceOffsetArguments =
         firstNormalSelector == 0
         ? []
@@ -309,8 +304,8 @@ class NsmEmitter extends CodeEmitterHelper {
           //     createInvocationMirror(String name, internalName, type,
           //         arguments, argumentNames)
           //
-          $whatToPatch[short] = (function(name, short,
-                                          type, #sliceOffsetParams) {
+          objectClassObject[short] = (function(name, short,
+                                               type, #sliceOffsetParams) {
               return function() {
                 return this.#noSuchMethodName(this,
                     #createInvocationMirror(name, short, type,

@@ -530,22 +530,31 @@ class ResolverTask extends CompilerTask {
     }
   }
 
+  bool _isNativeClassOrExtendsNativeClass(ClassElement classElement) {
+    assert(classElement != null);
+    while (classElement != null) {
+      if (classElement.isNative) return true;
+      classElement = classElement.superclass;
+    }
+    return false;
+  }
+
   TreeElements resolveMethodElementImplementation(
       FunctionElement element, FunctionExpression tree) {
     return compiler.withCurrentElement(element, () {
       if (element.isExternal && tree.hasBody()) {
-        compiler.reportError(element,
+        error(element,
             MessageKind.EXTERNAL_WITH_BODY,
             {'functionName': element.name});
       }
       if (element.isConstructor) {
         if (tree.returnType != null) {
-          compiler.reportError(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
+          error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
         }
         if (element.isConst &&
             tree.hasBody() &&
             !tree.isRedirectingFactory) {
-          compiler.reportError(tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
+          error(tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
         }
       }
 
@@ -590,6 +599,14 @@ class ResolverTask extends CompilerTask {
           checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
         }
       }
+
+      // TODO(9631): support noSuchMethod on native classes.
+      if (Elements.isInstanceMethod(element) &&
+          element.name == Compiler.NO_SUCH_METHOD &&
+          _isNativeClassOrExtendsNativeClass(enclosingClass)) {
+        error(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
+      }
+
       return resolutionTree;
     });
 
