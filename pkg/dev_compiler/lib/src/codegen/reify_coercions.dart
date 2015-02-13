@@ -625,7 +625,7 @@ class TypeManager {
     // but rather with the name of the function that they classify.
     if (dType is FunctionType) return _typeNameFromFunctionType(dType);
     String name = dType.name;
-    if (name == null || name == "") {
+    if (name == null || name == "" || dType.isBottom) {
       _log.severe("No name for type, casting through dynamic");
       var d = AstBuilder.identifierFromString("dynamic");
       var t = _mkNewTypeName(d, null);
