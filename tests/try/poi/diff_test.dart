@@ -79,7 +79,8 @@ Future<List<Difference>> testDifference(
   Future<LibraryElement> future = compiler.libraryLoader.loadLibrary(scriptUri);
   return future.then((LibraryElement library) {
     Script sourceScript = new Script(
-        scriptUri, scriptUri, new StringSourceFile('$scriptUri', afterSource));
+        scriptUri, scriptUri,
+        new StringSourceFile.fromUri(scriptUri, afterSource));
     var dartPrivacyIsBroken = compiler.libraryLoader;
     LibraryElement newLibrary = dartPrivacyIsBroken.createLibrarySync(
         null, sourceScript, scriptUri);
