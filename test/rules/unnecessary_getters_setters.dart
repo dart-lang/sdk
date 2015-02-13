@@ -22,6 +22,14 @@ class Box2 {
 
 class Box3 {
   var _contents;
+  get contents { //LINT
+    return _contents;
+  }
+  set contents(value) => _contents = value; //LINT
+}
+
+class Box4 {
+  var _contents;
   get contents {
     return _contents;
   }
@@ -37,3 +45,4 @@ class LowerCase {
     _contents = value.toLowerCase();
   }
 }
+

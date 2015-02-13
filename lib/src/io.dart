@@ -17,12 +17,12 @@ bool lintFile(FileSystemEntity file, {String dartSdkPath, String packageRoot}) {
   var path = file.path;
 
   if (file is Link) {
-    print('Skipping link $path');
+    stdout.writeln('Skipping link $path');
     return false;
   }
 
   if (!isDartFile(file)) {
-    print('Skipping $path (unsupported extenstion)');
+    stdout.writeln('Skipping $path (unsupported extenstion)');
     return false;
   }
 

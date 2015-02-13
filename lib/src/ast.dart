@@ -52,14 +52,15 @@ bool isSimpleGetter(MethodDeclaration declaration) {
 ///       _x = x;
 ///     }
 ///
+/// or:
+///
+///     set(x) => _x = x;
+///
 /// where the static type of the left and right hand sides must be the same.
 bool isSimpleSetter(MethodDeclaration setter) {
   if (setter.body is ExpressionFunctionBody) {
     ExpressionFunctionBody body = setter.body;
-    var expression = body.expression;
-    if (expression is SimpleIdentifier) {
-      return _checkForSimpleSetter(setter, expression);
-    }
+    return _checkForSimpleSetter(setter, body.expression);
   } else if (setter.body is BlockFunctionBody) {
     BlockFunctionBody body = setter.body;
     Block block = body.block;

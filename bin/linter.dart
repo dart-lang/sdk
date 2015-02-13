@@ -47,7 +47,7 @@ void main(List<String> args) {
   for (var path in options.rest) {
     var file = new File(path);
     if (file.existsSync()) {
-      print("Linting $path...");
+      stdout.writeln("Linting $path...");
       if (!lintFile(file)) {
         exitCode = processFileFailedExitCode;
       }

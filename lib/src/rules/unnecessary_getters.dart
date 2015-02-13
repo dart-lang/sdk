@@ -5,7 +5,6 @@
 library unnecessary_getters;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
 
@@ -80,40 +79,9 @@ class Visitor extends SimpleAstVisitor {
     candidates.map((n) => getters[n]).forEach(_visitGetter);
   }
 
-  bool _check(MethodDeclaration getter, Expression expression) {
-    if (expression is SimpleIdentifier) {
-      var staticElement = expression.staticElement;
-      if (staticElement is PropertyAccessorElement) {
-        Element getterElement = getter.element;
-        // Skipping library level getters, test that the enclosing element is
-        // the same
-        if (staticElement.enclosingElement != null &&
-            (staticElement.enclosingElement ==
-                getterElement.enclosingElement)) {
-          return staticElement.isSynthetic && staticElement.variable.isPrivate;
-        }
-      }
-    }
-    return false;
-  }
-
   _visitGetter(MethodDeclaration getter) {
-    if (getter.body is ExpressionFunctionBody) {
-      ExpressionFunctionBody body = getter.body;
-      if (_check(getter, body.expression)) {
-        rule.reportLint(getter);
-      }
-    } else if (getter.body is BlockFunctionBody) {
-      BlockFunctionBody body = getter.body;
-      Block block = body.block;
-      if (block.statements.length == 1) {
-        if (block.statements[0] is ReturnStatement) {
-          ReturnStatement returnStatement = block.statements[0];
-          if (_check(getter, returnStatement.expression)) {
-            rule.reportLint(getter);
-          }
-        }
-      }
+    if (isSimpleGetter(getter)) {
+      rule.reportLint(getter);
     }
   }
 }
