@@ -1094,7 +1094,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   Future<ServiceObject> addBreakpoint(Script script, int line) {
     // TODO(turnidge): Pass line as an int instead of a string.
     Map params = {
-      'script': script.id,
+      'scriptId': script.id,
       'line': '$line',
     };
     return invokeRpc('addBreakpoint', params).then((result) {
@@ -1114,6 +1114,17 @@ class Isolate extends ServiceObjectOwner with Coverage {
         return result;
       });
     });
+  }
+
+  Future<ServiceObject> addBreakpointAtEntry(ServiceFunction function) {
+    return invokeRpc('addBreakpointAtEntry',
+                     { 'functionId': function.id }).then((result) {
+        // TODO(turnidge): Instead of reloading all of the breakpoints,
+        // rely on events to update the breakpoint list.
+        return reloadBreakpoints().then((_) {
+            return result;
+        });
+      });
   }
 
   Future removeBreakpoint(Breakpoint bpt) {

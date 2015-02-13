@@ -298,8 +298,35 @@ class BoolParameter : public MethodParameter {
     return (strcmp("true", value) == 0) || (strcmp("false", value) == 0);
   }
 
-  static bool Interpret(const char* value) {
+  static bool Parse(const char* value) {
     return strcmp("true", value) == 0;
+  }
+};
+
+
+class UIntParameter : public MethodParameter {
+ public:
+  UIntParameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool Validate(const char* value) const {
+    if (value == NULL) {
+      return false;
+    }
+    for (const char* cp = value; *cp != '\0'; cp++) {
+      if (*cp < '0' || *cp > '9') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static intptr_t Parse(const char* value) {
+    char* end_ptr = NULL;
+    uintptr_t result = strtoul(value, &end_ptr, 10);
+    ASSERT(*end_ptr == '\0');  // Parsed full string
+    return result;
   }
 };
 
@@ -1712,25 +1739,19 @@ static bool HandleIsolateGetCoverage(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* add_breakpoint_params[] = {
   ISOLATE_PARAMETER,
+  new IdParameter("scriptId", true),
+  new UIntParameter("line", true),
   NULL,
 };
 
 
 static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
-  if (!js->HasParam("line")) {
-    PrintMissingParamError(js, "line");
-    return true;
-  }
   const char* line_param = js->LookupParam("line");
-  intptr_t line = -1;
-  if (!GetIntegerId(line_param, &line)) {
-    PrintInvalidParamError(js, "line");
-    return true;
-  }
-  const char* script_id = js->LookupParam("script");
+  intptr_t line = UIntParameter::Parse(line_param);
+  const char* script_id = js->LookupParam("scriptId");
   Object& obj = Object::Handle(LookupHeapObject(isolate, script_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
-    PrintInvalidParamError(js, "script");
+    PrintInvalidParamError(js, "scriptId");
     return true;
   }
   const Script& script = Script::Cast(obj);
@@ -1739,6 +1760,35 @@ static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
     PrintError(js, "Unable to set breakpoint at line %s", line_param);
+    return true;
+  }
+  bpt->PrintJSON(js);
+  return true;
+}
+
+
+static const MethodParameter* add_breakpoint_at_entry_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("functionId", true),
+  NULL,
+};
+
+
+static bool HandleIsolateAddBreakpointAtEntry(Isolate* isolate,
+                                              JSONStream* js) {
+  const char* function_id = js->LookupParam("functionId");
+  Object& obj = Object::Handle(LookupHeapObject(isolate, function_id, NULL));
+  if (obj.raw() == Object::sentinel().raw() || !obj.IsFunction()) {
+    PrintInvalidParamError(js, "functionId");
+    return true;
+  }
+  const Function& function = Function::Cast(obj);
+  SourceBreakpoint* bpt =
+      isolate->debugger()->SetBreakpointAtEntry(function);
+  if (bpt == NULL) {
+    const String& funcName = String::Handle(function.PrettyName());
+    PrintError(js, "Unable to set breakpoint at function '%s'",
+               funcName.ToCString());
     return true;
   }
   bpt->PrintJSON(js);
@@ -2450,6 +2500,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     NULL },
   { "addBreakpoint", HandleIsolateAddBreakpoint,
     add_breakpoint_params },
+  { "addBreakpointAtEntry", HandleIsolateAddBreakpointAtEntry,
+    add_breakpoint_at_entry_params },
   { "eval", HandleIsolateEval,
     eval_params },
   { "getAllocationProfile", HandleIsolateGetAllocationProfile,

@@ -190,7 +190,8 @@ abstract class Command extends _CommandBase {
     if (_parent is RootCommand) {
       return name;
     } else {
-      return '${_parent.fullName} $name';
+      Command parent = _parent;
+      return '${parent.fullName} $name';
     }
   }
 

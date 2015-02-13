@@ -24,6 +24,10 @@ interface Service {
                 scriptId string,
                 line string) Breakpoint
 
+  // Adds a breakpoint at the entrypoint of the specified function.
+  addBreakpointAtEntry(isolateId string,
+                       functionId string) Breakpoint
+
   // Removes the specified breakpoint
   removeBreakpoint(isolateId string, breakpointId string) Response
 

@@ -232,46 +232,41 @@ class BreakCommand extends DebuggerCommand {
     return SourceLocation.parse(debugger, arg).then((loc) {
       if (loc.valid) {
         if (loc.function != null) {
-          debugger.console.print(
-              'Ignoring breakpoint at $loc: '
-              'Function entry breakpoints not yet implemented');
-          return null;
-        }
-        if (loc.col != null) {
-          // TODO(turnidge): Add tokenPos breakpoint support.
-          debugger.console.print(
-              'Ignoring column: '
-              'adding breakpoint at a specific column not yet implemented');
-        }
-        return debugger.isolate.addBreakpoint(loc.script, loc.line).then((result) {
-          if (result is DartError) {
-            debugger.console.print('Unable to set breakpoint at ${loc}');
-          } else {
-            // TODO(turnidge): Adding a duplicate breakpoint is
-            // currently ignored.  May want to change the protocol to
-            // inform us when this happens.
-
-            // The BreakpointResolved event prints resolved
-            // breakpoints already.  Just print the unresolved ones here.
-            Breakpoint bpt = result;
-            if (!bpt.resolved) {
-              var script = bpt.script;
-              var bpId = bpt.number;
-              var tokenPos = bpt.tokenPos;
-              return script.load().then((_) {
-                var line = script.tokenToLine(tokenPos);
-                var col = script.tokenToCol(tokenPos);
-                debugger.console.print(
-                    'Future breakpoint ${bpId} added at '
-                    '${script.name}:${line}:${col}');
-              });
-            }
+          return debugger.isolate.addBreakpointAtEntry(loc.function)
+            .then((result) => _handleBreakpointResult(loc, result));
+        } else {
+          assert(loc.script != null);
+          if (loc.col != null) {
+            // TODO(turnidge): Add tokenPos breakpoint support.
+            debugger.console.print(
+                'Ignoring column: '
+                'adding breakpoint at a specific column not yet implemented');
           }
-        });
+          return debugger.isolate.addBreakpoint(loc.script, loc.line)
+            .then((result) => _handleBreakpointResult(loc, result));
+        }
       } else {
         debugger.console.print(loc.errorMessage);
       }
     });
+  }
+
+  Future _handleBreakpointResult(loc, result) {
+    if (result is DartError) {
+      debugger.console.print('Unable to set breakpoint at ${loc}');
+    } else {
+      // TODO(turnidge): Adding a duplicate breakpoint is
+      // currently ignored.  May want to change the protocol to
+      // inform us when this happens.
+
+      // The BreakpointResolved event prints resolved
+      // breakpoints already.  Just print the unresolved ones here.
+      Breakpoint bpt = result;
+      if (!bpt.resolved) {
+        return debugger._reportBreakpointAdded(bpt);
+      }
+    }
+    return new Future.value(null);
   }
 
   Future<List<String>> complete(List<String> args) {
@@ -701,6 +696,26 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
+  Future _reportBreakpointAdded(Breakpoint bpt) {
+    var script = bpt.script;
+    return script.load().then((_) {
+      var bpId = bpt.number;
+      var tokenPos = bpt.tokenPos;
+      var line = script.tokenToLine(tokenPos);
+      var col = script.tokenToCol(tokenPos);
+      if (bpt.resolved) {
+        // TODO(turnidge): If this was a future breakpoint before, we
+        // should change the message to say that the breakpoint was 'resolved',
+        // rather than 'added'.
+        console.print(
+            'Breakpoint ${bpId} added at ${script.name}:${line}:${col}');
+      } else {
+        console.print(
+            'Future breakpoint ${bpId} added at ${script.name}:${line}:${col}');
+      }
+    });
+  }
+
   void _onEvent(ServiceEvent event) {
     if (event.owner != isolate) {
       return;
@@ -724,13 +739,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case 'BreakpointResolved':
-        var bpId = event.breakpoint.number;
-        var script = event.breakpoint.script;
-        var tokenPos = event.breakpoint.tokenPos;
-        var line = script.tokenToLine(tokenPos);
-        var col = script.tokenToCol(tokenPos);
-        console.print(
-            'Breakpoint ${bpId} added at ${script.name}:${line}:${col}');
+        _reportBreakpointAdded(event.breakpoint);
         break;
 
       case '_Graph':
