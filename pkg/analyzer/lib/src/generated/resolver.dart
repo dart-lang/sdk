@@ -7911,36 +7911,18 @@ class LibraryResolver {
    */
   LibraryElement resolveLibrary(Source librarySource, bool fullAnalysis) {
     //
-    // Create the objects representing the library being resolved and the core
-    // library.
+    // Create the object representing the library being resolved and compute
+    // the dependency relationship.  Note that all libraries depend implicitly
+    // on core, and we inject an ersatz dependency on async, so once this is
+    // done the core and async library elements will have been created.
     //
     Library targetLibrary = createLibrary(librarySource);
+    _computeLibraryDependencies(targetLibrary);
     _coreLibrary = _libraryMap[_coreLibrarySource];
-    if (_coreLibrary == null) {
-      // This should only happen if the library being analyzed is the core
-      // library.
-      _coreLibrary = _createLibraryOrNull(_coreLibrarySource);
-      if (_coreLibrary == null) {
-        LibraryResolver2.missingCoreLibrary(
-            analysisContext,
-            _coreLibrarySource);
-      }
-    }
     _asyncLibrary = _libraryMap[_asyncLibrarySource];
-    if (_asyncLibrary == null) {
-      // This should only happen if the library being analyzed is the async
-      // library.
-      _asyncLibrary = _createLibraryOrNull(_asyncLibrarySource);
-      if (_asyncLibrary == null) {
-        LibraryResolver2.missingAsyncLibrary(
-            analysisContext,
-            _asyncLibrarySource);
-      }
-    }
     //
     // Compute the set of libraries that need to be resolved together.
     //
-    _computeLibraryDependencies(targetLibrary);
     _librariesInCycles = _computeLibrariesInCycles(targetLibrary);
     //
     // Build the element models representing the libraries being resolved.
