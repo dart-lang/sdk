@@ -1152,8 +1152,8 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   void checkValidSourceFileLocation(
-      SourceFileLocation location, SourceFile sourceFile, int offset) {
-    if (!location.isValid()) {
+      SourceLocation location, SourceFile sourceFile, int offset) {
+    if (!location.isValid) {
       throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
           {'offset': offset,
            'fileName': sourceFile.filename,
@@ -2515,16 +2515,16 @@ class SsaBuilder extends ResolvedVisitor {
         sourceFileLocationForEndToken(node));
   }
 
-  SourceFileLocation sourceFileLocationForBeginToken(ast.Node node) =>
+  SourceLocation sourceFileLocationForBeginToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getBeginToken());
 
-  SourceFileLocation sourceFileLocationForEndToken(ast.Node node) =>
+  SourceLocation sourceFileLocationForEndToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getEndToken());
 
-  SourceFileLocation sourceFileLocationForToken(ast.Node node, Token token) {
+  SourceLocation sourceFileLocationForToken(ast.Node node, Token token) {
     SourceFile sourceFile = currentSourceFile();
-    SourceFileLocation location =
-        new TokenSourceFileLocation(sourceFile, token, sourceElement.name);
+    SourceLocation location =
+        new TokenSourceLocation(sourceFile, token, sourceElement.name);
     checkValidSourceFileLocation(location, sourceFile, token.charOffset);
     return location;
   }

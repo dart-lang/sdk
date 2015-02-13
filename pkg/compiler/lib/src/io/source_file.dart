@@ -14,9 +14,13 @@ import 'line_column_provider.dart';
  * a UTF-8 encoded [List<int>] of bytes.
  */
 abstract class SourceFile implements LineColumnProvider {
+  /// The absolute URI of the source file.
+  Uri get uri;
 
-  /** The name of the file. */
-  String get filename;
+  /// The name of the file.
+  ///
+  /// This is [uri], maybe relativized to a more human-readable form.
+  String get filename => uri.toString();
 
   /** The text content of the file represented as a String. */
   String slowText();
@@ -165,12 +169,12 @@ abstract class SourceFile implements LineColumnProvider {
 }
 
 class Utf8BytesSourceFile extends SourceFile {
-  final String filename;
+  final Uri uri;
 
   /** The UTF-8 encoded content of the source file. */
   final List<int> content;
 
-  Utf8BytesSourceFile(this.filename, this.content);
+  Utf8BytesSourceFile(this.uri, this.content);
 
   String slowText() => UTF8.decode(content);
 
@@ -195,9 +199,10 @@ class Utf8BytesSourceFile extends SourceFile {
 
 class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
   String cachedText;
+  final String filename;
 
-  CachingUtf8BytesSourceFile(String filename, List<int> content)
-      : super(filename, content);
+  CachingUtf8BytesSourceFile(Uri uri, this.filename, List<int> content)
+      : super(uri, content);
 
   String slowText() {
     if (cachedText == null) {
@@ -208,10 +213,17 @@ class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
 }
 
 class StringSourceFile extends SourceFile {
+  final Uri uri;
   final String filename;
   final String text;
 
-  StringSourceFile(this.filename, this.text);
+  StringSourceFile(this.uri, this.filename, this.text);
+
+  StringSourceFile.fromUri(Uri uri, String text)
+      : this(uri, uri.toString(), text);
+
+  StringSourceFile.fromName(String filename, String text)
+      : this(new Uri(path: filename), filename, text);
 
   int get length => text.length;
   set length(int v) { }

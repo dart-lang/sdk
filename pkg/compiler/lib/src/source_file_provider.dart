@@ -30,7 +30,7 @@ List<int> readAll(String filename) {
 abstract class SourceFileProvider {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = currentDirectory;
-  Map<String, SourceFile> sourceFiles = <String, SourceFile>{};
+  Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
   int dartCharactersRead = 0;
 
   Future<String> readStringFromUri(Uri resourceUri) {
@@ -62,8 +62,9 @@ abstract class SourceFileProvider {
           "$detail");
     }
     dartCharactersRead += source.length;
-    sourceFiles[resourceUri.toString()] =
-        new CachingUtf8BytesSourceFile(relativizeUri(resourceUri), source);
+    sourceFiles[resourceUri] =
+        new CachingUtf8BytesSourceFile(
+            resourceUri, relativizeUri(resourceUri), source);
     return new Future.value(source);
   }
 
@@ -92,8 +93,9 @@ abstract class SourceFileProvider {
              offset += contentPart.length;
            }
            dartCharactersRead += totalLength;
-           sourceFiles[resourceUri.toString()] =
-               new CachingUtf8BytesSourceFile(resourceUri.toString(), result);
+           sourceFiles[resourceUri] =
+               new CachingUtf8BytesSourceFile(
+                   resourceUri, resourceUri.toString(), result);
            return result;
          });
   }
@@ -202,7 +204,7 @@ class FormattingDiagnosticHandler {
     if (uri == null) {
       print('${color(message)}');
     } else {
-      SourceFile file = provider.sourceFiles[uri.toString()];
+      SourceFile file = provider.sourceFiles[uri];
       if (file != null) {
         print(file.getLocationMessage(
           color(message), begin, end, colorize: color));

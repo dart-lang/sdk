@@ -169,8 +169,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough(argument);
   }
 
-  String getDepsOutput(Map<String, SourceFile> sourceFiles) {
-    var filenames = new List.from(sourceFiles.keys);
+  String getDepsOutput(Map<Uri, SourceFile> sourceFiles) {
+    var filenames = sourceFiles.keys.map((uri) => '$uri').toList();
     filenames.sort();
     return filenames.join("\n");
   }

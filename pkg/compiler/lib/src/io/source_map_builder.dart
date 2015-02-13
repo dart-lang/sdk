@@ -7,7 +7,7 @@ library dart2js.source_map_builder;
 import '../util/util.dart';
 import '../util/uri_extras.dart' show relativize;
 import 'line_column_provider.dart';
-import 'source_information.dart' show SourceFileLocation;
+import 'source_information.dart' show SourceLocation;
 
 class SourceMapBuilder {
   static const int VLQ_BASE_SHIFT = 5;
@@ -17,36 +17,40 @@ class SourceMapBuilder {
   static const String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
                                       'opqrstuvwxyz0123456789+/';
 
-  final Uri uri;
-  final Uri fileUri;
+  /// The URI of the source map file.
+  final Uri sourceMapUri;
+  /// The URI of the target language file.
+  final Uri targetFileUri;
 
   LineColumnProvider lineColumnProvider;
   List<SourceMapEntry> entries;
 
-  Map<String, int> sourceUrlMap;
-  List<String> sourceUrlList;
+  Map<Uri, int> sourceUriMap;
+  List<Uri> sourceUriList;
   Map<String, int> sourceNameMap;
   List<String> sourceNameList;
 
   int previousTargetLine;
   int previousTargetColumn;
-  int previousSourceUrlIndex;
+  int previousSourceUriIndex;
   int previousSourceLine;
   int previousSourceColumn;
   int previousSourceNameIndex;
   bool firstEntryInLine;
 
-  SourceMapBuilder(this.uri, this.fileUri, this.lineColumnProvider) {
+  SourceMapBuilder(this.sourceMapUri,
+                   this.targetFileUri,
+                   this.lineColumnProvider) {
     entries = new List<SourceMapEntry>();
 
-    sourceUrlMap = new Map<String, int>();
-    sourceUrlList = new List<String>();
+    sourceUriMap = new Map<Uri, int>();
+    sourceUriList = new List<Uri>();
     sourceNameMap = new Map<String, int>();
     sourceNameList = new List<String>();
 
     previousTargetLine = 0;
     previousTargetColumn = 0;
-    previousSourceUrlIndex = 0;
+    previousSourceUriIndex = 0;
     previousSourceLine = 0;
     previousSourceColumn = 0;
     previousSourceNameIndex = 0;
@@ -54,37 +58,37 @@ class SourceMapBuilder {
   }
 
   resetPreviousSourceLocation() {
-    previousSourceUrlIndex = 0;
+    previousSourceUriIndex = 0;
     previousSourceLine = 0;
     previousSourceColumn = 0;
     previousSourceNameIndex = 0;
   }
 
-  updatePreviousSourceLocation(SourceFileLocation sourceLocation) {
-    previousSourceLine = sourceLocation.getLine();
-    previousSourceColumn = sourceLocation.getColumn();
-    String sourceUrl = sourceLocation.getSourceUrl();
-    previousSourceUrlIndex = indexOf(sourceUrlList, sourceUrl, sourceUrlMap);
-    String sourceName = sourceLocation.getSourceName();
+  updatePreviousSourceLocation(SourceLocation sourceLocation) {
+    previousSourceLine = sourceLocation.line;
+    previousSourceColumn = sourceLocation.column;
+    Uri sourceUri = sourceLocation.sourceUri;
+    previousSourceUriIndex = indexOf(sourceUriList, sourceUri, sourceUriMap);
+    String sourceName = sourceLocation.sourceName;
     if (sourceName != null) {
       previousSourceNameIndex =
           indexOf(sourceNameList, sourceName, sourceNameMap);
     }
   }
 
-  bool sameAsPreviousLocation(SourceFileLocation sourceLocation) {
+  bool sameAsPreviousLocation(SourceLocation sourceLocation) {
     if (sourceLocation == null) {
       return true;
     }
-    int sourceUrlIndex =
-        indexOf(sourceUrlList, sourceLocation.getSourceUrl(), sourceUrlMap);
+    int sourceUriIndex =
+        indexOf(sourceUriList, sourceLocation.sourceUri, sourceUriMap);
     return
-       sourceUrlIndex == previousSourceUrlIndex &&
-       sourceLocation.getLine() == previousSourceLine &&
-       sourceLocation.getColumn() == previousSourceColumn;
+       sourceUriIndex == previousSourceUriIndex &&
+       sourceLocation.line == previousSourceLine &&
+       sourceLocation.column == previousSourceColumn;
   }
 
-  void addMapping(int targetOffset, SourceFileLocation sourceLocation) {
+  void addMapping(int targetOffset, SourceLocation sourceLocation) {
 
     bool sameLine(int position, otherPosition) {
       return lineColumnProvider.getLine(position) ==
@@ -132,17 +136,19 @@ class SourceMapBuilder {
     StringBuffer buffer = new StringBuffer();
     buffer.write('{\n');
     buffer.write('  "version": 3,\n');
-    if (uri != null && fileUri != null) {
-      buffer.write('  "file": "${relativize(uri, fileUri, false)}",\n');
+    if (sourceMapUri != null && targetFileUri != null) {
+      buffer.write(
+          '  "file": "${relativize(sourceMapUri, targetFileUri, false)}",\n');
     }
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
-    if (uri != null) {
-      sourceUrlList =
-          sourceUrlList.map((url) => relativize(uri, Uri.parse(url), false))
-              .toList();
+    List<String> relativeSourceUriList = <String>[];
+    if (sourceMapUri != null) {
+      relativeSourceUriList = sourceUriList
+          .map((u) => relativize(sourceMapUri, u, false))
+          .toList();
     }
-    printStringListOn(sourceUrlList, buffer);
+    printStringListOn(relativeSourceUriList, buffer);
     buffer.write(',\n');
     buffer.write('  "names": ');
     printStringListOn(sourceNameList, buffer);
@@ -177,13 +183,13 @@ class SourceMapBuilder {
 
     if (entry.sourceLocation == null) return;
 
-    String sourceUrl = entry.sourceLocation.getSourceUrl();
-    int sourceLine = entry.sourceLocation.getLine();
-    int sourceColumn = entry.sourceLocation.getColumn();
-    String sourceName = entry.sourceLocation.getSourceName();
+    Uri sourceUri = entry.sourceLocation.sourceUri;
+    int sourceLine = entry.sourceLocation.line;
+    int sourceColumn = entry.sourceLocation.column;
+    String sourceName = entry.sourceLocation.sourceName;
 
-    int sourceUrlIndex = indexOf(sourceUrlList, sourceUrl, sourceUrlMap);
-    encodeVLQ(output, sourceUrlIndex - previousSourceUrlIndex);
+    int sourceUriIndex = indexOf(sourceUriList, sourceUri, sourceUriMap);
+    encodeVLQ(output, sourceUriIndex - previousSourceUriIndex);
     encodeVLQ(output, sourceLine - previousSourceLine);
     encodeVLQ(output, sourceColumn - previousSourceColumn);
 
@@ -197,7 +203,7 @@ class SourceMapBuilder {
     updatePreviousSourceLocation(entry.sourceLocation);
   }
 
-  int indexOf(List<String> list, String value, Map<String, int> map) {
+  int indexOf(List list, value, Map<dynamic, int> map) {
     return map.putIfAbsent(value, () {
       int index = list.length;
       list.add(value);
@@ -224,7 +230,7 @@ class SourceMapBuilder {
 }
 
 class SourceMapEntry {
-  SourceFileLocation sourceLocation;
+  SourceLocation sourceLocation;
   int targetOffset;
 
   SourceMapEntry(this.sourceLocation, this.targetOffset);

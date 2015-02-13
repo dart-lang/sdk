@@ -2213,7 +2213,7 @@ void generateOutput(MockCompiler compiler, String text) {
     var endToken = node.getEndToken();
     int begin = beginToken.charOffset;
     int end = endToken.charOffset + endToken.charCount;
-    SourceFile sourceFile = new StringSourceFile('analysis', text);
+    SourceFile sourceFile = new StringSourceFile.fromName('analysis', text);
     print(sourceFile.getLocationMessage(message.message.toString(),
                                         begin, end));
   }

@@ -220,7 +220,6 @@ class Compiler extends leg.Compiler {
     }
 
     Uri resourceUri = translateUri(node, readableUri);
-    String resourceUriString = '$resourceUri';
     if (resourceUri.scheme == 'dart-ext') {
       if (!allowNativeExtensions) {
         withCurrentElement(element, () {
@@ -236,9 +235,9 @@ class Compiler extends leg.Compiler {
     return new Future.sync(() => callUserProvider(resourceUri)).then((data) {
       SourceFile sourceFile;
       if (data is List<int>) {
-        sourceFile = new Utf8BytesSourceFile(resourceUriString, data);
+        sourceFile = new Utf8BytesSourceFile(resourceUri, data);
       } else if (data is String) {
-        sourceFile = new StringSourceFile(resourceUriString, data);
+        sourceFile = new StringSourceFile.fromUri(resourceUri, data);
       } else {
         String message = "Expected a 'String' or a 'List<int>' from the input "
                          "provider, but got: ${Error.safeToString(data)}.";
@@ -260,8 +259,8 @@ class Compiler extends leg.Compiler {
     return new Future.value(
         new leg.Script(
             readableUri, resourceUri,
-            new StringSourceFile(
-                '$resourceUri',
+            new StringSourceFile.fromUri(
+                resourceUri,
                 "// Synthetic source file generated for '$readableUri'."),
             isSynthesized: true));
   }

@@ -10,7 +10,7 @@ import 'source_information.dart';
 
 class CodeOutputMarker {
   final int offsetDelta;
-  final SourceFileLocation sourcePosition;
+  final SourceLocation sourcePosition;
 
   CodeOutputMarker(this.offsetDelta, this.sourcePosition);
 }
@@ -43,7 +43,7 @@ abstract class CodeOutput {
 
   /// Applies [f] to every marker in this output.
   void forEachSourceLocation(void f(int targetOffset,
-                                    SourceFileLocation sourceLocation));
+                                    SourceLocation sourceLocation));
 }
 
 abstract class AbstractCodeOutput extends CodeOutput {
@@ -91,7 +91,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
     --mappedRangeCounter;
   }
 
-  void setSourceLocation(SourceFileLocation sourcePosition) {
+  void setSourceLocation(SourceLocation sourcePosition) {
     if (sourcePosition == null) {
       if (markers.length > 0 && markers.last.sourcePosition == null) return;
     }

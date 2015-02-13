@@ -272,7 +272,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     var sourcePath = path.fromUri(resourceUri);
     return _readResource(resourceUri).then((source) {
       _sourceFiles[resourceUri.toString()] =
-          new StringSourceFile(path.relative(sourcePath), source);
+          new StringSourceFile(resourceUri, path.relative(sourcePath), source);
       return source;
     });
   }
