@@ -160,13 +160,13 @@
         </div>
       </template>
 
-      <template if="{{ line.bpt != null && !line.bpt['resolved'] && !busy}}">
+      <template if="{{ line.bpt != null && !line.bpt.resolved && !busy}}">
         <div class="unresolvedBreakpoint">
           <a on-click="{{ toggleBreakpoint }}">B</a>
         </div>
       </template>
 
-      <template if="{{ line.bpt != null && line.bpt['resolved'] && !busy}}">
+      <template if="{{ line.bpt != null && line.bpt.resolved && !busy}}">
         <div class="resolvedBreakpoint">
           <a on-click="{{ toggleBreakpoint }}">B</a>
         </div>

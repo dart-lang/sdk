@@ -253,11 +253,11 @@ class BreakCommand extends DebuggerCommand {
 
             // The BreakpointResolved event prints resolved
             // breakpoints already.  Just print the unresolved ones here.
-            ServiceMap bpt = result;
-            if (!bpt['resolved']) {
-              var script = bpt['location']['script'];
-              var bpId = bpt['breakpointNumber'];
-              var tokenPos = bpt['location']['tokenPos'];
+            Breakpoint bpt = result;
+            if (!bpt.resolved) {
+              var script = bpt.script;
+              var bpId = bpt.number;
+              var tokenPos = bpt.tokenPos;
               return script.load().then((_) {
                 var line = script.tokenToLine(tokenPos);
                 var col = script.tokenToCol(tokenPos);
@@ -336,10 +336,10 @@ class ClearCommand extends DebuggerCommand {
         }
 
         for (var bpt in debugger.isolate.breakpoints) {
-          var script = bpt['location']['script'];
+          var script = bpt.script;
           if (script.id == loc.script.id) {
             assert(script.loaded);
-            var line = script.tokenToLine(bpt['location']['tokenPos']);
+            var line = script.tokenToLine(bpt.tokenPos);
             if (line == loc.line) {
               return debugger.isolate.removeBreakpoint(bpt).then((result) {
                 if (result is DartError) {
@@ -349,9 +349,8 @@ class ClearCommand extends DebuggerCommand {
                 } else {
                   // TODO(turnidge): Add a BreakpointRemoved event to
                   // the service instead of printing here.
-                  var bpId = bpt['breakpointNumber'];
-                  debugger.console.print(
-                      'Breakpoint ${bpId} removed at ${loc}');
+                  var bpId = bpt.number;
+                  debugger.console.print('Breakpoint ${bpId} removed at ${loc}');
                   return;
                 }
               });
@@ -410,26 +409,26 @@ class DeleteCommand extends DebuggerCommand {
       debugger.console.print('delete expects one or more arguments');
       return new Future.value(null);
     }
-    List toDelete = [];
+    List toRemove = [];
     for (var arg in args) {
       int id = int.parse(arg);
-      var bpt = null;
-      for (var candidate in debugger.isolate.breakpoints) {
-        if (candidate['breakpointNumber'] == id) {
-          bpt = candidate;
+      var bptToRemove = null;
+      for (var bpt in debugger.isolate.breakpoints) {
+        if (bpt.number == id) {
+          bptToRemove = bpt;
           break;
         }
       }
-      if (bpt == null) {
+      if (bptToRemove == null) {
         debugger.console.print("Invalid breakpoint id '${id}'");
         return new Future.value(null);
       }
-      toDelete.add(bpt);
+      toRemove.add(bptToRemove);
     }
     List pending = [];
-    for (var bpt in toDelete) {
+    for (var bpt in toRemove) {
       pending.add(debugger.isolate.removeBreakpoint(bpt).then((_) {
-            var id = bpt['breakpointNumber'];
+            var id = bpt.number;
             debugger.console.print("Removed breakpoint $id");
           }));
     }
@@ -455,16 +454,16 @@ class InfoBreakpointsCommand extends DebuggerCommand {
         debugger.console.print('No breakpoints');
       }
       for (var bpt in debugger.isolate.breakpoints) {
-        var bpId = bpt['breakpointNumber'];
-        var script = bpt['location']['script'];
-        var tokenPos = bpt['location']['tokenPos'];
+        var bpId = bpt.number;
+        var script = bpt.script;
+        var tokenPos = bpt.tokenPos;
         var line = script.tokenToLine(tokenPos);
         var col = script.tokenToCol(tokenPos);
         var extras = new StringBuffer();
-        if (!bpt['resolved']) {
+        if (!bpt.resolved) {
           extras.write(' unresolved');
         }
-        if (!bpt['enabled']) {
+        if (!bpt.enabled) {
           extras.write(' disabled');
         }
         debugger.console.print(
@@ -689,7 +688,7 @@ class ObservatoryDebugger extends Debugger {
         var line = script.tokenToLine(frame['tokenPos']);
         var col = script.tokenToCol(frame['tokenPos']);
         if (event.breakpoint != null) {
-          var bpId = event.breakpoint['breakpointNumber'];
+          var bpId = event.breakpoint.number;
           console.print('Breakpoint ${bpId} at ${script.name}:${line}:${col}');
         } else if (event.exception != null) {
           // TODO(turnidge): Test this.
@@ -725,9 +724,9 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case 'BreakpointResolved':
-        var bpId = event.breakpoint['breakpointNumber'];
-        var script = event.breakpoint['location']['script'];
-        var tokenPos = event.breakpoint['location']['tokenPos'];
+        var bpId = event.breakpoint.number;
+        var script = event.breakpoint.script;
+        var tokenPos = event.breakpoint.tokenPos;
         var line = script.tokenToLine(tokenPos);
         var col = script.tokenToCol(tokenPos);
         console.print(
@@ -795,8 +794,8 @@ class ObservatoryDebugger extends Debugger {
     console.printBold('\$ $command');
     return cmd.runCommand(command).then((_) {
       lastCommand = command;
-    }).catchError((e) {
-      console.print('ERROR $e');
+    }).catchError((e, s) {
+      console.print('ERROR $e\n$s');
     });
   }
 }

@@ -57,12 +57,12 @@ var tests = [
 
       // Add the breakpoint.
       var script = isolate.rootLib.scripts[0];
-      return isolate.addBreakpoint(script, 14).then((ServiceObject bpt) {
-          expect(bpt is ServiceMap, isTrue);
-          ServiceMap m = bpt;
-          expect(m.type, equals('Breakpoint'));
-          expect(m['location']['script'].id, equals(script.id));
-          expect(m['location']['tokenPos'], equals(51));
+      return isolate.addBreakpoint(script, 14).then((result) {
+          expect(result is Breakpoint, isTrue);
+          Breakpoint bpt = result;
+          expect(bpt.type, equals('Breakpoint'));
+          expect(bpt.script.id, equals(script.id));
+          expect(bpt.tokenPos, equals(51));
           expect(isolate.breakpoints.length, equals(1));
           return completer.future;  // Wait for breakpoint events.
       });

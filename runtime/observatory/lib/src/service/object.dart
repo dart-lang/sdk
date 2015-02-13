@@ -123,6 +123,9 @@ abstract class ServiceObject extends Observable {
     var obj = null;
     assert(type != 'VM');
     switch (type) {
+      case 'Breakpoint':
+        obj = new Breakpoint._empty(owner);
+        break;
       case 'Class':
         obj = new Class._empty(owner);
         break;
@@ -1021,11 +1024,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return node;
   }
 
-  ObservableList breakpoints = new ObservableList();
+  ObservableList<Breakpoint> breakpoints = new ObservableList();
 
-  void _removeBreakpoint(ServiceMap bpt) {
-    var script = bpt['location']['script'];
-    var tokenPos = bpt['location']['tokenPos'];
+  void _removeBreakpoint(Breakpoint bpt) {
+    var script = bpt.script;
+    var tokenPos = bpt.tokenPos;
     assert(tokenPos != null);
     if (script.loaded) {
       var line = script.tokenToLine(tokenPos);
@@ -1037,9 +1040,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
   }
 
-  void _addBreakpoint(ServiceMap bpt) {
-    var script = bpt['location']['script'];
-    var tokenPos = bpt['location']['tokenPos'];
+  void _addBreakpoint(Breakpoint bpt) {
+    var script = bpt.script;
+    var tokenPos = bpt.tokenPos;
     assert(tokenPos != null);
     if (script.loaded) {
       var line = script.tokenToLine(tokenPos);
@@ -1069,7 +1072,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     breakpoints.addAll(newBreakpoints['breakpoints']);
 
     // Sort the breakpoints by breakpointNumber.
-    breakpoints.sort((a, b) => (a['breakpointNumber'] - b['breakpointNumber']));
+    breakpoints.sort((a, b) => (a.number - b.number));
   }
 
   Future<ServiceObject> _inProgressReloadBpts;
@@ -1090,34 +1093,40 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   Future<ServiceObject> addBreakpoint(Script script, int line) {
     // TODO(turnidge): Pass line as an int instead of a string.
-    return invokeRpc('addBreakpoint',
-                     { 'script': script.id, 'line': '$line' }).then((result) {
-        if (result is ServiceMap &&
-            result.type == 'Breakpoint' &&
-            result['resolved'] &&
-            script.loaded &&
-            script.tokenToLine(result['location']['tokenPos']) != line) {
-          // Unable to set a breakpoint at desired line.
-          script.lines[line - 1].possibleBpt = false;
-        }
-        // TODO(turnidge): Instead of reloading all of the breakpoints,
-        // rely on events to update the breakpoint list.
-        return reloadBreakpoints().then((_) {
-            return result;
-        });
+    Map params = {
+      'script': script.id,
+      'line': '$line',
+    };
+    return invokeRpc('addBreakpoint', params).then((result) {
+      if (result is DartError) {
+        return result;
+      }
+      Breakpoint bpt = result;
+      if (bpt.resolved &&
+          script.loaded &&
+          script.tokenToLine(result.tokenPos) != line) {
+        // Unable to set a breakpoint at desired line.
+        script.lines[line - 1].possibleBpt = false;
+      }
+      // TODO(turnidge): Instead of reloading all of the breakpoints,
+      // rely on events to update the breakpoint list.
+      return reloadBreakpoints().then((_) {
+        return result;
       });
+    });
   }
 
-  Future removeBreakpoint(ServiceMap bpt) {
+  Future removeBreakpoint(Breakpoint bpt) {
     return invokeRpc('removeBreakpoint',
                      { 'breakpointId': bpt.id }).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
+          return result;
         }
         if (pauseEvent != null &&
             pauseEvent.breakpoint != null &&
-            (pauseEvent.breakpoint['id'] == bpt['id'])) {
+            (pauseEvent.breakpoint.id == bpt.id)) {
           return isolate.reload();
         } else {
           return reloadBreakpoints();
@@ -1420,7 +1429,7 @@ class ServiceEvent extends ServiceObject {
   }
 
   @observable String eventType;
-  @observable ServiceMap breakpoint;
+  @observable Breakpoint breakpoint;
   @observable ServiceMap exception;
   @observable ByteData data;
   @observable int count;
@@ -1448,6 +1457,48 @@ class ServiceEvent extends ServiceObject {
   String toString() {
     return 'ServiceEvent of type $eventType with '
         '${data == null ? 0 : data.lengthInBytes} bytes of binary data';
+  }
+}
+
+class Breakpoint extends ServiceObject {
+  Breakpoint._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  // TODO(turnidge): Add state to track if a breakpoint has been
+  // removed from the program.  Remove from the cache when deleted.
+  bool get canCache => true;
+  bool get immutable => false;
+
+  // A unique integer identifier for this breakpoint.
+  @observable int number;
+
+  // Source location information.
+  @observable Script script;
+  @observable int tokenPos;
+
+  // The breakpoint has been assigned to a final source location.
+  @observable bool resolved;
+
+  // The breakpoint is active.
+  @observable bool enabled;
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _loaded = true;
+    _upgradeCollection(map, owner);
+
+    number = map['breakpointNumber'];
+    script = map['location']['script'];
+    tokenPos = map['location']['tokenPos'];
+
+    resolved = map['resolved'];
+    enabled = map['enabled'];
+  }
+
+  String toString() {
+    if (number != null) {
+      return 'Breakpoint ${number} at ${script.name}(token:${tokenPos})';
+    } else {
+      return 'Uninitialized breakpoint';
+    }
   }
 }
 
@@ -1896,7 +1947,7 @@ class ScriptLine extends Observable {
   final int line;
   final String text;
   @observable int hits;
-  @observable ServiceMap bpt;
+  @observable Breakpoint bpt;
   @observable bool possibleBpt = true;
 
   bool get isBlank {
@@ -1945,10 +1996,8 @@ class ScriptLine extends Observable {
 
     // TODO(turnidge): This is not so efficient.  Consider improving.
     for (var bpt in this.script.isolate.breakpoints) {
-      var bptScript = bpt['location']['script'];
-      var bptTokenPos = bpt['location']['tokenPos'];
-      if (bptScript == this.script &&
-          bptScript.tokenToLine(bptTokenPos) == line) {
+      if (bpt.script == this.script &&
+          bpt.script.tokenToLine(bpt.tokenPos) == line) {
         this.bpt = bpt;
       }
     }
