@@ -128,12 +128,17 @@ class ProcessCommand extends Command {
       deepJsonCompare(environmentOverrides, other.environmentOverrides);
 
   String get reproductionCommand {
+    var env = new StringBuffer();
+    environmentOverrides.forEach((key, value) =>
+        (io.Platform.operatingSystem == 'windows') ?
+            env.write('set $key=${escapeCommandLineArgument(value)} & ') :
+            env.write('$key=${escapeCommandLineArgument(value)} '));
     var command = ([executable]..addAll(arguments))
         .map(escapeCommandLineArgument).join(' ');
     if (workingDirectory != null) {
       command = "$command (working directory: $workingDirectory)";
     }
-    return command;
+    return "$env$command";
   }
 
   Future<bool> get outputIsUpToDate => new Future.value(false);
