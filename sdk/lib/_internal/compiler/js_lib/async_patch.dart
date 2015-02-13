@@ -38,6 +38,7 @@ class _AsyncRun {
         JS('', 'self.document') != null) {
       // Use mutationObservers.
       var div = JS('', 'self.document.createElement("div")');
+      var span = JS('', 'self.document.createElement("span")');
       var storedCallback;
 
       internalCallback(_) {
@@ -56,7 +57,11 @@ class _AsyncRun {
         assert(storedCallback == null);
         enterJsAsync();
         storedCallback = callback;
-        JS('', '#.hidden = !#.hidden', div, div);
+        // Because of a broken shadow-dom polyfill we have to change the
+        // children instead a cheap property.
+        // See https://github.com/Polymer/ShadowDOM/issues/468
+        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)',
+            div, div, span, div, span);
       };
     } else if (JS('', 'self.setImmediate') != null) {
       return _scheduleImmediateWithSetImmediate;
