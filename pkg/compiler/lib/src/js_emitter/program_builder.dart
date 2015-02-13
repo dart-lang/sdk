@@ -353,6 +353,15 @@ class ProgramBuilder {
       });
     }
 
+    if (element == backend.closureClass) {
+      // We add a special getter here to allow for tearing off a closure from
+      // itself.
+      String name = namer.getterNameFromAccessorName(
+          namer.getMappedInstanceName(Compiler.CALL_OPERATOR_NAME));
+      js.Fun function = js.js('function() { return this; }');
+      callStubs.add(_buildStubMethod(name, function));
+    }
+
     ClassElement implementation = element.implementation;
 
     // MixinApplications run through the members of their mixin. Here, we are
