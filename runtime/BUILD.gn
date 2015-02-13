@@ -45,6 +45,13 @@ config("dart_config") {
       "-O3",
     ]
   }
+
+  if (is_asan) {
+    ldflags = [
+      "-Wl,-u_sanitizer_options_link_helper",
+      "-fsanitize=address",
+    ]
+  }
 }
 
 

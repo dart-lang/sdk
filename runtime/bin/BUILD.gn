@@ -149,6 +149,7 @@ executable("gen_snapshot") {
   ]
 
   sources = [
+    "address_sanitizer.cc",
     "gen_snapshot.cc",
     # Very limited native resolver provided.
     "builtin_common.cc",
