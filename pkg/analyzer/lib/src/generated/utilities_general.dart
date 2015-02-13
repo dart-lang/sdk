@@ -10,21 +10,49 @@ library engine.utilities.general;
 import 'dart:profiler';
 
 /**
+ * Jenkins hash function, optimized for small integers.
+ * Borrowed from sdk/lib/math/jenkins_smi_hash.dart.
+ */
+class JenkinsSmiHash {
+  static int combine(int hash, int value) {
+    hash = 0x1fffffff & (hash + value);
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+
+  static int hash2(a, b) => finish(combine(combine(0, a), b));
+
+  static int hash4(a, b, c, d) =>
+      finish(combine(combine(combine(combine(0, a), b), c), d));
+}
+
+/**
  * Helper class for gathering performance statistics.  This class is modeled on
  * the UserTag class in dart:profiler so that it can interoperate easily with
  * it.
  */
 abstract class PerformanceTag {
   /**
-   * Return the [PerformanceTag] that is initially current.  This is intended
-   * to track time when the system is performing unknown operations.
+   * Return a list of all [PerformanceTag]s which have been created.
    */
-  static PerformanceTag get UNKNOWN => _PerformanceTagImpl.UNKNOWN;
+  static List<PerformanceTag> get all => _PerformanceTagImpl.all.toList();
 
   /**
    * Return the current [PerformanceTag] for the isolate.
    */
   static PerformanceTag get current => _PerformanceTagImpl.current;
+
+  /**
+   * Return the [PerformanceTag] that is initially current.  This is intended
+   * to track time when the system is performing unknown operations.
+   */
+  static PerformanceTag get UNKNOWN => _PerformanceTagImpl.UNKNOWN;
 
   /**
    * Create a [PerformanceTag] having the given [label].  A [UserTag] will also
@@ -34,22 +62,17 @@ abstract class PerformanceTag {
   factory PerformanceTag(String label) = _PerformanceTagImpl;
 
   /**
-   * Return the label for this [PerformanceTag].
-   */
-  String get label;
-
-  /**
-   * Return a list of all [PerformanceTag]s which have been created.
-   */
-  static List<PerformanceTag> get all => _PerformanceTagImpl.all.toList();
-
-  /**
    * Return the total number of milliseconds that this [PerformanceTag] has
    * been the current [PerformanceTag] for the isolate.
    *
    * This call is safe even if this [PerformanceTag] is current.
    */
   int get elapsedMs;
+
+  /**
+   * Return the label for this [PerformanceTag].
+   */
+  String get label;
 
   /**
    * Make this the current tag for the isolate, and return the previous tag.
@@ -79,9 +102,6 @@ class _PerformanceTagImpl implements PerformanceTag {
    */
   static List<_PerformanceTagImpl> all = <_PerformanceTagImpl>[];
 
-  @override
-  String get label => userTag.label;
-
   /**
    * The [UserTag] associated with this [PerformanceTag].
    */
@@ -99,6 +119,12 @@ class _PerformanceTagImpl implements PerformanceTag {
   }
 
   @override
+  int get elapsedMs => stopwatch.elapsedMilliseconds;
+
+  @override
+  String get label => userTag.label;
+
+  @override
   PerformanceTag makeCurrent() {
     if (identical(this, current)) {
       return current;
@@ -110,7 +136,4 @@ class _PerformanceTagImpl implements PerformanceTag {
     userTag.makeCurrent();
     return previous;
   }
-
-  @override
-  int get elapsedMs => stopwatch.elapsedMilliseconds;
 }

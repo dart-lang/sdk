@@ -21,6 +21,7 @@ import 'sdk.dart' show DartSdk;
 import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 /**
@@ -3279,14 +3280,19 @@ class ElementLocationImpl implements ElementLocation {
  */
 class ElementPair {
   /**
-   * The first [Element]
+   * The first [Element].
    */
   final Element _first;
 
   /**
-   * The second [Element]
+   * The second [Element].
    */
   final Element _second;
+
+  /**
+   * A cached copy of the calculated hashCode for this element.
+   */
+  int _cachedHashCode;
 
   /**
    * The sole constructor for this class, taking two [Element]s.
@@ -3294,7 +3300,9 @@ class ElementPair {
    * @param first the first element
    * @param second the second element
    */
-  ElementPair(this._first, this._second);
+  ElementPair(this._first, this._second) {
+    _cachedHashCode = JenkinsSmiHash.hash2(_first.hashCode, _second.hashCode);
+  }
 
   /**
    * Return the first element.
@@ -3304,8 +3312,9 @@ class ElementPair {
   Element get firstElt => _first;
 
   @override
-  int get hashCode =>
-      ObjectUtilities.combineHashCodes(_first.hashCode, _second.hashCode);
+  int get hashCode {
+    return _cachedHashCode;
+  }
 
   /**
    * Return the second element
@@ -3319,11 +3328,9 @@ class ElementPair {
     if (identical(object, this)) {
       return true;
     }
-    if (object is ElementPair) {
-      ElementPair elementPair = object;
-      return (_first == elementPair._first) && (_second == elementPair._second);
-    }
-    return false;
+    return object is ElementPair &&
+        _first == object._first &&
+        _second == object._second;
   }
 }
 
@@ -9282,8 +9289,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements
   }
 
   @override
-  int get hashCode =>
-      ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
+  int get hashCode => JenkinsSmiHash.hash2(super.hashCode, isGetter ? 1 : 2);
 
   @override
   String get identifier {

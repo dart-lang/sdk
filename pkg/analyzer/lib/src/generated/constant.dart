@@ -14,12 +14,12 @@ import 'element.dart';
 import 'engine.dart' show AnalysisEngine, RecordingErrorListener;
 import 'error.dart';
 import 'java_core.dart';
-import 'java_engine.dart' show ObjectUtilities;
 import 'resolver.dart' show TypeProvider;
 import 'scanner.dart' show Token, TokenType;
 import 'source.dart' show Source;
 import 'utilities_collection.dart';
 import 'utilities_dart.dart' show ParameterKind;
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the class `BoolState` represent the state of an object representing a boolean
@@ -2210,8 +2210,7 @@ class DartObjectImpl implements DartObject {
   bool get hasExactValue => _state.hasExactValue;
 
   @override
-  int get hashCode =>
-      ObjectUtilities.combineHashCodes(type.hashCode, _state.hashCode);
+  int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
 
   @override
   int get intValue {
