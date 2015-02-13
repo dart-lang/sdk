@@ -790,7 +790,7 @@ class AsyncRewriter extends js.NodeVisitor {
     if (hasTryBlocks) {
       inits.add(makeInit(handlerName, new js.LiteralNull()));
     }
-    if (hasJumpThroughFinally) {
+    if (hasJumpThroughFinally || analysis.hasYield) {
       inits.add(makeInit(nextName, null));
     }
     if (analysis.hasExplicitReturns && isAsync) {
@@ -1753,6 +1753,8 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
 
   bool hasThis = false;
 
+  bool hasYield = false;
+
   // The function currently being analyzed.
   js.Fun currentFunction;
 
@@ -2143,6 +2145,7 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
 
   @override
   bool visitDartYield(js.DartYield node) {
+    hasYield = true;
     visit(node.expression);
     return true;
   }
