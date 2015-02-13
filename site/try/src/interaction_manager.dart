@@ -1106,7 +1106,7 @@ class CodeCompletionState extends InitialState {
 }
 
 Token tokenize(String text) {
-  var file = new StringSourceFile('', text);
+  var file = new StringSourceFile.fromName('', text);
   return new StringScanner(file, includeComments: true).tokenize();
 }
 
