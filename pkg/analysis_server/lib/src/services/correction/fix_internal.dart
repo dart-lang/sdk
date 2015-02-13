@@ -1520,13 +1520,13 @@ class FixProcessor {
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       // TODO(scheglov) use librariesToImport
       String typeSource = utils.getTypeSource(type, librariesToImport);
-      {
+      if (typeSource != 'dynamic') {
         sb.startPosition('TYPE$i');
         sb.append(typeSource);
         _addSuperTypeProposals(sb, new Set(), type);
         sb.endPosition();
+        sb.append(' ');
       }
-      sb.append(' ');
       // append parameter name
       {
         List<String> suggestions =

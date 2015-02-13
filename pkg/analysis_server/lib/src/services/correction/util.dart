@@ -944,6 +944,10 @@ class CorrectionUtils {
     if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
       return "Function";
     }
+    // BottomType
+    if (type.isBottom) {
+      return 'dynamic';
+    }
     // prepare element
     Element element = type.element;
     if (element == null) {

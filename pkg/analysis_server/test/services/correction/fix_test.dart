@@ -2182,6 +2182,40 @@ main() {
 ''');
   }
 
+  void test_undefinedFunction_create_dynamicArgument() {
+    _indexTestUnit('''
+main() {
+  dynamic v;
+  test(v);
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  dynamic v;
+  test(v);
+}
+
+void test(v) {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_dynamicReturnType() {
+    _indexTestUnit('''
+main() {
+  dynamic v = test();
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  dynamic v = test();
+}
+
+test() {
+}
+''');
+  }
+
   void test_undefinedFunction_create_fromFunction() {
     _indexTestUnit('''
 main() {
@@ -2258,6 +2292,22 @@ class A {
 }
 
 void process(List<int> items) {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_nullArgument() {
+    _indexTestUnit('''
+main() {
+  test(null);
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  test(null);
+}
+
+void test(arg0) {
 }
 ''');
   }
