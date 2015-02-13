@@ -52,6 +52,7 @@ spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
+issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
 message3_test/constList: RuntimeError # Issue 21817
 message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError  # Issue 21817
