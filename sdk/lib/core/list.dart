@@ -441,6 +441,10 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *     list.join(', '); // '1, 6, 7, 5'
    *
    * An error occurs if [start]..[end] is not a valid range for `this`.
+   *
+   * This method does not work on fixed-length lists, even when [replacement]
+   * has the same number of elements as the replaced range. In that case use
+   * [setRange] instead.
    */
   void replaceRange(int start, int end, Iterable<E> replacement);
 

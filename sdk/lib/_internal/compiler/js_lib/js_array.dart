@@ -139,18 +139,48 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return false;
   }
 
+  /**
+   * Removes elements matching [test] from [this] List.
+   */
   void removeWhere(bool test(E element)) {
-    // This could, and should, be optimized.
-    IterableMixinWorkaround.removeWhereList(this, test);
+    checkGrowable('removeWhere');
+    _removeWhere(test, true);
   }
 
   void retainWhere(bool test(E element)) {
-    IterableMixinWorkaround.removeWhereList(this,
-                                            (E element) => !test(element));
+    checkGrowable('retainWhere');
+    _removeWhere(test, false);
+  }
+
+  void _removeWhere(bool test(E element), bool removeMatching) {
+    // Performed in two steps, to avoid exposing an inconsistent state
+    // to the [test] function. First the elements to retain are found, and then
+    // the original list is updated to contain those elements.
+
+    // TODO(sra): Replace this algorthim with one that retains a list of ranges
+    // to be removed.  Most real uses remove 0, 1 or a few clustered elements.
+
+    List retained = [];
+    int end = this.length;
+    for (int i = 0; i < end; i++) {
+      // TODO(22407): Improve bounds check elimination to allow this JS code to
+      // be replaced by indexing.
+      var element = JS('', '#[#]', this, i);
+      // !test() ensures bool conversion in checked mode.
+      if (!test(element) == removeMatching) {
+        retained.add(element);
+      }
+      if (this.length != end) throw new ConcurrentModificationError(this);
+    }
+    if (retained.length == end) return;
+    this.length = retained.length;
+    for (int i = 0; i < retained.length; i++) {
+      this[i] = retained[i];
+    }
   }
 
   Iterable<E> where(bool f(E element)) {
-    return new IterableMixinWorkaround<E>().where(this, f);
+    return new WhereIterable<E>(this, f);
   }
 
   Iterable expand(Iterable f(E element)) {
@@ -168,17 +198,18 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void forEach(void f(E element)) {
-    int length = this.length;
-    for (int i = 0; i < length; i++) {
-      f(JS('', '#[#]', this, i));
-      if (length != this.length) {
-        throw new ConcurrentModificationError(this);
-      }
+    int end = this.length;
+    for (int i = 0; i < end; i++) {
+      // TODO(22407): Improve bounds check elimination to allow this JS code to
+      // be replaced by indexing.
+      var element = JS('', '#[#]', this, i);
+      f(element);
+      if (this.length != end) throw new ConcurrentModificationError(this);
     }
   }
 
   Iterable map(f(E element)) {
-    return IterableMixinWorkaround.mapList(this, f);
+    return new MappedListIterable(this, f);
   }
 
   String join([String separator = ""]) {
@@ -214,7 +245,16 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   E firstWhere(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+    var end = this.length;
+    for (int i = 0; i < end; ++i) {
+      // TODO(22407): Improve bounds check elimination to allow this JS code to
+      // be replaced by indexing.
+      var element = JS('', '#[#]', this, i);
+      if (test(element)) return element;
+      if (this.length != end) throw new ConcurrentModificationError(this);
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
   }
 
   E lastWhere(bool test(E value), {E orElse()}) {
@@ -255,18 +295,18 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   E get first {
     if (length > 0) return this[0];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   E get last {
     if (length > 0) return this[length - 1];
-    throw new StateError("No elements");
+    throw IterableElementError.noElement();
   }
 
   E get single {
     if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
   }
 
   void removeRange(int start, int end) {
@@ -278,12 +318,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (end < start || end > receiverLength) {
       throw new RangeError.range(end, start, receiverLength);
     }
-    Lists.copy(this,
-               end,
-               this,
-               start,
-               receiverLength - end);
-    this.length = receiverLength - (end - start);
+    int deleteCount = end - start;
+    JS('', '#.splice(#, #)', this, start, deleteCount);
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
@@ -301,9 +337,29 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
   }
 
-  bool any(bool f(E element)) => IterableMixinWorkaround.any(this, f);
+  bool any(bool test(E element)) {
+    int end = this.length;
+    for (int i = 0; i < end; i++) {
+      // TODO(22407): Improve bounds check elimination to allow this JS code to
+      // be replaced by indexing.
+      var element = JS('', '#[#]', this, i);
+      if (test(element)) return true;
+      if (this.length != end) throw new ConcurrentModificationError(this);
+    }
+    return false;
+  }
 
-  bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
+  bool every(bool test(E element)) {
+    int end = this.length;
+    for (int i = 0; i < end; i++) {
+      // TODO(22407): Improve bounds check elimination to allow this JS code to
+      // be replaced by indexing.
+      var element = JS('', '#[#]', this, i);
+      if (!test(element)) return false;
+      if (this.length != end) throw new ConcurrentModificationError(this);
+    }
+    return true;
+  }
 
   Iterable<E> get reversed =>
       new IterableMixinWorkaround<E>().reversedList(this);
