@@ -1405,9 +1405,10 @@ main() {
             List l1 = [1, 2, 3];
             l1 = <int>[1, 2, 3];
 
-            Iterable<int> i2 = /*pass should be severe:StaticTypeError*/[1, 2, 3];
-            i2 = /*pass should be warning:DownCastDynamic*/i1;
-            i2 = /*pass should be severe:StaticTypeError*/l1;
+            Iterable<int> i2 = /*warning:DownCastLiteral*/[1, 2, 3];
+            i2 = /*warning:DownCastDynamic*/i1;
+            i2 = /*warning:DownCastDynamic*/l1;
+            i2 = <int>[1, 2, 3];
 
             List<int> l2 = /*warning:DownCastLiteral*/[1, 2, 3];
             l2 = /*info:DownCast*/i1;

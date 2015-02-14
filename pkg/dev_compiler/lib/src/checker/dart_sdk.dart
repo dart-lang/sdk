@@ -113,17 +113,17 @@ final Map<String, String> mockSdkSources = {
         class Symbol {}
         class Type {}
 
-        class String extends Object {}
-        class bool extends Object {}
-        class num extends Object {
+        class String {}
+        class bool {}
+        class num {
           num operator +(num other) {}
         }
         class int extends num {}
         class double extends num {}
-        class DateTime extends Object {}
-        class Null extends Object {}
+        class DateTime {}
+        class Null {}
 
-        class Deprecated extends Object {
+        class Deprecated {
           final String expires;
           const Deprecated(this.expires);
         }
@@ -133,8 +133,9 @@ final Map<String, String> mockSdkSources = {
         class _Proxy { const _Proxy(); }
         const Object proxy = const _Proxy();
 
-        class List<V> extends Object {}
-        class Map<K, V> extends Object {}
+        class Iterable<E> {}
+        class List<E> implements Iterable<E> {}
+        class Map<K, V> {}
         ''',
   'dart:async': '''
         class Future<T> {
